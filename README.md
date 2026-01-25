@@ -119,6 +119,7 @@ tokmd init --profile cpp
 
 - **[Recipe Book](docs/recipes.md)**: Real-world examples (LLM contexts, auditing vendors, CI tracking).
 - **[Receipt Schema](docs/SCHEMA.md)**: Detailed specification of the JSON output format.
+- **[Formal JSON Schema](docs/schema.json)**: Machine-readable schema definition.
 - **[Roadmap](ROADMAP.md)**: Path to v1.0 and future plans.
 
 ## License

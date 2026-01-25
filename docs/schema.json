@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tokmd Receipt",
+  "description": "Output schema for tokmd (language, module, and export reports)",
+  "oneOf": [
+    { "$ref": "#/definitions/LangReceipt" },
+    { "$ref": "#/definitions/ModuleReceipt" },
+    { "$ref": "#/definitions/ExportReceipt" },
+    { "$ref": "#/definitions/ExportMeta" },
+    { "$ref": "#/definitions/ExportRow" }
+  ],
+  "definitions": {
+    "LangReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "lang" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": {
+          "type": "object",
+          "properties": {
+            "top": { "type": "integer" },
+            "with_files": { "type": "boolean" },
+            "children": { "$ref": "#/definitions/ChildrenMode" }
+          }
+        },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/LangRow" } },
+        "total": { "$ref": "#/definitions/Totals" }
+      }
+    },
+    "ModuleReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "module" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": {
+          "type": "object",
+          "properties": {
+            "top": { "type": "integer" },
+            "module_roots": { "type": "array", "items": { "type": "string" } },
+            "module_depth": { "type": "integer" },
+            "children": { "$ref": "#/definitions/ChildIncludeMode" }
+          }
+        },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/ModuleRow" } },
+        "total": { "$ref": "#/definitions/Totals" }
+      }
+    },
+    "ExportReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } }
+      }
+    },
+    "ExportMeta": {
+      "type": "object",
+      "required": ["type", "schema_version", "tool", "mode", "scan", "args"],
+      "properties": {
+        "type": { "type": "string", "const": "meta" },
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" }
+      }
+    },
+    "ExportRow": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "row" },
+        "path": { "type": "string" },
+        "module": { "type": "string" },
+        "lang": { "type": "string" },
+        "kind": { "enum": ["parent", "child"] },
+        "code": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "blanks": { "type": "integer" },
+        "lines": { "type": "integer" }
+      }
+    },
+    "ToolInfo": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "ScanArgs": {
+      "type": "object",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" } },
+        "excluded": { "type": "array", "items": { "type": "string" } },
+        "config": { "enum": ["auto", "none"] },
+        "hidden": { "type": "boolean" },
+        "no_ignore": { "type": "boolean" }
+      }
+    },
+    "ExportArgsMeta": {
+      "type": "object",
+      "properties": {
+        "format": { "enum": ["csv", "jsonl", "json"] },
+        "min_code": { "type": "integer" },
+        "max_rows": { "type": "integer" },
+        "redact": { "enum": ["none", "paths", "all"] }
+      }
+    },
+    "Totals": {
+      "type": "object",
+      "required": ["code", "lines", "files", "avg_lines"],
+      "properties": {
+        "code": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "files": { "type": "integer" },
+        "avg_lines": { "type": "integer" }
+      }
+    },
+    "LangRow": {
+      "type": "object",
+      "required": ["lang", "code", "lines", "files", "avg_lines"],
+      "properties": {
+        "lang": { "type": "string" },
+        "code": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "files": { "type": "integer" },
+        "avg_lines": { "type": "integer" }
+      }
+    },
+    "ModuleRow": {
+      "type": "object",
+      "required": ["module", "code", "lines", "files", "avg_lines"],
+      "properties": {
+        "module": { "type": "string" },
+        "code": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "files": { "type": "integer" },
+        "avg_lines": { "type": "integer" }
+      }
+    },
+    "FileRow": {
+      "type": "object",
+      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"],
+      "properties": {
+        "path": { "type": "string" },
+        "module": { "type": "string" },
+        "lang": { "type": "string" },
+        "kind": { "enum": ["parent", "child"] },
+        "code": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "blanks": { "type": "integer" },
+        "lines": { "type": "integer" }
+      }
+    },
+    "ChildrenMode": {
+      "enum": ["collapse", "separate"]
+    },
+    "ChildIncludeMode": {
+      "enum": ["separate", "parents-only"]
+    }
+  }
+}

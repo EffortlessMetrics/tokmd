@@ -1,5 +1,7 @@
 # tokmd Receipt Schema (v1)
 
+> **Note**: A machine-readable JSON Schema definition is available at [schema.json](schema.json).
+
 `tokmd` produces structured JSON outputs called "receipts". These schemas are stable and intended for machine consumption.
 
 All JSON outputs share a common envelope structure.

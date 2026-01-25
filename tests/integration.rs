@@ -240,6 +240,57 @@ fn test_children_separate() {
 }
 
 #[test]
+fn test_init_command() {
+    // Given: A temporary directory (mimicked by checking output for now, 
+    // as we don't want to dirty tests/data/src)
+    // When: We run `init --print`
+    // Then: It should output the default .tokeignore content
+    let mut cmd = tokmd_cmd();
+    cmd.arg("init")
+        .arg("--print")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("# .tokeignore"));
+}
+
+#[test]
+fn test_module_custom_roots() {
+    // Given: A file structure where we can simulate roots. 
+    // 'src' is a folder in tests/data.
+    // When: We run module report with --module-roots src --module-depth 1
+    // Then: Files in src/ should be grouped under 'src' (which is the default behavior anyway,
+    // but we verify the flag is accepted and works).
+    // A better test would be if we had nested folders.
+    // Let's assume src/main.rs.
+    // If we say --module-roots src, and depth 1, key should be 'src'.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("module")
+        .arg("--module-roots")
+        .arg("src")
+        .arg("--module-depth")
+        .arg("1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("|src|"));
+}
+
+#[test]
+fn test_module_custom_roots_miss() {
+    // Given: src/main.rs
+    // When: We set module roots to something that DOESN'T match, like 'crates'
+    // Then: The file should fall back to its top-level directory 'src' 
+    // (or (root) if it was at root).
+    // src/main.rs -> top level is 'src'.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("module")
+        .arg("--module-roots")
+        .arg("crates") // Doesn't match 'src'
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("|src|"));
+}
+
+#[test]
 fn test_format_csv() {
     // Given: Standard files
     // When: We export as CSV

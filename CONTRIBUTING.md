@@ -55,5 +55,6 @@ We prioritize deterministic outputs. This is critical because `tokmd` is used to
 
 `tokmd` treats outputs as "receipts". If you modify the JSON output structure:
 1.  Ensure `schema_version` is handled correctly.
-2.  Verify backward compatibility if possible.
-3.  Update the relevant struct definitions in `src/model.rs`.
+2.  Update the struct definitions in `src/model.rs` and `src/format.rs`.
+3.  Update the formal schema in `docs/schema.json`.
+4.  Run tests to verify backward compatibility if possible.
