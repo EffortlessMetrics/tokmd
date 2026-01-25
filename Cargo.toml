@@ -1,0 +1,42 @@
+[package]
+name = "tokmd"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+description = "Tokei-backed repo inventory receipts: Markdown/TSV for humans, JSONL/CSV for pipelines."
+readme = "README.md"
+# Update these when you publish.
+homepage = "https://github.com/EffortlessMetrics/tokmd"
+repository = "https://github.com/EffortlessMetrics/tokmd"
+keywords = ["tokei", "loc", "markdown", "jsonl", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+default-run = "tokmd"
+autobins = false
+
+[features]
+default = []
+alias-tok = []
+
+[[bin]]
+name = "tokmd"
+path = "src/bin/tokmd.rs"
+
+[[bin]]
+name = "tok"
+path = "src/bin/tok.rs"
+required-features = ["alias-tok"]
+
+[dependencies]
+anyhow = "1.0.100"
+blake3 = "1.8.3"
+clap = { version = "4.5.54", features = ["derive"] }
+csv = "1.4.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokei = { version = "14.0.0", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
