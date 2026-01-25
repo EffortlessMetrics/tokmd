@@ -50,7 +50,11 @@ fn now_ms() -> u128 {
 
 fn scan_args(global: &GlobalArgs) -> ScanArgs {
     ScanArgs {
-        paths: global.paths.iter().map(|p| p.display().to_string()).collect(),
+        paths: global
+            .paths
+            .iter()
+            .map(|p| p.display().to_string())
+            .collect(),
         excluded: global.excluded.clone(),
         config: global.config,
         hidden: global.hidden,
@@ -165,7 +169,10 @@ fn render_lang_tsv(report: &LangReport) -> String {
         for r in &report.rows {
             s.push_str(&format!("{}\t{}\t{}\n", r.lang, r.code, r.lines));
         }
-        s.push_str(&format!("Total\t{}\t{}\n", report.total.code, report.total.lines));
+        s.push_str(&format!(
+            "Total\t{}\t{}\n",
+            report.total.code, report.total.lines
+        ));
     }
 
     s
@@ -195,7 +202,11 @@ struct ModuleArgsMeta {
     children: ChildIncludeMode,
 }
 
-pub fn print_module_report(report: &ModuleReport, global: &GlobalArgs, args: &ModuleArgs) -> Result<()> {
+pub fn print_module_report(
+    report: &ModuleReport,
+    global: &GlobalArgs,
+    args: &ModuleArgs,
+) -> Result<()> {
     match args.format {
         TableFormat::Md => {
             print!("{}", render_module_md(report));
@@ -312,7 +323,12 @@ pub fn write_export(export: &ExportData, global: &GlobalArgs, args: &ExportArgs)
     Ok(())
 }
 
-fn write_export_to<W: Write>(out: &mut W, export: &ExportData, global: &GlobalArgs, args: &ExportArgs) -> Result<()> {
+fn write_export_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
     match args.format {
         ExportFormat::Csv => write_export_csv(out, export, args),
         ExportFormat::Jsonl => write_export_jsonl(out, export, global, args),
@@ -322,7 +338,9 @@ fn write_export_to<W: Write>(out: &mut W, export: &ExportData, global: &GlobalAr
 
 fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArgs) -> Result<()> {
     let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(out);
-    wtr.write_record(["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"])?;
+    wtr.write_record([
+        "path", "module", "lang", "kind", "code", "comments", "blanks", "lines",
+    ])?;
 
     for r in redact_rows(&export.rows, args.redact) {
         wtr.write_record([
@@ -344,7 +362,12 @@ fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArg
     Ok(())
 }
 
-fn write_export_jsonl<W: Write>(out: &mut W, export: &ExportData, global: &GlobalArgs, args: &ExportArgs) -> Result<()> {
+fn write_export_jsonl<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
     if args.meta {
         let meta = ExportMeta {
             ty: "meta",
@@ -377,7 +400,12 @@ fn write_export_jsonl<W: Write>(out: &mut W, export: &ExportData, global: &Globa
     Ok(())
 }
 
-fn write_export_json<W: Write>(out: &mut W, export: &ExportData, global: &GlobalArgs, args: &ExportArgs) -> Result<()> {
+fn write_export_json<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
     if args.meta {
         #[derive(Serialize)]
         struct ExportReceipt {
@@ -410,7 +438,11 @@ fn write_export_json<W: Write>(out: &mut W, export: &ExportData, global: &Global
         };
         writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
     } else {
-        writeln!(out, "{}", serde_json::to_string(&redact_rows(&export.rows, args.redact))?)?;
+        writeln!(
+            out,
+            "{}",
+            serde_json::to_string(&redact_rows(&export.rows, args.redact))?
+        )?;
     }
     Ok(())
 }
