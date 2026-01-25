@@ -75,12 +75,12 @@ For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
 ### 📝 Milestone 6: Documentation & Polish (Target: v0.9.5)
 **Goal**: Users understand the "Receipt" concept.
 
-- [ ] **Recipe Book**: Add `docs/recipes.md`:
+- [x] **Recipe Book**: Add `docs/recipes.md`:
     - "How to track repo growth over time"
     - "How to feed a codebase to an LLM safely"
     - "How to audit vendor dependencies"
-- [ ] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow`.
-- [ ] **Final Argument Audit**: Rename/alias flags if they feel clunky (e.g., check `no_ignore_vcs` usability).
+- [x] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow`.
+- [x] **Final Argument Audit**: Rename/alias flags if they feel clunky (e.g., check `no_ignore_vcs` usability).
 
 ### 🚀 Milestone 7: v1.0.0 Launch
 **Goal**: Stability.

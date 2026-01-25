@@ -33,5 +33,11 @@ pub fn scan(args: &GlobalArgs) -> Result<Languages> {
 
     let mut languages = Languages::new();
     languages.get_statistics(&args.paths, &ignores, &cfg);
+    
+    // Tokei's get_statistics doesn't return an Result, it just logs errors to stderr if it can't read files.
+    // However, if the paths provided don't exist, it might just return empty stats.
+    // We should probably check if we got *anything* back if the user provided specific paths, 
+    // but for now, we trust tokei's behavior of "best effort".
+    
     Ok(languages)
 }

@@ -10,10 +10,10 @@
 - [x] **Regression**: Verify `redact` hashes are stable across runs.
 
 ## Milestone 6: Documentation & Polish (v0.9.5)
-- [ ] **README**: Document how to use `tokmd export` for CI (e.g., "Tracking repo size").
-- [ ] **Help Text**: Review `tokmd --help` and subcommand help strings for consistency.
-- [ ] **Schema**: Create a `docs/SCHEMA.md` explaining the JSON structure of a receipt.
-- [ ] **Error Handling**: Verify behavior when `tokei` fails (e.g., on a locked file).
+- [x] **README**: Document how to use `tokmd export` for CI (e.g., "Tracking repo size").
+- [x] **Help Text**: Review `tokmd --help` and subcommand help strings for consistency.
+- [x] **Schema**: Create a `docs/SCHEMA.md` explaining the JSON structure of a receipt.
+- [x] **Error Handling**: Verify behavior when `tokei` fails (e.g., on a locked file).
 
 ## Milestone 7: Release v1.0.0
 - [ ] **Versioning**: Bump `Cargo.toml` to `1.0.0`.

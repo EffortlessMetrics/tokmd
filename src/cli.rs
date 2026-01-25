@@ -57,7 +57,7 @@ pub struct GlobalArgs {
     pub no_ignore_dot: bool,
 
     /// Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents.
-    #[arg(long)]
+    #[arg(long, visible_alias = "no-ignore-git")]
     pub no_ignore_vcs: bool,
 
     /// Treat doc strings as comments (language-dependent).
