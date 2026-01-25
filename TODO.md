@@ -1,13 +1,13 @@
 # TODO (v1.0 Roadmap)
 
 ## Milestone 5: The Test Harness (v0.9.0)
-- [ ] **Setup**: Add `dev-dependencies`: `assert_cmd`, `predicates`, `tempfile` to `Cargo.toml`.
-- [ ] **Infrastructure**: Create `tests/integration_tests.rs`.
-- [ ] **Fixture**: Create a `tests/data/` folder with a known file structure (e.g., nested Rust files, a JS file, a hidden file).
-- [ ] **Golden Test (Lang)**: Verify `tokmd` (default) output matches a saved snapshot.
-- [ ] **Golden Test (Module)**: Verify `tokmd module` matches snapshot.
-- [ ] **Golden Test (Export)**: Verify `tokmd export` (JSONL) matches snapshot.
-- [ ] **Regression**: Verify `redact` hashes are stable across runs.
+- [x] **Setup**: Add `dev-dependencies`: `assert_cmd`, `predicates`, `tempfile` to `Cargo.toml`.
+- [x] **Infrastructure**: Create `tests/integration_tests.rs`.
+- [x] **Fixture**: Create a `tests/data/` folder with a known file structure (e.g., nested Rust files, a JS file, a hidden file).
+- [x] **Golden Test (Lang)**: Verify `tokmd` (default) output matches a saved snapshot.
+- [x] **Golden Test (Module)**: Verify `tokmd module` matches snapshot.
+- [x] **Golden Test (Export)**: Verify `tokmd export` (JSONL) matches snapshot.
+- [x] **Regression**: Verify `redact` hashes are stable across runs.
 
 ## Milestone 6: Documentation & Polish (v0.9.5)
 - [ ] **README**: Document how to use `tokmd export` for CI (e.g., "Tracking repo size").

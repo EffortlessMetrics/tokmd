@@ -1,0 +1,5 @@
+---
+source: tests/integration.rs
+expression: normalized
+---
+{"schema_version":1,"generated_at_ms":0,"tool":{"name":"tokmd","version":"0.2.0"},"mode":"lang","scan":{"paths":["."],"excluded":[],"config":"auto","hidden":false,"no_ignore":false,"no_ignore_parent":false,"no_ignore_dot":false,"no_ignore_vcs":false,"treat_doc_strings_as_comments":false},"args":{"top":0,"with_files":false,"children":"collapse"},"rows":[{"lang":"TOML","code":5,"lines":6,"files":1,"avg_lines":6},{"lang":"Rust","code":3,"lines":3,"files":1,"avg_lines":3},{"lang":"JavaScript","code":1,"lines":1,"files":1,"avg_lines":1}],"total":{"code":9,"lines":10,"files":4,"avg_lines":3}}

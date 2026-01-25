@@ -1,0 +1,9 @@
+---
+source: tests/integration.rs
+expression: normalized
+---
+{"type":"meta","schema_version":1,"generated_at_ms":0,"tool":{"name":"tokmd","version":"0.2.0"},"mode":"export","scan":{"paths":["."],"excluded":[],"config":"auto","hidden":false,"no_ignore":false,"no_ignore_parent":false,"no_ignore_dot":false,"no_ignore_vcs":false,"treat_doc_strings_as_comments":false},"args":{"format":"jsonl","module_roots":["crates","packages"],"module_depth":2,"children":"separate","min_code":0,"max_rows":0,"redact":"none","strip_prefix":null}}
+{"type":"row","path":"Cargo.toml","module":"(root)","lang":"TOML","kind":"parent","code":5,"comments":0,"blanks":1,"lines":6}
+{"type":"row","path":"src/main.rs","module":"src","lang":"Rust","kind":"parent","code":3,"comments":0,"blanks":0,"lines":3}
+{"type":"row","path":"script.js","module":"(root)","lang":"JavaScript","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
+{"type":"row","path":"README.md","module":"(root)","lang":"Markdown","kind":"parent","code":0,"comments":1,"blanks":0,"lines":1}

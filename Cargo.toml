@@ -46,3 +46,4 @@ assert_cmd = "2.0.14"
 predicates = "3.1.0"
 tempfile = "3.10.1"
 insta = { version = "1.39.0", features = ["json"] }
+regex = "1.10.4"

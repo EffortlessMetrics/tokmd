@@ -556,4 +556,11 @@ mod tests {
         let got = normalize_path(&p, Some(&prefix));
         assert_eq!(got, "src/main.rs");
     }
+
+    #[test]
+    fn normalize_path_normalization_slashes() {
+        let p = PathBuf::from(r"C:\Code\Repo\src\main.rs");
+        let got = normalize_path(&p, None);
+        assert_eq!(got, "C:/Code/Repo/src/main.rs");
+    }
 }

@@ -62,14 +62,14 @@ For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
 ### 🚧 Milestone 5: The Test Harness (Target: v0.9.0)
 **Goal**: Refactoring is safe; Output is frozen.
 
-- [ ] **Infrastructure**: Add `dev-dependencies` (`assert_cmd`, `predicates`, `tempfile`).
-- [ ] **Golden Tests**:
+- [x] **Infrastructure**: Add `dev-dependencies` (`assert_cmd`, `predicates`, `tempfile`).
+- [x] **Golden Tests**:
     - Run `tokmd export` on a test fixture.
     - Snapshot the JSONL output.
     - Ensure it passes on CI (Windows/Linux/Mac).
-- [ ] **Path Normalization Verification**:
+- [x] **Path Normalization Verification**:
     - Ensure `\` vs `/` doesn't affect sorting or hashing in receipts.
-- [ ] **Redaction Verification**:
+- [x] **Redaction Verification**:
     - Verify `tokmd export --redact all` leaks no PII in the snapshot.
 
 ### 📝 Milestone 6: Documentation & Polish (Target: v0.9.5)
