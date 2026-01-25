@@ -139,12 +139,50 @@ lcov.info
 **/tree-sitter*/src/*_scanner.c
 "#;
 
+const TEMPLATE_PYTHON: &str = r#"# .tokeignore (Python)
+__pycache__/
+**/__pycache__/
+*.pyc
+.venv/
+**/.venv/
+venv/
+**/venv/
+.tox/
+**/.tox/
+.pytest_cache/
+**/.pytest_cache/
+htmlcov/
+**/htmlcov/
+.coverage
+"#;
+
+const TEMPLATE_GO: &str = r#"# .tokeignore (Go)
+vendor/
+**/vendor/
+bin/
+**/bin/
+"#;
+
+const TEMPLATE_CPP: &str = r#"# .tokeignore (C++)
+build/
+**/build/
+cmake-build-*/
+**/cmake-build-*/
+out/
+**/out/
+.cache/
+**/.cache/
+"#;
+
 pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
     let template = match args.profile {
         InitProfile::Default => TEMPLATE_DEFAULT,
         InitProfile::Rust => TEMPLATE_RUST,
         InitProfile::Node => TEMPLATE_NODE,
         InitProfile::Mono => TEMPLATE_MONO,
+        InitProfile::Python => TEMPLATE_PYTHON,
+        InitProfile::Go => TEMPLATE_GO,
+        InitProfile::Cpp => TEMPLATE_CPP,
     };
 
     if args.print {
