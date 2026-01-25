@@ -7,10 +7,11 @@ license = "MIT OR Apache-2.0"
 description = "Tokei-backed repo inventory receipts: Markdown/TSV for humans, JSONL/CSV for pipelines."
 readme = "README.md"
 # Update these when you publish.
-homepage = "https://github.com/yourname/tokmd"
-repository = "https://github.com/yourname/tokmd"
+homepage = "https://github.com/EffortlessMetrics/tokmd"
+repository = "https://github.com/EffortlessMetrics/tokmd"
 keywords = ["tokei", "loc", "markdown", "jsonl", "cli"]
 categories = ["command-line-utilities", "development-tools"]
+default-run = "tokmd"
 autobins = false
 
 [features]
