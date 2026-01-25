@@ -1,46 +1,98 @@
-# tokmd Roadmap
+# tokmd Roadmap: Path to v1.0
 
-This document outlines the path from the baseline (v0.1) to a fully implemented **v1.0** receipt-grade tool.
+This document outlines the strategic plan to evolve `tokmd` from its current feature-complete state (v0.2.0) to a hardened, production-ready release (v1.0.0).
 
-> **Status (v0.2.0)**: Milestones 1 through 4 have been largely implemented. The focus is now on verification, CI hardening, and final release prep.
+## 🎯 Vision for v1.0
 
-## Philosophy
-`tokmd` is designed to be a **sensor** that emits **receipts**. It shifts work left, allowing humans and agents to review stable, structured artifacts rather than raw, messy output.
+At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
+- **Receipt-Grade**: Outputs are deterministic, versioned, and safe for automated pipelines.
+- **Trustworthy**: Changes to output format are detected by golden tests.
+- **Safe**: It prevents information leaks (redaction) and context overflows (limits) by default.
 
-## Milestones
+---
 
-### Milestone 1: Publish Hygiene + CLI Correctness (✅ Completed in v0.2.0)
-**Goal:** Make it safe to install and unsurprising.
+## 📊 Status Summary
 
-- [x] **Metadata Polish**: `Cargo.toml` metadata updated.
-- [x] **Output Safety**: `format.rs` ensures newlines.
-- [x] **Defaults**: `export` defaults to `jsonl`.
-- [ ] **Documentation**: 
-    - [ ] Document "first wins" file deduplication logic.
-    - [ ] Explain embedded language behavior in README.
+| Version | Status | Focus |
+| :--- | :--- | :--- |
+| **v0.1.0** | ✅ Complete | Basic functionality (scan -> model -> format). |
+| **v0.2.0** | ✅ Complete | Feature complete: Receipt schema, Filters, Redaction, Export logic. |
+| **v0.9.0** | 🚧 **Next** | Assurance: Integration tests, Golden snapshots, Edge case verification. |
+| **v1.0.0** | 📅 Planned | Stability: Frozen schema, Final docs, Official release. |
 
-### Milestone 2: Receipt Schema (✅ Completed in v0.2.0)
-**Goal:** Outputs become self-describing "receipts" suitable for pipelines.
+---
 
-- [x] **Structured Envelopes**: `LangReceipt`, `ModuleReceipt`, `ExportMeta` implemented in `format.rs`.
-- [x] **Schema Fields**: `schema_version`, `tool`, `mode`, `inputs`, `totals`, `rows` captured.
-- [x] **Stability**: `serde` serialization used.
+## 🛠️ Remaining Workstreams
 
-### Milestone 3: Semantic Coherence (✅ Completed in v0.2.0)
-**Goal:** Align behavior across `lang`, `module`, and `export` views.
+### 1. Core Confidence (Testing & Determinism)
+*Current State: Unit tests exist for models. No integration tests.*
 
-- [x] **Unified Children Flag**: `--children` supported in `module` and `export`.
-- [x] **Behaviors**: `parents-only` vs `separate` implemented in `model.rs`.
-- [x] **Export Clarity**: `kind` (parent/child) field added to `FileRow`.
+To reach v1.0, we must guarantee that `tokmd` outputs do not drift unexpectedly. We need a "Golden Test" suite that runs the binary against a static corpus of files and asserts the output matches byte-for-byte.
 
-### Milestone 4: LLM/Pipeline Ergonomics (✅ Completed in v0.2.0)
-**Goal:** Make it safe, cheap, and robust for machine consumption.
+- **Action**: Add `tests/` directory with `assert_cmd` and `insta` (or file-based diffing).
+- **Action**: Create a synthetic test corpus (files with various languages, weird paths, hidden files).
+- **Action**: Verify `redact` logic produces identical hashes across platforms (Windows vs Linux paths).
 
-- [x] **Filters**: `--min-code` and `--max-rows` implemented.
-- [x] **Path Safety**: `redact`, `strip-prefix` implemented.
-- [x] **Robustness**: `csv` crate used for export.
+### 2. The Schema Contract
+*Current State: Schema exists in code (`schema_version: 1`), but is not formally documented.*
 
-## Future (v1.1+)
-- [ ] **Bundled Receipt**: `tokmd receipt` command to bundle lang + module + export into one artifact.
-- [ ] **GitHub Action**: Official wrapper for CI usage.
-- [ ] **Diff Mode**: Comparison between two receipts or git refs.
+For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
+
+- **Action**: Extract the JSON schema to a `schemas/tokmd-v1.json` file (or similar) documentation.
+- **Action**: Verify that `schema_version` increments if fields change.
+- **Action**: Document the `kind` field (Parent vs Child) and `embedded` behavior explicitly.
+
+### 3. Developer Experience (DX)
+*Current State: CLI args exist, help text is decent.*
+
+- **Action**: Audit `--help` output for clarity.
+- **Action**: Ensure error messages (e.g., file permissions, invalid globs) are actionable and don't panic.
+- **Action**: Verify behavior when `tokei` config files are present vs absent (`--config` flag).
+
+---
+
+## 📅 Detailed Milestone Plan
+
+### ✅ Milestone 1–4 (Completed in v0.2.0)
+- **Hygiene**: Metadata, cleanups.
+- **Schema**: `LangReceipt`, `ModuleReceipt`, `ExportMeta` structs implemented.
+- **Semantics**: Unified `--children` flag, consistent module aggregation.
+- **Ergonomics**: `--min-code`, `--max-rows`, `--redact`, `--strip-prefix` implemented.
+
+### 🚧 Milestone 5: The Test Harness (Target: v0.9.0)
+**Goal**: Refactoring is safe; Output is frozen.
+
+- [ ] **Infrastructure**: Add `dev-dependencies` (`assert_cmd`, `predicates`, `tempfile`).
+- [ ] **Golden Tests**:
+    - Run `tokmd export` on a test fixture.
+    - Snapshot the JSONL output.
+    - Ensure it passes on CI (Windows/Linux/Mac).
+- [ ] **Path Normalization Verification**:
+    - Ensure `\` vs `/` doesn't affect sorting or hashing in receipts.
+- [ ] **Redaction Verification**:
+    - Verify `tokmd export --redact all` leaks no PII in the snapshot.
+
+### 📝 Milestone 6: Documentation & Polish (Target: v0.9.5)
+**Goal**: Users understand the "Receipt" concept.
+
+- [ ] **Recipe Book**: Add `docs/recipes.md`:
+    - "How to track repo growth over time"
+    - "How to feed a codebase to an LLM safely"
+    - "How to audit vendor dependencies"
+- [ ] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow`.
+- [ ] **Final Argument Audit**: Rename/alias flags if they feel clunky (e.g., check `no_ignore_vcs` usability).
+
+### 🚀 Milestone 7: v1.0.0 Launch
+**Goal**: Stability.
+
+- [ ] **SemVer Lock**: Commit to not breaking the JSON schema without v2.0.
+- [ ] **Crates.io**: Final publish.
+- [ ] **GitHub Release**: binaries attached.
+
+---
+
+## 🔮 Beyond v1.0 (Future)
+
+- **`tokmd compare`**: Diff two JSON receipts to show "What changed?" (Lines added/removed per module).
+- **GitHub Action**: A first-party action to post `tokmd` summaries to PR comments.
+- **Binary Releases**: Pre-compiled binaries in GitHub Releases (via `cross` or GitHub Actions).

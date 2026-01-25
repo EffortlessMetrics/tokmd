@@ -17,12 +17,16 @@ Thank you for your interest in contributing to `tokmd`! This project aims to be 
 
 ## Testing
 
-We prioritize deterministic outputs.
+We prioritize deterministic outputs. This is critical because `tokmd` is used to generate receipts that must be stable over time.
 
 -   **Run Unit Tests**:
     ```bash
     cargo test
     ```
+-   **Integration / Golden Tests** (Future Requirement):
+    We are moving to a snapshot-based testing model. When submitting PRs that affect output, you will be expected to update the golden snapshots.
+    *(Instructions for running golden tests will be added here once Milestone 5 is complete)*
+
 -   **Manual Verification**:
     Use the `alias-tok` feature to run the `tok` binary during dev if you prefer short commands:
     ```bash
