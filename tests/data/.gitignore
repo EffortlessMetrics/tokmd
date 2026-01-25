@@ -1,3 +1,4 @@
 # Ignore the .ignored file
 .ignored
+hidden_by_git.txt
 ignored.rs

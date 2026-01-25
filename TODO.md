@@ -17,6 +17,6 @@
 - [x] **Error Handling**: Verify behavior when `tokei` fails (e.g., on a locked file).
 
 ## Milestone 7: Release v1.0.0
-- [ ] **Versioning**: Bump `Cargo.toml` to `1.0.0`.
+- [x] **Versioning**: Bump `Cargo.toml` to `1.0.0`.
 - [ ] **Tag**: `git tag v1.0.0`.
 - [ ] **Publish**: `cargo publish`.

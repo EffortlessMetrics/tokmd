@@ -15,6 +15,9 @@ pub fn scan(args: &GlobalArgs) -> Result<Languages> {
     }
     if args.no_ignore {
         cfg.no_ignore = Some(true);
+        cfg.no_ignore_dot = Some(true);
+        cfg.no_ignore_parent = Some(true);
+        cfg.no_ignore_vcs = Some(true);
     }
     if args.no_ignore_dot {
         cfg.no_ignore_dot = Some(true);

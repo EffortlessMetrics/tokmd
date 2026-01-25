@@ -64,6 +64,44 @@ fn test_ignore_file_respected() {
 }
 
 #[test]
+fn test_ignore_vcs_explicit() {
+    // Given: 'hidden_by_git.txt' is in .gitignore
+    // When: We run with --no-ignore-vcs (or --no-ignore-git)
+    // Then: The file SHOULD appear in the output
+    let mut cmd = tokmd_cmd();
+    cmd.arg("--no-ignore-vcs")
+        .arg("export")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hidden_by_git.txt"));
+}
+
+#[test]
+fn test_no_ignore_implies_vcs() {
+    // Given: 'hidden_by_git.txt' is in .gitignore
+    // When: We run with --no-ignore (which implies vcs ignore disabled)
+    // Then: The file SHOULD appear
+    let mut cmd = tokmd_cmd();
+    cmd.arg("--no-ignore")
+        .arg("export")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hidden_by_git.txt"));
+}
+
+#[test]
+fn test_default_ignores_vcs() {
+    // Given: 'hidden_by_git.txt' is in .gitignore
+    // When: We run normally
+    // Then: The file SHOULD NOT appear
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hidden_by_git.txt").not());
+}
+
+#[test]
 fn test_ignore_override() {
     let mut cmd = tokmd_cmd();
     cmd.arg("--no-ignore")
