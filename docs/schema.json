@@ -98,18 +98,19 @@
       "type": "object",
       "required": ["name", "version"],
       "properties": {
-        "name": { "type": "string" },
-        "version": { "type": "string" }
+        "name": { "type": "string", "description": "The name of the tool (tokmd)." },
+        "version": { "type": "string", "description": "The version of the tool used." }
       }
     },
     "ScanArgs": {
       "type": "object",
+      "description": "Configuration used for the file scan.",
       "properties": {
-        "paths": { "type": "array", "items": { "type": "string" } },
-        "excluded": { "type": "array", "items": { "type": "string" } },
-        "config": { "enum": ["auto", "none"] },
-        "hidden": { "type": "boolean" },
-        "no_ignore": { "type": "boolean" }
+        "paths": { "type": "array", "items": { "type": "string" }, "description": "Input paths scanned." },
+        "excluded": { "type": "array", "items": { "type": "string" }, "description": "Patterns excluded from scan." },
+        "config": { "enum": ["auto", "none"], "description": "Configuration mode used." },
+        "hidden": { "type": "boolean", "description": "Whether hidden files were included." },
+        "no_ignore": { "type": "boolean", "description": "Whether ignore files were disregarded." }
       }
     },
     "ExportArgsMeta": {
@@ -125,17 +126,17 @@
       "type": "object",
       "required": ["code", "lines", "files", "avg_lines"],
       "properties": {
-        "code": { "type": "integer" },
-        "lines": { "type": "integer" },
-        "files": { "type": "integer" },
-        "avg_lines": { "type": "integer" }
+        "code": { "type": "integer", "description": "Total lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Total number of files processed." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
       }
     },
     "LangRow": {
       "type": "object",
       "required": ["lang", "code", "lines", "files", "avg_lines"],
       "properties": {
-        "lang": { "type": "string" },
+        "lang": { "type": "string", "description": "Language name (e.g., Rust, Markdown)." },
         "code": { "type": "integer" },
         "lines": { "type": "integer" },
         "files": { "type": "integer" },
@@ -146,7 +147,7 @@
       "type": "object",
       "required": ["module", "code", "lines", "files", "avg_lines"],
       "properties": {
-        "module": { "type": "string" },
+        "module": { "type": "string", "description": "Module path/name." },
         "code": { "type": "integer" },
         "lines": { "type": "integer" },
         "files": { "type": "integer" },
@@ -157,10 +158,10 @@
       "type": "object",
       "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"],
       "properties": {
-        "path": { "type": "string" },
-        "module": { "type": "string" },
-        "lang": { "type": "string" },
-        "kind": { "enum": ["parent", "child"] },
+        "path": { "type": "string", "description": "Relative file path." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Language of the file/block." },
+        "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
         "code": { "type": "integer" },
         "comments": { "type": "integer" },
         "blanks": { "type": "integer" },

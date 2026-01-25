@@ -175,7 +175,7 @@ pub struct ExportArgs {
     pub max_rows: usize,
 
     /// Include a meta record (JSON / JSONL only). Enabled by default.
-    #[arg(long, default_value_t = true)]
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
     pub meta: bool,
 
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
