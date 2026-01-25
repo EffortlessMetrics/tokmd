@@ -91,8 +91,35 @@ For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
 
 ---
 
-## 🔮 Beyond v1.0 (Future)
+## 🔭 Future Horizons (v1.x+)
 
-- **`tokmd compare`**: Diff two JSON receipts to show "What changed?" (Lines added/removed per module).
-- **GitHub Action**: A first-party action to post `tokmd` summaries to PR comments.
-- **Binary Releases**: Pre-compiled binaries in GitHub Releases (via `cross` or GitHub Actions).
+These features extend `tokmd` from a passive sensor to an active agent in the LLM workflow.
+
+### A. The "Context Budget" Features
+*Goal: Help users fit code into context windows.*
+
+- **Token Estimation**: Add an `estimated_tokens` column to reports (using a fast heuristic like `cl100k_base` or simple byte mapping).
+- **Budget Packing**: `tokmd suggest --budget 128k` — Suggest a list of "high signal" files (based on complexity/size) that fit within a specific token limit.
+- **Cost Calculator**: `tokmd cost` — Estimate the API cost to embed/index the current repo state.
+
+### B. "Change Detection" (The Diff Engine)
+*Goal: Answer "What changed in the repo shape?"*
+
+- **`tokmd diff <old.json> <new.json>`**: A dedicated command to compare two receipts.
+    - Output: "Rust grew by 15%, 4 new modules added."
+    - Output: Markdown summary of changes for PR comments.
+- **Git Integration**: `tokmd diff --git HEAD~1` (automatically runs scan on old ref).
+
+### C. Persistent Configuration
+*Goal: "Set and forget" repo-specific settings.*
+
+- **`.tokmd.toml`**: Support a config file for project-specific settings so users don't need CLI flags every time.
+    - `module_roots = ["packages", "services"]`
+    - `redact = "paths"`
+    - `ignore_hidden = true`
+
+### D. Ecosystem Integration
+- **GitHub Action**: `uses: effortlessmetrics/tokmd-action@v1`.
+    - Auto-comment on PRs with size delta.
+    - Fail build if `redact` is not used in public artifacts.
+- **Pre-commit Hook**: Ensure `tokmd export` is up-to-date in the repo.
