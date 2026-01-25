@@ -1,5 +1,7 @@
 # tokmd
 
+> **Current Status**: v0.2.0 (Pre-v1.0). See [ROADMAP.md](ROADMAP.md) for the path to v1.0 and [TODO.md](TODO.md) for current tasks. Some features documented below (like filters and redaction) are part of the v1.0 spec and are currently being implemented.
+
 `tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces
 repo **inventory receipts**:
 
