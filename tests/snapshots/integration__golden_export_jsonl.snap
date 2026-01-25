@@ -10,4 +10,5 @@ expression: normalized
 {"type":"row","path":"src/main.rs","module":"src","lang":"Rust","kind":"parent","code":3,"comments":0,"blanks":0,"lines":3}
 {"type":"row","path":"mixed.md","module":"(root)","lang":"JavaScript","kind":"child","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"script.js","module":"(root)","lang":"JavaScript","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
+{"type":"row","path":"space file.rs","module":"(root)","lang":"Rust","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"README.md","module":"(root)","lang":"Markdown","kind":"parent","code":0,"comments":1,"blanks":0,"lines":1}

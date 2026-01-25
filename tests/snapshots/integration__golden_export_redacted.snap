@@ -10,4 +10,5 @@ expression: normalized
 {"type":"row","path":"6d9bc68d5fc74f69.rs","module":"bc9484ce4b0ea310","lang":"Rust","kind":"parent","code":3,"comments":0,"blanks":0,"lines":3}
 {"type":"row","path":"04192a9669bb483a.md","module":"dc7d8b23b8f3eaed","lang":"JavaScript","kind":"child","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"4c48461507b161b0.js","module":"dc7d8b23b8f3eaed","lang":"JavaScript","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
+{"type":"row","path":"dfb44fec50289bbf.rs","module":"dc7d8b23b8f3eaed","lang":"Rust","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"0a096ba47097b79d.md","module":"dc7d8b23b8f3eaed","lang":"Markdown","kind":"parent","code":0,"comments":1,"blanks":0,"lines":1}
