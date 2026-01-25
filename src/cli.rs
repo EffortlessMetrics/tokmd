@@ -273,7 +273,4 @@ pub enum InitProfile {
     Rust,
     Node,
     Mono,
-    Python,
-    Go,
-    Cpp,
 }

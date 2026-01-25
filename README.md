@@ -96,9 +96,6 @@ tokmd init --force
 tokmd init --profile rust
 tokmd init --profile node
 tokmd init --profile mono
-tokmd init --profile python
-tokmd init --profile go
-tokmd init --profile cpp
 ```
 
 ## Notes

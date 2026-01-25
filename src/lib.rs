@@ -16,8 +16,7 @@ pub fn run() -> Result<()> {
     match cli.command.unwrap_or(Commands::Lang(cli.lang.clone())) {
         Commands::Lang(args) => {
             let languages = scan::scan(&cli.global)?;
-            let report =
-                model::LangReport::from_languages(&languages, args.top, args.files, args.children);
+            let report = model::LangReport::from_languages(&languages, args.top, args.files, args.children);
             format::print_lang_report(&report, &cli.global, &args)?;
         }
         Commands::Module(args) => {
