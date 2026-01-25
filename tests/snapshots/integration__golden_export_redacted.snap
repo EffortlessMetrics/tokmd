@@ -3,7 +3,11 @@ source: tests/integration.rs
 expression: normalized
 ---
 {"type":"meta","schema_version":1,"generated_at_ms":0,"tool":{"name":"tokmd","version":"0.2.0"},"mode":"export","scan":{"paths":["."],"excluded":[],"config":"auto","hidden":false,"no_ignore":false,"no_ignore_parent":false,"no_ignore_dot":false,"no_ignore_vcs":false,"treat_doc_strings_as_comments":false},"args":{"format":"jsonl","module_roots":["crates","packages"],"module_depth":2,"children":"separate","min_code":0,"max_rows":0,"redact":"all","strip_prefix":null}}
+{"type":"row","path":"ec412fe02b918085.rs","module":"dc7d8b23b8f3eaed","lang":"Rust","kind":"parent","code":9,"comments":2,"blanks":0,"lines":11}
 {"type":"row","path":"68b5adcb475d360a.toml","module":"dc7d8b23b8f3eaed","lang":"TOML","kind":"parent","code":5,"comments":0,"blanks":1,"lines":6}
+{"type":"row","path":"04192a9669bb483a.md","module":"dc7d8b23b8f3eaed","lang":"Markdown","kind":"parent","code":4,"comments":5,"blanks":4,"lines":13}
+{"type":"row","path":"04192a9669bb483a.md","module":"dc7d8b23b8f3eaed","lang":"Rust","kind":"child","code":3,"comments":0,"blanks":0,"lines":3}
 {"type":"row","path":"6d9bc68d5fc74f69.rs","module":"bc9484ce4b0ea310","lang":"Rust","kind":"parent","code":3,"comments":0,"blanks":0,"lines":3}
+{"type":"row","path":"04192a9669bb483a.md","module":"dc7d8b23b8f3eaed","lang":"JavaScript","kind":"child","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"4c48461507b161b0.js","module":"dc7d8b23b8f3eaed","lang":"JavaScript","kind":"parent","code":1,"comments":0,"blanks":0,"lines":1}
 {"type":"row","path":"0a096ba47097b79d.md","module":"dc7d8b23b8f3eaed","lang":"Markdown","kind":"parent","code":0,"comments":1,"blanks":0,"lines":1}

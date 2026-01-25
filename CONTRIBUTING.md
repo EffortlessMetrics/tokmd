@@ -23,9 +23,15 @@ We prioritize deterministic outputs. This is critical because `tokmd` is used to
     ```bash
     cargo test
     ```
--   **Integration / Golden Tests** (Future Requirement):
-    We are moving to a snapshot-based testing model. When submitting PRs that affect output, you will be expected to update the golden snapshots.
-    *(Instructions for running golden tests will be added here once Milestone 5 is complete)*
+-   **Integration / Golden Tests**:
+    We use `insta` for snapshot testing. If you change the output format, the tests will fail with a diff.
+    To review and accept changes:
+    ```bash
+    cargo install cargo-insta
+    cargo test
+    cargo insta review
+    ```
+    This guarantees that `tokmd` outputs (receipts) remain deterministic and stable.
 
 -   **Manual Verification**:
     Use the `alias-tok` feature to run the `tok` binary during dev if you prefer short commands:
