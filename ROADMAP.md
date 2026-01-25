@@ -17,37 +17,21 @@ At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
 | :--- | :--- | :--- |
 | **v0.1.0** | ✅ Complete | Basic functionality (scan -> model -> format). |
 | **v0.2.0** | ✅ Complete | Feature complete: Receipt schema, Filters, Redaction, Export logic. |
-| **v0.9.0** | 🚧 **Next** | Assurance: Integration tests, Golden snapshots, Edge case verification. |
-| **v1.0.0** | 📅 Planned | Stability: Frozen schema, Final docs, Official release. |
+| **v0.9.0** | ✅ Complete | Assurance: Integration tests, Golden snapshots, Edge case verification. |
+| **v1.0.0** | ✅ Ready | Stability: Frozen schema, Final docs, Official release. |
 
 ---
 
 ## 🛠️ Remaining Workstreams
 
 ### 1. Core Confidence (Testing & Determinism)
-*Current State: Unit tests exist for models. No integration tests.*
-
-To reach v1.0, we must guarantee that `tokmd` outputs do not drift unexpectedly. We need a "Golden Test" suite that runs the binary against a static corpus of files and asserts the output matches byte-for-byte.
-
-- **Action**: Add `tests/` directory with `assert_cmd` and `insta` (or file-based diffing).
-- **Action**: Create a synthetic test corpus (files with various languages, weird paths, hidden files).
-- **Action**: Verify `redact` logic produces identical hashes across platforms (Windows vs Linux paths).
+*Current State: ✅ Complete (Integration tests & Golden snapshots implemented).*
 
 ### 2. The Schema Contract
-*Current State: Schema exists in code (`schema_version: 1`), but is not formally documented.*
-
-For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
-
-- **Action**: Extract the JSON schema to a `schemas/tokmd-v1.json` file (or similar) documentation.
-- **Action**: Verify that `schema_version` increments if fields change.
-- **Action**: Document the `kind` field (Parent vs Child) and `embedded` behavior explicitly.
+*Current State: ✅ Complete (Formal JSON Schema in `docs/schema.json`).*
 
 ### 3. Developer Experience (DX)
-*Current State: CLI args exist, help text is decent.*
-
-- **Action**: Audit `--help` output for clarity.
-- **Action**: Ensure error messages (e.g., file permissions, invalid globs) are actionable and don't panic.
-- **Action**: Verify behavior when `tokei` config files are present vs absent (`--config` flag).
+*Current State: ✅ Complete (Help text audited, recipes written).*
 
 ---
 
@@ -59,7 +43,7 @@ For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
 - **Semantics**: Unified `--children` flag, consistent module aggregation.
 - **Ergonomics**: `--min-code`, `--max-rows`, `--redact`, `--strip-prefix` implemented.
 
-### 🚧 Milestone 5: The Test Harness (Target: v0.9.0)
+### ✅ Milestone 5: The Test Harness (v0.9.0)
 **Goal**: Refactoring is safe; Output is frozen.
 
 - [x] **Infrastructure**: Add `dev-dependencies` (`assert_cmd`, `predicates`, `tempfile`).
@@ -72,15 +56,12 @@ For `tokmd` to be a "receipt", the JSON schema must be treated as a public API.
 - [x] **Redaction Verification**:
     - Verify `tokmd export --redact all` leaks no PII in the snapshot.
 
-### 📝 Milestone 6: Documentation & Polish (Target: v0.9.5)
+### ✅ Milestone 6: Documentation & Polish (v0.9.5)
 **Goal**: Users understand the "Receipt" concept.
 
-- [x] **Recipe Book**: Add `docs/recipes.md`:
-    - "How to track repo growth over time"
-    - "How to feed a codebase to an LLM safely"
-    - "How to audit vendor dependencies"
-- [x] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow`.
-- [x] **Final Argument Audit**: Rename/alias flags if they feel clunky (e.g., check `no_ignore_vcs` usability).
+- [x] **Recipe Book**: Add `docs/recipes.md`.
+- [x] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow` (plus formal schema).
+- [x] **Final Argument Audit**: Rename/alias flags if they feel clunky.
 
 ### 🚀 Milestone 7: v1.0.0 Launch
 **Goal**: Stability.

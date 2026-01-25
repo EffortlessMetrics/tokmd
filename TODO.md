@@ -13,6 +13,7 @@
 - [x] **README**: Document how to use `tokmd export` for CI (e.g., "Tracking repo size").
 - [x] **Help Text**: Review `tokmd --help` and subcommand help strings for consistency.
 - [x] **Schema**: Create a `docs/SCHEMA.md` explaining the JSON structure of a receipt.
+- [x] **Formal Schema**: Create `docs/schema.json` compliant with JSON Schema Draft 07.
 - [x] **Error Handling**: Verify behavior when `tokei` fails (e.g., on a locked file).
 
 ## Milestone 7: Release v1.0.0
