@@ -1,6 +1,6 @@
 # tokmd
 
-> **Current Status**: v0.2.0 (Pre-v1.0). See [ROADMAP.md](ROADMAP.md) for the path to v1.0 and [TODO.md](TODO.md) for current tasks. Some features documented below (like filters and redaction) are part of the v1.0 spec and are currently being implemented.
+> **Current Status**: v0.2.0 (Pre-v1.0). See [ROADMAP.md](ROADMAP.md) for the path to v1.0 and [TODO.md](TODO.md) for current tasks.
 
 `tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces
 repo **inventory receipts**:
@@ -114,6 +114,12 @@ tokmd init --profile cpp
 - Windows: in PowerShell, `\` is a path separator, not a line-continuation character.
   If you copy multi-line examples, use backtick (`) for line continuation—or just keep
   it single-line (`tokmd` is designed for that).
+
+## Documentation
+
+- **[Recipe Book](docs/recipes.md)**: Real-world examples (LLM contexts, auditing vendors, CI tracking).
+- **[Receipt Schema](docs/SCHEMA.md)**: Detailed specification of the JSON output format.
+- **[Roadmap](ROADMAP.md)**: Path to v1.0 and future plans.
 
 ## License
 
