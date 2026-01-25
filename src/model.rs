@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde::Serialize;
 use tokei::{LanguageType, Languages};
@@ -34,7 +34,12 @@ pub struct LangReport {
 }
 
 impl LangReport {
-    pub fn from_languages(languages: &Languages, top: usize, with_files: bool, children: ChildrenMode) -> Self {
+    pub fn from_languages(
+        languages: &Languages,
+        top: usize,
+        with_files: bool,
+        children: ChildrenMode,
+    ) -> Self {
         let mut rows: Vec<LangRow> = Vec::new();
 
         match children {
@@ -195,13 +200,7 @@ impl ModuleReport {
         top: usize,
     ) -> Self {
         // Aggregate stats per module, but count files uniquely (parent files only).
-        let file_rows = collect_file_rows(
-            languages,
-            module_roots,
-            module_depth,
-            children,
-            None,
-        );
+        let file_rows = collect_file_rows(languages, module_roots, module_depth, children, None);
 
         #[derive(Default)]
         struct Agg {
@@ -289,7 +288,7 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FileKind {
     Parent,
@@ -519,14 +518,12 @@ pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> S
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn module_key_root_level_file() {
-        assert_eq!(module_key("Cargo.toml", &vec!["crates".into()], 2), "(root)");
-        assert_eq!(
-            module_key("./Cargo.toml", &vec!["crates".into()], 2),
-            "(root)"
-        );
+        assert_eq!(module_key("Cargo.toml", &["crates".into()], 2), "(root)");
+        assert_eq!(module_key("./Cargo.toml", &["crates".into()], 2), "(root)");
     }
 
     #[test]
