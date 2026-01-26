@@ -68,6 +68,7 @@ It does **not** make data anonymous. You still leak shape (counts, file extensio
 ## Installation
 
 From crates.io:
+
 ```bash
 cargo install tokmd
 ```

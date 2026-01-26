@@ -105,10 +105,10 @@ pub struct Profile {
     // Shared
     pub format: Option<String>, // "json", "md", "tsv", "csv", "jsonl"
     pub top: Option<usize>,
-    
+
     // Lang
     pub files: Option<bool>,
-    
+
     // Module / Export
     pub module_roots: Option<Vec<String>>,
     pub module_depth: Option<usize>,
@@ -116,7 +116,7 @@ pub struct Profile {
     pub max_rows: Option<usize>,
     pub redact: Option<RedactMode>,
     pub meta: Option<bool>,
-    
+
     // "children" can be ChildrenMode or ChildIncludeMode string
     pub children: Option<String>,
 }

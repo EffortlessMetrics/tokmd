@@ -1,11 +1,15 @@
 use assert_cmd::Command;
+use std::path::PathBuf;
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
 /// These run against `tests/data` to ensure stability.
 
 fn tokmd() -> Command {
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
-    cmd.current_dir("tests/data");
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+    cmd.current_dir(&fixtures);
     cmd
 }
 
@@ -38,10 +42,7 @@ fn recipe_export_map_jsonl() {
 #[test]
 fn recipe_simple_lang_summary() {
     // "tokmd lang"
-    tokmd()
-        .arg("lang")
-        .assert()
-        .success();
+    tokmd().arg("lang").assert().success();
 }
 
 #[test]

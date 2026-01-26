@@ -12,8 +12,8 @@ use tokmd_config::{
 };
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
-    LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
-    ModuleReport, ScanArgs, ScanStatus, ToolInfo, Totals,
+    LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
+    ScanArgs, ScanStatus, ToolInfo, Totals,
 };
 
 /// Increment when JSON/JSONL output shapes change.
@@ -25,7 +25,6 @@ fn tool_info() -> ToolInfo {
         version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }
-
 
 fn now_ms() -> u128 {
     SystemTime::now()
@@ -56,7 +55,6 @@ fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>)
 // -----------------------
 // Language summary output
 // -----------------------
-
 
 pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
     match args.format {
@@ -152,7 +150,6 @@ fn render_lang_tsv(report: &LangReport) -> String {
 // ---------------------
 // Module summary output
 // ---------------------
-
 
 pub fn print_module_report(
     report: &ModuleReport,

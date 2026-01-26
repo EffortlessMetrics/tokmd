@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use tokmd_config::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat};
+use tokmd_config::{
+    ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
+};
 
 /// A small totals struct shared by summary outputs.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
