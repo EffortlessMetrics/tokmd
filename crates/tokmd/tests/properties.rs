@@ -21,7 +21,7 @@ mod tests {
     // Wait, `model.rs` functions `normalize_path` and `module_key` ARE public.
     // So we can import `tokmd::model::*`.
     
-    use tokmd::model::{normalize_path, module_key};
+    use tokmd_model::{normalize_path, module_key};
     
     proptest! {
         #[test]

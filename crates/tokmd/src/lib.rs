@@ -1,6 +1,6 @@
-pub mod cli;
+use tokmd_config as cli;
 mod format;
-pub mod model;
+use tokmd_model as model;
 mod scan;
 mod tokeignore;
 

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::{Result, bail};
 
-use crate::cli::{InitArgs, InitProfile};
+use tokmd_config::{InitArgs, InitProfile};
 
 const TEMPLATE_DEFAULT: &str = r#"# .tokeignore
 # Patterns here use gitignore syntax.

@@ -9,16 +9,22 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-tokmd = { path = ".." }
+tokmd = { path = "../crates/tokmd" }
+tokmd-model = { path = "../crates/tokmd-model" }
 
 [[bin]]
 name = "fuzz_module_key"
 path = "fuzz_targets/fuzz_module_key.rs"
 test = false
 doc = false
+required-features = ["fuzzing"]
 
 [[bin]]
 name = "fuzz_normalize_path"
 path = "fuzz_targets/fuzz_normalize_path.rs"
 test = false
 doc = false
+required-features = ["fuzzing"]
+
+[features]
+fuzzing = []

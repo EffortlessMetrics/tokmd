@@ -1,5 +1,4 @@
 /target
-crates/*/target
 **/*.swp
 **/*.DS_Store
 

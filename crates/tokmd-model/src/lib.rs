@@ -4,7 +4,7 @@ use std::path::Path;
 use serde::Serialize;
 use tokei::{LanguageType, Languages};
 
-use crate::cli::{ChildIncludeMode, ChildrenMode};
+use tokmd_config::{ChildIncludeMode, ChildrenMode};
 
 /// A small totals struct shared by summary outputs.
 #[derive(Debug, Clone, Serialize)]

@@ -1,0 +1,10 @@
+[package]
+name = "tokmd-model"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+serde = { version = "1.0.228", features = ["derive"] }
+tokei = { version = "14.0.0", default-features = false }
+tokmd-config = { path = "../tokmd-config" }

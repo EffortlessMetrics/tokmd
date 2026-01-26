@@ -1,6 +1,6 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd::model::normalize_path;
+use tokmd_model::normalize_path;
 use std::path::Path;
 
 fuzz_target!(|data: &[u8]| {
