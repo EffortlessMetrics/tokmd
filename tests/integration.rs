@@ -678,6 +678,49 @@ fn test_module_depth_overflow() {
 }
 
 #[test]
+fn test_lang_top_limit() {
+    // Given: Standard scan with multiple languages
+    // When: We run lang --top 1
+    // Then: Output should contain "Other" row if there are more than 1 lang
+    // In our test data we have Rust, TOML, Markdown, JS.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("--top")
+        .arg("1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Other"));
+}
+
+#[test]
+fn test_module_top_limit() {
+    // Given: Standard scan with multiple modules
+    // When: We run module --top 1
+    // Then: Output should contain "Other" row
+    // Modules: src, tests, docs, (root) - that's 4.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("module")
+        .arg("--top")
+        .arg("1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Other"));
+}
+
+#[test]
+fn test_lang_format_json() {
+    // Given: Standard scan
+    // When: We run lang --format json
+    // Then: Output should be valid JSON with "rows" and "total"
+    let mut cmd = tokmd_cmd();
+    cmd.arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(r#""rows":["#))
+        .stdout(predicate::str::contains(r#""total":{"#));
+}
+
+#[test]
 fn test_format_csv() {
     // Given: Standard files
     // When: We export as CSV
