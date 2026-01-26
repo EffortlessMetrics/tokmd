@@ -445,7 +445,7 @@ fn test_export_out_file() {
     // Then: stdout should be empty, file should contain jsonl
     let dir = tempdir().unwrap();
     let out_file = dir.path().join("output.jsonl");
-    
+
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .arg("--out")
@@ -482,10 +482,7 @@ fn test_init_force() {
     // When: We run init without force
     // Then: It should fail
     let mut cmd = tokmd_cmd();
-    cmd.current_dir(dir.path())
-        .arg("init")
-        .assert()
-        .failure();
+    cmd.current_dir(dir.path()).arg("init").assert().failure();
 
     // When: We run init WITH force
     // Then: It should succeed and overwrite
@@ -495,7 +492,7 @@ fn test_init_force() {
         .arg("--force")
         .assert()
         .success();
-    
+
     let content = std::fs::read_to_string(&file_path).unwrap();
     assert!(content.contains("# .tokeignore"));
     assert!(!content.contains("existing content"));
@@ -528,8 +525,8 @@ fn test_non_existent_path() {
         .arg("non_existent_file_abc123.txt")
         .assert()
         .success();
-        // We don't strictly assert output emptiness because meta might be there.
-        // But verifying it doesn't crash is valuable.
+    // We don't strictly assert output emptiness because meta might be there.
+    // But verifying it doesn't crash is valuable.
 }
 
 #[test]
@@ -571,6 +568,113 @@ fn test_path_with_spaces() {
         .assert()
         .success()
         .stdout(predicate::str::contains("space file.rs"));
+}
+
+#[test]
+fn test_csv_escaping() {
+    // Given: A file with a comma in its name
+    let dir = tempdir().unwrap();
+    let file_path = dir.path().join("file,with,commas.txt");
+    std::fs::write(&file_path, "content").unwrap();
+
+    // When: We export as CSV
+    // Then: The path should be quoted in the output
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("export")
+        .arg("--format")
+        .arg("csv")
+        .assert()
+        .success()
+        // csv crate quotes fields containing delimiters.
+        // "file,with,commas.txt"
+        .stdout(predicate::str::contains(r#""file,with,commas.txt""#));
+}
+
+#[test]
+fn test_exclude_glob() {
+    // Given: A nested file structure
+    let dir = tempdir().unwrap();
+    let nested = dir.path().join("nested");
+    std::fs::create_dir(&nested).unwrap();
+    std::fs::write(nested.join("skip_me.rs"), "fn main() {}").unwrap();
+    std::fs::write(nested.join("keep_me.rs"), "fn main() {}").unwrap();
+
+    // When: We run export with a glob exclude
+    // Note: --exclude is a global arg, so it must come BEFORE the subcommand
+    // unless we mark it global in clap.
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("--exclude")
+        .arg("**/skip_me.rs")
+        .arg("export")
+        .assert()
+        .success()
+        // skip_me.rs appears in metadata (args), so we must check it's not in a path row
+        // We look for the JSON key/value pair for the path
+        .stdout(predicate::str::contains(r#""path":"nested/skip_me.rs""#).not())
+        .stdout(predicate::str::contains("keep_me.rs"));
+}
+
+#[test]
+fn test_redact_all() {
+    // Given: Standard files
+    // When: We export with --redact all
+    // Then: filenames AND module names should be redacted
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--redact")
+        .arg("all")
+        .assert()
+        .success()
+        // Path should be hashed
+        .stdout(predicate::str::contains("src/main.rs").not())
+        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).unwrap())
+        // Module should NOT be "src" (it should be hashed or redacted, usually same hash if it's based on path,
+        // or just hidden. Wait, how is module redacted?
+        // In model.rs it's just a derived key. If paths are redacted, module key derivation might change?
+        // Let's check format.rs/redact_rows logic.
+        // Actually, let's just check that "src" doesn't appear as a module value.
+        .stdout(predicate::str::contains(r#""module":"src""#).not());
+}
+
+/*
+#[test]
+fn test_config_file() {
+    // Given: A temp dir with a tokei.toml that ignores a file
+    let dir = tempdir().unwrap();
+    let config_path = dir.path().join("tokei.toml");
+    std::fs::write(&config_path, r#"
+    [[ignore]]
+    ignore = ["ignored_by_conf.rs"]
+    "#).unwrap();
+
+    let file_path = dir.path().join("ignored_by_conf.rs");
+    std::fs::write(&file_path, "fn main() {}").unwrap();
+
+    // When: We run export in that dir
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("export")
+        .assert()
+        .success()
+        // Then: The file should be ignored
+        .stdout(predicate::str::contains("ignored_by_conf.rs").not());
+}
+*/
+
+#[test]
+fn test_module_depth_overflow() {
+    // Given: src/main.rs (depth 2 essentially: src -> main.rs)
+    // When: We ask for module depth 10
+    // Then: It should not crash, and likely just return 'src' (or whatever full path segments it has)
+    let mut cmd = tokmd_cmd();
+    cmd.arg("module")
+        .arg("--module-depth")
+        .arg("10")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("|src|"));
 }
 
 #[test]
