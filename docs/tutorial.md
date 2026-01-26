@@ -3,8 +3,22 @@
 This guide will walk you through using `tokmd` to understand a codebase you've just cloned.
 
 **Prerequisites**:
-- `tokmd` installed (`cargo install tokmd`)
+- `tokmd` installed (see below)
 - A git repository to analyze (we'll assume you are in the root of one)
+
+## Step 0: Installation
+
+First, ensure the tool is installed.
+
+```bash
+cargo install tokmd
+```
+
+Verify it works:
+
+```bash
+tokmd --version
+```
 
 ---
 

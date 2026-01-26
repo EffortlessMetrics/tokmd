@@ -305,6 +305,35 @@ fn test_module_custom_roots() {
 }
 
 #[test]
+fn test_init_print_bdd() {
+    // Given: No prerequisites
+    // When: `tokmd init --print` is run
+    // Then: It prints the standard .tokeignore template including 'target/'
+    let mut cmd = tokmd_cmd();
+    cmd.arg("init")
+        .arg("--print")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("target/"));
+}
+
+#[test]
+fn test_mixed_args_precedence() {
+    // Given: A file that is small (src/main.rs is < 10 lines)
+    // When: We run export with --min-code 10 AND --max-rows 100
+    // Then: It should be filtered out because min-code excludes it before max-rows counts it
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--min-code")
+        .arg("10")
+        .arg("--max-rows")
+        .arg("100")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("src/main.rs").not());
+}
+
+#[test]
 fn test_module_custom_roots_miss() {
     // Given: src/main.rs
     // When: We set module roots to something that DOESN'T match, like 'crates'

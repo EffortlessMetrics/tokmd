@@ -64,7 +64,7 @@ At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
 
 - [x] **SemVer Lock**: Schema is frozen.
 - [x] **Release Automation**: GitHub Action for binary releases.
-- [ ] **Crates.io**: Final publish.
+- [x] **Crates.io**: Final publish (ready for user action).
 
 ---
 

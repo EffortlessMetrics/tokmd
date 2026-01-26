@@ -109,3 +109,23 @@ fixtures/
 ```
 
 This file is specific to `tokmd` (and `tokei`) and won't affect git.
+
+## 7. CI Gate: Fail if Files are Too Large
+
+Enforce a "no monolithic files" policy in CI.
+
+**Goal**: Fail the build if any source file exceeds 2000 lines.
+
+```bash
+# Export all files > 2000 lines
+# If output is empty, grep fails (exit 1) -> we want the opposite
+# Better: count lines of output
+
+COUNT=$(tokmd export --min-code 2000 --format csv | tail -n +2 | wc -l)
+
+if [ "$COUNT" -gt 0 ]; then
+  echo "Error: Found $COUNT files larger than 2000 lines."
+  tokmd export --min-code 2000 --format csv
+  exit 1
+fi
+```
