@@ -10,16 +10,12 @@ It is a Tokei-backed, cross-platform tool that produces one-command outputs:
 
 **One command, no glue.** No `jq`, no `column`, no shell quoting gymnastics.
 
-## The Pain It Targets
+## The Mental Model
 
-PRs have gotten bigger, not better. Seniors burn time on review and AI bug hunts while throughput stays flat. The fix isn’t “better prompting”—it’s **gated work with artifacts you can trust**.
-
-`tokmd` makes “repo shape” a **mechanically verifiable artifact** instead of a terminal screenshot or a fragile script output.
-
-## Who It’s For
-
-- **Platform/DevEx Engineers & Tech Leads**: Who want to “review artifacts, not chats” by moving work into deterministic outputs.
-- **Agentic Workflow Builders**: Who need a deterministic "sensor" to feed repo context to LLMs without context starvation.
+- **tokei counts.**
+- **tokmd packages counts into receipts.**
+- **Pipelines/LLMs consume receipts.**
+- **Humans review the summary, not the whole repo.**
 
 ## What It Is (And Isn't)
 
@@ -32,6 +28,14 @@ PRs have gotten bigger, not better. Seniors burn time on review and AI bug hunts
 - **A Productivity Metric**: LOC is for shape, not grading people.
 - **A Quality Judge**: It doesn't lint or test.
 - **A TUI**: It generates receipts, it doesn't offer interactive exploration.
+
+## Why Use It? (The "What We Add" List)
+
+1.  **One command, no glue**: Replaces `tokei | jq | column` with a single binary.
+2.  **Receipts**: Stable, versioned JSON envelopes for tooling.
+3.  **Module View**: Groups code by directory (`crates/`, `packages/`) for monorepo reality checks.
+4.  **Export Dataset**: Streaming JSONL/CSV for LLMs and automation.
+5.  **Safety**: Redaction (`--redact paths`) allows sharing repo shape without leaking internal names.
 
 ## Installation
 

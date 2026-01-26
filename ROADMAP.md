@@ -82,21 +82,15 @@ These features extend `tokmd` from a passive sensor to an active agent in the LL
 ### B. "Change Detection" (The Diff Engine)
 *Goal: Answer "What changed in the repo shape?"*
 
-- **`tokmd diff <old.json> <new.json>`**: A dedicated command to compare two receipts.
-    - Output: "Rust grew by 15%, 4 new modules added."
-    - Output: Markdown summary of changes for PR comments.
-- **Git Integration**: `tokmd diff --git HEAD~1` (automatically runs scan on old ref).
+- **`tokmd diff --from A.json --to B.json`**: Compare two receipts (low risk, no git plumbing).
+- **Git Integration**: `tokmd diff --git HEAD~1`.
 
-### C. Persistent Configuration
+### C. Persistent Configuration (`tokmd.toml`)
 *Goal: "Set and forget" repo-specific settings.*
 
-- **`.tokmd.toml`**: Support a config file for project-specific settings so users don't need CLI flags every time.
-    - `module_roots = ["packages", "services"]`
-    - `redact = "paths"`
-    - `ignore_hidden = true`
+- Define `module_roots`, `redact` defaults, and `ignore` patterns in a file.
+- Support `[view.llm]` profiles (e.g., `tokmd --view llm`).
 
-### D. Ecosystem Integration
-- **GitHub Action**: `uses: effortlessmetrics/tokmd-action@v1`.
-    - Auto-comment on PRs with size delta.
-    - Fail build if `redact` is not used in public artifacts.
-- **Pre-commit Hook**: Ensure `tokmd export` is up-to-date in the repo.
+### D. Workflow Integration
+- **`tokmd run`**: Write canonical receipts (`lang.json`, `module.json`, `export.jsonl`) into a `.runs/` directory.
+- **GitHub Action**: Auto-comment on PRs with size delta.

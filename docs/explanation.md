@@ -1,36 +1,46 @@
 # Explanation: The Philosophy of Receipts
 
-`tokmd` is designed as a **sensor** for agentic workflows. Its goal is to shift context left: from messy, chatty exploration to structured, deterministic artifacts.
+## The Core Concept
 
-## The Context: Agentic Swarms
+**tokmd turns "counting" into "receipts".**
 
-In a gated multi-agent workflow, the first step is **Explore → Inventory + Plan**. `tokmd` provides the inventory artifact.
+`tokei` is a fantastic **counting engine**. It tells you how many lines of code exist.
+`tokmd` is the **packaging layer**. It runs the scan and emits **artifact-shaped outputs** that humans and pipelines can trust and reuse, without shell glue.
 
-It addresses specific failure modes in AI-native development:
+## The Problems We Solve
 
-1.  **Context Starvation**: Giving an LLM a cheap, structured map of the repo so it can steer without dumping the whole codebase into the prompt.
-2.  **Process Confabulation**: The tendency to "narrate" work (e.g., "I checked the files") without evidence. `tokmd` receipts provide the evidence that crosses the **trust boundary**.
+### 1. "Repo shape" is useful, but tooling is friction-heavy
+Raw counting tools output to terminals. Using them in PRs or pipelines requires fragile chains of `jq`, `column`, and shell scripts. `tokmd` replaces that glue with a single, cross-platform command that outputs stable artifacts.
 
-## The Trust Boundary
+### 2. LLM workflows need a map, not a dump
+Pasting source code into an LLM wastes tokens and leaks context. Agents need a map first:
+- What is here? (Languages)
+- Where is the mass? (Modules)
+- Which files are heavy? (Export rows)
 
-Text is untrusted; artifacts are trusted.
+`tokmd` provides this map as a compact, structured dataset.
 
-- **Chats** are ephemeral and hallucination-prone.
-- **Receipts** are deterministic, versioned, and machine-verifiable.
+### 3. Preventing Process Confabulation
+In automated workflows, the common failure mode is narrative ("I checked the files"). `tokmd` enforces a "receipt" posture: outputs are deterministic, versioned, and machine-verifiable. Text is untrusted; artifacts are trusted.
 
-By generating a `tokmd` receipt, you create a stable artifact that can be diffed, cached, and validated by pipelines. This enables the shift from "chatting with code" to "reasoning about artifacts."
+### 4. "Shape, not grade"
+`tokmd` is explicitly **not** a productivity metric. It is a sensor for inventory, distribution, and drift detection. This aligns with the philosophy of "trusted change" rather than LOC theater.
 
-## Safety: "If you wouldn't email it, don't paste"
+## What is a Receipt?
 
-`tokmd` adopts a "boring compliance" posture for AI safety.
+A receipt is more than just JSON output. It is a **contract**.
 
-- **Redaction**: Support for hashing paths and module names allows you to share the *shape* of your repo (architecture, complexity, distribution) with a hosted LLM without leaking sensitive internal identifiers.
-- **Model Copies**: We prefer working with structural models (lists, stats) over raw data to minimize surface area.
+Every `tokmd` output includes:
+- `schema_version`: To allow safe evolution.
+- `tool` & `args`: Provenance of how the data was generated.
+- `scan` configuration: What was ignored/included.
+- `totals` & `rows`: The data itself.
 
-## Why "Shape, Not Grade"?
+This structure allows downstream tools (dashboards, diff engines, agents) to consume the data without guessing.
 
-`tokmd` explicitly rejects the use of LOC as a productivity metric. In AI-native repos, velocity is easy to game. `tokmd` is for understanding the **shape** of the codebase:
+## Trust Boundaries
 
-- Where is the complexity accumulating?
-- What are we actually vending vs. writing?
-- How does the repo look to a machine?
+- **Text** is untrusted.
+- **Artifacts** (receipts) are trusted.
+
+By generating a receipt, you create a boundary object that can be passed between agents or stored as evidence of a repository's state at a specific commit.
