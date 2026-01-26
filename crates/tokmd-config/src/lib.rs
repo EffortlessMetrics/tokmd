@@ -78,6 +78,26 @@ pub enum Commands {
 
     /// Write a `.tokeignore` template to the target directory.
     Init(InitArgs),
+
+    /// Generate shell completions.
+    Completions(CompletionsArgs),
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CompletionsArgs {
+    /// Shell to generate completions for.
+    #[arg(value_enum)]
+    pub shell: Shell,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Shell {
+    Bash,
+    Elvish,
+    Fish,
+    Powershell,
+    Zsh,
 }
 
 #[derive(Args, Debug, Clone)]

@@ -14,7 +14,14 @@ use tokmd_config::{
 use tokmd_types::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
 
 /// Increment when JSON/JSONL output shapes change.
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ScanStatus {
+    Complete,
+    Partial,
+}
 
 #[derive(Debug, Clone, Serialize)]
 struct ToolInfo {
@@ -78,6 +85,8 @@ struct LangReceipt {
     generated_at_ms: u128,
     tool: ToolInfo,
     mode: &'static str,
+    status: ScanStatus,
+    warnings: Vec<String>,
     scan: ScanArgs,
     args: LangArgsMeta,
     rows: Vec<tokmd_types::LangRow>,
@@ -105,6 +114,8 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "lang",
+                status: ScanStatus::Complete,
+                warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: LangArgsMeta {
                     top: report.top,
@@ -190,6 +201,8 @@ struct ModuleReceipt {
     generated_at_ms: u128,
     tool: ToolInfo,
     mode: &'static str,
+    status: ScanStatus,
+    warnings: Vec<String>,
     scan: ScanArgs,
     args: ModuleArgsMeta,
     rows: Vec<tokmd_types::ModuleRow>,
@@ -222,6 +235,8 @@ pub fn print_module_report(
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "module",
+                status: ScanStatus::Complete,
+                warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: ModuleArgsMeta {
                     top: report.top,
@@ -283,6 +298,8 @@ struct ExportMeta {
     generated_at_ms: u128,
     tool: ToolInfo,
     mode: &'static str,
+    status: ScanStatus,
+    warnings: Vec<String>,
     scan: ScanArgs,
     args: ExportArgsMeta,
 }
@@ -377,6 +394,8 @@ fn write_export_jsonl<W: Write>(
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export",
+            status: ScanStatus::Complete,
+            warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
@@ -415,6 +434,8 @@ fn write_export_json<W: Write>(
             generated_at_ms: u128,
             tool: ToolInfo,
             mode: &'static str,
+            status: ScanStatus,
+            warnings: Vec<String>,
             scan: ScanArgs,
             args: ExportArgsMeta,
             rows: Vec<FileRow>,
@@ -425,6 +446,8 @@ fn write_export_json<W: Write>(
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export",
+            status: ScanStatus::Complete,
+            warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,

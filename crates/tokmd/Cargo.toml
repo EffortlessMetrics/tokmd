@@ -48,6 +48,7 @@ tokmd-scan = { path = "../tokmd-scan" }
 tokmd-format = { path = "../tokmd-format" }
 tokmd-tokeignore = { path = "../tokmd-tokeignore" }
 tokmd-types = { path = "../tokmd-types" }
+clap_complete = "4.5.65"
 
 [profile.release]
 lto = true

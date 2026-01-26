@@ -1,0 +1,72 @@
+name: 'tokmd-receipt'
+description: 'Generate a repository receipt (markdown summary + JSON inventory) using tokmd'
+inputs:
+  version:
+    description: 'Version of tokmd to use'
+    default: 'latest'
+  paths:
+    description: 'Paths to scan'
+    default: '.'
+  module-roots:
+    description: 'Module roots (comma-separated)'
+    default: 'crates,packages'
+  top:
+    description: 'Number of rows to show in summary'
+    default: '20'
+  token:
+    description: 'GitHub token for commenting (optional)'
+    default: ${{ github.token }}
+  comment:
+    description: 'Whether to post a comment on the PR'
+    default: 'true'
+
+outputs:
+  receipt-json:
+    description: 'Path to the generated receipt.json'
+    value: ${{ steps.generate.outputs.receipt }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install tokmd
+      shell: bash
+      run: |
+        if ! command -v tokmd &> /dev/null; then
+          echo "Installing tokmd..."
+          # Fallback to cargo install for now until releases are stable
+          cargo install --git https://github.com/EffortlessMetrics/tokmd tokmd
+        fi
+        tokmd --version
+
+    - name: Generate Receipts
+      id: generate
+      shell: bash
+      run: |
+        echo "Generating receipts..."
+        tokmd module \
+          --paths "${{ inputs.paths }}" \
+          --module-roots "${{ inputs.module-roots }}" \
+          --top ${{ inputs.top }} \
+          --format md > tokmd-summary.md
+        
+        tokmd export \
+          --paths "${{ inputs.paths }}" \
+          --module-roots "${{ inputs.module-roots }}" \
+          --format json > tokmd-receipt.json
+        
+        echo "receipt=tokmd-receipt.json" >> $GITHUB_OUTPUT
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tokmd-receipts
+        path: |
+          tokmd-summary.md
+          tokmd-receipt.json
+
+    - name: Comment on PR
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        filePath: tokmd-summary.md
+        comment_tag: tokmd-summary
