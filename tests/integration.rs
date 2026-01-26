@@ -690,9 +690,120 @@ fn test_children_stats_integrity() {
         .stdout(predicate::str::is_match(r"\|\s*Rust \(embedded\)\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*[1-9]\d*\s*\|").unwrap());
 }
 
-/*
 #[test]
-fn test_config_file() {
+fn test_generated_timestamp_validity() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd.arg("lang")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    // Parse JSON and check generated_at_ms
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let ts = v["generated_at_ms"].as_u64().unwrap();
+    assert!(ts > 1_700_000_000_000, "Timestamp too old or zero: {}", ts);
+}
+
+#[test]
+fn test_lang_stats_math() {
+    let dir = tempdir().unwrap();
+    let file = dir.path().join("math.rs");
+    // 2 code lines, 1 comment, 1 blank
+    std::fs::write(&file, "fn main() {\n    // comment\n\n}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("lang")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(r#""code":2"#))
+        // LangRow doesn't expose comments/blanks directly in JSON, but lines = code+comments+blanks
+        .stdout(predicate::str::contains(r#""lines":4"#)); // 2+1+1
+}
+
+#[test]
+fn test_lang_fold_math() {
+    let dir = tempdir().unwrap();
+    // File 1: Rust (2 code)
+    std::fs::write(dir.path().join("a.rs"), "fn a(){}").unwrap();
+    // File 2: Python (1 code)
+    std::fs::write(dir.path().join("b.py"), "print(1)").unwrap();
+    // File 3: JS (1 code)
+    std::fs::write(dir.path().join("c.js"), "console.log()").unwrap();
+
+    // Run with top 1.
+    // Code counts: Rust=1, Python=1, JS=1. (Actually Rust might be more lines depending on formatting, let's assume 1)
+    // Sort: Descending Code, then Ascending Name.
+    // 1. JavaScript (1)
+    // 2. Python (1)
+    // 3. Rust (1)
+    // Top 1 = JavaScript.
+    // Other = Python + Rust = 1 + 1 = 2 code.
+    
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("lang")
+        .arg("--top")
+        .arg("1")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(r#""lang":"JavaScript""#))
+        .stdout(predicate::str::contains(r#""lang":"Other""#))
+        // Verify Other stats
+        .stdout(predicate::str::contains(r#""code":2"#)); // Other=2
+}
+
+#[test]
+fn test_module_fold_math() {
+    let dir = tempdir().unwrap();
+    // Mod A: 2 lines
+    let mod_a = dir.path().join("a");
+    std::fs::create_dir(&mod_a).unwrap();
+    std::fs::write(mod_a.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+
+    // Mod B: 1 line
+    let mod_b = dir.path().join("b");
+    std::fs::create_dir(&mod_b).unwrap();
+    std::fs::write(mod_b.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+    
+    // Mod C: 1 line
+    let mod_c = dir.path().join("c");
+    std::fs::create_dir(&mod_c).unwrap();
+    std::fs::write(mod_c.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+
+    // We need to have 3 modules. Default depth is 0? No, --module-depth.
+    // If we run `module --module-depth 1`.
+    // We want A to be top, B+C to be Other.
+    // But sort order is code desc, then name asc.
+    // A=1, B=1, C=1.
+    // Sort: A, B, C.
+    // If top=1: A is kept. B+C = Other.
+    // Other code = 1+1=2.
+    
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("module")
+        .arg("--module-depth")
+        .arg("1")
+        .arg("--top")
+        .arg("1")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(r#""module":"a""#))
+        .stdout(predicate::str::contains(r#""module":"Other""#))
+        // A has 1 code. Other has 2.
+        .stdout(predicate::str::contains(r#""code":1"#))
+        .stdout(predicate::str::contains(r#""code":2"#));
+}
+
+/*
     // Given: A temp dir with a tokei.toml that ignores a file
     let dir = tempdir().unwrap();
     let config_path = dir.path().join("tokei.toml");
