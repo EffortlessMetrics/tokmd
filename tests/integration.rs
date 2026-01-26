@@ -439,6 +439,115 @@ fn test_filter_all_rows() {
 }
 
 #[test]
+fn test_export_out_file() {
+    // Given: A temp dir and output file path
+    // When: We run export with --out <file>
+    // Then: stdout should be empty, file should contain jsonl
+    let dir = tempdir().unwrap();
+    let out_file = dir.path().join("output.jsonl");
+    
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--out")
+        .arg(&out_file)
+        .assert()
+        .success()
+        .stdout(""); // stdout should be empty
+
+    let content = std::fs::read_to_string(&out_file).unwrap();
+    assert!(content.contains(r#""mode":"export""#));
+    assert!(content.contains(r#""path":"src/main.rs""#)); // assuming default test context includes src/main.rs
+}
+
+#[test]
+fn test_lang_files_flag() {
+    // Given: Standard scan
+    // When: We run lang --files
+    // Then: Output should contain "Files" and "Avg" columns
+    let mut cmd = tokmd_cmd();
+    cmd.arg("--files")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Files"))
+        .stdout(predicate::str::contains("Avg"));
+}
+
+#[test]
+fn test_init_force() {
+    // Given: A temp dir with an existing .tokeignore
+    let dir = tempdir().unwrap();
+    let file_path = dir.path().join(".tokeignore");
+    std::fs::write(&file_path, "existing content").unwrap();
+
+    // When: We run init without force
+    // Then: It should fail
+    let mut cmd = tokmd_cmd();
+    cmd.current_dir(dir.path())
+        .arg("init")
+        .assert()
+        .failure();
+
+    // When: We run init WITH force
+    // Then: It should succeed and overwrite
+    let mut cmd = tokmd_cmd();
+    cmd.current_dir(dir.path())
+        .arg("init")
+        .arg("--force")
+        .assert()
+        .success();
+    
+    let content = std::fs::read_to_string(&file_path).unwrap();
+    assert!(content.contains("# .tokeignore"));
+    assert!(!content.contains("existing content"));
+}
+
+#[test]
+fn test_init_profiles() {
+    // Given: A request for python profile
+    // When: We run init --profile python --print
+    // Then: Output should contain python specific ignores like __pycache__
+    let mut cmd = tokmd_cmd();
+    cmd.arg("init")
+        .arg("--profile")
+        .arg("python")
+        .arg("--print")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("__pycache__"));
+}
+
+#[test]
+fn test_non_existent_path() {
+    // Given: A non-existent path
+    // When: We run export
+    // Then: It should succeed but report 0 files (or handled gracefully)
+    // Tokei behavior is to just ignore it usually, or report empty stats.
+    // Our wrapper should not panic.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("non_existent_file_abc123.txt")
+        .assert()
+        .success();
+        // We don't strictly assert output emptiness because meta might be there.
+        // But verifying it doesn't crash is valuable.
+}
+
+#[test]
+fn test_module_parents_only() {
+    // Given: mixed.md with embedded rust code
+    // When: We run module --children parents-only
+    // Then: The total code count should be lower than separate/collapse for the 'tests' module
+    // We can just verify it succeeds and maybe check a known value if we had precise control,
+    // but verifying the flag is accepted is a good start.
+    let mut cmd = tokmd_cmd();
+    cmd.arg("module")
+        .arg("--children")
+        .arg("parents-only")
+        .assert()
+        .success();
+}
+
+#[test]
 fn test_empty_file_handling() {
     // Given: An empty file (we need to ensure one exists in fixtures)
     // For now, let's assume 'script.js' has content.
