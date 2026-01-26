@@ -1,0 +1,65 @@
+[package]
+name = "tokmd"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+description = "A stable interface for repo shape. Emits receipt-style summaries (Markdown/TSV) and machine-readable inventories (JSONL/CSV) for LLMs and pipelines."
+readme = "README.md"
+# Update these when you publish.
+homepage = "https://github.com/EffortlessMetrics/tokmd"
+repository = "https://github.com/EffortlessMetrics/tokmd"
+keywords = ["repo-analysis", "inventory", "llm-context", "receipts", "tokei"]
+categories = ["command-line-utilities", "development-tools"]
+default-run = "tokmd"
+autobins = false
+exclude = [
+    ".github",
+    ".gitignore",
+    ".gitattributes",
+    "CLAUDE.md",
+    "TODO.md",
+    "mutants.toml",
+    "mutants.out",
+    "mutants.out.old",
+    "fuzz",
+    "tests",
+]
+
+[features]
+default = []
+alias-tok = []
+
+[[bin]]
+name = "tokmd"
+path = "src/bin/tokmd.rs"
+
+[[bin]]
+name = "tok"
+path = "src/bin/tok.rs"
+required-features = ["alias-tok"]
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.54", features = ["derive"] }
+tokmd-config = { path = "../tokmd-config" }
+tokmd-model = { path = "../tokmd-model" }
+tokmd-scan = { path = "../tokmd-scan" }
+tokmd-format = { path = "../tokmd-format" }
+tokmd-tokeignore = { path = "../tokmd-tokeignore" }
+tokmd-types = { path = "../tokmd-types" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+[dev-dependencies]
+assert_cmd = "2.0.14"
+predicates = "3.1.0"
+tempfile = "3.10.1"
+insta = { version = "1.39.0", features = ["json"] }
+regex = "1.10.4"
+proptest = "1.6.0"
+serde_json = "1.0.149"
+tokmd-model = { path = "../tokmd-model" }

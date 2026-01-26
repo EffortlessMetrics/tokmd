@@ -1,0 +1,8 @@
+[package]
+name = "tokmd-types"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+tokmd-config = { path = "../tokmd-config" }

@@ -7,11 +7,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::Result;
 use serde::Serialize;
 
-use crate::cli::{
+use tokmd_config::{
     ChildIncludeMode, ConfigMode, ExportArgs, ExportFormat, GlobalArgs, LangArgs, ModuleArgs,
     RedactMode, TableFormat,
 };
-use crate::model::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
+use tokmd_types::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
 
 /// Increment when JSON/JSONL output shapes change.
 const SCHEMA_VERSION: u32 = 1;
@@ -80,7 +80,7 @@ struct LangReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: LangArgsMeta,
-    rows: Vec<crate::model::LangRow>,
+    rows: Vec<tokmd_types::LangRow>,
     total: Totals,
 }
 
@@ -88,7 +88,7 @@ struct LangReceipt {
 struct LangArgsMeta {
     top: usize,
     with_files: bool,
-    children: crate::cli::ChildrenMode,
+    children: tokmd_config::ChildrenMode,
 }
 
 pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
@@ -192,7 +192,7 @@ struct ModuleReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: ModuleArgsMeta,
-    rows: Vec<crate::model::ModuleRow>,
+    rows: Vec<tokmd_types::ModuleRow>,
     total: Totals,
 }
 

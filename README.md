@@ -8,32 +8,62 @@ It is a Tokei-backed, cross-platform tool that produces one-command outputs:
 - **Markdown/TSV** for humans (paste into PRs, issues, or ChatGPT).
 - **JSONL/CSV** for pipelines and LLMs.
 
-## The Mental Model
+## Mental Model
 
 - **tokei counts.**
 - **tokmd packages counts into receipts.**
 - **Pipelines/LLMs consume receipts.**
-- **Humans review the summary, not the whole repo.**
 
-## What It Is (And Isn't)
+## Where tokmd fits
 
-**It IS:**
-- A **Sensor**: Emits receipts for languages, modules, and file inventories.
-- **Schema-Bound**: Outputs are strict contracts (`schema_version`) that pipelines can trust.
-- **Safe**: Offers redaction to support "If you wouldn't email it, don't paste."
+Think of this space as three layers:
 
-**It is NOT:**
-- **A Productivity Metric**: LOC is for shape, not grading people.
-- **A Quality Judge**: It doesn't lint or test.
-- **A TUI**: It generates receipts, it doesn't offer interactive exploration.
+- **Counting engines**: `tokei`, `cloc`, `scc`  
+  They count. Their output is mostly terminal-shaped.
 
-## Why Use It? (The "What We Add" List)
+- **Receipt / packaging**: `tokmd`  
+  Turns counts into stable artifacts (maps) for humans and machines.
 
-1.  **One command, no glue**: Replaces `tokei | jq | column` with a single binary.
-2.  **Receipts**: Stable, versioned JSON envelopes for tooling.
-3.  **Module View**: Groups code by directory (`crates/`, `packages/`) for monorepo reality checks.
-4.  **Export Dataset**: Streaming JSONL/CSV for LLMs and automation.
-5.  **Safety**: Redaction (`--redact paths`) allows sharing repo shape without leaking internal names.
+- **Content packers for LLMs**: `repomix`, `files-to-prompt`  
+  They bundle file *contents* for prompts.
+
+**tokmd is the map-maker.** Run it first to see the territory. Use a packer only after you know what you want to read.
+
+## Workflow: map → select → pack (LLMs)
+
+1. **Map the repo** (cheap):
+   ```bash
+   tokmd module --top 20
+   tokmd export --min-code 20 --max-rows 300 --redact paths > map.jsonl
+   ```
+
+2. **Select paths**:
+   Human or agent picks a small set of interesting files from the map.
+
+3. **Pack contents** (expensive):
+   Use a content packer (repomix, files-to-prompt) on the selected paths.
+
+## Why not just use `tokei`?
+
+| Problem | Scripts (`tokei \| jq`) | tokmd |
+|---|---|---|
+| **Cross-platform** | breaks on shells/tools | one binary |
+| **Output contract** | ad-hoc | `schema_version` + schema |
+| **Safety** | hard to do right | built-in redaction |
+| **Stability** | no tests | golden tests + CI |
+
+## Stability Contract
+
+- JSON/JSONL outputs are **schema-versioned** (`schema_version`).
+- Sorting and path normalization are deterministic.
+- Breaking output changes bump `schema_version` (and semver major when applicable).
+- tokei’s counting semantics are upstream. tokmd’s guarantee is packaging + determinism.
+
+## Safety Note (Redaction)
+
+`--redact` hashes identifiers to reduce accidental leakage in copy/paste workflows.
+
+It does **not** make data anonymous. You still leak shape (counts, file extensions, relative sizes). **If you wouldn’t email it, don’t paste it.**
 
 ## Installation
 

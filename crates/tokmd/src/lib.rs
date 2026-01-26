@@ -1,8 +1,8 @@
-mod cli;
-mod format;
-mod model;
-mod scan;
-mod tokeignore;
+use tokmd_config as cli;
+use tokmd_format as format;
+use tokmd_model as model;
+use tokmd_scan as scan;
+use tokmd_tokeignore as tokeignore;
 
 use anyhow::Result;
 use clap::Parser;
@@ -17,12 +17,12 @@ pub fn run() -> Result<()> {
         Commands::Lang(args) => {
             let languages = scan::scan(&args.paths, &cli.global)?;
             let report =
-                model::LangReport::from_languages(&languages, args.top, args.files, args.children);
+                model::create_lang_report(&languages, args.top, args.files, args.children);
             format::print_lang_report(&report, &cli.global, &args)?;
         }
         Commands::Module(args) => {
             let languages = scan::scan(&args.paths, &cli.global)?;
-            let report = model::ModuleReport::from_languages(
+            let report = model::create_module_report(
                 &languages,
                 &args.module_roots,
                 args.module_depth,
@@ -34,7 +34,7 @@ pub fn run() -> Result<()> {
         Commands::Export(args) => {
             let languages = scan::scan(&args.paths, &cli.global)?;
             let strip_prefix = args.strip_prefix.as_deref();
-            let export = model::ExportData::from_languages(
+            let export = model::create_export_data(
                 &languages,
                 &args.module_roots,
                 args.module_depth,

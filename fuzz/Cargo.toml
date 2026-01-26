@@ -1,0 +1,32 @@
+[package]
+name = "tokmd-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+tokmd = { path = "../crates/tokmd" }
+tokmd-model = { path = "../crates/tokmd-model" }
+tokmd-scan = { path = "../crates/tokmd-scan" }
+tokmd-config = { path = "../crates/tokmd-config" }
+
+[[bin]]
+name = "fuzz_module_key"
+path = "fuzz_targets/fuzz_module_key.rs"
+test = false
+doc = false
+required-features = ["fuzzing"]
+
+[[bin]]
+name = "fuzz_normalize_path"
+path = "fuzz_targets/fuzz_normalize_path.rs"
+test = false
+doc = false
+required-features = ["fuzzing"]
+
+[features]
+fuzzing = []
