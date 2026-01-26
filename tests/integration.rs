@@ -207,10 +207,7 @@ fn test_init_creates_file() {
     // Then: .tokeignore should be created
     let dir = tempdir().unwrap();
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
-    cmd.current_dir(dir.path())
-        .arg("init")
-        .assert()
-        .success();
+    cmd.current_dir(dir.path()).arg("init").assert().success();
 
     let file_path = dir.path().join(".tokeignore");
     assert!(file_path.exists(), ".tokeignore was not created");
