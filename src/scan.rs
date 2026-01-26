@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use anyhow::Result;
+use std::path::PathBuf;
 use tokei::{Config, Languages};
 
 use crate::cli::{ConfigMode, GlobalArgs};

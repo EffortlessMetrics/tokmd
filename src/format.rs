@@ -51,10 +51,7 @@ fn now_ms() -> u128 {
 
 fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
     let mut args = ScanArgs {
-        paths: paths
-            .iter()
-            .map(|p| p.display().to_string())
-            .collect(),
+        paths: paths.iter().map(|p| p.display().to_string()).collect(),
         excluded: global.excluded.clone(),
         config: global.config,
         hidden: global.hidden,
@@ -65,10 +62,8 @@ fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>)
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
     };
 
-    if let Some(mode) = redact {
-        if mode == RedactMode::Paths || mode == RedactMode::All {
-            args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
-        }
+    if redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All) {
+        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
     }
     args
 }

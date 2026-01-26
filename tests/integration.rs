@@ -114,15 +114,11 @@ fn test_ignore_override() {
 #[test]
 fn test_golden_lang_json() {
     let mut cmd = tokmd_cmd();
-    let output = cmd
-        .arg("--format")
-        .arg("json")
-        .output()
-        .unwrap();
-    
+    let output = cmd.arg("--format").arg("json").output().unwrap();
+
     let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
-    
+
     insta::assert_snapshot!(normalized);
 }
 
@@ -135,24 +131,21 @@ fn test_golden_module_json() {
         .arg("json")
         .output()
         .unwrap();
-    
+
     let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
-    
+
     insta::assert_snapshot!(normalized);
 }
 
 #[test]
 fn test_golden_export_jsonl() {
     let mut cmd = tokmd_cmd();
-    let output = cmd
-        .arg("export")
-        .output()
-        .unwrap();
-    
+    let output = cmd.arg("export").output().unwrap();
+
     let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
-    
+
     insta::assert_snapshot!(normalized);
 }
 
@@ -165,10 +158,10 @@ fn test_golden_export_redacted() {
         .arg("all")
         .output()
         .unwrap();
-    
+
     let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
-    
+
     insta::assert_snapshot!(normalized);
 }
 
@@ -220,7 +213,7 @@ fn test_limit_max_rows() {
         .success()
         // Meta record is always first
         .stdout(predicate::str::contains(r#""mode":"export""#))
-        // We should see exactly ONE data row. 
+        // We should see exactly ONE data row.
         // Counting "row" occurrences might be tricky with simple string predicates.
         // Instead, let's verify that NOT ALL files are present.
         // If we have 5 files, and we ask for 1, we shouldn't see all 5.
@@ -233,7 +226,6 @@ fn test_limit_max_rows() {
             lines.len() == 2
         }));
 }
-
 
 #[test]
 fn test_paths_redacted_hash() {
@@ -279,7 +271,7 @@ fn test_children_separate() {
 
 #[test]
 fn test_init_command() {
-    // Given: A temporary directory (mimicked by checking output for now, 
+    // Given: A temporary directory (mimicked by checking output for now,
     // as we don't want to dirty tests/data/src)
     // When: We run `init --print`
     // Then: It should output the default .tokeignore content
@@ -293,7 +285,7 @@ fn test_init_command() {
 
 #[test]
 fn test_module_custom_roots() {
-    // Given: A file structure where we can simulate roots. 
+    // Given: A file structure where we can simulate roots.
     // 'src' is a folder in tests/data.
     // When: We run module report with --module-roots src --module-depth 1
     // Then: Files in src/ should be grouped under 'src' (which is the default behavior anyway,
@@ -316,7 +308,7 @@ fn test_module_custom_roots() {
 fn test_module_custom_roots_miss() {
     // Given: src/main.rs
     // When: We set module roots to something that DOESN'T match, like 'crates'
-    // Then: The file should fall back to its top-level directory 'src' 
+    // Then: The file should fall back to its top-level directory 'src'
     // (or (root) if it was at root).
     // src/main.rs -> top level is 'src'.
     let mut cmd = tokmd_cmd();
@@ -372,8 +364,8 @@ fn test_filter_all_rows() {
 #[test]
 fn test_empty_file_handling() {
     // Given: An empty file (we need to ensure one exists in fixtures)
-    // For now, let's assume 'script.js' has content. 
-    // We'll create a new empty file in a setup step if we could, 
+    // For now, let's assume 'script.js' has content.
+    // We'll create a new empty file in a setup step if we could,
     // but here we are restricted to existing fixtures.
     // Let's verify 'ignored.rs' is indeed ignored by default first.
     let mut cmd = tokmd_cmd();
@@ -406,6 +398,10 @@ fn test_format_csv() {
         .arg("csv")
         .assert()
         .success()
-        .stdout(predicate::str::contains("path,module,lang,kind,code,comments,blanks,lines")) // Header
-        .stdout(predicate::str::contains("src/main.rs,src,Rust,parent,3,0,0,3")); // Row
+        .stdout(predicate::str::contains(
+            "path,module,lang,kind,code,comments,blanks,lines",
+        )) // Header
+        .stdout(predicate::str::contains(
+            "src/main.rs,src,Rust,parent,3,0,0,3",
+        )); // Row
 }
