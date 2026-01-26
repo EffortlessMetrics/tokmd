@@ -2,7 +2,7 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 
 fn tokmd_cmd() -> Command {
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     // Point to our test fixture
     cmd.current_dir("tests/data");
     cmd
