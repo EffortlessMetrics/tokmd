@@ -2,13 +2,11 @@
 
 > **Current Status**: v1.0.0 (Release Candidate). See [ROADMAP.md](ROADMAP.md) for details.
 
-**tokmd is a repo “inventory receipt” generator.**
+**tokmd turns *tokei’s* scan into a *receipt*: a compact, deterministic artifact humans can paste into PRs/chats and pipelines/LLMs can parse without shell glue.**
 
 It is a Tokei-backed, cross-platform tool that produces one-command outputs:
 - **Markdown/TSV** for humans (paste into PRs, issues, or ChatGPT).
 - **JSONL/CSV** for pipelines and LLMs.
-
-**One command, no glue.** No `jq`, no `column`, no shell quoting gymnastics.
 
 ## The Mental Model
 
