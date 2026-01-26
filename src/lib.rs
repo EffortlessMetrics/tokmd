@@ -15,13 +15,13 @@ pub fn run() -> Result<()> {
 
     match cli.command.unwrap_or(Commands::Lang(cli.lang.clone())) {
         Commands::Lang(args) => {
-            let languages = scan::scan(&cli.global)?;
+            let languages = scan::scan(&args.paths, &cli.global)?;
             let report =
                 model::LangReport::from_languages(&languages, args.top, args.files, args.children);
             format::print_lang_report(&report, &cli.global, &args)?;
         }
         Commands::Module(args) => {
-            let languages = scan::scan(&cli.global)?;
+            let languages = scan::scan(&args.paths, &cli.global)?;
             let report = model::ModuleReport::from_languages(
                 &languages,
                 &args.module_roots,
@@ -32,7 +32,7 @@ pub fn run() -> Result<()> {
             format::print_module_report(&report, &cli.global, &args)?;
         }
         Commands::Export(args) => {
-            let languages = scan::scan(&cli.global)?;
+            let languages = scan::scan(&args.paths, &cli.global)?;
             let strip_prefix = args.strip_prefix.as_deref();
             let export = model::ExportData::from_languages(
                 &languages,

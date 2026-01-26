@@ -1,9 +1,10 @@
 use anyhow::Result;
+use std::path::PathBuf;
 use tokei::{Config, Languages};
 
 use crate::cli::{ConfigMode, GlobalArgs};
 
-pub fn scan(args: &GlobalArgs) -> Result<Languages> {
+pub fn scan(paths: &[PathBuf], args: &GlobalArgs) -> Result<Languages> {
     let mut cfg = match args.config {
         ConfigMode::Auto => Config::from_config_files(),
         ConfigMode::None => Config::default(),
@@ -15,6 +16,9 @@ pub fn scan(args: &GlobalArgs) -> Result<Languages> {
     }
     if args.no_ignore {
         cfg.no_ignore = Some(true);
+        cfg.no_ignore_dot = Some(true);
+        cfg.no_ignore_parent = Some(true);
+        cfg.no_ignore_vcs = Some(true);
     }
     if args.no_ignore_dot {
         cfg.no_ignore_dot = Some(true);
@@ -32,6 +36,12 @@ pub fn scan(args: &GlobalArgs) -> Result<Languages> {
     let ignores: Vec<&str> = args.excluded.iter().map(|s| s.as_str()).collect();
 
     let mut languages = Languages::new();
-    languages.get_statistics(&args.paths, &ignores, &cfg);
+    languages.get_statistics(paths, &ignores, &cfg);
+
+    // Tokei's get_statistics doesn't return an Result, it just logs errors to stderr if it can't read files.
+    // However, if the paths provided don't exist, it might just return empty stats.
+    // We should probably check if we got *anything* back if the user provided specific paths,
+    // but for now, we trust tokei's behavior of "best effort".
+
     Ok(languages)
 }

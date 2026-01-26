@@ -1,107 +1,100 @@
 # tokmd
 
-`tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces
-repo **inventory receipts**:
+> **Current Status**: v1.0.0 (Release Candidate). See [ROADMAP.md](ROADMAP.md) for details.
 
-- **Markdown/TSV** summaries for humans (paste into ChatGPT / issues / PRs)
-- **JSON / JSONL / CSV** datasets for pipelines and tooling
+**tokmd turns *tokei’s* scan into a *receipt*: a compact, deterministic artifact humans can paste into PRs/chats and pipelines/LLMs can parse without shell glue.**
 
-It’s designed to be **one command**: run once, copy/paste once. No `jq`, no `column`, no
-PowerShell quoting gymnastics.
+It is a Tokei-backed, cross-platform tool that produces one-command outputs:
+- **Markdown/TSV** for humans (paste into PRs, issues, or ChatGPT).
+- **JSONL/CSV** for pipelines and LLMs.
 
-This is **not** a productivity metric tool. LOC/PR velocity are easy to game and have
-lost meaning in AI-native repos. Use `tokmd` to understand repo *shape*, not to grade
-people.
+## The Mental Model
 
-## Install
+- **tokei counts.**
+- **tokmd packages counts into receipts.**
+- **Pipelines/LLMs consume receipts.**
+- **Humans review the summary, not the whole repo.**
+
+## What It Is (And Isn't)
+
+**It IS:**
+- A **Sensor**: Emits receipts for languages, modules, and file inventories.
+- **Schema-Bound**: Outputs are strict contracts (`schema_version`) that pipelines can trust.
+- **Safe**: Offers redaction to support "If you wouldn't email it, don't paste."
+
+**It is NOT:**
+- **A Productivity Metric**: LOC is for shape, not grading people.
+- **A Quality Judge**: It doesn't lint or test.
+- **A TUI**: It generates receipts, it doesn't offer interactive exploration.
+
+## Why Use It? (The "What We Add" List)
+
+1.  **One command, no glue**: Replaces `tokei | jq | column` with a single binary.
+2.  **Receipts**: Stable, versioned JSON envelopes for tooling.
+3.  **Module View**: Groups code by directory (`crates/`, `packages/`) for monorepo reality checks.
+4.  **Export Dataset**: Streaming JSONL/CSV for LLMs and automation.
+5.  **Safety**: Redaction (`--redact paths`) allows sharing repo shape without leaking internal names.
+
+## Installation
 
 From crates.io:
-
 ```bash
 cargo install tokmd
 ```
 
-Optional: also install a `tok` alias (via an opt-in feature):
+## Quick Start (Tutorial)
 
-```bash
-cargo install tokmd --features alias-tok
-```
-
-From a local checkout:
-
-```bash
-cargo install --path .
-```
-
-## Quick start
-
-Language summary (Markdown by default):
+### 1. Get a Language Summary
+Run `tokmd` in any repo to get a Markdown table of languages.
 
 ```bash
 tokmd
-tokmd --top 12
-tokmd --files
-tokmd --format tsv
-tokmd --format json
-
-# If your repo has embedded languages (e.g., code blocks), you can break them out:
-tokmd --children separate
+# Output:
+# |Lang|Code|Lines|
+# |---|---:|---:|
+# |Rust|1200|1500|
+# ...
 ```
 
-Module summary (good for modular repos):
+### 2. Get a Module Summary
+See where the code actually lives.
 
 ```bash
 tokmd module
-tokmd module --top 15
-tokmd module --module-roots crates,packages --module-depth 2
-
-# Include embedded languages (default):
-tokmd module --children separate
-# Ignore embedded languages:
-tokmd module --children parents-only
+# Output:
+# |Module|Code|Lines|
+# |---|---:|---:|
+# |crates/cli|500|600|
+# |crates/core|700|900|
 ```
 
-Export a file-level dataset (good for analysis or feeding into other tools):
+### 3. Generate a Data Receipt
+Export a machine-readable list of files for analysis or LLM contexts.
 
 ```bash
-# JSONL is the default (one record per line).
-tokmd export > tokmd.jsonl
-
-tokmd export --format csv  --out tokmd.csv
-tokmd export --format json --out tokmd.json
-
-# Include a meta record (default for JSON/JSONL) describing how the scan was run:
-tokmd export --meta true
-# Or emit rows only:
-tokmd export --meta false
-
-# Safer copy/paste into LLMs:
-tokmd export --redact paths
-tokmd export --redact all
-
-# Drop tiny rows / cap output size:
-tokmd export --min-code 10 --max-rows 500
+tokmd export > repo_inventory.jsonl
 ```
 
-Initialize a starter `.tokeignore`:
+## How-To Guides
 
-```bash
-tokmd init
-# Preview the template:
-tokmd init --print
-# Overwrite if one already exists:
-tokmd init --force
+- **[Feed a Codebase to an LLM](docs/recipes.md#1-feeding-a-codebase-to-an-llm)**
+- **[Track Repo Growth in CI](docs/recipes.md#2-tracking-repo-growth-over-time)**
+- **[Audit Vendor Dependencies](docs/recipes.md#3-auditing-vendor-dependencies)**
+- **[Find "Heavy" Files](docs/recipes.md#4-finding-heavy-files)**
 
-# Pick a profile:
-tokmd init --profile rust
-tokmd init --profile node
-tokmd init --profile mono
-tokmd init --profile python
-tokmd init --profile go
-tokmd init --profile cpp
-```
+## Reference
 
-## Notes
+### CLI Commands
+- `tokmd` (alias `tokmd lang`): Language summary.
+- `tokmd module`: Module-level summary.
+- `tokmd export`: File-level inventory (JSONL/CSV).
+- `tokmd init`: Generate `.tokeignore`.
+
+### Output Schemas
+- **[Receipt Schema](docs/SCHEMA.md)**: Human-readable guide to the JSON output.
+- **[Formal JSON Schema](docs/schema.json)**: Machine-readable spec.
+
+## Notes & Explanation
 
 - `tokmd` links to the `tokei` crate (it does **not** shell out to the `tokei` binary).
 - Ignore behavior is controlled by `tokei` and respects `.gitignore`, `.ignore`,
@@ -112,6 +105,15 @@ tokmd init --profile cpp
 - Windows: in PowerShell, `\` is a path separator, not a line-continuation character.
   If you copy multi-line examples, use backtick (`) for line continuation—or just keep
   it single-line (`tokmd` is designed for that).
+
+## Documentation
+
+The documentation is structured into four parts:
+
+- **[Tutorials](docs/tutorial.md)**: Learning-oriented lessons. Start here!
+- **[How-To Guides](docs/recipes.md)**: Problem-oriented recipes (LLM contexts, auditing vendors, CI tracking).
+- **[Reference](docs/reference-cli.md)**: Technical descriptions of CLI commands and [Schemas](docs/SCHEMA.md).
+- **[Explanation](docs/explanation.md)**: Understanding the "Receipt" philosophy.
 
 ## License
 

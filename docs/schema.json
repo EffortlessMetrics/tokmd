@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tokmd Receipt",
+  "description": "Output schema for tokmd (language, module, and export reports)",
+  "oneOf": [
+    { "$ref": "#/definitions/LangReceipt" },
+    { "$ref": "#/definitions/ModuleReceipt" },
+    { "$ref": "#/definitions/ExportReceipt" },
+    { "$ref": "#/definitions/ExportMeta" },
+    { "$ref": "#/definitions/ExportRow" }
+  ],
+  "definitions": {
+    "LangReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "lang" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": {
+          "type": "object",
+          "properties": {
+            "top": { "type": "integer" },
+            "with_files": { "type": "boolean" },
+            "children": { "$ref": "#/definitions/ChildrenMode" }
+          }
+        },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/LangRow" } },
+        "total": { "$ref": "#/definitions/Totals" }
+      }
+    },
+    "ModuleReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "module" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": {
+          "type": "object",
+          "properties": {
+            "top": { "type": "integer" },
+            "module_roots": { "type": "array", "items": { "type": "string" } },
+            "module_depth": { "type": "integer" },
+            "children": { "$ref": "#/definitions/ChildIncludeMode" }
+          }
+        },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/ModuleRow" } },
+        "total": { "$ref": "#/definitions/Totals" }
+      }
+    },
+    "ExportReceipt": {
+      "type": "object",
+      "required": ["schema_version", "tool", "mode", "scan", "args", "rows"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } }
+      }
+    },
+    "ExportMeta": {
+      "type": "object",
+      "required": ["type", "schema_version", "tool", "mode", "scan", "args"],
+      "properties": {
+        "type": { "type": "string", "const": "meta" },
+        "schema_version": { "type": "integer", "const": 1 },
+        "generated_at_ms": { "type": "integer" },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" }
+      }
+    },
+    "ExportRow": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "row" },
+        "path": { "type": "string" },
+        "module": { "type": "string" },
+        "lang": { "type": "string" },
+        "kind": { "enum": ["parent", "child"] },
+        "code": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "blanks": { "type": "integer" },
+        "lines": { "type": "integer" }
+      }
+    },
+    "ToolInfo": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "description": "The name of the tool (tokmd)." },
+        "version": { "type": "string", "description": "The version of the tool used." }
+      }
+    },
+    "ScanArgs": {
+      "type": "object",
+      "description": "Configuration used for the file scan.",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" }, "description": "Input paths scanned." },
+        "excluded": { "type": "array", "items": { "type": "string" }, "description": "Patterns excluded from scan." },
+        "config": { "enum": ["auto", "none"], "description": "Configuration mode used." },
+        "hidden": { "type": "boolean", "description": "Whether hidden files were included." },
+        "no_ignore": { "type": "boolean", "description": "Whether ignore files were disregarded." }
+      }
+    },
+    "ExportArgsMeta": {
+      "type": "object",
+      "properties": {
+        "format": { "enum": ["csv", "jsonl", "json"] },
+        "min_code": { "type": "integer" },
+        "max_rows": { "type": "integer" },
+        "redact": { "enum": ["none", "paths", "all"] }
+      }
+    },
+    "Totals": {
+      "type": "object",
+      "required": ["code", "lines", "files", "avg_lines"],
+      "properties": {
+        "code": { "type": "integer", "description": "Total lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Total number of files processed." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
+      }
+    },
+    "LangRow": {
+      "type": "object",
+      "required": ["lang", "code", "lines", "files", "avg_lines"],
+      "properties": {
+        "lang": { "type": "string", "description": "Language name (e.g., Rust, Markdown)." },
+        "code": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "files": { "type": "integer" },
+        "avg_lines": { "type": "integer" }
+      }
+    },
+    "ModuleRow": {
+      "type": "object",
+      "required": ["module", "code", "lines", "files", "avg_lines"],
+      "properties": {
+        "module": { "type": "string", "description": "Module path/name." },
+        "code": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "files": { "type": "integer" },
+        "avg_lines": { "type": "integer" }
+      }
+    },
+    "FileRow": {
+      "type": "object",
+      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"],
+      "properties": {
+        "path": { "type": "string", "description": "Relative file path." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Language of the file/block." },
+        "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
+        "code": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "blanks": { "type": "integer" },
+        "lines": { "type": "integer" }
+      }
+    },
+    "ChildrenMode": {
+      "enum": ["collapse", "separate"]
+    },
+    "ChildIncludeMode": {
+      "enum": ["separate", "parents-only"]
+    }
+  }
+}

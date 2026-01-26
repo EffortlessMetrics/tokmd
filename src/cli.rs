@@ -22,10 +22,6 @@ pub struct Cli {
 
 #[derive(Args, Debug, Clone)]
 pub struct GlobalArgs {
-    /// Paths to scan (directories, files, or globs). Defaults to "."
-    #[arg(value_name = "PATH", default_value = ".")]
-    pub paths: Vec<PathBuf>,
-
     /// Exclude pattern(s) using gitignore syntax. Repeatable.
     ///
     /// Examples:
@@ -57,7 +53,7 @@ pub struct GlobalArgs {
     pub no_ignore_dot: bool,
 
     /// Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents.
-    #[arg(long)]
+    #[arg(long, visible_alias = "no-ignore-git")]
     pub no_ignore_vcs: bool,
 
     /// Treat doc strings as comments (language-dependent).
@@ -86,6 +82,10 @@ pub enum Commands {
 
 #[derive(Args, Debug, Clone)]
 pub struct LangArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to "."
+    #[arg(value_name = "PATH", default_value = ".")]
+    pub paths: Vec<PathBuf>,
+
     /// Output format.
     #[arg(long, value_enum, default_value_t = TableFormat::Md)]
     pub format: TableFormat,
@@ -109,6 +109,10 @@ pub struct LangArgs {
 
 #[derive(Args, Debug, Clone)]
 pub struct ModuleArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to "."
+    #[arg(value_name = "PATH", default_value = ".")]
+    pub paths: Vec<PathBuf>,
+
     /// Output format.
     #[arg(long, value_enum, default_value_t = TableFormat::Md)]
     pub format: TableFormat,
@@ -146,6 +150,10 @@ pub struct ModuleArgs {
 
 #[derive(Args, Debug, Clone)]
 pub struct ExportArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to "."
+    #[arg(value_name = "PATH", default_value = ".")]
+    pub paths: Vec<PathBuf>,
+
     /// Output format.
     #[arg(long, value_enum, default_value_t = ExportFormat::Jsonl)]
     pub format: ExportFormat,
@@ -175,7 +183,7 @@ pub struct ExportArgs {
     pub max_rows: usize,
 
     /// Include a meta record (JSON / JSONL only). Enabled by default.
-    #[arg(long, default_value_t = true)]
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
     pub meta: bool,
 
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.

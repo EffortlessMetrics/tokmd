@@ -465,6 +465,11 @@ pub fn avg(lines: usize, files: usize) -> usize {
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     let mut s = path.to_string_lossy().replace('\\', "/");
 
+    // Strip leading ./ first, so strip_prefix can match against "src/" instead of "./src/"
+    if let Some(stripped) = s.strip_prefix("./") {
+        s = stripped.to_string();
+    }
+
     if let Some(prefix) = strip_prefix {
         let mut pfx = prefix.to_string_lossy().replace('\\', "/");
         // Ensure prefix ends with a slash for exact segment matching.
@@ -476,7 +481,6 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         }
     }
 
-    let s = s.strip_prefix("./").unwrap_or(&s);
     s.trim_start_matches('/').to_string()
 }
 
@@ -555,5 +559,12 @@ mod tests {
         let prefix = PathBuf::from("C:/Code/Repo");
         let got = normalize_path(&p, Some(&prefix));
         assert_eq!(got, "src/main.rs");
+    }
+
+    #[test]
+    fn normalize_path_normalization_slashes() {
+        let p = PathBuf::from(r"C:\Code\Repo\src\main.rs");
+        let got = normalize_path(&p, None);
+        assert_eq!(got, "C:/Code/Repo/src/main.rs");
     }
 }
