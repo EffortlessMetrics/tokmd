@@ -1,3 +1,18 @@
+//! # tokmd-config
+//!
+//! **Tier 3 (Configuration)**
+//!
+//! This crate defines the CLI arguments and configuration file structures.
+//! Currently it couples strict configuration schemas with Clap CLI parsing.
+//!
+//! ## What belongs here
+//! * Clap `Parser`, `Args`, `Subcommand` structs
+//! * Configuration file struct definitions (Serde)
+//! * Default values
+//!
+//! ## Future Direction
+//! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -25,7 +40,7 @@ pub struct Cli {
     pub profile: Option<String>,
 }
 
-#[derive(Args, Debug, Clone)]
+#[derive(Args, Debug, Clone, Default)]
 pub struct GlobalArgs {
     /// Exclude pattern(s) using gitignore syntax. Repeatable.
     ///
@@ -320,10 +335,11 @@ pub enum ExportFormat {
     Json,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum ConfigMode {
     /// Read `tokei.toml` / `.tokeirc` if present.
+    #[default]
     Auto,
     /// Ignore config files.
     None,

@@ -146,6 +146,20 @@ The documentation is structured into four parts:
 - **[Reference](docs/reference-cli.md)**: Technical descriptions of CLI commands and [Schemas](docs/SCHEMA.md).
 - **[Explanation](docs/explanation.md)**: Understanding the "Receipt" philosophy.
 
+## Architecture
+
+This project uses a "Microcrates" architecture to ensure clean boundaries and reusable components.
+
+*   **`tokmd-core`**: The **recommended library entry point**. Use this if embedding tokmd.
+*   **`tokmd-types`**: The **stable data contract**. Pure data structures, no logic.
+*   **`tokmd-model`**: Aggregation logic.
+*   **`tokmd-scan`**: Tokei adapter.
+*   **`tokmd-format`**: Rendering logic.
+*   **`tokmd-config`**: Configuration schemas.
+*   **`tokmd`**: The CLI binary.
+
+See [RELEASE.md](RELEASE.md) for the publishing order and strategy.
+
 ## License
 
 Dual MIT or Apache-2.0.

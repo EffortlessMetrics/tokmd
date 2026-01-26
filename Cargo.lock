@@ -1570,6 +1570,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-core"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "tokmd-config",
+ "tokmd-model",
+ "tokmd-scan",
+ "tokmd-types",
+]
+
+[[package]]
 name = "tokmd-format"
 version = "1.0.0"
 dependencies = [

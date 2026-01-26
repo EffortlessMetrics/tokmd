@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/tokmd",
     "crates/tokmd-config",
+    "crates/tokmd-core",
     "crates/tokmd-format",
     "crates/tokmd-model",
     "crates/tokmd-scan",
@@ -13,6 +14,7 @@ members = [
 default-members = [
     "crates/tokmd",
     "crates/tokmd-config",
+    "crates/tokmd-core",
     "crates/tokmd-format",
     "crates/tokmd-model",
     "crates/tokmd-scan",

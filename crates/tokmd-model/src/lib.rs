@@ -1,3 +1,20 @@
+//! # tokmd-model
+//!
+//! **Tier 2 (Logic)**
+//!
+//! This crate contains the core business logic for aggregating and transforming code statistics.
+//! It handles the conversion from raw Tokei scan results into `tokmd` receipts.
+//!
+//! ## What belongs here
+//! * Aggregation logic (rolling up stats to modules/languages)
+//! * Deterministic sorting and filtering
+//! * Path normalization rules
+//! * Receipt generation logic
+//!
+//! ## What does NOT belong here
+//! * CLI argument parsing
+//! * Output formatting (printing to stdout/file)
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
