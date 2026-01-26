@@ -48,11 +48,9 @@ tokmd-scan = { path = "../tokmd-scan" }
 tokmd-format = { path = "../tokmd-format" }
 tokmd-tokeignore = { path = "../tokmd-tokeignore" }
 tokmd-types = { path = "../tokmd-types" }
-
-[profile.release]
-lto = true
-codegen-units = 1
-strip = true
+clap_complete = "4.5.65"
+dirs = "6.0.0"
+serde_json = "1.0.149"
 
 [dev-dependencies]
 assert_cmd = "2.0.14"

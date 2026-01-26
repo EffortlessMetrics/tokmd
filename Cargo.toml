@@ -10,3 +10,8 @@ members = [
     "crates/tokmd-types",
     "fuzz",
 ]
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

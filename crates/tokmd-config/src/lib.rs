@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`.
 ///
@@ -14,10 +15,14 @@ pub struct Cli {
 
     /// Default options for the implicit `lang` mode (when no subcommand is provided).
     #[command(flatten)]
-    pub lang: LangArgs,
+    pub lang: CliLangArgs,
 
     #[command(subcommand)]
     pub command: Option<Commands>,
+
+    /// Configuration profile to use (e.g., "llm_safe", "ci").
+    #[arg(long, global = true)]
+    pub profile: Option<String>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -68,32 +73,111 @@ pub struct GlobalArgs {
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
     /// Language summary (default).
-    Lang(LangArgs),
+    Lang(CliLangArgs),
 
     /// Module summary (group by path prefixes like crates/<name> or packages/<name>).
-    Module(ModuleArgs),
+    Module(CliModuleArgs),
 
     /// Export a file-level dataset (CSV / JSONL / JSON).
-    Export(ExportArgs),
+    Export(CliExportArgs),
 
     /// Write a `.tokeignore` template to the target directory.
     Init(InitArgs),
+
+    /// Generate shell completions.
+    Completions(CompletionsArgs),
+
+    /// Run a full scan and save receipts to a state directory.
+    Run(RunArgs),
+
+    /// Compare two receipts or runs.
+    Diff(DiffArgs),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UserConfig {
+    pub profiles: HashMap<String, Profile>,
+    pub repos: HashMap<String, String>, // "owner/repo" -> "profile_name"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Profile {
+    // Shared
+    pub format: Option<String>, // "json", "md", "tsv", "csv", "jsonl"
+    pub top: Option<usize>,
+
+    // Lang
+    pub files: Option<bool>,
+
+    // Module / Export
+    pub module_roots: Option<Vec<String>>,
+    pub module_depth: Option<usize>,
+    pub min_code: Option<usize>,
+    pub max_rows: Option<usize>,
+    pub redact: Option<RedactMode>,
+    pub meta: Option<bool>,
+
+    // "children" can be ChildrenMode or ChildIncludeMode string
+    pub children: Option<String>,
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct LangArgs {
-    /// Paths to scan (directories, files, or globs). Defaults to "."
+pub struct RunArgs {
+    /// Paths to scan.
     #[arg(value_name = "PATH", default_value = ".")]
     pub paths: Vec<PathBuf>,
 
+    /// Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible).
+    #[arg(long)]
+    pub output_dir: Option<PathBuf>,
+
+    /// Tag or name for this run.
+    #[arg(long)]
+    pub name: Option<String>,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct DiffArgs {
+    /// Base receipt/run to compare from.
+    #[arg(long)]
+    pub from: String,
+
+    /// Target receipt/run to compare to.
+    #[arg(long)]
+    pub to: String,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CompletionsArgs {
+    /// Shell to generate completions for.
+    #[arg(value_enum)]
+    pub shell: Shell,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Shell {
+    Bash,
+    Elvish,
+    Fish,
+    Powershell,
+    Zsh,
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct CliLangArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to "."
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
+
     /// Output format.
-    #[arg(long, value_enum, default_value_t = TableFormat::Md)]
-    pub format: TableFormat,
+    #[arg(long, value_enum)]
+    pub format: Option<TableFormat>,
 
     /// Show only the top N rows (by code lines), plus an "Other" row if needed.
     /// Use 0 to show all rows.
-    #[arg(long, default_value_t = 0)]
-    pub top: usize,
+    #[arg(long)]
+    pub top: Option<usize>,
 
     /// Include file counts and average lines per file.
     #[arg(long)]
@@ -103,24 +187,24 @@ pub struct LangArgs {
     ///
     /// - collapse: merge embedded content into the parent language row.
     /// - separate: show "(embedded)" rows for child languages.
-    #[arg(long, value_enum, default_value_t = ChildrenMode::Collapse)]
-    pub children: ChildrenMode,
+    #[arg(long, value_enum)]
+    pub children: Option<ChildrenMode>,
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct ModuleArgs {
+pub struct CliModuleArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."
-    #[arg(value_name = "PATH", default_value = ".")]
-    pub paths: Vec<PathBuf>,
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
 
     /// Output format.
-    #[arg(long, value_enum, default_value_t = TableFormat::Md)]
-    pub format: TableFormat,
+    #[arg(long, value_enum)]
+    pub format: Option<TableFormat>,
 
     /// Show only the top N modules (by code lines), plus an "Other" row if needed.
     /// Use 0 to show all rows.
-    #[arg(long, default_value_t = 0)]
-    pub top: usize,
+    #[arg(long)]
+    pub top: Option<usize>,
 
     /// Treat these top-level directories as "module roots".
     ///
@@ -129,66 +213,66 @@ pub struct ModuleArgs {
     ///
     /// Example (defaults shown):
     ///   --module-roots crates,packages
-    #[arg(long, value_delimiter = ',', default_value = "crates,packages")]
-    pub module_roots: Vec<String>,
+    #[arg(long, value_delimiter = ',')]
+    pub module_roots: Option<Vec<String>>,
 
     /// How many path segments to include for module roots.
     ///
     /// Example:
     ///   crates/foo/src/lib.rs  (depth=2) => crates/foo
     ///   crates/foo/src/lib.rs  (depth=1) => crates
-    #[arg(long, default_value_t = 2)]
-    pub module_depth: usize,
+    #[arg(long)]
+    pub module_depth: Option<usize>,
 
     /// Whether to include embedded languages (tokei "children" / blobs) in module totals.
     ///
     /// - separate: include embedded reports alongside parent reports.
     /// - parents-only: ignore embedded reports.
-    #[arg(long, value_enum, default_value_t = ChildIncludeMode::Separate)]
-    pub children: ChildIncludeMode,
+    #[arg(long, value_enum)]
+    pub children: Option<ChildIncludeMode>,
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct ExportArgs {
+pub struct CliExportArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."
-    #[arg(value_name = "PATH", default_value = ".")]
-    pub paths: Vec<PathBuf>,
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
 
     /// Output format.
-    #[arg(long, value_enum, default_value_t = ExportFormat::Jsonl)]
-    pub format: ExportFormat,
+    #[arg(long, value_enum)]
+    pub format: Option<ExportFormat>,
 
     /// Write output to this file instead of stdout.
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
 
     /// Module roots (see `tokmd module`).
-    #[arg(long, value_delimiter = ',', default_value = "crates,packages")]
-    pub module_roots: Vec<String>,
+    #[arg(long, value_delimiter = ',')]
+    pub module_roots: Option<Vec<String>>,
 
     /// Module depth (see `tokmd module`).
-    #[arg(long, default_value_t = 2)]
-    pub module_depth: usize,
+    #[arg(long)]
+    pub module_depth: Option<usize>,
 
     /// Whether to include embedded languages (tokei "children" / blobs).
-    #[arg(long, value_enum, default_value_t = ChildIncludeMode::Separate)]
-    pub children: ChildIncludeMode,
+    #[arg(long, value_enum)]
+    pub children: Option<ChildIncludeMode>,
 
     /// Drop rows with fewer than N code lines.
-    #[arg(long, default_value_t = 0)]
-    pub min_code: usize,
+    #[arg(long)]
+    pub min_code: Option<usize>,
 
     /// Stop after emitting N rows (0 = unlimited).
-    #[arg(long, default_value_t = 0)]
-    pub max_rows: usize,
+    #[arg(long)]
+    pub max_rows: Option<usize>,
 
     /// Include a meta record (JSON / JSONL only). Enabled by default.
-    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
-    pub meta: bool,
+    #[arg(long, action = clap::ArgAction::Set)]
+    pub meta: Option<bool>,
 
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
-    #[arg(long, value_enum, default_value_t = RedactMode::None)]
-    pub redact: RedactMode,
+    #[arg(long, value_enum)]
+    pub redact: Option<RedactMode>,
 
     /// Strip this prefix from paths before output (helps when paths are absolute).
     #[arg(long, value_name = "PATH")]
@@ -211,10 +295,10 @@ pub struct InitArgs {
 
     /// Which template profile to use.
     #[arg(long, value_enum, default_value_t = InitProfile::Default)]
-    pub profile: InitProfile,
+    pub template: InitProfile,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum TableFormat {
     /// Markdown table (great for pasting into ChatGPT).
@@ -225,7 +309,7 @@ pub enum TableFormat {
     Json,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ExportFormat {
     /// CSV with a header row.
@@ -236,7 +320,7 @@ pub enum ExportFormat {
     Json,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ConfigMode {
     /// Read `tokei.toml` / `.tokeirc` if present.
@@ -245,7 +329,7 @@ pub enum ConfigMode {
     None,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChildrenMode {
     /// Merge embedded content into the parent language totals.
@@ -254,7 +338,7 @@ pub enum ChildrenMode {
     Separate,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChildIncludeMode {
     /// Include embedded languages as separate contributions.
@@ -263,7 +347,7 @@ pub enum ChildIncludeMode {
     ParentsOnly,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum RedactMode {
     /// Do not redact.
@@ -274,7 +358,7 @@ pub enum RedactMode {
     All,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum InitProfile {
     Default,

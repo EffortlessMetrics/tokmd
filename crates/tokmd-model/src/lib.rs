@@ -124,7 +124,7 @@ pub fn create_lang_report(
     }
 }
 
-pub fn fold_other_lang(rows: &[LangRow]) -> LangRow {
+fn fold_other_lang(rows: &[LangRow]) -> LangRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;
@@ -219,7 +219,7 @@ pub fn create_module_report(
     }
 }
 
-pub fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
+fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;

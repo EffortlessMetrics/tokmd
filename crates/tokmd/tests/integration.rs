@@ -5,7 +5,10 @@ use tempfile::tempdir;
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     // Point to our test fixture
-    cmd.current_dir("tests/data");
+    let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+    cmd.current_dir(&fixtures);
     cmd
 }
 
@@ -529,7 +532,7 @@ fn test_init_profiles() {
     // Then: Output should contain python specific ignores like __pycache__
     let mut cmd = tokmd_cmd();
     cmd.arg("init")
-        .arg("--profile")
+        .arg("--template")
         .arg("python")
         .arg("--print")
         .assert()
@@ -687,13 +690,19 @@ fn test_children_stats_integrity() {
         .stdout(predicate::str::contains("Rust (embedded)"))
         // Check that files count (4th column) is non-zero
         // Format: |Rust (embedded)|3|3|1|3|
-        .stdout(predicate::str::is_match(r"\|\s*Rust \(embedded\)\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*[1-9]\d*\s*\|").unwrap());
+        .stdout(
+            predicate::str::is_match(
+                r"\|\s*Rust \(embedded\)\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*[1-9]\d*\s*\|",
+            )
+            .unwrap(),
+        );
 }
 
 #[test]
 fn test_generated_timestamp_validity() {
     let mut cmd = tokmd_cmd();
-    let output = cmd.arg("lang")
+    let output = cmd
+        .arg("lang")
         .arg("--format")
         .arg("json")
         .output()
@@ -727,7 +736,7 @@ fn test_lang_stats_math() {
 #[test]
 fn test_lang_fold_math() {
     let dir = tempdir().unwrap();
-    // File 1: Rust (2 code)
+    // File 1: Rust (1 code)
     std::fs::write(dir.path().join("a.rs"), "fn a(){}").unwrap();
     // File 2: Python (1 code)
     std::fs::write(dir.path().join("b.py"), "print(1)").unwrap();
@@ -742,7 +751,7 @@ fn test_lang_fold_math() {
     // 3. Rust (1)
     // Top 1 = JavaScript.
     // Other = Python + Rust = 1 + 1 = 2 code.
-    
+
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
         .arg("lang")
@@ -770,7 +779,7 @@ fn test_module_fold_math() {
     let mod_b = dir.path().join("b");
     std::fs::create_dir(&mod_b).unwrap();
     std::fs::write(mod_b.join("main.rs"), "fn main(){}").unwrap(); // 1 line
-    
+
     // Mod C: 1 line
     let mod_c = dir.path().join("c");
     std::fs::create_dir(&mod_c).unwrap();
@@ -784,7 +793,7 @@ fn test_module_fold_math() {
     // Sort: A, B, C.
     // If top=1: A is kept. B+C = Other.
     // Other code = 1+1=2.
-    
+
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
         .arg("module")
@@ -915,10 +924,7 @@ fn test_verbose_flag() {
     // Then: It shouldn't crash.
     // Tokei's verbose output goes to stderr.
     let mut cmd = tokmd_cmd();
-    cmd.arg("--verbose")
-        .arg("export")
-        .assert()
-        .success();
+    cmd.arg("--verbose").arg("export").assert().success();
     // We don't assert content because logging format might change,
     // but ensuring the flag is accepted is the main goal.
 }
@@ -927,18 +933,23 @@ fn test_verbose_flag() {
 fn test_treat_doc_strings_as_comments() {
     // Given: A Python file with docstrings
     let dir = tempdir().unwrap();
-    std::fs::write(dir.path().join("doc.py"), r#"
+    std::fs::write(
+        dir.path().join("doc.py"),
+        r#"
 """
 This is a docstring.
 It should be counted as comments if flag is on.
 """
 x = 1
-    "#).unwrap();
+    "#,
+    )
+    .unwrap();
 
     // When: We run with --treat-doc-strings-as-comments
     // We output jsonl to check the counts
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
-    let output = cmd.current_dir(dir.path())
+    let output = cmd
+        .current_dir(dir.path())
         .arg("--treat-doc-strings-as-comments")
         .arg("export")
         .arg("--format")
@@ -980,4 +991,3 @@ fn test_format_csv() {
             "src/main.rs,src,Rust,parent,3,0,0,3",
         )); // Row
 }
-
