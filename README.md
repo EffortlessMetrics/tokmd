@@ -8,26 +8,46 @@ It is a Tokei-backed, cross-platform tool that produces one-command outputs:
 - **Markdown/TSV** for humans (paste into PRs, issues, or ChatGPT).
 - **JSONL/CSV** for pipelines and LLMs.
 
-## Mental Model
+## What it does
 
-- **tokei counts.**
-- **tokmd packages counts into receipts.**
-- **Pipelines/LLMs consume receipts.**
+tokmd runs a single tokei scan, then emits three “views” with a stable envelope:
 
-## Where tokmd fits
+* **lang**: language totals (good for “what’s in here?”)
+* **module**: directory rollups (good for “where is the mass?”)
+* **export**: file-level rows (good for “give me a dataset I can route/pivot/diff”)
 
-Think of this space as three layers:
+Each view is designed to be:
 
-- **Counting engines**: `tokei`, `cloc`, `scc`  
-  They count. Their output is mostly terminal-shaped.
+* **copy/paste friendly** (Markdown/TSV)
+* **machine-friendly** (JSON / JSONL / CSV)
+* **deterministic** (stable ordering, normalized paths)
+* **receipt-shaped** (schema_version + tool info + args + totals + rows)
 
-- **Receipt / packaging**: `tokmd`  
-  Turns counts into stable artifacts (maps) for humans and machines.
+## Why not just use `tokei`?
 
-- **Content packers for LLMs**: `repomix`, `files-to-prompt`  
-  They bundle file *contents* for prompts.
+| Problem | Scripts (`tokei \| jq`) | tokmd |
+|---|---|---|
+| **Cross-platform** | breaks on shells/tools | one binary |
+| **Output contract** | ad-hoc | `schema_version` + schema |
+| **Safety** | hard to do right | built-in redaction |
+| **Stability** | no tests | golden tests + CI |
 
-**tokmd is the map-maker.** Run it first to see the territory. Use a packer only after you know what you want to read.
+## Use Cases
+
+### For Humans (PRs & Docs)
+*   “Give me a repo summary I can paste into a PR/ticket/chat in 10 seconds.”
+*   “Tell me where the mass is in a modular tree.”
+*   “Give me top-N plus totals, without 40 lines of long tail.”
+
+### For LLM Workflows (AI-Native)
+*   “I need a map before I dump code.”
+*   “I need to cap context blast radius.”
+*   “I need a safe-to-share mode when names matter.”
+
+### For Pipelines (CI/CD)
+*   “Give me a stable payload I can diff, store, validate.”
+*   “Stop making me re-derive totals and re-normalize paths.”
+*   “Let me build gates on receipts, not on parsing terminal output.”
 
 ## Workflow: map → select → pack (LLMs)
 
@@ -42,28 +62,6 @@ Think of this space as three layers:
 
 3. **Pack contents** (expensive):
    Use a content packer (repomix, files-to-prompt) on the selected paths.
-
-## Why not just use `tokei`?
-
-| Problem | Scripts (`tokei \| jq`) | tokmd |
-|---|---|---|
-| **Cross-platform** | breaks on shells/tools | one binary |
-| **Output contract** | ad-hoc | `schema_version` + schema |
-| **Safety** | hard to do right | built-in redaction |
-| **Stability** | no tests | golden tests + CI |
-
-## Stability Contract
-
-- JSON/JSONL outputs are **schema-versioned** (`schema_version`).
-- Sorting and path normalization are deterministic.
-- Breaking output changes bump `schema_version` (and semver major when applicable).
-- tokei’s counting semantics are upstream. tokmd’s guarantee is packaging + determinism.
-
-## Safety Note (Redaction)
-
-`--redact` hashes identifiers to reduce accidental leakage in copy/paste workflows.
-
-It does **not** make data anonymous. You still leak shape (counts, file extensions, relative sizes). **If you wouldn’t email it, don’t paste it.**
 
 ## Installation
 
@@ -120,6 +118,9 @@ tokmd export > repo_inventory.jsonl
 - `tokmd module`: Module-level summary.
 - `tokmd export`: File-level inventory (JSONL/CSV).
 - `tokmd init`: Generate `.tokeignore`.
+- `tokmd run`: Run a full scan and save artifacts to `.runs/`.
+- `tokmd diff`: Compare two receipts or runs.
+- `tokmd completions`: Generate shell completion scripts.
 
 ### Output Schemas
 - **[Receipt Schema](docs/SCHEMA.md)**: Human-readable guide to the JSON output.
