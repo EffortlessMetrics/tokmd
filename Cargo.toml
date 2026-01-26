@@ -13,6 +13,18 @@ keywords = ["repo-analysis", "inventory", "llm-context", "receipts", "tokei"]
 categories = ["command-line-utilities", "development-tools"]
 default-run = "tokmd"
 autobins = false
+exclude = [
+    ".github",
+    ".gitignore",
+    ".gitattributes",
+    "CLAUDE.md",
+    "TODO.md",
+    "mutants.toml",
+    "mutants.out",
+    "mutants.out.old",
+    "fuzz",
+    "tests",
+]
 
 [features]
 default = []
