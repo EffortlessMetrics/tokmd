@@ -1,5 +1,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
+use tempfile::tempdir;
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
@@ -163,6 +164,56 @@ fn test_golden_export_redacted() {
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
+}
+
+#[test]
+fn test_strip_prefix() {
+    // Given: A file in src/main.rs
+    // When: We export with --strip-prefix src
+    // Then: The path should be main.rs (without src/)
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--strip-prefix")
+        .arg("src")
+        .assert()
+        .success()
+        // Should contain "main.rs" but NOT "src/main.rs"
+        // (Wait, main.rs is a substring of src/main.rs, so contain("main.rs") is true for both.
+        // We need to be more specific with JSON matching or negative matching.)
+        .stdout(predicate::str::contains(r#""path":"main.rs""#))
+        .stdout(predicate::str::contains(r#""path":"src/main.rs""#).not());
+}
+
+#[test]
+fn test_export_format_json() {
+    // Given: Standard files
+    // When: We export with --format json (not jsonl)
+    // Then: output should be a JSON object containing "rows"
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        // It's a JSON object { ..., "rows": [...] }
+        .stdout(predicate::str::starts_with("{"))
+        .stdout(predicate::str::contains(r#""rows":["#));
+}
+
+#[test]
+fn test_init_creates_file() {
+    // Given: An empty temporary directory
+    // When: We run `tokmd init` inside it
+    // Then: .tokeignore should be created
+    let dir = tempdir().unwrap();
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("init")
+        .assert()
+        .success();
+
+    let file_path = dir.path().join(".tokeignore");
+    assert!(file_path.exists(), ".tokeignore was not created");
 }
 
 // --- BDD / Feature Tests ---
