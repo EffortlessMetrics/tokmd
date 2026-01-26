@@ -1,33 +1,54 @@
 # Release Process
 
-This document describes how to release a new version of `tokmd`.
+This repository uses a "Microcrates / Ecosystem" publishing model.
+All crates are versioned in lockstep (same version number).
 
-## Prerequisites
+## Publishing Order
 
--   Ensure `Cargo.toml` version is updated.
--   Ensure `CHANGELOG.md` (if present) or release notes are ready.
--   Ensure CI passes on `main`.
+Because crates have internal dependencies, they must be published in this specific order:
 
-## Steps
+1.  **`tokmd-types`** (Tier 1: Data Contract)
+2.  **`tokmd-config`**
+3.  **`tokmd-model`** (Tier 2: Aggregation Logic)
+4.  **`tokmd-format`**
+5.  **`tokmd-scan`**
+6.  **`tokmd-tokeignore`**
+7.  **`tokmd`** (CLI Binary)
 
-1.  **Bump Version**:
-    Update `version` in `Cargo.toml`.
-    ```bash
-    # e.g. to 0.2.0
-    sed -i 's/^version = ".*"/version = "0.2.0"/' Cargo.toml
-    ```
+## Steps to Release
+
+1.  **Bump Versions**:
+    Update `[workspace.package].version` in the root `Cargo.toml`.
+    (All crates inherit this version).
 
 2.  **Commit & Tag**:
     ```bash
-    git commit -am "chore: release v0.2.0"
-    git tag v0.2.0
-    git push origin main --tags
+    git commit -am "chore: release v1.0.x"
+    git tag v1.0.x
+    git push && git push --tags
     ```
 
-3.  **Publish to Crates.io**:
+3.  **Publish**:
+    You can use a tool like `cargo-workspaces` or publish manually:
+
     ```bash
-    cargo publish
+    # Dry run everything first
+    cargo publish -p tokmd-types --dry-run
+    # ... etc
+
+    # Publish in order
+    cargo publish -p tokmd-types
+    cargo publish -p tokmd-config
+    cargo publish -p tokmd-model
+    cargo publish -p tokmd-format
+    cargo publish -p tokmd-scan
+    cargo publish -p tokmd-tokeignore
+    cargo publish -p tokmd
     ```
 
-4.  **GitHub Release**:
-    Create a new release on GitHub using the tag. Attach the binary if needed (though Crates.io is the primary distribution channel).
+## Verification
+
+Before releasing, ensure:
+*   `cargo test --workspace` passes.
+*   `cargo clippy --workspace` is clean.
+*   The release profile in root `Cargo.toml` is active.

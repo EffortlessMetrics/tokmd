@@ -1,7 +1,11 @@
 [package]
 name = "tokmd-config"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Configuration schemas and defaults for tokmd."
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }

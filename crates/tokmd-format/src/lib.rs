@@ -8,12 +8,12 @@ use anyhow::Result;
 use serde::Serialize;
 
 use tokmd_config::{
-    ChildIncludeMode, ConfigMode, ExportFormat, GlobalArgs, RedactMode, TableFormat,
+    ExportFormat, GlobalArgs, RedactMode, TableFormat,
 };
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
     LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
-    ScanArgs, ScanStatus, ToolInfo, Totals,
+    ScanArgs, ScanStatus, ToolInfo,
 };
 
 /// Increment when JSON/JSONL output shapes change.

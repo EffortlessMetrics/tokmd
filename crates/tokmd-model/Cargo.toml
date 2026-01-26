@@ -1,11 +1,15 @@
 [package]
 name = "tokmd-model"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Deterministic aggregation and receipt modeling for tokmd. Tier 2 stability."
 
 [dependencies]
 anyhow = "1.0.100"
 serde = { version = "1.0.228", features = ["derive"] }
 tokei = { version = "14.0.0", default-features = false }
-tokmd-config = { path = "../tokmd-config" }
-tokmd-types = { path = "../tokmd-types" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
