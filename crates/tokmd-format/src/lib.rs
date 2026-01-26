@@ -55,9 +55,9 @@ fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>)
         config: global.config,
         hidden: global.hidden,
         no_ignore: global.no_ignore,
-        no_ignore_parent: global.no_ignore_parent,
-        no_ignore_dot: global.no_ignore_dot,
-        no_ignore_vcs: global.no_ignore_vcs,
+        no_ignore_parent: global.no_ignore || global.no_ignore_parent,
+        no_ignore_dot: global.no_ignore || global.no_ignore_dot,
+        no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
     };
 
