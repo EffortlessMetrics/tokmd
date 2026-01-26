@@ -3,6 +3,9 @@ resolver = "2"
 members = [
     "crates/tokmd",
     "crates/tokmd-config",
+    "crates/tokmd-format",
     "crates/tokmd-model",
+    "crates/tokmd-scan",
+    "crates/tokmd-tokeignore",
     "fuzz",
 ]

@@ -1,8 +1,8 @@
 use tokmd_config as cli;
-mod format;
+use tokmd_format as format;
 use tokmd_model as model;
-mod scan;
-mod tokeignore;
+use tokmd_scan as scan;
+use tokmd_tokeignore as tokeignore;
 
 use anyhow::Result;
 use clap::Parser;

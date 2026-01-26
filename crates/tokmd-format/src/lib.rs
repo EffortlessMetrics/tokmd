@@ -80,7 +80,7 @@ struct LangReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: LangArgsMeta,
-    rows: Vec<crate::model::LangRow>,
+    rows: Vec<tokmd_model::LangRow>,
     total: Totals,
 }
 
@@ -88,7 +88,7 @@ struct LangReceipt {
 struct LangArgsMeta {
     top: usize,
     with_files: bool,
-    children: crate::cli::ChildrenMode,
+    children: tokmd_config::ChildrenMode,
 }
 
 pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
@@ -192,7 +192,7 @@ struct ModuleReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: ModuleArgsMeta,
-    rows: Vec<crate::model::ModuleRow>,
+    rows: Vec<tokmd_model::ModuleRow>,
     total: Totals,
 }
 

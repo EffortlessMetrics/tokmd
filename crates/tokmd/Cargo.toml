@@ -41,14 +41,12 @@ required-features = ["alias-tok"]
 
 [dependencies]
 anyhow = "1.0.100"
-blake3 = "1.8.3"
 clap = { version = "4.5.54", features = ["derive"] }
-csv = "1.4.0"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-tokei = { version = "14.0.0", default-features = false }
 tokmd-config = { path = "../tokmd-config" }
 tokmd-model = { path = "../tokmd-model" }
+tokmd-scan = { path = "../tokmd-scan" }
+tokmd-format = { path = "../tokmd-format" }
+tokmd-tokeignore = { path = "../tokmd-tokeignore" }
 
 [profile.release]
 lto = true
@@ -62,4 +60,5 @@ tempfile = "3.10.1"
 insta = { version = "1.39.0", features = ["json"] }
 regex = "1.10.4"
 proptest = "1.6.0"
+serde_json = "1.0.149"
 tokmd-model = { path = "../tokmd-model" }

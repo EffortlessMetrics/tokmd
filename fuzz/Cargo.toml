@@ -11,6 +11,8 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 tokmd = { path = "../crates/tokmd" }
 tokmd-model = { path = "../crates/tokmd-model" }
+tokmd-scan = { path = "../crates/tokmd-scan" }
+tokmd-config = { path = "../crates/tokmd-config" }
 
 [[bin]]
 name = "fuzz_module_key"
