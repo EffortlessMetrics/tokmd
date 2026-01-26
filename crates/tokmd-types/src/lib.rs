@@ -23,6 +23,9 @@ use tokmd_config::{
     ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
 };
 
+/// The current schema version for all receipt types.
+pub const SCHEMA_VERSION: u32 = 2;
+
 /// A small totals struct shared by summary outputs.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Totals {

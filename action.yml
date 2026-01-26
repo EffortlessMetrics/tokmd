@@ -44,13 +44,13 @@ runs:
       run: |
         echo "Generating receipts..."
         tokmd module \
-          --paths "${{ inputs.paths }}" \
+          ${{ inputs.paths }} \
           --module-roots "${{ inputs.module-roots }}" \
           --top ${{ inputs.top }} \
           --format md > tokmd-summary.md
         
         tokmd export \
-          --paths "${{ inputs.paths }}" \
+          ${{ inputs.paths }} \
           --module-roots "${{ inputs.module-roots }}" \
           --format json > tokmd-receipt.json
         

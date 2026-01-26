@@ -260,7 +260,7 @@ pub fn run() -> Result<()> {
 
             {
                 let receipt = tokmd_types::LangReceipt {
-                    schema_version: 2,
+                    schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
                     tool: tool_info(),
                     mode: "lang".to_string(),
@@ -280,7 +280,7 @@ pub fn run() -> Result<()> {
             }
             {
                 let receipt = tokmd_types::ModuleReceipt {
-                    schema_version: 2,
+                    schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
                     tool: tool_info(),
                     mode: "module".to_string(),
@@ -311,7 +311,7 @@ pub fn run() -> Result<()> {
                 // Header
                 let header = serde_json::json!({
                     "type": "meta",
-                    "schema_version": 2,
+                    "schema_version": tokmd_types::SCHEMA_VERSION,
                     "generated_at_ms": now_ms(),
                     "tool": tool_info(),
                     "mode": "export",
@@ -345,7 +345,7 @@ pub fn run() -> Result<()> {
 
             // 5. Write receipt.json
             let receipt = tokmd_types::RunReceipt {
-                schema_version: 2,
+                schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 lang_file: "lang.json".to_string(),
                 module_file: "module.json".to_string(),
@@ -363,8 +363,10 @@ pub fn run() -> Result<()> {
             let to_path = std::path::PathBuf::from(&args.to);
 
             let load_lang = |path: &std::path::PathBuf| -> Result<tokmd_types::LangReceipt> {
-                // Try to find lang.json in the same directory if the path points to receipt.json
-                let lang_path = if path.ends_with("receipt.json") {
+                // Handle directory (implicit run) or receipt.json (implicit run)
+                let lang_path = if path.is_dir() {
+                    path.join("lang.json")
+                } else if path.ends_with("receipt.json") {
                     path.parent().unwrap_or(path).join("lang.json")
                 } else {
                     path.clone()

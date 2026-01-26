@@ -31,9 +31,6 @@ use tokmd_types::{
     ScanArgs, ScanStatus, ToolInfo,
 };
 
-/// Increment when JSON/JSONL output shapes change.
-const SCHEMA_VERSION: u32 = 2;
-
 fn tool_info() -> ToolInfo {
     ToolInfo {
         name: "tokmd".to_string(),
@@ -81,7 +78,7 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
         }
         TableFormat::Json => {
             let receipt = LangReceipt {
-                schema_version: SCHEMA_VERSION,
+                schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "lang".to_string(),
@@ -180,7 +177,7 @@ pub fn print_module_report(
         }
         TableFormat::Json => {
             let receipt = ModuleReceipt {
-                schema_version: SCHEMA_VERSION,
+                schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "module".to_string(),
@@ -327,7 +324,7 @@ fn write_export_jsonl<W: Write>(
     if args.meta {
         let meta = ExportMeta {
             ty: "meta",
-            schema_version: SCHEMA_VERSION,
+            schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export".to_string(),
@@ -366,7 +363,7 @@ fn write_export_json<W: Write>(
 ) -> Result<()> {
     if args.meta {
         let receipt = ExportReceipt {
-            schema_version: SCHEMA_VERSION,
+            schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export".to_string(),

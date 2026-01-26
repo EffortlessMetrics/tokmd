@@ -52,7 +52,7 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
     // 3. Receipt Construction
     // We construct the receipt manually as it's just a data carrier.
     let receipt = LangReceipt {
-        schema_version: 1, // Should probably export SCHEMA_VERSION from types or format?
+        schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
