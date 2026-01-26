@@ -18,7 +18,7 @@ At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
 | **v0.1.0** | ✅ Complete | Basic functionality (scan -> model -> format). |
 | **v0.2.0** | ✅ Complete | Feature complete: Receipt schema, Filters, Redaction, Export logic. |
 | **v0.9.0** | ✅ Complete | Assurance: Integration tests, Golden snapshots, Edge case verification. |
-| **v1.0.0** | ✅ Ready | Stability: Frozen schema, Final docs, Official release. |
+| **v1.0.0** | 🚀 RC Ready | Stability: Frozen schema, Diataxis docs, Release automation. |
 
 ---
 
@@ -31,7 +31,7 @@ At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
 *Current State: ✅ Complete (Formal JSON Schema in `docs/schema.json`).*
 
 ### 3. Developer Experience (DX)
-*Current State: ✅ Complete (Help text audited, recipes written).*
+*Current State: ✅ Complete (Diataxis docs, Recipes, CLI Help).*
 
 ---
 
@@ -47,28 +47,24 @@ At v1.0, `tokmd` is not just a CLI tool; it is a **stable system component**.
 **Goal**: Refactoring is safe; Output is frozen.
 
 - [x] **Infrastructure**: Add `dev-dependencies` (`assert_cmd`, `predicates`, `tempfile`).
-- [x] **Golden Tests**:
-    - Run `tokmd export` on a test fixture.
-    - Snapshot the JSONL output.
-    - Ensure it passes on CI (Windows/Linux/Mac).
-- [x] **Path Normalization Verification**:
-    - Ensure `\` vs `/` doesn't affect sorting or hashing in receipts.
-- [x] **Redaction Verification**:
-    - Verify `tokmd export --redact all` leaks no PII in the snapshot.
+- [x] **Golden Tests**: Snapshot the JSONL output using `insta`.
+- [x] **Path Normalization**: Ensure `\` vs `/` doesn't affect sorting.
+- [x] **Redaction Verification**: Verify `tokmd export --redact all` leaks no PII.
 
 ### ✅ Milestone 6: Documentation & Polish (v0.9.5)
 **Goal**: Users understand the "Receipt" concept.
 
 - [x] **Recipe Book**: Add `docs/recipes.md`.
-- [x] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow` (plus formal schema).
-- [x] **Final Argument Audit**: Rename/alias flags if they feel clunky.
+- [x] **Schema Docs**: Document the fields of `LangReceipt` and `ExportRow`.
+- [x] **Formal Schema**: JSON Schema Draft 07 in `docs/schema.json`.
+- [x] **Diataxis Structure**: Tutorial, How-to, Reference, Explanation.
 
 ### 🚀 Milestone 7: v1.0.0 Launch
 **Goal**: Stability.
 
-- [ ] **SemVer Lock**: Commit to not breaking the JSON schema without v2.0.
+- [x] **SemVer Lock**: Schema is frozen.
+- [x] **Release Automation**: GitHub Action for binary releases.
 - [ ] **Crates.io**: Final publish.
-- [ ] **GitHub Release**: binaries attached.
 
 ---
 

@@ -9,7 +9,7 @@ readme = "README.md"
 # Update these when you publish.
 homepage = "https://github.com/EffortlessMetrics/tokmd"
 repository = "https://github.com/EffortlessMetrics/tokmd"
-keywords = ["tokei", "loc", "markdown", "jsonl", "cli"]
+keywords = ["repo-analysis", "inventory", "llm-context", "receipts", "tokei"]
 categories = ["command-line-utilities", "development-tools"]
 default-run = "tokmd"
 autobins = false
