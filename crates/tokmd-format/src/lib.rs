@@ -24,9 +24,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::Result;
 use serde::Serialize;
 
-use tokmd_config::{
-    ExportFormat, GlobalArgs, RedactMode, TableFormat,
-};
+use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
     LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
