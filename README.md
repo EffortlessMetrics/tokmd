@@ -91,10 +91,12 @@ tokmd export > repo_inventory.jsonl
 
 ## Documentation
 
-- **[Recipe Book](docs/recipes.md)**: Real-world examples (LLM contexts, auditing vendors, CI tracking).
-- **[Receipt Schema](docs/SCHEMA.md)**: Detailed specification of the JSON output format.
-- **[Formal JSON Schema](docs/schema.json)**: Machine-readable schema definition.
-- **[Roadmap](ROADMAP.md)**: Path to v1.0 and future plans.
+The documentation is structured into four parts:
+
+- **[Tutorials](docs/tutorial.md)**: Learning-oriented lessons. Start here!
+- **[How-To Guides](docs/recipes.md)**: Problem-oriented recipes (LLM contexts, auditing vendors, CI tracking).
+- **[Reference](docs/reference-cli.md)**: Technical descriptions of CLI commands and [Schemas](docs/SCHEMA.md).
+- **[Explanation](docs/explanation.md)**: Understanding the "Receipt" philosophy.
 
 ## License
 

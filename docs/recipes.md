@@ -87,3 +87,25 @@ Paste a summary of the languages used in your PR description.
 ```bash
 tokmd --format md --top 5
 ```
+
+## 6. Configuring Ignores
+
+By default, `tokmd` respects `.gitignore`. Sometimes you want to ignore *more* (like tests or vendored code) without changing git behavior.
+
+**Option A: Command Line**
+```bash
+# Ignore the 'test' directory and all CSV files
+tokmd --exclude "tests/" --exclude "*.csv"
+```
+
+**Option B: .tokeignore file**
+Create a `.tokeignore` file in your root. It uses standard gitignore syntax.
+
+```gitignore
+# .tokeignore
+tests/
+fixtures/
+*.lock
+```
+
+This file is specific to `tokmd` (and `tokei`) and won't affect git.
