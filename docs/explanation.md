@@ -1,42 +1,36 @@
 # Explanation: The Philosophy of Receipts
 
-`tokmd` is built on a specific philosophy: **Shift Left the Context**.
+`tokmd` is designed as a **sensor** for agentic workflows. Its goal is to shift context left: from messy, chatty exploration to structured, deterministic artifacts.
 
-## The Problem: "Chatty" Analysis
+## The Context: Agentic Swarms
 
-In traditional software analysis, humans (or agents) run commands, get text output, read it, then run another command.
+In a gated multi-agent workflow, the first step is **Explore → Inventory + Plan**. `tokmd` provides the inventory artifact.
 
-1. `ls -R` -> "Too much output."
-2. `find . -name "*.rs"` -> "Okay, but which are important?"
-3. `tokei` -> "Okay, I see totals, but where are they?"
+It addresses specific failure modes in AI-native development:
 
-This "chatty" loop is expensive for humans and *very* expensive for LLM agents (burning context window and steps).
+1.  **Context Starvation**: Giving an LLM a cheap, structured map of the repo so it can steer without dumping the whole codebase into the prompt.
+2.  **Process Confabulation**: The tendency to "narrate" work (e.g., "I checked the files") without evidence. `tokmd` receipts provide the evidence that crosses the **trust boundary**.
 
-## The Solution: Receipts
+## The Trust Boundary
 
-A **Receipt** is a structured, comprehensive, deterministic artifact that describes the state of a system at a point in time.
+Text is untrusted; artifacts are trusted.
 
-Instead of asking 10 questions, an agent should request 1 receipt.
+- **Chats** are ephemeral and hallucination-prone.
+- **Receipts** are deterministic, versioned, and machine-verifiable.
 
-### Characteristics of a tokmd Receipt
+By generating a `tokmd` receipt, you create a stable artifact that can be diffed, cached, and validated by pipelines. This enables the shift from "chatting with code" to "reasoning about artifacts."
 
-1.  **Deterministic**: Running `tokmd export` on the same commit always produces the same JSON sha. This means you can cache it, diff it, and trust it.
-2.  **Structured**: It's JSON/JSONL, not unstructured text. Pipelines can filter `rows.filter(r => r.code > 1000)` without regex.
-3.  **Complete (Bounded)**: It lists *everything* (that matters). The consumer decides what to filter, not the producer (though `tokmd` offers pre-filtering optimization).
+## Safety: "If you wouldn't email it, don't paste"
 
-## Why "Shift Left"?
+`tokmd` adopts a "boring compliance" posture for AI safety.
 
-"Shift Left" usually refers to testing. Here, it refers to **Context Generation**.
+- **Redaction**: Support for hashing paths and module names allows you to share the *shape* of your repo (architecture, complexity, distribution) with a hosted LLM without leaking sensitive internal identifiers.
+- **Model Copies**: We prefer working with structural models (lists, stats) over raw data to minimize surface area.
 
-By generating a high-quality receipt *before* the LLM starts reasoning, you:
-- **Save Tokens**: You don't paste `ls -R` output. You paste a compact JSONL inventory.
-- **improve Reasoning**: The LLM sees the *shape* of the codebase (file sizes, languages, module distribution) immediately. It knows that `src/legacy/` is huge and `src/new/` is empty without having to guess.
+## Why "Shape, Not Grade"?
 
-## Why not just use `tokei`?
+`tokmd` explicitly rejects the use of LOC as a productivity metric. In AI-native repos, velocity is easy to game. `tokmd` is for understanding the **shape** of the codebase:
 
-`tokei` is an amazing tool. `tokmd` wraps it to add the "Receipt" layer:
-- **Metadata**: Adding `schema_version`, `scan` args, and timestamps.
-- **Pipelines**: Defaults like `jsonl` and `csv` tailored for data ingestion.
-- **Safety**: Redaction and consistent sorting.
-
-`tokmd` is the bridge between `tokei`'s raw speed and an agentic pipeline's need for structured stability.
+- Where is the complexity accumulating?
+- What are we actually vending vs. writing?
+- How does the repo look to a machine?

@@ -2,21 +2,36 @@
 
 > **Current Status**: v1.0.0 (Release Candidate). See [ROADMAP.md](ROADMAP.md) for details.
 
-`tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces **repo inventory receipts**:
+**tokmd is a repo “inventory receipt” generator.**
 
-- **Markdown/TSV** summaries for humans (paste into ChatGPT / issues / PRs)
-- **JSON / JSONL / CSV** datasets for pipelines and tooling
+It is a Tokei-backed, cross-platform tool that produces one-command outputs:
+- **Markdown/TSV** for humans (paste into PRs, issues, or ChatGPT).
+- **JSONL/CSV** for pipelines and LLMs.
 
-It’s designed to be **one command**: run once, copy/paste once. No `jq`, no `column`, no PowerShell quoting gymnastics.
+**One command, no glue.** No `jq`, no `column`, no shell quoting gymnastics.
 
-## Why use this?
+## The Pain It Targets
 
-This is **not** a productivity metric tool. LOC/PR velocity are easy to game and have lost meaning in AI-native repos. 
+PRs have gotten bigger, not better. Seniors burn time on review and AI bug hunts while throughput stays flat. The fix isn’t “better prompting”—it’s **gated work with artifacts you can trust**.
 
-Use `tokmd` to understand repo *shape*, not to grade people. It helps you answer:
-- "What does this repo look like to an LLM?"
-- "Which modules are growing the fastest?"
-- "How much of our code is actually vendored libraries?"
+`tokmd` makes “repo shape” a **mechanically verifiable artifact** instead of a terminal screenshot or a fragile script output.
+
+## Who It’s For
+
+- **Platform/DevEx Engineers & Tech Leads**: Who want to “review artifacts, not chats” by moving work into deterministic outputs.
+- **Agentic Workflow Builders**: Who need a deterministic "sensor" to feed repo context to LLMs without context starvation.
+
+## What It Is (And Isn't)
+
+**It IS:**
+- A **Sensor**: Emits receipts for languages, modules, and file inventories.
+- **Schema-Bound**: Outputs are strict contracts (`schema_version`) that pipelines can trust.
+- **Safe**: Offers redaction to support "If you wouldn't email it, don't paste."
+
+**It is NOT:**
+- **A Productivity Metric**: LOC is for shape, not grading people.
+- **A Quality Judge**: It doesn't lint or test.
+- **A TUI**: It generates receipts, it doesn't offer interactive exploration.
 
 ## Installation
 
