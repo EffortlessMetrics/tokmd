@@ -1,0 +1,15 @@
+[package]
+name = "tokmd-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "High-level API façade for tokmd. The recommended entry point for library usage."
+
+[dependencies]
+anyhow = "1.0.100"
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
+tokmd-model = { path = "../tokmd-model", version = "1.0.0" }

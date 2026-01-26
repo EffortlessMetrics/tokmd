@@ -1,3 +1,20 @@
+//! # tokmd-format
+//!
+//! **Tier 3 (Formatting)**
+//!
+//! This crate handles the rendering and serialization of `tokmd` receipts.
+//! It supports Markdown, TSV, JSON, JSONL, and CSV formats.
+//!
+//! ## What belongs here
+//! * Serialization logic (JSON/CSV)
+//! * Markdown template rendering
+//! * Output file writing
+//! * Redaction hashing logic (for output safety)
+//!
+//! ## What does NOT belong here
+//! * Business logic (calculating stats)
+//! * CLI arg parsing
+
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;

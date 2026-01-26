@@ -1,3 +1,18 @@
+//! # tokmd
+//!
+//! **CLI Binary**
+//!
+//! This is the entry point for the `tokmd` command-line application.
+//! It orchestrates the other crates to perform the requested actions.
+//!
+//! ## Responsibilities
+//! * Parse command line arguments
+//! * Load configuration
+//! * Dispatch commands to appropriate handlers
+//! * Handle errors and exit codes
+//!
+//! This crate should contain minimal business logic.
+
 use tokmd_config as cli;
 use tokmd_format as format;
 use tokmd_model as model;

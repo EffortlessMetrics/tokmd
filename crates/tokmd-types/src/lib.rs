@@ -1,3 +1,21 @@
+//! # tokmd-types
+//!
+//! **Tier 1 (Hard Contract)**
+//!
+//! This crate defines the core data structures and contracts for `tokmd`.
+//! It contains only data types, Serde definitions, and `schema_version`.
+//!
+//! ## What belongs here
+//! * Pure data structs (Receipts, Rows, Reports)
+//! * Serialization/Deserialization logic
+//! * Stability markers (SCHEMA_VERSION)
+//!
+//! ## What does NOT belong here
+//! * File I/O
+//! * CLI argument parsing
+//! * Complex business logic
+//! * Tokei dependencies
+
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};

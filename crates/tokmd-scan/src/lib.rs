@@ -1,3 +1,18 @@
+//! # tokmd-scan
+//!
+//! **Tier 3 (Adapter)**
+//!
+//! This crate adapts the `tokei` library for use within `tokmd`.
+//! It isolates the dependency on `tokei` to a single location.
+//!
+//! ## What belongs here
+//! * Tokei configuration and invocation
+//! * Mapping `tokmd` args to `tokei` config
+//!
+//! ## What does NOT belong here
+//! * Business logic (filtering, sorting)
+//! * Output formatting
+
 use anyhow::Result;
 use std::path::PathBuf;
 use tokei::{Config, Languages};

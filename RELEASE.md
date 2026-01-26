@@ -13,7 +13,8 @@ Because crates have internal dependencies, they must be published in this specif
 4.  **`tokmd-format`**
 5.  **`tokmd-scan`**
 6.  **`tokmd-tokeignore`**
-7.  **`tokmd`** (CLI Binary)
+7.  **`tokmd-core`** (Façade)
+8.  **`tokmd`** (CLI Binary)
 
 ## Steps to Release
 
@@ -29,21 +30,14 @@ Because crates have internal dependencies, they must be published in this specif
     ```
 
 3.  **Publish**:
-    You can use a tool like `cargo-workspaces` or publish manually:
+    Use the included automation script:
 
-    ```bash
-    # Dry run everything first
-    cargo publish -p tokmd-types --dry-run
-    # ... etc
+    ```powershell
+    # Dry run
+    ./scripts/publish-all.ps1 -DryRun
 
-    # Publish in order
-    cargo publish -p tokmd-types
-    cargo publish -p tokmd-config
-    cargo publish -p tokmd-model
-    cargo publish -p tokmd-format
-    cargo publish -p tokmd-scan
-    cargo publish -p tokmd-tokeignore
-    cargo publish -p tokmd
+    # Real release
+    ./scripts/publish-all.ps1
     ```
 
 ## Verification
