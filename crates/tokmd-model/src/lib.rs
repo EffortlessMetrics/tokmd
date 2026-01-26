@@ -1,158 +1,130 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use serde::Serialize;
 use tokei::{LanguageType, Languages};
-
 use tokmd_config::{ChildIncludeMode, ChildrenMode};
+use tokmd_types::{
+    ExportData, FileKind, FileRow, LangReport, LangRow, ModuleReport, ModuleRow, Totals,
+};
 
-/// A small totals struct shared by summary outputs.
-#[derive(Debug, Clone, Serialize)]
-pub struct Totals {
-    pub code: usize,
-    pub lines: usize,
-    pub files: usize,
-    pub avg_lines: usize,
-}
+pub fn create_lang_report(
+    languages: &Languages,
+    top: usize,
+    with_files: bool,
+    children: ChildrenMode,
+) -> LangReport {
+    let mut rows: Vec<LangRow> = Vec::new();
 
-#[derive(Debug, Clone, Serialize)]
-pub struct LangRow {
-    pub lang: String,
-    pub code: usize,
-    pub lines: usize,
-    pub files: usize,
-    pub avg_lines: usize,
-}
+    match children {
+        ChildrenMode::Collapse => {
+            // Collapse embedded languages into the parent row by using tokei's
+            // `Language::summarise()`.
+            for (lang_type, lang) in languages.iter() {
+                let sum = lang.summarise();
+                if sum.code == 0 {
+                    continue;
+                }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct LangReport {
-    pub rows: Vec<LangRow>,
-    pub total: Totals,
-    pub with_files: bool,
-    pub children: ChildrenMode,
-    pub top: usize,
-}
+                let lines = sum.code + sum.comments + sum.blanks;
+                let files = lang.reports.len();
+                let avg_lines = avg(lines, files);
 
-impl LangReport {
-    pub fn from_languages(
-        languages: &Languages,
-        top: usize,
-        with_files: bool,
-        children: ChildrenMode,
-    ) -> Self {
-        let mut rows: Vec<LangRow> = Vec::new();
+                rows.push(LangRow {
+                    lang: lang_type.name().to_string(),
+                    code: sum.code,
+                    lines,
+                    files,
+                    avg_lines,
+                });
+            }
+        }
+        ChildrenMode::Separate => {
+            // Emit parent languages (raw) and also emit aggregated "(embedded)" rows
+            // for child languages.
+            #[derive(Default)]
+            struct ChildAgg {
+                code: usize,
+                comments: usize,
+                blanks: usize,
+                files: usize,
+            }
 
-        match children {
-            ChildrenMode::Collapse => {
-                // Collapse embedded languages into the parent row by using tokei's
-                // `Language::summarise()`.
-                for (lang_type, lang) in languages.iter() {
-                    let sum = lang.summarise();
-                    if sum.code == 0 {
-                        continue;
-                    }
+            let mut embedded: BTreeMap<LanguageType, ChildAgg> = BTreeMap::new();
 
-                    let lines = sum.code + sum.comments + sum.blanks;
+            for (lang_type, lang) in languages.iter() {
+                if lang.code > 0 {
+                    let lines = lang.code + lang.comments + lang.blanks;
                     let files = lang.reports.len();
                     let avg_lines = avg(lines, files);
 
                     rows.push(LangRow {
                         lang: lang_type.name().to_string(),
-                        code: sum.code,
+                        code: lang.code,
                         lines,
                         files,
                         avg_lines,
                     });
                 }
-            }
-            ChildrenMode::Separate => {
-                // Emit parent languages (raw) and also emit aggregated "(embedded)" rows
-                // for child languages.
-                #[derive(Default)]
-                struct ChildAgg {
-                    code: usize,
-                    comments: usize,
-                    blanks: usize,
-                    files: usize,
-                }
 
-                let mut embedded: BTreeMap<LanguageType, ChildAgg> = BTreeMap::new();
-
-                for (lang_type, lang) in languages.iter() {
-                    if lang.code > 0 {
-                        let lines = lang.code + lang.comments + lang.blanks;
-                        let files = lang.reports.len();
-                        let avg_lines = avg(lines, files);
-
-                        rows.push(LangRow {
-                            lang: lang_type.name().to_string(),
-                            code: lang.code,
-                            lines,
-                            files,
-                            avg_lines,
-                        });
+                for (child_type, reports) in &lang.children {
+                    let entry = embedded.entry(*child_type).or_default();
+                    entry.files += reports.len();
+                    for r in reports {
+                        let st = r.stats.summarise();
+                        entry.code += st.code;
+                        entry.comments += st.comments;
+                        entry.blanks += st.blanks;
                     }
-
-                    for (child_type, reports) in &lang.children {
-                        let entry = embedded.entry(*child_type).or_default();
-                        entry.files += reports.len();
-                        for r in reports {
-                            let st = r.stats.summarise();
-                            entry.code += st.code;
-                            entry.comments += st.comments;
-                            entry.blanks += st.blanks;
-                        }
-                    }
-                }
-
-                for (child_type, agg) in embedded {
-                    if agg.code == 0 {
-                        continue;
-                    }
-                    let lines = agg.code + agg.comments + agg.blanks;
-                    let avg_lines = avg(lines, agg.files);
-                    rows.push(LangRow {
-                        lang: format!("{} (embedded)", child_type.name()),
-                        code: agg.code,
-                        lines,
-                        files: agg.files,
-                        avg_lines,
-                    });
                 }
             }
+
+            for (child_type, agg) in embedded {
+                if agg.code == 0 {
+                    continue;
+                }
+                let lines = agg.code + agg.comments + agg.blanks;
+                let avg_lines = avg(lines, agg.files);
+                rows.push(LangRow {
+                    lang: format!("{} (embedded)", child_type.name()),
+                    code: agg.code,
+                    lines,
+                    files: agg.files,
+                    avg_lines,
+                });
+            }
         }
+    }
 
-        // Sort descending by code, then by language name for determinism.
-        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+    // Sort descending by code, then by language name for determinism.
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
-        // Compute totals *before* folding to top-N.
-        let total_code: usize = rows.iter().map(|r| r.code).sum();
-        let total_lines: usize = rows.iter().map(|r| r.lines).sum();
-        let total_files = unique_parent_file_count(languages);
-        let total = Totals {
-            code: total_code,
-            lines: total_lines,
-            files: total_files,
-            avg_lines: avg(total_lines, total_files),
-        };
+    // Compute totals *before* folding to top-N.
+    let total_code: usize = rows.iter().map(|r| r.code).sum();
+    let total_lines: usize = rows.iter().map(|r| r.lines).sum();
+    let total_files = unique_parent_file_count(languages);
+    let total = Totals {
+        code: total_code,
+        lines: total_lines,
+        files: total_files,
+        avg_lines: avg(total_lines, total_files),
+    };
 
-        if top > 0 && rows.len() > top {
-            let other = fold_other_lang(&rows[top..]);
-            rows.truncate(top);
-            rows.push(other);
-        }
+    if top > 0 && rows.len() > top {
+        let other = fold_other_lang(&rows[top..]);
+        rows.truncate(top);
+        rows.push(other);
+    }
 
-        Self {
-            rows,
-            total,
-            with_files,
-            children,
-            top,
-        }
+    LangReport {
+        rows,
+        total,
+        with_files,
+        children,
+        top,
     }
 }
 
-fn fold_other_lang(rows: &[LangRow]) -> LangRow {
+pub fn fold_other_lang(rows: &[LangRow]) -> LangRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;
@@ -172,103 +144,82 @@ fn fold_other_lang(rows: &[LangRow]) -> LangRow {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct ModuleRow {
-    pub module: String,
-    pub code: usize,
-    pub lines: usize,
-    pub files: usize,
-    pub avg_lines: usize,
-}
+pub fn create_module_report(
+    languages: &Languages,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    top: usize,
+) -> ModuleReport {
+    // Aggregate stats per module, but count files uniquely (parent files only).
+    let file_rows = collect_file_rows(languages, module_roots, module_depth, children, None);
 
-#[derive(Debug, Clone, Serialize)]
-pub struct ModuleReport {
-    pub rows: Vec<ModuleRow>,
-    pub total: Totals,
-    pub module_roots: Vec<String>,
-    pub module_depth: usize,
-    pub children: ChildIncludeMode,
-    pub top: usize,
-}
+    #[derive(Default)]
+    struct Agg {
+        code: usize,
+        lines: usize,
+    }
 
-impl ModuleReport {
-    pub fn from_languages(
-        languages: &Languages,
-        module_roots: &[String],
-        module_depth: usize,
-        children: ChildIncludeMode,
-        top: usize,
-    ) -> Self {
-        // Aggregate stats per module, but count files uniquely (parent files only).
-        let file_rows = collect_file_rows(languages, module_roots, module_depth, children, None);
+    let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
+    for r in &file_rows {
+        let entry = by_module.entry(r.module.clone()).or_default();
+        entry.code += r.code;
+        entry.lines += r.lines;
+    }
 
-        #[derive(Default)]
-        struct Agg {
-            code: usize,
-            lines: usize,
+    // Unique parent files per module.
+    let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (lang_type, lang) in languages.iter() {
+        let _ = lang_type; // keep the pattern explicit; we only need reports
+        for report in &lang.reports {
+            let path = normalize_path(&report.name, None);
+            let module = module_key(&path, module_roots, module_depth);
+            module_files.entry(module).or_default().insert(path);
         }
+    }
 
-        let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
-        for r in &file_rows {
-            let entry = by_module.entry(r.module.clone()).or_default();
-            entry.code += r.code;
-            entry.lines += r.lines;
-        }
+    let mut rows: Vec<ModuleRow> = Vec::new();
+    for (module, agg) in by_module {
+        let files = module_files.get(&module).map(|s| s.len()).unwrap_or(0);
+        rows.push(ModuleRow {
+            module,
+            code: agg.code,
+            lines: agg.lines,
+            files,
+            avg_lines: avg(agg.lines, files),
+        });
+    }
 
-        // Unique parent files per module.
-        let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-        for (lang_type, lang) in languages.iter() {
-            let _ = lang_type; // keep the pattern explicit; we only need reports
-            for report in &lang.reports {
-                let path = normalize_path(&report.name, None);
-                let module = module_key(&path, module_roots, module_depth);
-                module_files.entry(module).or_default().insert(path);
-            }
-        }
+    // Sort descending by code, then by module name for determinism.
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 
-        let mut rows: Vec<ModuleRow> = Vec::new();
-        for (module, agg) in by_module {
-            let files = module_files.get(&module).map(|s| s.len()).unwrap_or(0);
-            rows.push(ModuleRow {
-                module,
-                code: agg.code,
-                lines: agg.lines,
-                files,
-                avg_lines: avg(agg.lines, files),
-            });
-        }
+    if top > 0 && rows.len() > top {
+        let other = fold_other_module(&rows[top..]);
+        rows.truncate(top);
+        rows.push(other);
+    }
 
-        // Sort descending by code, then by module name for determinism.
-        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+    let total_files = unique_parent_file_count(languages);
+    let total_code: usize = file_rows.iter().map(|r| r.code).sum();
+    let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
+    let total = Totals {
+        code: total_code,
+        lines: total_lines,
+        files: total_files,
+        avg_lines: avg(total_lines, total_files),
+    };
 
-        if top > 0 && rows.len() > top {
-            let other = fold_other_module(&rows[top..]);
-            rows.truncate(top);
-            rows.push(other);
-        }
-
-        let total_files = unique_parent_file_count(languages);
-        let total_code: usize = file_rows.iter().map(|r| r.code).sum();
-        let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
-        let total = Totals {
-            code: total_code,
-            lines: total_lines,
-            files: total_files,
-            avg_lines: avg(total_lines, total_files),
-        };
-
-        Self {
-            rows,
-            total,
-            module_roots: module_roots.to_vec(),
-            module_depth,
-            children,
-            top,
-        }
+    ModuleReport {
+        rows,
+        total,
+        module_roots: module_roots.to_vec(),
+        module_depth,
+        children,
+        top,
     }
 }
 
-fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
+pub fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;
@@ -288,67 +239,38 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FileKind {
-    Parent,
-    Child,
-}
+pub fn create_export_data(
+    languages: &Languages,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    strip_prefix: Option<&Path>,
+    min_code: usize,
+    max_rows: usize,
+) -> ExportData {
+    let mut rows = collect_file_rows(
+        languages,
+        module_roots,
+        module_depth,
+        children,
+        strip_prefix,
+    );
 
-#[derive(Debug, Clone, Serialize)]
-pub struct FileRow {
-    pub path: String,
-    pub module: String,
-    pub lang: String,
-    pub kind: FileKind,
-    pub code: usize,
-    pub comments: usize,
-    pub blanks: usize,
-    pub lines: usize,
-}
+    // Filter and sort for determinism.
+    if min_code > 0 {
+        rows.retain(|r| r.code >= min_code);
+    }
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 
-#[derive(Debug, Clone, Serialize)]
-pub struct ExportData {
-    pub rows: Vec<FileRow>,
-    pub module_roots: Vec<String>,
-    pub module_depth: usize,
-    pub children: ChildIncludeMode,
-}
+    if max_rows > 0 && rows.len() > max_rows {
+        rows.truncate(max_rows);
+    }
 
-impl ExportData {
-    pub fn from_languages(
-        languages: &Languages,
-        module_roots: &[String],
-        module_depth: usize,
-        children: ChildIncludeMode,
-        strip_prefix: Option<&Path>,
-        min_code: usize,
-        max_rows: usize,
-    ) -> Self {
-        let mut rows = collect_file_rows(
-            languages,
-            module_roots,
-            module_depth,
-            children,
-            strip_prefix,
-        );
-
-        // Filter and sort for determinism.
-        if min_code > 0 {
-            rows.retain(|r| r.code >= min_code);
-        }
-        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
-
-        if max_rows > 0 && rows.len() > max_rows {
-            rows.truncate(max_rows);
-        }
-
-        Self {
-            rows,
-            module_roots: module_roots.to_vec(),
-            module_depth,
-            children,
-        }
+    ExportData {
+        rows,
+        module_roots: module_roots.to_vec(),
+        module_depth,
+        children,
     }
 }
 

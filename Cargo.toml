@@ -7,5 +7,6 @@ members = [
     "crates/tokmd-model",
     "crates/tokmd-scan",
     "crates/tokmd-tokeignore",
+    "crates/tokmd-types",
     "fuzz",
 ]

@@ -47,6 +47,7 @@ tokmd-model = { path = "../tokmd-model" }
 tokmd-scan = { path = "../tokmd-scan" }
 tokmd-format = { path = "../tokmd-format" }
 tokmd-tokeignore = { path = "../tokmd-tokeignore" }
+tokmd-types = { path = "../tokmd-types" }
 
 [profile.release]
 lto = true

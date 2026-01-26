@@ -1477,6 +1477,7 @@ dependencies = [
  "tokmd-model",
  "tokmd-scan",
  "tokmd-tokeignore",
+ "tokmd-types",
 ]
 
 [[package]]
@@ -1497,7 +1498,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokmd-config",
- "tokmd-model",
+ "tokmd-types",
 ]
 
 [[package]]
@@ -1519,6 +1520,7 @@ dependencies = [
  "serde",
  "tokei",
  "tokmd-config",
+ "tokmd-types",
 ]
 
 [[package]]
@@ -1535,6 +1537,14 @@ name = "tokmd-tokeignore"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "tokmd-config",
+]
+
+[[package]]
+name = "tokmd-types"
+version = "1.0.0"
+dependencies = [
+ "serde",
  "tokmd-config",
 ]
 

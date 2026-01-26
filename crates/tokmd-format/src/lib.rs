@@ -11,7 +11,7 @@ use tokmd_config::{
     ChildIncludeMode, ConfigMode, ExportArgs, ExportFormat, GlobalArgs, LangArgs, ModuleArgs,
     RedactMode, TableFormat,
 };
-use tokmd_model::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
+use tokmd_types::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
 
 /// Increment when JSON/JSONL output shapes change.
 const SCHEMA_VERSION: u32 = 1;
@@ -80,7 +80,7 @@ struct LangReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: LangArgsMeta,
-    rows: Vec<tokmd_model::LangRow>,
+    rows: Vec<tokmd_types::LangRow>,
     total: Totals,
 }
 
@@ -192,7 +192,7 @@ struct ModuleReceipt {
     mode: &'static str,
     scan: ScanArgs,
     args: ModuleArgsMeta,
-    rows: Vec<tokmd_model::ModuleRow>,
+    rows: Vec<tokmd_types::ModuleRow>,
     total: Totals,
 }
 
