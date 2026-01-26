@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT OR Apache-2.0"
-description = "Tokei-backed repo inventory receipts: Markdown/TSV for humans, JSONL/CSV for pipelines."
+description = "A stable interface for repo shape. Emits receipt-style summaries (Markdown/TSV) and machine-readable inventories (JSONL/CSV) for LLMs and pipelines."
 readme = "README.md"
 # Update these when you publish.
 homepage = "https://github.com/EffortlessMetrics/tokmd"
