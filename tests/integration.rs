@@ -344,6 +344,18 @@ fn test_export_meta_false() {
 }
 
 #[test]
+fn test_redaction_leaks_in_meta() {
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("src/main.rs") // Explicit positional path
+        .arg("--redact")
+        .arg("paths")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("src/main.rs").not());
+}
+
+#[test]
 fn test_filter_all_rows() {
     // Given: Files with small code counts
     // When: We export with --min-code 1000 (too high)

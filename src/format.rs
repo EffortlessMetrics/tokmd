@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
@@ -48,10 +49,9 @@ fn now_ms() -> u128 {
         .as_millis()
 }
 
-fn scan_args(global: &GlobalArgs) -> ScanArgs {
-    ScanArgs {
-        paths: global
-            .paths
+fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
+    let mut args = ScanArgs {
+        paths: paths
             .iter()
             .map(|p| p.display().to_string())
             .collect(),
@@ -63,7 +63,14 @@ fn scan_args(global: &GlobalArgs) -> ScanArgs {
         no_ignore_dot: global.no_ignore_dot,
         no_ignore_vcs: global.no_ignore_vcs,
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
+    };
+
+    if let Some(mode) = redact {
+        if mode == RedactMode::Paths || mode == RedactMode::All {
+            args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
+        }
     }
+    args
 }
 
 // -----------------------
@@ -103,7 +110,7 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "lang",
-                scan: scan_args(global),
+                scan: scan_args(&args.paths, global, None),
                 args: LangArgsMeta {
                     top: report.top,
                     with_files: report.with_files,
@@ -220,7 +227,7 @@ pub fn print_module_report(
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
                 mode: "module",
-                scan: scan_args(global),
+                scan: scan_args(&args.paths, global, None),
                 args: ModuleArgsMeta {
                     top: report.top,
                     module_roots: report.module_roots.clone(),
@@ -375,7 +382,7 @@ fn write_export_jsonl<W: Write>(
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export",
-            scan: scan_args(global),
+            scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
                 module_roots: export.module_roots.clone(),
@@ -423,7 +430,7 @@ fn write_export_json<W: Write>(
             generated_at_ms: now_ms(),
             tool: tool_info(),
             mode: "export",
-            scan: scan_args(global),
+            scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
                 module_roots: export.module_roots.clone(),
