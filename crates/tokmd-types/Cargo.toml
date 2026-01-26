@@ -1,8 +1,12 @@
 [package]
 name = "tokmd-types"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Core data types and contracts for tokmd. Tier 1 stability."
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-tokmd-config = { path = "../tokmd-config" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }

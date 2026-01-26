@@ -1,9 +1,13 @@
 [package]
 name = "tokmd-scan"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Source code scanning adapter (Tokei wrapper) for tokmd."
 
 [dependencies]
 anyhow = "1.0.100"
 tokei = { version = "14.0.0", default-features = false }
-tokmd-config = { path = "../tokmd-config" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }

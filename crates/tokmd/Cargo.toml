@@ -1,14 +1,12 @@
 [package]
 name = "tokmd"
-version = "1.0.0"
-edition = "2024"
-rust-version = "1.89"
-license = "MIT OR Apache-2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
 description = "A stable interface for repo shape. Emits receipt-style summaries (Markdown/TSV) and machine-readable inventories (JSONL/CSV) for LLMs and pipelines."
 readme = "README.md"
-# Update these when you publish.
-homepage = "https://github.com/EffortlessMetrics/tokmd"
-repository = "https://github.com/EffortlessMetrics/tokmd"
 keywords = ["repo-analysis", "inventory", "llm-context", "receipts", "tokei"]
 categories = ["command-line-utilities", "development-tools"]
 default-run = "tokmd"
@@ -42,12 +40,12 @@ required-features = ["alias-tok"]
 [dependencies]
 anyhow = "1.0.100"
 clap = { version = "4.5.54", features = ["derive"] }
-tokmd-config = { path = "../tokmd-config" }
-tokmd-model = { path = "../tokmd-model" }
-tokmd-scan = { path = "../tokmd-scan" }
-tokmd-format = { path = "../tokmd-format" }
-tokmd-tokeignore = { path = "../tokmd-tokeignore" }
-tokmd-types = { path = "../tokmd-types" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
+tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
+tokmd-format = { path = "../tokmd-format", version = "1.0.0" }
+tokmd-tokeignore = { path = "../tokmd-tokeignore", version = "1.0.0" }
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
 clap_complete = "4.5.65"
 dirs = "6.0.0"
 serde_json = "1.0.149"
@@ -60,4 +58,4 @@ insta = { version = "1.39.0", features = ["json"] }
 regex = "1.10.4"
 proptest = "1.6.0"
 serde_json = "1.0.149"
-tokmd-model = { path = "../tokmd-model" }
+tokmd-model = { path = "../tokmd-model", version = "1.0.0" }

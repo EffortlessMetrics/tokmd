@@ -10,6 +10,23 @@ members = [
     "crates/tokmd-types",
     "fuzz",
 ]
+default-members = [
+    "crates/tokmd",
+    "crates/tokmd-config",
+    "crates/tokmd-format",
+    "crates/tokmd-model",
+    "crates/tokmd-scan",
+    "crates/tokmd-tokeignore",
+    "crates/tokmd-types",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/EffortlessMetrics/tokmd"
+repository = "https://github.com/EffortlessMetrics/tokmd"
+authors = ["Steven Zimmerman <git@effortlesssteven.com>"]
 
 [profile.release]
 lto = true

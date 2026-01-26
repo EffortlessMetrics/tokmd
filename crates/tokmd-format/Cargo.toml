@@ -1,7 +1,11 @@
 [package]
 name = "tokmd-format"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Output formatting and serialization (Markdown, JSON, CSV) for tokmd."
 
 [dependencies]
 anyhow = "1.0.100"
@@ -9,5 +13,5 @@ blake3 = "1.8.3"
 csv = "1.4.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-tokmd-config = { path = "../tokmd-config" }
-tokmd-types = { path = "../tokmd-types" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
