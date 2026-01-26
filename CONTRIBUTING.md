@@ -15,29 +15,25 @@ Thank you for your interest in contributing to `tokmd`! This project aims to be 
     cargo build
     ```
 
-## Testing
+## Testing Strategy
 
 We prioritize deterministic outputs. This is critical because `tokmd` is used to generate receipts that must be stable over time.
 
--   **Run Unit Tests**:
-    ```bash
-    cargo test
-    ```
--   **Integration / Golden Tests**:
-    We use `insta` for snapshot testing. If you change the output format, the tests will fail with a diff.
-    To review and accept changes:
-    ```bash
-    cargo install cargo-insta
-    cargo test
-    cargo insta review
-    ```
-    This guarantees that `tokmd` outputs (receipts) remain deterministic and stable.
+### 1. Unit Tests
+Run standard unit tests for model logic and utility functions:
+```bash
+cargo test
+```
 
--   **Manual Verification**:
-    Use the `alias-tok` feature to run the `tok` binary during dev if you prefer short commands:
-    ```bash
-    cargo run --features alias-tok --bin tok -- help
-    ```
+### 2. Integration / Golden Tests
+We use `insta` for snapshot testing. These tests run the full CLI against fixtures in `tests/data`.
+
+**If you change output logic (e.g., new fields, different formatting):**
+1.  Run tests: `cargo test` (they will fail with a diff).
+2.  Review changes: `cargo insta review` (requires `cargo-insta` installed).
+3.  Accept changes if they are intentional.
+
+This guarantees that `tokmd` outputs (receipts) remain deterministic and stable.
 
 ## Code Style
 

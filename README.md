@@ -1,109 +1,83 @@
 # tokmd
 
-> **Current Status**: v0.2.0 (Pre-v1.0). See [ROADMAP.md](ROADMAP.md) for the path to v1.0 and [TODO.md](TODO.md) for current tasks.
+> **Current Status**: v1.0.0 (Release Candidate). See [ROADMAP.md](ROADMAP.md) for details.
 
-`tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces
-repo **inventory receipts**:
+`tokmd` is a tiny, cross-platform wrapper around the **tokei** library that produces **repo inventory receipts**:
 
 - **Markdown/TSV** summaries for humans (paste into ChatGPT / issues / PRs)
 - **JSON / JSONL / CSV** datasets for pipelines and tooling
 
-It’s designed to be **one command**: run once, copy/paste once. No `jq`, no `column`, no
-PowerShell quoting gymnastics.
+It’s designed to be **one command**: run once, copy/paste once. No `jq`, no `column`, no PowerShell quoting gymnastics.
 
-This is **not** a productivity metric tool. LOC/PR velocity are easy to game and have
-lost meaning in AI-native repos. Use `tokmd` to understand repo *shape*, not to grade
-people.
+## Why use this?
 
-## Install
+This is **not** a productivity metric tool. LOC/PR velocity are easy to game and have lost meaning in AI-native repos. 
+
+Use `tokmd` to understand repo *shape*, not to grade people. It helps you answer:
+- "What does this repo look like to an LLM?"
+- "Which modules are growing the fastest?"
+- "How much of our code is actually vendored libraries?"
+
+## Installation
 
 From crates.io:
-
 ```bash
 cargo install tokmd
 ```
 
-Optional: also install a `tok` alias (via an opt-in feature):
+## Quick Start (Tutorial)
 
-```bash
-cargo install tokmd --features alias-tok
-```
-
-From a local checkout:
-
-```bash
-cargo install --path .
-```
-
-## Quick start
-
-Language summary (Markdown by default):
+### 1. Get a Language Summary
+Run `tokmd` in any repo to get a Markdown table of languages.
 
 ```bash
 tokmd
-tokmd --top 12
-tokmd --files
-tokmd --format tsv
-tokmd --format json
-
-# If your repo has embedded languages (e.g., code blocks), you can break them out:
-tokmd --children separate
+# Output:
+# |Lang|Code|Lines|
+# |---|---:|---:|
+# |Rust|1200|1500|
+# ...
 ```
 
-Module summary (good for modular repos):
+### 2. Get a Module Summary
+See where the code actually lives.
 
 ```bash
 tokmd module
-tokmd module --top 15
-tokmd module --module-roots crates,packages --module-depth 2
-
-# Include embedded languages (default):
-tokmd module --children separate
-# Ignore embedded languages:
-tokmd module --children parents-only
+# Output:
+# |Module|Code|Lines|
+# |---|---:|---:|
+# |crates/cli|500|600|
+# |crates/core|700|900|
 ```
 
-Export a file-level dataset (good for analysis or feeding into other tools):
+### 3. Generate a Data Receipt
+Export a machine-readable list of files for analysis or LLM contexts.
 
 ```bash
-# JSONL is the default (one record per line).
-tokmd export > tokmd.jsonl
-
-tokmd export --format csv  --out tokmd.csv
-tokmd export --format json --out tokmd.json
-
-# Include a meta record (default for JSON/JSONL) describing how the scan was run:
-tokmd export --meta true
-# Or emit rows only:
-tokmd export --meta false
-
-# Safer copy/paste into LLMs:
-tokmd export --redact paths
-tokmd export --redact all
-
-# Drop tiny rows / cap output size:
-tokmd export --min-code 10 --max-rows 500
+tokmd export > repo_inventory.jsonl
 ```
 
-Initialize a starter `.tokeignore`:
+## How-To Guides
 
-```bash
-tokmd init
-# Preview the template:
-tokmd init --print
-# Overwrite if one already exists:
-tokmd init --force
+- **[Feed a Codebase to an LLM](docs/recipes.md#1-feeding-a-codebase-to-an-llm)**
+- **[Track Repo Growth in CI](docs/recipes.md#2-tracking-repo-growth-over-time)**
+- **[Audit Vendor Dependencies](docs/recipes.md#3-auditing-vendor-dependencies)**
+- **[Find "Heavy" Files](docs/recipes.md#4-finding-heavy-files)**
 
-# Pick a profile:
-tokmd init --profile rust
-tokmd init --profile node
-tokmd init --profile mono
-tokmd init --profile python
-tokmd init --profile go
-tokmd init --profile cpp
-```
+## Reference
 
-## Notes
+### CLI Commands
+- `tokmd` (alias `tokmd lang`): Language summary.
+- `tokmd module`: Module-level summary.
+- `tokmd export`: File-level inventory (JSONL/CSV).
+- `tokmd init`: Generate `.tokeignore`.
+
+### Output Schemas
+- **[Receipt Schema](docs/SCHEMA.md)**: Human-readable guide to the JSON output.
+- **[Formal JSON Schema](docs/schema.json)**: Machine-readable spec.
+
+## Notes & Explanation
 
 - `tokmd` links to the `tokei` crate (it does **not** shell out to the `tokei` binary).
 - Ignore behavior is controlled by `tokei` and respects `.gitignore`, `.ignore`,
