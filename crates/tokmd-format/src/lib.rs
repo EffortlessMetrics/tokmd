@@ -8,46 +8,24 @@ use anyhow::Result;
 use serde::Serialize;
 
 use tokmd_config::{
-    ChildIncludeMode, ConfigMode, ExportArgs, ExportFormat, GlobalArgs, LangArgs, ModuleArgs,
-    RedactMode, TableFormat,
+    ChildIncludeMode, ConfigMode, ExportFormat, GlobalArgs, RedactMode, TableFormat,
 };
-use tokmd_types::{ExportData, FileKind, FileRow, LangReport, ModuleReport, Totals};
+use tokmd_types::{
+    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
+    LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
+    ModuleReport, ScanArgs, ScanStatus, ToolInfo, Totals,
+};
 
 /// Increment when JSON/JSONL output shapes change.
 const SCHEMA_VERSION: u32 = 2;
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "snake_case")]
-enum ScanStatus {
-    Complete,
-    Partial,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ToolInfo {
-    name: &'static str,
-    version: &'static str,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ScanArgs {
-    paths: Vec<String>,
-    excluded: Vec<String>,
-    config: ConfigMode,
-    hidden: bool,
-    no_ignore: bool,
-    no_ignore_parent: bool,
-    no_ignore_dot: bool,
-    no_ignore_vcs: bool,
-    treat_doc_strings_as_comments: bool,
-}
-
 fn tool_info() -> ToolInfo {
     ToolInfo {
-        name: "tokmd",
-        version: env!("CARGO_PKG_VERSION"),
+        name: "tokmd".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }
+
 
 fn now_ms() -> u128 {
     SystemTime::now()
@@ -79,26 +57,6 @@ fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>)
 // Language summary output
 // -----------------------
 
-#[derive(Debug, Clone, Serialize)]
-struct LangReceipt {
-    schema_version: u32,
-    generated_at_ms: u128,
-    tool: ToolInfo,
-    mode: &'static str,
-    status: ScanStatus,
-    warnings: Vec<String>,
-    scan: ScanArgs,
-    args: LangArgsMeta,
-    rows: Vec<tokmd_types::LangRow>,
-    total: Totals,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct LangArgsMeta {
-    top: usize,
-    with_files: bool,
-    children: tokmd_config::ChildrenMode,
-}
 
 pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
     match args.format {
@@ -113,17 +71,17 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
                 schema_version: SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
-                mode: "lang",
+                mode: "lang".to_string(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: LangArgsMeta {
+                    format: "json".to_string(),
                     top: report.top,
                     with_files: report.with_files,
                     children: report.children,
                 },
-                rows: report.rows.clone(),
-                total: report.total.clone(),
+                report: report.clone(),
             };
             println!("{}", serde_json::to_string(&receipt)?);
         }
@@ -195,27 +153,6 @@ fn render_lang_tsv(report: &LangReport) -> String {
 // Module summary output
 // ---------------------
 
-#[derive(Debug, Clone, Serialize)]
-struct ModuleReceipt {
-    schema_version: u32,
-    generated_at_ms: u128,
-    tool: ToolInfo,
-    mode: &'static str,
-    status: ScanStatus,
-    warnings: Vec<String>,
-    scan: ScanArgs,
-    args: ModuleArgsMeta,
-    rows: Vec<tokmd_types::ModuleRow>,
-    total: Totals,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ModuleArgsMeta {
-    top: usize,
-    module_roots: Vec<String>,
-    module_depth: usize,
-    children: ChildIncludeMode,
-}
 
 pub fn print_module_report(
     report: &ModuleReport,
@@ -234,18 +171,18 @@ pub fn print_module_report(
                 schema_version: SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: tool_info(),
-                mode: "module",
+                mode: "module".to_string(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: ModuleArgsMeta {
+                    format: "json".to_string(),
                     top: report.top,
                     module_roots: report.module_roots.clone(),
                     module_depth: report.module_depth,
                     children: report.children,
                 },
-                rows: report.rows.clone(),
-                total: report.total.clone(),
+                report: report.clone(),
             };
             println!("{}", serde_json::to_string(&receipt)?);
         }
@@ -297,23 +234,11 @@ struct ExportMeta {
     schema_version: u32,
     generated_at_ms: u128,
     tool: ToolInfo,
-    mode: &'static str,
+    mode: String,
     status: ScanStatus,
     warnings: Vec<String>,
     scan: ScanArgs,
     args: ExportArgsMeta,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ExportArgsMeta {
-    format: ExportFormat,
-    module_roots: Vec<String>,
-    module_depth: usize,
-    children: ChildIncludeMode,
-    min_code: usize,
-    max_rows: usize,
-    redact: RedactMode,
-    strip_prefix: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -393,7 +318,7 @@ fn write_export_jsonl<W: Write>(
             schema_version: SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: tool_info(),
-            mode: "export",
+            mode: "export".to_string(),
             status: ScanStatus::Complete,
             warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
@@ -428,24 +353,11 @@ fn write_export_json<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
-        #[derive(Serialize)]
-        struct ExportReceipt {
-            schema_version: u32,
-            generated_at_ms: u128,
-            tool: ToolInfo,
-            mode: &'static str,
-            status: ScanStatus,
-            warnings: Vec<String>,
-            scan: ScanArgs,
-            args: ExportArgsMeta,
-            rows: Vec<FileRow>,
-        }
-
         let receipt = ExportReceipt {
             schema_version: SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: tool_info(),
-            mode: "export",
+            mode: "export".to_string(),
             status: ScanStatus::Complete,
             warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
@@ -459,7 +371,12 @@ fn write_export_json<W: Write>(
                 redact: args.redact,
                 strip_prefix: args.strip_prefix.as_ref().map(|p| p.display().to_string()),
             },
-            rows: redact_rows(&export.rows, args.redact),
+            data: ExportData {
+                rows: redact_rows(&export.rows, args.redact),
+                module_roots: export.module_roots.clone(),
+                module_depth: export.module_depth,
+                children: export.children,
+            },
         };
         writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
     } else {

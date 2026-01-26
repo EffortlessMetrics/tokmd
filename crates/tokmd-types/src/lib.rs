@@ -1,8 +1,10 @@
-use serde::Serialize;
-use tokmd_config::{ChildIncludeMode, ChildrenMode};
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+use tokmd_config::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat};
 
 /// A small totals struct shared by summary outputs.
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Totals {
     pub code: usize,
     pub lines: usize,
@@ -10,7 +12,7 @@ pub struct Totals {
     pub avg_lines: usize,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LangRow {
     pub lang: String,
     pub code: usize,
@@ -19,7 +21,7 @@ pub struct LangRow {
     pub avg_lines: usize,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LangReport {
     pub rows: Vec<LangRow>,
     pub total: Totals,
@@ -28,7 +30,7 @@ pub struct LangReport {
     pub top: usize,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleRow {
     pub module: String,
     pub code: usize,
@@ -37,7 +39,7 @@ pub struct ModuleRow {
     pub avg_lines: usize,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModuleReport {
     pub rows: Vec<ModuleRow>,
     pub total: Totals,
@@ -47,14 +49,14 @@ pub struct ModuleReport {
     pub top: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FileKind {
     Parent,
     Child,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FileRow {
     pub path: String,
     pub module: String,
@@ -66,10 +68,151 @@ pub struct FileRow {
     pub lines: usize,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportData {
     pub rows: Vec<FileRow>,
     pub module_roots: Vec<String>,
     pub module_depth: usize,
     pub children: ChildIncludeMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub lang_file: String,
+    pub module_file: String,
+    pub export_file: String,
+    // We could store the scan args here too
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScanStatus {
+    Complete,
+    Partial,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolInfo {
+    pub name: String,
+    pub version: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanArgs {
+    pub paths: Vec<String>,
+    pub excluded: Vec<String>,
+    pub config: ConfigMode,
+    pub hidden: bool,
+    pub no_ignore: bool,
+    pub no_ignore_parent: bool,
+    pub no_ignore_dot: bool,
+    pub no_ignore_vcs: bool,
+    pub treat_doc_strings_as_comments: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LangArgsMeta {
+    pub format: String,
+    pub top: usize,
+    pub with_files: bool,
+    pub children: ChildrenMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LangReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String, // "lang"
+    pub status: ScanStatus,
+    pub warnings: Vec<String>,
+    pub scan: ScanArgs,
+    pub args: LangArgsMeta,
+    #[serde(flatten)]
+    pub report: LangReport,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleArgsMeta {
+    pub format: String,
+    pub module_roots: Vec<String>,
+    pub module_depth: usize,
+    pub children: ChildIncludeMode,
+    pub top: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String, // "module"
+    pub status: ScanStatus,
+    pub warnings: Vec<String>,
+    pub scan: ScanArgs,
+    pub args: ModuleArgsMeta,
+    #[serde(flatten)]
+    pub report: ModuleReport,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportArgsMeta {
+    pub format: ExportFormat,
+    pub module_roots: Vec<String>,
+    pub module_depth: usize,
+    pub children: ChildIncludeMode,
+    pub min_code: usize,
+    pub max_rows: usize,
+    pub redact: RedactMode,
+    pub strip_prefix: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String, // "export"
+    pub status: ScanStatus,
+    pub warnings: Vec<String>,
+    pub scan: ScanArgs,
+    pub args: ExportArgsMeta,
+    #[serde(flatten)]
+    pub data: ExportData,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LangArgs {
+    pub paths: Vec<PathBuf>,
+    pub format: TableFormat,
+    pub top: usize,
+    pub files: bool,
+    pub children: ChildrenMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleArgs {
+    pub paths: Vec<PathBuf>,
+    pub format: TableFormat,
+    pub top: usize,
+    pub module_roots: Vec<String>,
+    pub module_depth: usize,
+    pub children: ChildIncludeMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportArgs {
+    pub paths: Vec<PathBuf>,
+    pub format: ExportFormat,
+    pub out: Option<PathBuf>,
+    pub module_roots: Vec<String>,
+    pub module_depth: usize,
+    pub children: ChildIncludeMode,
+    pub min_code: usize,
+    pub max_rows: usize,
+    pub redact: RedactMode,
+    pub meta: bool,
+    pub strip_prefix: Option<PathBuf>,
 }

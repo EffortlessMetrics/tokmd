@@ -175,7 +175,7 @@ out/
 "#;
 
 pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
-    let template = match args.profile {
+    let template = match args.template {
         InitProfile::Default => TEMPLATE_DEFAULT,
         InitProfile::Rust => TEMPLATE_RUST,
         InitProfile::Node => TEMPLATE_NODE,

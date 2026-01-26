@@ -529,7 +529,7 @@ fn test_init_profiles() {
     // Then: Output should contain python specific ignores like __pycache__
     let mut cmd = tokmd_cmd();
     cmd.arg("init")
-        .arg("--profile")
+        .arg("--template")
         .arg("python")
         .arg("--print")
         .assert()
