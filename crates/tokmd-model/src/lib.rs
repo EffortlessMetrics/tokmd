@@ -420,7 +420,14 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         }
     }
 
-    s.trim_start_matches('/').to_string()
+    s = s.trim_start_matches('/').to_string();
+
+    // After trimming slashes, we might be left with a leading ./ (e.g. from "/./")
+    if let Some(stripped) = s.strip_prefix("./") {
+        s = stripped.to_string();
+    }
+
+    s
 }
 
 /// Compute a "module key" from a normalized path.
