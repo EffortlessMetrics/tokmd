@@ -1,6 +1,6 @@
-mod cli;
+pub mod cli;
 mod format;
-mod model;
+pub mod model;
 mod scan;
 mod tokeignore;
 

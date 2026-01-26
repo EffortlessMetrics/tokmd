@@ -3,3 +3,13 @@
 **/*.DS_Store
 
 /.runs/pr_glass_cockpit
+
+# Fuzzing
+fuzz/target/
+
+# Mutation testing
+mutants.out/
+mutants.out.old/
+
+# Snapshots
+*.snap.new
