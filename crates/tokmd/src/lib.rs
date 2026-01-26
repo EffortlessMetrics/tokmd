@@ -210,8 +210,8 @@ pub fn run() -> Result<()> {
                 d
             } else {
                 let state_dir = dirs::state_dir()
-                    .or_else(|| dirs::data_local_dir())
-                    .unwrap_or_else(|| std::env::temp_dir());
+                    .or_else(dirs::data_local_dir)
+                    .unwrap_or_else(std::env::temp_dir);
                 let run_id = args.name.unwrap_or_else(|| format!("run-{}", now_ms()));
                 state_dir.join("tokmd").join("runs").join(run_id)
             };
