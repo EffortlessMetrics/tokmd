@@ -4,8 +4,8 @@ mod git_tests {
 
     use tempfile::tempdir;
     use tokmd_analysis::{
-        analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest,
-        ImportGranularity,
+        AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+        analyze,
     };
     use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
     use tokmd_types::{ExportData, FileKind, FileRow};

@@ -7,15 +7,15 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
-use crate::derived::{build_tree, derive_report};
-use crate::fun::build_fun_report;
-use crate::util::now_ms;
 #[cfg(feature = "walk")]
 use crate::assets::{build_assets_report, build_dependency_report};
 #[cfg(feature = "content")]
 use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
+use crate::derived::{build_tree, derive_report};
+use crate::fun::build_fun_report;
 #[cfg(feature = "git")]
 use crate::git::build_git_report;
+use crate::util::now_ms;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnalysisPreset {

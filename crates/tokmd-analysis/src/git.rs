@@ -2,7 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::Result;
-use tokmd_analysis_types::{BusFactorRow, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow};
+use tokmd_analysis_types::{
+    BusFactorRow, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow,
+};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use crate::analysis::AnalysisLimits;
@@ -15,11 +17,8 @@ pub(crate) fn build_git_report(
     limits: &AnalysisLimits,
 ) -> Result<GitReport> {
     let repo_root = tokmd_git::repo_root(root).ok_or_else(|| anyhow::anyhow!("not a git repo"))?;
-    let commits = tokmd_git::collect_history(
-        &repo_root,
-        limits.max_commits,
-        limits.max_commit_files,
-    )?;
+    let commits =
+        tokmd_git::collect_history(&repo_root, limits.max_commits, limits.max_commit_files)?;
 
     let mut row_map: BTreeMap<String, (&FileRow, String)> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
@@ -69,7 +68,11 @@ pub(crate) fn build_git_report(
             authors: authors.len(),
         })
         .collect();
-    bus_factor.sort_by(|a, b| a.authors.cmp(&b.authors).then_with(|| a.module.cmp(&b.module)));
+    bus_factor.sort_by(|a, b| {
+        a.authors
+            .cmp(&b.authors)
+            .then_with(|| a.module.cmp(&b.module))
+    });
 
     let freshness = build_freshness_report(&last_change, &row_map, max_ts);
 

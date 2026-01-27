@@ -2,7 +2,9 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use tokmd_analysis_types::{DuplicateGroup, DuplicateReport, ImportEdge, ImportReport, TodoReport, TodoTagRow};
+use tokmd_analysis_types::{
+    DuplicateGroup, DuplicateReport, ImportEdge, ImportReport, TodoReport, TodoTagRow,
+};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use crate::analysis::{AnalysisLimits, ImportGranularity};
@@ -110,7 +112,11 @@ pub(crate) fn build_duplicate_report(
             }
             files.sort();
             wasted_bytes += (files.len() as u64 - 1) * size;
-            groups.push(DuplicateGroup { hash, bytes: size, files });
+            groups.push(DuplicateGroup {
+                hash,
+                bytes: size,
+                files,
+            });
         }
     }
 
@@ -192,7 +198,6 @@ pub(crate) fn build_import_report(
     })
 }
 
-
 #[cfg(feature = "content")]
 fn hash_file_full(path: &Path) -> Result<String> {
     use std::io::Read;
@@ -208,8 +213,6 @@ fn hash_file_full(path: &Path) -> Result<String> {
     }
     Ok(hasher.finalize().to_hex().to_string())
 }
-
-
 
 #[cfg(feature = "content")]
 fn is_import_lang(lang: &str) -> bool {
@@ -337,11 +340,7 @@ fn extract_quoted(text: &str) -> Option<String> {
         }
         out.push(c);
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    if out.is_empty() { None } else { Some(out) }
 }
 
 #[cfg(feature = "content")]

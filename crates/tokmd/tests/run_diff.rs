@@ -3,6 +3,7 @@ use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::tempdir;
+use std::process::Command as ProcessCommand;
 
 #[test]
 fn test_run_generates_artifacts() {
@@ -84,4 +85,58 @@ fn test_diff_identical_runs() {
         .stdout(predicate::str::contains("Diffing Language Summaries"));
     // Should produce empty diff table (header only) because counts are identical
     // But headers are always printed.
+}
+
+fn git_available() -> bool {
+    ProcessCommand::new("git")
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+fn git_cmd(dir: &std::path::Path, args: &[&str]) {
+    let status = ProcessCommand::new("git")
+        .args(args)
+        .current_dir(dir)
+        .status()
+        .expect("git command failed to run");
+    assert!(status.success(), "git command failed");
+}
+
+#[test]
+fn test_diff_git_refs() {
+    if !git_available() {
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+    let repo = dir.path().join("repo");
+    fs::create_dir_all(&repo).unwrap();
+
+    git_cmd(&repo, &["init"]);
+    git_cmd(&repo, &["config", "user.email", "test@example.com"]);
+    git_cmd(&repo, &["config", "user.name", "Tokmd Test"]);
+
+    let src_dir = repo.join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    fs::write(src_dir.join("lib.rs"), "fn a() {}\n").unwrap();
+    git_cmd(&repo, &["add", "."]);
+    git_cmd(&repo, &["commit", "-m", "initial"]);
+
+    fs::write(src_dir.join("lib.rs"), "fn a() {}\nfn b() {}\n").unwrap();
+    git_cmd(&repo, &["add", "."]);
+    git_cmd(&repo, &["commit", "-m", "add b"]);
+
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.current_dir(&repo)
+        .arg("diff")
+        .arg("HEAD~1")
+        .arg("HEAD")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Diffing Language Summaries"))
+        .stdout(predicate::str::contains("Rust"));
 }

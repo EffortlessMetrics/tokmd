@@ -4,8 +4,7 @@ use tokmd_analysis_types::{
     BoilerplateReport, CocomoReport, ContextWindowReport, DerivedReport, DerivedTotals,
     DistributionReport, FileStatRow, HistogramBucket, IntegrityReport, LangPurityReport,
     LangPurityRow, MaxFileReport, MaxFileRow, NestingReport, NestingRow, PolyglotReport,
-    RatioReport, RatioRow, RateReport, RateRow, ReadingTimeReport, TestDensityReport,
-    TopOffenders,
+    RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -57,8 +56,16 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         "total",
         totals.blanks,
         totals.code + totals.comments,
-        group_ratio(&parents, |r| r.lang.clone(), |r| (r.blanks, r.code + r.comments)),
-        group_ratio(&parents, |r| r.module.clone(), |r| (r.blanks, r.code + r.comments)),
+        group_ratio(
+            &parents,
+            |r| r.lang.clone(),
+            |r| (r.blanks, r.code + r.comments),
+        ),
+        group_ratio(
+            &parents,
+            |r| r.module.clone(),
+            |r| (r.blanks, r.code + r.comments),
+        ),
     );
 
     let verbosity = build_rate_report(
@@ -116,7 +123,11 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         let (a, b, c, d) = (2.4, 1.05, 2.5, 0.38);
         let effort = a * kloc.powf(b);
         let duration = c * effort.powf(d);
-        let staff = if duration == 0.0 { 0.0 } else { effort / duration };
+        let staff = if duration == 0.0 {
+            0.0
+        } else {
+            effort / duration
+        };
         Some(CocomoReport {
             mode: "organic".to_string(),
             kloc: round_f64(kloc, 4),
@@ -204,8 +215,12 @@ fn build_ratio_rows(map: BTreeMap<String, (usize, usize)>) -> Vec<RatioRow> {
         })
         .collect();
 
-    rows.sort_by(|a, b| b.ratio.partial_cmp(&a.ratio).unwrap_or(std::cmp::Ordering::Equal)
-        .then_with(|| a.key.cmp(&b.key)));
+    rows.sort_by(|a, b| {
+        b.ratio
+            .partial_cmp(&a.ratio)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.key.cmp(&b.key))
+    });
     rows
 }
 
@@ -220,8 +235,12 @@ fn build_rate_rows(map: BTreeMap<String, (usize, usize)>) -> Vec<RateRow> {
         })
         .collect();
 
-    rows.sort_by(|a, b| b.rate.partial_cmp(&a.rate).unwrap_or(std::cmp::Ordering::Equal)
-        .then_with(|| a.key.cmp(&b.key)));
+    rows.sort_by(|a, b| {
+        b.rate
+            .partial_cmp(&a.rate)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.key.cmp(&b.key))
+    });
     rows
 }
 
@@ -651,11 +670,7 @@ pub(crate) fn build_tree(export: &ExportData) -> String {
 
     let mut root = Node::default();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let parts: Vec<&str> = row
-            .path
-            .split('/')
-            .filter(|seg| !seg.is_empty())
-            .collect();
+        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
         insert(&mut root, &parts, row.lines, row.tokens);
     }
 
@@ -727,4 +742,3 @@ fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
         entries: entries.len(),
     }
 }
-

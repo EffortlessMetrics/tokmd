@@ -23,10 +23,7 @@ pub(crate) fn normalize_path(path: &str, root: &Path) -> String {
 }
 
 pub(crate) fn path_depth(path: &str) -> usize {
-    path.split('/')
-        .filter(|seg| !seg.is_empty())
-        .count()
-        .max(1)
+    path.split('/').filter(|seg| !seg.is_empty()).count().max(1)
 }
 
 pub(crate) fn is_test_path(path: &str) -> bool {

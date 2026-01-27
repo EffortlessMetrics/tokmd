@@ -25,6 +25,6 @@
 
 ## Future / v1.1+
 
-- [ ] **GitHub Action**: A first-party action to run tokmd in CI.
-- [ ] **Diff Mode**: `tokmd diff <ref1> <ref2>` to see changes in stats.
+- [x] **GitHub Action**: A first-party action to run tokmd in CI.
+- [x] **Diff Mode**: `tokmd diff <ref1> <ref2>` to see changes in stats.
 - [x] **Binary Releases**: Pre-built binaries attached to GitHub Releases (via `.github/workflows/release.yml`).

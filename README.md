@@ -48,6 +48,9 @@ tokmd export --format jsonl > inventory.jsonl
 
 # 4. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md > analysis.md
+
+# 5. Diff two git refs
+tokmd diff main HEAD
 ```
 
 ## Use Cases

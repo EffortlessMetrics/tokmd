@@ -1,5 +1,5 @@
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ExportData, FileKind, FileRow};
@@ -119,4 +119,33 @@ fn derived_metrics_basic() {
     assert!((infra_ratio - (25.0 / 220.0)).abs() < 0.0001);
 
     assert_eq!(derived.integrity.entries, 3);
+
+    // New assertions
+    // Nesting
+    assert_eq!(derived.nesting.max, 2); // src/lib.rs -> depth 2
+    assert!((derived.nesting.avg - 1.67).abs() < 0.01); // (2+2+1)/3 = 1.67 
+    // paths: src/lib.rs (2), tests/lib_test.rs (2), Cargo.toml (1)
+    // Avg = 5/3 = 1.666...
+    // Let's recheck logic: path_depth("src/lib.rs") -> 2. 
+    // path_depth("Cargo.toml") -> 1.
+    // 2+2+1 = 5. 5/3 = 1.67.
+
+    // Polyglot
+    assert_eq!(derived.polyglot.lang_count, 2); // Rust, TOML
+    assert_eq!(derived.polyglot.dominant_lang, "Rust");
+    assert_eq!(derived.polyglot.dominant_lines, 150); // 100 + 50
+    assert!((derived.polyglot.dominant_pct - (150.0/170.0)).abs() < 0.001);
+
+    // Distribution
+    assert_eq!(derived.distribution.count, 3);
+    assert_eq!(derived.distribution.min, 25);
+    assert_eq!(derived.distribution.max, 130);
+    // sizes: 25, 65, 130. Mean = 220/3 = 73.33. Median = 65.
+    assert!((derived.distribution.mean - 73.33).abs() < 0.01);
+    assert!((derived.distribution.median - 65.0).abs() < 0.01);
+
+    // Top offenders
+    assert_eq!(derived.top.largest_lines.len(), 3);
+    assert_eq!(derived.top.largest_lines[0].path, "src/lib.rs");
+    assert_eq!(derived.top.largest_lines[2].path, "Cargo.toml");
 }

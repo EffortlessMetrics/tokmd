@@ -49,6 +49,7 @@ tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
 tokmd-format = { path = "../tokmd-format", version = "1.0.0" }
 tokmd-tokeignore = { path = "../tokmd-tokeignore", version = "1.0.0" }
 tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-git = { path = "../tokmd-git", version = "1.0.0" }
 clap_complete = "4.5.65"
 dirs = "6.0.0"
 serde_json = "1.0.149"

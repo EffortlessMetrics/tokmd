@@ -1565,6 +1565,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-config",
  "tokmd-format",
+ "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
  "tokmd-tokeignore",

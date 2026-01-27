@@ -2,7 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use tokmd_analysis_types::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
+use tokmd_analysis_types::{
+    AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport,
+};
 
 const ASSET_TOP_N: usize = 10;
 
@@ -55,7 +57,11 @@ pub(crate) fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<Asse
         })
         .collect();
 
-    category_rows.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.category.cmp(&b.category)));
+    category_rows.sort_by(|a, b| {
+        b.bytes
+            .cmp(&a.bytes)
+            .then_with(|| a.category.cmp(&b.category))
+    });
     top_files.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.path.cmp(&b.path)));
     top_files.truncate(ASSET_TOP_N);
 
@@ -70,9 +76,7 @@ pub(crate) fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<Asse
 #[cfg(feature = "walk")]
 fn asset_category(ext: &str) -> Option<&'static str> {
     match ext {
-        "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "tiff" | "ico" => {
-            Some("image")
-        }
+        "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "tiff" | "ico" => Some("image"),
         "mp4" | "mov" | "avi" | "mkv" | "webm" | "mpeg" | "mpg" => Some("video"),
         "mp3" | "wav" | "flac" | "ogg" | "aac" | "m4a" => Some("audio"),
         "zip" | "tar" | "gz" | "bz2" | "xz" | "7z" | "rar" => Some("archive"),
@@ -219,4 +223,3 @@ fn count_gemfile_lock(content: &str) -> usize {
     }
     count
 }
-

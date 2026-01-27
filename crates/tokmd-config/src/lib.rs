@@ -163,13 +163,17 @@ pub struct RunArgs {
 
 #[derive(Args, Debug, Clone)]
 pub struct DiffArgs {
-    /// Base receipt/run to compare from.
+    /// Base receipt/run or git ref to compare from.
     #[arg(long)]
-    pub from: String,
+    pub from: Option<String>,
 
-    /// Target receipt/run to compare to.
+    /// Target receipt/run or git ref to compare to.
     #[arg(long)]
-    pub to: String,
+    pub to: Option<String>,
+
+    /// Two refs/paths to compare (positional).
+    #[arg(value_name = "REF", num_args = 2)]
+    pub refs: Vec<String>,
 }
 
 #[derive(Args, Debug, Clone)]
