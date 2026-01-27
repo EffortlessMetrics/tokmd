@@ -1,0 +1,15 @@
+[
+  {
+    "date": "2024-10-26T00:00:00Z",
+    "lane": "scout",
+    "target": "redundant-cli-help-text",
+    "pr_link": "PENDING",
+    "gates": {
+      "build": "PASS",
+      "test": "FAIL (pre-existing)",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids_created": []
+  }
+]
