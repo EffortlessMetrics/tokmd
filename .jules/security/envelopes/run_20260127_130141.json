@@ -1,0 +1,24 @@
+{
+  "run_id": "run_20260127_130141",
+  "timestamp_utc": "2026-01-27T13:01:41Z",
+  "lane": "scout",
+  "target": "crates/tokmd/tests/integration.rs",
+  "commands": [],
+  "results_summary": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_status": "0",
+      "summary": "PASS"
+    }
+  ]
+}
