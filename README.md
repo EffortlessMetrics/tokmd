@@ -31,7 +31,10 @@ Repo stats are easy to compute (cloc, tokei) but annoying to **use**.
 ## Quickstart
 
 ```bash
-# Install
+# Install (recommended)
+nix profile install github:EffortlessMetrics/tokmd
+
+# Or install with Cargo
 cargo install tokmd
 
 # 1. Markdown summary (great for PR descriptions)
@@ -93,6 +96,18 @@ tokmd export --redact all
 | **LLM Ready** | No | Yes (Bytes, Token Estimates) |
 
 ## Installation
+
+### Nix (recommended)
+```bash
+# Run without installing
+nix run github:EffortlessMetrics/tokmd -- --version
+
+# Install to your profile
+nix profile install github:EffortlessMetrics/tokmd
+
+# Build from source
+nix build
+```
 
 ### From crates.io
 ```bash

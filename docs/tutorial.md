@@ -10,6 +10,12 @@ This guide will walk you through using `tokmd` to understand a codebase you've j
 
 First, ensure the tool is installed.
 
+### Nix (recommended)
+```bash
+nix profile install github:EffortlessMetrics/tokmd
+```
+
+### Cargo (alternative)
 ```bash
 cargo install tokmd
 ```

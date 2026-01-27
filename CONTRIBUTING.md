@@ -4,6 +4,17 @@ Thank you for your interest in contributing to `tokmd`! This project aims to be 
 
 ## Development Setup
 
+### Nix (recommended)
+1.  **Enter the dev shell**:
+    ```bash
+    nix develop
+    ```
+2.  **Build**:
+    ```bash
+    cargo build
+    ```
+
+### Manual (non-Nix)
 1.  **Rust Toolchain**: Ensure you have a recent stable Rust toolchain installed.
     ```bash
     rustup update stable
