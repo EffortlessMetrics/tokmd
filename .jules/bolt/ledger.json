@@ -1,0 +1,10 @@
+[
+  {
+    "timestamp_utc": "2026-01-27T12:00:00Z",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs::module_key",
+    "proof_method": "micro-benchmark",
+    "gates_run": ["build", "test", "fmt", "clippy"],
+    "status": "success"
+  }
+]

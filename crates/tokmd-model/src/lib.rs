@@ -255,7 +255,7 @@ pub fn create_module_report(
         let _ = lang_type; // keep the pattern explicit; we only need reports
         for report in &lang.reports {
             let path = normalize_path(&report.name, None);
-            let module = module_key(&path, module_roots, module_depth);
+            let module = module_key_from_normalized(&path, module_roots, module_depth);
             module_files.entry(module).or_default().insert(path);
         }
     }
@@ -403,7 +403,7 @@ pub fn collect_file_rows(
     for (lang_type, lang) in languages.iter() {
         for report in &lang.reports {
             let path = normalize_path(&report.name, strip_prefix);
-            let module = module_key(&path, module_roots, module_depth);
+            let module = module_key_from_normalized(&path, module_roots, module_depth);
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
 
@@ -426,7 +426,7 @@ pub fn collect_file_rows(
             for (child_type, reports) in &lang.children {
                 for report in reports {
                     let path = normalize_path(&report.name, strip_prefix);
-                    let module = module_key(&path, module_roots, module_depth);
+                    let module = module_key_from_normalized(&path, module_roots, module_depth);
                     let st = report.stats.summarise();
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
@@ -532,25 +532,60 @@ pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> S
     }
     p = p.trim_start_matches('/').to_string();
 
-    let parts: Vec<&str> = p.split('/').filter(|seg| !seg.is_empty()).collect();
-    if parts.len() <= 1 {
+    module_key_from_normalized(&p, module_roots, module_depth)
+}
+
+fn module_key_from_normalized(
+    path: &str,
+    module_roots: &[String],
+    module_depth: usize,
+) -> String {
+    // path is clean (no \, no leading /, no ./).
+    // E.g. "src/main.rs" or "crates/foo/src/lib.rs"
+
+    let mut parts = path.split('/').filter(|s| !s.is_empty());
+    let first = match parts.next() {
+        Some(s) => s,
+        None => return "(root)".to_string(),
+    };
+
+    // If there are no more segments, 'first' IS the filename, so return "(root)".
+    // Count remaining parts to determine if 'first' is a directory.
+    let remaining_count = parts.clone().count();
+
+    if remaining_count == 0 {
         return "(root)".to_string();
     }
 
-    // Directory segments only (exclude the filename).
-    let dirs = &parts[..parts.len() - 1];
-    if dirs.is_empty() {
-        return "(root)".to_string();
+    // It has a directory structure. 'first' is the top-level directory.
+    // Check if it matches a module root.
+    if !module_roots.iter().any(|r| r == first) {
+        return first.to_string();
     }
 
-    let head = dirs[0];
-    let is_root = module_roots.iter().any(|r| r == head);
-    if is_root {
-        let depth = module_depth.max(1).min(dirs.len());
-        dirs[..depth].join("/")
-    } else {
-        head.to_string()
+    // It IS a root module. We need to go deeper up to `module_depth`.
+    // We consumed 'first' (1 segment).
+    // Total dirs = 1 + remaining_count.
+    // We want min(depth, total_dirs) directories.
+    let total_segments = 1 + remaining_count;
+    let dirs_available = total_segments - 1; // Exclude filename
+
+    let depth_needed = module_depth.max(1).min(dirs_available);
+
+    // We already have 'first' (depth 1).
+    // We need 'depth_needed - 1' more segments from parts.
+
+    let mut key = String::with_capacity(path.len());
+    key.push_str(first);
+
+    for _ in 1..depth_needed {
+        if let Some(next_seg) = parts.next() {
+            key.push('/');
+            key.push_str(next_seg);
+        }
     }
+
+    key
 }
 
 #[cfg(test)]

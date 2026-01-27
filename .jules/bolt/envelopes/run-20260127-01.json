@@ -1,0 +1,13 @@
+{
+  "run_id": "run-20260127-01",
+  "timestamp_utc": "2026-01-27T12:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs::module_key",
+  "proof_method": "micro-benchmark",
+  "commands": [
+    "cargo build --verbose",
+    "CI=true cargo test --verbose",
+    "cargo bench (via test)"
+  ],
+  "results_summary": "Passed. module_key latency reduced from 220ns to 150ns (-31%). Allocation avoided in hot path."
+}
