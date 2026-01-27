@@ -69,7 +69,7 @@ fn test_ignore_file_respected() {
 
 #[test]
 fn test_ignore_vcs_explicit() {
-    // Given: 'hidden_by_git.txt' is in .gitignore
+    // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore-vcs (or --no-ignore-git)
     // Then: The file SHOULD appear in the output
     let mut cmd = tokmd_cmd();
@@ -77,12 +77,12 @@ fn test_ignore_vcs_explicit() {
         .arg("export")
         .assert()
         .success()
-        .stdout(predicate::str::contains("hidden_by_git.txt"));
+        .stdout(predicate::str::contains("hidden_by_git.rs"));
 }
 
 #[test]
 fn test_no_ignore_implies_vcs() {
-    // Given: 'hidden_by_git.txt' is in .gitignore
+    // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore (which implies vcs ignore disabled)
     // Then: The file SHOULD appear
     let mut cmd = tokmd_cmd();
@@ -90,19 +90,19 @@ fn test_no_ignore_implies_vcs() {
         .arg("export")
         .assert()
         .success()
-        .stdout(predicate::str::contains("hidden_by_git.txt"));
+        .stdout(predicate::str::contains("hidden_by_git.rs"));
 }
 
 #[test]
 fn test_default_ignores_vcs() {
-    // Given: 'hidden_by_git.txt' is in .gitignore
+    // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run normally
     // Then: The file SHOULD NOT appear
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .assert()
         .success()
-        .stdout(predicate::str::contains("hidden_by_git.txt").not());
+        .stdout(predicate::str::contains("hidden_by_git.rs").not());
 }
 
 #[test]

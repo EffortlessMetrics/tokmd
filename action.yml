@@ -31,6 +31,7 @@ runs:
     - name: Install tokmd
       shell: bash
       run: |
+        set -euo pipefail
         if ! command -v tokmd &> /dev/null; then
           echo "Installing tokmd..."
           # Fallback to cargo install for now until releases are stable
@@ -42,15 +43,16 @@ runs:
       id: generate
       shell: bash
       run: |
+        set -euo pipefail
         echo "Generating receipts..."
         tokmd module \
-          --paths "${{ inputs.paths }}" \
+          "${{ inputs.paths }}" \
           --module-roots "${{ inputs.module-roots }}" \
           --top ${{ inputs.top }} \
           --format md > tokmd-summary.md
         
         tokmd export \
-          --paths "${{ inputs.paths }}" \
+          "${{ inputs.paths }}" \
           --module-roots "${{ inputs.module-roots }}" \
           --format json > tokmd-receipt.json
         

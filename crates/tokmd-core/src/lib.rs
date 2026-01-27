@@ -10,8 +10,8 @@
 //!
 //! ```rust,no_run
 //! use tokmd_core::scan_workflow;
-//! use tokmd_config::{GlobalArgs, TableFormat};
-//! use tokmd_types::{LangArgs, ChildrenMode};
+//! use tokmd_config::{ChildrenMode, GlobalArgs, TableFormat};
+//! use tokmd_types::LangArgs;
 //!
 //! // Configure scan
 //! let global = GlobalArgs::default(); // needs proper init
@@ -32,11 +32,11 @@ use anyhow::Result;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // Re-export types for convenience
-pub use tokmd_types as types;
 pub use tokmd_config as config;
+pub use tokmd_types as types;
 
 use tokmd_config::GlobalArgs;
-use tokmd_types::{LangArgs, LangReceipt, ScanStatus, ToolInfo, ScanArgs, LangArgsMeta};
+use tokmd_types::{LangArgs, LangArgsMeta, LangReceipt, ScanArgs, ScanStatus, ToolInfo};
 
 /// Runs the complete scan workflow: Scan -> Model -> Receipt.
 ///
@@ -47,37 +47,33 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
 
     // 2. Model (Aggregation & Filtering)
     // create_lang_report handles filtering (top N) and children mode
-    let report = tokmd_model::create_lang_report(
-        &languages,
-        lang.top,
-        lang.files,
-        lang.children
-    );
-    
+    let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
+
     // 3. Receipt Construction
     // We construct the receipt manually as it's just a data carrier.
     let receipt = LangReceipt {
-        schema_version: 1, // Should probably export SCHEMA_VERSION from types or format?
+        schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis(),
-        tool: ToolInfo {
-            name: "tokmd".to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        },
+        tool: ToolInfo::current(),
         mode: "lang".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![], // Tokei scan might have warnings but scan() doesn't return them currently
         scan: ScanArgs {
-            paths: lang.paths.iter().map(|p| p.to_string_lossy().to_string()).collect(),
+            paths: lang
+                .paths
+                .iter()
+                .map(|p| p.to_string_lossy().to_string())
+                .collect(),
             excluded: global.excluded.clone(),
             config: global.config,
             hidden: global.hidden,
             no_ignore: global.no_ignore,
-            no_ignore_parent: global.no_ignore_parent,
-            no_ignore_dot: global.no_ignore_dot,
-            no_ignore_vcs: global.no_ignore_vcs,
+            no_ignore_parent: global.no_ignore || global.no_ignore_parent,
+            no_ignore_dot: global.no_ignore || global.no_ignore_dot,
+            no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
             treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
         },
         args: LangArgsMeta {
@@ -88,6 +84,6 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
         },
         report,
     };
-    
+
     Ok(receipt)
 }

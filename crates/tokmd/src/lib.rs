@@ -45,13 +45,6 @@ fn now_ms() -> u128 {
 }
 
 /// Entry point used by the `tokmd` (and optional `tok`) binaries.
-fn tool_info() -> tokmd_types::ToolInfo {
-    tokmd_types::ToolInfo {
-        name: "tokmd".to_string(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
-    }
-}
-
 fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::ScanArgs {
     tokmd_types::ScanArgs {
         paths: paths.iter().map(|p| p.display().to_string()).collect(),
@@ -59,9 +52,9 @@ fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::S
         config: global.config,
         hidden: global.hidden,
         no_ignore: global.no_ignore,
-        no_ignore_parent: global.no_ignore_parent,
-        no_ignore_dot: global.no_ignore_dot,
-        no_ignore_vcs: global.no_ignore_vcs,
+        no_ignore_parent: global.no_ignore || global.no_ignore_parent,
+        no_ignore_dot: global.no_ignore || global.no_ignore_dot,
+        no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
     }
 }
@@ -225,8 +218,8 @@ pub fn run() -> Result<()> {
                 d
             } else {
                 let state_dir = dirs::state_dir()
-                    .or_else(|| dirs::data_local_dir())
-                    .unwrap_or_else(|| std::env::temp_dir());
+                    .or_else(dirs::data_local_dir)
+                    .unwrap_or_else(std::env::temp_dir);
                 let run_id = args.name.unwrap_or_else(|| format!("run-{}", now_ms()));
                 state_dir.join("tokmd").join("runs").join(run_id)
             };
@@ -260,9 +253,9 @@ pub fn run() -> Result<()> {
 
             {
                 let receipt = tokmd_types::LangReceipt {
-                    schema_version: 2,
+                    schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
-                    tool: tool_info(),
+                    tool: tokmd_types::ToolInfo::current(),
                     mode: "lang".to_string(),
                     status: tokmd_types::ScanStatus::Complete,
                     warnings: vec![],
@@ -280,9 +273,9 @@ pub fn run() -> Result<()> {
             }
             {
                 let receipt = tokmd_types::ModuleReceipt {
-                    schema_version: 2,
+                    schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
-                    tool: tool_info(),
+                    tool: tokmd_types::ToolInfo::current(),
                     mode: "module".to_string(),
                     status: tokmd_types::ScanStatus::Complete,
                     warnings: vec![],
@@ -311,9 +304,9 @@ pub fn run() -> Result<()> {
                 // Header
                 let header = serde_json::json!({
                     "type": "meta",
-                    "schema_version": 2,
+                    "schema_version": tokmd_types::SCHEMA_VERSION,
                     "generated_at_ms": now_ms(),
-                    "tool": tool_info(),
+                    "tool": tokmd_types::ToolInfo::current(),
                     "mode": "export",
                     "status": "complete",
                     "warnings": [],
@@ -345,7 +338,7 @@ pub fn run() -> Result<()> {
 
             // 5. Write receipt.json
             let receipt = tokmd_types::RunReceipt {
-                schema_version: 2,
+                schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 lang_file: "lang.json".to_string(),
                 module_file: "module.json".to_string(),
@@ -363,8 +356,10 @@ pub fn run() -> Result<()> {
             let to_path = std::path::PathBuf::from(&args.to);
 
             let load_lang = |path: &std::path::PathBuf| -> Result<tokmd_types::LangReceipt> {
-                // Try to find lang.json in the same directory if the path points to receipt.json
-                let lang_path = if path.ends_with("receipt.json") {
+                // Handle directory (implicit run) or receipt.json (implicit run)
+                let lang_path = if path.is_dir() {
+                    path.join("lang.json")
+                } else if path.ends_with("receipt.json") {
                     path.parent().unwrap_or(path).join("lang.json")
                 } else {
                     path.clone()

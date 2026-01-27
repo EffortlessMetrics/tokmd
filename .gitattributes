@@ -1,1 +1,3 @@
-tests/data/* text eol=lf
+# Deterministic fixtures (avoid CRLF checkout on Windows)
+crates/tokmd/tests/data/** text eol=lf
+crates/tokmd/tests/snapshots/** text eol=lf

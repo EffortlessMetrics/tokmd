@@ -23,12 +23,17 @@ use tokmd_config::{
     ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
 };
 
+/// The current schema version for all receipt types.
+pub const SCHEMA_VERSION: u32 = 2;
+
 /// A small totals struct shared by summary outputs.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Totals {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -38,6 +43,8 @@ pub struct LangRow {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -56,6 +63,8 @@ pub struct ModuleRow {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -86,6 +95,8 @@ pub struct FileRow {
     pub comments: usize,
     pub blanks: usize,
     pub lines: usize,
+    pub bytes: usize,
+    pub tokens: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -117,6 +128,15 @@ pub enum ScanStatus {
 pub struct ToolInfo {
     pub name: String,
     pub version: String,
+}
+
+impl ToolInfo {
+    pub fn current() -> Self {
+        Self {
+            name: "tokmd".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

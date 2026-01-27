@@ -16,6 +16,7 @@
 //! * Output formatting (printing to stdout/file)
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
 use std::path::Path;
 
 use tokei::{LanguageType, Languages};
@@ -24,22 +25,64 @@ use tokmd_types::{
     ExportData, FileKind, FileRow, LangReport, LangRow, ModuleReport, ModuleRow, Totals,
 };
 
+/// Simple heuristic: 1 token ~= 4 chars (bytes).
+const CHARS_PER_TOKEN: usize = 4;
+
+fn get_file_metrics(path: &Path) -> (usize, usize) {
+    // Best-effort size calculation.
+    // If the file was deleted or is inaccessible during the scan post-processing,
+    // we return 0 bytes/tokens rather than crashing.
+    let bytes = fs::metadata(path).map(|m| m.len() as usize).unwrap_or(0);
+    let tokens = bytes / CHARS_PER_TOKEN;
+    (bytes, tokens)
+}
+
 pub fn create_lang_report(
     languages: &Languages,
     top: usize,
     with_files: bool,
     children: ChildrenMode,
 ) -> LangReport {
+    // Aggregate metrics per language.
+    // Since we need to access the filesystem for bytes, we do it via collect_file_rows first?
+    // Or just iterate and compute. Since collect_file_rows is for Module/Export, we can't reuse it easily
+    // for Lang report without re-grouping.
+    // However, Lang report also needs to be accurate.
+    // To avoid double-counting bytes for embedded languages, we should only count bytes for PARENT languages.
+
+    // Let's iterate languages and files similar to collect_file_rows but grouping by Lang.
+
+    // We can't use collect_file_rows directly because it flattens everything.
+    // But we CAN use the same helper logic.
+
     let mut rows: Vec<LangRow> = Vec::new();
+
+    // Helper map to store aggregated stats including bytes
+    #[derive(Default)]
+    struct LangAgg {
+        code: usize,
+        lines: usize,
+        files: usize,
+    }
 
     match children {
         ChildrenMode::Collapse => {
-            // Collapse embedded languages into the parent row by using tokei's
-            // `Language::summarise()`.
+            // Collapse embedded languages into the parent row.
+            // Bytes are attributed to the parent file's language.
+
             for (lang_type, lang) in languages.iter() {
                 let sum = lang.summarise();
                 if sum.code == 0 {
                     continue;
+                }
+
+                // Compute bytes sum for all files in this language
+                let mut bytes_sum = 0;
+                let mut tokens_sum = 0;
+                for report in &lang.reports {
+                    let (b, t) = get_file_metrics(&report.name);
+                    bytes_sum += b;
+                    tokens_sum += t;
                 }
 
                 let lines = sum.code + sum.comments + sum.blanks;
@@ -51,35 +94,41 @@ pub fn create_lang_report(
                     code: sum.code,
                     lines,
                     files,
+                    bytes: bytes_sum,
+                    tokens: tokens_sum,
                     avg_lines,
                 });
             }
         }
         ChildrenMode::Separate => {
-            // Emit parent languages (raw) and also emit aggregated "(embedded)" rows
-            // for child languages.
-            #[derive(Default)]
-            struct ChildAgg {
-                code: usize,
-                comments: usize,
-                blanks: usize,
-                files: usize,
-            }
+            // Separate embedded languages.
+            // Bytes/Tokens should only be counted for the PARENT file.
+            // Embedded segments (children) have 0 bytes/tokens effectively to avoid double counting.
 
-            let mut embedded: BTreeMap<LanguageType, ChildAgg> = BTreeMap::new();
+            let mut embedded: BTreeMap<LanguageType, LangAgg> = BTreeMap::new();
 
             for (lang_type, lang) in languages.iter() {
                 if lang.code > 0 {
                     let lines = lang.code + lang.comments + lang.blanks;
                     let files = lang.reports.len();
-                    let avg_lines = avg(lines, files);
+
+                    // Parent files get the bytes
+                    let mut bytes_sum = 0;
+                    let mut tokens_sum = 0;
+                    for report in &lang.reports {
+                        let (b, t) = get_file_metrics(&report.name);
+                        bytes_sum += b;
+                        tokens_sum += t;
+                    }
 
                     rows.push(LangRow {
                         lang: lang_type.name().to_string(),
                         code: lang.code,
                         lines,
                         files,
-                        avg_lines,
+                        bytes: bytes_sum,
+                        tokens: tokens_sum,
+                        avg_lines: avg(lines, files),
                     });
                 }
 
@@ -89,8 +138,8 @@ pub fn create_lang_report(
                     for r in reports {
                         let st = r.stats.summarise();
                         entry.code += st.code;
-                        entry.comments += st.comments;
-                        entry.blanks += st.blanks;
+                        entry.lines += st.code + st.comments + st.blanks;
+                        // Embedded languages don't own the file, so 0 bytes/tokens
                     }
                 }
             }
@@ -99,13 +148,14 @@ pub fn create_lang_report(
                 if agg.code == 0 {
                     continue;
                 }
-                let lines = agg.code + agg.comments + agg.blanks;
-                let avg_lines = avg(lines, agg.files);
+                let avg_lines = avg(agg.lines, agg.files);
                 rows.push(LangRow {
                     lang: format!("{} (embedded)", child_type.name()),
                     code: agg.code,
-                    lines,
+                    lines: agg.lines,
                     files: agg.files,
+                    bytes: 0,  // No bytes for embedded
+                    tokens: 0, // No tokens for embedded
                     avg_lines,
                 });
             }
@@ -115,14 +165,19 @@ pub fn create_lang_report(
     // Sort descending by code, then by language name for determinism.
     rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
-    // Compute totals *before* folding to top-N.
+    // Compute totals
     let total_code: usize = rows.iter().map(|r| r.code).sum();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
+    let total_bytes: usize = rows.iter().map(|r| r.bytes).sum();
+    let total_tokens: usize = rows.iter().map(|r| r.tokens).sum();
     let total_files = unique_parent_file_count(languages);
+
     let total = Totals {
         code: total_code,
         lines: total_lines,
         files: total_files,
+        bytes: total_bytes,
+        tokens: total_tokens,
         avg_lines: avg(total_lines, total_files),
     };
 
@@ -145,11 +200,15 @@ fn fold_other_lang(rows: &[LangRow]) -> LangRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;
+    let mut bytes = 0usize;
+    let mut tokens = 0usize;
 
     for r in rows {
         code += r.code;
         lines += r.lines;
         files += r.files;
+        bytes += r.bytes;
+        tokens += r.tokens;
     }
 
     LangRow {
@@ -157,6 +216,8 @@ fn fold_other_lang(rows: &[LangRow]) -> LangRow {
         code,
         lines,
         files,
+        bytes,
+        tokens,
         avg_lines: avg(lines, files),
     }
 }
@@ -175,6 +236,8 @@ pub fn create_module_report(
     struct Agg {
         code: usize,
         lines: usize,
+        bytes: usize,
+        tokens: usize,
     }
 
     let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
@@ -182,6 +245,8 @@ pub fn create_module_report(
         let entry = by_module.entry(r.module.clone()).or_default();
         entry.code += r.code;
         entry.lines += r.lines;
+        entry.bytes += r.bytes;
+        entry.tokens += r.tokens;
     }
 
     // Unique parent files per module.
@@ -203,6 +268,8 @@ pub fn create_module_report(
             code: agg.code,
             lines: agg.lines,
             files,
+            bytes: agg.bytes,
+            tokens: agg.tokens,
             avg_lines: avg(agg.lines, files),
         });
     }
@@ -219,10 +286,15 @@ pub fn create_module_report(
     let total_files = unique_parent_file_count(languages);
     let total_code: usize = file_rows.iter().map(|r| r.code).sum();
     let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
+    let total_bytes: usize = file_rows.iter().map(|r| r.bytes).sum();
+    let total_tokens: usize = file_rows.iter().map(|r| r.tokens).sum();
+
     let total = Totals {
         code: total_code,
         lines: total_lines,
         files: total_files,
+        bytes: total_bytes,
+        tokens: total_tokens,
         avg_lines: avg(total_lines, total_files),
     };
 
@@ -240,11 +312,15 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     let mut code = 0usize;
     let mut lines = 0usize;
     let mut files = 0usize;
+    let mut bytes = 0usize;
+    let mut tokens = 0usize;
 
     for r in rows {
         code += r.code;
         lines += r.lines;
         files += r.files;
+        bytes += r.bytes;
+        tokens += r.tokens;
     }
 
     ModuleRow {
@@ -252,6 +328,8 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
         code,
         lines,
         files,
+        bytes,
+        tokens,
         avg_lines: avg(lines, files),
     }
 }
@@ -307,6 +385,8 @@ pub fn collect_file_rows(
         code: usize,
         comments: usize,
         blanks: usize,
+        bytes: usize,
+        tokens: usize,
     }
 
     // Deterministic map: key ordering is stable.
@@ -325,6 +405,7 @@ pub fn collect_file_rows(
             let path = normalize_path(&report.name, strip_prefix);
             let module = module_key(&path, module_roots, module_depth);
             let st = report.stats.summarise();
+            let (bytes, tokens) = get_file_metrics(&report.name);
 
             let key = Key {
                 path: path.clone(),
@@ -335,6 +416,8 @@ pub fn collect_file_rows(
             entry.1.code += st.code;
             entry.1.comments += st.comments;
             entry.1.blanks += st.blanks;
+            entry.1.bytes += bytes;
+            entry.1.tokens += tokens;
         }
     }
 
@@ -345,6 +428,7 @@ pub fn collect_file_rows(
                     let path = normalize_path(&report.name, strip_prefix);
                     let module = module_key(&path, module_roots, module_depth);
                     let st = report.stats.summarise();
+                    // Embedded children do not have bytes/tokens (they are inside the parent)
 
                     let key = Key {
                         path: path.clone(),
@@ -355,6 +439,8 @@ pub fn collect_file_rows(
                     entry.1.code += st.code;
                     entry.1.comments += st.comments;
                     entry.1.blanks += st.blanks;
+                    // entry.1.bytes += 0;
+                    // entry.1.tokens += 0;
                 }
             }
         }
@@ -372,6 +458,8 @@ pub fn collect_file_rows(
                 comments: agg.comments,
                 blanks: agg.blanks,
                 lines,
+                bytes: agg.bytes,
+                tokens: agg.tokens,
             }
         })
         .collect()
@@ -420,7 +508,14 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         }
     }
 
-    s.trim_start_matches('/').to_string()
+    s = s.trim_start_matches('/').to_string();
+
+    // After trimming slashes, we might be left with a leading ./ (e.g. from "/./")
+    if let Some(stripped) = s.strip_prefix("./") {
+        s = stripped.to_string();
+    }
+
+    s
 }
 
 /// Compute a "module key" from a normalized path.
