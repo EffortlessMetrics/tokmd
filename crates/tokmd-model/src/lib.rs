@@ -63,15 +63,13 @@ pub fn create_lang_report(
         code: usize,
         lines: usize,
         files: usize,
-        bytes: usize,
-        tokens: usize,
     }
 
     match children {
         ChildrenMode::Collapse => {
             // Collapse embedded languages into the parent row.
             // Bytes are attributed to the parent file's language.
-            
+
             for (lang_type, lang) in languages.iter() {
                 let sum = lang.summarise();
                 if sum.code == 0 {
@@ -113,7 +111,7 @@ pub fn create_lang_report(
                 if lang.code > 0 {
                     let lines = lang.code + lang.comments + lang.blanks;
                     let files = lang.reports.len();
-                    
+
                     // Parent files get the bytes
                     let mut bytes_sum = 0;
                     let mut tokens_sum = 0;
@@ -156,7 +154,7 @@ pub fn create_lang_report(
                     code: agg.code,
                     lines: agg.lines,
                     files: agg.files,
-                    bytes: 0, // No bytes for embedded
+                    bytes: 0,  // No bytes for embedded
                     tokens: 0, // No tokens for embedded
                     avg_lines,
                 });
@@ -173,7 +171,7 @@ pub fn create_lang_report(
     let total_bytes: usize = rows.iter().map(|r| r.bytes).sum();
     let total_tokens: usize = rows.iter().map(|r| r.tokens).sum();
     let total_files = unique_parent_file_count(languages);
-    
+
     let total = Totals {
         code: total_code,
         lines: total_lines,
@@ -290,7 +288,7 @@ pub fn create_module_report(
     let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
     let total_bytes: usize = file_rows.iter().map(|r| r.bytes).sum();
     let total_tokens: usize = file_rows.iter().map(|r| r.tokens).sum();
-    
+
     let total = Totals {
         code: total_code,
         lines: total_lines,

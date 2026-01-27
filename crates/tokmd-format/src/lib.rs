@@ -106,13 +106,21 @@ fn render_lang_md(report: &LangReport) -> String {
         }
         s.push_str(&format!(
             "|**Total**|{}|{}|{}|{}|{}|{}|\n",
-            report.total.code, report.total.lines, report.total.files, report.total.bytes, report.total.tokens, report.total.avg_lines
+            report.total.code,
+            report.total.lines,
+            report.total.files,
+            report.total.bytes,
+            report.total.tokens,
+            report.total.avg_lines
         ));
     } else {
         s.push_str("|Lang|Code|Lines|Bytes|Tokens|\n");
         s.push_str("|---|---:|---:|---:|---:|\n");
         for r in &report.rows {
-            s.push_str(&format!("|{}|{}|{}|{}|{}|\n", r.lang, r.code, r.lines, r.bytes, r.tokens));
+            s.push_str(&format!(
+                "|{}|{}|{}|{}|{}|\n",
+                r.lang, r.code, r.lines, r.bytes, r.tokens
+            ));
         }
         s.push_str(&format!(
             "|**Total**|{}|{}|{}|{}|\n",
@@ -136,12 +144,20 @@ fn render_lang_tsv(report: &LangReport) -> String {
         }
         s.push_str(&format!(
             "Total\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            report.total.code, report.total.lines, report.total.files, report.total.bytes, report.total.tokens, report.total.avg_lines
+            report.total.code,
+            report.total.lines,
+            report.total.files,
+            report.total.bytes,
+            report.total.tokens,
+            report.total.avg_lines
         ));
     } else {
         s.push_str("Lang\tCode\tLines\tBytes\tTokens\n");
         for r in &report.rows {
-            s.push_str(&format!("{}\t{}\t{}\t{}\t{}\n", r.lang, r.code, r.lines, r.bytes, r.tokens));
+            s.push_str(&format!(
+                "{}\t{}\t{}\t{}\t{}\n",
+                r.lang, r.code, r.lines, r.bytes, r.tokens
+            ));
         }
         s.push_str(&format!(
             "Total\t{}\t{}\t{}\t{}\n",
@@ -204,7 +220,12 @@ fn render_module_md(report: &ModuleReport) -> String {
     }
     s.push_str(&format!(
         "|**Total**|{}|{}|{}|{}|{}|{}|\n",
-        report.total.code, report.total.lines, report.total.files, report.total.bytes, report.total.tokens, report.total.avg_lines
+        report.total.code,
+        report.total.lines,
+        report.total.files,
+        report.total.bytes,
+        report.total.tokens,
+        report.total.avg_lines
     ));
     s
 }
@@ -220,7 +241,12 @@ fn render_module_tsv(report: &ModuleReport) -> String {
     }
     s.push_str(&format!(
         "Total\t{}\t{}\t{}\t{}\t{}\t{}\n",
-        report.total.code, report.total.lines, report.total.files, report.total.bytes, report.total.tokens, report.total.avg_lines
+        report.total.code,
+        report.total.lines,
+        report.total.files,
+        report.total.bytes,
+        report.total.tokens,
+        report.total.avg_lines
     ));
     s
 }
