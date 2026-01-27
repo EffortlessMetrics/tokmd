@@ -31,13 +31,6 @@ use tokmd_types::{
     ScanArgs, ScanStatus, ToolInfo,
 };
 
-fn tool_info() -> ToolInfo {
-    ToolInfo {
-        name: "tokmd".to_string(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
-    }
-}
-
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -80,7 +73,7 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
             let receipt = LangReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
-                tool: tool_info(),
+                tool: ToolInfo::current(),
                 mode: "lang".to_string(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
@@ -179,7 +172,7 @@ pub fn print_module_report(
             let receipt = ModuleReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
-                tool: tool_info(),
+                tool: ToolInfo::current(),
                 mode: "module".to_string(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
@@ -326,7 +319,7 @@ fn write_export_jsonl<W: Write>(
             ty: "meta",
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
-            tool: tool_info(),
+            tool: ToolInfo::current(),
             mode: "export".to_string(),
             status: ScanStatus::Complete,
             warnings: vec![],
@@ -365,7 +358,7 @@ fn write_export_json<W: Write>(
         let receipt = ExportReceipt {
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
-            tool: tool_info(),
+            tool: ToolInfo::current(),
             mode: "export".to_string(),
             status: ScanStatus::Complete,
             warnings: vec![],

@@ -45,13 +45,6 @@ fn now_ms() -> u128 {
 }
 
 /// Entry point used by the `tokmd` (and optional `tok`) binaries.
-fn tool_info() -> tokmd_types::ToolInfo {
-    tokmd_types::ToolInfo {
-        name: "tokmd".to_string(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
-    }
-}
-
 fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::ScanArgs {
     tokmd_types::ScanArgs {
         paths: paths.iter().map(|p| p.display().to_string()).collect(),
@@ -262,7 +255,7 @@ pub fn run() -> Result<()> {
                 let receipt = tokmd_types::LangReceipt {
                     schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
-                    tool: tool_info(),
+                    tool: tokmd_types::ToolInfo::current(),
                     mode: "lang".to_string(),
                     status: tokmd_types::ScanStatus::Complete,
                     warnings: vec![],
@@ -282,7 +275,7 @@ pub fn run() -> Result<()> {
                 let receipt = tokmd_types::ModuleReceipt {
                     schema_version: tokmd_types::SCHEMA_VERSION,
                     generated_at_ms: now_ms(),
-                    tool: tool_info(),
+                    tool: tokmd_types::ToolInfo::current(),
                     mode: "module".to_string(),
                     status: tokmd_types::ScanStatus::Complete,
                     warnings: vec![],
@@ -313,7 +306,7 @@ pub fn run() -> Result<()> {
                     "type": "meta",
                     "schema_version": tokmd_types::SCHEMA_VERSION,
                     "generated_at_ms": now_ms(),
-                    "tool": tool_info(),
+                    "tool": tokmd_types::ToolInfo::current(),
                     "mode": "export",
                     "status": "complete",
                     "warnings": [],

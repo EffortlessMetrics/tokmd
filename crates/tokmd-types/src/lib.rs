@@ -122,6 +122,15 @@ pub struct ToolInfo {
     pub version: String,
 }
 
+impl ToolInfo {
+    pub fn current() -> Self {
+        Self {
+            name: "tokmd".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanArgs {
     pub paths: Vec<String>,

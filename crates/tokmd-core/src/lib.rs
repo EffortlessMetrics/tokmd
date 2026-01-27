@@ -57,10 +57,7 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis(),
-        tool: ToolInfo {
-            name: "tokmd".to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        },
+        tool: ToolInfo::current(),
         mode: "lang".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![], // Tokei scan might have warnings but scan() doesn't return them currently
