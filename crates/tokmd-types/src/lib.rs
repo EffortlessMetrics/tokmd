@@ -32,6 +32,8 @@ pub struct Totals {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -41,6 +43,8 @@ pub struct LangRow {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -59,6 +63,8 @@ pub struct ModuleRow {
     pub code: usize,
     pub lines: usize,
     pub files: usize,
+    pub bytes: usize,
+    pub tokens: usize,
     pub avg_lines: usize,
 }
 
@@ -89,6 +95,8 @@ pub struct FileRow {
     pub comments: usize,
     pub blanks: usize,
     pub lines: usize,
+    pub bytes: usize,
+    pub tokens: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
