@@ -1,0 +1,12 @@
+[package]
+name = "tokmd-walk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "File listing and asset discovery utilities for tokmd analysis."
+
+[dependencies]
+anyhow = "1.0.100"
+ignore = "0.4.22"

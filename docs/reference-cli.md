@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `init`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `analyze`, `badge`, `init`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -85,6 +85,56 @@ Generates a row-level inventory of files. Best for machine processing.
 ```bash
 # Export top 100 files > 10 LOC, redacted, as JSONL
 tokmd export --min-code 10 --max-rows 100 --redact paths
+```
+
+### `tokmd analyze`
+
+Derives additional metrics and optional enrichments from a run directory, receipt, export file, or paths.
+
+**Usage**: `tokmd analyze [INPUTS...] [FLAGS] [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--preset <PRESET>` | Preset bundle: `receipt`, `health`, `risk`, `supply`, `architecture`, `deep`, `fun`. | `receipt` |
+| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`. | `md` |
+| `--window <TOKENS>` | Context window size for utilization bars. | `None` |
+| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
+| `--output-dir <DIR>` | Write `analysis.*` into a directory. | stdout |
+| `--max-files <N>` | Cap file walking for assets/deps/content scans. | `None` |
+| `--max-bytes <N>` | Cap total bytes read during content scans. | `None` |
+| `--max-file-bytes <N>` | Cap bytes per file during content scans. | `None` |
+| `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
+| `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
+| `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
+
+**Examples**:
+```bash
+# Basic derived analysis in Markdown
+tokmd analyze --preset receipt --format md
+
+# Deep analysis (git + content + assets) to files
+tokmd analyze --preset deep --format json --output-dir .runs/analysis
+```
+
+### `tokmd badge`
+
+Renders a simple SVG badge for a metric.
+
+**Usage**: `tokmd badge [INPUTS...] --metric <METRIC> [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--metric <METRIC>` | Badge metric: `lines`, `tokens`, `bytes`, `doc`, `blank`, `hotspot`. | required |
+| `--preset <PRESET>` | Analysis preset to use. | `receipt` |
+| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
+| `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
+| `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
+| `--out <PATH>` | Write badge to a file. | stdout |
+
+**Example**:
+```bash
+# Token badge to a file
+tokmd badge --metric tokens --out badge.svg
 ```
 
 ### `tokmd init`

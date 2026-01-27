@@ -1,0 +1,33 @@
+[package]
+name = "tokmd-analysis"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Analysis logic and enrichers for tokmd receipts."
+
+[features]
+default = []
+git = ["dep:tokmd-git"]
+walk = ["dep:tokmd-walk"]
+content = ["dep:tokmd-content"]
+
+[dependencies]
+anyhow = "1.0.100"
+blake3 = "1.8.3"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+
+# Core contracts
+tokmd-analysis-types = { path = "../tokmd-analysis-types", version = "1.0.0" }
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+
+# Optional adapters
+tokmd-git = { path = "../tokmd-git", version = "1.0.0", optional = true }
+tokmd-walk = { path = "../tokmd-walk", version = "1.0.0", optional = true }
+tokmd-content = { path = "../tokmd-content", version = "1.0.0", optional = true }
+
+[dev-dependencies]
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tempfile = "3.10.1"

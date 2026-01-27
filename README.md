@@ -45,6 +45,9 @@ tokmd module --module-roots crates,packages
 
 # 3. File inventory (great for LLM context planning)
 tokmd export --format jsonl > inventory.jsonl
+
+# 4. Analysis report (derived metrics)
+tokmd analyze --preset receipt --format md > analysis.md
 ```
 
 ## Use Cases
@@ -82,6 +85,8 @@ tokmd export --redact all
 | `tokmd module` | Group stats by top-level folders (`crates/`, `src/`). |
 | `tokmd export` | File-level dataset for downstream tools. |
 | `tokmd run` | Execute a full scan and save artifacts to a run directory. |
+| `tokmd analyze` | Derive metrics and optional enrichments from receipts or paths. |
+| `tokmd badge` | Render a simple SVG badge for a metric. |
 | `tokmd diff` | Compare two runs or receipts. |
 | `tokmd init` | Generate a `.tokeignore` file. |
 

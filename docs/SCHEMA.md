@@ -146,3 +146,42 @@ If `--redact paths` or `--redact all` is used:
   ...
 }
 ```
+
+## 4. Analysis Receipt (`mode: "analysis"`)
+
+Produced by `tokmd analyze --format json`.
+
+Analysis receipts are additive and live in `tokmd-analysis-types`. They include:
+
+- `source`: what inputs were analyzed and export metadata
+- `args`: preset, format, and limit knobs
+- `derived`: zero-IO metrics (ratios, distributions, top offenders)
+- `assets` / `deps`: optional file/lockfile inventory
+- `git`: optional git-derived metrics (hotspots, freshness, coupling)
+- `imports` / `dup`: optional content-derived metrics
+
+Example (abridged):
+
+```json
+{
+  "schema_version": 1,
+  "mode": "analysis",
+  "source": {
+    "inputs": ["."],
+    "module_roots": ["crates", "packages"],
+    "module_depth": 2,
+    "children": "separate"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "json",
+    "window_tokens": null
+  },
+  "derived": {
+    "totals": { "files": 120, "code": 10000, "lines": 13000, "bytes": 980000, "tokens": 245000 },
+    "doc_density": { "total": { "ratio": 0.12 } },
+    "distribution": { "p90": 420 },
+    "integrity": { "algo": "blake3", "hash": "..." }
+  }
+}
+```

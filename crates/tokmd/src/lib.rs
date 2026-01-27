@@ -13,6 +13,8 @@
 //!
 //! This crate should contain minimal business logic.
 
+use tokmd_analysis as analysis;
+use tokmd_analysis_format as analysis_format;
 use tokmd_config as cli;
 use tokmd_format as format;
 use tokmd_model as model;
@@ -189,6 +191,343 @@ pub fn resolve_export(
     }
 }
 
+#[derive(Debug, Clone)]
+struct ExportMetaLite {
+    schema_version: Option<u32>,
+    generated_at_ms: Option<u128>,
+    module_roots: Vec<String>,
+    module_depth: usize,
+    children: cli::ChildIncludeMode,
+}
+
+impl Default for ExportMetaLite {
+    fn default() -> Self {
+        Self {
+            schema_version: None,
+            generated_at_ms: None,
+            module_roots: vec!["crates".into(), "packages".into()],
+            module_depth: 2,
+            children: cli::ChildIncludeMode::Separate,
+        }
+    }
+}
+
+struct ExportBundle {
+    export: tokmd_types::ExportData,
+    meta: ExportMetaLite,
+    export_path: Option<PathBuf>,
+    root: PathBuf,
+}
+
+fn load_export_from_inputs(inputs: &[PathBuf], global: &cli::GlobalArgs) -> Result<ExportBundle> {
+    if inputs.len() > 1 {
+        return scan_export_from_paths(inputs, global);
+    }
+
+    let input = inputs.first().cloned().unwrap_or_else(|| PathBuf::from("."));
+    if input.is_dir() {
+        let run_receipt = input.join("receipt.json");
+        let export_jsonl = input.join("export.jsonl");
+        let export_json = input.join("export.json");
+
+        if run_receipt.exists() {
+            return load_export_from_receipt(&run_receipt, Some(input));
+        }
+        if export_jsonl.exists() {
+            return load_export_from_file(&export_jsonl, Some(input));
+        }
+        if export_json.exists() {
+            return load_export_from_file(&export_json, Some(input));
+        }
+    }
+
+    if input.is_file() {
+        return load_export_from_file(&input, None);
+    }
+
+    scan_export_from_paths(inputs, global)
+}
+
+fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result<ExportBundle> {
+    let languages = scan::scan(paths, global)?;
+    let meta = ExportMetaLite::default();
+    let export = model::create_export_data(
+        &languages,
+        &meta.module_roots,
+        meta.module_depth,
+        meta.children,
+        None,
+        0,
+        0,
+    );
+    Ok(ExportBundle {
+        export,
+        meta,
+        export_path: None,
+        root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+    })
+}
+
+fn load_export_from_receipt(path: &PathBuf, run_dir: Option<PathBuf>) -> Result<ExportBundle> {
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+    let receipt: tokmd_types::RunReceipt =
+        serde_json::from_str(&content).context("Failed to parse run receipt")?;
+    let base = run_dir.unwrap_or_else(|| path.parent().unwrap_or(path).to_path_buf());
+    let export_path = base.join(&receipt.export_file);
+    load_export_from_file(&export_path, Some(base))
+}
+
+fn load_export_from_file(path: &PathBuf, run_dir: Option<PathBuf>) -> Result<ExportBundle> {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    let (mut export, meta) = if ext == "jsonl" {
+        load_export_jsonl(path)?
+    } else if ext == "json" {
+        load_export_json(path)?
+    } else {
+        scan_export_from_paths(&[path.clone()], &cli::GlobalArgs::default())?
+            .into_export_and_meta()
+    };
+
+    export.module_roots = meta.module_roots.clone();
+    export.module_depth = meta.module_depth;
+    export.children = meta.children;
+
+    Ok(ExportBundle {
+        export,
+        meta,
+        export_path: Some(path.clone()),
+        root: run_dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
+    })
+}
+
+fn load_export_jsonl(path: &PathBuf) -> Result<(tokmd_types::ExportData, ExportMetaLite)> {
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+    let mut rows = Vec::new();
+    let mut meta = ExportMetaLite::default();
+
+    for line in content.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let value: serde_json::Value = serde_json::from_str(line)?;
+        let ty = value
+            .get("type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("row");
+        if ty == "meta" {
+            if let Some(schema) = value.get("schema_version").and_then(|v| v.as_u64()) {
+                meta.schema_version = Some(schema as u32);
+            }
+            if let Some(generated) = value.get("generated_at_ms").and_then(|v| v.as_u64()) {
+                meta.generated_at_ms = Some(generated as u128);
+            }
+            if let Some(args) = value.get("args") {
+                let parsed: tokmd_types::ExportArgsMeta = serde_json::from_value(args.clone())?;
+                meta.module_roots = parsed.module_roots.clone();
+                meta.module_depth = parsed.module_depth;
+                meta.children = parsed.children;
+            }
+            continue;
+        }
+
+        let row: tokmd_types::FileRow = serde_json::from_value(value)?;
+        rows.push(row);
+    }
+
+    Ok((
+        tokmd_types::ExportData {
+            rows,
+            module_roots: meta.module_roots.clone(),
+            module_depth: meta.module_depth,
+            children: meta.children,
+        },
+        meta,
+    ))
+}
+
+fn load_export_json(path: &PathBuf) -> Result<(tokmd_types::ExportData, ExportMetaLite)> {
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+
+    if let Ok(receipt) = serde_json::from_str::<tokmd_types::ExportReceipt>(&content) {
+        let mut meta = ExportMetaLite::default();
+        meta.schema_version = Some(receipt.schema_version);
+        meta.generated_at_ms = Some(receipt.generated_at_ms);
+        meta.module_roots = receipt.args.module_roots.clone();
+        meta.module_depth = receipt.args.module_depth;
+        meta.children = receipt.args.children;
+        return Ok((receipt.data, meta));
+    }
+
+    let rows: Vec<tokmd_types::FileRow> =
+        serde_json::from_str(&content).context("Failed to parse export rows")?;
+    let meta = ExportMetaLite::default();
+
+    Ok((
+        tokmd_types::ExportData {
+            rows,
+            module_roots: meta.module_roots.clone(),
+            module_depth: meta.module_depth,
+            children: meta.children,
+        },
+        meta,
+    ))
+}
+
+impl ExportBundle {
+    fn into_export_and_meta(self) -> (tokmd_types::ExportData, ExportMetaLite) {
+        (self.export, self.meta)
+    }
+}
+
+fn child_include_to_string(mode: cli::ChildIncludeMode) -> String {
+    match mode {
+        cli::ChildIncludeMode::Separate => "separate".to_string(),
+        cli::ChildIncludeMode::ParentsOnly => "parents-only".to_string(),
+    }
+}
+
+fn preset_to_string(preset: cli::AnalysisPreset) -> String {
+    match preset {
+        cli::AnalysisPreset::Receipt => "receipt".to_string(),
+        cli::AnalysisPreset::Health => "health".to_string(),
+        cli::AnalysisPreset::Risk => "risk".to_string(),
+        cli::AnalysisPreset::Supply => "supply".to_string(),
+        cli::AnalysisPreset::Architecture => "architecture".to_string(),
+        cli::AnalysisPreset::Deep => "deep".to_string(),
+        cli::AnalysisPreset::Fun => "fun".to_string(),
+    }
+}
+
+fn format_to_string(format: cli::AnalysisFormat) -> String {
+    match format {
+        cli::AnalysisFormat::Md => "md".to_string(),
+        cli::AnalysisFormat::Json => "json".to_string(),
+        cli::AnalysisFormat::Jsonld => "jsonld".to_string(),
+        cli::AnalysisFormat::Xml => "xml".to_string(),
+        cli::AnalysisFormat::Svg => "svg".to_string(),
+        cli::AnalysisFormat::Mermaid => "mermaid".to_string(),
+        cli::AnalysisFormat::Obj => "obj".to_string(),
+        cli::AnalysisFormat::Midi => "midi".to_string(),
+        cli::AnalysisFormat::Tree => "tree".to_string(),
+    }
+}
+
+fn granularity_to_string(granularity: cli::ImportGranularity) -> String {
+    match granularity {
+        cli::ImportGranularity::Module => "module".to_string(),
+        cli::ImportGranularity::File => "file".to_string(),
+    }
+}
+
+fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPreset {
+    match preset {
+        cli::AnalysisPreset::Receipt => analysis::AnalysisPreset::Receipt,
+        cli::AnalysisPreset::Health => analysis::AnalysisPreset::Health,
+        cli::AnalysisPreset::Risk => analysis::AnalysisPreset::Risk,
+        cli::AnalysisPreset::Supply => analysis::AnalysisPreset::Supply,
+        cli::AnalysisPreset::Architecture => analysis::AnalysisPreset::Architecture,
+        cli::AnalysisPreset::Deep => analysis::AnalysisPreset::Deep,
+        cli::AnalysisPreset::Fun => analysis::AnalysisPreset::Fun,
+    }
+}
+
+fn map_granularity(granularity: cli::ImportGranularity) -> analysis::ImportGranularity {
+    match granularity {
+        cli::ImportGranularity::Module => analysis::ImportGranularity::Module,
+        cli::ImportGranularity::File => analysis::ImportGranularity::File,
+    }
+}
+
+fn analysis_output_filename(format: cli::AnalysisFormat) -> &'static str {
+    match format {
+        cli::AnalysisFormat::Md => "analysis.md",
+        cli::AnalysisFormat::Json => "analysis.json",
+        cli::AnalysisFormat::Jsonld => "analysis.jsonld",
+        cli::AnalysisFormat::Xml => "analysis.xml",
+        cli::AnalysisFormat::Svg => "analysis.svg",
+        cli::AnalysisFormat::Mermaid => "analysis.mmd",
+        cli::AnalysisFormat::Obj => "analysis.obj",
+        cli::AnalysisFormat::Midi => "analysis.mid",
+        cli::AnalysisFormat::Tree => "analysis.tree.txt",
+    }
+}
+
+fn write_analysis_output(
+    receipt: &tokmd_analysis_types::AnalysisReceipt,
+    output_dir: &PathBuf,
+    format: cli::AnalysisFormat,
+) -> Result<()> {
+    let rendered = analysis_format::render(receipt, format)?;
+    let out_path = output_dir.join(analysis_output_filename(format));
+    match rendered {
+        analysis_format::RenderedOutput::Text(text) => {
+            std::fs::write(&out_path, text)?;
+        }
+        analysis_format::RenderedOutput::Binary(bytes) => {
+            std::fs::write(&out_path, bytes)?;
+        }
+    }
+    Ok(())
+}
+
+fn write_analysis_stdout(
+    receipt: &tokmd_analysis_types::AnalysisReceipt,
+    format: cli::AnalysisFormat,
+) -> Result<()> {
+    let rendered = analysis_format::render(receipt, format)?;
+    match rendered {
+        analysis_format::RenderedOutput::Text(text) => {
+            print!("{}", text);
+        }
+        analysis_format::RenderedOutput::Binary(bytes) => {
+            use std::io::Write;
+            let mut stdout = std::io::stdout().lock();
+            stdout.write_all(&bytes)?;
+        }
+    }
+    Ok(())
+}
+
+fn badge_metric_label(metric: cli::BadgeMetric) -> &'static str {
+    match metric {
+        cli::BadgeMetric::Lines => "lines",
+        cli::BadgeMetric::Tokens => "tokens",
+        cli::BadgeMetric::Bytes => "bytes",
+        cli::BadgeMetric::Doc => "doc",
+        cli::BadgeMetric::Blank => "blank",
+        cli::BadgeMetric::Hotspot => "hotspot",
+    }
+}
+
+fn badge_svg(label: &str, value: &str) -> String {
+    let label_width = (label.len() as i32 * 7 + 20).max(60);
+    let value_width = (value.len() as i32 * 7 + 20).max(60);
+    let width = label_width + value_width;
+    let height = 24;
+    let label_x = label_width / 2;
+    let value_x = label_width + value_width / 2;
+    format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" role=\"img\"><rect width=\"{label_width}\" height=\"{height}\" fill=\"#555\"/><rect x=\"{label_width}\" width=\"{value_width}\" height=\"{height}\" fill=\"#4c9aff\"/><text x=\"{label_x}\" y=\"16\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"11\">{label}</text><text x=\"{value_x}\" y=\"16\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"11\">{value}</text></svg>",
+        width = width,
+        height = height,
+        label_width = label_width,
+        value_width = value_width,
+        label_x = label_x,
+        value_x = value_x,
+        label = label,
+        value = value
+    )
+}
+
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     // Load config and resolve profile
@@ -347,6 +686,50 @@ pub fn run() -> Result<()> {
             let receipt_path = output_dir.join("receipt.json");
             let f = std::fs::File::create(&receipt_path)?;
             serde_json::to_writer(f, &receipt)?;
+
+            if let Some(preset) = args.analysis {
+                let source = tokmd_analysis_types::AnalysisSource {
+                    inputs: args
+                        .paths
+                        .iter()
+                        .map(|p| p.display().to_string())
+                        .collect(),
+                    export_path: Some("export.jsonl".to_string()),
+                    export_schema_version: Some(tokmd_types::SCHEMA_VERSION),
+                    export_generated_at_ms: None,
+                    module_roots: export_data.module_roots.clone(),
+                    module_depth: export_data.module_depth,
+                    children: child_include_to_string(export_data.children),
+                };
+                let args_meta = tokmd_analysis_types::AnalysisArgsMeta {
+                    preset: preset_to_string(preset),
+                    format: "md+json".to_string(),
+                    window_tokens: None,
+                    git: None,
+                    max_files: None,
+                    max_bytes: None,
+                    max_file_bytes: None,
+                    max_commits: None,
+                    max_commit_files: None,
+                    import_granularity: "module".to_string(),
+                };
+                let request = analysis::AnalysisRequest {
+                    preset: map_preset(preset),
+                    args: args_meta,
+                    limits: analysis::AnalysisLimits::default(),
+                    window_tokens: None,
+                    git: None,
+                    import_granularity: analysis::ImportGranularity::Module,
+                };
+                let ctx = analysis::AnalysisContext {
+                    export: export_data.clone(),
+                    root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+                    source,
+                };
+                let receipt = analysis::analyze(ctx, request)?;
+                write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Md)?;
+                write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Json)?;
+            }
         }
         Commands::Diff(args) => {
             // 1. Load both receipts
@@ -446,6 +829,179 @@ pub fn run() -> Result<()> {
                 args.max_rows,
             );
             format::write_export(&export, &cli.global, &args)?;
+        }
+        Commands::Analyze(args) => {
+            let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
+            let format = args.format.unwrap_or(cli::AnalysisFormat::Md);
+            let git_flag = if args.git {
+                Some(true)
+            } else if args.no_git {
+                Some(false)
+            } else {
+                None
+            };
+            let granularity = args.granularity.unwrap_or(cli::ImportGranularity::Module);
+
+            let bundle = load_export_from_inputs(&args.inputs, &cli.global)?;
+            let source = tokmd_analysis_types::AnalysisSource {
+                inputs: args
+                    .inputs
+                    .iter()
+                    .map(|p| p.display().to_string())
+                    .collect(),
+                export_path: bundle.export_path.as_ref().map(|p| p.display().to_string()),
+                export_schema_version: bundle.meta.schema_version,
+                export_generated_at_ms: bundle.meta.generated_at_ms,
+                module_roots: bundle.meta.module_roots.clone(),
+                module_depth: bundle.meta.module_depth,
+                children: child_include_to_string(bundle.meta.children),
+            };
+            let args_meta = tokmd_analysis_types::AnalysisArgsMeta {
+                preset: preset_to_string(preset),
+                format: format_to_string(format),
+                window_tokens: args.window,
+                git: git_flag,
+                max_files: args.max_files,
+                max_bytes: args.max_bytes,
+                max_file_bytes: args.max_file_bytes,
+                max_commits: args.max_commits,
+                max_commit_files: args.max_commit_files,
+                import_granularity: granularity_to_string(granularity),
+            };
+            let request = analysis::AnalysisRequest {
+                preset: map_preset(preset),
+                args: args_meta,
+                limits: analysis::AnalysisLimits {
+                    max_files: args.max_files,
+                    max_bytes: args.max_bytes,
+                    max_file_bytes: args.max_file_bytes,
+                    max_commits: args.max_commits,
+                    max_commit_files: args.max_commit_files,
+                },
+                window_tokens: args.window,
+                git: git_flag,
+                import_granularity: map_granularity(granularity),
+            };
+            let ctx = analysis::AnalysisContext {
+                export: bundle.export,
+                root: bundle.root,
+                source,
+            };
+            let receipt = analysis::analyze(ctx, request)?;
+
+            if let Some(output_dir) = args.output_dir {
+                std::fs::create_dir_all(&output_dir)
+                    .context("Failed to create analysis output directory")?;
+                write_analysis_output(&receipt, &output_dir, format)?;
+            } else {
+                write_analysis_stdout(&receipt, format)?;
+            }
+        }
+        Commands::Badge(args) => {
+            let metric = args.metric;
+            let mut preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
+            if metric == cli::BadgeMetric::Hotspot && args.preset.is_none() {
+                preset = cli::AnalysisPreset::Risk;
+            }
+            let git_flag = if args.git {
+                Some(true)
+            } else if args.no_git {
+                Some(false)
+            } else if metric == cli::BadgeMetric::Hotspot {
+                Some(true)
+            } else {
+                None
+            };
+
+            let bundle = load_export_from_inputs(&args.inputs, &cli.global)?;
+            let source = tokmd_analysis_types::AnalysisSource {
+                inputs: args
+                    .inputs
+                    .iter()
+                    .map(|p| p.display().to_string())
+                    .collect(),
+                export_path: bundle.export_path.as_ref().map(|p| p.display().to_string()),
+                export_schema_version: bundle.meta.schema_version,
+                export_generated_at_ms: bundle.meta.generated_at_ms,
+                module_roots: bundle.meta.module_roots.clone(),
+                module_depth: bundle.meta.module_depth,
+                children: child_include_to_string(bundle.meta.children),
+            };
+            let args_meta = tokmd_analysis_types::AnalysisArgsMeta {
+                preset: preset_to_string(preset),
+                format: "badge".to_string(),
+                window_tokens: None,
+                git: git_flag,
+                max_files: None,
+                max_bytes: None,
+                max_file_bytes: None,
+                max_commits: args.max_commits,
+                max_commit_files: args.max_commit_files,
+                import_granularity: "module".to_string(),
+            };
+            let request = analysis::AnalysisRequest {
+                preset: map_preset(preset),
+                args: args_meta,
+                limits: analysis::AnalysisLimits {
+                    max_files: None,
+                    max_bytes: None,
+                    max_file_bytes: None,
+                    max_commits: args.max_commits,
+                    max_commit_files: args.max_commit_files,
+                },
+                window_tokens: None,
+                git: git_flag,
+                import_granularity: analysis::ImportGranularity::Module,
+            };
+            let ctx = analysis::AnalysisContext {
+                export: bundle.export,
+                root: bundle.root,
+                source,
+            };
+            let receipt = analysis::analyze(ctx, request)?;
+
+            let value = match metric {
+                cli::BadgeMetric::Lines => receipt
+                    .derived
+                    .as_ref()
+                    .map(|d| d.totals.lines.to_string())
+                    .unwrap_or_else(|| "0".to_string()),
+                cli::BadgeMetric::Tokens => receipt
+                    .derived
+                    .as_ref()
+                    .map(|d| d.totals.tokens.to_string())
+                    .unwrap_or_else(|| "0".to_string()),
+                cli::BadgeMetric::Bytes => receipt
+                    .derived
+                    .as_ref()
+                    .map(|d| d.totals.bytes.to_string())
+                    .unwrap_or_else(|| "0".to_string()),
+                cli::BadgeMetric::Doc => receipt
+                    .derived
+                    .as_ref()
+                    .map(|d| format!("{:.1}%", d.doc_density.total.ratio * 100.0))
+                    .unwrap_or_else(|| "0%".to_string()),
+                cli::BadgeMetric::Blank => receipt
+                    .derived
+                    .as_ref()
+                    .map(|d| format!("{:.1}%", d.whitespace.total.ratio * 100.0))
+                    .unwrap_or_else(|| "0%".to_string()),
+                cli::BadgeMetric::Hotspot => receipt
+                    .git
+                    .as_ref()
+                    .and_then(|g| g.hotspots.first())
+                    .map(|h| h.score.to_string())
+                    .unwrap_or_else(|| "n/a".to_string()),
+            };
+
+            let label = badge_metric_label(metric);
+            let svg = badge_svg(label, &value);
+
+            if let Some(out) = args.out {
+                std::fs::write(out, svg)?;
+            } else {
+                print!("{}", svg);
+            }
         }
         Commands::Init(args) => {
             tokeignore::init_tokeignore(&args)?;

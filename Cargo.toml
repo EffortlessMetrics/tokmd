@@ -2,24 +2,38 @@
 resolver = "2"
 members = [
     "crates/tokmd",
+    "crates/tokmd-analysis",
+    "crates/tokmd-analysis-format",
+    "crates/tokmd-analysis-types",
     "crates/tokmd-config",
     "crates/tokmd-core",
+    "crates/tokmd-content",
     "crates/tokmd-format",
+    "crates/tokmd-fun",
+    "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-scan",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
+    "crates/tokmd-walk",
     "fuzz",
 ]
 default-members = [
     "crates/tokmd",
+    "crates/tokmd-analysis",
+    "crates/tokmd-analysis-format",
+    "crates/tokmd-analysis-types",
     "crates/tokmd-config",
     "crates/tokmd-core",
+    "crates/tokmd-content",
     "crates/tokmd-format",
+    "crates/tokmd-fun",
+    "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-scan",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
+    "crates/tokmd-walk",
 ]
 
 [workspace.package]

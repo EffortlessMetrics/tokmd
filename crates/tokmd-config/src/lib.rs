@@ -96,6 +96,12 @@ pub enum Commands {
     /// Export a file-level dataset (CSV / JSONL / JSON).
     Export(CliExportArgs),
 
+    /// Analyze receipts or paths to produce derived metrics.
+    Analyze(CliAnalyzeArgs),
+
+    /// Render a simple SVG badge for a metric.
+    Badge(BadgeArgs),
+
     /// Write a `.tokeignore` template to the target directory.
     Init(InitArgs),
 
@@ -149,6 +155,10 @@ pub struct RunArgs {
     /// Tag or name for this run.
     #[arg(long)]
     pub name: Option<String>,
+
+    /// Also emit analysis receipts using this preset.
+    #[arg(long, value_enum)]
+    pub analysis: Option<AnalysisPreset>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -295,6 +305,96 @@ pub struct CliExportArgs {
 }
 
 #[derive(Args, Debug, Clone)]
+pub struct CliAnalyzeArgs {
+    /// Inputs to analyze (run dir, receipt.json, export.jsonl, or paths).
+    #[arg(value_name = "INPUT", default_value = ".")]
+    pub inputs: Vec<PathBuf>,
+
+    /// Analysis preset to run.
+    #[arg(long, value_enum)]
+    pub preset: Option<AnalysisPreset>,
+
+    /// Output format.
+    #[arg(long, value_enum)]
+    pub format: Option<AnalysisFormat>,
+
+    /// Context window size (tokens) for utilization bars.
+    #[arg(long)]
+    pub window: Option<usize>,
+
+    /// Force-enable git-based metrics.
+    #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "no_git")]
+    pub git: bool,
+
+    /// Disable git-based metrics.
+    #[arg(long = "no-git", action = clap::ArgAction::SetTrue, conflicts_with = "git")]
+    pub no_git: bool,
+
+    /// Output directory for analysis artifacts.
+    #[arg(long)]
+    pub output_dir: Option<PathBuf>,
+
+    /// Limit how many files are walked for asset/deps/content scans.
+    #[arg(long)]
+    pub max_files: Option<usize>,
+
+    /// Limit total bytes read during content scans.
+    #[arg(long)]
+    pub max_bytes: Option<u64>,
+
+    /// Limit bytes per file during content scans.
+    #[arg(long)]
+    pub max_file_bytes: Option<u64>,
+
+    /// Limit how many commits are scanned for git metrics.
+    #[arg(long)]
+    pub max_commits: Option<usize>,
+
+    /// Limit files per commit when scanning git history.
+    #[arg(long)]
+    pub max_commit_files: Option<usize>,
+
+    /// Import graph granularity.
+    #[arg(long, value_enum)]
+    pub granularity: Option<ImportGranularity>,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct BadgeArgs {
+    /// Inputs to analyze (run dir, receipt.json, export.jsonl, or paths).
+    #[arg(value_name = "INPUT", default_value = ".")]
+    pub inputs: Vec<PathBuf>,
+
+    /// Metric to render.
+    #[arg(long, value_enum)]
+    pub metric: BadgeMetric,
+
+    /// Optional analysis preset to use for the badge.
+    #[arg(long, value_enum)]
+    pub preset: Option<AnalysisPreset>,
+
+    /// Force-enable git-based metrics.
+    #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "no_git")]
+    pub git: bool,
+
+    /// Disable git-based metrics.
+    #[arg(long = "no-git", action = clap::ArgAction::SetTrue, conflicts_with = "git")]
+    pub no_git: bool,
+
+    /// Limit how many commits are scanned for git metrics.
+    #[arg(long)]
+    pub max_commits: Option<usize>,
+
+    /// Limit files per commit when scanning git history.
+    #[arg(long)]
+    pub max_commit_files: Option<usize>,
+
+    /// Output file for the badge (defaults to stdout).
+    #[arg(long)]
+    pub out: Option<PathBuf>,
+}
+
+#[derive(Args, Debug, Clone)]
 pub struct InitArgs {
     /// Target directory (defaults to ".").
     #[arg(long, value_name = "DIR", default_value = ".")]
@@ -322,6 +422,50 @@ pub enum TableFormat {
     Tsv,
     /// JSON (compact).
     Json,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AnalysisFormat {
+    Md,
+    Json,
+    Jsonld,
+    Xml,
+    Svg,
+    Mermaid,
+    Obj,
+    Midi,
+    Tree,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AnalysisPreset {
+    Receipt,
+    Health,
+    Risk,
+    Supply,
+    Architecture,
+    Deep,
+    Fun,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ImportGranularity {
+    Module,
+    File,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum BadgeMetric {
+    Lines,
+    Tokens,
+    Bytes,
+    Doc,
+    Blank,
+    Hotspot,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
