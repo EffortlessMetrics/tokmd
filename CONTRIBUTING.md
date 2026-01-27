@@ -28,6 +28,12 @@ cargo test
 ### 2. Integration / Golden Tests
 We use `insta` for snapshot testing. These tests run the full CLI against fixtures in `tests/data`.
 
+**Important: Line Endings & Bytes**
+Our receipts include byte counts which are sensitive to line endings. To ensure cross-platform determinism:
+*   We enforce `text eol=lf` in `.gitattributes` for `tests/data` and `tests/snapshots`.
+*   **Always accept snapshots from an LF-normalized checkout** (Linux/WSL/macOS or a normalized Windows git checkout).
+*   If you see byte count diffs (e.g., `183` vs `172`), check your line endings.
+
 **If you change output logic (e.g., new fields, different formatting):**
 1.  Run tests: `cargo test` (they will fail with a diff).
 2.  Review changes: `cargo insta review` (requires `cargo-insta` installed).
