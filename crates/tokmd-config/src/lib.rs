@@ -217,9 +217,6 @@ pub struct CliLangArgs {
     pub files: bool,
 
     /// How to handle embedded languages (tokei "children" / blobs).
-    ///
-    /// - collapse: merge embedded content into the parent language row.
-    /// - separate: show "(embedded)" rows for child languages.
     #[arg(long, value_enum)]
     pub children: Option<ChildrenMode>,
 }
@@ -258,9 +255,6 @@ pub struct CliModuleArgs {
     pub module_depth: Option<usize>,
 
     /// Whether to include embedded languages (tokei "children" / blobs) in module totals.
-    ///
-    /// - separate: include embedded reports alongside parent reports.
-    /// - parents-only: ignore embedded reports.
     #[arg(long, value_enum)]
     pub children: Option<ChildIncludeMode>,
 }
