@@ -114,7 +114,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     if let Some(preset) = args.analysis {
         let source = analysis_types::AnalysisSource {
-            inputs: args.paths.iter().map(|p| p.display().to_string()).collect(),
+            inputs: args.paths.iter().map(|p| normalize_scan_input(p)).collect(),
             export_path: Some("export.jsonl".to_string()),
             base_receipt_path: Some("export.jsonl".to_string()),
             export_schema_version: Some(tokmd_types::SCHEMA_VERSION),
@@ -164,6 +164,12 @@ fn now_ms() -> u128 {
         .as_millis()
 }
 
+/// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
+fn normalize_scan_input(p: &std::path::Path) -> String {
+    let s = p.display().to_string().replace('\\', "/");
+    s.strip_prefix("./").unwrap_or(&s).to_string()
+}
+
 fn make_scan_args(
     paths: &[PathBuf],
     global: &cli::GlobalArgs,
@@ -173,7 +179,7 @@ fn make_scan_args(
     let excluded_redacted = should_redact && !global.excluded.is_empty();
 
     let mut args = tokmd_types::ScanArgs {
-        paths: paths.iter().map(|p| p.display().to_string()).collect(),
+        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
         excluded: if should_redact {
             global
                 .excluded

@@ -15,11 +15,16 @@ pub struct LicenseCandidates {
 }
 
 pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>> {
+    // Early return for zero-file limit
+    if max_files == Some(0) {
+        return Ok(Vec::new());
+    }
+
     if let Some(mut files) = git_ls_files(root)? {
-        if let Some(limit) = max_files {
-            if files.len() > limit {
-                files.truncate(limit);
-            }
+        if let Some(limit) = max_files
+            && files.len() > limit
+        {
+            files.truncate(limit);
         }
         return Ok(files);
     }
@@ -40,10 +45,10 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         let path = entry.path().to_path_buf();
         let rel = path.strip_prefix(root).unwrap_or(&path).to_path_buf();
         files.push(rel);
-        if let Some(limit) = max_files {
-            if files.len() >= limit {
-                break;
-            }
+        if let Some(limit) = max_files
+            && files.len() >= limit
+        {
+            break;
         }
     }
 
