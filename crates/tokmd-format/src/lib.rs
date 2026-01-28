@@ -15,6 +15,7 @@
 //! * Business logic (calculating stats)
 //! * CLI arg parsing
 
+use std::fmt::Write as _;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
@@ -99,33 +100,41 @@ fn render_lang_md(report: &LangReport) -> String {
         s.push_str("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|\n");
         s.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
         for r in &report.rows {
-            s.push_str(&format!(
-                "|{}|{}|{}|{}|{}|{}|{}|\n",
+            writeln!(
+                s,
+                "|{}|{}|{}|{}|{}|{}|{}|",
                 r.lang, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-            ));
+            )
+            .unwrap();
         }
-        s.push_str(&format!(
-            "|**Total**|{}|{}|{}|{}|{}|{}|\n",
+        writeln!(
+            s,
+            "|**Total**|{}|{}|{}|{}|{}|{}|",
             report.total.code,
             report.total.lines,
             report.total.files,
             report.total.bytes,
             report.total.tokens,
             report.total.avg_lines
-        ));
+        )
+        .unwrap();
     } else {
         s.push_str("|Lang|Code|Lines|Bytes|Tokens|\n");
         s.push_str("|---|---:|---:|---:|---:|\n");
         for r in &report.rows {
-            s.push_str(&format!(
-                "|{}|{}|{}|{}|{}|\n",
+            writeln!(
+                s,
+                "|{}|{}|{}|{}|{}|",
                 r.lang, r.code, r.lines, r.bytes, r.tokens
-            ));
+            )
+            .unwrap();
         }
-        s.push_str(&format!(
-            "|**Total**|{}|{}|{}|{}|\n",
+        writeln!(
+            s,
+            "|**Total**|{}|{}|{}|{}|",
             report.total.code, report.total.lines, report.total.bytes, report.total.tokens
-        ));
+        )
+        .unwrap();
     }
 
     s
@@ -137,32 +146,40 @@ fn render_lang_tsv(report: &LangReport) -> String {
     if report.with_files {
         s.push_str("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n");
         for r in &report.rows {
-            s.push_str(&format!(
-                "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            writeln!(
+                s,
+                "{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 r.lang, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-            ));
+            )
+            .unwrap();
         }
-        s.push_str(&format!(
-            "Total\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        writeln!(
+            s,
+            "Total\t{}\t{}\t{}\t{}\t{}\t{}",
             report.total.code,
             report.total.lines,
             report.total.files,
             report.total.bytes,
             report.total.tokens,
             report.total.avg_lines
-        ));
+        )
+        .unwrap();
     } else {
         s.push_str("Lang\tCode\tLines\tBytes\tTokens\n");
         for r in &report.rows {
-            s.push_str(&format!(
-                "{}\t{}\t{}\t{}\t{}\n",
+            writeln!(
+                s,
+                "{}\t{}\t{}\t{}\t{}",
                 r.lang, r.code, r.lines, r.bytes, r.tokens
-            ));
+            )
+            .unwrap();
         }
-        s.push_str(&format!(
-            "Total\t{}\t{}\t{}\t{}\n",
+        writeln!(
+            s,
+            "Total\t{}\t{}\t{}\t{}",
             report.total.code, report.total.lines, report.total.bytes, report.total.tokens
-        ));
+        )
+        .unwrap();
     }
 
     s
@@ -213,20 +230,24 @@ fn render_module_md(report: &ModuleReport) -> String {
     s.push_str("|Module|Code|Lines|Files|Bytes|Tokens|Avg|\n");
     s.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
     for r in &report.rows {
-        s.push_str(&format!(
-            "|{}|{}|{}|{}|{}|{}|{}|\n",
+        writeln!(
+            s,
+            "|{}|{}|{}|{}|{}|{}|{}|",
             r.module, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-        ));
+        )
+        .unwrap();
     }
-    s.push_str(&format!(
-        "|**Total**|{}|{}|{}|{}|{}|{}|\n",
+    writeln!(
+        s,
+        "|**Total**|{}|{}|{}|{}|{}|{}|",
         report.total.code,
         report.total.lines,
         report.total.files,
         report.total.bytes,
         report.total.tokens,
         report.total.avg_lines
-    ));
+    )
+    .unwrap();
     s
 }
 
@@ -234,20 +255,24 @@ fn render_module_tsv(report: &ModuleReport) -> String {
     let mut s = String::new();
     s.push_str("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n");
     for r in &report.rows {
-        s.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        writeln!(
+            s,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
             r.module, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-        ));
+        )
+        .unwrap();
     }
-    s.push_str(&format!(
-        "Total\t{}\t{}\t{}\t{}\t{}\t{}\n",
+    writeln!(
+        s,
+        "Total\t{}\t{}\t{}\t{}\t{}\t{}",
         report.total.code,
         report.total.lines,
         report.total.files,
         report.total.bytes,
         report.total.tokens,
         report.total.avg_lines
-    ));
+    )
+    .unwrap();
     s
 }
 
