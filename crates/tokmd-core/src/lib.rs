@@ -141,4 +141,3 @@ fn make_scan_args(
 
     args
 }
-
