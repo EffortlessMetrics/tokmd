@@ -184,6 +184,11 @@ cargo install tokmd
     paths: '.'
 ```
 
+### Coming Soon: Language Bindings
+Native FFI bindings for CI pipelines and tooling:
+- **Python**: `pip install tokmd` (PyPI)
+- **Node.js**: `npm install @tokmd/core` (npm)
+
 ## Documentation
 
 - [Tutorial](docs/tutorial.md) — Getting started guide

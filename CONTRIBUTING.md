@@ -139,3 +139,22 @@ Some features are gated to allow selective compilation:
 - `walk`: Filesystem traversal for assets
 
 When adding new features with heavy dependencies, consider making them optional.
+
+## Language Bindings (Planned)
+
+We're building native FFI bindings for Python and Node.js:
+
+```
+crates/
+├── tokmd-ffi/      # C-compatible FFI layer (shared)
+├── tokmd-python/   # PyO3 bindings → PyPI
+└── tokmd-node/     # napi-rs bindings → npm
+```
+
+**Design principles:**
+- JSON serialization at FFI boundary for simplicity
+- Mirror the CLI's mental model (`scan`, `analyze`, `diff`)
+- Return native language types (Python dicts, JS objects)
+- Cross-platform wheels/prebuilds via CI matrix
+
+If you're interested in helping with bindings, see the `tokmd-ffi` crate (once created) for the shared interface.

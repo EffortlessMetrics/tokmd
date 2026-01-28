@@ -48,6 +48,8 @@
 ## Future
 
 ### v2.0 — Platform Evolution
+- [ ] **Python Bindings (PyPI)**: Native FFI via PyO3 + maturin
+- [ ] **Node.js Bindings (npm)**: Native FFI via napi-rs
 - [ ] **MCP Server Mode**: `tokmd serve` for Claude/MCP integration
 - [ ] **Streaming Analysis**: JSONL streaming for large repos
 - [ ] **Plugin System**: WASM-based extensible enrichers

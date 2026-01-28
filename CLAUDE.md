@@ -40,6 +40,9 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
 | 4 | `tokmd-core` | Library facade for external consumers |
 | 5 | `tokmd` | CLI binary |
+| — | `tokmd-ffi` | C-compatible FFI layer (planned) |
+| — | `tokmd-python` | PyO3 bindings for PyPI (planned) |
+| — | `tokmd-node` | napi-rs bindings for npm (planned) |
 
 ### CLI Commands
 

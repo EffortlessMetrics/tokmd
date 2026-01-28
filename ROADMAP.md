@@ -114,7 +114,28 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v2.0 — Platform Evolution
 
-#### A. MCP Server Mode
+#### A. Language Bindings (FFI)
+*Goal: Native integration in CI pipelines and tooling ecosystems.*
+
+**Python (PyPI: `tokmd`)**
+- Native bindings via PyO3 + maturin
+- Crate: `tokmd-python/`
+- API: `tokmd.scan()`, `tokmd.analyze()`, `tokmd.diff()`
+- Returns native Python dicts/dataclasses
+- Wheels for Linux, macOS, Windows (x64 + arm64)
+
+**Node.js (npm: `@tokmd/core`)**
+- Native bindings via napi-rs
+- Crate: `tokmd-node/`
+- API: `scan()`, `analyze()`, `diff()` returning JS objects
+- Prebuilds for major platforms
+
+**Shared Infrastructure**
+- `tokmd-ffi/` crate with C-compatible interface
+- JSON serialization at FFI boundary for simplicity
+- CI matrix for cross-platform wheel/prebuild generation
+
+#### B. MCP Server Mode
 *Goal: Native integration with Claude and other MCP-compatible clients.*
 
 - `tokmd serve` — Start MCP server for tool-based interaction
@@ -122,7 +143,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
 - Streaming: Incremental analysis results
 
-#### B. Streaming Analysis
+#### C. Streaming Analysis
 *Goal: Handle massive repositories without memory pressure.*
 
 - JSONL streaming for all outputs
@@ -130,7 +151,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - Memory-bounded analysis limits
 - Progress reporting via stderr
 
-#### C. Plugin System
+#### D. Plugin System
 *Goal: Extensible enrichers without core changes.*
 
 - WASM plugin interface for custom analyzers
