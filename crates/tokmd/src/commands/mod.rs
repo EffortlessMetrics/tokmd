@@ -11,7 +11,7 @@ pub(crate) mod run;
 use anyhow::Result;
 use tokmd_config as cli;
 
-pub(crate) fn dispatch<'a>(cli: cli::Cli, profile: Option<&'a cli::Profile>) -> Result<()> {
+pub(crate) fn dispatch(cli: cli::Cli, profile: Option<&cli::Profile>) -> Result<()> {
     let global = &cli.global;
     match cli.command.unwrap_or(cli::Commands::Lang(cli.lang.clone())) {
         cli::Commands::Completions(args) => completions::handle(args),

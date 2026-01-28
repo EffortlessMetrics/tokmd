@@ -2,8 +2,8 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use tempfile::tempdir;
 use std::process::Command as ProcessCommand;
+use tempfile::tempdir;
 
 #[test]
 fn test_run_generates_artifacts() {
@@ -85,6 +85,92 @@ fn test_diff_identical_runs() {
         .stdout(predicate::str::contains("Diffing Language Summaries"));
     // Should produce empty diff table (header only) because counts are identical
     // But headers are always printed.
+}
+
+#[test]
+fn test_run_default_output_creates_local_runs_dir() {
+    let dir = tempdir().unwrap();
+    let work_dir = dir.path().join("workdir");
+    fs::create_dir_all(&work_dir).unwrap();
+
+    // Create a minimal source file to scan
+    let src_dir = work_dir.join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    fs::write(src_dir.join("lib.rs"), "fn main() {}\n").unwrap();
+
+    // Run without --output-dir (should use .runs/tokmd/<run-id>)
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.current_dir(&work_dir)
+        .arg("run")
+        .arg("--name")
+        .arg("test-run")
+        .arg(".")
+        .assert()
+        .success();
+
+    // Verify .runs/tokmd/test-run directory was created
+    let expected_dir = work_dir.join(".runs/tokmd/test-run");
+    assert!(
+        expected_dir.exists(),
+        ".runs/tokmd/test-run directory should be created at {:?}",
+        expected_dir
+    );
+    assert!(
+        expected_dir.join("receipt.json").exists(),
+        "receipt.json should exist in default location"
+    );
+    assert!(
+        expected_dir.join("lang.json").exists(),
+        "lang.json should exist in default location"
+    );
+    assert!(
+        expected_dir.join("export.jsonl").exists(),
+        "export.jsonl should exist in default location"
+    );
+}
+
+#[test]
+fn test_run_with_redact_flag() {
+    let dir = tempdir().unwrap();
+    let output_dir = dir.path().join("run-redacted");
+
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.current_dir(&fixtures)
+        .arg("run")
+        .arg("--output-dir")
+        .arg(output_dir.to_str().unwrap())
+        .arg("--redact")
+        .arg("paths")
+        .arg(".")
+        .assert()
+        .success();
+
+    // Check that export.jsonl was created and contains redacted paths
+    let export_content = fs::read_to_string(output_dir.join("export.jsonl")).unwrap();
+
+    // The meta line should contain "redact": "paths"
+    assert!(
+        export_content.contains(r#""redact":"paths""#),
+        "export.jsonl should indicate redact mode is 'paths'"
+    );
+
+    // Paths should be hashed (16 hex chars followed by extension)
+    // Check that we don't have the original .rs extension preceded by a recognizable path
+    let lines: Vec<&str> = export_content.lines().collect();
+    for line in lines.iter().skip(1) {
+        // Skip meta line
+        if line.contains(r#""type":"row""#) {
+            // Paths should be hashed - they should be 16 hex chars followed by extension
+            assert!(
+                !line.contains("src/") && !line.contains("src\\"),
+                "Redacted export should not contain original path segments"
+            );
+        }
+    }
 }
 
 fn git_available() -> bool {

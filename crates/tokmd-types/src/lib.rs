@@ -143,6 +143,9 @@ impl ToolInfo {
 pub struct ScanArgs {
     pub paths: Vec<String>,
     pub excluded: Vec<String>,
+    /// True if `excluded` patterns were redacted (replaced with hashes).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub excluded_redacted: bool,
     pub config: ConfigMode,
     pub hidden: bool,
     pub no_ignore: bool,
@@ -207,6 +210,9 @@ pub struct ExportArgsMeta {
     pub max_rows: usize,
     pub redact: RedactMode,
     pub strip_prefix: Option<String>,
+    /// True if `strip_prefix` was redacted (replaced with a hash).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub strip_prefix_redacted: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

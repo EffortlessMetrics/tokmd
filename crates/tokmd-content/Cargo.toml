@@ -10,3 +10,6 @@ description = "Content scanning helpers for tokmd analysis (TODOs, duplicates, i
 [dependencies]
 anyhow = "1.0.100"
 blake3 = "1.8.3"
+
+[dev-dependencies]
+proptest = "1.6.0"

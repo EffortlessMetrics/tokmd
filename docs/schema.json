@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, and export reports)",
+  "description": "Output schema for tokmd (language, module, and export reports). Schema version 2.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -10,92 +10,108 @@
     { "$ref": "#/definitions/ExportRow" }
   ],
   "definitions": {
+    "ScanStatus": {
+      "type": "string",
+      "enum": ["complete", "partial"],
+      "description": "Status of the scan operation."
+    },
     "LangReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "description": "Output from `tokmd --format json` or `tokmd lang --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
-        "generated_at_ms": { "type": "integer" },
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "lang" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
-        "args": {
-          "type": "object",
-          "properties": {
-            "top": { "type": "integer" },
-            "with_files": { "type": "boolean" },
-            "children": { "$ref": "#/definitions/ChildrenMode" }
-          }
-        },
+        "args": { "$ref": "#/definitions/LangArgsMeta" },
         "rows": { "type": "array", "items": { "$ref": "#/definitions/LangRow" } },
-        "total": { "$ref": "#/definitions/Totals" }
+        "total": { "$ref": "#/definitions/Totals" },
+        "with_files": { "type": "boolean", "description": "Whether file counts were included (flattened from report)." },
+        "children": { "$ref": "#/definitions/ChildrenMode", "description": "Children handling mode (flattened from report)." },
+        "top": { "type": "integer", "description": "Top N limit used (flattened from report)." }
       }
     },
     "ModuleReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "description": "Output from `tokmd module --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
-        "generated_at_ms": { "type": "integer" },
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "module" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
-        "args": {
-          "type": "object",
-          "properties": {
-            "top": { "type": "integer" },
-            "module_roots": { "type": "array", "items": { "type": "string" } },
-            "module_depth": { "type": "integer" },
-            "children": { "$ref": "#/definitions/ChildIncludeMode" }
-          }
-        },
+        "args": { "$ref": "#/definitions/ModuleArgsMeta" },
         "rows": { "type": "array", "items": { "$ref": "#/definitions/ModuleRow" } },
-        "total": { "$ref": "#/definitions/Totals" }
+        "total": { "$ref": "#/definitions/Totals" },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories (flattened from report)." },
+        "module_depth": { "type": "integer", "description": "Module depth limit (flattened from report)." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "Children handling mode (flattened from report)." },
+        "top": { "type": "integer", "description": "Top N limit used (flattened from report)." }
       }
     },
     "ExportReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows"],
+      "description": "Output from `tokmd export --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
-        "generated_at_ms": { "type": "integer" },
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": { "$ref": "#/definitions/ExportArgsMeta" },
-        "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } }
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories (flattened from data)." },
+        "module_depth": { "type": "integer", "description": "Module depth limit (flattened from data)." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "Children handling mode (flattened from data)." }
       }
     },
     "ExportMeta": {
       "type": "object",
-      "required": ["type", "schema_version", "tool", "mode", "scan", "args"],
+      "description": "First line of JSONL export output (`tokmd export --format jsonl`).",
+      "required": ["type", "schema_version", "tool", "mode", "status", "warnings", "scan", "args"],
       "properties": {
         "type": { "type": "string", "const": "meta" },
-        "schema_version": { "type": "integer", "const": 1 },
-        "generated_at_ms": { "type": "integer" },
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": { "$ref": "#/definitions/ExportArgsMeta" }
       }
     },
     "ExportRow": {
       "type": "object",
-      "required": ["type"],
+      "description": "Data row in JSONL export output (lines 2+ of `tokmd export --format jsonl`).",
+      "required": ["type", "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens"],
       "properties": {
         "type": { "type": "string", "const": "row" },
-        "path": { "type": "string" },
-        "module": { "type": "string" },
-        "lang": { "type": "string" },
-        "kind": { "enum": ["parent", "child"] },
-        "code": { "type": "integer" },
-        "comments": { "type": "integer" },
-        "blanks": { "type": "integer" },
-        "lines": { "type": "integer" }
+        "path": { "type": "string", "description": "Relative file path (normalized to forward slashes)." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Detected language." },
+        "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
       }
     },
     "ToolInfo": {
       "type": "object",
+      "description": "Information about the tool that generated the receipt.",
       "required": ["name", "version"],
       "properties": {
         "name": { "type": "string", "description": "The name of the tool (tokmd)." },
@@ -108,71 +124,117 @@
       "properties": {
         "paths": { "type": "array", "items": { "type": "string" }, "description": "Input paths scanned." },
         "excluded": { "type": "array", "items": { "type": "string" }, "description": "Patterns excluded from scan." },
+        "excluded_redacted": { "type": "boolean", "description": "True if excluded patterns were redacted (replaced with hashes)." },
         "config": { "enum": ["auto", "none"], "description": "Configuration mode used." },
         "hidden": { "type": "boolean", "description": "Whether hidden files were included." },
-        "no_ignore": { "type": "boolean", "description": "Whether ignore files were disregarded." }
+        "no_ignore": { "type": "boolean", "description": "Whether all ignore files were disregarded." },
+        "no_ignore_parent": { "type": "boolean", "description": "Whether parent ignore files were disregarded." },
+        "no_ignore_dot": { "type": "boolean", "description": "Whether .ignore files were disregarded." },
+        "no_ignore_vcs": { "type": "boolean", "description": "Whether VCS ignore files (.gitignore) were disregarded." },
+        "treat_doc_strings_as_comments": { "type": "boolean", "description": "Whether doc strings were counted as comments." }
+      }
+    },
+    "LangArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the language summary command.",
+      "properties": {
+        "format": { "type": "string", "description": "Output format used." },
+        "top": { "type": "integer", "description": "Top N languages to show (0 = all)." },
+        "with_files": { "type": "boolean", "description": "Whether file counts were included." },
+        "children": { "$ref": "#/definitions/ChildrenMode", "description": "How embedded languages are handled." }
+      }
+    },
+    "ModuleArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the module summary command.",
+      "properties": {
+        "format": { "type": "string", "description": "Output format used." },
+        "top": { "type": "integer", "description": "Top N modules to show (0 = all)." },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories." },
+        "module_depth": { "type": "integer", "description": "Module depth limit." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "How embedded languages are handled." }
       }
     },
     "ExportArgsMeta": {
       "type": "object",
+      "description": "Arguments used for the export command.",
       "properties": {
-        "format": { "enum": ["csv", "jsonl", "json"] },
-        "min_code": { "type": "integer" },
-        "max_rows": { "type": "integer" },
-        "redact": { "enum": ["none", "paths", "all"] }
+        "format": { "enum": ["csv", "jsonl", "json"], "description": "Output format used." },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories." },
+        "module_depth": { "type": "integer", "description": "Module depth limit." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "How embedded languages are handled." },
+        "min_code": { "type": "integer", "description": "Minimum code lines filter." },
+        "max_rows": { "type": "integer", "description": "Maximum rows to output (0 = unlimited)." },
+        "redact": { "enum": ["none", "paths", "all"], "description": "Redaction mode for sensitive data." },
+        "strip_prefix": { "type": ["string", "null"], "description": "Path prefix to strip from output paths." },
+        "strip_prefix_redacted": { "type": "boolean", "description": "True if strip_prefix was redacted (replaced with a hash)." }
       }
     },
     "Totals": {
       "type": "object",
-      "required": ["code", "lines", "files", "avg_lines"],
+      "description": "Aggregate totals for a receipt.",
+      "required": ["code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "code": { "type": "integer", "description": "Total lines of code." },
         "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
         "files": { "type": "integer", "description": "Total number of files processed." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated total token count." },
         "avg_lines": { "type": "integer", "description": "Average lines per file." }
       }
     },
     "LangRow": {
       "type": "object",
-      "required": ["lang", "code", "lines", "files", "avg_lines"],
+      "description": "A row in the language summary report.",
+      "required": ["lang", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "lang": { "type": "string", "description": "Language name (e.g., Rust, Markdown)." },
-        "code": { "type": "integer" },
-        "lines": { "type": "integer" },
-        "files": { "type": "integer" },
-        "avg_lines": { "type": "integer" }
+        "code": { "type": "integer", "description": "Lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Number of files." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes for this language." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this language." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
       }
     },
     "ModuleRow": {
       "type": "object",
-      "required": ["module", "code", "lines", "files", "avg_lines"],
+      "description": "A row in the module summary report.",
+      "required": ["module", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "module": { "type": "string", "description": "Module path/name." },
-        "code": { "type": "integer" },
-        "lines": { "type": "integer" },
-        "files": { "type": "integer" },
-        "avg_lines": { "type": "integer" }
+        "code": { "type": "integer", "description": "Lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Number of files." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes for this module." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this module." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
       }
     },
     "FileRow": {
       "type": "object",
-      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"],
+      "description": "A file row in the export data (used in ExportReceipt.rows).",
+      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens"],
       "properties": {
-        "path": { "type": "string", "description": "Relative file path." },
+        "path": { "type": "string", "description": "Relative file path (normalized to forward slashes)." },
         "module": { "type": "string", "description": "Module the file belongs to." },
         "lang": { "type": "string", "description": "Language of the file/block." },
         "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
-        "code": { "type": "integer" },
-        "comments": { "type": "integer" },
-        "blanks": { "type": "integer" },
-        "lines": { "type": "integer" }
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
       }
     },
     "ChildrenMode": {
-      "enum": ["collapse", "separate"]
+      "enum": ["collapse", "separate"],
+      "description": "How embedded languages are handled in lang reports. 'collapse' merges into parent totals, 'separate' shows as distinct rows."
     },
     "ChildIncludeMode": {
-      "enum": ["separate", "parents-only"]
+      "enum": ["separate", "parents-only"],
+      "description": "How embedded languages are handled in module/export reports. 'separate' includes child rows, 'parents-only' excludes them."
     }
   }
 }

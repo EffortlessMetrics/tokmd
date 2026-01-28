@@ -14,9 +14,7 @@ pub(crate) fn build_license_report(
     limits: &AnalysisLimits,
 ) -> Result<LicenseReport> {
     let candidates = tokmd_walk::license_candidates(files);
-    let max_bytes = limits
-        .max_file_bytes
-        .unwrap_or(DEFAULT_MAX_LICENSE_BYTES) as usize;
+    let max_bytes = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_LICENSE_BYTES) as usize;
 
     let mut findings: Vec<LicenseFinding> = Vec::new();
     let mut extra_license_files: BTreeSet<PathBuf> = BTreeSet::new();
@@ -67,7 +65,10 @@ pub(crate) fn build_license_report(
 
     let effective = findings.first().map(|f| f.spdx.clone());
 
-    Ok(LicenseReport { findings, effective })
+    Ok(LicenseReport {
+        findings,
+        effective,
+    })
 }
 
 fn parse_metadata_license(path: &Path) -> Result<Option<String>> {
@@ -80,8 +81,9 @@ fn parse_metadata_license(path: &Path) -> Result<Option<String>> {
         return Ok(parse_toml_license(path, "package"));
     }
     if file_name == "pyproject.toml" {
-        return Ok(parse_toml_license(path, "project")
-            .or_else(|| parse_toml_license(path, "tool.poetry")));
+        return Ok(
+            parse_toml_license(path, "project").or_else(|| parse_toml_license(path, "tool.poetry"))
+        );
     }
     if file_name == "package.json" {
         return Ok(parse_package_json_license(path));
@@ -139,7 +141,7 @@ fn parse_key_value(line: &str, key: &str) -> Option<String> {
 fn extract_quoted(text: &str) -> Option<String> {
     let mut chars = text.chars();
     let mut quote = None;
-    while let Some(c) = chars.next() {
+    for c in chars.by_ref() {
         if c == '"' || c == '\'' {
             quote = Some(c);
             break;
@@ -185,11 +187,7 @@ fn match_license_text(text: &str) -> Option<(String, f32)> {
         }
         let confidence = 0.6 + 0.4 * (hits as f32 / pattern.phrases.len() as f32);
         let candidate = (pattern.spdx.to_string(), confidence);
-        if best
-            .as_ref()
-            .map(|(_, c)| confidence > *c)
-            .unwrap_or(true)
-        {
+        if best.as_ref().map(|(_, c)| confidence > *c).unwrap_or(true) {
             best = Some(candidate);
         }
     }
@@ -291,10 +289,12 @@ license = "MIT"
 
         let files = vec![PathBuf::from("Cargo.toml")];
         let report = build_license_report(dir.path(), &files, &AnalysisLimits::default()).unwrap();
-        assert!(report
-            .findings
-            .iter()
-            .any(|f| f.spdx == "MIT" && f.source_kind == LicenseSourceKind::Metadata));
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.spdx == "MIT" && f.source_kind == LicenseSourceKind::Metadata)
+        );
     }
 
     #[test]
@@ -309,9 +309,11 @@ license = "MIT"
 
         let files = vec![PathBuf::from("LICENSE")];
         let report = build_license_report(dir.path(), &files, &AnalysisLimits::default()).unwrap();
-        assert!(report
-            .findings
-            .iter()
-            .any(|f| f.spdx == "MIT" && f.source_kind == LicenseSourceKind::Text));
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.spdx == "MIT" && f.source_kind == LicenseSourceKind::Text)
+        );
     }
 }

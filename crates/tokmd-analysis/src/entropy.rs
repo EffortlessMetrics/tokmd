@@ -25,15 +25,11 @@ pub(crate) fn build_entropy_report(
     let mut suspects = Vec::new();
     let mut total_bytes = 0u64;
     let max_total = limits.max_bytes;
-    let per_file_limit = limits
-        .max_file_bytes
-        .unwrap_or(DEFAULT_SAMPLE_BYTES as u64) as usize;
+    let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_SAMPLE_BYTES as u64) as usize;
 
     for rel in files {
-        if let Some(max_total) = max_total {
-            if total_bytes >= max_total {
-                break;
-            }
+        if max_total.is_some_and(|limit| total_bytes >= limit) {
+            break;
         }
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let module = row_map
@@ -140,16 +136,20 @@ mod tests {
 
         let export = export_for_paths(&["low.txt", "high.bin"]);
         let files = vec![PathBuf::from("low.txt"), PathBuf::from("high.bin")];
-        let report = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default())
-            .unwrap();
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
 
-        assert!(report
-            .suspects
-            .iter()
-            .any(|f| f.path == "low.txt" && f.class == EntropyClass::Low));
-        assert!(report
-            .suspects
-            .iter()
-            .any(|f| f.path == "high.bin" && f.class == EntropyClass::High));
+        assert!(
+            report
+                .suspects
+                .iter()
+                .any(|f| f.path == "low.txt" && f.class == EntropyClass::Low)
+        );
+        assert!(
+            report
+                .suspects
+                .iter()
+                .any(|f| f.path == "high.bin" && f.class == EntropyClass::High)
+        );
     }
 }

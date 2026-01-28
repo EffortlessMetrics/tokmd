@@ -16,10 +16,10 @@ pub struct LicenseCandidates {
 
 pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>> {
     if let Some(mut files) = git_ls_files(root)? {
-        if let Some(limit) = max_files {
-            if files.len() > limit {
-                files.truncate(limit);
-            }
+        if let Some(limit) = max_files
+            && files.len() > limit
+        {
+            files.truncate(limit);
         }
         return Ok(files);
     }
@@ -40,10 +40,10 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         let path = entry.path().to_path_buf();
         let rel = path.strip_prefix(root).unwrap_or(&path).to_path_buf();
         files.push(rel);
-        if let Some(limit) = max_files {
-            if files.len() >= limit {
-                break;
-            }
+        if let Some(limit) = max_files
+            && files.len() >= limit
+        {
+            break;
         }
     }
 
@@ -65,9 +65,7 @@ pub fn license_candidates(files: &[PathBuf]) -> LicenseCandidates {
             metadata_files.push(rel.clone());
             continue;
         }
-        if name.starts_with("license")
-            || name.starts_with("copying")
-            || name.starts_with("notice")
+        if name.starts_with("license") || name.starts_with("copying") || name.starts_with("notice")
         {
             license_files.push(rel.clone());
         }
@@ -119,7 +117,7 @@ fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>> {
 
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
     let path = root.join(relative);
-    let meta = std::fs::metadata(&path)
-        .with_context(|| format!("Failed to stat {}", path.display()))?;
+    let meta =
+        std::fs::metadata(&path).with_context(|| format!("Failed to stat {}", path.display()))?;
     Ok(meta.len())
 }

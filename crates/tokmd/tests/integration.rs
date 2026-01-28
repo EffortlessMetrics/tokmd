@@ -452,6 +452,90 @@ fn test_redaction_leaks_in_meta() {
 }
 
 #[test]
+fn test_redaction_excludes_patterns() {
+    // Given: An --exclude pattern
+    // When: We export with --redact paths
+    // Then: The exclude pattern should NOT appear in the output
+    let dir = tempdir().unwrap();
+    std::fs::write(dir.path().join("keep.rs"), "fn main() {}").unwrap();
+    std::fs::write(dir.path().join("skip.rs"), "fn skip() {}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("--exclude")
+        .arg("**/skip.rs")
+        .arg("export")
+        .arg("--redact")
+        .arg("paths")
+        .assert()
+        .success()
+        // The exclude pattern should be redacted (not appear as "**/skip.rs")
+        .stdout(predicate::str::contains("**/skip.rs").not())
+        .stdout(predicate::str::contains("skip.rs").not())
+        // But excluded_redacted should be true
+        .stdout(predicate::str::contains(r#""excluded_redacted":true"#));
+}
+
+#[test]
+fn test_redaction_strip_prefix() {
+    // Given: A --strip-prefix value
+    // When: We export with --redact paths
+    // Then: The strip_prefix path should NOT appear in the output
+    let mut cmd = tokmd_cmd();
+    cmd.arg("export")
+        .arg("--strip-prefix")
+        .arg("src")
+        .arg("--redact")
+        .arg("paths")
+        .assert()
+        .success()
+        // The strip_prefix should be hashed, not appear as "src"
+        .stdout(predicate::str::contains(r#""strip_prefix":"src""#).not())
+        // But strip_prefix_redacted should be true
+        .stdout(predicate::str::contains(r#""strip_prefix_redacted":true"#));
+}
+
+#[test]
+fn test_redaction_no_raw_paths_anywhere() {
+    // Given: Files in a known directory structure
+    // When: We export with --redact all
+    // Then: No raw path components should appear anywhere in the output
+    let dir = tempdir().unwrap();
+    let secret_dir = dir.path().join("secret_project");
+    std::fs::create_dir(&secret_dir).unwrap();
+    std::fs::write(secret_dir.join("confidential.rs"), "fn secret() {}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("--exclude")
+        .arg("**/node_modules/**")
+        .arg("export")
+        .arg("--strip-prefix")
+        .arg("secret_project")
+        .arg("--redact")
+        .arg("all")
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // No raw path substrings should appear
+    assert!(
+        !stdout.contains("secret_project"),
+        "secret_project should not appear in redacted output"
+    );
+    assert!(
+        !stdout.contains("confidential"),
+        "confidential should not appear in redacted output"
+    );
+    assert!(
+        !stdout.contains("node_modules"),
+        "node_modules should not appear in redacted output"
+    );
+}
+
+#[test]
 fn test_filter_all_rows() {
     // Given: Files with small code counts
     // When: We export with --min-code 1000 (too high)
@@ -990,4 +1074,151 @@ fn test_format_csv() {
         .stdout(predicate::str::contains(
             "src/main.rs,src,Rust,parent,3,0,0,3",
         )); // Row
+}
+
+// --- Leak Regression Tests for Meta Field Redaction ---
+
+#[test]
+fn test_redaction_meta_leak_regression_json() {
+    // Given: Sensitive patterns in exclude and strip_prefix
+    // When: We export with --redact paths using JSON format
+    // Then: Neither the exclude pattern nor strip_prefix should appear in output
+    let dir = tempdir().unwrap();
+    let secret_folder = dir.path().join("secret_folder");
+    std::fs::create_dir(&secret_folder).unwrap();
+    std::fs::write(secret_folder.join("app.rs"), "fn main() {}").unwrap();
+    std::fs::write(dir.path().join("other.rs"), "fn other() {}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("--exclude")
+        .arg("secret_folder/**")
+        .arg("export")
+        .arg("--format")
+        .arg("json")
+        .arg("--strip-prefix")
+        .arg("/home/user/projects")
+        .arg("--redact")
+        .arg("paths")
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Verify sensitive strings don't leak
+    assert!(
+        !stdout.contains("secret_folder"),
+        "secret_folder should not appear in redacted JSON output: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("/home/user/projects"),
+        "/home/user/projects should not appear in redacted JSON output: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("home/user"),
+        "home/user should not appear in redacted JSON output: {}",
+        stdout
+    );
+
+    // Verify redaction markers are present
+    assert!(
+        stdout.contains(r#""excluded_redacted":true"#),
+        "excluded_redacted should be true in JSON output"
+    );
+    assert!(
+        stdout.contains(r#""strip_prefix_redacted":true"#),
+        "strip_prefix_redacted should be true in JSON output"
+    );
+}
+
+#[test]
+fn test_redaction_meta_leak_regression_jsonl() {
+    // Given: Sensitive patterns in exclude and strip_prefix
+    // When: We export with --redact paths using JSONL format
+    // Then: Neither the exclude pattern nor strip_prefix should appear in output
+    let dir = tempdir().unwrap();
+    let sensitive_dir = dir.path().join("sensitive_data");
+    std::fs::create_dir(&sensitive_dir).unwrap();
+    std::fs::write(sensitive_dir.join("config.rs"), "const KEY: &str = \"\";").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("--exclude")
+        .arg("**/sensitive_data/**")
+        .arg("export")
+        .arg("--format")
+        .arg("jsonl")
+        .arg("--strip-prefix")
+        .arg("C:/Users/dev/work")
+        .arg("--redact")
+        .arg("paths")
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Verify sensitive strings don't leak
+    assert!(
+        !stdout.contains("sensitive_data"),
+        "sensitive_data should not appear in redacted JSONL output: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("C:/Users/dev/work"),
+        "C:/Users/dev/work should not appear in redacted JSONL output: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("Users/dev"),
+        "Users/dev should not appear in redacted JSONL output: {}",
+        stdout
+    );
+
+    // Verify redaction markers are present
+    assert!(
+        stdout.contains(r#""excluded_redacted":true"#),
+        "excluded_redacted should be true in JSONL output"
+    );
+    assert!(
+        stdout.contains(r#""strip_prefix_redacted":true"#),
+        "strip_prefix_redacted should be true in JSONL output"
+    );
+}
+
+#[test]
+fn test_redaction_all_mode_hides_modules() {
+    // Given: Files in a directory structure
+    // When: We export with --redact all
+    // Then: Module names should also be hashed (not just paths)
+    let dir = tempdir().unwrap();
+    let proprietary_module = dir.path().join("proprietary_module");
+    std::fs::create_dir(&proprietary_module).unwrap();
+    std::fs::write(proprietary_module.join("secret.rs"), "fn secret() {}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("export")
+        .arg("--redact")
+        .arg("all")
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Module name should be hashed, not appear in clear
+    assert!(
+        !stdout.contains("proprietary_module"),
+        "proprietary_module should not appear in redacted output: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("secret.rs"),
+        "secret.rs should not appear in redacted output: {}",
+        stdout
+    );
 }
