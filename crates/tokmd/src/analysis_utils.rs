@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::Result;
 use tokmd_analysis as analysis;
 use tokmd_analysis_format as analysis_format;
@@ -89,7 +87,7 @@ fn analysis_output_filename(format: cli::AnalysisFormat) -> &'static str {
 
 pub(crate) fn write_analysis_output(
     receipt: &analysis_types::AnalysisReceipt,
-    output_dir: &PathBuf,
+    output_dir: &std::path::Path,
     format: cli::AnalysisFormat,
 ) -> Result<()> {
     let rendered = analysis_format::render(receipt, format)?;

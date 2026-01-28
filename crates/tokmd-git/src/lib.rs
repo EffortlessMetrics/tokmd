@@ -71,10 +71,8 @@ pub fn collect_history(
         if line.trim().is_empty() {
             if let Some(commit) = current.take() {
                 commits.push(commit);
-                if let Some(limit) = max_commits {
-                    if commits.len() >= limit {
-                        break;
-                    }
+                if max_commits.is_some_and(|limit| commits.len() >= limit) {
+                    break;
                 }
             }
             continue;
@@ -93,10 +91,8 @@ pub fn collect_history(
         }
 
         if let Some(commit) = current.as_mut() {
-            if max_commit_files
-                .map(|limit| commit.files.len() < limit)
-                .unwrap_or(true)
-            {
+            let within_limit = max_commit_files.is_none_or(|limit| commit.files.len() < limit);
+            if within_limit {
                 commit.files.push(line.trim().to_string());
             }
         }

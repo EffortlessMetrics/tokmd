@@ -42,7 +42,10 @@ pub(crate) fn load_export_from_inputs(
         return scan_export_from_paths(inputs, global);
     }
 
-    let input = inputs.first().cloned().unwrap_or_else(|| PathBuf::from("."));
+    let input = inputs
+        .first()
+        .cloned()
+        .unwrap_or_else(|| PathBuf::from("."));
     if input.is_dir() {
         let run_receipt = input.join("receipt.json");
         let export_jsonl = input.join("export.jsonl");
@@ -108,8 +111,7 @@ fn load_export_from_file(path: &PathBuf, run_dir: Option<PathBuf>) -> Result<Exp
     } else if ext == "json" {
         load_export_json(path)?
     } else {
-        scan_export_from_paths(&[path.clone()], &cli::GlobalArgs::default())?
-            .into_export_and_meta()
+        scan_export_from_paths(std::slice::from_ref(path), &cli::GlobalArgs::default())?.into_export_and_meta()
     };
 
     export.module_roots = meta.module_roots.clone();
@@ -137,10 +139,7 @@ fn load_export_jsonl(path: &PathBuf) -> Result<(tokmd_types::ExportData, ExportM
             continue;
         }
         let value: serde_json::Value = serde_json::from_str(line)?;
-        let ty = value
-            .get("type")
-            .and_then(|v| v.as_str())
-            .unwrap_or("row");
+        let ty = value.get("type").and_then(|v| v.as_str()).unwrap_or("row");
         if ty == "meta" {
             if let Some(schema) = value.get("schema_version").and_then(|v| v.as_u64()) {
                 meta.schema_version = Some(schema as u32);
@@ -177,12 +176,13 @@ fn load_export_json(path: &PathBuf) -> Result<(tokmd_types::ExportData, ExportMe
         .with_context(|| format!("Failed to read {}", path.display()))?;
 
     if let Ok(receipt) = serde_json::from_str::<tokmd_types::ExportReceipt>(&content) {
-        let mut meta = ExportMetaLite::default();
-        meta.schema_version = Some(receipt.schema_version);
-        meta.generated_at_ms = Some(receipt.generated_at_ms);
-        meta.module_roots = receipt.args.module_roots.clone();
-        meta.module_depth = receipt.args.module_depth;
-        meta.children = receipt.args.children;
+        let meta = ExportMetaLite {
+            schema_version: Some(receipt.schema_version),
+            generated_at_ms: Some(receipt.generated_at_ms),
+            module_roots: receipt.args.module_roots.clone(),
+            module_depth: receipt.args.module_depth,
+            children: receipt.args.children,
+        };
         return Ok((receipt.data, meta));
     }
 

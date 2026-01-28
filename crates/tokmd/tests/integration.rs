@@ -8,6 +8,14 @@ fn tokmd_cmd() -> Command {
     let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
+
+    // Ensure hidden_by_git.rs exists for VCS ignore tests.
+    // It is ignored by .gitignore but required for specific tests.
+    let hidden = fixtures.join("hidden_by_git.rs");
+    if !hidden.exists() {
+        let _ = std::fs::write(&hidden, "fn main() {}");
+    }
+
     cmd.current_dir(&fixtures);
     cmd
 }
