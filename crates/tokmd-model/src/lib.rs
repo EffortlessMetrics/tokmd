@@ -525,28 +525,36 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// - If the first directory segment is in `module_roots`, join `module_depth` *directory* segments.
 /// - Otherwise, module key is the top-level directory.
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    // Normalization here makes the function usable on both raw and already-normalized paths.
-    let mut p = path.replace('\\', "/");
-    if let Some(stripped) = p.strip_prefix("./") {
-        p = stripped.to_string();
-    }
-    p = p.trim_start_matches('/').to_string();
+    // Normalization logic implemented via iterator to avoid allocations.
+    // 1. Split by / or \
+    // 2. Filter empty segments
+    // 3. Skip leading "." segment if the path started with "." (emulates strip_prefix("./"))
 
-    let parts: Vec<&str> = p.split('/').filter(|seg| !seg.is_empty()).collect();
+    let iter = path.split(['/', '\\']).filter(|s| !s.is_empty());
+
+    // We collect into a Vec<&str> because we need random access and length.
+    // This is much cheaper than allocating intermediate Strings.
+    let mut parts: Vec<&str> = iter.collect();
+
+    if parts.first() == Some(&".") && path.starts_with('.') {
+        parts.remove(0);
+    }
+
     if parts.len() <= 1 {
         return "(root)".to_string();
     }
 
     // Directory segments only (exclude the filename).
-    let dirs = &parts[..parts.len() - 1];
-    if dirs.is_empty() {
-        return "(root)".to_string();
-    }
+    let dirs_len = parts.len() - 1;
+    let dirs = &parts[..dirs_len]; // This slice is never empty because len > 1
 
     let head = dirs[0];
+    // Check if head is a known module root.
+    // module_roots are Strings, head is &str.
     let is_root = module_roots.iter().any(|r| r == head);
+
     if is_root {
-        let depth = module_depth.max(1).min(dirs.len());
+        let depth = module_depth.max(1).min(dirs_len);
         dirs[..depth].join("/")
     } else {
         head.to_string()
