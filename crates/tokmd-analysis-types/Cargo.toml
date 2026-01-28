@@ -9,4 +9,4 @@ description = "Analysis receipt contracts for tokmd."
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-types.workspace = true

@@ -13,5 +13,5 @@ blake3 = "1.8.3"
 csv = "1.4.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
-tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-config.workspace = true
+tokmd-types.workspace = true

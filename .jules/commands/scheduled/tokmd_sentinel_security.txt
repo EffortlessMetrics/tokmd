@@ -7,9 +7,9 @@ GOAL Maximize SRP repo-quality improvement per reviewer minute. (High leverage c
 NON-NEGOTIABLES
 
 SRP: ship ONE coherent security improvement per run. No grab-bag.
-Scheduled work cannot “ask first.” You must: Options A/B → choose → document → proceed.
+Scheduled work cannot "ask first." You must: Options A/B → choose → document → proceed.
 Constrain blast radius and verification. Do not constrain curiosity.
-“If it isn’t written, it didn’t happen.” No undocumented work.
+"If it isn't written, it didn't happen." No undocumented work.
 Full quality stance: treat unwrap/expect/panic as candidates everywhere (including tests). Burn-down is the goal.
 No exploit steps in PR text. Threat model stays high level.
 STATE LIVES ON DISK: .jules/ (compounding repo knowledge base) Use lowercase .jules/ only.
@@ -31,7 +31,7 @@ TRUTH MECHANISM (no stale summaries)
 
 Create the run envelope early.
 As you run commands, append results immediately.
-When writing the PR, re-read the envelope and copy receipts from it. Do not “summarize from memory.”
+When writing the PR, re-read the envelope and copy receipts from it. Do not "summarize from memory."
 POLICY (selection + gates) If .jules/policy/scheduled_tasks.json does not exist, create it with defaults:
 
 { "version": 1, "selection_strategy": "random",
@@ -70,7 +70,7 @@ Create .jules/security/runs/YYYY-MM-DD.md with:
 link placeholders
 selected lane placeholder
 target placeholder
-a short “findings” area Keep it under ~200 lines.
+a short "findings" area Keep it under ~200 lines.
 Also ensure these templates exist (create if missing):
 
 .jules/runbooks/PR_GLASS_COCKPIT.md (see below)
@@ -131,14 +131,14 @@ Use selection_strategy from policy file:
 random: pick one eligible item at random
 priority: pick the highest risk/impact eligible item
 If it clearly collides with an open PR, re-pick.
-Lane B — scout discovery: Perform a focused sweep. Prefer real risk reducers in tokmd’s real surfaces:
+Lane B — scout discovery: Perform a focused sweep. Prefer real risk reducers in tokmd's real surfaces:
 
 Redaction correctness (no leakage when enabled)
 Path/output boundary handling
 Deterministic receipt/schema behavior
 unwrap/expect/panic candidates anywhere (prod + tests)
 unsafe usage (must be justified and minimal)
-Scout helpers (summarize results; don’t paste walls of output):
+Scout helpers (summarize results; don't paste walls of output):
 
 rg -n "\bunsafe\b" .
 rg -n "\bunwrap\(|\bexpect\(" .
@@ -154,9 +154,9 @@ correct fix
 tests
 receipts
 clean narrative
-Do not weaken gates. Do not delete tests to “go green.”
+Do not weaken gates. Do not delete tests to "go green."
 
-VERIFY (mandatory; stage receipts) Run the repo’s merge-confidence gates (default full set unless blast radius is truly tiny and justified):
+VERIFY (mandatory; stage receipts) Run the repo's merge-confidence gates (default full set unless blast radius is truly tiny and justified):
 
 cargo build --verbose
 CI=true cargo test --verbose

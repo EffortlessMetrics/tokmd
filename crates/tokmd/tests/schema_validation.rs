@@ -59,7 +59,7 @@ fn test_lang_receipt_validates_against_schema() {
     if !validator.is_valid(&json) {
         let error_messages: Vec<String> = validator
             .iter_errors(&json)
-            .map(|e| format!("{} at {}", e, e.instance_path))
+            .map(|e| format!("{} at {}", e, e.instance_path()))
             .collect();
         panic!(
             "LangReceipt validation failed:\n{}\n\nOutput:\n{}",
@@ -87,7 +87,7 @@ fn test_module_receipt_validates_against_schema() {
     if !validator.is_valid(&json) {
         let error_messages: Vec<String> = validator
             .iter_errors(&json)
-            .map(|e| format!("{} at {}", e, e.instance_path))
+            .map(|e| format!("{} at {}", e, e.instance_path()))
             .collect();
         panic!(
             "ModuleReceipt validation failed:\n{}\n\nOutput:\n{}",
@@ -115,7 +115,7 @@ fn test_export_receipt_validates_against_schema() {
     if !validator.is_valid(&json) {
         let error_messages: Vec<String> = validator
             .iter_errors(&json)
-            .map(|e| format!("{} at {}", e, e.instance_path))
+            .map(|e| format!("{} at {}", e, e.instance_path()))
             .collect();
         panic!(
             "ExportReceipt validation failed:\n{}\n\nOutput:\n{}",
@@ -146,7 +146,7 @@ fn test_export_meta_validates_against_schema() {
     if !validator.is_valid(&json) {
         let error_messages: Vec<String> = validator
             .iter_errors(&json)
-            .map(|e| format!("{} at {}", e, e.instance_path))
+            .map(|e| format!("{} at {}", e, e.instance_path()))
             .collect();
         panic!(
             "ExportMeta validation failed:\n{}\n\nOutput:\n{}",
@@ -180,7 +180,7 @@ fn test_export_row_validates_against_schema() {
         if !validator.is_valid(&json) {
             let error_messages: Vec<String> = validator
                 .iter_errors(&json)
-                .map(|e| format!("{} at {}", e, e.instance_path))
+                .map(|e| format!("{} at {}", e, e.instance_path()))
                 .collect();
             panic!(
                 "ExportRow validation failed on row {}:\n{}\n\nOutput:\n{}",
@@ -190,6 +190,138 @@ fn test_export_row_validates_against_schema() {
             );
         }
     }
+}
+
+#[test]
+fn test_analysis_receipt_validates_against_schema() {
+    let schema = load_schema();
+    let validator = build_validator_for_definition(&schema, "AnalysisReceipt");
+
+    // Test with the default 'receipt' preset
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--format")
+        .arg("json")
+        .arg("--preset")
+        .arg("receipt")
+        .output()
+        .expect("Failed to execute tokmd analyze");
+
+    let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("Failed to parse JSON output");
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "AnalysisReceipt validation failed (preset=receipt):\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap()
+        );
+    }
+}
+
+#[test]
+fn test_analysis_receipt_health_preset_validates() {
+    let schema = load_schema();
+    let validator = build_validator_for_definition(&schema, "AnalysisReceipt");
+
+    // Test with the 'health' preset which includes TODO density
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--format")
+        .arg("json")
+        .arg("--preset")
+        .arg("health")
+        .output()
+        .expect("Failed to execute tokmd analyze");
+
+    let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("Failed to parse JSON output");
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "AnalysisReceipt validation failed (preset=health):\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap()
+        );
+    }
+}
+
+#[test]
+fn test_analysis_receipt_supply_preset_validates() {
+    let schema = load_schema();
+    let validator = build_validator_for_definition(&schema, "AnalysisReceipt");
+
+    // Test with the 'supply' preset which includes assets and dependencies
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--format")
+        .arg("json")
+        .arg("--preset")
+        .arg("supply")
+        .output()
+        .expect("Failed to execute tokmd analyze");
+
+    let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("Failed to parse JSON output");
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "AnalysisReceipt validation failed (preset=supply):\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap()
+        );
+    }
+}
+
+#[test]
+fn test_analysis_receipt_with_context_window_validates() {
+    let schema = load_schema();
+    let validator = build_validator_for_definition(&schema, "AnalysisReceipt");
+
+    // Test with a context window to exercise the context_window report
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--format")
+        .arg("json")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--window")
+        .arg("128000")
+        .output()
+        .expect("Failed to execute tokmd analyze");
+
+    let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("Failed to parse JSON output");
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "AnalysisReceipt validation failed (with --window):\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap()
+        );
+    }
+
+    // Verify the context_window field is present
+    assert!(
+        json["derived"]["context_window"].is_object(),
+        "Expected context_window to be present when --window is specified"
+    );
 }
 
 #[test]
@@ -239,5 +371,16 @@ fn test_schema_version_matches_constant() {
             .expect("schema_version should be integer"),
         2,
         "ExportMeta schema_version should be 2"
+    );
+
+    // Check AnalysisReceipt schema_version const
+    let analysis_version =
+        &schema["definitions"]["AnalysisReceipt"]["properties"]["schema_version"]["const"];
+    assert_eq!(
+        analysis_version
+            .as_u64()
+            .expect("schema_version should be integer"),
+        2,
+        "AnalysisReceipt schema_version should be 2"
     );
 }

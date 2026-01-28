@@ -38,12 +38,18 @@ fn now_ms() -> u128 {
         .as_millis()
 }
 
+/// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
+fn normalize_scan_input(p: &Path) -> String {
+    let s = p.display().to_string().replace('\\', "/");
+    s.strip_prefix("./").unwrap_or(&s).to_string()
+}
+
 fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
     let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
     let excluded_redacted = should_redact && !global.excluded.is_empty();
 
     let mut args = ScanArgs {
-        paths: paths.iter().map(|p| p.display().to_string()).collect(),
+        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
         excluded: if should_redact {
             global.excluded.iter().map(|p| short_hash(p)).collect()
         } else {
@@ -466,13 +472,15 @@ fn redact_rows(rows: &[FileRow], mode: RedactMode) -> Vec<FileRow> {
         .collect()
 }
 
-fn short_hash(s: &str) -> String {
+/// Hash a string to a short 16-character hex string using blake3.
+pub fn short_hash(s: &str) -> String {
     let mut hex = blake3::hash(s.as_bytes()).to_hex().to_string();
     hex.truncate(16);
     hex
 }
 
-fn redact_path(path: &str) -> String {
+/// Redact a path by hashing it while preserving the file extension.
+pub fn redact_path(path: &str) -> String {
     let ext = Path::new(path)
         .extension()
         .and_then(|e| e.to_str())

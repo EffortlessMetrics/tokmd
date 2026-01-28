@@ -10,4 +10,4 @@ description = "Source code scanning adapter (Tokei wrapper) for tokmd."
 [dependencies]
 anyhow = "1.0.100"
 tokei = { version = "14.0.0", default-features = false }
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-config.workspace = true

@@ -11,8 +11,8 @@ description = "Deterministic aggregation and receipt modeling for tokmd. Tier 2 
 anyhow = "1.0.100"
 serde = { version = "1.0.228", features = ["derive"] }
 tokei = { version = "14.0.0", default-features = false }
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
-tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-config.workspace = true
+tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.6.0"

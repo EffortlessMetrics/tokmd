@@ -10,7 +10,7 @@
 //!
 //! ```rust,no_run
 //! use tokmd_core::scan_workflow;
-//! use tokmd_config::{ChildrenMode, GlobalArgs, TableFormat};
+//! use tokmd_config::{ChildrenMode, GlobalArgs, RedactMode, TableFormat};
 //! use tokmd_types::LangArgs;
 //!
 //! // Configure scan
@@ -23,25 +23,46 @@
 //!     children: ChildrenMode::Collapse,
 //! };
 //!
-//! // Run pipeline
-//! let receipt = scan_workflow(&global, &lang).expect("Scan failed");
+//! // Run pipeline (without redaction)
+//! let receipt = scan_workflow(&global, &lang, None).expect("Scan failed");
 //! println!("Scanned {} languages", receipt.report.rows.len());
+//!
+//! // Run pipeline (with path redaction for safer LLM sharing)
+//! let redacted = scan_workflow(&global, &lang, Some(RedactMode::Paths)).expect("Scan failed");
 //! ```
 
-use anyhow::Result;
+use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+use anyhow::Result;
 
 // Re-export types for convenience
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 
-use tokmd_config::GlobalArgs;
+use tokmd_config::{GlobalArgs, RedactMode};
 use tokmd_types::{LangArgs, LangArgsMeta, LangReceipt, ScanArgs, ScanStatus, ToolInfo};
 
 /// Runs the complete scan workflow: Scan -> Model -> Receipt.
 ///
 /// This is the high-level entry point for generating a language inventory.
-pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt> {
+///
+/// # Arguments
+///
+/// * `global` - Global scan configuration (excluded patterns, ignore settings, etc.)
+/// * `lang` - Language-specific arguments (format, top N, etc.)
+/// * `redact` - Optional redaction mode for safer output (e.g., when sharing with LLMs)
+///
+/// # Redaction Modes
+///
+/// * `None` or `Some(RedactMode::None)` - No redaction, paths shown as-is
+/// * `Some(RedactMode::Paths)` - Redact file paths (replaced with hashed values preserving extension)
+/// * `Some(RedactMode::All)` - Redact paths and excluded patterns
+pub fn scan_workflow(
+    global: &GlobalArgs,
+    lang: &LangArgs,
+    redact: Option<RedactMode>,
+) -> Result<LangReceipt> {
     // 1. Scan
     let languages = tokmd_scan::scan(&lang.paths, global)?;
 
@@ -51,6 +72,8 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
 
     // 3. Receipt Construction
     // We construct the receipt manually as it's just a data carrier.
+    let scan_args = make_scan_args(&lang.paths, global, redact);
+
     let receipt = LangReceipt {
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: SystemTime::now()
@@ -61,22 +84,7 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
         mode: "lang".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![], // Tokei scan might have warnings but scan() doesn't return them currently
-        scan: ScanArgs {
-            paths: lang
-                .paths
-                .iter()
-                .map(|p| p.to_string_lossy().to_string())
-                .collect(),
-            excluded: global.excluded.clone(),
-            excluded_redacted: false,
-            config: global.config,
-            hidden: global.hidden,
-            no_ignore: global.no_ignore,
-            no_ignore_parent: global.no_ignore || global.no_ignore_parent,
-            no_ignore_dot: global.no_ignore || global.no_ignore_dot,
-            no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
-            treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
-        },
+        scan: scan_args,
         args: LangArgsMeta {
             format: format!("{:?}", lang.format), // Enums might need Display impl or conversion
             top: lang.top,
@@ -87,4 +95,69 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
     };
 
     Ok(receipt)
+}
+
+// -------------------------
+// Redaction helpers
+// -------------------------
+
+/// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
+fn normalize_scan_input(p: &Path) -> String {
+    let s = p.display().to_string().replace('\\', "/");
+    s.strip_prefix("./").unwrap_or(&s).to_string()
+}
+
+/// Constructs `ScanArgs` with optional redaction applied.
+fn make_scan_args(
+    paths: &[std::path::PathBuf],
+    global: &GlobalArgs,
+    redact: Option<RedactMode>,
+) -> ScanArgs {
+    let redact = redact.unwrap_or(RedactMode::None);
+    let should_redact = redact == RedactMode::Paths || redact == RedactMode::All;
+    let excluded_redacted = should_redact && !global.excluded.is_empty();
+
+    let mut args = ScanArgs {
+        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
+        excluded: if should_redact {
+            global.excluded.iter().map(|p| short_hash(p)).collect()
+        } else {
+            global.excluded.clone()
+        },
+        excluded_redacted,
+        config: global.config,
+        hidden: global.hidden,
+        no_ignore: global.no_ignore,
+        no_ignore_parent: global.no_ignore || global.no_ignore_parent,
+        no_ignore_dot: global.no_ignore || global.no_ignore_dot,
+        no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
+        treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
+    };
+
+    if should_redact {
+        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
+    }
+
+    args
+}
+
+/// Compute a short (16-char) BLAKE3 hash of a string.
+fn short_hash(s: &str) -> String {
+    let mut hex = blake3::hash(s.as_bytes()).to_hex().to_string();
+    hex.truncate(16);
+    hex
+}
+
+/// Redact a path by hashing it but preserving the file extension.
+fn redact_path(path: &str) -> String {
+    let ext = Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
+    let mut out = short_hash(path);
+    if !ext.is_empty() {
+        out.push('.');
+        out.push_str(ext);
+    }
+    out
 }

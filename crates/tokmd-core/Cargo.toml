@@ -9,7 +9,8 @@ description = "High-level API façade for tokmd. The recommended entry point for
 
 [dependencies]
 anyhow = "1.0.100"
-tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
-tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
-tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
+blake3 = "1.8.3"
+tokmd-types.workspace = true
+tokmd-config.workspace = true
+tokmd-scan.workspace = true
+tokmd-model.workspace = true

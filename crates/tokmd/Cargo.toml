@@ -6,7 +6,7 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Tokei-backed repo inventory receipts (Markdown/TSV/JSONL/CSV) for PRs, CI, and LLM workflows."
-readme = "README.md"
+readme = "../../README.md"
 keywords = ["repo-analysis", "inventory", "llm-context", "receipts", "tokei"]
 categories = ["command-line-utilities", "development-tools"]
 default-run = "tokmd"
@@ -39,28 +39,28 @@ required-features = ["alias-tok"]
 
 [dependencies]
 anyhow = "1.0.100"
-clap = { version = "4.5.54", features = ["derive"] }
-tokmd-analysis = { path = "../tokmd-analysis", version = "1.0.0", features = ["git", "walk", "content"] }
-tokmd-analysis-format = { path = "../tokmd-analysis-format", version = "1.0.0", features = ["fun"] }
-tokmd-analysis-types = { path = "../tokmd-analysis-types", version = "1.0.0" }
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
-tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
-tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
-tokmd-format = { path = "../tokmd-format", version = "1.0.0" }
-tokmd-tokeignore = { path = "../tokmd-tokeignore", version = "1.0.0" }
-tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
-tokmd-git = { path = "../tokmd-git", version = "1.0.0" }
+clap = { version = "4.5.55", features = ["derive"] }
+tokmd-analysis = { workspace = true, features = ["git", "walk", "content"] }
+tokmd-analysis-format = { workspace = true, features = ["fun"] }
+tokmd-analysis-types.workspace = true
+tokmd-config.workspace = true
+tokmd-model.workspace = true
+tokmd-scan.workspace = true
+tokmd-format.workspace = true
+tokmd-tokeignore.workspace = true
+tokmd-types.workspace = true
+tokmd-git.workspace = true
 clap_complete = "4.5.65"
 dirs = "6.0.0"
 serde_json = "1.0.149"
 
 [dev-dependencies]
-assert_cmd = "2.0.14"
-predicates = "3.1.0"
-tempfile = "3.10.1"
-insta = { version = "1.39.0", features = ["json"] }
-regex = "1.10.4"
-proptest = "1.6.0"
+assert_cmd = "2.1.2"
+predicates = "3.1.3"
+tempfile = "3.24.0"
+insta = { version = "1.46.1", features = ["json"] }
+regex = "1.12.2"
+proptest = "1.9.0"
 serde_json = "1.0.149"
-tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
-jsonschema = "0.29"
+tokmd-model.workspace = true
+jsonschema = "0.40.0"
