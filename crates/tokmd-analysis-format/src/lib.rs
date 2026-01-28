@@ -146,7 +146,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             b.1.slope
                 .partial_cmp(&a.1.slope)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.0.cmp(&b.0))
+                .then_with(|| a.0.cmp(b.0))
         });
         if rows.is_empty() {
             out.push_str("- No churn signals detected.\n\n");
@@ -519,17 +519,17 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         }
     }
 
-    if let Some(fun) = &receipt.fun {
-        if let Some(label) = &fun.eco_label {
-            out.push_str("## Eco label\n\n");
-            out.push_str(&format!(
-                "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
-                label.label,
-                fmt_f64(label.score, 1),
-                label.bytes,
-                label.notes
-            ));
-        }
+    if let Some(fun) = &receipt.fun
+        && let Some(label) = &fun.eco_label
+    {
+        out.push_str("## Eco label\n\n");
+        out.push_str(&format!(
+            "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
+            label.label,
+            fmt_f64(label.score, 1),
+            label.bytes,
+            label.notes
+        ));
     }
 
     out
