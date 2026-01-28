@@ -12,6 +12,17 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+fn ensure_hidden_file() {
+    let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+    let hidden_file = fixtures.join("hidden_by_git.rs");
+    if !hidden_file.exists() {
+        std::fs::write(&hidden_file, "// This file is hidden by git\nfn hidden() {}")
+            .expect("Failed to create hidden_by_git.rs");
+    }
+}
+
 fn redact_timestamps(output: &str) -> String {
     let re = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
     re.replace_all(output, r#""generated_at_ms":0"#).to_string()
@@ -69,6 +80,7 @@ fn test_ignore_file_respected() {
 
 #[test]
 fn test_ignore_vcs_explicit() {
+    ensure_hidden_file();
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore-vcs (or --no-ignore-git)
     // Then: The file SHOULD appear in the output
@@ -82,6 +94,7 @@ fn test_ignore_vcs_explicit() {
 
 #[test]
 fn test_no_ignore_implies_vcs() {
+    ensure_hidden_file();
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore (which implies vcs ignore disabled)
     // Then: The file SHOULD appear
@@ -95,6 +108,7 @@ fn test_no_ignore_implies_vcs() {
 
 #[test]
 fn test_default_ignores_vcs() {
+    ensure_hidden_file();
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run normally
     // Then: The file SHOULD NOT appear

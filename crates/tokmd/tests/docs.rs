@@ -5,7 +5,7 @@ use std::path::PathBuf;
 /// These run against `tests/data` to ensure stability.
 
 fn tokmd() -> Command {
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");

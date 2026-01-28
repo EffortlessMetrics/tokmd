@@ -14,7 +14,7 @@ fn test_run_generates_artifacts() {
         .join("tests")
         .join("data");
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(&fixtures) // Run on test data so it's small and predictable
         .arg("run")
         .arg("--output-dir")
@@ -53,7 +53,7 @@ fn test_diff_identical_runs() {
         .join("data");
 
     // Run 1
-    let mut cmd1 = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd1 = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd1.current_dir(&fixtures)
         .arg("run")
         .arg("--output-dir")
@@ -63,7 +63,7 @@ fn test_diff_identical_runs() {
         .success();
 
     // Run 2 (same data)
-    let mut cmd2 = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd2 = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd2.current_dir(&fixtures)
         .arg("run")
         .arg("--output-dir")
@@ -73,7 +73,7 @@ fn test_diff_identical_runs() {
         .success();
 
     // Diff
-    let mut cmd_diff = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd_diff = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd_diff
         .arg("diff")
         .arg("--from")
@@ -130,7 +130,7 @@ fn test_diff_git_refs() {
     git_cmd(&repo, &["add", "."]);
     git_cmd(&repo, &["commit", "-m", "add b"]);
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(&repo)
         .arg("diff")
         .arg("HEAD~1")
