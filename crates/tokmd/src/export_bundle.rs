@@ -111,7 +111,8 @@ fn load_export_from_file(path: &PathBuf, run_dir: Option<PathBuf>) -> Result<Exp
     } else if ext == "json" {
         load_export_json(path)?
     } else {
-        scan_export_from_paths(std::slice::from_ref(path), &cli::GlobalArgs::default())?.into_export_and_meta()
+        scan_export_from_paths(std::slice::from_ref(path), &cli::GlobalArgs::default())?
+            .into_export_and_meta()
     };
 
     export.module_roots = meta.module_roots.clone();

@@ -110,10 +110,7 @@ fn tokenize_path(path: &str, stopwords: &BTreeSet<String>) -> Vec<String> {
         if part.is_empty() {
             continue;
         }
-        for token in part
-            .split(['_', '-', '.'])
-            .filter(|t| !t.is_empty())
-        {
+        for token in part.split(['_', '-', '.']).filter(|t| !t.is_empty()) {
             let term = token.to_lowercase();
             if stopwords.contains(&term) {
                 continue;
