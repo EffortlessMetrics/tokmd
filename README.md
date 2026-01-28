@@ -1,6 +1,6 @@
 # tokmd
 
-> **tokmd turns tokei scans into deterministic receipts (Markdown/TSV/JSONL/CSV) for PRs, CI, and LLM workflows.**
+> **Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase.**
 
 ![License](https://img.shields.io/crates/l/tokmd.svg)
 ![Version](https://img.shields.io/crates/v/tokmd.svg)
@@ -13,20 +13,15 @@ Repo stats are easy to compute (cloc, tokei) but annoying to **use**.
 * Different OSs (Windows/Linux) produce slightly different outputs.
 * Pasting raw line counts into LLMs (ChatGPT/Claude) is messy and unstructured.
 * Checking "did this PR bloat the codebase?" requires deterministic diffs.
+* Raw counts don't tell you where the risk is or what needs attention.
 
 ## The Product
 
-`tokmd` is a stable wrapper around the excellent [`tokei`](https://github.com/XAMPPRocky/tokei) library. It produces **receipts**: schema'd, normalized artifacts that represent the "shape" of your code.
+`tokmd` is a code intelligence platform built on the excellent [`tokei`](https://github.com/XAMPPRocky/tokei) library. It produces **receipts** (deterministic artifacts) and **analysis** (derived insights).
 
-* **Humans**: Markdown summaries, TSV tables.
-* **Machines**: JSON/JSONL/CSV datasets.
-* **LLMs**: "Map" your repo structure before asking questions.
-
-## Workflow
-
-1. **Map**: Generate a receipt of your repo (files, sizes, languages).
-2. **Select**: Feed this map to an LLM to decide what context is relevant.
-3. **Pack**: Use tools like `repomix` or `files-to-prompt` to pack the selected files.
+* **Receipts**: Schema'd, normalized artifacts that represent the "shape" of your code.
+* **Analysis**: Derived metrics like doc density, test coverage, hotspots, and effort estimation.
+* **Outputs**: Markdown summaries, JSON/JSONL/CSV datasets, SVG badges, Mermaid diagrams.
 
 ## Quickstart
 
@@ -47,79 +42,121 @@ tokmd module --module-roots crates,packages
 tokmd export --format jsonl > inventory.jsonl
 
 # 4. Analysis report (derived metrics)
-tokmd analyze --preset receipt --format md > analysis.md
+tokmd analyze --preset receipt --format md
 
-# 5. Diff two git refs
+# 5. Check context window fit
+tokmd analyze --preset receipt --window 128000
+
+# 6. Git risk analysis (hotspots, freshness)
+tokmd analyze --preset risk --format md
+
+# 7. Generate a badge
+tokmd badge --metric lines --out badge.svg
+
+# 8. Diff two states
 tokmd diff main HEAD
 ```
 
 ## Use Cases
 
-### 1. PR Summaries
-Add a `tokmd` summary to your Pull Request to show reviewers exactly what changed in the repo structure.
-
-### 2. CI Artifacts
-Save `inventory.jsonl` in your CI pipeline. Diff it against the `main` branch to detect massive deletions or unexpected file additions.
-
-### 3. LLM Context Map
-Before dumping 50 files into Claude, run `tokmd export`. Paste the list. Ask: "Based on this file list and token counts, which files are relevant to feature X?"
-
-## Safety
-`tokmd` supports **redaction** for sharing receipts publicly or with untrusted models.
-
+### LLM Context Planning
+Before dumping files into Claude, get a structured map:
 ```bash
-# Hashed paths, but keeps structure/sizes
-tokmd export --redact all
+tokmd export --format jsonl --min-code 10 > inventory.jsonl
+tokmd analyze --preset receipt --window 200000  # Check if it fits
 ```
 
-*Note: Redaction hashes filenames but preserves structure. It is not true anonymity against determined analysis.*
+### PR Summaries
+Add a `tokmd` summary to show reviewers the repo shape:
+```bash
+tokmd --format md --top 5
+```
 
-## Schema Contract
-`tokmd` guarantees output stability for automation.
-* All JSON outputs include `schema_version`.
-* Changes to the schema increment this version.
-* Fields are additive within a version.
+### CI Artifacts & Diffs
+Track changes over time:
+```bash
+tokmd run --output-dir .runs/$(git rev-parse --short HEAD)
+tokmd diff .runs/baseline .runs/current
+```
+
+### Health Checks
+Quick code quality signals:
+```bash
+tokmd analyze --preset health  # Doc density, TODO count, test ratio
+tokmd analyze --preset risk    # Hotspots, coupling, freshness
+```
 
 ## Commands
 
 | Command | Purpose |
 | :--- | :--- |
-| `tokmd` (default) | Language summary (lines, files, bytes). |
-| `tokmd module` | Group stats by top-level folders (`crates/`, `src/`). |
-| `tokmd export` | File-level dataset for downstream tools. |
-| `tokmd run` | Execute a full scan and save artifacts to a run directory. |
-| `tokmd analyze` | Derive metrics and optional enrichments from receipts or paths. |
-| `tokmd badge` | Render a simple SVG badge for a metric. |
-| `tokmd diff` | Compare two runs or receipts. |
+| `tokmd` | Language summary (lines, files, bytes). |
+| `tokmd module` | Group stats by directories (`crates/`, `src/`). |
+| `tokmd export` | File-level dataset (JSONL/CSV) for downstream tools. |
+| `tokmd run` | Full scan with artifact output to a directory. |
+| `tokmd analyze` | Derived metrics and enrichments. |
+| `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
+| `tokmd diff` | Compare two runs, receipts, or git refs. |
 | `tokmd init` | Generate a `.tokeignore` file. |
 
-## Why not just tokei?
+## Analysis Presets
+
+`tokmd analyze` provides focused analysis bundles:
+
+| Preset | What You Get |
+| :--- | :--- |
+| `receipt` | Totals, doc density, test density, distribution, COCOMO, context window fit |
+| `health` | + TODO/FIXME density |
+| `risk` | + Git hotspots, coupling, freshness, bus factor |
+| `supply` | + Asset inventory, dependency lockfile summary |
+| `architecture` | + Import/dependency graph |
+| `topics` | Semantic topic clouds from path analysis |
+| `security` | License detection, high-entropy file scanning |
+| `identity` | Project archetype, corporate fingerprint |
+| `git` | Predictive churn, trend analysis |
+| `deep` | Everything (except fun) |
+| `fun` | Eco-label, novelty outputs |
+
+## Key Features
+
+### Deterministic Output
+Same input always produces same output. Essential for diffs and CI.
+
+### Schema Versioning
+All JSON outputs include `schema_version`. Breaking changes increment the version.
+
+### Token Estimation
+Every file row includes estimated tokens for LLM context planning.
+
+### Redaction
+Share receipts safely without leaking internal paths:
+```bash
+tokmd export --redact all  # Hash paths and module names
+```
+
+### Context Window Analysis
+Check if your codebase fits in an LLM's context:
+```bash
+tokmd analyze --window 128000  # Claude's context size
+```
+
+### Git Integration
+Analyze git history for risk signals:
+- **Hotspots**: Files with high churn AND high complexity
+- **Freshness**: Stale modules that may need attention
+- **Coupling**: Files that always change together
+- **Bus Factor**: Modules with single-author risk
+
+## Why tokmd over tokei?
 
 | Feature | `tokei` | `tokmd` |
 | :--- | :--- | :--- |
-| **Core Value** | Fast, accurate counting | Usage & Workflow |
-| **Output** | Human terminal tables | Structured Receipts (Md/JSONL/TSV) |
-| **Integrations** | CLI flags | GitHub Action, Config Profiles |
-| **Stability** | Output varies by version | Strict Schema Versioning |
-| **LLM Ready** | No | Yes (Bytes, Token Estimates) |
-
-## Analysis presets
-
-`tokmd analyze` supports focused presets for faster, deterministic enrichments:
-
-| Preset | Includes |
-| :--- | :--- |
-| `receipt` | Core derived metrics only. |
-| `health` | TODO density + derived metrics. |
-| `risk` | Git hotspots/coupling/freshness. |
-| `supply` | Assets + dependency lockfile summary. |
-| `architecture` | Import graph. |
-| `topics` | Semantic topic clouds (paths only). |
-| `security` | License radar + entropy profiling. |
-| `identity` | Archetype + corporate fingerprint. |
-| `git` | Predictive churn + git metrics. |
-| `deep` | Everything (except fun). |
-| `fun` | Fun-only outputs (OBJ/MIDI/etc.). |
+| **Core Value** | Fast, accurate counting | Counting + Analysis + Workflow |
+| **Output** | Terminal tables | Receipts (Md/JSON/CSV), Badges, Diagrams |
+| **Stability** | Output varies by version | Strict schema versioning |
+| **LLM Ready** | No | Token estimates, context fit analysis |
+| **Git Analysis** | No | Hotspots, freshness, coupling |
+| **Derived Metrics** | No | Doc density, COCOMO, distribution |
 
 ## Installation
 
@@ -147,5 +184,14 @@ cargo install tokmd
     paths: '.'
 ```
 
+## Documentation
+
+- [Tutorial](docs/tutorial.md) — Getting started guide
+- [Recipes](docs/recipes.md) — Real-world usage examples
+- [CLI Reference](docs/reference-cli.md) — All flags and options
+- [Schema](docs/SCHEMA.md) — Receipt format documentation
+- [Philosophy](docs/explanation.md) — Design principles
+
 ## License
+
 MIT or Apache-2.0.
