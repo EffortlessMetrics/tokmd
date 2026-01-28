@@ -9,4 +9,4 @@ description = "Template generation for .tokeignore files."
 
 [dependencies]
 anyhow = "1.0.100"
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-config.workspace = true

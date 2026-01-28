@@ -9,7 +9,7 @@ description = "Core data types and contracts for tokmd. Tier 1 stability."
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+tokmd-config.workspace = true
 
 [dev-dependencies]
 proptest = "1.6.0"
