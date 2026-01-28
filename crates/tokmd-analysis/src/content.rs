@@ -27,10 +27,8 @@ pub(crate) fn build_todo_report(
     let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES) as usize;
 
     for rel in files {
-        if let Some(max_total) = max_total {
-            if total_bytes >= max_total {
-                break;
-            }
+        if max_total.is_some_and(|max| total_bytes >= max) {
+            break;
         }
         let path = root.join(rel);
         let bytes = tokmd_content::read_head(&path, per_file_limit)?;
@@ -81,10 +79,8 @@ pub(crate) fn build_duplicate_report(
         let size = std::fs::metadata(root.join(rel))
             .map(|m| m.len())
             .unwrap_or(0);
-        if let Some(limit) = size_limit {
-            if size > limit {
-                continue;
-            }
+        if size_limit.is_some_and(|limit| size > limit) {
+            continue;
         }
         by_size.entry(size).or_default().push(rel.clone());
     }
@@ -149,10 +145,8 @@ pub(crate) fn build_import_report(
     let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES) as usize;
 
     for rel in files {
-        if let Some(max_total) = max_total {
-            if total_bytes >= max_total {
-                break;
-            }
+        if max_total.is_some_and(|max| total_bytes >= max) {
+            break;
         }
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let row = match map.get(&rel_str) {
@@ -238,17 +232,13 @@ fn parse_rust_imports(lines: &[String]) -> Vec<String> {
     let mut imports = Vec::new();
     for line in lines {
         let trimmed = line.trim();
-        if trimmed.starts_with("use ") {
-            if let Some(rest) = trimmed.strip_prefix("use ") {
-                let rest = rest.trim_end_matches(';').trim();
-                let target = rest.split("::").next().unwrap_or(rest).to_string();
-                imports.push(target);
-            }
-        } else if trimmed.starts_with("mod ") {
-            if let Some(rest) = trimmed.strip_prefix("mod ") {
-                let target = rest.trim_end_matches(';').trim().to_string();
-                imports.push(target);
-            }
+        if let Some(rest) = trimmed.strip_prefix("use ") {
+            let rest = rest.trim_end_matches(';').trim();
+            let target = rest.split("::").next().unwrap_or(rest).to_string();
+            imports.push(target);
+        } else if let Some(rest) = trimmed.strip_prefix("mod ") {
+            let target = rest.trim_end_matches(';').trim().to_string();
+            imports.push(target);
         }
     }
     imports
@@ -263,11 +253,10 @@ fn parse_js_imports(lines: &[String]) -> Vec<String> {
             if let Some(target) = extract_quoted(trimmed) {
                 imports.push(target);
             }
-        }
-        if let Some(idx) = trimmed.find("require(") {
-            if let Some(target) = extract_quoted(&trimmed[idx..]) {
-                imports.push(target);
-            }
+        } else if let Some(idx) = trimmed.find("require(")
+            && let Some(target) = extract_quoted(&trimmed[idx..])
+        {
+            imports.push(target);
         }
     }
     imports
@@ -278,16 +267,12 @@ fn parse_py_imports(lines: &[String]) -> Vec<String> {
     let mut imports = Vec::new();
     for line in lines {
         let trimmed = line.trim();
-        if trimmed.starts_with("import ") {
-            if let Some(rest) = trimmed.strip_prefix("import ") {
-                let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
-                imports.push(target);
-            }
-        } else if trimmed.starts_with("from ") {
-            if let Some(rest) = trimmed.strip_prefix("from ") {
-                let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
-                imports.push(target);
-            }
+        if let Some(rest) = trimmed.strip_prefix("import ") {
+            let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
+            imports.push(target);
+        } else if let Some(rest) = trimmed.strip_prefix("from ") {
+            let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
+            imports.push(target);
         }
     }
     imports
@@ -313,10 +298,8 @@ fn parse_go_imports(lines: &[String]) -> Vec<String> {
             }
             continue;
         }
-        if trimmed.starts_with("import ") {
-            if let Some(target) = extract_quoted(trimmed) {
-                imports.push(target);
-            }
+        if trimmed.starts_with("import ") && let Some(target) = extract_quoted(trimmed) {
+            imports.push(target);
         }
     }
     imports
@@ -326,7 +309,7 @@ fn parse_go_imports(lines: &[String]) -> Vec<String> {
 fn extract_quoted(text: &str) -> Option<String> {
     let mut chars = text.chars();
     let mut quote = None;
-    while let Some(c) = chars.next() {
+    for c in chars.by_ref() {
         if c == '"' || c == '\'' {
             quote = Some(c);
             break;
@@ -351,7 +334,7 @@ fn normalize_import_target(target: &str) -> String {
     }
     let trimmed = trimmed.trim_matches('"').trim_matches('\'');
     trimmed
-        .split(|c| c == '/' || c == ':' || c == '.')
+        .split(['/', ':', '.'])
         .next()
         .unwrap_or(trimmed)
         .to_string()

@@ -309,7 +309,12 @@ fn write_export_to<W: Write>(
 }
 
 fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArgs) -> Result<()> {
-    let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(out);
+    // We write headers manually to ensure they appear even if there are no rows.
+    // So we disable automatic headers for serialize.
+    let mut wtr = csv::WriterBuilder::new().has_headers(false).from_writer(out);
+    wtr.write_record([
+        "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
+    ])?;
 
     for r in redact_rows(&export.rows, args.redact) {
         wtr.serialize(r)?;

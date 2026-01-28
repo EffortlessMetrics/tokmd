@@ -108,7 +108,7 @@ fn tokenize_path(path: &str, stopwords: &BTreeSet<String>) -> Vec<String> {
             continue;
         }
         for token in part
-            .split(|c: char| c == '_' || c == '-' || c == '.')
+            .split(['_', '-', '.'])
             .filter(|t| !t.is_empty())
         {
             let term = token.to_lowercase();
