@@ -139,7 +139,7 @@ fn parse_key_value(line: &str, key: &str) -> Option<String> {
 fn extract_quoted(text: &str) -> Option<String> {
     let mut chars = text.chars();
     let mut quote = None;
-    while let Some(c) = chars.next() {
+    for c in chars.by_ref() {
         if c == '"' || c == '\'' {
             quote = Some(c);
             break;

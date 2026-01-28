@@ -30,10 +30,8 @@ pub(crate) fn build_entropy_report(
         .unwrap_or(DEFAULT_SAMPLE_BYTES as u64) as usize;
 
     for rel in files {
-        if let Some(max_total) = max_total {
-            if total_bytes >= max_total {
-                break;
-            }
+        if max_total.is_some_and(|limit| total_bytes >= limit) {
+            break;
         }
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let module = row_map
