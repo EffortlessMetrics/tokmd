@@ -2718,6 +2718,7 @@ name = "tokmd-core"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "tokmd-config",
  "tokmd-model",
  "tokmd-scan",

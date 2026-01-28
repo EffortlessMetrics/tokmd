@@ -55,9 +55,9 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         0,
     );
 
-    // Get redact mode (affects export.jsonl only currently - lang/module receipts don't contain file paths)
+    // Get redact mode - applies to scan args in all receipts (lang.json, module.json, export.jsonl)
     let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
-    let scan_args = make_scan_args(&args.paths, global);
+    let scan_args = make_scan_args(&args.paths, global, redact_mode);
 
     // 4. Write artifacts using tokmd-format for consistency
 
@@ -164,11 +164,26 @@ fn now_ms() -> u128 {
         .as_millis()
 }
 
-fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::ScanArgs {
-    tokmd_types::ScanArgs {
+fn make_scan_args(
+    paths: &[PathBuf],
+    global: &cli::GlobalArgs,
+    redact: cli::RedactMode,
+) -> tokmd_types::ScanArgs {
+    let should_redact = redact == cli::RedactMode::Paths || redact == cli::RedactMode::All;
+    let excluded_redacted = should_redact && !global.excluded.is_empty();
+
+    let mut args = tokmd_types::ScanArgs {
         paths: paths.iter().map(|p| p.display().to_string()).collect(),
-        excluded: global.excluded.clone(),
-        excluded_redacted: false,
+        excluded: if should_redact {
+            global
+                .excluded
+                .iter()
+                .map(|p| format::short_hash(p))
+                .collect()
+        } else {
+            global.excluded.clone()
+        },
+        excluded_redacted,
         config: global.config,
         hidden: global.hidden,
         no_ignore: global.no_ignore,
@@ -176,5 +191,15 @@ fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::S
         no_ignore_dot: global.no_ignore || global.no_ignore_dot,
         no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
+    };
+
+    if should_redact {
+        args.paths = args
+            .paths
+            .iter()
+            .map(|p| format::redact_path(p))
+            .collect();
     }
+
+    args
 }
