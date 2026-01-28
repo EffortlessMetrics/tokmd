@@ -13,3 +13,6 @@ serde = { version = "1.0.228", features = ["derive"] }
 tokei = { version = "14.0.0", default-features = false }
 tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
 tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+
+[dev-dependencies]
+proptest = "1.6.0"
