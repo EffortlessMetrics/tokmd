@@ -63,3 +63,4 @@ regex = "1.10.4"
 proptest = "1.6.0"
 serde_json = "1.0.149"
 tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
+jsonschema = "0.29"

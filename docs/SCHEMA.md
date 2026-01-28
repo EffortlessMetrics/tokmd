@@ -18,6 +18,8 @@ Every receipt includes:
 | `tool.name` | `string` | Always `"tokmd"`. |
 | `tool.version` | `string` | The version of tokmd used (e.g., `"1.2.0"`). |
 | `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, or `"analysis"`. |
+| `status` | `string` | Scan status: `"complete"` or `"partial"`. |
+| `warnings` | `array` | Array of warning strings generated during the scan. |
 | `scan` | `object` | The configuration used for the file scan (paths, excludes, etc.). |
 
 ---
@@ -26,13 +28,15 @@ Every receipt includes:
 
 Produced by `tokmd --format json`.
 
-**Schema version**: 1
+**Schema version**: 2
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "mode": "lang",
   "tool": { ... },
+  "status": "complete",
+  "warnings": [],
   "scan": { ... },
   "args": {
     "top": 0,
@@ -43,6 +47,8 @@ Produced by `tokmd --format json`.
     "code": 1200,
     "lines": 1500,
     "files": 15,
+    "bytes": 45000,
+    "tokens": 11250,
     "avg_lines": 100
   },
   "rows": [
@@ -51,6 +57,8 @@ Produced by `tokmd --format json`.
       "code": 1000,
       "lines": 1200,
       "files": 10,
+      "bytes": 36000,
+      "tokens": 9000,
       "avg_lines": 120
     },
     {
@@ -58,6 +66,8 @@ Produced by `tokmd --format json`.
       "code": 200,
       "lines": 300,
       "files": 5,
+      "bytes": 9000,
+      "tokens": 2250,
       "avg_lines": 60
     }
   ]
@@ -68,13 +78,15 @@ Produced by `tokmd --format json`.
 
 Produced by `tokmd module --format json`.
 
-**Schema version**: 1
+**Schema version**: 2
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "mode": "module",
   "tool": { ... },
+  "status": "complete",
+  "warnings": [],
   "scan": { ... },
   "args": {
     "module_roots": ["crates", "packages"],
@@ -89,6 +101,8 @@ Produced by `tokmd module --format json`.
       "code": 500,
       "lines": 600,
       "files": 4,
+      "bytes": 18000,
+      "tokens": 4500,
       "avg_lines": 150
     }
   ]
@@ -99,7 +113,7 @@ Produced by `tokmd module --format json`.
 
 Produced by `tokmd export --format jsonl` (default).
 
-**Schema version**: 1
+**Schema version**: 2
 
 Export output consists of a **Meta Record** (first line) followed by **Data Rows**.
 
@@ -108,9 +122,11 @@ Export output consists of a **Meta Record** (first line) followed by **Data Rows
 ```json
 {
   "type": "meta",
-  "schema_version": 1,
+  "schema_version": 2,
   "mode": "export",
   "tool": { ... },
+  "status": "complete",
+  "warnings": [],
   "scan": { ... },
   "args": {
     "format": "jsonl",

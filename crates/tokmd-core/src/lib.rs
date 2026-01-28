@@ -68,6 +68,7 @@ pub fn scan_workflow(global: &GlobalArgs, lang: &LangArgs) -> Result<LangReceipt
                 .map(|p| p.to_string_lossy().to_string())
                 .collect(),
             excluded: global.excluded.clone(),
+            excluded_redacted: false,
             config: global.config,
             hidden: global.hidden,
             no_ignore: global.no_ignore,

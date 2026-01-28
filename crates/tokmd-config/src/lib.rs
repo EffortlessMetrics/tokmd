@@ -159,6 +159,10 @@ pub struct RunArgs {
     /// Also emit analysis receipts using this preset.
     #[arg(long, value_enum)]
     pub analysis: Option<AnalysisPreset>,
+
+    /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
+    #[arg(long, value_enum)]
+    pub redact: Option<RedactMode>,
 }
 
 #[derive(Args, Debug, Clone)]

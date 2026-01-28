@@ -39,9 +39,17 @@ fn now_ms() -> u128 {
 }
 
 fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
+    let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
+    let excluded_redacted = should_redact && !global.excluded.is_empty();
+
     let mut args = ScanArgs {
         paths: paths.iter().map(|p| p.display().to_string()).collect(),
-        excluded: global.excluded.clone(),
+        excluded: if should_redact {
+            global.excluded.iter().map(|p| short_hash(p)).collect()
+        } else {
+            global.excluded.clone()
+        },
+        excluded_redacted,
         config: global.config,
         hidden: global.hidden,
         no_ignore: global.no_ignore,
@@ -51,7 +59,7 @@ fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>)
         treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
     };
 
-    if redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All) {
+    if should_redact {
         args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
     }
     args
@@ -343,6 +351,10 @@ fn write_export_jsonl<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
+        let should_redact =
+            args.redact == RedactMode::Paths || args.redact == RedactMode::All;
+        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
+
         let meta = ExportMeta {
             ty: "meta",
             schema_version: tokmd_types::SCHEMA_VERSION,
@@ -360,7 +372,12 @@ fn write_export_jsonl<W: Write>(
                 min_code: args.min_code,
                 max_rows: args.max_rows,
                 redact: args.redact,
-                strip_prefix: args.strip_prefix.as_ref().map(|p| p.display().to_string()),
+                strip_prefix: if should_redact {
+                    args.strip_prefix.as_ref().map(|p| redact_path(&p.display().to_string()))
+                } else {
+                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
+                },
+                strip_prefix_redacted,
             },
         };
         writeln!(out, "{}", serde_json::to_string(&meta)?)?;
@@ -383,6 +400,10 @@ fn write_export_json<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
+        let should_redact =
+            args.redact == RedactMode::Paths || args.redact == RedactMode::All;
+        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
+
         let receipt = ExportReceipt {
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
@@ -399,7 +420,12 @@ fn write_export_json<W: Write>(
                 min_code: args.min_code,
                 max_rows: args.max_rows,
                 redact: args.redact,
-                strip_prefix: args.strip_prefix.as_ref().map(|p| p.display().to_string()),
+                strip_prefix: if should_redact {
+                    args.strip_prefix.as_ref().map(|p| redact_path(&p.display().to_string()))
+                } else {
+                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
+                },
+                strip_prefix_redacted,
             },
             data: ExportData {
                 rows: redact_rows(&export.rows, args.redact),
@@ -455,4 +481,47 @@ fn redact_path(path: &str) -> String {
         out.push_str(ext);
     }
     out
+}
+
+// -----------------
+// Run command helper
+// -----------------
+
+/// Write export data as JSONL to a file path.
+///
+/// This is a convenience function for the `run` command that accepts
+/// pre-constructed `ScanArgs` and `ExportArgsMeta` rather than requiring
+/// the full `GlobalArgs` and `ExportArgs` structs.
+pub fn write_export_jsonl_to_file(
+    path: &Path,
+    export: &ExportData,
+    scan: &ScanArgs,
+    args_meta: &ExportArgsMeta,
+) -> Result<()> {
+    let file = File::create(path)?;
+    let mut out = BufWriter::new(file);
+
+    let meta = ExportMeta {
+        ty: "meta",
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "export".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan.clone(),
+        args: args_meta.clone(),
+    };
+    writeln!(out, "{}", serde_json::to_string(&meta)?)?;
+
+    for row in redact_rows(&export.rows, args_meta.redact) {
+        let wrapper = JsonlRow {
+            ty: "row",
+            row: &row,
+        };
+        writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
+    }
+
+    out.flush()?;
+    Ok(())
 }

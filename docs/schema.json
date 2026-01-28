@@ -10,14 +10,21 @@
     { "$ref": "#/definitions/ExportRow" }
   ],
   "definitions": {
+    "ScanStatus": {
+      "type": "string",
+      "enum": ["complete", "partial"],
+      "description": "Status of the scan operation."
+    },
     "LangReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
+        "schema_version": { "type": "integer", "const": 2 },
         "generated_at_ms": { "type": "integer" },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "lang" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": {
           "type": "object",
@@ -33,12 +40,14 @@
     },
     "ModuleReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows", "total"],
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
+        "schema_version": { "type": "integer", "const": 2 },
         "generated_at_ms": { "type": "integer" },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "module" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": {
           "type": "object",
@@ -55,12 +64,14 @@
     },
     "ExportReceipt": {
       "type": "object",
-      "required": ["schema_version", "tool", "mode", "scan", "args", "rows"],
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 1 },
+        "schema_version": { "type": "integer", "const": 2 },
         "generated_at_ms": { "type": "integer" },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": { "$ref": "#/definitions/ExportArgsMeta" },
         "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } }
@@ -68,13 +79,15 @@
     },
     "ExportMeta": {
       "type": "object",
-      "required": ["type", "schema_version", "tool", "mode", "scan", "args"],
+      "required": ["type", "schema_version", "tool", "mode", "status", "warnings", "scan", "args"],
       "properties": {
         "type": { "type": "string", "const": "meta" },
-        "schema_version": { "type": "integer", "const": 1 },
+        "schema_version": { "type": "integer", "const": 2 },
         "generated_at_ms": { "type": "integer" },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
         "scan": { "$ref": "#/definitions/ScanArgs" },
         "args": { "$ref": "#/definitions/ExportArgsMeta" }
       }
@@ -91,7 +104,9 @@
         "code": { "type": "integer" },
         "comments": { "type": "integer" },
         "blanks": { "type": "integer" },
-        "lines": { "type": "integer" }
+        "lines": { "type": "integer" },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
       }
     },
     "ToolInfo": {
@@ -124,39 +139,45 @@
     },
     "Totals": {
       "type": "object",
-      "required": ["code", "lines", "files", "avg_lines"],
+      "required": ["code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "code": { "type": "integer", "description": "Total lines of code." },
         "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
         "files": { "type": "integer", "description": "Total number of files processed." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated total token count." },
         "avg_lines": { "type": "integer", "description": "Average lines per file." }
       }
     },
     "LangRow": {
       "type": "object",
-      "required": ["lang", "code", "lines", "files", "avg_lines"],
+      "required": ["lang", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "lang": { "type": "string", "description": "Language name (e.g., Rust, Markdown)." },
         "code": { "type": "integer" },
         "lines": { "type": "integer" },
         "files": { "type": "integer" },
+        "bytes": { "type": "integer", "description": "File size in bytes for this language." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this language." },
         "avg_lines": { "type": "integer" }
       }
     },
     "ModuleRow": {
       "type": "object",
-      "required": ["module", "code", "lines", "files", "avg_lines"],
+      "required": ["module", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
       "properties": {
         "module": { "type": "string", "description": "Module path/name." },
         "code": { "type": "integer" },
         "lines": { "type": "integer" },
         "files": { "type": "integer" },
+        "bytes": { "type": "integer", "description": "File size in bytes for this module." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this module." },
         "avg_lines": { "type": "integer" }
       }
     },
     "FileRow": {
       "type": "object",
-      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines"],
+      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens"],
       "properties": {
         "path": { "type": "string", "description": "Relative file path." },
         "module": { "type": "string", "description": "Module the file belongs to." },
@@ -165,7 +186,9 @@
         "code": { "type": "integer" },
         "comments": { "type": "integer" },
         "blanks": { "type": "integer" },
-        "lines": { "type": "integer" }
+        "lines": { "type": "integer" },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
       }
     },
     "ChildrenMode": {

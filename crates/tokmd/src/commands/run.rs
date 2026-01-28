@@ -15,16 +15,24 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     // 2. Determine output directory
     let output_dir = if let Some(d) = args.output_dir {
+        std::fs::create_dir_all(&d).context("Failed to create output directory")?;
         d
     } else {
-        let state_dir = dirs::state_dir()
-            .or_else(dirs::data_local_dir)
-            .unwrap_or_else(std::env::temp_dir);
         let run_id = args.name.unwrap_or_else(|| format!("run-{}", now_ms()));
-        state_dir.join("tokmd").join("runs").join(run_id)
-    };
+        let local_runs = PathBuf::from(".runs/tokmd/runs").join(&run_id);
 
-    std::fs::create_dir_all(&output_dir).context("Failed to create output directory")?;
+        // Try repo-local first, fall back to OS state dir if creation fails
+        if std::fs::create_dir_all(&local_runs).is_ok() {
+            local_runs
+        } else {
+            let state_dir = dirs::state_dir()
+                .or_else(dirs::data_local_dir)
+                .unwrap_or_else(std::env::temp_dir);
+            let fallback = state_dir.join("tokmd").join("runs").join(run_id);
+            std::fs::create_dir_all(&fallback).context("Failed to create output directory")?;
+            fallback
+        }
+    };
     println!("Writing run artifacts to: {}", output_dir.display());
 
     // 3. Generate Reports
@@ -92,47 +100,27 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         serde_json::to_writer(f, &receipt)?;
     }
 
-    // 4. Write export.jsonl
+    // 4. Write export.jsonl (using tokmd-format for consistent schema/redaction handling)
     let export_path = output_dir.join("export.jsonl");
-    {
-        let f = std::fs::File::create(&export_path).context("Failed to create export.jsonl")?;
-        let mut writer = std::io::BufWriter::new(f);
-        use std::io::Write;
-
-        // Header
-        let header = serde_json::json!({
-            "type": "meta",
-            "schema_version": tokmd_types::SCHEMA_VERSION,
-            "generated_at_ms": now_ms(),
-            "tool": tokmd_types::ToolInfo::current(),
-            "mode": "export",
-            "status": "complete",
-            "warnings": [],
-            "scan": make_scan_args(&args.paths, global),
-            "args": tokmd_types::ExportArgsMeta {
-               format: cli::ExportFormat::Jsonl,
-               module_roots: vec!["crates".to_string(), "packages".to_string()],
-               module_depth: 2,
-               children: cli::ChildIncludeMode::Separate,
-               min_code: 0,
-               max_rows: 0,
-               redact: cli::RedactMode::None,
-               strip_prefix: None,
-            }
-        });
-        serde_json::to_writer(&mut writer, &header)?;
-        writeln!(&mut writer)?;
-
-        // Rows
-        for row in &export_data.rows {
-            let mut val = serde_json::to_value(row)?;
-            if let Some(obj) = val.as_object_mut() {
-                obj.insert("type".to_string(), "row".into());
-            }
-            serde_json::to_writer(&mut writer, &val)?;
-            writeln!(&mut writer)?;
-        }
-    }
+    let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
+    let export_args_meta = tokmd_types::ExportArgsMeta {
+        format: cli::ExportFormat::Jsonl,
+        module_roots: vec!["crates".to_string(), "packages".to_string()],
+        module_depth: 2,
+        children: cli::ChildIncludeMode::Separate,
+        min_code: 0,
+        max_rows: 0,
+        redact: redact_mode,
+        strip_prefix: None,
+        strip_prefix_redacted: false,
+    };
+    tokmd_format::write_export_jsonl_to_file(
+        &export_path,
+        &export_data,
+        &make_scan_args(&args.paths, global),
+        &export_args_meta,
+    )
+    .context("Failed to write export.jsonl")?;
 
     // 5. Write receipt.json
     let receipt = tokmd_types::RunReceipt {
@@ -206,6 +194,7 @@ fn make_scan_args(paths: &[PathBuf], global: &cli::GlobalArgs) -> tokmd_types::S
     tokmd_types::ScanArgs {
         paths: paths.iter().map(|p| p.display().to_string()).collect(),
         excluded: global.excluded.clone(),
+        excluded_redacted: false,
         config: global.config,
         hidden: global.hidden,
         no_ignore: global.no_ignore,
