@@ -101,8 +101,10 @@ proptest! {
         let full = Path::new(&full_path);
         let normalized = normalize_path(full, Some(prefix));
 
-        prop_assert!(!normalized.starts_with(&prefix_path),
-            "Prefix '{}' should be stripped from '{}', got '{}'", prefix_path, full_path, normalized);
+        // The key property is that after stripping the prefix, we get exactly the suffix.
+        // Note: We don't check !normalized.starts_with(&prefix_path) because when
+        // prefix and suffix contain the same segments (e.g., prefix="_", suffix="_"),
+        // the result legitimately starts with the same characters as the prefix.
         prop_assert_eq!(&normalized, &suffix_path,
             "After stripping '{}' from '{}', expected '{}', got '{}'",
             prefix_path, full_path, suffix_path, normalized);
