@@ -262,3 +262,30 @@ pub struct ExportArgs {
     pub meta: bool,
     pub strip_prefix: Option<PathBuf>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String,
+    pub budget_tokens: usize,
+    pub used_tokens: usize,
+    pub utilization_pct: f64,
+    pub strategy: String,
+    pub rank_by: String,
+    pub file_count: usize,
+    pub files: Vec<ContextFileRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextFileRow {
+    pub path: String,
+    pub module: String,
+    pub lang: String,
+    pub tokens: usize,
+    pub code: usize,
+    pub lines: usize,
+    pub bytes: usize,
+    pub value: usize,
+}

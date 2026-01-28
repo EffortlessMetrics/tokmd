@@ -113,6 +113,9 @@ pub enum Commands {
 
     /// Compare two receipts or runs.
     Diff(DiffArgs),
+
+    /// Pack files into an LLM context window within a token budget.
+    Context(CliContextArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -438,6 +441,7 @@ pub enum AnalysisFormat {
     Obj,
     Midi,
     Tree,
+    Html,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -483,6 +487,8 @@ pub enum ExportFormat {
     Jsonl,
     /// A single JSON array.
     Json,
+    /// CycloneDX 1.6 JSON SBOM format.
+    Cyclonedx,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -534,4 +540,75 @@ pub enum InitProfile {
     Python,
     Go,
     Cpp,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CliContextArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to "."
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
+
+    /// Token budget with optional k/m suffix (e.g., "128k", "1m", "50000").
+    #[arg(long, default_value = "128k")]
+    pub budget: String,
+
+    /// Packing strategy.
+    #[arg(long, value_enum, default_value_t = ContextStrategy::Greedy)]
+    pub strategy: ContextStrategy,
+
+    /// Metric to rank files by.
+    #[arg(long, value_enum, default_value_t = ValueMetric::Code)]
+    pub rank_by: ValueMetric,
+
+    /// Output mode.
+    #[arg(long, value_enum, default_value_t = ContextOutput::List)]
+    pub output: ContextOutput,
+
+    /// Strip comments and blank lines from bundle output.
+    #[arg(long)]
+    pub compress: bool,
+
+    /// Module roots (see `tokmd module`).
+    #[arg(long, value_delimiter = ',')]
+    pub module_roots: Option<Vec<String>>,
+
+    /// Module depth (see `tokmd module`).
+    #[arg(long)]
+    pub module_depth: Option<usize>,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ContextStrategy {
+    /// Select files by value until budget is exhausted.
+    #[default]
+    Greedy,
+    /// Round-robin across modules/languages for coverage, then greedy fill.
+    Spread,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ValueMetric {
+    /// Rank by lines of code.
+    #[default]
+    Code,
+    /// Rank by token count.
+    Tokens,
+    /// Rank by git churn (requires git feature).
+    Churn,
+    /// Rank by hotspot score (requires git feature).
+    Hotspot,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ContextOutput {
+    /// Print list of selected files with stats.
+    #[default]
+    List,
+    /// Concatenate file contents into a single bundle.
+    Bundle,
+    /// Output JSON receipt with selection details.
+    Json,
 }

@@ -1,6 +1,7 @@
 pub(crate) mod analyze;
 pub(crate) mod badge;
 pub(crate) mod completions;
+pub(crate) mod context;
 pub(crate) mod diff;
 pub(crate) mod export;
 pub(crate) mod init;
@@ -23,5 +24,6 @@ pub(crate) fn dispatch(cli: cli::Cli, profile: Option<&cli::Profile>) -> Result<
         cli::Commands::Analyze(args) => analyze::handle(args, global),
         cli::Commands::Badge(args) => badge::handle(args, global),
         cli::Commands::Init(args) => init::handle(args),
+        cli::Commands::Context(args) => context::handle(args, global),
     }
 }

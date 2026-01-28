@@ -17,6 +17,7 @@ mod analysis_utils;
 mod badge;
 mod commands;
 mod config;
+mod context_pack;
 mod export_bundle;
 
 use anyhow::Result;

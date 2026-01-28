@@ -1,0 +1,10 @@
+# Property test configuration for proptest
+# See: https://altsysrq.github.io/proptest-book/proptest/config-params.html
+
+[default]
+# Number of test cases per property test
+cases = 256
+# Maximum shrinking iterations when finding minimal failing case
+max_shrink_iters = 1000
+# Timeout per test case in milliseconds
+timeout = 10000
