@@ -347,7 +347,7 @@ mod tests {
 
         #[test]
         fn is_infra_lang_case_insensitive(lang in prop::sample::select(vec!["json", "yaml", "toml", "markdown", "xml", "html", "css"])) {
-            prop_assert!(is_infra_lang(&lang), "Should detect infra lang: {}", lang);
+            prop_assert!(is_infra_lang(lang), "Should detect infra lang: {}", lang);
             prop_assert!(is_infra_lang(&lang.to_uppercase()), "Should detect infra lang (upper): {}", lang.to_uppercase());
         }
 
@@ -357,14 +357,14 @@ mod tests {
             "makefile", "dockerfile", "hcl", "terraform", "nix", "cmake", "ini",
             "properties", "gitignore", "gitconfig", "editorconfig", "csv", "tsv", "svg"
         ])) {
-            prop_assert!(is_infra_lang(&lang), "Should detect known infra lang: {}", lang);
+            prop_assert!(is_infra_lang(lang), "Should detect known infra lang: {}", lang);
         }
 
         #[test]
         fn is_infra_lang_code_langs_not_infra(lang in prop::sample::select(vec![
             "rust", "python", "javascript", "typescript", "go", "java", "c", "cpp"
         ])) {
-            prop_assert!(!is_infra_lang(&lang), "Code lang should not be infra: {}", lang);
+            prop_assert!(!is_infra_lang(lang), "Code lang should not be infra: {}", lang);
         }
     }
 }

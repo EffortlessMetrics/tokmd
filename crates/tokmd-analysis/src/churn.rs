@@ -167,7 +167,7 @@ mod tests {
         let export = export_with_paths(&["src/lib.rs"]);
         let commits = vec![
             tokmd_git::GitCommit {
-                timestamp: 1 * SECONDS_PER_WEEK,
+                timestamp: SECONDS_PER_WEEK,
                 author: "a@acme.com".to_string(),
                 files: vec!["src/lib.rs".to_string()],
             },
