@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use tokmd_config as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
@@ -12,8 +12,8 @@ pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()
     let (from, to) = resolve_targets(&args)?;
     let from_report = resolve_lang_report(&from, global)
         .with_context(|| format!("Failed to load diff source '{}'", from))?;
-    let to_report =
-        resolve_lang_report(&to, global).with_context(|| format!("Failed to load diff source '{}'", to))?;
+    let to_report = resolve_lang_report(&to, global)
+        .with_context(|| format!("Failed to load diff source '{}'", to))?;
 
     println!("Diffing Language Summaries: {} -> {}", from, to);
     println!(

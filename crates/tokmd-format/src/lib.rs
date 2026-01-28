@@ -351,8 +351,7 @@ fn write_export_jsonl<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
-        let should_redact =
-            args.redact == RedactMode::Paths || args.redact == RedactMode::All;
+        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
 
         let meta = ExportMeta {
@@ -373,7 +372,9 @@ fn write_export_jsonl<W: Write>(
                 max_rows: args.max_rows,
                 redact: args.redact,
                 strip_prefix: if should_redact {
-                    args.strip_prefix.as_ref().map(|p| redact_path(&p.display().to_string()))
+                    args.strip_prefix
+                        .as_ref()
+                        .map(|p| redact_path(&p.display().to_string()))
                 } else {
                     args.strip_prefix.as_ref().map(|p| p.display().to_string())
                 },
@@ -400,8 +401,7 @@ fn write_export_json<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
-        let should_redact =
-            args.redact == RedactMode::Paths || args.redact == RedactMode::All;
+        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
 
         let receipt = ExportReceipt {
@@ -421,7 +421,9 @@ fn write_export_json<W: Write>(
                 max_rows: args.max_rows,
                 redact: args.redact,
                 strip_prefix: if should_redact {
-                    args.strip_prefix.as_ref().map(|p| redact_path(&p.display().to_string()))
+                    args.strip_prefix
+                        .as_ref()
+                        .map(|p| redact_path(&p.display().to_string()))
                 } else {
                     args.strip_prefix.as_ref().map(|p| p.display().to_string())
                 },
@@ -484,8 +486,62 @@ fn redact_path(path: &str) -> String {
 }
 
 // -----------------
-// Run command helper
+// Run command helpers
 // -----------------
+
+/// Write a lang report as JSON to a file path.
+///
+/// This is a convenience function for the `run` command that accepts
+/// pre-constructed `ScanArgs` and `LangArgsMeta` rather than requiring
+/// the full CLI args structs.
+pub fn write_lang_json_to_file(
+    path: &Path,
+    report: &LangReport,
+    scan: &ScanArgs,
+    args_meta: &LangArgsMeta,
+) -> Result<()> {
+    let receipt = LangReceipt {
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "lang".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan.clone(),
+        args: args_meta.clone(),
+        report: report.clone(),
+    };
+    let file = File::create(path)?;
+    serde_json::to_writer(file, &receipt)?;
+    Ok(())
+}
+
+/// Write a module report as JSON to a file path.
+///
+/// This is a convenience function for the `run` command that accepts
+/// pre-constructed `ScanArgs` and `ModuleArgsMeta` rather than requiring
+/// the full CLI args structs.
+pub fn write_module_json_to_file(
+    path: &Path,
+    report: &ModuleReport,
+    scan: &ScanArgs,
+    args_meta: &ModuleArgsMeta,
+) -> Result<()> {
+    let receipt = ModuleReceipt {
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "module".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan.clone(),
+        args: args_meta.clone(),
+        report: report.clone(),
+    };
+    let file = File::create(path)?;
+    serde_json::to_writer(file, &receipt)?;
+    Ok(())
+}
 
 /// Write export data as JSONL to a file path.
 ///

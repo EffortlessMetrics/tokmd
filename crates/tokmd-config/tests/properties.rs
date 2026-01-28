@@ -95,9 +95,17 @@ const SHELLS: [Shell; 5] = [
 
 // Generate round-trip tests
 roundtrip_test!(table_format_roundtrip, TableFormat, TABLE_FORMATS.to_vec());
-roundtrip_test!(export_format_roundtrip, ExportFormat, EXPORT_FORMATS.to_vec());
+roundtrip_test!(
+    export_format_roundtrip,
+    ExportFormat,
+    EXPORT_FORMATS.to_vec()
+);
 roundtrip_test!(config_mode_roundtrip, ConfigMode, CONFIG_MODES.to_vec());
-roundtrip_test!(children_mode_roundtrip, ChildrenMode, CHILDREN_MODES.to_vec());
+roundtrip_test!(
+    children_mode_roundtrip,
+    ChildrenMode,
+    CHILDREN_MODES.to_vec()
+);
 roundtrip_test!(
     child_include_mode_roundtrip,
     ChildIncludeMode,

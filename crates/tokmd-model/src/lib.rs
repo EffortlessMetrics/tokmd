@@ -617,7 +617,11 @@ mod tests {
                 0usize..100000,
             )
                 .prop_map(|(lang, code, lines, files, bytes, tokens)| {
-                    let avg_lines = if files == 0 { 0 } else { (lines + (files / 2)) / files };
+                    let avg_lines = if files == 0 {
+                        0
+                    } else {
+                        (lines + (files / 2)) / files
+                    };
                     LangRow {
                         lang,
                         code,
@@ -640,7 +644,11 @@ mod tests {
                 0usize..100000,
             )
                 .prop_map(|(module, code, lines, files, bytes, tokens)| {
-                    let avg_lines = if files == 0 { 0 } else { (lines + (files / 2)) / files };
+                    let avg_lines = if files == 0 {
+                        0
+                    } else {
+                        (lines + (files / 2)) / files
+                    };
                     ModuleRow {
                         module,
                         code,

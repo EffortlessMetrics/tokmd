@@ -25,7 +25,10 @@ pub fn resolve_profile<'a>(
     })
 }
 
-pub fn resolve_lang(cli_args: &cli::CliLangArgs, profile: Option<&cli::Profile>) -> tokmd_types::LangArgs {
+pub fn resolve_lang(
+    cli_args: &cli::CliLangArgs,
+    profile: Option<&cli::Profile>,
+) -> tokmd_types::LangArgs {
     tokmd_types::LangArgs {
         paths: cli_args
             .paths

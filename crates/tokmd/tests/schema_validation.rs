@@ -17,17 +17,13 @@ fn load_schema() -> Value {
         .join("docs")
         .join("schema.json");
 
-    let schema_content =
-        std::fs::read_to_string(&schema_path).expect("Failed to read schema.json");
+    let schema_content = std::fs::read_to_string(&schema_path).expect("Failed to read schema.json");
 
     serde_json::from_str(&schema_content).expect("Failed to parse schema.json")
 }
 
 /// Build a validator for a specific definition in the schema
-fn build_validator_for_definition(
-    schema: &Value,
-    definition: &str,
-) -> jsonschema::Validator {
+fn build_validator_for_definition(schema: &Value, definition: &str) -> jsonschema::Validator {
     // Create a schema that references the specific definition
     let ref_schema = serde_json::json!({
         "$ref": format!("#/definitions/{}", definition),

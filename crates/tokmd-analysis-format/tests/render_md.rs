@@ -1,5 +1,5 @@
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
 use tokmd_analysis_format::render;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};

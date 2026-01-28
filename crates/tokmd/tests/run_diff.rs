@@ -2,8 +2,8 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use tempfile::tempdir;
 use std::process::Command as ProcessCommand;
+use tempfile::tempdir;
 
 #[test]
 fn test_run_generates_artifacts() {
@@ -98,7 +98,7 @@ fn test_run_default_output_creates_local_runs_dir() {
     fs::create_dir_all(&src_dir).unwrap();
     fs::write(src_dir.join("lib.rs"), "fn main() {}\n").unwrap();
 
-    // Run without --output-dir (should use .runs/tokmd/runs/<run-id>)
+    // Run without --output-dir (should use .runs/tokmd/<run-id>)
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
     cmd.current_dir(&work_dir)
         .arg("run")
@@ -108,11 +108,11 @@ fn test_run_default_output_creates_local_runs_dir() {
         .assert()
         .success();
 
-    // Verify .runs/tokmd/runs/test-run directory was created
-    let expected_dir = work_dir.join(".runs/tokmd/runs/test-run");
+    // Verify .runs/tokmd/test-run directory was created
+    let expected_dir = work_dir.join(".runs/tokmd/test-run");
     assert!(
         expected_dir.exists(),
-        ".runs/tokmd/runs/test-run directory should be created at {:?}",
+        ".runs/tokmd/test-run directory should be created at {:?}",
         expected_dir
     );
     assert!(

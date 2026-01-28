@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
+use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;
 
@@ -19,7 +20,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         d
     } else {
         let run_id = args.name.unwrap_or_else(|| format!("run-{}", now_ms()));
-        let local_runs = PathBuf::from(".runs/tokmd/runs").join(&run_id);
+        let local_runs = PathBuf::from(".runs/tokmd").join(&run_id);
 
         // Try repo-local first, fall back to OS state dir if creation fails
         if std::fs::create_dir_all(&local_runs).is_ok() {
@@ -54,55 +55,37 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         0,
     );
 
-    // 4. Write artifacts
-    let lang_path = output_dir.join("lang.json");
-    let module_path = output_dir.join("module.json");
-
-    {
-        let receipt = tokmd_types::LangReceipt {
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: tokmd_types::ToolInfo::current(),
-            mode: "lang".to_string(),
-            status: tokmd_types::ScanStatus::Complete,
-            warnings: vec![],
-            scan: make_scan_args(&args.paths, global),
-            args: tokmd_types::LangArgsMeta {
-                format: "json".to_string(),
-                top: 0,
-                with_files: false,
-                children: cli::ChildrenMode::Collapse,
-            },
-            report: lang_report,
-        };
-        let f = std::fs::File::create(&lang_path)?;
-        serde_json::to_writer(f, &receipt)?;
-    }
-    {
-        let receipt = tokmd_types::ModuleReceipt {
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: tokmd_types::ToolInfo::current(),
-            mode: "module".to_string(),
-            status: tokmd_types::ScanStatus::Complete,
-            warnings: vec![],
-            scan: make_scan_args(&args.paths, global),
-            args: tokmd_types::ModuleArgsMeta {
-                format: "json".to_string(),
-                top: 0,
-                module_roots: vec!["crates".to_string(), "packages".to_string()],
-                module_depth: 2,
-                children: cli::ChildIncludeMode::Separate,
-            },
-            report: module_report,
-        };
-        let f = std::fs::File::create(&module_path)?;
-        serde_json::to_writer(f, &receipt)?;
-    }
-
-    // 4. Write export.jsonl (using tokmd-format for consistent schema/redaction handling)
-    let export_path = output_dir.join("export.jsonl");
+    // Get redact mode (affects export.jsonl only currently - lang/module receipts don't contain file paths)
     let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
+    let scan_args = make_scan_args(&args.paths, global);
+
+    // 4. Write artifacts using tokmd-format for consistency
+
+    // Write lang.json
+    let lang_path = output_dir.join("lang.json");
+    let lang_args_meta = tokmd_types::LangArgsMeta {
+        format: "json".to_string(),
+        top: 0,
+        with_files: false,
+        children: cli::ChildrenMode::Collapse,
+    };
+    format::write_lang_json_to_file(&lang_path, &lang_report, &scan_args, &lang_args_meta)
+        .context("Failed to write lang.json")?;
+
+    // Write module.json
+    let module_path = output_dir.join("module.json");
+    let module_args_meta = tokmd_types::ModuleArgsMeta {
+        format: "json".to_string(),
+        top: 0,
+        module_roots: vec!["crates".to_string(), "packages".to_string()],
+        module_depth: 2,
+        children: cli::ChildIncludeMode::Separate,
+    };
+    format::write_module_json_to_file(&module_path, &module_report, &scan_args, &module_args_meta)
+        .context("Failed to write module.json")?;
+
+    // Write export.jsonl (with redaction support)
+    let export_path = output_dir.join("export.jsonl");
     let export_args_meta = tokmd_types::ExportArgsMeta {
         format: cli::ExportFormat::Jsonl,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
@@ -114,13 +97,8 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         strip_prefix: None,
         strip_prefix_redacted: false,
     };
-    tokmd_format::write_export_jsonl_to_file(
-        &export_path,
-        &export_data,
-        &make_scan_args(&args.paths, global),
-        &export_args_meta,
-    )
-    .context("Failed to write export.jsonl")?;
+    format::write_export_jsonl_to_file(&export_path, &export_data, &scan_args, &export_args_meta)
+        .context("Failed to write export.jsonl")?;
 
     // 5. Write receipt.json
     let receipt = tokmd_types::RunReceipt {
@@ -136,11 +114,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     if let Some(preset) = args.analysis {
         let source = analysis_types::AnalysisSource {
-            inputs: args
-                .paths
-                .iter()
-                .map(|p| p.display().to_string())
-                .collect(),
+            inputs: args.paths.iter().map(|p| p.display().to_string()).collect(),
             export_path: Some("export.jsonl".to_string()),
             base_receipt_path: Some("export.jsonl".to_string()),
             export_schema_version: Some(tokmd_types::SCHEMA_VERSION),

@@ -12,7 +12,9 @@ const PUBLIC_DOMAINS: [&str; 7] = [
     "protonmail.com",
 ];
 
-pub(crate) fn build_corporate_fingerprint(commits: &[tokmd_git::GitCommit]) -> CorporateFingerprint {
+pub(crate) fn build_corporate_fingerprint(
+    commits: &[tokmd_git::GitCommit],
+) -> CorporateFingerprint {
     let mut counts: BTreeMap<String, u32> = BTreeMap::new();
     let mut total = 0u32;
 
@@ -44,7 +46,11 @@ pub(crate) fn build_corporate_fingerprint(commits: &[tokmd_git::GitCommit]) -> C
             },
         })
         .collect();
-    domains.sort_by(|a, b| b.commits.cmp(&a.commits).then_with(|| a.domain.cmp(&b.domain)));
+    domains.sort_by(|a, b| {
+        b.commits
+            .cmp(&a.commits)
+            .then_with(|| a.domain.cmp(&b.domain))
+    });
 
     CorporateFingerprint { domains }
 }

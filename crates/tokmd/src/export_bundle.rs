@@ -42,7 +42,10 @@ pub(crate) fn load_export_from_inputs(
         return scan_export_from_paths(inputs, global);
     }
 
-    let input = inputs.first().cloned().unwrap_or_else(|| PathBuf::from("."));
+    let input = inputs
+        .first()
+        .cloned()
+        .unwrap_or_else(|| PathBuf::from("."));
     if input.is_dir() {
         let run_receipt = input.join("receipt.json");
         let export_jsonl = input.join("export.jsonl");
@@ -108,7 +111,8 @@ fn load_export_from_file(path: &PathBuf, run_dir: Option<PathBuf>) -> Result<Exp
     } else if ext == "json" {
         load_export_json(path)?
     } else {
-        scan_export_from_paths(std::slice::from_ref(path), &cli::GlobalArgs::default())?.into_export_and_meta()
+        scan_export_from_paths(std::slice::from_ref(path), &cli::GlobalArgs::default())?
+            .into_export_and_meta()
     };
 
     export.module_roots = meta.module_roots.clone();
@@ -136,10 +140,7 @@ fn load_export_jsonl(path: &PathBuf) -> Result<(tokmd_types::ExportData, ExportM
             continue;
         }
         let value: serde_json::Value = serde_json::from_str(line)?;
-        let ty = value
-            .get("type")
-            .and_then(|v| v.as_str())
-            .unwrap_or("row");
+        let ty = value.get("type").and_then(|v| v.as_str()).unwrap_or("row");
         if ty == "meta" {
             if let Some(schema) = value.get("schema_version").and_then(|v| v.as_u64()) {
                 meta.schema_version = Some(schema as u32);
