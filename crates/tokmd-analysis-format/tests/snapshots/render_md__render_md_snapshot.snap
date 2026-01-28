@@ -1,0 +1,144 @@
+---
+source: crates/tokmd-analysis-format/tests/render_md.rs
+assertion_line: 100
+expression: text
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|3|170|30|20|220|1700|425|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|15.0%|
+|Whitespace ratio|10.0%|
+|Bytes per line|7.73|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|20.0%|30|120|
+|TOML|0.0%|0|20|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+|TOML|25.0%|5|20|
+|Rust|8.3%|15|180|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+|TOML|8.00|200|25|
+|Rust|7.69|1500|195|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|3|25|130|73.33|65.00|130.00|130.00|0.3182|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|Tiny|0|50|1|33.3%|
+|Small|51|200|2|66.7%|
+|Medium|201|500|0|0.0%|
+|Large|501|1000|0|0.0%|
+|Huge|1001|∞|0|0.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|130|100|1000|250|16.7%|7.69|
+|tests/lib_test.rs|Rust|65|50|500|125|16.7%|7.69|
+|Cargo.toml|TOML|25|20|200|50|0.0%|8.00|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|130|100|1000|250|16.7%|7.69|
+|tests/lib_test.rs|Rust|65|50|500|125|16.7%|7.69|
+|Cargo.toml|TOML|25|20|200|50|0.0%|8.00|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|130|100|1000|250|16.7%|7.69|
+|tests/lib_test.rs|Rust|65|50|500|125|16.7%|7.69|
+|Cargo.toml|TOML|25|20|200|50|0.0%|8.00|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|130|100|1000|250|16.7%|7.69|
+|tests/lib_test.rs|Rust|65|50|500|125|16.7%|7.69|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|Cargo.toml|TOML|25|20|200|50|0.0%|8.00|
+|src/lib.rs|Rust|130|100|1000|250|16.7%|7.69|
+|tests/lib_test.rs|Rust|65|50|500|125|16.7%|7.69|
+
+## Structure
+
+- Max depth: `2`
+- Avg depth: `1.67`
+
+## Test density
+
+- Test lines: `50`
+- Prod lines: `120`
+- Test ratio: `29.4%`
+
+## Boilerplate ratio
+
+- Infra lines: `25`
+- Logic lines: `195`
+- Infra ratio: `11.4%`
+
+## Polyglot
+
+- Languages: `2`
+- Dominant: `Rust` (88.2%)
+- Entropy: `0.5226`
+
+## Reading time
+
+- Minutes: `8.50` (20 lines/min)
+
+## COCOMO estimate
+
+- Mode: `organic`
+- KLOC: `0.1700`
+- Effort (PM): `0.37`
+- Duration (months): `1.72`
+- Staff: `0.22`
+
+## Integrity
+
+- Hash: `cbb1dbe65f3ace4a53b2597a8c7512ba6eb2cd6d5bd5ef13b05cc0830deeae5d` (`blake3`)
+- Entries: `3`

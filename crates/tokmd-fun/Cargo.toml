@@ -1,0 +1,12 @@
+[package]
+name = "tokmd-fun"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Fun renderers for tokmd analysis (obj, midi, eco labels)."
+
+[dependencies]
+anyhow = "1.0.100"
+midly = "0.5.3"

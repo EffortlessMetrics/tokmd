@@ -32,11 +32,49 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        if ! command -v tokmd &> /dev/null; then
-          echo "Installing tokmd..."
-          # Fallback to cargo install for now until releases are stable
-          cargo install --git https://github.com/EffortlessMetrics/tokmd tokmd
+        if command -v tokmd &> /dev/null; then
+          tokmd --version
+          exit 0
         fi
+
+        version="${{ inputs.version }}"
+        os="${RUNNER_OS}"
+
+        case "$os" in
+          Linux) asset="tokmd-linux-amd64" ;;
+          macOS) asset="tokmd-macos-amd64" ;;
+          Windows) asset="tokmd-windows-amd64.exe" ;;
+          *) echo "Unsupported runner OS: $os" >&2; exit 1 ;;
+        esac
+
+        if [ "$version" = "latest" ]; then
+          url="https://github.com/EffortlessMetrics/tokmd/releases/latest/download/$asset"
+        else
+          ver="$version"
+          if [ "${ver#v}" = "$ver" ]; then
+            ver="v$ver"
+          fi
+          url="https://github.com/EffortlessMetrics/tokmd/releases/download/$ver/$asset"
+        fi
+
+        echo "Downloading $url"
+        if ! curl -fsSL "$url" -o "$asset"; then
+          echo "Release download failed; falling back to cargo install" >&2
+          cargo install --git https://github.com/EffortlessMetrics/tokmd tokmd
+          tokmd --version
+          exit 0
+        fi
+
+        dest="$HOME/.local/bin"
+        mkdir -p "$dest"
+        if [[ "$asset" == *.exe ]]; then
+          mv "$asset" "$dest/tokmd.exe"
+        else
+          mv "$asset" "$dest/tokmd"
+          chmod +x "$dest/tokmd"
+        fi
+        echo "$dest" >> "$GITHUB_PATH"
+        export PATH="$dest:$PATH"
         tokmd --version
 
     - name: Generate Receipts

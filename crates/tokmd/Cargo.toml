@@ -40,12 +40,16 @@ required-features = ["alias-tok"]
 [dependencies]
 anyhow = "1.0.100"
 clap = { version = "4.5.54", features = ["derive"] }
+tokmd-analysis = { path = "../tokmd-analysis", version = "1.0.0", features = ["git", "walk", "content"] }
+tokmd-analysis-format = { path = "../tokmd-analysis-format", version = "1.0.0", features = ["fun"] }
+tokmd-analysis-types = { path = "../tokmd-analysis-types", version = "1.0.0" }
 tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
 tokmd-model = { path = "../tokmd-model", version = "1.0.0" }
 tokmd-scan = { path = "../tokmd-scan", version = "1.0.0" }
 tokmd-format = { path = "../tokmd-format", version = "1.0.0" }
 tokmd-tokeignore = { path = "../tokmd-tokeignore", version = "1.0.0" }
 tokmd-types = { path = "../tokmd-types", version = "1.0.0" }
+tokmd-git = { path = "../tokmd-git", version = "1.0.0" }
 clap_complete = "4.5.65"
 dirs = "6.0.0"
 serde_json = "1.0.149"

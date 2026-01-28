@@ -1,0 +1,27 @@
+[package]
+name = "tokmd-analysis-format"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Formatting and rendering for tokmd analysis receipts."
+
+[features]
+default = []
+fun = ["dep:tokmd-fun"]
+
+[dependencies]
+anyhow = "1.0.100"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokmd-analysis-types = { path = "../tokmd-analysis-types", version = "1.0.0" }
+tokmd-config = { path = "../tokmd-config", version = "1.0.0" }
+
+# Optional fun output helpers
+tokmd-fun = { path = "../tokmd-fun", version = "1.0.0", optional = true }
+
+[dev-dependencies]
+insta = { version = "1.39.0", features = ["json"] }
+tokmd-analysis = { path = "../tokmd-analysis", version = "1.0.0" }
+tokmd-types = { path = "../tokmd-types", version = "1.0.0" }

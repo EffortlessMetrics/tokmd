@@ -863,6 +863,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "midly"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "207d755f4cb882d20c4da58d707ca9130a0c9bc5061f657a4f299b8e36362b7a"
+dependencies = [
+ "rayon",
+]
+
+[[package]]
 name = "normalize-line-endings"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1551,11 +1560,55 @@ dependencies = [
  "regex",
  "serde_json",
  "tempfile",
+ "tokmd-analysis",
+ "tokmd-analysis-format",
+ "tokmd-analysis-types",
  "tokmd-config",
  "tokmd-format",
+ "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
  "tokmd-tokeignore",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokmd-analysis-types",
+ "tokmd-config",
+ "tokmd-content",
+ "tokmd-git",
+ "tokmd-types",
+ "tokmd-walk",
+]
+
+[[package]]
+name = "tokmd-analysis-format"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "insta",
+ "serde",
+ "serde_json",
+ "tokmd-analysis",
+ "tokmd-analysis-types",
+ "tokmd-config",
+ "tokmd-fun",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-types"
+version = "1.0.0"
+dependencies = [
+ "serde",
  "tokmd-types",
 ]
 
@@ -1565,6 +1618,14 @@ version = "1.0.0"
 dependencies = [
  "clap",
  "serde",
+]
+
+[[package]]
+name = "tokmd-content"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "blake3",
 ]
 
 [[package]]
@@ -1592,6 +1653,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-fun"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "midly",
+]
+
+[[package]]
 name = "tokmd-fuzz"
 version = "0.0.0"
 dependencies = [
@@ -1600,6 +1669,13 @@ dependencies = [
  "tokmd-config",
  "tokmd-model",
  "tokmd-scan",
+]
+
+[[package]]
+name = "tokmd-git"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]
@@ -1636,6 +1712,14 @@ version = "1.0.0"
 dependencies = [
  "serde",
  "tokmd-config",
+]
+
+[[package]]
+name = "tokmd-walk"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "ignore",
 ]
 
 [[package]]

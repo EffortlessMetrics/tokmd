@@ -1,0 +1,11 @@
+[package]
+name = "tokmd-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Streaming git log adapter for tokmd analysis."
+
+[dependencies]
+anyhow = "1.0.100"
