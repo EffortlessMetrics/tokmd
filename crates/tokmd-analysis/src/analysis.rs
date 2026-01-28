@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport, CorporateFingerprint,
-    DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport, ImportReport,
-    LicenseReport, PredictiveChurnReport, TopicClouds,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport,
+    CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport,
+    ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
@@ -104,7 +104,13 @@ struct AnalysisPlan {
 
 impl AnalysisPlan {
     fn needs_files(&self) -> bool {
-        self.assets || self.deps || self.todo || self.dup || self.imports || self.entropy || self.license
+        self.assets
+            || self.deps
+            || self.todo
+            || self.dup
+            || self.imports
+            || self.entropy
+            || self.license
     }
 }
 
@@ -490,8 +496,12 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
-                match crate::entropy::build_entropy_report(&ctx.root, list, &ctx.export, &req.limits)
-                {
+                match crate::entropy::build_entropy_report(
+                    &ctx.root,
+                    list,
+                    &ctx.export,
+                    &req.limits,
+                ) {
                     Ok(report) => entropy = Some(report),
                     Err(err) => warnings.push(format!("entropy scan failed: {}", err)),
                 }

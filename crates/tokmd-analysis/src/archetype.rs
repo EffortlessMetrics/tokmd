@@ -82,12 +82,11 @@ fn nextjs_app(files: &BTreeSet<String>) -> Option<Archetype> {
     });
     if has_package && has_next_config {
         let mut evidence = vec!["package.json".to_string()];
-        if let Some(cfg) = files
-            .iter()
-            .find(|p| p.ends_with("next.config.js")
+        if let Some(cfg) = files.iter().find(|p| {
+            p.ends_with("next.config.js")
                 || p.ends_with("next.config.mjs")
-                || p.ends_with("next.config.ts"))
-        {
+                || p.ends_with("next.config.ts")
+        }) {
             evidence.push(cfg.clone());
         }
         return Some(Archetype {
@@ -113,7 +112,9 @@ fn containerized_service(files: &BTreeSet<String>) -> Option<Archetype> {
 }
 
 fn iac_project(files: &BTreeSet<String>) -> Option<Archetype> {
-    let has_tf = files.iter().any(|p| p.ends_with(".tf") || p.starts_with("terraform/"));
+    let has_tf = files
+        .iter()
+        .any(|p| p.ends_with(".tf") || p.starts_with("terraform/"));
     if has_tf {
         return Some(Archetype {
             kind: "Infrastructure as code".to_string(),

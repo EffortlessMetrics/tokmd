@@ -182,11 +182,7 @@ mod tests {
                 files: vec!["src/lib.rs".to_string()],
             },
         ];
-        let report = build_predictive_churn_report(
-            &export,
-            &commits,
-            std::path::Path::new("."),
-        );
+        let report = build_predictive_churn_report(&export, &commits, std::path::Path::new("."));
         let trend = report.per_module.get("core").unwrap();
         assert!(trend.slope >= 0.0);
     }

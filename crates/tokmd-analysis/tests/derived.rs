@@ -128,7 +128,7 @@ fn derived_metrics_basic() {
     assert!((derived.nesting.avg - 1.67).abs() < 0.01); // (2+2+1)/3 = 1.67 
     // paths: src/lib.rs (2), tests/lib_test.rs (2), Cargo.toml (1)
     // Avg = 5/3 = 1.666...
-    // Let's recheck logic: path_depth("src/lib.rs") -> 2. 
+    // Let's recheck logic: path_depth("src/lib.rs") -> 2.
     // path_depth("Cargo.toml") -> 1.
     // 2+2+1 = 5. 5/3 = 1.67.
 
@@ -136,7 +136,7 @@ fn derived_metrics_basic() {
     assert_eq!(derived.polyglot.lang_count, 2); // Rust, TOML
     assert_eq!(derived.polyglot.dominant_lang, "Rust");
     assert_eq!(derived.polyglot.dominant_lines, 150); // 100 + 50
-    assert!((derived.polyglot.dominant_pct - (150.0/170.0)).abs() < 0.001);
+    assert!((derived.polyglot.dominant_pct - (150.0 / 170.0)).abs() < 0.001);
 
     // Distribution
     assert_eq!(derived.distribution.count, 3);

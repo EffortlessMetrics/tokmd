@@ -2,6 +2,8 @@
 //!
 //! Streaming git log adapter for tokmd analysis.
 
+#![allow(clippy::collapsible_if)]
+
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};

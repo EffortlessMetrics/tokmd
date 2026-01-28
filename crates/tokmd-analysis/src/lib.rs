@@ -2,10 +2,15 @@
 //!
 //! Analysis logic and optional enrichers for tokmd receipts.
 
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::manual_pattern_char_comparison)]
+#![allow(clippy::while_let_on_iterator)]
+#![allow(clippy::manual_contains)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::derivable_impls)]
+
 mod analysis;
 mod archetype;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod entropy;
 #[cfg(feature = "walk")]
 mod assets;
 #[cfg(feature = "git")]
@@ -13,6 +18,8 @@ mod churn;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod entropy;
 #[cfg(feature = "git")]
 mod fingerprint;
 mod fun;

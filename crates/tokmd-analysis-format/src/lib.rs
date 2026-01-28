@@ -2,6 +2,8 @@
 //!
 //! Rendering for analysis receipts.
 
+#![allow(clippy::collapsible_if)]
+
 use anyhow::Result;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
@@ -146,7 +148,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             b.1.slope
                 .partial_cmp(&a.1.slope)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.0.cmp(&b.0))
+                .then_with(|| a.0.cmp(b.0))
         });
         if rows.is_empty() {
             out.push_str("- No churn signals detected.\n\n");
@@ -259,7 +261,10 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Bucket|Min|Max|Files|Pct|\n");
         out.push_str("|---|---:|---:|---:|---:|\n");
         for bucket in &derived.histogram {
-            let max = bucket.max.map(|v| v.to_string()).unwrap_or_else(|| "∞".to_string());
+            let max = bucket
+                .max
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "∞".to_string());
             out.push_str(&format!(
                 "|{}|{}|{}|{}|{}|\n",
                 bucket.label,
@@ -372,9 +377,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Integrity\n\n");
         out.push_str(&format!(
             "- Hash: `{}` (`{}`)\n- Entries: `{}`\n\n",
-            derived.integrity.hash,
-            derived.integrity.algo,
-            derived.integrity.entries
+            derived.integrity.hash, derived.integrity.algo, derived.integrity.entries
         ));
     }
 
@@ -612,10 +615,7 @@ fn render_xml(receipt: &AnalysisReceipt) -> String {
 fn render_svg(receipt: &AnalysisReceipt) -> String {
     let (label, value) = if let Some(derived) = &receipt.derived {
         if let Some(ctx) = &derived.context_window {
-            (
-                "context".to_string(),
-                format!("{:.1}%", ctx.pct * 100.0),
-            )
+            ("context".to_string(), format!("{:.1}%", ctx.pct * 100.0))
         } else {
             ("tokens".to_string(), derived.totals.tokens.to_string())
         }

@@ -1,9 +1,10 @@
+#![allow(deprecated)]
+
 use assert_cmd::Command;
 use std::path::PathBuf;
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
 /// These run against `tests/data` to ensure stability.
-
 fn tokmd() -> Command {
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

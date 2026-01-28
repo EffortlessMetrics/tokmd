@@ -1,9 +1,11 @@
+#![allow(deprecated)]
+
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use tempfile::tempdir;
 use std::process::Command as ProcessCommand;
+use tempfile::tempdir;
 
 #[test]
 fn test_run_generates_artifacts() {
