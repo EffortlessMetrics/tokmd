@@ -2,6 +2,8 @@
 //!
 //! Rendering for analysis receipts.
 
+#![allow(clippy::collapsible_if)]
+
 use anyhow::Result;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
@@ -146,7 +148,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             b.1.slope
                 .partial_cmp(&a.1.slope)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.0.cmp(&b.0))
+                .then_with(|| a.0.cmp(b.0))
         });
         if rows.is_empty() {
             out.push_str("- No churn signals detected.\n\n");
@@ -259,7 +261,10 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Bucket|Min|Max|Files|Pct|\n");
         out.push_str("|---|---:|---:|---:|---:|\n");
         for bucket in &derived.histogram {
-            let max = bucket.max.map(|v| v.to_string()).unwrap_or_else(|| "∞".to_string());
+            let max = bucket
+                .max
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "∞".to_string());
             out.push_str(&format!(
                 "|{}|{}|{}|{}|{}|\n",
                 bucket.label,
@@ -372,9 +377,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Integrity\n\n");
         out.push_str(&format!(
             "- Hash: `{}` (`{}`)\n- Entries: `{}`\n\n",
-            derived.integrity.hash,
-            derived.integrity.algo,
-            derived.integrity.entries
+            derived.integrity.hash, derived.integrity.algo, derived.integrity.entries
         ));
     }
 
@@ -518,17 +521,15 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         }
     }
 
-    if let Some(fun) = &receipt.fun {
-        if let Some(label) = &fun.eco_label {
-            out.push_str("## Eco label\n\n");
-            out.push_str(&format!(
-                "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
-                label.label,
-                fmt_f64(label.score, 1),
-                label.bytes,
-                label.notes
-            ));
-        }
+    if let Some(label) = receipt.fun.as_ref().and_then(|f| f.eco_label.as_ref()) {
+        out.push_str("## Eco label\n\n");
+        out.push_str(&format!(
+            "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
+            label.label,
+            fmt_f64(label.score, 1),
+            label.bytes,
+            label.notes
+        ));
     }
 
     out
@@ -612,10 +613,7 @@ fn render_xml(receipt: &AnalysisReceipt) -> String {
 fn render_svg(receipt: &AnalysisReceipt) -> String {
     let (label, value) = if let Some(derived) = &receipt.derived {
         if let Some(ctx) = &derived.context_window {
-            (
-                "context".to_string(),
-                format!("{:.1}%", ctx.pct * 100.0),
-            )
+            ("context".to_string(), format!("{:.1}%", ctx.pct * 100.0))
         } else {
             ("tokens".to_string(), derived.totals.tokens.to_string())
         }
@@ -628,7 +626,7 @@ fn render_svg(receipt: &AnalysisReceipt) -> String {
     let label_width = 80;
     let value_width = width - label_width;
     format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" role=\"img\"><rect width=\"{label_width}\" height=\"{height}\" fill=\"#555\"/><rect x=\"{label_width}\" width=\"{value_width}\" height=\"{height}\" fill=\"#4c9aff\"/><text x=\"{lx}\" y=\"{ty}\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"12\">{label}</text><text x=\"{vx}\" y=\"{ty}\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"12\">{value}</text></svg>",
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" role=\"img\"><rect width=\"{label_width}\" height=\"{height}\" fill=\"#555\"/><rect x=\"{label_width}\" width=\"{value_width}\" height=\"{height}\" fill=\"#4c9aff\"/><text x=\"{lx}\" y=\"{ty}\" fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana\" font-size=\"12\">{label}</text><text x=\"{vx}\" y=\"{ty}\" fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana\" font-size=\"12\">{value}</text></svg>",
         width = width,
         height = height,
         label_width = label_width,

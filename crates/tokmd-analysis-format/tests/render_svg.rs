@@ -55,7 +55,7 @@ fn sample_export() -> ExportData {
 }
 
 #[test]
-fn render_md_snapshot() {
+fn render_svg_snapshot() {
     let export = sample_export();
     let ctx = AnalysisContext {
         export,
@@ -76,7 +76,7 @@ fn render_md_snapshot() {
         preset: AnalysisPreset::Receipt,
         args: AnalysisArgsMeta {
             preset: "receipt".to_string(),
-            format: "md".to_string(),
+            format: "svg".to_string(),
             window_tokens: None,
             git: None,
             max_files: None,
@@ -93,7 +93,7 @@ fn render_md_snapshot() {
     };
 
     let receipt = analyze(ctx, request).expect("analysis");
-    let rendered = render(&receipt, AnalysisFormat::Md).expect("render");
+    let rendered = render(&receipt, AnalysisFormat::Svg).expect("render");
     let text = match rendered {
         tokmd_analysis_format::RenderedOutput::Text(s) => s,
         tokmd_analysis_format::RenderedOutput::Binary(_) => panic!("expected text"),

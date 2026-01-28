@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_if)]
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -6,6 +8,7 @@ use tokmd_analysis_types::{EntropyClass, EntropyFinding, EntropyReport};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use crate::analysis::AnalysisLimits;
+
 use crate::util::normalize_path;
 
 const DEFAULT_SAMPLE_BYTES: usize = 1024;
@@ -25,9 +28,7 @@ pub(crate) fn build_entropy_report(
     let mut suspects = Vec::new();
     let mut total_bytes = 0u64;
     let max_total = limits.max_bytes;
-    let per_file_limit = limits
-        .max_file_bytes
-        .unwrap_or(DEFAULT_SAMPLE_BYTES as u64) as usize;
+    let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_SAMPLE_BYTES as u64) as usize;
 
     for rel in files {
         if let Some(max_total) = max_total {
@@ -140,16 +141,20 @@ mod tests {
 
         let export = export_for_paths(&["low.txt", "high.bin"]);
         let files = vec![PathBuf::from("low.txt"), PathBuf::from("high.bin")];
-        let report = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default())
-            .unwrap();
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
 
-        assert!(report
-            .suspects
-            .iter()
-            .any(|f| f.path == "low.txt" && f.class == EntropyClass::Low));
-        assert!(report
-            .suspects
-            .iter()
-            .any(|f| f.path == "high.bin" && f.class == EntropyClass::High));
+        assert!(
+            report
+                .suspects
+                .iter()
+                .any(|f| f.path == "low.txt" && f.class == EntropyClass::Low)
+        );
+        assert!(
+            report
+                .suspects
+                .iter()
+                .any(|f| f.path == "high.bin" && f.class == EntropyClass::High)
+        );
     }
 }

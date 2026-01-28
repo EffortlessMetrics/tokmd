@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_if)]
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -326,7 +328,7 @@ fn parse_go_imports(lines: &[String]) -> Vec<String> {
 fn extract_quoted(text: &str) -> Option<String> {
     let mut chars = text.chars();
     let mut quote = None;
-    while let Some(c) = chars.next() {
+    for c in chars.by_ref() {
         if c == '"' || c == '\'' {
             quote = Some(c);
             break;
@@ -351,7 +353,7 @@ fn normalize_import_target(target: &str) -> String {
     }
     let trimmed = trimmed.trim_matches('"').trim_matches('\'');
     trimmed
-        .split(|c| c == '/' || c == ':' || c == '.')
+        .split(['/', ':', '.'])
         .next()
         .unwrap_or(trimmed)
         .to_string()

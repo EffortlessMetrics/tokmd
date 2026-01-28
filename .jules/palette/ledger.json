@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-01-28",
+    "lane": "scout",
+    "target": "Fix off-center text in SVG badges",
+    "pr_link": null,
+    "gates": ["build", "test", "fmt", "clippy"],
+    "friction_ids": []
+  }
+]

@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-analysis-format/tests/render_svg.rs
+assertion_line: 102
+expression: text
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="32" role="img"><rect width="80" height="32" fill="#555"/><rect x="80" width="160" height="32" fill="#4c9aff"/><text x="40" y="20" fill="#fff" text-anchor="middle" font-family="Verdana" font-size="12">tokens</text><text x="160" y="20" fill="#fff" text-anchor="middle" font-family="Verdana" font-size="12">425</text></svg>
