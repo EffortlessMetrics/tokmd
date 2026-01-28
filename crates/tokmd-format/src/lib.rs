@@ -26,9 +26,9 @@ use serde::Serialize;
 
 use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
-    LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
-    ScanArgs, ScanStatus, ToolInfo,
+    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileRow, LangArgs, LangArgsMeta,
+    LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport, ScanArgs,
+    ScanStatus, ToolInfo,
 };
 
 fn now_ms() -> u128 {
@@ -310,26 +310,9 @@ fn write_export_to<W: Write>(
 
 fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArgs) -> Result<()> {
     let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(out);
-    wtr.write_record([
-        "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
-    ])?;
 
     for r in redact_rows(&export.rows, args.redact) {
-        wtr.write_record([
-            r.path,
-            r.module,
-            r.lang,
-            match r.kind {
-                FileKind::Parent => "parent".to_string(),
-                FileKind::Child => "child".to_string(),
-            },
-            r.code.to_string(),
-            r.comments.to_string(),
-            r.blanks.to_string(),
-            r.lines.to_string(),
-            r.bytes.to_string(),
-            r.tokens.to_string(),
-        ])?;
+        wtr.serialize(r)?;
     }
 
     wtr.flush()?;
