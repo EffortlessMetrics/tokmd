@@ -41,6 +41,7 @@ pub use tokmd_config as config;
 pub use tokmd_types as types;
 
 use tokmd_config::{GlobalArgs, RedactMode};
+use tokmd_redact::{redact_path, short_hash};
 use tokmd_types::{LangArgs, LangArgsMeta, LangReceipt, ScanArgs, ScanStatus, ToolInfo};
 
 /// Runs the complete scan workflow: Scan -> Model -> Receipt.
@@ -141,23 +142,3 @@ fn make_scan_args(
     args
 }
 
-/// Compute a short (16-char) BLAKE3 hash of a string.
-fn short_hash(s: &str) -> String {
-    let mut hex = blake3::hash(s.as_bytes()).to_hex().to_string();
-    hex.truncate(16);
-    hex
-}
-
-/// Redact a path by hashing it but preserving the file extension.
-fn redact_path(path: &str) -> String {
-    let ext = Path::new(path)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(path);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}

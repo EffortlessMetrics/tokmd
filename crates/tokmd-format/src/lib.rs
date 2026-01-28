@@ -485,26 +485,8 @@ fn redact_rows(rows: &[FileRow], mode: RedactMode) -> Vec<FileRow> {
         .collect()
 }
 
-/// Hash a string to a short 16-character hex string using blake3.
-pub fn short_hash(s: &str) -> String {
-    let mut hex = blake3::hash(s.as_bytes()).to_hex().to_string();
-    hex.truncate(16);
-    hex
-}
-
-/// Redact a path by hashing it while preserving the file extension.
-pub fn redact_path(path: &str) -> String {
-    let ext = Path::new(path)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(path);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
+// Re-export redaction functions for backwards compatibility
+pub use tokmd_redact::{redact_path, short_hash};
 
 // -----------------
 // Run command helpers

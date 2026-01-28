@@ -1,15 +1,11 @@
 [package]
-name = "tokmd-content"
+name = "tokmd-redact"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Content scanning helpers for tokmd analysis (TODOs, duplicates, imports)."
+description = "Redaction utilities for tokmd. Provides path and string hashing for privacy-safe output."
 
 [dependencies]
-anyhow = "1.0.100"
 blake3.workspace = true
-
-[dev-dependencies]
-proptest = "1.6.0"
