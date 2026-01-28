@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Schema Version**: Analysis receipts now use `schema_version: 2`
+- **API**: `tokmd_core::scan_workflow` now accepts `redact: Option<RedactMode>` parameter
 
 ## [1.2.0] - 2026-01-27
 
