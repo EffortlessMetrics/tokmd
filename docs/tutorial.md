@@ -97,7 +97,89 @@ You can now upload `repo_context.jsonl` to an LLM and ask: *"Based on this file 
 
 ---
 
+## Step 5: Analyzing Code Quality
+
+Now let's get deeper insights about the codebase structure and quality.
+
+Run:
+```bash
+tokmd analyze --preset receipt --format md
+```
+
+**What you get**:
+- **Totals**: Files, lines, bytes, and estimated tokens
+- **Doc Density**: How much of the code is documented?
+- **Test Density**: Ratio of test code to production code
+- **Distribution**: File size statistics (median, p90, p99)
+- **Top Offenders**: Largest files, least documented files
+
+## Step 6: Checking Context Window Fit
+
+Before feeding code to an LLM, check if it fits:
+
+```bash
+# Check against a 128k token window
+tokmd analyze --preset receipt --window 128000 --format md
+```
+
+The output tells you:
+- Total estimated tokens in your codebase
+- What percentage of the context window it would use
+- Whether it fits or needs filtering
+
+## Step 7: Understanding Risk Areas
+
+If the repo has git history, you can identify risky areas:
+
+```bash
+tokmd analyze --preset risk --format md
+```
+
+**What you get**:
+- **Hotspots**: Files that change frequently AND are large (complexity risk)
+- **Bus Factor**: Modules with few contributors (knowledge risk)
+- **Freshness**: Stale files that may be outdated
+- **Coupling**: Files that always change together
+
+## Step 8: Generating a Badge
+
+Add a lines-of-code badge to your README:
+
+```bash
+tokmd badge --metric lines --out badge.svg
+```
+
+Then add to your README:
+```markdown
+![Lines of Code](badge.svg)
+```
+
+---
+
+## Step 9: Saving a Run
+
+To track changes over time, save a complete analysis:
+
+```bash
+tokmd run --output-dir .runs/baseline
+```
+
+This creates:
+- `lang.json` — Language summary
+- `module.json` — Module breakdown
+- `export.jsonl` — File inventory
+- `analysis.json` — Derived metrics
+
+Later, you can diff against this baseline:
+
+```bash
+tokmd diff .runs/baseline .
+```
+
+---
+
 ## Next Steps
 
 - Check out the **[Recipes](recipes.md)** for more advanced workflows.
 - Read the **[CLI Reference](reference-cli.md)** for all available flags.
+- See **[Schema](SCHEMA.md)** for output format details.

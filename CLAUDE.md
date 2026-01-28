@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-**tokmd** is a Rust CLI tool that wraps the `tokei` library to generate "inventory receipts" of code repositories. It produces human-readable summaries (Markdown/TSV) and machine-friendly datasets (JSON/JSONL/CSV) for AI-native workflows, LLM context generation, and code analysis pipelines.
+**tokmd** is a Rust CLI tool and library that wraps the `tokei` library to generate "inventory receipts" and derived analytics of code repositories. It produces human-readable summaries (Markdown/TSV) and machine-friendly datasets (JSON/JSONL/CSV) for AI-native workflows, LLM context generation, and code analysis pipelines.
 
 ## Build and Test Commands
 
@@ -14,43 +14,59 @@ cargo build --release                # Release build with LTO
 cargo test --verbose                 # Run all tests
 cargo fmt                            # Format code
 cargo clippy -- -D warnings          # Lint with strict warnings
-cargo install --path .               # Local install
+cargo install --path crates/tokmd    # Local install
 ```
 
 ## Architecture
 
-The codebase follows a pipeline architecture: **scan → model → format**
+The codebase follows a tiered microcrate architecture: **types → scan → model → format → analysis → CLI**
 
-### Core Modules
+### Crate Hierarchy
 
-- **`src/lib.rs`** - Entry point with `run()` function that orchestrates CLI workflow and routes to subcommands (lang, module, export, init)
+| Tier | Crate | Purpose |
+|------|-------|---------|
+| 0 | `tokmd-types` | Core data structures, no dependencies |
+| 0 | `tokmd-analysis-types` | Analysis receipt types |
+| 1 | `tokmd-scan` | tokei wrapper for code scanning |
+| 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
+| 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
+| 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
+| 2 | `tokmd-walk` | File system traversal for assets |
+| 2 | `tokmd-content` | File content scanning (entropy, imports) |
+| 2 | `tokmd-git` | Git history analysis |
+| 3 | `tokmd-analysis` | Analysis orchestration and enrichers |
+| 3 | `tokmd-analysis-format` | Analysis output rendering |
+| 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
+| 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
+| 4 | `tokmd-core` | Library facade for external consumers |
+| 5 | `tokmd` | CLI binary |
 
-- **`src/cli.rs`** - Clap-based argument parsing with flattened argument groups:
-  - `GlobalArgs`: paths, ignore patterns, config modes, verbosity
-  - `LangArgs`: format, top-N filtering, children handling
-  - `ModuleArgs`: module roots, depth, children mode
-  - `ExportArgs`: format, redaction, row filtering, metadata
-  - `InitArgs`: `.tokeignore` template generation
+### CLI Commands
 
-- **`src/scan.rs`** - Wrapper around tokei's `Languages` API for code scanning
+- `tokmd` / `tokmd lang` — Language summary
+- `tokmd module` — Module breakdown by directory
+- `tokmd export` — File-level inventory (JSONL/CSV)
+- `tokmd run` — Full scan with artifact output
+- `tokmd analyze` — Derived metrics and enrichments
+- `tokmd badge` — SVG badge generation
+- `tokmd diff` — Compare two runs or receipts
+- `tokmd init` — Generate `.tokeignore` template
 
-- **`src/model.rs`** - Data structures and aggregation:
-  - `LangRow/LangReport`: Language-level summaries
-  - `ModuleRow/ModuleReport`: Module-level summaries
-  - `FileRow/ExportData`: Per-file detailed records
-  - Key functions: `normalize_path()`, `module_key()`, `collect_file_rows()`
+### Analysis Presets
 
-- **`src/format.rs`** - Output formatting and receipt generation:
-  - `LangReceipt`, `ModuleReceipt`: Schema v1 envelopes
-  - Redaction using BLAKE3 hashing
-  - Metadata includes schema_version, timestamps, tool info, scan args
-
-- **`src/tokeignore.rs`** - `.tokeignore` template generation for various ecosystems
-
-### Binaries
-
-- `src/bin/tokmd.rs`: Main binary
-- `src/bin/tok.rs`: Alias binary (feature-gated: `alias-tok`)
+| Preset | Includes |
+|--------|----------|
+| `receipt` | Core derived metrics (density, distribution, COCOMO) |
+| `health` | + TODO density |
+| `risk` | + Git hotspots, coupling, freshness |
+| `supply` | + Assets, dependency lockfiles |
+| `architecture` | + Import graph |
+| `topics` | Semantic topic clouds |
+| `security` | License radar, entropy profiling |
+| `identity` | Archetype detection, corporate fingerprint |
+| `git` | Predictive churn, advanced git metrics |
+| `deep` | Everything (except fun) |
+| `fun` | Eco-label, novelty outputs |
 
 ## Critical Patterns
 
@@ -73,18 +89,19 @@ The codebase follows a pipeline architecture: **scan → model → format**
 - JSON outputs include envelope metadata with `schema_version`
 - Increment schema_version when modifying JSON output structure
 - Update `docs/schema.json` (formal JSON Schema) when structures change
+- Analysis receipts use `schema_version: 2`
 
-### Redaction
-- `RedactMode::None`: No redaction
-- `RedactMode::Paths`: Hash file paths (preserves extension)
-- `RedactMode::All`: Hash paths AND module names
+### Feature Flags
+- `git`: Git history analysis (requires git2)
+- `content`: File content scanning
+- `walk`: Filesystem traversal for assets
 
 ## Testing
 
-- **Integration tests**: `tests/integration.rs` using `assert_cmd` + `predicates`
-- **Golden snapshots**: `tests/snapshots/` using `insta` crate (timestamps normalized)
-- **Fixture data**: `tests/data/` (main.rs, large.rs, ignored.rs)
-- **Unit tests**: In-module tests in `src/model.rs`
+- **Integration tests**: `crates/tokmd/tests/` using `assert_cmd` + `predicates`
+- **Golden snapshots**: Using `insta` crate (timestamps normalized)
+- **Crate-level tests**: Each crate has its own `tests/` directory
+- **Unit tests**: In-module tests
 
 Run a single test:
 ```bash
@@ -103,12 +120,19 @@ cargo insta review
 | `tokei` | Core LOC counting |
 | `clap` (derive) | CLI parsing |
 | `serde`/`serde_json` | JSON serialization |
-| `blake3` | Fast hashing for redaction |
+| `blake3` | Fast hashing for redaction and integrity |
 | `anyhow` | Error handling |
+| `git2` | Git history analysis (optional) |
+| `ignore` | File walking with gitignore support |
 
 ## Documentation
 
 - `docs/recipes.md`: Real-world usage examples
+- `docs/tutorial.md`: Getting started guide
+- `docs/reference-cli.md`: CLI flag reference
+- `docs/explanation.md`: Philosophy and design principles
 - `docs/SCHEMA.md`: Receipt format documentation
 - `docs/schema.json`: Formal JSON Schema Draft 7 definition
-- `ROADMAP.md`: v1.0 path and future plans
+- `docs/PRODUCT.md`: Product contract and invariants
+- `ROADMAP.md`: Current status and future plans
+- `CHANGELOG.md`: Version history

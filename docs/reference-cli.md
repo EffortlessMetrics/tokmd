@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `analyze`, `badge`, `init`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `init`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -87,6 +87,36 @@ Generates a row-level inventory of files. Best for machine processing.
 tokmd export --min-code 10 --max-rows 100 --redact paths
 ```
 
+### `tokmd run`
+
+Executes a full scan and saves all artifacts to a run directory.
+
+**Usage**: `tokmd run [FLAGS] [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--output-dir <DIR>` | Directory to write artifacts into. | `.runs/tokmd/<timestamp>` |
+| `--module-roots <DIRS>` | Comma-separated list of root directories. | `.` |
+| `--module-depth <N>` | How deep to group modules. | `1` |
+| `--children <MODE>` | Handling of embedded languages. | `collapse` |
+| `--preset <PRESET>` | Analysis preset to include. | `receipt` |
+| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
+
+**Output files**:
+- `lang.json` — Language summary receipt
+- `module.json` — Module summary receipt
+- `export.jsonl` — File-level inventory
+- `analysis.json` — Derived metrics and enrichments
+
+**Example**:
+```bash
+# Save a baseline run
+tokmd run --output-dir .runs/baseline
+
+# Full run with deep analysis
+tokmd run --output-dir .runs/full --preset deep
+```
+
 ### `tokmd analyze`
 
 Derives additional metrics and optional enrichments from a run directory, receipt, export file, or paths.
@@ -95,9 +125,9 @@ Derives additional metrics and optional enrichments from a run directory, receip
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--preset <PRESET>` | Preset bundle: `receipt`, `health`, `risk`, `supply`, `architecture`, `deep`, `fun`. | `receipt` |
+| `--preset <PRESET>` | Preset bundle (see table below). | `receipt` |
 | `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`. | `md` |
-| `--window <TOKENS>` | Context window size for utilization bars. | `None` |
+| `--window <TOKENS>` | Context window size for utilization analysis. | `None` |
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 | `--output-dir <DIR>` | Write `analysis.*` into a directory. | stdout |
 | `--max-files <N>` | Cap file walking for assets/deps/content scans. | `None` |
@@ -107,13 +137,35 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
 | `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
 
+**Presets**:
+
+| Preset | Includes |
+| :--- | :--- |
+| `receipt` | Core derived metrics (totals, density, distribution, COCOMO) |
+| `health` | `receipt` + TODO density |
+| `risk` | `health` + git hotspots, coupling, freshness |
+| `supply` | `risk` + assets + dependency lockfile summary |
+| `architecture` | `supply` + import graph |
+| `topics` | Semantic topic clouds (TF-IDF on paths) |
+| `security` | License radar + entropy profiling |
+| `identity` | Archetype detection + corporate fingerprint |
+| `git` | Predictive churn + advanced git metrics |
+| `deep` | Everything (except fun) |
+| `fun` | Eco-label, novelty outputs |
+
 **Examples**:
 ```bash
 # Basic derived analysis in Markdown
 tokmd analyze --preset receipt --format md
 
+# Check context window fit
+tokmd analyze --preset receipt --window 128000 --format md
+
 # Deep analysis (git + content + assets) to files
 tokmd analyze --preset deep --format json --output-dir .runs/analysis
+
+# Analyze a previous run
+tokmd analyze .runs/baseline --preset health
 ```
 
 ### `tokmd badge`
@@ -135,6 +187,41 @@ Renders a simple SVG badge for a metric.
 ```bash
 # Token badge to a file
 tokmd badge --metric tokens --out badge.svg
+
+# Lines badge to stdout
+tokmd badge --metric lines
+
+# Documentation percentage badge
+tokmd badge --metric doc --out docs-badge.svg
+```
+
+### `tokmd diff`
+
+Compares two runs, receipts, or directories and shows the delta.
+
+**Usage**: `tokmd diff <FROM> <TO> [OPTIONS]`
+
+| Argument | Description |
+| :--- | :--- |
+| `<FROM>` | Baseline: run directory, receipt file, or path to scan |
+| `<TO>` | Target: run directory, receipt file, or path to scan |
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--format <FMT>` | Output format: `md`, `json`. | `md` |
+| `--module-roots <DIRS>` | Module roots for path scanning. | `.` |
+| `--module-depth <N>` | Module depth for path scanning. | `1` |
+
+**Examples**:
+```bash
+# Compare two runs
+tokmd diff .runs/baseline .runs/current
+
+# Compare git refs (scans each)
+tokmd diff main HEAD
+
+# Compare a run to current state
+tokmd diff .runs/baseline .
 ```
 
 ### `tokmd init`
@@ -142,3 +229,49 @@ tokmd badge --metric tokens --out badge.svg
 Creates a default `.tokeignore` file in the current directory.
 
 **Usage**: `tokmd init`
+
+**Example**:
+```bash
+# Generate a .tokeignore template
+tokmd init
+```
+
+---
+
+## Configuration File
+
+`tokmd` supports a `tokmd.toml` configuration file for persistent settings.
+
+**Location**: Project root or `~/.config/tokmd/tokmd.toml`
+
+**Example**:
+```toml
+[scan]
+paths = ["."]
+exclude = ["target", "node_modules", "*.lock"]
+hidden = false
+
+[module]
+roots = ["crates", "packages"]
+depth = 2
+
+[export]
+min_code = 10
+redact = "none"
+
+[analyze]
+preset = "receipt"
+window = 128000
+
+[view.llm]
+preset = "receipt"
+format = "jsonl"
+redact = "paths"
+min_code = 10
+max_rows = 500
+```
+
+Use a view profile:
+```bash
+tokmd --view llm
+```
