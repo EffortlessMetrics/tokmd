@@ -4,11 +4,13 @@
 //!
 //! Pure data structures for analysis receipts. No I/O or business logic.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 1;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -20,6 +22,12 @@ pub struct AnalysisReceipt {
     pub warnings: Vec<String>,
     pub source: AnalysisSource,
     pub args: AnalysisArgsMeta,
+    pub archetype: Option<Archetype>,
+    pub topics: Option<TopicClouds>,
+    pub entropy: Option<EntropyReport>,
+    pub predictive_churn: Option<PredictiveChurnReport>,
+    pub corporate_fingerprint: Option<CorporateFingerprint>,
+    pub license: Option<LicenseReport>,
     pub derived: Option<DerivedReport>,
     pub assets: Option<AssetReport>,
     pub deps: Option<DependencyReport>,
@@ -33,8 +41,10 @@ pub struct AnalysisReceipt {
 pub struct AnalysisSource {
     pub inputs: Vec<String>,
     pub export_path: Option<String>,
+    pub base_receipt_path: Option<String>,
     pub export_schema_version: Option<u32>,
     pub export_generated_at_ms: Option<u128>,
+    pub base_signature: Option<String>,
     pub module_roots: Vec<String>,
     pub module_depth: usize,
     pub children: String,
@@ -52,6 +62,127 @@ pub struct AnalysisArgsMeta {
     pub max_commit_files: Option<usize>,
     pub max_file_bytes: Option<u64>,
     pub import_granularity: String,
+}
+
+// ---------------
+// Project context
+// ---------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Archetype {
+    pub kind: String,
+    pub evidence: Vec<String>,
+}
+
+// -----------------
+// Semantic topics
+// -----------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicClouds {
+    pub per_module: BTreeMap<String, Vec<TopicTerm>>,
+    pub overall: Vec<TopicTerm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicTerm {
+    pub term: String,
+    pub score: f64,
+    pub tf: u32,
+    pub df: u32,
+}
+
+// -----------------
+// Entropy profiling
+// -----------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntropyReport {
+    pub suspects: Vec<EntropyFinding>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntropyFinding {
+    pub path: String,
+    pub module: String,
+    pub entropy_bits_per_byte: f32,
+    pub sample_bytes: u32,
+    pub class: EntropyClass,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EntropyClass {
+    Low,
+    Normal,
+    Suspicious,
+    High,
+}
+
+// -----------------
+// Predictive churn
+// -----------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PredictiveChurnReport {
+    pub per_module: BTreeMap<String, ChurnTrend>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChurnTrend {
+    pub slope: f64,
+    pub r2: f64,
+    pub recent_change: i64,
+    pub classification: TrendClass,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TrendClass {
+    Rising,
+    Flat,
+    Falling,
+}
+
+// ---------------------
+// Corporate fingerprint
+// ---------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CorporateFingerprint {
+    pub domains: Vec<DomainStat>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainStat {
+    pub domain: String,
+    pub commits: u32,
+    pub pct: f32,
+}
+
+// -------------
+// License radar
+// -------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LicenseReport {
+    pub findings: Vec<LicenseFinding>,
+    pub effective: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LicenseFinding {
+    pub spdx: String,
+    pub confidence: f32,
+    pub source_path: String,
+    pub source_kind: LicenseSourceKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LicenseSourceKind {
+    Metadata,
+    Text,
 }
 
 // -----------------

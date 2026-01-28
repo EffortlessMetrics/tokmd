@@ -30,8 +30,10 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
             .map(|p| p.display().to_string())
             .collect(),
         export_path: bundle.export_path.as_ref().map(|p| p.display().to_string()),
+        base_receipt_path: bundle.export_path.as_ref().map(|p| p.display().to_string()),
         export_schema_version: bundle.meta.schema_version,
         export_generated_at_ms: bundle.meta.generated_at_ms,
+        base_signature: None,
         module_roots: bundle.meta.module_roots.clone(),
         module_depth: bundle.meta.module_depth,
         children: analysis_utils::child_include_to_string(bundle.meta.children),

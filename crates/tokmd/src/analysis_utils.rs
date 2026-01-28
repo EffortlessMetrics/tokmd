@@ -20,6 +20,10 @@ pub(crate) fn preset_to_string(preset: cli::AnalysisPreset) -> String {
         cli::AnalysisPreset::Risk => "risk".to_string(),
         cli::AnalysisPreset::Supply => "supply".to_string(),
         cli::AnalysisPreset::Architecture => "architecture".to_string(),
+        cli::AnalysisPreset::Topics => "topics".to_string(),
+        cli::AnalysisPreset::Security => "security".to_string(),
+        cli::AnalysisPreset::Identity => "identity".to_string(),
+        cli::AnalysisPreset::Git => "git".to_string(),
         cli::AnalysisPreset::Deep => "deep".to_string(),
         cli::AnalysisPreset::Fun => "fun".to_string(),
     }
@@ -53,6 +57,10 @@ pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPrese
         cli::AnalysisPreset::Risk => analysis::AnalysisPreset::Risk,
         cli::AnalysisPreset::Supply => analysis::AnalysisPreset::Supply,
         cli::AnalysisPreset::Architecture => analysis::AnalysisPreset::Architecture,
+        cli::AnalysisPreset::Topics => analysis::AnalysisPreset::Topics,
+        cli::AnalysisPreset::Security => analysis::AnalysisPreset::Security,
+        cli::AnalysisPreset::Identity => analysis::AnalysisPreset::Identity,
+        cli::AnalysisPreset::Git => analysis::AnalysisPreset::Git,
         cli::AnalysisPreset::Deep => analysis::AnalysisPreset::Deep,
         cli::AnalysisPreset::Fun => analysis::AnalysisPreset::Fun,
     }

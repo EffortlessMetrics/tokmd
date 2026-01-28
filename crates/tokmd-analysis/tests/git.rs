@@ -109,8 +109,10 @@ mod git_tests {
             source: AnalysisSource {
                 inputs: vec![root.display().to_string()],
                 export_path: None,
+                base_receipt_path: None,
                 export_schema_version: None,
                 export_generated_at_ms: None,
+                base_signature: None,
                 module_roots: vec!["crates".to_string(), "packages".to_string()],
                 module_depth: 2,
                 children: "separate".to_string(),

@@ -450,6 +450,10 @@ pub enum AnalysisPreset {
     Risk,
     Supply,
     Architecture,
+    Topics,
+    Security,
+    Identity,
+    Git,
     Deep,
     Fun,
 }

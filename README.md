@@ -103,6 +103,24 @@ tokmd export --redact all
 | **Stability** | Output varies by version | Strict Schema Versioning |
 | **LLM Ready** | No | Yes (Bytes, Token Estimates) |
 
+## Analysis presets
+
+`tokmd analyze` supports focused presets for faster, deterministic enrichments:
+
+| Preset | Includes |
+| :--- | :--- |
+| `receipt` | Core derived metrics only. |
+| `health` | TODO density + derived metrics. |
+| `risk` | Git hotspots/coupling/freshness. |
+| `supply` | Assets + dependency lockfile summary. |
+| `architecture` | Import graph. |
+| `topics` | Semantic topic clouds (paths only). |
+| `security` | License radar + entropy profiling. |
+| `identity` | Archetype + corporate fingerprint. |
+| `git` | Predictive churn + git metrics. |
+| `deep` | Everything (except fun). |
+| `fun` | Fun-only outputs (OBJ/MIDI/etc.). |
+
 ## Installation
 
 ### Nix (recommended)

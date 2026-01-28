@@ -7,19 +7,14 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use crate::analysis::AnalysisLimits;
 use crate::util::{normalize_path, percentile, round_f64};
 
 #[cfg(feature = "git")]
 pub(crate) fn build_git_report(
-    root: &Path,
+    repo_root: &Path,
     export: &ExportData,
-    limits: &AnalysisLimits,
+    commits: &[tokmd_git::GitCommit],
 ) -> Result<GitReport> {
-    let repo_root = tokmd_git::repo_root(root).ok_or_else(|| anyhow::anyhow!("not a git repo"))?;
-    let commits =
-        tokmd_git::collect_history(&repo_root, limits.max_commits, limits.max_commit_files)?;
-
     let mut row_map: BTreeMap<String, (&FileRow, String)> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let key = normalize_path(&row.path, &repo_root);
@@ -31,7 +26,7 @@ pub(crate) fn build_git_report(
     let mut last_change: BTreeMap<String, i64> = BTreeMap::new();
     let mut max_ts = 0i64;
 
-    for commit in &commits {
+    for commit in commits {
         max_ts = max_ts.max(commit.timestamp);
         for file in &commit.files {
             let key = normalize_git_path(file);
@@ -76,7 +71,7 @@ pub(crate) fn build_git_report(
 
     let freshness = build_freshness_report(&last_change, &row_map, max_ts);
 
-    let coupling = build_coupling(&commits, &row_map);
+    let coupling = build_coupling(commits, &row_map);
 
     Ok(GitReport {
         commits_scanned: commits.len(),

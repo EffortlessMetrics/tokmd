@@ -38,6 +38,135 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push('\n');
     }
 
+    if let Some(archetype) = &receipt.archetype {
+        out.push_str("## Archetype\n\n");
+        out.push_str(&format!("- Kind: `{}`\n", archetype.kind));
+        if !archetype.evidence.is_empty() {
+            out.push_str(&format!(
+                "- Evidence: `{}`\n",
+                archetype.evidence.join("`, `")
+            ));
+        }
+        out.push('\n');
+    }
+
+    if let Some(topics) = &receipt.topics {
+        out.push_str("## Topics\n\n");
+        if !topics.overall.is_empty() {
+            out.push_str(&format!(
+                "- Overall: `{}`\n",
+                topics
+                    .overall
+                    .iter()
+                    .map(|t| t.term.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ));
+        }
+        for (module, terms) in &topics.per_module {
+            if terms.is_empty() {
+                continue;
+            }
+            let line = terms
+                .iter()
+                .map(|t| t.term.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            out.push_str(&format!("- `{}`: {}\n", module, line));
+        }
+        out.push('\n');
+    }
+
+    if let Some(entropy) = &receipt.entropy {
+        out.push_str("## Entropy profiling\n\n");
+        if entropy.suspects.is_empty() {
+            out.push_str("- No entropy outliers detected.\n\n");
+        } else {
+            out.push_str("|Path|Module|Entropy|Sample bytes|Class|\n");
+            out.push_str("|---|---|---:|---:|---|\n");
+            for row in entropy.suspects.iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|{:?}|\n",
+                    row.path,
+                    row.module,
+                    fmt_f64(row.entropy_bits_per_byte as f64, 2),
+                    row.sample_bytes,
+                    row.class
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
+    if let Some(license) = &receipt.license {
+        out.push_str("## License radar\n\n");
+        if let Some(effective) = &license.effective {
+            out.push_str(&format!("- Effective: `{}`\n", effective));
+        }
+        out.push_str("- Heuristic detection; not legal advice.\n\n");
+        if !license.findings.is_empty() {
+            out.push_str("|SPDX|Confidence|Source|Kind|\n");
+            out.push_str("|---|---:|---|---|\n");
+            for row in license.findings.iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{:?}|\n",
+                    row.spdx,
+                    fmt_f64(row.confidence as f64, 2),
+                    row.source_path,
+                    row.source_kind
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
+    if let Some(fingerprint) = &receipt.corporate_fingerprint {
+        out.push_str("## Corporate fingerprint\n\n");
+        if fingerprint.domains.is_empty() {
+            out.push_str("- No commit domains detected.\n\n");
+        } else {
+            out.push_str("|Domain|Commits|Pct|\n");
+            out.push_str("|---|---:|---:|\n");
+            for row in fingerprint.domains.iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|\n",
+                    row.domain,
+                    row.commits,
+                    fmt_pct(row.pct as f64)
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
+    if let Some(churn) = &receipt.predictive_churn {
+        out.push_str("## Predictive churn\n\n");
+        let mut rows: Vec<_> = churn.per_module.iter().collect();
+        rows.sort_by(|a, b| {
+            b.1.slope
+                .partial_cmp(&a.1.slope)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
+        if rows.is_empty() {
+            out.push_str("- No churn signals detected.\n\n");
+        } else {
+            out.push_str("|Module|Slope|R²|Recent change|Class|\n");
+            out.push_str("|---|---:|---:|---:|---|\n");
+            for (module, trend) in rows.into_iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|{:?}|\n",
+                    module,
+                    fmt_f64(trend.slope, 4),
+                    fmt_f64(trend.r2, 2),
+                    trend.recent_change,
+                    trend.classification
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
     if let Some(derived) = &receipt.derived {
         out.push_str("## Totals\n\n");
         out.push_str("|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|\n");

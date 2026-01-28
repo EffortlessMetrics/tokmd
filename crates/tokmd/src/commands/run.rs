@@ -154,8 +154,10 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
                 .map(|p| p.display().to_string())
                 .collect(),
             export_path: Some("export.jsonl".to_string()),
+            base_receipt_path: Some("export.jsonl".to_string()),
             export_schema_version: Some(tokmd_types::SCHEMA_VERSION),
             export_generated_at_ms: None,
+            base_signature: None,
             module_roots: export_data.module_roots.clone(),
             module_depth: export_data.module_depth,
             children: analysis_utils::child_include_to_string(export_data.children),
