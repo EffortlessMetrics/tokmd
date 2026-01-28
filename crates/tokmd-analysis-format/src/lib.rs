@@ -3,6 +3,8 @@
 //! Rendering for analysis receipts.
 
 use anyhow::Result;
+use time::macros::format_description;
+use time::OffsetDateTime;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
 
@@ -746,26 +748,10 @@ fn render_html(receipt: &AnalysisReceipt) -> String {
 }
 
 fn chrono_lite_timestamp() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = now.as_secs();
-    // Simple ISO 8601 approximation
-    let days = secs / 86400;
-    let time = secs % 86400;
-    let hours = time / 3600;
-    let minutes = (time % 3600) / 60;
-    let seconds = time % 60;
-    // Approximate date (good enough for display)
-    let years = 1970 + (days * 400 / 146097);
-    let remaining = days - ((years - 1970) * 365 + (years - 1969) / 4 - (years - 1901) / 100 + (years - 1601) / 400);
-    let month = (remaining / 30).min(11) + 1;
-    let day = (remaining % 30) + 1;
-    format!(
-        "{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC",
-        years, month, day, hours, minutes, seconds
-    )
+    let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] UTC");
+    OffsetDateTime::now_utc()
+        .format(&format)
+        .unwrap_or_else(|_| "1970-01-01 00:00:00 UTC".to_string())
 }
 
 fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {

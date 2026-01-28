@@ -24,6 +24,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use serde::Serialize;
+use time::format_description::well_known::Rfc3339;
+use time::OffsetDateTime;
 
 use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
@@ -535,27 +537,9 @@ struct CycloneDxProperty {
 }
 
 fn write_export_cyclonedx<W: Write>(out: &mut W, export: &ExportData) -> Result<()> {
-    let timestamp = {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default();
-        let secs = now.as_secs();
-        // Format as ISO 8601 (simplified)
-        let days = secs / 86400;
-        let time = secs % 86400;
-        let hours = time / 3600;
-        let minutes = (time % 3600) / 60;
-        let seconds = time % 60;
-        // Approximate date calculation (not accounting for leap years precisely)
-        let years = 1970 + days / 365;
-        let day_of_year = days % 365;
-        let month = day_of_year / 30 + 1;
-        let day = day_of_year % 30 + 1;
-        format!(
-            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-            years, month, day, hours, minutes, seconds
-        )
-    };
+    let timestamp = OffsetDateTime::now_utc()
+        .format(&Rfc3339)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string());
 
     let components: Vec<CycloneDxComponent> = export
         .rows
