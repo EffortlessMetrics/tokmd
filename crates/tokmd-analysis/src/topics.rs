@@ -86,7 +86,10 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
     });
     overall.truncate(TOP_K);
 
-    TopicClouds { per_module, overall }
+    TopicClouds {
+        per_module,
+        overall,
+    }
 }
 
 fn score_term(tf: u32, df: u32, module_count: f64) -> f64 {
@@ -124,16 +127,31 @@ fn tokenize_path(path: &str, stopwords: &BTreeSet<String>) -> Vec<String> {
 fn build_stopwords(export: &ExportData) -> BTreeSet<String> {
     let mut stop = BTreeSet::new();
     let base = [
-        "src", "lib", "mod", "index", "test", "tests", "impl", "main", "bin", "pkg", "package",
-        "target", "build", "dist", "out", "gen", "generated",
+        "src",
+        "lib",
+        "mod",
+        "index",
+        "test",
+        "tests",
+        "impl",
+        "main",
+        "bin",
+        "pkg",
+        "package",
+        "target",
+        "build",
+        "dist",
+        "out",
+        "gen",
+        "generated",
     ];
     for word in base {
         stop.insert(word.to_string());
     }
     let extensions = [
         "rs", "js", "ts", "tsx", "jsx", "py", "go", "java", "kt", "kts", "rb", "php", "c", "cc",
-        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml",
-        "json", "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
+        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml", "json",
+        "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
     ];
     for ext in extensions {
         stop.insert(ext.to_string());

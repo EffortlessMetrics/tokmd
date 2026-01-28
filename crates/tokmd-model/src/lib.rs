@@ -257,7 +257,10 @@ pub fn create_module_report(
         for report in &lang.reports {
             let path = normalize_path(&report.name, None);
             let module = module_key(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path.into_owned());
+            module_files
+                .entry(module)
+                .or_default()
+                .insert(path.into_owned());
         }
     }
 

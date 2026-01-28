@@ -9,8 +9,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 pub fn read_head(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
-    let mut file = File::open(path)
-        .with_context(|| format!("Failed to open {}", path.display()))?;
+    let mut file =
+        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let mut buf = vec![0u8; max_bytes];
     let n = file.read(&mut buf)?;
     buf.truncate(n);
@@ -21,8 +21,8 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     if max_bytes == 0 {
         return Ok(Vec::new());
     }
-    let mut file = File::open(path)
-        .with_context(|| format!("Failed to open {}", path.display()))?;
+    let mut file =
+        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let size = file.metadata().map(|m| m.len()).unwrap_or(0);
     if size as usize <= max_bytes {
         return read_head(path, max_bytes);
@@ -51,8 +51,7 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
 }
 
 pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec<String>> {
-    let file = File::open(path)
-        .with_context(|| format!("Failed to open {}", path.display()))?;
+    let file = File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let reader = BufReader::new(file);
     let mut lines = Vec::new();
     let mut bytes = 0usize;
