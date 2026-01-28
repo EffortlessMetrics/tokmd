@@ -200,11 +200,7 @@ fn make_scan_args(
     };
 
     if should_redact {
-        args.paths = args
-            .paths
-            .iter()
-            .map(|p| format::redact_path(p))
-            .collect();
+        args.paths = args.paths.iter().map(|p| format::redact_path(p)).collect();
     }
 
     args

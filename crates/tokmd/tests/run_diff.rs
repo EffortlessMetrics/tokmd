@@ -272,7 +272,9 @@ fn test_run_redact_module_json_scan_paths_redacted() {
 
     // Parse JSON to check scan.paths specifically
     let json: serde_json::Value = serde_json::from_str(&module_content).unwrap();
-    let scan_paths = json["scan"]["paths"].as_array().expect("scan.paths should be array");
+    let scan_paths = json["scan"]["paths"]
+        .as_array()
+        .expect("scan.paths should be array");
 
     // Each path should be a 16-char hex hash (no raw path like "proprietary_code")
     for path in scan_paths {
@@ -308,7 +310,11 @@ fn test_run_redact_excluded_patterns_in_lang_json() {
 
     let sensitive_dir = dir.path().join("sensitive_data");
     fs::create_dir_all(&sensitive_dir).unwrap();
-    fs::write(sensitive_dir.join("secrets.rs"), "const KEY: &str = \"\";\n").unwrap();
+    fs::write(
+        sensitive_dir.join("secrets.rs"),
+        "const KEY: &str = \"\";\n",
+    )
+    .unwrap();
 
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
     cmd.current_dir(dir.path())
@@ -534,11 +540,7 @@ fn test_run_redact_all_hashes_modules_too() {
 
     let identifiable_module = dir.path().join("identifiable_module_name");
     fs::create_dir_all(&identifiable_module).unwrap();
-    fs::write(
-        identifiable_module.join("code.rs"),
-        "fn module_code() {}\n",
-    )
-    .unwrap();
+    fs::write(identifiable_module.join("code.rs"), "fn module_code() {}\n").unwrap();
 
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
     cmd.current_dir(dir.path())
