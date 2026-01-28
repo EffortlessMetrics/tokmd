@@ -320,6 +320,21 @@ If `--redact paths` or `--redact all` is used:
 }
 ```
 
+### Totals Object
+
+The `total` object in language and module receipts contains aggregate metrics:
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `code` | `integer` | Total lines of code. |
+| `lines` | `integer` | Total lines (code + comments + blanks). |
+| `files` | `integer` | Total number of files processed. |
+| `bytes` | `integer` | Total file size in bytes. |
+| `tokens` | `integer` | Estimated total token count. |
+| `avg_lines` | `integer` | Average lines per file. |
+
+---
+
 ## 4. Analysis Receipt (`mode: "analysis"`)
 
 Produced by `tokmd analyze --format json`.
