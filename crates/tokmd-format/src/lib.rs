@@ -369,7 +369,7 @@ fn write_export_jsonl<W: Write>(
     for row in redact_rows(&export.rows, args.redact) {
         let wrapper = JsonlRow {
             ty: "row",
-            row: &*row,
+            row: row.as_ref(),
         };
         writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
     }

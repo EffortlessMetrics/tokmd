@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport, CorporateFingerprint,
-    DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport, ImportReport,
-    LicenseReport, PredictiveChurnReport, TopicClouds,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport,
+    CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport,
+    ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
@@ -47,25 +47,13 @@ pub enum ImportGranularity {
     File,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AnalysisLimits {
     pub max_files: Option<usize>,
     pub max_bytes: Option<u64>,
     pub max_file_bytes: Option<u64>,
     pub max_commits: Option<usize>,
     pub max_commit_files: Option<usize>,
-}
-
-impl Default for AnalysisLimits {
-    fn default() -> Self {
-        Self {
-            max_files: None,
-            max_bytes: None,
-            max_file_bytes: None,
-            max_commits: None,
-            max_commit_files: None,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -104,7 +92,13 @@ struct AnalysisPlan {
 
 impl AnalysisPlan {
     fn needs_files(&self) -> bool {
-        self.assets || self.deps || self.todo || self.dup || self.imports || self.entropy || self.license
+        self.assets
+            || self.deps
+            || self.todo
+            || self.dup
+            || self.imports
+            || self.entropy
+            || self.license
     }
 }
 
@@ -490,8 +484,12 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
-                match crate::entropy::build_entropy_report(&ctx.root, list, &ctx.export, &req.limits)
-                {
+                match crate::entropy::build_entropy_report(
+                    &ctx.root,
+                    list,
+                    &ctx.export,
+                    &req.limits,
+                ) {
                     Ok(report) => entropy = Some(report),
                     Err(err) => warnings.push(format!("entropy scan failed: {}", err)),
                 }

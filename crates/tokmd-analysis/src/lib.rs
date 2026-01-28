@@ -4,8 +4,6 @@
 
 mod analysis;
 mod archetype;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod entropy;
 #[cfg(feature = "walk")]
 mod assets;
 #[cfg(feature = "git")]
@@ -13,6 +11,8 @@ mod churn;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod entropy;
 #[cfg(feature = "git")]
 mod fingerprint;
 mod fun;

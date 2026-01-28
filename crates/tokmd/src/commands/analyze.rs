@@ -68,7 +68,8 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     let receipt = analysis::analyze(ctx, request)?;
 
     if let Some(output_dir) = args.output_dir {
-        std::fs::create_dir_all(&output_dir).context("Failed to create analysis output directory")?;
+        std::fs::create_dir_all(&output_dir)
+            .context("Failed to create analysis output directory")?;
         analysis_utils::write_analysis_output(&receipt, &output_dir, format)?;
     } else {
         analysis_utils::write_analysis_stdout(&receipt, format)?;

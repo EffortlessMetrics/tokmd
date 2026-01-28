@@ -128,7 +128,10 @@ pub fn render_midi(notes: &[MidiNote], tempo_bpm: u16) -> Result<Vec<u8>> {
     });
 
     let smf = Smf {
-        header: Header::new(Format::SingleTrack, Timing::Metrical(ticks_per_quarter.into())),
+        header: Header::new(
+            Format::SingleTrack,
+            Timing::Metrical(ticks_per_quarter.into()),
+        ),
         tracks: vec![track],
     };
 
