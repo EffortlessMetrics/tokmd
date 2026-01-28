@@ -114,7 +114,7 @@ fn lang_report_from_git_ref(revision: &str, global: &cli::GlobalArgs) -> Result<
     let _cwd = ScopedCwd::new(&worktree.path)
         .with_context(|| format!("Failed to enter worktree for '{}'", revision))?;
 
-    let languages = scan::scan(&[worktree.path.clone()], global)?;
+    let languages = scan::scan(std::slice::from_ref(&worktree.path), global)?;
     Ok(model::create_lang_report(
         &languages,
         0,

@@ -1,0 +1,10 @@
+[
+  {
+    "run_id": "2026-01-28-run-01",
+    "timestamp_utc": "2026-01-28",
+    "lane": "scout",
+    "target": "integration tests & lint cleanup",
+    "gates_run": ["build", "test", "clippy", "fmt"],
+    "status": "PASS"
+  }
+]

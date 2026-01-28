@@ -2,6 +2,8 @@
 //!
 //! Rendering for analysis receipts.
 
+#![allow(clippy::collapsible_if)]
+
 use anyhow::Result;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
@@ -146,7 +148,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             b.1.slope
                 .partial_cmp(&a.1.slope)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.0.cmp(&b.0))
+                .then_with(|| a.0.cmp(b.0))
         });
         if rows.is_empty() {
             out.push_str("- No churn signals detected.\n\n");

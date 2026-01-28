@@ -1,0 +1,19 @@
+{
+  "run_id": "2026-01-28-run-01",
+  "timestamp_utc": "2026-01-28",
+  "lane": "scout",
+  "target": "integration tests & lint cleanup",
+  "commands": [
+    {
+      "cmd": "CI=true cargo test --workspace --verbose",
+      "exit_code": 0,
+      "output_summary": "All tests passed"
+    },
+    {
+      "cmd": "cargo clippy --workspace -- -D warnings",
+      "exit_code": 0,
+      "output_summary": "clean"
+    }
+  ],
+  "results_summary": "Fixed integration tests and multiple clippy lints."
+}

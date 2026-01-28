@@ -8,6 +8,13 @@ fn tokmd_cmd() -> Command {
     let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
+
+    // Ensure hidden file exists (required for gitignore tests)
+    let hidden = fixtures.join("hidden_by_git.rs");
+    if !hidden.exists() {
+        std::fs::write(&hidden, "fn main() {}").expect("Failed to create hidden_by_git.rs");
+    }
+
     cmd.current_dir(&fixtures);
     cmd
 }

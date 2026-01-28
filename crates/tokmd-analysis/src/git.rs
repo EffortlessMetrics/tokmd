@@ -17,7 +17,7 @@ pub(crate) fn build_git_report(
 ) -> Result<GitReport> {
     let mut row_map: BTreeMap<String, (&FileRow, String)> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let key = normalize_path(&row.path, &repo_root);
+        let key = normalize_path(&row.path, repo_root);
         row_map.insert(key, (row, row.module.clone()));
     }
 

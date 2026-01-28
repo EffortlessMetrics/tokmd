@@ -2,6 +2,8 @@
 //!
 //! Analysis logic and optional enrichers for tokmd receipts.
 
+#![allow(clippy::collapsible_if)]
+
 mod analysis;
 mod archetype;
 #[cfg(all(feature = "content", feature = "walk"))]

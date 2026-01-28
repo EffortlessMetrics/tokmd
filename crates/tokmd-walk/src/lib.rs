@@ -2,6 +2,8 @@
 //!
 //! File listing helpers for tokmd analysis.
 
+#![allow(clippy::collapsible_if)]
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 

@@ -69,7 +69,7 @@ fn is_ignored_domain(domain: &str) -> bool {
 }
 
 fn is_public_domain(domain: &str) -> bool {
-    PUBLIC_DOMAINS.iter().any(|d| *d == domain)
+    PUBLIC_DOMAINS.contains(&domain)
 }
 
 #[cfg(test)]

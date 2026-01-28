@@ -47,25 +47,13 @@ pub enum ImportGranularity {
     File,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AnalysisLimits {
     pub max_files: Option<usize>,
     pub max_bytes: Option<u64>,
     pub max_file_bytes: Option<u64>,
     pub max_commits: Option<usize>,
     pub max_commit_files: Option<usize>,
-}
-
-impl Default for AnalysisLimits {
-    fn default() -> Self {
-        Self {
-            max_files: None,
-            max_bytes: None,
-            max_file_bytes: None,
-            max_commits: None,
-            max_commit_files: None,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
