@@ -61,7 +61,7 @@ fn test_resolve_lang_partial_overrides() {
     };
 
     let profile = Profile {
-        top: Some(10),           // Profile sets top
+        top: Some(10),                   // Profile sets top
         format: Some("tsv".to_string()), // Profile sets format
         ..Default::default()
     };
