@@ -15,6 +15,7 @@
 //! * CLI argument parsing
 //! * Output formatting (printing to stdout/file)
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -256,7 +257,7 @@ pub fn create_module_report(
         for report in &lang.reports {
             let path = normalize_path(&report.name, None);
             let module = module_key(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+            module_files.entry(module).or_default().insert(path.into_owned());
         }
     }
 
@@ -408,7 +409,7 @@ pub fn collect_file_rows(
             let (bytes, tokens) = get_file_metrics(&report.name);
 
             let key = Key {
-                path: path.clone(),
+                path: path.into_owned(),
                 lang: lang_type.name().to_string(),
                 kind: FileKind::Parent,
             };
@@ -431,7 +432,7 @@ pub fn collect_file_rows(
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
                     let key = Key {
-                        path: path.clone(),
+                        path: path.into_owned(),
                         lang: child_type.name().to_string(),
                         kind: FileKind::Child,
                     };
@@ -470,7 +471,7 @@ pub fn unique_parent_file_count(languages: &Languages) -> usize {
     for (_lang_type, lang) in languages.iter() {
         for report in &lang.reports {
             let path = normalize_path(&report.name, None);
-            seen.insert(path);
+            seen.insert(path.into_owned());
         }
     }
     seen.len()
@@ -489,30 +490,61 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Uses `/` separators
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
-pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
-    let mut s = path.to_string_lossy().replace('\\', "/");
+pub fn normalize_path<'a>(path: &'a Path, strip_prefix: Option<&Path>) -> Cow<'a, str> {
+    let mut s = path.to_string_lossy();
 
-    // Strip leading ./ first, so strip_prefix can match against "src/" instead of "./src/"
-    if let Some(stripped) = s.strip_prefix("./") {
-        s = stripped.to_string();
+    #[inline(always)]
+    fn strip_start(cow: &mut Cow<str>, len: usize) {
+        match cow {
+            Cow::Borrowed(b) => *cow = Cow::Borrowed(&b[len..]),
+            Cow::Owned(o) => {
+                o.drain(..len);
+            }
+        }
+    }
+
+    if s.contains('\\') {
+        s = Cow::Owned(s.replace('\\', "/"));
+    }
+
+    if s.starts_with("./") {
+        strip_start(&mut s, 2);
     }
 
     if let Some(prefix) = strip_prefix {
-        let mut pfx = prefix.to_string_lossy().replace('\\', "/");
-        // Ensure prefix ends with a slash for exact segment matching.
-        if !pfx.ends_with('/') {
-            pfx.push('/');
-        }
-        if s.starts_with(&pfx) {
-            s = s[pfx.len()..].to_string();
+        let p_cow = prefix.to_string_lossy();
+        let p_ref = if p_cow.contains('\\') {
+            Cow::Owned(p_cow.replace('\\', "/"))
+        } else {
+            p_cow
+        };
+
+        let matches = if p_ref.ends_with('/') {
+            s.starts_with(p_ref.as_ref())
+        } else {
+            s.starts_with(p_ref.as_ref())
+                && (s.len() > p_ref.len() && s[p_ref.len()..].starts_with('/'))
+        };
+
+        if matches {
+            let len = if p_ref.ends_with('/') {
+                p_ref.len()
+            } else {
+                p_ref.len() + 1
+            };
+            strip_start(&mut s, len);
         }
     }
 
-    s = s.trim_start_matches('/').to_string();
+    if s.starts_with('/') {
+        let trimmed_len = s.len() - s.trim_start_matches('/').len();
+        if trimmed_len > 0 {
+            strip_start(&mut s, trimmed_len);
+        }
+    }
 
-    // After trimming slashes, we might be left with a leading ./ (e.g. from "/./")
-    if let Some(stripped) = s.strip_prefix("./") {
-        s = stripped.to_string();
+    if s.starts_with("./") {
+        strip_start(&mut s, 2);
     }
 
     s
