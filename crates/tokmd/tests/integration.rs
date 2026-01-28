@@ -18,27 +18,25 @@ fn redact_timestamps(output: &str) -> String {
 }
 
 #[test]
-fn test_default_lang_output() -> Result<(), Box<dyn std::error::Error>> {
+fn test_default_lang_output() {
     let mut cmd = tokmd_cmd();
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("|Rust|"));
-    Ok(())
 }
 
 #[test]
-fn test_module_output() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_output() {
     let mut cmd = tokmd_cmd();
     cmd.arg("module")
         .assert()
         .success()
         .stdout(predicate::str::contains("|(root)|"))
         .stdout(predicate::str::contains("|src|"));
-    Ok(())
 }
 
 #[test]
-fn test_export_jsonl() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_jsonl() {
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .arg("--format")
@@ -47,11 +45,10 @@ fn test_export_jsonl() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains(r#""mode":"export""#)) // Meta record
         .stdout(predicate::str::contains(r#""path":"src/main.rs""#)); // Data row
-    Ok(())
 }
 
 #[test]
-fn test_export_redaction() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_redaction() {
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .arg("--redact")
@@ -59,21 +56,19 @@ fn test_export_redaction() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("src/main.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_ignore_file_respected() -> Result<(), Box<dyn std::error::Error>> {
+fn test_ignore_file_respected() {
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_ignore_vcs_explicit() -> Result<(), Box<dyn std::error::Error>> {
+fn test_ignore_vcs_explicit() {
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore-vcs (or --no-ignore-git)
     // Then: The file SHOULD appear in the output
@@ -83,11 +78,10 @@ fn test_ignore_vcs_explicit() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("hidden_by_git.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_no_ignore_implies_vcs() -> Result<(), Box<dyn std::error::Error>> {
+fn test_no_ignore_implies_vcs() {
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run with --no-ignore (which implies vcs ignore disabled)
     // Then: The file SHOULD appear
@@ -97,11 +91,10 @@ fn test_no_ignore_implies_vcs() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("hidden_by_git.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_default_ignores_vcs() -> Result<(), Box<dyn std::error::Error>> {
+fn test_default_ignores_vcs() {
     // Given: 'hidden_by_git.rs' is in .gitignore
     // When: We run normally
     // Then: The file SHOULD NOT appear
@@ -110,22 +103,20 @@ fn test_default_ignores_vcs() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("hidden_by_git.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_ignore_override() -> Result<(), Box<dyn std::error::Error>> {
+fn test_ignore_override() {
     let mut cmd = tokmd_cmd();
     cmd.arg("--no-ignore")
         .arg("export")
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_lang_format_tsv() -> Result<(), Box<dyn std::error::Error>> {
+fn test_lang_format_tsv() {
     let mut cmd = tokmd_cmd();
     cmd.arg("lang")
         .arg("--format")
@@ -134,11 +125,10 @@ fn test_lang_format_tsv() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("Lang\tCode\tLines"))
         .stdout(predicate::str::contains("Rust\t"));
-    Ok(())
 }
 
 #[test]
-fn test_module_format_tsv() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_format_tsv() {
     let mut cmd = tokmd_cmd();
     cmd.arg("module")
         .arg("--format")
@@ -147,23 +137,21 @@ fn test_module_format_tsv() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("Module\tCode\tLines"))
         .stdout(predicate::str::contains("(root)\t"));
-    Ok(())
 }
 
 #[test]
-fn test_golden_lang_json() -> Result<(), Box<dyn std::error::Error>> {
+fn test_golden_lang_json() {
     let mut cmd = tokmd_cmd();
-    let output = cmd.arg("--format").arg("json").output()?;
+    let output = cmd.arg("--format").arg("json").output().unwrap();
 
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
-    Ok(())
 }
 
 #[test]
-fn test_golden_module_json() -> Result<(), Box<dyn std::error::Error>> {
+fn test_golden_module_json() {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("module")
@@ -172,27 +160,25 @@ fn test_golden_module_json() -> Result<(), Box<dyn std::error::Error>> {
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
-    Ok(())
 }
 
 #[test]
-fn test_golden_export_jsonl() -> Result<(), Box<dyn std::error::Error>> {
+fn test_golden_export_jsonl() {
     let mut cmd = tokmd_cmd();
-    let output = cmd.arg("export").output()?;
+    let output = cmd.arg("export").output().unwrap();
 
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
-    Ok(())
 }
 
 #[test]
-fn test_golden_export_redacted() -> Result<(), Box<dyn std::error::Error>> {
+fn test_golden_export_redacted() {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("export")
@@ -201,15 +187,14 @@ fn test_golden_export_redacted() -> Result<(), Box<dyn std::error::Error>> {
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
-    Ok(())
 }
 
 #[test]
-fn test_strip_prefix() -> Result<(), Box<dyn std::error::Error>> {
+fn test_strip_prefix() {
     // Given: A file in src/main.rs
     // When: We export with --strip-prefix src
     // Then: The path should be main.rs (without src/)
@@ -224,11 +209,10 @@ fn test_strip_prefix() -> Result<(), Box<dyn std::error::Error>> {
         // We need to be more specific with JSON matching or negative matching.)
         .stdout(predicate::str::contains(r#""path":"main.rs""#))
         .stdout(predicate::str::contains(r#""path":"src/main.rs""#).not());
-    Ok(())
 }
 
 #[test]
-fn test_export_format_json() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_format_json() {
     // Given: Standard files
     // When: We export with --format json (not jsonl)
     // Then: output should be a JSON object containing "rows"
@@ -241,27 +225,25 @@ fn test_export_format_json() -> Result<(), Box<dyn std::error::Error>> {
         // It's a JSON object { ..., "rows": [...] }
         .stdout(predicate::str::starts_with("{"))
         .stdout(predicate::str::contains(r#""rows":["#));
-    Ok(())
 }
 
 #[test]
-fn test_init_creates_file() -> Result<(), Box<dyn std::error::Error>> {
+fn test_init_creates_file() {
     // Given: An empty temporary directory
     // When: We run `tokmd init` inside it
     // Then: .tokeignore should be created
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path()).arg("init").assert().success();
 
     let file_path = dir.path().join(".tokeignore");
     assert!(file_path.exists(), ".tokeignore was not created");
-    Ok(())
 }
 
 // --- BDD / Feature Tests ---
 
 #[test]
-fn test_filter_min_code() -> Result<(), Box<dyn std::error::Error>> {
+fn test_filter_min_code() {
     // Given: A large file (10+ lines) and small files (<5 lines)
     // When: We export with --min-code 5
     // Then: Only the large file should be present
@@ -273,11 +255,10 @@ fn test_filter_min_code() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("large.rs"))
         .stdout(predicate::str::contains("main.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_limit_top_files() -> Result<(), Box<dyn std::error::Error>> {
+fn test_limit_top_files() {
     // Given: Multiple files
     // When: We run lang report with --top 1
     // Then: Only 1 language (plus potentially 'Total'/'Other') should be detailed
@@ -288,11 +269,10 @@ fn test_limit_top_files() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("Rust"));
-    Ok(())
 }
 
 #[test]
-fn test_limit_max_rows() -> Result<(), Box<dyn std::error::Error>> {
+fn test_limit_max_rows() {
     // Given: Multiple files
     // When: We export with --max-rows 1
     // Then: output should be truncated (ignoring the meta header)
@@ -320,11 +300,10 @@ fn test_limit_max_rows() -> Result<(), Box<dyn std::error::Error>> {
             // Meta + 1 Row = 2 lines
             lines.len() == 2
         }));
-    Ok(())
 }
 
 #[test]
-fn test_paths_redacted_hash() -> Result<(), Box<dyn std::error::Error>> {
+fn test_paths_redacted_hash() {
     // Given: Standard files
     // When: We export with --redact paths (which means hash)
     // Then: filenames should be replaced by hashes
@@ -336,14 +315,11 @@ fn test_paths_redacted_hash() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("main.rs").not())
         // Match hash + extension (e.g. "ec412fe02b918085.rs")
-        .stdout(predicate::str::is_match(
-            r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#,
-        )?);
-    Ok(())
+        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).unwrap());
 }
 
 #[test]
-fn test_default_paths_are_relative() -> Result<(), Box<dyn std::error::Error>> {
+fn test_default_paths_are_relative() {
     // Given: Standard files
     // When: We export (default settings)
     // Then: Paths should be relative (e.g. "src/main.rs")
@@ -352,11 +328,10 @@ fn test_default_paths_are_relative() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("src/main.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_children_separate() -> Result<(), Box<dyn std::error::Error>> {
+fn test_children_separate() {
     // Given: A markdown file with embedded Rust code (mixed.md)
     // When: We run module report with --children separate
     // Then: We should see counts reflecting the embedded code
@@ -367,11 +342,10 @@ fn test_children_separate() -> Result<(), Box<dyn std::error::Error>> {
         .arg("separate")
         .assert()
         .success();
-    Ok(())
 }
 
 #[test]
-fn test_init_command() -> Result<(), Box<dyn std::error::Error>> {
+fn test_init_command() {
     // Given: A temporary directory (mimicked by checking output for now,
     // as we don't want to dirty tests/data/src)
     // When: We run `init --print`
@@ -382,11 +356,10 @@ fn test_init_command() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("# .tokeignore"));
-    Ok(())
 }
 
 #[test]
-fn test_module_custom_roots() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_custom_roots() {
     // Given: A file structure where we can simulate roots.
     // 'src' is a folder in tests/data.
     // When: We run module report with --module-roots src --module-depth 1
@@ -404,11 +377,10 @@ fn test_module_custom_roots() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("|src|"));
-    Ok(())
 }
 
 #[test]
-fn test_init_print_bdd() -> Result<(), Box<dyn std::error::Error>> {
+fn test_init_print_bdd() {
     // Given: No prerequisites
     // When: `tokmd init --print` is run
     // Then: It prints the standard .tokeignore template including 'target/'
@@ -418,11 +390,10 @@ fn test_init_print_bdd() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("target/"));
-    Ok(())
 }
 
 #[test]
-fn test_mixed_args_precedence() -> Result<(), Box<dyn std::error::Error>> {
+fn test_mixed_args_precedence() {
     // Given: A file that is small (src/main.rs is < 10 lines)
     // When: We run export with --min-code 10 AND --max-rows 100
     // Then: It should be filtered out because min-code excludes it before max-rows counts it
@@ -435,11 +406,10 @@ fn test_mixed_args_precedence() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("src/main.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_module_custom_roots_miss() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_custom_roots_miss() {
     // Given: src/main.rs
     // When: We set module roots to something that DOESN'T match, like 'crates'
     // Then: The file should fall back to its top-level directory 'src'
@@ -452,11 +422,10 @@ fn test_module_custom_roots_miss() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("|src|"));
-    Ok(())
 }
 
 #[test]
-fn test_export_meta_false() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_meta_false() {
     // Given: Standard files
     // When: We export with --meta false
     // Then: The first line should NOT be the meta record
@@ -468,11 +437,10 @@ fn test_export_meta_false() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains(r#""mode":"export""#).not())
         .stdout(predicate::str::contains(r#""type":"row""#));
-    Ok(())
 }
 
 #[test]
-fn test_redaction_leaks_in_meta() -> Result<(), Box<dyn std::error::Error>> {
+fn test_redaction_leaks_in_meta() {
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .arg("src/main.rs") // Explicit positional path
@@ -481,11 +449,10 @@ fn test_redaction_leaks_in_meta() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("src/main.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_filter_all_rows() -> Result<(), Box<dyn std::error::Error>> {
+fn test_filter_all_rows() {
     // Given: Files with small code counts
     // When: We export with --min-code 1000 (too high)
     // Then: No row records should be output, but meta might be (if enabled)
@@ -496,15 +463,14 @@ fn test_filter_all_rows() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains(r#""type":"row""#).not());
-    Ok(())
 }
 
 #[test]
-fn test_export_out_file() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_out_file() {
     // Given: A temp dir and output file path
     // When: We run export with --out <file>
     // Then: stdout should be empty, file should contain jsonl
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     let out_file = dir.path().join("output.jsonl");
 
     let mut cmd = tokmd_cmd();
@@ -515,14 +481,13 @@ fn test_export_out_file() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(""); // stdout should be empty
 
-    let content = std::fs::read_to_string(&out_file)?;
+    let content = std::fs::read_to_string(&out_file).unwrap();
     assert!(content.contains(r#""mode":"export""#));
     assert!(content.contains(r#""path":"src/main.rs""#)); // assuming default test context includes src/main.rs
-    Ok(())
 }
 
 #[test]
-fn test_lang_files_flag() -> Result<(), Box<dyn std::error::Error>> {
+fn test_lang_files_flag() {
     // Given: Standard scan
     // When: We run lang --files
     // Then: Output should contain "Files" and "Avg" columns
@@ -532,15 +497,14 @@ fn test_lang_files_flag() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("Files"))
         .stdout(predicate::str::contains("Avg"));
-    Ok(())
 }
 
 #[test]
-fn test_init_force() -> Result<(), Box<dyn std::error::Error>> {
+fn test_init_force() {
     // Given: A temp dir with an existing .tokeignore
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     let file_path = dir.path().join(".tokeignore");
-    std::fs::write(&file_path, "existing content")?;
+    std::fs::write(&file_path, "existing content").unwrap();
 
     // When: We run init without force
     // Then: It should fail
@@ -556,14 +520,13 @@ fn test_init_force() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success();
 
-    let content = std::fs::read_to_string(&file_path)?;
+    let content = std::fs::read_to_string(&file_path).unwrap();
     assert!(content.contains("# .tokeignore"));
     assert!(!content.contains("existing content"));
-    Ok(())
 }
 
 #[test]
-fn test_init_profiles() -> Result<(), Box<dyn std::error::Error>> {
+fn test_init_profiles() {
     // Given: A request for python profile
     // When: We run init --profile python --print
     // Then: Output should contain python specific ignores like __pycache__
@@ -575,11 +538,10 @@ fn test_init_profiles() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("__pycache__"));
-    Ok(())
 }
 
 #[test]
-fn test_non_existent_path() -> Result<(), Box<dyn std::error::Error>> {
+fn test_non_existent_path() {
     // Given: A non-existent path
     // When: We run export
     // Then: It should succeed but report 0 files (or handled gracefully)
@@ -592,11 +554,10 @@ fn test_non_existent_path() -> Result<(), Box<dyn std::error::Error>> {
         .success();
     // We don't strictly assert output emptiness because meta might be there.
     // But verifying it doesn't crash is valuable.
-    Ok(())
 }
 
 #[test]
-fn test_module_parents_only() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_parents_only() {
     // Given: mixed.md with embedded rust code
     // When: We run module --children parents-only
     // Then: The total code count should be lower than separate/collapse for the 'tests' module
@@ -608,11 +569,10 @@ fn test_module_parents_only() -> Result<(), Box<dyn std::error::Error>> {
         .arg("parents-only")
         .assert()
         .success();
-    Ok(())
 }
 
 #[test]
-fn test_empty_file_handling() -> Result<(), Box<dyn std::error::Error>> {
+fn test_empty_file_handling() {
     // Given: An empty file (we need to ensure one exists in fixtures)
     // For now, let's assume 'script.js' has content.
     // We'll create a new empty file in a setup step if we could,
@@ -623,11 +583,10 @@ fn test_empty_file_handling() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored.rs").not());
-    Ok(())
 }
 
 #[test]
-fn test_path_with_spaces() -> Result<(), Box<dyn std::error::Error>> {
+fn test_path_with_spaces() {
     // Given: 'space file.rs' exists in tests/data
     // When: We export
     // Then: It should be present and handled correctly (no quoting issues in JSON)
@@ -636,15 +595,14 @@ fn test_path_with_spaces() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("space file.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_csv_escaping() -> Result<(), Box<dyn std::error::Error>> {
+fn test_csv_escaping() {
     // Given: A file with a comma in its name
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     let file_path = dir.path().join("file,with,commas.txt");
-    std::fs::write(&file_path, "content")?;
+    std::fs::write(&file_path, "content").unwrap();
 
     // When: We export as CSV
     // Then: The path should be quoted in the output
@@ -658,17 +616,16 @@ fn test_csv_escaping() -> Result<(), Box<dyn std::error::Error>> {
         // csv crate quotes fields containing delimiters.
         // "file,with,commas.txt"
         .stdout(predicate::str::contains(r#""file,with,commas.txt""#));
-    Ok(())
 }
 
 #[test]
-fn test_exclude_glob() -> Result<(), Box<dyn std::error::Error>> {
+fn test_exclude_glob() {
     // Given: A nested file structure
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     let nested = dir.path().join("nested");
-    std::fs::create_dir(&nested)?;
-    std::fs::write(nested.join("skip_me.rs"), "fn main() {}")?;
-    std::fs::write(nested.join("keep_me.rs"), "fn main() {}")?;
+    std::fs::create_dir(&nested).unwrap();
+    std::fs::write(nested.join("skip_me.rs"), "fn main() {}").unwrap();
+    std::fs::write(nested.join("keep_me.rs"), "fn main() {}").unwrap();
 
     // When: We run export with a glob exclude
     // Note: --exclude is a global arg, so it must come BEFORE the subcommand
@@ -684,11 +641,10 @@ fn test_exclude_glob() -> Result<(), Box<dyn std::error::Error>> {
         // We look for the JSON key/value pair for the path
         .stdout(predicate::str::contains(r#""path":"nested/skip_me.rs""#).not())
         .stdout(predicate::str::contains("keep_me.rs"));
-    Ok(())
 }
 
 #[test]
-fn test_redact_all() -> Result<(), Box<dyn std::error::Error>> {
+fn test_redact_all() {
     // Given: Standard files
     // When: We export with --redact all
     // Then: filenames AND module names should be redacted
@@ -700,20 +656,17 @@ fn test_redact_all() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         // Path should be hashed
         .stdout(predicate::str::contains("src/main.rs").not())
-        .stdout(predicate::str::is_match(
-            r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#,
-        )?)
+        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).unwrap())
         // Module should NOT be "src" (it should be hashed or redacted, usually same hash if it's based on path,
         // or just hidden. Wait, how is module redacted?
         // In model.rs it's just a derived key. If paths are redacted, module key derivation might change?
         // Let's check format.rs/redact_rows logic.
         // Actually, let's just check that "src" doesn't appear as a module value.
         .stdout(predicate::str::contains(r#""module":"src""#).not());
-    Ok(())
 }
 
 #[test]
-fn test_module_top_exact() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_top_exact() {
     let mut cmd = tokmd_cmd();
     cmd.arg("module")
         .arg("--top")
@@ -723,11 +676,10 @@ fn test_module_top_exact() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains("(root)"))
         .stdout(predicate::str::contains("src"))
         .stdout(predicate::str::contains("Other").not());
-    Ok(())
 }
 
 #[test]
-fn test_children_stats_integrity() -> Result<(), Box<dyn std::error::Error>> {
+fn test_children_stats_integrity() {
     let mut cmd = tokmd_cmd();
     cmd.arg("lang")
         .arg("--children")
@@ -744,11 +696,10 @@ fn test_children_stats_integrity() -> Result<(), Box<dyn std::error::Error>> {
             )
             .unwrap(),
         );
-    Ok(())
 }
 
 #[test]
-fn test_generated_timestamp_validity() -> Result<(), Box<dyn std::error::Error>> {
+fn test_generated_timestamp_validity() {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("lang")
@@ -756,20 +707,19 @@ fn test_generated_timestamp_validity() -> Result<(), Box<dyn std::error::Error>>
         .arg("json")
         .output()
         .unwrap();
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     // Parse JSON and check generated_at_ms
-    let v: serde_json::Value = serde_json::from_str(&stdout)?;
-    let ts = v["generated_at_ms"].as_u64().ok_or("not a u64")?;
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let ts = v["generated_at_ms"].as_u64().unwrap();
     assert!(ts > 1_700_000_000_000, "Timestamp too old or zero: {}", ts);
-    Ok(())
 }
 
 #[test]
-fn test_lang_stats_math() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
+fn test_lang_stats_math() {
+    let dir = tempdir().unwrap();
     let file = dir.path().join("math.rs");
     // 2 code lines, 1 comment, 1 blank
-    std::fs::write(&file, "fn main() {\n    // comment\n\n}")?;
+    std::fs::write(&file, "fn main() {\n    // comment\n\n}").unwrap();
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -781,18 +731,17 @@ fn test_lang_stats_math() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains(r#""code":2"#))
         // LangRow doesn't expose comments/blanks directly in JSON, but lines = code+comments+blanks
         .stdout(predicate::str::contains(r#""lines":4"#)); // 2+1+1
-    Ok(())
 }
 
 #[test]
-fn test_lang_fold_math() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
+fn test_lang_fold_math() {
+    let dir = tempdir().unwrap();
     // File 1: Rust (1 code)
-    std::fs::write(dir.path().join("a.rs"), "fn a(){}")?;
+    std::fs::write(dir.path().join("a.rs"), "fn a(){}").unwrap();
     // File 2: Python (1 code)
-    std::fs::write(dir.path().join("b.py"), "print(1)")?;
+    std::fs::write(dir.path().join("b.py"), "print(1)").unwrap();
     // File 3: JS (1 code)
-    std::fs::write(dir.path().join("c.js"), "console.log()")?;
+    std::fs::write(dir.path().join("c.js"), "console.log()").unwrap();
 
     // Run with top 1.
     // Code counts: Rust=1, Python=1, JS=1. (Actually Rust might be more lines depending on formatting, let's assume 1)
@@ -816,26 +765,25 @@ fn test_lang_fold_math() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains(r#""lang":"Other""#))
         // Verify Other stats
         .stdout(predicate::str::contains(r#""code":2"#)); // Other=2
-    Ok(())
 }
 
 #[test]
-fn test_module_fold_math() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
+fn test_module_fold_math() {
+    let dir = tempdir().unwrap();
     // Mod A: 2 lines
     let mod_a = dir.path().join("a");
-    std::fs::create_dir(&mod_a)?;
-    std::fs::write(mod_a.join("main.rs"), "fn main(){}")?; // 1 line
+    std::fs::create_dir(&mod_a).unwrap();
+    std::fs::write(mod_a.join("main.rs"), "fn main(){}").unwrap(); // 1 line
 
     // Mod B: 1 line
     let mod_b = dir.path().join("b");
-    std::fs::create_dir(&mod_b)?;
-    std::fs::write(mod_b.join("main.rs"), "fn main(){}")?; // 1 line
+    std::fs::create_dir(&mod_b).unwrap();
+    std::fs::write(mod_b.join("main.rs"), "fn main(){}").unwrap(); // 1 line
 
     // Mod C: 1 line
     let mod_c = dir.path().join("c");
-    std::fs::create_dir(&mod_c)?;
-    std::fs::write(mod_c.join("main.rs"), "fn main(){}")?; // 1 line
+    std::fs::create_dir(&mod_c).unwrap();
+    std::fs::write(mod_c.join("main.rs"), "fn main(){}").unwrap(); // 1 line
 
     // We need to have 3 modules. Default depth is 0? No, --module-depth.
     // If we run `module --module-depth 1`.
@@ -862,7 +810,6 @@ fn test_module_fold_math() -> Result<(), Box<dyn std::error::Error>> {
         // A has 1 code. Other has 2.
         .stdout(predicate::str::contains(r#""code":1"#))
         .stdout(predicate::str::contains(r#""code":2"#));
-    Ok(())
 }
 
 /*
@@ -889,7 +836,7 @@ fn test_module_fold_math() -> Result<(), Box<dyn std::error::Error>> {
 */
 
 #[test]
-fn test_module_depth_overflow() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_depth_overflow() {
     // Given: src/main.rs (depth 2 essentially: src -> main.rs)
     // When: We ask for module depth 10
     // Then: It should not crash, and likely just return 'src' (or whatever full path segments it has)
@@ -900,11 +847,10 @@ fn test_module_depth_overflow() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("|src|"));
-    Ok(())
 }
 
 #[test]
-fn test_lang_top_limit() -> Result<(), Box<dyn std::error::Error>> {
+fn test_lang_top_limit() {
     // Given: Standard scan with multiple languages
     // When: We run lang --top 1
     // Then: Output should contain "Other" row if there are more than 1 lang
@@ -915,11 +861,10 @@ fn test_lang_top_limit() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("Other"));
-    Ok(())
 }
 
 #[test]
-fn test_module_top_limit() -> Result<(), Box<dyn std::error::Error>> {
+fn test_module_top_limit() {
     // Given: Standard scan with multiple modules
     // When: We run module --top 1
     // Then: Output should contain "Other" row
@@ -931,11 +876,10 @@ fn test_module_top_limit() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("Other"));
-    Ok(())
 }
 
 #[test]
-fn test_lang_format_json() -> Result<(), Box<dyn std::error::Error>> {
+fn test_lang_format_json() {
     // Given: Standard scan
     // When: We run lang --format json
     // Then: Output should be valid JSON with "rows" and "total"
@@ -946,15 +890,14 @@ fn test_lang_format_json() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains(r#""rows":["#))
         .stdout(predicate::str::contains(r#""total":{"#));
-    Ok(())
 }
 
 #[test]
-fn test_no_ignore_dot() -> Result<(), Box<dyn std::error::Error>> {
+fn test_no_ignore_dot() {
     // Given: A temp dir with a .ignore file
-    let dir = tempdir()?;
-    std::fs::write(dir.path().join(".ignore"), "ignored.txt")?;
-    std::fs::write(dir.path().join("ignored.txt"), "content")?;
+    let dir = tempdir().unwrap();
+    std::fs::write(dir.path().join(".ignore"), "ignored.txt").unwrap();
+    std::fs::write(dir.path().join("ignored.txt"), "content").unwrap();
 
     // When: We run export (default respects .ignore)
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
@@ -972,11 +915,10 @@ fn test_no_ignore_dot() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored.txt"));
-    Ok(())
 }
 
 #[test]
-fn test_verbose_flag() -> Result<(), Box<dyn std::error::Error>> {
+fn test_verbose_flag() {
     // Given: Simple run
     // When: We run with --verbose
     // Then: It shouldn't crash.
@@ -985,13 +927,12 @@ fn test_verbose_flag() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--verbose").arg("export").assert().success();
     // We don't assert content because logging format might change,
     // but ensuring the flag is accepted is the main goal.
-    Ok(())
 }
 
 #[test]
-fn test_treat_doc_strings_as_comments() -> Result<(), Box<dyn std::error::Error>> {
+fn test_treat_doc_strings_as_comments() {
     // Given: A Python file with docstrings
-    let dir = tempdir()?;
+    let dir = tempdir().unwrap();
     std::fs::write(
         dir.path().join("doc.py"),
         r#"
@@ -1016,12 +957,9 @@ x = 1
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = String::from_utf8(output.stdout).unwrap();
     // Find the row for doc.py
-    let row_line = stdout
-        .lines()
-        .find(|l| l.contains("doc.py"))
-        .ok_or("line not found")?;
+    let row_line = stdout.lines().find(|l| l.contains("doc.py")).unwrap();
 
     // Then: comments should be > 0 (it's 4 lines of docstring)
     // Code should be 1 (x=1)
@@ -1033,11 +971,10 @@ x = 1
     // Implies default might be code?
     // Let's just verify that comments >= 4.
     assert!(row_line.contains(r#""comments":4"#) || row_line.contains(r#""comments":5"#));
-    Ok(())
 }
 
 #[test]
-fn test_format_csv() -> Result<(), Box<dyn std::error::Error>> {
+fn test_format_csv() {
     // Given: Standard files
     // When: We export as CSV
     // Then: Output should be comma-separated
@@ -1053,5 +990,4 @@ fn test_format_csv() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains(
             "src/main.rs,src,Rust,parent,3,0,0,3",
         )); // Row
-    Ok(())
 }

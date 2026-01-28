@@ -1,15 +1,8 @@
 [
   {
-    "timestamp": "2026-01-27T13:11:32Z",
+    "timestamp": "2026-01-28T19:37:27Z",
     "lane": "scout",
     "target": "crates/tokmd/tests/integration.rs",
-    "gates_run": [
-      "build",
-      "test",
-      "fmt",
-      "clippy"
-    ],
-    "gates_status": "PASS",
-    "friction_ids_created": []
+    "outcome": "superseded"
   }
 ]
