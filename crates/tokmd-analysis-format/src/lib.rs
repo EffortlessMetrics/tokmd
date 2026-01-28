@@ -2,6 +2,9 @@
 //!
 //! Rendering for analysis receipts.
 
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::needless_borrow)]
+
 use anyhow::Result;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;

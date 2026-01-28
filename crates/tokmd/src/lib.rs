@@ -13,6 +13,11 @@
 //!
 //! This crate should contain minimal business logic.
 
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::cloned_ref_to_slice_refs)]
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::field_reassign_with_default)]
+
 mod analysis_utils;
 mod badge;
 mod commands;

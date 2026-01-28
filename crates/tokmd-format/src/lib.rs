@@ -15,6 +15,7 @@
 //! * Business logic (calculating stats)
 //! * CLI arg parsing
 
+use std::borrow::Cow;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
@@ -22,11 +23,11 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Serialize, Serializer, ser::SerializeSeq};
 
-use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
+use tokmd_config::{ChildIncludeMode, ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
+    ExportArgs, ExportArgsMeta, ExportData, FileKind, FileRow, LangArgs,
     LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
     ScanArgs, ScanStatus, ToolInfo,
 };
@@ -274,7 +275,47 @@ struct JsonlRow<'a> {
     #[serde(rename = "type")]
     ty: &'static str,
     #[serde(flatten)]
-    row: &'a FileRow,
+    row: &'a RedactedRow<'a>,
+}
+
+#[derive(Serialize)]
+struct ExportReceiptRef<'a> {
+    schema_version: u32,
+    generated_at_ms: u128,
+    tool: ToolInfo,
+    mode: String,
+    status: ScanStatus,
+    warnings: &'a [String],
+    scan: ScanArgs,
+    args: ExportArgsMeta,
+    #[serde(flatten)]
+    data: ExportDataRef<'a>,
+}
+
+#[derive(Serialize)]
+struct ExportDataRef<'a> {
+    rows: RowsSerializer<'a>,
+    module_roots: &'a [String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+}
+
+struct RowsSerializer<'a> {
+    rows: &'a [FileRow],
+    redact: RedactMode,
+}
+
+impl<'a> Serialize for RowsSerializer<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.rows.len()))?;
+        for row in iter_redacted_rows(self.rows, self.redact) {
+            seq.serialize_element(&row)?;
+        }
+        seq.end()
+    }
 }
 
 pub fn write_export(export: &ExportData, global: &GlobalArgs, args: &ExportArgs) -> Result<()> {
@@ -314,21 +355,21 @@ fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArg
         "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
     ])?;
 
-    for r in redact_rows(&export.rows, args.redact) {
+    for r in iter_redacted_rows(&export.rows, args.redact) {
         wtr.write_record([
-            r.path,
-            r.module,
+            r.path.as_ref(),
+            r.module.as_ref(),
             r.lang,
             match r.kind {
-                FileKind::Parent => "parent".to_string(),
-                FileKind::Child => "child".to_string(),
+                FileKind::Parent => "parent",
+                FileKind::Child => "child",
             },
-            r.code.to_string(),
-            r.comments.to_string(),
-            r.blanks.to_string(),
-            r.lines.to_string(),
-            r.bytes.to_string(),
-            r.tokens.to_string(),
+            &r.code.to_string(),
+            &r.comments.to_string(),
+            &r.blanks.to_string(),
+            &r.lines.to_string(),
+            &r.bytes.to_string(),
+            &r.tokens.to_string(),
         ])?;
     }
 
@@ -366,7 +407,7 @@ fn write_export_jsonl<W: Write>(
         writeln!(out, "{}", serde_json::to_string(&meta)?)?;
     }
 
-    for row in redact_rows(&export.rows, args.redact) {
+    for row in iter_redacted_rows(&export.rows, args.redact) {
         let wrapper = JsonlRow {
             ty: "row",
             row: &row,
@@ -383,13 +424,13 @@ fn write_export_json<W: Write>(
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
-        let receipt = ExportReceipt {
+        let receipt = ExportReceiptRef {
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: ToolInfo::current(),
             mode: "export".to_string(),
             status: ScanStatus::Complete,
-            warnings: vec![],
+            warnings: &[], // Assuming empty warnings for now, as ExportReceipt has Vec<String>
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
@@ -401,41 +442,77 @@ fn write_export_json<W: Write>(
                 redact: args.redact,
                 strip_prefix: args.strip_prefix.as_ref().map(|p| p.display().to_string()),
             },
-            data: ExportData {
-                rows: redact_rows(&export.rows, args.redact),
-                module_roots: export.module_roots.clone(),
+            data: ExportDataRef {
+                rows: RowsSerializer {
+                    rows: &export.rows,
+                    redact: args.redact,
+                },
+                module_roots: &export.module_roots,
                 module_depth: export.module_depth,
                 children: export.children,
             },
         };
-        writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+        serde_json::to_writer(&mut *out, &receipt)?;
+        writeln!(out)?; // Trailing newline
     } else {
-        writeln!(
-            out,
-            "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact))?
-        )?;
+        let rows = RowsSerializer {
+            rows: &export.rows,
+            redact: args.redact,
+        };
+        serde_json::to_writer(&mut *out, &rows)?;
+        writeln!(out)?; // Trailing newline
     }
     Ok(())
 }
 
-fn redact_rows(rows: &[FileRow], mode: RedactMode) -> Vec<FileRow> {
-    if mode == RedactMode::None {
-        return rows.to_vec();
-    }
+#[derive(Debug, Clone, Serialize)]
+struct RedactedRow<'a> {
+    pub path: Cow<'a, str>,
+    pub module: Cow<'a, str>,
+    pub lang: &'a str,
+    pub kind: FileKind,
+    pub code: usize,
+    pub comments: usize,
+    pub blanks: usize,
+    pub lines: usize,
+    pub bytes: usize,
+    pub tokens: usize,
+}
 
-    rows.iter()
-        .cloned()
-        .map(|mut r| {
-            if mode == RedactMode::Paths || mode == RedactMode::All {
-                r.path = redact_path(&r.path);
-            }
-            if mode == RedactMode::All {
-                r.module = short_hash(&r.module);
-            }
-            r
-        })
-        .collect()
+fn iter_redacted_rows<'a>(
+    rows: &'a [FileRow],
+    mode: RedactMode,
+) -> impl Iterator<Item = RedactedRow<'a>> {
+    rows.iter().map(move |r| {
+        let (path, module) = if mode == RedactMode::None {
+            (Cow::Borrowed(r.path.as_str()), Cow::Borrowed(r.module.as_str()))
+        } else {
+            let p = if mode == RedactMode::Paths || mode == RedactMode::All {
+                Cow::Owned(redact_path(&r.path))
+            } else {
+                Cow::Borrowed(r.path.as_str())
+            };
+            let m = if mode == RedactMode::All {
+                Cow::Owned(short_hash(&r.module))
+            } else {
+                Cow::Borrowed(r.module.as_str())
+            };
+            (p, m)
+        };
+
+        RedactedRow {
+            path,
+            module,
+            lang: &r.lang,
+            kind: r.kind,
+            code: r.code,
+            comments: r.comments,
+            blanks: r.blanks,
+            lines: r.lines,
+            bytes: r.bytes,
+            tokens: r.tokens,
+        }
+    })
 }
 
 fn short_hash(s: &str) -> String {

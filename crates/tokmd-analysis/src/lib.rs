@@ -2,6 +2,12 @@
 //!
 //! Analysis logic and optional enrichers for tokmd receipts.
 
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::manual_contains)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::while_let_on_iterator)]
+#![allow(clippy::manual_pattern_char_comparison)]
+
 mod analysis;
 mod archetype;
 #[cfg(all(feature = "content", feature = "walk"))]

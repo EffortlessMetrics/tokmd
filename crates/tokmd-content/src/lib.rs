@@ -75,7 +75,7 @@ pub fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
 }
 
 pub fn is_text_like(bytes: &[u8]) -> bool {
-    if bytes.iter().any(|b| *b == 0) {
+    if bytes.contains(&0) {
         return false;
     }
     std::str::from_utf8(bytes).is_ok()
