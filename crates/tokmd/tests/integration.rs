@@ -2,12 +2,21 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use tempfile::tempdir;
 
+fn ensure_fixtures(dir: &std::path::Path) {
+    let hidden = dir.join("hidden_by_git.rs");
+    if !hidden.exists() {
+        // Create the file. It is already in .gitignore, so it won't be tracked.
+        std::fs::write(&hidden, "fn main() { println!(\"hidden\"); }").unwrap();
+    }
+}
+
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     // Point to our test fixture
     let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
+    ensure_fixtures(&fixtures);
     cmd.current_dir(&fixtures);
     cmd
 }
