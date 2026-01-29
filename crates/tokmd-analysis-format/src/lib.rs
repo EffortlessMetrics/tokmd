@@ -3,8 +3,8 @@
 //! Rendering for analysis receipts.
 
 use anyhow::Result;
-use time::macros::format_description;
 use time::OffsetDateTime;
+use time::macros::format_description;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
 
