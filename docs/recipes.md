@@ -2,35 +2,7 @@
 
 Examples of how to use `tokmd` in real-world scenarios.
 
-## 1. Packing Code into an LLM Context Window
-
-When you need to feed actual code to an LLM (not just metadata), use the `context` command to intelligently select files within a token budget.
-
-**Goal**: Get the most valuable code files that fit in your context window.
-
-```bash
-# Pack files into 128k tokens (Claude's context window)
-tokmd context --budget 128k --output bundle > context.txt
-
-# Spread coverage across modules instead of just largest files
-tokmd context --budget 128k --strategy spread --output bundle
-
-# Strip comments for maximum density
-tokmd context --budget 128k --output bundle --compress
-
-# Use module roots for better organization
-tokmd context --budget 128k --module-roots crates,src --strategy spread
-```
-
-**Why**:
-- `greedy` strategy maximizes code coverage by taking largest files first.
-- `spread` strategy ensures you get representation from all modules.
-- `--compress` removes comments and blank lines for more content per token.
-- `--module-roots` groups files by directory structure for better spread coverage.
-
-> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal integration (planned). Currently these fall back to ranking by `code` lines.
-
-## 2. Getting a File Inventory for LLM Context Planning
+## 1. Feeding a Codebase to an LLM
 
 When asking an LLM to refactor or understand a large repo, you need a high-signal, low-noise representation of the file structure.
 
@@ -54,7 +26,7 @@ tokmd export \
 - Redaction prevents leaking internal project names.
 - `min-code` removes config files and empty boilerplate.
 
-## 3. Quick Health Check with Analysis
+## 2. Quick Health Check with Analysis
 
 Get a comprehensive overview of your codebase's structure and quality signals.
 
@@ -73,7 +45,7 @@ tokmd analyze --preset risk --format md
 - Git hotspots (frequently changed files)
 - Freshness (stale code detection)
 
-## 4. Context Window Planning
+## 3. Context Window Planning
 
 Before dumping files into an LLM, check if they'll fit.
 
@@ -87,7 +59,7 @@ The output shows:
 - Percentage of context window used
 - Whether the codebase fits
 
-## 5. Tracking Repo Growth Over Time
+## 4. Tracking Repo Growth Over Time
 
 Use `tokmd` in CI to generate a "receipt" of the repo size for every commit or release.
 
@@ -109,7 +81,7 @@ Compare `total.code` or `rows[].code` between two reports.
 tokmd diff .runs/20260120 .runs/20260127
 ```
 
-## 6. Auditing Vendor Dependencies
+## 5. Auditing Vendor Dependencies
 
 If you vendor dependencies (e.g., in `vendor/` or `node_modules/` that are checked in), you want to know how much weight they add.
 
@@ -126,7 +98,7 @@ Output:
 | vendor | 150,000 | ... |
 | src | 25,000 | ... |
 
-## 7. Finding "Heavy" Files
+## 6. Finding "Heavy" Files
 
 Identify files that might need refactoring because they are too large.
 
@@ -143,7 +115,7 @@ The analysis shows:
 - Top offenders by lines, tokens, and bytes
 - Histogram of file sizes (tiny/small/medium/large/huge)
 
-## 8. Generating Badges for README
+## 7. Generating Badges for README
 
 Add live metrics to your project README.
 
@@ -163,7 +135,7 @@ Then embed in your README:
 ![Lines](badges/lines.svg) ![Tokens](badges/tokens.svg) ![Docs](badges/doc.svg)
 ```
 
-## 9. Effort Estimation (COCOMO)
+## 8. Effort Estimation (COCOMO)
 
 Get a rough effort estimate for the codebase.
 
@@ -177,7 +149,7 @@ Returns:
 - Duration in months
 - Suggested team size
 
-## 10. CI Gate: Fail if Files are Too Large
+## 9. CI Gate: Fail if Files are Too Large
 
 Enforce a "no monolithic files" policy in CI.
 
@@ -193,7 +165,7 @@ if [ "$COUNT" -gt 0 ]; then
 fi
 ```
 
-## 11. Configuring Ignores
+## 10. Configuring Ignores
 
 By default, `tokmd` respects `.gitignore`. Sometimes you want to ignore *more* (like tests or vendored code) without changing git behavior.
 
@@ -215,7 +187,7 @@ fixtures/
 
 This file is specific to `tokmd` (and `tokei`) and won't affect git.
 
-## 12. Git Risk Analysis
+## 11. Git Risk Analysis
 
 Identify risky areas of the codebase based on git history.
 
@@ -233,7 +205,7 @@ tokmd analyze --preset risk --max-commits 1000 --max-commit-files 100
 - Coupling: Files that change together
 - Freshness: Stale modules that may need attention
 
-## 13. Architecture Visualization
+## 12. Architecture Visualization
 
 Generate a module dependency graph.
 
@@ -245,7 +217,7 @@ tokmd analyze --preset architecture --format mermaid > deps.mmd
 tokmd analyze --preset architecture --format json
 ```
 
-## 14. License Audit
+## 13. License Audit
 
 Check for license files and SPDX identifiers.
 
@@ -253,7 +225,7 @@ Check for license files and SPDX identifiers.
 tokmd analyze --preset security --format json | jq '.license'
 ```
 
-## 15. Quick PR Summary
+## 14. Quick PR Summary
 
 Paste a summary of the languages used in your PR description.
 
@@ -261,35 +233,7 @@ Paste a summary of the languages used in your PR description.
 tokmd --format md --top 5
 ```
 
-## 16. Troubleshooting Ignored Files
-
-When files unexpectedly appear or disappear from scans, use `check-ignore` to debug.
-
-**Goal**: Understand why a file is being ignored.
-
-```bash
-# Check if a specific file is ignored
-tokmd check-ignore target/debug/myapp
-
-# Verbose output showing the exact rule that matched
-tokmd check-ignore -v node_modules/lodash/index.js
-
-# Check multiple files at once
-tokmd check-ignore src/main.rs vendor/lib.js target/release/bin
-```
-
-**Exit codes**:
-- Exit code `0` means the file IS ignored (and shows why)
-- Exit code `1` means the file is NOT ignored
-
-**What it checks**:
-- `.gitignore` patterns (via `git check-ignore`)
-- `.tokeignore` patterns
-- `--exclude` command-line patterns
-
-> **Note**: Tracked files are not considered ignored by gitignore rules. If a file is already tracked by git, `.gitignore` patterns do not apply to it—you need to `git rm --cached` the file first.
-
-## 17. Full Deep Analysis
+## 15. Full Deep Analysis
 
 When you need everything for a comprehensive review.
 
@@ -299,276 +243,4 @@ tokmd analyze --preset deep --format json --output-dir analysis/
 
 # Include fun outputs (eco-label, etc.)
 tokmd analyze --preset fun --format json
-```
-
----
-
-## CI/CD Integration
-
-### 18. GitHub Actions Integration
-
-Use `tokmd` in GitHub Actions for automated code metrics and PR checks.
-
-**Badge updates on push**:
-```yaml
-name: Update Badges
-on:
-  push:
-    branches: [main]
-
-jobs:
-  badges:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install tokmd
-        run: cargo install tokmd
-
-      - name: Generate badges
-        run: |
-          mkdir -p badges
-          tokmd badge --metric lines --out badges/lines.svg
-          tokmd badge --metric tokens --out badges/tokens.svg
-          tokmd badge --metric doc --out badges/doc.svg
-
-      - name: Commit badges
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add badges/
-          git diff --staged --quiet || git commit -m "Update code metrics badges"
-          git push
-```
-
-**PR size check**:
-```yaml
-name: PR Size Check
-on:
-  pull_request:
-
-jobs:
-  size-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Need history for diff
-
-      - name: Install tokmd
-        run: cargo install tokmd
-
-      - name: Check PR size
-        run: |
-          # Get diff between base and head
-          DIFF=$(tokmd diff origin/${{ github.base_ref }} HEAD --format json)
-
-          # Extract added lines
-          ADDED=$(echo "$DIFF" | jq '.delta.code // 0')
-
-          if [ "$ADDED" -gt 1000 ]; then
-            echo "::warning::Large PR: $ADDED lines added"
-          fi
-
-          echo "## Code Metrics Diff" >> $GITHUB_STEP_SUMMARY
-          tokmd diff origin/${{ github.base_ref }} HEAD --format md >> $GITHUB_STEP_SUMMARY
-```
-
-**Store artifacts for historical tracking**:
-```yaml
-name: Code Metrics
-on:
-  push:
-    branches: [main]
-
-jobs:
-  metrics:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install tokmd
-        run: cargo install tokmd
-
-      - name: Generate metrics
-        run: |
-          tokmd run --output-dir .runs/$(git rev-parse --short HEAD)
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: tokmd-metrics-${{ github.sha }}
-          path: .runs/
-          retention-days: 90
-```
-
-### 19. GitLab CI Integration
-
-**Basic metrics pipeline**:
-```yaml
-stages:
-  - analyze
-
-code-metrics:
-  stage: analyze
-  image: rust:latest
-  before_script:
-    - cargo install tokmd
-  script:
-    - tokmd run --output-dir metrics/
-    - tokmd analyze --preset health --format md > metrics/report.md
-  artifacts:
-    paths:
-      - metrics/
-    expire_in: 30 days
-  only:
-    - main
-    - merge_requests
-```
-
-**Merge request comment with metrics**:
-```yaml
-mr-metrics:
-  stage: analyze
-  image: rust:latest
-  before_script:
-    - cargo install tokmd
-  script:
-    - |
-      # Generate diff report
-      tokmd diff origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD --format md > diff.md
-
-      # Post as MR comment (requires CI_JOB_TOKEN with api scope)
-      curl --request POST \
-        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        --form "body=$(cat diff.md)" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
-  only:
-    - merge_requests
-```
-
-### 20. Pre-commit Hook for Large File Warnings
-
-Warn developers before committing large files.
-
-**Setup** (add to `.pre-commit-config.yaml`):
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: check-file-size
-        name: Check for large files
-        entry: bash -c 'tokmd export --min-code 2000 --format csv | tail -n +2 | grep -q . && echo "Warning: Files over 2000 lines detected" && tokmd export --min-code 2000 --format csv || true'
-        language: system
-        pass_filenames: false
-```
-
-**Manual git hook** (save as `.git/hooks/pre-commit`):
-```bash
-#!/bin/bash
-
-# Check for files exceeding line threshold
-THRESHOLD=2000
-LARGE_FILES=$(tokmd export --min-code $THRESHOLD --format csv 2>/dev/null | tail -n +2)
-
-if [ -n "$LARGE_FILES" ]; then
-  echo "Warning: The following files exceed $THRESHOLD lines:"
-  echo "$LARGE_FILES" | cut -d',' -f1
-  echo ""
-  echo "Consider refactoring before committing."
-  # To make this a hard fail, uncomment:
-  # exit 1
-fi
-
-exit 0
-```
-
-### 21. Baseline Tracking Workflow
-
-Track code metrics over time with automated baseline management.
-
-**Initial baseline setup**:
-```bash
-# Create initial baseline
-mkdir -p .tokmd/baselines
-tokmd run --output-dir .tokmd/baselines/initial
-
-# Commit the baseline
-git add .tokmd/baselines/initial
-git commit -m "chore: add tokmd baseline"
-```
-
-**Weekly baseline update (CI)**:
-```yaml
-name: Weekly Baseline
-on:
-  schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight
-  workflow_dispatch:  # Allow manual trigger
-
-jobs:
-  baseline:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install tokmd
-        run: cargo install tokmd
-
-      - name: Generate baseline
-        run: |
-          DATE=$(date +%Y%m%d)
-          tokmd run --output-dir .tokmd/baselines/$DATE
-
-      - name: Compare to previous
-        run: |
-          PREV=$(ls -1 .tokmd/baselines/ | sort | tail -2 | head -1)
-          CURR=$(ls -1 .tokmd/baselines/ | sort | tail -1)
-
-          echo "## Weekly Metrics Report" >> $GITHUB_STEP_SUMMARY
-          echo "Comparing $PREV to $CURR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          tokmd diff .tokmd/baselines/$PREV .tokmd/baselines/$CURR --format md >> $GITHUB_STEP_SUMMARY
-
-      - name: Commit new baseline
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .tokmd/baselines/
-          git commit -m "chore: weekly baseline update"
-          git push
-```
-
-**Release comparison**:
-```bash
-# Before release: compare to last release
-tokmd diff .tokmd/baselines/v1.0.0 . --format md
-
-# After release: save new baseline
-tokmd run --output-dir .tokmd/baselines/v1.1.0
-```
-
-**Detecting codebase bloat**:
-```bash
-#!/bin/bash
-# detect-bloat.sh - Run in CI to catch unexpected growth
-
-BASELINE=".tokmd/baselines/initial"
-THRESHOLD=10  # Alert if growth exceeds 10%
-
-# Get baseline and current totals
-BASELINE_LINES=$(jq '.total.code' "$BASELINE/lang.json")
-CURRENT_LINES=$(tokmd --format json | jq '.total.code')
-
-# Calculate growth percentage
-GROWTH=$(echo "scale=2; (($CURRENT_LINES - $BASELINE_LINES) / $BASELINE_LINES) * 100" | bc)
-
-echo "Baseline: $BASELINE_LINES lines"
-echo "Current: $CURRENT_LINES lines"
-echo "Growth: $GROWTH%"
-
-if (( $(echo "$GROWTH > $THRESHOLD" | bc -l) )); then
-  echo "::warning::Codebase has grown by $GROWTH% since baseline"
-  exit 1
-fi
 ```

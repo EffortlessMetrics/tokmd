@@ -84,7 +84,7 @@ fn test_diff_identical_runs() {
         .arg(run2_dir.join("receipt.json").to_str().unwrap())
         .assert()
         .success()
-        .stdout(predicate::str::contains("## Diff:"));
+        .stdout(predicate::str::contains("Diffing Language Summaries"));
     // Should produce empty diff table (header only) because counts are identical
     // But headers are always printed.
 }
@@ -779,6 +779,6 @@ fn test_diff_git_refs() {
         .arg("HEAD")
         .assert()
         .success()
-        .stdout(predicate::str::contains("## Diff:"))
+        .stdout(predicate::str::contains("Diffing Language Summaries"))
         .stdout(predicate::str::contains("Rust"));
 }

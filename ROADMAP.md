@@ -21,8 +21,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v0.9.0** | ✅ Complete | Integration tests, golden snapshots, edge case verification. |
 | **v1.0.0** | ✅ Complete | Schema frozen, release automation, crates.io publish. |
 | **v1.1.0** | ✅ Complete | Analysis engine, presets, badge generation, diff command. |
-| **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration. |
-| **v1.3.0** | 🚧 In Progress | Advanced enrichers (archetype, topics, entropy, churn). |
+| **v1.2.0** | 🚧 In Progress | Microcrate architecture, advanced enrichers. |
 | **v2.0.0** | 🔭 Planned | MCP server, streaming analysis, plugin system. |
 
 ---
@@ -58,7 +57,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Completed: v1.2.0 — Microcrate Architecture
+## Current Work: v1.2.0 — Microcrate Architecture
 
 **Goal**: Modular crate structure for selective compilation and ecosystem reuse.
 
@@ -71,7 +70,6 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 1 | `tokmd-scan` | tokei wrapper |
 | 1 | `tokmd-model` | Aggregation logic |
 | 1 | `tokmd-tokeignore` | Template generation |
-| 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
 | 2 | `tokmd-format` | Output rendering |
 | 2 | `tokmd-walk` | File system traversal |
 | 2 | `tokmd-content` | File content scanning |
@@ -83,53 +81,32 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 4 | `tokmd-core` | Library facade |
 | 5 | `tokmd` | CLI binary |
 
-### v1.2.0 Features Delivered
-
-- [x] **Microcrate Architecture**: 16 focused crates for modularity
-- [x] **Context Packing**: `tokmd context` command for LLM context window optimization
-- [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
-- [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
-- [x] **Git Integration**: Hotspots, bus factor, freshness, coupling analysis
-- [x] **Asset Inventory**: Non-code file categorization and size tracking
-- [x] **Dependency Summary**: Lockfile detection and dependency counting
-- [x] **Import Graph**: Module dependency analysis with configurable granularity
-- [x] **Duplicate Detection**: Content-hash based duplicate file detection
-- [x] **CycloneDX Export**: SBOM generation in CycloneDX 1.6 format
-- [x] **HTML Reports**: Self-contained, interactive HTML reports with treemap
-- [x] **Redaction Utilities**: Centralized BLAKE3-based path hashing
-- [x] **CI Hyper-Testing**: Proptest, mutation testing, and fuzz testing workflows
-
----
-
-## Current Work: v1.3.0 — Polish & Stabilization
-
-**Goal**: Documentation, hardening, and integration of advanced enrichers.
-
-> **Note**: Core enricher implementations are complete in v1.2.0. This release focuses on polish, documentation, testing, and integration refinements.
-
 ### Analysis Presets
 
 | Preset | Status | Includes |
 | :--- | :--- | :--- |
 | `receipt` | ✅ | Core derived metrics |
 | `health` | ✅ | TODO density + derived |
-| `risk` | ✅ | Git hotspots, coupling, freshness |
-| `supply` | ✅ | Assets + dependency lockfile summary |
-| `architecture` | ✅ | Import graph analysis |
-| `topics` | ✅ | Semantic topic clouds (TF-IDF) |
-| `security` | ✅ | License radar + entropy profiling |
-| `identity` | ✅ | Archetype + corporate fingerprint |
-| `git` | ✅ | Predictive churn + git metrics |
-| `deep` | ✅ | Everything (except fun) |
-| `fun` | ✅ | Eco-label, novelty outputs |
+| `risk` | 🚧 | Git hotspots, coupling, freshness |
+| `supply` | 🚧 | Assets + dependency lockfile summary |
+| `architecture` | 🚧 | Import graph analysis |
+| `topics` | 🚧 | Semantic topic clouds (TF-IDF) |
+| `security` | 🚧 | License radar + entropy profiling |
+| `identity` | 🚧 | Archetype + corporate fingerprint |
+| `git` | 🚧 | Predictive churn + git metrics |
+| `deep` | 🚧 | Everything (except fun) |
+| `fun` | 🚧 | Eco-label, novelty outputs |
 
-### v1.3.0 Focus Areas
+### In-Progress Enrichers
 
-- [ ] **Documentation**: Complete docs for all enrichers and presets
-- [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
-- [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
-- [ ] **Performance**: Optimize large repository handling with limits and streaming
-- [ ] **Stability**: Harden edge cases and improve error messages
+- [ ] **Archetype Detection**: Identify project type (CLI, library, web app, monorepo)
+- [ ] **Topic Clouds**: TF-IDF semantic analysis of path segments
+- [ ] **Entropy Profiling**: Detect high-entropy files (potential secrets)
+- [ ] **Predictive Churn**: Linear regression on commit history
+- [ ] **Corporate Fingerprint**: Author domain statistics
+- [ ] **License Radar**: SPDX detection from LICENSE files and metadata
+- [ ] **Import Graph**: Module dependency analysis
+- [ ] **Asset Inventory**: Non-code file categorization
 
 ---
 

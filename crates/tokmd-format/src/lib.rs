@@ -15,7 +15,6 @@
 //! * Business logic (calculating stats)
 //! * CLI arg parsing
 
-use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
@@ -43,26 +42,12 @@ fn now_ms() -> u128 {
 }
 
 /// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
-///
-/// This is the canonical normalization function for scan inputs. Use this
-/// before storing paths in receipts to ensure consistent output across OS.
-pub fn normalize_scan_input(p: &Path) -> String {
+fn normalize_scan_input(p: &Path) -> String {
     let s = p.display().to_string().replace('\\', "/");
     s.strip_prefix("./").unwrap_or(&s).to_string()
 }
 
-/// Construct `ScanArgs` with optional redaction applied.
-///
-/// This is the single source of truth for building `ScanArgs` from CLI inputs.
-/// All commands that produce receipts should use this function to ensure
-/// consistent redaction and normalization behavior.
-///
-/// # Redaction Behavior
-///
-/// - `None` or `Some(RedactMode::None)`: Paths shown as-is (normalized only)
-/// - `Some(RedactMode::Paths)`: Hash file paths, preserve extension
-/// - `Some(RedactMode::All)`: Hash paths and excluded patterns
-pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
+fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
     let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
     let excluded_redacted = should_redact && !global.excluded.is_empty();
 
@@ -349,7 +334,7 @@ fn write_export_to<W: Write>(
         ExportFormat::Csv => write_export_csv(out, export, args),
         ExportFormat::Jsonl => write_export_jsonl(out, export, global, args),
         ExportFormat::Json => write_export_json(out, export, global, args),
-        ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
+        ExportFormat::Cyclonedx => write_export_cyclonedx(out, export),
     }
 }
 
@@ -360,28 +345,20 @@ fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArg
     ])?;
 
     for r in redact_rows(&export.rows, args.redact) {
-        let code = r.code.to_string();
-        let comments = r.comments.to_string();
-        let blanks = r.blanks.to_string();
-        let lines = r.lines.to_string();
-        let bytes = r.bytes.to_string();
-        let tokens = r.tokens.to_string();
-        let kind = match r.kind {
-            FileKind::Parent => "parent",
-            FileKind::Child => "child",
-        };
-
         wtr.write_record([
-            r.path.as_str(),
-            r.module.as_str(),
-            r.lang.as_str(),
-            kind,
-            &code,
-            &comments,
-            &blanks,
-            &lines,
-            &bytes,
-            &tokens,
+            r.path,
+            r.module,
+            r.lang,
+            match r.kind {
+                FileKind::Parent => "parent".to_string(),
+                FileKind::Child => "child".to_string(),
+            },
+            r.code.to_string(),
+            r.comments.to_string(),
+            r.blanks.to_string(),
+            r.lines.to_string(),
+            r.bytes.to_string(),
+            r.tokens.to_string(),
         ])?;
     }
 
@@ -419,11 +396,9 @@ fn write_export_jsonl<W: Write>(
                 strip_prefix: if should_redact {
                     args.strip_prefix
                         .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
+                        .map(|p| redact_path(&p.display().to_string()))
                 } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
+                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
                 },
                 strip_prefix_redacted,
             },
@@ -470,18 +445,14 @@ fn write_export_json<W: Write>(
                 strip_prefix: if should_redact {
                     args.strip_prefix
                         .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
+                        .map(|p| redact_path(&p.display().to_string()))
                 } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
+                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
                 },
                 strip_prefix_redacted,
             },
             data: ExportData {
-                rows: redact_rows(&export.rows, args.redact)
-                    .map(|c| c.into_owned())
-                    .collect(),
+                rows: redact_rows(&export.rows, args.redact),
                 module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
@@ -492,27 +463,29 @@ fn write_export_json<W: Write>(
         writeln!(
             out,
             "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact).collect::<Vec<_>>())?
+            serde_json::to_string(&redact_rows(&export.rows, args.redact))?
         )?;
     }
     Ok(())
 }
 
-fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
-    rows.iter().map(move |r| {
-        if mode == RedactMode::None {
-            Cow::Borrowed(r)
-        } else {
-            let mut owned = r.clone();
+fn redact_rows(rows: &[FileRow], mode: RedactMode) -> Vec<FileRow> {
+    if mode == RedactMode::None {
+        return rows.to_vec();
+    }
+
+    rows.iter()
+        .cloned()
+        .map(|mut r| {
             if mode == RedactMode::Paths || mode == RedactMode::All {
-                owned.path = redact_path(&owned.path);
+                r.path = redact_path(&r.path);
             }
             if mode == RedactMode::All {
-                owned.module = short_hash(&owned.module);
+                r.module = short_hash(&r.module);
             }
-            Cow::Owned(owned)
-        }
-    })
+            r
+        })
+        .collect()
 }
 
 // Re-export redaction functions for backwards compatibility
@@ -563,19 +536,13 @@ struct CycloneDxProperty {
     value: String,
 }
 
-fn write_export_cyclonedx<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-) -> Result<()> {
+fn write_export_cyclonedx<W: Write>(out: &mut W, export: &ExportData) -> Result<()> {
     let timestamp = OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string());
 
-    // Apply redaction to rows before generating components
-    let rows = redact_rows(&export.rows, redact);
-
-    let components: Vec<CycloneDxComponent> = rows
+    let components: Vec<CycloneDxComponent> = export
+        .rows
         .iter()
         .map(|row| {
             let mut properties = vec![
@@ -745,647 +712,4 @@ pub fn write_export_jsonl_to_file(
 
     out.flush()?;
     Ok(())
-}
-
-// -----------------
-// Diff output
-// -----------------
-
-use tokmd_types::{DiffReceipt, DiffRow, DiffTotals, LangRow};
-
-/// Compute diff rows from two lang reports.
-pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Vec<DiffRow> {
-    // Collect all languages from both reports
-    let mut all_langs: Vec<String> = from_report
-        .rows
-        .iter()
-        .chain(to_report.rows.iter())
-        .map(|r| r.lang.clone())
-        .collect();
-    all_langs.sort();
-    all_langs.dedup();
-
-    all_langs
-        .into_iter()
-        .filter_map(|lang_name| {
-            let old_row = from_report.rows.iter().find(|r| r.lang == lang_name);
-            let new_row = to_report.rows.iter().find(|r| r.lang == lang_name);
-
-            let old = old_row.cloned().unwrap_or_else(|| LangRow {
-                lang: lang_name.clone(),
-                code: 0,
-                lines: 0,
-                files: 0,
-                bytes: 0,
-                tokens: 0,
-                avg_lines: 0,
-            });
-            let new = new_row.cloned().unwrap_or_else(|| LangRow {
-                lang: lang_name.clone(),
-                code: 0,
-                lines: 0,
-                files: 0,
-                bytes: 0,
-                tokens: 0,
-                avg_lines: 0,
-            });
-
-            // Skip if no change
-            if old.code == new.code
-                && old.lines == new.lines
-                && old.files == new.files
-                && old.bytes == new.bytes
-                && old.tokens == new.tokens
-            {
-                return None;
-            }
-
-            Some(DiffRow {
-                lang: lang_name,
-                old_code: old.code,
-                new_code: new.code,
-                delta_code: new.code as i64 - old.code as i64,
-                old_lines: old.lines,
-                new_lines: new.lines,
-                delta_lines: new.lines as i64 - old.lines as i64,
-                old_files: old.files,
-                new_files: new.files,
-                delta_files: new.files as i64 - old.files as i64,
-                old_bytes: old.bytes,
-                new_bytes: new.bytes,
-                delta_bytes: new.bytes as i64 - old.bytes as i64,
-                old_tokens: old.tokens,
-                new_tokens: new.tokens,
-                delta_tokens: new.tokens as i64 - old.tokens as i64,
-            })
-        })
-        .collect()
-}
-
-/// Compute totals from diff rows.
-pub fn compute_diff_totals(rows: &[DiffRow]) -> DiffTotals {
-    let mut totals = DiffTotals {
-        old_code: 0,
-        new_code: 0,
-        delta_code: 0,
-        old_lines: 0,
-        new_lines: 0,
-        delta_lines: 0,
-        old_files: 0,
-        new_files: 0,
-        delta_files: 0,
-        old_bytes: 0,
-        new_bytes: 0,
-        delta_bytes: 0,
-        old_tokens: 0,
-        new_tokens: 0,
-        delta_tokens: 0,
-    };
-
-    for row in rows {
-        totals.old_code += row.old_code;
-        totals.new_code += row.new_code;
-        totals.delta_code += row.delta_code;
-        totals.old_lines += row.old_lines;
-        totals.new_lines += row.new_lines;
-        totals.delta_lines += row.delta_lines;
-        totals.old_files += row.old_files;
-        totals.new_files += row.new_files;
-        totals.delta_files += row.delta_files;
-        totals.old_bytes += row.old_bytes;
-        totals.new_bytes += row.new_bytes;
-        totals.delta_bytes += row.delta_bytes;
-        totals.old_tokens += row.old_tokens;
-        totals.new_tokens += row.new_tokens;
-        totals.delta_tokens += row.delta_tokens;
-    }
-
-    totals
-}
-
-fn format_delta(delta: i64) -> String {
-    if delta > 0 {
-        format!("+{}", delta)
-    } else {
-        delta.to_string()
-    }
-}
-
-/// Render diff as Markdown table.
-pub fn render_diff_md(
-    from_source: &str,
-    to_source: &str,
-    rows: &[DiffRow],
-    totals: &DiffTotals,
-) -> String {
-    let mut s = String::new();
-
-    let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
-    s.push('\n');
-    s.push_str("|Language|Old LOC|New LOC|Delta|\n");
-    s.push_str("|---|---:|---:|---:|\n");
-
-    for row in rows {
-        let _ = writeln!(
-            s,
-            "|{}|{}|{}|{}|",
-            row.lang,
-            row.old_code,
-            row.new_code,
-            format_delta(row.delta_code)
-        );
-    }
-
-    let _ = writeln!(
-        s,
-        "|**Total**|{}|{}|{}|",
-        totals.old_code,
-        totals.new_code,
-        format_delta(totals.delta_code)
-    );
-
-    s
-}
-
-/// Create a DiffReceipt for JSON output.
-pub fn create_diff_receipt(
-    from_source: &str,
-    to_source: &str,
-    rows: Vec<DiffRow>,
-    totals: DiffTotals,
-) -> DiffReceipt {
-    DiffReceipt {
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "diff".to_string(),
-        from_source: from_source.to_string(),
-        to_source: to_source.to_string(),
-        diff_rows: rows,
-        totals,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use proptest::prelude::*;
-    use tokmd_config::ChildrenMode;
-    use tokmd_types::{LangRow, ModuleRow, Totals};
-
-    fn sample_lang_report(with_files: bool) -> LangReport {
-        LangReport {
-            rows: vec![
-                LangRow {
-                    lang: "Rust".to_string(),
-                    code: 1000,
-                    lines: 1200,
-                    files: 10,
-                    bytes: 50000,
-                    tokens: 2500,
-                    avg_lines: 120,
-                },
-                LangRow {
-                    lang: "TOML".to_string(),
-                    code: 50,
-                    lines: 60,
-                    files: 2,
-                    bytes: 1000,
-                    tokens: 125,
-                    avg_lines: 30,
-                },
-            ],
-            total: Totals {
-                code: 1050,
-                lines: 1260,
-                files: 12,
-                bytes: 51000,
-                tokens: 2625,
-                avg_lines: 105,
-            },
-            with_files,
-            children: ChildrenMode::Collapse,
-            top: 0,
-        }
-    }
-
-    fn sample_module_report() -> ModuleReport {
-        ModuleReport {
-            rows: vec![
-                ModuleRow {
-                    module: "crates/foo".to_string(),
-                    code: 800,
-                    lines: 950,
-                    files: 8,
-                    bytes: 40000,
-                    tokens: 2000,
-                    avg_lines: 119,
-                },
-                ModuleRow {
-                    module: "crates/bar".to_string(),
-                    code: 200,
-                    lines: 250,
-                    files: 2,
-                    bytes: 10000,
-                    tokens: 500,
-                    avg_lines: 125,
-                },
-            ],
-            total: Totals {
-                code: 1000,
-                lines: 1200,
-                files: 10,
-                bytes: 50000,
-                tokens: 2500,
-                avg_lines: 120,
-            },
-            module_roots: vec!["crates".to_string()],
-            module_depth: 2,
-            children: tokmd_config::ChildIncludeMode::Separate,
-            top: 0,
-        }
-    }
-
-    fn sample_file_rows() -> Vec<FileRow> {
-        vec![
-            FileRow {
-                path: "src/lib.rs".to_string(),
-                module: "src".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 20,
-                blanks: 10,
-                lines: 130,
-                bytes: 1000,
-                tokens: 250,
-            },
-            FileRow {
-                path: "tests/test.rs".to_string(),
-                module: "tests".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code: 50,
-                comments: 5,
-                blanks: 5,
-                lines: 60,
-                bytes: 500,
-                tokens: 125,
-            },
-        ]
-    }
-
-    // ========================
-    // Language Markdown Render Tests
-    // ========================
-
-    #[test]
-    fn render_lang_md_without_files() {
-        let report = sample_lang_report(false);
-        let output = render_lang_md(&report);
-
-        // Check header
-        assert!(output.contains("|Lang|Code|Lines|Bytes|Tokens|"));
-        // Check no Files/Avg columns
-        assert!(!output.contains("|Files|"));
-        assert!(!output.contains("|Avg|"));
-        // Check row data
-        assert!(output.contains("|Rust|1000|1200|50000|2500|"));
-        assert!(output.contains("|TOML|50|60|1000|125|"));
-        // Check total
-        assert!(output.contains("|**Total**|1050|1260|51000|2625|"));
-    }
-
-    #[test]
-    fn render_lang_md_with_files() {
-        let report = sample_lang_report(true);
-        let output = render_lang_md(&report);
-
-        // Check header includes Files and Avg
-        assert!(output.contains("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|"));
-        // Check row data includes file counts
-        assert!(output.contains("|Rust|1000|1200|10|50000|2500|120|"));
-        assert!(output.contains("|TOML|50|60|2|1000|125|30|"));
-        // Check total
-        assert!(output.contains("|**Total**|1050|1260|12|51000|2625|105|"));
-    }
-
-    #[test]
-    fn render_lang_md_table_structure() {
-        let report = sample_lang_report(true);
-        let output = render_lang_md(&report);
-
-        // Verify markdown table structure
-        let lines: Vec<&str> = output.lines().collect();
-        assert!(lines.len() >= 4); // header, separator, 2 data rows, total
-
-        // Check separator line
-        assert!(lines[1].contains("|---|"));
-        assert!(lines[1].contains(":")); // Right-aligned columns
-    }
-
-    // ========================
-    // Language TSV Render Tests
-    // ========================
-
-    #[test]
-    fn render_lang_tsv_without_files() {
-        let report = sample_lang_report(false);
-        let output = render_lang_tsv(&report);
-
-        // Check header
-        assert!(output.starts_with("Lang\tCode\tLines\tBytes\tTokens\n"));
-        // Check no Files/Avg columns
-        assert!(!output.contains("\tFiles\t"));
-        assert!(!output.contains("\tAvg"));
-        // Check row data
-        assert!(output.contains("Rust\t1000\t1200\t50000\t2500"));
-        assert!(output.contains("TOML\t50\t60\t1000\t125"));
-        // Check total
-        assert!(output.contains("Total\t1050\t1260\t51000\t2625"));
-    }
-
-    #[test]
-    fn render_lang_tsv_with_files() {
-        let report = sample_lang_report(true);
-        let output = render_lang_tsv(&report);
-
-        // Check header includes Files and Avg
-        assert!(output.starts_with("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
-        // Check row data includes file counts
-        assert!(output.contains("Rust\t1000\t1200\t10\t50000\t2500\t120"));
-        assert!(output.contains("TOML\t50\t60\t2\t1000\t125\t30"));
-    }
-
-    #[test]
-    fn render_lang_tsv_tab_separated() {
-        let report = sample_lang_report(false);
-        let output = render_lang_tsv(&report);
-
-        // Each data line should have exactly 4 tabs (5 columns)
-        for line in output.lines().skip(1) {
-            // Skip header
-            if line.starts_with("Total") || line.starts_with("Rust") || line.starts_with("TOML") {
-                assert_eq!(line.matches('\t').count(), 4);
-            }
-        }
-    }
-
-    // ========================
-    // Module Markdown Render Tests
-    // ========================
-
-    #[test]
-    fn render_module_md_structure() {
-        let report = sample_module_report();
-        let output = render_module_md(&report);
-
-        // Check header
-        assert!(output.contains("|Module|Code|Lines|Files|Bytes|Tokens|Avg|"));
-        // Check module data
-        assert!(output.contains("|crates/foo|800|950|8|40000|2000|119|"));
-        assert!(output.contains("|crates/bar|200|250|2|10000|500|125|"));
-        // Check total
-        assert!(output.contains("|**Total**|1000|1200|10|50000|2500|120|"));
-    }
-
-    #[test]
-    fn render_module_md_table_format() {
-        let report = sample_module_report();
-        let output = render_module_md(&report);
-
-        let lines: Vec<&str> = output.lines().collect();
-        // Header, separator, 2 rows, total
-        assert_eq!(lines.len(), 5);
-        // Separator has right-alignment markers
-        assert!(lines[1].contains("---:"));
-    }
-
-    // ========================
-    // Module TSV Render Tests
-    // ========================
-
-    #[test]
-    fn render_module_tsv_structure() {
-        let report = sample_module_report();
-        let output = render_module_tsv(&report);
-
-        // Check header
-        assert!(output.starts_with("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
-        // Check data
-        assert!(output.contains("crates/foo\t800\t950\t8\t40000\t2000\t119"));
-        assert!(output.contains("crates/bar\t200\t250\t2\t10000\t500\t125"));
-        // Check total
-        assert!(output.contains("Total\t1000\t1200\t10\t50000\t2500\t120"));
-    }
-
-    #[test]
-    fn render_module_tsv_tab_count() {
-        let report = sample_module_report();
-        let output = render_module_tsv(&report);
-
-        // Each data line should have exactly 6 tabs (7 columns)
-        for line in output.lines() {
-            assert_eq!(line.matches('\t').count(), 6);
-        }
-    }
-
-    // ========================
-    // Redaction Tests
-    // ========================
-
-    #[test]
-    fn redact_rows_none_mode() {
-        let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::None);
-
-        // Should be identical
-        assert_eq!(redacted.len(), rows.len());
-        assert_eq!(redacted[0].path, "src/lib.rs");
-        assert_eq!(redacted[0].module, "src");
-    }
-
-    #[test]
-    fn redact_rows_paths_mode() {
-        let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::Paths);
-
-        // Paths should be redacted (16 char hash + extension)
-        assert_ne!(redacted[0].path, "src/lib.rs");
-        assert!(redacted[0].path.ends_with(".rs"));
-        assert_eq!(redacted[0].path.len(), 16 + 3); // hash + ".rs"
-
-        // Module should NOT be redacted
-        assert_eq!(redacted[0].module, "src");
-    }
-
-    #[test]
-    fn redact_rows_all_mode() {
-        let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::All);
-
-        // Paths should be redacted
-        assert_ne!(redacted[0].path, "src/lib.rs");
-        assert!(redacted[0].path.ends_with(".rs"));
-
-        // Module should ALSO be redacted (16 char hash)
-        assert_ne!(redacted[0].module, "src");
-        assert_eq!(redacted[0].module.len(), 16);
-    }
-
-    #[test]
-    fn redact_rows_preserves_other_fields() {
-        let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::All);
-
-        // All other fields should be preserved
-        assert_eq!(redacted[0].lang, "Rust");
-        assert_eq!(redacted[0].kind, FileKind::Parent);
-        assert_eq!(redacted[0].code, 100);
-        assert_eq!(redacted[0].comments, 20);
-        assert_eq!(redacted[0].blanks, 10);
-        assert_eq!(redacted[0].lines, 130);
-        assert_eq!(redacted[0].bytes, 1000);
-        assert_eq!(redacted[0].tokens, 250);
-    }
-
-    // ========================
-    // Path Normalization Tests
-    // ========================
-
-    #[test]
-    fn normalize_scan_input_forward_slash() {
-        let p = Path::new("src/lib.rs");
-        let normalized = normalize_scan_input(p);
-        assert_eq!(normalized, "src/lib.rs");
-    }
-
-    #[test]
-    fn normalize_scan_input_backslash_to_forward() {
-        let p = Path::new("src\\lib.rs");
-        let normalized = normalize_scan_input(p);
-        assert_eq!(normalized, "src/lib.rs");
-    }
-
-    #[test]
-    fn normalize_scan_input_strips_dot_slash() {
-        let p = Path::new("./src/lib.rs");
-        let normalized = normalize_scan_input(p);
-        assert_eq!(normalized, "src/lib.rs");
-    }
-
-    #[test]
-    fn normalize_scan_input_current_dir() {
-        let p = Path::new(".");
-        let normalized = normalize_scan_input(p);
-        assert_eq!(normalized, ".");
-    }
-
-    // ========================
-    // Property-Based Tests
-    // ========================
-
-    proptest! {
-        #[test]
-        fn normalize_scan_input_no_backslash(s in "[a-zA-Z0-9_/\\\\.]+") {
-            let p = Path::new(&s);
-            let normalized = normalize_scan_input(p);
-            prop_assert!(!normalized.contains('\\'), "Should not contain backslash: {}", normalized);
-        }
-
-        #[test]
-        fn normalize_scan_input_no_leading_dot_slash(s in "[a-zA-Z0-9_/\\\\.]+") {
-            let p = Path::new(&s);
-            let normalized = normalize_scan_input(p);
-            prop_assert!(!normalized.starts_with("./"), "Should not start with ./: {}", normalized);
-        }
-
-        #[test]
-        fn redact_rows_preserves_count(
-            code in 0usize..10000,
-            comments in 0usize..1000,
-            blanks in 0usize..500
-        ) {
-            let rows = vec![FileRow {
-                path: "test/file.rs".to_string(),
-                module: "test".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code,
-                comments,
-                blanks,
-                lines: code + comments + blanks,
-                bytes: 1000,
-                tokens: 250,
-            }];
-
-            for mode in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
-                let redacted = redact_rows(&rows, mode);
-                prop_assert_eq!(redacted.len(), 1);
-                prop_assert_eq!(redacted[0].code, code);
-                prop_assert_eq!(redacted[0].comments, comments);
-                prop_assert_eq!(redacted[0].blanks, blanks);
-            }
-        }
-
-        #[test]
-        fn redact_rows_paths_end_with_extension(ext in "[a-z]{1,4}") {
-            let path = format!("some/path/file.{}", ext);
-            let rows = vec![FileRow {
-                path: path.clone(),
-                module: "some".to_string(),
-                lang: "Test".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 10,
-                blanks: 5,
-                lines: 115,
-                bytes: 1000,
-                tokens: 250,
-            }];
-
-            let redacted = redact_rows(&rows, RedactMode::Paths);
-            prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
-                "Redacted path '{}' should end with .{}", redacted[0].path, ext);
-        }
-    }
-
-    // ========================
-    // Snapshot Tests
-    // ========================
-
-    #[test]
-    fn snapshot_lang_md_with_files() {
-        let report = sample_lang_report(true);
-        let output = render_lang_md(&report);
-        insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn snapshot_lang_md_without_files() {
-        let report = sample_lang_report(false);
-        let output = render_lang_md(&report);
-        insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn snapshot_lang_tsv_with_files() {
-        let report = sample_lang_report(true);
-        let output = render_lang_tsv(&report);
-        insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn snapshot_module_md() {
-        let report = sample_module_report();
-        let output = render_module_md(&report);
-        insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn snapshot_module_tsv() {
-        let report = sample_module_report();
-        let output = render_module_tsv(&report);
-        insta::assert_snapshot!(output);
-    }
 }

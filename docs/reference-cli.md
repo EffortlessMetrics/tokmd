@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `context`, `init`, `check-ignore`, `completions`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `init`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -80,8 +80,6 @@ Generates a row-level inventory of files. Best for machine processing.
 | | `paths`: Hash file paths (preserve extension). | |
 | | `all`: Hash paths and module names. | |
 | `--strip-prefix <PATH>` | Remove a prefix from file paths in the output. | `None` |
-
-**Sorting**: Output is automatically sorted by lines of code (descending), then by path. This ensures deterministic, reproducible output across all runs. There is no `--sort` flag.
 
 **Example**:
 ```bash
@@ -230,145 +228,13 @@ tokmd diff .runs/baseline .
 
 Creates a default `.tokeignore` file in the current directory.
 
-**Usage**: `tokmd init [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--dir <DIR>` | Target directory for the `.tokeignore` file. | `.` |
-| `--force` | Overwrite an existing `.tokeignore` file. | `false` |
-| `--print` | Print the template to stdout instead of writing a file. | `false` |
-| `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
+**Usage**: `tokmd init`
 
 **Example**:
 ```bash
 # Generate a .tokeignore template
 tokmd init
-
-# Generate a Rust-specific template
-tokmd init --template rust
-
-# Preview the template without writing
-tokmd init --print
-
-# Overwrite existing file
-tokmd init --force
 ```
-
-### `tokmd context`
-
-Packs files into an LLM context window within a token budget. Intelligently selects files to maximize value while staying under the budget.
-
-**Usage**: `tokmd context [PATHS...] [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
-| `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
-| `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
-| `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
-| `--compress` | Strip comments and blank lines from bundle output. | `false` |
-| `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
-| `--module-depth <N>` | How deep to group modules. | `2` |
-
-> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal data, which is not yet integrated into the context command. These options currently fall back to ranking by `code` lines.
-
-**Examples**:
-```bash
-# List files that fit in 128k tokens
-tokmd context --budget 128k
-
-# Create a bundle ready to paste into Claude
-tokmd context --budget 128k --output bundle > context.txt
-
-# Spread coverage across modules instead of taking largest files
-tokmd context --budget 200k --strategy spread
-
-# Compressed bundle (no comments/blanks)
-tokmd context --budget 100k --output bundle --compress
-
-# JSON receipt for programmatic use
-tokmd context --budget 128k --output json > selection.json
-```
-
-### `tokmd check-ignore`
-
-Explains why files are being ignored. Useful for troubleshooting when files unexpectedly appear or disappear from scans.
-
-**Usage**: `tokmd check-ignore <PATHS...> [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `-v, --verbose` | Show verbose output with rule sources. | `false` |
-
-**Exit codes**:
-- `0`: File is ignored (shows which rule matched)
-- `1`: File is not ignored
-- `2`: Error occurred (e.g., file not found, permission denied)
-
-> **Note**: Tracked files are not considered ignored by gitignore rules. If a file is already tracked by git, `.gitignore` patterns do not apply to it. Use `-v` to see if a file is tracked.
-
-**Examples**:
-```bash
-# Check if a file is ignored
-tokmd check-ignore target/debug/myapp
-
-# Check multiple files
-tokmd check-ignore src/main.rs target/release/myapp
-
-# Verbose output showing rule sources
-tokmd check-ignore -v node_modules/lodash/index.js
-```
-
-### `tokmd completions`
-
-Generates shell completions for various shells.
-
-**Usage**: `tokmd completions <SHELL>`
-
-| Argument | Description |
-| :--- | :--- |
-| `<SHELL>` | Shell to generate completions for: `bash`, `zsh`, `fish`, `powershell`, `elvish`. |
-
-**Examples**:
-```bash
-# Bash completions (add to ~/.bashrc)
-tokmd completions bash >> ~/.bashrc
-
-# Zsh completions (add to ~/.zshrc or fpath)
-tokmd completions zsh > ~/.zfunc/_tokmd
-
-# Fish completions
-tokmd completions fish > ~/.config/fish/completions/tokmd.fish
-
-# PowerShell completions
-tokmd completions powershell >> $PROFILE
-```
-
----
-
-## Exit Codes
-
-### Standard Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | Success |
-| `1` | General error (runtime failure, I/O error) |
-| `2` | Invalid arguments / CLI parsing error |
-
-### Command-Specific Exit Codes
-
-**`check-ignore`**:
-| Code | Meaning |
-|------|---------|
-| `0` | File IS ignored (output shows the matching rule) |
-| `1` | File is NOT ignored |
-
-**`diff`**:
-| Code | Meaning |
-|------|---------|
-| `0` | Comparison completed successfully |
-| `1` | Error during comparison (invalid inputs, missing files) |
 
 ---
 
@@ -376,222 +242,36 @@ tokmd completions powershell >> $PROFILE
 
 `tokmd` supports a `tokmd.toml` configuration file for persistent settings.
 
-### File Location Precedence
+**Location**: Project root or `~/.config/tokmd/tokmd.toml`
 
-Configuration is loaded from the first file found (highest to lowest priority):
-
-1. **Environment variable**: Path specified in `TOKMD_CONFIG`
-2. **Current directory**: `./tokmd.toml`
-3. **Parent directories**: Walking up from current directory to root
-4. **User config**: `~/.config/tokmd/tokmd.toml` (Unix) or `%APPDATA%\tokmd\tokmd.toml` (Windows)
-
-### Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `TOKMD_CONFIG` | Path to configuration file (overrides automatic discovery) |
-| `TOKMD_PROFILE` | Default profile to use (equivalent to `--profile`) |
-
-### Full Configuration Schema
-
+**Example**:
 ```toml
-# =============================================================================
-# Scan Settings (applies to all commands)
-# =============================================================================
 [scan]
-# Paths to scan (default: current directory)
 paths = ["."]
-
-# Glob patterns to exclude (can also use --exclude on CLI)
-exclude = ["target", "node_modules", "*.lock", "vendor/"]
-
-# Include hidden files and directories (default: false)
+exclude = ["target", "node_modules", "*.lock"]
 hidden = false
 
-# Config file strategy for tokei: "auto" or "none" (default: "auto")
-config = "auto"
-
-# Disable all ignore files (default: false)
-no_ignore = false
-
-# Disable parent directory ignore file traversal (default: false)
-no_ignore_parent = false
-
-# Disable .ignore/.tokeignore files (default: false)
-no_ignore_dot = false
-
-# Disable .gitignore files (default: false)
-no_ignore_vcs = false
-
-# Treat doc comments as comments instead of code (default: false)
-doc_comments = false
-
-# =============================================================================
-# Module Command Settings
-# =============================================================================
 [module]
-# Root directories for module grouping
-roots = ["crates", "packages", "src"]
-
-# Depth for module grouping (default: 1)
+roots = ["crates", "packages"]
 depth = 2
 
-# Children handling: "collapse" or "separate" (default: "collapse")
-children = "collapse"
-
-# =============================================================================
-# Export Command Settings
-# =============================================================================
 [export]
-# Minimum lines of code to include (default: 0)
 min_code = 10
-
-# Maximum rows in output (default: 0 = unlimited)
-max_rows = 500
-
-# Redaction mode: "none", "paths", or "all" (default: "none")
 redact = "none"
 
-# Output format: "jsonl", "csv", "cyclonedx" (default: "jsonl")
-format = "jsonl"
-
-# Children handling: "collapse" or "separate" (default: "separate")
-children = "separate"
-
-# =============================================================================
-# Analyze Command Settings
-# =============================================================================
 [analyze]
-# Analysis preset (default: "receipt")
 preset = "receipt"
-
-# Context window size for utilization analysis
 window = 128000
 
-# Output format (default: "md")
-format = "md"
-
-# Force git metrics on/off (default: auto-detect)
-# git = true
-
-# Resource limits for large repositories
-max_files = 50000
-max_bytes = 500000000
-max_file_bytes = 5000000
-max_commits = 1000
-max_commit_files = 100
-
-# Import graph granularity: "module" or "file" (default: "module")
-granularity = "module"
-
-# =============================================================================
-# Context Command Settings
-# =============================================================================
-[context]
-# Token budget with optional k/m suffix (default: "128k")
-budget = "128k"
-
-# Packing strategy: "greedy" or "spread" (default: "greedy")
-strategy = "greedy"
-
-# Ranking metric: "code", "tokens", "churn", "hotspot" (default: "code")
-rank_by = "code"
-
-# Output mode: "list", "bundle", "json" (default: "list")
-output = "list"
-
-# Strip comments and blanks in bundle output (default: false)
-compress = false
-
-# =============================================================================
-# Badge Command Settings
-# =============================================================================
-[badge]
-# Default metric for badges
-metric = "lines"
-
-# =============================================================================
-# Named Profiles (view profiles)
-# =============================================================================
-# Profiles allow you to save sets of options for different use cases.
-# Use with: tokmd --profile <name> or tokmd --view <name>
-
 [view.llm]
-# Optimized for LLM context generation
+preset = "receipt"
 format = "jsonl"
 redact = "paths"
 min_code = 10
 max_rows = 500
-
-[view.ci]
-# Optimized for CI pipelines
-format = "json"
-preset = "health"
-
-[view.audit]
-# Optimized for security audits
-format = "json"
-preset = "security"
-redact = "all"
 ```
 
-### Using Named Profiles
-
-Profiles (also called views) let you save common option combinations:
-
+Use a view profile:
 ```bash
-# Use a named profile
-tokmd --profile llm
-tokmd --view ci
-
-# Profile specified via environment variable
-export TOKMD_PROFILE=llm
-tokmd export  # Uses llm profile settings
-```
-
-Profile settings are merged with command-line arguments, with CLI taking precedence:
-
-```bash
-# Profile sets format=jsonl, but CLI overrides to csv
-tokmd --profile llm export --format csv
-```
-
-### Configuration Examples
-
-**Monorepo with multiple package roots**:
-```toml
-[scan]
-exclude = ["node_modules", "dist", "coverage", "*.lock"]
-
-[module]
-roots = ["packages", "apps", "libs"]
-depth = 2
-```
-
-**Rust project with strict filtering**:
-```toml
-[scan]
-exclude = ["target", "*.lock"]
-
-[export]
-min_code = 20
-redact = "paths"
-
-[analyze]
-preset = "risk"
-max_commits = 500
-```
-
-**LLM context workflow**:
-```toml
-[context]
-budget = "100k"
-strategy = "spread"
-compress = true
-
-[view.claude]
-budget = "200k"
-strategy = "spread"
-output = "bundle"
-compress = true
+tokmd --view llm
 ```

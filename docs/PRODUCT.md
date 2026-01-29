@@ -17,7 +17,6 @@ It is not just a counter. It is a **code intelligence platform** that converts r
 2.  **LLM workflows need a map, not a dump.**
     *   Pasting source code wastes tokens. Agents need a structured inventory first: What languages? Which modules? Which files are "heavy"? Will it fit in context?
     *   `tokmd` provides this map as a compact, structured dataset with token estimates.
-    *   `tokmd context` intelligently packs files into context windows within token budgets.
 
 3.  **Automation fails by "confident narration".**
     *   Failure mode: "I scanned the repo." (Text is untrusted).
@@ -76,15 +75,14 @@ Analysis provides information, not judgments:
 | Capability | Feature |
 | :--- | :--- |
 | **Human Summary** | Markdown tables, TSV, Top-N compaction, tree views. |
-| **Machine Receipt** | JSON envelopes with strict schema, CycloneDX SBOM. |
+| **Machine Receipt** | JSON envelopes with strict schema. |
 | **Pipeline Feed** | Streaming JSONL/CSV exports. |
 | **Monorepo View** | Module rollup (`crates/`, `packages/`). |
 | **Safety** | Redaction, path normalization, ignore profiles. |
 | **Derived Analytics** | Doc density, test density, distribution, COCOMO. |
 | **Git Intelligence** | Hotspots, freshness, coupling, bus factor. |
 | **Context Planning** | Token estimation, window fit analysis. |
-| **Context Packing** | Budget-aware file selection for LLM context windows. |
-| **Visualization** | SVG badges, Mermaid diagrams, HTML reports, tree output. |
+| **Visualization** | SVG badges, Mermaid diagrams, tree output. |
 
 ## Analysis Presets
 

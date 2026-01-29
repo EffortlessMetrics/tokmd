@@ -10,7 +10,7 @@ description = "High-level API façade for tokmd. The recommended entry point for
 [dependencies]
 anyhow = "1.0.100"
 tokmd-config.workspace = true
-tokmd-format.workspace = true
 tokmd-model.workspace = true
+tokmd-redact.workspace = true
 tokmd-scan.workspace = true
 tokmd-types.workspace = true

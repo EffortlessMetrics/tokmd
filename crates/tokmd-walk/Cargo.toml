@@ -10,6 +10,3 @@ description = "File listing and asset discovery utilities for tokmd analysis."
 [dependencies]
 anyhow = "1.0.100"
 ignore = "0.4.22"
-
-[dev-dependencies]
-tempfile = "3.10.1"

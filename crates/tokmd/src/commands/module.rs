@@ -4,14 +4,14 @@ use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;
 
-use crate::config::{self, ResolvedConfig};
+use crate::config;
 
 pub(crate) fn handle(
     cli_args: cli::CliModuleArgs,
     global: &cli::GlobalArgs,
-    resolved: &ResolvedConfig,
+    profile: Option<&cli::Profile>,
 ) -> Result<()> {
-    let args = config::resolve_module_with_config(&cli_args, resolved);
+    let args = config::resolve_module(&cli_args, profile);
     let languages = scan::scan(&args.paths, global)?;
     let report = model::create_module_report(
         &languages,

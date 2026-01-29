@@ -17,7 +17,3 @@ uuid = { version = "1.16", features = ["v4"] }
 tokmd-config.workspace = true
 tokmd-redact.workspace = true
 tokmd-types.workspace = true
-
-[dev-dependencies]
-proptest = "1.6.0"
-insta = { version = "1.39.0", features = ["json"] }

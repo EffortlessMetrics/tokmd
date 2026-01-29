@@ -69,42 +69,16 @@ Often, 80% of the complexity lives in 20% of the files. Let's find the biggest f
 
 Run:
 ```bash
-tokmd export --format csv --max-rows 10
+tokmd export --format csv --max-rows 10 --sort code
 ```
 
 This prints the top 10 largest files. These are often candidates for refactoring or documentation.
 
-> **Note**: Output is automatically sorted by lines of code (descending), then by path. This ensures consistent, deterministic ordering across all runs.
+## Step 4: Creating a Context File for AI
 
-## Step 4: Packing Code for an LLM
+You want to ask an LLM about your code, but you can't paste 10,000 files. You need a compact summary of *what exists*.
 
-You want to paste actual code into an LLM, but your repo is too large. Use `context` to intelligently select files within a token budget:
-
-```bash
-# Pack the most valuable files into 128k tokens
-tokmd context --budget 128k --output bundle > context.txt
-```
-
-**What happened?**
-- `--budget 128k`: Set a token limit matching Claude's context window.
-- `--output bundle`: Concatenated selected files into a single text file.
-- Files are selected by size (largest = most valuable) until the budget is exhausted.
-
-**Alternative strategies**:
-```bash
-# Spread coverage across all modules
-tokmd context --budget 128k --strategy spread --output bundle
-
-# Strip comments and blank lines for maximum density
-tokmd context --budget 128k --output bundle --compress
-
-# Use module roots for better organization
-tokmd context --budget 128k --module-roots src,crates --strategy spread --output bundle
-```
-
-## Step 5: Creating a File Inventory for AI
-
-For metadata about your codebase (not actual code), generate a "receipt":
+Generate a "receipt" of the repo structure:
 
 ```bash
 tokmd export \
@@ -123,7 +97,7 @@ You can now upload `repo_context.jsonl` to an LLM and ask: *"Based on this file 
 
 ---
 
-## Step 6: Analyzing Code Quality
+## Step 5: Analyzing Code Quality
 
 Now let's get deeper insights about the codebase structure and quality.
 
@@ -139,7 +113,7 @@ tokmd analyze --preset receipt --format md
 - **Distribution**: File size statistics (median, p90, p99)
 - **Top Offenders**: Largest files, least documented files
 
-## Step 7: Checking Context Window Fit
+## Step 6: Checking Context Window Fit
 
 Before feeding code to an LLM, check if it fits:
 
@@ -153,7 +127,7 @@ The output tells you:
 - What percentage of the context window it would use
 - Whether it fits or needs filtering
 
-## Step 8: Understanding Risk Areas
+## Step 7: Understanding Risk Areas
 
 If the repo has git history, you can identify risky areas:
 
@@ -167,7 +141,7 @@ tokmd analyze --preset risk --format md
 - **Freshness**: Stale files that may be outdated
 - **Coupling**: Files that always change together
 
-## Step 9: Generating a Badge
+## Step 8: Generating a Badge
 
 Add a lines-of-code badge to your README:
 
@@ -182,7 +156,7 @@ Then add to your README:
 
 ---
 
-## Step 10: Saving a Run
+## Step 9: Saving a Run
 
 To track changes over time, save a complete analysis:
 
@@ -201,56 +175,6 @@ Later, you can diff against this baseline:
 ```bash
 tokmd diff .runs/baseline .
 ```
-
----
-
-## Step 11: Troubleshooting Missing Files
-
-Sometimes files don't appear in your scans when you expect them to. The `check-ignore` command helps diagnose why.
-
-**Checking a single file**:
-```bash
-tokmd check-ignore path/to/missing/file.rs
-```
-
-**Understanding exit codes**:
-- Exit code `0`: The file **is ignored** (output shows why)
-- Exit code `1`: The file **is not ignored**
-
-This makes it easy to use in scripts:
-```bash
-if tokmd check-ignore some/file.rs; then
-  echo "File is ignored"
-else
-  echo "File should appear in scans"
-fi
-```
-
-**Verbose mode for details**:
-```bash
-tokmd check-ignore -v node_modules/package/index.js
-```
-
-Verbose output shows:
-- Which ignore file matched (`.gitignore`, `.tokeignore`)
-- The specific pattern that caused the match
-- Whether the file is tracked by git
-
-**Common scenarios**:
-
-1. **File in `.gitignore` but tracked by git**:
-   - Gitignore patterns don't apply to tracked files
-   - Solution: `git rm --cached <file>` to untrack it
-
-2. **Unexpected pattern matching**:
-   - Use `-v` to see which pattern matched
-   - Check parent directories for ignore files
-
-3. **File should be ignored but isn't**:
-   - Ensure the pattern is correct in `.tokeignore` or `.gitignore`
-   - Remember: patterns without `/` match anywhere in the path
-
-See the [Troubleshooting Guide](troubleshooting.md) for more detailed scenarios.
 
 ---
 
