@@ -114,7 +114,11 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     if let Some(preset) = args.analysis {
         let source = analysis_types::AnalysisSource {
-            inputs: args.paths.iter().map(|p| format::normalize_scan_input(p)).collect(),
+            inputs: args
+                .paths
+                .iter()
+                .map(|p| format::normalize_scan_input(p))
+                .collect(),
             export_path: Some("export.jsonl".to_string()),
             base_receipt_path: Some("export.jsonl".to_string()),
             export_schema_version: Some(tokmd_types::SCHEMA_VERSION),

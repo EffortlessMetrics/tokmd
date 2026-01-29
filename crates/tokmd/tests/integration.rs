@@ -1308,18 +1308,13 @@ fn test_analyze_html_format() {
         if line_lower.contains("src=") || line_lower.contains("href=") {
             // Allow the github link in footer and internal references
             if line_lower.contains("http://") {
-                assert!(
-                    false,
-                    "HTML should not load external HTTP resources: {}",
-                    line
-                );
+                panic!("HTML should not load external HTTP resources: {}", line);
             }
             // Only https allowed for the attribution link, not for scripts/stylesheets
             if line_lower.contains("https://")
                 && (line_lower.contains(".js") || line_lower.contains(".css"))
             {
-                assert!(
-                    false,
+                panic!(
                     "HTML should not load external HTTPS scripts/styles: {}",
                     line
                 );
