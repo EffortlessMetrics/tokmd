@@ -1,0 +1,24 @@
+{
+  "run_id": "2025-02-18-run-001",
+  "timestamp_utc": "2025-02-18T00:15:00Z",
+  "lane": "scout",
+  "target": "integration tests cleanup",
+  "commands": [
+    {
+      "cmd": "cargo test --test integration",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo test --test schema_validation",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo clippy --workspace -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Refactored integration and schema tests to use Result propagation. Verified all tests pass."
+}

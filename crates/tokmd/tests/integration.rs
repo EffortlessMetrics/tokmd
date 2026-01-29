@@ -1,3 +1,4 @@
+use anyhow::Result;
 use assert_cmd::Command;
 use predicates::prelude::*;
 use tempfile::tempdir;
@@ -13,7 +14,7 @@ fn tokmd_cmd() -> Command {
 }
 
 fn redact_timestamps(output: &str) -> String {
-    let re = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("regex should be valid");
     re.replace_all(output, r#""generated_at_ms":0"#).to_string()
 }
 
@@ -140,57 +141,59 @@ fn test_module_format_tsv() {
 }
 
 #[test]
-fn test_golden_lang_json() {
+fn test_golden_lang_json() -> Result<()> {
     let mut cmd = tokmd_cmd();
-    let output = cmd.arg("--format").arg("json").output().unwrap();
+    let output = cmd.arg("--format").arg("json").output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
+    Ok(())
 }
 
 #[test]
-fn test_golden_module_json() {
+fn test_golden_module_json() -> Result<()> {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("module")
         .arg("--format")
         .arg("json")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
+    Ok(())
 }
 
 #[test]
-fn test_golden_export_jsonl() {
+fn test_golden_export_jsonl() -> Result<()> {
     let mut cmd = tokmd_cmd();
-    let output = cmd.arg("export").output().unwrap();
+    let output = cmd.arg("export").output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
+    Ok(())
 }
 
 #[test]
-fn test_golden_export_redacted() {
+fn test_golden_export_redacted() -> Result<()> {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("export")
         .arg("--redact")
         .arg("all")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
 
     insta::assert_snapshot!(normalized);
+    Ok(())
 }
 
 #[test]
@@ -228,16 +231,17 @@ fn test_export_format_json() {
 }
 
 #[test]
-fn test_init_creates_file() {
+fn test_init_creates_file() -> Result<()> {
     // Given: An empty temporary directory
     // When: We run `tokmd init` inside it
     // Then: .tokeignore should be created
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path()).arg("init").assert().success();
 
     let file_path = dir.path().join(".tokeignore");
     assert!(file_path.exists(), ".tokeignore was not created");
+    Ok(())
 }
 
 // --- BDD / Feature Tests ---
@@ -315,7 +319,7 @@ fn test_paths_redacted_hash() {
         .success()
         .stdout(predicate::str::contains("main.rs").not())
         // Match hash + extension (e.g. "ec412fe02b918085.rs")
-        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).unwrap());
+        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).expect("regex"));
 }
 
 #[test]
@@ -452,13 +456,13 @@ fn test_redaction_leaks_in_meta() {
 }
 
 #[test]
-fn test_redaction_excludes_patterns() {
+fn test_redaction_excludes_patterns() -> Result<()> {
     // Given: An --exclude pattern
     // When: We export with --redact paths
     // Then: The exclude pattern should NOT appear in the output
-    let dir = tempdir().unwrap();
-    std::fs::write(dir.path().join("keep.rs"), "fn main() {}").unwrap();
-    std::fs::write(dir.path().join("skip.rs"), "fn skip() {}").unwrap();
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("keep.rs"), "fn main() {}")?;
+    std::fs::write(dir.path().join("skip.rs"), "fn skip() {}")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -474,6 +478,7 @@ fn test_redaction_excludes_patterns() {
         .stdout(predicate::str::contains("skip.rs").not())
         // But excluded_redacted should be true
         .stdout(predicate::str::contains(r#""excluded_redacted":true"#));
+    Ok(())
 }
 
 #[test]
@@ -496,14 +501,14 @@ fn test_redaction_strip_prefix() {
 }
 
 #[test]
-fn test_redaction_no_raw_paths_anywhere() {
+fn test_redaction_no_raw_paths_anywhere() -> Result<()> {
     // Given: Files in a known directory structure
     // When: We export with --redact all
     // Then: No raw path components should appear anywhere in the output
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let secret_dir = dir.path().join("secret_project");
-    std::fs::create_dir(&secret_dir).unwrap();
-    std::fs::write(secret_dir.join("confidential.rs"), "fn secret() {}").unwrap();
+    std::fs::create_dir(&secret_dir)?;
+    std::fs::write(secret_dir.join("confidential.rs"), "fn secret() {}")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let output = cmd
@@ -515,10 +520,9 @@ fn test_redaction_no_raw_paths_anywhere() {
         .arg("secret_project")
         .arg("--redact")
         .arg("all")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
 
     // No raw path substrings should appear
     assert!(
@@ -533,6 +537,7 @@ fn test_redaction_no_raw_paths_anywhere() {
         !stdout.contains("node_modules"),
         "node_modules should not appear in redacted output"
     );
+    Ok(())
 }
 
 #[test]
@@ -550,11 +555,11 @@ fn test_filter_all_rows() {
 }
 
 #[test]
-fn test_export_out_file() {
+fn test_export_out_file() -> Result<()> {
     // Given: A temp dir and output file path
     // When: We run export with --out <file>
     // Then: stdout should be empty, file should contain jsonl
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let out_file = dir.path().join("output.jsonl");
 
     let mut cmd = tokmd_cmd();
@@ -565,9 +570,10 @@ fn test_export_out_file() {
         .success()
         .stdout(""); // stdout should be empty
 
-    let content = std::fs::read_to_string(&out_file).unwrap();
+    let content = std::fs::read_to_string(&out_file)?;
     assert!(content.contains(r#""mode":"export""#));
     assert!(content.contains(r#""path":"src/main.rs""#)); // assuming default test context includes src/main.rs
+    Ok(())
 }
 
 #[test]
@@ -584,11 +590,11 @@ fn test_lang_files_flag() {
 }
 
 #[test]
-fn test_init_force() {
+fn test_init_force() -> Result<()> {
     // Given: A temp dir with an existing .tokeignore
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let file_path = dir.path().join(".tokeignore");
-    std::fs::write(&file_path, "existing content").unwrap();
+    std::fs::write(&file_path, "existing content")?;
 
     // When: We run init without force
     // Then: It should fail
@@ -604,9 +610,10 @@ fn test_init_force() {
         .assert()
         .success();
 
-    let content = std::fs::read_to_string(&file_path).unwrap();
+    let content = std::fs::read_to_string(&file_path)?;
     assert!(content.contains("# .tokeignore"));
     assert!(!content.contains("existing content"));
+    Ok(())
 }
 
 #[test]
@@ -682,11 +689,11 @@ fn test_path_with_spaces() {
 }
 
 #[test]
-fn test_csv_escaping() {
+fn test_csv_escaping() -> Result<()> {
     // Given: A file with a comma in its name
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let file_path = dir.path().join("file,with,commas.txt");
-    std::fs::write(&file_path, "content").unwrap();
+    std::fs::write(&file_path, "content")?;
 
     // When: We export as CSV
     // Then: The path should be quoted in the output
@@ -700,16 +707,17 @@ fn test_csv_escaping() {
         // csv crate quotes fields containing delimiters.
         // "file,with,commas.txt"
         .stdout(predicate::str::contains(r#""file,with,commas.txt""#));
+    Ok(())
 }
 
 #[test]
-fn test_exclude_glob() {
+fn test_exclude_glob() -> Result<()> {
     // Given: A nested file structure
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let nested = dir.path().join("nested");
-    std::fs::create_dir(&nested).unwrap();
-    std::fs::write(nested.join("skip_me.rs"), "fn main() {}").unwrap();
-    std::fs::write(nested.join("keep_me.rs"), "fn main() {}").unwrap();
+    std::fs::create_dir(&nested)?;
+    std::fs::write(nested.join("skip_me.rs"), "fn main() {}")?;
+    std::fs::write(nested.join("keep_me.rs"), "fn main() {}")?;
 
     // When: We run export with a glob exclude
     // Note: --exclude is a global arg, so it must come BEFORE the subcommand
@@ -725,6 +733,7 @@ fn test_exclude_glob() {
         // We look for the JSON key/value pair for the path
         .stdout(predicate::str::contains(r#""path":"nested/skip_me.rs""#).not())
         .stdout(predicate::str::contains("keep_me.rs"));
+    Ok(())
 }
 
 #[test]
@@ -740,7 +749,7 @@ fn test_redact_all() {
         .success()
         // Path should be hashed
         .stdout(predicate::str::contains("src/main.rs").not())
-        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).unwrap())
+        .stdout(predicate::str::is_match(r#""path":"[0-9a-f]{16}\.[a-z0-9]+""#).expect("regex"))
         // Module should NOT be "src" (it should be hashed or redacted, usually same hash if it's based on path,
         // or just hidden. Wait, how is module redacted?
         // In model.rs it's just a derived key. If paths are redacted, module key derivation might change?
@@ -778,32 +787,32 @@ fn test_children_stats_integrity() {
             predicate::str::is_match(
                 r"\|\s*Rust \(embedded\)\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*[1-9]\d*\s*\|",
             )
-            .unwrap(),
+            .expect("regex"),
         );
 }
 
 #[test]
-fn test_generated_timestamp_validity() {
+fn test_generated_timestamp_validity() -> Result<()> {
     let mut cmd = tokmd_cmd();
     let output = cmd
         .arg("lang")
         .arg("--format")
         .arg("json")
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8(output.stdout).unwrap();
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
     // Parse JSON and check generated_at_ms
-    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
-    let ts = v["generated_at_ms"].as_u64().unwrap();
+    let v: serde_json::Value = serde_json::from_str(&stdout)?;
+    let ts = v["generated_at_ms"].as_u64().expect("generated_at_ms not u64");
     assert!(ts > 1_700_000_000_000, "Timestamp too old or zero: {}", ts);
+    Ok(())
 }
 
 #[test]
-fn test_lang_stats_math() {
-    let dir = tempdir().unwrap();
+fn test_lang_stats_math() -> Result<()> {
+    let dir = tempdir()?;
     let file = dir.path().join("math.rs");
     // 2 code lines, 1 comment, 1 blank
-    std::fs::write(&file, "fn main() {\n    // comment\n\n}").unwrap();
+    std::fs::write(&file, "fn main() {\n    // comment\n\n}")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -815,17 +824,18 @@ fn test_lang_stats_math() {
         .stdout(predicate::str::contains(r#""code":2"#))
         // LangRow doesn't expose comments/blanks directly in JSON, but lines = code+comments+blanks
         .stdout(predicate::str::contains(r#""lines":4"#)); // 2+1+1
+    Ok(())
 }
 
 #[test]
-fn test_lang_fold_math() {
-    let dir = tempdir().unwrap();
+fn test_lang_fold_math() -> Result<()> {
+    let dir = tempdir()?;
     // File 1: Rust (1 code)
-    std::fs::write(dir.path().join("a.rs"), "fn a(){}").unwrap();
+    std::fs::write(dir.path().join("a.rs"), "fn a(){}")?;
     // File 2: Python (1 code)
-    std::fs::write(dir.path().join("b.py"), "print(1)").unwrap();
+    std::fs::write(dir.path().join("b.py"), "print(1)")?;
     // File 3: JS (1 code)
-    std::fs::write(dir.path().join("c.js"), "console.log()").unwrap();
+    std::fs::write(dir.path().join("c.js"), "console.log()")?;
 
     // Run with top 1.
     // Code counts: Rust=1, Python=1, JS=1. (Actually Rust might be more lines depending on formatting, let's assume 1)
@@ -849,25 +859,26 @@ fn test_lang_fold_math() {
         .stdout(predicate::str::contains(r#""lang":"Other""#))
         // Verify Other stats
         .stdout(predicate::str::contains(r#""code":2"#)); // Other=2
+    Ok(())
 }
 
 #[test]
-fn test_module_fold_math() {
-    let dir = tempdir().unwrap();
+fn test_module_fold_math() -> Result<()> {
+    let dir = tempdir()?;
     // Mod A: 2 lines
     let mod_a = dir.path().join("a");
-    std::fs::create_dir(&mod_a).unwrap();
-    std::fs::write(mod_a.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+    std::fs::create_dir(&mod_a)?;
+    std::fs::write(mod_a.join("main.rs"), "fn main(){}")?; // 1 line
 
     // Mod B: 1 line
     let mod_b = dir.path().join("b");
-    std::fs::create_dir(&mod_b).unwrap();
-    std::fs::write(mod_b.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+    std::fs::create_dir(&mod_b)?;
+    std::fs::write(mod_b.join("main.rs"), "fn main(){}")?; // 1 line
 
     // Mod C: 1 line
     let mod_c = dir.path().join("c");
-    std::fs::create_dir(&mod_c).unwrap();
-    std::fs::write(mod_c.join("main.rs"), "fn main(){}").unwrap(); // 1 line
+    std::fs::create_dir(&mod_c)?;
+    std::fs::write(mod_c.join("main.rs"), "fn main(){}")?; // 1 line
 
     // We need to have 3 modules. Default depth is 0? No, --module-depth.
     // If we run `module --module-depth 1`.
@@ -894,6 +905,7 @@ fn test_module_fold_math() {
         // A has 1 code. Other has 2.
         .stdout(predicate::str::contains(r#""code":1"#))
         .stdout(predicate::str::contains(r#""code":2"#));
+    Ok(())
 }
 
 /*
@@ -977,11 +989,11 @@ fn test_lang_format_json() {
 }
 
 #[test]
-fn test_no_ignore_dot() {
+fn test_no_ignore_dot() -> Result<()> {
     // Given: A temp dir with a .ignore file
-    let dir = tempdir().unwrap();
-    std::fs::write(dir.path().join(".ignore"), "ignored.txt").unwrap();
-    std::fs::write(dir.path().join("ignored.txt"), "content").unwrap();
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join(".ignore"), "ignored.txt")?;
+    std::fs::write(dir.path().join("ignored.txt"), "content")?;
 
     // When: We run export (default respects .ignore)
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
@@ -999,6 +1011,7 @@ fn test_no_ignore_dot() {
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored.txt"));
+    Ok(())
 }
 
 #[test]
@@ -1014,9 +1027,9 @@ fn test_verbose_flag() {
 }
 
 #[test]
-fn test_treat_doc_strings_as_comments() {
+fn test_treat_doc_strings_as_comments() -> Result<()> {
     // Given: A Python file with docstrings
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     std::fs::write(
         dir.path().join("doc.py"),
         r#"
@@ -1026,8 +1039,7 @@ It should be counted as comments if flag is on.
 """
 x = 1
     "#,
-    )
-    .unwrap();
+    )?;
 
     // When: We run with --treat-doc-strings-as-comments
     // We output jsonl to check the counts
@@ -1038,12 +1050,14 @@ x = 1
         .arg("export")
         .arg("--format")
         .arg("jsonl")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     // Find the row for doc.py
-    let row_line = stdout.lines().find(|l| l.contains("doc.py")).unwrap();
+    let row_line = stdout
+        .lines()
+        .find(|l| l.contains("doc.py"))
+        .expect("row for doc.py not found");
 
     // Then: comments should be > 0 (it's 4 lines of docstring)
     // Code should be 1 (x=1)
@@ -1055,6 +1069,7 @@ x = 1
     // Implies default might be code?
     // Let's just verify that comments >= 4.
     assert!(row_line.contains(r#""comments":4"#) || row_line.contains(r#""comments":5"#));
+    Ok(())
 }
 
 #[test]
@@ -1079,15 +1094,15 @@ fn test_format_csv() {
 // --- Leak Regression Tests for Meta Field Redaction ---
 
 #[test]
-fn test_redaction_meta_leak_regression_json() {
+fn test_redaction_meta_leak_regression_json() -> Result<()> {
     // Given: Sensitive patterns in exclude and strip_prefix
     // When: We export with --redact paths using JSON format
     // Then: Neither the exclude pattern nor strip_prefix should appear in output
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let secret_folder = dir.path().join("secret_folder");
-    std::fs::create_dir(&secret_folder).unwrap();
-    std::fs::write(secret_folder.join("app.rs"), "fn main() {}").unwrap();
-    std::fs::write(dir.path().join("other.rs"), "fn other() {}").unwrap();
+    std::fs::create_dir(&secret_folder)?;
+    std::fs::write(secret_folder.join("app.rs"), "fn main() {}")?;
+    std::fs::write(dir.path().join("other.rs"), "fn other() {}")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let output = cmd
@@ -1101,10 +1116,9 @@ fn test_redaction_meta_leak_regression_json() {
         .arg("/home/user/projects")
         .arg("--redact")
         .arg("paths")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
 
     // Verify sensitive strings don't leak
     assert!(
@@ -1132,17 +1146,18 @@ fn test_redaction_meta_leak_regression_json() {
         stdout.contains(r#""strip_prefix_redacted":true"#),
         "strip_prefix_redacted should be true in JSON output"
     );
+    Ok(())
 }
 
 #[test]
-fn test_redaction_meta_leak_regression_jsonl() {
+fn test_redaction_meta_leak_regression_jsonl() -> Result<()> {
     // Given: Sensitive patterns in exclude and strip_prefix
     // When: We export with --redact paths using JSONL format
     // Then: Neither the exclude pattern nor strip_prefix should appear in output
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let sensitive_dir = dir.path().join("sensitive_data");
-    std::fs::create_dir(&sensitive_dir).unwrap();
-    std::fs::write(sensitive_dir.join("config.rs"), "const KEY: &str = \"\";").unwrap();
+    std::fs::create_dir(&sensitive_dir)?;
+    std::fs::write(sensitive_dir.join("config.rs"), "const KEY: &str = \"\";")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let output = cmd
@@ -1156,10 +1171,9 @@ fn test_redaction_meta_leak_regression_jsonl() {
         .arg("C:/Users/dev/work")
         .arg("--redact")
         .arg("paths")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
 
     // Verify sensitive strings don't leak
     assert!(
@@ -1187,17 +1201,18 @@ fn test_redaction_meta_leak_regression_jsonl() {
         stdout.contains(r#""strip_prefix_redacted":true"#),
         "strip_prefix_redacted should be true in JSONL output"
     );
+    Ok(())
 }
 
 #[test]
-fn test_redaction_all_mode_hides_modules() {
+fn test_redaction_all_mode_hides_modules() -> Result<()> {
     // Given: Files in a directory structure
     // When: We export with --redact all
     // Then: Module names should also be hashed (not just paths)
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
     let proprietary_module = dir.path().join("proprietary_module");
-    std::fs::create_dir(&proprietary_module).unwrap();
-    std::fs::write(proprietary_module.join("secret.rs"), "fn secret() {}").unwrap();
+    std::fs::create_dir(&proprietary_module)?;
+    std::fs::write(proprietary_module.join("secret.rs"), "fn secret() {}")?;
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let output = cmd
@@ -1205,10 +1220,9 @@ fn test_redaction_all_mode_hides_modules() {
         .arg("export")
         .arg("--redact")
         .arg("all")
-        .output()
-        .unwrap();
+        .output()?;
 
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
 
     // Module name should be hashed, not appear in clear
     assert!(
@@ -1221,4 +1235,5 @@ fn test_redaction_all_mode_hides_modules() {
         "secret.rs should not appear in redacted output: {}",
         stdout
     );
+    Ok(())
 }
