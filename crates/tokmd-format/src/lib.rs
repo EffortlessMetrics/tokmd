@@ -24,8 +24,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use serde::Serialize;
-use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 
 use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{

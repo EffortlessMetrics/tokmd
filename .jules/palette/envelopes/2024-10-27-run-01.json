@@ -1,0 +1,15 @@
+{
+  "run_id": "2024-10-27-run-01",
+  "timestamp_utc": "2024-10-27T00:00:00Z",
+  "lane": "scout",
+  "target": "Error on non-existent input paths",
+  "commands": [
+    {
+      "cmd": "cargo test --test integration test_non_existent_path",
+      "exit": 0,
+      "result": "PASS",
+      "summary": "Verified behavior changed from ignore to error"
+    }
+  ],
+  "results_summary": "Implemented strict path checking in tokmd-scan."
+}
