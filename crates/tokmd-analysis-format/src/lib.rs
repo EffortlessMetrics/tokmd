@@ -828,7 +828,12 @@ fn build_report_json(receipt: &AnalysisReceipt) -> String {
         }
     }
 
-    serde_json::json!({ "files": files }).to_string()
+    // Escape < and > to prevent </script> breakout XSS attacks.
+    // JSON remains valid because \u003c and \u003e are valid JSON string escapes.
+    serde_json::json!({ "files": files })
+        .to_string()
+        .replace('<', "\\u003c")
+        .replace('>', "\\u003e")
 }
 
 fn format_number(n: usize) -> String {

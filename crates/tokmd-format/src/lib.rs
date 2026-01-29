@@ -334,7 +334,7 @@ fn write_export_to<W: Write>(
         ExportFormat::Csv => write_export_csv(out, export, args),
         ExportFormat::Jsonl => write_export_jsonl(out, export, global, args),
         ExportFormat::Json => write_export_json(out, export, global, args),
-        ExportFormat::Cyclonedx => write_export_cyclonedx(out, export),
+        ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
     }
 }
 
@@ -536,13 +536,19 @@ struct CycloneDxProperty {
     value: String,
 }
 
-fn write_export_cyclonedx<W: Write>(out: &mut W, export: &ExportData) -> Result<()> {
+fn write_export_cyclonedx<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    redact: RedactMode,
+) -> Result<()> {
     let timestamp = OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string());
 
-    let components: Vec<CycloneDxComponent> = export
-        .rows
+    // Apply redaction to rows before generating components
+    let rows = redact_rows(&export.rows, redact);
+
+    let components: Vec<CycloneDxComponent> = rows
         .iter()
         .map(|row| {
             let mut properties = vec![

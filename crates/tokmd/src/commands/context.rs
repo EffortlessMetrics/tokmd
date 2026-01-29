@@ -70,26 +70,18 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
                 if path.exists() {
                     println!("// === {} ===", file.path);
                     if args.compress {
-                        // Strip comments and blank lines (simple heuristic)
+                        // Strip blank lines only (safe for all languages).
+                        // Comment stripping is intentionally omitted because:
+                        // - `#` could be Rust attributes, C preprocessor, or shebangs
+                        // - `*` could be pointer dereferences or pattern matches
+                        // - `//` could be division in some contexts
+                        // Blank line removal alone provides meaningful compression.
                         if let Ok(f) = fs::File::open(&path) {
                             let reader = BufReader::new(f);
-                            for line in reader.lines().map_while(Result::ok) {
-                                let trimmed = line.trim();
-                                // Skip blank lines
-                                if trimmed.is_empty() {
-                                    continue;
+                            for line in reader.lines().map_while(|r| r.ok()) {
+                                if !line.trim().is_empty() {
+                                    println!("{}", line);
                                 }
-                                // Skip common comment patterns (simple heuristic)
-                                if trimmed.starts_with("//")
-                                    || trimmed.starts_with('#')
-                                    || trimmed.starts_with("/*")
-                                    || trimmed.starts_with('*')
-                                    || trimmed.starts_with("'''")
-                                    || trimmed.starts_with("\"\"\"")
-                                {
-                                    continue;
-                                }
-                                println!("{}", line);
                             }
                         }
                     } else if let Ok(content) = fs::read_to_string(&path) {
