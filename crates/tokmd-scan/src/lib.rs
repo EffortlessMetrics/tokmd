@@ -101,12 +101,13 @@ mod tests {
     }
 
     #[test]
-    fn scan_with_nonexistent_path_returns_empty() {
+    fn scan_with_nonexistent_path_returns_error() {
         let args = default_global_args();
         let paths = vec![PathBuf::from("/nonexistent/path/that/does/not/exist")];
-        let result = scan(&paths, &args).unwrap();
-        // Tokei returns empty for nonexistent paths
-        assert!(result.is_empty());
+        let result = scan(&paths, &args);
+        // Should return an error for nonexistent paths
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Path not found"));
     }
 
     // ========================

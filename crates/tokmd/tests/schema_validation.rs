@@ -21,7 +21,7 @@ fn load_schema() -> Result<Value> {
     let schema_content =
         std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
 
-    Ok(serde_json::from_str(&schema_content).context("Failed to parse schema.json")?)
+    serde_json::from_str(&schema_content).context("Failed to parse schema.json")
 }
 
 /// Build a validator for a specific definition in the schema

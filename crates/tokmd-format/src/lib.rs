@@ -1194,7 +1194,7 @@ mod tests {
     #[test]
     fn redact_rows_none_mode() {
         let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::None);
+        let redacted: Vec<_> = redact_rows(&rows, RedactMode::None).collect();
 
         // Should be identical
         assert_eq!(redacted.len(), rows.len());
@@ -1205,7 +1205,7 @@ mod tests {
     #[test]
     fn redact_rows_paths_mode() {
         let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::Paths);
+        let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
 
         // Paths should be redacted (16 char hash + extension)
         assert_ne!(redacted[0].path, "src/lib.rs");
@@ -1219,7 +1219,7 @@ mod tests {
     #[test]
     fn redact_rows_all_mode() {
         let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::All);
+        let redacted: Vec<_> = redact_rows(&rows, RedactMode::All).collect();
 
         // Paths should be redacted
         assert_ne!(redacted[0].path, "src/lib.rs");
@@ -1233,7 +1233,7 @@ mod tests {
     #[test]
     fn redact_rows_preserves_other_fields() {
         let rows = sample_file_rows();
-        let redacted = redact_rows(&rows, RedactMode::All);
+        let redacted: Vec<_> = redact_rows(&rows, RedactMode::All).collect();
 
         // All other fields should be preserved
         assert_eq!(redacted[0].lang, "Rust");
@@ -1317,7 +1317,7 @@ mod tests {
             }];
 
             for mode in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
-                let redacted = redact_rows(&rows, mode);
+                let redacted: Vec<_> = redact_rows(&rows, mode).collect();
                 prop_assert_eq!(redacted.len(), 1);
                 prop_assert_eq!(redacted[0].code, code);
                 prop_assert_eq!(redacted[0].comments, comments);
@@ -1341,7 +1341,7 @@ mod tests {
                 tokens: 250,
             }];
 
-            let redacted = redact_rows(&rows, RedactMode::Paths);
+            let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
             prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
                 "Redacted path '{}' should end with .{}", redacted[0].path, ext);
         }
