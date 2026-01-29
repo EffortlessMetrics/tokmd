@@ -38,25 +38,19 @@ tokmd > summary.md
 # 2. Module breakdown (great for monorepos)
 tokmd module --module-roots crates,packages
 
-# 3. File inventory (great for LLM context planning)
-tokmd export --format jsonl > inventory.jsonl
+# 3. Pack for LLM context (smart selection)
+tokmd context --budget 128k --output bundle > context.txt
 
 # 4. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md
 
-# 5. Check context window fit
-tokmd analyze --preset receipt --window 128000
-
-# 6. Pack files for LLM context (budget-aware)
-tokmd context --budget 128k --output bundle > context.txt
-
-# 7. Git risk analysis (hotspots, freshness)
+# 5. Git risk analysis (hotspots, freshness)
 tokmd analyze --preset risk --format md
 
-# 8. Generate a badge
+# 6. Generate a badge
 tokmd badge --metric lines --out badge.svg
 
-# 9. Diff two states
+# 7. Diff two states
 tokmd diff main HEAD
 ```
 
@@ -71,10 +65,13 @@ tokmd context --budget 100k --output bundle --compress     # Stripped for densit
 ```
 
 ### LLM Context Planning
-Before dumping files into Claude, get a structured map:
+Smartly select files to fit your context window:
 ```bash
-tokmd export --format jsonl --min-code 10 > inventory.jsonl
-tokmd analyze --preset receipt --window 200000  # Check if it fits
+# Pack top files by code volume into 128k tokens
+tokmd context --budget 128k --output bundle > context.txt
+
+# Or generate a manifest to see what fits
+tokmd context --budget 128k --output list
 ```
 
 ### PR Summaries
@@ -103,12 +100,12 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | :--- | :--- |
 | `tokmd` | Language summary (lines, files, bytes). |
 | `tokmd module` | Group stats by directories (`crates/`, `src/`). |
+| `tokmd context` | Pack files into an LLM context window. |
 | `tokmd export` | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools. |
 | `tokmd run` | Full scan with artifact output to a directory. |
 | `tokmd analyze` | Derived metrics and enrichments. |
 | `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
 | `tokmd diff` | Compare two runs, receipts, or git refs. |
-| `tokmd context` | Pack files into an LLM context window within a token budget. |
 | `tokmd init` | Generate a `.tokeignore` file. |
 | `tokmd check-ignore` | Explain why files are being ignored (troubleshooting). |
 | `tokmd completions` | Generate shell completions (bash, zsh, fish, powershell). |

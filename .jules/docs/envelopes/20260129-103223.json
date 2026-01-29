@@ -1,0 +1,25 @@
+{
+  "run_id": "20260129-103223",
+  "persona": "Librarian",
+  "goal": "Update README to feature `tokmd context` for LLM workflows",
+  "lane": "B",
+  "decision": "Option A (recommended)",
+  "receipts": [
+    {
+      "command": "cargo build --verbose",
+      "result": "Success"
+    },
+    {
+      "command": "./target/debug/tokmd context --budget 1000 --output list",
+      "result": "Verified table output with 5 files"
+    },
+    {
+      "command": "cargo test --workspace",
+      "result": "Success (33 passed in tokmd-types, 17 in tokmd-config, etc.)"
+    },
+    {
+      "command": "./target/debug/tokmd context --budget 128k --output bundle",
+      "result": "Verified bundle generation (checked context.txt)"
+    }
+  ]
+}
