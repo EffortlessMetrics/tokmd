@@ -1241,14 +1241,23 @@ fn test_export_cyclonedx_format() {
     assert!(output.status.success(), "cyclonedx export failed");
 
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("CycloneDX output should be valid JSON");
+    let json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("CycloneDX output should be valid JSON");
 
     // Required CycloneDX fields
-    assert_eq!(json["bomFormat"], "CycloneDX", "bomFormat should be CycloneDX");
+    assert_eq!(
+        json["bomFormat"], "CycloneDX",
+        "bomFormat should be CycloneDX"
+    );
     assert_eq!(json["specVersion"], "1.6", "specVersion should be 1.6");
-    assert!(json.get("components").is_some(), "components array should exist");
-    assert!(json["components"].is_array(), "components should be an array");
+    assert!(
+        json.get("components").is_some(),
+        "components array should exist"
+    );
+    assert!(
+        json["components"].is_array(),
+        "components should be an array"
+    );
 
     // Metadata with timestamp
     assert!(json.get("metadata").is_some(), "metadata should exist");
@@ -1285,7 +1294,10 @@ fn test_analyze_html_format() {
         "HTML should start with DOCTYPE"
     );
     assert!(stdout.contains("<html"), "HTML should contain <html> tag");
-    assert!(stdout.contains("</html>"), "HTML should contain closing </html> tag");
+    assert!(
+        stdout.contains("</html>"),
+        "HTML should contain closing </html> tag"
+    );
 
     // Self-contained: no external CSS/JS resources (http:// or https:// for resources)
     // Note: We allow https://github.com link in footer for attribution
@@ -1303,7 +1315,9 @@ fn test_analyze_html_format() {
                 );
             }
             // Only https allowed for the attribution link, not for scripts/stylesheets
-            if line_lower.contains("https://") && (line_lower.contains(".js") || line_lower.contains(".css")) {
+            if line_lower.contains("https://")
+                && (line_lower.contains(".js") || line_lower.contains(".css"))
+            {
                 assert!(
                     false,
                     "HTML should not load external HTTPS scripts/styles: {}",
@@ -1314,8 +1328,14 @@ fn test_analyze_html_format() {
     }
 
     // Should contain embedded styles and scripts
-    assert!(stdout.contains("<style>"), "HTML should have embedded styles");
-    assert!(stdout.contains("<script>"), "HTML should have embedded scripts");
+    assert!(
+        stdout.contains("<style>"),
+        "HTML should have embedded styles"
+    );
+    assert!(
+        stdout.contains("<script>"),
+        "HTML should have embedded scripts"
+    );
 }
 
 // --- Check-ignore Tests ---
@@ -1329,7 +1349,7 @@ fn test_check_ignore_not_ignored() {
     cmd.arg("check-ignore")
         .arg("src/main.rs")
         .assert()
-        .code(1)  // Exit 1 = not ignored
+        .code(1) // Exit 1 = not ignored
         .stdout(predicate::str::contains("not ignored"));
 }
 
@@ -1349,7 +1369,7 @@ fn test_check_ignore_with_exclude_flag() {
         .arg("-v")
         .arg("test.rs")
         .assert()
-        .code(0)  // Exit 0 = ignored
+        .code(0) // Exit 0 = ignored
         .stdout(predicate::str::contains("ignored"))
         .stdout(predicate::str::contains("--exclude"));
 }
@@ -1387,7 +1407,7 @@ fn test_check_ignore_verbose_shows_source() {
         .arg("-v")
         .arg("debug.log")
         .assert()
-        .code(0)  // Exit 0 = ignored
+        .code(0) // Exit 0 = ignored
         .stdout(predicate::str::contains("ignored"))
         .stdout(predicate::str::contains("gitignore"));
 }

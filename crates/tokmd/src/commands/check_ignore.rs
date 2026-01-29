@@ -43,10 +43,18 @@ struct CheckResult {
 
 #[derive(Clone)]
 enum IgnoreReason {
-    Git { source: String, pattern: String, line: Option<usize> },
+    Git {
+        source: String,
+        pattern: String,
+        line: Option<usize>,
+    },
     GitTracked, // File is tracked by git; gitignore rules don't apply
-    Tokeignore { pattern: String },
-    ExcludeFlag { pattern: String },
+    Tokeignore {
+        pattern: String,
+    },
+    ExcludeFlag {
+        pattern: String,
+    },
     NotFound,
 }
 
@@ -257,7 +265,9 @@ fn matches_glob(pattern: &str, path: &str) -> bool {
         }
     } else {
         // Exact match or suffix match
-        path == pattern || path.ends_with(&format!("/{}", pattern)) || path.starts_with(&format!("{}/", pattern))
+        path == pattern
+            || path.ends_with(&format!("/{}", pattern))
+            || path.starts_with(&format!("{}/", pattern))
     };
 
     if negated { !matches } else { matches }
@@ -269,7 +279,11 @@ fn print_result(result: &CheckResult, verbose: bool) {
         if verbose {
             for reason in &result.reasons {
                 match reason {
-                    IgnoreReason::Git { source, pattern, line } => {
+                    IgnoreReason::Git {
+                        source,
+                        pattern,
+                        line,
+                    } => {
                         if let Some(ln) = line {
                             println!("  gitignore: {}:{} -> {}", source, ln, pattern);
                         } else {

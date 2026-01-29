@@ -24,8 +24,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use serde::Serialize;
-use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 
 use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
@@ -712,4 +712,468 @@ pub fn write_export_jsonl_to_file(
 
     out.flush()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use tokmd_config::ChildrenMode;
+    use tokmd_types::{LangRow, ModuleRow, Totals};
+
+    fn sample_lang_report(with_files: bool) -> LangReport {
+        LangReport {
+            rows: vec![
+                LangRow {
+                    lang: "Rust".to_string(),
+                    code: 1000,
+                    lines: 1200,
+                    files: 10,
+                    bytes: 50000,
+                    tokens: 2500,
+                    avg_lines: 120,
+                },
+                LangRow {
+                    lang: "TOML".to_string(),
+                    code: 50,
+                    lines: 60,
+                    files: 2,
+                    bytes: 1000,
+                    tokens: 125,
+                    avg_lines: 30,
+                },
+            ],
+            total: Totals {
+                code: 1050,
+                lines: 1260,
+                files: 12,
+                bytes: 51000,
+                tokens: 2625,
+                avg_lines: 105,
+            },
+            with_files,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        }
+    }
+
+    fn sample_module_report() -> ModuleReport {
+        ModuleReport {
+            rows: vec![
+                ModuleRow {
+                    module: "crates/foo".to_string(),
+                    code: 800,
+                    lines: 950,
+                    files: 8,
+                    bytes: 40000,
+                    tokens: 2000,
+                    avg_lines: 119,
+                },
+                ModuleRow {
+                    module: "crates/bar".to_string(),
+                    code: 200,
+                    lines: 250,
+                    files: 2,
+                    bytes: 10000,
+                    tokens: 500,
+                    avg_lines: 125,
+                },
+            ],
+            total: Totals {
+                code: 1000,
+                lines: 1200,
+                files: 10,
+                bytes: 50000,
+                tokens: 2500,
+                avg_lines: 120,
+            },
+            module_roots: vec!["crates".to_string()],
+            module_depth: 2,
+            children: tokmd_config::ChildIncludeMode::Separate,
+            top: 0,
+        }
+    }
+
+    fn sample_file_rows() -> Vec<FileRow> {
+        vec![
+            FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 100,
+                comments: 20,
+                blanks: 10,
+                lines: 130,
+                bytes: 1000,
+                tokens: 250,
+            },
+            FileRow {
+                path: "tests/test.rs".to_string(),
+                module: "tests".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 50,
+                comments: 5,
+                blanks: 5,
+                lines: 60,
+                bytes: 500,
+                tokens: 125,
+            },
+        ]
+    }
+
+    // ========================
+    // Language Markdown Render Tests
+    // ========================
+
+    #[test]
+    fn render_lang_md_without_files() {
+        let report = sample_lang_report(false);
+        let output = render_lang_md(&report);
+
+        // Check header
+        assert!(output.contains("|Lang|Code|Lines|Bytes|Tokens|"));
+        // Check no Files/Avg columns
+        assert!(!output.contains("|Files|"));
+        assert!(!output.contains("|Avg|"));
+        // Check row data
+        assert!(output.contains("|Rust|1000|1200|50000|2500|"));
+        assert!(output.contains("|TOML|50|60|1000|125|"));
+        // Check total
+        assert!(output.contains("|**Total**|1050|1260|51000|2625|"));
+    }
+
+    #[test]
+    fn render_lang_md_with_files() {
+        let report = sample_lang_report(true);
+        let output = render_lang_md(&report);
+
+        // Check header includes Files and Avg
+        assert!(output.contains("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|"));
+        // Check row data includes file counts
+        assert!(output.contains("|Rust|1000|1200|10|50000|2500|120|"));
+        assert!(output.contains("|TOML|50|60|2|1000|125|30|"));
+        // Check total
+        assert!(output.contains("|**Total**|1050|1260|12|51000|2625|105|"));
+    }
+
+    #[test]
+    fn render_lang_md_table_structure() {
+        let report = sample_lang_report(true);
+        let output = render_lang_md(&report);
+
+        // Verify markdown table structure
+        let lines: Vec<&str> = output.lines().collect();
+        assert!(lines.len() >= 4); // header, separator, 2 data rows, total
+
+        // Check separator line
+        assert!(lines[1].contains("|---|"));
+        assert!(lines[1].contains(":")); // Right-aligned columns
+    }
+
+    // ========================
+    // Language TSV Render Tests
+    // ========================
+
+    #[test]
+    fn render_lang_tsv_without_files() {
+        let report = sample_lang_report(false);
+        let output = render_lang_tsv(&report);
+
+        // Check header
+        assert!(output.starts_with("Lang\tCode\tLines\tBytes\tTokens\n"));
+        // Check no Files/Avg columns
+        assert!(!output.contains("\tFiles\t"));
+        assert!(!output.contains("\tAvg"));
+        // Check row data
+        assert!(output.contains("Rust\t1000\t1200\t50000\t2500"));
+        assert!(output.contains("TOML\t50\t60\t1000\t125"));
+        // Check total
+        assert!(output.contains("Total\t1050\t1260\t51000\t2625"));
+    }
+
+    #[test]
+    fn render_lang_tsv_with_files() {
+        let report = sample_lang_report(true);
+        let output = render_lang_tsv(&report);
+
+        // Check header includes Files and Avg
+        assert!(output.starts_with("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
+        // Check row data includes file counts
+        assert!(output.contains("Rust\t1000\t1200\t10\t50000\t2500\t120"));
+        assert!(output.contains("TOML\t50\t60\t2\t1000\t125\t30"));
+    }
+
+    #[test]
+    fn render_lang_tsv_tab_separated() {
+        let report = sample_lang_report(false);
+        let output = render_lang_tsv(&report);
+
+        // Each data line should have exactly 4 tabs (5 columns)
+        for line in output.lines().skip(1) {
+            // Skip header
+            if line.starts_with("Total") || line.starts_with("Rust") || line.starts_with("TOML") {
+                assert_eq!(line.matches('\t').count(), 4);
+            }
+        }
+    }
+
+    // ========================
+    // Module Markdown Render Tests
+    // ========================
+
+    #[test]
+    fn render_module_md_structure() {
+        let report = sample_module_report();
+        let output = render_module_md(&report);
+
+        // Check header
+        assert!(output.contains("|Module|Code|Lines|Files|Bytes|Tokens|Avg|"));
+        // Check module data
+        assert!(output.contains("|crates/foo|800|950|8|40000|2000|119|"));
+        assert!(output.contains("|crates/bar|200|250|2|10000|500|125|"));
+        // Check total
+        assert!(output.contains("|**Total**|1000|1200|10|50000|2500|120|"));
+    }
+
+    #[test]
+    fn render_module_md_table_format() {
+        let report = sample_module_report();
+        let output = render_module_md(&report);
+
+        let lines: Vec<&str> = output.lines().collect();
+        // Header, separator, 2 rows, total
+        assert_eq!(lines.len(), 5);
+        // Separator has right-alignment markers
+        assert!(lines[1].contains("---:"));
+    }
+
+    // ========================
+    // Module TSV Render Tests
+    // ========================
+
+    #[test]
+    fn render_module_tsv_structure() {
+        let report = sample_module_report();
+        let output = render_module_tsv(&report);
+
+        // Check header
+        assert!(output.starts_with("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
+        // Check data
+        assert!(output.contains("crates/foo\t800\t950\t8\t40000\t2000\t119"));
+        assert!(output.contains("crates/bar\t200\t250\t2\t10000\t500\t125"));
+        // Check total
+        assert!(output.contains("Total\t1000\t1200\t10\t50000\t2500\t120"));
+    }
+
+    #[test]
+    fn render_module_tsv_tab_count() {
+        let report = sample_module_report();
+        let output = render_module_tsv(&report);
+
+        // Each data line should have exactly 6 tabs (7 columns)
+        for line in output.lines() {
+            assert_eq!(line.matches('\t').count(), 6);
+        }
+    }
+
+    // ========================
+    // Redaction Tests
+    // ========================
+
+    #[test]
+    fn redact_rows_none_mode() {
+        let rows = sample_file_rows();
+        let redacted = redact_rows(&rows, RedactMode::None);
+
+        // Should be identical
+        assert_eq!(redacted.len(), rows.len());
+        assert_eq!(redacted[0].path, "src/lib.rs");
+        assert_eq!(redacted[0].module, "src");
+    }
+
+    #[test]
+    fn redact_rows_paths_mode() {
+        let rows = sample_file_rows();
+        let redacted = redact_rows(&rows, RedactMode::Paths);
+
+        // Paths should be redacted (16 char hash + extension)
+        assert_ne!(redacted[0].path, "src/lib.rs");
+        assert!(redacted[0].path.ends_with(".rs"));
+        assert_eq!(redacted[0].path.len(), 16 + 3); // hash + ".rs"
+
+        // Module should NOT be redacted
+        assert_eq!(redacted[0].module, "src");
+    }
+
+    #[test]
+    fn redact_rows_all_mode() {
+        let rows = sample_file_rows();
+        let redacted = redact_rows(&rows, RedactMode::All);
+
+        // Paths should be redacted
+        assert_ne!(redacted[0].path, "src/lib.rs");
+        assert!(redacted[0].path.ends_with(".rs"));
+
+        // Module should ALSO be redacted (16 char hash)
+        assert_ne!(redacted[0].module, "src");
+        assert_eq!(redacted[0].module.len(), 16);
+    }
+
+    #[test]
+    fn redact_rows_preserves_other_fields() {
+        let rows = sample_file_rows();
+        let redacted = redact_rows(&rows, RedactMode::All);
+
+        // All other fields should be preserved
+        assert_eq!(redacted[0].lang, "Rust");
+        assert_eq!(redacted[0].kind, FileKind::Parent);
+        assert_eq!(redacted[0].code, 100);
+        assert_eq!(redacted[0].comments, 20);
+        assert_eq!(redacted[0].blanks, 10);
+        assert_eq!(redacted[0].lines, 130);
+        assert_eq!(redacted[0].bytes, 1000);
+        assert_eq!(redacted[0].tokens, 250);
+    }
+
+    // ========================
+    // Path Normalization Tests
+    // ========================
+
+    #[test]
+    fn normalize_scan_input_forward_slash() {
+        let p = Path::new("src/lib.rs");
+        let normalized = normalize_scan_input(p);
+        assert_eq!(normalized, "src/lib.rs");
+    }
+
+    #[test]
+    fn normalize_scan_input_backslash_to_forward() {
+        let p = Path::new("src\\lib.rs");
+        let normalized = normalize_scan_input(p);
+        assert_eq!(normalized, "src/lib.rs");
+    }
+
+    #[test]
+    fn normalize_scan_input_strips_dot_slash() {
+        let p = Path::new("./src/lib.rs");
+        let normalized = normalize_scan_input(p);
+        assert_eq!(normalized, "src/lib.rs");
+    }
+
+    #[test]
+    fn normalize_scan_input_current_dir() {
+        let p = Path::new(".");
+        let normalized = normalize_scan_input(p);
+        assert_eq!(normalized, ".");
+    }
+
+    // ========================
+    // Property-Based Tests
+    // ========================
+
+    proptest! {
+        #[test]
+        fn normalize_scan_input_no_backslash(s in "[a-zA-Z0-9_/\\\\.]+") {
+            let p = Path::new(&s);
+            let normalized = normalize_scan_input(p);
+            prop_assert!(!normalized.contains('\\'), "Should not contain backslash: {}", normalized);
+        }
+
+        #[test]
+        fn normalize_scan_input_no_leading_dot_slash(s in "[a-zA-Z0-9_/\\\\.]+") {
+            let p = Path::new(&s);
+            let normalized = normalize_scan_input(p);
+            prop_assert!(!normalized.starts_with("./"), "Should not start with ./: {}", normalized);
+        }
+
+        #[test]
+        fn redact_rows_preserves_count(
+            code in 0usize..10000,
+            comments in 0usize..1000,
+            blanks in 0usize..500
+        ) {
+            let rows = vec![FileRow {
+                path: "test/file.rs".to_string(),
+                module: "test".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code,
+                comments,
+                blanks,
+                lines: code + comments + blanks,
+                bytes: 1000,
+                tokens: 250,
+            }];
+
+            for mode in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
+                let redacted = redact_rows(&rows, mode);
+                prop_assert_eq!(redacted.len(), 1);
+                prop_assert_eq!(redacted[0].code, code);
+                prop_assert_eq!(redacted[0].comments, comments);
+                prop_assert_eq!(redacted[0].blanks, blanks);
+            }
+        }
+
+        #[test]
+        fn redact_rows_paths_end_with_extension(ext in "[a-z]{1,4}") {
+            let path = format!("some/path/file.{}", ext);
+            let rows = vec![FileRow {
+                path: path.clone(),
+                module: "some".to_string(),
+                lang: "Test".to_string(),
+                kind: FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 1000,
+                tokens: 250,
+            }];
+
+            let redacted = redact_rows(&rows, RedactMode::Paths);
+            prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
+                "Redacted path '{}' should end with .{}", redacted[0].path, ext);
+        }
+    }
+
+    // ========================
+    // Snapshot Tests
+    // ========================
+
+    #[test]
+    fn snapshot_lang_md_with_files() {
+        let report = sample_lang_report(true);
+        let output = render_lang_md(&report);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn snapshot_lang_md_without_files() {
+        let report = sample_lang_report(false);
+        let output = render_lang_md(&report);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn snapshot_lang_tsv_with_files() {
+        let report = sample_lang_report(true);
+        let output = render_lang_tsv(&report);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn snapshot_module_md() {
+        let report = sample_module_report();
+        let output = render_module_md(&report);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn snapshot_module_tsv() {
+        let report = sample_module_report();
+        let output = render_module_tsv(&report);
+        insta::assert_snapshot!(output);
+    }
 }

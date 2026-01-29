@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/src/lib.rs
+expression: output
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|1000|1200|10|50000|2500|120|
+|TOML|50|60|2|1000|125|30|
+|**Total**|1050|1260|12|51000|2625|105|

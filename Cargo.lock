@@ -2784,6 +2784,8 @@ version = "1.2.0"
 dependencies = [
  "anyhow",
  "csv",
+ "insta",
+ "proptest",
  "serde",
  "serde_json",
  "time",
@@ -2852,6 +2854,7 @@ name = "tokmd-tokeignore"
 version = "1.2.0"
 dependencies = [
  "anyhow",
+ "tempfile",
  "tokmd-config",
 ]
 
@@ -2871,6 +2874,7 @@ version = "1.2.0"
 dependencies = [
  "anyhow",
  "ignore",
+ "tempfile",
 ]
 
 [[package]]
