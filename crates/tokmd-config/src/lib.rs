@@ -13,11 +13,14 @@
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+pub use tokmd_types::{
+    ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
+};
 
 /// `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`.
 ///
@@ -437,17 +440,6 @@ pub struct InitArgs {
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum TableFormat {
-    /// Markdown table (great for pasting into ChatGPT).
-    Md,
-    /// Tab-separated values (good for piping to other tools).
-    Tsv,
-    /// JSON (compact).
-    Json,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
 pub enum AnalysisFormat {
     Md,
     Json,
@@ -493,58 +485,6 @@ pub enum BadgeMetric {
     Doc,
     Blank,
     Hotspot,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum ExportFormat {
-    /// CSV with a header row.
-    Csv,
-    /// One JSON object per line.
-    Jsonl,
-    /// A single JSON array.
-    Json,
-    /// CycloneDX 1.6 JSON SBOM format.
-    Cyclonedx,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum ConfigMode {
-    /// Read `tokei.toml` / `.tokeirc` if present.
-    #[default]
-    Auto,
-    /// Ignore config files.
-    None,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum ChildrenMode {
-    /// Merge embedded content into the parent language totals.
-    Collapse,
-    /// Show embedded languages as separate "(embedded)" rows.
-    Separate,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum ChildIncludeMode {
-    /// Include embedded languages as separate contributions.
-    Separate,
-    /// Ignore embedded languages.
-    ParentsOnly,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum RedactMode {
-    /// Do not redact.
-    None,
-    /// Redact file paths.
-    Paths,
-    /// Redact file paths and module names.
-    All,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

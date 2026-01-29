@@ -17,7 +17,8 @@ use anyhow::Result;
 use std::path::PathBuf;
 use tokei::{Config, Languages};
 
-use tokmd_config::{ConfigMode, GlobalArgs};
+use tokmd_config::GlobalArgs;
+use tokmd_types::ConfigMode;
 
 pub fn scan(paths: &[PathBuf], args: &GlobalArgs) -> Result<Languages> {
     let mut cfg = match args.config {

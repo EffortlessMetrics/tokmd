@@ -31,9 +31,6 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use tokmd_config::{
-    ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
-};
 
 /// The current schema version for all receipt types.
 pub const SCHEMA_VERSION: u32 = 2;
@@ -358,4 +355,77 @@ pub struct DiffReceipt {
     pub to_source: String,
     pub diff_rows: Vec<DiffRow>,
     pub totals: DiffTotals,
+}
+
+// -----------------------------------------------------------------------------
+// Enums shared with CLI (moved from tokmd-config)
+// -----------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum TableFormat {
+    /// Markdown table (great for pasting into ChatGPT).
+    Md,
+    /// Tab-separated values (good for piping to other tools).
+    Tsv,
+    /// JSON (compact).
+    Json,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum ExportFormat {
+    /// CSV with a header row.
+    Csv,
+    /// One JSON object per line.
+    Jsonl,
+    /// A single JSON array.
+    Json,
+    /// CycloneDX 1.6 JSON SBOM format.
+    Cyclonedx,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum ConfigMode {
+    /// Read `tokei.toml` / `.tokeirc` if present.
+    #[default]
+    Auto,
+    /// Ignore config files.
+    None,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum ChildrenMode {
+    /// Merge embedded content into the parent language totals.
+    Collapse,
+    /// Show embedded languages as separate "(embedded)" rows.
+    Separate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum ChildIncludeMode {
+    /// Include embedded languages as separate contributions.
+    Separate,
+    /// Ignore embedded languages.
+    ParentsOnly,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum RedactMode {
+    /// Do not redact.
+    None,
+    /// Redact file paths.
+    Paths,
+    /// Redact file paths and module names.
+    All,
 }

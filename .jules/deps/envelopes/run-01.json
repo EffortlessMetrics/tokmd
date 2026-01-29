@@ -1,0 +1,12 @@
+{
+  "id": "run-01",
+  "start_time": "2026-01-29T12:50:42Z",
+  "target": "tokmd-types",
+  "lane": "B",
+  "decision": "Decouple tokmd-types from tokmd-config",
+  "receipts": [
+    "cargo check --workspace: passed",
+    "cargo test --workspace: passed",
+    "cargo run -p tokmd -- --help: passed"
+  ]
+}

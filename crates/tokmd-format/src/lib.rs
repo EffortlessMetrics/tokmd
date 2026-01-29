@@ -28,11 +28,12 @@ use serde::Serialize;
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
-use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
+use tokmd_config::GlobalArgs;
 use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, FileKind, FileRow, LangArgs,
+    ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow,
+    LangArgs,
     LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
-    ScanArgs, ScanStatus, ToolInfo,
+    RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
 fn now_ms() -> u128 {
@@ -573,10 +574,7 @@ fn write_export_cyclonedx<W: Write>(
         .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string());
 
     // Apply redaction to rows before generating components
-    let rows = redact_rows(&export.rows, redact);
-
-    let components: Vec<CycloneDxComponent> = rows
-        .iter()
+    let components: Vec<CycloneDxComponent> = redact_rows(&export.rows, redact)
         .map(|row| {
             let mut properties = vec![
                 CycloneDxProperty {
