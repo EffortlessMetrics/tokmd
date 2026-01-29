@@ -15,18 +15,20 @@ tokmd context --budget 128k --output bundle > context.txt
 # Spread coverage across modules instead of just largest files
 tokmd context --budget 128k --strategy spread --output bundle
 
-# Focus on hotspots (frequently changed, high-value code)
-tokmd context --budget 50k --rank-by hotspot --output bundle
-
 # Strip comments for maximum density
 tokmd context --budget 128k --output bundle --compress
+
+# Use module roots for better organization
+tokmd context --budget 128k --module-roots crates,src --strategy spread
 ```
 
 **Why**:
 - `greedy` strategy maximizes code coverage by taking largest files first.
 - `spread` strategy ensures you get representation from all modules.
-- `--rank-by hotspot` focuses on actively maintained code.
 - `--compress` removes comments and blank lines for more content per token.
+- `--module-roots` groups files by directory structure for better spread coverage.
+
+> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal integration (planned). Currently these fall back to ranking by `code` lines.
 
 ## 2. Getting a File Inventory for LLM Context Planning
 
@@ -284,6 +286,8 @@ tokmd check-ignore src/main.rs vendor/lib.js target/release/bin
 - `.gitignore` patterns (via `git check-ignore`)
 - `.tokeignore` patterns
 - `--exclude` command-line patterns
+
+> **Note**: Tracked files are not considered ignored by gitignore rules. If a file is already tracked by git, `.gitignore` patterns do not apply to it—you need to `git rm --cached` the file first.
 
 ## 17. Full Deep Analysis
 

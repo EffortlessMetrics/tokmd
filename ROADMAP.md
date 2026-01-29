@@ -101,9 +101,11 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Current Work: v1.3.0 — Advanced Enrichers
+## Current Work: v1.3.0 — Polish & Stabilization
 
-**Goal**: Semantic analysis and predictive metrics for deeper code intelligence.
+**Goal**: Documentation, hardening, and integration of advanced enrichers.
+
+> **Note**: Core enricher implementations are complete in v1.2.0. This release focuses on polish, documentation, testing, and integration refinements.
 
 ### Analysis Presets
 
@@ -114,21 +116,20 @@ This document outlines the evolution of `tokmd` and the path forward.
 | `risk` | ✅ | Git hotspots, coupling, freshness |
 | `supply` | ✅ | Assets + dependency lockfile summary |
 | `architecture` | ✅ | Import graph analysis |
-| `topics` | 🚧 | Semantic topic clouds (TF-IDF) |
-| `security` | 🚧 | License radar + entropy profiling |
-| `identity` | 🚧 | Archetype + corporate fingerprint |
-| `git` | 🚧 | Predictive churn + git metrics |
-| `deep` | 🚧 | Everything (except fun) |
-| `fun` | 🚧 | Eco-label, novelty outputs |
+| `topics` | ✅ | Semantic topic clouds (TF-IDF) |
+| `security` | ✅ | License radar + entropy profiling |
+| `identity` | ✅ | Archetype + corporate fingerprint |
+| `git` | ✅ | Predictive churn + git metrics |
+| `deep` | ✅ | Everything (except fun) |
+| `fun` | ✅ | Eco-label, novelty outputs |
 
-### In-Progress Enrichers
+### v1.3.0 Focus Areas
 
-- [ ] **Archetype Detection**: Identify project type (CLI, library, web app, monorepo)
-- [ ] **Topic Clouds**: TF-IDF semantic analysis of path segments
-- [ ] **Entropy Profiling**: Detect high-entropy files (potential secrets)
-- [ ] **Predictive Churn**: Linear regression on commit history
-- [ ] **Corporate Fingerprint**: Author domain statistics
-- [ ] **License Radar**: SPDX detection from LICENSE files and metadata
+- [ ] **Documentation**: Complete docs for all enrichers and presets
+- [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
+- [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
+- [ ] **Performance**: Optimize large repository handling with limits and streaming
+- [ ] **Stability**: Harden edge cases and improve error messages
 
 ---
 

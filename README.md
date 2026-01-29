@@ -67,7 +67,7 @@ Pack files into an LLM context window with budget-aware selection:
 ```bash
 tokmd context --budget 128k --output bundle > context.txt  # Ready to paste
 tokmd context --budget 200k --strategy spread              # Coverage across modules
-tokmd context --budget 50k --rank-by hotspot               # Focus on active areas
+tokmd context --budget 100k --output bundle --compress     # Stripped for density
 ```
 
 ### LLM Context Planning

@@ -44,6 +44,7 @@ struct CheckResult {
 #[derive(Clone)]
 enum IgnoreReason {
     Git { source: String, pattern: String, line: Option<usize> },
+    GitTracked, // File is tracked by git; gitignore rules don't apply
     Tokeignore { pattern: String },
     ExcludeFlag { pattern: String },
     NotFound,
@@ -68,6 +69,9 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
     if let Some(git_reason) = check_git_ignore(path, verbose) {
         reasons.push(git_reason);
         ignored = true;
+    } else if is_git_tracked(path) {
+        // File is tracked by git; gitignore rules don't apply
+        reasons.push(IgnoreReason::GitTracked);
     }
 
     // 2. Check --exclude patterns from CLI
@@ -163,33 +167,23 @@ fn check_git_ignore(path: &Path, verbose: bool) -> Option<IgnoreReason> {
     None
 }
 
+fn is_git_tracked(path: &Path) -> bool {
+    Command::new("git")
+        .args(["ls-files", "--error-unmatch", "--"])
+        .arg(path)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
 fn check_tokeignore(base_path: &Path, path_str: &str) -> Option<IgnoreReason> {
     // Look for .tokeignore in current directory and parents
     let mut dir = base_path.parent();
     while let Some(d) = dir {
         let tokeignore = d.join(".tokeignore");
-        if tokeignore.exists() {
-            if let Ok(content) = std::fs::read_to_string(&tokeignore) {
-                for line in content.lines() {
-                    let line = line.trim();
-                    if line.is_empty() || line.starts_with('#') {
-                        continue;
-                    }
-                    if matches_glob(line, path_str) {
-                        return Some(IgnoreReason::Tokeignore {
-                            pattern: line.to_string(),
-                        });
-                    }
-                }
-            }
-        }
-        dir = d.parent();
-    }
-
-    // Also check current working directory
-    let cwd_tokeignore = Path::new(".tokeignore");
-    if cwd_tokeignore.exists() {
-        if let Ok(content) = std::fs::read_to_string(cwd_tokeignore) {
+        if let Ok(content) = std::fs::read_to_string(&tokeignore) {
             for line in content.lines() {
                 let line = line.trim();
                 if line.is_empty() || line.starts_with('#') {
@@ -200,6 +194,23 @@ fn check_tokeignore(base_path: &Path, path_str: &str) -> Option<IgnoreReason> {
                         pattern: line.to_string(),
                     });
                 }
+            }
+        }
+        dir = d.parent();
+    }
+
+    // Also check current working directory
+    let cwd_tokeignore = Path::new(".tokeignore");
+    if let Ok(content) = std::fs::read_to_string(cwd_tokeignore) {
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            if matches_glob(line, path_str) {
+                return Some(IgnoreReason::Tokeignore {
+                    pattern: line.to_string(),
+                });
             }
         }
     }
@@ -271,6 +282,9 @@ fn print_result(result: &CheckResult, verbose: bool) {
                     IgnoreReason::ExcludeFlag { pattern } => {
                         println!("  --exclude: {}", pattern);
                     }
+                    IgnoreReason::GitTracked => {
+                        println!("  git: tracked (gitignore rules don't apply)");
+                    }
                     IgnoreReason::NotFound => {
                         println!("  (file not found)");
                     }
@@ -279,10 +293,14 @@ fn print_result(result: &CheckResult, verbose: bool) {
         }
     } else {
         println!("{}: not ignored", result.path);
-        if verbose && !result.reasons.is_empty() {
+        if verbose {
             for reason in &result.reasons {
-                if let IgnoreReason::NotFound = reason {
-                    println!("  (file not found)");
+                match reason {
+                    IgnoreReason::NotFound => println!("  (file not found)"),
+                    IgnoreReason::GitTracked => {
+                        println!("  note: tracked by git; gitignore rules don't apply");
+                    }
+                    _ => {}
                 }
             }
         }

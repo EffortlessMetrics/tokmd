@@ -265,8 +265,10 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
 | `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
 | `--compress` | Strip comments and blank lines from bundle output. | `false` |
-| `--module-roots <DIRS>` | Comma-separated list of root directories. | `.` |
-| `--module-depth <N>` | How deep to group modules. | `1` |
+| `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
+| `--module-depth <N>` | How deep to group modules. | `2` |
+
+> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal data, which is not yet integrated into the context command. These options currently fall back to ranking by `code` lines.
 
 **Examples**:
 ```bash
@@ -278,9 +280,6 @@ tokmd context --budget 128k --output bundle > context.txt
 
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
-
-# Rank by git hotspots (most actively changed files)
-tokmd context --budget 50k --rank-by hotspot
 
 # Compressed bundle (no comments/blanks)
 tokmd context --budget 100k --output bundle --compress
@@ -302,6 +301,8 @@ Explains why files are being ignored. Useful for troubleshooting when files unex
 **Exit codes**:
 - `0`: File is ignored (shows which rule matched)
 - `1`: File is not ignored
+
+> **Note**: Tracked files are not considered ignored by gitignore rules. If a file is already tracked by git, `.gitignore` patterns do not apply to it. Use `-v` to see if a file is tracked.
 
 **Examples**:
 ```bash

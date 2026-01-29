@@ -93,8 +93,11 @@ tokmd context --budget 128k --output bundle > context.txt
 # Spread coverage across all modules
 tokmd context --budget 128k --strategy spread --output bundle
 
-# Focus on git hotspots (frequently changed files)
-tokmd context --budget 50k --rank-by hotspot --output bundle
+# Strip comments and blank lines for maximum density
+tokmd context --budget 128k --output bundle --compress
+
+# Use module roots for better organization
+tokmd context --budget 128k --module-roots src,crates --strategy spread --output bundle
 ```
 
 ## Step 5: Creating a File Inventory for AI
