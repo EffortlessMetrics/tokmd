@@ -209,6 +209,7 @@ Native FFI bindings for CI pipelines and tooling:
 - [Recipes](docs/recipes.md) — Real-world usage examples
 - [CLI Reference](docs/reference-cli.md) — All flags and options
 - [Schema](docs/SCHEMA.md) — Receipt format documentation
+- [Troubleshooting](docs/troubleshooting.md) — Common issues and solutions
 - [Philosophy](docs/explanation.md) — Design principles
 
 ## License

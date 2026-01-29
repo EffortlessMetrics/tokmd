@@ -69,10 +69,12 @@ Often, 80% of the complexity lives in 20% of the files. Let's find the biggest f
 
 Run:
 ```bash
-tokmd export --format csv --max-rows 10 --sort code
+tokmd export --format csv --max-rows 10
 ```
 
 This prints the top 10 largest files. These are often candidates for refactoring or documentation.
+
+> **Note**: Output is automatically sorted by lines of code (descending), then by path. This ensures consistent, deterministic ordering across all runs.
 
 ## Step 4: Packing Code for an LLM
 
@@ -199,6 +201,56 @@ Later, you can diff against this baseline:
 ```bash
 tokmd diff .runs/baseline .
 ```
+
+---
+
+## Step 11: Troubleshooting Missing Files
+
+Sometimes files don't appear in your scans when you expect them to. The `check-ignore` command helps diagnose why.
+
+**Checking a single file**:
+```bash
+tokmd check-ignore path/to/missing/file.rs
+```
+
+**Understanding exit codes**:
+- Exit code `0`: The file **is ignored** (output shows why)
+- Exit code `1`: The file **is not ignored**
+
+This makes it easy to use in scripts:
+```bash
+if tokmd check-ignore some/file.rs; then
+  echo "File is ignored"
+else
+  echo "File should appear in scans"
+fi
+```
+
+**Verbose mode for details**:
+```bash
+tokmd check-ignore -v node_modules/package/index.js
+```
+
+Verbose output shows:
+- Which ignore file matched (`.gitignore`, `.tokeignore`)
+- The specific pattern that caused the match
+- Whether the file is tracked by git
+
+**Common scenarios**:
+
+1. **File in `.gitignore` but tracked by git**:
+   - Gitignore patterns don't apply to tracked files
+   - Solution: `git rm --cached <file>` to untrack it
+
+2. **Unexpected pattern matching**:
+   - Use `-v` to see which pattern matched
+   - Check parent directories for ignore files
+
+3. **File should be ignored but isn't**:
+   - Ensure the pattern is correct in `.tokeignore` or `.gitignore`
+   - Remember: patterns without `/` match anywhere in the path
+
+See the [Troubleshooting Guide](troubleshooting.md) for more detailed scenarios.
 
 ---
 

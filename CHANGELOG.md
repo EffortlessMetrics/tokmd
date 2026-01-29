@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Schema Version**: Analysis receipts now use `schema_version: 2`
 - **API**: `tokmd_core::scan_workflow` now accepts `redact: Option<RedactMode>` parameter
 
+### Documentation
+- **New Troubleshooting Guide**: Comprehensive guide covering common issues, exit codes, performance optimization, and debugging tips
+- **CI/CD Integration Recipes**: Added GitHub Actions, GitLab CI, pre-commit hooks, and baseline tracking workflow examples
+- **Configuration Reference**: Expanded `tokmd.toml` documentation with full schema, file location precedence, environment variables, and named profiles
+- **Tutorial Improvements**: Added Step 11 for troubleshooting missing files with `check-ignore` command
+- **Exit Codes Reference**: Documented standard and command-specific exit codes
+- **Sorting Clarification**: Clarified that output is automatically sorted (descending by code lines, then path) with no `--sort` flag
+- **Bug Fix**: Removed reference to non-existent `--sort code` flag in tutorial
+
 ## [1.2.0] - 2026-01-27
 
 ### Added

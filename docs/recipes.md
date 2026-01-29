@@ -300,3 +300,275 @@ tokmd analyze --preset deep --format json --output-dir analysis/
 # Include fun outputs (eco-label, etc.)
 tokmd analyze --preset fun --format json
 ```
+
+---
+
+## CI/CD Integration
+
+### 18. GitHub Actions Integration
+
+Use `tokmd` in GitHub Actions for automated code metrics and PR checks.
+
+**Badge updates on push**:
+```yaml
+name: Update Badges
+on:
+  push:
+    branches: [main]
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate badges
+        run: |
+          mkdir -p badges
+          tokmd badge --metric lines --out badges/lines.svg
+          tokmd badge --metric tokens --out badges/tokens.svg
+          tokmd badge --metric doc --out badges/doc.svg
+
+      - name: Commit badges
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add badges/
+          git diff --staged --quiet || git commit -m "Update code metrics badges"
+          git push
+```
+
+**PR size check**:
+```yaml
+name: PR Size Check
+on:
+  pull_request:
+
+jobs:
+  size-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need history for diff
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Check PR size
+        run: |
+          # Get diff between base and head
+          DIFF=$(tokmd diff origin/${{ github.base_ref }} HEAD --format json)
+
+          # Extract added lines
+          ADDED=$(echo "$DIFF" | jq '.delta.code // 0')
+
+          if [ "$ADDED" -gt 1000 ]; then
+            echo "::warning::Large PR: $ADDED lines added"
+          fi
+
+          echo "## Code Metrics Diff" >> $GITHUB_STEP_SUMMARY
+          tokmd diff origin/${{ github.base_ref }} HEAD --format md >> $GITHUB_STEP_SUMMARY
+```
+
+**Store artifacts for historical tracking**:
+```yaml
+name: Code Metrics
+on:
+  push:
+    branches: [main]
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate metrics
+        run: |
+          tokmd run --output-dir .runs/$(git rev-parse --short HEAD)
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tokmd-metrics-${{ github.sha }}
+          path: .runs/
+          retention-days: 90
+```
+
+### 19. GitLab CI Integration
+
+**Basic metrics pipeline**:
+```yaml
+stages:
+  - analyze
+
+code-metrics:
+  stage: analyze
+  image: rust:latest
+  before_script:
+    - cargo install tokmd
+  script:
+    - tokmd run --output-dir metrics/
+    - tokmd analyze --preset health --format md > metrics/report.md
+  artifacts:
+    paths:
+      - metrics/
+    expire_in: 30 days
+  only:
+    - main
+    - merge_requests
+```
+
+**Merge request comment with metrics**:
+```yaml
+mr-metrics:
+  stage: analyze
+  image: rust:latest
+  before_script:
+    - cargo install tokmd
+  script:
+    - |
+      # Generate diff report
+      tokmd diff origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD --format md > diff.md
+
+      # Post as MR comment (requires CI_JOB_TOKEN with api scope)
+      curl --request POST \
+        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        --form "body=$(cat diff.md)" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+  only:
+    - merge_requests
+```
+
+### 20. Pre-commit Hook for Large File Warnings
+
+Warn developers before committing large files.
+
+**Setup** (add to `.pre-commit-config.yaml`):
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: check-file-size
+        name: Check for large files
+        entry: bash -c 'tokmd export --min-code 2000 --format csv | tail -n +2 | grep -q . && echo "Warning: Files over 2000 lines detected" && tokmd export --min-code 2000 --format csv || true'
+        language: system
+        pass_filenames: false
+```
+
+**Manual git hook** (save as `.git/hooks/pre-commit`):
+```bash
+#!/bin/bash
+
+# Check for files exceeding line threshold
+THRESHOLD=2000
+LARGE_FILES=$(tokmd export --min-code $THRESHOLD --format csv 2>/dev/null | tail -n +2)
+
+if [ -n "$LARGE_FILES" ]; then
+  echo "Warning: The following files exceed $THRESHOLD lines:"
+  echo "$LARGE_FILES" | cut -d',' -f1
+  echo ""
+  echo "Consider refactoring before committing."
+  # To make this a hard fail, uncomment:
+  # exit 1
+fi
+
+exit 0
+```
+
+### 21. Baseline Tracking Workflow
+
+Track code metrics over time with automated baseline management.
+
+**Initial baseline setup**:
+```bash
+# Create initial baseline
+mkdir -p .tokmd/baselines
+tokmd run --output-dir .tokmd/baselines/initial
+
+# Commit the baseline
+git add .tokmd/baselines/initial
+git commit -m "chore: add tokmd baseline"
+```
+
+**Weekly baseline update (CI)**:
+```yaml
+name: Weekly Baseline
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate baseline
+        run: |
+          DATE=$(date +%Y%m%d)
+          tokmd run --output-dir .tokmd/baselines/$DATE
+
+      - name: Compare to previous
+        run: |
+          PREV=$(ls -1 .tokmd/baselines/ | sort | tail -2 | head -1)
+          CURR=$(ls -1 .tokmd/baselines/ | sort | tail -1)
+
+          echo "## Weekly Metrics Report" >> $GITHUB_STEP_SUMMARY
+          echo "Comparing $PREV to $CURR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          tokmd diff .tokmd/baselines/$PREV .tokmd/baselines/$CURR --format md >> $GITHUB_STEP_SUMMARY
+
+      - name: Commit new baseline
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .tokmd/baselines/
+          git commit -m "chore: weekly baseline update"
+          git push
+```
+
+**Release comparison**:
+```bash
+# Before release: compare to last release
+tokmd diff .tokmd/baselines/v1.0.0 . --format md
+
+# After release: save new baseline
+tokmd run --output-dir .tokmd/baselines/v1.1.0
+```
+
+**Detecting codebase bloat**:
+```bash
+#!/bin/bash
+# detect-bloat.sh - Run in CI to catch unexpected growth
+
+BASELINE=".tokmd/baselines/initial"
+THRESHOLD=10  # Alert if growth exceeds 10%
+
+# Get baseline and current totals
+BASELINE_LINES=$(jq '.total.code' "$BASELINE/lang.json")
+CURRENT_LINES=$(tokmd --format json | jq '.total.code')
+
+# Calculate growth percentage
+GROWTH=$(echo "scale=2; (($CURRENT_LINES - $BASELINE_LINES) / $BASELINE_LINES) * 100" | bc)
+
+echo "Baseline: $BASELINE_LINES lines"
+echo "Current: $CURRENT_LINES lines"
+echo "Growth: $GROWTH%"
+
+if (( $(echo "$GROWTH > $THRESHOLD" | bc -l) )); then
+  echo "::warning::Codebase has grown by $GROWTH% since baseline"
+  exit 1
+fi
+```
