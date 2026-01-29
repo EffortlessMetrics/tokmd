@@ -42,12 +42,26 @@ fn now_ms() -> u128 {
 }
 
 /// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
-fn normalize_scan_input(p: &Path) -> String {
+///
+/// This is the canonical normalization function for scan inputs. Use this
+/// before storing paths in receipts to ensure consistent output across OS.
+pub fn normalize_scan_input(p: &Path) -> String {
     let s = p.display().to_string().replace('\\', "/");
     s.strip_prefix("./").unwrap_or(&s).to_string()
 }
 
-fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
+/// Construct `ScanArgs` with optional redaction applied.
+///
+/// This is the single source of truth for building `ScanArgs` from CLI inputs.
+/// All commands that produce receipts should use this function to ensure
+/// consistent redaction and normalization behavior.
+///
+/// # Redaction Behavior
+///
+/// - `None` or `Some(RedactMode::None)`: Paths shown as-is (normalized only)
+/// - `Some(RedactMode::Paths)`: Hash file paths, preserve extension
+/// - `Some(RedactMode::All)`: Hash paths and excluded patterns
+pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
     let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
     let excluded_redacted = should_redact && !global.excluded.is_empty();
 

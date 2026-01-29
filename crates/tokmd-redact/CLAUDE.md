@@ -28,6 +28,7 @@ pub fn redact_path(path: &str) -> String
 - Truncates to 16 characters for brevity
 - Preserves **final** file extension for readability
 - Double extensions: `file.test.ts` → `<hash>.ts`
+- **Cross-platform normalization**: Both functions normalize `\` → `/` before hashing, ensuring identical hashes across Windows/Unix for the same logical path
 
 ## Use Cases
 
@@ -56,6 +57,7 @@ Tests cover:
 - Length validation (always 16 chars)
 - Extension preservation
 - Double extension handling
+- Cross-platform separator normalization (`src\lib` = `src/lib`)
 
 ## Do NOT
 

@@ -2773,8 +2773,8 @@ version = "1.2.0"
 dependencies = [
  "anyhow",
  "tokmd-config",
+ "tokmd-format",
  "tokmd-model",
- "tokmd-redact",
  "tokmd-scan",
  "tokmd-types",
 ]

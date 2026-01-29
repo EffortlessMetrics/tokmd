@@ -15,6 +15,16 @@ Output formatting and serialization. This is a **Tier 2** crate that renders tok
 
 ## Public API
 
+### ScanArgs Construction (Single Source of Truth)
+```rust
+/// Canonical function for building ScanArgs with redaction.
+/// All commands producing receipts MUST use this function.
+pub fn scan_args(paths, global, redact) -> ScanArgs
+
+/// Normalize path separators and strip leading ./
+pub fn normalize_scan_input(path) -> String
+```
+
 ### Console Output
 ```rust
 pub fn print_lang_report(report, global, args) -> Result<()>
