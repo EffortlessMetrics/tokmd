@@ -106,7 +106,7 @@ runs:
 
     - name: Comment on PR
       if: inputs.comment == 'true' && github.event_name == 'pull_request'
-      uses: thollander/actions-comment-pull-request@v2
+      uses: thollander/actions-comment-pull-request@v3
       with:
         filePath: tokmd-summary.md
         comment_tag: tokmd-summary
