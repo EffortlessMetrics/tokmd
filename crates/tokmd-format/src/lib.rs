@@ -25,8 +25,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use serde::Serialize;
-use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 
 use tokmd_config::{ExportFormat, GlobalArgs, RedactMode, TableFormat};
 use tokmd_types::{
@@ -418,7 +418,7 @@ fn write_export_jsonl<W: Write>(
     for row in redact_rows(&export.rows, args.redact) {
         let wrapper = JsonlRow {
             ty: "row",
-            row: &*row,
+            row: &row,
         };
         writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
     }
@@ -461,7 +461,9 @@ fn write_export_json<W: Write>(
                 strip_prefix_redacted,
             },
             data: ExportData {
-                rows: redact_rows(&export.rows, args.redact).map(|c| c.into_owned()).collect(),
+                rows: redact_rows(&export.rows, args.redact)
+                    .map(|c| c.into_owned())
+                    .collect(),
                 module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
@@ -712,7 +714,7 @@ pub fn write_export_jsonl_to_file(
     for row in redact_rows(&export.rows, args_meta.redact) {
         let wrapper = JsonlRow {
             ty: "row",
-            row: &*row,
+            row: &row,
         };
         writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
     }
