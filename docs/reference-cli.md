@@ -303,6 +303,7 @@ Explains why files are being ignored. Useful for troubleshooting when files unex
 **Exit codes**:
 - `0`: File is ignored (shows which rule matched)
 - `1`: File is not ignored
+- `2`: Error occurred (e.g., file not found, permission denied)
 
 > **Note**: Tracked files are not considered ignored by gitignore rules. If a file is already tracked by git, `.gitignore` patterns do not apply to it. Use `-v` to see if a file is tracked.
 

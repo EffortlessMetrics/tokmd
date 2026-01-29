@@ -714,6 +714,185 @@ pub fn write_export_jsonl_to_file(
     Ok(())
 }
 
+// -----------------
+// Diff output
+// -----------------
+
+use tokmd_types::{DiffReceipt, DiffRow, DiffTotals, LangRow};
+
+/// Compute diff rows from two lang reports.
+pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Vec<DiffRow> {
+    // Collect all languages from both reports
+    let mut all_langs: Vec<String> = from_report
+        .rows
+        .iter()
+        .chain(to_report.rows.iter())
+        .map(|r| r.lang.clone())
+        .collect();
+    all_langs.sort();
+    all_langs.dedup();
+
+    all_langs
+        .into_iter()
+        .filter_map(|lang_name| {
+            let old_row = from_report.rows.iter().find(|r| r.lang == lang_name);
+            let new_row = to_report.rows.iter().find(|r| r.lang == lang_name);
+
+            let old = old_row.cloned().unwrap_or_else(|| LangRow {
+                lang: lang_name.clone(),
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            });
+            let new = new_row.cloned().unwrap_or_else(|| LangRow {
+                lang: lang_name.clone(),
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            });
+
+            // Skip if no change
+            if old.code == new.code
+                && old.lines == new.lines
+                && old.files == new.files
+                && old.bytes == new.bytes
+                && old.tokens == new.tokens
+            {
+                return None;
+            }
+
+            Some(DiffRow {
+                lang: lang_name,
+                old_code: old.code,
+                new_code: new.code,
+                delta_code: new.code as i64 - old.code as i64,
+                old_lines: old.lines,
+                new_lines: new.lines,
+                delta_lines: new.lines as i64 - old.lines as i64,
+                old_files: old.files,
+                new_files: new.files,
+                delta_files: new.files as i64 - old.files as i64,
+                old_bytes: old.bytes,
+                new_bytes: new.bytes,
+                delta_bytes: new.bytes as i64 - old.bytes as i64,
+                old_tokens: old.tokens,
+                new_tokens: new.tokens,
+                delta_tokens: new.tokens as i64 - old.tokens as i64,
+            })
+        })
+        .collect()
+}
+
+/// Compute totals from diff rows.
+pub fn compute_diff_totals(rows: &[DiffRow]) -> DiffTotals {
+    let mut totals = DiffTotals {
+        old_code: 0,
+        new_code: 0,
+        delta_code: 0,
+        old_lines: 0,
+        new_lines: 0,
+        delta_lines: 0,
+        old_files: 0,
+        new_files: 0,
+        delta_files: 0,
+        old_bytes: 0,
+        new_bytes: 0,
+        delta_bytes: 0,
+        old_tokens: 0,
+        new_tokens: 0,
+        delta_tokens: 0,
+    };
+
+    for row in rows {
+        totals.old_code += row.old_code;
+        totals.new_code += row.new_code;
+        totals.delta_code += row.delta_code;
+        totals.old_lines += row.old_lines;
+        totals.new_lines += row.new_lines;
+        totals.delta_lines += row.delta_lines;
+        totals.old_files += row.old_files;
+        totals.new_files += row.new_files;
+        totals.delta_files += row.delta_files;
+        totals.old_bytes += row.old_bytes;
+        totals.new_bytes += row.new_bytes;
+        totals.delta_bytes += row.delta_bytes;
+        totals.old_tokens += row.old_tokens;
+        totals.new_tokens += row.new_tokens;
+        totals.delta_tokens += row.delta_tokens;
+    }
+
+    totals
+}
+
+fn format_delta(delta: i64) -> String {
+    if delta > 0 {
+        format!("+{}", delta)
+    } else {
+        delta.to_string()
+    }
+}
+
+/// Render diff as Markdown table.
+pub fn render_diff_md(
+    from_source: &str,
+    to_source: &str,
+    rows: &[DiffRow],
+    totals: &DiffTotals,
+) -> String {
+    let mut s = String::new();
+
+    let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
+    s.push('\n');
+    s.push_str("|Language|Old LOC|New LOC|Delta|\n");
+    s.push_str("|---|---:|---:|---:|\n");
+
+    for row in rows {
+        let _ = writeln!(
+            s,
+            "|{}|{}|{}|{}|",
+            row.lang,
+            row.old_code,
+            row.new_code,
+            format_delta(row.delta_code)
+        );
+    }
+
+    let _ = writeln!(
+        s,
+        "|**Total**|{}|{}|{}|",
+        totals.old_code,
+        totals.new_code,
+        format_delta(totals.delta_code)
+    );
+
+    s
+}
+
+/// Create a DiffReceipt for JSON output.
+pub fn create_diff_receipt(
+    from_source: &str,
+    to_source: &str,
+    rows: Vec<DiffRow>,
+    totals: DiffTotals,
+) -> DiffReceipt {
+    DiffReceipt {
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "diff".to_string(),
+        from_source: from_source.to_string(),
+        to_source: to_source.to_string(),
+        diff_rows: rows,
+        totals,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
