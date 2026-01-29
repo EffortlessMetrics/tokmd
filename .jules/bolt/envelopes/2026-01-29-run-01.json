@@ -1,0 +1,14 @@
+{
+  "run_id": "2026-01-29-run-01",
+  "timestamp_utc": "2026-01-29T14:03:10Z",
+  "lane": "scout",
+  "target": "crates/tokmd-format/src/lib.rs:redact_rows",
+  "proof_method": "structural",
+  "commands": [
+    {"cmd": "cargo check -p tokmd-format", "status": "PASS"},
+    {"cmd": "CI=true cargo test --workspace", "status": "PASS"},
+    {"cmd": "cargo clippy --workspace -- -D warnings", "status": "PASS"},
+    {"cmd": "cargo fmt -- --check", "status": "PASS"}
+  ],
+  "results_summary": "Replaced Vec allocation with iterator in export path. Verified workspace tests pass. Fixed clippy lints and formatting."
+}
