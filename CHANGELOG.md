@@ -22,9 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-01-27
 
 ### Added
-- **Microcrate Architecture**: Split into 15 focused crates for modularity and selective compilation
+- **Microcrate Architecture**: Split into 16 focused crates for modularity and selective compilation
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
-  - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore` (Tier 1: core logic)
+  - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
   - `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
   - `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-fun` (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Delegates to `git check-ignore -v` for git-related ignores
   - Shows `.tokeignore` and `--exclude` pattern matches
   - Exit codes: 0=ignored, 1=not ignored
+- **Shell Completions**: New `completions` command generates shell completions for bash, zsh, fish, powershell, and elvish
 
 ### Changed
 - **Feature Flags**: Git, content, and walk features are now opt-in for faster compilation

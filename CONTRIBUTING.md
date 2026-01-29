@@ -37,6 +37,7 @@ crates/
 ├── tokmd-scan/            # Tier 1: tokei wrapper
 ├── tokmd-model/           # Tier 1: Aggregation logic
 ├── tokmd-tokeignore/      # Tier 1: Template generation
+├── tokmd-redact/          # Tier 1: BLAKE3-based path redaction
 ├── tokmd-format/          # Tier 2: Output rendering
 ├── tokmd-walk/            # Tier 2: File system traversal
 ├── tokmd-content/         # Tier 2: Content scanning

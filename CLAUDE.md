@@ -30,6 +30,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 1 | `tokmd-scan` | tokei wrapper for code scanning |
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
 | 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
+| 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
 | 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
 | 2 | `tokmd-walk` | File system traversal for assets |
 | 2 | `tokmd-content` | File content scanning (entropy, imports) |
@@ -48,12 +49,15 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 
 - `tokmd` / `tokmd lang` — Language summary
 - `tokmd module` — Module breakdown by directory
-- `tokmd export` — File-level inventory (JSONL/CSV)
+- `tokmd export` — File-level inventory (JSONL/CSV/CycloneDX)
 - `tokmd run` — Full scan with artifact output
 - `tokmd analyze` — Derived metrics and enrichments
 - `tokmd badge` — SVG badge generation
 - `tokmd diff` — Compare two runs or receipts
+- `tokmd context` — Pack files into LLM context window within token budget
 - `tokmd init` — Generate `.tokeignore` template
+- `tokmd check-ignore` — Explain why files are being ignored
+- `tokmd completions` — Generate shell completions
 
 ### Analysis Presets
 

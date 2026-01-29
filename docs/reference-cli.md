@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `init`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `context`, `init`, `check-ignore`, `completions`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -228,12 +228,116 @@ tokmd diff .runs/baseline .
 
 Creates a default `.tokeignore` file in the current directory.
 
-**Usage**: `tokmd init`
+**Usage**: `tokmd init [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--dir <DIR>` | Target directory for the `.tokeignore` file. | `.` |
+| `--force` | Overwrite an existing `.tokeignore` file. | `false` |
+| `--print` | Print the template to stdout instead of writing a file. | `false` |
+| `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
 
 **Example**:
 ```bash
 # Generate a .tokeignore template
 tokmd init
+
+# Generate a Rust-specific template
+tokmd init --template rust
+
+# Preview the template without writing
+tokmd init --print
+
+# Overwrite existing file
+tokmd init --force
+```
+
+### `tokmd context`
+
+Packs files into an LLM context window within a token budget. Intelligently selects files to maximize value while staying under the budget.
+
+**Usage**: `tokmd context [PATHS...] [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
+| `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
+| `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
+| `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
+| `--compress` | Strip comments and blank lines from bundle output. | `false` |
+| `--module-roots <DIRS>` | Comma-separated list of root directories. | `.` |
+| `--module-depth <N>` | How deep to group modules. | `1` |
+
+**Examples**:
+```bash
+# List files that fit in 128k tokens
+tokmd context --budget 128k
+
+# Create a bundle ready to paste into Claude
+tokmd context --budget 128k --output bundle > context.txt
+
+# Spread coverage across modules instead of taking largest files
+tokmd context --budget 200k --strategy spread
+
+# Rank by git hotspots (most actively changed files)
+tokmd context --budget 50k --rank-by hotspot
+
+# Compressed bundle (no comments/blanks)
+tokmd context --budget 100k --output bundle --compress
+
+# JSON receipt for programmatic use
+tokmd context --budget 128k --output json > selection.json
+```
+
+### `tokmd check-ignore`
+
+Explains why files are being ignored. Useful for troubleshooting when files unexpectedly appear or disappear from scans.
+
+**Usage**: `tokmd check-ignore <PATHS...> [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `-v, --verbose` | Show verbose output with rule sources. | `false` |
+
+**Exit codes**:
+- `0`: File is ignored (shows which rule matched)
+- `1`: File is not ignored
+
+**Examples**:
+```bash
+# Check if a file is ignored
+tokmd check-ignore target/debug/myapp
+
+# Check multiple files
+tokmd check-ignore src/main.rs target/release/myapp
+
+# Verbose output showing rule sources
+tokmd check-ignore -v node_modules/lodash/index.js
+```
+
+### `tokmd completions`
+
+Generates shell completions for various shells.
+
+**Usage**: `tokmd completions <SHELL>`
+
+| Argument | Description |
+| :--- | :--- |
+| `<SHELL>` | Shell to generate completions for: `bash`, `zsh`, `fish`, `powershell`, `elvish`. |
+
+**Examples**:
+```bash
+# Bash completions (add to ~/.bashrc)
+tokmd completions bash >> ~/.bashrc
+
+# Zsh completions (add to ~/.zshrc or fpath)
+tokmd completions zsh > ~/.zfunc/_tokmd
+
+# Fish completions
+tokmd completions fish > ~/.config/fish/completions/tokmd.fish
+
+# PowerShell completions
+tokmd completions powershell >> $PROFILE
 ```
 
 ---

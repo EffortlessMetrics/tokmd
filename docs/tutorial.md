@@ -74,11 +74,32 @@ tokmd export --format csv --max-rows 10 --sort code
 
 This prints the top 10 largest files. These are often candidates for refactoring or documentation.
 
-## Step 4: Creating a Context File for AI
+## Step 4: Packing Code for an LLM
 
-You want to ask an LLM about your code, but you can't paste 10,000 files. You need a compact summary of *what exists*.
+You want to paste actual code into an LLM, but your repo is too large. Use `context` to intelligently select files within a token budget:
 
-Generate a "receipt" of the repo structure:
+```bash
+# Pack the most valuable files into 128k tokens
+tokmd context --budget 128k --output bundle > context.txt
+```
+
+**What happened?**
+- `--budget 128k`: Set a token limit matching Claude's context window.
+- `--output bundle`: Concatenated selected files into a single text file.
+- Files are selected by size (largest = most valuable) until the budget is exhausted.
+
+**Alternative strategies**:
+```bash
+# Spread coverage across all modules
+tokmd context --budget 128k --strategy spread --output bundle
+
+# Focus on git hotspots (frequently changed files)
+tokmd context --budget 50k --rank-by hotspot --output bundle
+```
+
+## Step 5: Creating a File Inventory for AI
+
+For metadata about your codebase (not actual code), generate a "receipt":
 
 ```bash
 tokmd export \
@@ -97,7 +118,7 @@ You can now upload `repo_context.jsonl` to an LLM and ask: *"Based on this file 
 
 ---
 
-## Step 5: Analyzing Code Quality
+## Step 6: Analyzing Code Quality
 
 Now let's get deeper insights about the codebase structure and quality.
 
@@ -113,7 +134,7 @@ tokmd analyze --preset receipt --format md
 - **Distribution**: File size statistics (median, p90, p99)
 - **Top Offenders**: Largest files, least documented files
 
-## Step 6: Checking Context Window Fit
+## Step 7: Checking Context Window Fit
 
 Before feeding code to an LLM, check if it fits:
 
@@ -127,7 +148,7 @@ The output tells you:
 - What percentage of the context window it would use
 - Whether it fits or needs filtering
 
-## Step 7: Understanding Risk Areas
+## Step 8: Understanding Risk Areas
 
 If the repo has git history, you can identify risky areas:
 
@@ -141,7 +162,7 @@ tokmd analyze --preset risk --format md
 - **Freshness**: Stale files that may be outdated
 - **Coupling**: Files that always change together
 
-## Step 8: Generating a Badge
+## Step 9: Generating a Badge
 
 Add a lines-of-code badge to your README:
 
@@ -156,7 +177,7 @@ Then add to your README:
 
 ---
 
-## Step 9: Saving a Run
+## Step 10: Saving a Run
 
 To track changes over time, save a complete analysis:
 
