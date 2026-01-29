@@ -1,0 +1,1 @@
+{"run_id": "run-20240523-compat-001", "status": "completed", "target": "tokmd", "lane": "scout", "decision": "Option A: Expose features", "verification": "cargo check --no-default-features passes"}

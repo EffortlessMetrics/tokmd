@@ -1,0 +1,9 @@
+[
+  {
+    "run_id": "run-20240523-compat-001",
+    "date": "2024-05-23",
+    "target": "tokmd",
+    "improvement": "exposed features for lightweight build"
+  },
+  {"run_id": "run-20240523-compat-002", "date": "2024-05-23", "target": "tokmd", "improvement": "fixed rustfmt violations"}
+]
