@@ -175,6 +175,7 @@ fn test_run_with_redact_flag() {
     }
 }
 
+#[cfg(feature = "git")]
 fn git_available() -> bool {
     ProcessCommand::new("git")
         .arg("--version")
@@ -185,6 +186,7 @@ fn git_available() -> bool {
         .unwrap_or(false)
 }
 
+#[cfg(feature = "git")]
 fn git_cmd(dir: &std::path::Path, args: &[&str]) {
     let status = ProcessCommand::new("git")
         .args(args)
@@ -746,6 +748,7 @@ fn test_run_redact_with_absolute_paths() {
 }
 
 #[test]
+#[cfg(feature = "git")]
 fn test_diff_git_refs() {
     if !git_available() {
         return;
