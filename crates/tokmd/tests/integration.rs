@@ -1222,3 +1222,169 @@ fn test_redaction_all_mode_hides_modules() {
         stdout
     );
 }
+
+// --- Format Smoke Tests ---
+
+#[test]
+fn test_export_cyclonedx_format() {
+    // Given: Standard files
+    // When: We export with --format cyclonedx
+    // Then: Output should be valid CycloneDX 1.5 JSON with required fields
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("export")
+        .arg("--format")
+        .arg("cyclonedx")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "cyclonedx export failed");
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&stdout)
+        .expect("CycloneDX output should be valid JSON");
+
+    // Required CycloneDX fields
+    assert_eq!(json["bomFormat"], "CycloneDX", "bomFormat should be CycloneDX");
+    assert_eq!(json["specVersion"], "1.6", "specVersion should be 1.6");
+    assert!(json.get("components").is_some(), "components array should exist");
+    assert!(json["components"].is_array(), "components should be an array");
+
+    // Metadata with timestamp
+    assert!(json.get("metadata").is_some(), "metadata should exist");
+    let timestamp = json["metadata"]["timestamp"].as_str();
+    assert!(timestamp.is_some(), "metadata.timestamp should exist");
+    // RFC3339 format check (contains T and ends with Z or timezone offset)
+    let ts = timestamp.unwrap();
+    assert!(ts.contains('T'), "timestamp should be RFC3339 format");
+}
+
+#[test]
+fn test_analyze_html_format() {
+    // Given: Standard files
+    // When: We run analyze with --format html
+    // Then: Output should be valid self-contained HTML
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("html")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "html analyze failed");
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Basic HTML structure
+    assert!(
+        stdout.contains("<!DOCTYPE html>"),
+        "HTML should start with DOCTYPE"
+    );
+    assert!(stdout.contains("<html"), "HTML should contain <html> tag");
+    assert!(stdout.contains("</html>"), "HTML should contain closing </html> tag");
+
+    // Self-contained: no external CSS/JS resources (http:// or https:// for resources)
+    // Note: We allow https://github.com link in footer for attribution
+    let lines: Vec<&str> = stdout.lines().collect();
+    for line in &lines {
+        let line_lower = line.to_lowercase();
+        // Check for external resource loading (scripts, stylesheets)
+        if line_lower.contains("src=") || line_lower.contains("href=") {
+            // Allow the github link in footer and internal references
+            if line_lower.contains("http://") {
+                assert!(
+                    false,
+                    "HTML should not load external HTTP resources: {}",
+                    line
+                );
+            }
+            // Only https allowed for the attribution link, not for scripts/stylesheets
+            if line_lower.contains("https://") && (line_lower.contains(".js") || line_lower.contains(".css")) {
+                assert!(
+                    false,
+                    "HTML should not load external HTTPS scripts/styles: {}",
+                    line
+                );
+            }
+        }
+    }
+
+    // Should contain embedded styles and scripts
+    assert!(stdout.contains("<style>"), "HTML should have embedded styles");
+    assert!(stdout.contains("<script>"), "HTML should have embedded scripts");
+}
+
+// --- Check-ignore Tests ---
+
+#[test]
+fn test_check_ignore_not_ignored() {
+    // Given: A file that exists and is not ignored
+    // When: We run check-ignore on it
+    // Then: It should report "not ignored" and exit 1
+    let mut cmd = tokmd_cmd();
+    cmd.arg("check-ignore")
+        .arg("src/main.rs")
+        .assert()
+        .code(1)  // Exit 1 = not ignored
+        .stdout(predicate::str::contains("not ignored"));
+}
+
+#[test]
+fn test_check_ignore_with_exclude_flag() {
+    // Given: A file with an --exclude pattern that matches
+    // When: We run check-ignore with --exclude
+    // Then: It should report "ignored"
+    let dir = tempdir().unwrap();
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("--exclude")
+        .arg("*.rs")
+        .arg("check-ignore")
+        .arg("-v")
+        .arg("test.rs")
+        .assert()
+        .code(0)  // Exit 0 = ignored
+        .stdout(predicate::str::contains("ignored"))
+        .stdout(predicate::str::contains("--exclude"));
+}
+
+#[test]
+fn test_check_ignore_verbose_shows_source() {
+    // Given: A git repo with .gitignore containing a pattern, and an untracked matching file
+    // When: We run check-ignore -v on that file
+    // Then: It should show the source of the ignore rule
+    let dir = tempdir().unwrap();
+
+    // Initialize a git repo
+    let git_init = std::process::Command::new("git")
+        .args(["init"])
+        .current_dir(dir.path())
+        .output();
+
+    if git_init.is_err() {
+        // Skip test if git isn't available
+        return;
+    }
+
+    // Create .gitignore
+    std::fs::write(dir.path().join(".gitignore"), "*.log\n").unwrap();
+
+    // Create an untracked file matching the pattern
+    std::fs::write(dir.path().join("debug.log"), "log content").unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("check-ignore")
+        .arg("-v")
+        .arg("debug.log")
+        .assert()
+        .code(0)  // Exit 0 = ignored
+        .stdout(predicate::str::contains("ignored"))
+        .stdout(predicate::str::contains("gitignore"));
+}

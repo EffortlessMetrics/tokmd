@@ -1,5 +1,6 @@
 pub(crate) mod analyze;
 pub(crate) mod badge;
+pub(crate) mod check_ignore;
 pub(crate) mod completions;
 pub(crate) mod context;
 pub(crate) mod diff;
@@ -25,5 +26,6 @@ pub(crate) fn dispatch(cli: cli::Cli, profile: Option<&cli::Profile>) -> Result<
         cli::Commands::Badge(args) => badge::handle(args, global),
         cli::Commands::Init(args) => init::handle(args),
         cli::Commands::Context(args) => context::handle(args, global),
+        cli::Commands::CheckIgnore(args) => check_ignore::handle(args, global),
     }
 }

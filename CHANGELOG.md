@@ -34,10 +34,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependency Summary**: Lockfile detection and dependency counting
 - **Import Graph**: Module dependency analysis with configurable granularity
 - **Duplicate Detection**: Content-hash based duplicate file detection
+- **CycloneDX Export**: `export --format cyclonedx` generates CycloneDX 1.6 SBOM with file-level components
+- **HTML Reports**: `analyze --format html` produces self-contained, offline-capable HTML reports with interactive treemap and sortable tables
+- **Context Packing**: New `context` command for LLM context window optimization
+  - Budget-aware file selection with `--budget` (e.g., `128k`, `1M`)
+  - Multiple strategies: `greedy`, `balanced`, `diverse`
+  - Output modes: `list`, `bundle`, `json`
+- **Redaction Utilities**: New `tokmd-redact` crate centralizes BLAKE3-based path hashing
+- **CI Hyper-Testing**: Added proptest smoke tests, mutation testing, and fuzz testing workflows
+- **Integration Tests**: Comprehensive `analyze` command smoke tests
+- **Check-Ignore Command**: New `check-ignore` command explains why files are being ignored
+  - Delegates to `git check-ignore -v` for git-related ignores
+  - Shows `.tokeignore` and `--exclude` pattern matches
+  - Exit codes: 0=ignored, 1=not ignored
 
 ### Changed
 - **Feature Flags**: Git, content, and walk features are now opt-in for faster compilation
 - **Analysis Limits**: Added `--max-files`, `--max-bytes`, `--max-commits` for resource control
+
+### Fixed
+- **RFC3339 Timestamps**: CycloneDX and HTML reports now use proper RFC3339 format via `time` crate
+- **Export Bundle Input**: Fixed input path handling in export bundle operations
+- **Module Key Computation**: Corrected module key derivation for edge cases
 
 ## [1.1.0] - 2026-01-26
 

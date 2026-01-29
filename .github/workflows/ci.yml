@@ -60,6 +60,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Run property tests (reduced iterations)
-        run: PROPTEST_CASES=50 cargo test --verbose properties
+        run: |
+          PROPTEST_CASES=50 cargo test -p tokmd-model --test properties --verbose
+          PROPTEST_CASES=50 cargo test -p tokmd-types --test properties --verbose
+          PROPTEST_CASES=50 cargo test -p tokmd --test properties --verbose
         env:
           CI: true

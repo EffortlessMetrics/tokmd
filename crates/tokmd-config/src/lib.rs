@@ -116,6 +116,9 @@ pub enum Commands {
 
     /// Pack files into an LLM context window within a token budget.
     Context(CliContextArgs),
+
+    /// Check why a file is being ignored (for troubleshooting).
+    CheckIgnore(CliCheckIgnoreArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -611,4 +614,15 @@ pub enum ContextOutput {
     Bundle,
     /// Output JSON receipt with selection details.
     Json,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CliCheckIgnoreArgs {
+    /// File path(s) to check.
+    #[arg(value_name = "PATH", required = true)]
+    pub paths: Vec<PathBuf>,
+
+    /// Show verbose output with rule sources.
+    #[arg(long, short = 'v')]
+    pub verbose: bool,
 }
