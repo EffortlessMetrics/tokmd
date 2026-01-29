@@ -31,9 +31,8 @@ use time::format_description::well_known::Rfc3339;
 use tokmd_config::GlobalArgs;
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow,
-    LangArgs,
-    LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt, ModuleReport,
-    RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
+    LangArgs, LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
+    ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
 fn now_ms() -> u128 {
