@@ -13,7 +13,7 @@
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -120,8 +120,8 @@ pub enum Commands {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UserConfig {
-    pub profiles: HashMap<String, Profile>,
-    pub repos: HashMap<String, String>, // "owner/repo" -> "profile_name"
+    pub profiles: BTreeMap<String, Profile>,
+    pub repos: BTreeMap<String, String>, // "owner/repo" -> "profile_name"
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

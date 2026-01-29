@@ -1,0 +1,15 @@
+{
+  "id": "2025-02-19-gatekeeper-config-determinism",
+  "agent": "Gatekeeper",
+  "target": "crates/tokmd-config",
+  "goal": "Enforce deterministic ordering in UserConfig serialization",
+  "decision": "Replace HashMap with BTreeMap",
+  "files_changed": [
+    "crates/tokmd-config/src/lib.rs",
+    "crates/tokmd-config/tests/determinism.rs"
+  ],
+  "verification": {
+    "new_test": "crates/tokmd-config/tests/determinism.rs",
+    "status": "passed"
+  }
+}
