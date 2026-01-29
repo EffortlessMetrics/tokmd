@@ -15,6 +15,7 @@
 //! * Business logic (calculating stats)
 //! * CLI arg parsing
 
+use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
@@ -345,20 +346,28 @@ fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArg
     ])?;
 
     for r in redact_rows(&export.rows, args.redact) {
+        let code = r.code.to_string();
+        let comments = r.comments.to_string();
+        let blanks = r.blanks.to_string();
+        let lines = r.lines.to_string();
+        let bytes = r.bytes.to_string();
+        let tokens = r.tokens.to_string();
+        let kind = match r.kind {
+            FileKind::Parent => "parent",
+            FileKind::Child => "child",
+        };
+
         wtr.write_record([
-            r.path,
-            r.module,
-            r.lang,
-            match r.kind {
-                FileKind::Parent => "parent".to_string(),
-                FileKind::Child => "child".to_string(),
-            },
-            r.code.to_string(),
-            r.comments.to_string(),
-            r.blanks.to_string(),
-            r.lines.to_string(),
-            r.bytes.to_string(),
-            r.tokens.to_string(),
+            r.path.as_str(),
+            r.module.as_str(),
+            r.lang.as_str(),
+            kind,
+            &code,
+            &comments,
+            &blanks,
+            &lines,
+            &bytes,
+            &tokens,
         ])?;
     }
 
@@ -409,7 +418,7 @@ fn write_export_jsonl<W: Write>(
     for row in redact_rows(&export.rows, args.redact) {
         let wrapper = JsonlRow {
             ty: "row",
-            row: &row,
+            row: &*row,
         };
         writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
     }
@@ -452,7 +461,7 @@ fn write_export_json<W: Write>(
                 strip_prefix_redacted,
             },
             data: ExportData {
-                rows: redact_rows(&export.rows, args.redact),
+                rows: redact_rows(&export.rows, args.redact).map(|c| c.into_owned()).collect(),
                 module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
@@ -463,29 +472,27 @@ fn write_export_json<W: Write>(
         writeln!(
             out,
             "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact))?
+            serde_json::to_string(&redact_rows(&export.rows, args.redact).collect::<Vec<_>>())?
         )?;
     }
     Ok(())
 }
 
-fn redact_rows(rows: &[FileRow], mode: RedactMode) -> Vec<FileRow> {
-    if mode == RedactMode::None {
-        return rows.to_vec();
-    }
-
-    rows.iter()
-        .cloned()
-        .map(|mut r| {
+fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
+    rows.iter().map(move |r| {
+        if mode == RedactMode::None {
+            Cow::Borrowed(r)
+        } else {
+            let mut owned = r.clone();
             if mode == RedactMode::Paths || mode == RedactMode::All {
-                r.path = redact_path(&r.path);
+                owned.path = redact_path(&owned.path);
             }
             if mode == RedactMode::All {
-                r.module = short_hash(&r.module);
+                owned.module = short_hash(&owned.module);
             }
-            r
-        })
-        .collect()
+            Cow::Owned(owned)
+        }
+    })
 }
 
 // Re-export redaction functions for backwards compatibility
@@ -705,7 +712,7 @@ pub fn write_export_jsonl_to_file(
     for row in redact_rows(&export.rows, args_meta.redact) {
         let wrapper = JsonlRow {
             ty: "row",
-            row: &row,
+            row: &*row,
         };
         writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
     }
