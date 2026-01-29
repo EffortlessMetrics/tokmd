@@ -10,8 +10,8 @@
 //!
 //! ```rust,no_run
 //! use tokmd_core::scan_workflow;
-//! use tokmd_config::{ChildrenMode, GlobalArgs, RedactMode, TableFormat};
-//! use tokmd_types::LangArgs;
+//! use tokmd_config::GlobalArgs;
+//! use tokmd_types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
 //!
 //! // Configure scan
 //! let global = GlobalArgs::default(); // needs proper init
@@ -39,9 +39,9 @@ use anyhow::Result;
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 
-use tokmd_config::{GlobalArgs, RedactMode};
+use tokmd_config::GlobalArgs;
 use tokmd_format::scan_args;
-use tokmd_types::{LangArgs, LangArgsMeta, LangReceipt, ScanStatus, ToolInfo};
+use tokmd_types::{LangArgs, LangArgsMeta, LangReceipt, RedactMode, ScanStatus, ToolInfo};
 
 /// Runs the complete scan workflow: Scan -> Model -> Receipt.
 ///

@@ -7,9 +7,12 @@ homepage.workspace = true
 repository.workspace = true
 description = "Core data types and contracts for tokmd. Tier 1 stability."
 
+[features]
+clap = ["dep:clap"]
+
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-tokmd-config.workspace = true
+clap = { version = "4.5.55", features = ["derive"], optional = true }
 
 [dev-dependencies]
 proptest = "1.6.0"

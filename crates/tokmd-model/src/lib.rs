@@ -20,9 +20,9 @@ use std::fs;
 use std::path::Path;
 
 use tokei::{LanguageType, Languages};
-use tokmd_config::{ChildIncludeMode, ChildrenMode};
 use tokmd_types::{
-    ExportData, FileKind, FileRow, LangReport, LangRow, ModuleReport, ModuleRow, Totals,
+    ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
+    ModuleReport, ModuleRow, Totals,
 };
 
 /// Simple heuristic: 1 token ~= 4 chars (bytes).
