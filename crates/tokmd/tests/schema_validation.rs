@@ -18,20 +18,25 @@ fn load_schema() -> Result<Value> {
         .join("docs")
         .join("schema.json");
 
-    let schema_content = std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
+    let schema_content =
+        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
 
     Ok(serde_json::from_str(&schema_content).context("Failed to parse schema.json")?)
 }
 
 /// Build a validator for a specific definition in the schema
-fn build_validator_for_definition(schema: &Value, definition: &str) -> Result<jsonschema::Validator> {
+fn build_validator_for_definition(
+    schema: &Value,
+    definition: &str,
+) -> Result<jsonschema::Validator> {
     // Create a schema that references the specific definition
     let ref_schema = serde_json::json!({
         "$ref": format!("#/definitions/{}", definition),
         "definitions": schema["definitions"]
     });
 
-    jsonschema::validator_for(&ref_schema).map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))
+    jsonschema::validator_for(&ref_schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))
 }
 
 fn tokmd_cmd() -> Command {
@@ -48,10 +53,7 @@ fn test_lang_receipt_validates_against_schema() -> Result<()> {
     let schema = load_schema()?;
     let validator = build_validator_for_definition(&schema, "LangReceipt")?;
 
-    let output = tokmd_cmd()
-        .arg("--format")
-        .arg("json")
-        .output()?;
+    let output = tokmd_cmd().arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
     let json: Value = serde_json::from_str(&stdout)?;

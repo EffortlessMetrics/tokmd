@@ -155,11 +155,7 @@ fn test_golden_lang_json() -> Result<()> {
 #[test]
 fn test_golden_module_json() -> Result<()> {
     let mut cmd = tokmd_cmd();
-    let output = cmd
-        .arg("module")
-        .arg("--format")
-        .arg("json")
-        .output()?;
+    let output = cmd.arg("module").arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
@@ -183,11 +179,7 @@ fn test_golden_export_jsonl() -> Result<()> {
 #[test]
 fn test_golden_export_redacted() -> Result<()> {
     let mut cmd = tokmd_cmd();
-    let output = cmd
-        .arg("export")
-        .arg("--redact")
-        .arg("all")
-        .output()?;
+    let output = cmd.arg("export").arg("--redact").arg("all").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
     let normalized = redact_timestamps(&stdout);
@@ -794,15 +786,13 @@ fn test_children_stats_integrity() {
 #[test]
 fn test_generated_timestamp_validity() -> Result<()> {
     let mut cmd = tokmd_cmd();
-    let output = cmd
-        .arg("lang")
-        .arg("--format")
-        .arg("json")
-        .output()?;
+    let output = cmd.arg("lang").arg("--format").arg("json").output()?;
     let stdout = String::from_utf8(output.stdout)?;
     // Parse JSON and check generated_at_ms
     let v: serde_json::Value = serde_json::from_str(&stdout)?;
-    let ts = v["generated_at_ms"].as_u64().expect("generated_at_ms not u64");
+    let ts = v["generated_at_ms"]
+        .as_u64()
+        .expect("generated_at_ms not u64");
     assert!(ts > 1_700_000_000_000, "Timestamp too old or zero: {}", ts);
     Ok(())
 }
