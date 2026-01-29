@@ -19,12 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Schema Version**: Analysis receipts now use `schema_version: 2`
 - **API**: `tokmd_core::scan_workflow` now accepts `redact: Option<RedactMode>` parameter
 
+### Documentation
+- **New Troubleshooting Guide**: Comprehensive guide covering common issues, exit codes, performance optimization, and debugging tips
+- **CI/CD Integration Recipes**: Added GitHub Actions, GitLab CI, pre-commit hooks, and baseline tracking workflow examples
+- **Configuration Reference**: Expanded `tokmd.toml` documentation with full schema, file location precedence, environment variables, and named profiles
+- **Tutorial Improvements**: Added Step 11 for troubleshooting missing files with `check-ignore` command
+- **Exit Codes Reference**: Documented standard and command-specific exit codes
+- **Sorting Clarification**: Clarified that output is automatically sorted (descending by code lines, then path) with no `--sort` flag
+- **Bug Fix**: Removed reference to non-existent `--sort code` flag in tutorial
+
 ## [1.2.0] - 2026-01-27
 
 ### Added
-- **Microcrate Architecture**: Split into 15 focused crates for modularity and selective compilation
+- **Microcrate Architecture**: Split into 16 focused crates for modularity and selective compilation
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
-  - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore` (Tier 1: core logic)
+  - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
   - `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
   - `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-fun` (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
@@ -34,10 +43,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependency Summary**: Lockfile detection and dependency counting
 - **Import Graph**: Module dependency analysis with configurable granularity
 - **Duplicate Detection**: Content-hash based duplicate file detection
+- **CycloneDX Export**: `export --format cyclonedx` generates CycloneDX 1.6 SBOM with file-level components
+- **HTML Reports**: `analyze --format html` produces self-contained, offline-capable HTML reports with interactive treemap and sortable tables
+- **Context Packing**: New `context` command for LLM context window optimization
+  - Budget-aware file selection with `--budget` (e.g., `128k`, `1M`)
+  - Multiple strategies: `greedy`, `spread`
+  - Output modes: `list`, `bundle`, `json`
+- **Redaction Utilities**: New `tokmd-redact` crate centralizes BLAKE3-based path hashing
+- **CI Hyper-Testing**: Added proptest smoke tests, mutation testing, and fuzz testing workflows
+- **Integration Tests**: Comprehensive `analyze` command smoke tests
+- **Check-Ignore Command**: New `check-ignore` command explains why files are being ignored
+  - Delegates to `git check-ignore -v` for git-related ignores
+  - Shows `.tokeignore` and `--exclude` pattern matches
+  - Exit codes: 0=ignored, 1=not ignored
+- **Shell Completions**: New `completions` command generates shell completions for bash, zsh, fish, powershell, and elvish
 
 ### Changed
 - **Feature Flags**: Git, content, and walk features are now opt-in for faster compilation
 - **Analysis Limits**: Added `--max-files`, `--max-bytes`, `--max-commits` for resource control
+
+### Fixed
+- **RFC3339 Timestamps**: CycloneDX and HTML reports now use proper RFC3339 format via `time` crate
+- **Export Bundle Input**: Fixed input path handling in export bundle operations
+- **Module Key Computation**: Corrected module key derivation for edge cases
 
 ## [1.1.0] - 2026-01-26
 

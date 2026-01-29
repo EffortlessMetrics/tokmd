@@ -1,9 +1,21 @@
 //! # tokmd-types
 //!
-//! **Tier 1 (Hard Contract)**
+//! **Tier 0 (Core Types)**
 //!
 //! This crate defines the core data structures and contracts for `tokmd`.
 //! It contains only data types, Serde definitions, and `schema_version`.
+//!
+//! ## Stability Policy
+//!
+//! **JSON-first stability**: The primary contract is the JSON schema, not Rust struct literals.
+//!
+//! - **JSON consumers**: Stable. New fields have sensible defaults; removed/renamed fields
+//!   bump `SCHEMA_VERSION`.
+//! - **Rust library consumers**: Semi-stable. New fields may be added in minor versions,
+//!   which can break struct literal construction. Use `Default` + field mutation or
+//!   `..Default::default()` patterns for forward compatibility.
+//!
+//! If you need strict Rust API stability, pin to an exact version.
 //!
 //! ## What belongs here
 //! * Pure data structs (Receipts, Rows, Reports)
@@ -288,4 +300,62 @@ pub struct ContextFileRow {
     pub lines: usize,
     pub bytes: usize,
     pub value: usize,
+}
+
+// -----------------------
+// Diff types
+// -----------------------
+
+/// A row in the diff output showing changes for a single language.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DiffRow {
+    pub lang: String,
+    pub old_code: usize,
+    pub new_code: usize,
+    pub delta_code: i64,
+    pub old_lines: usize,
+    pub new_lines: usize,
+    pub delta_lines: i64,
+    pub old_files: usize,
+    pub new_files: usize,
+    pub delta_files: i64,
+    pub old_bytes: usize,
+    pub new_bytes: usize,
+    pub delta_bytes: i64,
+    pub old_tokens: usize,
+    pub new_tokens: usize,
+    pub delta_tokens: i64,
+}
+
+/// Aggregate totals for the diff.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DiffTotals {
+    pub old_code: usize,
+    pub new_code: usize,
+    pub delta_code: i64,
+    pub old_lines: usize,
+    pub new_lines: usize,
+    pub delta_lines: i64,
+    pub old_files: usize,
+    pub new_files: usize,
+    pub delta_files: i64,
+    pub old_bytes: usize,
+    pub new_bytes: usize,
+    pub delta_bytes: i64,
+    pub old_tokens: usize,
+    pub new_tokens: usize,
+    pub delta_tokens: i64,
+}
+
+/// JSON receipt for diff output with envelope metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffReceipt {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String,
+    pub from_source: String,
+    pub to_source: String,
+    pub diff_rows: Vec<DiffRow>,
+    pub totals: DiffTotals,
 }

@@ -30,16 +30,9 @@ fn get_value(row: &FileRow, metric: ValueMetric) -> usize {
 }
 
 /// Pack files using greedy strategy: select by value until budget exhausted.
-pub fn pack_greedy(
-    rows: &[FileRow],
-    budget: usize,
-    metric: ValueMetric,
-) -> Vec<ContextFileRow> {
+pub fn pack_greedy(rows: &[FileRow], budget: usize, metric: ValueMetric) -> Vec<ContextFileRow> {
     // Filter to parent files only and sort by value descending
-    let mut candidates: Vec<_> = rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .collect();
+    let mut candidates: Vec<_> = rows.iter().filter(|r| r.kind == FileKind::Parent).collect();
 
     candidates.sort_by(|a, b| {
         let va = get_value(a, metric);
@@ -61,16 +54,9 @@ pub fn pack_greedy(
 }
 
 /// Pack files using spread strategy: round-robin across groups, then greedy fill.
-pub fn pack_spread(
-    rows: &[FileRow],
-    budget: usize,
-    metric: ValueMetric,
-) -> Vec<ContextFileRow> {
+pub fn pack_spread(rows: &[FileRow], budget: usize, metric: ValueMetric) -> Vec<ContextFileRow> {
     // Filter to parent files only
-    let parents: Vec<_> = rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .collect();
+    let parents: Vec<_> = rows.iter().filter(|r| r.kind == FileKind::Parent).collect();
 
     // Group by (module, lang)
     let mut groups: BTreeMap<(String, String), Vec<&FileRow>> = BTreeMap::new();

@@ -24,11 +24,16 @@ use anyhow::Result;
 use clap::Parser;
 use tokmd_config as cli;
 
-pub use config::{resolve_export, resolve_lang, resolve_module, resolve_profile};
+pub use config::{
+    ConfigContext, ResolvedConfig, resolve_config, resolve_export, resolve_export_with_config,
+    resolve_lang, resolve_lang_with_config, resolve_module, resolve_module_with_config,
+    resolve_profile,
+};
 
 pub fn run() -> Result<()> {
     let cli = cli::Cli::parse();
-    let user_config = config::load_config();
-    let profile = config::resolve_profile(&user_config, cli.profile.as_ref());
-    commands::dispatch(cli, profile)
+    let config_ctx = config::load_config();
+    let profile_name = config::get_profile_name(cli.profile.as_ref());
+    let resolved = config::resolve_config(&config_ctx, profile_name.as_deref());
+    commands::dispatch(cli, &resolved)
 }

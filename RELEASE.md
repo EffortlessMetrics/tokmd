@@ -7,14 +7,33 @@ All crates are versioned in lockstep (same version number).
 
 Because crates have internal dependencies, they must be published in this specific order:
 
-1.  **`tokmd-types`** (Tier 1: Data Contract)
-2.  **`tokmd-config`**
-3.  **`tokmd-model`** (Tier 2: Aggregation Logic)
-4.  **`tokmd-format`**
-5.  **`tokmd-scan`**
-6.  **`tokmd-tokeignore`**
-7.  **`tokmd-core`** (Façade)
-8.  **`tokmd`** (CLI Binary)
+**Tier 0 — Data Structures** (no internal deps)
+1.  **`tokmd-types`**
+2.  **`tokmd-analysis-types`**
+
+**Tier 1 — Core Logic**
+3.  **`tokmd-scan`**
+4.  **`tokmd-model`**
+5.  **`tokmd-tokeignore`**
+6.  **`tokmd-redact`**
+
+**Tier 2 — I/O & Analysis**
+7.  **`tokmd-format`**
+8.  **`tokmd-walk`**
+9.  **`tokmd-content`**
+10. **`tokmd-git`**
+
+**Tier 3 — Enrichment**
+11. **`tokmd-analysis`**
+12. **`tokmd-analysis-format`**
+13. **`tokmd-fun`**
+
+**Tier 4 — Orchestration**
+14. **`tokmd-config`**
+15. **`tokmd-core`**
+
+**Tier 5 — CLI**
+16. **`tokmd`**
 
 ## Steps to Release
 

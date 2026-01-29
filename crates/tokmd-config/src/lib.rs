@@ -36,7 +36,7 @@ pub struct Cli {
     pub command: Option<Commands>,
 
     /// Configuration profile to use (e.g., "llm_safe", "ci").
-    #[arg(long, global = true)]
+    #[arg(long, visible_alias = "view", global = true)]
     pub profile: Option<String>,
 }
 
@@ -116,6 +116,9 @@ pub enum Commands {
 
     /// Pack files into an LLM context window within a token budget.
     Context(CliContextArgs),
+
+    /// Check why a file is being ignored (for troubleshooting).
+    CheckIgnore(CliCheckIgnoreArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -181,6 +184,20 @@ pub struct DiffArgs {
     /// Two refs/paths to compare (positional).
     #[arg(value_name = "REF", num_args = 2)]
     pub refs: Vec<String>,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = DiffFormat::Md)]
+    pub format: DiffFormat,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum DiffFormat {
+    /// Markdown table output.
+    #[default]
+    Md,
+    /// JSON receipt with envelope metadata.
+    Json,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -612,3 +629,258 @@ pub enum ContextOutput {
     /// Output JSON receipt with selection details.
     Json,
 }
+
+#[derive(Args, Debug, Clone)]
+pub struct CliCheckIgnoreArgs {
+    /// File path(s) to check.
+    #[arg(value_name = "PATH", required = true)]
+    pub paths: Vec<PathBuf>,
+
+    /// Show verbose output with rule sources.
+    #[arg(long, short = 'v')]
+    pub verbose: bool,
+}
+
+// =============================================================================
+// TOML Configuration File Structures
+// =============================================================================
+
+/// Root TOML configuration structure.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TomlConfig {
+    /// Scan settings (applies to all commands).
+    pub scan: ScanConfig,
+
+    /// Module command settings.
+    pub module: ModuleConfig,
+
+    /// Export command settings.
+    pub export: ExportConfig,
+
+    /// Analyze command settings.
+    pub analyze: AnalyzeConfig,
+
+    /// Context command settings.
+    pub context: ContextConfig,
+
+    /// Badge command settings.
+    pub badge: BadgeConfig,
+
+    /// Named view profiles (e.g., [view.llm], [view.ci]).
+    #[serde(default)]
+    pub view: HashMap<String, ViewProfile>,
+}
+
+/// Scan settings shared by all commands.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ScanConfig {
+    /// Paths to scan (default: ["."])
+    pub paths: Option<Vec<String>>,
+
+    /// Glob patterns to exclude.
+    pub exclude: Option<Vec<String>>,
+
+    /// Include hidden files and directories.
+    pub hidden: Option<bool>,
+
+    /// Config file strategy for tokei: "auto" or "none".
+    pub config: Option<String>,
+
+    /// Disable all ignore files.
+    pub no_ignore: Option<bool>,
+
+    /// Disable parent directory ignore file traversal.
+    pub no_ignore_parent: Option<bool>,
+
+    /// Disable .ignore/.tokeignore files.
+    pub no_ignore_dot: Option<bool>,
+
+    /// Disable .gitignore files.
+    pub no_ignore_vcs: Option<bool>,
+
+    /// Treat doc comments as comments instead of code.
+    pub doc_comments: Option<bool>,
+}
+
+/// Module command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ModuleConfig {
+    /// Root directories for module grouping.
+    pub roots: Option<Vec<String>>,
+
+    /// Depth for module grouping.
+    pub depth: Option<usize>,
+
+    /// Children handling: "collapse" or "separate".
+    pub children: Option<String>,
+}
+
+/// Export command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ExportConfig {
+    /// Minimum lines of code to include.
+    pub min_code: Option<usize>,
+
+    /// Maximum rows in output.
+    pub max_rows: Option<usize>,
+
+    /// Redaction mode: "none", "paths", or "all".
+    pub redact: Option<String>,
+
+    /// Output format: "jsonl", "csv", "json", "cyclonedx".
+    pub format: Option<String>,
+
+    /// Children handling: "collapse" or "separate".
+    pub children: Option<String>,
+}
+
+/// Analyze command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AnalyzeConfig {
+    /// Analysis preset.
+    pub preset: Option<String>,
+
+    /// Context window size for utilization analysis.
+    pub window: Option<usize>,
+
+    /// Output format.
+    pub format: Option<String>,
+
+    /// Force git metrics on/off.
+    pub git: Option<bool>,
+
+    /// Max files for asset/deps/content scans.
+    pub max_files: Option<usize>,
+
+    /// Max total bytes for content scans.
+    pub max_bytes: Option<u64>,
+
+    /// Max bytes per file for content scans.
+    pub max_file_bytes: Option<u64>,
+
+    /// Max commits for git metrics.
+    pub max_commits: Option<usize>,
+
+    /// Max files per commit for git metrics.
+    pub max_commit_files: Option<usize>,
+
+    /// Import graph granularity: "module" or "file".
+    pub granularity: Option<String>,
+}
+
+/// Context command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ContextConfig {
+    /// Token budget with optional k/m suffix.
+    pub budget: Option<String>,
+
+    /// Packing strategy: "greedy" or "spread".
+    pub strategy: Option<String>,
+
+    /// Ranking metric: "code", "tokens", "churn", "hotspot".
+    pub rank_by: Option<String>,
+
+    /// Output mode: "list", "bundle", "json".
+    pub output: Option<String>,
+
+    /// Strip comments and blanks in bundle output.
+    pub compress: Option<bool>,
+}
+
+/// Badge command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BadgeConfig {
+    /// Default metric for badges.
+    pub metric: Option<String>,
+}
+
+/// A named view profile that can override settings for specific use cases.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ViewProfile {
+    // Shared settings
+    /// Output format.
+    pub format: Option<String>,
+
+    /// Show only top N rows.
+    pub top: Option<usize>,
+
+    // Lang settings
+    /// Include file counts in lang output.
+    pub files: Option<bool>,
+
+    // Module / Export settings
+    /// Module roots for grouping.
+    pub module_roots: Option<Vec<String>>,
+
+    /// Module depth for grouping.
+    pub module_depth: Option<usize>,
+
+    /// Minimum lines of code.
+    pub min_code: Option<usize>,
+
+    /// Maximum rows in output.
+    pub max_rows: Option<usize>,
+
+    /// Redaction mode.
+    pub redact: Option<String>,
+
+    /// Include metadata record.
+    pub meta: Option<bool>,
+
+    /// Children handling mode.
+    pub children: Option<String>,
+
+    // Analyze settings
+    /// Analysis preset.
+    pub preset: Option<String>,
+
+    /// Context window size.
+    pub window: Option<usize>,
+
+    // Context settings
+    /// Token budget.
+    pub budget: Option<String>,
+
+    /// Packing strategy.
+    pub strategy: Option<String>,
+
+    /// Ranking metric.
+    pub rank_by: Option<String>,
+
+    /// Output mode for context.
+    pub output: Option<String>,
+
+    /// Strip comments/blanks.
+    pub compress: Option<bool>,
+
+    // Badge settings
+    /// Badge metric.
+    pub metric: Option<String>,
+}
+
+impl TomlConfig {
+    /// Load configuration from a TOML string.
+    pub fn parse(s: &str) -> Result<Self, toml::de::Error> {
+        toml::from_str(s)
+    }
+
+    /// Load configuration from a file path.
+    pub fn from_file(path: &Path) -> std::io::Result<Self> {
+        let content = std::fs::read_to_string(path)?;
+        toml::from_str(&content)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
+}
+
+use std::path::Path;
+
+/// Result type alias for TOML parsing errors.
+pub type TomlResult<T> = Result<T, toml::de::Error>;

@@ -10,6 +10,7 @@ description = "Configuration schemas and defaults for tokmd."
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
+toml = "0.8"
 
 [dev-dependencies]
 proptest = "1.6.0"

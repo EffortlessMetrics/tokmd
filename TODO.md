@@ -27,17 +27,23 @@
 - [x] Binary releases via GitHub Actions
 
 ### v1.2.0 — Microcrate Architecture
-- [x] Split into 15 focused crates
+- [x] Split into 16 focused crates (including tokmd-redact)
 - [x] Feature flags for optional dependencies
 - [x] Git integration (hotspots, freshness, coupling, bus factor)
 - [x] Asset inventory
 - [x] Dependency lockfile summary
 - [x] Import graph analysis
 - [x] Duplicate detection
+- [x] Context packing (`tokmd context` command)
+- [x] Check-ignore troubleshooting (`tokmd check-ignore` command)
+- [x] Shell completions (`tokmd completions` command)
+- [x] CycloneDX SBOM export
+- [x] HTML reports with interactive treemap
+- [x] Centralized redaction utilities (tokmd-redact)
 
 ## In Progress
 
-### Enrichers (v1.2.x)
+### Enrichers (v1.3.x)
 - [ ] **Archetype Detection**: Identify project types (CLI, library, web app, monorepo)
 - [ ] **Topic Clouds**: TF-IDF semantic analysis of path segments
 - [ ] **Entropy Profiling**: Detect high-entropy files (potential secrets)

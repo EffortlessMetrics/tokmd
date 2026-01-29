@@ -1,5 +1,6 @@
 use anyhow::{Context, Result, bail};
 use tokmd_config as cli;
+use tokmd_format::{compute_diff_rows, compute_diff_totals, create_diff_receipt, render_diff_md};
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_types::LangReport;
@@ -15,41 +16,17 @@ pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()
     let to_report = resolve_lang_report(&to, global)
         .with_context(|| format!("Failed to load diff source '{}'", to))?;
 
-    println!("Diffing Language Summaries: {} -> {}", from, to);
-    println!(
-        "{:<20} {:>10} {:>10} {:>10}",
-        "Language", "Old LOC", "New LOC", "Delta"
-    );
-    println!("{:-<55}", "");
+    let diff_rows = compute_diff_rows(&from_report, &to_report);
+    let totals = compute_diff_totals(&diff_rows);
 
-    // Simple map-based diff
-    let mut all_langs: Vec<String> = from_report
-        .rows
-        .iter()
-        .chain(to_report.rows.iter())
-        .map(|r| r.lang.clone())
-        .collect();
-    all_langs.sort();
-    all_langs.dedup();
-
-    for lang_name in all_langs {
-        let old_row = from_report.rows.iter().find(|r| r.lang == lang_name);
-        let new_row = to_report.rows.iter().find(|r| r.lang == lang_name);
-
-        let old_code = old_row.map(|r| r.code).unwrap_or(0);
-        let new_code = new_row.map(|r| r.code).unwrap_or(0);
-
-        if old_code == new_code {
-            continue;
+    match args.format {
+        cli::DiffFormat::Md => {
+            print!("{}", render_diff_md(&from, &to, &diff_rows, &totals));
         }
-
-        let delta = new_code as i64 - old_code as i64;
-        let sign = if delta > 0 { "+" } else { "" };
-
-        println!(
-            "{:<20} {:>10} {:>10} {:>10}{}",
-            lang_name, old_code, new_code, sign, delta
-        );
+        cli::DiffFormat::Json => {
+            let receipt = create_diff_receipt(&from, &to, diff_rows, totals);
+            println!("{}", serde_json::to_string(&receipt)?);
+        }
     }
 
     Ok(())

@@ -21,6 +21,9 @@ use std::path::Path;
 /// This is used for redacting sensitive strings like excluded patterns
 /// or module names in receipts.
 ///
+/// Path separators are normalized to forward slashes before hashing
+/// to ensure consistent hashes across operating systems.
+///
 /// # Example
 ///
 /// ```
@@ -28,9 +31,13 @@ use std::path::Path;
 ///
 /// let hash = short_hash("my-secret-path");
 /// assert_eq!(hash.len(), 16);
+///
+/// // Cross-platform consistency: same hash regardless of separator
+/// assert_eq!(short_hash("src\\lib"), short_hash("src/lib"));
 /// ```
 pub fn short_hash(s: &str) -> String {
-    let mut hex = blake3::hash(s.as_bytes()).to_hex().to_string();
+    let normalized = s.replace('\\', "/");
+    let mut hex = blake3::hash(normalized.as_bytes()).to_hex().to_string();
     hex.truncate(16);
     hex
 }
@@ -40,6 +47,9 @@ pub fn short_hash(s: &str) -> String {
 /// This allows redacted paths to still be recognizable by file type
 /// while hiding the actual path structure.
 ///
+/// Path separators are normalized to forward slashes before hashing
+/// to ensure consistent hashes across operating systems.
+///
 /// # Example
 ///
 /// ```
@@ -48,13 +58,17 @@ pub fn short_hash(s: &str) -> String {
 /// let redacted = redact_path("src/secrets/config.json");
 /// assert!(redacted.ends_with(".json"));
 /// assert_eq!(redacted.len(), 16 + 1 + 4); // hash + dot + "json"
+///
+/// // Cross-platform consistency: same hash regardless of separator
+/// assert_eq!(redact_path("src\\main.rs"), redact_path("src/main.rs"));
 /// ```
 pub fn redact_path(path: &str) -> String {
-    let ext = Path::new(path)
+    let normalized = path.replace('\\', "/");
+    let ext = Path::new(&normalized)
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let mut out = short_hash(path);
+    let mut out = short_hash(&normalized);
     if !ext.is_empty() {
         out.push('.');
         out.push_str(ext);
@@ -111,5 +125,37 @@ mod tests {
         let r1 = redact_path("src/main.rs");
         let r2 = redact_path("src/main.rs");
         assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn test_short_hash_normalizes_separators() {
+        // Same logical path with different separators should hash identically
+        let h1 = short_hash("src/lib");
+        let h2 = short_hash("src\\lib");
+        assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn test_short_hash_normalizes_mixed_separators() {
+        let h1 = short_hash("crates/foo/src/lib");
+        let h2 = short_hash("crates\\foo\\src\\lib");
+        let h3 = short_hash("crates/foo\\src/lib");
+        assert_eq!(h1, h2);
+        assert_eq!(h2, h3);
+    }
+
+    #[test]
+    fn test_redact_path_normalizes_separators() {
+        let r1 = redact_path("src/main.rs");
+        let r2 = redact_path("src\\main.rs");
+        assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn test_redact_path_normalizes_deep_paths() {
+        let r1 = redact_path("crates/tokmd/src/commands/run.rs");
+        let r2 = redact_path("crates\\tokmd\\src\\commands\\run.rs");
+        assert_eq!(r1, r2);
+        assert!(r1.ends_with(".rs"));
     }
 }

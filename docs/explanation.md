@@ -16,7 +16,7 @@ Raw counts are packaged into deterministic, versioned artifacts with provenance.
 Receipts become the foundation for derived metrics: doc density, test density, distributions, effort estimation, context window planning.
 
 ### Phase 3: Intelligence (v1.2+)
-Analysis incorporates external signals: git history (hotspots, freshness, coupling), file content (entropy, licenses), and semantic patterns (archetypes, topics).
+Analysis incorporates external signals: git history (hotspots, freshness, coupling), file content (entropy, licenses), and semantic patterns (archetypes, topics). Context packing enables budget-aware file selection for LLM workflows.
 
 ## The Problems We Solve
 
@@ -29,8 +29,9 @@ Pasting source code into an LLM wastes tokens and leaks context. Agents need a m
 - Where is the mass? (Modules)
 - Which files are heavy? (Export rows)
 - Will it fit? (Context window analysis)
+- What should I include? (Context packing)
 
-`tokmd` provides this map as a compact, structured dataset.
+`tokmd` provides this map as a compact, structured dataset. The `context` command goes further, intelligently selecting files to pack into a context window within a token budget.
 
 ### 3. Preventing Process Confabulation
 In automated workflows, the common failure mode is narrative ("I checked the files"). `tokmd` enforces a "receipt" posture: outputs are deterministic, versioned, and machine-verifiable. Text is untrusted; artifacts are trusted.

@@ -47,17 +47,28 @@ tokmd analyze --preset receipt --format md
 # 5. Check context window fit
 tokmd analyze --preset receipt --window 128000
 
-# 6. Git risk analysis (hotspots, freshness)
+# 6. Pack files for LLM context (budget-aware)
+tokmd context --budget 128k --output bundle > context.txt
+
+# 7. Git risk analysis (hotspots, freshness)
 tokmd analyze --preset risk --format md
 
-# 7. Generate a badge
+# 8. Generate a badge
 tokmd badge --metric lines --out badge.svg
 
-# 8. Diff two states
+# 9. Diff two states
 tokmd diff main HEAD
 ```
 
 ## Use Cases
+
+### LLM Context Packing
+Pack files into an LLM context window with budget-aware selection:
+```bash
+tokmd context --budget 128k --output bundle > context.txt  # Ready to paste
+tokmd context --budget 200k --strategy spread              # Coverage across modules
+tokmd context --budget 100k --output bundle --compress     # Stripped for density
+```
 
 ### LLM Context Planning
 Before dumping files into Claude, get a structured map:
@@ -92,12 +103,15 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | :--- | :--- |
 | `tokmd` | Language summary (lines, files, bytes). |
 | `tokmd module` | Group stats by directories (`crates/`, `src/`). |
-| `tokmd export` | File-level dataset (JSONL/CSV) for downstream tools. |
+| `tokmd export` | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools. |
 | `tokmd run` | Full scan with artifact output to a directory. |
 | `tokmd analyze` | Derived metrics and enrichments. |
 | `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
 | `tokmd diff` | Compare two runs, receipts, or git refs. |
+| `tokmd context` | Pack files into an LLM context window within a token budget. |
 | `tokmd init` | Generate a `.tokeignore` file. |
+| `tokmd check-ignore` | Explain why files are being ignored (troubleshooting). |
+| `tokmd completions` | Generate shell completions (bash, zsh, fish, powershell). |
 
 ## Analysis Presets
 
@@ -195,6 +209,7 @@ Native FFI bindings for CI pipelines and tooling:
 - [Recipes](docs/recipes.md) — Real-world usage examples
 - [CLI Reference](docs/reference-cli.md) — All flags and options
 - [Schema](docs/SCHEMA.md) — Receipt format documentation
+- [Troubleshooting](docs/troubleshooting.md) — Common issues and solutions
 - [Philosophy](docs/explanation.md) — Design principles
 
 ## License

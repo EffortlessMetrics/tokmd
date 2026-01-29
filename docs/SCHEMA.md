@@ -539,3 +539,13 @@ Present when `--git` is enabled or preset includes git analysis.
 - **Breaking changes** (renamed/removed fields, type changes) increment `schema_version`.
 - Consumers should ignore unknown fields for forward compatibility.
 - The `integrity.hash` field can be used to verify receipt contents.
+
+### Forward Compatibility Policy
+
+The JSON schema intentionally does **not** use `additionalProperties: false`. This means:
+
+1. **New fields may appear** in any receipt at any time without a schema version bump
+2. **Consumers must ignore unknown fields** rather than failing on them
+3. **Field removal or renaming** is a breaking change and will bump `schema_version`
+
+This policy allows tokmd to add observability signals, debugging info, or new metrics without breaking existing integrations. If you need strict validation, pin to a specific tokmd version.
