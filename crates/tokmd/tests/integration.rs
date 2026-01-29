@@ -628,16 +628,30 @@ fn test_init_profiles() {
 fn test_non_existent_path() {
     // Given: A non-existent path
     // When: We run export
-    // Then: It should succeed but report 0 files (or handled gracefully)
-    // Tokei behavior is to just ignore it usually, or report empty stats.
-    // Our wrapper should not panic.
+    // Then: It should fail with an error message
     let mut cmd = tokmd_cmd();
     cmd.arg("export")
         .arg("non_existent_file_abc123.txt")
         .assert()
-        .success();
-    // We don't strictly assert output emptiness because meta might be there.
-    // But verifying it doesn't crash is valuable.
+        .failure()
+        .stderr(predicate::str::contains("Path not found"));
+}
+
+#[test]
+fn test_partial_non_existent_path() {
+    // Given: One valid path and one invalid path
+    // When: We run export
+    // Then: It should fail (strict mode)
+    let mut cmd = tokmd_cmd();
+    // We assume Cargo.toml exists in the current directory (tests/data usually)
+    // But tokmd_cmd sets current_dir to tests/data.
+    // Let's verify what exists there. src/main.rs usually exists in tests/data/src.
+    cmd.arg("export")
+        .arg(".") // valid
+        .arg("non_existent_file_abc123.txt") // invalid
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
