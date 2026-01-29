@@ -97,7 +97,7 @@ runs:
         echo "receipt=tokmd-receipt.json" >> $GITHUB_OUTPUT
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: tokmd-receipts
         path: |
