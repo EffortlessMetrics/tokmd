@@ -396,9 +396,11 @@ fn write_export_jsonl<W: Write>(
                 strip_prefix: if should_redact {
                     args.strip_prefix
                         .as_ref()
-                        .map(|p| redact_path(&p.display().to_string()))
+                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
                 } else {
-                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
+                    args.strip_prefix
+                        .as_ref()
+                        .map(|p| p.display().to_string().replace('\\', "/"))
                 },
                 strip_prefix_redacted,
             },
@@ -445,9 +447,11 @@ fn write_export_json<W: Write>(
                 strip_prefix: if should_redact {
                     args.strip_prefix
                         .as_ref()
-                        .map(|p| redact_path(&p.display().to_string()))
+                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
                 } else {
-                    args.strip_prefix.as_ref().map(|p| p.display().to_string())
+                    args.strip_prefix
+                        .as_ref()
+                        .map(|p| p.display().to_string().replace('\\', "/"))
                 },
                 strip_prefix_redacted,
             },

@@ -1,9 +1,21 @@
 //! # tokmd-types
 //!
-//! **Tier 1 (Hard Contract)**
+//! **Tier 0 (Core Types)**
 //!
 //! This crate defines the core data structures and contracts for `tokmd`.
 //! It contains only data types, Serde definitions, and `schema_version`.
+//!
+//! ## Stability Policy
+//!
+//! **JSON-first stability**: The primary contract is the JSON schema, not Rust struct literals.
+//!
+//! - **JSON consumers**: Stable. New fields have sensible defaults; removed/renamed fields
+//!   bump `SCHEMA_VERSION`.
+//! - **Rust library consumers**: Semi-stable. New fields may be added in minor versions,
+//!   which can break struct literal construction. Use `Default` + field mutation or
+//!   `..Default::default()` patterns for forward compatibility.
+//!
+//! If you need strict Rust API stability, pin to an exact version.
 //!
 //! ## What belongs here
 //! * Pure data structs (Receipts, Rows, Reports)
