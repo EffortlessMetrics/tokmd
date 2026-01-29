@@ -61,8 +61,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Run property tests (reduced iterations)
         run: |
-          PROPTEST_CASES=50 cargo test -p tokmd-model --test properties --verbose
-          PROPTEST_CASES=50 cargo test -p tokmd-types --test properties --verbose
-          PROPTEST_CASES=50 cargo test -p tokmd --test properties --verbose
+          PROPTEST_CASES=50 cargo test -p tokmd-model --test properties --all-features --verbose
+          PROPTEST_CASES=50 cargo test -p tokmd-types --test properties --all-features --verbose
+          PROPTEST_CASES=50 cargo test -p tokmd --test properties --all-features --verbose
         env:
           CI: true

@@ -1367,9 +1367,12 @@ fn test_check_ignore_verbose_shows_source() {
         .current_dir(dir.path())
         .output();
 
-    if git_init.is_err() {
-        // Skip test if git isn't available
-        return;
+    match git_init {
+        Ok(out) if out.status.success() => {}
+        _ => {
+            // Skip test if git isn't available or init failed
+            return;
+        }
     }
 
     // Create .gitignore

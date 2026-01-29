@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **HTML Reports**: `analyze --format html` produces self-contained, offline-capable HTML reports with interactive treemap and sortable tables
 - **Context Packing**: New `context` command for LLM context window optimization
   - Budget-aware file selection with `--budget` (e.g., `128k`, `1M`)
-  - Multiple strategies: `greedy`, `balanced`, `diverse`
+  - Multiple strategies: `greedy`, `spread`
   - Output modes: `list`, `bundle`, `json`
 - **Redaction Utilities**: New `tokmd-redact` crate centralizes BLAKE3-based path hashing
 - **CI Hyper-Testing**: Added proptest smoke tests, mutation testing, and fuzz testing workflows
