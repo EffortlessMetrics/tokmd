@@ -540,40 +540,35 @@ pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> S
 /// This is an optimization for hot paths where `normalize_path` has already been called.
 /// The path should have forward slashes, no leading `./`, and no leading `/`.
 fn module_key_from_normalized(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    let mut parts = path.split('/').filter(|s| !s.is_empty());
-    let first = match parts.next() {
+    // Split off the directory part first (exclude filename) to avoid including
+    // the filename in the module key when depth exceeds available directories.
+    let Some((dir_part, _file_part)) = path.rsplit_once('/') else {
+        // No slash => root-level file
+        return "(root)".to_string();
+    };
+
+    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty());
+    let first = match dirs.next() {
         Some(s) => s,
         None => return "(root)".to_string(),
     };
 
-    // If there are no more segments, 'first' IS the filename, so return "(root)".
-    let remaining_count = parts.clone().count();
-
-    if remaining_count == 0 {
-        return "(root)".to_string();
-    }
-
-    // It has a directory structure. 'first' is the top-level directory.
-    // Check if it matches a module root.
+    // Check if the first directory matches a module root.
     if !module_roots.iter().any(|r| r == first) {
         return first.to_string();
     }
 
-    // It IS a root module. We need to go deeper up to `module_depth`.
-    // Total segments = 1 (first) + remaining_count
-    // Directories available = total - 1 (exclude filename)
-    let dirs_available = remaining_count; // first + remaining - 1 (filename) = remaining
-
-    let depth_needed = module_depth.max(1).min(dirs_available + 1); // +1 because 'first' counts
-
-    // Build the key by taking up to depth_needed segments
-    let mut key = String::with_capacity(path.len());
+    // It IS a root module. Build the key by taking up to `module_depth` directory segments.
+    let depth_needed = module_depth.max(1);
+    let mut key = String::with_capacity(dir_part.len());
     key.push_str(first);
 
     for _ in 1..depth_needed {
-        if let Some(next_seg) = parts.next() {
+        if let Some(seg) = dirs.next() {
             key.push('/');
-            key.push_str(next_seg);
+            key.push_str(seg);
+        } else {
+            break;
         }
     }
 
@@ -612,6 +607,18 @@ mod tests {
         let roots = vec!["crates".into()];
         assert_eq!(module_key("src/lib.rs", &roots, 2), "src");
         assert_eq!(module_key("tools/gen.rs", &roots, 2), "tools");
+    }
+
+    #[test]
+    fn module_key_depth_overflow_does_not_include_filename() {
+        let roots = vec!["crates".into()];
+        // File directly under a root: depth=2 should NOT include the filename
+        assert_eq!(module_key("crates/foo.rs", &roots, 2), "crates");
+        // Depth exceeds available directories: should stop at deepest directory
+        assert_eq!(
+            module_key("crates/foo/src/lib.rs", &roots, 10),
+            "crates/foo/src"
+        );
     }
 
     #[test]

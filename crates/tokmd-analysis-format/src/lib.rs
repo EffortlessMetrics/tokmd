@@ -3,6 +3,8 @@
 //! Rendering for analysis receipts.
 
 use anyhow::Result;
+use time::macros::format_description;
+use time::OffsetDateTime;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_config::AnalysisFormat;
 
@@ -22,6 +24,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt))),
         AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
         AnalysisFormat::Tree => Ok(RenderedOutput::Text(render_tree(receipt))),
+        AnalysisFormat::Html => Ok(RenderedOutput::Text(render_html(receipt))),
     }
 }
 
@@ -720,4 +723,128 @@ fn sanitize_mermaid(name: &str) -> String {
     name.chars()
         .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
         .collect()
+}
+
+fn render_html(receipt: &AnalysisReceipt) -> String {
+    const TEMPLATE: &str = include_str!("templates/report.html");
+
+    // Generate timestamp
+    let timestamp = chrono_lite_timestamp();
+
+    // Build metrics cards
+    let metrics_cards = build_metrics_cards(receipt);
+
+    // Build table rows
+    let table_rows = build_table_rows(receipt);
+
+    // Build JSON data for treemap
+    let report_json = build_report_json(receipt);
+
+    TEMPLATE
+        .replace("{{TIMESTAMP}}", &timestamp)
+        .replace("{{METRICS_CARDS}}", &metrics_cards)
+        .replace("{{TABLE_ROWS}}", &table_rows)
+        .replace("{{REPORT_JSON}}", &report_json)
+}
+
+fn chrono_lite_timestamp() -> String {
+    let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] UTC");
+    OffsetDateTime::now_utc()
+        .format(&format)
+        .unwrap_or_else(|_| "1970-01-01 00:00:00 UTC".to_string())
+}
+
+fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {
+    let mut cards = String::new();
+
+    if let Some(derived) = &receipt.derived {
+        let metrics = [
+            ("Files", derived.totals.files.to_string()),
+            ("Lines", format_number(derived.totals.lines)),
+            ("Code", format_number(derived.totals.code)),
+            ("Tokens", format_number(derived.totals.tokens)),
+            ("Doc%", fmt_pct(derived.doc_density.total.ratio)),
+        ];
+
+        for (label, value) in metrics {
+            cards.push_str(&format!(
+                r#"<div class="metric-card"><span class="value">{}</span><span class="label">{}</span></div>"#,
+                value, label
+            ));
+        }
+
+        // Context fit if available
+        if let Some(ctx) = &derived.context_window {
+            cards.push_str(&format!(
+                r#"<div class="metric-card"><span class="value">{}</span><span class="label">Context Fit</span></div>"#,
+                fmt_pct(ctx.pct)
+            ));
+        }
+    }
+
+    cards
+}
+
+fn build_table_rows(receipt: &AnalysisReceipt) -> String {
+    let mut rows = String::new();
+
+    if let Some(derived) = &receipt.derived {
+        // Use top files from the analysis
+        for row in derived.top.largest_lines.iter().take(100) {
+            rows.push_str(&format!(
+                r#"<tr><td class="path" data-path="{path}">{path}</td><td data-module="{module}">{module}</td><td data-lang="{lang}"><span class="lang-badge">{lang}</span></td><td class="num" data-lines="{lines}">{lines_fmt}</td><td class="num" data-code="{code}">{code_fmt}</td><td class="num" data-tokens="{tokens}">{tokens_fmt}</td><td class="num" data-bytes="{bytes}">{bytes_fmt}</td></tr>"#,
+                path = html_escape(&row.path),
+                module = html_escape(&row.module),
+                lang = html_escape(&row.lang),
+                lines = row.lines,
+                lines_fmt = format_number(row.lines),
+                code = row.code,
+                code_fmt = format_number(row.code),
+                tokens = row.tokens,
+                tokens_fmt = format_number(row.tokens),
+                bytes = row.bytes,
+                bytes_fmt = format_number(row.bytes),
+            ));
+        }
+    }
+
+    rows
+}
+
+fn build_report_json(receipt: &AnalysisReceipt) -> String {
+    // Build a simplified JSON for the treemap
+    let mut files = Vec::new();
+
+    if let Some(derived) = &receipt.derived {
+        for row in &derived.top.largest_lines {
+            files.push(serde_json::json!({
+                "path": row.path,
+                "module": row.module,
+                "lang": row.lang,
+                "code": row.code,
+                "lines": row.lines,
+                "tokens": row.tokens,
+            }));
+        }
+    }
+
+    serde_json::json!({ "files": files }).to_string()
+}
+
+fn format_number(n: usize) -> String {
+    if n >= 1_000_000 {
+        format!("{:.1}M", n as f64 / 1_000_000.0)
+    } else if n >= 1_000 {
+        format!("{:.1}K", n as f64 / 1_000.0)
+    } else {
+        n.to_string()
+    }
+}
+
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#x27;")
 }

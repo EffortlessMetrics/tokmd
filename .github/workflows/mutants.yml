@@ -1,0 +1,63 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**/*.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  mutants:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants
+
+      - name: Get changed Rust files
+        id: changed
+        run: |
+          # Get list of changed .rs files in this PR
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.rs' | grep -v '/tests/' | grep -v 'fuzz/' | head -20 | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          if [ -z "$FILES" ]; then
+            echo "No Rust source files changed"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changed files: $FILES"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run mutation tests on changed files
+        if: steps.changed.outputs.skip != 'true'
+        run: |
+          # Run mutants only on changed files
+          for file in ${{ steps.changed.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "Testing mutations in: $file"
+              cargo mutants --file "$file" --timeout 120 || true
+            fi
+          done
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-report
+          path: mutants.out/
+          if-no-files-found: ignore
+          retention-days: 14

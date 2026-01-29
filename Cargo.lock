@@ -548,6 +548,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7a1e2f27636f116493b8b860f5546edb47c8d8f8ea73e1d2a20be88e28d1fea"
 
 [[package]]
+name = "deranged"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ececcb659e7ba858fb4f10388c250a7252eb0a27373f1a72b8748afdd248e587"
+dependencies = [
+ "powerfmt",
+]
+
+[[package]]
 name = "derive_arbitrary"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1503,6 +1512,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-conv"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf97ec579c3c42f953ef76dbf8d55ac91fb219dde70e49aa4a6b7d74e9919050"
+
+[[package]]
 name = "num-integer"
 version = "0.1.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1711,6 +1726,12 @@ checksum = "b73949432f5e2a09657003c25bca5e19a0e9c84f8058ca374f49e0ebe605af77"
 dependencies = [
  "zerovec",
 ]
+
+[[package]]
+name = "powerfmt"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 
 [[package]]
 name = "ppv-lite86"
@@ -2535,6 +2556,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9da98b7d9b7dad93488a84b8248efc35352b0b2657397d4167e7ad67e5d535e5"
+dependencies = [
+ "deranged",
+ "itoa",
+ "num-conv",
+ "powerfmt",
+ "serde_core",
+ "time-core",
+ "time-macros",
+]
+
+[[package]]
+name = "time-core"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7694e1cfe791f8d31026952abf09c69ca6f6fa4e1a1229e18988f06a04a12dca"
+
+[[package]]
+name = "time-macros"
+version = "0.2.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "78cc610bac2dcee56805c99642447d4c5dbde4d01f752ffea0199aee1f601dc4"
+dependencies = [
+ "num-conv",
+ "time-core",
+]
+
+[[package]]
 name = "tinystr"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2627,7 +2679,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2655,7 +2707,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "blake3",
@@ -2673,12 +2725,13 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-format"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "insta",
  "serde",
  "serde_json",
+ "time",
  "tokmd-analysis",
  "tokmd-analysis-types",
  "tokmd-config",
@@ -2688,7 +2741,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-types"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "serde",
  "tokmd-types",
@@ -2696,7 +2749,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-config"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "clap",
  "proptest",
@@ -2706,7 +2759,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-content"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "blake3",
@@ -2715,32 +2768,34 @@ dependencies = [
 
 [[package]]
 name = "tokmd-core"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
- "blake3",
  "tokmd-config",
  "tokmd-model",
+ "tokmd-redact",
  "tokmd-scan",
  "tokmd-types",
 ]
 
 [[package]]
 name = "tokmd-format"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
- "blake3",
  "csv",
  "serde",
  "serde_json",
+ "time",
  "tokmd-config",
+ "tokmd-redact",
  "tokmd-types",
+ "uuid",
 ]
 
 [[package]]
 name = "tokmd-fun"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "midly",
@@ -2759,14 +2814,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-git"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
 ]
 
 [[package]]
 name = "tokmd-model"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "proptest",
@@ -2777,8 +2832,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-redact"
+version = "1.2.0"
+dependencies = [
+ "blake3",
+]
+
+[[package]]
 name = "tokmd-scan"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "tokei",
@@ -2787,7 +2849,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-tokeignore"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "tokmd-config",
@@ -2795,7 +2857,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-types"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "proptest",
  "serde",
@@ -2805,7 +2867,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-walk"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "ignore",
@@ -2987,6 +3049,17 @@ name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+
+[[package]]
+name = "uuid"
+version = "1.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee48d38b119b0cd71fe4141b30f5ba9c7c5d9f4e7a3a8b4a674e4b6ef789976f"
+dependencies = [
+ "getrandom 0.3.4",
+ "js-sys",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "uuid-simd"

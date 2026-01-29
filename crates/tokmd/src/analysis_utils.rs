@@ -40,6 +40,7 @@ pub(crate) fn format_to_string(format: cli::AnalysisFormat) -> String {
         cli::AnalysisFormat::Obj => "obj".to_string(),
         cli::AnalysisFormat::Midi => "midi".to_string(),
         cli::AnalysisFormat::Tree => "tree".to_string(),
+        cli::AnalysisFormat::Html => "html".to_string(),
     }
 }
 
@@ -84,6 +85,7 @@ fn analysis_output_filename(format: cli::AnalysisFormat) -> &'static str {
         cli::AnalysisFormat::Obj => "analysis.obj",
         cli::AnalysisFormat::Midi => "analysis.mid",
         cli::AnalysisFormat::Tree => "analysis.tree.txt",
+        cli::AnalysisFormat::Html => "analysis.html",
     }
 }
 
