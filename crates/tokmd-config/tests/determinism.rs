@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use tokmd_config::{UserConfig, Profile};
+use tokmd_config::{Profile, UserConfig};
 
 #[test]
 fn test_user_config_determinism() {
@@ -14,10 +14,7 @@ fn test_user_config_determinism() {
     repos.insert("owner/beta".to_string(), "profile3".to_string());
     repos.insert("owner/alpha".to_string(), "profile2".to_string());
 
-    let config = UserConfig {
-        profiles,
-        repos,
-    };
+    let config = UserConfig { profiles, repos };
 
     let json = serde_json::to_string(&config).expect("failed to serialize");
 
@@ -29,14 +26,34 @@ fn test_user_config_determinism() {
     let p_beta = json.find("\"beta\":").expect("beta profile missing");
     let p_zebra = json.find("\"zebra\":").expect("zebra profile missing");
 
-    assert!(p_alpha < p_beta, "profiles: alpha ({}) should be before beta ({})", p_alpha, p_beta);
-    assert!(p_beta < p_zebra, "profiles: beta ({}) should be before zebra ({})", p_beta, p_zebra);
+    assert!(
+        p_alpha < p_beta,
+        "profiles: alpha ({}) should be before beta ({})",
+        p_alpha,
+        p_beta
+    );
+    assert!(
+        p_beta < p_zebra,
+        "profiles: beta ({}) should be before zebra ({})",
+        p_beta,
+        p_zebra
+    );
 
     // Check repos keys
     let r_alpha = json.find("\"owner/alpha\":").expect("alpha repo missing");
     let r_beta = json.find("\"owner/beta\":").expect("beta repo missing");
     let r_zebra = json.find("\"owner/zebra\":").expect("zebra repo missing");
 
-    assert!(r_alpha < r_beta, "repos: alpha ({}) should be before beta ({})", r_alpha, r_beta);
-    assert!(r_beta < r_zebra, "repos: beta ({}) should be before zebra ({})", r_beta, r_zebra);
+    assert!(
+        r_alpha < r_beta,
+        "repos: alpha ({}) should be before beta ({})",
+        r_alpha,
+        r_beta
+    );
+    assert!(
+        r_beta < r_zebra,
+        "repos: beta ({}) should be before zebra ({})",
+        r_beta,
+        r_zebra
+    );
 }

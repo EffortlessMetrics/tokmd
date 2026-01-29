@@ -12,7 +12,10 @@ use tokmd_types::{ContextReceipt, ToolInfo};
 use crate::context_pack;
 
 pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Result<()> {
-    let paths = args.paths.clone().unwrap_or_else(|| vec![PathBuf::from(".")]);
+    let paths = args
+        .paths
+        .clone()
+        .unwrap_or_else(|| vec![PathBuf::from(".")]);
 
     // Parse budget
     let budget = context_pack::parse_budget(&args.budget)?;
@@ -28,17 +31,12 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
         module_depth,
         cli::ChildIncludeMode::ParentsOnly,
         None,
-        0,    // no min_code filter
-        0,    // no max_rows limit
+        0, // no min_code filter
+        0, // no max_rows limit
     );
 
     // Select files based on strategy
-    let selected = context_pack::select_files(
-        &export.rows,
-        budget,
-        args.strategy,
-        args.rank_by,
-    );
+    let selected = context_pack::select_files(&export.rows, budget, args.strategy, args.rank_by);
 
     let used_tokens: usize = selected.iter().map(|f| f.tokens).sum();
     let utilization = if budget > 0 {
@@ -59,7 +57,10 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
             println!("|Path|Module|Lang|Tokens|Code|");
             println!("|---|---|---|---:|---:|");
             for file in &selected {
-                println!("|{}|{}|{}|{}|{}|", file.path, file.module, file.lang, file.tokens, file.code);
+                println!(
+                    "|{}|{}|{}|{}|{}|",
+                    file.path, file.module, file.lang, file.tokens, file.code
+                );
             }
         }
         cli::ContextOutput::Bundle => {
