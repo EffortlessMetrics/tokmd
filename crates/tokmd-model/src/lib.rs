@@ -15,6 +15,7 @@
 //! * CLI argument parsing
 //! * Output formatting (printing to stdout/file)
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -490,32 +491,58 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
-    let mut s = path.to_string_lossy().replace('\\', "/");
+    let s_cow = path.to_string_lossy();
+    let s: Cow<str> = if s_cow.contains('\\') {
+        Cow::Owned(s_cow.replace('\\', "/"))
+    } else {
+        s_cow
+    };
+
+    let mut slice: &str = &s;
 
     // Strip leading ./ first, so strip_prefix can match against "src/" instead of "./src/"
-    if let Some(stripped) = s.strip_prefix("./") {
-        s = stripped.to_string();
+    if let Some(stripped) = slice.strip_prefix("./") {
+        slice = stripped;
     }
 
     if let Some(prefix) = strip_prefix {
-        let mut pfx = prefix.to_string_lossy().replace('\\', "/");
-        // Ensure prefix ends with a slash for exact segment matching.
-        if !pfx.ends_with('/') {
-            pfx.push('/');
-        }
-        if s.starts_with(&pfx) {
-            s = s[pfx.len()..].to_string();
+        let p_cow = prefix.to_string_lossy();
+        let needs_replace = p_cow.contains('\\');
+        let needs_slash = !p_cow.ends_with('/');
+
+        if !needs_replace && !needs_slash {
+            // Fast path: prefix is already clean and ends with slash
+            if slice.starts_with(p_cow.as_ref()) {
+                slice = &slice[p_cow.len()..];
+            }
+        } else {
+            // Slow path: normalize prefix
+            let mut pfx = if needs_replace {
+                p_cow.replace('\\', "/")
+            } else {
+                p_cow.into_owned()
+            };
+            if needs_slash {
+                pfx.push('/');
+            }
+            if slice.starts_with(&pfx) {
+                slice = &slice[pfx.len()..];
+            }
         }
     }
 
-    s = s.trim_start_matches('/').to_string();
+    slice = slice.trim_start_matches('/');
 
     // After trimming slashes, we might be left with a leading ./ (e.g. from "/./")
-    if let Some(stripped) = s.strip_prefix("./") {
-        s = stripped.to_string();
+    if let Some(stripped) = slice.strip_prefix("./") {
+        slice = stripped;
     }
 
-    s
+    if slice.len() == s.len() {
+        s.into_owned()
+    } else {
+        slice.to_string()
+    }
 }
 
 /// Compute a "module key" from a normalized path.
