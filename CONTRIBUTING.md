@@ -135,8 +135,8 @@ cargo test --workspace
 ## Feature Flags
 
 Some features are gated to allow selective compilation:
-- `git`: Git history analysis (requires git2)
-- `content`: File content scanning
+- `git`: Git history analysis (shells out to `git` command)
+- `content`: File content scanning (entropy, TODOs, duplicates)
 - `walk`: Filesystem traversal for assets
 
 When adding new features with heavy dependencies, consider making them optional.

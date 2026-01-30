@@ -3,6 +3,15 @@ crates/*/target
 **/*.swp
 **/*.DS_Store
 
+# tokmd output files (generated during testing)
+/analysis.json
+/analysis.html
+/context.json
+/context.txt
+/sbom.json
+/tokmd-*.json
+/tokmd-*.md
+
 /.runs/pr_glass_cockpit
 
 # Fuzzing
