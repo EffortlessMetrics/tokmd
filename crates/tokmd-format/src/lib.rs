@@ -926,6 +926,52 @@ pub fn create_diff_receipt(
     }
 }
 
+// =============================================================================
+// Public test helpers - expose internal functions for integration tests
+// =============================================================================
+
+/// Write CSV export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_csv_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_csv(out, export, args)
+}
+
+/// Write JSONL export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_jsonl_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_jsonl(out, export, global, args)
+}
+
+/// Write JSON export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_json_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_json(out, export, global, args)
+}
+
+/// Write CycloneDX export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_cyclonedx_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    redact: RedactMode,
+) -> Result<()> {
+    write_export_cyclonedx(out, export, redact)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

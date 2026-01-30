@@ -133,7 +133,7 @@ pub enum ScanStatus {
     Partial,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ToolInfo {
     pub name: String,
     pub version: String,
@@ -325,7 +325,7 @@ pub struct DiffRow {
 }
 
 /// Aggregate totals for the diff.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DiffTotals {
     pub old_code: usize,
     pub new_code: usize,
@@ -428,4 +428,21 @@ pub enum RedactMode {
     Paths,
     /// Redact file paths and module names.
     All,
+}
+
+/// Log record for context command JSONL append mode.
+/// Contains metadata only (not file contents) for lightweight logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextLogRecord {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub budget_tokens: usize,
+    pub used_tokens: usize,
+    pub utilization_pct: f64,
+    pub strategy: String,
+    pub rank_by: String,
+    pub file_count: usize,
+    pub total_bytes: usize,
+    pub output_destination: String,
 }

@@ -53,6 +53,10 @@ coverage/
 .coverage
 lcov.info
 
+# --- tokmd outputs ---
+.runs/
+**/.runs/
+
 # --- Tree-sitter (common "big files" when vendored) ---
 # Adjust to match your vendor layout.
 **/tree-sitter*/src/parser.c
@@ -71,6 +75,10 @@ target/
 # Coverage
 coverage/
 **/coverage/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_NODE: &str = r#"# .tokeignore (Node)
@@ -84,6 +92,10 @@ build/
 **/build/
 coverage/
 **/coverage/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_MONO: &str = r#"# .tokeignore (Monorepo)
@@ -133,6 +145,10 @@ coverage/
 .coverage
 lcov.info
 
+# tokmd outputs
+.runs/
+**/.runs/
+
 # Tree-sitter vendoring (common big files)
 **/tree-sitter*/src/parser.c
 **/tree-sitter*/src/scanner.c
@@ -154,6 +170,10 @@ venv/
 htmlcov/
 **/htmlcov/
 .coverage
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_GO: &str = r#"# .tokeignore (Go)
@@ -161,6 +181,10 @@ vendor/
 **/vendor/
 bin/
 **/bin/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_CPP: &str = r#"# .tokeignore (C++)
@@ -172,6 +196,10 @@ out/
 **/out/
 .cache/
 **/.cache/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 pub fn init_tokeignore(args: &InitArgs) -> Result<()> {

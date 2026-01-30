@@ -141,6 +141,52 @@ Some features are gated to allow selective compilation:
 
 When adding new features with heavy dependencies, consider making them optional.
 
+## Publishing to crates.io
+
+Publishing is handled via `cargo xtask publish`, which ensures correct dependency order, validates packaging, and handles propagation delays.
+
+### Workflow
+
+```bash
+# 1. Review the publish plan
+cargo xtask publish --plan --verbose
+
+# 2. Validate packaging (runs cargo publish --dry-run for each crate)
+cargo xtask publish --dry-run
+
+# 3. Publish for real (requires confirmation)
+cargo xtask publish --yes
+
+# 4. Publish and create git tag
+cargo xtask publish --yes --tag
+```
+
+### Pre-publish checks
+
+The xtask runs these checks before publishing:
+- Clean git working directory
+- Version consistency across all crates
+- CHANGELOG.md contains the version
+- All tests pass
+
+Skip individual checks with `--skip-git-check`, `--skip-version-check`, `--skip-changelog-check`, `--skip-tests`, or all with `--skip-checks`.
+
+### Resuming after failure
+
+If publishing fails partway through:
+```bash
+cargo xtask publish --from tokmd-format --yes
+```
+
+### Justfile shortcuts
+
+```bash
+just publish-plan   # cargo xtask publish --plan --verbose
+just publish-dry    # cargo xtask publish --dry-run
+just publish        # cargo xtask publish --yes
+just publish-tag    # cargo xtask publish --yes --tag
+```
+
 ## Language Bindings (Planned)
 
 We're building native FFI bindings for Python and Node.js:

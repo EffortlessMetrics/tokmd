@@ -124,3 +124,169 @@ pub(crate) fn write_analysis_stdout(
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_child_include_to_string_separate() {
+        assert_eq!(
+            child_include_to_string(cli::ChildIncludeMode::Separate),
+            "separate"
+        );
+    }
+
+    #[test]
+    fn test_child_include_to_string_parents_only() {
+        assert_eq!(
+            child_include_to_string(cli::ChildIncludeMode::ParentsOnly),
+            "parents-only"
+        );
+    }
+
+    #[test]
+    fn test_preset_to_string_all_variants() {
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Receipt), "receipt");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Health), "health");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Risk), "risk");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Supply), "supply");
+        assert_eq!(
+            preset_to_string(cli::AnalysisPreset::Architecture),
+            "architecture"
+        );
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Topics), "topics");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Security), "security");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Identity), "identity");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Git), "git");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Deep), "deep");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Fun), "fun");
+    }
+
+    #[test]
+    fn test_format_to_string_all_variants() {
+        assert_eq!(format_to_string(cli::AnalysisFormat::Md), "md");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Json), "json");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Jsonld), "jsonld");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Xml), "xml");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Svg), "svg");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Mermaid), "mermaid");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Obj), "obj");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Midi), "midi");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Tree), "tree");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Html), "html");
+    }
+
+    #[test]
+    fn test_granularity_to_string() {
+        assert_eq!(
+            granularity_to_string(cli::ImportGranularity::Module),
+            "module"
+        );
+        assert_eq!(granularity_to_string(cli::ImportGranularity::File), "file");
+    }
+
+    #[test]
+    fn test_map_preset_all_variants() {
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Receipt),
+            analysis::AnalysisPreset::Receipt
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Health),
+            analysis::AnalysisPreset::Health
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Risk),
+            analysis::AnalysisPreset::Risk
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Supply),
+            analysis::AnalysisPreset::Supply
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Architecture),
+            analysis::AnalysisPreset::Architecture
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Topics),
+            analysis::AnalysisPreset::Topics
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Security),
+            analysis::AnalysisPreset::Security
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Identity),
+            analysis::AnalysisPreset::Identity
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Git),
+            analysis::AnalysisPreset::Git
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Deep),
+            analysis::AnalysisPreset::Deep
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Fun),
+            analysis::AnalysisPreset::Fun
+        ));
+    }
+
+    #[test]
+    fn test_map_granularity() {
+        assert!(matches!(
+            map_granularity(cli::ImportGranularity::Module),
+            analysis::ImportGranularity::Module
+        ));
+        assert!(matches!(
+            map_granularity(cli::ImportGranularity::File),
+            analysis::ImportGranularity::File
+        ));
+    }
+
+    #[test]
+    fn test_analysis_output_filename() {
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Md),
+            "analysis.md"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Json),
+            "analysis.json"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Jsonld),
+            "analysis.jsonld"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Xml),
+            "analysis.xml"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Svg),
+            "analysis.svg"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Mermaid),
+            "analysis.mmd"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Obj),
+            "analysis.obj"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Midi),
+            "analysis.mid"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Tree),
+            "analysis.tree.txt"
+        );
+        assert_eq!(
+            analysis_output_filename(cli::AnalysisFormat::Html),
+            "analysis.html"
+        );
+    }
+}

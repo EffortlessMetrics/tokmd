@@ -16,17 +16,25 @@ pub enum Commands {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct PublishArgs {
-    /// Run in dry-run mode (no actual publishing)
+    /// Show publish plan without executing anything (no crates.io interaction)
+    #[arg(long)]
+    pub plan: bool,
+
+    /// Run in dry-run mode (runs `cargo publish --dry-run` per crate, validates packaging)
     #[arg(long, short = 'n')]
     pub dry_run: bool,
 
-    /// Run cargo publish --dry-run for each crate before actual publish
-    #[arg(long)]
+    /// Run cargo publish --dry-run for each crate before actual publish (deprecated: use --dry-run)
+    #[arg(long, hide = true)]
     pub verify: bool,
 
     /// Seconds to wait between publishes for crates.io propagation
     #[arg(long, default_value = "10")]
     pub interval: u64,
+
+    /// Seconds to wait between retries for dependency propagation
+    #[arg(long, default_value = "30")]
+    pub retry_delay: u64,
 
     /// Maximum duration (in seconds) for each publish attempt
     #[arg(long, default_value = "300")]
@@ -64,11 +72,11 @@ pub struct PublishArgs {
     #[arg(long)]
     pub skip_version_check: bool,
 
-    /// Specific crates to publish (comma-separated). If not specified, all crates are published.
+    /// Specific crates to publish (comma-separated). Transitive workspace dependencies are included.
     #[arg(long, value_delimiter = ',')]
     pub crates: Option<Vec<String>>,
 
-    /// Exclude specific crates from publishing (comma-separated)
+    /// Exclude specific crates from publishing (comma-separated). Fails if exclusion would break dependencies.
     #[arg(long, value_delimiter = ',')]
     pub exclude: Option<Vec<String>>,
 
@@ -79,4 +87,8 @@ pub struct PublishArgs {
     /// Custom tag format (use {version} placeholder, e.g., "release-{version}")
     #[arg(long, default_value = "v{version}")]
     pub tag_format: String,
+
+    /// Skip confirmation prompt (required for non-dry-run without TTY)
+    #[arg(long, short = 'y')]
+    pub yes: bool,
 }

@@ -282,6 +282,11 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--compress` | Strip comments and blank lines from bundle output. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
+| `--out <PATH>` | Write output to file instead of stdout. | `(stdout)` |
+| `--force` | Overwrite existing output file. | `false` |
+| `--bundle-dir <DIR>` | Write bundle to directory with manifest (receipt.json, bundle.txt, manifest.json). | `(none)` |
+| `--log <PATH>` | Append JSONL record to log file (metadata only). | `(none)` |
+| `--max-output-bytes <N>` | Warn if output exceeds N bytes (0=disable). | `10485760` |
 
 > **Note**: `--rank-by churn` and `--rank-by hotspot` require git history. If no git data is available, they fall back to ranking by `code` lines with a warning.
 
@@ -291,16 +296,22 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 tokmd context --budget 128k
 
 # Create a bundle ready to paste into Claude
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
 
 # Compressed bundle (no comments/blanks)
-tokmd context --budget 100k --output bundle --compress
+tokmd context --budget 100k --output bundle --compress --out bundle.txt
 
 # JSON receipt for programmatic use
-tokmd context --budget 128k --output json > selection.json
+tokmd context --budget 128k --output json --out selection.json
+
+# Bundle to directory for large outputs
+tokmd context --budget 200k --bundle-dir ./ctx-bundle
+
+# Track context runs over time
+tokmd context --budget 128k --log runs.jsonl
 ```
 
 ### `tokmd check-ignore`

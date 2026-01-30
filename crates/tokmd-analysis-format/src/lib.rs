@@ -853,3 +853,1105 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
         .replace('\'', "&#x27;")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokmd_analysis_types::*;
+
+    fn minimal_receipt() -> AnalysisReceipt {
+        AnalysisReceipt {
+            schema_version: 2,
+            generated_at_ms: 0,
+            tool: tokmd_types::ToolInfo {
+                name: "tokmd".to_string(),
+                version: "0.0.0".to_string(),
+            },
+            mode: "analysis".to_string(),
+            status: tokmd_types::ScanStatus::Complete,
+            warnings: vec![],
+            source: AnalysisSource {
+                inputs: vec!["test".to_string()],
+                export_path: None,
+                base_receipt_path: None,
+                export_schema_version: None,
+                export_generated_at_ms: None,
+                base_signature: None,
+                module_roots: vec![],
+                module_depth: 1,
+                children: "collapse".to_string(),
+            },
+            args: AnalysisArgsMeta {
+                preset: "receipt".to_string(),
+                format: "md".to_string(),
+                window_tokens: None,
+                git: None,
+                max_files: None,
+                max_bytes: None,
+                max_commits: None,
+                max_commit_files: None,
+                max_file_bytes: None,
+                import_granularity: "module".to_string(),
+            },
+            archetype: None,
+            topics: None,
+            entropy: None,
+            predictive_churn: None,
+            corporate_fingerprint: None,
+            license: None,
+            derived: None,
+            assets: None,
+            deps: None,
+            git: None,
+            imports: None,
+            dup: None,
+            fun: None,
+        }
+    }
+
+    fn sample_derived() -> DerivedReport {
+        DerivedReport {
+            totals: DerivedTotals {
+                files: 10,
+                code: 1000,
+                comments: 200,
+                blanks: 100,
+                lines: 1300,
+                bytes: 50000,
+                tokens: 2500,
+            },
+            doc_density: RatioReport {
+                total: RatioRow {
+                    key: "total".to_string(),
+                    numerator: 200,
+                    denominator: 1200,
+                    ratio: 0.1667,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            whitespace: RatioReport {
+                total: RatioRow {
+                    key: "total".to_string(),
+                    numerator: 100,
+                    denominator: 1300,
+                    ratio: 0.0769,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            verbosity: RateReport {
+                total: RateRow {
+                    key: "total".to_string(),
+                    numerator: 50000,
+                    denominator: 1300,
+                    rate: 38.46,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            max_file: MaxFileReport {
+                overall: FileStatRow {
+                    path: "src/lib.rs".to_string(),
+                    module: "src".to_string(),
+                    lang: "Rust".to_string(),
+                    code: 500,
+                    comments: 100,
+                    blanks: 50,
+                    lines: 650,
+                    bytes: 25000,
+                    tokens: 1250,
+                    doc_pct: Some(0.167),
+                    bytes_per_line: Some(38.46),
+                    depth: 1,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            lang_purity: LangPurityReport { rows: vec![] },
+            nesting: NestingReport {
+                max: 3,
+                avg: 1.5,
+                by_module: vec![],
+            },
+            test_density: TestDensityReport {
+                test_lines: 200,
+                prod_lines: 1000,
+                test_files: 5,
+                prod_files: 5,
+                ratio: 0.2,
+            },
+            boilerplate: BoilerplateReport {
+                infra_lines: 100,
+                logic_lines: 1100,
+                ratio: 0.083,
+                infra_langs: vec!["TOML".to_string()],
+            },
+            polyglot: PolyglotReport {
+                lang_count: 2,
+                entropy: 0.5,
+                dominant_lang: "Rust".to_string(),
+                dominant_lines: 1000,
+                dominant_pct: 0.833,
+            },
+            distribution: DistributionReport {
+                count: 10,
+                min: 50,
+                max: 650,
+                mean: 130.0,
+                median: 100.0,
+                p90: 400.0,
+                p99: 650.0,
+                gini: 0.3,
+            },
+            histogram: vec![HistogramBucket {
+                label: "Small".to_string(),
+                min: 0,
+                max: Some(100),
+                files: 5,
+                pct: 0.5,
+            }],
+            top: TopOffenders {
+                largest_lines: vec![FileStatRow {
+                    path: "src/lib.rs".to_string(),
+                    module: "src".to_string(),
+                    lang: "Rust".to_string(),
+                    code: 500,
+                    comments: 100,
+                    blanks: 50,
+                    lines: 650,
+                    bytes: 25000,
+                    tokens: 1250,
+                    doc_pct: Some(0.167),
+                    bytes_per_line: Some(38.46),
+                    depth: 1,
+                }],
+                largest_tokens: vec![],
+                largest_bytes: vec![],
+                least_documented: vec![],
+                most_dense: vec![],
+            },
+            tree: Some("test-tree".to_string()),
+            reading_time: ReadingTimeReport {
+                minutes: 65.0,
+                lines_per_minute: 20,
+                basis_lines: 1300,
+            },
+            context_window: Some(ContextWindowReport {
+                window_tokens: 100000,
+                total_tokens: 2500,
+                pct: 0.025,
+                fits: true,
+            }),
+            cocomo: Some(CocomoReport {
+                mode: "organic".to_string(),
+                kloc: 1.0,
+                effort_pm: 2.4,
+                duration_months: 2.5,
+                staff: 1.0,
+                a: 2.4,
+                b: 1.05,
+                c: 2.5,
+                d: 0.38,
+            }),
+            todo: Some(TodoReport {
+                total: 5,
+                density_per_kloc: 5.0,
+                tags: vec![TodoTagRow {
+                    tag: "TODO".to_string(),
+                    count: 5,
+                }],
+            }),
+            integrity: IntegrityReport {
+                algo: "blake3".to_string(),
+                hash: "abc123".to_string(),
+                entries: 10,
+            },
+        }
+    }
+
+    // Test fmt_pct
+    #[test]
+    fn test_fmt_pct() {
+        assert_eq!(fmt_pct(0.5), "50.0%");
+        assert_eq!(fmt_pct(0.0), "0.0%");
+        assert_eq!(fmt_pct(1.0), "100.0%");
+        assert_eq!(fmt_pct(0.1234), "12.3%");
+    }
+
+    // Test fmt_f64
+    #[test]
+    fn test_fmt_f64() {
+        assert_eq!(fmt_f64(3.14159, 2), "3.14");
+        assert_eq!(fmt_f64(3.14159, 4), "3.1416");
+        assert_eq!(fmt_f64(0.0, 2), "0.00");
+        assert_eq!(fmt_f64(100.0, 0), "100");
+    }
+
+    // Test format_number
+    #[test]
+    fn test_format_number() {
+        assert_eq!(format_number(500), "500");
+        assert_eq!(format_number(1000), "1.0K");
+        assert_eq!(format_number(1500), "1.5K");
+        assert_eq!(format_number(1000000), "1.0M");
+        assert_eq!(format_number(2500000), "2.5M");
+        // Edge cases for comparison operators
+        assert_eq!(format_number(999), "999");
+        assert_eq!(format_number(999999), "1000.0K");
+    }
+
+    // Test html_escape
+    #[test]
+    fn test_html_escape() {
+        assert_eq!(html_escape("hello"), "hello");
+        assert_eq!(html_escape("<script>"), "&lt;script&gt;");
+        assert_eq!(html_escape("a & b"), "a &amp; b");
+        assert_eq!(html_escape("\"quoted\""), "&quot;quoted&quot;");
+        assert_eq!(html_escape("it's"), "it&#x27;s");
+        // All special characters together
+        assert_eq!(
+            html_escape("<a href=\"test\">&'"),
+            "&lt;a href=&quot;test&quot;&gt;&amp;&#x27;"
+        );
+    }
+
+    // Test sanitize_mermaid
+    #[test]
+    fn test_sanitize_mermaid() {
+        assert_eq!(sanitize_mermaid("hello"), "hello");
+        assert_eq!(sanitize_mermaid("hello-world"), "hello_world");
+        assert_eq!(sanitize_mermaid("src/lib.rs"), "src_lib_rs");
+        assert_eq!(sanitize_mermaid("test123"), "test123");
+        assert_eq!(sanitize_mermaid("a b c"), "a_b_c");
+    }
+
+    // Test render_file_table
+    #[test]
+    fn test_render_file_table() {
+        let rows = vec![FileStatRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            code: 100,
+            comments: 20,
+            blanks: 10,
+            lines: 130,
+            bytes: 5000,
+            tokens: 250,
+            doc_pct: Some(0.167),
+            bytes_per_line: Some(38.46),
+            depth: 1,
+        }];
+        let result = render_file_table(&rows);
+        assert!(result.contains("|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|"));
+        assert!(result.contains("|src/lib.rs|Rust|130|100|5000|250|16.7%|38.46|"));
+    }
+
+    // Test render_file_table with None values
+    #[test]
+    fn test_render_file_table_none_values() {
+        let rows = vec![FileStatRow {
+            path: "test.txt".to_string(),
+            module: "root".to_string(),
+            lang: "Text".to_string(),
+            code: 50,
+            comments: 0,
+            blanks: 5,
+            lines: 55,
+            bytes: 1000,
+            tokens: 100,
+            doc_pct: None,
+            bytes_per_line: None,
+            depth: 0,
+        }];
+        let result = render_file_table(&rows);
+        assert!(result.contains("|-|-|")); // Should have dashes for None values
+    }
+
+    // Test render_xml
+    #[test]
+    fn test_render_xml() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_xml(&receipt);
+        assert!(result.starts_with("<analysis>"));
+        assert!(result.ends_with("</analysis>"));
+        assert!(result.contains("files=\"10\""));
+        assert!(result.contains("code=\"1000\""));
+    }
+
+    // Test render_xml without derived
+    #[test]
+    fn test_render_xml_no_derived() {
+        let receipt = minimal_receipt();
+        let result = render_xml(&receipt);
+        assert_eq!(result, "<analysis></analysis>");
+    }
+
+    // Test render_jsonld
+    #[test]
+    fn test_render_jsonld() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_jsonld(&receipt);
+        assert!(result.contains("\"@context\": \"https://schema.org\""));
+        assert!(result.contains("\"@type\": \"SoftwareSourceCode\""));
+        assert!(result.contains("\"name\": \"test\""));
+        assert!(result.contains("\"codeLines\": 1000"));
+    }
+
+    // Test render_jsonld without inputs
+    #[test]
+    fn test_render_jsonld_empty_inputs() {
+        let mut receipt = minimal_receipt();
+        receipt.source.inputs.clear();
+        let result = render_jsonld(&receipt);
+        assert!(result.contains("\"name\": \"tokmd\""));
+    }
+
+    // Test render_svg
+    #[test]
+    fn test_render_svg() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_svg(&receipt);
+        assert!(result.contains("<svg"));
+        assert!(result.contains("</svg>"));
+        assert!(result.contains("context")); // has context_window
+        assert!(result.contains("2.5%")); // pct value
+    }
+
+    // Test render_svg without context_window
+    #[test]
+    fn test_render_svg_no_context() {
+        let mut receipt = minimal_receipt();
+        let mut derived = sample_derived();
+        derived.context_window = None;
+        receipt.derived = Some(derived);
+        let result = render_svg(&receipt);
+        assert!(result.contains("tokens"));
+        assert!(result.contains("2500")); // total tokens
+    }
+
+    // Test render_svg without derived
+    #[test]
+    fn test_render_svg_no_derived() {
+        let receipt = minimal_receipt();
+        let result = render_svg(&receipt);
+        assert!(result.contains("tokens"));
+        assert!(result.contains(">0<")); // default 0 value
+    }
+
+    // Test render_svg arithmetic (width - label_width = value_width)
+    #[test]
+    fn test_render_svg_dimensions() {
+        let receipt = minimal_receipt();
+        let result = render_svg(&receipt);
+        // width=240, label_width=80, value_width should be 160
+        assert!(result.contains("width=\"160\"")); // value_width = 240 - 80
+    }
+
+    // Test render_mermaid
+    #[test]
+    fn test_render_mermaid() {
+        let mut receipt = minimal_receipt();
+        receipt.imports = Some(ImportReport {
+            granularity: "module".to_string(),
+            edges: vec![ImportEdge {
+                from: "src/main".to_string(),
+                to: "src/lib".to_string(),
+                count: 5,
+            }],
+        });
+        let result = render_mermaid(&receipt);
+        assert!(result.starts_with("graph TD\n"));
+        assert!(result.contains("src_main -->|5| src_lib"));
+    }
+
+    // Test render_mermaid no imports
+    #[test]
+    fn test_render_mermaid_no_imports() {
+        let receipt = minimal_receipt();
+        let result = render_mermaid(&receipt);
+        assert_eq!(result, "graph TD\n");
+    }
+
+    // Test render_tree
+    #[test]
+    fn test_render_tree() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_tree(&receipt);
+        assert_eq!(result, "test-tree");
+    }
+
+    // Test render_tree without derived
+    #[test]
+    fn test_render_tree_no_derived() {
+        let receipt = minimal_receipt();
+        let result = render_tree(&receipt);
+        assert_eq!(result, "(tree unavailable)");
+    }
+
+    // Test render_tree with no tree in derived
+    #[test]
+    fn test_render_tree_none() {
+        let mut receipt = minimal_receipt();
+        let mut derived = sample_derived();
+        derived.tree = None;
+        receipt.derived = Some(derived);
+        let result = render_tree(&receipt);
+        assert_eq!(result, "(tree unavailable)");
+    }
+
+    // Test render_obj (non-fun feature)
+    #[cfg(not(feature = "fun"))]
+    #[test]
+    fn test_render_obj_no_fun() {
+        let receipt = minimal_receipt();
+        let result = render_obj(&receipt);
+        assert_eq!(result, "# obj (fun feature disabled)");
+    }
+
+    // Test render_midi (non-fun feature)
+    #[cfg(not(feature = "fun"))]
+    #[test]
+    fn test_render_midi_no_fun() {
+        let receipt = minimal_receipt();
+        let result = render_midi(&receipt).unwrap();
+        assert!(result.is_empty());
+    }
+
+    // Test render_md basic structure
+    #[test]
+    fn test_render_md_basic() {
+        let receipt = minimal_receipt();
+        let result = render_md(&receipt);
+        assert!(result.starts_with("# tokmd analysis\n"));
+        assert!(result.contains("Preset: `receipt`"));
+    }
+
+    // Test render_md with inputs
+    #[test]
+    fn test_render_md_inputs() {
+        let mut receipt = minimal_receipt();
+        receipt.source.inputs = vec!["path1".to_string(), "path2".to_string()];
+        let result = render_md(&receipt);
+        assert!(result.contains("## Inputs"));
+        assert!(result.contains("- `path1`"));
+        assert!(result.contains("- `path2`"));
+    }
+
+    // Test render_md empty inputs - should NOT have inputs section
+    #[test]
+    fn test_render_md_empty_inputs() {
+        let mut receipt = minimal_receipt();
+        receipt.source.inputs.clear();
+        let result = render_md(&receipt);
+        assert!(!result.contains("## Inputs"));
+    }
+
+    // Test render_md with archetype
+    #[test]
+    fn test_render_md_archetype() {
+        let mut receipt = minimal_receipt();
+        receipt.archetype = Some(Archetype {
+            kind: "library".to_string(),
+            evidence: vec!["Cargo.toml".to_string(), "src/lib.rs".to_string()],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Archetype"));
+        assert!(result.contains("- Kind: `library`"));
+        assert!(result.contains("- Evidence: `Cargo.toml`, `src/lib.rs`"));
+    }
+
+    // Test render_md with archetype empty evidence
+    #[test]
+    fn test_render_md_archetype_no_evidence() {
+        let mut receipt = minimal_receipt();
+        receipt.archetype = Some(Archetype {
+            kind: "app".to_string(),
+            evidence: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Archetype"));
+        assert!(result.contains("- Kind: `app`"));
+        assert!(!result.contains("Evidence"));
+    }
+
+    // Test render_md with topics
+    #[test]
+    fn test_render_md_topics() {
+        use std::collections::BTreeMap;
+        let mut per_module = BTreeMap::new();
+        per_module.insert(
+            "src".to_string(),
+            vec![TopicTerm {
+                term: "parser".to_string(),
+                score: 1.5,
+                tf: 10,
+                df: 2,
+            }],
+        );
+        let mut receipt = minimal_receipt();
+        receipt.topics = Some(TopicClouds {
+            overall: vec![TopicTerm {
+                term: "code".to_string(),
+                score: 2.0,
+                tf: 20,
+                df: 5,
+            }],
+            per_module,
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Topics"));
+        assert!(result.contains("- Overall: `code`"));
+        assert!(result.contains("- `src`: parser"));
+    }
+
+    // Test render_md with topics empty module terms
+    #[test]
+    fn test_render_md_topics_empty_module() {
+        use std::collections::BTreeMap;
+        let mut per_module = BTreeMap::new();
+        per_module.insert("empty_module".to_string(), vec![]);
+        let mut receipt = minimal_receipt();
+        receipt.topics = Some(TopicClouds {
+            overall: vec![],
+            per_module,
+        });
+        let result = render_md(&receipt);
+        // Empty module should be skipped
+        assert!(!result.contains("empty_module"));
+    }
+
+    // Test render_md with entropy
+    #[test]
+    fn test_render_md_entropy() {
+        let mut receipt = minimal_receipt();
+        receipt.entropy = Some(EntropyReport {
+            suspects: vec![EntropyFinding {
+                path: "secret.bin".to_string(),
+                module: "root".to_string(),
+                entropy_bits_per_byte: 7.5,
+                sample_bytes: 1024,
+                class: EntropyClass::High,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Entropy profiling"));
+        assert!(result.contains("|secret.bin|root|7.50|1024|High|"));
+    }
+
+    // Test render_md with entropy no suspects
+    #[test]
+    fn test_render_md_entropy_no_suspects() {
+        let mut receipt = minimal_receipt();
+        receipt.entropy = Some(EntropyReport { suspects: vec![] });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Entropy profiling"));
+        assert!(result.contains("No entropy outliers detected"));
+    }
+
+    // Test render_md with license
+    #[test]
+    fn test_render_md_license() {
+        let mut receipt = minimal_receipt();
+        receipt.license = Some(LicenseReport {
+            effective: Some("MIT".to_string()),
+            findings: vec![LicenseFinding {
+                spdx: "MIT".to_string(),
+                confidence: 0.95,
+                source_path: "LICENSE".to_string(),
+                source_kind: LicenseSourceKind::Text,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## License radar"));
+        assert!(result.contains("- Effective: `MIT`"));
+        assert!(result.contains("|MIT|0.95|LICENSE|Text|"));
+    }
+
+    // Test render_md with license empty findings
+    #[test]
+    fn test_render_md_license_no_findings() {
+        let mut receipt = minimal_receipt();
+        receipt.license = Some(LicenseReport {
+            effective: None,
+            findings: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## License radar"));
+        assert!(result.contains("Heuristic detection"));
+        assert!(!result.contains("|SPDX|")); // No table header
+    }
+
+    // Test render_md with corporate fingerprint
+    #[test]
+    fn test_render_md_corporate_fingerprint() {
+        let mut receipt = minimal_receipt();
+        receipt.corporate_fingerprint = Some(CorporateFingerprint {
+            domains: vec![DomainStat {
+                domain: "example.com".to_string(),
+                commits: 50,
+                pct: 0.75,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Corporate fingerprint"));
+        assert!(result.contains("|example.com|50|75.0%|"));
+    }
+
+    // Test render_md with corporate fingerprint no domains
+    #[test]
+    fn test_render_md_corporate_fingerprint_no_domains() {
+        let mut receipt = minimal_receipt();
+        receipt.corporate_fingerprint = Some(CorporateFingerprint { domains: vec![] });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Corporate fingerprint"));
+        assert!(result.contains("No commit domains detected"));
+    }
+
+    // Test render_md with predictive churn
+    #[test]
+    fn test_render_md_churn() {
+        use std::collections::BTreeMap;
+        let mut per_module = BTreeMap::new();
+        per_module.insert(
+            "src".to_string(),
+            ChurnTrend {
+                slope: 0.5,
+                r2: 0.8,
+                recent_change: 5,
+                classification: TrendClass::Rising,
+            },
+        );
+        let mut receipt = minimal_receipt();
+        receipt.predictive_churn = Some(PredictiveChurnReport { per_module });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Predictive churn"));
+        assert!(result.contains("|src|0.5000|0.80|5|Rising|"));
+    }
+
+    // Test render_md with predictive churn empty
+    #[test]
+    fn test_render_md_churn_empty() {
+        use std::collections::BTreeMap;
+        let mut receipt = minimal_receipt();
+        receipt.predictive_churn = Some(PredictiveChurnReport {
+            per_module: BTreeMap::new(),
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Predictive churn"));
+        assert!(result.contains("No churn signals detected"));
+    }
+
+    // Test render_md with assets
+    #[test]
+    fn test_render_md_assets() {
+        let mut receipt = minimal_receipt();
+        receipt.assets = Some(AssetReport {
+            total_files: 5,
+            total_bytes: 1000000,
+            categories: vec![AssetCategoryRow {
+                category: "images".to_string(),
+                files: 3,
+                bytes: 500000,
+                extensions: vec!["png".to_string(), "jpg".to_string()],
+            }],
+            top_files: vec![AssetFileRow {
+                path: "logo.png".to_string(),
+                bytes: 100000,
+                category: "images".to_string(),
+                extension: "png".to_string(),
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Assets"));
+        assert!(result.contains("- Total files: `5`"));
+        assert!(result.contains("|images|3|500000|png, jpg|"));
+        assert!(result.contains("|logo.png|100000|images|"));
+    }
+
+    // Test render_md with assets empty categories
+    #[test]
+    fn test_render_md_assets_empty() {
+        let mut receipt = minimal_receipt();
+        receipt.assets = Some(AssetReport {
+            total_files: 0,
+            total_bytes: 0,
+            categories: vec![],
+            top_files: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Assets"));
+        assert!(result.contains("- Total files: `0`"));
+        assert!(!result.contains("|Category|")); // No table
+    }
+
+    // Test render_md with deps
+    #[test]
+    fn test_render_md_deps() {
+        let mut receipt = minimal_receipt();
+        receipt.deps = Some(DependencyReport {
+            total: 50,
+            lockfiles: vec![LockfileReport {
+                path: "Cargo.lock".to_string(),
+                kind: "cargo".to_string(),
+                dependencies: 50,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Dependencies"));
+        assert!(result.contains("- Total: `50`"));
+        assert!(result.contains("|Cargo.lock|cargo|50|"));
+    }
+
+    // Test render_md with deps empty lockfiles
+    #[test]
+    fn test_render_md_deps_empty() {
+        let mut receipt = minimal_receipt();
+        receipt.deps = Some(DependencyReport {
+            total: 0,
+            lockfiles: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Dependencies"));
+        assert!(!result.contains("|Lockfile|"));
+    }
+
+    // Test render_md with git
+    #[test]
+    fn test_render_md_git() {
+        let mut receipt = minimal_receipt();
+        receipt.git = Some(GitReport {
+            commits_scanned: 100,
+            files_seen: 50,
+            hotspots: vec![HotspotRow {
+                path: "src/lib.rs".to_string(),
+                commits: 25,
+                lines: 500,
+                score: 12500,
+            }],
+            bus_factor: vec![BusFactorRow {
+                module: "src".to_string(),
+                authors: 3,
+            }],
+            freshness: FreshnessReport {
+                threshold_days: 90,
+                stale_files: 5,
+                total_files: 50,
+                stale_pct: 0.1,
+                by_module: vec![ModuleFreshnessRow {
+                    module: "src".to_string(),
+                    avg_days: 30.0,
+                    p90_days: 60.0,
+                    stale_pct: 0.05,
+                }],
+            },
+            coupling: vec![CouplingRow {
+                left: "src/a.rs".to_string(),
+                right: "src/b.rs".to_string(),
+                count: 10,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Git metrics"));
+        assert!(result.contains("- Commits scanned: `100`"));
+        assert!(result.contains("|src/lib.rs|25|500|12500|"));
+        assert!(result.contains("|src|3|"));
+        assert!(result.contains("Stale threshold (days): `90`"));
+        assert!(result.contains("|src|30.00|60.00|5.0%|"));
+        assert!(result.contains("|src/a.rs|src/b.rs|10|"));
+    }
+
+    // Test render_md with git empty sections
+    #[test]
+    fn test_render_md_git_empty() {
+        let mut receipt = minimal_receipt();
+        receipt.git = Some(GitReport {
+            commits_scanned: 0,
+            files_seen: 0,
+            hotspots: vec![],
+            bus_factor: vec![],
+            freshness: FreshnessReport {
+                threshold_days: 90,
+                stale_files: 0,
+                total_files: 0,
+                stale_pct: 0.0,
+                by_module: vec![],
+            },
+            coupling: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Git metrics"));
+        assert!(!result.contains("### Hotspots"));
+        assert!(!result.contains("### Bus factor"));
+        assert!(!result.contains("### Coupling"));
+    }
+
+    // Test render_md with imports
+    #[test]
+    fn test_render_md_imports() {
+        let mut receipt = minimal_receipt();
+        receipt.imports = Some(ImportReport {
+            granularity: "file".to_string(),
+            edges: vec![ImportEdge {
+                from: "src/main.rs".to_string(),
+                to: "src/lib.rs".to_string(),
+                count: 5,
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Imports"));
+        assert!(result.contains("- Granularity: `file`"));
+        assert!(result.contains("|src/main.rs|src/lib.rs|5|"));
+    }
+
+    // Test render_md with imports empty
+    #[test]
+    fn test_render_md_imports_empty() {
+        let mut receipt = minimal_receipt();
+        receipt.imports = Some(ImportReport {
+            granularity: "module".to_string(),
+            edges: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Imports"));
+        assert!(!result.contains("|From|To|"));
+    }
+
+    // Test render_md with dup
+    #[test]
+    fn test_render_md_dup() {
+        let mut receipt = minimal_receipt();
+        receipt.dup = Some(DuplicateReport {
+            wasted_bytes: 50000,
+            strategy: "content".to_string(),
+            groups: vec![DuplicateGroup {
+                hash: "abc123".to_string(),
+                bytes: 1000,
+                files: vec!["a.txt".to_string(), "b.txt".to_string()],
+            }],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Duplicates"));
+        assert!(result.contains("- Wasted bytes: `50000`"));
+        assert!(result.contains("|abc123|1000|2|")); // 2 files
+    }
+
+    // Test render_md with dup empty
+    #[test]
+    fn test_render_md_dup_empty() {
+        let mut receipt = minimal_receipt();
+        receipt.dup = Some(DuplicateReport {
+            wasted_bytes: 0,
+            strategy: "content".to_string(),
+            groups: vec![],
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Duplicates"));
+        assert!(!result.contains("|Hash|Bytes|"));
+    }
+
+    // Test render_md with fun eco_label
+    #[test]
+    fn test_render_md_fun() {
+        let mut receipt = minimal_receipt();
+        receipt.fun = Some(FunReport {
+            eco_label: Some(EcoLabel {
+                label: "A+".to_string(),
+                score: 95.5,
+                bytes: 10000,
+                notes: "Very efficient".to_string(),
+            }),
+        });
+        let result = render_md(&receipt);
+        assert!(result.contains("## Eco label"));
+        assert!(result.contains("- Label: `A+`"));
+        assert!(result.contains("- Score: `95.5`"));
+    }
+
+    // Test render_md with fun no eco_label
+    #[test]
+    fn test_render_md_fun_no_label() {
+        let mut receipt = minimal_receipt();
+        receipt.fun = Some(FunReport { eco_label: None });
+        let result = render_md(&receipt);
+        // No eco label section should appear
+        assert!(!result.contains("## Eco label"));
+    }
+
+    // Test render_md with derived
+    #[test]
+    fn test_render_md_derived() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_md(&receipt);
+        assert!(result.contains("## Totals"));
+        assert!(result.contains("|10|1000|200|100|1300|50000|2500|"));
+        assert!(result.contains("## Ratios"));
+        assert!(result.contains("## Distribution"));
+        assert!(result.contains("## File size histogram"));
+        assert!(result.contains("## Top offenders"));
+        assert!(result.contains("## Structure"));
+        assert!(result.contains("## Test density"));
+        assert!(result.contains("## TODOs"));
+        assert!(result.contains("## Boilerplate ratio"));
+        assert!(result.contains("## Polyglot"));
+        assert!(result.contains("## Reading time"));
+        assert!(result.contains("## Context window"));
+        assert!(result.contains("## COCOMO estimate"));
+        assert!(result.contains("## Integrity"));
+    }
+
+    // Test render function dispatch
+    #[test]
+    fn test_render_dispatch_md() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Md).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.starts_with("# tokmd analysis")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_json() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Json).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.contains("\"schema_version\": 2")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_xml() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Xml).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.contains("<analysis>")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_tree() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Tree).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.contains("(tree unavailable)")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_svg() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Svg).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.contains("<svg")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_mermaid() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Mermaid).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.starts_with("graph TD")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    #[test]
+    fn test_render_dispatch_jsonld() {
+        let receipt = minimal_receipt();
+        let result = render(&receipt, tokmd_config::AnalysisFormat::Jsonld).unwrap();
+        match result {
+            RenderedOutput::Text(s) => assert!(s.contains("@context")),
+            RenderedOutput::Binary(_) => panic!("expected text"),
+        }
+    }
+
+    // Test chrono_lite_timestamp produces valid format
+    #[test]
+    fn test_chrono_lite_timestamp() {
+        let ts = chrono_lite_timestamp();
+        // Should be in format "YYYY-MM-DD HH:MM:SS UTC"
+        assert!(ts.contains("UTC"));
+        assert!(ts.len() > 10); // Should be reasonably long
+    }
+
+    // Test build_metrics_cards
+    #[test]
+    fn test_build_metrics_cards() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = build_metrics_cards(&receipt);
+        assert!(result.contains("class=\"metric-card\""));
+        assert!(result.contains("Files"));
+        assert!(result.contains("Lines"));
+        assert!(result.contains("Code"));
+        assert!(result.contains("Context Fit")); // Has context_window
+    }
+
+    // Test build_metrics_cards without derived
+    #[test]
+    fn test_build_metrics_cards_no_derived() {
+        let receipt = minimal_receipt();
+        let result = build_metrics_cards(&receipt);
+        assert!(result.is_empty());
+    }
+
+    // Test build_table_rows
+    #[test]
+    fn test_build_table_rows() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = build_table_rows(&receipt);
+        assert!(result.contains("<tr>"));
+        assert!(result.contains("src/lib.rs"));
+    }
+
+    // Test build_table_rows without derived
+    #[test]
+    fn test_build_table_rows_no_derived() {
+        let receipt = minimal_receipt();
+        let result = build_table_rows(&receipt);
+        assert!(result.is_empty());
+    }
+
+    // Test build_report_json
+    #[test]
+    fn test_build_report_json() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = build_report_json(&receipt);
+        assert!(result.contains("files"));
+        assert!(result.contains("src/lib.rs"));
+        // XSS escaping
+        assert!(!result.contains("<"));
+        assert!(!result.contains(">"));
+    }
+
+    // Test build_report_json without derived
+    #[test]
+    fn test_build_report_json_no_derived() {
+        let receipt = minimal_receipt();
+        let result = build_report_json(&receipt);
+        assert!(result.contains("\"files\":[]"));
+    }
+
+    // Test render_html
+    #[test]
+    fn test_render_html() {
+        let mut receipt = minimal_receipt();
+        receipt.derived = Some(sample_derived());
+        let result = render_html(&receipt);
+        assert!(result.contains("<!DOCTYPE html>") || result.contains("<html"));
+    }
+}

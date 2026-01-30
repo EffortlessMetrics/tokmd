@@ -585,4 +585,33 @@ mod tests {
 
         assert!(!evaluate_rule(&receipt, &rule, false).passed);
     }
+
+    #[test]
+    fn test_in_operator_expected_format() {
+        // Kills the "delete match arm RuleOperator::In" mutant in the expected string formatting.
+        // The In operator must produce an expected string like "/pointer in [values]",
+        // not the generic "/pointer in " format from the wildcard arm.
+        let receipt = json!({"lang": "Rust"});
+
+        let rule = PolicyRule {
+            name: "lang_in".into(),
+            pointer: "/lang".into(),
+            op: RuleOperator::In,
+            value: None,
+            values: Some(vec![json!("Python"), json!("Go")]),
+            negate: false,
+            level: RuleLevel::Error,
+            message: None,
+        };
+
+        let result = evaluate_rule(&receipt, &rule, false);
+        assert!(!result.passed);
+        // The expected string must contain the values list, proving the In arm was used.
+        // If the In arm is deleted, expected would be "/lang in " (empty/missing values).
+        assert!(
+            result.expected.contains("Python") && result.expected.contains("Go"),
+            "expected string should contain the list values: got '{}'",
+            result.expected
+        );
+    }
 }

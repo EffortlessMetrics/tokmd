@@ -200,4 +200,208 @@ mod tests {
         let bytes = read_head_tail(&path, 5).unwrap();
         assert_eq!(bytes, b"01789");
     }
+
+    // ========================
+    // read_lines tests
+    // ========================
+
+    #[test]
+    fn test_read_lines_returns_actual_content() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("lines.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "first line").unwrap();
+        writeln!(f, "second line").unwrap();
+        writeln!(f, "third line").unwrap();
+
+        let lines = read_lines(&path, 10, 10000).unwrap();
+        // Verify actual content, not empty or dummy values
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0], "first line");
+        assert_eq!(lines[1], "second line");
+        assert_eq!(lines[2], "third line");
+    }
+
+    #[test]
+    fn test_read_lines_respects_max_lines_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("many_lines.txt");
+        let mut f = File::create(&path).unwrap();
+        for i in 0..10 {
+            writeln!(f, "line {}", i).unwrap();
+        }
+
+        // Request only 3 lines
+        let lines = read_lines(&path, 3, 10000).unwrap();
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0], "line 0");
+        assert_eq!(lines[1], "line 1");
+        assert_eq!(lines[2], "line 2");
+    }
+
+    #[test]
+    fn test_read_lines_respects_max_bytes_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("bytes_limited.txt");
+        let mut f = File::create(&path).unwrap();
+        // Each line is 10 chars: "line 0\n" etc
+        for i in 0..10 {
+            writeln!(f, "line {:04}", i).unwrap();
+        }
+
+        // Limit to 25 bytes - should get ~2-3 lines (each ~10 bytes)
+        let lines = read_lines(&path, 100, 25).unwrap();
+        // With byte limit of 25 and lines of ~10 bytes each,
+        // we should stop after accumulating >= 25 bytes
+        assert!(
+            lines.len() >= 2 && lines.len() <= 4,
+            "Expected 2-4 lines, got {}",
+            lines.len()
+        );
+        // Verify first line content
+        assert_eq!(lines[0], "line 0000");
+    }
+
+    #[test]
+    fn test_read_lines_bytes_accumulate_correctly() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("accumulate.txt");
+        let mut f = File::create(&path).unwrap();
+        // Write lines with known sizes
+        writeln!(f, "12345").unwrap(); // 5 bytes (without newline in result)
+        writeln!(f, "67890").unwrap(); // 5 more = 10 total
+        writeln!(f, "abcde").unwrap(); // 5 more = 15 total
+        writeln!(f, "fghij").unwrap(); // 5 more = 20 total
+
+        // Stop at exactly 10 bytes - should get 2 lines
+        let lines = read_lines(&path, 100, 10).unwrap();
+        assert_eq!(lines.len(), 2, "Should stop after reaching 10 bytes");
+        assert_eq!(lines[0], "12345");
+        assert_eq!(lines[1], "67890");
+    }
+
+    #[test]
+    fn test_read_lines_single_line_at_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("single.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "exactlyten").unwrap(); // 10 chars
+
+        // max_lines = 1 should stop after first line
+        let lines = read_lines(&path, 1, 10000).unwrap();
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "exactlyten");
+    }
+
+    #[test]
+    fn test_read_lines_bytes_limit_stops_after_reaching_threshold() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("threshold.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "aaaaa").unwrap(); // 5 bytes
+        writeln!(f, "bbbbb").unwrap(); // 5 bytes (total 10)
+        writeln!(f, "ccccc").unwrap(); // should not be read if limit is 9
+
+        // With limit of 9 bytes, we should get exactly 2 lines
+        // because after first line (5 bytes), bytes=5 < 9, continue
+        // after second line (5 bytes), bytes=10 >= 9, break
+        let lines = read_lines(&path, 100, 9).unwrap();
+        assert_eq!(lines.len(), 2);
+    }
+
+    // ========================
+    // read_text_capped tests
+    // ========================
+
+    #[test]
+    fn test_read_text_capped_returns_actual_content() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("text.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"Hello, World!").unwrap();
+
+        let text = read_text_capped(&path, 100).unwrap();
+        // Verify we get actual content, not empty or "xyzzy"
+        assert_eq!(text, "Hello, World!");
+    }
+
+    #[test]
+    fn test_read_text_capped_respects_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("long_text.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"The quick brown fox jumps over the lazy dog")
+            .unwrap();
+
+        let text = read_text_capped(&path, 9).unwrap();
+        assert_eq!(text, "The quick");
+    }
+
+    // ========================
+    // hash_file tests
+    // ========================
+
+    #[test]
+    fn test_hash_file_returns_correct_blake3_hash() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("hash_test.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"test content").unwrap();
+
+        let hash = hash_file(&path, 1000).unwrap();
+
+        // Verify it's not empty
+        assert!(!hash.is_empty());
+        // Verify it's 64 hex chars (BLAKE3 output)
+        assert_eq!(hash.len(), 64);
+        // Verify it matches expected BLAKE3 hash
+        let expected = hash_bytes(b"test content");
+        assert_eq!(hash, expected);
+    }
+
+    #[test]
+    fn test_hash_file_deterministic() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("deterministic.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"same content every time").unwrap();
+
+        let hash1 = hash_file(&path, 1000).unwrap();
+        let hash2 = hash_file(&path, 1000).unwrap();
+        assert_eq!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_hash_file_different_content_different_hash() {
+        let tmp = tempfile::tempdir().unwrap();
+
+        let path1 = tmp.path().join("file1.txt");
+        let mut f1 = File::create(&path1).unwrap();
+        f1.write_all(b"content A").unwrap();
+
+        let path2 = tmp.path().join("file2.txt");
+        let mut f2 = File::create(&path2).unwrap();
+        f2.write_all(b"content B").unwrap();
+
+        let hash1 = hash_file(&path1, 1000).unwrap();
+        let hash2 = hash_file(&path2, 1000).unwrap();
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_hash_file_respects_max_bytes() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("long_file.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"abcdefghij").unwrap();
+
+        // Hash only first 5 bytes
+        let hash_limited = hash_file(&path, 5).unwrap();
+        let expected = hash_bytes(b"abcde");
+        assert_eq!(hash_limited, expected);
+
+        // Full hash should be different
+        let hash_full = hash_file(&path, 1000).unwrap();
+        assert_ne!(hash_limited, hash_full);
+    }
 }

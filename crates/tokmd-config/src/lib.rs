@@ -559,6 +559,26 @@ pub struct CliContextArgs {
     /// Maximum files per commit to process.
     #[arg(long, default_value = "100")]
     pub max_commit_files: usize,
+
+    /// Write output to file instead of stdout.
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+
+    /// Overwrite existing output file.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Write bundle to directory with manifest (for large outputs).
+    #[arg(long, value_name = "DIR", conflicts_with = "out")]
+    pub bundle_dir: Option<PathBuf>,
+
+    /// Warn if output exceeds N bytes (default: 10MB, 0=disable).
+    #[arg(long, default_value = "10485760")]
+    pub max_output_bytes: u64,
+
+    /// Append JSONL record to log file (metadata only, not content).
+    #[arg(long, value_name = "PATH")]
+    pub log: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

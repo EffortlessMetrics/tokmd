@@ -1,10 +1,39 @@
 # scripts/publish-all.ps1
-# Automates the release of all tokmd crates in the correct dependency order.
-# Usage: ./scripts/publish-all.ps1 [-DryRun]
+# DEPRECATED: Use `cargo xtask publish` instead.
+#
+# The new xtask provides:
+# - Automatic dependency ordering from cargo metadata
+# - Pre-publish checks (git, version, changelog, tests)
+# - Retry logic for crates.io propagation delays
+# - --dry-run validation (real `cargo publish --dry-run`)
+# - --plan mode to preview before executing
+# - TTY detection and --yes flag for CI
+#
+# Migration:
+#   ./scripts/publish-all.ps1 -DryRun  →  cargo xtask publish --dry-run
+#   ./scripts/publish-all.ps1          →  cargo xtask publish --yes
+#
+# Original usage (deprecated): ./scripts/publish-all.ps1 [-DryRun]
 
 param (
     [switch]$DryRun
 )
+
+# =============================================================================
+# DEPRECATION WARNING - This script is deprecated and will be removed.
+# =============================================================================
+Write-Host ""
+Write-Host "╔══════════════════════════════════════════════════════════════════╗" -ForegroundColor Yellow
+Write-Host "║  DEPRECATED: This script is deprecated. Use xtask instead:       ║" -ForegroundColor Yellow
+Write-Host "║                                                                  ║" -ForegroundColor Yellow
+Write-Host "║    cargo xtask publish --plan      # Preview publish order       ║" -ForegroundColor Yellow
+Write-Host "║    cargo xtask publish --dry-run   # Validate packaging          ║" -ForegroundColor Yellow
+Write-Host "║    cargo xtask publish --yes       # Publish all crates          ║" -ForegroundColor Yellow
+Write-Host "║                                                                  ║" -ForegroundColor Yellow
+Write-Host "╚══════════════════════════════════════════════════════════════════╝" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Continuing in 5 seconds... (Ctrl+C to abort)" -ForegroundColor Gray
+Start-Sleep -Seconds 5
 
 $crates = @(
     "tokmd-types",

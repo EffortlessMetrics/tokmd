@@ -17,15 +17,22 @@ ci: fmt clippy test
 package:
     cargo package -p tokmd --list
 
-# Publishing helpers (requires cargo-workspaces)
-setup-publish:
-    cargo install cargo-workspaces
+# Publishing helpers (via xtask)
+publish-plan:
+    cargo xtask publish --plan --verbose
 
-publish-dry: setup-publish
-    cargo ws publish --from-git --dry-run
+publish-dry:
+    cargo xtask publish --dry-run
 
-publish: setup-publish
-    cargo ws publish --from-git --publish-interval 10 --yes
+# Fast dry-run (skip tests/checks, just validate packaging)
+publish-dry-fast:
+    cargo xtask publish --dry-run --skip-checks
+
+publish:
+    cargo xtask publish --yes
+
+publish-tag:
+    cargo xtask publish --yes --tag
 
 install:
     cargo install --path crates/tokmd --force

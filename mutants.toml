@@ -10,6 +10,13 @@ exclude_globs = [
     "fuzz/**",
 ]
 
+# Skip large files when copying workspace
+copy_exclude_globs = [
+    "context.txt",
+    "target/**",
+    "*.log",
+]
+
 # Exclude boilerplate that's not worth mutating
 exclude_re = [
     "impl.*Display",
