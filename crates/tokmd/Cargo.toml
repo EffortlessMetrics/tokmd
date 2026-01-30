@@ -25,11 +25,12 @@ exclude = [
 ]
 
 [features]
-default = ["git", "walk", "content"]
+default = ["git", "walk", "content", "ui"]
 alias-tok = []
 git = ["tokmd-analysis/git", "dep:tokmd-git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
+ui = ["dep:dialoguer", "dep:indicatif", "dep:console", "dep:toml"]
 
 [[bin]]
 name = "tokmd"
@@ -54,9 +55,10 @@ tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 clap_complete = "4.5.65"
-dialoguer = "0.11"
-console = "0.15"
-indicatif = "0.17"
+dialoguer = { version = "0.11", optional = true }
+console = { version = "0.15", optional = true }
+indicatif = { version = "0.17", optional = true }
+toml = { version = "0.8", optional = true }
 dirs = "6.0.0"
 serde_json = "1.0.149"
 tokmd-gate.workspace = true

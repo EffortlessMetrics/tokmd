@@ -8,17 +8,18 @@ These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `an
 
 | Flag | Description |
 | :--- | :--- |
-| `-p, --paths <PATHS>...` | Files or directories to scan. Defaults to current directory (`.`). |
-| `-e, --exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
+| `--exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
 | `--config <MODE>` | Config file strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
 | `--hidden` | Count hidden files and directories (start with `.`). |
 | `--no-ignore` | Disable all ignore files (`.gitignore`, `.ignore`, `.tokeignore`). |
 | `--no-ignore-parent` | Do not traverse parent directories for ignore files. |
 | `--no-ignore-dot` | Do not read `.ignore` or `.tokeignore` files. |
 | `--no-ignore-vcs` | Do not read `.gitignore` files. |
-| `--doc-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
+| `--treat-doc-strings-as-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
 | `-v, --verbose` | Enable verbose logging. |
 | `--no-progress` | Disable progress spinners (useful for CI/non-TTY). |
+
+> **Note**: Paths to scan are specified as positional arguments on each subcommand (e.g., `tokmd lang ./src`), not as global flags.
 
 ---
 
@@ -282,7 +283,7 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
 
-> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal data, which is not yet integrated into the context command. These options currently fall back to ranking by `code` lines.
+> **Note**: `--rank-by churn` and `--rank-by hotspot` require git history. If no git data is available, they fall back to ranking by `code` lines with a warning.
 
 **Examples**:
 ```bash
@@ -367,15 +368,20 @@ tokmd tools --format jsonschema --pretty > schema.json
 
 Evaluates policy rules against analysis receipts for CI gating. Use this to enforce code quality standards in your pipeline.
 
-**Usage**: `tokmd gate [INPUT] --policy <PATH> [OPTIONS]`
+**Usage**: `tokmd gate [INPUT] [OPTIONS]`
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--input <PATH>` | Analysis receipt JSON or path to scan. | `.` |
-| `--policy <PATH>` | Path to policy TOML file. | required |
+| `--policy <PATH>` | Path to policy TOML file. | from config |
 | `--preset <PRESET>` | Analysis preset for compute-then-gate mode. | `receipt` |
 | `--format <FMT>` | Output format: `text`, `json`. | `text` |
 | `--fail-fast` | Stop on first error. | `false` |
+
+**Policy Sources** (in order of precedence):
+1. `--policy <path>` CLI argument
+2. `[gate].policy` path in `tokmd.toml`
+3. `[[gate.rules]]` inline rules in `tokmd.toml`
 
 **Exit Codes**:
 | Code | Meaning |
@@ -428,17 +434,42 @@ level = "error"
 
 **Examples**:
 ```bash
-# Gate an existing receipt
+# Gate using rules from tokmd.toml (no --policy needed)
+tokmd gate
+
+# Gate an existing receipt with explicit policy
 tokmd gate --input analysis.json --policy policy.toml
 
-# Compute then gate (scans current directory)
-tokmd gate --policy policy.toml --preset health
+# Compute then gate with specific preset
+tokmd gate --preset health
 
 # Gate with JSON output for CI parsing
-tokmd gate --input analysis.json --policy policy.toml --format json
+tokmd gate --format json
 
 # Fail fast on first error
-tokmd gate --policy policy.toml --fail-fast
+tokmd gate --fail-fast
+```
+
+**Using inline rules in tokmd.toml**:
+```toml
+[gate]
+preset = "receipt"
+fail_fast = false
+
+[[gate.rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds token budget"
+
+[[gate.rules]]
+name = "has_docs"
+pointer = "/derived/doc_density/total/ratio"
+op = "gte"
+value = 0.05
+level = "warn"
 ```
 
 ### `tokmd completions`
@@ -633,6 +664,36 @@ compress = false
 [badge]
 # Default metric for badges
 metric = "lines"
+
+# =============================================================================
+# Gate Command Settings (CI Policy Enforcement)
+# =============================================================================
+[gate]
+# Path to external policy file (alternative to inline rules)
+# policy = "policy.toml"
+
+# Analysis preset for compute-then-gate mode (default: "receipt")
+preset = "receipt"
+
+# Stop on first error (default: false)
+fail_fast = false
+
+# Inline policy rules (alternative to external policy file)
+[[gate.rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds token budget"
+
+[[gate.rules]]
+name = "min_doc_density"
+pointer = "/derived/doc_density/total/ratio"
+op = "gte"
+value = 0.1
+level = "warn"
+message = "Documentation below 10%"
 
 # =============================================================================
 # Named Profiles (view profiles)

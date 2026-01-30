@@ -2753,6 +2753,7 @@ dependencies = [
  "tokmd-scan",
  "tokmd-tokeignore",
  "tokmd-types",
+ "toml",
 ]
 
 [[package]]

@@ -5,18 +5,23 @@ use std::path::Path;
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
-use tokmd_gate::{GateResult, PolicyConfig, RuleLevel, evaluate_policy};
+use tokmd_gate::{GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy};
 
 use crate::analysis_utils;
+use crate::config::ResolvedConfig;
 use crate::export_bundle;
 
 /// Exit code for gate failure.
 const EXIT_FAIL: i32 = 1;
 
 /// Handle the gate command.
-pub(crate) fn handle(args: cli::CliGateArgs, global: &cli::GlobalArgs) -> Result<()> {
-    // Load policy
-    let policy = load_policy(&args)?;
+pub(crate) fn handle(
+    args: cli::CliGateArgs,
+    global: &cli::GlobalArgs,
+    resolved: &ResolvedConfig,
+) -> Result<()> {
+    // Load policy from file, CLI args, or config
+    let policy = load_policy(&args, resolved)?;
 
     // Load or compute receipt
     let receipt = load_or_compute_receipt(&args, global)?;
@@ -39,26 +44,96 @@ pub(crate) fn handle(args: cli::CliGateArgs, global: &cli::GlobalArgs) -> Result
 }
 
 /// Load policy from file or config.
-fn load_policy(args: &cli::CliGateArgs) -> Result<PolicyConfig> {
+fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<PolicyConfig> {
+    // 1. CLI --policy flag takes precedence
     if let Some(policy_path) = &args.policy {
-        PolicyConfig::from_file(policy_path)
-            .with_context(|| format!("Failed to load policy from {}", policy_path.display()))
-    } else {
-        // Try to load from tokmd.toml [gate] section
-        // For now, require explicit policy file
-        bail!(
-            "No policy specified. Use --policy <path> to specify a policy file.\n\
-             \n\
-             Example policy.toml:\n\
-             \n\
-             [[rules]]\n\
-             name = \"max_tokens\"\n\
-             pointer = \"/derived/totals/tokens\"\n\
-             op = \"lte\"\n\
-             value = 500000\n\
-             level = \"error\"\n\
-             message = \"Codebase exceeds token budget\""
-        )
+        return PolicyConfig::from_file(policy_path)
+            .with_context(|| format!("Failed to load policy from {}", policy_path.display()));
+    }
+
+    // 2. Check tokmd.toml [gate] section for inline rules or policy path
+    if let Some(toml) = resolved.toml {
+        let gate_config = &toml.gate;
+
+        // Check for policy path in config
+        if let Some(policy_path) = &gate_config.policy {
+            let path = std::path::PathBuf::from(policy_path);
+            return PolicyConfig::from_file(&path)
+                .with_context(|| format!("Failed to load policy from {}", path.display()));
+        }
+
+        // Check for inline rules
+        if let Some(rules) = &gate_config.rules
+            && !rules.is_empty()
+        {
+            let policy_rules: Vec<PolicyRule> = rules
+                .iter()
+                .map(convert_gate_rule)
+                .collect::<Result<Vec<_>>>()?;
+
+            return Ok(PolicyConfig {
+                rules: policy_rules,
+                fail_fast: gate_config.fail_fast.unwrap_or(false),
+                allow_missing: false,
+            });
+        }
+    }
+
+    // No policy found
+    bail!(
+        "No policy specified. Use --policy <path> or add rules to [gate] in tokmd.toml.\n\
+         \n\
+         Example tokmd.toml:\n\
+         \n\
+         [[gate.rules]]\n\
+         name = \"max_tokens\"\n\
+         pointer = \"/derived/totals/tokens\"\n\
+         op = \"lte\"\n\
+         value = 500000\n\
+         level = \"error\"\n\
+         message = \"Codebase exceeds token budget\"\n\
+         \n\
+         Or use a separate policy file with --policy <path>"
+    )
+}
+
+/// Convert a config GateRule to a gate PolicyRule.
+fn convert_gate_rule(rule: &cli::GateRule) -> Result<PolicyRule> {
+    let op = parse_operator(&rule.op)?;
+
+    Ok(PolicyRule {
+        name: rule.name.clone(),
+        pointer: rule.pointer.clone(),
+        op,
+        value: rule.value.clone(),
+        values: rule.values.clone(),
+        negate: rule.negate,
+        level: parse_level(rule.level.as_deref()),
+        message: rule.message.clone(),
+    })
+}
+
+/// Parse operator string to RuleOperator enum.
+fn parse_operator(op: &str) -> Result<RuleOperator> {
+    match op.to_lowercase().as_str() {
+        "gt" | ">" => Ok(RuleOperator::Gt),
+        "gte" | ">=" => Ok(RuleOperator::Gte),
+        "lt" | "<" => Ok(RuleOperator::Lt),
+        "lte" | "<=" => Ok(RuleOperator::Lte),
+        "eq" | "==" | "=" => Ok(RuleOperator::Eq),
+        "ne" | "!=" => Ok(RuleOperator::Ne),
+        "in" => Ok(RuleOperator::In),
+        "contains" => Ok(RuleOperator::Contains),
+        "exists" => Ok(RuleOperator::Exists),
+        _ => bail!("Unknown operator: {}. Valid operators: gt, gte, lt, lte, eq, ne, in, contains, exists", op),
+    }
+}
+
+/// Parse level string to RuleLevel enum.
+fn parse_level(level: Option<&str>) -> RuleLevel {
+    match level.map(|s| s.to_lowercase()).as_deref() {
+        Some("warn") | Some("warning") => RuleLevel::Warn,
+        _ => RuleLevel::Error,
     }
 }
 

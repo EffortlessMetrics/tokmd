@@ -32,6 +32,6 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Context(args) => context::handle(args, global),
         cli::Commands::CheckIgnore(args) => check_ignore::handle(args, global),
         cli::Commands::Tools(args) => tools::handle(args),
-        cli::Commands::Gate(args) => gate::handle(args, global),
+        cli::Commands::Gate(args) => gate::handle(args, global, resolved),
     }
 }
