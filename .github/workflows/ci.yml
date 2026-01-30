@@ -113,15 +113,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          MAX_FILES=20
-          COUNT="${{ steps.changed.outputs.count }}"
-
-          if [ "$COUNT" -gt "$MAX_FILES" ]; then
-            echo "::error::Too many changed Rust files ($COUNT) for mutation gate (max $MAX_FILES). Split PR or raise MAX_FILES."
-            exit 1
-          fi
-
-          echo "Running mutation testing on $COUNT changed file(s)..."
+          echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
 
           while IFS= read -r file; do
             [ -z "$file" ] && continue
