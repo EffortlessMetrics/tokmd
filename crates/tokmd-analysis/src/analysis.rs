@@ -86,9 +86,9 @@ struct AnalysisPlan {
     topics: bool,
     entropy: bool,
     license: bool,
-    #[allow(dead_code)]
+    #[cfg(feature = "git")]
     churn: bool,
-    #[allow(dead_code)]
+    #[cfg(feature = "git")]
     fingerprint: bool,
 }
 
@@ -118,7 +118,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Health => AnalysisPlan {
@@ -133,7 +135,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Risk => AnalysisPlan {
@@ -148,7 +152,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Supply => AnalysisPlan {
@@ -163,7 +169,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Architecture => AnalysisPlan {
@@ -178,7 +186,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Topics => AnalysisPlan {
@@ -193,7 +203,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: true,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Security => AnalysisPlan {
@@ -208,7 +220,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: true,
             license: true,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Identity => AnalysisPlan {
@@ -223,7 +237,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: true,
         },
         AnalysisPreset::Git => AnalysisPlan {
@@ -238,7 +254,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: true,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
         AnalysisPreset::Deep => AnalysisPlan {
@@ -253,7 +271,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: true,
             entropy: true,
             license: true,
+            #[cfg(feature = "git")]
             churn: true,
+            #[cfg(feature = "git")]
             fingerprint: true,
         },
         AnalysisPreset::Fun => AnalysisPlan {
@@ -268,7 +288,9 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
             fingerprint: false,
         },
     }
