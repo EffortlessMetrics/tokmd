@@ -3,5 +3,10 @@
     "run_id": "2025-02-19-gatekeeper-config-determinism",
     "timestamp": "2025-02-19T00:00:00Z",
     "summary": "Switched UserConfig to BTreeMap for deterministic serialization."
+  },
+  {
+    "run_id": "2026-01-30-gatekeeper-analysis-determinism",
+    "timestamp": "2026-01-30T11:00:00Z",
+    "summary": "Added determinism regression test for analysis reports."
   }
 ]
