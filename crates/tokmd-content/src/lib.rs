@@ -9,9 +9,9 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 fn read_head_from_file(file: &mut File, max_bytes: usize) -> Result<Vec<u8>> {
-    let mut buf = vec![0u8; max_bytes];
-    let n = file.read(&mut buf)?;
-    buf.truncate(n);
+    use std::io::Read as _;
+    let mut buf = Vec::with_capacity(max_bytes);
+    file.take(max_bytes as u64).read_to_end(&mut buf)?;
     Ok(buf)
 }
 
@@ -27,7 +27,10 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     }
     let mut file =
         File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
-    let size = file.metadata().map(|m| m.len()).unwrap_or(0);
+    let size = file
+        .metadata()
+        .with_context(|| format!("Failed to get metadata for {}", path.display()))?
+        .len();
     if size as usize <= max_bytes {
         return read_head_from_file(&mut file, max_bytes);
     }
