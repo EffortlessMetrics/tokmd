@@ -127,15 +127,20 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Interactive Wizard**: `tokmd init --interactive` for guided project setup
 - [x] **Git-Ranked Context**: `--rank-by churn/hotspot` in `tokmd context` command
 - [x] **Tools Schema**: `tokmd tools` for LLM tool definitions (OpenAI, Anthropic, JSON Schema)
+- [x] **Context Output Options**: `--out`, `--force`, `--bundle-dir`, `--log`, `--max-output-bytes` flags
 - [x] **Documentation**: README files for all 17 crates
 - [x] **Documentation**: Updated troubleshooting guide with new error behaviors
 - [x] **Documentation**: Updated CLI reference with exit code changes
+- [x] **Documentation**: CONTRIBUTING.md guide with setup, testing, and publishing workflow
 - [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
 - [x] **Stability**: Non-existent input paths now error instead of silent success
 - [x] **Stability**: Improved error handling in tests (Result instead of unwrap/expect)
 - [x] **Architecture**: Decoupled `tokmd-types` from `tokmd-config` (clap now optional)
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 - [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
+- [x] **Testing**: Comprehensive integration tests across all major crates
+- [x] **Testing**: Mutation testing with cargo-mutants and CI gate
+- [x] **CI/CD**: Enhanced publish workflow via `cargo xtask publish`
 
 ---
 

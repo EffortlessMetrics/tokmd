@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Predictive Churn**: Linear regression on commit history for trend detection
 - **Corporate Fingerprint**: Author domain statistics from git history
 - **License Radar**: SPDX detection from LICENSE files and metadata
+- **Context Output Options**: `--out`, `--force`, `--bundle-dir`, `--log`, `--max-output-bytes` flags for flexible output handling
+- **CONTRIBUTING.md**: Comprehensive contributor guide with setup instructions, testing strategy, code style, and publishing workflow
 
 ### Changed
 - **Schema Version**: Analysis receipts now use `schema_version: 2`
@@ -37,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Internal
 - **Test Robustness**: Replaced `unwrap`/`expect` with `Result` in tests for better error messages
 - **Config Determinism**: Locked deterministic ordering in configuration tests
+- **Comprehensive Test Suite**: Added integration tests across all major crates (model, format, walk, git, analysis, fun, config, types)
+- **Mutation Testing**: Added `cargo-mutants` configuration and CI gate for PR quality assurance
+- **Publish Workflow**: Enhanced `cargo xtask publish` with `--plan`, `--dry-run`, `--from`, `--skip-*` options and Justfile shortcuts
+- **CI Improvements**: Added publish plan verification and mutation testing jobs to CI workflow
 
 ### Documentation
 - **Crate READMEs**: Added README.md files for all 17 crates with installation, usage, and API documentation
@@ -48,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sorting Clarification**: Clarified that output is automatically sorted (descending by code lines, then path) with no `--sort` flag
 - **Bug Fix**: Removed reference to non-existent `--sort code` flag in tutorial
 - **Path Error Documentation**: Added troubleshooting section for non-existent path errors
+- **CLI Reference**: Documented new context command output flags (`--out`, `--bundle-dir`, `--log`, etc.)
 
 ## [1.2.0] - 2026-01-27
 

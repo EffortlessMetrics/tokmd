@@ -231,6 +231,8 @@ Native FFI bindings for CI pipelines and tooling:
 - [Schema](docs/SCHEMA.md) — Receipt format documentation
 - [Troubleshooting](docs/troubleshooting.md) — Common issues and solutions
 - [Philosophy](docs/explanation.md) — Design principles
+- [Contributing](CONTRIBUTING.md) — Development setup and guidelines
+- [Roadmap](ROADMAP.md) — Project status and future plans
 
 ## License
 
