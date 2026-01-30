@@ -226,7 +226,7 @@ pub struct CliLangArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output format (defaults to Markdown table).
+    /// Output format [default: md].
     #[arg(long, value_enum)]
     pub format: Option<TableFormat>,
 
@@ -250,7 +250,7 @@ pub struct CliModuleArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output format (defaults to Markdown table).
+    /// Output format [default: md].
     #[arg(long, value_enum)]
     pub format: Option<TableFormat>,
 
