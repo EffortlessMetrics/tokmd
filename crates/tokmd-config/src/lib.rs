@@ -532,6 +532,22 @@ pub struct CliContextArgs {
     /// Module depth (see `tokmd module`).
     #[arg(long)]
     pub module_depth: Option<usize>,
+
+    /// Enable git-based ranking (required for churn/hotspot).
+    #[arg(long)]
+    pub git: bool,
+
+    /// Disable git-based ranking.
+    #[arg(long = "no-git")]
+    pub no_git: bool,
+
+    /// Maximum commits to scan for git metrics.
+    #[arg(long, default_value = "1000")]
+    pub max_commits: usize,
+
+    /// Maximum files per commit to process.
+    #[arg(long, default_value = "100")]
+    pub max_commit_files: usize,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

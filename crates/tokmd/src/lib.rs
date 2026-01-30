@@ -19,6 +19,7 @@ mod commands;
 mod config;
 mod context_pack;
 mod export_bundle;
+mod git_scoring;
 
 use anyhow::Result;
 use clap::Parser;
