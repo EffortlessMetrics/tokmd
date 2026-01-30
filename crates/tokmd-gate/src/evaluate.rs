@@ -434,8 +434,8 @@ mod tests {
 
         let policy = PolicyConfig {
             rules: vec![
-                make_rule("first_passes", "/a", RuleOperator::Gt, json!(0)),   // passes
-                make_rule("second_fails", "/b", RuleOperator::Gt, json!(10)),  // fails
+                make_rule("first_passes", "/a", RuleOperator::Gt, json!(0)), // passes
+                make_rule("second_fails", "/b", RuleOperator::Gt, json!(10)), // fails
             ],
             fail_fast: true,
             allow_missing: false,

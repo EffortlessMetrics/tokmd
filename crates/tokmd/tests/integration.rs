@@ -15,10 +15,13 @@ fn tokmd_cmd() -> Command {
 fn normalize_snapshot(output: &str) -> String {
     // Normalize timestamps
     let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("valid regex");
-    let s = re_ts.replace_all(output, r#""generated_at_ms":0"#).to_string();
+    let s = re_ts
+        .replace_all(output, r#""generated_at_ms":0"#)
+        .to_string();
 
     // Normalize tool.version -> 0.0.0
-    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).expect("valid regex");
+    let re_ver =
+        regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).expect("valid regex");
     re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 

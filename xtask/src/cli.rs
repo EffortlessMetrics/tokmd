@@ -8,7 +8,6 @@ pub struct XtaskCli {
     pub command: Option<Commands>,
 }
 
-
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
     /// Publish all crates in dependency order

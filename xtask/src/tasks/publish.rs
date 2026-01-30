@@ -5,7 +5,7 @@ use std::process::Command;
 use std::thread::sleep;
 use std::time::Duration;
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use cargo_metadata::{DependencyKind, MetadataCommand, Package};
 use petgraph::algo::toposort;
 use petgraph::graph::DiGraph;
@@ -65,11 +65,7 @@ pub fn run(args: PublishArgs) -> Result<()> {
             if exclude_set.contains(name) {
                 continue;
             }
-            let pkg = metadata
-                .packages
-                .iter()
-                .find(|p| p.name == *name)
-                .unwrap();
+            let pkg = metadata.packages.iter().find(|p| p.name == *name).unwrap();
             for dep in &pkg.dependencies {
                 if !matches!(
                     dep.kind,
@@ -121,7 +117,11 @@ pub fn run(args: PublishArgs) -> Result<()> {
     let mut succeeded = Vec::new();
 
     for (idx, crate_name) in filtered_order.iter().enumerate().skip(start_idx) {
-        let position = format!("[{}/{}]", idx + 1 - start_idx, filtered_order.len() - start_idx);
+        let position = format!(
+            "[{}/{}]",
+            idx + 1 - start_idx,
+            filtered_order.len() - start_idx
+        );
         println!("{} Publishing {}...", position, crate_name);
 
         let result = publish_crate_with_retry(crate_name, &args)?;
@@ -133,10 +133,7 @@ pub fn run(args: PublishArgs) -> Result<()> {
 
                 // Wait for crates.io propagation
                 if idx < filtered_order.len() - 1 && !args.dry_run {
-                    println!(
-                        "  Waiting {}s for crates.io propagation...",
-                        args.interval
-                    );
+                    println!("  Waiting {}s for crates.io propagation...", args.interval);
                     sleep(Duration::from_secs(args.interval));
                 }
             }
@@ -220,7 +217,10 @@ fn compute_publish_order(packages: &[Package]) -> Result<Vec<String>> {
         anyhow!("Dependency cycle detected involving: {}", node)
     })?;
 
-    Ok(sorted.into_iter().map(|idx| graph[idx].to_string()).collect())
+    Ok(sorted
+        .into_iter()
+        .map(|idx| graph[idx].to_string())
+        .collect())
 }
 
 /// Add transitive workspace dependencies to the set.
