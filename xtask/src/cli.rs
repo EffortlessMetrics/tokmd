@@ -8,11 +8,6 @@ pub struct XtaskCli {
     pub command: Option<Commands>,
 }
 
-impl XtaskCli {
-    fn command(&self) -> Commands {
-        self.command.clone().unwrap_or(Commands::Publish(PublishArgs::default()))
-    }
-}
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
