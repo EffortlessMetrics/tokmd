@@ -1,3 +1,5 @@
+mod common;
+
 use anyhow::Result;
 use assert_cmd::Command;
 use predicates::prelude::*;
@@ -5,17 +7,19 @@ use tempfile::tempdir;
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
-    // Point to our test fixture
-    let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-    cmd.current_dir(&fixtures);
+    // Point to hermetic copy of test fixtures with .git/ marker
+    cmd.current_dir(common::fixture_root());
     cmd
 }
 
-fn redact_timestamps(output: &str) -> String {
-    let re = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("regex should be valid");
-    re.replace_all(output, r#""generated_at_ms":0"#).to_string()
+fn normalize_snapshot(output: &str) -> String {
+    // Normalize timestamps
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("valid regex");
+    let s = re_ts.replace_all(output, r#""generated_at_ms":0"#).to_string();
+
+    // Normalize tool.version -> 0.0.0
+    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).expect("valid regex");
+    re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 
 #[test]
@@ -146,7 +150,7 @@ fn test_golden_lang_json() -> Result<()> {
     let output = cmd.arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -158,7 +162,7 @@ fn test_golden_module_json() -> Result<()> {
     let output = cmd.arg("module").arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -170,7 +174,7 @@ fn test_golden_export_jsonl() -> Result<()> {
     let output = cmd.arg("export").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -182,7 +186,7 @@ fn test_golden_export_redacted() -> Result<()> {
     let output = cmd.arg("export").arg("--redact").arg("all").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())

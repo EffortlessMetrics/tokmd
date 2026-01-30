@@ -1388,4 +1388,209 @@ mod tests {
         let output = render_module_tsv(&report);
         insta::assert_snapshot!(output);
     }
+
+    // ========================
+    // Diff Render Tests
+    // ========================
+
+    #[test]
+    fn test_render_diff_md_smoke() {
+        // Kills mutants: render_diff_md -> String::new() / "xyzzy".into()
+        let from = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            }],
+            total: Totals {
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 12,
+                lines: 12,
+                files: 1,
+                bytes: 120,
+                tokens: 24,
+                avg_lines: 12,
+            }],
+            total: Totals {
+                code: 12,
+                lines: 12,
+                files: 1,
+                bytes: 120,
+                tokens: 24,
+                avg_lines: 12,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Rust");
+        assert_eq!(rows[0].delta_code, 2);
+
+        let totals = compute_diff_totals(&rows);
+        assert_eq!(totals.delta_code, 2);
+
+        let md = render_diff_md("from", "to", &rows, &totals);
+
+        assert!(!md.trim().is_empty(), "diff markdown must not be empty");
+        assert!(md.contains("from"));
+        assert!(md.contains("to"));
+        assert!(md.contains("Rust"));
+    }
+
+    #[test]
+    fn test_compute_diff_rows_language_added() {
+        // Tests language being added (was 0, now has code)
+        let from = LangReport {
+            rows: vec![],
+            total: Totals {
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![LangRow {
+                lang: "Python".to_string(),
+                code: 100,
+                lines: 120,
+                files: 5,
+                bytes: 5000,
+                tokens: 250,
+                avg_lines: 24,
+            }],
+            total: Totals {
+                code: 100,
+                lines: 120,
+                files: 5,
+                bytes: 5000,
+                tokens: 250,
+                avg_lines: 24,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Python");
+        assert_eq!(rows[0].old_code, 0);
+        assert_eq!(rows[0].new_code, 100);
+        assert_eq!(rows[0].delta_code, 100);
+    }
+
+    #[test]
+    fn test_compute_diff_rows_language_removed() {
+        // Tests language being removed (had code, now 0)
+        let from = LangReport {
+            rows: vec![LangRow {
+                lang: "Go".to_string(),
+                code: 50,
+                lines: 60,
+                files: 2,
+                bytes: 2000,
+                tokens: 125,
+                avg_lines: 30,
+            }],
+            total: Totals {
+                code: 50,
+                lines: 60,
+                files: 2,
+                bytes: 2000,
+                tokens: 125,
+                avg_lines: 30,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![],
+            total: Totals {
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Go");
+        assert_eq!(rows[0].old_code, 50);
+        assert_eq!(rows[0].new_code, 0);
+        assert_eq!(rows[0].delta_code, -50);
+    }
+
+    #[test]
+    fn test_compute_diff_rows_unchanged_excluded() {
+        // Tests that unchanged languages are excluded from diff
+        let report = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 100,
+                lines: 100,
+                files: 1,
+                bytes: 1000,
+                tokens: 250,
+                avg_lines: 100,
+            }],
+            total: Totals {
+                code: 100,
+                lines: 100,
+                files: 1,
+                bytes: 1000,
+                tokens: 250,
+                avg_lines: 100,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&report, &report);
+        assert!(rows.is_empty(), "unchanged languages should be excluded");
+    }
+
+    #[test]
+    fn test_format_delta() {
+        // Kills mutants in format_delta function
+        assert_eq!(format_delta(5), "+5");
+        assert_eq!(format_delta(0), "0");
+        assert_eq!(format_delta(-3), "-3");
+    }
 }

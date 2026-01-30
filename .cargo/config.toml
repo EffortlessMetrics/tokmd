@@ -1,0 +1,6 @@
+# .cargo/config.toml
+# Cargo configuration file for the tokmd workspace
+
+[alias]
+# xtask alias for running development tasks
+xtask = "run -p xtask --"

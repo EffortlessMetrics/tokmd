@@ -425,4 +425,164 @@ mod tests {
         // Only one rule evaluated due to fail_fast
         assert_eq!(result.rule_results.len(), 1);
     }
+
+    #[test]
+    fn test_fail_fast_does_not_stop_on_pass() {
+        // If fail_fast is true, we should NOT stop on a passing rule, even if its level is Error.
+        // This kills the `failed_error` &&/|| mutants.
+        let receipt = json!({"a": 1, "b": 2});
+
+        let policy = PolicyConfig {
+            rules: vec![
+                make_rule("first_passes", "/a", RuleOperator::Gt, json!(0)),   // passes
+                make_rule("second_fails", "/b", RuleOperator::Gt, json!(10)),  // fails
+            ],
+            fail_fast: true,
+            allow_missing: false,
+        };
+
+        let result = evaluate_policy(&receipt, &policy);
+        assert!(!result.passed);
+        assert_eq!(
+            result.rule_results.len(),
+            2,
+            "fail_fast must not stop after a passing rule"
+        );
+        assert_eq!(result.errors, 1);
+    }
+
+    #[test]
+    fn test_no_fail_fast_evaluates_all_rules_even_after_failure() {
+        // Kills the `if policy.fail_fast && failed_error` &&/|| mutant.
+        let receipt = json!({"a": 1, "b": 2});
+
+        let policy = PolicyConfig {
+            rules: vec![
+                make_rule("first_fails", "/a", RuleOperator::Gt, json!(10)), // fails
+                make_rule("second_passes", "/b", RuleOperator::Gt, json!(0)), // passes
+            ],
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let result = evaluate_policy(&receipt, &policy);
+        assert!(!result.passed);
+        assert_eq!(
+            result.rule_results.len(),
+            2,
+            "when fail_fast is false we should evaluate all rules"
+        );
+        assert_eq!(result.errors, 1);
+    }
+
+    #[test]
+    fn test_strict_gt_lt_boundaries() {
+        // Kills >->>= and <-><= mutants.
+        let receipt = json!({"n": 10});
+
+        let gt_equal = make_rule("gt_equal", "/n", RuleOperator::Gt, json!(10));
+        assert!(!evaluate_rule(&receipt, &gt_equal, false).passed);
+
+        let lt_equal = make_rule("lt_equal", "/n", RuleOperator::Lt, json!(10));
+        assert!(!evaluate_rule(&receipt, &lt_equal, false).passed);
+    }
+
+    #[test]
+    fn test_numeric_string_coercion() {
+        // Kills deletion of Value::String arm in value_to_f64.
+        let receipt = json!({"tokens": "1000"});
+
+        let gt = make_rule("gt", "/tokens", RuleOperator::Gt, json!(500));
+        assert!(evaluate_rule(&receipt, &gt, false).passed);
+
+        let lt = make_rule("lt", "/tokens", RuleOperator::Lt, json!(1500));
+        assert!(evaluate_rule(&receipt, &lt, false).passed);
+    }
+
+    #[test]
+    fn test_contains_on_string() {
+        // Kills deletion of Value::String arm in compare_contains.
+        let receipt = json!({"text": "hello world"});
+        let rule = make_rule("contains", "/text", RuleOperator::Contains, json!("world"));
+        assert!(evaluate_rule(&receipt, &rule, false).passed);
+    }
+
+    #[test]
+    fn test_equality_on_non_scalar_values() {
+        // Kills mutation of the JSON equality fallback.
+        let receipt = json!({"arr": [1, 2, 3]});
+        let rule = make_rule("eq_arr", "/arr", RuleOperator::Eq, json!([1, 2, 3]));
+        assert!(evaluate_rule(&receipt, &rule, false).passed);
+    }
+
+    #[test]
+    fn test_numeric_epsilon_boundary_is_strict() {
+        // Kills < -> <= mutant in numeric equality (abs(a-b) < EPSILON).
+        let a = 1.0_f64;
+        let b = a + f64::EPSILON;
+        let receipt = json!({"x": a});
+        let rule = make_rule("eq_eps", "/x", RuleOperator::Eq, json!(b));
+        assert!(
+            !evaluate_rule(&receipt, &rule, false).passed,
+            "difference of exactly EPSILON must not be treated as equal"
+        );
+    }
+
+    #[test]
+    fn test_in_operator_membership() {
+        // Additional test to ensure In arm deletion mutant is killed.
+        let receipt = json!({"lang": "Rust"});
+
+        let rule = PolicyRule {
+            name: "lang_in".into(),
+            pointer: "/lang".into(),
+            op: RuleOperator::In,
+            value: None,
+            values: Some(vec![json!("Rust"), json!("Go")]),
+            negate: false,
+            level: RuleLevel::Error,
+            message: None,
+        };
+
+        assert!(evaluate_rule(&receipt, &rule, false).passed);
+    }
+
+    #[test]
+    fn test_in_operator_non_member() {
+        // Kills In arm mutant by asserting non-membership fails.
+        let receipt = json!({"lang": "Rust"});
+
+        let rule = PolicyRule {
+            name: "lang_not_in".into(),
+            pointer: "/lang".into(),
+            op: RuleOperator::In,
+            value: None,
+            values: Some(vec![json!("Python"), json!("Go")]),
+            negate: false,
+            level: RuleLevel::Error,
+            message: None,
+        };
+
+        assert!(!evaluate_rule(&receipt, &rule, false).passed);
+    }
+
+    #[test]
+    fn test_in_operator_with_negate() {
+        // Test In with negate to ensure proper behavior when inverted.
+        let receipt = json!({"lang": "Rust"});
+
+        // Rust IS in the list, but negated → should fail
+        let rule = PolicyRule {
+            name: "lang_not_in_negate".into(),
+            pointer: "/lang".into(),
+            op: RuleOperator::In,
+            value: None,
+            values: Some(vec![json!("Rust"), json!("Go")]),
+            negate: true,
+            level: RuleLevel::Error,
+            message: None,
+        };
+
+        assert!(!evaluate_rule(&receipt, &rule, false).passed);
+    }
 }

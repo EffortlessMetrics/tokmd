@@ -1,9 +1,10 @@
 #![allow(deprecated)] // cargo_bin deprecation - still works for standard builds
 
+mod common;
+
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 
@@ -12,12 +13,8 @@ fn test_run_generates_artifacts() {
     let dir = tempdir().unwrap();
     let output_dir = dir.path().join("run1");
 
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
-    cmd.current_dir(&fixtures) // Run on test data so it's small and predictable
+    cmd.current_dir(common::fixture_root()) // Run on test data so it's small and predictable
         .arg("run")
         .arg("--output-dir")
         .arg(output_dir.to_str().unwrap())
@@ -50,13 +47,10 @@ fn test_diff_identical_runs() {
     let dir = tempdir().unwrap();
     let run1_dir = dir.path().join("run1");
     let run2_dir = dir.path().join("run2");
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
 
     // Run 1
     let mut cmd1 = Command::cargo_bin("tokmd").unwrap();
-    cmd1.current_dir(&fixtures)
+    cmd1.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(run1_dir.to_str().unwrap())
@@ -66,7 +60,7 @@ fn test_diff_identical_runs() {
 
     // Run 2 (same data)
     let mut cmd2 = Command::cargo_bin("tokmd").unwrap();
-    cmd2.current_dir(&fixtures)
+    cmd2.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(run2_dir.to_str().unwrap())
@@ -136,12 +130,8 @@ fn test_run_with_redact_flag() {
     let dir = tempdir().unwrap();
     let output_dir = dir.path().join("run-redacted");
 
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-
     let mut cmd = Command::cargo_bin("tokmd").unwrap();
-    cmd.current_dir(&fixtures)
+    cmd.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(output_dir.to_str().unwrap())

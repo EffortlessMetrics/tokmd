@@ -259,4 +259,79 @@ level = "warn"
         assert_eq!(gate.errors, 0);
         assert_eq!(gate.warnings, 1);
     }
+
+    #[test]
+    fn test_policy_from_file() {
+        // Kills mutant: PolicyConfig::from_file -> Ok(Default::default()).
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        let toml = r#"
+fail_fast = true
+allow_missing = false
+
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+"#;
+
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("tokmd-gate-policy-{nanos}.toml"));
+        std::fs::write(&path, toml).unwrap();
+
+        let policy = PolicyConfig::from_file(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+
+        assert!(policy.fail_fast);
+        assert_eq!(policy.rules.len(), 1);
+        assert_eq!(policy.rules[0].name, "max_tokens");
+        assert_eq!(policy.rules[0].op, RuleOperator::Lte);
+    }
+
+    #[test]
+    fn test_rule_operator_display() {
+        // Kills mutant in Display impl.
+        assert_eq!(RuleOperator::Gt.to_string(), ">");
+        assert_eq!(RuleOperator::Gte.to_string(), ">=");
+        assert_eq!(RuleOperator::Lt.to_string(), "<");
+        assert_eq!(RuleOperator::Lte.to_string(), "<=");
+        assert_eq!(RuleOperator::Eq.to_string(), "==");
+        assert_eq!(RuleOperator::Ne.to_string(), "!=");
+        assert_eq!(RuleOperator::In.to_string(), "in");
+        assert_eq!(RuleOperator::Contains.to_string(), "contains");
+        assert_eq!(RuleOperator::Exists.to_string(), "exists");
+    }
+
+    #[test]
+    fn test_gate_result_counts_only_failed_rules() {
+        // Kills `&&` -> `||` mutant in warning counting by including a passed WARN.
+        let results = vec![
+            RuleResult {
+                name: "passed_warn".into(),
+                passed: true,
+                level: RuleLevel::Warn,
+                actual: None,
+                expected: "x".into(),
+                message: None,
+            },
+            RuleResult {
+                name: "failed_warn".into(),
+                passed: false,
+                level: RuleLevel::Warn,
+                actual: None,
+                expected: "x".into(),
+                message: Some("warn".into()),
+            },
+        ];
+
+        let gate = GateResult::from_results(results);
+        assert!(gate.passed); // warns only
+        assert_eq!(gate.errors, 0);
+        assert_eq!(gate.warnings, 1);
+    }
 }
