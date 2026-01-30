@@ -353,8 +353,10 @@ tokmd completions powershell >> $PROFILE
 | Code | Meaning |
 |------|---------|
 | `0` | Success |
-| `1` | General error (runtime failure, I/O error) |
+| `1` | General error (runtime failure, I/O error, non-existent path) |
 | `2` | Invalid arguments / CLI parsing error |
+
+> **Note**: As of v1.3.0, specifying a non-existent input path returns exit code 1 with an error message, rather than succeeding with empty output. This prevents silent failures in CI pipelines.
 
 ### Command-Specific Exit Codes
 

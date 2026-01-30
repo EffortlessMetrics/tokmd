@@ -358,6 +358,44 @@ See `docs/SCHEMA.md` and `docs/schema.json` for the formal schema definition.
 
 ---
 
+## Path Does Not Exist Error
+
+### Symptom
+`tokmd` fails with an error like "path does not exist: /path/to/file".
+
+### Explanation
+
+As of v1.3.0, `tokmd` now returns an error when input paths don't exist, rather than silently succeeding with empty output. This prevents silent failures in CI pipelines and scripts.
+
+### Solutions
+
+**1. Verify paths exist**:
+```bash
+ls -la path/to/scan
+```
+
+**2. Use glob patterns carefully**:
+Shell expansion happens before `tokmd` sees the paths. If no files match, the shell may pass the literal pattern:
+```bash
+# May fail if no .rs files exist
+tokmd -p "src/*.rs"
+
+# Use quotes to let tokmd handle the pattern
+tokmd -p src --exclude "*.txt"
+```
+
+**3. Handle missing paths in scripts**:
+```bash
+if [[ -d "$DIR" ]]; then
+  tokmd -p "$DIR"
+else
+  echo "Directory $DIR not found"
+  exit 1
+fi
+```
+
+---
+
 ## Getting More Help
 
 If you're still stuck:

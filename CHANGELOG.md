@@ -18,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Schema Version**: Analysis receipts now use `schema_version: 2`
 - **API**: `tokmd_core::scan_workflow` now accepts `redact: Option<RedactMode>` parameter
+- **UX**: Non-existent input paths now return an error instead of silent success
+- **Feature Flags**: `git`, `walk`, and `content` features are now exposed in CLI crate for lightweight builds
+- **Architecture**: Decoupled `tokmd-types` from `tokmd-config`, making `clap` an optional dependency
+
+### Fixed
+- **Redaction Tests**: Fixed test collection to use `Vec` for proper error handling
+- **Scan Tests**: Improved error handling in scan integration tests
+
+### Performance
+- **Export Streaming**: Reduced allocations in export streaming by using iterators with `Cow`
+
+### Internal
+- **Test Robustness**: Replaced `unwrap`/`expect` with `Result` in tests for better error messages
+- **Config Determinism**: Locked deterministic ordering in configuration tests
 
 ### Documentation
 - **New Troubleshooting Guide**: Comprehensive guide covering common issues, exit codes, performance optimization, and debugging tips

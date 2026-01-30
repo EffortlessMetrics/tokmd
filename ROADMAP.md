@@ -128,8 +128,11 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [ ] **Documentation**: Complete docs for all enrichers and presets
 - [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
 - [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
-- [ ] **Performance**: Optimize large repository handling with limits and streaming
-- [ ] **Stability**: Harden edge cases and improve error messages
+- [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
+- [x] **Stability**: Non-existent input paths now error instead of silent success
+- [x] **Stability**: Improved error handling in tests (Result instead of unwrap/expect)
+- [x] **Architecture**: Decoupled `tokmd-types` from `tokmd-config` (clap now optional)
+- [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 
 ---
 
