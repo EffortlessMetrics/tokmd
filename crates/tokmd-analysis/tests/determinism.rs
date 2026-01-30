@@ -1,12 +1,16 @@
 use std::path::PathBuf;
 
-use tokmd_analysis::{analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity};
+use tokmd_analysis::{
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
+};
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 fn simple_shuffle<T>(vec: &mut [T], seed: u64) {
     let len = vec.len();
-    if len <= 1 { return; }
+    if len <= 1 {
+        return;
+    }
     let mut rng = seed;
     for i in (1..len).rev() {
         // Linear Congruential Generator
@@ -19,8 +23,16 @@ fn simple_shuffle<T>(vec: &mut [T], seed: u64) {
 fn create_dummy_row(i: usize) -> FileRow {
     FileRow {
         path: format!("src/file_{}.rs", i),
-        module: if i % 2 == 0 { "src".to_string() } else { "tests".to_string() },
-        lang: if i % 3 == 0 { "Rust".to_string() } else { "TOML".to_string() },
+        module: if i % 2 == 0 {
+            "src".to_string()
+        } else {
+            "tests".to_string()
+        },
+        lang: if i % 3 == 0 {
+            "Rust".to_string()
+        } else {
+            "TOML".to_string()
+        },
         kind: FileKind::Parent,
         code: (i * 10) % 100 + 1,
         comments: (i * 5) % 50,
