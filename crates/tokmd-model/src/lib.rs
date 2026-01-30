@@ -507,20 +507,27 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 
     if let Some(prefix) = strip_prefix {
         let p_cow = prefix.to_string_lossy();
-        let needs_replace = p_cow.contains('\\');
-        let needs_slash = !p_cow.ends_with('/');
+        // Strip leading ./ from prefix so it can match normalized paths
+        let p_cow_stripped: Cow<str> = if let Some(stripped) = p_cow.strip_prefix("./") {
+            Cow::Borrowed(stripped)
+        } else {
+            p_cow
+        };
+
+        let needs_replace = p_cow_stripped.contains('\\');
+        let needs_slash = !p_cow_stripped.ends_with('/');
 
         if !needs_replace && !needs_slash {
             // Fast path: prefix is already clean and ends with slash
-            if slice.starts_with(p_cow.as_ref()) {
-                slice = &slice[p_cow.len()..];
+            if slice.starts_with(p_cow_stripped.as_ref()) {
+                slice = &slice[p_cow_stripped.len()..];
             }
         } else {
             // Slow path: normalize prefix
             let mut pfx = if needs_replace {
-                p_cow.replace('\\', "/")
+                p_cow_stripped.replace('\\', "/")
             } else {
-                p_cow.into_owned()
+                p_cow_stripped.into_owned()
             };
             if needs_slash {
                 pfx.push('/');
