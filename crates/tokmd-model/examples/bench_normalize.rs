@@ -20,6 +20,13 @@ fn main() {
     }
     let duration = start.elapsed();
 
-    println!("Time taken for {} iterations: {:?}", iterations * paths.len(), duration);
-    println!("Average time per call: {:?}", duration / (iterations as u32 * paths.len() as u32));
+    println!(
+        "Time taken for {} iterations: {:?}",
+        iterations * paths.len(),
+        duration
+    );
+    println!(
+        "Average time per call: {:?}",
+        duration / (iterations as u32 * paths.len() as u32)
+    );
 }
