@@ -22,7 +22,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.0.0** | ✅ Complete | Schema frozen, release automation, crates.io publish. |
 | **v1.1.0** | ✅ Complete | Analysis engine, presets, badge generation, diff command. |
 | **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration. |
-| **v1.3.0** | 🚧 In Progress | Advanced enrichers (archetype, topics, entropy, churn). |
+| **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard. |
 | **v2.0.0** | 🔭 Planned | MCP server, streaming analysis, plugin system. |
 
 ---
@@ -101,11 +101,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Current Work: v1.3.0 — Polish & Stabilization
+## Completed: v1.3.0 — Polish & Stabilization
 
-**Goal**: Documentation, hardening, and integration of advanced enrichers.
-
-> **Note**: Core enricher implementations are complete in v1.2.0. This release focuses on polish, documentation, testing, and integration refinements.
+**Goal**: Documentation, hardening, gate command, and interactive wizard.
 
 ### Analysis Presets
 
@@ -123,18 +121,21 @@ This document outlines the evolution of `tokmd` and the path forward.
 | `deep` | ✅ | Everything (except fun) |
 | `fun` | ✅ | Eco-label, novelty outputs |
 
-### v1.3.0 Focus Areas
+### v1.3.0 Features Delivered
 
-- [x] **Documentation**: README files for all 16 crates
+- [x] **Gate Command**: `tokmd gate` for policy-based quality gates with JSON pointer rules
+- [x] **Interactive Wizard**: `tokmd init --interactive` for guided project setup
+- [x] **Git-Ranked Context**: `--rank-by churn/hotspot` in `tokmd context` command
+- [x] **Tools Schema**: `tokmd tools` for LLM tool definitions (OpenAI, Anthropic, JSON Schema)
+- [x] **Documentation**: README files for all 17 crates
 - [x] **Documentation**: Updated troubleshooting guide with new error behaviors
 - [x] **Documentation**: Updated CLI reference with exit code changes
-- [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
-- [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
 - [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
 - [x] **Stability**: Non-existent input paths now error instead of silent success
 - [x] **Stability**: Improved error handling in tests (Result instead of unwrap/expect)
 - [x] **Architecture**: Decoupled `tokmd-types` from `tokmd-config` (clap now optional)
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
+- [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
 
 ---
 

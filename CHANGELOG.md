@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-01-30
 
 ### Added
+- **Gate Command**: `tokmd gate` for policy-based quality gates with JSON pointer rules and inline policy support
+- **Interactive Wizard**: `tokmd init --interactive` for guided project configuration
+- **Git-Ranked Context**: `--rank-by churn/hotspot` options in `tokmd context` for git-aware file prioritization
+- **Tools Schema**: `tokmd tools` command for generating LLM tool definitions (OpenAI, Anthropic, JSON Schema formats)
+- **New Crate**: `tokmd-gate` for policy evaluation with JSON pointer resolution
 - **Archetype Detection**: Identify project types (CLI, library, web app, monorepo)
 - **Topic Clouds**: TF-IDF semantic analysis of path segments
 - **Entropy Profiling**: Detect high-entropy files (potential secrets)
@@ -34,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Config Determinism**: Locked deterministic ordering in configuration tests
 
 ### Documentation
-- **Crate READMEs**: Added README.md files for all 16 crates with installation, usage, and API documentation
+- **Crate READMEs**: Added README.md files for all 17 crates with installation, usage, and API documentation
 - **New Troubleshooting Guide**: Comprehensive guide covering common issues, exit codes, performance optimization, and debugging tips
 - **CI/CD Integration Recipes**: Added GitHub Actions, GitLab CI, pre-commit hooks, and baseline tracking workflow examples
 - **Configuration Reference**: Expanded `tokmd.toml` documentation with full schema, file location precedence, environment variables, and named profiles
