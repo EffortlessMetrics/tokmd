@@ -1,0 +1,35 @@
+{
+  "run_id": "20260130-01",
+  "timestamp_utc": "2026-01-30T00:00:00Z",
+  "lane": "scout",
+  "target": "normalize_path in tokmd-model",
+  "proof_method": "cargo run --release --example bench_normalize",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "output_summary": "Finished dev profile [unoptimized + debuginfo] target(s) in 22.38s"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "output_summary": "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "output_summary": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "output_summary": ""
+    },
+    {
+      "cmd": "cargo run --release --example bench_normalize --package tokmd-model",
+      "exit_code": 0,
+      "output_summary": "Time taken for 5000000 iterations: 328.572488ms\nAverage time per call: 65ns"
+    }
+  ],
+  "results_summary": "Benchmark improved from 71ns to 65ns (~8.5%)."
+}
