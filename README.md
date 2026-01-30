@@ -106,7 +106,7 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd analyze` | Derived metrics and enrichments. |
 | `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
 | `tokmd diff` | Compare two runs, receipts, or git refs. |
-| `tokmd init` | Generate a `.tokeignore` file. |
+| `tokmd init` | Generate a `.tokeignore` file (supports templates). |
 | `tokmd check-ignore` | Explain why files are being ignored (troubleshooting). |
 | `tokmd completions` | Generate shell completions (bash, zsh, fish, powershell). |
 
@@ -168,6 +168,29 @@ Analyze git history for risk signals:
 | **LLM Ready** | No | Token estimates, context fit analysis |
 | **Git Analysis** | No | Hotspots, freshness, coupling |
 | **Derived Metrics** | No | Doc density, COCOMO, distribution |
+
+## Configuration
+
+You can persist settings in a `tokmd.toml` file in your project root or home directory.
+
+```toml
+# tokmd.toml
+[view.llm]
+format = "jsonl"
+redact = "paths"
+min_code = 10
+max_rows = 500
+
+[export]
+format = "jsonl"
+```
+
+Use profiles with the `--profile` flag:
+```bash
+tokmd export --profile llm > context.jsonl
+```
+
+See the [CLI Reference](docs/reference-cli.md#configuration-file) for full configuration options.
 
 ## Installation
 
