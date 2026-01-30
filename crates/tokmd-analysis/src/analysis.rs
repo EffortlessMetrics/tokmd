@@ -86,7 +86,9 @@ struct AnalysisPlan {
     topics: bool,
     entropy: bool,
     license: bool,
+    #[allow(dead_code)]
     churn: bool,
+    #[allow(dead_code)]
     fingerprint: bool,
 }
 
