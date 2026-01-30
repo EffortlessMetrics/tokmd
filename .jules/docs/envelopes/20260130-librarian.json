@@ -1,0 +1,30 @@
+{
+  "run_id": "20260130-librarian",
+  "persona": "Librarian",
+  "status": "complete",
+  "target_lane": "B",
+  "receipts": [
+    {
+      "type": "verification",
+      "description": "Verified [export] config works",
+      "command": "tokmd export --format jsonl | wc -l (with min_code=1000)",
+      "result": "3 (filtered count)"
+    },
+    {
+      "type": "verification",
+      "description": "Verified [scan] config ignored",
+      "command": "tokmd --format json (with hidden=true in tokmd.toml)",
+      "result": "hidden: false (config ignored)"
+    },
+    {
+      "type": "change",
+      "description": "Updated README.md to document configuration and profiles",
+      "files": ["README.md"]
+    },
+    {
+      "type": "change",
+      "description": "Updated docs/reference-cli.md to remove misleading scan config",
+      "files": ["docs/reference-cli.md"]
+    }
+  ]
+}

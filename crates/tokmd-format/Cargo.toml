@@ -19,5 +19,5 @@ tokmd-redact.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.6.0"
+proptest = "1.9.0"
 insta = { version = "1.39.0", features = ["json"] }

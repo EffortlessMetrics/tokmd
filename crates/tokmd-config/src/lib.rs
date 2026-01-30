@@ -236,7 +236,7 @@ pub struct CliLangArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output format.
+    /// Output format [default: md].
     #[arg(long, value_enum)]
     pub format: Option<TableFormat>,
 
@@ -249,7 +249,7 @@ pub struct CliLangArgs {
     #[arg(long)]
     pub files: bool,
 
-    /// How to handle embedded languages (tokei "children" / blobs).
+    /// How to handle embedded languages (tokei "children" / blobs) [default: collapse].
     #[arg(long, value_enum)]
     pub children: Option<ChildrenMode>,
 }
@@ -260,7 +260,7 @@ pub struct CliModuleArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output format.
+    /// Output format [default: md].
     #[arg(long, value_enum)]
     pub format: Option<TableFormat>,
 
@@ -269,17 +269,14 @@ pub struct CliModuleArgs {
     #[arg(long)]
     pub top: Option<usize>,
 
-    /// Treat these top-level directories as "module roots".
+    /// Treat these top-level directories as "module roots" [default: crates,packages].
     ///
     /// If a file path starts with one of these roots, the module key will include
     /// `module_depth` segments. Otherwise, the module key is the top-level directory.
-    ///
-    /// Example (defaults shown):
-    ///   --module-roots crates,packages
     #[arg(long, value_delimiter = ',')]
     pub module_roots: Option<Vec<String>>,
 
-    /// How many path segments to include for module roots.
+    /// How many path segments to include for module roots [default: 2].
     ///
     /// Example:
     ///   crates/foo/src/lib.rs  (depth=2) => crates/foo
@@ -287,7 +284,7 @@ pub struct CliModuleArgs {
     #[arg(long)]
     pub module_depth: Option<usize>,
 
-    /// Whether to include embedded languages (tokei "children" / blobs) in module totals.
+    /// Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].
     #[arg(long, value_enum)]
     pub children: Option<ChildIncludeMode>,
 }
@@ -298,7 +295,7 @@ pub struct CliExportArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output format.
+    /// Output format [default: jsonl].
     #[arg(long, value_enum)]
     pub format: Option<ExportFormat>,
 
@@ -306,23 +303,23 @@ pub struct CliExportArgs {
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
 
-    /// Module roots (see `tokmd module`).
+    /// Module roots (see `tokmd module`) [default: crates,packages].
     #[arg(long, value_delimiter = ',')]
     pub module_roots: Option<Vec<String>>,
 
-    /// Module depth (see `tokmd module`).
+    /// Module depth (see `tokmd module`) [default: 2].
     #[arg(long)]
     pub module_depth: Option<usize>,
 
-    /// Whether to include embedded languages (tokei "children" / blobs).
+    /// Whether to include embedded languages (tokei "children" / blobs) [default: separate].
     #[arg(long, value_enum)]
     pub children: Option<ChildIncludeMode>,
 
-    /// Drop rows with fewer than N code lines.
+    /// Drop rows with fewer than N code lines [default: 0].
     #[arg(long)]
     pub min_code: Option<usize>,
 
-    /// Stop after emitting N rows (0 = unlimited).
+    /// Stop after emitting N rows (0 = unlimited) [default: 0].
     #[arg(long)]
     pub max_rows: Option<usize>,
 
@@ -330,7 +327,7 @@ pub struct CliExportArgs {
     #[arg(long, action = clap::ArgAction::Set)]
     pub meta: Option<bool>,
 
-    /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
+    /// Redact paths (and optionally module names) for safer copy/paste into LLMs [default: none].
     #[arg(long, value_enum)]
     pub redact: Option<RedactMode>,
 
@@ -345,11 +342,11 @@ pub struct CliAnalyzeArgs {
     #[arg(value_name = "INPUT", default_value = ".")]
     pub inputs: Vec<PathBuf>,
 
-    /// Analysis preset to run.
+    /// Analysis preset to run [default: receipt].
     #[arg(long, value_enum)]
     pub preset: Option<AnalysisPreset>,
 
-    /// Output format.
+    /// Output format [default: md].
     #[arg(long, value_enum)]
     pub format: Option<AnalysisFormat>,
 
@@ -389,7 +386,7 @@ pub struct CliAnalyzeArgs {
     #[arg(long)]
     pub max_commit_files: Option<usize>,
 
-    /// Import graph granularity.
+    /// Import graph granularity [default: module].
     #[arg(long, value_enum)]
     pub granularity: Option<ImportGranularity>,
 }

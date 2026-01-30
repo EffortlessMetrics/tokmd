@@ -551,37 +551,6 @@ Configuration is loaded from the first file found (highest to lowest priority):
 
 ```toml
 # =============================================================================
-# Scan Settings (applies to all commands)
-# =============================================================================
-[scan]
-# Paths to scan (default: current directory)
-paths = ["."]
-
-# Glob patterns to exclude (can also use --exclude on CLI)
-exclude = ["target", "node_modules", "*.lock", "vendor/"]
-
-# Include hidden files and directories (default: false)
-hidden = false
-
-# Config file strategy for tokei: "auto" or "none" (default: "auto")
-config = "auto"
-
-# Disable all ignore files (default: false)
-no_ignore = false
-
-# Disable parent directory ignore file traversal (default: false)
-no_ignore_parent = false
-
-# Disable .ignore/.tokeignore files (default: false)
-no_ignore_dot = false
-
-# Disable .gitignore files (default: false)
-no_ignore_vcs = false
-
-# Treat doc comments as comments instead of code (default: false)
-doc_comments = false
-
-# =============================================================================
 # Module Command Settings
 # =============================================================================
 [module]
@@ -745,9 +714,6 @@ tokmd --profile llm export --format csv
 
 **Monorepo with multiple package roots**:
 ```toml
-[scan]
-exclude = ["node_modules", "dist", "coverage", "*.lock"]
-
 [module]
 roots = ["packages", "apps", "libs"]
 depth = 2
@@ -755,9 +721,6 @@ depth = 2
 
 **Rust project with strict filtering**:
 ```toml
-[scan]
-exclude = ["target", "*.lock"]
-
 [export]
 min_code = 20
 redact = "paths"

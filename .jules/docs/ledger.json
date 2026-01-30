@@ -4,5 +4,11 @@
     "date": "2026-01-29",
     "persona": "Librarian",
     "description": "Updated README to feature `tokmd context` for LLM workflows"
+  },
+  {
+    "run_id": "20260130-librarian",
+    "date": "2026-01-30",
+    "persona": "Librarian",
+    "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
   }
 ]
