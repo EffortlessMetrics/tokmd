@@ -1,0 +1,23 @@
+{
+  "run_id": "run-20240524-compat-003",
+  "status": "complete",
+  "lane": "scout",
+  "target": "fix-unused-fields-warning-no-default-features",
+  "receipts": [
+    {
+      "command": "cargo build --workspace --no-default-features",
+      "result": "success",
+      "notes": "Verified warnings are gone in tokmd-analysis"
+    },
+    {
+      "command": "cargo build --workspace --all-features",
+      "result": "success",
+      "notes": "Verified no regression"
+    },
+    {
+      "command": "cargo test -p tokmd-analysis",
+      "result": "success",
+      "notes": "Unit tests passed"
+    }
+  ]
+}

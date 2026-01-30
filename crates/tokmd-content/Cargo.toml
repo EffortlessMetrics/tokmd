@@ -12,5 +12,5 @@ anyhow = "1.0.100"
 blake3.workspace = true
 
 [dev-dependencies]
-proptest = "1.6.0"
+proptest = "1.9.0"
 tempfile = "3.24.0"
