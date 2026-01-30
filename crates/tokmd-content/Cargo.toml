@@ -13,3 +13,4 @@ blake3.workspace = true
 
 [dev-dependencies]
 proptest = "1.6.0"
+tempfile = "3.24.0"

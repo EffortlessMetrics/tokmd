@@ -8,13 +8,17 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-pub fn read_head(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
-    let mut file =
-        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
+fn read_head_from_file(file: &mut File, max_bytes: usize) -> Result<Vec<u8>> {
     let mut buf = vec![0u8; max_bytes];
     let n = file.read(&mut buf)?;
     buf.truncate(n);
     Ok(buf)
+}
+
+pub fn read_head(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
+    let mut file =
+        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
+    read_head_from_file(&mut file, max_bytes)
 }
 
 pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
@@ -25,7 +29,7 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
         File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let size = file.metadata().map(|m| m.len()).unwrap_or(0);
     if size as usize <= max_bytes {
-        return read_head(path, max_bytes);
+        return read_head_from_file(&mut file, max_bytes);
     }
 
     let half = max_bytes / 2;
@@ -118,4 +122,79 @@ pub fn entropy_bits_per_byte(bytes: &[u8]) -> f32 {
         entropy -= p * p.log2();
     }
     entropy
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    #[test]
+    fn test_read_head_empty() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("empty");
+        File::create(&path).unwrap();
+
+        let bytes = read_head(&path, 10).unwrap();
+        assert!(bytes.is_empty());
+    }
+
+    #[test]
+    fn test_read_head_small() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("small");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"hello").unwrap();
+
+        let bytes = read_head(&path, 10).unwrap();
+        assert_eq!(bytes, b"hello");
+    }
+
+    #[test]
+    fn test_read_head_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("limit");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"hello world").unwrap();
+
+        let bytes = read_head(&path, 5).unwrap();
+        assert_eq!(bytes, b"hello");
+    }
+
+    #[test]
+    fn test_read_head_tail_small() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("small");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"hello").unwrap();
+
+        let bytes = read_head_tail(&path, 10).unwrap();
+        assert_eq!(bytes, b"hello");
+    }
+
+    #[test]
+    fn test_read_head_tail_large() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("large");
+        let mut f = File::create(&path).unwrap();
+        // 0123456789
+        f.write_all(b"0123456789").unwrap();
+
+        // max_bytes = 4. half=2. head=2 ("01"), tail=2 ("89").
+        let bytes = read_head_tail(&path, 4).unwrap();
+        assert_eq!(bytes, b"0189");
+    }
+
+    #[test]
+    fn test_read_head_tail_odd() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("odd");
+        let mut f = File::create(&path).unwrap();
+        // 0123456789
+        f.write_all(b"0123456789").unwrap();
+
+        // max_bytes = 5. half=2. head=2 ("01"), tail=3 ("789").
+        let bytes = read_head_tail(&path, 5).unwrap();
+        assert_eq!(bytes, b"01789");
+    }
 }

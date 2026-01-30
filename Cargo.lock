@@ -2766,6 +2766,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "proptest",
+ "tempfile",
 ]
 
 [[package]]
