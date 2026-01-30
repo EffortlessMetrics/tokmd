@@ -125,7 +125,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.3.0 Focus Areas
 
-- [ ] **Documentation**: Complete docs for all enrichers and presets
+- [x] **Documentation**: README files for all 16 crates
+- [x] **Documentation**: Updated troubleshooting guide with new error behaviors
+- [x] **Documentation**: Updated CLI reference with exit code changes
 - [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
 - [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
 - [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
