@@ -20,6 +20,9 @@ mod config;
 mod context_pack;
 mod export_bundle;
 mod git_scoring;
+mod interactive;
+mod progress;
+mod tools_schema;
 
 use anyhow::Result;
 use clap::Parser;

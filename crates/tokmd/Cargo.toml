@@ -54,8 +54,13 @@ tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 clap_complete = "4.5.65"
+dialoguer = "0.11"
+console = "0.15"
+indicatif = "0.17"
 dirs = "6.0.0"
 serde_json = "1.0.149"
+tokmd-gate.workspace = true
+serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 assert_cmd = "2.1.2"

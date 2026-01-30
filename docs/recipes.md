@@ -253,6 +253,27 @@ Check for license files and SPDX identifiers.
 tokmd analyze --preset security --format json | jq '.license'
 ```
 
+## 14a. Generate CycloneDX SBOM
+
+Export your codebase inventory as a CycloneDX Software Bill of Materials.
+
+```bash
+# Generate CycloneDX SBOM to file
+tokmd export --format cyclonedx > bom.json
+
+# Or write directly to file
+tokmd export --format cyclonedx --out bom.json
+
+# Combine with filtering
+tokmd export --format cyclonedx --min-code 10 --max-rows 500 > bom.json
+```
+
+The output follows CycloneDX 1.6 specification and includes:
+- `bomFormat`: "CycloneDX"
+- `specVersion`: "1.6"
+- `metadata`: Tool information and timestamp
+- `components`: List of source files with type, name, and version
+
 ## 15. Quick PR Summary
 
 Paste a summary of the languages used in your PR description.

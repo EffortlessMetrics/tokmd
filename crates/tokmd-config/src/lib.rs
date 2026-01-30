@@ -86,6 +86,10 @@ pub struct GlobalArgs {
     /// Verbose output (repeat for more detail).
     #[arg(short = 'v', long = "verbose", action = clap::ArgAction::Count)]
     pub verbose: u8,
+
+    /// Disable progress spinners.
+    #[arg(long, global = true)]
+    pub no_progress: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -122,6 +126,12 @@ pub enum Commands {
 
     /// Check why a file is being ignored (for troubleshooting).
     CheckIgnore(CliCheckIgnoreArgs),
+
+    /// Output CLI schema as JSON for AI agents.
+    Tools(ToolsArgs),
+
+    /// Evaluate policy rules against analysis receipts.
+    Gate(CliGateArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -436,6 +446,10 @@ pub struct InitArgs {
     /// Which template profile to use.
     #[arg(long, value_enum, default_value_t = InitProfile::Default)]
     pub template: InitProfile,
+
+    /// Skip interactive wizard and use defaults.
+    #[arg(long)]
+    pub non_interactive: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -597,6 +611,64 @@ pub struct CliCheckIgnoreArgs {
     pub verbose: bool,
 }
 
+#[derive(Args, Debug, Clone)]
+pub struct ToolsArgs {
+    /// Output format for the tool schema.
+    #[arg(long, value_enum, default_value_t = ToolSchemaFormat::Jsonschema)]
+    pub format: ToolSchemaFormat,
+
+    /// Pretty-print JSON output.
+    #[arg(long)]
+    pub pretty: bool,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ToolSchemaFormat {
+    /// OpenAI function calling format.
+    Openai,
+    /// Anthropic tool use format.
+    Anthropic,
+    /// JSON Schema Draft 7 format.
+    #[default]
+    Jsonschema,
+    /// Raw clap structure dump.
+    Clap,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CliGateArgs {
+    /// Input analysis receipt or path to scan.
+    #[arg(value_name = "INPUT")]
+    pub input: Option<PathBuf>,
+
+    /// Path to policy file (TOML format).
+    #[arg(long)]
+    pub policy: Option<PathBuf>,
+
+    /// Analysis preset (for compute-then-gate mode).
+    #[arg(long, value_enum)]
+    pub preset: Option<AnalysisPreset>,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = GateFormat::Text)]
+    pub format: GateFormat,
+
+    /// Fail fast on first error.
+    #[arg(long)]
+    pub fail_fast: bool,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum GateFormat {
+    /// Human-readable text output.
+    #[default]
+    Text,
+    /// JSON output.
+    Json,
+}
+
 // =============================================================================
 // TOML Configuration File Structures
 // =============================================================================
@@ -622,6 +694,9 @@ pub struct TomlConfig {
 
     /// Badge command settings.
     pub badge: BadgeConfig,
+
+    /// Gate command settings.
+    pub gate: GateConfig,
 
     /// Named view profiles (e.g., [view.llm], [view.ci]).
     #[serde(default)]
@@ -755,6 +830,56 @@ pub struct ContextConfig {
 pub struct BadgeConfig {
     /// Default metric for badges.
     pub metric: Option<String>,
+}
+
+/// Gate command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GateConfig {
+    /// Path to policy file.
+    pub policy: Option<String>,
+
+    /// Analysis preset for compute-then-gate mode.
+    pub preset: Option<String>,
+
+    /// Fail fast on first error.
+    pub fail_fast: Option<bool>,
+
+    /// Inline policy rules.
+    pub rules: Option<Vec<GateRule>>,
+}
+
+/// A single gate policy rule (for inline TOML configuration).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GateRule {
+    /// Human-readable name for the rule.
+    pub name: String,
+
+    /// JSON Pointer to the value to check (RFC 6901).
+    pub pointer: String,
+
+    /// Comparison operator.
+    pub op: String,
+
+    /// Single value for comparison.
+    #[serde(default)]
+    pub value: Option<serde_json::Value>,
+
+    /// Multiple values for "in" operator.
+    #[serde(default)]
+    pub values: Option<Vec<serde_json::Value>>,
+
+    /// Negate the result.
+    #[serde(default)]
+    pub negate: bool,
+
+    /// Rule severity level: "error" or "warn".
+    #[serde(default)]
+    pub level: Option<String>,
+
+    /// Custom failure message.
+    #[serde(default)]
+    pub message: Option<String>,
 }
 
 /// A named view profile that can override settings for specific use cases.

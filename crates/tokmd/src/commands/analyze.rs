@@ -5,8 +5,11 @@ use tokmd_config as cli;
 
 use crate::analysis_utils;
 use crate::export_bundle;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Result<()> {
+    let progress = Progress::new(!global.no_progress);
+
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
     let format = args.format.unwrap_or(cli::AnalysisFormat::Md);
     let git_flag = if args.git {
@@ -18,6 +21,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     };
     let granularity = args.granularity.unwrap_or(cli::ImportGranularity::Module);
 
+    progress.set_message("Loading export data...");
     let bundle = export_bundle::load_export_from_inputs(&args.inputs, global)?;
     let source = analysis_types::AnalysisSource {
         inputs: args
@@ -65,7 +69,10 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         root: bundle.root,
         source,
     };
+    progress.set_message("Running analysis...");
     let receipt = analysis::analyze(ctx, request)?;
+
+    progress.finish_and_clear();
 
     if let Some(output_dir) = args.output_dir {
         std::fs::create_dir_all(&output_dir)

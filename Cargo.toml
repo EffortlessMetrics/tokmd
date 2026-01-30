@@ -10,6 +10,7 @@ members = [
     "crates/tokmd-content",
     "crates/tokmd-format",
     "crates/tokmd-fun",
+    "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-redact",
@@ -29,6 +30,7 @@ default-members = [
     "crates/tokmd-content",
     "crates/tokmd-format",
     "crates/tokmd-fun",
+    "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-redact",
@@ -64,6 +66,7 @@ tokmd-scan = { path = "crates/tokmd-scan", version = "1.2.0" }
 tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.2.0" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.2.0" }
 tokmd-walk = { path = "crates/tokmd-walk", version = "1.2.0" }
+tokmd-gate = { path = "crates/tokmd-gate", version = "1.2.0" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"

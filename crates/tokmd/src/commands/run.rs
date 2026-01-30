@@ -9,9 +9,13 @@ use tokmd_model as model;
 use tokmd_scan as scan;
 
 use crate::analysis_utils;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()> {
+    let progress = Progress::new(!global.no_progress);
+
     // 1. Scan once
+    progress.set_message("Scanning codebase...");
     let languages = scan::scan(&args.paths, global)?;
 
     // 2. Determine output directory
@@ -34,9 +38,11 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
             fallback
         }
     };
+    progress.finish_and_clear();
     println!("Writing run artifacts to: {}", output_dir.display());
 
     // 3. Generate Reports
+    progress.set_message("Generating reports...");
     let lang_report = model::create_lang_report(&languages, 0, false, cli::ChildrenMode::Collapse);
     let module_report = model::create_module_report(
         &languages,
@@ -60,6 +66,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     let scan_args = format::scan_args(&args.paths, global, Some(redact_mode));
 
     // 4. Write artifacts using tokmd-format for consistency
+    progress.set_message("Writing artifacts...");
 
     // Write lang.json
     let lang_path = output_dir.join("lang.json");
@@ -112,7 +119,11 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     let f = std::fs::File::create(&receipt_path)?;
     serde_json::to_writer(f, &receipt)?;
 
+    progress.finish_and_clear();
+
     if let Some(preset) = args.analysis {
+        let progress = Progress::new(!global.no_progress);
+        progress.set_message("Running analysis...");
         let source = analysis_types::AnalysisSource {
             inputs: args
                 .paths
@@ -154,6 +165,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
             source,
         };
         let receipt = analysis::analyze(ctx, request)?;
+        progress.finish_and_clear();
         analysis_utils::write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Md)?;
         analysis_utils::write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Json)?;
     }

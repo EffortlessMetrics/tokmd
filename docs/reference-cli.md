@@ -18,6 +18,7 @@ These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `an
 | `--no-ignore-vcs` | Do not read `.gitignore` files. |
 | `--doc-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
 | `-v, --verbose` | Enable verbose logging. |
+| `--no-progress` | Disable progress spinners (useful for CI/non-TTY). |
 
 ---
 
@@ -252,7 +253,18 @@ tokmd init --print
 
 # Overwrite existing file
 tokmd init --force
+
+# Skip interactive wizard
+tokmd init --non-interactive
 ```
+
+**Interactive Mode**:
+
+When run in a TTY without `--print` or `--non-interactive`, `tokmd init` launches an interactive wizard that:
+1. Detects your project type (Rust, Node, Python, Go, C++, Monorepo)
+2. Suggests appropriate module roots
+3. Configures module depth and context budget
+4. Optionally creates both `.tokeignore` and `tokmd.toml`
 
 ### `tokmd context`
 
@@ -317,6 +329,116 @@ tokmd check-ignore src/main.rs target/release/myapp
 
 # Verbose output showing rule sources
 tokmd check-ignore -v node_modules/lodash/index.js
+```
+
+### `tokmd tools`
+
+Outputs the CLI schema as JSON for AI agent tool use. This enables LLMs and AI agents to understand and invoke tokmd commands programmatically.
+
+**Usage**: `tokmd tools [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--format <FMT>` | Output format: `jsonschema`, `openai`, `anthropic`, `clap`. | `jsonschema` |
+| `--pretty` | Pretty-print JSON output. | `false` |
+
+**Formats**:
+
+| Format | Description |
+| :--- | :--- |
+| `jsonschema` | JSON Schema Draft 7 with tool definitions |
+| `openai` | OpenAI function calling format (`{"functions": [...]}`) |
+| `anthropic` | Anthropic tool use format (`{"tools": [...]}` with `input_schema`) |
+| `clap` | Raw internal schema structure |
+
+**Examples**:
+```bash
+# Generate OpenAI-compatible function schema
+tokmd tools --format openai --pretty
+
+# Generate Anthropic tool use schema
+tokmd tools --format anthropic > tools.json
+
+# Generate JSON Schema for documentation
+tokmd tools --format jsonschema --pretty > schema.json
+```
+
+### `tokmd gate`
+
+Evaluates policy rules against analysis receipts for CI gating. Use this to enforce code quality standards in your pipeline.
+
+**Usage**: `tokmd gate [INPUT] --policy <PATH> [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--input <PATH>` | Analysis receipt JSON or path to scan. | `.` |
+| `--policy <PATH>` | Path to policy TOML file. | required |
+| `--preset <PRESET>` | Analysis preset for compute-then-gate mode. | `receipt` |
+| `--format <FMT>` | Output format: `text`, `json`. | `text` |
+| `--fail-fast` | Stop on first error. | `false` |
+
+**Exit Codes**:
+| Code | Meaning |
+|------|---------|
+| `0` | All rules passed |
+| `1` | One or more rules failed |
+| `2` | Policy error (invalid file, parse error) |
+
+**Policy File Format** (`policy.toml`):
+```toml
+fail_fast = false
+allow_missing = false
+
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds token budget"
+
+[[rules]]
+name = "min_doc_density"
+pointer = "/derived/doc_density/total/ratio"
+op = "gte"
+value = 0.1
+level = "warn"
+message = "Documentation below 10%"
+
+[[rules]]
+name = "allowed_licenses"
+pointer = "/license/effective"
+op = "in"
+values = ["MIT", "Apache-2.0", "BSD-3-Clause"]
+level = "error"
+```
+
+**Supported Operators**:
+| Operator | Description |
+|----------|-------------|
+| `gt` | Greater than (>) |
+| `gte` | Greater than or equal (>=) |
+| `lt` | Less than (<) |
+| `lte` | Less than or equal (<=) |
+| `eq` | Equal (==) |
+| `ne` | Not equal (!=) |
+| `in` | Value is in list (use `values` array) |
+| `contains` | String/array contains value |
+| `exists` | JSON pointer exists |
+
+**Examples**:
+```bash
+# Gate an existing receipt
+tokmd gate --input analysis.json --policy policy.toml
+
+# Compute then gate (scans current directory)
+tokmd gate --policy policy.toml --preset health
+
+# Gate with JSON output for CI parsing
+tokmd gate --input analysis.json --policy policy.toml --format json
+
+# Fail fast on first error
+tokmd gate --policy policy.toml --fail-fast
 ```
 
 ### `tokmd completions`

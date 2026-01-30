@@ -11,8 +11,11 @@ use tokmd_types::{ContextReceipt, ToolInfo};
 
 use crate::context_pack;
 use crate::git_scoring;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Result<()> {
+    let progress = Progress::new(!global.no_progress);
+
     let paths = args
         .paths
         .clone()
@@ -22,10 +25,12 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     let budget = context_pack::parse_budget(&args.budget)?;
 
     // Scan and create export data
+    progress.set_message("Scanning codebase...");
     let languages = scan::scan(&paths, global)?;
     let module_roots = args.module_roots.clone().unwrap_or_default();
     let module_depth = args.module_depth.unwrap_or(2);
 
+    progress.set_message("Building export data...");
     let export = model::create_export_data(
         &languages,
         &module_roots,
@@ -37,6 +42,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     );
 
     // Compute git scores if using churn/hotspot ranking
+    progress.set_message("Computing scores...");
     let needs_git =
         matches!(args.rank_by, cli::ValueMetric::Churn | cli::ValueMetric::Hotspot);
     let git_scores = if needs_git && !args.no_git {
@@ -65,6 +71,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     };
 
     // Select files based on strategy
+    progress.set_message("Selecting files for context...");
     let selected = context_pack::select_files(
         &export.rows,
         budget,
@@ -79,6 +86,8 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     } else {
         0.0
     };
+
+    progress.finish_and_clear();
 
     match args.output {
         cli::ContextOutput::List => {
