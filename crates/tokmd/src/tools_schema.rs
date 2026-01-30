@@ -388,7 +388,7 @@ mod tests {
 
         assert_eq!(schema.name, "test");
         assert_eq!(schema.version, "1.0.0");
-        assert!(schema.tools.len() >= 1);
+        assert!(!schema.tools.is_empty());
 
         let sub = schema.tools.iter().find(|t| t.name == "sub").unwrap();
         assert_eq!(sub.parameters.len(), 2);

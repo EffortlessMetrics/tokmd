@@ -47,7 +47,7 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
                     if config_path.exists() && !args.force {
                         eprintln!("tokmd.toml already exists. Use --force to overwrite.");
                     } else {
-                        let config_content = wizard::generate_toml_config(&result);
+                        let config_content = wizard::generate_toml_config(&result)?;
                         fs::write(&config_path, config_content).with_context(|| {
                             format!("Failed to write {}", config_path.display())
                         })?;

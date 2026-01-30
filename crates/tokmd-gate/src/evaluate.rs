@@ -97,11 +97,12 @@ fn evaluate_rule(receipt: &Value, rule: &PolicyRule, allow_missing: bool) -> Rul
         Err(_) => false,
     };
 
+    let empty_values: Vec<serde_json::Value> = Vec::new();
     let expected = match rule.op {
         RuleOperator::In => format!(
             "{} in {:?}",
             rule.pointer,
-            rule.values.as_ref().unwrap_or(&vec![])
+            rule.values.as_ref().unwrap_or(&empty_values)
         ),
         _ => format!(
             "{} {} {}",

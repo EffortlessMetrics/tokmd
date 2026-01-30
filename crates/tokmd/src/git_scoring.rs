@@ -37,7 +37,7 @@ pub fn compute_git_scores(
     let mut commit_counts: BTreeMap<String, usize> = BTreeMap::new();
     for commit in &commits {
         for file in &commit.files {
-            let key = normalize_git_path(file);
+            let key = normalize_path(file);
             if file_lines.contains_key(&key) {
                 *commit_counts.entry(key).or_insert(0) += 1;
             }
@@ -69,13 +69,10 @@ pub fn compute_git_scores(
     None
 }
 
+/// Normalize path for consistent matching between FileRow and git paths.
+/// Converts backslashes to forward slashes and strips leading `./` prefix.
 #[cfg(feature = "git")]
 fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
-}
-
-#[cfg(feature = "git")]
-fn normalize_git_path(path: &str) -> String {
     let out = path.replace('\\', "/");
     out.strip_prefix("./").unwrap_or(&out).to_string()
 }

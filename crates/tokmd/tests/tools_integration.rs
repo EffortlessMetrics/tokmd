@@ -1,7 +1,6 @@
 //! Integration tests for the `tokmd tools` command.
 
 use assert_cmd::Command;
-use predicates::prelude::*;
 use serde_json::Value;
 
 fn tokmd() -> Command {
