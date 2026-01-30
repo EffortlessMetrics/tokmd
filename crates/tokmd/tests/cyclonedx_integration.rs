@@ -45,10 +45,7 @@ fn test_cyclonedx_spec_version() {
     let parsed: Value = serde_json::from_str(&stdout).unwrap();
 
     // Check spec version is 1.6
-    assert_eq!(
-        parsed["specVersion"], "1.6",
-        "specVersion should be 1.6"
-    );
+    assert_eq!(parsed["specVersion"], "1.6", "specVersion should be 1.6");
 }
 
 #[test]
@@ -120,7 +117,10 @@ fn test_cyclonedx_metadata() {
 
     // metadata should have tools array
     if let Some(tools) = metadata.get("tools") {
-        assert!(tools.is_array() || tools.is_object(), "tools should be array or object");
+        assert!(
+            tools.is_array() || tools.is_object(),
+            "tools should be array or object"
+        );
     }
 }
 

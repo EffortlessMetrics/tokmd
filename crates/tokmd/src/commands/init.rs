@@ -3,11 +3,11 @@ use tokmd_config as cli;
 use tokmd_tokeignore as tokeignore;
 
 #[cfg(feature = "ui")]
+use crate::interactive::{self, wizard};
+#[cfg(feature = "ui")]
 use anyhow::Context;
 #[cfg(feature = "ui")]
 use std::fs;
-#[cfg(feature = "ui")]
-use crate::interactive::{self, wizard};
 
 pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
     // Non-interactive modes: print or explicit non-interactive flag or no ui feature
@@ -48,8 +48,9 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
                         eprintln!("tokmd.toml already exists. Use --force to overwrite.");
                     } else {
                         let config_content = wizard::generate_toml_config(&result);
-                        fs::write(&config_path, config_content)
-                            .with_context(|| format!("Failed to write {}", config_path.display()))?;
+                        fs::write(&config_path, config_content).with_context(|| {
+                            format!("Failed to write {}", config_path.display())
+                        })?;
                         eprintln!("Created tokmd.toml");
                     }
                 }

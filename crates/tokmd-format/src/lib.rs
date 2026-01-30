@@ -47,8 +47,11 @@ fn now_ms() -> u128 {
 /// This is the canonical normalization function for scan inputs. Use this
 /// before storing paths in receipts to ensure consistent output across OS.
 pub fn normalize_scan_input(p: &Path) -> String {
-    let s = p.display().to_string().replace('\\', "/");
-    s.strip_prefix("./").unwrap_or(&s).to_string()
+    let mut s = p.display().to_string().replace('\\', "/");
+    while s.starts_with("./") {
+        s = s.strip_prefix("./").unwrap().to_string();
+    }
+    if s.is_empty() { ".".to_string() } else { s }
 }
 
 /// Construct `ScanArgs` with optional redaction applied.

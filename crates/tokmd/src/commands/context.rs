@@ -43,8 +43,10 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
 
     // Compute git scores if using churn/hotspot ranking
     progress.set_message("Computing scores...");
-    let needs_git =
-        matches!(args.rank_by, cli::ValueMetric::Churn | cli::ValueMetric::Hotspot);
+    let needs_git = matches!(
+        args.rank_by,
+        cli::ValueMetric::Churn | cli::ValueMetric::Hotspot
+    );
     let git_scores = if needs_git && !args.no_git {
         let root = paths.first().cloned().unwrap_or_else(|| PathBuf::from("."));
         match git_scoring::compute_git_scores(

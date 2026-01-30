@@ -55,7 +55,11 @@ impl ProjectType {
     fn default_module_roots(&self) -> Vec<String> {
         match self {
             ProjectType::Rust => vec!["crates".to_string(), "src".to_string()],
-            ProjectType::Node => vec!["packages".to_string(), "apps".to_string(), "src".to_string()],
+            ProjectType::Node => vec![
+                "packages".to_string(),
+                "apps".to_string(),
+                "src".to_string(),
+            ],
             ProjectType::Python => vec!["src".to_string(), "lib".to_string()],
             ProjectType::Go => vec!["cmd".to_string(), "pkg".to_string(), "internal".to_string()],
             ProjectType::Cpp => vec!["src".to_string(), "include".to_string(), "lib".to_string()],
@@ -78,10 +82,7 @@ pub fn run_init_wizard(_dir: &Path) -> Result<Option<WizardResult>> {
 
     // Welcome message
     eprintln!();
-    eprintln!(
-        "{}",
-        style("Welcome to tokmd init wizard!").bold().cyan()
-    );
+    eprintln!("{}", style("Welcome to tokmd init wizard!").bold().cyan());
     eprintln!("This wizard will help you configure tokmd for your project.");
     eprintln!();
 
@@ -183,9 +184,7 @@ pub fn run_init_wizard(_dir: &Path) -> Result<Option<WizardResult>> {
 ///
 /// Uses the `TomlConfig` struct to ensure output matches the schema exactly.
 pub fn generate_toml_config(result: &WizardResult) -> String {
-    use tokmd_config::{
-        AnalyzeConfig, ContextConfig, ExportConfig, ModuleConfig, TomlConfig,
-    };
+    use tokmd_config::{AnalyzeConfig, ContextConfig, ExportConfig, ModuleConfig, TomlConfig};
 
     let config = TomlConfig {
         module: ModuleConfig {
@@ -210,8 +209,7 @@ pub fn generate_toml_config(result: &WizardResult) -> String {
         ..Default::default()
     };
 
-    let toml_content = toml::to_string_pretty(&config)
-        .expect("TomlConfig should always serialize");
+    let toml_content = toml::to_string_pretty(&config).expect("TomlConfig should always serialize");
 
     format!(
         "# tokmd configuration\n\
@@ -221,9 +219,7 @@ pub fn generate_toml_config(result: &WizardResult) -> String {
 }
 
 /// Map project type to InitProfile.
-pub fn project_type_to_profile(
-    project_type: ProjectType,
-) -> tokmd_config::InitProfile {
+pub fn project_type_to_profile(project_type: ProjectType) -> tokmd_config::InitProfile {
     match project_type {
         ProjectType::Rust => tokmd_config::InitProfile::Rust,
         ProjectType::Node => tokmd_config::InitProfile::Node,
@@ -283,8 +279,8 @@ mod tests {
         assert!(config.contains("preset = \"receipt\""));
 
         // Verify it's valid TOML by parsing
-        let parsed: tokmd_config::TomlConfig = toml::from_str(&config)
-            .expect("Generated config should be valid TOML");
+        let parsed: tokmd_config::TomlConfig =
+            toml::from_str(&config).expect("Generated config should be valid TOML");
         assert_eq!(parsed.module.depth, Some(2));
         assert_eq!(parsed.context.budget, Some("128k".to_string()));
     }

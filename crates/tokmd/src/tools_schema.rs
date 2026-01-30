@@ -5,7 +5,7 @@
 
 use clap::{Arg, ArgAction, Command};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use tokmd_config::ToolSchemaFormat;
 
@@ -413,8 +413,6 @@ mod tests {
         let parsed: Value = serde_json::from_str(&output).unwrap();
         assert!(parsed.get("tools").is_some());
         let tools = parsed["tools"].as_array().unwrap();
-        assert!(tools
-            .iter()
-            .any(|t| t.get("input_schema").is_some()));
+        assert!(tools.iter().any(|t| t.get("input_schema").is_some()));
     }
 }

@@ -125,7 +125,10 @@ fn parse_operator(op: &str) -> Result<RuleOperator> {
         "in" => Ok(RuleOperator::In),
         "contains" => Ok(RuleOperator::Contains),
         "exists" => Ok(RuleOperator::Exists),
-        _ => bail!("Unknown operator: {}. Valid operators: gt, gte, lt, lte, eq, ne, in, contains, exists", op),
+        _ => bail!(
+            "Unknown operator: {}. Valid operators: gt, gte, lt, lte, eq, ne, in, contains, exists",
+            op
+        ),
     }
 }
 
@@ -215,7 +218,10 @@ fn compute_receipt(
 /// Print results in text format.
 fn print_text_result(result: &GateResult) {
     if result.passed {
-        println!("Gate PASSED ({} rules evaluated)", result.rule_results.len());
+        println!(
+            "Gate PASSED ({} rules evaluated)",
+            result.rule_results.len()
+        );
     } else {
         println!(
             "Gate FAILED: {} error(s), {} warning(s)",

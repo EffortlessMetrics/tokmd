@@ -97,7 +97,7 @@ pub enum Commands {
     /// Language summary (default).
     Lang(CliLangArgs),
 
-    /// Module summary (group by path prefixes like crates/<name> or packages/<name>).
+    /// Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`).
     Module(CliModuleArgs),
 
     /// Export a file-level dataset (CSV / JSONL / JSON).

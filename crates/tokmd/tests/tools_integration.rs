@@ -38,21 +38,41 @@ fn test_tools_contains_known_commands() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let parsed: Value = serde_json::from_str(&stdout).expect("Output should be valid JSON");
 
-    let tools = parsed["tools"].as_array().expect("tools should be an array");
+    let tools = parsed["tools"]
+        .as_array()
+        .expect("tools should be an array");
 
     // Check for known commands
-    let tool_names: Vec<&str> = tools
-        .iter()
-        .filter_map(|t| t["name"].as_str())
-        .collect();
+    let tool_names: Vec<&str> = tools.iter().filter_map(|t| t["name"].as_str()).collect();
 
-    assert!(tool_names.contains(&"lang"), "Should contain 'lang' command");
-    assert!(tool_names.contains(&"module"), "Should contain 'module' command");
-    assert!(tool_names.contains(&"export"), "Should contain 'export' command");
-    assert!(tool_names.contains(&"analyze"), "Should contain 'analyze' command");
-    assert!(tool_names.contains(&"context"), "Should contain 'context' command");
-    assert!(tool_names.contains(&"tools"), "Should contain 'tools' command");
-    assert!(tool_names.contains(&"gate"), "Should contain 'gate' command");
+    assert!(
+        tool_names.contains(&"lang"),
+        "Should contain 'lang' command"
+    );
+    assert!(
+        tool_names.contains(&"module"),
+        "Should contain 'module' command"
+    );
+    assert!(
+        tool_names.contains(&"export"),
+        "Should contain 'export' command"
+    );
+    assert!(
+        tool_names.contains(&"analyze"),
+        "Should contain 'analyze' command"
+    );
+    assert!(
+        tool_names.contains(&"context"),
+        "Should contain 'context' command"
+    );
+    assert!(
+        tool_names.contains(&"tools"),
+        "Should contain 'tools' command"
+    );
+    assert!(
+        tool_names.contains(&"gate"),
+        "Should contain 'gate' command"
+    );
 }
 
 #[test]
@@ -73,7 +93,9 @@ fn test_tools_openai_format() {
         "OpenAI format should have 'functions' key"
     );
 
-    let functions = parsed["functions"].as_array().expect("functions should be an array");
+    let functions = parsed["functions"]
+        .as_array()
+        .expect("functions should be an array");
     assert!(!functions.is_empty(), "Should have at least one function");
 
     // Each function should have "parameters"
@@ -103,7 +125,9 @@ fn test_tools_anthropic_format() {
         "Anthropic format should have 'tools' key"
     );
 
-    let tools = parsed["tools"].as_array().expect("tools should be an array");
+    let tools = parsed["tools"]
+        .as_array()
+        .expect("tools should be an array");
     assert!(!tools.is_empty(), "Should have at least one tool");
 
     // Each tool should have "input_schema"
@@ -180,7 +204,10 @@ fn test_tools_export_formats_enum() {
 
     // The export tool should exist and have parameters object
     let params = &export_tool.unwrap()["parameters"];
-    assert!(params.is_object(), "Export tool should have parameters object");
+    assert!(
+        params.is_object(),
+        "Export tool should have parameters object"
+    );
 
     // Check properties contains format
     let properties = &params["properties"];
