@@ -38,7 +38,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     // 3. Generate Reports
     let lang_report = model::create_lang_report(&languages, 0, false, cli::ChildrenMode::Collapse);
-    let module_report = model::create_module_report(
+    let mut module_report = model::create_module_report(
         &languages,
         &["crates".to_string(), "packages".to_string()],
         2,
@@ -57,6 +57,10 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     // Get redact mode - applies to scan args in all receipts (lang.json, module.json, export.jsonl)
     let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
+
+    // Redact module report if needed
+    format::redact_module_report(&mut module_report, redact_mode);
+
     let scan_args = format::scan_args(&args.paths, global, Some(redact_mode));
 
     // 4. Write artifacts using tokmd-format for consistency

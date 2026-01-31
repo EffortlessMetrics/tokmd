@@ -515,6 +515,18 @@ fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'
     })
 }
 
+/// Redact a module report in place.
+pub fn redact_module_report(report: &mut ModuleReport, mode: RedactMode) {
+    if mode == RedactMode::All {
+        for row in &mut report.rows {
+            row.module = short_hash(&row.module);
+        }
+        for root in &mut report.module_roots {
+            *root = short_hash(root);
+        }
+    }
+}
+
 // Re-export redaction functions for backwards compatibility
 pub use tokmd_redact::{redact_path, short_hash};
 
