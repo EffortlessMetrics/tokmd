@@ -2,6 +2,7 @@
 //!
 //! Generates PR cockpit metrics for code review automation.
 
+use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::PathBuf;
@@ -284,14 +285,31 @@ fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<Fil
 }
 
 #[cfg(feature = "git")]
-fn compute_change_surface(repo_root: &PathBuf, base: &str, head: &str) -> Result<ChangeSurface> {
+fn compute_change_surface(
+    repo_root: &PathBuf,
+    base: &str,
+    head: &str,
+    file_stats: &[FileStats],
+) -> Result<ChangeSurface> {
     // Get commit count
     let commits = get_commit_count(repo_root, base, head)?;
 
-    // Get diff stats
-    let (files_changed, insertions, deletions) = get_diff_stats(repo_root, base, head)?;
-
+    // Calculate totals from file stats
+    let files_changed = file_stats.len();
+    let insertions: usize = file_stats.iter().map(|f| f.insertions).sum();
+    let deletions: usize = file_stats.iter().map(|f| f.deletions).sum();
     let net_lines = insertions as i64 - deletions as i64;
+
+    // Churn velocity: average lines changed per commit
+    let total_churn = insertions + deletions;
+    let churn_velocity = if commits > 0 {
+        round_pct(total_churn as f64 / commits as f64)
+    } else {
+        0.0
+    };
+
+    // Change concentration: what % of changes are in top 20% of files
+    let change_concentration = compute_change_concentration(file_stats);
 
     Ok(ChangeSurface {
         commits,
@@ -299,7 +317,32 @@ fn compute_change_surface(repo_root: &PathBuf, base: &str, head: &str) -> Result
         insertions,
         deletions,
         net_lines,
+        churn_velocity,
+        change_concentration,
     })
+}
+
+/// Compute what percentage of changes are concentrated in top 20% of files.
+fn compute_change_concentration(file_stats: &[FileStats]) -> f64 {
+    if file_stats.is_empty() {
+        return 0.0;
+    }
+
+    let total_lines: usize = file_stats.iter().map(|f| f.total_lines()).sum();
+    if total_lines == 0 {
+        return 0.0;
+    }
+
+    // Sort by lines changed (descending)
+    let mut sorted: Vec<usize> = file_stats.iter().map(|f| f.total_lines()).collect();
+    sorted.sort_by(|a, b| b.cmp(a));
+
+    // Get top 20% of files
+    let top_count = (file_stats.len() as f64 * 0.2).ceil() as usize;
+    let top_count = top_count.max(1);
+
+    let top_lines: usize = sorted.iter().take(top_count).sum();
+    round_pct(top_lines as f64 / total_lines as f64 * 100.0)
 }
 
 #[cfg(feature = "git")]
@@ -323,81 +366,6 @@ fn get_commit_count(repo_root: &PathBuf, base: &str, head: &str) -> Result<usize
         .trim()
         .parse::<usize>()
         .context("Failed to parse commit count")
-}
-
-#[cfg(feature = "git")]
-fn get_diff_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<(usize, usize, usize)> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("diff")
-        .arg("--shortstat")
-        .arg(format!("{}...{}", base, head))
-        .output()
-        .context("Failed to run git diff --shortstat")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("git diff failed: {}", stderr.trim());
-    }
-
-    let stat_str = String::from_utf8_lossy(&output.stdout);
-    parse_shortstat(&stat_str)
-}
-
-fn parse_shortstat(s: &str) -> Result<(usize, usize, usize)> {
-    // Example: " 5 files changed, 150 insertions(+), 30 deletions(-)"
-    let s = s.trim();
-    if s.is_empty() {
-        return Ok((0, 0, 0));
-    }
-
-    let mut files = 0;
-    let mut insertions = 0;
-    let mut deletions = 0;
-
-    for part in s.split(", ") {
-        let part = part.trim();
-        if part.contains("file") {
-            if let Some(num) = part.split_whitespace().next() {
-                files = num.parse().unwrap_or(0);
-            }
-        } else if part.contains("insertion")
-            && let Some(num) = part.split_whitespace().next()
-        {
-            insertions = num.parse().unwrap_or(0);
-        } else if part.contains("deletion")
-            && let Some(num) = part.split_whitespace().next()
-        {
-            deletions = num.parse().unwrap_or(0);
-        }
-    }
-
-    Ok((files, insertions, deletions))
-}
-
-#[cfg(feature = "git")]
-fn get_changed_files(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<String>> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("diff")
-        .arg("--name-only")
-        .arg(format!("{}...{}", base, head))
-        .output()
-        .context("Failed to run git diff --name-only")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("git diff --name-only failed: {}", stderr.trim());
-    }
-
-    let files_str = String::from_utf8_lossy(&output.stdout);
-    Ok(files_str
-        .lines()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect())
 }
 
 /// File classification for composition analysis.
@@ -459,6 +427,7 @@ fn compute_composition(files: &[String]) -> Composition {
             test_pct: 0.0,
             docs_pct: 0.0,
             config_pct: 0.0,
+            test_ratio: 0.0,
         };
     }
 
@@ -474,11 +443,19 @@ fn compute_composition(files: &[String]) -> Composition {
     let docs = *counts.get(&FileCategory::Docs).unwrap_or(&0) as f64;
     let config = *counts.get(&FileCategory::Config).unwrap_or(&0) as f64;
 
+    // Test-to-code ratio: how many test files per code file
+    let test_ratio = if code > 0.0 {
+        round_pct(test / code)
+    } else {
+        0.0
+    };
+
     Composition {
         code_pct: round_pct(code / total * 100.0),
         test_pct: round_pct(test / total * 100.0),
         docs_pct: round_pct(docs / total * 100.0),
         config_pct: round_pct(config / total * 100.0),
+        test_ratio,
     }
 }
 
@@ -491,11 +468,13 @@ fn detect_contracts(files: &[String]) -> Contracts {
     let mut api_changed = false;
     let mut cli_changed = false;
     let mut schema_changed = false;
+    let mut breaking_indicators = 0;
 
     for file in files {
         // API changes: lib.rs files in crates
         if file.contains("crates/") && file.ends_with("/src/lib.rs") {
             api_changed = true;
+            breaking_indicators += 1;
         }
         if file.ends_with("/mod.rs") {
             api_changed = true;
@@ -507,17 +486,21 @@ fn detect_contracts(files: &[String]) -> Contracts {
         }
         if file.contains("crates/tokmd-config/") {
             cli_changed = true;
+            breaking_indicators += 1;
         }
 
         // Schema changes
         if file == "docs/schema.json" {
             schema_changed = true;
+            breaking_indicators += 2; // Schema changes are high impact
         }
         if file.contains("crates/tokmd-types/") {
             schema_changed = true;
+            breaking_indicators += 1;
         }
         if file.contains("crates/tokmd-analysis-types/") {
             schema_changed = true;
+            breaking_indicators += 1;
         }
     }
 
@@ -525,24 +508,244 @@ fn detect_contracts(files: &[String]) -> Contracts {
         api_changed,
         cli_changed,
         schema_changed,
+        breaking_indicators,
     }
 }
 
-fn generate_review_plan(files: &[String], contracts: &Contracts) -> Vec<ReviewItem> {
+/// Compute code health metrics for DevEx analysis.
+fn compute_code_health(file_stats: &[FileStats], contracts: &Contracts) -> CodeHealth {
+    let mut warnings: Vec<HealthWarning> = Vec::new();
+
+    // Count large files (>500 lines changed)
+    let large_files_touched = file_stats.iter().filter(|f| f.total_lines() > 500).count();
+
+    // Average file size
+    let avg_file_size = if file_stats.is_empty() {
+        0
+    } else {
+        file_stats.iter().map(|f| f.total_lines()).sum::<usize>() / file_stats.len()
+    };
+
+    // Add warnings for large files
+    for file in file_stats.iter().filter(|f| f.total_lines() > 500) {
+        warnings.push(HealthWarning {
+            path: file.path.clone(),
+            warning_type: WarningType::LargeFile,
+            message: format!("Large change: {} lines modified", file.total_lines()),
+        });
+    }
+
+    // Add warnings for high churn files (>200 lines with deletions)
+    for file in file_stats
+        .iter()
+        .filter(|f| f.total_lines() > 200 && f.deletions > 100)
+    {
+        warnings.push(HealthWarning {
+            path: file.path.clone(),
+            warning_type: WarningType::HighChurn,
+            message: format!("High churn: +{} -{} lines", file.insertions, file.deletions),
+        });
+    }
+
+    // Compute complexity indicator
+    let complexity_indicator = compute_complexity_indicator(file_stats, contracts);
+
+    // Compute health score (0-100)
+    let score = compute_health_score(
+        file_stats,
+        large_files_touched,
+        &complexity_indicator,
+        contracts,
+    );
+
+    // Compute grade
+    let grade = match score {
+        90..=100 => "A",
+        80..=89 => "B",
+        70..=79 => "C",
+        60..=69 => "D",
+        _ => "F",
+    }
+    .to_string();
+
+    CodeHealth {
+        score,
+        grade,
+        large_files_touched,
+        avg_file_size,
+        complexity_indicator,
+        warnings,
+    }
+}
+
+fn compute_complexity_indicator(
+    file_stats: &[FileStats],
+    contracts: &Contracts,
+) -> ComplexityIndicator {
+    let total_lines: usize = file_stats.iter().map(|f| f.total_lines()).sum();
+    let file_count = file_stats.len();
+
+    // Multiple factors contribute to complexity
+    let mut complexity_score = 0;
+
+    // Factor 1: Total lines changed
+    if total_lines > 1000 {
+        complexity_score += 2;
+    } else if total_lines > 500 {
+        complexity_score += 1;
+    }
+
+    // Factor 2: Number of files
+    if file_count > 20 {
+        complexity_score += 2;
+    } else if file_count > 10 {
+        complexity_score += 1;
+    }
+
+    // Factor 3: Breaking changes
+    if contracts.breaking_indicators >= 3 {
+        complexity_score += 2;
+    } else if contracts.breaking_indicators >= 1 {
+        complexity_score += 1;
+    }
+
+    // Factor 4: Schema changes are always complex
+    if contracts.schema_changed {
+        complexity_score += 1;
+    }
+
+    match complexity_score {
+        0..=1 => ComplexityIndicator::Low,
+        2..=3 => ComplexityIndicator::Medium,
+        4..=5 => ComplexityIndicator::High,
+        _ => ComplexityIndicator::Critical,
+    }
+}
+
+fn compute_health_score(
+    file_stats: &[FileStats],
+    large_files: usize,
+    complexity: &ComplexityIndicator,
+    contracts: &Contracts,
+) -> u32 {
+    let mut score = 100i32;
+
+    // Deduct for large files
+    score -= (large_files * 5) as i32;
+
+    // Deduct for complexity
+    match complexity {
+        ComplexityIndicator::Low => {}
+        ComplexityIndicator::Medium => score -= 10,
+        ComplexityIndicator::High => score -= 20,
+        ComplexityIndicator::Critical => score -= 35,
+    }
+
+    // Deduct for breaking changes
+    score -= (contracts.breaking_indicators * 3) as i32;
+
+    // Deduct for very large total changes
+    let total_lines: usize = file_stats.iter().map(|f| f.total_lines()).sum();
+    if total_lines > 2000 {
+        score -= 15;
+    } else if total_lines > 1000 {
+        score -= 10;
+    } else if total_lines > 500 {
+        score -= 5;
+    }
+
+    score.clamp(0, 100) as u32
+}
+
+/// Compute risk indicators for the PR.
+fn compute_risk(file_stats: &[FileStats], contracts: &Contracts, health: &CodeHealth) -> Risk {
+    let mut hotspots_touched = Vec::new();
+    let mut bus_factor_warnings = Vec::new();
+
+    // High-churn files are potential hotspots
+    for file in file_stats.iter().filter(|f| f.total_lines() > 300) {
+        hotspots_touched.push(file.path.clone());
+    }
+
+    // Core infrastructure files are bus factor risks
+    for file in file_stats {
+        if file.path.contains("/src/lib.rs")
+            || file.path.contains("/src/main.rs")
+            || file.path == "Cargo.toml"
+        {
+            bus_factor_warnings.push(format!("Core file modified: {}", file.path));
+        }
+    }
+
+    // Compute risk score
+    let mut risk_score = 0u32;
+
+    // Factor in file count
+    if file_stats.len() > 50 {
+        risk_score += 30;
+    } else if file_stats.len() > 20 {
+        risk_score += 15;
+    } else if file_stats.len() > 10 {
+        risk_score += 5;
+    }
+
+    // Factor in breaking changes
+    risk_score += (contracts.breaking_indicators * 10).min(40) as u32;
+
+    // Factor in health score (inverse)
+    risk_score += (100 - health.score) / 3;
+
+    // Factor in hotspots
+    risk_score += (hotspots_touched.len() * 5).min(20) as u32;
+
+    let risk_score = risk_score.min(100);
+
+    let level = match risk_score {
+        0..=20 => RiskLevel::Low,
+        21..=45 => RiskLevel::Medium,
+        46..=70 => RiskLevel::High,
+        _ => RiskLevel::Critical,
+    };
+
+    Risk {
+        hotspots_touched,
+        bus_factor_warnings,
+        level,
+        score: risk_score,
+    }
+}
+
+fn generate_review_plan(file_stats: &[FileStats], contracts: &Contracts) -> Vec<ReviewItem> {
     let mut items: Vec<ReviewItem> = Vec::new();
     let mut priority = 1u32;
 
+    // Helper to find file stats (currently unused but available for future use)
+    let _find_stats = |path: &str| file_stats.iter().find(|f| f.path == path);
+
+    // Helper to compute complexity (1-5) based on lines changed
+    let compute_file_complexity = |stats: Option<&FileStats>| -> u8 {
+        match stats.map(|s| s.total_lines()).unwrap_or(0) {
+            0..=50 => 1,
+            51..=150 => 2,
+            151..=300 => 3,
+            301..=500 => 4,
+            _ => 5,
+        }
+    };
+
     // Priority 1: Schema changes (high impact)
     if contracts.schema_changed {
-        for file in files {
-            if file == "docs/schema.json"
-                || file.contains("crates/tokmd-types/")
-                || file.contains("crates/tokmd-analysis-types/")
+        for fs in file_stats {
+            if fs.path == "docs/schema.json"
+                || fs.path.contains("crates/tokmd-types/")
+                || fs.path.contains("crates/tokmd-analysis-types/")
             {
                 items.push(ReviewItem {
-                    path: file.clone(),
+                    path: fs.path.clone(),
                     reason: "Schema change".to_string(),
                     priority,
+                    complexity: Some(compute_file_complexity(Some(fs))),
+                    lines_changed: Some(fs.total_lines()),
                 });
             }
         }
@@ -551,15 +754,17 @@ fn generate_review_plan(files: &[String], contracts: &Contracts) -> Vec<ReviewIt
 
     // Priority 2: API changes
     if contracts.api_changed {
-        for file in files {
-            if ((file.contains("crates/") && file.ends_with("/src/lib.rs"))
-                || file.ends_with("/mod.rs"))
-                && !items.iter().any(|i| i.path == *file)
+        for fs in file_stats {
+            if ((fs.path.contains("crates/") && fs.path.ends_with("/src/lib.rs"))
+                || fs.path.ends_with("/mod.rs"))
+                && !items.iter().any(|i| i.path == fs.path)
             {
                 items.push(ReviewItem {
-                    path: file.clone(),
+                    path: fs.path.clone(),
                     reason: "API surface".to_string(),
                     priority,
+                    complexity: Some(compute_file_complexity(Some(fs))),
+                    lines_changed: Some(fs.total_lines()),
                 });
             }
         }
@@ -568,15 +773,17 @@ fn generate_review_plan(files: &[String], contracts: &Contracts) -> Vec<ReviewIt
 
     // Priority 3: CLI changes
     if contracts.cli_changed {
-        for file in files {
-            if (file.contains("crates/tokmd/src/commands/")
-                || file.contains("crates/tokmd-config/"))
-                && !items.iter().any(|i| i.path == *file)
+        for fs in file_stats {
+            if (fs.path.contains("crates/tokmd/src/commands/")
+                || fs.path.contains("crates/tokmd-config/"))
+                && !items.iter().any(|i| i.path == fs.path)
             {
                 items.push(ReviewItem {
-                    path: file.clone(),
+                    path: fs.path.clone(),
                     reason: "CLI interface".to_string(),
                     priority,
+                    complexity: Some(compute_file_complexity(Some(fs))),
+                    lines_changed: Some(fs.total_lines()),
                 });
             }
         }
@@ -584,12 +791,15 @@ fn generate_review_plan(files: &[String], contracts: &Contracts) -> Vec<ReviewIt
     }
 
     // Priority 4: Test files
-    for file in files {
-        if classify_file(file) == FileCategory::Test && !items.iter().any(|i| i.path == *file) {
+    for fs in file_stats {
+        if classify_file(&fs.path) == FileCategory::Test && !items.iter().any(|i| i.path == fs.path)
+        {
             items.push(ReviewItem {
-                path: file.clone(),
+                path: fs.path.clone(),
                 reason: "Test coverage".to_string(),
                 priority,
+                complexity: Some(compute_file_complexity(Some(fs))),
+                lines_changed: Some(fs.total_lines()),
             });
         }
     }
@@ -597,22 +807,28 @@ fn generate_review_plan(files: &[String], contracts: &Contracts) -> Vec<ReviewIt
         priority += 1;
     }
 
-    // Priority 5: Remaining code files
-    for file in files {
-        if !items.iter().any(|i| i.path == *file) {
-            let cat = classify_file(file);
-            let reason = match cat {
-                FileCategory::Code => "Implementation".to_string(),
-                FileCategory::Docs => "Documentation".to_string(),
-                FileCategory::Config => "Configuration".to_string(),
-                FileCategory::Test => "Test".to_string(),
-            };
-            items.push(ReviewItem {
-                path: file.clone(),
-                reason,
-                priority,
-            });
-        }
+    // Priority 5: Remaining files (sorted by lines changed descending)
+    let mut remaining: Vec<&FileStats> = file_stats
+        .iter()
+        .filter(|fs| !items.iter().any(|i| i.path == fs.path))
+        .collect();
+    remaining.sort_by_key(|f| Reverse(f.total_lines()));
+
+    for fs in remaining {
+        let cat = classify_file(&fs.path);
+        let reason = match cat {
+            FileCategory::Code => "Implementation".to_string(),
+            FileCategory::Docs => "Documentation".to_string(),
+            FileCategory::Config => "Configuration".to_string(),
+            FileCategory::Test => "Test".to_string(),
+        };
+        items.push(ReviewItem {
+            path: fs.path.clone(),
+            reason,
+            priority,
+            complexity: Some(compute_file_complexity(Some(fs))),
+            lines_changed: Some(fs.total_lines()),
+        });
     }
 
     items
@@ -627,6 +843,15 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
 
     out.push_str("## Glass Cockpit\n\n");
 
+    // Health summary badge-style
+    out.push_str(&format!(
+        "**Health:** {} ({}/100) | **Risk:** {:?} ({}/100)\n\n",
+        receipt.code_health.grade,
+        receipt.code_health.score,
+        receipt.risk.level,
+        receipt.risk.score
+    ));
+
     // Change Surface
     out.push_str("### Change Surface\n\n");
     out.push_str("| Metric | Value |\n");
@@ -640,16 +865,18 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
         receipt.change_surface.files_changed
     ));
     out.push_str(&format!(
-        "| Insertions | +{} |\n",
-        receipt.change_surface.insertions
-    ));
-    out.push_str(&format!(
-        "| Deletions | -{} |\n",
-        receipt.change_surface.deletions
-    ));
-    out.push_str(&format!(
-        "| Net lines | {} |\n",
+        "| Lines | +{}/-{} (net: {}) |\n",
+        receipt.change_surface.insertions,
+        receipt.change_surface.deletions,
         receipt.change_surface.net_lines
+    ));
+    out.push_str(&format!(
+        "| Churn velocity | {:.1} lines/commit |\n",
+        receipt.change_surface.churn_velocity
+    ));
+    out.push_str(&format!(
+        "| Change concentration | {:.1}% in top 20% files |\n",
+        receipt.change_surface.change_concentration
     ));
     out.push('\n');
 
@@ -673,46 +900,129 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
         "| Config | {:.1}% |\n",
         receipt.composition.config_pct
     ));
+    out.push_str(&format!(
+        "| **Test ratio** | {:.2} tests/code |\n",
+        receipt.composition.test_ratio
+    ));
     out.push('\n');
+
+    // Code Health
+    out.push_str("### Code Health\n\n");
+    out.push_str("| Metric | Value |\n");
+    out.push_str("|--------|-------|\n");
+    out.push_str(&format!(
+        "| Health score | {} ({}) |\n",
+        receipt.code_health.score, receipt.code_health.grade
+    ));
+    out.push_str(&format!(
+        "| Complexity | {:?} |\n",
+        receipt.code_health.complexity_indicator
+    ));
+    out.push_str(&format!(
+        "| Large files touched | {} |\n",
+        receipt.code_health.large_files_touched
+    ));
+    out.push_str(&format!(
+        "| Avg file size | {} lines |\n",
+        receipt.code_health.avg_file_size
+    ));
+    out.push('\n');
+
+    // Health warnings
+    if !receipt.code_health.warnings.is_empty() {
+        out.push_str("#### Warnings\n\n");
+        for warning in &receipt.code_health.warnings {
+            out.push_str(&format!(
+                "- **{:?}**: `{}` - {}\n",
+                warning.warning_type, warning.path, warning.message
+            ));
+        }
+        out.push('\n');
+    }
 
     // Contracts
     out.push_str("### Contracts\n\n");
-    out.push_str("| Contract | Changed |\n");
-    out.push_str("|----------|:-------:|\n");
+    out.push_str("| Contract | Changed | Breaking |\n");
+    out.push_str("|----------|:-------:|:--------:|\n");
     out.push_str(&format!(
-        "| API | {} |\n",
+        "| API | {} | {} |\n",
         if receipt.contracts.api_changed {
             "Yes"
         } else {
             "No"
+        },
+        if receipt.contracts.api_changed {
+            "Possible"
+        } else {
+            "-"
         }
     ));
     out.push_str(&format!(
-        "| CLI | {} |\n",
+        "| CLI | {} | {} |\n",
         if receipt.contracts.cli_changed {
             "Yes"
         } else {
             "No"
+        },
+        if receipt.contracts.cli_changed {
+            "Possible"
+        } else {
+            "-"
         }
     ));
     out.push_str(&format!(
-        "| Schema | {} |\n",
+        "| Schema | {} | {} |\n",
         if receipt.contracts.schema_changed {
             "Yes"
         } else {
             "No"
+        },
+        if receipt.contracts.schema_changed {
+            "Likely"
+        } else {
+            "-"
         }
     ));
     out.push('\n');
 
+    // Risk assessment
+    if !receipt.risk.hotspots_touched.is_empty() || !receipt.risk.bus_factor_warnings.is_empty() {
+        out.push_str("### Risk Assessment\n\n");
+        if !receipt.risk.hotspots_touched.is_empty() {
+            out.push_str("**Hotspots touched:**\n");
+            for hotspot in &receipt.risk.hotspots_touched {
+                out.push_str(&format!("- `{}`\n", hotspot));
+            }
+            out.push('\n');
+        }
+        if !receipt.risk.bus_factor_warnings.is_empty() {
+            out.push_str("**Bus factor warnings:**\n");
+            for warning in &receipt.risk.bus_factor_warnings {
+                out.push_str(&format!("- {}\n", warning));
+            }
+            out.push('\n');
+        }
+    }
+
     // Review Plan
     out.push_str("### Review Plan\n\n");
-    out.push_str("| Priority | File | Reason |\n");
-    out.push_str("|:--------:|------|--------|\n");
+    out.push_str("| Priority | File | Reason | Complexity | Lines |\n");
+    out.push_str("|:--------:|------|--------|:----------:|------:|\n");
     for item in &receipt.review_plan {
+        let complexity_stars = match item.complexity.unwrap_or(1) {
+            1 => "*",
+            2 => "**",
+            3 => "***",
+            4 => "****",
+            _ => "*****",
+        };
         out.push_str(&format!(
-            "| {} | `{}` | {} |\n",
-            item.priority, item.path, item.reason
+            "| {} | `{}` | {} | {} | {} |\n",
+            item.priority,
+            item.path,
+            item.reason,
+            complexity_stars,
+            item.lines_changed.unwrap_or(0)
         ));
     }
     out.push('\n');
@@ -727,6 +1037,14 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
     out.push_str("<!-- SECTION:COCKPIT -->\n");
     out.push_str("| Metric | Value |\n");
     out.push_str("|--------|-------|\n");
+    out.push_str(&format!(
+        "| **Health** | {} ({}/100) |\n",
+        receipt.code_health.grade, receipt.code_health.score
+    ));
+    out.push_str(&format!(
+        "| **Risk** | {:?} ({}/100) |\n",
+        receipt.risk.level, receipt.risk.score
+    ));
     out.push_str("| **Change Surface** | |\n");
     out.push_str(&format!(
         "| Commits | {} |\n",
@@ -744,6 +1062,10 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
         "| Net lines | {} |\n",
         receipt.change_surface.net_lines
     ));
+    out.push_str(&format!(
+        "| Churn velocity | {:.1} lines/commit |\n",
+        receipt.change_surface.churn_velocity
+    ));
     out.push_str("| **Composition** | |\n");
     out.push_str(&format!(
         "| Code | {:.1}% |\n",
@@ -760,6 +1082,19 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
     out.push_str(&format!(
         "| Config | {:.1}% |\n",
         receipt.composition.config_pct
+    ));
+    out.push_str(&format!(
+        "| Test ratio | {:.2} |\n",
+        receipt.composition.test_ratio
+    ));
+    out.push_str("| **Code Health** | |\n");
+    out.push_str(&format!(
+        "| Complexity | {:?} |\n",
+        receipt.code_health.complexity_indicator
+    ));
+    out.push_str(&format!(
+        "| Large files | {} |\n",
+        receipt.code_health.large_files_touched
     ));
     out.push_str("| **Contracts** | |\n");
     out.push_str(&format!(
@@ -790,12 +1125,19 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
 
     // REVIEW_PLAN section (for AI-FILL:REVIEW_PLAN)
     out.push_str("<!-- SECTION:REVIEW_PLAN -->\n");
-    out.push_str("| Priority | File | Reason |\n");
-    out.push_str("|----------|------|--------|\n");
+    out.push_str("| Priority | File | Reason | Complexity |\n");
+    out.push_str("|----------|------|--------|:----------:|\n");
     for item in &receipt.review_plan {
+        let complexity_stars = match item.complexity.unwrap_or(1) {
+            1 => "*",
+            2 => "**",
+            3 => "***",
+            4 => "****",
+            _ => "*****",
+        };
         out.push_str(&format!(
-            "| {} | `{}` | {} |\n",
-            item.priority, item.path, item.reason
+            "| {} | `{}` | {} | {} |\n",
+            item.priority, item.path, item.reason, complexity_stars
         ));
     }
     out.push_str("<!-- /SECTION:REVIEW_PLAN -->\n\n");
@@ -847,31 +1189,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_shortstat() {
-        let (files, ins, del) =
-            parse_shortstat(" 5 files changed, 150 insertions(+), 30 deletions(-)").unwrap();
-        assert_eq!(files, 5);
-        assert_eq!(ins, 150);
-        assert_eq!(del, 30);
-    }
-
-    #[test]
-    fn test_parse_shortstat_empty() {
-        let (files, ins, del) = parse_shortstat("").unwrap();
-        assert_eq!(files, 0);
-        assert_eq!(ins, 0);
-        assert_eq!(del, 0);
-    }
-
-    #[test]
-    fn test_parse_shortstat_insertions_only() {
-        let (files, ins, del) = parse_shortstat(" 2 files changed, 50 insertions(+)").unwrap();
-        assert_eq!(files, 2);
-        assert_eq!(ins, 50);
-        assert_eq!(del, 0);
-    }
-
-    #[test]
     fn test_compute_composition() {
         let files = vec![
             "src/lib.rs".to_string(),
@@ -885,6 +1202,78 @@ mod tests {
         assert_eq!(comp.test_pct, 20.0); // 1/5
         assert_eq!(comp.docs_pct, 20.0); // 1/5
         assert_eq!(comp.config_pct, 20.0); // 1/5
+        assert_eq!(comp.test_ratio, 0.5); // 1 test / 2 code
+    }
+
+    #[test]
+    fn test_compute_change_concentration() {
+        // 5 files with changes: 100, 50, 30, 15, 5 = 200 total
+        // Top 20% (1 file) = 100, which is 50% of total
+        let file_stats = vec![
+            FileStats {
+                path: "big.rs".to_string(),
+                insertions: 80,
+                deletions: 20,
+            },
+            FileStats {
+                path: "medium.rs".to_string(),
+                insertions: 40,
+                deletions: 10,
+            },
+            FileStats {
+                path: "small1.rs".to_string(),
+                insertions: 25,
+                deletions: 5,
+            },
+            FileStats {
+                path: "small2.rs".to_string(),
+                insertions: 10,
+                deletions: 5,
+            },
+            FileStats {
+                path: "tiny.rs".to_string(),
+                insertions: 4,
+                deletions: 1,
+            },
+        ];
+        let concentration = compute_change_concentration(&file_stats);
+        assert_eq!(concentration, 50.0); // 100/200 = 50%
+    }
+
+    #[test]
+    fn test_compute_code_health_score() {
+        let file_stats = vec![FileStats {
+            path: "normal.rs".to_string(),
+            insertions: 50,
+            deletions: 10,
+        }];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&file_stats, &contracts);
+        assert!(health.score >= 80, "Simple change should have high health");
+        assert_eq!(health.grade, "A");
+    }
+
+    #[test]
+    fn test_risk_level_computation() {
+        let file_stats = vec![FileStats {
+            path: "small.rs".to_string(),
+            insertions: 10,
+            deletions: 5,
+        }];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&file_stats, &contracts);
+        let risk = compute_risk(&file_stats, &contracts, &health);
+        assert_eq!(risk.level, RiskLevel::Low);
     }
 
     #[test]

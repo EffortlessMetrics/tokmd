@@ -43,6 +43,8 @@ pub enum RenderedOutput {
 fun = ["tokmd-fun"]  # Enable OBJ, MIDI outputs
 ```
 
+**Note:** OBJ and MIDI formats return an error when requested without the `fun` feature enabled. The error message instructs users to enable the feature.
+
 ## Markdown Format Details
 
 Sections rendered (when data present):

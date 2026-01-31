@@ -3,6 +3,7 @@
 //! These tests verify the arithmetic operations in the fun rendering functions:
 //! - render_obj: grid positioning (idx % 5, idx / 5) and height calculation
 //! - render_midi: key (60 + depth % 12), velocity (40 + lines/2), start time (idx * 240)
+#![cfg(feature = "fun")]
 
 use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::{

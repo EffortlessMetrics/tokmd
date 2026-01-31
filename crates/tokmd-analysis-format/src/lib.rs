@@ -21,7 +21,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Xml => Ok(RenderedOutput::Text(render_xml(receipt))),
         AnalysisFormat::Svg => Ok(RenderedOutput::Text(render_svg(receipt))),
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(render_mermaid(receipt))),
-        AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt))),
+        AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
         AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
         AnalysisFormat::Tree => Ok(RenderedOutput::Text(render_tree(receipt))),
         AnalysisFormat::Html => Ok(RenderedOutput::Text(render_html(receipt))),
@@ -664,7 +664,7 @@ fn render_tree(receipt: &AnalysisReceipt) -> String {
 
 // --- fun enabled impls ---
 #[cfg(feature = "fun")]
-fn render_obj_fun(receipt: &AnalysisReceipt) -> String {
+fn render_obj_fun(receipt: &AnalysisReceipt) -> Result<String> {
     if let Some(derived) = &receipt.derived {
         let buildings: Vec<tokmd_fun::ObjBuilding> = derived
             .top
@@ -685,9 +685,9 @@ fn render_obj_fun(receipt: &AnalysisReceipt) -> String {
                 }
             })
             .collect();
-        return tokmd_fun::render_obj(&buildings);
+        return Ok(tokmd_fun::render_obj(&buildings));
     }
-    "# obj".to_string()
+    Ok("# tokmd code city\n".to_string())
 }
 
 #[cfg(feature = "fun")]
@@ -710,19 +710,23 @@ fn render_midi_fun(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     tokmd_fun::render_midi(&notes, 120)
 }
 
-// --- fun disabled impls (stubs) ---
+// --- fun disabled impls (errors) ---
 #[cfg(not(feature = "fun"))]
-fn render_obj_disabled(_receipt: &AnalysisReceipt) -> String {
-    "# obj (fun feature disabled)".to_string()
+fn render_obj_disabled(_receipt: &AnalysisReceipt) -> Result<String> {
+    anyhow::bail!(
+        "OBJ format requires the `fun` feature: tokmd-analysis-format = {{ version = \"1.3\", features = [\"fun\"] }}"
+    )
 }
 
 #[cfg(not(feature = "fun"))]
 fn render_midi_disabled(_receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
-    Ok(Vec::new())
+    anyhow::bail!(
+        "MIDI format requires the `fun` feature: tokmd-analysis-format = {{ version = \"1.3\", features = [\"fun\"] }}"
+    )
 }
 
 // --- stable API names used by the rest of the code ---
-fn render_obj(receipt: &AnalysisReceipt) -> String {
+fn render_obj(receipt: &AnalysisReceipt) -> Result<String> {
     #[cfg(feature = "fun")]
     {
         render_obj_fun(receipt)
@@ -1330,22 +1334,24 @@ mod tests {
         assert_eq!(result, "(tree unavailable)");
     }
 
-    // Test render_obj (non-fun feature)
+    // Test render_obj (non-fun feature) returns error
     #[cfg(not(feature = "fun"))]
     #[test]
     fn test_render_obj_no_fun() {
         let receipt = minimal_receipt();
         let result = render_obj(&receipt);
-        assert_eq!(result, "# obj (fun feature disabled)");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("fun"));
     }
 
-    // Test render_midi (non-fun feature)
+    // Test render_midi (non-fun feature) returns error
     #[cfg(not(feature = "fun"))]
     #[test]
     fn test_render_midi_no_fun() {
         let receipt = minimal_receipt();
-        let result = render_midi(&receipt).unwrap();
-        assert!(result.is_empty());
+        let result = render_midi(&receipt);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("fun"));
     }
 
     // Test render_obj with fun feature - verify coordinate calculations
@@ -1471,7 +1477,7 @@ mod tests {
             },
         ];
         receipt.derived = Some(derived);
-        let result = render_obj(&receipt);
+        let result = render_obj(&receipt).expect("render_obj should succeed with fun feature");
 
         // Parse the OBJ output into objects with their vertices
         // Each object starts with "o <name>" followed by 8 vertices
@@ -1805,10 +1811,10 @@ mod tests {
     #[test]
     fn test_render_obj_no_derived() {
         let receipt = minimal_receipt();
-        let result = render_obj(&receipt);
+        let result = render_obj(&receipt).expect("render_obj should succeed");
 
         // Should return fallback string when no derived data
-        assert_eq!(result, "# obj");
+        assert_eq!(result, "# tokmd code city\n");
     }
 
     // Test render_md basic structure
