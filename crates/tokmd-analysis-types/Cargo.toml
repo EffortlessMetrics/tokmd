@@ -10,3 +10,7 @@ description = "Analysis receipt contracts for tokmd."
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 tokmd-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.9.0"
+serde_json = "1.0.149"

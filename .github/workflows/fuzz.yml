@@ -22,7 +22,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [fuzz_module_key, fuzz_normalize_path]
+        target:
+          - fuzz_module_key
+          - fuzz_normalize_path
+          - fuzz_toml_config
+          - fuzz_policy_toml
+          - fuzz_json_pointer
+          - fuzz_policy_evaluate
+          - fuzz_entropy
+          - fuzz_json_types
 
     steps:
       - uses: actions/checkout@v4

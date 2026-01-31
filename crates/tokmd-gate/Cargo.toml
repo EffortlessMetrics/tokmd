@@ -16,3 +16,6 @@ serde_json = "1.0.149"
 tokmd-analysis-types.workspace = true
 thiserror = "2.0.18"
 toml = "0.9.8"
+
+[dev-dependencies]
+proptest = "1.9.0"

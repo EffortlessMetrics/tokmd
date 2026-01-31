@@ -9,10 +9,15 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4.10"
+arbitrary = { version = "1.4", features = ["derive"] }
+serde_json = "1.0"
 tokmd.workspace = true
 tokmd-model.workspace = true
 tokmd-scan.workspace = true
 tokmd-config.workspace = true
+tokmd-gate.workspace = true
+tokmd-types.workspace = true
+tokmd-content.workspace = true
 
 [[bin]]
 name = "fuzz_module_key"
@@ -23,6 +28,42 @@ doc = false
 [[bin]]
 name = "fuzz_normalize_path"
 path = "fuzz_targets/fuzz_normalize_path.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_toml_config"
+path = "fuzz_targets/fuzz_toml_config.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_policy_toml"
+path = "fuzz_targets/fuzz_policy_toml.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_json_pointer"
+path = "fuzz_targets/fuzz_json_pointer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_policy_evaluate"
+path = "fuzz_targets/fuzz_policy_evaluate.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_entropy"
+path = "fuzz_targets/fuzz_entropy.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_json_types"
+path = "fuzz_targets/fuzz_json_types.rs"
 test = false
 doc = false
 

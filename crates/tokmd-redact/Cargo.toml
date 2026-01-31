@@ -9,3 +9,6 @@ description = "Redaction utilities for tokmd. Provides path and string hashing f
 
 [dependencies]
 blake3.workspace = true
+
+[dev-dependencies]
+proptest = "1.9.0"

@@ -2708,7 +2708,9 @@ dependencies = [
 name = "tokmd-analysis-types"
 version = "1.3.0"
 dependencies = [
+ "proptest",
  "serde",
+ "serde_json",
  "tokmd-types",
 ]
 
@@ -2777,17 +2779,23 @@ dependencies = [
 name = "tokmd-fuzz"
 version = "0.0.0"
 dependencies = [
+ "arbitrary",
  "libfuzzer-sys",
+ "serde_json",
  "tokmd",
  "tokmd-config",
+ "tokmd-content",
+ "tokmd-gate",
  "tokmd-model",
  "tokmd-scan",
+ "tokmd-types",
 ]
 
 [[package]]
 name = "tokmd-gate"
 version = "1.3.0"
 dependencies = [
+ "proptest",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -2819,6 +2827,7 @@ name = "tokmd-redact"
 version = "1.3.0"
 dependencies = [
  "blake3",
+ "proptest",
 ]
 
 [[package]]
