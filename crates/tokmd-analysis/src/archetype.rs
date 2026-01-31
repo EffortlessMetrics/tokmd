@@ -183,6 +183,15 @@ mod tests {
         let archetype = detect_archetype(&export).unwrap();
         assert!(archetype.kind.contains("Rust workspace"));
         assert!(archetype.kind.contains("CLI"));
+        // Kill OR→AND mutant: evidence must include a crates/ or packages/ path
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e.starts_with("crates/") || e.starts_with("packages/")),
+            "evidence must contain workspace dir path: {:?}",
+            archetype.evidence
+        );
     }
 
     #[test]
@@ -205,6 +214,15 @@ mod tests {
         let files = files_set(&["Cargo.toml", "packages/foo/src/lib.rs"]);
         let archetype = rust_workspace(&files).unwrap();
         assert_eq!(archetype.kind, "Rust workspace");
+        // Kill OR→AND mutant: evidence must include the packages/ path
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e.starts_with("packages/")),
+            "evidence must contain packages/ path: {:?}",
+            archetype.evidence
+        );
     }
 
     #[test]
@@ -243,6 +261,15 @@ mod tests {
         let export = export_with_paths(&["package.json", "next.config.js", "pages/index.tsx"]);
         let archetype = detect_archetype(&export).unwrap();
         assert_eq!(archetype.kind, "Next.js app");
+        // Kill OR→AND mutant: evidence must include next.config.js
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e.ends_with("next.config.js")),
+            "evidence must contain next.config.js: {:?}",
+            archetype.evidence
+        );
     }
 
     #[test]
@@ -279,6 +306,28 @@ mod tests {
         let files = files_set(&["package.json", "app/next.config.js"]);
         let archetype = nextjs_app(&files).unwrap();
         assert_eq!(archetype.kind, "Next.js app");
+        // Kill OR→AND mutant: evidence must include the nested config path
+        assert!(
+            archetype.evidence.iter().any(|e| e == "app/next.config.js"),
+            "evidence must contain app/next.config.js: {:?}",
+            archetype.evidence
+        );
+    }
+
+    #[test]
+    fn nextjs_with_subdir_next_config_ts() {
+        // Kill OR→AND mutant: exercises ends_with("/next.config.ts") clause
+        let files = files_set(&["package.json", "apps/web/next.config.ts"]);
+        let archetype = nextjs_app(&files).unwrap();
+        assert_eq!(archetype.kind, "Next.js app");
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e == "apps/web/next.config.ts"),
+            "evidence must contain apps/web/next.config.ts: {:?}",
+            archetype.evidence
+        );
     }
 
     // =============================================================================
