@@ -18,8 +18,14 @@ exclude_globs = [
 ]
 
 # Exclude boilerplate that's not worth mutating
-# Stub functions use #[mutants::skip] attribute instead of line-number exclusions
 exclude_re = [
     "impl.*Display",
     "fn main\\(",
+    # Thin stdout wrappers - render functions are tested directly
+    # Stdout capture is unreliable on Windows in tests
+    "replace print_lang_report",
+    "replace print_module_report",
+    # Stub functions when feature is disabled (not exercised with all_features)
+    "replace render_obj .* -> .* fun feature",
+    "replace render_midi .* -> Ok\\(Vec::new",
 ]

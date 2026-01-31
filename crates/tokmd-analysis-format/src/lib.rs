@@ -690,7 +690,6 @@ fn render_obj(receipt: &AnalysisReceipt) -> String {
 }
 
 #[cfg(not(feature = "fun"))]
-#[mutants::skip] // Stub function - not exercised when running with all_features
 fn render_obj(_receipt: &AnalysisReceipt) -> String {
     "# obj (fun feature disabled)".to_string()
 }
@@ -716,7 +715,6 @@ fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
 }
 
 #[cfg(not(feature = "fun"))]
-#[mutants::skip] // Stub function - not exercised when running with all_features
 fn render_midi(_receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     Ok(Vec::new())
 }

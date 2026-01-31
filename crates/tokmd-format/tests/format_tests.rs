@@ -6,7 +6,6 @@
 //! - Edge cases in conditional logic
 //! - I/O wrappers (print_lang_report, print_module_report, write_export) produce output
 
-use std::io::Write;
 use std::path::PathBuf;
 
 use tokmd_config::{ChildIncludeMode, ChildrenMode, GlobalArgs};
@@ -14,8 +13,9 @@ use tokmd_format::{
     compute_diff_rows, compute_diff_totals, normalize_scan_input, render_diff_md, scan_args,
 };
 use tokmd_types::{
-    ExportArgs, ExportData, ExportFormat, FileKind, FileRow, LangReport, LangRow, RedactMode,
-    Totals,
+    ConfigMode, ExportArgs, ExportArgsMeta, ExportData, ExportFormat, FileKind, FileRow,
+    LangArgsMeta, LangReport, LangRow, ModuleArgsMeta, ModuleReport, ModuleRow, RedactMode,
+    ScanArgs, Totals,
 };
 
 // ============================================================================
@@ -939,7 +939,7 @@ fn test_diff_receipt_generated_at_ms_is_reasonable() {
 // NOTE: Tests for print_lang_report and print_module_report are not included here
 // because stdout capture with the `gag` crate doesn't work reliably on Windows.
 // These functions are thin I/O wrappers that call the already-tested render_* functions.
-// They are marked with #[mutants::skip] in the source code.
+// They are excluded via `.cargo/mutants.toml` configuration.
 
 /// Kills mutants: write_export -> Ok(()), write_export_to -> Ok(())
 /// By writing to a temp file and verifying file exists and has content.
@@ -1357,4 +1357,399 @@ fn test_json_no_redaction_with_none_mode() {
         "myprefix",
         "strip_prefix should be literal when redact=None"
     );
+}
+
+// ============================================================================
+// File-writing helper mutant killers
+// Kills: write_lang_json_to_file -> Ok(()), write_module_json_to_file -> Ok(()),
+//        write_export_jsonl_to_file -> Ok(())
+// ============================================================================
+
+/// Kills mutant: write_lang_json_to_file -> Ok(())
+/// By writing to a temp file and verifying valid JSON was written.
+#[test]
+fn test_write_lang_json_to_file_writes_valid_json() {
+    use tokmd_format::write_lang_json_to_file;
+
+    let report = LangReport {
+        rows: vec![LangRow {
+            lang: "Rust".to_string(),
+            code: 100,
+            lines: 120,
+            files: 5,
+            bytes: 5000,
+            tokens: 250,
+            avg_lines: 24,
+        }],
+        total: Totals {
+            code: 100,
+            lines: 120,
+            files: 5,
+            bytes: 5000,
+            tokens: 250,
+            avg_lines: 24,
+        },
+        with_files: true,
+        children: ChildrenMode::Collapse,
+        top: 0,
+    };
+
+    let scan = ScanArgs {
+        paths: vec![".".to_string()],
+        excluded: vec![],
+        excluded_redacted: false,
+        config: ConfigMode::Auto,
+        hidden: false,
+        no_ignore: false,
+        no_ignore_parent: false,
+        no_ignore_dot: false,
+        no_ignore_vcs: false,
+        treat_doc_strings_as_comments: false,
+    };
+
+    let args_meta = LangArgsMeta {
+        format: "json".to_string(),
+        top: 0,
+        with_files: true,
+        children: ChildrenMode::Collapse,
+    };
+
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let file_path = temp_dir.path().join("lang.json");
+
+    write_lang_json_to_file(&file_path, &report, &scan, &args_meta)
+        .expect("write_lang_json_to_file should succeed");
+
+    // Verify file exists and contains valid JSON
+    let content = std::fs::read_to_string(&file_path).expect("read file");
+    assert!(!content.trim().is_empty(), "file must not be empty");
+
+    let json: serde_json::Value = serde_json::from_str(&content).expect("valid JSON");
+    assert_eq!(json["mode"], "lang");
+    // Note: LangReceipt uses #[serde(flatten)] on report, so rows are at top level
+    assert!(json["rows"].is_array());
+    assert_eq!(json["rows"][0]["lang"], "Rust");
+    assert_eq!(json["rows"][0]["code"], 100);
+}
+
+/// Kills mutant: write_module_json_to_file -> Ok(())
+/// By writing to a temp file and verifying valid JSON was written.
+#[test]
+fn test_write_module_json_to_file_writes_valid_json() {
+    use tokmd_format::write_module_json_to_file;
+
+    let report = ModuleReport {
+        rows: vec![ModuleRow {
+            module: "src".to_string(),
+            code: 200,
+            lines: 240,
+            files: 10,
+            bytes: 10000,
+            tokens: 500,
+            avg_lines: 24,
+        }],
+        total: Totals {
+            code: 200,
+            lines: 240,
+            files: 10,
+            bytes: 10000,
+            tokens: 500,
+            avg_lines: 24,
+        },
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        top: 0,
+    };
+
+    let scan = ScanArgs {
+        paths: vec![".".to_string()],
+        excluded: vec![],
+        excluded_redacted: false,
+        config: ConfigMode::Auto,
+        hidden: false,
+        no_ignore: false,
+        no_ignore_parent: false,
+        no_ignore_dot: false,
+        no_ignore_vcs: false,
+        treat_doc_strings_as_comments: false,
+    };
+
+    let args_meta = ModuleArgsMeta {
+        format: "json".to_string(),
+        top: 0,
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let file_path = temp_dir.path().join("module.json");
+
+    write_module_json_to_file(&file_path, &report, &scan, &args_meta)
+        .expect("write_module_json_to_file should succeed");
+
+    // Verify file exists and contains valid JSON
+    let content = std::fs::read_to_string(&file_path).expect("read file");
+    assert!(!content.trim().is_empty(), "file must not be empty");
+
+    let json: serde_json::Value = serde_json::from_str(&content).expect("valid JSON");
+    assert_eq!(json["mode"], "module");
+    // Note: ModuleReceipt uses #[serde(flatten)] on report, so rows are at top level
+    assert!(json["rows"].is_array());
+    assert_eq!(json["rows"][0]["module"], "src");
+    assert_eq!(json["rows"][0]["code"], 200);
+}
+
+/// Kills mutant: write_export_jsonl_to_file -> Ok(())
+/// By writing to a temp file and verifying valid JSONL was written.
+#[test]
+fn test_write_export_jsonl_to_file_writes_valid_jsonl() {
+    use tokmd_format::write_export_jsonl_to_file;
+
+    let export = ExportData {
+        rows: vec![FileRow {
+            path: "src/main.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 50,
+            comments: 10,
+            blanks: 5,
+            lines: 65,
+            bytes: 500,
+            tokens: 125,
+        }],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let scan = ScanArgs {
+        paths: vec![".".to_string()],
+        excluded: vec![],
+        excluded_redacted: false,
+        config: ConfigMode::Auto,
+        hidden: false,
+        no_ignore: false,
+        no_ignore_parent: false,
+        no_ignore_dot: false,
+        no_ignore_vcs: false,
+        treat_doc_strings_as_comments: false,
+    };
+
+    let args_meta = ExportArgsMeta {
+        format: ExportFormat::Jsonl,
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        min_code: 0,
+        max_rows: 0,
+        redact: RedactMode::None,
+        strip_prefix: None,
+        strip_prefix_redacted: false,
+    };
+
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let file_path = temp_dir.path().join("export.jsonl");
+
+    write_export_jsonl_to_file(&file_path, &export, &scan, &args_meta)
+        .expect("write_export_jsonl_to_file should succeed");
+
+    // Verify file exists and contains valid JSONL
+    let content = std::fs::read_to_string(&file_path).expect("read file");
+    assert!(!content.trim().is_empty(), "file must not be empty");
+
+    let lines: Vec<&str> = content.lines().collect();
+    assert!(lines.len() >= 2, "should have meta and row lines");
+
+    // Verify each line is valid JSON
+    let meta: serde_json::Value = serde_json::from_str(lines[0]).expect("meta is valid JSON");
+    assert_eq!(meta["type"], "meta");
+    assert_eq!(meta["mode"], "export");
+
+    let row: serde_json::Value = serde_json::from_str(lines[1]).expect("row is valid JSON");
+    assert_eq!(row["type"], "row");
+    assert_eq!(row["path"], "src/main.rs");
+    assert_eq!(row["code"], 50);
+}
+
+// ============================================================================
+// CycloneDX child kind mutant killer - test Parent vs Child distinction
+// Kills: row.kind == FileKind::Child -> != or true/false
+// ============================================================================
+
+/// Kills mutant: row.kind == FileKind::Child → !=
+/// By testing that Parent rows do NOT have tokmd:kind property.
+#[test]
+fn test_cyclonedx_parent_has_no_kind_property() {
+    use std::io::Cursor;
+
+    let export = ExportData {
+        rows: vec![FileRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent, // Parent, not child
+            code: 100,
+            comments: 20,
+            blanks: 10,
+            lines: 130,
+            bytes: 1000,
+            tokens: 250,
+        }],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut buffer = Cursor::new(Vec::new());
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+
+    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+
+    let components = json["components"].as_array().unwrap();
+    assert_eq!(components.len(), 1);
+
+    // Parent should NOT have tokmd:kind property
+    let properties = components[0]["properties"].as_array().unwrap();
+    let has_kind = properties
+        .iter()
+        .any(|p| p["name"].as_str() == Some("tokmd:kind"));
+    assert!(
+        !has_kind,
+        "Parent files should NOT have tokmd:kind property"
+    );
+}
+
+/// Complementary test: Child rows SHOULD have tokmd:kind property
+#[test]
+fn test_cyclonedx_child_has_kind_property() {
+    use std::io::Cursor;
+
+    let export = ExportData {
+        rows: vec![FileRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Child, // Child
+            code: 100,
+            comments: 20,
+            blanks: 10,
+            lines: 130,
+            bytes: 1000,
+            tokens: 250,
+        }],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut buffer = Cursor::new(Vec::new());
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+
+    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+
+    let components = json["components"].as_array().unwrap();
+    assert_eq!(components.len(), 1);
+
+    // Child should have tokmd:kind = "child" property
+    let properties = components[0]["properties"].as_array().unwrap();
+    let kind_prop = properties
+        .iter()
+        .find(|p| p["name"].as_str() == Some("tokmd:kind"));
+    assert!(kind_prop.is_some(), "Child files should have tokmd:kind property");
+    assert_eq!(kind_prop.unwrap()["value"], "child");
+}
+
+// ============================================================================
+// compute_diff_totals multi-row accumulation killers
+// Kills: += → -= or *= mutations in compute_diff_totals
+// ============================================================================
+
+/// Kills mutants in compute_diff_totals by using mixed positive/negative deltas.
+/// If += is replaced with -= or *=, the totals will be wrong.
+#[test]
+fn test_compute_diff_totals_mixed_deltas() {
+    use tokmd_types::DiffRow;
+
+    // Create rows with mixed positive and negative deltas
+    let rows = vec![
+        DiffRow {
+            lang: "Rust".to_string(),
+            old_code: 100,
+            new_code: 150,
+            delta_code: 50, // positive
+            old_lines: 200,
+            new_lines: 180,
+            delta_lines: -20, // negative
+            old_files: 5,
+            new_files: 7,
+            delta_files: 2,
+            old_bytes: 1000,
+            new_bytes: 1500,
+            delta_bytes: 500,
+            old_tokens: 250,
+            new_tokens: 375,
+            delta_tokens: 125,
+        },
+        DiffRow {
+            lang: "Go".to_string(),
+            old_code: 200,
+            new_code: 150,
+            delta_code: -50, // negative
+            old_lines: 300,
+            new_lines: 350,
+            delta_lines: 50, // positive
+            old_files: 10,
+            new_files: 8,
+            delta_files: -2,
+            old_bytes: 2000,
+            new_bytes: 1500,
+            delta_bytes: -500,
+            old_tokens: 500,
+            new_tokens: 375,
+            delta_tokens: -125,
+        },
+    ];
+
+    let totals = compute_diff_totals(&rows);
+
+    // With +=, totals should be sums:
+    // old_code = 100 + 200 = 300
+    assert_eq!(totals.old_code, 300);
+    // new_code = 150 + 150 = 300
+    assert_eq!(totals.new_code, 300);
+    // delta_code = 50 + (-50) = 0
+    assert_eq!(totals.delta_code, 0);
+
+    // old_lines = 200 + 300 = 500
+    assert_eq!(totals.old_lines, 500);
+    // new_lines = 180 + 350 = 530
+    assert_eq!(totals.new_lines, 530);
+    // delta_lines = -20 + 50 = 30
+    assert_eq!(totals.delta_lines, 30);
+
+    // old_files = 5 + 10 = 15
+    assert_eq!(totals.old_files, 15);
+    // new_files = 7 + 8 = 15
+    assert_eq!(totals.new_files, 15);
+    // delta_files = 2 + (-2) = 0
+    assert_eq!(totals.delta_files, 0);
+
+    // old_bytes = 1000 + 2000 = 3000
+    assert_eq!(totals.old_bytes, 3000);
+    // new_bytes = 1500 + 1500 = 3000
+    assert_eq!(totals.new_bytes, 3000);
+    // delta_bytes = 500 + (-500) = 0
+    assert_eq!(totals.delta_bytes, 0);
+
+    // old_tokens = 250 + 500 = 750
+    assert_eq!(totals.old_tokens, 750);
+    // new_tokens = 375 + 375 = 750
+    assert_eq!(totals.new_tokens, 750);
+    // delta_tokens = 125 + (-125) = 0
+    assert_eq!(totals.delta_tokens, 0);
 }
