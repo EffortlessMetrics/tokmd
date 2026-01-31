@@ -1672,87 +1672,89 @@ fn test_cyclonedx_child_has_kind_property() {
 // Kills: += → -= or *= mutations in compute_diff_totals
 // ============================================================================
 
-/// Kills mutants in compute_diff_totals by using mixed positive/negative deltas.
-/// If += is replaced with -= or *=, the totals will be wrong.
+/// Kills mutants in compute_diff_totals by using non-canceling deltas.
+/// Every accumulated total is non-zero, which kills += → -= and += → *= mutations.
+/// Key: if totals start at 0 and *= is used, result stays 0 (mutation survives).
+/// If deltas cancel to 0, -= can also survive. We prevent both by ensuring all sums are non-zero.
 #[test]
-fn test_compute_diff_totals_mixed_deltas() {
+fn test_compute_diff_totals_nonzero_deltas() {
     use tokmd_types::DiffRow;
 
-    // Create rows with mixed positive and negative deltas
+    // Create rows where NO accumulated total is zero
     let rows = vec![
         DiffRow {
             lang: "Rust".to_string(),
             old_code: 100,
-            new_code: 150,
-            delta_code: 50, // positive
+            new_code: 160,
+            delta_code: 60, // +60
             old_lines: 200,
-            new_lines: 180,
-            delta_lines: -20, // negative
+            new_lines: 260,
+            delta_lines: 60, // +60
             old_files: 5,
-            new_files: 7,
-            delta_files: 2,
+            new_files: 8,
+            delta_files: 3, // +3
             old_bytes: 1000,
-            new_bytes: 1500,
-            delta_bytes: 500,
+            new_bytes: 1800,
+            delta_bytes: 800, // +800
             old_tokens: 250,
-            new_tokens: 375,
-            delta_tokens: 125,
+            new_tokens: 400,
+            delta_tokens: 150, // +150
         },
         DiffRow {
             lang: "Go".to_string(),
             old_code: 200,
-            new_code: 150,
-            delta_code: -50, // negative
+            new_code: 180,
+            delta_code: -20, // sums to 40
             old_lines: 300,
-            new_lines: 350,
-            delta_lines: 50, // positive
+            new_lines: 310,
+            delta_lines: 10, // sums to 70
             old_files: 10,
-            new_files: 8,
-            delta_files: -2,
+            new_files: 9,
+            delta_files: -1, // sums to 2
             old_bytes: 2000,
-            new_bytes: 1500,
-            delta_bytes: -500,
+            new_bytes: 2100,
+            delta_bytes: 100, // sums to 900
             old_tokens: 500,
-            new_tokens: 375,
-            delta_tokens: -125,
+            new_tokens: 520,
+            delta_tokens: 20, // sums to 170
         },
     ];
 
     let totals = compute_diff_totals(&rows);
 
-    // With +=, totals should be sums:
+    // All sums are non-zero - kills *= mutations (would stay 0)
     // old_code = 100 + 200 = 300
     assert_eq!(totals.old_code, 300);
-    // new_code = 150 + 150 = 300
-    assert_eq!(totals.new_code, 300);
-    // delta_code = 50 + (-50) = 0
-    assert_eq!(totals.delta_code, 0);
+    // new_code = 160 + 180 = 340
+    assert_eq!(totals.new_code, 340);
+    // delta_code = 60 + (-20) = 40 (non-zero!)
+    assert_eq!(totals.delta_code, 40);
 
     // old_lines = 200 + 300 = 500
     assert_eq!(totals.old_lines, 500);
-    // new_lines = 180 + 350 = 530
-    assert_eq!(totals.new_lines, 530);
-    // delta_lines = -20 + 50 = 30
-    assert_eq!(totals.delta_lines, 30);
+    // new_lines = 260 + 310 = 570
+    assert_eq!(totals.new_lines, 570);
+    // delta_lines = 60 + 10 = 70 (non-zero!)
+    assert_eq!(totals.delta_lines, 70);
 
     // old_files = 5 + 10 = 15
     assert_eq!(totals.old_files, 15);
-    // new_files = 7 + 8 = 15
-    assert_eq!(totals.new_files, 15);
-    // delta_files = 2 + (-2) = 0
-    assert_eq!(totals.delta_files, 0);
+    // new_files = 8 + 9 = 17
+    assert_eq!(totals.new_files, 17);
+    // delta_files = 3 + (-1) = 2 (non-zero!)
+    assert_eq!(totals.delta_files, 2);
 
     // old_bytes = 1000 + 2000 = 3000
     assert_eq!(totals.old_bytes, 3000);
-    // new_bytes = 1500 + 1500 = 3000
-    assert_eq!(totals.new_bytes, 3000);
-    // delta_bytes = 500 + (-500) = 0
-    assert_eq!(totals.delta_bytes, 0);
+    // new_bytes = 1800 + 2100 = 3900
+    assert_eq!(totals.new_bytes, 3900);
+    // delta_bytes = 800 + 100 = 900 (non-zero!)
+    assert_eq!(totals.delta_bytes, 900);
 
     // old_tokens = 250 + 500 = 750
     assert_eq!(totals.old_tokens, 750);
-    // new_tokens = 375 + 375 = 750
-    assert_eq!(totals.new_tokens, 750);
-    // delta_tokens = 125 + (-125) = 0
-    assert_eq!(totals.delta_tokens, 0);
+    // new_tokens = 400 + 520 = 920
+    assert_eq!(totals.new_tokens, 920);
+    // delta_tokens = 150 + 20 = 170 (non-zero!)
+    assert_eq!(totals.delta_tokens, 170);
 }

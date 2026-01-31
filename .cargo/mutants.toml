@@ -25,7 +25,8 @@ exclude_re = [
     # Stdout capture is unreliable on Windows in tests
     "replace print_lang_report",
     "replace print_module_report",
-    # Stub functions when feature is disabled (not exercised with all_features)
-    "replace render_obj .* -> .* fun feature",
-    "replace render_midi .* -> Ok\\(Vec::new",
+    # Stub functions when feature is disabled - scoped to file path
+    # These cfg(not(feature="fun")) stubs compile but are dead code with all_features
+    "crates/tokmd-analysis-format/src/lib\\.rs:.*replace render_obj",
+    "crates/tokmd-analysis-format/src/lib\\.rs:.*replace render_midi",
 ]
