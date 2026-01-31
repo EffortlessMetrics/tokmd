@@ -662,8 +662,9 @@ fn render_tree(receipt: &AnalysisReceipt) -> String {
         .unwrap_or_else(|| "(tree unavailable)".to_string())
 }
 
+// --- fun enabled impls ---
 #[cfg(feature = "fun")]
-fn render_obj(receipt: &AnalysisReceipt) -> String {
+fn render_obj_fun(receipt: &AnalysisReceipt) -> String {
     if let Some(derived) = &receipt.derived {
         let buildings: Vec<tokmd_fun::ObjBuilding> = derived
             .top
@@ -689,13 +690,8 @@ fn render_obj(receipt: &AnalysisReceipt) -> String {
     "# obj".to_string()
 }
 
-#[cfg(not(feature = "fun"))]
-fn render_obj(_receipt: &AnalysisReceipt) -> String {
-    "# obj (fun feature disabled)".to_string()
-}
-
 #[cfg(feature = "fun")]
-fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
+fn render_midi_fun(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     let mut notes = Vec::new();
     if let Some(derived) = &receipt.derived {
         for (idx, row) in derived.top.largest_lines.iter().enumerate() {
@@ -714,9 +710,38 @@ fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     tokmd_fun::render_midi(&notes, 120)
 }
 
+// --- fun disabled impls (stubs) ---
 #[cfg(not(feature = "fun"))]
-fn render_midi(_receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
+fn render_obj_disabled(_receipt: &AnalysisReceipt) -> String {
+    "# obj (fun feature disabled)".to_string()
+}
+
+#[cfg(not(feature = "fun"))]
+fn render_midi_disabled(_receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     Ok(Vec::new())
+}
+
+// --- stable API names used by the rest of the code ---
+fn render_obj(receipt: &AnalysisReceipt) -> String {
+    #[cfg(feature = "fun")]
+    {
+        render_obj_fun(receipt)
+    }
+    #[cfg(not(feature = "fun"))]
+    {
+        render_obj_disabled(receipt)
+    }
+}
+
+fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
+    #[cfg(feature = "fun")]
+    {
+        render_midi_fun(receipt)
+    }
+    #[cfg(not(feature = "fun"))]
+    {
+        render_midi_disabled(receipt)
+    }
 }
 
 fn sanitize_mermaid(name: &str) -> String {
