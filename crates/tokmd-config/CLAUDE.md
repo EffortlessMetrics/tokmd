@@ -66,8 +66,8 @@ pub struct GlobalArgs {
 ### Configuration Files
 ```rust
 pub struct UserConfig {
-    pub profiles: HashMap<String, Profile>,
-    pub repos: HashMap<String, String>,  // path → profile name
+    pub profiles: BTreeMap<String, Profile>,
+    pub repos: BTreeMap<String, String>,  // path → profile name
 }
 
 pub struct Profile {

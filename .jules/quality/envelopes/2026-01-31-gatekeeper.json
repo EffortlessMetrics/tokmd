@@ -1,0 +1,14 @@
+{
+  "id": "2026-01-31-gatekeeper",
+  "date": "2026-01-31",
+  "persona": "Gatekeeper",
+  "lane": "Lane B (Scout discovery)",
+  "target": "Deterministic configuration serialization",
+  "option": "A",
+  "decision": "Replace HashMap with BTreeMap in TomlConfig",
+  "receipts": [
+    "cargo test -p tokmd-config --test determinism",
+    "cargo test --workspace",
+    "cargo clippy --workspace -- -D warnings"
+  ]
+}
