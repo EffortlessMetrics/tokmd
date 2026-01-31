@@ -1,3 +1,20 @@
+//! # tokmd-tokeignore
+//!
+//! **Tier 1 (Template Generation)**
+//!
+//! Template generation for `.tokeignore` files. Provides profile-based templates
+//! for common project types.
+//!
+//! ## What belongs here
+//! * `.tokeignore` template content by profile
+//! * Template writing to disk or stdout
+//! * Force overwrite logic
+//!
+//! ## What does NOT belong here
+//! * Parsing or applying ignore patterns (tokei handles this)
+//! * Scanning logic
+//! * Modifying existing `.tokeignore` files (only create/overwrite)
+
 use std::fs;
 use std::path::PathBuf;
 

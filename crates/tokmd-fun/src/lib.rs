@@ -1,6 +1,20 @@
 //! # tokmd-fun
 //!
-//! Fun renderers for tokmd analysis outputs.
+//! **Tier 3 (Novelty)**
+//!
+//! Fun renderers for tokmd analysis outputs. Provides creative visualizations
+//! like 3D code cities and audio representations.
+//!
+//! ## What belongs here
+//! * 3D code city visualization (OBJ format)
+//! * Audio representation (MIDI format)
+//! * Eco-label generation
+//! * Other novelty outputs
+//!
+//! ## What does NOT belong here
+//! * Serious analysis features
+//! * Analysis computation
+//! * Core receipt formatting
 
 use anyhow::Result;
 use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, TrackEvent, TrackEventKind};

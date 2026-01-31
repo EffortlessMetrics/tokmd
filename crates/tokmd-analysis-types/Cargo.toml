@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Analysis receipt contracts for tokmd."
+readme = "README.md"
+keywords = ["code-analysis", "metrics", "receipts", "schema", "serde"]
+categories = ["development-tools", "data-structures"]
+documentation = "https://docs.rs/tokmd-analysis-types"
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }

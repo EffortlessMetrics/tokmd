@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Fun renderers for tokmd analysis (obj, midi, eco labels)."
+readme = "README.md"
+keywords = ["visualization", "midi", "obj", "3d", "code-city"]
+categories = ["development-tools", "visualization"]
+documentation = "https://docs.rs/tokmd-fun"
 
 [dependencies]
 anyhow = "1.0.100"

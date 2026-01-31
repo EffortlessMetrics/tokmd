@@ -1,6 +1,6 @@
 //! # tokmd-config
 //!
-//! **Tier 3 (Configuration)**
+//! **Tier 4 (Configuration)**
 //!
 //! This crate defines the CLI arguments and configuration file structures.
 //! Currently it couples strict configuration schemas with Clap CLI parsing.
@@ -8,7 +8,12 @@
 //! ## What belongs here
 //! * Clap `Parser`, `Args`, `Subcommand` structs
 //! * Configuration file struct definitions (Serde)
-//! * Default values
+//! * Default values and enums
+//!
+//! ## What does NOT belong here
+//! * Business logic
+//! * I/O operations (except config file parsing)
+//! * Higher-tier crate dependencies
 //!
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)

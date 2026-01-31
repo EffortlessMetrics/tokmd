@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Source code scanning adapter (Tokei wrapper) for tokmd."
+readme = "README.md"
+keywords = ["code-analysis", "tokei", "loc", "scanning", "lines-of-code"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-scan"
 
 [dependencies]
 anyhow = "1.0.100"

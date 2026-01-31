@@ -1,6 +1,6 @@
 //! # tokmd-scan
 //!
-//! **Tier 3 (Adapter)**
+//! **Tier 1 (Adapter)**
 //!
 //! This crate adapts the `tokei` library for use within `tokmd`.
 //! It isolates the dependency on `tokei` to a single location.
@@ -10,8 +10,9 @@
 //! * Mapping `tokmd` args to `tokei` config
 //!
 //! ## What does NOT belong here
-//! * Business logic (filtering, sorting)
+//! * Business logic (filtering, sorting, aggregation)
 //! * Output formatting
+//! * Receipt construction
 
 use anyhow::Result;
 use std::path::PathBuf;

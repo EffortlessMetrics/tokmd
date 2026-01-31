@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Configuration schemas and defaults for tokmd."
+readme = "README.md"
+keywords = ["configuration", "cli", "clap", "settings", "toml"]
+categories = ["development-tools", "config"]
+documentation = "https://docs.rs/tokmd-config"
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }

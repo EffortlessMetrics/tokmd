@@ -44,7 +44,9 @@ pub fn count_tags(text: &str, tags: &[&str]) -> Vec<(String, usize)>
 pub fn entropy_bits_per_byte(bytes: &[u8]) -> f32
 ```
 
-## Entropy Calculation
+## Implementation Details
+
+### Entropy Calculation
 
 Uses Shannon entropy formula: `-Σ(p_i * log2(p_i))`
 

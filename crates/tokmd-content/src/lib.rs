@@ -1,6 +1,21 @@
 //! # tokmd-content
 //!
-//! Content scanning helpers for tokmd analysis.
+//! **Tier 2 (Utilities)**
+//!
+//! Content scanning helpers for analysis. Provides file content inspection
+//! capabilities including reading, hashing, and entropy calculation.
+//!
+//! ## What belongs here
+//! * File content reading (head, tail, lines)
+//! * Text detection
+//! * File integrity hashing (BLAKE3)
+//! * Tag counting (TODOs, FIXMEs)
+//! * Entropy calculation
+//!
+//! ## What does NOT belong here
+//! * File listing (use tokmd-walk)
+//! * File modification
+//! * Language-specific syntax parsing
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};

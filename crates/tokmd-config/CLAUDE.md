@@ -67,7 +67,7 @@ pub struct GlobalArgs {
 ```rust
 pub struct UserConfig {
     pub profiles: HashMap<String, Profile>,
-    pub repos: HashMap<String, String>,  // path → profile name
+    pub repos: HashMap<String, String>,  // path -> profile name
 }
 
 pub struct Profile {
@@ -81,6 +81,14 @@ pub struct Profile {
 }
 ```
 
+## Implementation Details
+
+Property-based tests with `proptest`, Serde roundtrip tests.
+
+May split into:
+- `tokmd-settings` - Pure config types
+- `tokmd-cli` - Clap parsing
+
 ## Dependencies
 
 - `clap` (4.5.54) with derive
@@ -91,14 +99,6 @@ pub struct Profile {
 ```bash
 cargo test -p tokmd-config
 ```
-
-Property-based tests with `proptest`, Serde roundtrip tests.
-
-## Future Direction
-
-May split into:
-- `tokmd-settings` - Pure config types
-- `tokmd-cli` - Clap parsing
 
 ## Do NOT
 

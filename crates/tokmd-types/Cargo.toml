@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Core data types and contracts for tokmd. Tier 1 stability."
+readme = "README.md"
+keywords = ["code-analysis", "types", "receipts", "schema", "serde"]
+categories = ["development-tools", "data-structures"]
+documentation = "https://docs.rs/tokmd-types"
 
 [features]
 clap = ["dep:clap"]

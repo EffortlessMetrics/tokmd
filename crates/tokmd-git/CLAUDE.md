@@ -52,6 +52,13 @@ Uses `git log --name-only --pretty=format:%ct|%ae`:
 - Returns error if git command fails
 - Returns empty vec if not a git repository
 
+### Testing Guidelines
+
+- **Property tests must be pure** - no filesystem access, process spawning, or network I/O
+- **I/O tests use temp dirs** - unit tests with `tempfile::tempdir()` for filesystem operations
+- **Gate on git availability** - tests that invoke git must check `git_available()` first
+- **Handle TMPDIR edge cases** - temp dirs may be inside existing git repos; skip gracefully
+
 ## Dependencies
 
 - `anyhow`
@@ -61,13 +68,6 @@ Uses `git log --name-only --pretty=format:%ct|%ae`:
 ```bash
 cargo test -p tokmd-git
 ```
-
-### Testing Guidelines
-
-- **Property tests must be pure** — no filesystem access, process spawning, or network I/O
-- **I/O tests use temp dirs** — unit tests with `tempfile::tempdir()` for filesystem operations
-- **Gate on git availability** — tests that invoke git must check `git_available()` first
-- **Handle TMPDIR edge cases** — temp dirs may be inside existing git repos; skip gracefully
 
 ## Do NOT
 

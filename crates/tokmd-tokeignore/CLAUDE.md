@@ -17,7 +17,9 @@ Template generation for `.tokeignore` files. This is a **Tier 1** utility crate 
 pub fn init_tokeignore(args: &InitArgs) -> Result<()>
 ```
 
-## Available Profiles
+## Implementation Details
+
+### Available Profiles
 
 | Profile | Patterns |
 |---------|----------|
@@ -29,14 +31,14 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<()>
 | `Go` | vendor, bin |
 | `Cpp` | build, cmake-build-*, out, .cache |
 
-## CLI Options
+### CLI Options
 
 - `--profile <PROFILE>` - Select template profile
 - `--print` - Print template to stdout instead of writing
 - `--force` - Overwrite existing `.tokeignore`
 - `--path <PATH>` - Target directory (default: current)
 
-## Behavior
+### Behavior
 
 1. Validates target directory exists
 2. Checks for existing `.tokeignore` (fails without `--force`)

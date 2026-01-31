@@ -21,7 +21,9 @@ pub enum RenderedOutput {
 }
 ```
 
-## Supported Formats
+## Implementation Details
+
+### Supported Formats
 
 | Format | Output | Description |
 |--------|--------|-------------|
@@ -36,7 +38,7 @@ pub enum RenderedOutput {
 | `Tree` | Text | Directory tree visualization |
 | `Html` | Text | HTML rendering |
 
-## Feature Flags
+### Feature Flags
 
 ```toml
 [features]
@@ -45,7 +47,7 @@ fun = ["tokmd-fun"]  # Enable OBJ, MIDI outputs
 
 **Note:** OBJ and MIDI formats return an error when requested without the `fun` feature enabled. The error message instructs users to enable the feature.
 
-## Markdown Format Details
+### Markdown Format Details
 
 Sections rendered (when data present):
 - Archetype with evidence

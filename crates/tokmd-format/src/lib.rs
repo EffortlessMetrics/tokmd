@@ -1,19 +1,21 @@
 //! # tokmd-format
 //!
-//! **Tier 3 (Formatting)**
+//! **Tier 2 (Formatting)**
 //!
 //! This crate handles the rendering and serialization of `tokmd` receipts.
-//! It supports Markdown, TSV, JSON, JSONL, and CSV formats.
+//! It supports Markdown, TSV, JSON, JSONL, CSV, and CycloneDX formats.
 //!
 //! ## What belongs here
-//! * Serialization logic (JSON/CSV)
-//! * Markdown template rendering
+//! * Serialization logic (JSON/CSV/CycloneDX)
+//! * Markdown and TSV table rendering
 //! * Output file writing
-//! * Redaction hashing logic (for output safety)
+//! * Redaction integration (via tokmd-redact re-exports)
+//! * ScanArgs construction (single source of truth)
 //!
 //! ## What does NOT belong here
 //! * Business logic (calculating stats)
-//! * CLI arg parsing
+//! * CLI argument parsing
+//! * Analysis-specific formatting (use tokmd-analysis-format)
 
 use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;

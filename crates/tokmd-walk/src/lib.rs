@@ -1,6 +1,19 @@
 //! # tokmd-walk
 //!
-//! File listing helpers for tokmd analysis.
+//! **Tier 2 (Utilities)**
+//!
+//! File listing and asset discovery utilities. Provides filesystem traversal
+//! with gitignore support for analysis workflows.
+//!
+//! ## What belongs here
+//! * Filesystem traversal respecting gitignore
+//! * License candidate detection
+//! * File size queries
+//!
+//! ## What does NOT belong here
+//! * Content scanning (use tokmd-content)
+//! * Git history analysis (use tokmd-git)
+//! * File modification
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};

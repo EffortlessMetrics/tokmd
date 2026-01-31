@@ -1,15 +1,20 @@
 //! # tokmd
 //!
-//! **CLI Binary**
+//! **Tier 5 (CLI Binary)**
 //!
 //! This is the entry point for the `tokmd` command-line application.
-//! It orchestrates the other crates to perform the requested actions.
+//! It orchestrates all other crates to perform the requested actions.
 //!
-//! ## Responsibilities
-//! * Parse command line arguments
-//! * Load configuration
-//! * Dispatch commands to appropriate handlers
-//! * Handle errors and exit codes
+//! ## What belongs here
+//! * Command line argument parsing
+//! * Configuration loading and profile resolution
+//! * Command dispatch to appropriate handlers
+//! * Error handling and exit codes
+//!
+//! ## What does NOT belong here
+//! * Business logic (belongs in lower-tier crates)
+//! * Duplicated functionality from other crates
+//! * Complex computation (delegate to appropriate crates)
 //!
 //! This crate should contain minimal business logic.
 

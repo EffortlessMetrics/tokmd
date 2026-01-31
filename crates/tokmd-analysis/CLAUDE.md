@@ -31,7 +31,9 @@ pub struct AnalysisContext {
 pub fn normalize_root(path: &Path) -> PathBuf
 ```
 
-## Analysis Presets
+## Implementation Details
+
+### Analysis Presets
 
 | Preset | Includes |
 |--------|----------|
@@ -47,7 +49,7 @@ pub fn normalize_root(path: &Path) -> PathBuf
 | `Deep` | Everything (except fun) |
 | `Fun` | Eco-label, novelty outputs |
 
-## Analysis Modules
+### Analysis Modules
 
 | Module | Purpose |
 |--------|---------|
@@ -62,7 +64,7 @@ pub fn normalize_root(path: &Path) -> PathBuf
 | `git` | Hotspots, bus factor, freshness, coupling |
 | `content` | TODOs, duplicates, imports |
 
-## Feature Flags
+### Feature Flags
 
 ```toml
 [features]

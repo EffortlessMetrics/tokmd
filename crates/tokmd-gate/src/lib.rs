@@ -1,6 +1,6 @@
 //! # tokmd-gate
 //!
-//! **Tier 2 (Policy Evaluation)**
+//! **Tier 3 (Policy Evaluation)**
 //!
 //! Policy evaluation engine for CI gating based on analysis receipts.
 //!

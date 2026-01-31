@@ -1,6 +1,19 @@
 //! # tokmd-analysis-format
 //!
-//! Rendering for analysis receipts.
+//! **Tier 3 (Formatting)**
+//!
+//! Rendering for analysis receipts. Supports multiple output formats including
+//! Markdown, JSON, JSON-LD, XML, SVG, Mermaid, and optional fun outputs.
+//!
+//! ## What belongs here
+//! * Analysis receipt rendering to various formats
+//! * Format-specific transformations
+//! * Fun output integration (OBJ, MIDI when enabled)
+//!
+//! ## What does NOT belong here
+//! * Analysis computation (use tokmd-analysis)
+//! * CLI argument parsing
+//! * Base receipt formatting (use tokmd-format)
 
 use anyhow::Result;
 use time::OffsetDateTime;

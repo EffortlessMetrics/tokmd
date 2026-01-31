@@ -49,20 +49,20 @@ pub fn write_export_jsonl_to_file(path, export, scan, args_meta) -> Result<()>
 pub use tokmd_redact::{redact_path, short_hash};
 ```
 
-## Supported Formats
+## Implementation Details
 
-### Table Formats
+### Supported Formats
+
+#### Table Formats
 - **Markdown** - Pipes with right-aligned numeric columns
 - **TSV** - Tab-separated with header row
 - **JSON** - Receipt with envelope metadata
 
-### Export Formats
+#### Export Formats
 - **CSV** - Standard comma-separated
 - **JSONL** - Lines with type discriminator (`"meta"` or `"row"`)
 - **JSON** - Full receipt array
 - **CycloneDX 1.6** - SBOM with tokmd-specific properties
-
-## Key Patterns
 
 ### Markdown Table Alignment
 Numeric columns (files, lines, code, etc.) are right-aligned.

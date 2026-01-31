@@ -12,7 +12,35 @@ CLI binary orchestrating all other crates. This is the **Tier 5** entry point fo
 - Handle errors and exit codes
 - **This is the only crate that produces a binary**
 
-## Structure
+## Public API
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `tokmd` / `tokmd lang` | Language summary |
+| `tokmd module` | Module breakdown by directory |
+| `tokmd export` | File-level inventory (JSONL/CSV/CycloneDX) |
+| `tokmd run` | Full scan with artifact output |
+| `tokmd analyze` | Derived metrics and enrichments |
+| `tokmd badge` | SVG badge generation |
+| `tokmd diff` | Compare two runs or receipts |
+| `tokmd cockpit` | PR metrics with evidence gates |
+| `tokmd gate` | Policy-based quality gates |
+| `tokmd tools` | LLM tool definitions |
+| `tokmd context` | Pack files into LLM context window |
+| `tokmd init` | Generate .tokeignore template |
+| `tokmd check-ignore` | Explain why files are ignored |
+| `tokmd completions` | Generate shell completions |
+
+### Binary Targets
+
+- `tokmd` - Main executable
+- `tok` - Alias (requires `alias-tok` feature)
+
+## Implementation Details
+
+### Structure
 
 ```
 src/
@@ -41,37 +69,21 @@ src/
 └── badge.rs
 ```
 
-## Binary Targets
-
-- `tokmd` - Main executable
-- `tok` - Alias (requires `alias-tok` feature)
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `tokmd` / `tokmd lang` | Language summary |
-| `tokmd module` | Module breakdown by directory |
-| `tokmd export` | File-level inventory (JSONL/CSV/CycloneDX) |
-| `tokmd run` | Full scan with artifact output |
-| `tokmd analyze` | Derived metrics and enrichments |
-| `tokmd badge` | SVG badge generation |
-| `tokmd diff` | Compare two runs or receipts |
-| `tokmd cockpit` | PR metrics with evidence gates |
-| `tokmd gate` | Policy-based quality gates |
-| `tokmd tools` | LLM tool definitions |
-| `tokmd context` | Pack files into LLM context window |
-| `tokmd init` | Generate .tokeignore template |
-| `tokmd check-ignore` | Explain why files are ignored |
-| `tokmd completions` | Generate shell completions |
-
-## Feature Flags
+### Feature Flags
 
 ```toml
 [features]
 default = []
 alias-tok = []  # Enable tok binary alias
 ```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | CLI parsing error |
 
 ## Dependencies
 
@@ -94,14 +106,6 @@ cargo test -p tokmd --all-features
 - **Integration tests**: `tests/` using `assert_cmd` + `predicates`
 - **Golden snapshots**: Using `insta` (timestamps normalized)
 - **Schema validation**: `jsonschema` crate
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | CLI parsing error |
 
 ## Do NOT
 

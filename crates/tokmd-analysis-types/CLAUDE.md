@@ -40,7 +40,7 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 - `TrendClass` - Stable, Rising, Falling, Volatile
 - `EffectiveLicense` - Detected license type
 
-## Key Patterns
+## Implementation Details
 
 ### Schema Version
 ```rust

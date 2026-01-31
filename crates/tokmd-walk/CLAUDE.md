@@ -30,7 +30,7 @@ pub fn file_size(root: &Path, relative: &Path) -> Result<u64>
 fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>>
 ```
 
-## Behavior
+## Implementation Details
 
 ### File Listing Priority
 1. Try `git ls-files` for accurate repo file listing

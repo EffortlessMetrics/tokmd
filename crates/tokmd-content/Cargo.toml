@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Content scanning helpers for tokmd analysis (TODOs, duplicates, imports)."
+readme = "README.md"
+keywords = ["content-analysis", "entropy", "hashing", "todo-detection", "blake3"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-content"
 
 [dependencies]
 anyhow = "1.0.100"

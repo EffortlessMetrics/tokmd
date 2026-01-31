@@ -36,7 +36,7 @@ Core data structures and contracts for tokmd. This is a **Tier 0** crate with no
 - `LangArgs`, `ModuleArgs`, `ExportArgs` - Command-specific args
 - `LangArgsMeta`, `ModuleArgsMeta`, `ExportArgsMeta` - Args metadata for receipts
 
-## Key Patterns
+## Implementation Details
 
 ### Deterministic Output
 All types are designed for deterministic serialization:
