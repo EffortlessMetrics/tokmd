@@ -12,8 +12,7 @@ use tokmd_redact::{redact_path, short_hash};
 
 /// Strategy for generating arbitrary path-like strings with various separators.
 fn arb_path() -> impl Strategy<Value = String> {
-    prop::collection::vec("[a-zA-Z0-9_.-]+", 1..=6)
-        .prop_map(|parts| parts.join("/"))
+    prop::collection::vec("[a-zA-Z0-9_.-]+", 1..=6).prop_map(|parts| parts.join("/"))
 }
 
 /// Strategy for generating paths with mixed separators.

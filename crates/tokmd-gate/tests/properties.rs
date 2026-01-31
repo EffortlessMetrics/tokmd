@@ -4,10 +4,9 @@
 //! resolution, and serialization round-trips.
 
 use proptest::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_gate::{
-    evaluate_policy, resolve_pointer, GateResult, PolicyConfig, PolicyRule, RuleLevel,
-    RuleOperator,
+    GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy, resolve_pointer,
 };
 
 // ============================================================================
