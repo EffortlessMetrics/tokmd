@@ -251,13 +251,15 @@ pub fn create_module_report(
     }
 
     // Unique parent files per module.
+    // Optimization: Reuse file_rows instead of re-scanning languages and re-normalizing paths.
     let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+    for r in &file_rows {
+        if r.kind == FileKind::Parent {
+            if let Some(set) = module_files.get_mut(&r.module) {
+                set.insert(r.path.clone());
+            } else {
+                module_files.insert(r.module.clone(), BTreeSet::from([r.path.clone()]));
+            }
         }
     }
 
@@ -404,7 +406,7 @@ pub fn collect_file_rows(
     for (lang_type, lang) in languages.iter() {
         for report in &lang.reports {
             let path = normalize_path(&report.name, strip_prefix);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
+            let module = module_key_from_normalized(&path, module_roots, module_depth).into_owned();
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
 
@@ -427,7 +429,8 @@ pub fn collect_file_rows(
             for (child_type, reports) in &lang.children {
                 for report in reports {
                     let path = normalize_path(&report.name, strip_prefix);
-                    let module = module_key_from_normalized(&path, module_roots, module_depth);
+                    let module =
+                        module_key_from_normalized(&path, module_roots, module_depth).into_owned();
                     let st = report.stats.summarise();
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
@@ -566,47 +569,84 @@ pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> S
     }
     p = p.trim_start_matches('/').to_string();
 
-    module_key_from_normalized(&p, module_roots, module_depth)
+    module_key_from_normalized(&p, module_roots, module_depth).into_owned()
 }
 
 /// Compute a "module key" from a path that has already been normalized.
 ///
 /// This is an optimization for hot paths where `normalize_path` has already been called.
 /// The path should have forward slashes, no leading `./`, and no leading `/`.
-fn module_key_from_normalized(path: &str, module_roots: &[String], module_depth: usize) -> String {
+fn module_key_from_normalized<'a>(
+    path: &'a str,
+    module_roots: &[String],
+    module_depth: usize,
+) -> Cow<'a, str> {
     // Split off the directory part first (exclude filename) to avoid including
     // the filename in the module key when depth exceeds available directories.
     let Some((dir_part, _file_part)) = path.rsplit_once('/') else {
         // No slash => root-level file
-        return "(root)".to_string();
+        return Cow::Borrowed("(root)");
     };
 
     let mut dirs = dir_part.split('/').filter(|s| !s.is_empty());
+    // We clone the iterator to peek at the first element without consuming it from the structure loop logic?
+    // Actually we can just restart iteration or use the first one.
+    // Let's get the first segment.
     let first = match dirs.next() {
         Some(s) => s,
-        None => return "(root)".to_string(),
+        None => return Cow::Borrowed("(root)"),
     };
 
     // Check if the first directory matches a module root.
     if !module_roots.iter().any(|r| r == first) {
-        return first.to_string();
+        return Cow::Borrowed(first);
     }
 
     // It IS a root module. Build the key by taking up to `module_depth` directory segments.
     let depth_needed = module_depth.max(1);
-    let mut key = String::with_capacity(dir_part.len());
-    key.push_str(first);
 
+    // Calculate the extent of the slice we want.
+    // We need to find the end pointer of the last included segment.
+    let mut end_ptr = first.as_ptr() as usize + first.len();
+    let start_ptr = first.as_ptr() as usize;
+    let mut expected_len = first.len();
+
+    // Consume subsequent segments
     for _ in 1..depth_needed {
         if let Some(seg) = dirs.next() {
-            key.push('/');
-            key.push_str(seg);
+            let seg_end = seg.as_ptr() as usize + seg.len();
+            end_ptr = seg_end;
+            expected_len += 1 + seg.len(); // +1 for the separator slash
         } else {
             break;
         }
     }
 
-    key
+    // Determine the slice range within `path`
+    let path_start = path.as_ptr() as usize;
+    // Safety checks: ensure pointers are within `path` bounds?
+    // `split` returns slices of the original string, so pointers are valid.
+    let offset_start = start_ptr.saturating_sub(path_start);
+    let offset_end = end_ptr.checked_sub(path_start).unwrap_or(path.len());
+
+    let slice = &path[offset_start..offset_end];
+
+    if slice.len() == expected_len {
+        Cow::Borrowed(slice)
+    } else {
+        // Double slashes or other anomalies detected (length mismatch).
+        // Fallback to reconstruction to ensure normalized output (single slashes).
+        let mut parts = slice.split('/').filter(|s| !s.is_empty());
+        let mut key = String::with_capacity(expected_len);
+        if let Some(p) = parts.next() {
+            key.push_str(p);
+            for p in parts {
+                key.push('/');
+                key.push_str(p);
+            }
+        }
+        Cow::Owned(key)
+    }
 }
 
 #[cfg(test)]

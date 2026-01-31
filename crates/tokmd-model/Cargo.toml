@@ -15,4 +15,5 @@ tokmd-config.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
+serde_json = "1.0"
 proptest = "1.9.0"

@@ -1,0 +1,36 @@
+{
+  "run_id": "20260131-01",
+  "timestamp_utc": "2026-01-31T13:10:53Z",
+  "lane": "scout",
+  "target": "Deduplicate module key allocations in tokmd-model",
+  "proof_method": "runtime timing using custom example",
+  "commands": [
+    {
+      "cmd": "cargo run --release -p tokmd-model --example bench_module",
+      "exit_status": 0,
+      "output_summary": "Baseline: 345ms per call (100k files)"
+    },
+    {
+      "cmd": "cargo run --release -p tokmd-model --example bench_module",
+      "exit_status": 0,
+      "output_summary": "After fix: 339ms per call (100k files)"
+    },
+    {
+      "cmd": "cargo test -p tokmd-model",
+      "exit_status": 0,
+      "output_summary": "PASS"
+    },
+    {
+      "cmd": "cargo test --workspace",
+      "exit_status": 0,
+      "output_summary": "PASS"
+    }
+  ],
+  "results_summary": "Reduced allocations from O(N) to O(M) in create_module_report. Runtime improved slightly (~1.7%). Code structure improved to avoid redundant normalization and string building.",
+  "gates": {
+    "build": "PASS",
+    "test": "PASS",
+    "fmt": "PASS",
+    "clippy": "PASS"
+  }
+}
