@@ -4,7 +4,7 @@
 //! through mathematical invariants and format specifications.
 
 use proptest::prelude::*;
-use tokmd_fun::{render_midi, render_obj, MidiNote, ObjBuilding};
+use tokmd_fun::{MidiNote, ObjBuilding, render_midi, render_obj};
 
 // ============================================================================
 // Strategies
@@ -13,9 +13,9 @@ use tokmd_fun::{render_midi, render_obj, MidiNote, ObjBuilding};
 /// Strategy for generating arbitrary building names.
 fn arb_name() -> impl Strategy<Value = String> {
     prop_oneof![
-        "[a-zA-Z0-9_]{1,20}",          // Alphanumeric (should pass through unchanged)
-        "[a-zA-Z0-9_/\\-.]{1,20}",     // With special chars (should be sanitized)
-        ".*",                           // Arbitrary strings
+        "[a-zA-Z0-9_]{1,20}",      // Alphanumeric (should pass through unchanged)
+        "[a-zA-Z0-9_/\\-.]{1,20}", // With special chars (should be sanitized)
+        ".*",                      // Arbitrary strings
     ]
 }
 
@@ -29,17 +29,24 @@ fn arb_building_finite() -> impl Strategy<Value = ObjBuilding> {
         0.0f32..1e6f32,  // d (depth, non-negative)
         0.0f32..1e6f32,  // h (height, non-negative)
     )
-        .prop_map(|(name, x, y, w, d, h)| ObjBuilding { name, x, y, w, d, h })
+        .prop_map(|(name, x, y, w, d, h)| ObjBuilding {
+            name,
+            x,
+            y,
+            w,
+            d,
+            h,
+        })
 }
 
 /// Strategy for generating arbitrary MIDI notes.
 fn arb_midi_note() -> impl Strategy<Value = MidiNote> {
     (
-        0u8..=127u8,    // key
-        0u8..=127u8,    // velocity
-        0u32..=100000,  // start
-        0u32..=10000,   // duration
-        0u8..=255u8,    // channel (will be clamped to 0-15)
+        0u8..=127u8,   // key
+        0u8..=127u8,   // velocity
+        0u32..=100000, // start
+        0u32..=10000,  // duration
+        0u8..=255u8,   // channel (will be clamped to 0-15)
     )
         .prop_map(|(key, velocity, start, duration, channel)| MidiNote {
             key,

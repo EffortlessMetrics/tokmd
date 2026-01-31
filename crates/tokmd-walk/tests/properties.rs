@@ -60,10 +60,10 @@ fn arb_non_matching_filename() -> impl Strategy<Value = String> {
         Just("config.yaml".to_string()),
         Just("data.json".to_string()),
         // Tricky names that should NOT match
-        Just("UNLICENSE".to_string()),          // Doesn't start with "license"
+        Just("UNLICENSE".to_string()), // Doesn't start with "license"
         Just("my-license-helper.rs".to_string()),
-        Just("noticing.txt".to_string()),       // "noticing" != starts_with("notice")
-        Just("copyingfile.txt".to_string()),    // Should match - starts with "copying"
+        Just("noticing.txt".to_string()), // "noticing" != starts_with("notice")
+        Just("copyingfile.txt".to_string()), // Should match - starts with "copying"
     ]
 }
 
