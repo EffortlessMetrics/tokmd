@@ -8,15 +8,16 @@
 //!
 //! ## Example
 //!
-//! ```rust,no_run
+//! ```rust
+//! use std::path::PathBuf;
 //! use tokmd_core::scan_workflow;
 //! use tokmd_config::GlobalArgs;
 //! use tokmd_types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
 //!
 //! // Configure scan
-//! let global = GlobalArgs::default(); // needs proper init
+//! let global = GlobalArgs::default();
 //! let lang = LangArgs {
-//!     paths: vec![],
+//!     paths: vec![PathBuf::from(".")],
 //!     format: TableFormat::Json,
 //!     top: 10,
 //!     files: false,

@@ -1,0 +1,25 @@
+{
+  "run_id": "20260131-librarian",
+  "date": "2026-01-31",
+  "persona": "Librarian",
+  "lane": "B",
+  "target": "crates/tokmd-core/src/lib.rs",
+  "description": "Fix broken and non-running doctest in tokmd-core",
+  "option_selected": "A",
+  "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+  },
+  "receipts": [
+      {
+          "command": "cargo test --doc --package tokmd-core",
+          "result": "passed"
+      },
+      {
+          "command": "cargo test --workspace",
+          "result": "passed"
+      }
+  ]
+}
