@@ -1,4 +1,5 @@
 # libfuzzer dictionary for entropy/content fuzzing
+
 # Common tags
 "TODO"
 "FIXME"
@@ -8,23 +9,192 @@
 "NOTE"
 "WARNING"
 
+# Additional tags
+"SAFETY"
+"DEPRECATED"
+"OPTIMIZE"
+"PERF"
+"AUDIT"
+"REVIEW"
+
+# Comment markers - C-style
+"// "
+"/* "
+" */"
+"/** "
+" **/"
+"///"
+"//!"
+
+# Comment markers - Rust/doc attributes
+"#["
+"#!["
+
+# Comment markers - Shell/Python/Ruby
+"# "
+"## "
+"### "
+
+# Comment markers - SQL/Haskell/Lua
+"-- "
+"--[["
+"]]"
+
+# Comment markers - Python/docstrings
+"\"\"\""
+"'''"
+
+# Documentation tags
+"@param"
+"@return"
+"@returns"
+"@throws"
+"@exception"
+"@deprecated"
+"@since"
+"@see"
+"@author"
+"@version"
+
+# License headers
+"MIT"
+"Apache"
+"Apache-2.0"
+"GPL"
+"GPL-3.0"
+"BSD"
+"BSD-3-Clause"
+"ISC"
+"MPL"
+"LGPL"
+"Copyright"
+"LICENSE"
+"SPDX-License-Identifier:"
+"(c)"
+"All rights reserved"
+
+# Rust code patterns
+"fn "
+"pub fn "
+"pub(crate) fn "
+"async fn "
+"struct "
+"pub struct "
+"enum "
+"pub enum "
+"impl "
+"impl<"
+"trait "
+"pub trait "
+"const "
+"pub const "
+"static "
+"let "
+"let mut "
+"mod "
+"pub mod "
+"use "
+"pub use "
+"type "
+"where "
+
+# Python code patterns
+"def "
+"class "
+"import "
+"from "
+"async def "
+"lambda "
+
+# JavaScript/TypeScript code patterns
+"function "
+"const "
+"let "
+"var "
+"export "
+"export default "
+"import "
+"require("
+"module.exports"
+
+# Other language patterns
+"include "
+"#include "
+"#define "
+"#ifdef "
+"#ifndef "
+"#pragma "
+"package "
+"interface "
+"abstract "
+"extends "
+"implements "
+
 # High entropy patterns (base64-like)
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 "=="
+"==="
+
+# Base64 chunks (common padding patterns)
+"AAAA"
+"////++++======"
+"eyJ"
+"aHR0c"
+
+# API key patterns (prefixes)
+"sk_live_"
+"sk_test_"
+"pk_live_"
+"pk_test_"
+"api_key_"
+"apikey="
+"api-key:"
+"APIKEY"
+"secret_"
+"token="
+"bearer "
+"Bearer "
+"Basic "
+
+# JWT patterns
+"eyJhbGciOiJ"
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9"
+
+# AWS patterns
+"AKIA"
+"aws_access_key"
+"aws_secret_key"
+
+# GitHub patterns
+"ghp_"
+"gho_"
+"ghu_"
+"ghs_"
+"ghr_"
+
+# Hex strings (common in hashes/keys)
+"0x"
+"0X"
+"deadbeef"
+"cafebabe"
 
 # Low entropy patterns
 "aaaaaaaaaaaaaaaa"
 "0000000000000000"
 "                "
+"----------------"
+"=================="
+"################"
 
 # Binary patterns
 "\x00\x00\x00\x00"
 "\xff\xff\xff\xff"
 "\x00\xff\x00\xff"
+"\xde\xad\xbe\xef"
+"\xca\xfe\xba\xbe"
 
-# Text markers
-"// "
-"/* "
-" */"
-"# "
-"-- "
+# Unicode/encoding markers
+"\xef\xbb\xbf"
+"\xfe\xff"
+"\xff\xfe"

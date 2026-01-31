@@ -47,6 +47,9 @@ jobs:
           - target: fuzz_json_types
             features: types
             dict: json.dict
+          - target: fuzz_redact
+            features: redact
+            dict: path.dict
 
     steps:
       - uses: actions/checkout@v4

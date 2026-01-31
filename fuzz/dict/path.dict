@@ -1,4 +1,5 @@
 # libfuzzer dictionary for path fuzzing
+
 # Path separators
 "/"
 "\\"
@@ -16,20 +17,183 @@
 "node_modules"
 "vendor"
 
-# File extensions
+# Additional common directories
+"bin"
+"pkg"
+"dist"
+"out"
+"build"
+"scripts"
+"tools"
+"assets"
+"resources"
+"config"
+"data"
+"tmp"
+"temp"
+"cache"
+"logs"
+
+# VCS and CI directories
+".git"
+".github"
+".gitlab"
+".svn"
+".hg"
+".circleci"
+
+# Rust-specific paths
+"benches"
+"examples"
+"build.rs"
+"Cargo.toml"
+"Cargo.lock"
+"rust-toolchain"
+"rust-toolchain.toml"
+".cargo"
+"clippy.toml"
+"rustfmt.toml"
+
+# Module root patterns that tokmd uses
+"crates/"
+"crates/*/src"
+"packages/"
+"packages/*/src"
+"libs/"
+"libs/*/src"
+"src/"
+"lib/"
+"src/lib.rs"
+"src/main.rs"
+
+# File extensions - Rust
 ".rs"
+
+# File extensions - Python
 ".py"
+".pyi"
+".pyx"
+".pxd"
+
+# File extensions - JavaScript/TypeScript/Web
 ".js"
 ".ts"
+".jsx"
+".tsx"
+".mjs"
+".cjs"
+".vue"
+".svelte"
+
+# File extensions - Go
 ".go"
+
+# File extensions - Java/JVM
 ".java"
+".kt"
+".kts"
+".scala"
+".clj"
+".groovy"
+
+# File extensions - C/C++
 ".c"
 ".cpp"
+".cc"
+".cxx"
 ".h"
+".hpp"
+".hxx"
+
+# File extensions - C#/.NET
+".cs"
+".fs"
+".vb"
+
+# File extensions - Mobile
+".swift"
+".m"
+".mm"
+
+# File extensions - Ruby
+".rb"
+".rake"
+".gemspec"
+
+# File extensions - PHP
+".php"
+".phtml"
+
+# File extensions - Shell
+".sh"
+".bash"
+".zsh"
+".fish"
+".ps1"
+
+# File extensions - Markup/Data
 ".md"
 ".toml"
 ".json"
 ".yaml"
+".yml"
+".xml"
+".html"
+".css"
+".scss"
+".sass"
+".less"
+
+# Config files - Git
+".gitignore"
+".gitattributes"
+".gitmodules"
+
+# Config files - tokmd
+".tokeignore"
+"tokmd.toml"
+
+# Config files - JavaScript/Node
+"package.json"
+"package-lock.json"
+"yarn.lock"
+"pnpm-lock.yaml"
+"tsconfig.json"
+"jsconfig.json"
+".npmrc"
+".nvmrc"
+".eslintrc"
+".prettierrc"
+
+# Config files - Python
+"pyproject.toml"
+"setup.py"
+"setup.cfg"
+"requirements.txt"
+"Pipfile"
+"Pipfile.lock"
+"poetry.lock"
+".python-version"
+
+# Config files - Go
+"go.mod"
+"go.sum"
+"go.work"
+
+# Config files - Ruby
+"Gemfile"
+"Gemfile.lock"
+".ruby-version"
+
+# Config files - Other
+"Makefile"
+"CMakeLists.txt"
+"Dockerfile"
+"docker-compose.yml"
+".editorconfig"
+".env"
+".env.local"
+".env.example"
 
 # Special paths
 "."
@@ -37,13 +201,24 @@
 "~"
 ""
 
-# Module roots
-"crates/"
-"packages/"
-"src/"
-"lib/"
-
 # Edge cases
 "a/b/c/d/e"
 "a/./b/../c"
 "//double/slash"
+"path with spaces"
+"path-with-dashes"
+"path_with_underscores"
+"PascalCasePath"
+"camelCasePath"
+
+# Deeply nested paths
+"a/b/c/d/e/f/g/h/i/j"
+"crates/tokmd/src/lib.rs"
+"packages/core/src/index.ts"
+
+# Hidden files/directories
+".hidden"
+".config"
+".cache"
+".local"
+"._metadata"

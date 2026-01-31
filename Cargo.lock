@@ -2780,13 +2780,13 @@ dependencies = [
 name = "tokmd-fuzz"
 version = "0.0.0"
 dependencies = [
- "arbitrary",
  "libfuzzer-sys",
  "serde_json",
  "tokmd-config",
  "tokmd-content",
  "tokmd-gate",
  "tokmd-model",
+ "tokmd-redact",
  "tokmd-types",
  "toml 0.8.23",
 ]
