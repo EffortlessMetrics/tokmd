@@ -389,7 +389,7 @@ pub struct BadgeArgs {
 
     /// Metric to render.
     #[arg(long, value_enum)]
-    pub metric: BadgeMetric,
+    pub metric: Option<BadgeMetric>,
 
     /// Optional analysis preset to use for the badge.
     #[arg(long, value_enum)]

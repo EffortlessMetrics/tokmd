@@ -1,0 +1,24 @@
+{
+  "run_id": "run_20260202_01",
+  "timestamp_utc": "2026-02-02T00:00:00Z",
+  "lane": "Scout",
+  "target": "Fix tokmd badge to respect tokmd.toml configuration",
+  "commands": [
+    {
+      "cmd": "cargo run -- --help",
+      "exit": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "tokmd badge (without --metric, with config)",
+      "exit": 0,
+      "result": "PASS (after fix)"
+    },
+    {
+      "cmd": "cargo test --test badge_integration",
+      "exit": 0,
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Fixed tokmd badge ignoring configuration. Added integration tests."
+}

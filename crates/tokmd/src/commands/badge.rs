@@ -1,13 +1,32 @@
 use anyhow::Result;
+use clap::ValueEnum;
 use tokmd_analysis as analysis;
 use tokmd_config as cli;
 
 use crate::analysis_utils;
 use crate::badge as badge_utils;
+use crate::config::ResolvedConfig;
 use crate::export_bundle;
 
-pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<()> {
-    let metric = args.metric;
+pub(crate) fn handle(
+    args: cli::BadgeArgs,
+    global: &cli::GlobalArgs,
+    resolved: &ResolvedConfig,
+) -> Result<()> {
+    let metric = args
+        .metric
+        .or_else(|| {
+            resolved
+                .toml
+                .and_then(|t| t.badge.metric.as_deref())
+                .and_then(|s| cli::BadgeMetric::from_str(s, true).ok())
+        })
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "Badge metric is required. Provide --metric <METRIC> or configure [badge] metric in tokmd.toml"
+            )
+        })?;
+
     let mut preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
     if metric == cli::BadgeMetric::Hotspot && args.preset.is_none() {
         preset = cli::AnalysisPreset::Risk;

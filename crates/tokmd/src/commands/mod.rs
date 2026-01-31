@@ -25,7 +25,7 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Module(args) => module::handle(args, global, resolved),
         cli::Commands::Export(args) => export::handle(args, global, resolved),
         cli::Commands::Analyze(args) => analyze::handle(args, global),
-        cli::Commands::Badge(args) => badge::handle(args, global),
+        cli::Commands::Badge(args) => badge::handle(args, global, resolved),
         cli::Commands::Init(args) => init::handle(args),
         cli::Commands::Context(args) => context::handle(args, global),
         cli::Commands::CheckIgnore(args) => check_ignore::handle(args, global),
