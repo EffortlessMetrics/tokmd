@@ -25,6 +25,7 @@ fn git_available() -> bool {
 fn init_git_repo(dir: &std::path::Path) -> bool {
     let commands = [
         vec!["init"],
+        vec!["symbolic-ref", "HEAD", "refs/heads/main"], // Set default branch to main
         vec!["config", "user.email", "test@test.com"],
         vec!["config", "user.name", "Test User"],
     ];
