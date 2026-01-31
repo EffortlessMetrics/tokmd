@@ -279,7 +279,7 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
 | `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
 | `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
-| `--compress` | Strip comments and blank lines from bundle output. | `false` |
+| `--compress` | Strip blank lines from bundle output. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
 | `--out <PATH>` | Write output to file instead of stdout. | `(stdout)` |
@@ -301,7 +301,7 @@ tokmd context --budget 128k --output bundle --out context.txt
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
 
-# Compressed bundle (no comments/blanks)
+# Compressed bundle (no blank lines)
 tokmd context --budget 100k --output bundle --compress --out bundle.txt
 
 # JSON receipt for programmatic use
@@ -635,7 +635,7 @@ rank_by = "code"
 # Output mode: "list", "bundle", "json" (default: "list")
 output = "list"
 
-# Strip comments and blanks in bundle output (default: false)
+# Strip blank lines in bundle output (default: false)
 compress = false
 
 # =============================================================================

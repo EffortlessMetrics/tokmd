@@ -230,17 +230,27 @@ fn write_bundle_to_destination(
     selected: &[ContextFileRow],
 ) -> Result<usize> {
     if let Some(ref out_path) = args.out {
-        // Check if file exists
-        if out_path.exists() && !args.force {
-            bail!(
-                "Output file already exists: {}. Use --force to overwrite.",
-                out_path.display()
-            );
+        // Open file with proper semantics: create_new fails if exists (unless --force)
+        let file = if args.force {
+            OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(out_path)
+        } else {
+            OpenOptions::new().write(true).create_new(true).open(out_path)
         }
+        .with_context(|| {
+            if !args.force && out_path.exists() {
+                format!(
+                    "Output file already exists: {}. Use --force to overwrite.",
+                    out_path.display()
+                )
+            } else {
+                format!("Failed to create output file: {}", out_path.display())
+            }
+        })?;
 
-        // Stream directly to file
-        let file = File::create(out_path)
-            .with_context(|| format!("Failed to create output file: {}", out_path.display()))?;
         let mut counter = CountingWriter::new(file);
         write_bundle_output(&mut counter, selected, args.compress)?;
         counter.flush()?;
@@ -306,7 +316,9 @@ fn write_bundle_output<W: Write>(
             let f = File::open(&path)
                 .with_context(|| format!("Failed to open file: {}", path.display()))?;
             let reader = BufReader::new(f);
-            for line in reader.lines().map_while(|r| r.ok()) {
+            for line in reader.lines() {
+                let line = line
+                    .with_context(|| format!("Failed to read file: {}", path.display()))?;
                 if !line.trim().is_empty() {
                     writeln!(w, "{line}")?;
                 }
@@ -365,13 +377,28 @@ fn format_json_output(
 
 /// Write output to a file, checking for existence unless force is true.
 fn write_output_file(path: &Path, content: &str, force: bool) -> Result<()> {
-    if path.exists() && !force {
-        bail!(
-            "Output file already exists: {}. Use --force to overwrite.",
-            path.display()
-        );
+    // Open file with proper semantics: create_new fails if exists (unless --force)
+    let mut file = if force {
+        OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)
+    } else {
+        OpenOptions::new().write(true).create_new(true).open(path)
     }
-    fs::write(path, content)
+    .with_context(|| {
+        if !force && path.exists() {
+            format!(
+                "Output file already exists: {}. Use --force to overwrite.",
+                path.display()
+            )
+        } else {
+            format!("Failed to write output file: {}", path.display())
+        }
+    })?;
+
+    file.write_all(content.as_bytes())
         .with_context(|| format!("Failed to write output file: {}", path.display()))?;
     eprintln!("Wrote {}", path.display());
     Ok(())

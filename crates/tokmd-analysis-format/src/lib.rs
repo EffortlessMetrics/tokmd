@@ -1323,6 +1323,373 @@ mod tests {
         assert!(result.is_empty());
     }
 
+    // Test render_obj with fun feature - verify coordinate calculations
+    // This test uses precise vertex extraction to catch arithmetic mutants:
+    // - idx % 5 vs idx / 5 (grid position)
+    // - * 2.0 multiplier
+    // - lines / 10.0 for height
+    // - .max(0.5) clamping
+    #[cfg(feature = "fun")]
+    #[test]
+    fn test_render_obj_coordinate_math() {
+        let mut receipt = minimal_receipt();
+        let mut derived = sample_derived();
+        // Build test data with specific indices and line counts to verify:
+        // x = (idx % 5) * 2.0
+        // y = (idx / 5) * 2.0
+        // h = (lines / 10.0).max(0.5)
+        //
+        // idx=0: x=0*2=0, y=0*2=0
+        // idx=4: x=4*2=8, y=0*2=0 (tests % 5 at boundary)
+        // idx=5: x=0*2=0, y=1*2=2 (tests % 5 wrap and / 5 increment)
+        // idx=6: x=1*2=2, y=1*2=2
+        derived.top.largest_lines = vec![
+            FileStatRow {
+                path: "file0.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 100, // h = 100/10 = 10.0
+                bytes: 1000,
+                tokens: 200,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 1,
+            },
+            FileStatRow {
+                path: "file1.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 50,
+                comments: 5,
+                blanks: 2,
+                lines: 3, // h = 3/10 = 0.3 -> clamped to 0.5 by .max(0.5)
+                bytes: 500,
+                tokens: 100,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 2,
+            },
+            FileStatRow {
+                path: "file2.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 200,
+                comments: 20,
+                blanks: 10,
+                lines: 200, // h = 200/10 = 20.0
+                bytes: 2000,
+                tokens: 400,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 3,
+            },
+            FileStatRow {
+                path: "file3.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 75,
+                comments: 7,
+                blanks: 3,
+                lines: 75, // h = 75/10 = 7.5
+                bytes: 750,
+                tokens: 150,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 0,
+            },
+            FileStatRow {
+                path: "file4.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 150,
+                comments: 15,
+                blanks: 8,
+                lines: 150, // h = 150/10 = 15.0
+                bytes: 1500,
+                tokens: 300,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 1,
+            },
+            // idx=5: x = (5%5)*2 = 0, y = (5/5)*2 = 2
+            FileStatRow {
+                path: "file5.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 80,
+                comments: 8,
+                blanks: 4,
+                lines: 80, // h = 80/10 = 8.0
+                bytes: 800,
+                tokens: 160,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 2,
+            },
+            // idx=6: x = (6%5)*2 = 2, y = (6/5)*2 = 2
+            FileStatRow {
+                path: "file6.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 60,
+                comments: 6,
+                blanks: 3,
+                lines: 60, // h = 60/10 = 6.0
+                bytes: 600,
+                tokens: 120,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 1,
+            },
+        ];
+        receipt.derived = Some(derived);
+        let result = render_obj(&receipt);
+
+        // Parse the OBJ output into objects with their vertices
+        // Each object starts with "o <name>" followed by 8 vertices
+        let objects: Vec<(&str, Vec<(f32, f32, f32)>)> = result
+            .split("o ")
+            .skip(1)
+            .map(|section| {
+                let lines: Vec<&str> = section.lines().collect();
+                let name = lines[0];
+                let vertices: Vec<(f32, f32, f32)> = lines[1..]
+                    .iter()
+                    .filter(|l| l.starts_with("v "))
+                    .take(8)
+                    .map(|l| {
+                        let parts: Vec<f32> = l[2..].split_whitespace()
+                            .map(|p| p.parse().unwrap())
+                            .collect();
+                        (parts[0], parts[1], parts[2])
+                    })
+                    .collect();
+                (name, vertices)
+            })
+            .collect();
+
+        // Verify we have 7 objects
+        assert_eq!(objects.len(), 7, "expected 7 buildings");
+
+        // Helper to get first vertex (base corner) of each object
+        fn base_corner(obj: &(&str, Vec<(f32, f32, f32)>)) -> (f32, f32, f32) {
+            obj.1[0]
+        }
+        fn top_corner(obj: &(&str, Vec<(f32, f32, f32)>)) -> (f32, f32, f32) {
+            obj.1[4] // 5th vertex is top of first corner
+        }
+
+        // idx=0: x=0, y=0, h=10
+        assert_eq!(base_corner(&objects[0]), (0.0, 0.0, 0.0), "file0 base position");
+        assert_eq!(top_corner(&objects[0]).2, 10.0, "file0 height should be 10.0 (100/10)");
+
+        // idx=1: x=2, y=0, h=0.5 (clamped from 0.3)
+        // Tests: * 2.0 multiplier, .max(0.5) clamping
+        assert_eq!(base_corner(&objects[1]), (2.0, 0.0, 0.0), "file1 base position");
+        assert_eq!(top_corner(&objects[1]).2, 0.5, "file1 height should be 0.5 (clamped from 3/10=0.3)");
+
+        // idx=2: x=4, y=0, h=20
+        assert_eq!(base_corner(&objects[2]), (4.0, 0.0, 0.0), "file2 base position");
+        assert_eq!(top_corner(&objects[2]).2, 20.0, "file2 height should be 20.0 (200/10)");
+
+        // idx=3: x=6, y=0, h=7.5
+        assert_eq!(base_corner(&objects[3]), (6.0, 0.0, 0.0), "file3 base position");
+        assert_eq!(top_corner(&objects[3]).2, 7.5, "file3 height should be 7.5 (75/10)");
+
+        // idx=4: x=8, y=0, h=15
+        // Tests: % 5 at boundary (4 % 5 = 4, not 0)
+        assert_eq!(base_corner(&objects[4]), (8.0, 0.0, 0.0), "file4 base position (x = 4*2 = 8)");
+        assert_eq!(top_corner(&objects[4]).2, 15.0, "file4 height should be 15.0 (150/10)");
+
+        // idx=5: x=0, y=2, h=8
+        // Tests: % 5 wrapping (5 % 5 = 0), / 5 incrementing (5 / 5 = 1)
+        // Catches mutations: % -> / would give x=2, / -> % would give y=0
+        assert_eq!(base_corner(&objects[5]), (0.0, 2.0, 0.0), "file5 base position (x=0 from 5%5, y=2 from 5/5*2)");
+        assert_eq!(top_corner(&objects[5]).2, 8.0, "file5 height should be 8.0 (80/10)");
+
+        // idx=6: x=2, y=2, h=6
+        // Tests: both % and / together at idx=6
+        assert_eq!(base_corner(&objects[6]), (2.0, 2.0, 0.0), "file6 base position (x=2 from 6%5*2, y=2 from 6/5*2)");
+        assert_eq!(top_corner(&objects[6]).2, 6.0, "file6 height should be 6.0 (60/10)");
+
+        // Verify face definitions exist (basic structural check)
+        assert!(result.contains("f 1 2 3 4"), "missing face definition");
+    }
+
+    // Test render_midi with fun feature - verify note calculations using midly parser
+    // This test verifies arithmetic correctness for:
+    // - key = 60 + (depth % 12)
+    // - velocity = min(40 + min(lines, 127) / 2, 120)
+    // - start = idx * 240
+    #[cfg(feature = "fun")]
+    #[test]
+    fn test_render_midi_note_math() {
+        use midly::{Smf, TrackEventKind, MidiMessage};
+
+        let mut receipt = minimal_receipt();
+        let mut derived = sample_derived();
+        // Create rows with specific depths and lines to verify math
+        // Each row maps to a note:
+        //   key = 60 + (depth % 12)
+        //   velocity = (40 + (lines.min(127) / 2)).min(120)
+        //   start = idx * 240
+        derived.top.largest_lines = vec![
+            // idx=0: key=60+(5%12)=65, vel=40+(60/2)=70, start=0*240=0
+            FileStatRow {
+                path: "a.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 50,
+                comments: 5,
+                blanks: 2,
+                lines: 60,
+                bytes: 500,
+                tokens: 100,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 5,
+            },
+            // idx=1: key=60+(15%12)=63, vel=40+(127/2)=103, start=1*240=240
+            // Tests: % 12 wrapping (15 % 12 = 3), lines clamped at 127
+            FileStatRow {
+                path: "b.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 200, // clamped to 127 for velocity calc
+                bytes: 1000,
+                tokens: 200,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 15,
+            },
+            // idx=2: key=60+(0%12)=60, vel=40+(20/2)=50, start=2*240=480
+            FileStatRow {
+                path: "c.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 20,
+                comments: 2,
+                blanks: 1,
+                lines: 20,
+                bytes: 200,
+                tokens: 40,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 0,
+            },
+            // idx=3: key=60+(12%12)=60, vel=40+(min(160,127)/2)=40+(127/2)=40+63=103, start=3*240=720
+            // Tests: % 12 at boundary (12 % 12 = 0)
+            FileStatRow {
+                path: "d.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                code: 160,
+                comments: 16,
+                blanks: 8,
+                lines: 160,
+                bytes: 1600,
+                tokens: 320,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 12,
+            },
+        ];
+        receipt.derived = Some(derived);
+
+        let result = render_midi(&receipt).unwrap();
+
+        // Parse with midly
+        let smf = Smf::parse(&result).expect("should parse as valid MIDI");
+
+        // Collect NoteOn events with their absolute times
+        let mut notes: Vec<(u32, u8, u8)> = Vec::new(); // (time, key, velocity)
+        let mut abs_time = 0u32;
+
+        for event in &smf.tracks[0] {
+            abs_time += event.delta.as_int();
+            if let TrackEventKind::Midi { message: MidiMessage::NoteOn { key, vel }, .. } = event.kind {
+                notes.push((abs_time, key.as_int(), vel.as_int()));
+            }
+        }
+
+        // Should have 4 NoteOn events
+        assert_eq!(notes.len(), 4, "expected 4 NoteOn events, got {:?}", notes);
+
+        // Verify each note precisely
+        // Note 0: time=0, key=65, velocity=70
+        assert_eq!(notes[0], (0, 65, 70),
+            "note 0: expected (time=0, key=65=60+5, vel=70=40+60/2), got {:?}", notes[0]);
+
+        // Note 1: time=240, key=63, velocity=103
+        // key=60+(15%12)=60+3=63, vel=40+(127/2)=40+63=103
+        assert_eq!(notes[1], (240, 63, 103),
+            "note 1: expected (time=240=1*240, key=63=60+(15%12), vel=103=40+127/2), got {:?}", notes[1]);
+
+        // Note 2: time=480, key=60, velocity=50
+        assert_eq!(notes[2], (480, 60, 50),
+            "note 2: expected (time=480=2*240, key=60=60+0, vel=50=40+20/2), got {:?}", notes[2]);
+
+        // Note 3: time=720, key=60, velocity=103
+        // key=60+(12%12)=60+0=60, vel=40+(min(160,127)/2)=40+63=103
+        assert_eq!(notes[3], (720, 60, 103),
+            "note 3: expected (time=720=3*240, key=60=60+(12%12), vel=103=40+127/2), got {:?}", notes[3]);
+
+        // Verify NoteOff timing too (duration=180)
+        let mut note_offs: Vec<(u32, u8)> = Vec::new(); // (time, key)
+        abs_time = 0;
+        for event in &smf.tracks[0] {
+            abs_time += event.delta.as_int();
+            if let TrackEventKind::Midi { message: MidiMessage::NoteOff { key, .. }, .. } = event.kind {
+                note_offs.push((abs_time, key.as_int()));
+            }
+        }
+
+        // NoteOff times should be start + 180
+        assert!(note_offs.iter().any(|&(t, k)| t == 180 && k == 65),
+            "expected NoteOff for key 65 at time 180, got {:?}", note_offs);
+        assert!(note_offs.iter().any(|&(t, k)| t == 420 && k == 63),
+            "expected NoteOff for key 63 at time 420 (240+180), got {:?}", note_offs);
+        assert!(note_offs.iter().any(|&(t, k)| t == 660 && k == 60),
+            "expected NoteOff for key 60 at time 660 (480+180), got {:?}", note_offs);
+        assert!(note_offs.iter().any(|&(t, k)| t == 900 && k == 60),
+            "expected NoteOff for key 60 at time 900 (720+180), got {:?}", note_offs);
+    }
+
+    // Test render_midi with empty derived - should still produce valid MIDI
+    #[cfg(feature = "fun")]
+    #[test]
+    fn test_render_midi_no_derived() {
+        use midly::Smf;
+
+        let receipt = minimal_receipt();
+        let result = render_midi(&receipt).unwrap();
+
+        // Should produce a valid MIDI (not empty, parseable)
+        assert!(!result.is_empty(), "MIDI output should not be empty");
+        assert!(result.len() > 14, "MIDI should have header (14 bytes) + track data");
+
+        // Parse and verify structure
+        let smf = Smf::parse(&result).expect("should be valid MIDI even with no notes");
+        assert_eq!(smf.tracks.len(), 1, "should have exactly one track");
+    }
+
+    // Test render_obj with no derived data
+    #[cfg(feature = "fun")]
+    #[test]
+    fn test_render_obj_no_derived() {
+        let receipt = minimal_receipt();
+        let result = render_obj(&receipt);
+
+        // Should return fallback string when no derived data
+        assert_eq!(result, "# obj");
+    }
+
     // Test render_md basic structure
     #[test]
     fn test_render_md_basic() {
