@@ -987,7 +987,10 @@ fn test_write_export_writes_to_file() {
 
     // Verify file was written and has content
     let content = std::fs::read_to_string(&temp_path).expect("read temp file");
-    assert!(!content.trim().is_empty(), "exported file must not be empty");
+    assert!(
+        !content.trim().is_empty(),
+        "exported file must not be empty"
+    );
 
     // Verify JSONL structure
     let lines: Vec<&str> = content.lines().collect();
