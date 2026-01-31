@@ -1,10 +1,11 @@
 //! Integration tests for the `tokmd tools` command.
 
+use assert_cmd::cargo::cargo_bin_cmd;
 use assert_cmd::Command;
 use serde_json::Value;
 
 fn tokmd() -> Command {
-    Command::cargo_bin("tokmd").unwrap()
+    cargo_bin_cmd!("tokmd")
 }
 
 #[test]

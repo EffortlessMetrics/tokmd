@@ -11,6 +11,7 @@
 //! 4. **Excluded patterns**: Empty, multiple, and special glob patterns work
 
 use proptest::prelude::*;
+use proptest::string::string_regex;
 use tokmd_config::GlobalArgs;
 use tokmd_types::ConfigMode;
 
@@ -51,8 +52,8 @@ fn arb_exclude_pattern() -> impl Strategy<Value = String> {
         Just("**/tests/**".to_string()),
         Just("**/fixtures/**".to_string()),
         // Generated patterns with special chars
-        "[a-zA-Z0-9_-]{1,20}".prop_map(|s| s),
-        "[a-zA-Z0-9_-]{1,10}/[a-zA-Z0-9_-]{1,10}".prop_map(|s| s),
+        string_regex("[a-zA-Z0-9_-]{1,20}").unwrap(),
+        string_regex("[a-zA-Z0-9_-]{1,10}/[a-zA-Z0-9_-]{1,10}").unwrap(),
         // Patterns with brackets, question marks
         Just("src/[test]/**".to_string()),
         Just("*.?".to_string()),
