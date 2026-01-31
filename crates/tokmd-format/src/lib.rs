@@ -96,19 +96,21 @@ pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMo
 // Language summary output
 // -----------------------
 
-/// Print a language report to stdout.
+/// Write a language report to a writer.
 ///
-/// This is a thin I/O wrapper that delegates to render functions.
-/// The render functions are tested directly; this wrapper is excluded from
-/// mutation testing via `.cargo/mutants.toml` because stdout capture is
-/// unreliable in tests on Windows.
-pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
+/// This is the core implementation that can be tested with any `Write` sink.
+pub fn write_lang_report_to<W: Write>(
+    mut out: W,
+    report: &LangReport,
+    global: &GlobalArgs,
+    args: &LangArgs,
+) -> Result<()> {
     match args.format {
         TableFormat::Md => {
-            print!("{}", render_lang_md(report));
+            out.write_all(render_lang_md(report).as_bytes())?;
         }
         TableFormat::Tsv => {
-            print!("{}", render_lang_tsv(report));
+            out.write_all(render_lang_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
             let receipt = LangReceipt {
@@ -127,10 +129,19 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
                 },
                 report: report.clone(),
             };
-            println!("{}", serde_json::to_string(&receipt)?);
+            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
         }
     }
     Ok(())
+}
+
+/// Print a language report to stdout.
+///
+/// Thin wrapper around [`write_lang_report_to`] for stdout.
+pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
+    let stdout = io::stdout();
+    let out = stdout.lock();
+    write_lang_report_to(out, report, global, args)
 }
 
 fn render_lang_md(report: &LangReport) -> String {
@@ -221,23 +232,21 @@ fn render_lang_tsv(report: &LangReport) -> String {
 // Module summary output
 // ---------------------
 
-/// Print a module report to stdout.
+/// Write a module report to a writer.
 ///
-/// This is a thin I/O wrapper that delegates to render functions.
-/// The render functions are tested directly; this wrapper is excluded from
-/// mutation testing via `.cargo/mutants.toml` because stdout capture is
-/// unreliable in tests on Windows.
-pub fn print_module_report(
+/// This is the core implementation that can be tested with any `Write` sink.
+pub fn write_module_report_to<W: Write>(
+    mut out: W,
     report: &ModuleReport,
     global: &GlobalArgs,
     args: &ModuleArgs,
 ) -> Result<()> {
     match args.format {
         TableFormat::Md => {
-            print!("{}", render_module_md(report));
+            out.write_all(render_module_md(report).as_bytes())?;
         }
         TableFormat::Tsv => {
-            print!("{}", render_module_tsv(report));
+            out.write_all(render_module_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
             let receipt = ModuleReceipt {
@@ -257,10 +266,23 @@ pub fn print_module_report(
                 },
                 report: report.clone(),
             };
-            println!("{}", serde_json::to_string(&receipt)?);
+            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
         }
     }
     Ok(())
+}
+
+/// Print a module report to stdout.
+///
+/// Thin wrapper around [`write_module_report_to`] for stdout.
+pub fn print_module_report(
+    report: &ModuleReport,
+    global: &GlobalArgs,
+    args: &ModuleArgs,
+) -> Result<()> {
+    let stdout = io::stdout();
+    let out = stdout.lock();
+    write_module_report_to(out, report, global, args)
 }
 
 fn render_module_md(report: &ModuleReport) -> String {
@@ -1650,5 +1672,134 @@ mod tests {
         assert_eq!(format_delta(5), "+5");
         assert_eq!(format_delta(0), "0");
         assert_eq!(format_delta(-3), "-3");
+    }
+
+    // ========================
+    // write_*_to Tests (mutation killers)
+    // ========================
+
+    fn sample_global_args() -> GlobalArgs {
+        GlobalArgs::default()
+    }
+
+    fn sample_lang_args(format: TableFormat) -> LangArgs {
+        LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        }
+    }
+
+    fn sample_module_args(format: TableFormat) -> ModuleArgs {
+        ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format,
+            top: 0,
+            module_roots: vec!["crates".to_string()],
+            module_depth: 2,
+            children: tokmd_config::ChildIncludeMode::Separate,
+        }
+    }
+
+    #[test]
+    fn write_lang_report_to_md_writes_content() {
+        let report = sample_lang_report(true);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Md);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("|Lang|"), "must contain markdown header");
+        assert!(output.contains("|Rust|"), "must contain Rust row");
+        assert!(output.contains("|**Total**|"), "must contain total row");
+    }
+
+    #[test]
+    fn write_lang_report_to_tsv_writes_content() {
+        let report = sample_lang_report(false);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Tsv);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("Lang\t"), "must contain TSV header");
+        assert!(output.contains("Rust\t"), "must contain Rust row");
+        assert!(output.contains("Total\t"), "must contain total row");
+    }
+
+    #[test]
+    fn write_lang_report_to_json_writes_receipt() {
+        let report = sample_lang_report(true);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Json);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        // Parse as JSON to verify valid receipt
+        let receipt: LangReceipt = serde_json::from_str(&output).unwrap();
+        assert_eq!(receipt.mode, "lang");
+        assert_eq!(receipt.report.rows.len(), 2);
+        assert_eq!(receipt.report.total.code, 1050);
+    }
+
+    #[test]
+    fn write_module_report_to_md_writes_content() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Md);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("|Module|"), "must contain markdown header");
+        assert!(output.contains("|crates/foo|"), "must contain module row");
+        assert!(output.contains("|**Total**|"), "must contain total row");
+    }
+
+    #[test]
+    fn write_module_report_to_tsv_writes_content() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Tsv);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("Module\t"), "must contain TSV header");
+        assert!(output.contains("crates/foo\t"), "must contain module row");
+        assert!(output.contains("Total\t"), "must contain total row");
+    }
+
+    #[test]
+    fn write_module_report_to_json_writes_receipt() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Json);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        // Parse as JSON to verify valid receipt
+        let receipt: ModuleReceipt = serde_json::from_str(&output).unwrap();
+        assert_eq!(receipt.mode, "module");
+        assert_eq!(receipt.report.rows.len(), 2);
+        assert_eq!(receipt.report.total.code, 1000);
     }
 }

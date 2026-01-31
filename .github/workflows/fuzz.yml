@@ -22,15 +22,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - fuzz_module_key
-          - fuzz_normalize_path
-          - fuzz_toml_config
-          - fuzz_policy_toml
-          - fuzz_json_pointer
-          - fuzz_policy_evaluate
-          - fuzz_entropy
-          - fuzz_json_types
+        include:
+          - target: fuzz_module_key
+            features: model
+            dict: path.dict
+          - target: fuzz_normalize_path
+            features: model
+            dict: path.dict
+          - target: fuzz_toml_config
+            features: config
+            dict: toml.dict
+          - target: fuzz_policy_toml
+            features: gate
+            dict: policy.dict
+          - target: fuzz_json_pointer
+            features: gate
+            dict: json.dict
+          - target: fuzz_policy_evaluate
+            features: gate
+            dict: policy.dict
+          - target: fuzz_entropy
+            features: content
+            dict: entropy.dict
+          - target: fuzz_json_types
+            features: types
+            dict: json.dict
 
     steps:
       - uses: actions/checkout@v4
@@ -51,18 +67,34 @@ jobs:
           restore-keys: |
             fuzz-corpus-${{ matrix.target }}-
 
+      - name: Build fuzzer
+        run: |
+          cd fuzz
+          cargo +nightly fuzz build ${{ matrix.target }} --features ${{ matrix.features }}
+
       - name: Run fuzzer
         run: |
           DURATION=${{ github.event.inputs.duration || '1800' }}
           cd fuzz
-          cargo +nightly fuzz run ${{ matrix.target }} -- -max_total_time=$DURATION
+          cargo +nightly fuzz run ${{ matrix.target }} --features ${{ matrix.features }} -- \
+            -max_total_time=$DURATION \
+            -dict=dict/${{ matrix.dict }}
         continue-on-error: true
 
       - name: Upload crash artifacts
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: fuzz-crashes-${{ matrix.target }}
           path: fuzz/artifacts/${{ matrix.target }}
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Upload corpus
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-corpus-${{ matrix.target }}
+          path: fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
+          retention-days: 7

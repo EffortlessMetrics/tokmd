@@ -7,7 +7,11 @@
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
 use serde_json::Value;
-use tokmd_gate::{PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy};
+use tokmd_gate::{evaluate_policy, PolicyConfig, PolicyRule, RuleLevel, RuleOperator};
+
+/// Max input sizes to prevent pathological parse times
+const MAX_JSON_SIZE: usize = 64 * 1024; // 64KB for JSON receipt
+const MAX_RULES: usize = 32; // Limit rule count
 
 #[derive(Debug, Arbitrary)]
 struct EvaluateInput {
@@ -118,6 +122,11 @@ impl From<FuzzPolicy> for PolicyConfig {
 }
 
 fuzz_target!(|input: EvaluateInput| {
+    // Cap input sizes
+    if input.receipt_bytes.len() > MAX_JSON_SIZE || input.policy.rules.len() > MAX_RULES {
+        return;
+    }
+
     // Try to parse JSON receipt from bytes
     let Ok(json_str) = std::str::from_utf8(&input.receipt_bytes) else {
         return;
@@ -130,5 +139,10 @@ fuzz_target!(|input: EvaluateInput| {
     let policy: PolicyConfig = input.policy.into();
 
     // Evaluate - should never panic
-    let _ = evaluate_policy(&receipt, &policy);
+    let result = evaluate_policy(&receipt, &policy);
+
+    // Validate result invariants
+    let rule_count = policy.rules.len();
+    assert_eq!(result.rule_results.len(), rule_count);
+    assert!(result.errors + result.warnings <= rule_count);
 });

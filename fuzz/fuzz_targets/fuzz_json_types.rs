@@ -9,7 +9,13 @@ use tokmd_types::{
     ExportData, FileRow, LangReport, LangRow, ModuleReport, ModuleRow, RunReceipt, Totals,
 };
 
+/// Max input size to prevent pathological parse times
+const MAX_INPUT_SIZE: usize = 64 * 1024; // 64KB
+
 fuzz_target!(|data: &[u8]| {
+    if data.len() > MAX_INPUT_SIZE {
+        return;
+    }
     let Ok(s) = std::str::from_utf8(data) else {
         return;
     };

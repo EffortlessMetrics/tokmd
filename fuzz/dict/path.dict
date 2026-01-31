@@ -1,0 +1,49 @@
+# libfuzzer dictionary for path fuzzing
+# Path separators
+"/"
+"\\"
+"./"
+"../"
+
+# Common path components
+"src"
+"lib"
+"crates"
+"packages"
+"tests"
+"docs"
+"target"
+"node_modules"
+"vendor"
+
+# File extensions
+".rs"
+".py"
+".js"
+".ts"
+".go"
+".java"
+".c"
+".cpp"
+".h"
+".md"
+".toml"
+".json"
+".yaml"
+
+# Special paths
+"."
+".."
+"~"
+""
+
+# Module roots
+"crates/"
+"packages/"
+"src/"
+"lib/"
+
+# Edge cases
+"a/b/c/d/e"
+"a/./b/../c"
+"//double/slash"

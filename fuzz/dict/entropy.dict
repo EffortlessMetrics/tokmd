@@ -1,0 +1,30 @@
+# libfuzzer dictionary for entropy/content fuzzing
+# Common tags
+"TODO"
+"FIXME"
+"HACK"
+"XXX"
+"BUG"
+"NOTE"
+"WARNING"
+
+# High entropy patterns (base64-like)
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+"=="
+
+# Low entropy patterns
+"aaaaaaaaaaaaaaaa"
+"0000000000000000"
+"                "
+
+# Binary patterns
+"\x00\x00\x00\x00"
+"\xff\xff\xff\xff"
+"\x00\xff\x00\xff"
+
+# Text markers
+"// "
+"/* "
+" */"
+"# "
+"-- "

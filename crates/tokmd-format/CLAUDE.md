@@ -25,8 +25,13 @@ pub fn scan_args(paths, global, redact) -> ScanArgs
 pub fn normalize_scan_input(path) -> String
 ```
 
-### Console Output
+### Report Output (Write sink pattern)
 ```rust
+/// Core implementation - testable with any Write sink
+pub fn write_lang_report_to<W: Write>(out, report, global, args) -> Result<()>
+pub fn write_module_report_to<W: Write>(out, report, global, args) -> Result<()>
+
+/// Thin stdout wrappers (excluded from mutation testing)
 pub fn print_lang_report(report, global, args) -> Result<()>
 pub fn print_module_report(report, global, args) -> Result<()>
 ```

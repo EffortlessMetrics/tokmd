@@ -1,0 +1,77 @@
+# libfuzzer dictionary for tokmd JSON fuzzing
+# JSON syntax
+"{"
+"}"
+"["
+"]"
+"\"\""
+":"
+","
+"null"
+"true"
+"false"
+
+# Receipt envelope keys
+"schema_version"
+"generated_at"
+"tokmd_version"
+"derived"
+"source"
+"rows"
+"totals"
+
+# Totals keys
+"code"
+"comments"
+"blanks"
+"files"
+"tokens"
+
+# Row keys
+"language"
+"path"
+"module"
+"children"
+
+# Lang row keys
+"name"
+"extensions"
+
+# Derived keys
+"distribution"
+"density"
+"cocomo"
+
+# Distribution keys
+"by_language"
+"by_module"
+
+# Source keys
+"inputs"
+"languages"
+"config"
+
+# Common values
+"Rust"
+"Python"
+"JavaScript"
+"TypeScript"
+"Go"
+"Java"
+"C"
+"C++"
+
+# RFC 6901 JSON Pointer syntax
+"/"
+"//"
+"~0"
+"~1"
+
+# Numbers
+"0"
+"1"
+"-1"
+"100"
+"1000"
+"0.0"
+"1.5"

@@ -4,7 +4,6 @@
 //! without requiring actual git execution.
 
 use proptest::prelude::*;
-use std::path::PathBuf;
 use tokmd_git::{GitCommit, git_available, repo_root};
 
 // ============================================================================
@@ -97,21 +96,6 @@ fn arb_long_file_path() -> impl Strategy<Value = String> {
         path.push_str(".rs");
         path
     })
-}
-
-/// Strategy for generating arbitrary path strings (for repo_root testing).
-fn arb_arbitrary_path() -> impl Strategy<Value = PathBuf> {
-    prop_oneof![
-        Just(PathBuf::from("")),
-        Just(PathBuf::from(".")),
-        Just(PathBuf::from("..")),
-        Just(PathBuf::from("/")),
-        Just(PathBuf::from("/tmp")),
-        Just(PathBuf::from("C:\\")),
-        "[a-zA-Z0-9_/\\\\.-]{1,50}".prop_map(PathBuf::from),
-        // Non-existent paths
-        "/nonexistent/path/[a-z]{5,10}".prop_map(PathBuf::from),
-    ]
 }
 
 // ============================================================================
@@ -371,47 +355,75 @@ proptest! {
 }
 
 // ============================================================================
-// Non-panicking function tests
+// Non-panicking function tests (unit tests, not property tests)
 // ============================================================================
+// These are "doesn't panic" smoke tests that involve real I/O (process spawn,
+// filesystem access). They only need to run once, not N times with random input,
+// so they're regular unit tests rather than property tests.
 
-proptest! {
-    /// git_available() never panics.
-    #[test]
-    fn git_available_never_panics(dummy in 0u8..1) {
-        let _ = dummy;
-        // This just tests that the function doesn't panic
-        let _ = git_available();
-    }
+#[test]
+fn git_available_never_panics() {
+    let _ = git_available();
+}
 
-    /// repo_root() never panics with arbitrary paths.
-    #[test]
-    fn repo_root_never_panics_with_arbitrary_path(path in arb_arbitrary_path()) {
-        // This tests that repo_root doesn't panic even with invalid paths
-        let _ = repo_root(&path);
-    }
+#[test]
+fn repo_root_edge_cases_never_panic() {
+    // Empty path
+    let _ = repo_root(std::path::Path::new(""));
+    // Current directory
+    let _ = repo_root(std::path::Path::new("."));
+    // Parent directory
+    let _ = repo_root(std::path::Path::new(".."));
+    // Root path
+    let _ = repo_root(std::path::Path::new("/"));
+    // Windows root
+    #[cfg(windows)]
+    let _ = repo_root(std::path::Path::new(r"C:\"));
+    // Non-existent deep path
+    let _ = repo_root(std::path::Path::new("/nonexistent/deep/path/that/does/not/exist"));
+    // Relative non-existent path
+    let _ = repo_root(std::path::Path::new("nonexistent/relative/path"));
+}
 
-    /// repo_root() with empty path doesn't panic.
-    #[test]
-    fn repo_root_empty_path_no_panic(dummy in 0u8..1) {
-        let _ = dummy;
-        let _ = repo_root(std::path::Path::new(""));
-    }
+#[test]
+fn repo_root_finds_git_dir_in_ancestors() {
+    let dir = tempfile::tempdir().unwrap();
+    // Initialize a real git repo (just .git dir isn't enough - git rev-parse needs a valid repo)
+    std::process::Command::new("git")
+        .args(["init", "-q"])
+        .current_dir(dir.path())
+        .status()
+        .expect("git init failed");
+    let result = repo_root(dir.path());
+    assert!(result.is_some(), "repo_root should find the git repo");
+    // Canonicalize both paths to handle symlinks and path normalization
+    let expected = dir.path().canonicalize().unwrap();
+    let actual = result.unwrap().canonicalize().unwrap();
+    assert_eq!(actual, expected);
+}
 
-    /// repo_root() with current directory doesn't panic.
-    #[test]
-    fn repo_root_current_dir_no_panic(dummy in 0u8..1) {
-        let _ = dummy;
-        let _ = repo_root(std::path::Path::new("."));
-    }
+#[test]
+fn repo_root_finds_git_dir_from_nested_path() {
+    let dir = tempfile::tempdir().unwrap();
+    std::process::Command::new("git")
+        .args(["init", "-q"])
+        .current_dir(dir.path())
+        .status()
+        .expect("git init failed");
+    let nested = dir.path().join("src").join("lib");
+    std::fs::create_dir_all(&nested).unwrap();
+    let result = repo_root(&nested);
+    assert!(result.is_some(), "repo_root should find the git repo from nested path");
+    let expected = dir.path().canonicalize().unwrap();
+    let actual = result.unwrap().canonicalize().unwrap();
+    assert_eq!(actual, expected);
+}
 
-    /// repo_root() with non-existent deep path doesn't panic.
-    #[test]
-    fn repo_root_nonexistent_deep_path_no_panic(
-        parts in prop::collection::vec("[a-z]{3,10}", 5..=10)
-    ) {
-        let path = PathBuf::from(format!("/nonexistent/{}", parts.join("/")));
-        let _ = repo_root(&path);
-    }
+#[test]
+fn repo_root_returns_none_without_git_dir() {
+    let dir = tempfile::tempdir().unwrap();
+    // No git init - should return None
+    assert_eq!(repo_root(dir.path()), None);
 }
 
 // ============================================================================

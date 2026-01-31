@@ -1,0 +1,101 @@
+# libfuzzer dictionary for tokmd TOML config fuzzing
+# TOML syntax
+"="
+"["
+"]"
+"[["
+"]]"
+"\"\""
+"''"
+"true"
+"false"
+","
+"."
+
+# Section headers
+"[scan]"
+"[module]"
+"[export]"
+"[analyze]"
+"[context]"
+"[badge]"
+"[gate]"
+"[view]"
+"[view.llm]"
+"[view.ci]"
+
+# Scan config keys
+"paths"
+"exclude"
+"hidden"
+"config"
+"no_ignore"
+"no_ignore_parent"
+"no_ignore_dot"
+
+# Module config keys
+"roots"
+"depth"
+"children"
+"format"
+
+# Export config keys
+"export_format"
+"include_children"
+
+# Analyze config keys
+"preset"
+"enrichers"
+"output_format"
+
+# Context config keys
+"budget"
+"output"
+"priority"
+
+# Badge config keys
+"metric"
+"label"
+"color"
+"style"
+"logo"
+
+# Gate config keys
+"policy_file"
+"fail_on_warn"
+
+# Enum values - format
+"markdown"
+"tsv"
+"json"
+"jsonl"
+"csv"
+"cyclonedx"
+
+# Enum values - children
+"collapse"
+"separate"
+
+# Enum values - preset
+"receipt"
+"health"
+"risk"
+"supply"
+"architecture"
+"topics"
+"security"
+"identity"
+"git"
+"deep"
+"fun"
+
+# Enum values - priority
+"size"
+"alpha"
+"recent"
+
+# Enum values - badge style
+"flat"
+"flat-square"
+"plastic"
+"for-the-badge"

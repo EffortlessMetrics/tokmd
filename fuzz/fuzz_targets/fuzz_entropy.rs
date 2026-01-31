@@ -7,7 +7,13 @@
 use libfuzzer_sys::fuzz_target;
 use tokmd_content::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
 
+/// Max input size - entropy calculation is O(n) so we can be more generous
+const MAX_INPUT_SIZE: usize = 256 * 1024; // 256KB
+
 fuzz_target!(|data: &[u8]| {
+    if data.len() > MAX_INPUT_SIZE {
+        return;
+    }
     // Test entropy calculation - should never panic, always return valid f32
     let entropy = entropy_bits_per_byte(data);
     assert!(entropy >= 0.0, "Entropy should be non-negative");

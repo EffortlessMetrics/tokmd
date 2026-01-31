@@ -2,9 +2,7 @@
 # See: https://mutants.rs/configuration.html
 
 # Enable all features including optional 'fun' feature
-# Use both for compatibility across cargo-mutants versions
 all_features = true
-additional_cargo_args = ["--all-features"]
 
 # Enable gitignore filtering to prevent copying large artifacts (context.txt, etc.)
 gitignore = true
@@ -22,8 +20,7 @@ exclude_globs = [
 exclude_re = [
     "impl.*Display",
     "fn main\\(",
-    # Thin stdout wrappers - render functions are tested directly
-    # Stdout capture is unreliable on Windows in tests
+    # Thin stdout wrappers - logic is tested via write_*_to variants
     "replace print_lang_report",
     "replace print_module_report",
 ]
