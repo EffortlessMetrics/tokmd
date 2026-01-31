@@ -31,27 +31,57 @@ jobs:
       - name: Get changed Rust files
         id: changed
         run: |
-          # Get list of changed .rs files in this PR
-          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.rs' | grep -v '/tests/' | grep -v 'fuzz/' | head -20 | tr '\n' ' ')
-          echo "files=$FILES" >> $GITHUB_OUTPUT
-          if [ -z "$FILES" ]; then
-            echo "No Rust source files changed"
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "Changed files: $FILES"
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
+            | grep -v '/tests/' \
+            | grep -v '_test\.rs$' \
+            | grep -v '^fuzz/' \
+            | grep -v '/fuzz/' \
+            | head -20 \
+            > changed_files.txt || true
+
+          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          cat changed_files.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Run mutation tests on changed files
-        if: steps.changed.outputs.skip != 'true'
+        if: steps.changed.outputs.count != '0'
+        env:
+          CI: true
         run: |
-          # Run mutants only on changed files
-          for file in ${{ steps.changed.outputs.files }}; do
-            if [ -f "$file" ]; then
-              echo "Testing mutations in: $file"
-              cargo mutants --file "$file" --timeout 120 || true
+          set -euo pipefail
+          echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            [ -f "$file" ] || continue
+
+            # Microcrate scoping: run from crate dir to ensure crate's own tests run
+            crate_dir=""
+            if [[ "$file" == crates/*/* ]]; then
+              crate_dir="$(echo "$file" | cut -d/ -f1-2)"
             fi
-          done
+
+            echo "::group::Mutants: $file"
+            if [[ -n "$crate_dir" && -f "$crate_dir/Cargo.toml" ]]; then
+              rel="${file#$crate_dir/}"
+              (cd "$crate_dir" && cargo mutants --file "$rel" --timeout 120)
+            else
+              cargo mutants --file "$file" --timeout 120
+            fi
+            echo "::endgroup::"
+          done < changed_files.txt
+
+          echo "✓ All mutations caught or unviable (0 MISSED)"
+
+      - name: Skip notice
+        if: steps.changed.outputs.count == '0'
+        run: echo "No production Rust files changed - skipping mutation testing"
 
       - name: Upload mutants report
         if: always()
