@@ -7,7 +7,7 @@
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
 use serde_json::Value;
-use tokmd_gate::{evaluate_policy, PolicyConfig, PolicyRule, RuleLevel, RuleOperator};
+use tokmd_gate::{PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy};
 
 /// Max input sizes to prevent pathological parse times
 const MAX_JSON_SIZE: usize = 64 * 1024; // 64KB for JSON receipt

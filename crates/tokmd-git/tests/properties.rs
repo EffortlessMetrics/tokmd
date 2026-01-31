@@ -380,7 +380,9 @@ fn repo_root_edge_cases_never_panic() {
     #[cfg(windows)]
     let _ = repo_root(std::path::Path::new(r"C:\"));
     // Non-existent deep path
-    let _ = repo_root(std::path::Path::new("/nonexistent/deep/path/that/does/not/exist"));
+    let _ = repo_root(std::path::Path::new(
+        "/nonexistent/deep/path/that/does/not/exist",
+    ));
     // Relative non-existent path
     let _ = repo_root(std::path::Path::new("nonexistent/relative/path"));
 }
@@ -413,7 +415,10 @@ fn repo_root_finds_git_dir_from_nested_path() {
     let nested = dir.path().join("src").join("lib");
     std::fs::create_dir_all(&nested).unwrap();
     let result = repo_root(&nested);
-    assert!(result.is_some(), "repo_root should find the git repo from nested path");
+    assert!(
+        result.is_some(),
+        "repo_root should find the git repo from nested path"
+    );
     let expected = dir.path().canonicalize().unwrap();
     let actual = result.unwrap().canonicalize().unwrap();
     assert_eq!(actual, expected);

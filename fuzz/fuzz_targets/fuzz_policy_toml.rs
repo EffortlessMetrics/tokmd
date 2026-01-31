@@ -12,7 +12,8 @@ use tokmd_gate::{PolicyConfig, evaluate_policy};
 const MAX_INPUT_SIZE: usize = 64 * 1024; // 64KB
 
 /// Minimal receipt for exercising policy evaluation after successful parse
-const MINIMAL_RECEIPT: &str = r#"{"derived":{"totals":{"code":100,"comments":10,"blanks":5,"tokens":500}}}"#;
+const MINIMAL_RECEIPT: &str =
+    r#"{"derived":{"totals":{"code":100,"comments":10,"blanks":5,"tokens":500}}}"#;
 
 fuzz_target!(|data: &[u8]| {
     if data.len() > MAX_INPUT_SIZE {
