@@ -2,7 +2,11 @@
 # See: https://mutants.rs/configuration.html
 
 # Enable all features including optional 'fun' feature
-additional_cargo_args = ["--all-features"]
+# Use first-class config key instead of additional_cargo_args
+all_features = true
+
+# Enable gitignore filtering to prevent copying large artifacts (context.txt, etc.)
+gitignore = true
 
 # Allow more time for complex tests
 timeout_multiplier = 2.0
@@ -14,12 +18,8 @@ exclude_globs = [
 ]
 
 # Exclude boilerplate that's not worth mutating
+# Stub functions use #[mutants::skip] attribute instead of line-number exclusions
 exclude_re = [
     "impl.*Display",
     "fn main\\(",
-    # Skip mutations on cfg(not(feature = "fun")) stub functions
-    # These functions are compiled out when running with --all-features
-    # Matches mutation names like "lib.rs:694:5: replace render_obj..."
-    "lib\\.rs:694:",
-    "lib\\.rs:719:",
 ]
