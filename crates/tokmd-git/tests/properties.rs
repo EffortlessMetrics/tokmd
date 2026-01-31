@@ -389,13 +389,20 @@ fn repo_root_edge_cases_never_panic() {
 
 #[test]
 fn repo_root_finds_git_dir_in_ancestors() {
+    if !git_available() {
+        eprintln!("git not available; skipping repo_root correctness tests");
+        return;
+    }
     let dir = tempfile::tempdir().unwrap();
     // Initialize a real git repo (just .git dir isn't enough - git rev-parse needs a valid repo)
-    std::process::Command::new("git")
+    let status = std::process::Command::new("git")
         .args(["init", "-q"])
         .current_dir(dir.path())
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
         .status()
-        .expect("git init failed");
+        .expect("failed to spawn git");
+    assert!(status.success(), "git init failed: {status}");
     let result = repo_root(dir.path());
     assert!(result.is_some(), "repo_root should find the git repo");
     // Canonicalize both paths to handle symlinks and path normalization
@@ -406,12 +413,19 @@ fn repo_root_finds_git_dir_in_ancestors() {
 
 #[test]
 fn repo_root_finds_git_dir_from_nested_path() {
+    if !git_available() {
+        eprintln!("git not available; skipping repo_root correctness tests");
+        return;
+    }
     let dir = tempfile::tempdir().unwrap();
-    std::process::Command::new("git")
+    let status = std::process::Command::new("git")
         .args(["init", "-q"])
         .current_dir(dir.path())
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
         .status()
-        .expect("git init failed");
+        .expect("failed to spawn git");
+    assert!(status.success(), "git init failed: {status}");
     let nested = dir.path().join("src").join("lib");
     std::fs::create_dir_all(&nested).unwrap();
     let result = repo_root(&nested);
