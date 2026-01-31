@@ -25,6 +25,7 @@ let args = InitArgs {
     template: InitProfile::Rust,
     force: false,
     print: false,
+    non_interactive: true,
 };
 
 init_tokeignore(&args)?;
