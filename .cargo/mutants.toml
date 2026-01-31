@@ -2,8 +2,9 @@
 # See: https://mutants.rs/configuration.html
 
 # Enable all features including optional 'fun' feature
-# Use first-class config key instead of additional_cargo_args
+# Use both for compatibility across cargo-mutants versions
 all_features = true
+additional_cargo_args = ["--all-features"]
 
 # Enable gitignore filtering to prevent copying large artifacts (context.txt, etc.)
 gitignore = true
@@ -25,8 +26,4 @@ exclude_re = [
     # Stdout capture is unreliable on Windows in tests
     "replace print_lang_report",
     "replace print_module_report",
-    # Stub functions when feature is disabled - scoped to file path
-    # These cfg(not(feature="fun")) stubs compile but are dead code with all_features
-    "crates/tokmd-analysis-format/src/lib\\.rs:.*replace render_obj",
-    "crates/tokmd-analysis-format/src/lib\\.rs:.*replace render_midi",
 ]

@@ -10,22 +10,22 @@ When you need to feed actual code to an LLM (not just metadata), use the `contex
 
 ```bash
 # Pack files into 128k tokens (Claude's context window)
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 
 # Spread coverage across modules instead of just largest files
-tokmd context --budget 128k --strategy spread --output bundle
+tokmd context --budget 128k --strategy spread --output bundle --out context.txt
 
-# Strip comments for maximum density
-tokmd context --budget 128k --output bundle --compress
+# Strip blank lines for maximum density
+tokmd context --budget 128k --output bundle --compress --out context.txt
 
 # Use module roots for better organization
-tokmd context --budget 128k --module-roots crates,src --strategy spread
+tokmd context --budget 128k --module-roots crates,src --strategy spread --out context.txt
 ```
 
 **Why**:
 - `greedy` strategy maximizes code coverage by taking largest files first.
 - `spread` strategy ensures you get representation from all modules.
-- `--compress` removes comments and blank lines for more content per token.
+- `--compress` strips blank lines for more content per token.
 - `--module-roots` groups files by directory structure for better spread coverage.
 
 > **Tip**: Use `--rank-by churn` or `--rank-by hotspot` to prioritize recently-changed or high-complexity files (requires git history).
