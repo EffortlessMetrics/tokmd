@@ -3,6 +3,7 @@
 //! This module introspects the clap Command tree and generates
 //! schema output in various formats suitable for AI agents.
 
+use anyhow::Result;
 use clap::{Arg, ArgAction, Command};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -169,7 +170,11 @@ fn determine_param_type(arg: &Arg) -> String {
 }
 
 /// Render the schema output in the specified format.
-pub fn render_output(schema: &ToolSchemaOutput, format: ToolSchemaFormat, pretty: bool) -> String {
+pub fn render_output(
+    schema: &ToolSchemaOutput,
+    format: ToolSchemaFormat,
+    pretty: bool,
+) -> Result<String> {
     match format {
         ToolSchemaFormat::Jsonschema => render_jsonschema(schema, pretty),
         ToolSchemaFormat::Openai => render_openai(schema, pretty),
@@ -179,7 +184,7 @@ pub fn render_output(schema: &ToolSchemaOutput, format: ToolSchemaFormat, pretty
 }
 
 /// Render as JSON Schema format.
-fn render_jsonschema(schema: &ToolSchemaOutput, pretty: bool) -> String {
+fn render_jsonschema(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
     let tools_schema: Vec<Value> = schema
         .tools
         .iter()
@@ -235,14 +240,14 @@ fn render_jsonschema(schema: &ToolSchemaOutput, pretty: bool) -> String {
     });
 
     if pretty {
-        serde_json::to_string_pretty(&output).unwrap()
+        Ok(serde_json::to_string_pretty(&output)?)
     } else {
-        serde_json::to_string(&output).unwrap()
+        Ok(serde_json::to_string(&output)?)
     }
 }
 
 /// Render in OpenAI function calling format.
-fn render_openai(schema: &ToolSchemaOutput, pretty: bool) -> String {
+fn render_openai(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
     let functions: Vec<Value> = schema
         .tools
         .iter()
@@ -290,14 +295,14 @@ fn render_openai(schema: &ToolSchemaOutput, pretty: bool) -> String {
     });
 
     if pretty {
-        serde_json::to_string_pretty(&output).unwrap()
+        Ok(serde_json::to_string_pretty(&output)?)
     } else {
-        serde_json::to_string(&output).unwrap()
+        Ok(serde_json::to_string(&output)?)
     }
 }
 
 /// Render in Anthropic tool use format.
-fn render_anthropic(schema: &ToolSchemaOutput, pretty: bool) -> String {
+fn render_anthropic(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
     let tools: Vec<Value> = schema
         .tools
         .iter()
@@ -345,18 +350,18 @@ fn render_anthropic(schema: &ToolSchemaOutput, pretty: bool) -> String {
     });
 
     if pretty {
-        serde_json::to_string_pretty(&output).unwrap()
+        Ok(serde_json::to_string_pretty(&output)?)
     } else {
-        serde_json::to_string(&output).unwrap()
+        Ok(serde_json::to_string(&output)?)
     }
 }
 
 /// Render raw clap structure (for debugging).
-fn render_clap(schema: &ToolSchemaOutput, pretty: bool) -> String {
+fn render_clap(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
     if pretty {
-        serde_json::to_string_pretty(&schema).unwrap()
+        Ok(serde_json::to_string_pretty(&schema)?)
     } else {
-        serde_json::to_string(&schema).unwrap()
+        Ok(serde_json::to_string(&schema)?)
     }
 }
 
@@ -398,7 +403,7 @@ mod tests {
     fn test_render_openai() {
         let cmd = make_test_cmd();
         let schema = build_tool_schema(&cmd);
-        let output = render_openai(&schema, false);
+        let output = render_openai(&schema, false).unwrap();
 
         let parsed: Value = serde_json::from_str(&output).unwrap();
         assert!(parsed.get("functions").is_some());
@@ -408,7 +413,7 @@ mod tests {
     fn test_render_anthropic() {
         let cmd = make_test_cmd();
         let schema = build_tool_schema(&cmd);
-        let output = render_anthropic(&schema, false);
+        let output = render_anthropic(&schema, false).unwrap();
 
         let parsed: Value = serde_json::from_str(&output).unwrap();
         assert!(parsed.get("tools").is_some());

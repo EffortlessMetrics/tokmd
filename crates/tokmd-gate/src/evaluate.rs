@@ -42,7 +42,11 @@ fn evaluate_rule(receipt: &Value, rule: &PolicyRule, allow_missing: bool) -> Rul
             passed,
             level: rule.level,
             actual: resolved.cloned(),
-            expected: format!("pointer {} to exist", rule.pointer),
+            expected: if rule.negate {
+                format!("pointer {} to NOT exist", rule.pointer)
+            } else {
+                format!("pointer {} to exist", rule.pointer)
+            },
             message: if passed { None } else { rule.message.clone() },
         };
     }

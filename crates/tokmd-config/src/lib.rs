@@ -540,7 +540,7 @@ pub struct CliContextArgs {
     #[arg(long, value_enum, default_value_t = ContextOutput::List)]
     pub output: ContextOutput,
 
-    /// Strip comments and blank lines from bundle output.
+    /// Strip blank lines from bundle output.
     #[arg(long)]
     pub compress: bool,
 
@@ -876,7 +876,7 @@ pub struct ContextConfig {
     /// Output mode: "list", "bundle", "json".
     pub output: Option<String>,
 
-    /// Strip comments and blanks in bundle output.
+    /// Strip blank lines from bundle output.
     pub compress: Option<bool>,
 }
 
@@ -995,7 +995,7 @@ pub struct ViewProfile {
     /// Output mode for context.
     pub output: Option<String>,
 
-    /// Strip comments/blanks.
+    /// Strip blank lines.
     pub compress: Option<bool>,
 
     // Badge settings

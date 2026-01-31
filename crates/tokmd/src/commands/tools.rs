@@ -10,7 +10,7 @@ use crate::tools_schema;
 pub(crate) fn handle(args: cli::ToolsArgs) -> Result<()> {
     let cmd = cli::Cli::command();
     let schema = tools_schema::build_tool_schema(&cmd);
-    let output = tools_schema::render_output(&schema, args.format, args.pretty);
+    let output = tools_schema::render_output(&schema, args.format, args.pretty)?;
     println!("{}", output);
     Ok(())
 }

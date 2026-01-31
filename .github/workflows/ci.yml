@@ -151,6 +151,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: mutants-report
-          path: mutants.out/
+          path: |
+            mutants.out/
+            crates/**/mutants.out/
           if-no-files-found: ignore
           retention-days: 14
