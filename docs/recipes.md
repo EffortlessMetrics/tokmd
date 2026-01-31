@@ -28,7 +28,7 @@ tokmd context --budget 128k --module-roots crates,src --strategy spread
 - `--compress` removes comments and blank lines for more content per token.
 - `--module-roots` groups files by directory structure for better spread coverage.
 
-> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal integration (planned). Currently these fall back to ranking by `code` lines.
+> **Tip**: Use `--rank-by churn` or `--rank-by hotspot` to prioritize recently-changed or high-complexity files (requires git history).
 
 ## 2. Getting a File Inventory for LLM Context Planning
 
@@ -177,9 +177,53 @@ Returns:
 - Duration in months
 - Suggested team size
 
-## 10. CI Gate: Fail if Files are Too Large
+## 10. CI Gate: Policy-Based Quality Gates
 
-Enforce a "no monolithic files" policy in CI.
+Use `tokmd gate` to enforce code quality policies in CI with JSON pointer rules.
+
+**Goal**: Enforce multiple quality standards in a single command.
+
+```bash
+# Gate using inline rules from tokmd.toml
+tokmd gate
+
+# Gate with explicit policy file
+tokmd gate --policy policy.toml
+
+# Compute analysis then gate
+tokmd gate --preset health
+
+# JSON output for CI parsing
+tokmd gate --format json
+```
+
+**Example policy.toml**:
+```toml
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds 500k token budget"
+
+[[rules]]
+name = "min_docs"
+pointer = "/derived/doc_density/total/ratio"
+op = "gte"
+value = 0.1
+level = "warn"
+message = "Documentation below 10%"
+```
+
+**Exit codes**:
+- `0`: All rules passed
+- `1`: One or more rules failed
+- `2`: Policy error (invalid file, parse error)
+
+## 10a. CI Gate: Simple File Size Check
+
+For simpler checks without a policy file.
 
 **Goal**: Fail the build if any source file exceeds 2000 lines.
 
@@ -281,6 +325,25 @@ Paste a summary of the languages used in your PR description.
 ```bash
 tokmd --format md --top 5
 ```
+
+## 15a. Generating LLM Tool Definitions
+
+Export tokmd's CLI schema for AI agent integration.
+
+**Goal**: Enable LLMs to programmatically invoke tokmd commands.
+
+```bash
+# OpenAI function calling format
+tokmd tools --format openai --pretty > tools.json
+
+# Anthropic tool use format
+tokmd tools --format anthropic --pretty > tools.json
+
+# JSON Schema for documentation
+tokmd tools --format jsonschema --pretty > schema.json
+```
+
+**Use case**: Feed the schema to an AI agent so it can analyze repositories autonomously.
 
 ## 16. Troubleshooting Ignored Files
 

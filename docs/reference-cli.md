@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `context`, `init`, `check-ignore`, `completions`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `gate`, `tools`, `context`, `init`, `check-ignore`, `completions`).
 
 | Flag | Description |
 | :--- | :--- |

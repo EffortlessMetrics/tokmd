@@ -28,6 +28,24 @@ tokmd --version
 
 ---
 
+## Step 0.5: Quick Setup with Interactive Wizard (Optional)
+
+For first-time setup, run the interactive wizard to configure tokmd for your project:
+
+```bash
+tokmd init --interactive
+```
+
+The wizard will:
+1. Detect your project type (Rust, Node, Python, Go, etc.)
+2. Suggest appropriate module roots
+3. Configure module depth and context budget
+4. Optionally create both `.tokeignore` and `tokmd.toml`
+
+If you prefer to dive in without configuration, skip to Step 1.
+
+---
+
 ## Step 1: The "High Level" View
 
 First, let's see what languages are in this project. This helps you verify your assumptions (e.g., "Is this mostly Rust, or is there a lot of Python glue code?").
@@ -251,6 +269,38 @@ Verbose output shows:
    - Remember: patterns without `/` match anywhere in the path
 
 See the [Troubleshooting Guide](troubleshooting.md) for more detailed scenarios.
+
+---
+
+## Step 12: Setting Up CI Quality Gates
+
+Enforce code quality standards in your CI pipeline with policy-based gates:
+
+```bash
+# Run gate with rules from tokmd.toml
+tokmd gate
+
+# Or with an explicit policy file
+tokmd gate --policy policy.toml
+```
+
+**Example inline rules in tokmd.toml**:
+```toml
+[[gate.rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds token budget"
+```
+
+**Exit codes**:
+- `0`: All rules passed
+- `1`: One or more rules failed (use this to fail CI)
+- `2`: Policy error
+
+See the [CLI Reference](reference-cli.md#tokmd-gate) for available operators and policy options.
 
 ---
 
