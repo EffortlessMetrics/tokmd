@@ -15,5 +15,5 @@ serde = { version = "1.0.228", features = ["derive"] }
 clap = { version = "4.5.55", features = ["derive"], optional = true }
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest.workspace = true
 serde_json = "1.0.149"

@@ -19,5 +19,12 @@
     "target": "dev-dependencies",
     "action": "sync-proptest",
     "status": "success"
+  },
+  {
+    "run_id": "run-03",
+    "timestamp": "2026-01-31T12:32:48Z",
+    "target": "dev-dependencies",
+    "action": "align-proptest",
+    "status": "success"
   }
 ]
