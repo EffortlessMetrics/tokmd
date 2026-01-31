@@ -291,6 +291,15 @@ mod tests {
         let files = files_set(&["package.json", "next.config.mjs"]);
         let archetype = nextjs_app(&files).unwrap();
         assert_eq!(archetype.kind, "Next.js app");
+        // Kill OR→AND mutant: evidence must include next.config.mjs
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e.ends_with("next.config.mjs")),
+            "evidence must contain next.config.mjs: {:?}",
+            archetype.evidence
+        );
     }
 
     #[test]
@@ -298,6 +307,31 @@ mod tests {
         let files = files_set(&["package.json", "next.config.ts"]);
         let archetype = nextjs_app(&files).unwrap();
         assert_eq!(archetype.kind, "Next.js app");
+        // Kill OR→AND mutant: evidence must include next.config.ts
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e.ends_with("next.config.ts")),
+            "evidence must contain next.config.ts: {:?}",
+            archetype.evidence
+        );
+    }
+
+    #[test]
+    fn nextjs_with_subdir_next_config_mjs() {
+        // Kill OR→AND mutant: exercises ends_with("/next.config.mjs") clause in has_next_config
+        let files = files_set(&["package.json", "apps/web/next.config.mjs"]);
+        let archetype = nextjs_app(&files).unwrap();
+        assert_eq!(archetype.kind, "Next.js app");
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e == "apps/web/next.config.mjs"),
+            "evidence must contain apps/web/next.config.mjs: {:?}",
+            archetype.evidence
+        );
     }
 
     #[test]

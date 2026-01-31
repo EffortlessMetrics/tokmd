@@ -1485,6 +1485,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "mutants"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc0287524726960e07b119cebd01678f852f147742ae0d925e6a520dca956126"
+
+[[package]]
 name = "normalize-line-endings"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2694,6 +2700,7 @@ dependencies = [
  "anyhow",
  "insta",
  "midly",
+ "mutants",
  "serde",
  "serde_json",
  "time",
@@ -2754,9 +2761,11 @@ dependencies = [
  "anyhow",
  "csv",
  "insta",
+ "mutants",
  "proptest",
  "serde",
  "serde_json",
+ "tempfile",
  "time",
  "tokmd-config",
  "tokmd-redact",

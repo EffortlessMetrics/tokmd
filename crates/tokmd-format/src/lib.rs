@@ -96,6 +96,12 @@ pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMo
 // Language summary output
 // -----------------------
 
+/// Print a language report to stdout.
+///
+/// This is a thin I/O wrapper that delegates to render functions.
+/// The render functions are tested directly; this wrapper is marked to skip
+/// mutation testing because stdout capture is unreliable in tests on Windows.
+#[mutants::skip] // I/O wrapper - render functions are tested directly
 pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
     match args.format {
         TableFormat::Md => {
@@ -215,6 +221,12 @@ fn render_lang_tsv(report: &LangReport) -> String {
 // Module summary output
 // ---------------------
 
+/// Print a module report to stdout.
+///
+/// This is a thin I/O wrapper that delegates to render functions.
+/// The render functions are tested directly; this wrapper is marked to skip
+/// mutation testing because stdout capture is unreliable in tests on Windows.
+#[mutants::skip] // I/O wrapper - render functions are tested directly
 pub fn print_module_report(
     report: &ModuleReport,
     global: &GlobalArgs,
