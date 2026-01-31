@@ -1,0 +1,22 @@
+{
+  "run_id": "run-20260131-compat-init",
+  "date": "2026-01-31",
+  "persona": "compat",
+  "status": "in_progress",
+  "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PENDING",
+      "clippy": "PENDING"
+  },
+  "receipts": [
+    {
+      "command": "cargo check --package tokmd --test run_diff --no-default-features",
+      "result": "Success"
+    },
+    {
+      "command": "cargo check --package tokmd --test run_diff",
+      "result": "Success"
+    }
+  ]
+}
