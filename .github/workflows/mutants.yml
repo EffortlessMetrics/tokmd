@@ -2,6 +2,7 @@ name: Mutation Testing
 
 on:
   workflow_dispatch:
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
@@ -27,24 +28,45 @@ jobs:
         id: changed
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
-          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
+          # Determine base ref for comparison
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="${{ github.base_ref }}"
+          else
+            # For workflow_dispatch, compare against main
+            BASE_REF="main"
+          fi
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+
+          git fetch origin "$BASE_REF":"refs/remotes/origin/$BASE_REF"
+
+          git diff --name-only "origin/$BASE_REF...HEAD" -- '*.rs' \
             | grep -v '/tests/' \
             | grep -v '_test\.rs$' \
             | grep -v '^fuzz/' \
             | grep -v '/fuzz/' \
-            | head -20 \
-            > changed_files.txt || true
+            > all_changed_files.txt || true
 
-          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          TOTAL_COUNT="$(wc -l < all_changed_files.txt | tr -d ' ')"
+          echo "total_count=$TOTAL_COUNT" >> "$GITHUB_OUTPUT"
+
+          # Check if scope exceeds limit (don't exit yet, let summary step handle it)
+          if [ "$TOTAL_COUNT" -gt 20 ]; then
+            echo "::error::Too many changed files ($TOTAL_COUNT > 20). Please split your PR into smaller chunks or run crate-scoped mutation testing manually."
+            echo "scope_exceeded=true" >> "$GITHUB_OUTPUT"
+            echo "count=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "scope_exceeded=false" >> "$GITHUB_OUTPUT"
+            cp all_changed_files.txt changed_files.txt
+            echo "count=$TOTAL_COUNT" >> "$GITHUB_OUTPUT"
+          fi
 
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          cat changed_files.txt >> "$GITHUB_OUTPUT"
+          cat changed_files.txt 2>/dev/null >> "$GITHUB_OUTPUT" || true
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Run mutation tests on changed files
+        id: mutants
         if: steps.changed.outputs.count != '0'
         env:
           CI: true
@@ -52,6 +74,10 @@ jobs:
           set -euo pipefail
           echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
 
+          # Track all mutants.out directories for later aggregation
+          mkdir -p mutants-all
+
+          FILE_INDEX=0
           while IFS= read -r file; do
             [ -z "$file" ] && continue
             [ -f "$file" ] || continue
@@ -66,23 +92,170 @@ jobs:
             if [[ -n "$crate_dir" && -f "$crate_dir/Cargo.toml" ]]; then
               rel="${file#$crate_dir/}"
               (cd "$crate_dir" && cargo mutants --file "$rel" --timeout 120)
+              # Copy mutants.out to aggregation dir with unique name
+              if [ -d "$crate_dir/mutants.out" ]; then
+                cp -r "$crate_dir/mutants.out" "mutants-all/mutants-$FILE_INDEX"
+              fi
             else
               cargo mutants --file "$file" --timeout 120
+              if [ -d "mutants.out" ]; then
+                cp -r "mutants.out" "mutants-all/mutants-$FILE_INDEX"
+              fi
             fi
             echo "::endgroup::"
+            FILE_INDEX=$((FILE_INDEX + 1))
           done < changed_files.txt
 
-          echo "✓ All mutations caught or unviable (0 MISSED)"
+          echo "mutants_ran=true" >> "$GITHUB_OUTPUT"
+
+      - name: Generate mutation summary JSON
+        id: summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          COMMIT_HASH="${{ github.sha }}"
+          BASE_REF="${{ steps.changed.outputs.base_ref }}"
+
+          # Initialize counters
+          KILLED=0
+          TIMEOUT=0
+          UNVIABLE=0
+          SURVIVORS_JSON="[]"
+          SCOPE_JSON="[]"
+          STATUS="pass"
+
+          # Check if scope exceeded (takes priority)
+          if [ "${{ steps.changed.outputs.scope_exceeded }}" = "true" ]; then
+            STATUS="fail"
+            # Include all files that would have been tested in scope
+            if [ -f all_changed_files.txt ]; then
+              SCOPE_JSON=$(cat all_changed_files.txt | jq -R -s 'split("\n") | map(select(length > 0))')
+            fi
+          # Check if we were skipped (no relevant files)
+          elif [ "${{ steps.changed.outputs.count }}" = "0" ] && [ "${{ steps.changed.outputs.total_count }}" = "0" ]; then
+            STATUS="skipped"
+          elif [ "${{ steps.mutants.outputs.mutants_ran }}" != "true" ]; then
+            STATUS="skipped"
+          else
+            # Build scope array from changed files
+            if [ -f changed_files.txt ]; then
+              SCOPE_JSON=$(cat changed_files.txt | jq -R -s 'split("\n") | map(select(length > 0))')
+            fi
+
+            # Parse all mutants.out directories
+            SURVIVORS_ARRAY="[]"
+
+            for dir in mutants-all/mutants-*; do
+              [ -d "$dir" ] || continue
+
+              # Parse outcomes.json if it exists
+              if [ -f "$dir/outcomes.json" ]; then
+                # Count outcomes by type
+                KILLED=$((KILLED + $(jq '[.outcomes[] | select(.outcome == "Killed")] | length' "$dir/outcomes.json" 2>/dev/null || echo 0)))
+                TIMEOUT=$((TIMEOUT + $(jq '[.outcomes[] | select(.outcome == "Timeout")] | length' "$dir/outcomes.json" 2>/dev/null || echo 0)))
+                UNVIABLE=$((UNVIABLE + $(jq '[.outcomes[] | select(.outcome == "Unviable")] | length' "$dir/outcomes.json" 2>/dev/null || echo 0)))
+
+                # Extract survivors (Missed mutations)
+                NEW_SURVIVORS=$(jq '[.outcomes[] | select(.outcome == "Missed") | {file: .scenario.source_file, line: .scenario.line, mutation: .scenario.genre}]' "$dir/outcomes.json" 2>/dev/null || echo "[]")
+                SURVIVORS_ARRAY=$(echo "$SURVIVORS_ARRAY" "$NEW_SURVIVORS" | jq -s 'add')
+              fi
+
+              # Fallback: parse caught.txt and missed.txt if outcomes.json doesn't exist
+              if [ -f "$dir/caught.txt" ]; then
+                KILLED=$((KILLED + $(wc -l < "$dir/caught.txt" | tr -d ' ')))
+              fi
+              if [ -f "$dir/timeout.txt" ]; then
+                TIMEOUT=$((TIMEOUT + $(wc -l < "$dir/timeout.txt" | tr -d ' ')))
+              fi
+              if [ -f "$dir/unviable.txt" ]; then
+                UNVIABLE=$((UNVIABLE + $(wc -l < "$dir/unviable.txt" | tr -d ' ')))
+              fi
+
+              # Parse missed.txt for survivors if outcomes.json parsing didn't work
+              if [ -f "$dir/missed.txt" ] && [ "$(echo "$SURVIVORS_ARRAY" | jq 'length')" = "0" ]; then
+                while IFS= read -r line; do
+                  [ -z "$line" ] && continue
+                  # Format: "src/file.rs:123: replaced == with !="
+                  FILE=$(echo "$line" | cut -d: -f1)
+                  LINE=$(echo "$line" | cut -d: -f2)
+                  MUTATION=$(echo "$line" | cut -d: -f3- | sed 's/^ //')
+                  SURVIVORS_ARRAY=$(echo "$SURVIVORS_ARRAY" | jq --arg f "$FILE" --arg l "$LINE" --arg m "$MUTATION" '. + [{file: $f, line: ($l | tonumber), mutation: $m}]')
+                done < "$dir/missed.txt"
+              fi
+            done
+
+            SURVIVORS_JSON="$SURVIVORS_ARRAY"
+            SURVIVOR_COUNT=$(echo "$SURVIVORS_JSON" | jq 'length')
+
+            if [ "$SURVIVOR_COUNT" -gt 0 ]; then
+              STATUS="fail"
+            fi
+          fi
+
+          # Generate the summary JSON
+          cat > mutants-summary.json << EOF
+          {
+            "schema_version": 1,
+            "commit": "$COMMIT_HASH",
+            "base_ref": "$BASE_REF",
+            "status": "$STATUS",
+            "scope": $SCOPE_JSON,
+            "survivors": $SURVIVORS_JSON,
+            "killed": $KILLED,
+            "timeout": $TIMEOUT,
+            "unviable": $UNVIABLE
+          }
+          EOF
+
+          # Pretty-print for readability
+          jq '.' mutants-summary.json > mutants-summary-formatted.json
+          mv mutants-summary-formatted.json mutants-summary.json
+
+          echo "Summary generated:"
+          cat mutants-summary.json
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "survivor_count=$(echo "$SURVIVORS_JSON" | jq 'length')" >> "$GITHUB_OUTPUT"
 
       - name: Skip notice
-        if: steps.changed.outputs.count == '0'
+        if: steps.changed.outputs.count == '0' && steps.changed.outputs.scope_exceeded != 'true'
         run: echo "No production Rust files changed - skipping mutation testing"
 
       - name: Upload mutants report
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: mutants-report
-          path: mutants.out/
+          path: |
+            mutants.out/
+            mutants-all/
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Upload mutants summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-summary
+          path: mutants-summary.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Check for survivors
+        if: always() && steps.summary.outputs.status == 'fail'
+        run: |
+          echo "::error::Mutation testing failed!"
+          if [ "${{ steps.changed.outputs.scope_exceeded }}" = "true" ]; then
+            echo "Scope exceeded: Too many changed files. Please split your PR or run crate-scoped mutation testing."
+          else
+            echo "Survivors found: ${{ steps.summary.outputs.survivor_count }} mutation(s) were not caught by tests."
+            echo ""
+            echo "Survivors:"
+            jq -r '.survivors[] | "  \(.file):\(.line): \(.mutation)"' mutants-summary.json
+          fi
+          exit 1
+
+      - name: Success notice
+        if: steps.summary.outputs.status == 'pass'
+        run: echo "All mutations caught or unviable (0 survivors)"

@@ -5,7 +5,7 @@
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{Context, Result, bail};
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use tokmd_config as cli;
 
 /// Cockpit receipt schema version.
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 
 /// Handle the cockpit command.
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
@@ -65,7 +65,54 @@ pub struct CockpitReceipt {
     pub code_health: CodeHealth,
     pub risk: Risk,
     pub contracts: Contracts,
+    pub evidence: Evidence,
     pub review_plan: Vec<ReviewItem>,
+}
+
+/// Evidence section containing hard gates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Evidence {
+    pub mutation: MutationGate,
+    // Future: diff_coverage, test_gap, etc.
+}
+
+/// Mutation testing gate results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MutationGate {
+    pub status: GateStatus,
+    pub survivors: Vec<MutationSurvivor>,
+    pub killed: usize,
+    pub timeout: usize,
+    pub unviable: usize,
+    pub scope: Vec<String>,
+    pub source: MutationSource,
+}
+
+/// Status of a gate check.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum GateStatus {
+    Pass,    // 0 survivors
+    Fail,    // >0 survivors
+    Skipped, // No relevant files changed
+    Pending, // Results not available and couldn't run
+}
+
+/// Source of mutation testing results.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MutationSource {
+    Cached,     // Found local cache
+    Ran,        // Ran mutations now
+    CiArtifact, // From CI artifact
+}
+
+/// A mutation that survived testing (escaped detection).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MutationSurvivor {
+    pub file: String,
+    pub line: usize,
+    pub mutation: String,
 }
 
 /// Change surface metrics.
@@ -210,6 +257,9 @@ fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<Cockpi
     // Compute risk based on various factors
     let risk = compute_risk(&file_stats, &contracts, &code_health);
 
+    // Compute mutation gate evidence
+    let evidence = compute_evidence(repo_root, base, head, &changed_files)?;
+
     // Generate review plan with complexity scores
     let review_plan = generate_review_plan(&file_stats, &contracts);
 
@@ -223,8 +273,499 @@ fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<Cockpi
         code_health,
         risk,
         contracts,
+        evidence,
         review_plan,
     })
+}
+
+/// Compute evidence section with mutation gate.
+#[cfg(feature = "git")]
+fn compute_evidence(
+    repo_root: &PathBuf,
+    base: &str,
+    head: &str,
+    changed_files: &[String],
+) -> Result<Evidence> {
+    let mutation = compute_mutation_gate(repo_root, base, head, changed_files)?;
+    Ok(Evidence { mutation })
+}
+
+/// Check if a file is a relevant Rust source file for mutation testing.
+/// Excludes test files, fuzz targets, etc.
+fn is_relevant_rust_source(path: &str) -> bool {
+    let path_lower = path.to_lowercase();
+
+    // Must be a .rs file
+    if !path_lower.ends_with(".rs") {
+        return false;
+    }
+
+    // Exclude test directories
+    if path_lower.contains("/tests/") || path_lower.starts_with("tests/") {
+        return false;
+    }
+
+    // Exclude test files
+    if path_lower.ends_with("_test.rs") || path_lower.ends_with("_tests.rs") {
+        return false;
+    }
+
+    // Exclude fuzz targets
+    if path_lower.contains("/fuzz/") || path_lower.starts_with("fuzz/") {
+        return false;
+    }
+
+    true
+}
+
+/// Get the current HEAD commit hash.
+#[cfg(feature = "git")]
+fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .arg("rev-parse")
+        .arg("HEAD")
+        .output()
+        .context("Failed to run git rev-parse HEAD")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!("git rev-parse HEAD failed: {}", stderr.trim());
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+/// CI workflow summary format (mutants-summary.json).
+#[derive(Debug, Clone, Deserialize)]
+struct CiMutantsSummary {
+    #[allow(dead_code)]
+    schema_version: u32,
+    commit: String,
+    #[allow(dead_code)]
+    base_ref: String,
+    status: String,
+    scope: Vec<String>,
+    survivors: Vec<CiSurvivor>,
+    killed: usize,
+    timeout: usize,
+    unviable: usize,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct CiSurvivor {
+    file: String,
+    line: usize,
+    mutation: String,
+}
+
+/// Parsed mutation outcome from cargo-mutants output.
+#[derive(Debug, Clone, Deserialize)]
+struct MutantsOutcome {
+    outcomes: Vec<MutantOutcomeEntry>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct MutantOutcomeEntry {
+    scenario: MutantScenario,
+    summary: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+#[allow(non_snake_case)]
+enum MutantScenario {
+    Baseline,
+    Mutant { Mutant: MutantInfo },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct MutantInfo {
+    file: String,
+    name: String,
+    span: MutantSpan,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct MutantSpan {
+    start: MutantPosition,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct MutantPosition {
+    line: usize,
+}
+
+/// Compute the mutation gate status.
+#[cfg(feature = "git")]
+fn compute_mutation_gate(
+    repo_root: &PathBuf,
+    _base: &str,
+    _head: &str,
+    changed_files: &[String],
+) -> Result<MutationGate> {
+    // Filter to relevant Rust source files
+    let relevant_files: Vec<String> = changed_files
+        .iter()
+        .filter(|f| is_relevant_rust_source(f))
+        .cloned()
+        .collect();
+
+    // If no relevant files, skip
+    if relevant_files.is_empty() {
+        return Ok(MutationGate {
+            status: GateStatus::Skipped,
+            survivors: Vec::new(),
+            killed: 0,
+            timeout: 0,
+            unviable: 0,
+            scope: Vec::new(),
+            source: MutationSource::Ran,
+        });
+    }
+
+    let head_commit = get_head_commit(repo_root)?;
+
+    // Try to find cached results
+    if let Some(gate) = try_load_ci_artifact(repo_root, &head_commit, &relevant_files)? {
+        return Ok(gate);
+    }
+
+    if let Some(gate) = try_load_cached(repo_root, &head_commit, &relevant_files)? {
+        return Ok(gate);
+    }
+
+    // Try to run mutations
+    run_mutations(repo_root, &relevant_files)
+}
+
+/// Try to load mutation results from CI artifact.
+/// Checks for mutants-summary.json (our format) first, then falls back to mutants.out/outcomes.json.
+#[cfg(feature = "git")]
+fn try_load_ci_artifact(
+    repo_root: &Path,
+    head_commit: &str,
+    relevant_files: &[String],
+) -> Result<Option<MutationGate>> {
+    // First, check for our summary format (mutants-summary.json)
+    let summary_path = repo_root.join("mutants-summary.json");
+    if summary_path.exists()
+        && let Ok(content) = std::fs::read_to_string(&summary_path)
+        && let Ok(summary) = serde_json::from_str::<CiMutantsSummary>(&content)
+        && (summary.commit.starts_with(head_commit) || head_commit.starts_with(&summary.commit))
+    {
+        let status = match summary.status.as_str() {
+            "pass" => GateStatus::Pass,
+            "fail" => GateStatus::Fail,
+            "skipped" => GateStatus::Skipped,
+            _ => GateStatus::Pending,
+        };
+
+        let survivors: Vec<MutationSurvivor> = summary
+            .survivors
+            .into_iter()
+            .map(|s| MutationSurvivor {
+                file: s.file,
+                line: s.line,
+                mutation: s.mutation,
+            })
+            .collect();
+
+        let gate = MutationGate {
+            status,
+            survivors,
+            killed: summary.killed,
+            timeout: summary.timeout,
+            unviable: summary.unviable,
+            scope: summary.scope,
+            source: MutationSource::CiArtifact,
+        };
+
+        // Cache the results for future use
+        cache_mutation_results(repo_root, head_commit, &gate)?;
+
+        return Ok(Some(gate));
+    }
+
+    // Fall back to raw cargo-mutants output (mutants.out/outcomes.json)
+    let outcomes_path = repo_root.join("mutants.out").join("outcomes.json");
+    if !outcomes_path.exists() {
+        return Ok(None);
+    }
+
+    // Parse outcomes.json
+    let content = std::fs::read_to_string(&outcomes_path)
+        .with_context(|| format!("Failed to read {}", outcomes_path.display()))?;
+
+    let outcomes: MutantsOutcome = serde_json::from_str(&content)
+        .with_context(|| format!("Failed to parse {}", outcomes_path.display()))?;
+
+    let gate = parse_mutation_outcomes(&outcomes, relevant_files, MutationSource::CiArtifact);
+
+    // Cache the results for future use
+    cache_mutation_results(repo_root, head_commit, &gate)?;
+
+    Ok(Some(gate))
+}
+
+/// Try to load mutation results from local cache (.tokmd/cache/mutants-{commit}.json).
+#[cfg(feature = "git")]
+fn try_load_cached(
+    repo_root: &Path,
+    head_commit: &str,
+    relevant_files: &[String],
+) -> Result<Option<MutationGate>> {
+    let cache_dir = repo_root.join(".tokmd").join("cache");
+    let cache_file = cache_dir.join(format!(
+        "mutants-{}.json",
+        &head_commit[..12.min(head_commit.len())]
+    ));
+
+    if !cache_file.exists() {
+        return Ok(None);
+    }
+
+    let content = std::fs::read_to_string(&cache_file)
+        .with_context(|| format!("Failed to read cache file {}", cache_file.display()))?;
+
+    let mut gate: MutationGate = serde_json::from_str(&content)
+        .with_context(|| format!("Failed to parse cache file {}", cache_file.display()))?;
+
+    // Verify scope matches (or is superset of) relevant files
+    let cached_scope: std::collections::HashSet<_> = gate.scope.iter().collect();
+    let needed: Vec<_> = relevant_files
+        .iter()
+        .filter(|f| !cached_scope.contains(f))
+        .collect();
+
+    if !needed.is_empty() {
+        // Cache doesn't cover all files we need
+        return Ok(None);
+    }
+
+    gate.source = MutationSource::Cached;
+    Ok(Some(gate))
+}
+
+/// Cache mutation results for future use.
+#[cfg(feature = "git")]
+fn cache_mutation_results(repo_root: &Path, head_commit: &str, gate: &MutationGate) -> Result<()> {
+    let cache_dir = repo_root.join(".tokmd").join("cache");
+    std::fs::create_dir_all(&cache_dir)?;
+
+    let cache_file = cache_dir.join(format!(
+        "mutants-{}.json",
+        &head_commit[..12.min(head_commit.len())]
+    ));
+    let content = serde_json::to_string_pretty(gate)?;
+    std::fs::write(&cache_file, content)?;
+
+    Ok(())
+}
+
+/// Run mutation testing on the given files.
+#[cfg(feature = "git")]
+fn run_mutations(repo_root: &PathBuf, relevant_files: &[String]) -> Result<MutationGate> {
+    // Check if cargo-mutants is available
+    let check = Command::new("cargo")
+        .arg("mutants")
+        .arg("--version")
+        .output();
+
+    if check.is_err() || !check.unwrap().status.success() {
+        // cargo-mutants not installed
+        return Ok(MutationGate {
+            status: GateStatus::Pending,
+            survivors: Vec::new(),
+            killed: 0,
+            timeout: 0,
+            unviable: 0,
+            scope: relevant_files.to_vec(),
+            source: MutationSource::Ran,
+        });
+    }
+
+    let mut all_survivors = Vec::new();
+    let mut total_killed = 0usize;
+    let mut total_timeout = 0usize;
+    let mut total_unviable = 0usize;
+    let mut tested_files = Vec::new();
+
+    for file in relevant_files.iter().take(20) {
+        // Limit to 20 files like CI
+        // Determine if file is in a crate subdirectory
+        let (work_dir, file_arg) = if file.starts_with("crates/") {
+            // Extract crate directory (e.g., "crates/tokmd-types")
+            let parts: Vec<&str> = file.splitn(3, '/').collect();
+            if parts.len() >= 3 {
+                let crate_dir = repo_root.join(parts[0]).join(parts[1]);
+                if crate_dir.join("Cargo.toml").exists() {
+                    // Run from crate directory with relative path
+                    let rel_path = parts[2..].join("/");
+                    (crate_dir, rel_path)
+                } else {
+                    (repo_root.clone(), file.clone())
+                }
+            } else {
+                (repo_root.clone(), file.clone())
+            }
+        } else {
+            (repo_root.clone(), file.clone())
+        };
+
+        let output = Command::new("cargo")
+            .arg("mutants")
+            .arg("--file")
+            .arg(&file_arg)
+            .arg("--timeout")
+            .arg("120")
+            .arg("--json")
+            .current_dir(&work_dir)
+            .output();
+
+        match output {
+            Ok(out) if out.status.success() => {
+                tested_files.push(file.clone());
+
+                // Parse the outcomes.json that cargo-mutants creates
+                let outcomes_path = work_dir.join("mutants.out").join("outcomes.json");
+                if let Ok(content) = std::fs::read_to_string(&outcomes_path)
+                    && let Ok(outcomes) = serde_json::from_str::<MutantsOutcome>(&content)
+                {
+                    for entry in &outcomes.outcomes {
+                        let MutantScenario::Mutant { Mutant: info } = &entry.scenario else {
+                            continue;
+                        };
+                        match entry.summary.as_str() {
+                            "CaughtMutant" => total_killed += 1,
+                            "Timeout" => total_timeout += 1,
+                            "Unviable" => total_unviable += 1,
+                            "MissedMutant" => {
+                                all_survivors.push(MutationSurvivor {
+                                    file: info.file.clone(),
+                                    line: info.span.start.line,
+                                    mutation: info.name.clone(),
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            Ok(_) => {
+                // Command failed but ran - file was attempted
+                tested_files.push(file.clone());
+            }
+            Err(_) => {
+                // Command failed to execute
+                continue;
+            }
+        }
+    }
+
+    let status = if all_survivors.is_empty() {
+        GateStatus::Pass
+    } else {
+        GateStatus::Fail
+    };
+
+    let gate = MutationGate {
+        status,
+        survivors: all_survivors,
+        killed: total_killed,
+        timeout: total_timeout,
+        unviable: total_unviable,
+        scope: tested_files,
+        source: MutationSource::Ran,
+    };
+
+    // Cache the results
+    if let Ok(head_commit) = get_head_commit(repo_root) {
+        let _ = cache_mutation_results(repo_root, &head_commit, &gate);
+    }
+
+    Ok(gate)
+}
+
+/// Parse mutation outcomes into a MutationGate.
+fn parse_mutation_outcomes(
+    outcomes: &MutantsOutcome,
+    relevant_files: &[String],
+    source: MutationSource,
+) -> MutationGate {
+    let relevant_set: std::collections::HashSet<_> = relevant_files.iter().collect();
+
+    let mut survivors = Vec::new();
+    let mut killed = 0usize;
+    let mut timeout = 0usize;
+    let mut unviable = 0usize;
+    let mut scope_set: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    for entry in &outcomes.outcomes {
+        let MutantScenario::Mutant { Mutant: info } = &entry.scenario else {
+            continue;
+        };
+
+        // Normalize path for comparison
+        let file_normalized = info.file.replace('\\', "/");
+
+        // Only count if file is in our relevant set
+        if !relevant_set
+            .iter()
+            .any(|f| file_normalized.ends_with(*f) || f.ends_with(&file_normalized))
+        {
+            continue;
+        }
+
+        scope_set.insert(file_normalized.clone());
+
+        match entry.summary.as_str() {
+            "CaughtMutant" => killed += 1,
+            "Timeout" => timeout += 1,
+            "Unviable" => unviable += 1,
+            "MissedMutant" => {
+                survivors.push(MutationSurvivor {
+                    file: file_normalized,
+                    line: info.span.start.line,
+                    mutation: info.name.clone(),
+                });
+            }
+            _ => {}
+        }
+    }
+
+    let status = if survivors.is_empty() {
+        GateStatus::Pass
+    } else {
+        GateStatus::Fail
+    };
+
+    MutationGate {
+        status,
+        survivors,
+        killed,
+        timeout,
+        unviable,
+        scope: scope_set.into_iter().collect(),
+        source,
+    }
+}
+
+/// Compute evidence when git feature is disabled.
+#[cfg(not(feature = "git"))]
+fn compute_evidence_disabled() -> Evidence {
+    Evidence {
+        mutation: MutationGate {
+            status: GateStatus::Skipped,
+            survivors: Vec::new(),
+            killed: 0,
+            timeout: 0,
+            unviable: 0,
+            scope: Vec::new(),
+            source: MutationSource::Ran,
+        },
+    }
 }
 
 /// Per-file statistics from git diff.
@@ -985,6 +1526,11 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     ));
     out.push('\n');
 
+    // Evidence section
+    out.push_str("### Evidence\n\n");
+    out.push_str("#### Mutation Testing\n\n");
+    render_mutation_gate_markdown(&mut out, &receipt.evidence.mutation);
+
     // Risk assessment
     if !receipt.risk.hotspots_touched.is_empty() || !receipt.risk.bus_factor_warnings.is_empty() {
         out.push_str("### Risk Assessment\n\n");
@@ -1028,6 +1574,73 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     out.push('\n');
 
     out
+}
+
+/// Render mutation gate status to markdown.
+fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
+    let status_icon = match gate.status {
+        GateStatus::Pass => "PASS",
+        GateStatus::Fail => "FAIL",
+        GateStatus::Skipped => "SKIPPED",
+        GateStatus::Pending => "PENDING",
+    };
+
+    let source_label = match gate.source {
+        MutationSource::Cached => "cached",
+        MutationSource::Ran => "ran",
+        MutationSource::CiArtifact => "CI artifact",
+    };
+
+    out.push_str(&format!(
+        "**Status:** {} (source: {})\n\n",
+        status_icon, source_label
+    ));
+
+    match gate.status {
+        GateStatus::Pass => {
+            out.push_str(&format!(
+                "0 survivors | {} killed | {} timeout | {} unviable\n\n",
+                gate.killed, gate.timeout, gate.unviable
+            ));
+            if !gate.scope.is_empty() {
+                out.push_str(&format!(
+                    "**Scope:** {} file(s) tested\n\n",
+                    gate.scope.len()
+                ));
+            }
+        }
+        GateStatus::Fail => {
+            out.push_str(&format!(
+                "{} survivors | {} killed | {} timeout | {} unviable\n\n",
+                gate.survivors.len(),
+                gate.killed,
+                gate.timeout,
+                gate.unviable
+            ));
+            out.push_str("**Survivors:**\n\n");
+            for survivor in &gate.survivors {
+                out.push_str(&format!(
+                    "- `{}:{}` - {}\n",
+                    survivor.file, survivor.line, survivor.mutation
+                ));
+            }
+            out.push('\n');
+        }
+        GateStatus::Skipped => {
+            out.push_str("No relevant Rust source files in diff.\n\n");
+        }
+        GateStatus::Pending => {
+            out.push_str(
+                "Mutation testing results not available. Install `cargo-mutants` to enable.\n\n",
+            );
+            if !gate.scope.is_empty() {
+                out.push_str(&format!(
+                    "**Pending scope:** {} file(s)\n\n",
+                    gate.scope.len()
+                ));
+            }
+        }
+    }
 }
 
 fn render_sections(receipt: &CockpitReceipt) -> String {
@@ -1121,6 +1734,8 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
             "No"
         }
     ));
+    out.push_str("| **Evidence** | |\n");
+    render_mutation_gate_sections(&mut out, &receipt.evidence.mutation);
     out.push_str("<!-- /SECTION:COCKPIT -->\n\n");
 
     // REVIEW_PLAN section (for AI-FILL:REVIEW_PLAN)
@@ -1152,6 +1767,32 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
     out.push_str("<!-- /SECTION:RECEIPTS -->\n");
 
     out
+}
+
+/// Render mutation gate status for sections format.
+fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
+    let status_str = match gate.status {
+        GateStatus::Pass => "Pass",
+        GateStatus::Fail => "Fail",
+        GateStatus::Skipped => "Skipped",
+        GateStatus::Pending => "Pending",
+    };
+
+    out.push_str(&format!("| Mutation gate | {} |\n", status_str));
+
+    match gate.status {
+        GateStatus::Pass => {
+            out.push_str(&format!("| Mutations killed | {} |\n", gate.killed));
+            out.push_str("| Survivors | 0 |\n");
+        }
+        GateStatus::Fail => {
+            out.push_str(&format!("| Mutations killed | {} |\n", gate.killed));
+            out.push_str(&format!("| Survivors | {} |\n", gate.survivors.len()));
+        }
+        GateStatus::Skipped | GateStatus::Pending => {
+            // No additional rows for skipped/pending
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1296,5 +1937,73 @@ mod tests {
         let files = vec!["docs/schema.json".to_string()];
         let contracts = detect_contracts(&files);
         assert!(contracts.schema_changed);
+    }
+
+    #[test]
+    fn test_is_relevant_rust_source() {
+        // Should include
+        assert!(is_relevant_rust_source("src/lib.rs"));
+        assert!(is_relevant_rust_source(
+            "crates/tokmd/src/commands/cockpit.rs"
+        ));
+        assert!(is_relevant_rust_source("src/main.rs"));
+
+        // Should exclude - test directories
+        assert!(!is_relevant_rust_source("tests/integration.rs"));
+        assert!(!is_relevant_rust_source("crates/foo/tests/test.rs"));
+
+        // Should exclude - test files
+        assert!(!is_relevant_rust_source("src/foo_test.rs"));
+        assert!(!is_relevant_rust_source("src/bar_tests.rs"));
+
+        // Should exclude - fuzz
+        assert!(!is_relevant_rust_source("fuzz/target.rs"));
+        assert!(!is_relevant_rust_source("crates/foo/fuzz/harness.rs"));
+
+        // Should exclude - non-Rust
+        assert!(!is_relevant_rust_source("src/lib.py"));
+        assert!(!is_relevant_rust_source("Cargo.toml"));
+    }
+
+    #[test]
+    fn test_mutation_gate_status_serialization() {
+        let gate = MutationGate {
+            status: GateStatus::Pass,
+            survivors: Vec::new(),
+            killed: 10,
+            timeout: 2,
+            unviable: 1,
+            scope: vec!["src/lib.rs".to_string()],
+            source: MutationSource::Cached,
+        };
+
+        let json = serde_json::to_string(&gate).unwrap();
+        assert!(json.contains("\"status\":\"pass\""));
+        assert!(json.contains("\"source\":\"cached\""));
+
+        let deserialized: MutationGate = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.status, GateStatus::Pass);
+        assert_eq!(deserialized.source, MutationSource::Cached);
+    }
+
+    #[test]
+    fn test_mutation_gate_with_survivors() {
+        let gate = MutationGate {
+            status: GateStatus::Fail,
+            survivors: vec![MutationSurvivor {
+                file: "src/lib.rs".to_string(),
+                line: 42,
+                mutation: "replace foo -> bool with true".to_string(),
+            }],
+            killed: 5,
+            timeout: 0,
+            unviable: 0,
+            scope: vec!["src/lib.rs".to_string()],
+            source: MutationSource::Ran,
+        };
+
+        assert_eq!(gate.status, GateStatus::Fail);
+        assert_eq!(gate.survivors.len(), 1);
+        assert_eq!(gate.survivors[0].line, 42);
     }
 }
