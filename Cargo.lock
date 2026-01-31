@@ -2773,6 +2773,7 @@ version = "1.3.0"
 dependencies = [
  "anyhow",
  "midly",
+ "proptest",
 ]
 
 [[package]]
@@ -2808,6 +2809,7 @@ name = "tokmd-git"
 version = "1.3.0"
 dependencies = [
  "anyhow",
+ "proptest",
 ]
 
 [[package]]
@@ -2835,6 +2837,7 @@ name = "tokmd-scan"
 version = "1.3.0"
 dependencies = [
  "anyhow",
+ "proptest",
  "tokei",
  "tokmd-config",
  "tokmd-types",
@@ -2845,6 +2848,7 @@ name = "tokmd-tokeignore"
 version = "1.3.0"
 dependencies = [
  "anyhow",
+ "proptest",
  "tempfile",
  "tokmd-config",
 ]
@@ -2865,6 +2869,7 @@ version = "1.3.0"
 dependencies = [
  "anyhow",
  "ignore",
+ "proptest",
  "tempfile",
 ]
 

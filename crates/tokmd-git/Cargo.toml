@@ -9,3 +9,6 @@ description = "Streaming git log adapter for tokmd analysis."
 
 [dependencies]
 anyhow = "1.0.100"
+
+[dev-dependencies]
+proptest = "1"
