@@ -1,5 +1,5 @@
-use assert_cmd::cargo::cargo_bin_cmd;
 use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use std::path::PathBuf;
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
