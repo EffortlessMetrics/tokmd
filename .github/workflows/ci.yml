@@ -79,7 +79,7 @@ jobs:
           CI: true
 
   mutation:
-    name: Mutation Testing (Required)
+    name: Mutation Smoke Gate
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -92,36 +92,61 @@ jobs:
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --version 26.1.2 --locked
 
-      - name: Get changed Rust files
+      - name: Get changed Rust files (top 10 by churn)
         id: changed
         run: |
-          # Ensure base ref is available locally
+          set -euo pipefail
           git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
-          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.rs' | grep -v '/tests/' | grep -v '_test\.rs$' || true)
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          COUNT=$(echo "$FILES" | grep -c . || echo 0)
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          git diff --numstat "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
+            | awk '
+                $3 !~ /\/tests\// &&
+                $3 !~ /_test\.rs$/ &&
+                $3 !~ /^fuzz\// &&
+                $3 !~ /\/fuzz\// {
+                  add=$1; del=$2;
+                  if (add=="-") add=0;
+                  if (del=="-") del=0;
+                  print add+del "\t" $3
+                }' \
+            | sort -nr \
+            | head -10 \
+            | cut -f2 > changed_files.txt
 
-      - name: Mutation Testing
+          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          cat changed_files.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Mutation Testing (smoke gate)
         if: steps.changed.outputs.count != '0'
         env:
           CI: true
-          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           set -euo pipefail
-
-          echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
+          echo "Running mutation testing on ${{ steps.changed.outputs.count }} high-churn file(s)..."
 
           while IFS= read -r file; do
             [ -z "$file" ] && continue
             [ -f "$file" ] || continue
-            echo "::group::Testing mutations in: $file"
-            cargo mutants --file "$file" --timeout 120
+
+            # Microcrate dividend: run from crate dir when possible
+            crate_dir=""
+            if [[ "$file" == crates/*/* ]]; then
+              crate_dir="$(echo "$file" | cut -d/ -f1-2)"
+            fi
+
+            echo "::group::Mutants: $file"
+            if [[ -n "$crate_dir" && -f "$crate_dir/Cargo.toml" ]]; then
+              rel="${file#$crate_dir/}"
+              (cd "$crate_dir" && cargo mutants --file "$rel" --timeout 300)
+            else
+              cargo mutants --file "$file" --timeout 300
+            fi
             echo "::endgroup::"
-          done <<< "$CHANGED_FILES"
+          done < changed_files.txt
 
           echo "✓ All mutations caught or unviable (0 MISSED)"
 

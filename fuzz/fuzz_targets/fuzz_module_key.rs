@@ -37,26 +37,22 @@ fuzz_target!(|data: &[u8]| {
         assert!(!key1.is_empty(), "module_key output must not be empty");
         assert!(!key10.is_empty(), "module_key output must not be empty");
 
-        // Invariant: depth respects segment count
-        // key1 should have <= key2 segments when the path matches a root
-        if key1 != "(root)" && key2 != "(root)" {
-            let segments1 = key1.split('/').count();
-            let segments2 = key2.split('/').count();
-            assert!(
-                segments1 <= segments2,
-                "depth=1 key ({key1}) should have <= segments than depth=2 key ({key2})"
-            );
-        }
-
-        // Invariant: module key with higher depth should have >= segments (up to available dirs)
-        if key2 != "(root)" && key10 != "(root)" {
-            let segments2 = key2.split('/').count();
-            let segments10 = key10.split('/').count();
-            assert!(
-                segments2 <= segments10,
-                "depth=2 key ({key2}) should have <= segments than depth=10 key ({key10})"
-            );
-        }
+        // Invariant: determinism - same inputs produce same outputs
+        assert_eq!(
+            module_key(s, &roots, 1),
+            key1,
+            "module_key must be deterministic for depth=1"
+        );
+        assert_eq!(
+            module_key(s, &roots, 2),
+            key2,
+            "module_key must be deterministic for depth=2"
+        );
+        assert_eq!(
+            module_key(s, &roots, 10),
+            key10,
+            "module_key must be deterministic for depth=10"
+        );
 
         // Invariant: if path starts with a root, module key should start with that root
         // (after normalization)

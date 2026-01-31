@@ -81,6 +81,9 @@ jobs:
           cd fuzz
           cargo +nightly fuzz run ${{ matrix.target }} --features ${{ matrix.features }} -- \
             -max_total_time=$DURATION \
+            -timeout=10 \
+            -rss_limit_mb=4096 \
+            -max_len=65536 \
             -dict=dict/${{ matrix.dict }}
         continue-on-error: true
 

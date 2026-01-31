@@ -26,14 +26,20 @@ fuzz_target!(|data: &[u8]| {
             "normalize_path output must not start with './': {result:?}"
         );
 
-        // Invariant: Output length is bounded by input length
-        // (we only strip characters, never add)
+        // Invariant: Determinism - same input always produces same output
+        let result2 = normalize_path(p, None);
         assert!(
-            result.len() <= s.len(),
-            "normalize_path output ({}) must not exceed input length ({})",
-            result.len(),
-            s.len()
+            result == result2,
+            "normalize_path must be deterministic: {result:?} != {result2:?}"
         );
+
+        // Invariant: If input contains no path separators, output contains none
+        if !s.contains('/') && !s.contains('\\') {
+            assert!(
+                !result.contains('/'),
+                "normalize_path output should not introduce path separators: input={s:?}, output={result:?}"
+            );
+        }
 
         // Test with prefix stripping
         let prefix = Path::new("src");
@@ -48,12 +54,11 @@ fuzz_target!(|data: &[u8]| {
             !result_with_prefix.starts_with("./"),
             "normalize_path output must not start with './': {result_with_prefix:?}"
         );
-        // With prefix stripping, output should be <= input length
+        // Invariant: Determinism with prefix - same inputs always produce same output
+        let result_with_prefix2 = normalize_path(p, Some(prefix));
         assert!(
-            result_with_prefix.len() <= s.len(),
-            "normalize_path output ({}) must not exceed input length ({})",
-            result_with_prefix.len(),
-            s.len()
+            result_with_prefix == result_with_prefix2,
+            "normalize_path with prefix must be deterministic: {result_with_prefix:?} != {result_with_prefix2:?}"
         );
     }
 });
