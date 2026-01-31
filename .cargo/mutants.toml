@@ -1,0 +1,30 @@
+# cargo-mutants configuration
+# See: https://mutants.rs/configuration.html
+
+# Enable all features including optional 'fun' feature
+all_features = true
+
+# Enable gitignore filtering to prevent copying large artifacts (context.txt, etc.)
+gitignore = true
+
+# Allow more time for complex tests
+timeout_multiplier = 2.0
+
+# Exclude test code and fuzz targets from mutation
+exclude_globs = [
+    "**/tests/**",
+    "fuzz/**",
+]
+
+# Exclude boilerplate that's not worth mutating
+exclude_re = [
+    "impl.*Display",
+    "fn main\\(",
+    # Thin stdout wrappers - logic is tested via write_*_to variants
+    "replace print_lang_report",
+    "replace print_module_report",
+    # Dead code stubs when fun feature is enabled (all_features = true)
+    # The actual fun impls (*_fun) are still mutation-tested via the wrappers
+    "replace render_obj_disabled",
+    "replace render_midi_disabled",
+]

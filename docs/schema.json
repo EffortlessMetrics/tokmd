@@ -8,7 +8,8 @@
     { "$ref": "#/definitions/ExportReceipt" },
     { "$ref": "#/definitions/ExportMeta" },
     { "$ref": "#/definitions/ExportRow" },
-    { "$ref": "#/definitions/AnalysisReceipt" }
+    { "$ref": "#/definitions/AnalysisReceipt" },
+    { "$ref": "#/definitions/CockpitReceipt" }
   ],
   "definitions": {
     "ScanStatus": {
@@ -877,6 +878,327 @@
         "label": { "type": "string", "description": "Eco label (A-F)." },
         "bytes": { "type": "integer", "description": "Total bytes." },
         "notes": { "type": "string", "description": "Notes about the rating." }
+      }
+    },
+    "CockpitReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd cockpit --format json`. Contains PR metrics for code review automation.",
+      "required": ["schema_version", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 3 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the cockpit metrics were generated." },
+        "base_ref": { "type": "string", "description": "Base git reference (branch or commit)." },
+        "head_ref": { "type": "string", "description": "Head git reference (branch or commit)." },
+        "change_surface": { "$ref": "#/definitions/ChangeSurface" },
+        "composition": { "$ref": "#/definitions/Composition" },
+        "code_health": { "$ref": "#/definitions/CodeHealth" },
+        "risk": { "$ref": "#/definitions/Risk" },
+        "contracts": { "$ref": "#/definitions/Contracts" },
+        "evidence": { "$ref": "#/definitions/Evidence" },
+        "review_plan": { "type": "array", "items": { "$ref": "#/definitions/ReviewItem" }, "description": "Prioritized list of files to review." }
+      }
+    },
+    "ChangeSurface": {
+      "type": "object",
+      "description": "Change surface metrics for a PR.",
+      "required": ["commits", "files_changed", "insertions", "deletions", "net_lines", "churn_velocity", "change_concentration"],
+      "properties": {
+        "commits": { "type": "integer", "description": "Number of commits in the PR." },
+        "files_changed": { "type": "integer", "description": "Number of files changed." },
+        "insertions": { "type": "integer", "description": "Lines inserted." },
+        "deletions": { "type": "integer", "description": "Lines deleted." },
+        "net_lines": { "type": "integer", "description": "Net lines changed (insertions - deletions)." },
+        "churn_velocity": { "type": "number", "description": "Average lines changed per commit." },
+        "change_concentration": { "type": "number", "description": "Percentage of changes in top 20% of files." }
+      }
+    },
+    "Composition": {
+      "type": "object",
+      "description": "File composition breakdown for changed files.",
+      "required": ["code_pct", "test_pct", "docs_pct", "config_pct", "test_ratio"],
+      "properties": {
+        "code_pct": { "type": "number", "description": "Percentage of code files." },
+        "test_pct": { "type": "number", "description": "Percentage of test files." },
+        "docs_pct": { "type": "number", "description": "Percentage of documentation files." },
+        "config_pct": { "type": "number", "description": "Percentage of configuration files." },
+        "test_ratio": { "type": "number", "description": "Test-to-code ratio (tests / code files)." }
+      }
+    },
+    "CodeHealth": {
+      "type": "object",
+      "description": "Code health indicators for DevEx.",
+      "required": ["score", "grade", "large_files_touched", "avg_file_size", "complexity_indicator", "warnings"],
+      "properties": {
+        "score": { "type": "integer", "description": "Overall health score (0-100)." },
+        "grade": { "type": "string", "description": "Health grade (A-F)." },
+        "large_files_touched": { "type": "integer", "description": "Number of large files (>500 lines) being changed." },
+        "avg_file_size": { "type": "integer", "description": "Average file size in changed files." },
+        "complexity_indicator": { "$ref": "#/definitions/ComplexityIndicator" },
+        "warnings": { "type": "array", "items": { "$ref": "#/definitions/HealthWarning" }, "description": "Files with potential issues." }
+      }
+    },
+    "ComplexityIndicator": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Complexity indicator levels."
+    },
+    "HealthWarning": {
+      "type": "object",
+      "description": "Health warning for a specific file.",
+      "required": ["path", "warning_type", "message"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "warning_type": { "$ref": "#/definitions/WarningType" },
+        "message": { "type": "string", "description": "Warning message." }
+      }
+    },
+    "WarningType": {
+      "type": "string",
+      "enum": ["large_file", "high_churn", "low_test_coverage", "complex_change", "bus_factor"],
+      "description": "Types of health warnings."
+    },
+    "Risk": {
+      "type": "object",
+      "description": "Risk indicators for a PR.",
+      "required": ["hotspots_touched", "bus_factor_warnings", "level", "score"],
+      "properties": {
+        "hotspots_touched": { "type": "array", "items": { "type": "string" }, "description": "Hotspot files touched by this PR." },
+        "bus_factor_warnings": { "type": "array", "items": { "type": "string" }, "description": "Files with low bus factor being touched." },
+        "level": { "$ref": "#/definitions/RiskLevel" },
+        "score": { "type": "integer", "description": "Risk score (0-100)." }
+      }
+    },
+    "RiskLevel": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Risk level classification."
+    },
+    "Contracts": {
+      "type": "object",
+      "description": "Contract change indicators.",
+      "required": ["api_changed", "cli_changed", "schema_changed", "breaking_indicators"],
+      "properties": {
+        "api_changed": { "type": "boolean", "description": "Whether API files were changed." },
+        "cli_changed": { "type": "boolean", "description": "Whether CLI files were changed." },
+        "schema_changed": { "type": "boolean", "description": "Whether schema files were changed." },
+        "breaking_indicators": { "type": "integer", "description": "Number of breaking change indicators." }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "Evidence section containing hard gates.",
+      "required": ["overall_status", "mutation"],
+      "properties": {
+        "overall_status": { "$ref": "#/definitions/GateStatus" },
+        "mutation": { "$ref": "#/definitions/MutationGate" },
+        "diff_coverage": { "$ref": "#/definitions/DiffCoverageGate" },
+        "contracts": { "$ref": "#/definitions/ContractDiffGate" },
+        "supply_chain": { "$ref": "#/definitions/SupplyChainGate" },
+        "determinism": { "$ref": "#/definitions/DeterminismGate" }
+      }
+    },
+    "GateStatus": {
+      "type": "string",
+      "enum": ["pass", "fail", "skipped", "pending"],
+      "description": "Status of a gate check. 'pass' = gate passed, 'fail' = gate failed, 'skipped' = no relevant files changed, 'pending' = results not available."
+    },
+    "EvidenceSource": {
+      "type": "string",
+      "enum": ["ci_artifact", "cached", "ran_local"],
+      "description": "Source of evidence/gate results. 'ci_artifact' = downloaded from CI, 'cached' = found in local cache, 'ran_local' = executed locally."
+    },
+    "CommitMatch": {
+      "type": "string",
+      "enum": ["exact", "partial", "stale", "unknown"],
+      "description": "Commit match quality for evidence. 'exact' = matches HEAD, 'partial' = covers merge base, 'stale' = different commit, 'unknown' = could not determine."
+    },
+    "ScopeCoverage": {
+      "type": "object",
+      "description": "Scope coverage for a gate.",
+      "required": ["relevant", "tested", "ratio"],
+      "properties": {
+        "relevant": { "type": "array", "items": { "type": "string" }, "description": "Files in scope for the gate." },
+        "tested": { "type": "array", "items": { "type": "string" }, "description": "Files actually tested." },
+        "ratio": { "type": "number", "description": "Coverage ratio (tested/relevant, 0.0-1.0)." },
+        "lines_relevant": { "type": "integer", "description": "Lines in scope (for line-level gates)." },
+        "lines_tested": { "type": "integer", "description": "Lines actually tested (for line-level gates)." }
+      }
+    },
+    "GateMeta": {
+      "type": "object",
+      "description": "Common metadata for all gates.",
+      "required": ["status", "source", "commit_match", "scope"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." }
+      }
+    },
+    "MutationGate": {
+      "type": "object",
+      "description": "Mutation testing gate results.",
+      "required": ["status", "source", "commit_match", "scope", "survivors", "killed", "timeout", "unviable"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "survivors": { "type": "array", "items": { "$ref": "#/definitions/MutationSurvivor" }, "description": "Mutations that survived testing." },
+        "killed": { "type": "integer", "description": "Number of mutations killed." },
+        "timeout": { "type": "integer", "description": "Number of mutations that timed out." },
+        "unviable": { "type": "integer", "description": "Number of unviable mutations." }
+      }
+    },
+    "MutationSurvivor": {
+      "type": "object",
+      "description": "A mutation that survived testing (escaped detection).",
+      "required": ["file", "line", "mutation"],
+      "properties": {
+        "file": { "type": "string", "description": "File containing the mutation." },
+        "line": { "type": "integer", "description": "Line number of the mutation." },
+        "mutation": { "type": "string", "description": "Description of the mutation." }
+      }
+    },
+    "DiffCoverageGate": {
+      "type": "object",
+      "description": "Diff coverage gate results.",
+      "required": ["status", "source", "commit_match", "scope", "lines_added", "lines_covered", "coverage_pct", "uncovered_hunks"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "lines_added": { "type": "integer", "description": "Total lines added in diff." },
+        "lines_covered": { "type": "integer", "description": "Lines covered by tests." },
+        "coverage_pct": { "type": "number", "description": "Coverage percentage." },
+        "uncovered_hunks": { "type": "array", "items": { "$ref": "#/definitions/UncoveredHunk" }, "description": "Uncovered code hunks." }
+      }
+    },
+    "UncoveredHunk": {
+      "type": "object",
+      "description": "An uncovered code hunk in diff coverage.",
+      "required": ["file", "start_line", "end_line"],
+      "properties": {
+        "file": { "type": "string", "description": "File path." },
+        "start_line": { "type": "integer", "description": "Start line of uncovered hunk." },
+        "end_line": { "type": "integer", "description": "End line of uncovered hunk." }
+      }
+    },
+    "ContractDiffGate": {
+      "type": "object",
+      "description": "Contract diff gate results (compound gate).",
+      "required": ["status", "source", "commit_match", "scope", "failures"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "semver": { "$ref": "#/definitions/SemverSubGate" },
+        "cli": { "$ref": "#/definitions/CliSubGate" },
+        "schema": { "$ref": "#/definitions/SchemaSubGate" },
+        "failures": { "type": "integer", "description": "Count of failed sub-gates." }
+      }
+    },
+    "SemverSubGate": {
+      "type": "object",
+      "description": "Semver sub-gate for contract diff.",
+      "required": ["status", "breaking_changes"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "breaking_changes": { "type": "array", "items": { "$ref": "#/definitions/BreakingChange" }, "description": "Breaking changes detected." }
+      }
+    },
+    "BreakingChange": {
+      "type": "object",
+      "description": "A breaking change detected by semver check.",
+      "required": ["kind", "path", "message"],
+      "properties": {
+        "kind": { "type": "string", "description": "Type of breaking change." },
+        "path": { "type": "string", "description": "Path to the changed item." },
+        "message": { "type": "string", "description": "Description of the breaking change." }
+      }
+    },
+    "CliSubGate": {
+      "type": "object",
+      "description": "CLI sub-gate for contract diff.",
+      "required": ["status"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "diff_summary": { "type": "string", "description": "Summary of CLI changes." }
+      }
+    },
+    "SchemaSubGate": {
+      "type": "object",
+      "description": "Schema sub-gate for contract diff.",
+      "required": ["status"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "diff_summary": { "type": "string", "description": "Summary of schema changes." }
+      }
+    },
+    "SupplyChainGate": {
+      "type": "object",
+      "description": "Supply chain gate results.",
+      "required": ["status", "source", "commit_match", "scope", "vulnerabilities", "denied"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "vulnerabilities": { "type": "array", "items": { "$ref": "#/definitions/Vulnerability" }, "description": "Security vulnerabilities found." },
+        "denied": { "type": "array", "items": { "type": "string" }, "description": "Denied dependencies." },
+        "advisory_db_version": { "type": "string", "description": "Version of the advisory database used." }
+      }
+    },
+    "Vulnerability": {
+      "type": "object",
+      "description": "A security vulnerability from cargo-audit.",
+      "required": ["id", "package", "severity", "title"],
+      "properties": {
+        "id": { "type": "string", "description": "Vulnerability ID (e.g., RUSTSEC-XXXX-XXXX)." },
+        "package": { "type": "string", "description": "Affected package name." },
+        "severity": { "type": "string", "description": "Severity level." },
+        "title": { "type": "string", "description": "Vulnerability title." }
+      }
+    },
+    "DeterminismGate": {
+      "type": "object",
+      "description": "Determinism gate results.",
+      "required": ["status", "source", "commit_match", "scope", "algo", "differences"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "expected_hash": { "type": "string", "description": "Expected build hash." },
+        "actual_hash": { "type": "string", "description": "Actual build hash." },
+        "algo": { "type": "string", "description": "Hash algorithm used." },
+        "differences": { "type": "array", "items": { "type": "string" }, "description": "Differences detected." }
+      }
+    },
+    "ReviewItem": {
+      "type": "object",
+      "description": "A review plan item.",
+      "required": ["path", "reason", "priority"],
+      "properties": {
+        "path": { "type": "string", "description": "File path to review." },
+        "reason": { "type": "string", "description": "Reason for including in review plan." },
+        "priority": { "type": "integer", "description": "Review priority (higher = more important)." },
+        "complexity": { "type": "integer", "description": "Estimated review complexity (1-5)." },
+        "lines_changed": { "type": "integer", "description": "Lines changed in this file." }
       }
     }
   }

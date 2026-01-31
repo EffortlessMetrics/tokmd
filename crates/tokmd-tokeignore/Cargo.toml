@@ -6,10 +6,15 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Template generation for .tokeignore files."
+readme = "README.md"
+keywords = ["gitignore", "ignore", "templates", "code-analysis", "tokei"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-tokeignore"
 
 [dependencies]
 anyhow = "1.0.100"
 tokmd-config.workspace = true
 
 [dev-dependencies]
+proptest = "1.6.0"
 tempfile = "3.10.1"

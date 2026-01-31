@@ -1,0 +1,85 @@
+# libfuzzer dictionary for tokmd policy fuzzing
+# TOML syntax
+"="
+"["
+"]"
+"[["
+"]]"
+"\"\""
+"''"
+"true"
+"false"
+","
+"."
+
+# Policy config keys
+"[[rules]]"
+"[rules]"
+"fail_fast"
+"allow_missing"
+
+# Rule keys
+"name"
+"pointer"
+"op"
+"value"
+"values"
+"negate"
+"level"
+"message"
+
+# Operators
+"gt"
+"gte"
+"lt"
+"lte"
+"eq"
+"ne"
+"neq"
+"in"
+"contains"
+"exists"
+
+# Levels
+"warn"
+"error"
+
+# JSON pointers - root sections
+"/derived"
+"/source"
+"/rows"
+"/rows/0"
+
+# JSON pointers - derived totals
+"/derived/totals"
+"/derived/totals/code"
+"/derived/totals/tokens"
+"/derived/totals/files"
+"/derived/totals/comments"
+"/derived/totals/blanks"
+
+# JSON pointers - derived metrics
+"/derived/doc_density"
+"/derived/doc_density/total"
+"/derived/doc_density/total/ratio"
+"/derived/todo"
+"/derived/todo/rate"
+"/derived/distribution"
+"/derived/density"
+
+# JSON pointers - source
+"/source/inputs"
+"/source/languages"
+
+# RFC 6901 pointer escapes
+"~0"
+"~1"
+"/"
+"//"
+
+# Numbers
+"0"
+"1"
+"100"
+"1000"
+"10000"

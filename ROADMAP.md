@@ -22,7 +22,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.0.0** | ✅ Complete | Schema frozen, release automation, crates.io publish. |
 | **v1.1.0** | ✅ Complete | Analysis engine, presets, badge generation, diff command. |
 | **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration. |
-| **v1.3.0** | 🚧 In Progress | Advanced enrichers (archetype, topics, entropy, churn). |
+| **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard. |
 | **v2.0.0** | 🔭 Planned | MCP server, streaming analysis, plugin system. |
 
 ---
@@ -101,11 +101,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Current Work: v1.3.0 — Polish & Stabilization
+## Completed: v1.3.0 — Polish & Stabilization
 
-**Goal**: Documentation, hardening, and integration of advanced enrichers.
-
-> **Note**: Core enricher implementations are complete in v1.2.0. This release focuses on polish, documentation, testing, and integration refinements.
+**Goal**: Documentation, hardening, gate command, and interactive wizard.
 
 ### Analysis Presets
 
@@ -123,13 +121,33 @@ This document outlines the evolution of `tokmd` and the path forward.
 | `deep` | ✅ | Everything (except fun) |
 | `fun` | ✅ | Eco-label, novelty outputs |
 
-### v1.3.0 Focus Areas
+### v1.3.0 Features Delivered
 
-- [ ] **Documentation**: Complete docs for all enrichers and presets
-- [ ] **Context Packing**: Integrate git signals into `--rank-by churn/hotspot`
-- [ ] **Testing**: Expand golden snapshot coverage for analysis outputs
-- [ ] **Performance**: Optimize large repository handling with limits and streaming
-- [ ] **Stability**: Harden edge cases and improve error messages
+- [x] **Cockpit Command**: `tokmd cockpit` for PR metrics generation with evidence gates
+  - Change surface analysis (files added/modified/deleted, lines changed)
+  - Code composition breakdown (production vs test vs config)
+  - Risk assessment and review plan generation
+  - Evidence gates: mutation testing, diff coverage, contracts, supply chain, determinism
+- [x] **Gate Command**: `tokmd gate` for policy-based quality gates with JSON pointer rules
+- [x] **Interactive Wizard**: `tokmd init --interactive` for guided project setup
+- [x] **Git-Ranked Context**: `--rank-by churn/hotspot` in `tokmd context` command
+- [x] **Tools Schema**: `tokmd tools` for LLM tool definitions (OpenAI, Anthropic, JSON Schema)
+- [x] **Context Output Options**: `--out`, `--force`, `--bundle-dir`, `--log`, `--max-output-bytes` flags
+- [x] **Documentation**: README files for all 17 crates
+- [x] **Documentation**: Updated troubleshooting guide with new error behaviors
+- [x] **Documentation**: Updated CLI reference with exit code changes
+- [x] **Documentation**: CONTRIBUTING.md guide with setup, testing, and publishing workflow
+- [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
+- [x] **Stability**: Non-existent input paths now error instead of silent success
+- [x] **Stability**: Improved error handling in tests (Result instead of unwrap/expect)
+- [x] **Architecture**: Decoupled `tokmd-types` from `tokmd-config` (clap now optional)
+- [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
+- [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
+- [x] **Testing**: Comprehensive integration tests across all major crates
+- [x] **Testing**: Property-based tests for tokmd-redact, tokmd-tokeignore, tokmd-walk
+- [x] **Testing**: Fuzz targets for path redaction and JSON deserialization
+- [x] **Testing**: Mutation testing with cargo-mutants and CI gate
+- [x] **CI/CD**: Enhanced publish workflow via `cargo xtask publish`
 
 ---
 

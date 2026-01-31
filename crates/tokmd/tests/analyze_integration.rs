@@ -1,14 +1,13 @@
+mod common;
+
 use assert_cmd::Command;
 use serde_json::Value;
-use std::path::PathBuf;
 use tempfile::tempdir;
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-    cmd.current_dir(&fixtures);
+    // Point to hermetic copy of test fixtures with .git/ marker
+    cmd.current_dir(common::fixture_root());
     cmd
 }
 

@@ -1,9 +1,9 @@
-#![allow(deprecated)] // cargo_bin deprecation - still works for standard builds
+mod common;
 
 use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 
@@ -12,12 +12,8 @@ fn test_run_generates_artifacts() {
     let dir = tempdir().unwrap();
     let output_dir = dir.path().join("run1");
 
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
-    cmd.current_dir(&fixtures) // Run on test data so it's small and predictable
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(common::fixture_root()) // Run on test data so it's small and predictable
         .arg("run")
         .arg("--output-dir")
         .arg(output_dir.to_str().unwrap())
@@ -50,13 +46,10 @@ fn test_diff_identical_runs() {
     let dir = tempdir().unwrap();
     let run1_dir = dir.path().join("run1");
     let run2_dir = dir.path().join("run2");
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
 
     // Run 1
-    let mut cmd1 = Command::cargo_bin("tokmd").unwrap();
-    cmd1.current_dir(&fixtures)
+    let mut cmd1: Command = cargo_bin_cmd!("tokmd");
+    cmd1.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(run1_dir.to_str().unwrap())
@@ -65,8 +58,8 @@ fn test_diff_identical_runs() {
         .success();
 
     // Run 2 (same data)
-    let mut cmd2 = Command::cargo_bin("tokmd").unwrap();
-    cmd2.current_dir(&fixtures)
+    let mut cmd2: Command = cargo_bin_cmd!("tokmd");
+    cmd2.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(run2_dir.to_str().unwrap())
@@ -75,7 +68,7 @@ fn test_diff_identical_runs() {
         .success();
 
     // Diff
-    let mut cmd_diff = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd_diff: Command = cargo_bin_cmd!("tokmd");
     cmd_diff
         .arg("diff")
         .arg("--from")
@@ -101,7 +94,7 @@ fn test_run_default_output_creates_local_runs_dir() {
     fs::write(src_dir.join("lib.rs"), "fn main() {}\n").unwrap();
 
     // Run without --output-dir (should use .runs/tokmd/<run-id>)
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(&work_dir)
         .arg("run")
         .arg("--name")
@@ -136,12 +129,8 @@ fn test_run_with_redact_flag() {
     let dir = tempdir().unwrap();
     let output_dir = dir.path().join("run-redacted");
 
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
-    cmd.current_dir(&fixtures)
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(common::fixture_root())
         .arg("run")
         .arg("--output-dir")
         .arg(output_dir.to_str().unwrap())
@@ -214,7 +203,7 @@ fn test_run_redact_lang_json_paths_redacted() {
     fs::create_dir_all(&secret_dir).unwrap();
     fs::write(secret_dir.join("confidential.rs"), "fn secret() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -254,7 +243,7 @@ fn test_run_redact_module_json_scan_paths_redacted() {
     fs::create_dir_all(&proprietary_dir).unwrap();
     fs::write(proprietary_dir.join("internal.rs"), "fn internal() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -320,7 +309,7 @@ fn test_run_redact_excluded_patterns_in_lang_json() {
     )
     .unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("--exclude")
         .arg("**/sensitive_data/**")
@@ -366,7 +355,7 @@ fn test_run_redact_excluded_patterns_in_module_json() {
     fs::create_dir_all(&private_dir).unwrap();
     fs::write(private_dir.join("internal.rs"), "fn private() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("--exclude")
         .arg("**/private_module/**")
@@ -412,7 +401,7 @@ fn test_run_redact_all_no_raw_paths_anywhere() {
     fs::write(secret_project.join("classified.rs"), "fn classified() {}\n").unwrap();
     fs::write(acme_corp.join("public.rs"), "fn public_api() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("--exclude")
         .arg("**/node_modules/**")
@@ -490,7 +479,7 @@ fn test_run_redact_paths_vs_all_difference() {
     fs::write(test_module.join("code.rs"), "fn code() {}\n").unwrap();
 
     // Run with --redact paths
-    let mut cmd1 = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd1: Command = cargo_bin_cmd!("tokmd");
     cmd1.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -502,7 +491,7 @@ fn test_run_redact_paths_vs_all_difference() {
         .success();
 
     // Run with --redact all
-    let mut cmd2 = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd2: Command = cargo_bin_cmd!("tokmd");
     cmd2.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -546,7 +535,7 @@ fn test_run_redact_all_hashes_modules_too() {
     fs::create_dir_all(&identifiable_module).unwrap();
     fs::write(identifiable_module.join("code.rs"), "fn module_code() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -588,7 +577,7 @@ fn test_run_redact_consistency_across_artifacts() {
     fs::create_dir_all(&src_dir).unwrap();
     fs::write(src_dir.join("main.rs"), "fn main() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("--exclude")
         .arg("**/excluded_dir/**")
@@ -672,7 +661,7 @@ fn test_run_without_redact_shows_raw_paths() {
     fs::create_dir_all(&visible_dir).unwrap();
     fs::write(visible_dir.join("exposed.rs"), "fn exposed() {}\n").unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("--exclude")
         .arg("**/should_be_visible/**")
@@ -723,7 +712,7 @@ fn test_run_redact_with_absolute_paths() {
     // Use absolute path as input
     let absolute_src = src_dir.canonicalize().unwrap();
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())
         .arg("run")
         .arg("--output-dir")
@@ -772,7 +761,7 @@ fn test_diff_git_refs() {
     git_cmd(&repo, &["add", "."]);
     git_cmd(&repo, &["commit", "-m", "add b"]);
 
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(&repo)
         .arg("diff")
         .arg("HEAD~1")

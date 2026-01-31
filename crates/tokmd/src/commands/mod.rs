@@ -1,14 +1,17 @@
 pub(crate) mod analyze;
 pub(crate) mod badge;
 pub(crate) mod check_ignore;
+pub(crate) mod cockpit;
 pub(crate) mod completions;
 pub(crate) mod context;
 pub(crate) mod diff;
 pub(crate) mod export;
+pub(crate) mod gate;
 pub(crate) mod init;
 pub(crate) mod lang;
 pub(crate) mod module;
 pub(crate) mod run;
+pub(crate) mod tools;
 
 use anyhow::Result;
 use tokmd_config as cli;
@@ -29,5 +32,8 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Init(args) => init::handle(args),
         cli::Commands::Context(args) => context::handle(args, global),
         cli::Commands::CheckIgnore(args) => check_ignore::handle(args, global),
+        cli::Commands::Tools(args) => tools::handle(args),
+        cli::Commands::Gate(args) => gate::handle(args, global, resolved),
+        cli::Commands::Cockpit(args) => cockpit::handle(args, global),
     }
 }

@@ -38,6 +38,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 3 | `tokmd-analysis` | Analysis orchestration and enrichers |
 | 3 | `tokmd-analysis-format` | Analysis output rendering |
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
+| 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 | 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
 | 4 | `tokmd-core` | Library facade for external consumers |
 | 5 | `tokmd` | CLI binary |
@@ -54,6 +55,9 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - `tokmd analyze` — Derived metrics and enrichments
 - `tokmd badge` — SVG badge generation
 - `tokmd diff` — Compare two runs or receipts
+- `tokmd cockpit` — PR metrics for code review with evidence gates
+- `tokmd gate` — Policy-based quality gates with JSON pointer rules
+- `tokmd tools` — Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema)
 - `tokmd context` — Pack files into LLM context window within token budget
 - `tokmd init` — Generate `.tokeignore` template
 - `tokmd check-ignore` — Explain why files are being ignored
@@ -97,6 +101,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - Increment schema_version when modifying JSON output structure
 - Update `docs/schema.json` (formal JSON Schema) when structures change
 - Analysis receipts use `schema_version: 2`
+- Cockpit receipts use `schema_version: 3`
 
 ### Feature Flags
 - `git`: Git history analysis (requires git2)
@@ -109,6 +114,9 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - **Golden snapshots**: Using `insta` crate (timestamps normalized)
 - **Crate-level tests**: Each crate has its own `tests/` directory
 - **Unit tests**: In-module tests
+- **Property-based tests**: Using `proptest` for invariant verification (tokmd-redact, tokmd-tokeignore, tokmd-walk)
+- **Fuzz targets**: Using `libfuzzer` for crash/panic detection (see `fuzz/` directory)
+- **Mutation testing**: Using `cargo-mutants` for test quality verification
 
 Run a single test:
 ```bash
@@ -118,6 +126,16 @@ cargo test test_name --verbose
 Update snapshots:
 ```bash
 cargo insta review
+```
+
+Run property tests:
+```bash
+cargo test -p tokmd-redact properties
+```
+
+Run mutation testing:
+```bash
+cargo mutants --file crates/tokmd-redact/src/lib.rs
 ```
 
 ## Key Dependencies
@@ -141,5 +159,7 @@ cargo insta review
 - `docs/SCHEMA.md`: Receipt format documentation
 - `docs/schema.json`: Formal JSON Schema Draft 7 definition
 - `docs/PRODUCT.md`: Product contract and invariants
+- `docs/troubleshooting.md`: Common issues and solutions
 - `ROADMAP.md`: Current status and future plans
 - `CHANGELOG.md`: Version history
+- `CONTRIBUTING.md`: Development setup, testing, and publishing guide

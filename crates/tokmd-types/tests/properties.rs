@@ -323,3 +323,41 @@ proptest! {
         prop_assert_eq!(row, parsed);
     }
 }
+
+// ========================
+// ToolInfo Tests (outside proptest! macro for simpler testing)
+// ========================
+
+#[test]
+fn tool_info_current_returns_correct_name() {
+    let info = tokmd_types::ToolInfo::current();
+    assert_eq!(
+        info.name, "tokmd",
+        "ToolInfo::current() should return 'tokmd' as the tool name"
+    );
+}
+
+#[test]
+fn tool_info_current_returns_non_empty_version() {
+    let info = tokmd_types::ToolInfo::current();
+    assert!(
+        !info.version.is_empty(),
+        "ToolInfo::current() should return a non-empty version string"
+    );
+}
+
+#[test]
+fn tool_info_current_differs_from_default() {
+    let current = tokmd_types::ToolInfo::current();
+    let default = tokmd_types::ToolInfo::default();
+
+    // current() should not return the same as default()
+    assert_ne!(
+        current.name, default.name,
+        "ToolInfo::current() should not return empty name like default"
+    );
+    assert_ne!(
+        current.version, default.version,
+        "ToolInfo::current() should not return empty version like default"
+    );
+}

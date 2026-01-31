@@ -18,7 +18,7 @@ Redaction utilities for privacy-safe output. This is a **Tier 0.5** utility crat
 pub fn short_hash(s: &str) -> String
 
 /// Returns hashed path with preserved extension
-/// Example: "src/main.rs" → "a1b2c3d4e5f6g7h8.rs"
+/// Example: "src/main.rs" -> "a1b2c3d4e5f6g7h8.rs"
 pub fn redact_path(path: &str) -> String
 ```
 
@@ -27,16 +27,16 @@ pub fn redact_path(path: &str) -> String
 - Uses BLAKE3 for cryptographic hashing
 - Truncates to 16 characters for brevity
 - Preserves **final** file extension for readability
-- Double extensions: `file.test.ts` → `<hash>.ts`
-- **Cross-platform normalization**: Both functions normalize `\` → `/` before hashing, ensuring identical hashes across Windows/Unix for the same logical path
+- Double extensions: `file.test.ts` -> `<hash>.ts`
+- **Cross-platform normalization**: Both functions normalize `\` -> `/` before hashing, ensuring identical hashes across Windows/Unix for the same logical path
 
-## Use Cases
+### Use Cases
 
 - Sharing receipts without exposing internal paths
 - Privacy-safe LLM context generation
 - Anonymizing repository structure in reports
 
-## Redaction Modes (used in tokmd-format)
+### Redaction Modes (used in tokmd-format)
 
 - `RedactMode::None` - Paths shown as-is
 - `RedactMode::Paths` - Hash file paths, preserve extension
@@ -53,7 +53,7 @@ cargo test -p tokmd-redact
 ```
 
 Tests cover:
-- Determinism (same input → same output)
+- Determinism (same input -> same output)
 - Length validation (always 16 chars)
 - Extension preservation
 - Double extension handling

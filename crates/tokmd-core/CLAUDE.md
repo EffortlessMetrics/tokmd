@@ -2,7 +2,7 @@
 
 ## Purpose
 
-High-level API façade and recommended entry point for library usage. This is a **Tier 4** coordination crate.
+High-level API facade and recommended entry point for library usage. This is a **Tier 4** coordination crate.
 
 ## Responsibility
 
@@ -27,7 +27,9 @@ pub use tokmd_config as config;
 pub use tokmd_types as types;
 ```
 
-## Workflow
+## Implementation Details
+
+### Workflow
 
 The `scan_workflow` function chains:
 1. **Scan** (tokmd-scan) - Execute tokei
@@ -44,13 +46,19 @@ let lang = LangArgs {
 let receipt = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
 ```
 
-## Redaction Support
+### Redaction Support
 
 | Mode | Behavior |
 |------|----------|
 | `None` | Paths shown as-is |
 | `Paths` | Hash file paths, preserve extension |
 | `All` | Hash paths and excluded patterns |
+
+### Use Cases
+
+- Library consumers who want a simple scan API
+- Embedding tokmd in other tools
+- Programmatic access without CLI
 
 ## Dependencies
 
@@ -66,12 +74,6 @@ let receipt = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
 ```bash
 cargo test -p tokmd-core
 ```
-
-## Use Cases
-
-- Library consumers who want a simple scan API
-- Embedding tokmd in other tools
-- Programmatic access without CLI
 
 ## Do NOT
 

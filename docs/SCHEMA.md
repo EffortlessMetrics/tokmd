@@ -4,7 +4,9 @@
 
 `tokmd` produces structured JSON outputs called "receipts". These schemas are stable and intended for machine consumption.
 
-**Current schema version**: 2
+**Schema versions**:
+- **Version 2**: Core receipts (`lang`, `module`, `export`, `analysis`)
+- **Version 3**: Cockpit receipt (`cockpit`)
 
 All JSON outputs share a common envelope structure.
 
@@ -19,7 +21,7 @@ Every receipt includes:
 | `tool` | `object` | Information about the tool version. |
 | `tool.name` | `string` | Always `"tokmd"`. |
 | `tool.version` | `string` | The version of tokmd used (e.g., `"1.2.0"`). |
-| `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, or `"analysis"`. |
+| `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, `"analysis"`, or `"cockpit"`. |
 | `status` | `string` | Scan status: `"complete"` or `"partial"`. |
 | `warnings` | `array` | Array of warning strings generated during the scan. |
 | `scan` | `object` | The configuration used for the file scan. |
@@ -549,3 +551,551 @@ The JSON schema intentionally does **not** use `additionalProperties: false`. Th
 3. **Field removal or renaming** is a breaking change and will bump `schema_version`
 
 This policy allows tokmd to add observability signals, debugging info, or new metrics without breaking existing integrations. If you need strict validation, pin to a specific tokmd version.
+
+---
+
+## 5. Cockpit Receipt (`mode: "cockpit"`)
+
+Produced by `tokmd cockpit --format json`.
+
+**Schema version**: 3
+
+Cockpit receipts provide PR-focused metrics for code review automation, including change surface analysis, risk assessment, code health indicators, and evidence gates for quality assurance.
+
+> **Note**: The cockpit receipt uses a different envelope structure than other receipts because it is specifically designed for PR/diff analysis rather than codebase scanning.
+
+### Envelope
+
+```json
+{
+  "schema_version": 3,
+  "generated_at_ms": 1706350000000,
+  "base_ref": "main",
+  "head_ref": "feature/my-branch",
+  "change_surface": { ... },
+  "composition": { ... },
+  "code_health": { ... },
+  "risk": { ... },
+  "contracts": { ... },
+  "evidence": { ... },
+  "review_plan": [ ... ]
+}
+```
+
+### Cockpit Receipt Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `schema_version` | `integer` | The schema version (3 for cockpit receipts). |
+| `generated_at_ms` | `integer` | Unix timestamp (milliseconds) when the analysis ran. |
+| `base_ref` | `string` | The base git ref (branch/commit) for comparison. |
+| `head_ref` | `string` | The head git ref being analyzed. |
+| `change_surface` | `object` | Metrics about the scope of changes. |
+| `composition` | `object` | Breakdown of file types in the changeset. |
+| `code_health` | `object` | Health indicators for developer experience. |
+| `risk` | `object` | Risk assessment for the changes. |
+| `contracts` | `object` | Contract change indicators (API, CLI, schema). |
+| `evidence` | `object` | Evidence gates with pass/fail status. |
+| `review_plan` | `array` | Prioritized list of files to review. |
+
+### Change Surface (`change_surface`)
+
+Metrics quantifying the scope of changes between base and head refs.
+
+```json
+{
+  "change_surface": {
+    "commits": 5,
+    "files_changed": 12,
+    "insertions": 350,
+    "deletions": 120,
+    "net_lines": 230,
+    "churn_velocity": 94.0,
+    "change_concentration": 0.65
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `commits` | `integer` | Number of commits in the diff. |
+| `files_changed` | `integer` | Number of files modified. |
+| `insertions` | `integer` | Total lines added. |
+| `deletions` | `integer` | Total lines removed. |
+| `net_lines` | `integer` | Net line change (insertions - deletions). |
+| `churn_velocity` | `float` | Average lines changed per commit. |
+| `change_concentration` | `float` | Ratio of changes in top 20% of files (0.0-1.0). |
+
+### Composition (`composition`)
+
+Breakdown of changed files by category.
+
+```json
+{
+  "composition": {
+    "code_pct": 0.65,
+    "test_pct": 0.20,
+    "docs_pct": 0.10,
+    "config_pct": 0.05,
+    "test_ratio": 0.31
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `code_pct` | `float` | Percentage of changes in production code files. |
+| `test_pct` | `float` | Percentage of changes in test files. |
+| `docs_pct` | `float` | Percentage of changes in documentation files. |
+| `config_pct` | `float` | Percentage of changes in configuration files. |
+| `test_ratio` | `float` | Ratio of test files to code files changed. |
+
+### Code Health (`code_health`)
+
+Health indicators for developer experience.
+
+```json
+{
+  "code_health": {
+    "score": 85,
+    "grade": "B",
+    "large_files_touched": 2,
+    "avg_file_size": 150,
+    "complexity_indicator": "medium",
+    "warnings": [
+      {
+        "path": "src/large_module.rs",
+        "warning_type": "large_file",
+        "message": "File has 650 lines, consider splitting"
+      }
+    ]
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `score` | `integer` | Overall health score (0-100). |
+| `grade` | `string` | Health grade (A-F). |
+| `large_files_touched` | `integer` | Number of large files (>500 lines) being changed. |
+| `avg_file_size` | `integer` | Average file size in changed files (lines). |
+| `complexity_indicator` | `string` | Complexity level: `"low"`, `"medium"`, `"high"`, or `"critical"`. |
+| `warnings` | `array` | Array of health warnings for specific files. |
+
+#### Health Warning Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `path` | `string` | File path. |
+| `warning_type` | `string` | Type: `"large_file"`, `"high_churn"`, `"low_test_coverage"`, `"complex_change"`, or `"bus_factor"`. |
+| `message` | `string` | Human-readable warning message. |
+
+### Risk (`risk`)
+
+Risk assessment for the changes.
+
+```json
+{
+  "risk": {
+    "hotspots_touched": ["src/core/engine.rs"],
+    "bus_factor_warnings": ["crates/parser"],
+    "level": "medium",
+    "score": 45
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `hotspots_touched` | `array` | List of high-churn files being modified. |
+| `bus_factor_warnings` | `array` | Modules with bus factor concerns (single maintainer). |
+| `level` | `string` | Risk level: `"low"`, `"medium"`, `"high"`, or `"critical"`. |
+| `score` | `integer` | Risk score (0-100). |
+
+### Contracts (`contracts`)
+
+Indicators of contract-level changes.
+
+```json
+{
+  "contracts": {
+    "api_changed": true,
+    "cli_changed": false,
+    "schema_changed": false,
+    "breaking_indicators": 1
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `api_changed` | `boolean` | Whether API surface files were modified. |
+| `cli_changed` | `boolean` | Whether CLI command files were modified. |
+| `schema_changed` | `boolean` | Whether schema files were modified. |
+| `breaking_indicators` | `integer` | Count of potential breaking change indicators. |
+
+### Evidence (`evidence`)
+
+Hard gates for quality assurance. Contains gate results with pass/fail status.
+
+```json
+{
+  "evidence": {
+    "overall_status": "pass",
+    "mutation": { ... },
+    "diff_coverage": { ... },
+    "contracts": { ... },
+    "supply_chain": { ... },
+    "determinism": { ... }
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `overall_status` | `string` | Aggregate status of all gates (see GateStatus). |
+| `mutation` | `object` | Mutation testing gate (always present). |
+| `diff_coverage` | `object\|null` | Diff coverage gate (optional). |
+| `contracts` | `object\|null` | Contract diff gate (optional). |
+| `supply_chain` | `object\|null` | Supply chain gate (optional). |
+| `determinism` | `object\|null` | Determinism gate (optional). |
+
+#### GateStatus Enum
+
+All gate status fields use one of these values:
+
+| Value | Description |
+| :--- | :--- |
+| `"pass"` | Gate passed all checks. |
+| `"fail"` | Gate failed one or more checks. |
+| `"skipped"` | No relevant files changed; gate not applicable. |
+| `"pending"` | Results not available and couldn't run locally. |
+
+The `overall_status` is computed as follows:
+- If any gate is `"fail"` → `"fail"`
+- If all gates are `"pass"` → `"pass"`
+- If any gate is `"pending"` (and none failed) → `"pending"`
+- Otherwise (mix of pass and skipped) → `"pass"`
+
+#### Gate Metadata (`GateMeta`)
+
+All gates include common metadata fields (flattened into the gate object):
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `status` | `string` | Gate status (see GateStatus). |
+| `source` | `string` | Evidence source: `"ci_artifact"`, `"cached"`, or `"ran_local"`. |
+| `commit_match` | `string` | Match quality: `"exact"`, `"partial"`, `"stale"`, or `"unknown"`. |
+| `scope` | `object` | Scope coverage information. |
+| `evidence_commit` | `string\|null` | SHA this evidence was generated for. |
+| `evidence_generated_at_ms` | `integer\|null` | Timestamp when evidence was generated. |
+
+#### Scope Coverage (`scope`)
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `relevant` | `array` | Files in scope for the gate. |
+| `tested` | `array` | Files actually tested. |
+| `ratio` | `float` | Coverage ratio (tested/relevant, 0.0-1.0). |
+| `lines_relevant` | `integer\|null` | Lines in scope (for line-level gates). |
+| `lines_tested` | `integer\|null` | Lines actually tested (for line-level gates). |
+
+#### Mutation Gate (`mutation`)
+
+```json
+{
+  "mutation": {
+    "status": "pass",
+    "source": "ci_artifact",
+    "commit_match": "exact",
+    "scope": { ... },
+    "evidence_commit": "abc123",
+    "evidence_generated_at_ms": 1706350000000,
+    "survivors": [],
+    "killed": 42,
+    "timeout": 3,
+    "unviable": 5
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `survivors` | `array` | Mutations that survived (escaped detection). |
+| `killed` | `integer` | Number of mutations killed by tests. |
+| `timeout` | `integer` | Number of mutations that caused timeouts. |
+| `unviable` | `integer` | Number of unviable mutations. |
+
+##### Mutation Survivor
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `file` | `string` | File path containing the survivor. |
+| `line` | `integer` | Line number of the mutation. |
+| `mutation` | `string` | Description of the mutation. |
+
+#### Diff Coverage Gate (`diff_coverage`)
+
+```json
+{
+  "diff_coverage": {
+    "status": "pass",
+    "source": "ran_local",
+    "commit_match": "exact",
+    "scope": { ... },
+    "lines_added": 100,
+    "lines_covered": 85,
+    "coverage_pct": 0.85,
+    "uncovered_hunks": [
+      { "file": "src/new.rs", "start_line": 45, "end_line": 52 }
+    ]
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `lines_added` | `integer` | Total lines added in the diff. |
+| `lines_covered` | `integer` | Lines covered by tests. |
+| `coverage_pct` | `float` | Coverage percentage (0.0-1.0). |
+| `uncovered_hunks` | `array` | Hunks of uncovered code. |
+
+#### Contract Diff Gate (`contracts`)
+
+A compound gate checking API semver, CLI, and schema compatibility.
+
+```json
+{
+  "contracts": {
+    "status": "pending",
+    "source": "ran_local",
+    "commit_match": "unknown",
+    "scope": { ... },
+    "semver": {
+      "status": "pending",
+      "breaking_changes": []
+    },
+    "cli": {
+      "status": "pending",
+      "diff_summary": null
+    },
+    "schema": {
+      "status": "pending",
+      "diff_summary": null
+    },
+    "failures": 0
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `semver` | `object\|null` | Semver compatibility sub-gate. |
+| `cli` | `object\|null` | CLI compatibility sub-gate. |
+| `schema` | `object\|null` | Schema compatibility sub-gate. |
+| `failures` | `integer` | Count of failed sub-gates. |
+
+#### Supply Chain Gate (`supply_chain`)
+
+```json
+{
+  "supply_chain": {
+    "status": "pass",
+    "source": "ran_local",
+    "commit_match": "exact",
+    "scope": { ... },
+    "vulnerabilities": [],
+    "denied": [],
+    "advisory_db_version": "2024-01-15"
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `vulnerabilities` | `array` | Detected vulnerabilities from cargo-audit. |
+| `denied` | `array` | Denied packages from cargo-deny. |
+| `advisory_db_version` | `string\|null` | Version of the advisory database used. |
+
+##### Vulnerability
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `string` | Advisory ID (e.g., RUSTSEC-2024-0001). |
+| `package` | `string` | Affected package name. |
+| `severity` | `string` | Severity level. |
+| `title` | `string` | Advisory title. |
+
+#### Determinism Gate (`determinism`)
+
+```json
+{
+  "determinism": {
+    "status": "pass",
+    "source": "ran_local",
+    "commit_match": "exact",
+    "scope": { ... },
+    "expected_hash": "abc123...",
+    "actual_hash": "abc123...",
+    "algo": "blake3",
+    "differences": []
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `expected_hash` | `string\|null` | Expected hash from baseline. |
+| `actual_hash` | `string\|null` | Actual computed hash. |
+| `algo` | `string` | Hash algorithm used (e.g., `"blake3"`). |
+| `differences` | `array` | List of files that differ from baseline. |
+
+### Review Plan (`review_plan`)
+
+Prioritized list of files requiring review.
+
+```json
+{
+  "review_plan": [
+    {
+      "path": "src/core/engine.rs",
+      "reason": "High-churn hotspot",
+      "priority": 1,
+      "complexity": 4,
+      "lines_changed": 85
+    },
+    {
+      "path": "src/api/handlers.rs",
+      "reason": "API surface change",
+      "priority": 2,
+      "complexity": 3,
+      "lines_changed": 42
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `path` | `string` | File path. |
+| `reason` | `string` | Why this file needs review. |
+| `priority` | `integer` | Review priority (lower = higher priority). |
+| `complexity` | `integer\|null` | Estimated review complexity (1-5). |
+| `lines_changed` | `integer\|null` | Lines changed in this file. |
+
+### Complete Cockpit Receipt Example
+
+```json
+{
+  "schema_version": 3,
+  "generated_at_ms": 1706350000000,
+  "base_ref": "main",
+  "head_ref": "feature/add-cockpit",
+  "change_surface": {
+    "commits": 3,
+    "files_changed": 8,
+    "insertions": 520,
+    "deletions": 45,
+    "net_lines": 475,
+    "churn_velocity": 188.3,
+    "change_concentration": 0.72
+  },
+  "composition": {
+    "code_pct": 0.70,
+    "test_pct": 0.15,
+    "docs_pct": 0.10,
+    "config_pct": 0.05,
+    "test_ratio": 0.21
+  },
+  "code_health": {
+    "score": 78,
+    "grade": "C",
+    "large_files_touched": 1,
+    "avg_file_size": 185,
+    "complexity_indicator": "medium",
+    "warnings": [
+      {
+        "path": "crates/tokmd/src/commands/cockpit.rs",
+        "warning_type": "large_file",
+        "message": "File has 850 lines, consider splitting"
+      }
+    ]
+  },
+  "risk": {
+    "hotspots_touched": [],
+    "bus_factor_warnings": [],
+    "level": "low",
+    "score": 25
+  },
+  "contracts": {
+    "api_changed": false,
+    "cli_changed": true,
+    "schema_changed": true,
+    "breaking_indicators": 0
+  },
+  "evidence": {
+    "overall_status": "pending",
+    "mutation": {
+      "status": "pending",
+      "source": "ran_local",
+      "commit_match": "unknown",
+      "scope": {
+        "relevant": ["crates/tokmd/src/commands/cockpit.rs"],
+        "tested": [],
+        "ratio": 0.0,
+        "lines_relevant": null,
+        "lines_tested": null
+      },
+      "evidence_commit": null,
+      "evidence_generated_at_ms": null,
+      "survivors": [],
+      "killed": 0,
+      "timeout": 0,
+      "unviable": 0
+    },
+    "diff_coverage": null,
+    "contracts": {
+      "status": "pending",
+      "source": "ran_local",
+      "commit_match": "unknown",
+      "scope": {
+        "relevant": ["crates/tokmd/src/commands/cockpit.rs"],
+        "tested": ["crates/tokmd/src/commands/cockpit.rs"],
+        "ratio": 1.0,
+        "lines_relevant": null,
+        "lines_tested": null
+      },
+      "evidence_commit": null,
+      "evidence_generated_at_ms": null,
+      "semver": null,
+      "cli": {
+        "status": "pending",
+        "diff_summary": null
+      },
+      "schema": {
+        "status": "pending",
+        "diff_summary": null
+      },
+      "failures": 0
+    },
+    "supply_chain": null,
+    "determinism": null
+  },
+  "review_plan": [
+    {
+      "path": "crates/tokmd/src/commands/cockpit.rs",
+      "reason": "New command implementation",
+      "priority": 1,
+      "complexity": 4,
+      "lines_changed": 450
+    },
+    {
+      "path": "docs/SCHEMA.md",
+      "reason": "Documentation update",
+      "priority": 3,
+      "complexity": 2,
+      "lines_changed": 200
+    }
+  ]
+}
+```

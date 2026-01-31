@@ -6,6 +6,14 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Streaming git log adapter for tokmd analysis."
+readme = "README.md"
+keywords = ["git", "history", "commits", "streaming", "code-analysis"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-git"
 
 [dependencies]
 anyhow = "1.0.100"
+
+[dev-dependencies]
+proptest = "1"
+tempfile = "3"

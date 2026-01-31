@@ -1,3 +1,20 @@
+//! # tokmd-tokeignore
+//!
+//! **Tier 1 (Template Generation)**
+//!
+//! Template generation for `.tokeignore` files. Provides profile-based templates
+//! for common project types.
+//!
+//! ## What belongs here
+//! * `.tokeignore` template content by profile
+//! * Template writing to disk or stdout
+//! * Force overwrite logic
+//!
+//! ## What does NOT belong here
+//! * Parsing or applying ignore patterns (tokei handles this)
+//! * Scanning logic
+//! * Modifying existing `.tokeignore` files (only create/overwrite)
+
 use std::fs;
 use std::path::PathBuf;
 
@@ -53,6 +70,10 @@ coverage/
 .coverage
 lcov.info
 
+# --- tokmd outputs ---
+.runs/
+**/.runs/
+
 # --- Tree-sitter (common "big files" when vendored) ---
 # Adjust to match your vendor layout.
 **/tree-sitter*/src/parser.c
@@ -71,6 +92,10 @@ target/
 # Coverage
 coverage/
 **/coverage/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_NODE: &str = r#"# .tokeignore (Node)
@@ -84,6 +109,10 @@ build/
 **/build/
 coverage/
 **/coverage/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_MONO: &str = r#"# .tokeignore (Monorepo)
@@ -133,6 +162,10 @@ coverage/
 .coverage
 lcov.info
 
+# tokmd outputs
+.runs/
+**/.runs/
+
 # Tree-sitter vendoring (common big files)
 **/tree-sitter*/src/parser.c
 **/tree-sitter*/src/scanner.c
@@ -154,6 +187,10 @@ venv/
 htmlcov/
 **/htmlcov/
 .coverage
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_GO: &str = r#"# .tokeignore (Go)
@@ -161,6 +198,10 @@ vendor/
 **/vendor/
 bin/
 **/bin/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 const TEMPLATE_CPP: &str = r#"# .tokeignore (C++)
@@ -172,6 +213,10 @@ out/
 **/out/
 .cache/
 **/.cache/
+
+# tokmd outputs
+.runs/
+**/.runs/
 "#;
 
 pub fn init_tokeignore(args: &InitArgs) -> Result<()> {

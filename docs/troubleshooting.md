@@ -358,6 +358,324 @@ See `docs/SCHEMA.md` and `docs/schema.json` for the formal schema definition.
 
 ---
 
+## Path Does Not Exist Error
+
+### Symptom
+`tokmd` fails with an error like "path does not exist: /path/to/file".
+
+### Explanation
+
+As of v1.3.0, `tokmd` now returns an error when input paths don't exist, rather than silently succeeding with empty output. This prevents silent failures in CI pipelines and scripts.
+
+### Solutions
+
+**1. Verify paths exist**:
+```bash
+ls -la path/to/scan
+```
+
+**2. Use glob patterns carefully**:
+Shell expansion happens before `tokmd` sees the paths. If no files match, the shell may pass the literal pattern:
+```bash
+# May fail if no .rs files exist
+tokmd -p "src/*.rs"
+
+# Use quotes to let tokmd handle the pattern
+tokmd -p src --exclude "*.txt"
+```
+
+**3. Handle missing paths in scripts**:
+```bash
+if [[ -d "$DIR" ]]; then
+  tokmd -p "$DIR"
+else
+  echo "Directory $DIR not found"
+  exit 1
+fi
+```
+
+---
+
+## Cockpit Command Issues
+
+### "Not in a git repository" Error
+
+**Symptom**:
+`tokmd cockpit` fails with "Not in a git repository" error.
+
+**Cause**:
+The cockpit command requires a git repository to compute metrics like commit counts, branch information, and other git-based evidence gates.
+
+**Solutions**:
+
+**1. Ensure you're in a git repository**:
+```bash
+git status  # Should show repository status
+git rev-parse --git-dir  # Should print .git or path to git directory
+```
+
+**2. Initialize a git repository if needed**:
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+```
+
+**3. Check for detached worktree issues**:
+If using git worktrees, ensure the worktree is properly linked:
+```bash
+git worktree list
+```
+
+---
+
+### Understanding Gate Statuses
+
+**Symptom**:
+Confusion about what the different gate statuses (pass, fail, skipped, pending) mean in cockpit output.
+
+**Explanation**:
+
+| Status | Meaning |
+|--------|---------|
+| `pass` | The evidence gate met its threshold or passed its check |
+| `fail` | The evidence gate did not meet its threshold |
+| `skipped` | The gate was not evaluated (feature disabled or data unavailable) |
+| `pending` | The gate requires manual verification or external input |
+
+**Diagnosis**:
+
+Check individual gate details in the JSON output:
+```bash
+tokmd cockpit --format json | jq '.evidence_gates'
+```
+
+**Common causes of `skipped` status**:
+- Feature not enabled at compile time (e.g., `git` feature)
+- Required data not available (e.g., no CI artifacts)
+- Gate explicitly disabled in configuration
+
+---
+
+### Evidence Gate Failures
+
+**Symptom**:
+One or more evidence gates show `fail` status and you need to understand why.
+
+**Diagnosis**:
+
+**1. Check the detailed cockpit output**:
+```bash
+tokmd cockpit --format json | jq '.evidence_gates[] | select(.status == "fail")'
+```
+
+**2. Review the specific metric values**:
+```bash
+tokmd cockpit --format json | jq '.metrics'
+```
+
+**Solutions**:
+
+**1. Test coverage gate failures**:
+If test coverage is below threshold, add more tests:
+```bash
+# Check current coverage
+tokmd cockpit --format json | jq '.evidence_gates[] | select(.name == "test_coverage")'
+```
+
+**2. Documentation gate failures**:
+Ensure documentation meets the required standards.
+
+**3. Code quality gate failures**:
+Run the relevant linters and fix issues:
+```bash
+cargo clippy -- -D warnings
+cargo fmt --check
+```
+
+**4. Adjust thresholds if appropriate**:
+If the default thresholds are too strict for your project, configure custom thresholds in `tokmd.toml`.
+
+---
+
+## Gate Command Issues
+
+### Policy File Parsing Errors
+
+**Symptom**:
+`tokmd gate` fails with errors about parsing the policy file.
+
+**Diagnosis**:
+
+**Verify TOML syntax**:
+```bash
+cat .tokmd-gates.toml | python -c "import sys, tomllib; tomllib.loads(sys.stdin.read())"
+```
+
+**Common Causes**:
+
+**1. Invalid TOML syntax**:
+```toml
+# Wrong - missing quotes around string with special chars
+path = /some/path
+
+# Correct
+path = "/some/path"
+```
+
+**2. Wrong section structure**:
+```toml
+# Wrong
+[rules]
+name = "test"
+
+# Correct - rules is an array
+[[rules]]
+name = "test"
+```
+
+**3. Invalid comparison operators**:
+Ensure you're using valid operators: `>`, `>=`, `<`, `<=`, `==`, `!=`
+
+**Solutions**:
+
+Validate your policy file structure:
+```bash
+tokmd gate --policy .tokmd-gates.toml --validate
+```
+
+---
+
+### JSON Pointer Not Found
+
+**Symptom**:
+`tokmd gate` fails with "JSON pointer not found" or similar path resolution error.
+
+**Cause**:
+The JSON pointer in your policy rule doesn't match the structure of the input data.
+
+**Diagnosis**:
+
+**1. Inspect the actual JSON structure**:
+```bash
+tokmd cockpit --format json | jq 'keys'
+tokmd cockpit --format json | jq '.metrics | keys'
+```
+
+**2. Check your pointer syntax**:
+JSON pointers use `/` as separator and are case-sensitive:
+```toml
+# Correct pointer syntax
+pointer = "/metrics/test_coverage/value"
+
+# Wrong - using dots instead of slashes
+pointer = ".metrics.test_coverage.value"
+```
+
+**Solutions**:
+
+**1. Use valid JSON pointer syntax**:
+```toml
+[[rules]]
+name = "coverage-check"
+pointer = "/metrics/test_coverage/value"
+operator = ">="
+threshold = 80
+```
+
+**2. Handle nested arrays**:
+Use numeric indices for array elements:
+```toml
+pointer = "/evidence_gates/0/status"
+```
+
+**3. Test your pointer interactively**:
+```bash
+tokmd cockpit --format json | jq '.metrics.test_coverage.value'
+```
+
+---
+
+### Rule Evaluation Failures
+
+**Symptom**:
+Policy rules fail to evaluate or produce unexpected results.
+
+**Diagnosis**:
+
+**1. Run with verbose output**:
+```bash
+tokmd gate --policy .tokmd-gates.toml -v
+```
+
+**2. Check individual rule results**:
+```bash
+tokmd gate --policy .tokmd-gates.toml --format json | jq '.rules'
+```
+
+**Common Causes**:
+
+**1. Type mismatch**:
+Comparing a string value with a numeric threshold:
+```toml
+# This will fail if status is a string
+pointer = "/status"
+operator = "=="
+threshold = 1
+
+# Use string comparison for string values
+pointer = "/status"
+operator = "=="
+value = "pass"
+```
+
+**2. Null or missing values**:
+The pointed value doesn't exist or is null. Add a fallback:
+```toml
+[[rules]]
+name = "coverage-check"
+pointer = "/metrics/test_coverage/value"
+operator = ">="
+threshold = 80
+on_missing = "skip"  # or "fail"
+```
+
+**3. Incorrect operator for the comparison**:
+```toml
+# Wrong - using string operator for numeric comparison
+operator = "contains"
+threshold = 80
+
+# Correct
+operator = ">="
+threshold = 80
+```
+
+**Solutions**:
+
+**1. Validate input data first**:
+```bash
+tokmd cockpit --format json > cockpit.json
+cat cockpit.json | jq '.metrics'
+```
+
+**2. Test rules incrementally**:
+Start with simple rules and add complexity:
+```toml
+[[rules]]
+name = "simple-test"
+pointer = "/schema_version"
+operator = "=="
+threshold = 2
+```
+
+**3. Check the gate command documentation**:
+```bash
+tokmd gate --help
+```
+
+---
+
 ## Getting More Help
 
 If you're still stuck:

@@ -44,12 +44,12 @@
 ## In Progress
 
 ### Enrichers (v1.3.x)
-- [ ] **Archetype Detection**: Identify project types (CLI, library, web app, monorepo)
-- [ ] **Topic Clouds**: TF-IDF semantic analysis of path segments
-- [ ] **Entropy Profiling**: Detect high-entropy files (potential secrets)
-- [ ] **Predictive Churn**: Linear regression on commit history
-- [ ] **Corporate Fingerprint**: Author domain statistics
-- [ ] **License Radar**: SPDX detection from LICENSE files and metadata
+- [x] **Archetype Detection**: Identify project types (CLI, library, web app, monorepo)
+- [x] **Topic Clouds**: TF-IDF semantic analysis of path segments
+- [x] **Entropy Profiling**: Detect high-entropy files (potential secrets)
+- [x] **Predictive Churn**: Linear regression on commit history
+- [x] **Corporate Fingerprint**: Author domain statistics
+- [x] **License Radar**: SPDX detection from LICENSE files and metadata
 
 ## Future
 

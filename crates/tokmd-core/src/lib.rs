@@ -1,10 +1,22 @@
 //! # tokmd-core
 //!
+//! **Tier 4 (Library Facade)**
+//!
 //! This crate is the **primary library interface** for `tokmd`.
 //! It coordinates scanning, aggregation, and modeling to produce code inventory receipts.
 //!
 //! If you are embedding `tokmd` into another Rust application, depend on this crate
 //! and `tokmd-types`. Avoid depending on `tokmd-scan` or `tokmd-model` directly unless necessary.
+//!
+//! ## What belongs here
+//! * High-level workflow coordination
+//! * Simplified API for library consumers
+//! * Re-exports for convenience
+//!
+//! ## What does NOT belong here
+//! * CLI argument parsing (use tokmd crate)
+//! * Low-level scanning logic (use tokmd-scan)
+//! * Aggregation details (use tokmd-model)
 //!
 //! ## Example
 //!

@@ -82,6 +82,142 @@ Each crate may have its own tests in a `tests/` directory. Run all tests with:
 cargo test --workspace
 ```
 
+### 4. Property-Based Testing (proptest)
+
+Property-based testing verifies that functions behave correctly across a wide range of randomly generated inputs. Instead of testing specific examples, you define properties that should always hold.
+
+**When to use**: Functions with well-defined invariants (e.g., determinism, length constraints, cross-platform consistency).
+
+**Running property tests**:
+```bash
+cargo test -p tokmd-redact properties  # Run property tests for tokmd-redact
+cargo test --workspace                  # Includes all property tests
+```
+
+**Example patterns** (from `crates/tokmd-redact/tests/properties.rs`):
+```rust
+use proptest::prelude::*;
+
+proptest! {
+    /// Hash output is always exactly 16 hex characters.
+    #[test]
+    fn short_hash_length_is_16(input in ".*") {
+        let hash = short_hash(&input);
+        prop_assert_eq!(hash.len(), 16);
+    }
+
+    /// Same input always produces same hash (determinism).
+    #[test]
+    fn short_hash_is_deterministic(input in ".*") {
+        let h1 = short_hash(&input);
+        let h2 = short_hash(&input);
+        prop_assert_eq!(h1, h2, "Hash must be deterministic");
+    }
+
+    /// Unix and Windows paths produce identical hashes.
+    #[test]
+    fn short_hash_normalizes_separators(path in arb_path()) {
+        let unix_path = path.replace('\\', "/");
+        let windows_path = path.replace('/', "\\");
+        prop_assert_eq!(short_hash(&unix_path), short_hash(&windows_path));
+    }
+}
+```
+
+**Key concepts**:
+- Define *strategies* to generate test data (e.g., `arb_path()` for path-like strings)
+- Use `prop_assert!` and `prop_assert_eq!` instead of standard assertions
+- Use `prop_assume!` to skip inputs that don't meet preconditions
+- Proptest will shrink failing cases to minimal reproducible examples
+
+### 5. Fuzz Testing (libfuzzer)
+
+Fuzz testing bombards functions with arbitrary byte sequences to find crashes, panics, and edge cases. This is especially useful for parsing code and security-sensitive operations.
+
+**Prerequisites**:
+```bash
+rustup install nightly
+cargo +nightly install cargo-fuzz
+```
+
+**Running fuzz targets**:
+```bash
+cargo +nightly fuzz run fuzz_entropy --features content
+cargo +nightly fuzz run fuzz_json_types --features types
+cargo +nightly fuzz run fuzz_redact --features redact
+```
+
+**Available targets** (see `fuzz/README.md` for complete list):
+| Target | Feature | Description |
+|--------|---------|-------------|
+| `fuzz_entropy` | `content` | Entropy calculation |
+| `fuzz_json_types` | `types` | JSON deserialization of receipt types |
+| `fuzz_normalize_path` | `model` | Path normalization |
+| `fuzz_toml_config` | `config` | `tokmd.toml` config parsing |
+| `fuzz_redact` | `redact` | Path redaction |
+
+**Using dictionaries** for better coverage:
+```bash
+cargo +nightly fuzz run fuzz_json_types --features types -- -dict=fuzz/dict/json.dict
+```
+
+**Limiting input size**:
+```bash
+cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
+```
+
+For full documentation, see [`fuzz/README.md`](fuzz/README.md).
+
+### 6. Mutation Testing (cargo-mutants)
+
+Mutation testing verifies test suite quality by introducing small changes (mutations) to the code and checking if tests catch them. Surviving mutations indicate gaps in test coverage.
+
+**Install**:
+```bash
+cargo install cargo-mutants
+```
+
+**Running locally**:
+```bash
+# Test mutations in a specific file
+cargo mutants --file crates/tokmd-redact/src/lib.rs
+
+# Test a specific crate (run from crate directory for proper test scoping)
+cd crates/tokmd-redact && cargo mutants
+
+# Test with all features enabled
+cargo mutants --all-features
+```
+
+**Interpreting results**:
+- **Killed**: Test suite caught the mutation (good)
+- **Timeout**: Mutation caused tests to hang (usually acceptable)
+- **Unviable**: Mutation caused compilation failure (neutral)
+- **Missed/Survived**: Mutation was not detected (indicates a test gap)
+
+**Configuration** (`.cargo/mutants.toml`):
+```toml
+all_features = true
+gitignore = true
+timeout_multiplier = 2.0
+
+# Exclude test code from mutation
+exclude_globs = ["**/tests/**", "fuzz/**"]
+
+# Exclude boilerplate
+exclude_re = ["impl.*Display", "fn main\\("]
+```
+
+**CI integration**: Mutation testing runs automatically on PRs via `.github/workflows/mutants.yml`:
+- Only tests changed `.rs` files (up to 20 files)
+- Generates a summary JSON with survivors
+- PRs with surviving mutations will fail CI
+
+**When mutations survive**:
+1. Review the mutation to understand what behavior wasn't tested
+2. Add a test that specifically exercises that code path
+3. Re-run mutation testing to verify the mutation is now caught
+
 ## Code Style
 
 -   Run `cargo fmt` before committing.
@@ -135,11 +271,57 @@ cargo test --workspace
 ## Feature Flags
 
 Some features are gated to allow selective compilation:
-- `git`: Git history analysis (requires git2)
-- `content`: File content scanning
+- `git`: Git history analysis (shells out to `git` command)
+- `content`: File content scanning (entropy, TODOs, duplicates)
 - `walk`: Filesystem traversal for assets
 
 When adding new features with heavy dependencies, consider making them optional.
+
+## Publishing to crates.io
+
+Publishing is handled via `cargo xtask publish`, which ensures correct dependency order, validates packaging, and handles propagation delays.
+
+### Workflow
+
+```bash
+# 1. Review the publish plan
+cargo xtask publish --plan --verbose
+
+# 2. Validate packaging (runs cargo publish --dry-run for each crate)
+cargo xtask publish --dry-run
+
+# 3. Publish for real (requires confirmation)
+cargo xtask publish --yes
+
+# 4. Publish and create git tag
+cargo xtask publish --yes --tag
+```
+
+### Pre-publish checks
+
+The xtask runs these checks before publishing:
+- Clean git working directory
+- Version consistency across all crates
+- CHANGELOG.md contains the version
+- All tests pass
+
+Skip individual checks with `--skip-git-check`, `--skip-version-check`, `--skip-changelog-check`, `--skip-tests`, or all with `--skip-checks`.
+
+### Resuming after failure
+
+If publishing fails partway through:
+```bash
+cargo xtask publish --from tokmd-format --yes
+```
+
+### Justfile shortcuts
+
+```bash
+just publish-plan   # cargo xtask publish --plan --verbose
+just publish-dry    # cargo xtask publish --dry-run
+just publish        # cargo xtask publish --yes
+just publish-tag    # cargo xtask publish --yes --tag
+```
 
 ## Language Bindings (Planned)
 

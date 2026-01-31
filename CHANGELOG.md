@@ -5,21 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-01-31
 
 ### Added
+- **Cockpit Command**: `tokmd cockpit` for PR metrics generation with comprehensive evidence gates
+  - Change surface analysis (files added/modified/deleted, lines changed)
+  - Code composition breakdown (production vs test vs config)
+  - Code health metrics (complexity, doc coverage, test coverage)
+  - Risk assessment (hotspots, coupling, freshness)
+  - Evidence gates (mutation testing, diff coverage, contracts, supply chain, determinism)
+  - Review plan generation with prioritized file list
+  - Output formats: JSON, Markdown, Sections (for PR templates)
+- **Gate Command**: `tokmd gate` for policy-based quality gates with JSON pointer rules and inline policy support
+- **Interactive Wizard**: `tokmd init --interactive` for guided project configuration
+- **Git-Ranked Context**: `--rank-by churn/hotspot` options in `tokmd context` for git-aware file prioritization
+- **Tools Schema**: `tokmd tools` command for generating LLM tool definitions (OpenAI, Anthropic, JSON Schema formats)
+- **New Crate**: `tokmd-gate` for policy evaluation with JSON pointer resolution
 - **Archetype Detection**: Identify project types (CLI, library, web app, monorepo)
 - **Topic Clouds**: TF-IDF semantic analysis of path segments
 - **Entropy Profiling**: Detect high-entropy files (potential secrets)
 - **Predictive Churn**: Linear regression on commit history for trend detection
 - **Corporate Fingerprint**: Author domain statistics from git history
 - **License Radar**: SPDX detection from LICENSE files and metadata
+- **Context Output Options**: `--out`, `--force`, `--bundle-dir`, `--log`, `--max-output-bytes` flags for flexible output handling
+- **CONTRIBUTING.md**: Comprehensive contributor guide with setup instructions, testing strategy, code style, and publishing workflow
+- **Fun Feature Variants**: `render_obj` and `render_midi` functions now have feature-gated variants
 
 ### Changed
-- **Schema Version**: Analysis receipts now use `schema_version: 2`
+- **Schema Version**: Analysis receipts now use `schema_version: 2`, cockpit receipts use `schema_version: 3`
 - **API**: `tokmd_core::scan_workflow` now accepts `redact: Option<RedactMode>` parameter
+- **UX**: Non-existent input paths now return an error instead of silent success
+- **Feature Flags**: `git`, `walk`, and `content` features are now exposed in CLI crate for lightweight builds
+- **Architecture**: Decoupled `tokmd-types` from `tokmd-config`, making `clap` an optional dependency
+
+### Fixed
+- **Git Initialization**: Default branch now correctly set to `main` in git repository initialization
+- **Redaction Tests**: Fixed test collection to use `Vec` for proper error handling
+- **Scan Tests**: Improved error handling in scan integration tests
+
+### Performance
+- **Export Streaming**: Reduced allocations in export streaming by using iterators with `Cow`
+
+### Internal
+- **Test Robustness**: Replaced `unwrap`/`expect` with `Result` in tests for better error messages
+- **Config Determinism**: Locked deterministic ordering in configuration tests
+- **Comprehensive Test Suite**: Added integration tests across all major crates (model, format, walk, git, analysis, fun, config, types)
+- **Property-Based Tests**: Added proptest coverage for tokmd-redact, tokmd-tokeignore, and tokmd-walk
+- **Fuzz Targets**: Added fuzz targets for path redaction and JSON deserialization with dictionaries
+- **Mutation Testing**: Added `cargo-mutants` configuration and CI gate for PR quality assurance
+  - Enhanced mutation testing workflow with improved file change detection
+  - Mutation testing evidence section in cockpit metrics
+- **Publish Workflow**: Enhanced `cargo xtask publish` with `--plan`, `--dry-run`, `--from`, `--skip-*` options and Justfile shortcuts
+- **CI Improvements**: Added publish plan verification and mutation testing jobs to CI workflow
+- **Deprecated API Migration**: Replaced deprecated `cargo_bin` usage with `cargo_bin_cmd` in integration tests
 
 ### Documentation
+- **Crate READMEs**: Added README.md files for all 17 crates with installation, usage, and API documentation
 - **New Troubleshooting Guide**: Comprehensive guide covering common issues, exit codes, performance optimization, and debugging tips
 - **CI/CD Integration Recipes**: Added GitHub Actions, GitLab CI, pre-commit hooks, and baseline tracking workflow examples
 - **Configuration Reference**: Expanded `tokmd.toml` documentation with full schema, file location precedence, environment variables, and named profiles
@@ -27,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Exit Codes Reference**: Documented standard and command-specific exit codes
 - **Sorting Clarification**: Clarified that output is automatically sorted (descending by code lines, then path) with no `--sort` flag
 - **Bug Fix**: Removed reference to non-existent `--sort code` flag in tutorial
+- **Path Error Documentation**: Added troubleshooting section for non-existent path errors
+- **CLI Reference**: Documented new context command output flags (`--out`, `--bundle-dir`, `--log`, etc.)
 
 ## [1.2.0] - 2026-01-27
 
@@ -115,5 +158,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ignore Logic**: Corrected behavior where `--no-ignore` did not consistently disable all ignore types.
 - **Stability**: Fixed deterministic sorting of output rows.
 
-## [0.1.0] - 2026-01-01
+## [0.1.0] - 2026-01-25
 - Initial prototype release.

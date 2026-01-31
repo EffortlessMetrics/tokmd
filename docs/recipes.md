@@ -10,25 +10,25 @@ When you need to feed actual code to an LLM (not just metadata), use the `contex
 
 ```bash
 # Pack files into 128k tokens (Claude's context window)
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 
 # Spread coverage across modules instead of just largest files
-tokmd context --budget 128k --strategy spread --output bundle
+tokmd context --budget 128k --strategy spread --output bundle --out context.txt
 
-# Strip comments for maximum density
-tokmd context --budget 128k --output bundle --compress
+# Strip blank lines for maximum density
+tokmd context --budget 128k --output bundle --compress --out context.txt
 
 # Use module roots for better organization
-tokmd context --budget 128k --module-roots crates,src --strategy spread
+tokmd context --budget 128k --module-roots crates,src --strategy spread --out context.txt
 ```
 
 **Why**:
 - `greedy` strategy maximizes code coverage by taking largest files first.
 - `spread` strategy ensures you get representation from all modules.
-- `--compress` removes comments and blank lines for more content per token.
+- `--compress` strips blank lines for more content per token.
 - `--module-roots` groups files by directory structure for better spread coverage.
 
-> **Note**: `--rank-by churn` and `--rank-by hotspot` require git signal integration (planned). Currently these fall back to ranking by `code` lines.
+> **Tip**: Use `--rank-by churn` or `--rank-by hotspot` to prioritize recently-changed or high-complexity files (requires git history).
 
 ## 2. Getting a File Inventory for LLM Context Planning
 
@@ -177,9 +177,53 @@ Returns:
 - Duration in months
 - Suggested team size
 
-## 10. CI Gate: Fail if Files are Too Large
+## 10. CI Gate: Policy-Based Quality Gates
 
-Enforce a "no monolithic files" policy in CI.
+Use `tokmd gate` to enforce code quality policies in CI with JSON pointer rules.
+
+**Goal**: Enforce multiple quality standards in a single command.
+
+```bash
+# Gate using inline rules from tokmd.toml
+tokmd gate
+
+# Gate with explicit policy file
+tokmd gate --policy policy.toml
+
+# Compute analysis then gate
+tokmd gate --preset health
+
+# JSON output for CI parsing
+tokmd gate --format json
+```
+
+**Example policy.toml**:
+```toml
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds 500k token budget"
+
+[[rules]]
+name = "min_docs"
+pointer = "/derived/doc_density/total/ratio"
+op = "gte"
+value = 0.1
+level = "warn"
+message = "Documentation below 10%"
+```
+
+**Exit codes**:
+- `0`: All rules passed
+- `1`: One or more rules failed
+- `2`: Policy error (invalid file, parse error)
+
+## 10a. CI Gate: Simple File Size Check
+
+For simpler checks without a policy file.
 
 **Goal**: Fail the build if any source file exceeds 2000 lines.
 
@@ -253,12 +297,115 @@ Check for license files and SPDX identifiers.
 tokmd analyze --preset security --format json | jq '.license'
 ```
 
+## 14a. Generate CycloneDX SBOM
+
+Export your codebase inventory as a CycloneDX Software Bill of Materials.
+
+```bash
+# Generate CycloneDX SBOM to file
+tokmd export --format cyclonedx > bom.json
+
+# Or write directly to file
+tokmd export --format cyclonedx --out bom.json
+
+# Combine with filtering
+tokmd export --format cyclonedx --min-code 10 --max-rows 500 > bom.json
+```
+
+The output follows CycloneDX 1.6 specification and includes:
+- `bomFormat`: "CycloneDX"
+- `specVersion`: "1.6"
+- `metadata`: Tool information and timestamp
+- `components`: List of source files with type, name, and version
+
 ## 15. Quick PR Summary
 
 Paste a summary of the languages used in your PR description.
 
 ```bash
 tokmd --format md --top 5
+```
+
+## 15a. Generating LLM Tool Definitions
+
+Export tokmd's CLI schema for AI agent integration.
+
+**Goal**: Enable LLMs to programmatically invoke tokmd commands.
+
+```bash
+# OpenAI function calling format
+tokmd tools --format openai --pretty > tools.json
+
+# Anthropic tool use format
+tokmd tools --format anthropic --pretty > tools.json
+
+# JSON Schema for documentation
+tokmd tools --format jsonschema --pretty > schema.json
+```
+
+**Use case**: Feed the schema to an AI agent so it can analyze repositories autonomously.
+
+## 15b. PR Cockpit Metrics
+
+Generate comprehensive PR metrics for code review automation with evidence gates.
+
+**Goal**: Automate PR review with structured metrics and quality gates.
+
+```bash
+# Generate JSON metrics for CI parsing
+tokmd cockpit
+
+# Markdown summary for PR description
+tokmd cockpit --format md
+
+# Compare specific refs
+tokmd cockpit --base origin/main --head feature-branch --format md
+
+# Generate sections for PR template filling
+tokmd cockpit --format sections --output pr-metrics.txt
+```
+
+**What you get**:
+- **Change surface**: Files added/modified/deleted, lines added/removed
+- **Composition**: Production vs test vs config breakdown
+- **Code health**: Complexity, doc coverage, test coverage
+- **Risk assessment**: Hotspots, coupling, freshness
+- **Evidence gates**: Mutation testing, diff coverage, contracts, supply chain
+- **Review plan**: Prioritized list of files to review
+
+**GitHub Actions integration**:
+```yaml
+name: PR Cockpit
+on:
+  pull_request:
+
+jobs:
+  cockpit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate cockpit metrics
+        run: |
+          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format md > cockpit.md
+
+      - name: Post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('cockpit.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
 ```
 
 ## 16. Troubleshooting Ignored Files

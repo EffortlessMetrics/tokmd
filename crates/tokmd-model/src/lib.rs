@@ -1,6 +1,6 @@
 //! # tokmd-model
 //!
-//! **Tier 2 (Logic)**
+//! **Tier 1 (Logic)**
 //!
 //! This crate contains the core business logic for aggregating and transforming code statistics.
 //! It handles the conversion from raw Tokei scan results into `tokmd` receipts.
@@ -14,6 +14,7 @@
 //! ## What does NOT belong here
 //! * CLI argument parsing
 //! * Output formatting (printing to stdout/file)
+//! * Tokei interaction (use tokmd-scan)
 
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};

@@ -1,6 +1,19 @@
 //! # tokmd-git
 //!
-//! Streaming git log adapter for tokmd analysis.
+//! **Tier 2 (Utilities)**
+//!
+//! Streaming git log adapter for tokmd analysis. Collects commit history
+//! without loading the entire history into memory.
+//!
+//! ## What belongs here
+//! * Git history collection
+//! * Commit parsing (timestamp, author, affected files)
+//! * Streaming interface
+//!
+//! ## What does NOT belong here
+//! * Analysis computation (use tokmd-analysis)
+//! * Git history modification
+//! * Complex git operations (use git2 crate directly if needed)
 
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};

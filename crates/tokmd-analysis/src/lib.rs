@@ -1,6 +1,20 @@
 //! # tokmd-analysis
 //!
-//! Analysis logic and optional enrichers for tokmd receipts.
+//! **Tier 3 (Orchestration)**
+//!
+//! Analysis logic and optional enrichers for tokmd receipts. Computes derived
+//! metrics and orchestrates optional analysis modules based on presets.
+//!
+//! ## What belongs here
+//! * Analysis orchestration and module coordination
+//! * Derived metric computation
+//! * Preset-based feature inclusion
+//! * Enricher implementations (archetype, topics, git metrics, etc.)
+//!
+//! ## What does NOT belong here
+//! * Output formatting (use tokmd-analysis-format)
+//! * CLI argument parsing
+//! * File modification
 
 mod analysis;
 mod archetype;

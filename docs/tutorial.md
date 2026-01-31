@@ -28,6 +28,24 @@ tokmd --version
 
 ---
 
+## Step 0.5: Quick Setup with Interactive Wizard (Optional)
+
+For first-time setup, run the interactive wizard to configure tokmd for your project:
+
+```bash
+tokmd init --interactive
+```
+
+The wizard will:
+1. Detect your project type (Rust, Node, Python, Go, etc.)
+2. Suggest appropriate module roots
+3. Configure module depth and context budget
+4. Optionally create both `.tokeignore` and `tokmd.toml`
+
+If you prefer to dive in without configuration, skip to Step 1.
+
+---
+
 ## Step 1: The "High Level" View
 
 First, let's see what languages are in this project. This helps you verify your assumptions (e.g., "Is this mostly Rust, or is there a lot of Python glue code?").
@@ -82,24 +100,25 @@ You want to paste actual code into an LLM, but your repo is too large. Use `cont
 
 ```bash
 # Pack the most valuable files into 128k tokens
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 ```
 
 **What happened?**
 - `--budget 128k`: Set a token limit matching Claude's context window.
 - `--output bundle`: Concatenated selected files into a single text file.
+- `--out context.txt`: Write output to a file instead of stdout.
 - Files are selected by size (largest = most valuable) until the budget is exhausted.
 
 **Alternative strategies**:
 ```bash
 # Spread coverage across all modules
-tokmd context --budget 128k --strategy spread --output bundle
+tokmd context --budget 128k --strategy spread --output bundle --out context.txt
 
-# Strip comments and blank lines for maximum density
-tokmd context --budget 128k --output bundle --compress
+# Strip blank lines for maximum density
+tokmd context --budget 128k --output bundle --compress --out context.txt
 
 # Use module roots for better organization
-tokmd context --budget 128k --module-roots src,crates --strategy spread --output bundle
+tokmd context --budget 128k --module-roots src,crates --strategy spread --output bundle --out context.txt
 ```
 
 ## Step 5: Creating a File Inventory for AI
@@ -251,6 +270,166 @@ Verbose output shows:
    - Remember: patterns without `/` match anywhere in the path
 
 See the [Troubleshooting Guide](troubleshooting.md) for more detailed scenarios.
+
+---
+
+## Step 12: Setting Up CI Quality Gates
+
+Enforce code quality standards in your CI pipeline with policy-based gates:
+
+```bash
+# Run gate with rules from tokmd.toml
+tokmd gate
+
+# Or with an explicit policy file
+tokmd gate --policy policy.toml
+```
+
+**Example inline rules in tokmd.toml**:
+```toml
+[[gate.rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 500000
+level = "error"
+message = "Codebase exceeds token budget"
+```
+
+**Exit codes**:
+- `0`: All rules passed
+- `1`: One or more rules failed (use this to fail CI)
+- `2`: Policy error
+
+See the [CLI Reference](reference-cli.md#tokmd-gate) for available operators and policy options.
+
+---
+
+## Step 13: Generating PR Metrics with `tokmd cockpit`
+
+**Goal**: Get comprehensive metrics for a pull request to aid code review.
+
+When preparing or reviewing a PR, you want to understand its scope, risk factors, and quality evidence. The `cockpit` command generates a complete metrics dashboard comparing two git references.
+
+**Basic usage** (compare current branch against main):
+```bash
+tokmd cockpit
+```
+
+**Specify different base and head**:
+```bash
+tokmd cockpit --base develop --head feature/my-branch
+```
+
+**Output in Markdown for PR descriptions**:
+```bash
+tokmd cockpit --format md --output pr-metrics.md
+```
+
+**What you get**:
+
+The cockpit receipt includes several sections:
+
+- **Change Surface**: Files added, modified, deleted, and net line changes
+- **Composition**: Breakdown of changes by language and type (production vs. test code)
+- **Code Health**: Comment density, complexity indicators
+- **Risk**: Hotspot analysis, coupling detection
+- **Contracts**: API surface changes (if applicable)
+- **Evidence**: Hard gates with pass/fail status
+
+**Understanding Evidence Gates**:
+
+The evidence section provides automated quality checks:
+
+| Gate | Description |
+|------|-------------|
+| `mutation` | Mutation testing results (were tests effective?) |
+| `diff_coverage` | Test coverage for changed lines |
+| `contracts` | Contract/API compatibility verification |
+| `supply_chain` | Dependency security checks |
+| `determinism` | Build reproducibility verification |
+
+Each gate has a status:
+- `pass`: Gate passed
+- `fail`: Gate failed (blocks merge if required)
+- `skipped`: No relevant files changed
+- `pending`: Results not yet available
+
+**Example workflow for CI**:
+```bash
+# Generate cockpit metrics for the PR
+tokmd cockpit --base $BASE_SHA --head $HEAD_SHA --format json --output cockpit.json
+
+# Use in PR template
+tokmd cockpit --format sections >> $GITHUB_STEP_SUMMARY
+```
+
+---
+
+## Step 14: Exporting Tool Schemas with `tokmd tools`
+
+**Goal**: Generate schema definitions of tokmd commands for LLM integration.
+
+When building AI agents or automation that uses tokmd, you need schema definitions in a format your LLM understands. The `tools` command exports all tokmd commands as structured schemas.
+
+**Generate OpenAI function calling format**:
+```bash
+tokmd tools --format openai --pretty
+```
+
+**Generate Anthropic tool use format**:
+```bash
+tokmd tools --format anthropic --pretty
+```
+
+**Generate standard JSON Schema**:
+```bash
+tokmd tools --format jsonschema --pretty
+```
+
+**Available formats**:
+
+| Format | Description |
+|--------|-------------|
+| `jsonschema` | JSON Schema Draft 7 (default) |
+| `openai` | OpenAI function calling format |
+| `anthropic` | Anthropic tool use format |
+| `clap` | Raw clap structure for debugging |
+
+**What the output includes**:
+
+Each tokmd command is represented with:
+- **name**: Command name (e.g., `analyze`, `export`)
+- **description**: What the command does
+- **parameters**: Array of arguments with types, descriptions, and constraints
+
+**Example: Integrating with an AI agent**:
+
+```bash
+# Export schema for your agent
+tokmd tools --format anthropic --pretty > tokmd-tools.json
+
+# The agent can now call tokmd commands with proper parameter validation
+```
+
+**Using in an LLM system prompt**:
+
+```python
+import json
+
+# Load the schema
+with open("tokmd-tools.json") as f:
+    tools = json.load(f)
+
+# Pass to your LLM API
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    tools=tools["tools"],
+    messages=[{"role": "user", "content": "Analyze this codebase for me"}]
+)
+```
+
+This enables your AI agent to intelligently invoke tokmd commands with validated parameters.
 
 ---
 

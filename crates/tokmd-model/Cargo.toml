@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Deterministic aggregation and receipt modeling for tokmd. Tier 2 stability."
+readme = "README.md"
+keywords = ["code-analysis", "aggregation", "receipts", "modeling", "tokei"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-model"
 
 [dependencies]
 anyhow = "1.0.100"

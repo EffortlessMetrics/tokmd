@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Analysis logic and enrichers for tokmd receipts."
+readme = "README.md"
+keywords = ["code-analysis", "metrics", "cocomo", "hotspots", "enrichment"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis"
 
 [features]
 default = []

@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Output formatting and serialization (Markdown, JSON, CSV) for tokmd."
+readme = "README.md"
+keywords = ["formatting", "markdown", "json", "csv", "serialization"]
+categories = ["development-tools", "encoding"]
+documentation = "https://docs.rs/tokmd-format"
 
 [dependencies]
 anyhow = "1.0.100"
@@ -21,3 +25,4 @@ tokmd-types.workspace = true
 [dev-dependencies]
 proptest = "1.9.0"
 insta = { version = "1.39.0", features = ["json"] }
+tempfile = "3.19.1"

@@ -1,19 +1,21 @@
 //! # tokmd-format
 //!
-//! **Tier 3 (Formatting)**
+//! **Tier 2 (Formatting)**
 //!
 //! This crate handles the rendering and serialization of `tokmd` receipts.
-//! It supports Markdown, TSV, JSON, JSONL, and CSV formats.
+//! It supports Markdown, TSV, JSON, JSONL, CSV, and CycloneDX formats.
 //!
 //! ## What belongs here
-//! * Serialization logic (JSON/CSV)
-//! * Markdown template rendering
+//! * Serialization logic (JSON/CSV/CycloneDX)
+//! * Markdown and TSV table rendering
 //! * Output file writing
-//! * Redaction hashing logic (for output safety)
+//! * Redaction integration (via tokmd-redact re-exports)
+//! * ScanArgs construction (single source of truth)
 //!
 //! ## What does NOT belong here
 //! * Business logic (calculating stats)
-//! * CLI arg parsing
+//! * CLI argument parsing
+//! * Analysis-specific formatting (use tokmd-analysis-format)
 
 use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;
@@ -47,8 +49,11 @@ fn now_ms() -> u128 {
 /// This is the canonical normalization function for scan inputs. Use this
 /// before storing paths in receipts to ensure consistent output across OS.
 pub fn normalize_scan_input(p: &Path) -> String {
-    let s = p.display().to_string().replace('\\', "/");
-    s.strip_prefix("./").unwrap_or(&s).to_string()
+    let mut s = p.display().to_string().replace('\\', "/");
+    while s.starts_with("./") {
+        s = s.strip_prefix("./").unwrap().to_string();
+    }
+    if s.is_empty() { ".".to_string() } else { s }
 }
 
 /// Construct `ScanArgs` with optional redaction applied.
@@ -93,13 +98,21 @@ pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMo
 // Language summary output
 // -----------------------
 
-pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
+/// Write a language report to a writer.
+///
+/// This is the core implementation that can be tested with any `Write` sink.
+pub fn write_lang_report_to<W: Write>(
+    mut out: W,
+    report: &LangReport,
+    global: &GlobalArgs,
+    args: &LangArgs,
+) -> Result<()> {
     match args.format {
         TableFormat::Md => {
-            print!("{}", render_lang_md(report));
+            out.write_all(render_lang_md(report).as_bytes())?;
         }
         TableFormat::Tsv => {
-            print!("{}", render_lang_tsv(report));
+            out.write_all(render_lang_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
             let receipt = LangReceipt {
@@ -118,10 +131,19 @@ pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangAr
                 },
                 report: report.clone(),
             };
-            println!("{}", serde_json::to_string(&receipt)?);
+            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
         }
     }
     Ok(())
+}
+
+/// Print a language report to stdout.
+///
+/// Thin wrapper around [`write_lang_report_to`] for stdout.
+pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
+    let stdout = io::stdout();
+    let out = stdout.lock();
+    write_lang_report_to(out, report, global, args)
 }
 
 fn render_lang_md(report: &LangReport) -> String {
@@ -212,17 +234,21 @@ fn render_lang_tsv(report: &LangReport) -> String {
 // Module summary output
 // ---------------------
 
-pub fn print_module_report(
+/// Write a module report to a writer.
+///
+/// This is the core implementation that can be tested with any `Write` sink.
+pub fn write_module_report_to<W: Write>(
+    mut out: W,
     report: &ModuleReport,
     global: &GlobalArgs,
     args: &ModuleArgs,
 ) -> Result<()> {
     match args.format {
         TableFormat::Md => {
-            print!("{}", render_module_md(report));
+            out.write_all(render_module_md(report).as_bytes())?;
         }
         TableFormat::Tsv => {
-            print!("{}", render_module_tsv(report));
+            out.write_all(render_module_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
             let receipt = ModuleReceipt {
@@ -242,10 +268,23 @@ pub fn print_module_report(
                 },
                 report: report.clone(),
             };
-            println!("{}", serde_json::to_string(&receipt)?);
+            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
         }
     }
     Ok(())
+}
+
+/// Print a module report to stdout.
+///
+/// Thin wrapper around [`write_module_report_to`] for stdout.
+pub fn print_module_report(
+    report: &ModuleReport,
+    global: &GlobalArgs,
+    args: &ModuleArgs,
+) -> Result<()> {
+    let stdout = io::stdout();
+    let out = stdout.lock();
+    write_module_report_to(out, report, global, args)
 }
 
 fn render_module_md(report: &ModuleReport) -> String {
@@ -923,6 +962,52 @@ pub fn create_diff_receipt(
     }
 }
 
+// =============================================================================
+// Public test helpers - expose internal functions for integration tests
+// =============================================================================
+
+/// Write CSV export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_csv_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_csv(out, export, args)
+}
+
+/// Write JSONL export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_jsonl_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_jsonl(out, export, global, args)
+}
+
+/// Write JSON export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_json_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    global: &GlobalArgs,
+    args: &ExportArgs,
+) -> Result<()> {
+    write_export_json(out, export, global, args)
+}
+
+/// Write CycloneDX export to a writer (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_cyclonedx_to<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    redact: RedactMode,
+) -> Result<()> {
+    write_export_cyclonedx(out, export, redact)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1384,5 +1469,339 @@ mod tests {
         let report = sample_module_report();
         let output = render_module_tsv(&report);
         insta::assert_snapshot!(output);
+    }
+
+    // ========================
+    // Diff Render Tests
+    // ========================
+
+    #[test]
+    fn test_render_diff_md_smoke() {
+        // Kills mutants: render_diff_md -> String::new() / "xyzzy".into()
+        let from = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            }],
+            total: Totals {
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 12,
+                lines: 12,
+                files: 1,
+                bytes: 120,
+                tokens: 24,
+                avg_lines: 12,
+            }],
+            total: Totals {
+                code: 12,
+                lines: 12,
+                files: 1,
+                bytes: 120,
+                tokens: 24,
+                avg_lines: 12,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Rust");
+        assert_eq!(rows[0].delta_code, 2);
+
+        let totals = compute_diff_totals(&rows);
+        assert_eq!(totals.delta_code, 2);
+
+        let md = render_diff_md("from", "to", &rows, &totals);
+
+        assert!(!md.trim().is_empty(), "diff markdown must not be empty");
+        assert!(md.contains("from"));
+        assert!(md.contains("to"));
+        assert!(md.contains("Rust"));
+    }
+
+    #[test]
+    fn test_compute_diff_rows_language_added() {
+        // Tests language being added (was 0, now has code)
+        let from = LangReport {
+            rows: vec![],
+            total: Totals {
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![LangRow {
+                lang: "Python".to_string(),
+                code: 100,
+                lines: 120,
+                files: 5,
+                bytes: 5000,
+                tokens: 250,
+                avg_lines: 24,
+            }],
+            total: Totals {
+                code: 100,
+                lines: 120,
+                files: 5,
+                bytes: 5000,
+                tokens: 250,
+                avg_lines: 24,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Python");
+        assert_eq!(rows[0].old_code, 0);
+        assert_eq!(rows[0].new_code, 100);
+        assert_eq!(rows[0].delta_code, 100);
+    }
+
+    #[test]
+    fn test_compute_diff_rows_language_removed() {
+        // Tests language being removed (had code, now 0)
+        let from = LangReport {
+            rows: vec![LangRow {
+                lang: "Go".to_string(),
+                code: 50,
+                lines: 60,
+                files: 2,
+                bytes: 2000,
+                tokens: 125,
+                avg_lines: 30,
+            }],
+            total: Totals {
+                code: 50,
+                lines: 60,
+                files: 2,
+                bytes: 2000,
+                tokens: 125,
+                avg_lines: 30,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let to = LangReport {
+            rows: vec![],
+            total: Totals {
+                code: 0,
+                lines: 0,
+                files: 0,
+                bytes: 0,
+                tokens: 0,
+                avg_lines: 0,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&from, &to);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].lang, "Go");
+        assert_eq!(rows[0].old_code, 50);
+        assert_eq!(rows[0].new_code, 0);
+        assert_eq!(rows[0].delta_code, -50);
+    }
+
+    #[test]
+    fn test_compute_diff_rows_unchanged_excluded() {
+        // Tests that unchanged languages are excluded from diff
+        let report = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 100,
+                lines: 100,
+                files: 1,
+                bytes: 1000,
+                tokens: 250,
+                avg_lines: 100,
+            }],
+            total: Totals {
+                code: 100,
+                lines: 100,
+                files: 1,
+                bytes: 1000,
+                tokens: 250,
+                avg_lines: 100,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+
+        let rows = compute_diff_rows(&report, &report);
+        assert!(rows.is_empty(), "unchanged languages should be excluded");
+    }
+
+    #[test]
+    fn test_format_delta() {
+        // Kills mutants in format_delta function
+        assert_eq!(format_delta(5), "+5");
+        assert_eq!(format_delta(0), "0");
+        assert_eq!(format_delta(-3), "-3");
+    }
+
+    // ========================
+    // write_*_to Tests (mutation killers)
+    // ========================
+
+    fn sample_global_args() -> GlobalArgs {
+        GlobalArgs::default()
+    }
+
+    fn sample_lang_args(format: TableFormat) -> LangArgs {
+        LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        }
+    }
+
+    fn sample_module_args(format: TableFormat) -> ModuleArgs {
+        ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format,
+            top: 0,
+            module_roots: vec!["crates".to_string()],
+            module_depth: 2,
+            children: tokmd_config::ChildIncludeMode::Separate,
+        }
+    }
+
+    #[test]
+    fn write_lang_report_to_md_writes_content() {
+        let report = sample_lang_report(true);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Md);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("|Lang|"), "must contain markdown header");
+        assert!(output.contains("|Rust|"), "must contain Rust row");
+        assert!(output.contains("|**Total**|"), "must contain total row");
+    }
+
+    #[test]
+    fn write_lang_report_to_tsv_writes_content() {
+        let report = sample_lang_report(false);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Tsv);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("Lang\t"), "must contain TSV header");
+        assert!(output.contains("Rust\t"), "must contain Rust row");
+        assert!(output.contains("Total\t"), "must contain total row");
+    }
+
+    #[test]
+    fn write_lang_report_to_json_writes_receipt() {
+        let report = sample_lang_report(true);
+        let global = sample_global_args();
+        let args = sample_lang_args(TableFormat::Json);
+        let mut buf = Vec::new();
+
+        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        // Parse as JSON to verify valid receipt
+        let receipt: LangReceipt = serde_json::from_str(&output).unwrap();
+        assert_eq!(receipt.mode, "lang");
+        assert_eq!(receipt.report.rows.len(), 2);
+        assert_eq!(receipt.report.total.code, 1050);
+    }
+
+    #[test]
+    fn write_module_report_to_md_writes_content() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Md);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("|Module|"), "must contain markdown header");
+        assert!(output.contains("|crates/foo|"), "must contain module row");
+        assert!(output.contains("|**Total**|"), "must contain total row");
+    }
+
+    #[test]
+    fn write_module_report_to_tsv_writes_content() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Tsv);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        assert!(output.contains("Module\t"), "must contain TSV header");
+        assert!(output.contains("crates/foo\t"), "must contain module row");
+        assert!(output.contains("Total\t"), "must contain total row");
+    }
+
+    #[test]
+    fn write_module_report_to_json_writes_receipt() {
+        let report = sample_module_report();
+        let global = sample_global_args();
+        let args = sample_module_args(TableFormat::Json);
+        let mut buf = Vec::new();
+
+        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+
+        assert!(!output.is_empty(), "output must not be empty");
+        // Parse as JSON to verify valid receipt
+        let receipt: ModuleReceipt = serde_json::from_str(&output).unwrap();
+        assert_eq!(receipt.mode, "module");
+        assert_eq!(receipt.report.rows.len(), 2);
+        assert_eq!(receipt.report.total.code, 1000);
     }
 }

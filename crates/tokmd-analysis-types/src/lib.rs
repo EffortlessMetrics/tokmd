@@ -1,8 +1,18 @@
 //! # tokmd-analysis-types
 //!
-//! **Tier 1 (Analysis Contract)**
+//! **Tier 0 (Analysis Contract)**
 //!
 //! Pure data structures for analysis receipts. No I/O or business logic.
+//!
+//! ## What belongs here
+//! * Analysis-specific receipt types and findings
+//! * Schema definitions for analysis outputs
+//! * Type enums for classification results
+//!
+//! ## What does NOT belong here
+//! * Analysis computation logic (use tokmd-analysis)
+//! * Formatting logic (use tokmd-analysis-format)
+//! * File I/O operations
 
 use std::collections::BTreeMap;
 

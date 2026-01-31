@@ -66,3 +66,93 @@ jobs:
           PROPTEST_CASES=50 cargo test -p tokmd --test properties --all-features --verbose
         env:
           CI: true
+
+  publish-plan:
+    name: Publish Plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify publish plan
+        run: cargo xtask publish --plan --verbose
+        env:
+          CI: true
+
+  mutation:
+    name: Mutation Testing (Required)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --version 26.1.2 --locked
+
+      - name: Get changed Rust files
+        id: changed
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
+            | grep -v '/tests/' \
+            | grep -v '_test\.rs$' \
+            | grep -v '^fuzz/' \
+            | grep -v '/fuzz/' \
+            > changed_files.txt || true
+
+          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          cat changed_files.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Mutation Testing
+        if: steps.changed.outputs.count != '0'
+        env:
+          CI: true
+        run: |
+          set -euo pipefail
+          echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            [ -f "$file" ] || continue
+
+            # Microcrate dividend: run from crate dir when possible
+            crate_dir=""
+            if [[ "$file" == crates/*/* ]]; then
+              crate_dir="$(echo "$file" | cut -d/ -f1-2)"
+            fi
+
+            echo "::group::Mutants: $file"
+            if [[ -n "$crate_dir" && -f "$crate_dir/Cargo.toml" ]]; then
+              rel="${file#$crate_dir/}"
+              (cd "$crate_dir" && cargo mutants --file "$rel" --timeout 300)
+            else
+              cargo mutants --file "$file" --timeout 300
+            fi
+            echo "::endgroup::"
+          done < changed_files.txt
+
+          echo "✓ All mutations caught or unviable (0 MISSED)"
+
+      - name: Skip notice
+        if: steps.changed.outputs.count == '0'
+        run: echo "No production Rust files changed - skipping mutation testing"
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mutants-report
+          path: |
+            mutants.out/
+            crates/**/mutants.out/
+          if-no-files-found: ignore
+          retention-days: 14

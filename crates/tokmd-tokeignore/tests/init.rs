@@ -12,6 +12,7 @@ fn make_args(dir: PathBuf, template: InitProfile, force: bool, print: bool) -> I
         template,
         force,
         print,
+        non_interactive: true,
     }
 }
 

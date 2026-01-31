@@ -6,6 +6,13 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Redaction utilities for tokmd. Provides path and string hashing for privacy-safe output."
+readme = "README.md"
+keywords = ["privacy", "redaction", "hashing", "blake3", "anonymization"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-redact"
 
 [dependencies]
 blake3.workspace = true
+
+[dev-dependencies]
+proptest = "1.9.0"

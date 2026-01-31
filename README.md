@@ -39,7 +39,7 @@ tokmd > summary.md
 tokmd module --module-roots crates,packages
 
 # 3. Pack for LLM context (smart selection)
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 
 # 4. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md
@@ -59,16 +59,16 @@ tokmd diff main HEAD
 ### LLM Context Packing
 Pack files into an LLM context window with budget-aware selection:
 ```bash
-tokmd context --budget 128k --output bundle > context.txt  # Ready to paste
-tokmd context --budget 200k --strategy spread              # Coverage across modules
-tokmd context --budget 100k --output bundle --compress     # Stripped for density
+tokmd context --budget 128k --output bundle --out context.txt  # Ready to paste
+tokmd context --budget 200k --strategy spread                  # Coverage across modules
+tokmd context --budget 100k --output bundle --compress --out context.txt  # Strip blank lines for density
 ```
 
 ### LLM Context Planning
 Smartly select files to fit your context window:
 ```bash
 # Pack top files by code volume into 128k tokens
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --output bundle --out context.txt
 
 # Or generate a manifest to see what fits
 tokmd context --budget 128k --output list
@@ -106,6 +106,9 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd analyze` | Derived metrics and enrichments. |
 | `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
 | `tokmd diff` | Compare two runs, receipts, or git refs. |
+| `tokmd cockpit` | PR metrics for code review (evidence gates, risk, review plan). |
+| `tokmd gate` | Policy-based quality gates with JSON pointer rules. |
+| `tokmd tools` | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
 | `tokmd init` | Generate a `.tokeignore` file (supports templates). |
 | `tokmd check-ignore` | Explain why files are being ignored (troubleshooting). |
 | `tokmd completions` | Generate shell completions (bash, zsh, fish, powershell). |
@@ -231,6 +234,8 @@ Native FFI bindings for CI pipelines and tooling:
 - [Schema](docs/SCHEMA.md) — Receipt format documentation
 - [Troubleshooting](docs/troubleshooting.md) — Common issues and solutions
 - [Philosophy](docs/explanation.md) — Design principles
+- [Contributing](CONTRIBUTING.md) — Development setup and guidelines
+- [Roadmap](ROADMAP.md) — Project status and future plans
 
 ## License
 

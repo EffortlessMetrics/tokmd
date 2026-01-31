@@ -6,10 +6,15 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "File listing and asset discovery utilities for tokmd analysis."
+readme = "README.md"
+keywords = ["filesystem", "gitignore", "file-listing", "asset-discovery", "walk"]
+categories = ["development-tools", "filesystem"]
+documentation = "https://docs.rs/tokmd-walk"
 
 [dependencies]
 anyhow = "1.0.100"
 ignore = "0.4.22"
 
 [dev-dependencies]
+proptest = "1.9.0"
 tempfile = "3.10.1"

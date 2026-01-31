@@ -1,12 +1,11 @@
-#![allow(deprecated)] // cargo_bin deprecation - still works for standard builds
-
 use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use std::path::PathBuf;
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
 /// These run against `tests/data` to ensure stability.
 fn tokmd() -> Command {
-    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");

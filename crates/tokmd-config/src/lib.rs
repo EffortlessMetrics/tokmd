@@ -1,6 +1,6 @@
 //! # tokmd-config
 //!
-//! **Tier 3 (Configuration)**
+//! **Tier 4 (Configuration)**
 //!
 //! This crate defines the CLI arguments and configuration file structures.
 //! Currently it couples strict configuration schemas with Clap CLI parsing.
@@ -8,7 +8,12 @@
 //! ## What belongs here
 //! * Clap `Parser`, `Args`, `Subcommand` structs
 //! * Configuration file struct definitions (Serde)
-//! * Default values
+//! * Default values and enums
+//!
+//! ## What does NOT belong here
+//! * Business logic
+//! * I/O operations (except config file parsing)
+//! * Higher-tier crate dependencies
 //!
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
@@ -86,6 +91,10 @@ pub struct GlobalArgs {
     /// Verbose output (repeat for more detail).
     #[arg(short = 'v', long = "verbose", action = clap::ArgAction::Count)]
     pub verbose: u8,
+
+    /// Disable progress spinners.
+    #[arg(long, global = true)]
+    pub no_progress: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -93,7 +102,7 @@ pub enum Commands {
     /// Language summary (default).
     Lang(CliLangArgs),
 
-    /// Module summary (group by path prefixes like crates/<name> or packages/<name>).
+    /// Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`).
     Module(CliModuleArgs),
 
     /// Export a file-level dataset (CSV / JSONL / JSON).
@@ -122,6 +131,15 @@ pub enum Commands {
 
     /// Check why a file is being ignored (for troubleshooting).
     CheckIgnore(CliCheckIgnoreArgs),
+
+    /// Output CLI schema as JSON for AI agents.
+    Tools(ToolsArgs),
+
+    /// Evaluate policy rules against analysis receipts.
+    Gate(CliGateArgs),
+
+    /// Generate PR cockpit metrics for code review.
+    Cockpit(CockpitArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -433,6 +451,10 @@ pub struct InitArgs {
     /// Which template profile to use.
     #[arg(long, value_enum, default_value_t = InitProfile::Default)]
     pub template: InitProfile,
+
+    /// Skip interactive wizard and use defaults.
+    #[arg(long)]
+    pub non_interactive: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -518,7 +540,7 @@ pub struct CliContextArgs {
     #[arg(long, value_enum, default_value_t = ContextOutput::List)]
     pub output: ContextOutput,
 
-    /// Strip comments and blank lines from bundle output.
+    /// Strip blank lines from bundle output.
     #[arg(long)]
     pub compress: bool,
 
@@ -529,6 +551,42 @@ pub struct CliContextArgs {
     /// Module depth (see `tokmd module`).
     #[arg(long)]
     pub module_depth: Option<usize>,
+
+    /// Enable git-based ranking (required for churn/hotspot).
+    #[arg(long)]
+    pub git: bool,
+
+    /// Disable git-based ranking.
+    #[arg(long = "no-git")]
+    pub no_git: bool,
+
+    /// Maximum commits to scan for git metrics.
+    #[arg(long, default_value = "1000")]
+    pub max_commits: usize,
+
+    /// Maximum files per commit to process.
+    #[arg(long, default_value = "100")]
+    pub max_commit_files: usize,
+
+    /// Write output to file instead of stdout.
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+
+    /// Overwrite existing output file.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Write bundle to directory with manifest (for large outputs).
+    #[arg(long, value_name = "DIR", conflicts_with = "out")]
+    pub bundle_dir: Option<PathBuf>,
+
+    /// Warn if output exceeds N bytes (default: 10MB, 0=disable).
+    #[arg(long, default_value = "10485760")]
+    pub max_output_bytes: u64,
+
+    /// Append JSONL record to log file (metadata only, not content).
+    #[arg(long, value_name = "PATH")]
+    pub log: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -578,6 +636,95 @@ pub struct CliCheckIgnoreArgs {
     pub verbose: bool,
 }
 
+#[derive(Args, Debug, Clone)]
+pub struct ToolsArgs {
+    /// Output format for the tool schema.
+    #[arg(long, value_enum, default_value_t = ToolSchemaFormat::Jsonschema)]
+    pub format: ToolSchemaFormat,
+
+    /// Pretty-print JSON output.
+    #[arg(long)]
+    pub pretty: bool,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ToolSchemaFormat {
+    /// OpenAI function calling format.
+    Openai,
+    /// Anthropic tool use format.
+    Anthropic,
+    /// JSON Schema Draft 7 format.
+    #[default]
+    Jsonschema,
+    /// Raw clap structure dump.
+    Clap,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CliGateArgs {
+    /// Input analysis receipt or path to scan.
+    #[arg(value_name = "INPUT")]
+    pub input: Option<PathBuf>,
+
+    /// Path to policy file (TOML format).
+    #[arg(long)]
+    pub policy: Option<PathBuf>,
+
+    /// Analysis preset (for compute-then-gate mode).
+    #[arg(long, value_enum)]
+    pub preset: Option<AnalysisPreset>,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = GateFormat::Text)]
+    pub format: GateFormat,
+
+    /// Fail fast on first error.
+    #[arg(long)]
+    pub fail_fast: bool,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum GateFormat {
+    /// Human-readable text output.
+    #[default]
+    Text,
+    /// JSON output.
+    Json,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CockpitArgs {
+    /// Base reference to compare from (default: main).
+    #[arg(long, default_value = "main")]
+    pub base: String,
+
+    /// Head reference to compare to (default: HEAD).
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = CockpitFormat::Json)]
+    pub format: CockpitFormat,
+
+    /// Output file (stdout if omitted).
+    #[arg(long, value_name = "PATH")]
+    pub output: Option<std::path::PathBuf>,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum CockpitFormat {
+    /// JSON output with full metrics.
+    #[default]
+    Json,
+    /// Markdown output for human readability.
+    Md,
+    /// Section-based output for PR template filling.
+    Sections,
+}
+
 // =============================================================================
 // TOML Configuration File Structures
 // =============================================================================
@@ -603,6 +750,9 @@ pub struct TomlConfig {
 
     /// Badge command settings.
     pub badge: BadgeConfig,
+
+    /// Gate command settings.
+    pub gate: GateConfig,
 
     /// Named view profiles (e.g., [view.llm], [view.ci]).
     #[serde(default)]
@@ -726,7 +876,7 @@ pub struct ContextConfig {
     /// Output mode: "list", "bundle", "json".
     pub output: Option<String>,
 
-    /// Strip comments and blanks in bundle output.
+    /// Strip blank lines from bundle output.
     pub compress: Option<bool>,
 }
 
@@ -736,6 +886,56 @@ pub struct ContextConfig {
 pub struct BadgeConfig {
     /// Default metric for badges.
     pub metric: Option<String>,
+}
+
+/// Gate command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GateConfig {
+    /// Path to policy file.
+    pub policy: Option<String>,
+
+    /// Analysis preset for compute-then-gate mode.
+    pub preset: Option<String>,
+
+    /// Fail fast on first error.
+    pub fail_fast: Option<bool>,
+
+    /// Inline policy rules.
+    pub rules: Option<Vec<GateRule>>,
+}
+
+/// A single gate policy rule (for inline TOML configuration).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GateRule {
+    /// Human-readable name for the rule.
+    pub name: String,
+
+    /// JSON Pointer to the value to check (RFC 6901).
+    pub pointer: String,
+
+    /// Comparison operator.
+    pub op: String,
+
+    /// Single value for comparison.
+    #[serde(default)]
+    pub value: Option<serde_json::Value>,
+
+    /// Multiple values for "in" operator.
+    #[serde(default)]
+    pub values: Option<Vec<serde_json::Value>>,
+
+    /// Negate the result.
+    #[serde(default)]
+    pub negate: bool,
+
+    /// Rule severity level: "error" or "warn".
+    #[serde(default)]
+    pub level: Option<String>,
+
+    /// Custom failure message.
+    #[serde(default)]
+    pub message: Option<String>,
 }
 
 /// A named view profile that can override settings for specific use cases.
@@ -795,7 +995,7 @@ pub struct ViewProfile {
     /// Output mode for context.
     pub output: Option<String>,
 
-    /// Strip comments/blanks.
+    /// Strip blank lines.
     pub compress: Option<bool>,
 
     // Badge settings

@@ -37,7 +37,7 @@ pub enum ConfigMode {
 
 With `ConfigMode::Auto`, tokei searches for config files in the scanned directory.
 
-## Key Patterns
+## Implementation Details
 
 ### Best-Effort Error Handling
 Tokei logs errors to stderr but doesn't return them. The scan function:

@@ -6,6 +6,10 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "High-level API façade for tokmd. The recommended entry point for library usage."
+readme = "README.md"
+keywords = ["code-analysis", "api", "inventory", "receipts", "tokei"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-core"
 
 [dependencies]
 anyhow = "1.0.100"

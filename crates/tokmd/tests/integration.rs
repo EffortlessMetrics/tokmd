@@ -1,3 +1,5 @@
+mod common;
+
 use anyhow::Result;
 use assert_cmd::Command;
 use predicates::prelude::*;
@@ -5,17 +7,22 @@ use tempfile::tempdir;
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
-    // Point to our test fixture
-    let fixtures = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-    cmd.current_dir(&fixtures);
+    // Point to hermetic copy of test fixtures with .git/ marker
+    cmd.current_dir(common::fixture_root());
     cmd
 }
 
-fn redact_timestamps(output: &str) -> String {
-    let re = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("regex should be valid");
-    re.replace_all(output, r#""generated_at_ms":0"#).to_string()
+fn normalize_snapshot(output: &str) -> String {
+    // Normalize timestamps
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("valid regex");
+    let s = re_ts
+        .replace_all(output, r#""generated_at_ms":0"#)
+        .to_string();
+
+    // Normalize tool.version -> 0.0.0
+    let re_ver =
+        regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).expect("valid regex");
+    re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 
 #[test]
@@ -146,7 +153,7 @@ fn test_golden_lang_json() -> Result<()> {
     let output = cmd.arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -158,7 +165,7 @@ fn test_golden_module_json() -> Result<()> {
     let output = cmd.arg("module").arg("--format").arg("json").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -170,7 +177,7 @@ fn test_golden_export_jsonl() -> Result<()> {
     let output = cmd.arg("export").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -182,7 +189,7 @@ fn test_golden_export_redacted() -> Result<()> {
     let output = cmd.arg("export").arg("--redact").arg("all").output()?;
 
     let stdout = String::from_utf8(output.stdout)?;
-    let normalized = redact_timestamps(&stdout);
+    let normalized = normalize_snapshot(&stdout);
 
     insta::assert_snapshot!(normalized);
     Ok(())
@@ -1424,4 +1431,252 @@ fn test_check_ignore_verbose_shows_source() {
         .code(0) // Exit 0 = ignored
         .stdout(predicate::str::contains("ignored"))
         .stdout(predicate::str::contains("gitignore"));
+}
+
+// --- Context Output Handling Tests ---
+
+#[test]
+fn test_context_out_flag() -> Result<()> {
+    // Given: A temp directory with a file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let out_file = dir.path().join("context.txt");
+
+    // When: We run context with --out
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--out")
+        .arg(&out_file)
+        .assert()
+        .success()
+        .stdout(""); // stdout should be empty
+
+    // Then: The file should exist and contain the context output
+    assert!(out_file.exists(), "Output file should exist");
+    let content = std::fs::read_to_string(&out_file)?;
+    assert!(
+        content.contains("# Context Pack"),
+        "Output should contain context header"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_context_out_requires_force() -> Result<()> {
+    // Given: A temp directory with an existing output file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let out_file = dir.path().join("context.txt");
+    std::fs::write(&out_file, "existing content")?;
+
+    // When: We run context with --out but without --force
+    // Then: It should fail
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--out")
+        .arg(&out_file)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("already exists"))
+        .stderr(predicate::str::contains("--force"));
+
+    // Verify original content is preserved
+    let content = std::fs::read_to_string(&out_file)?;
+    assert_eq!(content, "existing content");
+    Ok(())
+}
+
+#[test]
+fn test_context_force_overwrites() -> Result<()> {
+    // Given: A temp directory with an existing output file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let out_file = dir.path().join("context.txt");
+    std::fs::write(&out_file, "existing content")?;
+
+    // When: We run context with --out and --force
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--out")
+        .arg(&out_file)
+        .arg("--force")
+        .assert()
+        .success();
+
+    // Then: The file should be overwritten
+    let content = std::fs::read_to_string(&out_file)?;
+    assert!(
+        content.contains("# Context Pack"),
+        "Output should be overwritten with context"
+    );
+    assert!(
+        !content.contains("existing content"),
+        "Old content should be gone"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_context_bundle_dir() -> Result<()> {
+    // Given: A temp directory with a file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let bundle_dir = dir.path().join("ctx-bundle");
+
+    // When: We run context with --bundle-dir
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--bundle-dir")
+        .arg(&bundle_dir)
+        .assert()
+        .success();
+
+    // Then: The directory should contain the three expected files
+    assert!(bundle_dir.exists(), "Bundle directory should exist");
+    assert!(
+        bundle_dir.join("receipt.json").exists(),
+        "receipt.json should exist"
+    );
+    assert!(
+        bundle_dir.join("bundle.txt").exists(),
+        "bundle.txt should exist"
+    );
+    assert!(
+        bundle_dir.join("manifest.json").exists(),
+        "manifest.json should exist"
+    );
+
+    // Verify receipt.json is valid JSON with expected fields
+    let receipt_content = std::fs::read_to_string(bundle_dir.join("receipt.json"))?;
+    let receipt: serde_json::Value = serde_json::from_str(&receipt_content)?;
+    assert!(
+        receipt.get("schema_version").is_some(),
+        "receipt should have schema_version"
+    );
+    assert!(
+        receipt.get("budget_tokens").is_some(),
+        "receipt should have budget_tokens"
+    );
+
+    // Verify manifest.json has file list
+    let manifest_content = std::fs::read_to_string(bundle_dir.join("manifest.json"))?;
+    let manifest: serde_json::Value = serde_json::from_str(&manifest_content)?;
+    assert!(
+        manifest.get("files").is_some(),
+        "manifest should have files array"
+    );
+    assert!(
+        manifest.get("bundle_bytes").is_some(),
+        "manifest should have bundle_bytes"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_context_log_append() -> Result<()> {
+    // Given: A temp directory with a file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let log_file = dir.path().join("runs.jsonl");
+
+    // When: We run context with --log twice
+    for _ in 0..2 {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+        cmd.current_dir(dir.path())
+            .arg("context")
+            .arg("--log")
+            .arg(&log_file)
+            .assert()
+            .success();
+    }
+
+    // Then: The log file should have 2 lines (appended, not overwritten)
+    let content = std::fs::read_to_string(&log_file)?;
+    let lines: Vec<&str> = content.trim().lines().collect();
+    assert_eq!(lines.len(), 2, "Log file should have 2 lines");
+
+    // Verify each line is valid JSON with expected fields
+    for line in lines {
+        let record: serde_json::Value = serde_json::from_str(line)?;
+        assert!(
+            record.get("schema_version").is_some(),
+            "log record should have schema_version"
+        );
+        assert!(
+            record.get("output_destination").is_some(),
+            "log record should have output_destination"
+        );
+        assert!(
+            record.get("total_bytes").is_some(),
+            "log record should have total_bytes"
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_context_size_warning() -> Result<()> {
+    // Given: A temp directory with a file
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+
+    // When: We run context with a very small max-output-bytes threshold
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--max-output-bytes")
+        .arg("10") // 10 bytes is very small
+        .assert()
+        .success()
+        // Then: We should see a warning on stderr
+        .stderr(predicate::str::contains("Warning"))
+        .stderr(predicate::str::contains("exceeds threshold"));
+
+    Ok(())
+}
+
+#[test]
+fn test_context_bundle_dir_non_empty_requires_force() -> Result<()> {
+    // Given: A temp directory with a non-empty bundle dir
+    let dir = tempdir()?;
+    std::fs::write(dir.path().join("test.rs"), "fn main() {}")?;
+    let bundle_dir = dir.path().join("ctx-bundle");
+    std::fs::create_dir(&bundle_dir)?;
+    std::fs::write(bundle_dir.join("existing.txt"), "existing")?;
+
+    // When: We run context with --bundle-dir but without --force
+    // Then: It should fail
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("context")
+        .arg("--bundle-dir")
+        .arg(&bundle_dir)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("not empty"))
+        .stderr(predicate::str::contains("--force"));
+
+    Ok(())
+}
+
+#[test]
+fn test_context_out_and_bundle_dir_conflict() {
+    // Given: Standard test directory
+    // When: We try to use both --out and --bundle-dir
+    // Then: clap should reject it
+    let mut cmd = tokmd_cmd();
+    cmd.arg("context")
+        .arg("--out")
+        .arg("out.txt")
+        .arg("--bundle-dir")
+        .arg("./bundle")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
 }

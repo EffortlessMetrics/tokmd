@@ -1,6 +1,6 @@
 //! # tokmd-scan
 //!
-//! **Tier 3 (Adapter)**
+//! **Tier 1 (Adapter)**
 //!
 //! This crate adapts the `tokei` library for use within `tokmd`.
 //! It isolates the dependency on `tokei` to a single location.
@@ -10,8 +10,9 @@
 //! * Mapping `tokmd` args to `tokei` config
 //!
 //! ## What does NOT belong here
-//! * Business logic (filtering, sorting)
+//! * Business logic (filtering, sorting, aggregation)
 //! * Output formatting
+//! * Receipt construction
 
 use anyhow::Result;
 use std::path::PathBuf;
@@ -78,6 +79,7 @@ mod tests {
             no_ignore_vcs: false,
             treat_doc_strings_as_comments: false,
             verbose: 0,
+            no_progress: false,
         }
     }
 
@@ -183,6 +185,7 @@ mod tests {
             no_ignore_vcs: true,
             treat_doc_strings_as_comments: true,
             verbose: 2,
+            no_progress: true,
         };
         let paths = vec![test_path()];
         // Should handle all flags without panicking

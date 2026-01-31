@@ -34,7 +34,7 @@ pub fn unique_parent_file_count(languages: &Languages) -> usize
 pub fn avg(lines: usize, files: usize) -> usize
 ```
 
-## Key Patterns
+## Implementation Details
 
 ### Token Estimation
 ```rust

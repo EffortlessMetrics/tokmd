@@ -25,8 +25,13 @@ pub fn scan_args(paths, global, redact) -> ScanArgs
 pub fn normalize_scan_input(path) -> String
 ```
 
-### Console Output
+### Report Output (Write sink pattern)
 ```rust
+/// Core implementation - testable with any Write sink
+pub fn write_lang_report_to<W: Write>(out, report, global, args) -> Result<()>
+pub fn write_module_report_to<W: Write>(out, report, global, args) -> Result<()>
+
+/// Thin stdout wrappers (excluded from mutation testing)
 pub fn print_lang_report(report, global, args) -> Result<()>
 pub fn print_module_report(report, global, args) -> Result<()>
 ```
@@ -44,20 +49,20 @@ pub fn write_export_jsonl_to_file(path, export, scan, args_meta) -> Result<()>
 pub use tokmd_redact::{redact_path, short_hash};
 ```
 
-## Supported Formats
+## Implementation Details
 
-### Table Formats
+### Supported Formats
+
+#### Table Formats
 - **Markdown** - Pipes with right-aligned numeric columns
 - **TSV** - Tab-separated with header row
 - **JSON** - Receipt with envelope metadata
 
-### Export Formats
+#### Export Formats
 - **CSV** - Standard comma-separated
 - **JSONL** - Lines with type discriminator (`"meta"` or `"row"`)
 - **JSON** - Full receipt array
 - **CycloneDX 1.6** - SBOM with tokmd-specific properties
-
-## Key Patterns
 
 ### Markdown Table Alignment
 Numeric columns (files, lines, code, etc.) are right-aligned.
