@@ -62,6 +62,13 @@ Uses `git log --name-only --pretty=format:%ct|%ae`:
 cargo test -p tokmd-git
 ```
 
+### Testing Guidelines
+
+- **Property tests must be pure** — no filesystem access, process spawning, or network I/O
+- **I/O tests use temp dirs** — unit tests with `tempfile::tempdir()` for filesystem operations
+- **Gate on git availability** — tests that invoke git must check `git_available()` first
+- **Handle TMPDIR edge cases** — temp dirs may be inside existing git repos; skip gracefully
+
 ## Do NOT
 
 - Compute git metrics (use tokmd-analysis)

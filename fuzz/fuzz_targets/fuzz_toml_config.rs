@@ -2,7 +2,8 @@
 //!
 //! Tests `TomlConfig::parse()` with arbitrary TOML input to find
 //! panics, hangs, or excessive memory usage in the TOML deserializer.
-//! After successful parse, exercises serialization round-trip and field access.
+//! After successful parse, exercises serialization round-trip (both JSON and TOML)
+//! and field access.
 
 #![no_main]
 use libfuzzer_sys::fuzz_target;
@@ -18,10 +19,16 @@ fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {
         // Try parsing as TOML config
         if let Ok(config) = TomlConfig::parse(s) {
-            // Exercise the next layer: serialization round-trip
+            // Exercise JSON serialization round-trip
             if let Ok(json) = serde_json::to_string(&config) {
                 // Round-trip through JSON
                 let _ = serde_json::from_str::<TomlConfig>(&json);
+            }
+
+            // Exercise TOML serialization round-trip (higher value for TOML-specific edge cases)
+            if let Ok(toml_str) = toml::to_string(&config) {
+                // Round-trip through TOML - parse the serialized output
+                let _ = TomlConfig::parse(&toml_str);
             }
 
             // Access nested fields to exercise structure traversal

@@ -14,7 +14,18 @@
 # Receipt envelope keys
 "schema_version"
 "generated_at"
+"generated_at_ms"
 "tokmd_version"
+"tool"
+"mode"
+"status"
+"warnings"
+"scan"
+"args"
+"from_source"
+"to_source"
+"name"
+"version"
 "derived"
 "source"
 "rows"
@@ -22,36 +33,107 @@
 
 # Totals keys
 "code"
+"lines"
+"files"
+"bytes"
+"tokens"
+"avg_lines"
 "comments"
 "blanks"
-"files"
-"tokens"
 
 # Row keys
+"lang"
 "language"
 "path"
 "module"
+"kind"
+"doc_pct"
+"bytes_per_line"
+"depth"
 "children"
 
 # Lang row keys
-"name"
 "extensions"
-
-# Derived keys
-"distribution"
-"density"
-"cocomo"
-
-# Distribution keys
-"by_language"
-"by_module"
 
 # Source keys
 "inputs"
 "languages"
 "config"
+"archetype"
+"topics"
+"entropy"
+"predictive_churn"
+"corporate_fingerprint"
+"license"
 
-# Common values
+# Analysis keys
+"assets"
+"deps"
+"imports"
+"dup"
+"fun"
+
+# Derived keys
+"distribution"
+"density"
+"doc_density"
+"whitespace"
+"verbosity"
+"max_file"
+"lang_purity"
+"nesting"
+"test_density"
+"boilerplate"
+"polyglot"
+"histogram"
+"top"
+"tree"
+"reading_time"
+"context_window"
+"cocomo"
+"todo"
+"integrity"
+
+# Structure keys
+"total"
+"by_lang"
+"by_language"
+"by_module"
+"numerator"
+"denominator"
+"ratio"
+"rate"
+"per_module"
+"overall"
+"category"
+"categories"
+"findings"
+"effective"
+"spdx"
+"confidence"
+
+# Git analysis keys
+"hotspots"
+"bus_factor"
+"freshness"
+"coupling"
+"stale_files"
+"stale_pct"
+"avg_days"
+"p90_days"
+"granularity"
+"edges"
+"groups"
+
+# Fun/novelty keys
+"wasted_bytes"
+"hash"
+"eco_label"
+"score"
+"label"
+"notes"
+
+# Common language values
 "Rust"
 "Python"
 "JavaScript"

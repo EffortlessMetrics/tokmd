@@ -2788,6 +2788,7 @@ dependencies = [
  "tokmd-gate",
  "tokmd-model",
  "tokmd-types",
+ "toml 0.8.23",
 ]
 
 [[package]]

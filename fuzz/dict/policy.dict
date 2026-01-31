@@ -34,6 +34,7 @@
 "lt"
 "lte"
 "eq"
+"ne"
 "neq"
 "in"
 "contains"
@@ -43,20 +44,38 @@
 "warn"
 "error"
 
-# Common JSON pointers
+# JSON pointers - root sections
 "/derived"
-"/derived/totals"
-"/derived/totals/code"
-"/derived/totals/comments"
-"/derived/totals/blanks"
-"/derived/totals/tokens"
-"/derived/distribution"
-"/derived/density"
 "/source"
-"/source/inputs"
-"/source/languages"
 "/rows"
 "/rows/0"
+
+# JSON pointers - derived totals
+"/derived/totals"
+"/derived/totals/code"
+"/derived/totals/tokens"
+"/derived/totals/files"
+"/derived/totals/comments"
+"/derived/totals/blanks"
+
+# JSON pointers - derived metrics
+"/derived/doc_density"
+"/derived/doc_density/total"
+"/derived/doc_density/total/ratio"
+"/derived/todo"
+"/derived/todo/rate"
+"/derived/distribution"
+"/derived/density"
+
+# JSON pointers - source
+"/source/inputs"
+"/source/languages"
+
+# RFC 6901 pointer escapes
+"~0"
+"~1"
+"/"
+"//"
 
 # Numbers
 "0"
@@ -64,9 +83,3 @@
 "100"
 "1000"
 "10000"
-
-# RFC 6901 pointer escapes
-"~0"
-"~1"
-"/"
-"//"

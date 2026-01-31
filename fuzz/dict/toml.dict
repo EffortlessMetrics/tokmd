@@ -12,7 +12,7 @@
 ","
 "."
 
-# Section headers
+# Section headers - commands
 "[scan]"
 "[module]"
 "[export]"
@@ -21,6 +21,10 @@
 "[badge]"
 "[gate]"
 "[view]"
+"[profiles]"
+"[repos]"
+
+# Section headers - view subtables
 "[view.llm]"
 "[view.ci]"
 
@@ -32,26 +36,43 @@
 "no_ignore"
 "no_ignore_parent"
 "no_ignore_dot"
+"no_ignore_vcs"
+"doc_comments"
 
 # Module config keys
 "roots"
 "depth"
 "children"
 "format"
+"module_roots"
+"module_depth"
 
 # Export config keys
 "export_format"
 "include_children"
+"min_code"
+"max_rows"
+"redact"
 
 # Analyze config keys
 "preset"
 "enrichers"
 "output_format"
+"window"
+"max_files"
+"max_bytes"
+"max_file_bytes"
+"max_commits"
+"max_commit_files"
+"granularity"
 
 # Context config keys
 "budget"
 "output"
 "priority"
+"strategy"
+"rank_by"
+"compress"
 
 # Badge config keys
 "metric"
@@ -61,20 +82,36 @@
 "logo"
 
 # Gate config keys
-"policy_file"
-"fail_on_warn"
+"policy"
+"fail_fast"
+"rules"
+"name"
+"pointer"
+"op"
+"value"
+"values"
+"negate"
+"level"
+"message"
+"top"
+"files"
+"meta"
 
 # Enum values - format
+"md"
 "markdown"
 "tsv"
 "json"
 "jsonl"
 "csv"
 "cyclonedx"
+"auto"
+"none"
 
 # Enum values - children
 "collapse"
 "separate"
+"parents_only"
 
 # Enum values - preset
 "receipt"
@@ -89,10 +126,21 @@
 "deep"
 "fun"
 
-# Enum values - priority
-"size"
-"alpha"
-"recent"
+# Enum values - priority/strategy
+"greedy"
+"spread"
+
+# Enum values - rank_by
+"code"
+"tokens"
+"churn"
+"hotspot"
+
+# Enum values - context output
+"list"
+"bundle"
+"paths"
+"all"
 
 # Enum values - badge style
 "flat"
