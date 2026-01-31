@@ -25,3 +25,5 @@ mutants.out.old/
 *.snap.new
 
 .runs/
+
+.tokmd/cache/
