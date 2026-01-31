@@ -1660,7 +1660,10 @@ fn test_cyclonedx_child_has_kind_property() {
     let kind_prop = properties
         .iter()
         .find(|p| p["name"].as_str() == Some("tokmd:kind"));
-    assert!(kind_prop.is_some(), "Child files should have tokmd:kind property");
+    assert!(
+        kind_prop.is_some(),
+        "Child files should have tokmd:kind property"
+    );
     assert_eq!(kind_prop.unwrap()["value"], "child");
 }
 
