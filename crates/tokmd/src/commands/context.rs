@@ -238,7 +238,10 @@ fn write_bundle_to_destination(
                 .truncate(true)
                 .open(out_path)
         } else {
-            OpenOptions::new().write(true).create_new(true).open(out_path)
+            OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(out_path)
         }
         .with_context(|| {
             if !args.force && out_path.exists() {
@@ -317,8 +320,8 @@ fn write_bundle_output<W: Write>(
                 .with_context(|| format!("Failed to open file: {}", path.display()))?;
             let reader = BufReader::new(f);
             for line in reader.lines() {
-                let line = line
-                    .with_context(|| format!("Failed to read file: {}", path.display()))?;
+                let line =
+                    line.with_context(|| format!("Failed to read file: {}", path.display()))?;
                 if !line.trim().is_empty() {
                     writeln!(w, "{line}")?;
                 }

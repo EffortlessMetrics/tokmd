@@ -1461,7 +1461,8 @@ mod tests {
                     .filter(|l| l.starts_with("v "))
                     .take(8)
                     .map(|l| {
-                        let parts: Vec<f32> = l[2..].split_whitespace()
+                        let parts: Vec<f32> = l[2..]
+                            .split_whitespace()
                             .map(|p| p.parse().unwrap())
                             .collect();
                         (parts[0], parts[1], parts[2])
@@ -1483,37 +1484,93 @@ mod tests {
         }
 
         // idx=0: x=0, y=0, h=10
-        assert_eq!(base_corner(&objects[0]), (0.0, 0.0, 0.0), "file0 base position");
-        assert_eq!(top_corner(&objects[0]).2, 10.0, "file0 height should be 10.0 (100/10)");
+        assert_eq!(
+            base_corner(&objects[0]),
+            (0.0, 0.0, 0.0),
+            "file0 base position"
+        );
+        assert_eq!(
+            top_corner(&objects[0]).2,
+            10.0,
+            "file0 height should be 10.0 (100/10)"
+        );
 
         // idx=1: x=2, y=0, h=0.5 (clamped from 0.3)
         // Tests: * 2.0 multiplier, .max(0.5) clamping
-        assert_eq!(base_corner(&objects[1]), (2.0, 0.0, 0.0), "file1 base position");
-        assert_eq!(top_corner(&objects[1]).2, 0.5, "file1 height should be 0.5 (clamped from 3/10=0.3)");
+        assert_eq!(
+            base_corner(&objects[1]),
+            (2.0, 0.0, 0.0),
+            "file1 base position"
+        );
+        assert_eq!(
+            top_corner(&objects[1]).2,
+            0.5,
+            "file1 height should be 0.5 (clamped from 3/10=0.3)"
+        );
 
         // idx=2: x=4, y=0, h=20
-        assert_eq!(base_corner(&objects[2]), (4.0, 0.0, 0.0), "file2 base position");
-        assert_eq!(top_corner(&objects[2]).2, 20.0, "file2 height should be 20.0 (200/10)");
+        assert_eq!(
+            base_corner(&objects[2]),
+            (4.0, 0.0, 0.0),
+            "file2 base position"
+        );
+        assert_eq!(
+            top_corner(&objects[2]).2,
+            20.0,
+            "file2 height should be 20.0 (200/10)"
+        );
 
         // idx=3: x=6, y=0, h=7.5
-        assert_eq!(base_corner(&objects[3]), (6.0, 0.0, 0.0), "file3 base position");
-        assert_eq!(top_corner(&objects[3]).2, 7.5, "file3 height should be 7.5 (75/10)");
+        assert_eq!(
+            base_corner(&objects[3]),
+            (6.0, 0.0, 0.0),
+            "file3 base position"
+        );
+        assert_eq!(
+            top_corner(&objects[3]).2,
+            7.5,
+            "file3 height should be 7.5 (75/10)"
+        );
 
         // idx=4: x=8, y=0, h=15
         // Tests: % 5 at boundary (4 % 5 = 4, not 0)
-        assert_eq!(base_corner(&objects[4]), (8.0, 0.0, 0.0), "file4 base position (x = 4*2 = 8)");
-        assert_eq!(top_corner(&objects[4]).2, 15.0, "file4 height should be 15.0 (150/10)");
+        assert_eq!(
+            base_corner(&objects[4]),
+            (8.0, 0.0, 0.0),
+            "file4 base position (x = 4*2 = 8)"
+        );
+        assert_eq!(
+            top_corner(&objects[4]).2,
+            15.0,
+            "file4 height should be 15.0 (150/10)"
+        );
 
         // idx=5: x=0, y=2, h=8
         // Tests: % 5 wrapping (5 % 5 = 0), / 5 incrementing (5 / 5 = 1)
         // Catches mutations: % -> / would give x=2, / -> % would give y=0
-        assert_eq!(base_corner(&objects[5]), (0.0, 2.0, 0.0), "file5 base position (x=0 from 5%5, y=2 from 5/5*2)");
-        assert_eq!(top_corner(&objects[5]).2, 8.0, "file5 height should be 8.0 (80/10)");
+        assert_eq!(
+            base_corner(&objects[5]),
+            (0.0, 2.0, 0.0),
+            "file5 base position (x=0 from 5%5, y=2 from 5/5*2)"
+        );
+        assert_eq!(
+            top_corner(&objects[5]).2,
+            8.0,
+            "file5 height should be 8.0 (80/10)"
+        );
 
         // idx=6: x=2, y=2, h=6
         // Tests: both % and / together at idx=6
-        assert_eq!(base_corner(&objects[6]), (2.0, 2.0, 0.0), "file6 base position (x=2 from 6%5*2, y=2 from 6/5*2)");
-        assert_eq!(top_corner(&objects[6]).2, 6.0, "file6 height should be 6.0 (60/10)");
+        assert_eq!(
+            base_corner(&objects[6]),
+            (2.0, 2.0, 0.0),
+            "file6 base position (x=2 from 6%5*2, y=2 from 6/5*2)"
+        );
+        assert_eq!(
+            top_corner(&objects[6]).2,
+            6.0,
+            "file6 height should be 6.0 (60/10)"
+        );
 
         // Verify face definitions exist (basic structural check)
         assert!(result.contains("f 1 2 3 4"), "missing face definition");
@@ -1527,7 +1584,7 @@ mod tests {
     #[cfg(feature = "fun")]
     #[test]
     fn test_render_midi_note_math() {
-        use midly::{Smf, TrackEventKind, MidiMessage};
+        use midly::{MidiMessage, Smf, TrackEventKind};
 
         let mut receipt = minimal_receipt();
         let mut derived = sample_derived();
@@ -1613,7 +1670,11 @@ mod tests {
 
         for event in &smf.tracks[0] {
             abs_time += event.delta.as_int();
-            if let TrackEventKind::Midi { message: MidiMessage::NoteOn { key, vel }, .. } = event.kind {
+            if let TrackEventKind::Midi {
+                message: MidiMessage::NoteOn { key, vel },
+                ..
+            } = event.kind
+            {
                 notes.push((abs_time, key.as_int(), vel.as_int()));
             }
         }
@@ -1623,42 +1684,74 @@ mod tests {
 
         // Verify each note precisely
         // Note 0: time=0, key=65, velocity=70
-        assert_eq!(notes[0], (0, 65, 70),
-            "note 0: expected (time=0, key=65=60+5, vel=70=40+60/2), got {:?}", notes[0]);
+        assert_eq!(
+            notes[0],
+            (0, 65, 70),
+            "note 0: expected (time=0, key=65=60+5, vel=70=40+60/2), got {:?}",
+            notes[0]
+        );
 
         // Note 1: time=240, key=63, velocity=103
         // key=60+(15%12)=60+3=63, vel=40+(127/2)=40+63=103
-        assert_eq!(notes[1], (240, 63, 103),
-            "note 1: expected (time=240=1*240, key=63=60+(15%12), vel=103=40+127/2), got {:?}", notes[1]);
+        assert_eq!(
+            notes[1],
+            (240, 63, 103),
+            "note 1: expected (time=240=1*240, key=63=60+(15%12), vel=103=40+127/2), got {:?}",
+            notes[1]
+        );
 
         // Note 2: time=480, key=60, velocity=50
-        assert_eq!(notes[2], (480, 60, 50),
-            "note 2: expected (time=480=2*240, key=60=60+0, vel=50=40+20/2), got {:?}", notes[2]);
+        assert_eq!(
+            notes[2],
+            (480, 60, 50),
+            "note 2: expected (time=480=2*240, key=60=60+0, vel=50=40+20/2), got {:?}",
+            notes[2]
+        );
 
         // Note 3: time=720, key=60, velocity=103
         // key=60+(12%12)=60+0=60, vel=40+(min(160,127)/2)=40+63=103
-        assert_eq!(notes[3], (720, 60, 103),
-            "note 3: expected (time=720=3*240, key=60=60+(12%12), vel=103=40+127/2), got {:?}", notes[3]);
+        assert_eq!(
+            notes[3],
+            (720, 60, 103),
+            "note 3: expected (time=720=3*240, key=60=60+(12%12), vel=103=40+127/2), got {:?}",
+            notes[3]
+        );
 
         // Verify NoteOff timing too (duration=180)
         let mut note_offs: Vec<(u32, u8)> = Vec::new(); // (time, key)
         abs_time = 0;
         for event in &smf.tracks[0] {
             abs_time += event.delta.as_int();
-            if let TrackEventKind::Midi { message: MidiMessage::NoteOff { key, .. }, .. } = event.kind {
+            if let TrackEventKind::Midi {
+                message: MidiMessage::NoteOff { key, .. },
+                ..
+            } = event.kind
+            {
                 note_offs.push((abs_time, key.as_int()));
             }
         }
 
         // NoteOff times should be start + 180
-        assert!(note_offs.iter().any(|&(t, k)| t == 180 && k == 65),
-            "expected NoteOff for key 65 at time 180, got {:?}", note_offs);
-        assert!(note_offs.iter().any(|&(t, k)| t == 420 && k == 63),
-            "expected NoteOff for key 63 at time 420 (240+180), got {:?}", note_offs);
-        assert!(note_offs.iter().any(|&(t, k)| t == 660 && k == 60),
-            "expected NoteOff for key 60 at time 660 (480+180), got {:?}", note_offs);
-        assert!(note_offs.iter().any(|&(t, k)| t == 900 && k == 60),
-            "expected NoteOff for key 60 at time 900 (720+180), got {:?}", note_offs);
+        assert!(
+            note_offs.iter().any(|&(t, k)| t == 180 && k == 65),
+            "expected NoteOff for key 65 at time 180, got {:?}",
+            note_offs
+        );
+        assert!(
+            note_offs.iter().any(|&(t, k)| t == 420 && k == 63),
+            "expected NoteOff for key 63 at time 420 (240+180), got {:?}",
+            note_offs
+        );
+        assert!(
+            note_offs.iter().any(|&(t, k)| t == 660 && k == 60),
+            "expected NoteOff for key 60 at time 660 (480+180), got {:?}",
+            note_offs
+        );
+        assert!(
+            note_offs.iter().any(|&(t, k)| t == 900 && k == 60),
+            "expected NoteOff for key 60 at time 900 (720+180), got {:?}",
+            note_offs
+        );
     }
 
     // Test render_midi with empty derived - should still produce valid MIDI
@@ -1672,7 +1765,10 @@ mod tests {
 
         // Should produce a valid MIDI (not empty, parseable)
         assert!(!result.is_empty(), "MIDI output should not be empty");
-        assert!(result.len() > 14, "MIDI should have header (14 bytes) + track data");
+        assert!(
+            result.len() > 14,
+            "MIDI should have header (14 bytes) + track data"
+        );
 
         // Parse and verify structure
         let smf = Smf::parse(&result).expect("should be valid MIDI even with no notes");
