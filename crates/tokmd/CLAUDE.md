@@ -31,7 +31,10 @@ src/
 │   ├── context.rs   # LLM context packing
 │   ├── check_ignore.rs
 │   ├── run.rs       # Full scan with artifacts
-│   └── diff.rs      # Receipt comparison
+│   ├── diff.rs      # Receipt comparison
+│   ├── cockpit.rs   # PR metrics and evidence gates
+│   ├── gate.rs      # Policy-based quality gates
+│   └── tools.rs     # LLM tool definitions
 ├── export_bundle.rs # Export file handling
 ├── context_pack.rs  # Context packing logic
 ├── analysis_utils.rs
@@ -54,6 +57,9 @@ src/
 | `tokmd analyze` | Derived metrics and enrichments |
 | `tokmd badge` | SVG badge generation |
 | `tokmd diff` | Compare two runs or receipts |
+| `tokmd cockpit` | PR metrics with evidence gates |
+| `tokmd gate` | Policy-based quality gates |
+| `tokmd tools` | LLM tool definitions |
 | `tokmd context` | Pack files into LLM context window |
 | `tokmd init` | Generate .tokeignore template |
 | `tokmd check-ignore` | Explain why files are ignored |

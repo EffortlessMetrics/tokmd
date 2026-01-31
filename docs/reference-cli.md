@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `gate`, `tools`, `context`, `init`, `check-ignore`, `completions`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `diff`, `cockpit`, `gate`, `tools`, `context`, `init`, `check-ignore`, `completions`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -373,6 +373,69 @@ tokmd tools --format anthropic > tools.json
 
 # Generate JSON Schema for documentation
 tokmd tools --format jsonschema --pretty > schema.json
+```
+
+### `tokmd cockpit`
+
+Generates comprehensive PR metrics for code review automation. This command analyzes changes between two git refs and produces a structured report with evidence gates for CI integration.
+
+**Usage**: `tokmd cockpit [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--base <REF>` | Base reference to compare from (e.g., `main`, commit SHA). | `main` |
+| `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
+| `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
+| `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
+| `--no-progress` | Disable progress spinners. | `false` |
+
+**Output Formats**:
+
+| Format | Description |
+| :--- | :--- |
+| `json` | Full metrics receipt with all sections (best for CI parsing) |
+| `md` | Human-readable Markdown summary |
+| `sections` | Section-based output for PR template filling |
+
+**Receipt Sections**:
+
+| Section | Contents |
+| :--- | :--- |
+| `change_surface` | Files added/modified/deleted, lines added/removed |
+| `composition` | Production vs test vs config code breakdown |
+| `code_health` | Complexity, doc coverage, test coverage metrics |
+| `risk` | Hotspot analysis, coupling, freshness indicators |
+| `contracts` | API/schema changes detected |
+| `evidence` | Hard gates with pass/fail/skipped/pending status |
+| `review_plan` | Prioritized file list for review |
+
+**Evidence Gates**:
+
+| Gate | Description |
+| :--- | :--- |
+| `mutation` | Mutation testing results (always present) |
+| `diff_coverage` | Test coverage of changed lines (optional) |
+| `contracts` | Contract/API compatibility check (optional) |
+| `supply_chain` | Dependency change analysis (optional) |
+| `determinism` | Output reproducibility check (optional) |
+
+**Gate Statuses**: `pass`, `fail`, `skipped` (no relevant changes), `pending` (results unavailable)
+
+> **Note**: Requires the `git` feature. If git is not available or you're not in a git repository, the command will fail with an error.
+
+**Examples**:
+```bash
+# Generate JSON metrics for current PR
+tokmd cockpit
+
+# Compare specific refs with Markdown output
+tokmd cockpit --base origin/main --head feature-branch --format md
+
+# Generate sections for PR template
+tokmd cockpit --format sections --output pr-metrics.txt
+
+# Custom base ref for release branches
+tokmd cockpit --base release/v1.2 --head HEAD
 ```
 
 ### `tokmd gate`

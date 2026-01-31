@@ -345,6 +345,69 @@ tokmd tools --format jsonschema --pretty > schema.json
 
 **Use case**: Feed the schema to an AI agent so it can analyze repositories autonomously.
 
+## 15b. PR Cockpit Metrics
+
+Generate comprehensive PR metrics for code review automation with evidence gates.
+
+**Goal**: Automate PR review with structured metrics and quality gates.
+
+```bash
+# Generate JSON metrics for CI parsing
+tokmd cockpit
+
+# Markdown summary for PR description
+tokmd cockpit --format md
+
+# Compare specific refs
+tokmd cockpit --base origin/main --head feature-branch --format md
+
+# Generate sections for PR template filling
+tokmd cockpit --format sections --output pr-metrics.txt
+```
+
+**What you get**:
+- **Change surface**: Files added/modified/deleted, lines added/removed
+- **Composition**: Production vs test vs config breakdown
+- **Code health**: Complexity, doc coverage, test coverage
+- **Risk assessment**: Hotspots, coupling, freshness
+- **Evidence gates**: Mutation testing, diff coverage, contracts, supply chain
+- **Review plan**: Prioritized list of files to review
+
+**GitHub Actions integration**:
+```yaml
+name: PR Cockpit
+on:
+  pull_request:
+
+jobs:
+  cockpit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate cockpit metrics
+        run: |
+          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format md > cockpit.md
+
+      - name: Post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('cockpit.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+```
+
 ## 16. Troubleshooting Ignored Files
 
 When files unexpectedly appear or disappear from scans, use `check-ignore` to debug.

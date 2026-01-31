@@ -106,6 +106,7 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd analyze` | Derived metrics and enrichments. |
 | `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
 | `tokmd diff` | Compare two runs, receipts, or git refs. |
+| `tokmd cockpit` | PR metrics for code review (evidence gates, risk, review plan). |
 | `tokmd gate` | Policy-based quality gates with JSON pointer rules. |
 | `tokmd tools` | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
 | `tokmd init` | Generate a `.tokeignore` file (supports templates). |

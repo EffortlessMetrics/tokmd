@@ -123,6 +123,11 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.3.0 Features Delivered
 
+- [x] **Cockpit Command**: `tokmd cockpit` for PR metrics generation with evidence gates
+  - Change surface analysis (files added/modified/deleted, lines changed)
+  - Code composition breakdown (production vs test vs config)
+  - Risk assessment and review plan generation
+  - Evidence gates: mutation testing, diff coverage, contracts, supply chain, determinism
 - [x] **Gate Command**: `tokmd gate` for policy-based quality gates with JSON pointer rules
 - [x] **Interactive Wizard**: `tokmd init --interactive` for guided project setup
 - [x] **Git-Ranked Context**: `--rank-by churn/hotspot` in `tokmd context` command
@@ -139,6 +144,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 - [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
 - [x] **Testing**: Comprehensive integration tests across all major crates
+- [x] **Testing**: Property-based tests for tokmd-redact, tokmd-tokeignore, tokmd-walk
+- [x] **Testing**: Fuzz targets for path redaction and JSON deserialization
 - [x] **Testing**: Mutation testing with cargo-mutants and CI gate
 - [x] **CI/CD**: Enhanced publish workflow via `cargo xtask publish`
 
