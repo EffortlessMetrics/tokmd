@@ -4,6 +4,7 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
+#[cfg(feature = "git")]
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 

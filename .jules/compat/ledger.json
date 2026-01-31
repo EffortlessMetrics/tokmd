@@ -11,5 +11,11 @@
     "date": "2024-05-24",
     "target": "tokmd-analysis",
     "improvement": "fixed unused fields warning in no-default-features build"
+  },
+  {
+    "run_id": "run-20260131-compat-init",
+    "date": "2026-01-31",
+    "target": "tokmd",
+    "improvement": "fixed unused import warning in run_diff tests when git feature disabled"
   }
 ]
