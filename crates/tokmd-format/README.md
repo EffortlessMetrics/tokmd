@@ -10,7 +10,7 @@ This is a **Tier 2** crate that renders tokmd receipts to various formats: Markd
 
 ```toml
 [dependencies]
-tokmd-format = "1.2"
+tokmd-format = "1.3"
 ```
 
 ## Usage

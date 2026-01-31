@@ -10,7 +10,7 @@ This is a **Tier 2** crate for git history collection. It provides a streaming i
 
 ```toml
 [dependencies]
-tokmd-git = "1.2"
+tokmd-git = "1.3"
 ```
 
 ## Usage

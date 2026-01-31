@@ -10,7 +10,7 @@ This is a **Tier 1** utility crate for generating `.tokeignore` templates. It pr
 
 ```toml
 [dependencies]
-tokmd-tokeignore = "1.2"
+tokmd-tokeignore = "1.3"
 ```
 
 ## Usage

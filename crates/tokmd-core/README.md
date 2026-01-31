@@ -10,8 +10,8 @@ This is a **Tier 4** crate providing the recommended entry point for library usa
 
 ```toml
 [dependencies]
-tokmd-core = "1.2"
-tokmd-types = "1.2"
+tokmd-core = "1.3"
+tokmd-types = "1.3"
 ```
 
 ## Usage

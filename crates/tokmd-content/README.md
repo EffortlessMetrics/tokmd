@@ -10,7 +10,7 @@ This is a **Tier 2** utility crate for file content inspection. It provides func
 
 ```toml
 [dependencies]
-tokmd-content = "1.2"
+tokmd-content = "1.3"
 ```
 
 ## Usage

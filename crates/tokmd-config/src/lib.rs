@@ -132,6 +132,9 @@ pub enum Commands {
 
     /// Evaluate policy rules against analysis receipts.
     Gate(CliGateArgs),
+
+    /// Generate PR cockpit metrics for code review.
+    Cockpit(CockpitArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -684,6 +687,37 @@ pub enum GateFormat {
     Text,
     /// JSON output.
     Json,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CockpitArgs {
+    /// Base reference to compare from (default: main).
+    #[arg(long, default_value = "main")]
+    pub base: String,
+
+    /// Head reference to compare to (default: HEAD).
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = CockpitFormat::Json)]
+    pub format: CockpitFormat,
+
+    /// Output file (stdout if omitted).
+    #[arg(long, value_name = "PATH")]
+    pub output: Option<std::path::PathBuf>,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum CockpitFormat {
+    /// JSON output with full metrics.
+    #[default]
+    Json,
+    /// Markdown output for human readability.
+    Md,
+    /// Section-based output for PR template filling.
+    Sections,
 }
 
 // =============================================================================

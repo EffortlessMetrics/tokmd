@@ -145,3 +145,12 @@ jobs:
       - name: Skip notice
         if: steps.changed.outputs.count == '0'
         run: echo "No production Rust files changed - skipping mutation testing"
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mutants-report
+          path: mutants.out/
+          if-no-files-found: ignore
+          retention-days: 14

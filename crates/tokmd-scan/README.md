@@ -10,7 +10,7 @@ This is a **Tier 1** crate that wraps the [tokei](https://github.com/XAMPPRocky/
 
 ```toml
 [dependencies]
-tokmd-scan = "1.2"
+tokmd-scan = "1.3"
 ```
 
 ## Usage

@@ -10,7 +10,7 @@ This is a **Tier 0** crate containing pure data types with no business logic dep
 
 ```toml
 [dependencies]
-tokmd-types = "1.2"
+tokmd-types = "1.3"
 ```
 
 ## Key Types

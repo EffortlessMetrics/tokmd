@@ -12,6 +12,8 @@ pub struct XtaskCli {
 pub enum Commands {
     /// Publish all crates in dependency order
     Publish(PublishArgs),
+    /// Generate PR cockpit metrics for CI
+    Cockpit(CockpitArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -91,4 +93,27 @@ pub struct PublishArgs {
     /// Skip confirmation prompt (required for non-dry-run without TTY)
     #[arg(long, short = 'y')]
     pub yes: bool,
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct CockpitArgs {
+    /// Base reference to compare from (default: main)
+    #[arg(long, default_value = "main")]
+    pub base: String,
+
+    /// Head reference to compare to (default: HEAD)
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// PR number for GitHub comment posting
+    #[arg(long)]
+    pub pr_number: Option<u64>,
+
+    /// Output format: json, md, sections
+    #[arg(long, default_value = "json")]
+    pub format: String,
+
+    /// Post cockpit as PR comment via gh CLI
+    #[arg(long)]
+    pub post_comment: bool,
 }

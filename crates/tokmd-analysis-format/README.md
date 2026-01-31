@@ -10,11 +10,11 @@ This is a **Tier 3** crate that renders analysis results in multiple formats. It
 
 ```toml
 [dependencies]
-tokmd-analysis-format = "1.2"
+tokmd-analysis-format = "1.3"
 
 # Enable fun outputs (OBJ, MIDI)
 [dependencies.tokmd-analysis-format]
-version = "1.2"
+version = "1.3"
 features = ["fun"]
 ```
 

@@ -10,7 +10,7 @@ This is a **Tier 0** crate defining pure data structures for analysis receipts. 
 
 ```toml
 [dependencies]
-tokmd-analysis-types = "1.2"
+tokmd-analysis-types = "1.3"
 ```
 
 ## Key Types

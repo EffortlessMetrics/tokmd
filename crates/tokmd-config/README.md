@@ -10,7 +10,7 @@ This is a **Tier 3** crate defining CLI arguments (via Clap) and configuration f
 
 ```toml
 [dependencies]
-tokmd-config = "1.2"
+tokmd-config = "1.3"
 ```
 
 ## Usage

@@ -36,3 +36,7 @@ publish-tag:
 
 install:
     cargo install --path crates/tokmd --force
+
+# Generate PR cockpit metrics
+cockpit base="main" head="HEAD":
+    cargo run -p tokmd --release -- cockpit --base {{base}} --head {{head}}

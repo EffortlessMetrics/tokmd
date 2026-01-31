@@ -10,7 +10,7 @@ This is a **Tier 3** novelty crate providing creative visualizations of code met
 
 ```toml
 [dependencies]
-tokmd-fun = "1.2"
+tokmd-fun = "1.3"
 ```
 
 ## Usage

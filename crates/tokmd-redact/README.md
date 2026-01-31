@@ -10,7 +10,7 @@ This is a **Tier 0.5** utility crate providing BLAKE3-based hashing functions fo
 
 ```toml
 [dependencies]
-tokmd-redact = "1.2"
+tokmd-redact = "1.3"
 ```
 
 ## Usage

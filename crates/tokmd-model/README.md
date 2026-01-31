@@ -10,7 +10,7 @@ This is a **Tier 1** crate containing the core business logic for transforming r
 
 ```toml
 [dependencies]
-tokmd-model = "1.2"
+tokmd-model = "1.3"
 ```
 
 ## Usage

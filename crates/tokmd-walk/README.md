@@ -10,7 +10,7 @@ This is a **Tier 2** utility crate for filesystem traversal with gitignore suppo
 
 ```toml
 [dependencies]
-tokmd-walk = "1.2"
+tokmd-walk = "1.3"
 ```
 
 ## Usage

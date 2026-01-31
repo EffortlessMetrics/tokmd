@@ -10,11 +10,11 @@ This is a **Tier 3** orchestration crate that computes derived metrics and optio
 
 ```toml
 [dependencies]
-tokmd-analysis = "1.2"
+tokmd-analysis = "1.3"
 
 # Enable optional features
 [dependencies.tokmd-analysis]
-version = "1.2"
+version = "1.3"
 features = ["git", "walk", "content"]
 ```
 
