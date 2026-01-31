@@ -305,6 +305,134 @@ See the [CLI Reference](reference-cli.md#tokmd-gate) for available operators and
 
 ---
 
+## Step 13: Generating PR Metrics with `tokmd cockpit`
+
+**Goal**: Get comprehensive metrics for a pull request to aid code review.
+
+When preparing or reviewing a PR, you want to understand its scope, risk factors, and quality evidence. The `cockpit` command generates a complete metrics dashboard comparing two git references.
+
+**Basic usage** (compare current branch against main):
+```bash
+tokmd cockpit
+```
+
+**Specify different base and head**:
+```bash
+tokmd cockpit --base develop --head feature/my-branch
+```
+
+**Output in Markdown for PR descriptions**:
+```bash
+tokmd cockpit --format md --output pr-metrics.md
+```
+
+**What you get**:
+
+The cockpit receipt includes several sections:
+
+- **Change Surface**: Files added, modified, deleted, and net line changes
+- **Composition**: Breakdown of changes by language and type (production vs. test code)
+- **Code Health**: Comment density, complexity indicators
+- **Risk**: Hotspot analysis, coupling detection
+- **Contracts**: API surface changes (if applicable)
+- **Evidence**: Hard gates with pass/fail status
+
+**Understanding Evidence Gates**:
+
+The evidence section provides automated quality checks:
+
+| Gate | Description |
+|------|-------------|
+| `mutation` | Mutation testing results (were tests effective?) |
+| `diff_coverage` | Test coverage for changed lines |
+| `contracts` | Contract/API compatibility verification |
+| `supply_chain` | Dependency security checks |
+| `determinism` | Build reproducibility verification |
+
+Each gate has a status:
+- `pass`: Gate passed
+- `fail`: Gate failed (blocks merge if required)
+- `skipped`: No relevant files changed
+- `pending`: Results not yet available
+
+**Example workflow for CI**:
+```bash
+# Generate cockpit metrics for the PR
+tokmd cockpit --base $BASE_SHA --head $HEAD_SHA --format json --output cockpit.json
+
+# Use in PR template
+tokmd cockpit --format sections >> $GITHUB_STEP_SUMMARY
+```
+
+---
+
+## Step 14: Exporting Tool Schemas with `tokmd tools`
+
+**Goal**: Generate schema definitions of tokmd commands for LLM integration.
+
+When building AI agents or automation that uses tokmd, you need schema definitions in a format your LLM understands. The `tools` command exports all tokmd commands as structured schemas.
+
+**Generate OpenAI function calling format**:
+```bash
+tokmd tools --format openai --pretty
+```
+
+**Generate Anthropic tool use format**:
+```bash
+tokmd tools --format anthropic --pretty
+```
+
+**Generate standard JSON Schema**:
+```bash
+tokmd tools --format jsonschema --pretty
+```
+
+**Available formats**:
+
+| Format | Description |
+|--------|-------------|
+| `jsonschema` | JSON Schema Draft 7 (default) |
+| `openai` | OpenAI function calling format |
+| `anthropic` | Anthropic tool use format |
+| `clap` | Raw clap structure for debugging |
+
+**What the output includes**:
+
+Each tokmd command is represented with:
+- **name**: Command name (e.g., `analyze`, `export`)
+- **description**: What the command does
+- **parameters**: Array of arguments with types, descriptions, and constraints
+
+**Example: Integrating with an AI agent**:
+
+```bash
+# Export schema for your agent
+tokmd tools --format anthropic --pretty > tokmd-tools.json
+
+# The agent can now call tokmd commands with proper parameter validation
+```
+
+**Using in an LLM system prompt**:
+
+```python
+import json
+
+# Load the schema
+with open("tokmd-tools.json") as f:
+    tools = json.load(f)
+
+# Pass to your LLM API
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    tools=tools["tools"],
+    messages=[{"role": "user", "content": "Analyze this codebase for me"}]
+)
+```
+
+This enables your AI agent to intelligently invoke tokmd commands with validated parameters.
+
+---
+
 ## Next Steps
 
 - Check out the **[Recipes](recipes.md)** for more advanced workflows.

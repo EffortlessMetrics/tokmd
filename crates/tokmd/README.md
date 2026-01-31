@@ -49,6 +49,9 @@ tokmd badge --metric lines --out badge.svg
 | `tokmd analyze` | Derived metrics and enrichments |
 | `tokmd badge` | SVG badge generation |
 | `tokmd diff` | Compare two runs or receipts |
+| `tokmd cockpit` | PR metrics with evidence gates for code review |
+| `tokmd gate` | Policy-based quality gates with JSON pointer rules |
+| `tokmd tools` | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema) |
 | `tokmd context` | Pack files into LLM context window |
 | `tokmd init` | Generate .tokeignore template |
 | `tokmd check-ignore` | Explain why files are ignored |
