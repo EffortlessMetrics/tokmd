@@ -1831,8 +1831,19 @@ impl FileStats {
     }
 }
 
+/// Get per-file diff statistics between two commits.
+///
+/// Uses two-dot syntax (`base..head`) which shows the actual diff between commits.
+/// Do NOT use three-dot syntax (`base...head`) here - that shows changes from the
+/// merge-base ancestor, which inflates line counts when comparing tags/branches.
+///
+/// Two-dot vs three-dot:
+/// - `A..B`  = commits reachable from B but not A (actual diff)
+/// - `A...B` = commits reachable from either but not both (symmetric difference)
 #[cfg(feature = "git")]
 fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<FileStats>> {
+    // NOTE: Using two-dot syntax for accurate diff stats between commits.
+    // Three-dot would show changes from merge-base, inflating counts.
     let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)

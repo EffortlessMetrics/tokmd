@@ -110,6 +110,16 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - `content`: File content scanning
 - `walk`: Filesystem traversal for assets
 
+### Git Diff Syntax (Two-dot vs Three-dot)
+When invoking `git diff` or `git log` with range syntax:
+
+| Syntax | Meaning | Use Case |
+|--------|---------|----------|
+| `A..B` | Commits reachable from B but not A | Comparing tags/releases (`cockpit`, `diff` commands) |
+| `A...B` | Symmetric difference from merge-base | CI workflows comparing PR branches |
+
+**Rule**: Use `..` (two dots) in cockpit/diff commands comparing releases or tags. Use `...` (three dots) only in CI workflows where you want changes since branch divergence.
+
 ## Testing
 
 - **Integration tests**: `crates/tokmd/tests/` using `assert_cmd` + `predicates`
