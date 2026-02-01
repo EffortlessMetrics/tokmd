@@ -143,14 +143,14 @@ where
 fn compare_equal(actual: &Value, expected: Option<&Value>) -> Result<bool, ()> {
     let expected = expected.ok_or(())?;
 
+    // For strings, compare case-sensitively (before numeric to avoid "inf"/"nan" issues)
+    if let (Some(a), Some(b)) = (actual.as_str(), expected.as_str()) {
+        return Ok(a == b);
+    }
+
     // For numeric types, compare as f64 to handle int/float mismatches
     if let (Some(a), Some(b)) = (value_to_f64(actual), value_to_f64(expected)) {
         return Ok((a - b).abs() < f64::EPSILON);
-    }
-
-    // For strings, compare case-sensitively
-    if let (Some(a), Some(b)) = (actual.as_str(), expected.as_str()) {
-        return Ok(a == b);
     }
 
     // For other types, use JSON equality

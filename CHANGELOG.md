@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-31
+
+### Added
+- **Node.js Bindings**: New `tokmd-node` crate with napi-rs bindings for npm
+  - Full API access: `version()`, `schemaVersion()`, `lang()`, `module()`, `export()`, `analyze()`, `diff()`
+  - TypeScript definitions included
+  - Async/sync variants for all methods
+- **Python Bindings**: New `tokmd-python` crate with PyO3 bindings for PyPI
+  - Full API access with Pythonic interface
+  - Type stubs for IDE support (`py.typed`)
+  - Comprehensive test suite
+- **FFI Layer**: Enhanced `tokmd-core` with C-compatible FFI functions
+  - JSON-based API for language interop
+  - Structured error handling with error codes
+  - Settings configuration via JSON
+- **Version Bump Command**: `cargo xtask bump <VERSION>` for workspace-wide version management
+  - Updates all Cargo.toml files atomically
+  - Optional `--schema` flag for schema version constants
+  - Dry-run mode for previewing changes
+- **Complexity Metrics**: Extended complexity analysis in analysis receipts
+  - Trend analysis for complexity over time
+  - Enhanced JSON schema properties
+
+### Changed
+- **Schema Version**: Analysis receipts now use `schema_version: 4` (from 3)
+- **FFI Error Handling**: Improved error formatting and response envelope handling
+- **GitHub Action**: Added checksum verification for downloaded assets
+
+### Fixed
+- **Gate Comparisons**: Fixed string comparison to handle "inf"/"nan" strings correctly without parsing as floats
+
+### Internal
+- **Documentation**: Added microcrate extraction analysis documents
+- **Test Refactoring**: Improved test assertions for better readability
+- **Proptest Regressions**: Added regression seeds for property-based tests
+
 ## [1.3.1] - 2026-01-31
 
 ### Added
