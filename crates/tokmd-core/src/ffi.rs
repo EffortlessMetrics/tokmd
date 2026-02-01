@@ -92,7 +92,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
             #[cfg(not(feature = "analysis"))]
             {
                 Err(TokmdError::not_implemented(
-                    "analyze mode requires 'analysis' feature: enable in Cargo.toml or use CLI"
+                    "analyze mode requires 'analysis' feature: enable in Cargo.toml or use CLI",
                 ))
             }
         }
@@ -215,9 +215,9 @@ fn parse_string_array(
             .iter()
             .enumerate()
             .map(|(i, v)| {
-                v.as_str()
-                    .map(String::from)
-                    .ok_or_else(|| TokmdError::invalid_field(&format!("{}[{}]", field, i), "a string"))
+                v.as_str().map(String::from).ok_or_else(|| {
+                    TokmdError::invalid_field(&format!("{}[{}]", field, i), "a string")
+                })
             })
             .collect(),
         Some(_) => Err(TokmdError::invalid_field(field, "an array of strings")),
@@ -644,12 +644,7 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .unwrap()
-                .contains("top")
-        );
+        assert!(parsed["error"]["message"].as_str().unwrap().contains("top"));
     }
 
     // ========================================================================
