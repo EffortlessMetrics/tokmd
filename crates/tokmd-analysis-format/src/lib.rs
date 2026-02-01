@@ -1124,6 +1124,7 @@ mod tests {
 
     // Test fmt_f64
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_fmt_f64() {
         assert_eq!(fmt_f64(3.14159, 2), "3.14");
         assert_eq!(fmt_f64(3.14159, 4), "3.1416");
@@ -1495,6 +1496,7 @@ mod tests {
 
         // Parse the OBJ output into objects with their vertices
         // Each object starts with "o <name>" followed by 8 vertices
+        #[allow(clippy::type_complexity)]
         let objects: Vec<(&str, Vec<(f32, f32, f32)>)> = result
             .split("o ")
             .skip(1)
