@@ -1,6 +1,6 @@
 {
   "name": "@tokmd/core",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Node.js bindings for tokmd - code inventory and analytics",
   "main": "index.js",
   "types": "index.d.ts",
@@ -60,13 +60,13 @@
     "@napi-rs/cli": "^3.0.0-alpha.66"
   },
   "optionalDependencies": {
-    "@tokmd/core-win32-x64-msvc": "1.3.1",
-    "@tokmd/core-darwin-x64": "1.3.1",
-    "@tokmd/core-darwin-arm64": "1.3.1",
-    "@tokmd/core-linux-x64-gnu": "1.3.1",
-    "@tokmd/core-linux-x64-musl": "1.3.1",
-    "@tokmd/core-linux-arm64-gnu": "1.3.1",
-    "@tokmd/core-linux-arm64-musl": "1.3.1",
-    "@tokmd/core-win32-arm64-msvc": "1.3.1"
+    "@tokmd/core-win32-x64-msvc": "1.4.0",
+    "@tokmd/core-darwin-x64": "1.4.0",
+    "@tokmd/core-darwin-arm64": "1.4.0",
+    "@tokmd/core-linux-x64-gnu": "1.4.0",
+    "@tokmd/core-linux-x64-musl": "1.4.0",
+    "@tokmd/core-linux-arm64-gnu": "1.4.0",
+    "@tokmd/core-linux-arm64-musl": "1.4.0",
+    "@tokmd/core-win32-arm64-msvc": "1.4.0"
   }
 }

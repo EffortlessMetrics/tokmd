@@ -567,7 +567,7 @@ pub struct ReviewItem {
 // =============================================================================
 
 /// Trend comparison between current state and baseline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TrendComparison {
     /// Whether a baseline was successfully loaded.
     pub baseline_available: bool,
@@ -632,19 +632,6 @@ pub enum TrendDirection {
     Stable,
     /// Degrading (higher risk, higher complexity, lower health).
     Degrading,
-}
-
-impl Default for TrendComparison {
-    fn default() -> Self {
-        Self {
-            baseline_available: false,
-            baseline_path: None,
-            baseline_generated_at_ms: None,
-            health: None,
-            risk: None,
-            complexity: None,
-        }
-    }
 }
 
 #[cfg(feature = "git")]
