@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport, ComplexityReport,
     CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport,
     ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
 };
@@ -86,6 +86,7 @@ struct AnalysisPlan {
     topics: bool,
     entropy: bool,
     license: bool,
+    complexity: bool,
     #[cfg(feature = "git")]
     churn: bool,
     #[cfg(feature = "git")]
@@ -101,6 +102,7 @@ impl AnalysisPlan {
             || self.imports
             || self.entropy
             || self.license
+            || self.complexity
     }
 }
 
@@ -118,6 +120,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -135,6 +138,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: true,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -152,6 +156,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: true,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -169,6 +174,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -186,6 +192,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -203,6 +210,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: true,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -220,6 +228,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: true,
             license: true,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -237,6 +246,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -254,6 +264,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: true,
             #[cfg(feature = "git")]
@@ -271,6 +282,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: true,
             entropy: true,
             license: true,
+            complexity: true,
             #[cfg(feature = "git")]
             churn: true,
             #[cfg(feature = "git")]
@@ -288,6 +300,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             topics: false,
             entropy: false,
             license: false,
+            complexity: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -359,6 +372,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     let mut license: Option<LicenseReport> = None;
     #[cfg(not(all(feature = "content", feature = "walk")))]
     let license: Option<LicenseReport> = None;
+
+    #[cfg(all(feature = "content", feature = "walk"))]
+    let mut complexity: Option<ComplexityReport> = None;
+    #[cfg(not(all(feature = "content", feature = "walk")))]
+    let complexity: Option<ComplexityReport> = None;
 
     let mut archetype: Option<Archetype> = None;
     let mut topics: Option<TopicClouds> = None;
@@ -537,6 +555,25 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         warnings.push("content/walk feature disabled; skipping license radar".to_string());
     }
 
+    if plan.complexity {
+        #[cfg(all(feature = "content", feature = "walk"))]
+        {
+            if let Some(list) = files.as_deref() {
+                match crate::complexity::build_complexity_report(
+                    &ctx.root,
+                    list,
+                    &ctx.export,
+                    &req.limits,
+                ) {
+                    Ok(report) => complexity = Some(report),
+                    Err(err) => warnings.push(format!("complexity scan failed: {}", err)),
+                }
+            }
+        }
+        #[cfg(not(all(feature = "content", feature = "walk")))]
+        warnings.push("content/walk feature disabled; skipping complexity analysis".to_string());
+    }
+
     if plan.fun {
         fun = Some(build_fun_report(&derived));
     }
@@ -568,6 +605,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         git,
         imports,
         dup,
+        complexity,
         fun,
     };
 

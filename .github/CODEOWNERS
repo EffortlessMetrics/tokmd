@@ -1,0 +1,12 @@
+# Default owners for everything in the repo
+* @EffortlessMetrics
+
+# Documentation
+/docs/ @EffortlessMetrics
+*.md @EffortlessMetrics
+
+# CI/CD
+/.github/ @EffortlessMetrics
+
+# Core crates
+/crates/ @EffortlessMetrics

@@ -1,0 +1,28 @@
+{
+    "version": "1.3.1",
+    "description": "Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase",
+    "homepage": "https://github.com/EffortlessMetrics/tokmd",
+    "license": "MIT|Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/EffortlessMetrics/tokmd/releases/download/v1.3.1/tokmd-windows-amd64.exe",
+            "hash": "TODO_UPDATE_HASH_ON_RELEASE"
+        }
+    },
+    "bin": [
+        [
+            "tokmd-windows-amd64.exe",
+            "tokmd"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/EffortlessMetrics/tokmd"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/EffortlessMetrics/tokmd/releases/download/v$version/tokmd-windows-amd64.exe"
+            }
+        }
+    }
+}

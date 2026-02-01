@@ -1,0 +1,51 @@
+# typos spell checker configuration
+# https://github.com/crate-ci/typos
+
+[files]
+# Extend default ignore list
+extend-exclude = [
+    # Lock files
+    "Cargo.lock",
+    "*.lock",
+    # Generated/snapshot files
+    "*.snap",
+    "snapshots/",
+    # Build artifacts
+    "target/",
+    # Test fixtures and output
+    "mutants.out*/",
+    "m_out/",
+    "mut/",
+    # Nix
+    "flake.lock",
+]
+
+[default]
+# Extend default dictionary with project-specific words
+extend-ignore-identifiers-re = [
+    # Hex hashes (blake3, etc.)
+    "[a-fA-F0-9]{32,}",
+]
+
+[default.extend-words]
+# Project-specific terms
+tokmd = "tokmd"
+tokei = "tokei"
+tokeignore = "tokeignore"
+
+# Rust/cargo ecosystem terms
+rustfmt = "rustfmt"
+clippy = "clippy"
+serde = "serde"
+proptest = "proptest"
+
+# Metrics and analysis terms
+cocomo = "cocomo"
+jsonl = "jsonl"
+
+# Common abbreviations
+loc = "loc"
+sloc = "sloc"
+
+[type.rust]
+# Rust-specific settings if needed

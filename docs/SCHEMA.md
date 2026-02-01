@@ -4,11 +4,52 @@
 
 `tokmd` produces structured JSON outputs called "receipts". These schemas are stable and intended for machine consumption.
 
-**Schema versions**:
-- **Version 2**: Core receipts (`lang`, `module`, `export`, `analysis`)
-- **Version 3**: Cockpit receipt (`cockpit`)
-
 All JSON outputs share a common envelope structure.
+
+---
+
+## Schema Version History
+
+tokmd uses **separate schema versions** for different receipt families. Each receipt type declares its own `schema_version` in the JSON output.
+
+### Current Versions
+
+| Receipt Family | Current Version | Constant | Applies To |
+|----------------|-----------------|----------|------------|
+| **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `context`, `run` |
+| **Analysis** | 4 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
+| **Cockpit** | 3 | (local) | `cockpit` |
+
+### Version Changelog
+
+#### Core Receipts (`SCHEMA_VERSION`)
+
+| Version | Changes |
+|---------|---------|
+| **2** | Added `bytes` and `tokens` fields to all rows; added `tokens`, `bytes`, `avg_lines` to totals; added `excluded_redacted` and `strip_prefix_redacted` flags |
+| **1** | Initial release with `code`, `lines`, `files` metrics |
+
+#### Analysis Receipts (`ANALYSIS_SCHEMA_VERSION`)
+
+| Version | Changes |
+|---------|---------|
+| **4** | Added cognitive complexity, nesting depth, and function-level details to `ComplexityReport` |
+| **3** | Added `complexity` section with cyclomatic complexity metrics |
+| **2** | Initial analysis receipt structure with presets (receipt, health, risk, supply, architecture, topics, security, identity, git, deep, fun) |
+
+#### Cockpit Receipts
+
+| Version | Changes |
+|---------|---------|
+| **3** | Initial cockpit receipt for PR metrics with evidence gates, change surface, composition, code health, risk assessment, contracts, and review plan |
+
+### Code References
+
+- **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
+- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;`
+- **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
+
+---
 
 ## Common Fields
 
@@ -16,7 +57,7 @@ Every receipt includes:
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `schema_version` | `integer` | The schema version (currently 2). Incremented on breaking changes. |
+| `schema_version` | `integer` | The schema version for this receipt type. See [Schema Version History](#schema-version-history) for current values. |
 | `generated_at_ms` | `integer` | Unix timestamp (milliseconds) when the scan ran. |
 | `tool` | `object` | Information about the tool version. |
 | `tool.name` | `string` | Always `"tokmd"`. |
@@ -341,7 +382,7 @@ The `total` object in language and module receipts contains aggregate metrics:
 
 Produced by `tokmd analyze --format json`.
 
-**Schema version**: 2
+**Schema version**: 4
 
 Analysis receipts contain derived metrics and optional enrichments. All sections except `source`, `args`, and `derived` are optional based on the preset used.
 
@@ -349,9 +390,9 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.2.0" },
+  "tool": { "name": "tokmd", "version": "1.3.0" },
   "mode": "analysis",
   "status": "complete",
   "warnings": [],

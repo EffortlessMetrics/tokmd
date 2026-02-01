@@ -85,6 +85,17 @@ alias-tok = []  # Enable tok binary alias
 | 1 | General error |
 | 2 | CLI parsing error |
 
+### Git Diff Syntax
+
+When comparing commits/tags directly (e.g., in `cockpit` command), use **two-dot** syntax:
+
+| Syntax | Meaning | Use Case |
+|--------|---------|----------|
+| `A..B` | Commits in B but not A | Comparing tags/releases, cockpit metrics |
+| `A...B` | Symmetric difference (merge-base) | PR diffs, branch comparisons in CI |
+
+**Rule**: Use `..` for cockpit/diff commands comparing releases. Use `...` only in CI workflows comparing PR branches.
+
 ## Dependencies
 
 All crates with full features enabled:

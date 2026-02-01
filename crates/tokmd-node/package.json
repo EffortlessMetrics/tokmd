@@ -1,0 +1,72 @@
+{
+  "name": "@tokmd/core",
+  "version": "1.4.0",
+  "description": "Node.js bindings for tokmd - code inventory and analytics",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "MIT OR Apache-2.0",
+  "homepage": "https://github.com/EffortlessMetrics/tokmd",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EffortlessMetrics/tokmd.git",
+    "directory": "crates/tokmd-node"
+  },
+  "bugs": {
+    "url": "https://github.com/EffortlessMetrics/tokmd/issues"
+  },
+  "author": "Steven Zimmerman <git@effortlesssteven.com>",
+  "keywords": [
+    "code-analysis",
+    "nodejs",
+    "bindings",
+    "napi",
+    "tokei",
+    "loc",
+    "lines-of-code",
+    "code-metrics",
+    "inventory"
+  ],
+  "engines": {
+    "node": ">= 16"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
+  "napi": {
+    "name": "tokmd",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
+        "aarch64-apple-darwin",
+        "aarch64-pc-windows-msvc"
+      ]
+    }
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "node --test test/*.js",
+    "universal": "napi universal",
+    "version": "napi version"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.0.0-alpha.66"
+  },
+  "optionalDependencies": {
+    "@tokmd/core-win32-x64-msvc": "1.4.0",
+    "@tokmd/core-darwin-x64": "1.4.0",
+    "@tokmd/core-darwin-arm64": "1.4.0",
+    "@tokmd/core-linux-x64-gnu": "1.4.0",
+    "@tokmd/core-linux-x64-musl": "1.4.0",
+    "@tokmd/core-linux-arm64-gnu": "1.4.0",
+    "@tokmd/core-linux-arm64-musl": "1.4.0",
+    "@tokmd/core-win32-arm64-msvc": "1.4.0"
+  }
+}

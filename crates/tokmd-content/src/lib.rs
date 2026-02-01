@@ -11,11 +11,13 @@
 //! * File integrity hashing (BLAKE3)
 //! * Tag counting (TODOs, FIXMEs)
 //! * Entropy calculation
+//! * Function-level complexity metrics
 //!
 //! ## What does NOT belong here
 //! * File listing (use tokmd-walk)
 //! * File modification
-//! * Language-specific syntax parsing
+
+pub mod complexity;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};

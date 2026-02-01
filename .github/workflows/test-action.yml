@@ -1,0 +1,71 @@
+name: Test Action
+
+on:
+  pull_request:
+    paths:
+      - 'action.yml'
+      - '.github/workflows/test-action.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'action.yml'
+      - '.github/workflows/test-action.yml'
+  workflow_dispatch:
+
+jobs:
+  test-action:
+    name: Test tokmd-receipt Action
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tokmd-receipt action
+        uses: ./
+        with:
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify outputs exist
+        shell: bash
+        run: |
+          if [ ! -f tokmd-summary.md ]; then
+            echo "::error::tokmd-summary.md not generated"
+            exit 1
+          fi
+          if [ ! -f tokmd-receipt.json ]; then
+            echo "::error::tokmd-receipt.json not generated"
+            exit 1
+          fi
+          echo "✓ Both receipt files generated successfully"
+          echo "--- Summary preview ---"
+          head -20 tokmd-summary.md
+
+  test-formats:
+    name: Test export formats
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        format: [json, jsonl, csv]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tokmd-receipt with ${{ matrix.format }} format
+        uses: ./
+        with:
+          format: ${{ matrix.format }}
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify output
+        run: |
+          if [ ! -f "tokmd-receipt.${{ matrix.format }}" ]; then
+            echo "::error::tokmd-receipt.${{ matrix.format }} not generated"
+            exit 1
+          fi
+          echo "✓ tokmd-receipt.${{ matrix.format }} generated successfully"

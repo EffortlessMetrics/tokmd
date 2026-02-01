@@ -22,6 +22,8 @@ mod archetype;
 mod assets;
 #[cfg(feature = "git")]
 mod churn;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod complexity;
 #[cfg(feature = "content")]
 mod content;
 mod derived;

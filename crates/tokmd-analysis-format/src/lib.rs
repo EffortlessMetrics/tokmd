@@ -947,6 +947,7 @@ mod tests {
             git: None,
             imports: None,
             dup: None,
+            complexity: None,
             fun: None,
         }
     }

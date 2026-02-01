@@ -1,0 +1,69 @@
+# Build artifacts
+target/
+
+# Git directory (not needed for build)
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Documentation (not needed for build)
+*.md
+!README.md
+docs/
+
+# CI/CD configuration
+.github/
+
+# Testing and development files
+.cargo/
+.rustfmt.toml
+rustfmt.toml
+clippy.toml
+.clippy.toml
+deny.toml
+codecov.yml
+.pre-commit-config.yaml
+
+# Docker files (prevent recursive inclusion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage and profiling
+*.profraw
+*.profdata
+coverage/
+lcov.info
+tarpaulin-report.html
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Snapshots (testing)
+*.snap
+*.snap.new
+
+# Mutation testing
+mutants.out/
+mutants.out.old/

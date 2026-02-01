@@ -189,6 +189,7 @@ fn make_receipt(derived: DerivedReport) -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        complexity: None,
         fun: None,
     }
 }

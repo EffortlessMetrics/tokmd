@@ -100,13 +100,25 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - JSON outputs include envelope metadata with `schema_version`
 - Increment schema_version when modifying JSON output structure
 - Update `docs/schema.json` (formal JSON Schema) when structures change
-- Analysis receipts use `schema_version: 2`
-- Cockpit receipts use `schema_version: 3`
+- **Schema versions are separate for each receipt family**:
+  - Core receipts (`lang`, `module`, `export`, `diff`, `context`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
+  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 4` (in `tokmd-analysis-types`)
+  - Cockpit receipts: `SCHEMA_VERSION = 3` (local to cockpit.rs)
 
 ### Feature Flags
 - `git`: Git history analysis (requires git2)
 - `content`: File content scanning
 - `walk`: Filesystem traversal for assets
+
+### Git Diff Syntax (Two-dot vs Three-dot)
+When invoking `git diff` or `git log` with range syntax:
+
+| Syntax | Meaning | Use Case |
+|--------|---------|----------|
+| `A..B` | Commits reachable from B but not A | Comparing tags/releases (`cockpit`, `diff` commands) |
+| `A...B` | Symmetric difference from merge-base | CI workflows comparing PR branches |
+
+**Rule**: Use `..` (two dots) in cockpit/diff commands comparing releases or tags. Use `...` (three dots) only in CI workflows where you want changes since branch divergence.
 
 ## Testing
 

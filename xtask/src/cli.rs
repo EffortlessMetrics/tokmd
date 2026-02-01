@@ -10,6 +10,8 @@ pub struct XtaskCli {
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
+    /// Bump version across the entire workspace
+    Bump(BumpArgs),
     /// Publish all crates in dependency order
     Publish(PublishArgs),
     /// Generate PR cockpit metrics for CI
@@ -93,6 +95,27 @@ pub struct PublishArgs {
     /// Skip confirmation prompt (required for non-dry-run without TTY)
     #[arg(long, short = 'y')]
     pub yes: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct BumpArgs {
+    /// New version to set (semver format: MAJOR.MINOR.PATCH)
+    #[arg(required = true)]
+    pub version: String,
+
+    /// Show what would be changed without making changes
+    #[arg(long, short = 'n')]
+    pub dry_run: bool,
+
+    /// Bump schema versions (format: NAME=VERSION, e.g., SCHEMA_VERSION=3)
+    ///
+    /// Known schema constants:
+    ///   - SCHEMA_VERSION (crates/tokmd-types/src/lib.rs) - core receipts
+    ///   - ANALYSIS_SCHEMA_VERSION (crates/tokmd-analysis-types/src/lib.rs)
+    ///   - SCHEMA_VERSION in cockpit.rs (crates/tokmd/src/commands/cockpit.rs)
+    ///   - TOOL_SCHEMA_VERSION (crates/tokmd/src/tools_schema.rs)
+    #[arg(long, value_delimiter = ',')]
+    pub schema: Option<Vec<String>>,
 }
 
 #[derive(Args, Debug, Clone, Default)]

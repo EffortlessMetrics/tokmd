@@ -1,4 +1,50 @@
+# Auto-detect text files and normalize line endings
+* text=auto eol=lf
+
+# Source code
+*.rs text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+
 # Deterministic fixtures (avoid CRLF checkout on Windows)
 crates/tokmd/tests/data/** text eol=lf
 crates/tokmd/tests/snapshots/** text eol=lf
 crates/tokmd-analysis-format/tests/snapshots/** text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+
+# Executables
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Git-specific
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+
+# GitHub
+.github/** text eol=lf
+
+# Lock files (preserve exact format)
+Cargo.lock text eol=lf -diff

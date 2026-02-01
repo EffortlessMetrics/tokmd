@@ -3,6 +3,17 @@
 <!-- AI-FILL:SUMMARY -->
 <!-- Brief description of what this PR does -->
 
+## Type of Change
+
+<!-- Check the relevant option(s) -->
+
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that changes existing behavior)
+- [ ] Refactoring (no functional changes)
+- [ ] Documentation update
+- [ ] Tests/CI improvement
+
 ---
 
 ## Glass Cockpit
@@ -25,6 +36,20 @@
 | CLI changed | <!-- cli_changed --> |
 | Schema changed | <!-- schema_changed --> |
 <!-- /AI-FILL:COCKPIT -->
+
+---
+
+## Trend
+
+<!-- SECTION:TREND -->
+<!-- AI-FILL:TREND -->
+| Metric | Current | Previous | Delta | Direction |
+|--------|---------|----------|-------|-----------|
+| Health | <!-- health_current --> | <!-- health_previous --> | <!-- health_delta --> | <!-- health_direction --> |
+| Risk | <!-- risk_current --> | <!-- risk_previous --> | <!-- risk_delta --> | <!-- risk_direction --> |
+| Complexity | <!-- complexity_summary --> | | | <!-- complexity_direction --> |
+<!-- /AI-FILL:TREND -->
+<!-- /SECTION:TREND -->
 
 ---
 
