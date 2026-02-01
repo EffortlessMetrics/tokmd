@@ -1,0 +1,21 @@
+{
+  "run_id": "run-docs-001",
+  "persona": "Librarian",
+  "status": "done",
+  "gates": {
+    "build": "PASS",
+    "test": "PASS",
+    "fmt": "PASS",
+    "clippy": "PASS"
+  },
+  "receipts": [
+    {
+      "command": "tokmd cockpit --help",
+      "output": "Generate PR cockpit metrics for code review"
+    },
+    {
+      "command": "cargo test --doc",
+      "output": "all doctests ran in 0.59s"
+    }
+  ]
+}

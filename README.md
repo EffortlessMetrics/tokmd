@@ -52,6 +52,9 @@ tokmd badge --metric lines --out badge.svg
 
 # 7. Diff two states
 tokmd diff main HEAD
+
+# 8. PR Cockpit (code review metrics)
+tokmd cockpit --format md
 ```
 
 ## Use Cases
@@ -79,6 +82,20 @@ Add a `tokmd` summary to show reviewers the repo shape:
 ```bash
 tokmd --format md --top 5
 ```
+
+### Automated Code Review
+Generate a "glass cockpit" report for your Pull Requests with evidence gates, risk analysis, and review prioritization.
+
+```bash
+# Generate a Markdown report for the PR description
+tokmd cockpit --format md
+```
+
+**Includes**:
+*   **Change Surface**: Net lines, file churn, concentration.
+*   **Risk**: Hotspots, coupling, and "freshness" of touched files.
+*   **Evidence Gates**: Integration with mutation testing and test coverage.
+*   **Review Plan**: Prioritized list of files that need human attention.
 
 ### CI Artifacts & Diffs
 Track changes over time:
