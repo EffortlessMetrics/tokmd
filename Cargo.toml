@@ -72,6 +72,7 @@ tokmd-gate = { path = "crates/tokmd-gate", version = "1.3.0" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"
+toml = "0.8.23"
 
 [profile.release]
 lto = true
