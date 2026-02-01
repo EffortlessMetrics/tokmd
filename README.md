@@ -241,6 +241,31 @@ brew tap EffortlessMetrics/tap
 brew install tokmd
 ```
 
+### Arch Linux (AUR)
+
+```bash
+# With an AUR helper like yay or paru
+yay -S tokmd
+
+# Or manually
+git clone https://aur.archlinux.org/tokmd.git
+cd tokmd
+makepkg -si
+```
+
+### Scoop (Windows)
+
+```bash
+scoop bucket add effortlessmetrics https://github.com/EffortlessMetrics/scoop-bucket
+scoop install tokmd
+```
+
+### WinGet (Windows)
+
+```bash
+winget install EffortlessMetrics.tokmd
+```
+
 ### From crates.io
 
 ```bash

@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **MSRV**: Minimum Supported Rust Version (1.85) documented and tested in CI
 - **Homebrew Formula**: `brew tap EffortlessMetrics/tap && brew install tokmd`
 - **CITATION.cff**: Academic citation metadata
+- **Docker Image**: Multi-arch image at `ghcr.io/effortlessmetrics/tokmd`
+- **SLSA Attestations**: Supply chain provenance for release binaries
+- **Scoop Manifest**: Windows package manager support
+- **WinGet Manifest**: Windows Package Manager support
+- **AUR PKGBUILD**: Arch Linux package support
 
 ### Changed
 - **GitHub Action**: Fail fast on download failure instead of slow cargo fallback
