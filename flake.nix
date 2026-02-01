@@ -25,13 +25,21 @@
 
       mkPkgs = system: import nixpkgs { inherit system; };
       mkCraneLib = system: crane.mkLib (mkPkgs system);
+
+      # Source filter that includes cargo sources plus HTML templates (for include_str!)
+      mkSrc = craneLib: craneLib.path {
+        path = ./.;
+        filter = path: type:
+          (craneLib.filterCargoSources path type)
+          || (builtins.match ".*\\.html$" path != null);
+      };
     in
     {
       packages = forAllSystems (system:
         let
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
-          src = craneLib.cleanCargoSource ./.;
+          src = mkSrc craneLib;
 
           commonArgs = {
             pname = "tokmd";
@@ -73,7 +81,7 @@
       checks = forAllSystems (system:
         let
           craneLib = mkCraneLib system;
-          src = craneLib.cleanCargoSource ./.;
+          src = mkSrc craneLib;
           commonArgs = {
             inherit src;
             strictDeps = true;
