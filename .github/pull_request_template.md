@@ -3,6 +3,17 @@
 <!-- AI-FILL:SUMMARY -->
 <!-- Brief description of what this PR does -->
 
+## Type of Change
+
+<!-- Check the relevant option(s) -->
+
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that changes existing behavior)
+- [ ] Refactoring (no functional changes)
+- [ ] Documentation update
+- [ ] Tests/CI improvement
+
 ---
 
 ## Glass Cockpit

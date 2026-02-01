@@ -8,8 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.1] - 2026-01-31
 
 ### Added
+- **ARM Builds**: Release binaries for macOS ARM (M1/M2) and Linux ARM64
+- **SHA256 Checksums**: Release artifacts now include `checksums.txt`
+- **Auto-publish**: Release workflow publishes to crates.io automatically
 - **Action Test Workflow**: CI workflow to test the GitHub Action on all platforms and formats
 - **README Badges**: Downloads, Docs.rs, and GitHub Marketplace badges
+- **SECURITY.md**: Security vulnerability reporting policy
+- **FUNDING.yml**: GitHub Sponsors configuration
+- **CODEOWNERS**: Default code review assignments
+- **.editorconfig**: Consistent editor formatting rules
+- **Issue Templates**: YAML form-based bug report and feature request templates
 
 ### Changed
 - **GitHub Action**: Fail fast on download failure instead of slow cargo fallback
@@ -19,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GitHub Action**: Removed unused `token` input
 - **GitHub Action**: Renamed output from `receipt-json` to `receipt`
 - **Release Workflow**: Automatically updates major version tag (v1) on release
+- **.gitattributes**: Enhanced with LF normalization and binary file handling
 
 ## [1.3.0] - 2026-01-31
 
