@@ -9,19 +9,20 @@
 ## The Pain
 
 Repo stats are easy to compute (cloc, tokei) but annoying to **use**.
-* Shell scripts to pipe `tokei` output are fragile.
-* Different OSs (Windows/Linux) produce slightly different outputs.
-* Pasting raw line counts into LLMs (ChatGPT/Claude) is messy and unstructured.
-* Checking "did this PR bloat the codebase?" requires deterministic diffs.
-* Raw counts don't tell you where the risk is or what needs attention.
+
+- Shell scripts to pipe `tokei` output are fragile.
+- Different OSs (Windows/Linux) produce slightly different outputs.
+- Pasting raw line counts into LLMs (ChatGPT/Claude) is messy and unstructured.
+- Checking "did this PR bloat the codebase?" requires deterministic diffs.
+- Raw counts don't tell you where the risk is or what needs attention.
 
 ## The Product
 
 `tokmd` is a code intelligence platform built on the excellent [`tokei`](https://github.com/XAMPPRocky/tokei) library. It produces **receipts** (deterministic artifacts) and **analysis** (derived insights).
 
-* **Receipts**: Schema'd, normalized artifacts that represent the "shape" of your code.
-* **Analysis**: Derived metrics like doc density, test coverage, hotspots, and effort estimation.
-* **Outputs**: Markdown summaries, JSON/JSONL/CSV datasets, SVG badges, Mermaid diagrams.
+- **Receipts**: Schema'd, normalized artifacts that represent the "shape" of your code.
+- **Analysis**: Derived metrics like doc density, test coverage, hotspots, and effort estimation.
+- **Outputs**: Markdown summaries, JSON/JSONL/CSV datasets, SVG badges, Mermaid diagrams.
 
 ## Quickstart
 
@@ -57,7 +58,9 @@ tokmd diff main HEAD
 ## Use Cases
 
 ### LLM Context Packing
+
 Pack files into an LLM context window with budget-aware selection:
+
 ```bash
 tokmd context --budget 128k --output bundle --out context.txt  # Ready to paste
 tokmd context --budget 200k --strategy spread                  # Coverage across modules
@@ -65,7 +68,9 @@ tokmd context --budget 100k --output bundle --compress --out context.txt  # Stri
 ```
 
 ### LLM Context Planning
+
 Smartly select files to fit your context window:
+
 ```bash
 # Pack top files by code volume into 128k tokens
 tokmd context --budget 128k --output bundle --out context.txt
@@ -75,20 +80,26 @@ tokmd context --budget 128k --output list
 ```
 
 ### PR Summaries
+
 Add a `tokmd` summary to show reviewers the repo shape:
+
 ```bash
 tokmd --format md --top 5
 ```
 
 ### CI Artifacts & Diffs
+
 Track changes over time:
+
 ```bash
 tokmd run --output-dir .runs/$(git rev-parse --short HEAD)
 tokmd diff .runs/baseline .runs/current
 ```
 
 ### Health Checks
+
 Quick code quality signals:
+
 ```bash
 tokmd analyze --preset health  # Doc density, TODO count, test ratio
 tokmd analyze --preset risk    # Hotspots, coupling, freshness
@@ -96,66 +107,75 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 
 ## Commands
 
-| Command | Purpose |
-| :--- | :--- |
-| `tokmd` | Language summary (lines, files, bytes). |
-| `tokmd module` | Group stats by directories (`crates/`, `src/`). |
-| `tokmd context` | Pack files into an LLM context window. |
-| `tokmd export` | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools. |
-| `tokmd run` | Full scan with artifact output to a directory. |
-| `tokmd analyze` | Derived metrics and enrichments. |
-| `tokmd badge` | SVG badge for a metric (lines, tokens, doc%). |
-| `tokmd diff` | Compare two runs, receipts, or git refs. |
-| `tokmd cockpit` | PR metrics for code review (evidence gates, risk, review plan). |
-| `tokmd gate` | Policy-based quality gates with JSON pointer rules. |
-| `tokmd tools` | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
-| `tokmd init` | Generate a `.tokeignore` file (supports templates). |
-| `tokmd check-ignore` | Explain why files are being ignored (troubleshooting). |
-| `tokmd completions` | Generate shell completions (bash, zsh, fish, powershell). |
+| Command              | Purpose                                                         |
+| :------------------- | :-------------------------------------------------------------- |
+| `tokmd`              | Language summary (lines, files, bytes).                         |
+| `tokmd module`       | Group stats by directories (`crates/`, `src/`).                 |
+| `tokmd context`      | Pack files into an LLM context window.                          |
+| `tokmd export`       | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools.  |
+| `tokmd run`          | Full scan with artifact output to a directory.                  |
+| `tokmd analyze`      | Derived metrics and enrichments.                                |
+| `tokmd badge`        | SVG badge for a metric (lines, tokens, doc%).                   |
+| `tokmd diff`         | Compare two runs, receipts, or git refs.                        |
+| `tokmd cockpit`      | PR metrics for code review (evidence gates, risk, review plan). |
+| `tokmd gate`         | Policy-based quality gates with JSON pointer rules.             |
+| `tokmd tools`        | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
+| `tokmd init`         | Generate a `.tokeignore` file (supports templates).             |
+| `tokmd check-ignore` | Explain why files are being ignored (troubleshooting).          |
+| `tokmd completions`  | Generate shell completions (bash, zsh, fish, powershell).       |
 
 ## Analysis Presets
 
 `tokmd analyze` provides focused analysis bundles:
 
-| Preset | What You Get |
-| :--- | :--- |
-| `receipt` | Totals, doc density, test density, distribution, COCOMO, context window fit |
-| `health` | + TODO/FIXME density |
-| `risk` | + Git hotspots, coupling, freshness, bus factor |
-| `supply` | + Asset inventory, dependency lockfile summary |
-| `architecture` | + Import/dependency graph |
-| `topics` | Semantic topic clouds from path analysis |
-| `security` | License detection, high-entropy file scanning |
-| `identity` | Project archetype, corporate fingerprint |
-| `git` | Predictive churn, trend analysis |
-| `deep` | Everything (except fun) |
-| `fun` | Eco-label, novelty outputs |
+| Preset         | What You Get                                                                |
+| :------------- | :-------------------------------------------------------------------------- |
+| `receipt`      | Totals, doc density, test density, distribution, COCOMO, context window fit |
+| `health`       | + TODO/FIXME density                                                        |
+| `risk`         | + Git hotspots, coupling, freshness, bus factor                             |
+| `supply`       | + Asset inventory, dependency lockfile summary                              |
+| `architecture` | + Import/dependency graph                                                   |
+| `topics`       | Semantic topic clouds from path analysis                                    |
+| `security`     | License detection, high-entropy file scanning                               |
+| `identity`     | Project archetype, corporate fingerprint                                    |
+| `git`          | Predictive churn, trend analysis                                            |
+| `deep`         | Everything (except fun)                                                     |
+| `fun`          | Eco-label, novelty outputs                                                  |
 
 ## Key Features
 
 ### Deterministic Output
+
 Same input always produces same output. Essential for diffs and CI.
 
 ### Schema Versioning
+
 All JSON outputs include `schema_version`. Breaking changes increment the version.
 
 ### Token Estimation
+
 Every file row includes estimated tokens for LLM context planning.
 
 ### Redaction
+
 Share receipts safely without leaking internal paths:
+
 ```bash
 tokmd export --redact all  # Hash paths and module names
 ```
 
 ### Context Window Analysis
+
 Check if your codebase fits in an LLM's context:
+
 ```bash
-tokmd analyze --window 128000  # Claude's context size
+tokmd analyze --window 128000  # Approximately 128k tokens
 ```
 
 ### Git Integration
+
 Analyze git history for risk signals:
+
 - **Hotspots**: Files with high churn AND high complexity
 - **Freshness**: Stale modules that may need attention
 - **Coupling**: Files that always change together
@@ -163,14 +183,14 @@ Analyze git history for risk signals:
 
 ## Why tokmd over tokei?
 
-| Feature | `tokei` | `tokmd` |
-| :--- | :--- | :--- |
-| **Core Value** | Fast, accurate counting | Counting + Analysis + Workflow |
-| **Output** | Terminal tables | Receipts (Md/JSON/CSV), Badges, Diagrams |
-| **Stability** | Output varies by version | Strict schema versioning |
-| **LLM Ready** | No | Token estimates, context fit analysis |
-| **Git Analysis** | No | Hotspots, freshness, coupling |
-| **Derived Metrics** | No | Doc density, COCOMO, distribution |
+| Feature             | `tokei`                  | `tokmd`                                  |
+| :------------------ | :----------------------- | :--------------------------------------- |
+| **Core Value**      | Fast, accurate counting  | Counting + Analysis + Workflow           |
+| **Output**          | Terminal tables          | Receipts (Md/JSON/CSV), Badges, Diagrams |
+| **Stability**       | Output varies by version | Strict schema versioning                 |
+| **LLM Ready**       | No                       | Token estimates, context fit analysis    |
+| **Git Analysis**    | No                       | Hotspots, freshness, coupling            |
+| **Derived Metrics** | No                       | Doc density, COCOMO, distribution        |
 
 ## Configuration
 
@@ -189,6 +209,7 @@ format = "jsonl"
 ```
 
 Use profiles with the `--profile` flag:
+
 ```bash
 tokmd export --profile llm > context.jsonl
 ```
@@ -198,6 +219,7 @@ See the [CLI Reference](docs/reference-cli.md#configuration-file) for full confi
 ## Installation
 
 ### Nix (recommended)
+
 ```bash
 # Run without installing
 nix run github:EffortlessMetrics/tokmd -- --version
@@ -210,19 +232,23 @@ nix build
 ```
 
 ### From crates.io
+
 ```bash
 cargo install tokmd
 ```
 
 ### GitHub Action
+
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    paths: '.'
+    paths: "."
 ```
 
 ### Coming Soon: Language Bindings
+
 Native FFI bindings for CI pipelines and tooling:
+
 - **Python**: `pip install tokmd` (PyPI)
 - **Node.js**: `npm install @tokmd/core` (npm)
 
