@@ -18,16 +18,19 @@ inputs:
   top:
     description: 'Number of rows to show in summary'
     default: '20'
-  token:
-    description: 'GitHub token for commenting (optional)'
-    default: ${{ github.token }}
+  format:
+    description: 'Export format (json, jsonl, csv)'
+    default: 'json'
+  artifact:
+    description: 'Whether to upload receipts as artifacts'
+    default: 'true'
   comment:
     description: 'Whether to post a comment on the PR'
     default: 'true'
 
 outputs:
-  receipt-json:
-    description: 'Path to the generated receipt.json'
+  receipt:
+    description: 'Path to the generated receipt file'
     value: ${{ steps.generate.outputs.receipt }}
 
 runs:
@@ -64,10 +67,9 @@ runs:
 
         echo "Downloading $url"
         if ! curl -fsSL "$url" -o "$asset"; then
-          echo "Release download failed; falling back to cargo install" >&2
-          cargo install --git https://github.com/EffortlessMetrics/tokmd tokmd
-          tokmd --version
-          exit 0
+          echo "::error::Failed to download tokmd from $url"
+          echo "Check that the version exists at https://github.com/EffortlessMetrics/tokmd/releases" >&2
+          exit 1
         fi
 
         dest="$HOME/.local/bin"
@@ -88,26 +90,31 @@ runs:
       run: |
         set -euo pipefail
         echo "Generating receipts..."
+
+        format="${{ inputs.format }}"
+        receipt_file="tokmd-receipt.${format}"
+
         tokmd module \
           "${{ inputs.paths }}" \
           --module-roots "${{ inputs.module-roots }}" \
           --top ${{ inputs.top }} \
           --format md > tokmd-summary.md
-        
+
         tokmd export \
           "${{ inputs.paths }}" \
           --module-roots "${{ inputs.module-roots }}" \
-          --format json > tokmd-receipt.json
-        
-        echo "receipt=tokmd-receipt.json" >> $GITHUB_OUTPUT
+          --format "$format" > "$receipt_file"
+
+        echo "receipt=$receipt_file" >> $GITHUB_OUTPUT
 
     - name: Upload Artifact
+      if: inputs.artifact == 'true'
       uses: actions/upload-artifact@v6
       with:
         name: tokmd-receipts
         path: |
           tokmd-summary.md
-          tokmd-receipt.json
+          ${{ steps.generate.outputs.receipt }}
 
     - name: Comment on PR
       if: inputs.comment == 'true' && github.event_name == 'pull_request'
