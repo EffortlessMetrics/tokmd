@@ -383,8 +383,8 @@ fn test_schema_version_matches_constant() -> Result<()> {
         analysis_version
             .as_u64()
             .context("schema_version should be integer")?,
-        2,
-        "AnalysisReceipt schema_version should be 2"
+        3,
+        "AnalysisReceipt schema_version should be 3"
     );
     Ok(())
 }

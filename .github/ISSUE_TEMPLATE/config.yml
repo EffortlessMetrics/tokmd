@@ -1,5 +1,14 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Questions & Discussions
-    url: https://github.com/stevelyon/tokmd/discussions
-    about: Ask questions or start a discussion
+    url: https://github.com/EffortlessMetrics/tokmd/discussions
+    about: Ask questions, share ideas, or start a discussion about tokmd
+  - name: Security Vulnerability
+    url: https://github.com/EffortlessMetrics/tokmd/security/advisories/new
+    about: Report security vulnerabilities privately (do NOT open a public issue)
+  - name: Documentation
+    url: https://github.com/EffortlessMetrics/tokmd/tree/main/docs
+    about: Read the documentation before opening an issue
+  - name: Recipes & Examples
+    url: https://github.com/EffortlessMetrics/tokmd/blob/main/docs/recipes.md
+    about: Common usage patterns and real-world examples

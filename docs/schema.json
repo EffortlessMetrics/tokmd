@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 2.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 3.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -243,7 +243,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 2 },
+        "schema_version": { "type": "integer", "const": 3 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -263,6 +263,7 @@
         "git": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/GitReport" }] },
         "imports": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ImportReport" }] },
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
+        "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
         "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
       }
     },
@@ -861,6 +862,38 @@
         "bytes": { "type": "integer", "description": "File size." },
         "files": { "type": "array", "items": { "type": "string" }, "description": "Duplicate file paths." }
       }
+    },
+    "ComplexityReport": {
+      "type": "object",
+      "description": "Code complexity analysis.",
+      "required": ["total_functions", "avg_function_length", "max_function_length", "avg_cyclomatic", "max_cyclomatic", "high_risk_files", "files"],
+      "properties": {
+        "total_functions": { "type": "integer", "description": "Total number of functions detected." },
+        "avg_function_length": { "type": "number", "description": "Average function length in lines." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity." },
+        "high_risk_files": { "type": "integer", "description": "Number of high-risk files." },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileComplexity" } }
+      }
+    },
+    "FileComplexity": {
+      "type": "object",
+      "description": "Complexity metrics for a single file.",
+      "required": ["path", "module", "function_count", "max_function_length", "cyclomatic_complexity", "risk_level"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "module": { "type": "string", "description": "Module containing the file." },
+        "function_count": { "type": "integer", "description": "Number of functions in the file." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "cyclomatic_complexity": { "type": "integer", "description": "Estimated cyclomatic complexity." },
+        "risk_level": { "$ref": "#/definitions/ComplexityRisk" }
+      }
+    },
+    "ComplexityRisk": {
+      "type": "string",
+      "enum": ["low", "moderate", "high", "critical"],
+      "description": "Complexity risk classification."
     },
     "FunReport": {
       "type": "object",

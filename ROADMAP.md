@@ -23,7 +23,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.1.0** | ✅ Complete | Analysis engine, presets, badge generation, diff command. |
 | **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration. |
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard. |
-| **v2.0.0** | 🔭 Planned | MCP server, streaming analysis, plugin system. |
+| **v1.4.0** | 🚧 In Progress | Complexity metrics, function analysis, PR integration. |
+| **v1.5.0** | 🔭 Planned | Cognitive complexity, complexity gates, advanced analysis. |
+| **v2.0.0** | 🔭 Planned | MCP server, streaming analysis, plugin system, tree-sitter. |
 
 ---
 
@@ -151,11 +153,58 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
+## In Progress: v1.4.0 — Complexity Metrics
+
+**Goal**: Function-level analysis and basic complexity metrics for code health assessment.
+
+### Complexity Metrics
+
+| Feature | Status | Description |
+| :--- | :--- | :--- |
+| Function count/length metrics | 🚧 In Progress | Count functions per file, track average/max function length |
+| Simplified cyclomatic complexity | 🚧 In Progress | Heuristic-based branching complexity (if/else/switch/loop counting) |
+| Complexity histogram | 📋 Planned | Distribution of complexity scores across codebase |
+| Complexity top offenders | 📋 Planned | Identify most complex functions/files |
+
+### PR Integration
+
+| Feature | Status | Description |
+| :--- | :--- | :--- |
+| GitHub Actions workflow for cockpit | 📋 Planned | Reusable workflow for PR analysis |
+| Automatic PR comment injection | 📋 Planned | Post cockpit metrics as PR comments via `gh` CLI |
+| PR template generation | 📋 Planned | Generate PR template with metrics placeholders |
+
+---
+
+## Planned: v1.5.0 — Advanced Complexity
+
+**Goal**: Cognitive complexity and complexity-based quality gates.
+
+### Complexity Metrics
+
+| Feature | Status | Description |
+| :--- | :--- | :--- |
+| Cognitive complexity | 📋 Planned | SonarQube-style cognitive complexity scoring |
+| Complexity gate in cockpit | 📋 Planned | Fail PR review if complexity exceeds threshold |
+| Complexity delta tracking | 📋 Planned | Track complexity changes between commits |
+| Complexity trend analysis | 📋 Planned | Historical complexity evolution |
+
+---
+
 ## Future Horizons
 
 ### v2.0 — Platform Evolution
 
-#### A. Language Bindings (FFI)
+#### A. Tree-sitter Integration
+*Goal: Accurate parsing for precise complexity metrics.*
+
+- tree-sitter integration for multi-language AST parsing
+- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
+- Accurate function boundary detection
+- Nested scope analysis for cognitive complexity
+- Call graph extraction for coupling analysis
+
+#### B. Language Bindings (FFI)
 *Goal: Native integration in CI pipelines and tooling ecosystems.*
 
 **Python (PyPI: `tokmd`)**
@@ -176,7 +225,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - JSON serialization at FFI boundary for simplicity
 - CI matrix for cross-platform wheel/prebuild generation
 
-#### B. MCP Server Mode
+#### C. MCP Server Mode
 *Goal: Native integration with Claude and other MCP-compatible clients.*
 
 - `tokmd serve` — Start MCP server for tool-based interaction
@@ -184,7 +233,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
 - Streaming: Incremental analysis results
 
-#### C. Streaming Analysis
+#### D. Streaming Analysis
 *Goal: Handle massive repositories without memory pressure.*
 
 - JSONL streaming for all outputs
@@ -192,7 +241,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - Memory-bounded analysis limits
 - Progress reporting via stderr
 
-#### D. Plugin System
+#### E. Plugin System
 *Goal: Extensible enrichers without core changes.*
 
 - WASM plugin interface for custom analyzers
@@ -201,21 +250,21 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v2.1 — Intelligence Features
 
-#### D. Smart Suggestions
+#### F. Smart Suggestions
 *Goal: Actionable recommendations, not just metrics.*
 
 - `tokmd suggest --budget 128k` — Files to include for context
 - `tokmd suggest --review` — Files likely to need attention
 - `tokmd suggest --test` — Untested code paths
 
-#### E. Diff Intelligence
+#### G. Diff Intelligence
 *Goal: Semantic diff beyond structural changes.*
 
 - Complexity delta detection
 - Breaking change indicators
 - Migration path suggestions
 
-#### F. Watch Mode
+#### H. Watch Mode
 *Goal: Continuous analysis during development.*
 
 - `tokmd watch` — Re-analyze on file changes
@@ -224,7 +273,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v2.2 — Ecosystem Integration
 
-#### G. CI/CD Native
+#### I. CI/CD Native
 *Goal: First-class CI pipeline support.*
 
 - GitHub Action with PR comments
@@ -232,14 +281,14 @@ This document outlines the evolution of `tokmd` and the path forward.
 - Trend tracking across commits
 - Threshold-based failures (e.g., fail if complexity increases)
 
-#### H. Editor Extensions
+#### J. Editor Extensions
 *Goal: Analysis at your fingertips.*
 
 - VS Code extension with inline metrics
 - Neovim plugin for buffer analysis
 - JetBrains plugin
 
-#### I. Cloud Dashboard
+#### K. Cloud Dashboard
 *Goal: Historical tracking and team insights.*
 
 - Receipt aggregation service
@@ -257,7 +306,7 @@ These are explicitly out of scope for tokmd:
 - **Dependency vulnerability scanning** — Use cargo-audit, npm audit
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
-- **Full AST analysis** — tokmd uses heuristics, not parsers
+- **Full AST analysis** — tokmd uses heuristics, not parsers (until v2.0 tree-sitter integration)
 
 ---
 

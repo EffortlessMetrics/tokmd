@@ -1,0 +1,119 @@
+name: Documentation Issue
+description: Report missing, incorrect, or unclear documentation
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the documentation! Whether it's a typo, missing information, or unclear explanation, we appreciate your feedback.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      options:
+        - Missing documentation
+        - Incorrect / outdated information
+        - Unclear explanation
+        - Typo / grammar
+        - Missing example
+        - Broken link
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is the documentation issue?
+      options:
+        - README.md
+        - CLAUDE.md
+        - CONTRIBUTING.md
+        - CHANGELOG.md
+        - ROADMAP.md
+        - docs/tutorial.md
+        - docs/recipes.md
+        - docs/reference-cli.md
+        - docs/explanation.md
+        - docs/SCHEMA.md
+        - docs/troubleshooting.md
+        - docs/schema.json
+        - CLI help text (--help)
+        - Inline code comments
+        - Crate-level documentation (docs.rs)
+        - GitHub Wiki
+        - Other / Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Link to Documentation
+      description: If applicable, provide a direct link to the page or section.
+      placeholder: "https://github.com/EffortlessMetrics/tokmd/blob/main/docs/..."
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Documentation
+      description: Quote or describe the current documentation (if applicable).
+      placeholder: |
+        The docs currently say:
+        > "Run `tokmd --format json` to get JSON output"
+    validations:
+      required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's Wrong / Missing
+      description: Describe the issue with the current documentation.
+      placeholder: |
+        This is confusing because...
+
+        OR
+
+        There's no documentation for...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How would you like the documentation to read?
+      placeholder: |
+        The documentation should clarify that...
+
+        OR
+
+        Add an example showing:
+        ```bash
+        tokmd analyze --preset risk
+        ```
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Willingness to Contribute
+      description: Would you be interested in fixing this yourself?
+      options:
+        - "Yes - I'll submit a PR"
+        - "Maybe - I'd need guidance"
+        - "No - just reporting"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

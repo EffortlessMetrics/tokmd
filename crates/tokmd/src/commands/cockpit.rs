@@ -88,6 +88,9 @@ pub struct Evidence {
     /// Determinism gate (optional).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub determinism: Option<DeterminismGate>,
+    /// Complexity gate (optional).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub complexity: Option<ComplexityGate>,
 }
 
 /// Status of a gate check.
@@ -259,6 +262,37 @@ pub struct DeterminismGate {
     pub actual_hash: Option<String>,
     pub algo: String,
     pub differences: Vec<String>,
+}
+
+/// Complexity gate results.
+/// Analyzes cyclomatic complexity of changed files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplexityGate {
+    #[serde(flatten)]
+    pub meta: GateMeta,
+    /// Number of files analyzed for complexity.
+    pub files_analyzed: usize,
+    /// Files with high complexity (CC > threshold).
+    pub high_complexity_files: Vec<HighComplexityFile>,
+    /// Average cyclomatic complexity across all analyzed files.
+    pub avg_cyclomatic: f64,
+    /// Maximum cyclomatic complexity found.
+    pub max_cyclomatic: u32,
+    /// Whether the threshold was exceeded.
+    pub threshold_exceeded: bool,
+}
+
+/// A file with high cyclomatic complexity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HighComplexityFile {
+    /// Path to the file.
+    pub path: String,
+    /// Cyclomatic complexity score.
+    pub cyclomatic: u32,
+    /// Number of functions in the file.
+    pub function_count: usize,
+    /// Maximum function length in lines.
+    pub max_function_length: usize,
 }
 
 /// A mutation that survived testing (escaped detection).
@@ -446,6 +480,7 @@ fn compute_evidence(
     let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
     let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
     let determinism = compute_determinism_gate(repo_root)?;
+    let complexity = compute_complexity_gate(repo_root, changed_files)?;
 
     // Compute overall status: any Fail → Fail, all Pass → Pass, otherwise Pending/Skipped
     let overall_status = compute_overall_status(
@@ -454,6 +489,7 @@ fn compute_evidence(
         &contracts,
         &supply_chain,
         &determinism,
+        &complexity,
     );
 
     Ok(Evidence {
@@ -463,6 +499,7 @@ fn compute_evidence(
         contracts,
         supply_chain,
         determinism,
+        complexity,
     })
 }
 
@@ -473,6 +510,7 @@ fn compute_overall_status(
     contracts: &Option<ContractDiffGate>,
     supply_chain: &Option<SupplyChainGate>,
     determinism: &Option<DeterminismGate>,
+    complexity: &Option<ComplexityGate>,
 ) -> GateStatus {
     let statuses: Vec<GateStatus> = [
         Some(mutation.meta.status),
@@ -480,6 +518,7 @@ fn compute_overall_status(
         contracts.as_ref().map(|g| g.meta.status),
         supply_chain.as_ref().map(|g| g.meta.status),
         determinism.as_ref().map(|g| g.meta.status),
+        complexity.as_ref().map(|g| g.meta.status),
     ]
     .into_iter()
     .flatten()
@@ -687,6 +726,282 @@ fn compute_determinism_gate(_repo_root: &Path) -> Result<Option<DeterminismGate>
     // TODO: Look for baseline hash and compare with current
     // For now, return None (no baseline available)
     Ok(None)
+}
+
+/// Cyclomatic complexity threshold for high complexity.
+const COMPLEXITY_THRESHOLD: u32 = 15;
+
+/// Compute complexity gate.
+/// Analyzes cyclomatic complexity of changed Rust source files.
+#[cfg(feature = "git")]
+fn compute_complexity_gate(
+    repo_root: &Path,
+    changed_files: &[String],
+) -> Result<Option<ComplexityGate>> {
+    // Filter to relevant Rust source files
+    let relevant_files: Vec<String> = changed_files
+        .iter()
+        .filter(|f| is_relevant_rust_source(f))
+        .cloned()
+        .collect();
+
+    // If no relevant files, skip
+    if relevant_files.is_empty() {
+        return Ok(None);
+    }
+
+    let mut high_complexity_files = Vec::new();
+    let mut total_complexity: u64 = 0;
+    let mut max_cyclomatic: u32 = 0;
+    let mut files_analyzed: usize = 0;
+
+    for file_path in &relevant_files {
+        let full_path = repo_root.join(file_path);
+        if !full_path.exists() {
+            continue;
+        }
+
+        if let Ok(content) = std::fs::read_to_string(&full_path) {
+            let analysis = analyze_rust_complexity(&content);
+            files_analyzed += 1;
+            total_complexity += analysis.total_complexity as u64;
+            max_cyclomatic = max_cyclomatic.max(analysis.max_complexity);
+
+            if analysis.max_complexity > COMPLEXITY_THRESHOLD {
+                high_complexity_files.push(HighComplexityFile {
+                    path: file_path.clone(),
+                    cyclomatic: analysis.max_complexity,
+                    function_count: analysis.function_count,
+                    max_function_length: analysis.max_function_length,
+                });
+            }
+        }
+    }
+
+    // Sort high complexity files by cyclomatic complexity (descending)
+    high_complexity_files.sort_by(|a, b| b.cyclomatic.cmp(&a.cyclomatic));
+
+    let avg_cyclomatic = if files_analyzed > 0 {
+        round_pct(total_complexity as f64 / files_analyzed as f64)
+    } else {
+        0.0
+    };
+
+    // Determine gate status:
+    // - Pass: no high complexity files
+    // - Warn (represented as Pending): 1-3 high complexity files
+    // - Fail: >3 high complexity files
+    let high_count = high_complexity_files.len();
+    let (status, threshold_exceeded) = match high_count {
+        0 => (GateStatus::Pass, false),
+        1..=3 => (GateStatus::Pending, true), // Warn
+        _ => (GateStatus::Fail, true),
+    };
+
+    Ok(Some(ComplexityGate {
+        meta: GateMeta {
+            status,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: relevant_files.clone(),
+                tested: relevant_files,
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: Some(
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as u64,
+            ),
+        },
+        files_analyzed,
+        high_complexity_files,
+        avg_cyclomatic,
+        max_cyclomatic,
+        threshold_exceeded,
+    }))
+}
+
+/// Results from analyzing a Rust file's complexity.
+struct ComplexityAnalysis {
+    /// Total cyclomatic complexity across all functions.
+    total_complexity: u32,
+    /// Maximum complexity of any single function.
+    max_complexity: u32,
+    /// Number of functions found.
+    function_count: usize,
+    /// Maximum function length in lines.
+    max_function_length: usize,
+}
+
+/// Analyze the cyclomatic complexity of Rust source code.
+/// Uses a simple heuristic approach counting decision points.
+fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
+    let mut total_complexity: u32 = 0;
+    let mut max_complexity: u32 = 0;
+    let mut function_count: usize = 0;
+    let mut max_function_length: usize = 0;
+
+    let mut in_function = false;
+    let mut brace_depth: i32 = 0;
+    let mut function_brace_depth: i32 = 0; // Depth when function started
+    let mut function_start_line: usize = 0;
+    let mut current_complexity: u32 = 1; // Start at 1 for the function itself
+    let mut in_string = false;
+    let mut in_char = false;
+    let mut in_block_comment = false;
+
+    let lines: Vec<&str> = content.lines().collect();
+
+    for (line_idx, line) in lines.iter().enumerate() {
+        let trimmed = line.trim();
+
+        // Skip empty lines
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Check for function start BEFORE processing braces
+        // (so we can track the starting brace depth correctly)
+        let is_fn_start = !in_function
+            && !in_block_comment
+            && (trimmed.starts_with("fn ")
+                || trimmed.starts_with("pub fn ")
+                || trimmed.starts_with("pub(crate) fn ")
+                || trimmed.starts_with("pub(super) fn ")
+                || trimmed.starts_with("async fn ")
+                || trimmed.starts_with("pub async fn ")
+                || trimmed.starts_with("const fn ")
+                || trimmed.starts_with("pub const fn ")
+                || trimmed.starts_with("unsafe fn ")
+                || trimmed.starts_with("pub unsafe fn "));
+
+        if is_fn_start {
+            in_function = true;
+            function_start_line = line_idx;
+            function_brace_depth = brace_depth;
+            current_complexity = 1;
+        }
+
+        let mut in_line_comment = false;
+
+        // Simple state machine for parsing
+        let chars: Vec<char> = line.chars().collect();
+        let mut i = 0;
+        while i < chars.len() {
+            let c = chars[i];
+            let next = chars.get(i + 1).copied();
+
+            // Handle block comments
+            if in_block_comment {
+                if c == '*' && next == Some('/') {
+                    in_block_comment = false;
+                    i += 2;
+                    continue;
+                }
+                i += 1;
+                continue;
+            }
+
+            // Handle line comments
+            if c == '/' && next == Some('/') {
+                in_line_comment = true;
+                break;
+            }
+
+            // Handle block comment start
+            if c == '/' && next == Some('*') {
+                in_block_comment = true;
+                i += 2;
+                continue;
+            }
+
+            // Handle strings
+            if !in_char && c == '"' && (i == 0 || chars[i - 1] != '\\') {
+                in_string = !in_string;
+                i += 1;
+                continue;
+            }
+
+            // Handle chars
+            if !in_string && c == '\'' && (i == 0 || chars[i - 1] != '\\') {
+                in_char = !in_char;
+                i += 1;
+                continue;
+            }
+
+            // Skip if in string or char
+            if in_string || in_char {
+                i += 1;
+                continue;
+            }
+
+            // Track brace depth
+            if c == '{' {
+                brace_depth += 1;
+            } else if c == '}' {
+                brace_depth -= 1;
+                if in_function && brace_depth == function_brace_depth {
+                    // End of function
+                    let function_length = line_idx - function_start_line + 1;
+                    max_function_length = max_function_length.max(function_length);
+                    total_complexity += current_complexity;
+                    max_complexity = max_complexity.max(current_complexity);
+                    function_count += 1;
+                    in_function = false;
+                    current_complexity = 1;
+                }
+            }
+
+            i += 1;
+        }
+
+        // Skip complexity counting if in comment
+        if in_line_comment || in_block_comment {
+            continue;
+        }
+
+        // Count decision points for complexity (only inside functions)
+        if in_function {
+            // Count control flow keywords
+            let keywords = [
+                "if ", "else if ", "while ", "for ", "loop ", "match ", "&&", "||", "?",
+            ];
+            for kw in &keywords {
+                // Count occurrences of each keyword
+                let mut search_line = trimmed;
+                while let Some(pos) = search_line.find(kw) {
+                    current_complexity += 1;
+                    search_line = &search_line[pos + kw.len()..];
+                }
+            }
+
+            // Count match arms (each => in a match adds complexity)
+            if trimmed.contains("=>") && !trimmed.starts_with("//") {
+                // Count number of => in the line
+                let arrow_count = trimmed.matches("=>").count();
+                current_complexity += arrow_count as u32;
+            }
+        }
+    }
+
+    // Handle case where file ends without closing brace
+    if in_function {
+        function_count += 1;
+        total_complexity += current_complexity;
+        max_complexity = max_complexity.max(current_complexity);
+    }
+
+    ComplexityAnalysis {
+        total_complexity,
+        max_complexity,
+        function_count,
+        max_function_length,
+    }
 }
 
 /// Check if a file is a relevant Rust source file for mutation testing.
@@ -1282,6 +1597,7 @@ fn compute_evidence_disabled() -> Evidence {
         contracts: None,
         supply_chain: None,
         determinism: None,
+        complexity: None,
     }
 }
 
@@ -2050,6 +2366,12 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     out.push_str("#### Mutation Testing\n\n");
     render_mutation_gate_markdown(&mut out, &receipt.evidence.mutation);
 
+    // Complexity gate section
+    if let Some(ref gate) = receipt.evidence.complexity {
+        out.push_str("#### Complexity Analysis\n\n");
+        render_complexity_gate_markdown(&mut out, gate);
+    }
+
     // Risk assessment
     if !receipt.risk.hotspots_touched.is_empty() || !receipt.risk.bus_factor_warnings.is_empty() {
         out.push_str("### Risk Assessment\n\n");
@@ -2202,6 +2524,19 @@ fn render_evidence_table(out: &mut String, evidence: &Evidence) {
         out.push_str("| Determinism | - | - | - | - |\n");
     }
 
+    // Complexity gate
+    if let Some(ref gate) = evidence.complexity {
+        out.push_str(&format!(
+            "| Complexity | {} | {} | {} | {} |\n",
+            format_gate_status(gate.meta.status),
+            format_source(gate.meta.source),
+            format_scope(&gate.meta.scope),
+            format_commit_match(gate.meta.commit_match)
+        ));
+    } else {
+        out.push_str("| Complexity | - | - | - | - |\n");
+    }
+
     out.push_str(&format!(
         "\n**Overall:** {}\n\n",
         format_gate_status(evidence.overall_status)
@@ -2272,6 +2607,41 @@ fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
                 ));
             }
         }
+    }
+}
+
+/// Render complexity gate status to markdown.
+fn render_complexity_gate_markdown(out: &mut String, gate: &ComplexityGate) {
+    let status_icon = match gate.meta.status {
+        GateStatus::Pass => "PASS",
+        GateStatus::Fail => "FAIL",
+        GateStatus::Skipped => "SKIPPED",
+        GateStatus::Pending => "WARN", // Pending is used as warning for complexity
+    };
+
+    out.push_str(&format!(
+        "**Status:** {} | Threshold: CC > {}\n\n",
+        status_icon, COMPLEXITY_THRESHOLD
+    ));
+
+    out.push_str(&format!(
+        "**Files analyzed:** {} | **Avg CC:** {:.1} | **Max CC:** {}\n\n",
+        gate.files_analyzed, gate.avg_cyclomatic, gate.max_cyclomatic
+    ));
+
+    if !gate.high_complexity_files.is_empty() {
+        out.push_str("**High Complexity Files:**\n\n");
+        out.push_str("| File | CC | Functions | Max Length |\n");
+        out.push_str("|------|---:|----------:|-----------:|\n");
+        for file in &gate.high_complexity_files {
+            out.push_str(&format!(
+                "| `{}` | {} | {} | {} lines |\n",
+                file.path, file.cyclomatic, file.function_count, file.max_function_length
+            ));
+        }
+        out.push('\n');
+    } else {
+        out.push_str("No files exceed the complexity threshold.\n\n");
     }
 }
 
@@ -2389,6 +2759,15 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
     }
     out.push_str("<!-- /SECTION:REVIEW_PLAN -->\n\n");
 
+    // COMPLEXITY section (for AI-FILL:COMPLEXITY)
+    out.push_str("<!-- SECTION:COMPLEXITY -->\n");
+    if let Some(ref gate) = receipt.evidence.complexity {
+        render_complexity_gate_sections(&mut out, gate);
+    } else {
+        out.push_str("No complexity analysis available.\n");
+    }
+    out.push_str("<!-- /SECTION:COMPLEXITY -->\n\n");
+
     // RECEIPTS section (full JSON)
     out.push_str("<!-- SECTION:RECEIPTS -->\n");
     out.push_str("```json\n");
@@ -2423,6 +2802,43 @@ fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
         }
         GateStatus::Skipped | GateStatus::Pending => {
             // No additional rows for skipped/pending
+        }
+    }
+}
+
+/// Render complexity gate status for sections format.
+fn render_complexity_gate_sections(out: &mut String, gate: &ComplexityGate) {
+    let status_str = match gate.meta.status {
+        GateStatus::Pass => "Pass",
+        GateStatus::Fail => "Fail",
+        GateStatus::Skipped => "Skipped",
+        GateStatus::Pending => "Warn",
+    };
+
+    out.push_str(&format!(
+        "| Complexity gate | {} (threshold: CC > {}) |\n",
+        status_str, COMPLEXITY_THRESHOLD
+    ));
+    out.push_str(&format!("| Files analyzed | {} |\n", gate.files_analyzed));
+    out.push_str(&format!(
+        "| Avg cyclomatic | {:.1} |\n",
+        gate.avg_cyclomatic
+    ));
+    out.push_str(&format!("| Max cyclomatic | {} |\n", gate.max_cyclomatic));
+    out.push_str(&format!(
+        "| High complexity files | {} |\n",
+        gate.high_complexity_files.len()
+    ));
+
+    if !gate.high_complexity_files.is_empty() {
+        out.push_str("\n**High Complexity Files:**\n\n");
+        out.push_str("| File | CC | Functions | Max Length |\n");
+        out.push_str("|------|---:|----------:|-----------:|\n");
+        for file in &gate.high_complexity_files {
+            out.push_str(&format!(
+                "| `{}` | {} | {} | {} |\n",
+                file.path, file.cyclomatic, file.function_count, file.max_function_length
+            ));
         }
     }
 }
@@ -2685,7 +3101,7 @@ mod tests {
             unviable: 0,
         };
 
-        let overall = compute_overall_status(&mutation_pass, &None, &None, &None, &None);
+        let overall = compute_overall_status(&mutation_pass, &None, &None, &None, &None, &None);
         assert_eq!(overall, GateStatus::Pass);
 
         // Test fail
@@ -2710,7 +3126,7 @@ mod tests {
             unviable: 0,
         };
 
-        let overall = compute_overall_status(&mutation_fail, &None, &None, &None, &None);
+        let overall = compute_overall_status(&mutation_fail, &None, &None, &None, &None, &None);
         assert_eq!(overall, GateStatus::Fail);
     }
 
@@ -2724,5 +3140,179 @@ mod tests {
         let source = EvidenceSource::RanLocal;
         let json = serde_json::to_string(&source).unwrap();
         assert_eq!(json, "\"ran_local\"");
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_simple() {
+        let code = r#"
+fn simple() {
+    println!("hello");
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 1);
+        assert_eq!(analysis.max_complexity, 1);
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_with_branches() {
+        let code = r#"
+fn with_branches(x: i32) -> i32 {
+    if x > 0 {
+        if x > 10 {
+            x * 2
+        } else {
+            x + 1
+        }
+    } else {
+        0
+    }
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 1);
+        // 1 (base) + 2 (if statements) = 3
+        assert!(analysis.max_complexity >= 3);
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_with_match() {
+        let code = r#"
+fn with_match(x: Option<i32>) -> i32 {
+    match x {
+        Some(v) => v,
+        None => 0,
+    }
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 1);
+        // 1 (base) + 1 (match) + 2 (match arms) = 4
+        assert!(analysis.max_complexity >= 3);
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_with_loops() {
+        let code = r#"
+fn with_loops() {
+    for i in 0..10 {
+        while i > 5 {
+            break;
+        }
+    }
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 1);
+        // 1 (base) + 1 (for) + 1 (while) = 3
+        assert!(analysis.max_complexity >= 3);
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_with_logical_ops() {
+        let code = r#"
+fn with_logical(a: bool, b: bool, c: bool) -> bool {
+    if a && b || c {
+        true
+    } else {
+        false
+    }
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 1);
+        // 1 (base) + 1 (if) + 1 (&&) + 1 (||) = 4
+        assert!(analysis.max_complexity >= 4);
+    }
+
+    #[test]
+    fn test_analyze_rust_complexity_multiple_functions() {
+        let code = r#"
+fn first() {
+    println!("first");
+}
+
+fn second(x: i32) -> i32 {
+    if x > 0 { x } else { -x }
+}
+
+fn third() {
+    for i in 0..5 {
+        println!("{}", i);
+    }
+}
+"#;
+        let analysis = analyze_rust_complexity(code);
+        assert_eq!(analysis.function_count, 3);
+        assert!(analysis.total_complexity >= 3);
+    }
+
+    #[test]
+    fn test_complexity_gate_status_pass() {
+        let gate = ComplexityGate {
+            meta: GateMeta {
+                status: GateStatus::Pass,
+                source: EvidenceSource::RanLocal,
+                commit_match: CommitMatch::Exact,
+                scope: ScopeCoverage {
+                    relevant: vec!["src/lib.rs".to_string()],
+                    tested: vec!["src/lib.rs".to_string()],
+                    ratio: 1.0,
+                    lines_relevant: None,
+                    lines_tested: None,
+                },
+                evidence_commit: None,
+                evidence_generated_at_ms: None,
+            },
+            files_analyzed: 1,
+            high_complexity_files: Vec::new(),
+            avg_cyclomatic: 5.0,
+            max_cyclomatic: 10,
+            threshold_exceeded: false,
+        };
+
+        assert_eq!(gate.meta.status, GateStatus::Pass);
+        assert!(gate.high_complexity_files.is_empty());
+    }
+
+    #[test]
+    fn test_complexity_gate_serialization() {
+        let gate = ComplexityGate {
+            meta: GateMeta {
+                status: GateStatus::Pending,
+                source: EvidenceSource::RanLocal,
+                commit_match: CommitMatch::Exact,
+                scope: ScopeCoverage {
+                    relevant: vec!["src/lib.rs".to_string()],
+                    tested: vec!["src/lib.rs".to_string()],
+                    ratio: 1.0,
+                    lines_relevant: None,
+                    lines_tested: None,
+                },
+                evidence_commit: None,
+                evidence_generated_at_ms: None,
+            },
+            files_analyzed: 2,
+            high_complexity_files: vec![HighComplexityFile {
+                path: "src/complex.rs".to_string(),
+                cyclomatic: 20,
+                function_count: 5,
+                max_function_length: 100,
+            }],
+            avg_cyclomatic: 12.5,
+            max_cyclomatic: 20,
+            threshold_exceeded: true,
+        };
+
+        let json = serde_json::to_string(&gate).unwrap();
+        assert!(json.contains("\"status\":\"pending\""));
+        assert!(json.contains("\"files_analyzed\":2"));
+        assert!(json.contains("\"avg_cyclomatic\":12.5"));
+        assert!(json.contains("\"threshold_exceeded\":true"));
+
+        let deserialized: ComplexityGate = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.files_analyzed, 2);
+        assert_eq!(deserialized.high_complexity_files.len(), 1);
+        assert_eq!(deserialized.high_complexity_files[0].cyclomatic, 20);
     }
 }

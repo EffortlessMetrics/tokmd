@@ -2734,6 +2734,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "proptest",
+ "regex",
  "tempfile",
 ]
 

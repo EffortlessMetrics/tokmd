@@ -1,0 +1,156 @@
+name: Performance Issue
+description: Report slow performance or suggest optimizations
+title: "[Perf]: "
+labels: ["performance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us make tokmd faster! Performance issues are especially valuable because they often reveal optimization opportunities that benefit everyone.
+
+        **Tip**: Run with `--timing` (if available) or use `time tokmd ...` to measure execution time.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      options:
+        - Performance regression (was faster in previous version)
+        - Unexpectedly slow operation
+        - High memory usage
+        - High CPU usage
+        - Suggestion for optimization
+    validations:
+      required: true
+
+  - type: dropdown
+    id: command
+    attributes:
+      label: Affected Command
+      options:
+        - lang
+        - module
+        - export
+        - run
+        - analyze
+        - cockpit
+        - gate
+        - context
+        - diff
+        - Multiple commands
+        - General startup time
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the performance issue in detail.
+      placeholder: |
+        When running `tokmd analyze --preset deep` on my monorepo, it takes over 5 minutes...
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Performance Metrics
+      description: |
+        Please provide concrete numbers if possible:
+        - Execution time
+        - Memory usage (if high)
+        - Repository size (files, lines of code)
+      placeholder: |
+        - Repository: ~5000 files, 500k lines of code
+        - Command: `tokmd analyze --preset deep`
+        - Time: 5m 23s
+        - Memory: ~2GB peak
+        - Expected: <30 seconds based on similar tools
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: |
+        How can we reproduce this? A public repository or specific conditions help a lot.
+      placeholder: |
+        1. Clone https://github.com/example/large-repo
+        2. Run `time tokmd analyze --preset deep`
+        3. Observe slow performance
+
+        OR
+
+        - Any repo with >1000 Python files
+        - Using `--preset architecture` (import graph analysis)
+
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Comparison (Optional)
+      description: |
+        How does this compare to:
+        - Previous tokmd versions?
+        - Similar tools (tokei, scc, cloc)?
+      placeholder: |
+        tokei completes in 2 seconds on the same repo
+        tokmd 1.2.0 took 30 seconds, but 1.3.0 takes 5 minutes
+
+  - type: input
+    id: version
+    attributes:
+      label: tokmd Version
+      placeholder: "tokmd 1.3.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows
+        - WSL
+        - Docker
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware (Optional)
+      description: CPU, RAM, and disk type can affect performance.
+      placeholder: |
+        - CPU: Apple M2 Pro
+        - RAM: 16GB
+        - Disk: NVMe SSD
+
+  - type: textarea
+    id: profiling
+    attributes:
+      label: Profiling Data (Optional)
+      description: |
+        If you've done any profiling (flamegraph, perf, Instruments), please share the results.
+        Even a simple `time` output is helpful.
+      placeholder: |
+        ```
+        $ time tokmd analyze
+        real    5m23.456s
+        user    4m12.789s
+        sys     0m45.123s
+        ```
+      render: shell
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

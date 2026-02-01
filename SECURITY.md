@@ -13,9 +13,9 @@ Please do not report security vulnerabilities through public GitHub issues.
 
 ### Preferred Methods
 
-1. **GitHub Security Advisories** (recommended): Use the [Security Advisories](https://github.com/effortlesssteven/tokmd/security/advisories/new) feature to report vulnerabilities privately.
+1. **GitHub Security Advisories** (recommended): Use the [Security Advisories](https://github.com/EffortlessMetrics/tokmd/security/advisories/new) feature to report vulnerabilities privately.
 
-2. **Email**: Send details to **security@effortlesssteven.com**
+2. **Contact Form**: Send details to **https://effortlesssteven.com/about/**
 
 ### What to Include
 

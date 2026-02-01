@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 2;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -44,6 +44,7 @@ pub struct AnalysisReceipt {
     pub git: Option<GitReport>,
     pub imports: Option<ImportReport>,
     pub dup: Option<DuplicateReport>,
+    pub complexity: Option<ComplexityReport>,
     pub fun: Option<FunReport>,
 }
 
@@ -554,6 +555,40 @@ pub struct DuplicateGroup {
     pub hash: String,
     pub bytes: u64,
     pub files: Vec<String>,
+}
+
+// -------------------
+// Complexity metrics
+// -------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplexityReport {
+    pub total_functions: usize,
+    pub avg_function_length: f64,
+    pub max_function_length: usize,
+    pub avg_cyclomatic: f64,
+    pub max_cyclomatic: usize,
+    pub high_risk_files: usize,
+    pub files: Vec<FileComplexity>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileComplexity {
+    pub path: String,
+    pub module: String,
+    pub function_count: usize,
+    pub max_function_length: usize,
+    pub cyclomatic_complexity: usize,
+    pub risk_level: ComplexityRisk,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ComplexityRisk {
+    Low,
+    Moderate,
+    High,
+    Critical,
 }
 
 // ---------
