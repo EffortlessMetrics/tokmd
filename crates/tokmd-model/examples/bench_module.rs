@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::Write;
 use std::time::Instant;
+use tempfile::tempdir;
 use tokei::{Config, Languages};
 use tokmd_model::create_module_report;
 use tokmd_types::ChildIncludeMode;
-use tempfile::tempdir;
 
 fn main() {
     let dir = tempdir().unwrap();
@@ -43,5 +43,8 @@ fn main() {
     }
     let duration = start.elapsed();
     println!("Total time for {} iterations: {:?}", iterations, duration);
-    println!("Average time per iteration: {:?}", duration / iterations as u32);
+    println!(
+        "Average time per iteration: {:?}",
+        duration / iterations as u32
+    );
 }
