@@ -48,8 +48,10 @@ pub struct AnalysisReceipt {
 ## Schema Version
 
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 2;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
 ```
+
+v4 added cognitive complexity, nesting depth, and function-level details.
 
 ## Design Principles
 

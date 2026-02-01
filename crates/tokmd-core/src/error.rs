@@ -237,8 +237,15 @@ impl ResponseEnvelope {
             if self.ok {
                 r#"{"ok":true,"data":null}"#.to_string()
             } else {
-                let err = self.error.as_ref().map(|e| e.code.as_str()).unwrap_or("internal_error");
-                format!(r#"{{"ok":false,"error":{{"code":"{}","message":"serialization failed"}}}}"#, err)
+                let err = self
+                    .error
+                    .as_ref()
+                    .map(|e| e.code.as_str())
+                    .unwrap_or("internal_error");
+                format!(
+                    r#"{{"ok":false,"error":{{"code":"{}","message":"serialization failed"}}}}"#,
+                    err
+                )
             }
         })
     }
@@ -346,6 +353,11 @@ mod tests {
         assert_eq!(parsed["ok"], false);
         assert!(parsed.get("data").is_none());
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(parsed["error"]["message"].as_str().unwrap().contains("format"));
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("format")
+        );
     }
 }

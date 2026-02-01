@@ -86,7 +86,10 @@ pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Va
         .map_err(|e| Error::from_reason(format!("JSON parse error: {}", e)))?;
 
     // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
-    let ok = envelope.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
+    let ok = envelope
+        .get("ok")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
     if ok {
         // Return the "data" field
@@ -100,8 +103,14 @@ pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Va
     // Extract error details
     let error_obj = envelope.get("error");
     let message = if let Some(err) = error_obj {
-        let code = err.get("code").and_then(|c| c.as_str()).unwrap_or("unknown");
-        let msg = err.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown error");
+        let code = err
+            .get("code")
+            .and_then(|c| c.as_str())
+            .unwrap_or("unknown");
+        let msg = err
+            .get("message")
+            .and_then(|m| m.as_str())
+            .unwrap_or("Unknown error");
         format!("[{}] {}", code, msg)
     } else {
         "Unknown error".to_string()

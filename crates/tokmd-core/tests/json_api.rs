@@ -139,11 +139,13 @@ fn run_json_invalid_children_mode_returns_error() {
         error.get("code").and_then(|v| v.as_str()),
         Some("invalid_settings")
     );
-    assert!(error
-        .get("message")
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .contains("children"));
+    assert!(
+        error
+            .get("message")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .contains("children")
+    );
 }
 
 #[test]
@@ -159,9 +161,11 @@ fn run_json_invalid_format_returns_error() {
         error.get("code").and_then(|v| v.as_str()),
         Some("invalid_settings")
     );
-    assert!(error
-        .get("message")
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .contains("format"));
+    assert!(
+        error
+            .get("message")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .contains("format")
+    );
 }

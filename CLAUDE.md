@@ -100,8 +100,10 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - JSON outputs include envelope metadata with `schema_version`
 - Increment schema_version when modifying JSON output structure
 - Update `docs/schema.json` (formal JSON Schema) when structures change
-- Analysis receipts use `schema_version: 2`
-- Cockpit receipts use `schema_version: 3`
+- **Schema versions are separate for each receipt family**:
+  - Core receipts (`lang`, `module`, `export`, `diff`, `context`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
+  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 4` (in `tokmd-analysis-types`)
+  - Cockpit receipts: `SCHEMA_VERSION = 3` (local to cockpit.rs)
 
 ### Feature Flags
 - `git`: Git history analysis (requires git2)

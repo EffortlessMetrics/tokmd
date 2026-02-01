@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to `tokmd`! This project aims to be a robust code intelligence platform for humans, machines, and LLMs.
 
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
 ## Development Setup
 
 ### Nix (recommended)
@@ -341,3 +343,15 @@ crates/
 - Cross-platform wheels/prebuilds via CI matrix
 
 If you're interested in helping with bindings, see the `tokmd-ffi` crate (once created) for the shared interface.
+
+## AI-Assisted Development
+
+If you use AI tools like Claude Code to contribute to this project, please refer to [`CLAUDE.md`](CLAUDE.md) for project-specific guidance. This file contains:
+
+- Build and test commands
+- Architecture overview and crate hierarchy
+- Critical patterns (deterministic output, path normalization, etc.)
+- Testing strategies and snapshot management
+- Key dependencies and documentation references
+
+The CLAUDE.md file helps AI assistants understand the codebase conventions and produce contributions that align with project standards.

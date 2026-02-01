@@ -117,20 +117,20 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
 // Strict parsing helpers
 // ============================================================================
 
-/// Parse a boolean field strictly: missing -> default, non-bool -> error.
+/// Parse a boolean field strictly: missing/null -> default, non-bool -> error.
 fn parse_bool(args: &Value, field: &str, default: bool) -> Result<bool, TokmdError> {
     match args.get(field) {
-        None => Ok(default),
-        Some(v) => v.as_bool().ok_or_else(|| {
-            TokmdError::invalid_field(field, "a boolean (true or false)")
-        }),
+        None | Some(Value::Null) => Ok(default),
+        Some(v) => v
+            .as_bool()
+            .ok_or_else(|| TokmdError::invalid_field(field, "a boolean (true or false)")),
     }
 }
 
-/// Parse a usize field strictly: missing -> default, non-number -> error.
+/// Parse a usize field strictly: missing/null -> default, non-number -> error.
 fn parse_usize(args: &Value, field: &str, default: usize) -> Result<usize, TokmdError> {
     match args.get(field) {
-        None => Ok(default),
+        None | Some(Value::Null) => Ok(default),
         Some(v) => v
             .as_u64()
             .map(|n| n as usize)
@@ -138,10 +138,10 @@ fn parse_usize(args: &Value, field: &str, default: usize) -> Result<usize, Tokmd
     }
 }
 
-/// Parse a u64 field strictly: missing -> None, non-number -> error.
+/// Parse a u64 field strictly: missing/null -> None, non-number -> error.
 fn parse_optional_u64(args: &Value, field: &str) -> Result<Option<u64>, TokmdError> {
     match args.get(field) {
-        None => Ok(None),
+        None | Some(Value::Null) => Ok(None),
         Some(v) => v
             .as_u64()
             .map(Some)
@@ -149,10 +149,10 @@ fn parse_optional_u64(args: &Value, field: &str) -> Result<Option<u64>, TokmdErr
     }
 }
 
-/// Parse an optional usize field strictly: missing -> None, non-number -> error.
+/// Parse an optional usize field strictly: missing/null -> None, non-number -> error.
 fn parse_optional_usize(args: &Value, field: &str) -> Result<Option<usize>, TokmdError> {
     match args.get(field) {
-        None => Ok(None),
+        None | Some(Value::Null) => Ok(None),
         Some(v) => v
             .as_u64()
             .map(|n| Some(n as usize))
@@ -160,10 +160,10 @@ fn parse_optional_usize(args: &Value, field: &str) -> Result<Option<usize>, Tokm
     }
 }
 
-/// Parse an optional bool field strictly: missing -> None, non-bool -> error.
+/// Parse an optional bool field strictly: missing/null -> None, non-bool -> error.
 fn parse_optional_bool(args: &Value, field: &str) -> Result<Option<bool>, TokmdError> {
     match args.get(field) {
-        None => Ok(None),
+        None | Some(Value::Null) => Ok(None),
         Some(v) => v
             .as_bool()
             .map(Some)
@@ -171,10 +171,10 @@ fn parse_optional_bool(args: &Value, field: &str) -> Result<Option<bool>, TokmdE
     }
 }
 
-/// Parse an optional string field strictly: missing -> None, non-string -> error.
+/// Parse an optional string field strictly: missing/null -> None, non-string -> error.
 fn parse_optional_string(args: &Value, field: &str) -> Result<Option<String>, TokmdError> {
     match args.get(field) {
-        None => Ok(None),
+        None | Some(Value::Null) => Ok(None),
         Some(v) => v
             .as_str()
             .map(|s| Some(s.to_string()))
@@ -228,10 +228,7 @@ fn parse_child_include_mode(
 }
 
 /// Parse a RedactMode field strictly.
-fn parse_redact_mode(
-    args: &Value,
-    default: RedactMode,
-) -> Result<RedactMode, TokmdError> {
+fn parse_redact_mode(args: &Value, default: RedactMode) -> Result<RedactMode, TokmdError> {
     match args.get("redact") {
         None => Ok(default),
         Some(v) => serde_json::from_value::<RedactMode>(v.clone())
@@ -259,14 +256,12 @@ fn parse_config_mode(args: &Value, default: ConfigMode) -> Result<ConfigMode, To
 }
 
 /// Parse an ExportFormat field strictly.
-fn parse_export_format(
-    args: &Value,
-    default: ExportFormat,
-) -> Result<ExportFormat, TokmdError> {
+fn parse_export_format(args: &Value, default: ExportFormat) -> Result<ExportFormat, TokmdError> {
     match args.get("format") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<ExportFormat>(v.clone())
-            .map_err(|_| TokmdError::invalid_field("format", "'csv', 'jsonl', 'json', or 'cyclonedx'")),
+        Some(v) => serde_json::from_value::<ExportFormat>(v.clone()).map_err(|_| {
+            TokmdError::invalid_field("format", "'csv', 'jsonl', 'json', or 'cyclonedx'")
+        }),
     }
 }
 
@@ -289,7 +284,11 @@ fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
             no_ignore_parent: parse_bool(args, "no_ignore_parent", false)?,
             no_ignore_dot: parse_bool(args, "no_ignore_dot", false)?,
             no_ignore_vcs: parse_bool(args, "no_ignore_vcs", false)?,
-            treat_doc_strings_as_comments: parse_bool(args, "treat_doc_strings_as_comments", false)?,
+            treat_doc_strings_as_comments: parse_bool(
+                args,
+                "treat_doc_strings_as_comments",
+                false,
+            )?,
         })
     }
 }
@@ -415,10 +414,12 @@ mod tests {
         let result = run_json("version", "{}");
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], true);
-        assert!(parsed["data"]["version"]
-            .as_str()
-            .unwrap()
-            .contains(env!("CARGO_PKG_VERSION")));
+        assert!(
+            parsed["data"]["version"]
+                .as_str()
+                .unwrap()
+                .contains(env!("CARGO_PKG_VERSION"))
+        );
         assert!(parsed["data"]["schema_version"].is_number());
     }
 
@@ -428,7 +429,12 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "unknown_mode");
-        assert!(parsed["error"]["message"].as_str().unwrap().contains("unknown"));
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("unknown")
+        );
     }
 
     #[test]
@@ -565,10 +571,12 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(parsed["error"]["message"]
-            .as_str()
-            .unwrap()
-            .contains("children"));
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("children")
+        );
     }
 
     #[test]
@@ -577,9 +585,11 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(parsed["error"]["message"]
-            .as_str()
-            .unwrap()
-            .contains("format"));
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("format")
+        );
     }
 }

@@ -10,6 +10,7 @@ fn main() -> Result<()> {
     let cli = XtaskCli::parse();
 
     match cli.command {
+        Some(cli::Commands::Bump(args)) => tasks::bump::run(args),
         Some(cli::Commands::Publish(args)) => tasks::publish::run(args),
         Some(cli::Commands::Cockpit(args)) => tasks::cockpit::run(args),
         None => tasks::publish::run(PublishArgs::default()),

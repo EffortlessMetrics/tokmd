@@ -68,7 +68,6 @@ use tokmd_types::{
     LangReport, ModuleArgsMeta, ModuleReceipt, RedactMode, SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
 
-
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -276,10 +275,10 @@ pub fn analyze_workflow(
     _scan: &ScanSettings,
     _analyze: &settings::AnalyzeSettings,
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
-    Err(error::TokmdError::not_implemented(
-        "Analysis workflow not yet implemented in core library",
+    Err(
+        error::TokmdError::not_implemented("Analysis workflow not yet implemented in core library")
+            .into(),
     )
-    .into())
 }
 
 // =============================================================================
