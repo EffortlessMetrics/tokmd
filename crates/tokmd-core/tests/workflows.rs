@@ -14,7 +14,10 @@ fn lang_workflow_scans_current_crate() {
 
     assert_eq!(receipt.mode, "lang");
     assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
-    assert!(!receipt.report.rows.is_empty(), "should find some languages");
+    assert!(
+        !receipt.report.rows.is_empty(),
+        "should find some languages"
+    );
     // This crate is Rust, so we should find Rust
     assert!(
         receipt.report.rows.iter().any(|r| r.lang == "Rust"),
@@ -32,10 +35,7 @@ fn module_workflow_scans_current_crate() {
     assert_eq!(receipt.mode, "module");
     assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
     // Should have at least one module
-    assert!(
-        !receipt.report.rows.is_empty(),
-        "should find some modules"
-    );
+    assert!(!receipt.report.rows.is_empty(), "should find some modules");
 }
 
 #[test]

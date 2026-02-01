@@ -63,7 +63,7 @@ pub async fn run_json(mode: String, args_json: String) -> Result<String> {
 ///
 /// @param mode - The operation mode ("lang", "module", "export", "analyze", "diff", "version")
 /// @param args - Object containing the arguments
-/// @returns Promise resolving to the result object
+/// @returns Promise resolving to the result object (the `data` field from the response envelope)
 /// @throws Error if the operation fails
 ///
 /// @example
@@ -74,28 +74,40 @@ pub async fn run_json(mode: String, args_json: String) -> Result<String> {
 /// ```
 #[napi]
 pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Value> {
-    let args_json =
-        serde_json::to_string(&args).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))?;
+    let args_json = serde_json::to_string(&args)
+        .map_err(|e| Error::from_reason(format!("JSON error: {}", e)))?;
 
-    let result_json = tokio::task::spawn_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json))
-        .await
-        .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))?;
+    let result_json =
+        tokio::task::spawn_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json))
+            .await
+            .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))?;
 
-    let result: serde_json::Value = serde_json::from_str(&result_json)
+    let envelope: serde_json::Value = serde_json::from_str(&result_json)
         .map_err(|e| Error::from_reason(format!("JSON parse error: {}", e)))?;
 
-    // Check for error response
-    if let Some(error) = result.get("error") {
-        if error.as_bool().unwrap_or(false) {
-            let message = result
-                .get("message")
-                .and_then(|m| m.as_str())
-                .unwrap_or("Unknown error");
-            return Err(Error::from_reason(message.to_string()));
+    // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
+    let ok = envelope.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
+
+    if ok {
+        // Return the "data" field
+        if let Some(data) = envelope.get("data") {
+            return Ok(data.clone());
         }
+        // Fallback: return the whole envelope if "data" is missing
+        return Ok(envelope);
     }
 
-    Ok(result)
+    // Extract error details
+    let error_obj = envelope.get("error");
+    let message = if let Some(err) = error_obj {
+        let code = err.get("code").and_then(|c| c.as_str()).unwrap_or("unknown");
+        let msg = err.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown error");
+        format!("[{}] {}", code, msg)
+    } else {
+        "Unknown error".to_string()
+    };
+
+    Err(Error::from_reason(message))
 }
 
 /// Scan paths and return a language summary.

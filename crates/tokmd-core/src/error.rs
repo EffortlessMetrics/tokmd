@@ -4,6 +4,7 @@
 //! for FFI boundaries while providing rich error information.
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fmt;
 
 /// Error codes for tokmd operations.
@@ -28,6 +29,8 @@ pub enum ErrorCode {
     IoError,
     /// Internal error (unexpected state).
     InternalError,
+    /// Feature not yet implemented.
+    NotImplemented,
 }
 
 impl fmt::Display for ErrorCode {
@@ -42,6 +45,7 @@ impl fmt::Display for ErrorCode {
             ErrorCode::InvalidSettings => write!(f, "invalid_settings"),
             ErrorCode::IoError => write!(f, "io_error"),
             ErrorCode::InternalError => write!(f, "internal_error"),
+            ErrorCode::NotImplemented => write!(f, "not_implemented"),
         }
     }
 }
@@ -103,7 +107,10 @@ impl TokmdError {
 
     /// Create an analysis error from an anyhow error.
     pub fn analysis_error(err: impl fmt::Display) -> Self {
-        Self::new(ErrorCode::AnalysisError, format!("Analysis failed: {}", err))
+        Self::new(
+            ErrorCode::AnalysisError,
+            format!("Analysis failed: {}", err),
+        )
     }
 
     /// Create an I/O error.
@@ -116,13 +123,23 @@ impl TokmdError {
         Self::new(ErrorCode::InternalError, format!("Internal error: {}", err))
     }
 
+    /// Create a not implemented error.
+    pub fn not_implemented(feature: impl Into<String>) -> Self {
+        Self::new(ErrorCode::NotImplemented, feature)
+    }
+
+    /// Create an invalid settings error for a specific field.
+    pub fn invalid_field(field: &str, expected: &str) -> Self {
+        Self::new(
+            ErrorCode::InvalidSettings,
+            format!("Invalid value for '{}': expected {}", field, expected),
+        )
+    }
+
     /// Convert to JSON string.
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).unwrap_or_else(|_| {
-            format!(
-                r#"{{"code":"{}","message":"{}"}}"#,
-                self.code, self.message
-            )
+            format!(r#"{{"code":"{}","message":"{}"}}"#, self.code, self.message)
         })
     }
 }
@@ -157,7 +174,79 @@ impl From<std::io::Error> for TokmdError {
     }
 }
 
+/// Error details for the response envelope.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorDetails {
+    /// The error code.
+    pub code: String,
+    /// Human-readable message.
+    pub message: String,
+    /// Optional additional details.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<String>,
+}
+
+impl From<&TokmdError> for ErrorDetails {
+    fn from(err: &TokmdError) -> Self {
+        Self {
+            code: err.code.to_string(),
+            message: err.message.clone(),
+            details: err.details.clone(),
+        }
+    }
+}
+
+/// Stable JSON response envelope for FFI.
+///
+/// Success: `{"ok": true, "data": {...}}`
+/// Error: `{"ok": false, "error": {"code": "...", "message": "...", "details": ...}}`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseEnvelope {
+    /// Whether the operation succeeded.
+    pub ok: bool,
+    /// The result data (present when ok=true).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<Value>,
+    /// The error details (present when ok=false).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<ErrorDetails>,
+}
+
+impl ResponseEnvelope {
+    /// Create a success response with the given data.
+    pub fn success(data: Value) -> Self {
+        Self {
+            ok: true,
+            data: Some(data),
+            error: None,
+        }
+    }
+
+    /// Create an error response from a TokmdError.
+    pub fn error(err: &TokmdError) -> Self {
+        Self {
+            ok: false,
+            data: None,
+            error: Some(ErrorDetails::from(err)),
+        }
+    }
+
+    /// Convert to JSON string.
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).unwrap_or_else(|_| {
+            if self.ok {
+                r#"{"ok":true,"data":null}"#.to_string()
+            } else {
+                let err = self.error.as_ref().map(|e| e.code.as_str()).unwrap_or("internal_error");
+                format!(r#"{{"ok":false,"error":{{"code":"{}","message":"serialization failed"}}}}"#, err)
+            }
+        })
+    }
+}
+
 /// JSON error response wrapper for FFI.
+///
+/// DEPRECATED: Use ResponseEnvelope instead for new code.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorResponse {
     /// Always `true` for error responses.
@@ -219,5 +308,44 @@ mod tests {
         let display = err.to_string();
         assert!(display.contains("[scan_error]"));
         assert!(display.contains("test message"));
+    }
+
+    #[test]
+    fn invalid_field_error() {
+        let err = TokmdError::invalid_field("children", "'collapse' or 'separate'");
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+        assert!(err.message.contains("children"));
+        assert!(err.message.contains("'collapse' or 'separate'"));
+    }
+
+    #[test]
+    fn response_envelope_success() {
+        let data = serde_json::json!({"rows": []});
+        let envelope = ResponseEnvelope::success(data.clone());
+        assert!(envelope.ok);
+        assert_eq!(envelope.data, Some(data));
+        assert!(envelope.error.is_none());
+
+        let json = envelope.to_json();
+        let parsed: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["ok"], true);
+        assert!(parsed["data"].is_object());
+        assert!(parsed.get("error").is_none());
+    }
+
+    #[test]
+    fn response_envelope_error() {
+        let err = TokmdError::invalid_field("format", "'json', 'csv', or 'jsonl'");
+        let envelope = ResponseEnvelope::error(&err);
+        assert!(!envelope.ok);
+        assert!(envelope.data.is_none());
+        assert!(envelope.error.is_some());
+
+        let json = envelope.to_json();
+        let parsed: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert!(parsed.get("data").is_none());
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(parsed["error"]["message"].as_str().unwrap().contains("format"));
     }
 }

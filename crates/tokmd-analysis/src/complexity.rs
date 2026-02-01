@@ -96,8 +96,7 @@ pub(crate) fn build_complexity_report(
         // Compute cognitive complexity and nesting depth
         let cognitive_result =
             tokmd_content::complexity::estimate_cognitive_complexity(&text, lang_mapped);
-        let nesting_result =
-            tokmd_content::complexity::analyze_nesting_depth(&text, lang_mapped);
+        let nesting_result = tokmd_content::complexity::analyze_nesting_depth(&text, lang_mapped);
 
         let cognitive_complexity = if cognitive_result.function_count > 0 {
             Some(cognitive_result.total)

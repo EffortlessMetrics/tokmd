@@ -65,12 +65,9 @@ use tokmd_config::GlobalArgs;
 use tokmd_format::scan_args;
 use tokmd_types::{
     DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, LangArgs, LangArgsMeta, LangReceipt,
-    LangReport, ModuleArgsMeta, ModuleReceipt, RedactMode, ScanStatus, ToolInfo, SCHEMA_VERSION,
+    LangReport, ModuleArgsMeta, ModuleReceipt, RedactMode, SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
 
-// Re-export ChildIncludeMode for the analyze_workflow
-#[cfg(feature = "analysis")]
-use tokmd_types::ChildIncludeMode;
 
 fn now_ms() -> u128 {
     SystemTime::now()
@@ -103,12 +100,7 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
     let languages = tokmd_scan::scan(&paths, &global)?;
 
     // Model
-    let report = tokmd_model::create_lang_report(
-        &languages,
-        lang.top,
-        lang.files,
-        lang.children,
-    );
+    let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
 
     // Build receipt
     let receipt = LangReceipt {
@@ -274,79 +266,20 @@ pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
 }
 
 /// Analyze workflow (requires `analysis` feature).
+///
+/// # Errors
+///
+/// Returns `NotImplemented` error. Analysis workflow is not yet implemented
+/// in the core library. Use the CLI `tokmd analyze` command instead.
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow(
-    scan: &ScanSettings,
-    analyze: &settings::AnalyzeSettings,
+    _scan: &ScanSettings,
+    _analyze: &settings::AnalyzeSettings,
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
-    // This is a placeholder - full implementation would integrate with tokmd-analysis
-    // For now, we'll create a basic receipt
-    let global = settings_to_global_args(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
-
-    // Run export first to get file data
-    let languages = tokmd_scan::scan(&paths, &global)?;
-    let _export_data = tokmd_model::create_export_data(
-        &languages,
-        &["crates".to_string(), "packages".to_string()],
-        2,
-        ChildIncludeMode::Separate,
-        None,
-        0,
-        0,
-    );
-
-    // Convert paths to strings for analysis source
-    let input_strings: Vec<String> = paths.iter().map(|p| p.display().to_string()).collect();
-
-    // Create analysis receipt
-    let receipt = tokmd_analysis_types::AnalysisReceipt {
-        schema_version: tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "analyze".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        source: tokmd_analysis_types::AnalysisSource {
-            inputs: input_strings,
-            export_path: None,
-            base_receipt_path: None,
-            export_schema_version: Some(SCHEMA_VERSION),
-            export_generated_at_ms: Some(now_ms()),
-            base_signature: None,
-            module_roots: vec!["crates".to_string(), "packages".to_string()],
-            module_depth: 2,
-            children: "separate".to_string(),
-        },
-        args: tokmd_analysis_types::AnalysisArgsMeta {
-            preset: analyze.preset.clone(),
-            format: "json".to_string(),
-            window_tokens: analyze.window,
-            git: analyze.git,
-            max_files: analyze.max_files,
-            max_bytes: analyze.max_bytes,
-            max_commits: analyze.max_commits,
-            max_commit_files: analyze.max_commit_files,
-            max_file_bytes: analyze.max_file_bytes,
-            import_granularity: analyze.granularity.clone(),
-        },
-        archetype: None,
-        topics: None,
-        entropy: None,
-        predictive_churn: None,
-        corporate_fingerprint: None,
-        license: None,
-        derived: None,
-        assets: None,
-        deps: None,
-        git: None,
-        imports: None,
-        dup: None,
-        complexity: None,
-        fun: None,
-    };
-
-    Ok(receipt)
+    Err(error::TokmdError::not_implemented(
+        "Analysis workflow not yet implemented in core library",
+    )
+    .into())
 }
 
 // =============================================================================

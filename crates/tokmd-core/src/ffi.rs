@@ -3,12 +3,24 @@
 //! This module provides a single `run_json` function that accepts
 //! a mode string and JSON arguments, returning a JSON result.
 //! This is the primary interface for Python and Node.js bindings.
+//!
+//! ## Response Envelope
+//!
+//! All responses use a consistent envelope format:
+//! - Success: `{"ok": true, "data": {...receipt...}}`
+//! - Error: `{"ok": false, "error": {"code": "...", "message": "...", "details": ...}}`
+//!
+//! ## Strict Parsing
+//!
+//! - Missing keys use sensible defaults
+//! - Invalid values return errors (no silent fallback to defaults)
 
 use serde_json::Value;
 
-use crate::error::{ErrorResponse, TokmdError};
+use crate::error::{ResponseEnvelope, TokmdError};
 use crate::settings::{
-    AnalyzeSettings, DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings,
+    AnalyzeSettings, ChildIncludeMode, ChildrenMode, ConfigMode, DiffSettings, ExportFormat,
+    ExportSettings, LangSettings, ModuleSettings, RedactMode, ScanSettings,
 };
 use crate::{export_workflow, lang_workflow, module_workflow};
 
@@ -24,23 +36,30 @@ use crate::{export_workflow, lang_workflow, module_workflow};
 ///
 /// # Returns
 ///
-/// A JSON string containing either:
-/// - Success: The receipt/result as JSON
-/// - Error: An error response with `{"error": true, "code": "...", "message": "..."}`
+/// A JSON string with a consistent envelope:
+/// - Success: `{"ok": true, "data": {...receipt...}}`
+/// - Error: `{"ok": false, "error": {"code": "...", "message": "..."}}`
+///
+/// # Strict Parsing
+///
+/// This function performs strict parsing of all settings:
+/// - Missing keys use defaults
+/// - Invalid values return errors (no silent fallback)
 ///
 /// # Example
 ///
 /// ```ignore
 /// let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
+/// // Returns: {"ok": true, "data": {"mode": "lang", "rows": [...], ...}}
 /// ```
 pub fn run_json(mode: &str, args_json: &str) -> String {
     match run_json_inner(mode, args_json) {
-        Ok(result) => result,
-        Err(err) => ErrorResponse::from(err).to_json(),
+        Ok(data) => ResponseEnvelope::success(data).to_json(),
+        Err(err) => ResponseEnvelope::error(&err).to_json(),
     }
 }
 
-fn run_json_inner(mode: &str, args_json: &str) -> Result<String, TokmdError> {
+fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Parse common scan settings from the JSON
     let args: Value = serde_json::from_str(args_json)?;
 
@@ -51,24 +70,24 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<String, TokmdError> {
         "lang" => {
             let settings = parse_lang_settings(&args)?;
             let receipt = lang_workflow(&scan, &settings)?;
-            Ok(serde_json::to_string(&receipt)?)
+            Ok(serde_json::to_value(&receipt)?)
         }
         "module" => {
             let settings = parse_module_settings(&args)?;
             let receipt = module_workflow(&scan, &settings)?;
-            Ok(serde_json::to_string(&receipt)?)
+            Ok(serde_json::to_value(&receipt)?)
         }
         "export" => {
             let settings = parse_export_settings(&args)?;
             let receipt = export_workflow(&scan, &settings)?;
-            Ok(serde_json::to_string(&receipt)?)
+            Ok(serde_json::to_value(&receipt)?)
         }
         "analyze" => {
             #[cfg(feature = "analysis")]
             {
                 let settings = parse_analyze_settings(&args)?;
                 let receipt = crate::analyze_workflow(&scan, &settings)?;
-                Ok(serde_json::to_string(&receipt)?)
+                Ok(serde_json::to_value(&receipt)?)
             }
             #[cfg(not(feature = "analysis"))]
             {
@@ -81,172 +100,249 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<String, TokmdError> {
         "diff" => {
             let settings = parse_diff_settings(&args)?;
             let receipt = crate::diff_workflow(&settings)?;
-            Ok(serde_json::to_string(&receipt)?)
+            Ok(serde_json::to_value(&receipt)?)
         }
         "version" => {
             let version_info = serde_json::json!({
                 "version": env!("CARGO_PKG_VERSION"),
                 "schema_version": tokmd_types::SCHEMA_VERSION,
             });
-            Ok(serde_json::to_string(&version_info)?)
+            Ok(version_info)
         }
         _ => Err(TokmdError::unknown_mode(mode)),
     }
 }
+
+// ============================================================================
+// Strict parsing helpers
+// ============================================================================
+
+/// Parse a boolean field strictly: missing -> default, non-bool -> error.
+fn parse_bool(args: &Value, field: &str, default: bool) -> Result<bool, TokmdError> {
+    match args.get(field) {
+        None => Ok(default),
+        Some(v) => v.as_bool().ok_or_else(|| {
+            TokmdError::invalid_field(field, "a boolean (true or false)")
+        }),
+    }
+}
+
+/// Parse a usize field strictly: missing -> default, non-number -> error.
+fn parse_usize(args: &Value, field: &str, default: usize) -> Result<usize, TokmdError> {
+    match args.get(field) {
+        None => Ok(default),
+        Some(v) => v
+            .as_u64()
+            .map(|n| n as usize)
+            .ok_or_else(|| TokmdError::invalid_field(field, "a non-negative integer")),
+    }
+}
+
+/// Parse a u64 field strictly: missing -> None, non-number -> error.
+fn parse_optional_u64(args: &Value, field: &str) -> Result<Option<u64>, TokmdError> {
+    match args.get(field) {
+        None => Ok(None),
+        Some(v) => v
+            .as_u64()
+            .map(Some)
+            .ok_or_else(|| TokmdError::invalid_field(field, "a non-negative integer")),
+    }
+}
+
+/// Parse an optional usize field strictly: missing -> None, non-number -> error.
+fn parse_optional_usize(args: &Value, field: &str) -> Result<Option<usize>, TokmdError> {
+    match args.get(field) {
+        None => Ok(None),
+        Some(v) => v
+            .as_u64()
+            .map(|n| Some(n as usize))
+            .ok_or_else(|| TokmdError::invalid_field(field, "a non-negative integer")),
+    }
+}
+
+/// Parse an optional bool field strictly: missing -> None, non-bool -> error.
+fn parse_optional_bool(args: &Value, field: &str) -> Result<Option<bool>, TokmdError> {
+    match args.get(field) {
+        None => Ok(None),
+        Some(v) => v
+            .as_bool()
+            .map(Some)
+            .ok_or_else(|| TokmdError::invalid_field(field, "a boolean (true or false)")),
+    }
+}
+
+/// Parse an optional string field strictly: missing -> None, non-string -> error.
+fn parse_optional_string(args: &Value, field: &str) -> Result<Option<String>, TokmdError> {
+    match args.get(field) {
+        None => Ok(None),
+        Some(v) => v
+            .as_str()
+            .map(|s| Some(s.to_string()))
+            .ok_or_else(|| TokmdError::invalid_field(field, "a string")),
+    }
+}
+
+/// Parse a string field strictly: missing -> default, non-string -> error.
+fn parse_string(args: &Value, field: &str, default: &str) -> Result<String, TokmdError> {
+    match args.get(field) {
+        None => Ok(default.to_string()),
+        Some(v) => v
+            .as_str()
+            .map(|s| s.to_string())
+            .ok_or_else(|| TokmdError::invalid_field(field, "a string")),
+    }
+}
+
+/// Parse a string array field strictly: missing -> default, invalid -> error.
+fn parse_string_array(
+    args: &Value,
+    field: &str,
+    default: Vec<String>,
+) -> Result<Vec<String>, TokmdError> {
+    match args.get(field) {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<Vec<String>>(v.clone())
+            .map_err(|_| TokmdError::invalid_field(field, "an array of strings")),
+    }
+}
+
+/// Parse a ChildrenMode field strictly.
+fn parse_children_mode(args: &Value, default: ChildrenMode) -> Result<ChildrenMode, TokmdError> {
+    match args.get("children") {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<ChildrenMode>(v.clone())
+            .map_err(|_| TokmdError::invalid_field("children", "'collapse' or 'separate'")),
+    }
+}
+
+/// Parse a ChildIncludeMode field strictly.
+fn parse_child_include_mode(
+    args: &Value,
+    default: ChildIncludeMode,
+) -> Result<ChildIncludeMode, TokmdError> {
+    match args.get("children") {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<ChildIncludeMode>(v.clone())
+            .map_err(|_| TokmdError::invalid_field("children", "'separate' or 'parents-only'")),
+    }
+}
+
+/// Parse a RedactMode field strictly.
+fn parse_redact_mode(
+    args: &Value,
+    default: RedactMode,
+) -> Result<RedactMode, TokmdError> {
+    match args.get("redact") {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
+            .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
+    }
+}
+
+/// Parse an optional RedactMode field strictly.
+fn parse_optional_redact_mode(args: &Value) -> Result<Option<RedactMode>, TokmdError> {
+    match args.get("redact") {
+        None => Ok(None),
+        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
+            .map(Some)
+            .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
+    }
+}
+
+/// Parse a ConfigMode field strictly.
+fn parse_config_mode(args: &Value, default: ConfigMode) -> Result<ConfigMode, TokmdError> {
+    match args.get("config") {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<ConfigMode>(v.clone())
+            .map_err(|_| TokmdError::invalid_field("config", "'auto' or 'none'")),
+    }
+}
+
+/// Parse an ExportFormat field strictly.
+fn parse_export_format(
+    args: &Value,
+    default: ExportFormat,
+) -> Result<ExportFormat, TokmdError> {
+    match args.get("format") {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<ExportFormat>(v.clone())
+            .map_err(|_| TokmdError::invalid_field("format", "'csv', 'jsonl', 'json', or 'cyclonedx'")),
+    }
+}
+
+// ============================================================================
+// Settings parsers
+// ============================================================================
 
 fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
     // Try to deserialize from a nested "scan" object, or from the root
     if let Some(scan_obj) = args.get("scan") {
         serde_json::from_value(scan_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
     } else {
-        // Extract scan fields from root
-        let paths = args
-            .get("paths")
-            .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .unwrap_or_else(|| vec![".".to_string()]);
-
-        let excluded = args
-            .get("excluded")
-            .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .unwrap_or_default();
-
+        // Extract scan fields from root with strict parsing
         Ok(ScanSettings {
-            paths,
-            excluded,
-            config: args
-                .get("config")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or_default(),
-            hidden: args
-                .get("hidden")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            no_ignore: args
-                .get("no_ignore")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            no_ignore_parent: args
-                .get("no_ignore_parent")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            no_ignore_dot: args
-                .get("no_ignore_dot")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            no_ignore_vcs: args
-                .get("no_ignore_vcs")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            treat_doc_strings_as_comments: args
-                .get("treat_doc_strings_as_comments")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
+            paths: parse_string_array(args, "paths", vec![".".to_string()])?,
+            excluded: parse_string_array(args, "excluded", vec![])?,
+            config: parse_config_mode(args, ConfigMode::Auto)?,
+            hidden: parse_bool(args, "hidden", false)?,
+            no_ignore: parse_bool(args, "no_ignore", false)?,
+            no_ignore_parent: parse_bool(args, "no_ignore_parent", false)?,
+            no_ignore_dot: parse_bool(args, "no_ignore_dot", false)?,
+            no_ignore_vcs: parse_bool(args, "no_ignore_vcs", false)?,
+            treat_doc_strings_as_comments: parse_bool(args, "treat_doc_strings_as_comments", false)?,
         })
     }
 }
 
 fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdError> {
-    use crate::settings::ChildrenMode;
-
     if let Some(lang_obj) = args.get("lang") {
         serde_json::from_value(lang_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
     } else {
         Ok(LangSettings {
-            top: args
-                .get("top")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(0),
-            files: args
-                .get("files")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            children: args
-                .get("children")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or(ChildrenMode::Collapse),
-            redact: args
-                .get("redact")
-                .and_then(|v| serde_json::from_value(v.clone()).ok()),
+            top: parse_usize(args, "top", 0)?,
+            files: parse_bool(args, "files", false)?,
+            children: parse_children_mode(args, ChildrenMode::Collapse)?,
+            redact: parse_optional_redact_mode(args)?,
         })
     }
 }
 
 fn parse_module_settings(args: &Value) -> Result<ModuleSettings, TokmdError> {
-    use crate::settings::ChildIncludeMode;
-
     if let Some(module_obj) = args.get("module") {
         serde_json::from_value(module_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
     } else {
         Ok(ModuleSettings {
-            top: args
-                .get("top")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(0),
-            module_roots: args
-                .get("module_roots")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or_else(|| vec!["crates".to_string(), "packages".to_string()]),
-            module_depth: args
-                .get("module_depth")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(2),
-            children: args
-                .get("children")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or(ChildIncludeMode::Separate),
-            redact: args
-                .get("redact")
-                .and_then(|v| serde_json::from_value(v.clone()).ok()),
+            top: parse_usize(args, "top", 0)?,
+            module_roots: parse_string_array(
+                args,
+                "module_roots",
+                vec!["crates".to_string(), "packages".to_string()],
+            )?,
+            module_depth: parse_usize(args, "module_depth", 2)?,
+            children: parse_child_include_mode(args, ChildIncludeMode::Separate)?,
+            redact: parse_optional_redact_mode(args)?,
         })
     }
 }
 
 fn parse_export_settings(args: &Value) -> Result<ExportSettings, TokmdError> {
-    use crate::settings::{ChildIncludeMode, ExportFormat, RedactMode};
-
     if let Some(export_obj) = args.get("export") {
         serde_json::from_value(export_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
     } else {
         Ok(ExportSettings {
-            format: args
-                .get("format")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or(ExportFormat::Jsonl),
-            module_roots: args
-                .get("module_roots")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or_else(|| vec!["crates".to_string(), "packages".to_string()]),
-            module_depth: args
-                .get("module_depth")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(2),
-            children: args
-                .get("children")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or(ChildIncludeMode::Separate),
-            min_code: args
-                .get("min_code")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(0),
-            max_rows: args
-                .get("max_rows")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize)
-                .unwrap_or(0),
-            redact: args
-                .get("redact")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or(RedactMode::None),
-            meta: args.get("meta").and_then(|v| v.as_bool()).unwrap_or(true),
-            strip_prefix: args
-                .get("strip_prefix")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
+            format: parse_export_format(args, ExportFormat::Jsonl)?,
+            module_roots: parse_string_array(
+                args,
+                "module_roots",
+                vec!["crates".to_string(), "packages".to_string()],
+            )?,
+            module_depth: parse_usize(args, "module_depth", 2)?,
+            children: parse_child_include_mode(args, ChildIncludeMode::Separate)?,
+            min_code: parse_usize(args, "min_code", 0)?,
+            max_rows: parse_usize(args, "max_rows", 0)?,
+            redact: parse_redact_mode(args, RedactMode::None)?,
+            meta: parse_bool(args, "meta", true)?,
+            strip_prefix: parse_optional_string(args, "strip_prefix")?,
         })
     }
 }
@@ -257,35 +353,15 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
         serde_json::from_value(analyze_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
     } else {
         Ok(AnalyzeSettings {
-            preset: args
-                .get("preset")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "receipt".to_string()),
-            window: args
-                .get("window")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize),
-            git: args.get("git").and_then(|v| v.as_bool()),
-            max_files: args
-                .get("max_files")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize),
-            max_bytes: args.get("max_bytes").and_then(|v| v.as_u64()),
-            max_file_bytes: args.get("max_file_bytes").and_then(|v| v.as_u64()),
-            max_commits: args
-                .get("max_commits")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize),
-            max_commit_files: args
-                .get("max_commit_files")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as usize),
-            granularity: args
-                .get("granularity")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "module".to_string()),
+            preset: parse_string(args, "preset", "receipt")?,
+            window: parse_optional_usize(args, "window")?,
+            git: parse_optional_bool(args, "git")?,
+            max_files: parse_optional_usize(args, "max_files")?,
+            max_bytes: parse_optional_u64(args, "max_bytes")?,
+            max_file_bytes: parse_optional_u64(args, "max_file_bytes")?,
+            max_commits: parse_optional_usize(args, "max_commits")?,
+            max_commit_files: parse_optional_usize(args, "max_commit_files")?,
+            granularity: parse_string(args, "granularity", "module")?,
         })
     }
 }
@@ -337,22 +413,30 @@ mod tests {
     #[test]
     fn run_json_version() {
         let result = run_json("version", "{}");
-        assert!(result.contains(env!("CARGO_PKG_VERSION")));
-        assert!(result.contains("schema_version"));
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], true);
+        assert!(parsed["data"]["version"]
+            .as_str()
+            .unwrap()
+            .contains(env!("CARGO_PKG_VERSION")));
+        assert!(parsed["data"]["schema_version"].is_number());
     }
 
     #[test]
     fn run_json_unknown_mode() {
         let result = run_json("unknown", "{}");
-        assert!(result.contains("error"));
-        assert!(result.contains("unknown_mode"));
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "unknown_mode");
+        assert!(parsed["error"]["message"].as_str().unwrap().contains("unknown"));
     }
 
     #[test]
     fn run_json_invalid_json() {
         let result = run_json("lang", "not valid json");
-        assert!(result.contains("error"));
-        assert!(result.contains("invalid_json"));
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_json");
     }
 
     #[test]
@@ -400,5 +484,102 @@ mod tests {
     fn schema_version_returns_current() {
         let sv = schema_version();
         assert_eq!(sv, tokmd_types::SCHEMA_VERSION);
+    }
+
+    // ========================================================================
+    // Strict parsing tests
+    // ========================================================================
+
+    #[test]
+    fn strict_parsing_invalid_bool() {
+        let args: Value = serde_json::json!({"hidden": "yes"});
+        let err = parse_scan_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("hidden"));
+        assert!(err.message.contains("boolean"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_usize() {
+        let args: Value = serde_json::json!({"top": "ten"});
+        let err = parse_lang_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("top"));
+        assert!(err.message.contains("integer"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_children_mode() {
+        let args: Value = serde_json::json!({"children": "invalid"});
+        let err = parse_lang_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("children"));
+        assert!(err.message.contains("collapse"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_child_include_mode() {
+        let args: Value = serde_json::json!({"children": "invalid"});
+        let err = parse_module_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("children"));
+        assert!(err.message.contains("separate"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_redact_mode() {
+        let args: Value = serde_json::json!({"redact": "invalid"});
+        let err = parse_export_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("redact"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_format() {
+        let args: Value = serde_json::json!({"format": "yaml"});
+        let err = parse_export_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("format"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_string_array() {
+        let args: Value = serde_json::json!({"paths": "not-an-array"});
+        let err = parse_scan_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("paths"));
+        assert!(err.message.contains("array"));
+    }
+
+    #[test]
+    fn strict_parsing_invalid_config_mode() {
+        let args: Value = serde_json::json!({"config": "invalid"});
+        let err = parse_scan_settings(&args).unwrap_err();
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("config"));
+    }
+
+    #[test]
+    fn run_json_invalid_children_returns_error_envelope() {
+        let result = run_json("lang", r#"{"children": "invalid"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("children"));
+    }
+
+    #[test]
+    fn run_json_invalid_format_returns_error_envelope() {
+        let result = run_json("export", r#"{"format": "yaml"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("format"));
     }
 }

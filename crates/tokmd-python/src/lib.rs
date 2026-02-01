@@ -67,7 +67,7 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
 ///     args: Python dict containing the arguments (will be converted to JSON)
 ///
 /// Returns:
-///     dict: The result as a Python dictionary
+///     dict: The result as a Python dictionary (the `data` field from the response envelope)
 ///
 /// Raises:
 ///     TokmdError: If the operation fails
@@ -80,32 +80,57 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
 fn run(py: Python<'_>, mode: &str, args: &Bound<'_, PyDict>) -> PyResult<PyObject> {
     // Convert Python dict to JSON string
     let json_module = py.import("json")?;
-    let args_json: String = json_module
-        .call_method1("dumps", (args,))?
-        .extract()?;
+    let args_json: String = json_module.call_method1("dumps", (args,))?.extract()?;
 
     // Run the operation (releasing GIL)
     let result_json = py.allow_threads(|| tokmd_core::ffi::run_json(mode, &args_json));
 
     // Parse result back to Python dict
-    let result: PyObject = json_module
+    let envelope: PyObject = json_module
         .call_method1("loads", (result_json,))?
         .extract()?;
 
-    // Check for error response
-    if let Ok(dict) = result.downcast_bound::<PyDict>(py) {
-        if let Some(error) = dict.get_item("error")? {
-            if error.extract::<bool>().unwrap_or(false) {
-                let message = dict
-                    .get_item("message")?
-                    .map(|m| m.to_string())
-                    .unwrap_or_else(|| "Unknown error".to_string());
-                return Err(TokmdError::new_err(message));
+    // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
+    if let Ok(dict) = envelope.downcast_bound::<PyDict>(py) {
+        // Check the "ok" field
+        let ok = dict
+            .get_item("ok")?
+            .and_then(|v| v.extract::<bool>().ok())
+            .unwrap_or(false);
+
+        if ok {
+            // Return the "data" field
+            if let Some(data) = dict.get_item("data")? {
+                return Ok(data.into_pyobject(py)?.unbind().into_any());
             }
+            // Fallback: return the whole envelope if "data" is missing
+            return Ok(envelope);
+        } else {
+            // Extract error details
+            let error_obj = dict.get_item("error")?;
+            let message = if let Some(err) = error_obj {
+                if let Ok(err_dict) = err.downcast::<PyDict>() {
+                    let code = err_dict
+                        .get_item("code")?
+                        .map(|c| c.to_string())
+                        .unwrap_or_else(|| "unknown".to_string());
+                    let msg = err_dict
+                        .get_item("message")?
+                        .map(|m| m.to_string())
+                        .unwrap_or_else(|| "Unknown error".to_string());
+                    format!("[{}] {}", code, msg)
+                } else {
+                    "Unknown error".to_string()
+                }
+            } else {
+                "Unknown error".to_string()
+            };
+            return Err(TokmdError::new_err(message));
         }
     }
 
-    Ok(result)
+    // Fallback for unexpected response format
+    Err(TokmdError::new_err("Invalid response format"))
 }
 
 /// Scan paths and return a language summary.
