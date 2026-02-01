@@ -1,5 +1,10 @@
 name: 'tokmd-receipt'
 description: 'Generate a repository receipt (markdown summary + JSON inventory) using tokmd'
+
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
 inputs:
   version:
     description: 'Version of tokmd to use'
