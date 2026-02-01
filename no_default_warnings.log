@@ -1,0 +1,434 @@
+warning: unused import: `std::io::Write`
+ --> crates/tokmd/src/commands/cockpit.rs:7:5
+  |
+7 | use std::io::Write;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `PathBuf` and `Path`
+ --> crates/tokmd/src/commands/cockpit.rs:8:17
+  |
+8 | use std::path::{Path, PathBuf};
+  |                 ^^^^  ^^^^^^^
+
+warning: unused import: `std::process::Command`
+ --> crates/tokmd/src/commands/cockpit.rs:9:5
+  |
+9 | use std::process::Command;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `args`
+  --> crates/tokmd/src/commands/cockpit.rs:19:22
+   |
+19 | pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
+   |                      ^^^^ help: if this is intentional, prefix it with an underscore: `_args`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `SCHEMA_VERSION` is never used
+  --> crates/tokmd/src/commands/cockpit.rs:16:7
+   |
+16 | const SCHEMA_VERSION: u32 = 3;
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `CockpitReceipt` is never constructed
+  --> crates/tokmd/src/commands/cockpit.rs:58:12
+   |
+58 | pub struct CockpitReceipt {
+   |            ^^^^^^^^^^^^^^
+
+warning: struct `Evidence` is never constructed
+  --> crates/tokmd/src/commands/cockpit.rs:74:12
+   |
+74 | pub struct Evidence {
+   |            ^^^^^^^^
+
+warning: enum `GateStatus` is never used
+  --> crates/tokmd/src/commands/cockpit.rs:96:10
+   |
+96 | pub enum GateStatus {
+   |          ^^^^^^^^^^
+
+warning: enum `EvidenceSource` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:106:10
+    |
+106 | pub enum EvidenceSource {
+    |          ^^^^^^^^^^^^^^
+
+warning: enum `CommitMatch` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:115:10
+    |
+115 | pub enum CommitMatch {
+    |          ^^^^^^^^^^^
+
+warning: struct `ScopeCoverage` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:124:12
+    |
+124 | pub struct ScopeCoverage {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `GateMeta` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:141:12
+    |
+141 | pub struct GateMeta {
+    |            ^^^^^^^^
+
+warning: struct `MutationGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:156:12
+    |
+156 | pub struct MutationGate {
+    |            ^^^^^^^^^^^^
+
+warning: struct `DiffCoverageGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:167:12
+    |
+167 | pub struct DiffCoverageGate {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: struct `UncoveredHunk` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:178:12
+    |
+178 | pub struct UncoveredHunk {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `ContractDiffGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:186:12
+    |
+186 | pub struct ContractDiffGate {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: struct `SemverSubGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:204:12
+    |
+204 | pub struct SemverSubGate {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `BreakingChange` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:211:12
+    |
+211 | pub struct BreakingChange {
+    |            ^^^^^^^^^^^^^^
+
+warning: struct `CliSubGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:219:12
+    |
+219 | pub struct CliSubGate {
+    |            ^^^^^^^^^^
+
+warning: struct `SchemaSubGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:226:12
+    |
+226 | pub struct SchemaSubGate {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `SupplyChainGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:233:12
+    |
+233 | pub struct SupplyChainGate {
+    |            ^^^^^^^^^^^^^^^
+
+warning: struct `Vulnerability` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:244:12
+    |
+244 | pub struct Vulnerability {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `DeterminismGate` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:253:12
+    |
+253 | pub struct DeterminismGate {
+    |            ^^^^^^^^^^^^^^^
+
+warning: struct `MutationSurvivor` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:266:12
+    |
+266 | pub struct MutationSurvivor {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: struct `ChangeSurface` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:274:12
+    |
+274 | pub struct ChangeSurface {
+    |            ^^^^^^^^^^^^^
+
+warning: struct `Composition` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:288:12
+    |
+288 | pub struct Composition {
+    |            ^^^^^^^^^^^
+
+warning: struct `CodeHealth` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:299:12
+    |
+299 | pub struct CodeHealth {
+    |            ^^^^^^^^^^
+
+warning: enum `ComplexityIndicator` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:317:10
+    |
+317 | pub enum ComplexityIndicator {
+    |          ^^^^^^^^^^^^^^^^^^^
+
+warning: struct `HealthWarning` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:326:12
+    |
+326 | pub struct HealthWarning {
+    |            ^^^^^^^^^^^^^
+
+warning: enum `WarningType` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:335:10
+    |
+335 | pub enum WarningType {
+    |          ^^^^^^^^^^^
+
+warning: struct `Risk` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:345:12
+    |
+345 | pub struct Risk {
+    |            ^^^^
+
+warning: enum `RiskLevel` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:357:10
+    |
+357 | pub enum RiskLevel {
+    |          ^^^^^^^^^
+
+warning: struct `Contracts` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:366:12
+    |
+366 | pub struct Contracts {
+    |            ^^^^^^^^^
+
+warning: struct `ReviewItem` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:376:12
+    |
+376 | pub struct ReviewItem {
+    |            ^^^^^^^^^^
+
+warning: function `compute_overall_status` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:470:4
+    |
+470 | fn compute_overall_status(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_relevant_rust_source` is never used
+   --> crates/tokmd/src/commands/cockpit.rs:694:4
+    |
+694 | fn is_relevant_rust_source(path: &str) -> bool {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `CiMutantsSummary` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:741:8
+    |
+741 | struct CiMutantsSummary {
+    |        ^^^^^^^^^^^^^^^^
+
+warning: struct `CiSurvivor` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:756:8
+    |
+756 | struct CiSurvivor {
+    |        ^^^^^^^^^^
+
+warning: struct `MutantsOutcome` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:764:8
+    |
+764 | struct MutantsOutcome {
+    |        ^^^^^^^^^^^^^^
+
+warning: struct `MutantOutcomeEntry` is never constructed
+   --> crates/tokmd/src/commands/cockpit.rs:769:8
+    |
+769 | struct MutantOutcomeEntry {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: fields `file`, `name`, and `span` are never read
+   --> crates/tokmd/src/commands/cockpit.rs:784:5
+    |
+783 | struct MutantInfo {
+    |        ---------- fields in this struct
+784 |     file: String,
+    |     ^^^^
+785 |     name: String,
+    |     ^^^^
+786 |     span: MutantSpan,
+    |     ^^^^
+    |
+    = note: `MutantInfo` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `start` is never read
+   --> crates/tokmd/src/commands/cockpit.rs:791:5
+    |
+790 | struct MutantSpan {
+    |        ---------- field in this struct
+791 |     start: MutantPosition,
+    |     ^^^^^
+    |
+    = note: `MutantSpan` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `line` is never read
+   --> crates/tokmd/src/commands/cockpit.rs:796:5
+    |
+795 | struct MutantPosition {
+    |        -------------- field in this struct
+796 |     line: usize,
+    |     ^^^^
+    |
+    = note: `MutantPosition` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `parse_mutation_outcomes` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1174:4
+     |
+1174 | fn parse_mutation_outcomes(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `compute_evidence_disabled` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1258:4
+     |
+1258 | fn compute_evidence_disabled() -> Evidence {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `FileStats` is never constructed
+    --> crates/tokmd/src/commands/cockpit.rs:1290:8
+     |
+1290 | struct FileStats {
+     |        ^^^^^^^^^
+
+warning: method `total_lines` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1297:8
+     |
+1296 | impl FileStats {
+     | -------------- method in this implementation
+1297 |     fn total_lines(&self) -> usize {
+     |        ^^^^^^^^^^^
+
+warning: function `compute_change_concentration` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1384:4
+     |
+1384 | fn compute_change_concentration(file_stats: &[FileStats]) -> f64 {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `FileCategory` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1431:6
+     |
+1431 | enum FileCategory {
+     |      ^^^^^^^^^^^^
+
+warning: function `classify_file` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1438:4
+     |
+1438 | fn classify_file(path: &str) -> FileCategory {
+     |    ^^^^^^^^^^^^^
+
+warning: function `compute_composition` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1481:4
+     |
+1481 | fn compute_composition(files: &[String]) -> Composition {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `round_pct` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1520:4
+     |
+1520 | fn round_pct(v: f64) -> f64 {
+     |    ^^^^^^^^^
+
+warning: function `detect_contracts` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1525:4
+     |
+1525 | fn detect_contracts(files: &[String]) -> Contracts {
+     |    ^^^^^^^^^^^^^^^^
+
+warning: function `compute_code_health` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1574:4
+     |
+1574 | fn compute_code_health(file_stats: &[FileStats], contracts: &Contracts) -> CodeHealth {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `compute_complexity_indicator` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1639:4
+     |
+1639 | fn compute_complexity_indicator(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `compute_health_score` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1683:4
+     |
+1683 | fn compute_health_score(
+     |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `compute_risk` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1719:4
+     |
+1719 | fn compute_risk(file_stats: &[FileStats], contracts: &Contracts, health: &CodeHealth) -> Risk {
+     |    ^^^^^^^^^^^^
+
+warning: function `generate_review_plan` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1776:4
+     |
+1776 | fn generate_review_plan(file_stats: &[FileStats], contracts: &Contracts) -> Vec<ReviewItem> {
+     |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_json` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1895:4
+     |
+1895 | fn render_json(receipt: &CockpitReceipt) -> Result<String> {
+     |    ^^^^^^^^^^^
+
+warning: function `render_markdown` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:1899:4
+     |
+1899 | fn render_markdown(receipt: &CockpitReceipt) -> String {
+     |    ^^^^^^^^^^^^^^^
+
+warning: function `format_gate_status` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2099:4
+     |
+2099 | fn format_gate_status(status: GateStatus) -> &'static str {
+     |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `format_source` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2109:4
+     |
+2109 | fn format_source(source: EvidenceSource) -> &'static str {
+     |    ^^^^^^^^^^^^^
+
+warning: function `format_commit_match` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2118:4
+     |
+2118 | fn format_commit_match(cm: CommitMatch) -> &'static str {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `format_scope` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2128:4
+     |
+2128 | fn format_scope(scope: &ScopeCoverage) -> String {
+     |    ^^^^^^^^^^^^
+
+warning: function `render_evidence_table` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2140:4
+     |
+2140 | fn render_evidence_table(out: &mut String, evidence: &Evidence) {
+     |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_mutation_gate_markdown` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2212:4
+     |
+2212 | fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_sections` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2278:4
+     |
+2278 | fn render_sections(receipt: &CockpitReceipt) -> String {
+     |    ^^^^^^^^^^^^^^^
+
+warning: function `render_mutation_gate_sections` is never used
+    --> crates/tokmd/src/commands/cockpit.rs:2405:4
+     |
+2405 | fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `tokmd` (lib) generated 68 warnings (run `cargo fix --lib -p tokmd` to apply 4 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.86s
