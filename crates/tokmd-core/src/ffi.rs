@@ -91,9 +91,8 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
             }
             #[cfg(not(feature = "analysis"))]
             {
-                Err(TokmdError::new(
-                    crate::error::ErrorCode::InvalidSettings,
-                    "Analysis feature not enabled",
+                Err(TokmdError::not_implemented(
+                    "analyze mode requires 'analysis' feature: enable in Cargo.toml or use CLI"
                 ))
             }
         }
@@ -182,10 +181,10 @@ fn parse_optional_string(args: &Value, field: &str) -> Result<Option<String>, To
     }
 }
 
-/// Parse a string field strictly: missing -> default, non-string -> error.
+/// Parse a string field strictly: missing/null -> default, non-string -> error.
 fn parse_string(args: &Value, field: &str, default: &str) -> Result<String, TokmdError> {
     match args.get(field) {
-        None => Ok(default.to_string()),
+        None | Some(Value::Null) => Ok(default.to_string()),
         Some(v) => v
             .as_str()
             .map(|s| s.to_string())
@@ -193,16 +192,35 @@ fn parse_string(args: &Value, field: &str, default: &str) -> Result<String, Tokm
     }
 }
 
-/// Parse a string array field strictly: missing -> default, invalid -> error.
+/// Parse a required string field strictly: missing/null -> error, non-string -> error.
+fn parse_required_string(args: &Value, field: &str) -> Result<String, TokmdError> {
+    match args.get(field) {
+        None | Some(Value::Null) => Err(TokmdError::invalid_field(field, "required but missing")),
+        Some(v) => v
+            .as_str()
+            .map(String::from)
+            .ok_or_else(|| TokmdError::invalid_field(field, "a string")),
+    }
+}
+
+/// Parse a string array field strictly: missing/null -> default, invalid -> error.
 fn parse_string_array(
     args: &Value,
     field: &str,
     default: Vec<String>,
 ) -> Result<Vec<String>, TokmdError> {
     match args.get(field) {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<Vec<String>>(v.clone())
-            .map_err(|_| TokmdError::invalid_field(field, "an array of strings")),
+        None | Some(Value::Null) => Ok(default),
+        Some(Value::Array(arr)) => arr
+            .iter()
+            .enumerate()
+            .map(|(i, v)| {
+                v.as_str()
+                    .map(String::from)
+                    .ok_or_else(|| TokmdError::invalid_field(&format!("{}[{}]", field, i), "a string"))
+            })
+            .collect(),
+        Some(_) => Err(TokmdError::invalid_field(field, "an array of strings")),
     }
 }
 
@@ -270,129 +288,98 @@ fn parse_export_format(args: &Value, default: ExportFormat) -> Result<ExportForm
 // ============================================================================
 
 fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
-    // Try to deserialize from a nested "scan" object, or from the root
-    if let Some(scan_obj) = args.get("scan") {
-        serde_json::from_value(scan_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        // Extract scan fields from root with strict parsing
-        Ok(ScanSettings {
-            paths: parse_string_array(args, "paths", vec![".".to_string()])?,
-            excluded: parse_string_array(args, "excluded", vec![])?,
-            config: parse_config_mode(args, ConfigMode::Auto)?,
-            hidden: parse_bool(args, "hidden", false)?,
-            no_ignore: parse_bool(args, "no_ignore", false)?,
-            no_ignore_parent: parse_bool(args, "no_ignore_parent", false)?,
-            no_ignore_dot: parse_bool(args, "no_ignore_dot", false)?,
-            no_ignore_vcs: parse_bool(args, "no_ignore_vcs", false)?,
-            treat_doc_strings_as_comments: parse_bool(
-                args,
-                "treat_doc_strings_as_comments",
-                false,
-            )?,
-        })
-    }
+    // Use nested object if present, otherwise use root
+    let obj = args.get("scan").unwrap_or(args);
+
+    Ok(ScanSettings {
+        paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
+        excluded: parse_string_array(obj, "excluded", vec![])?,
+        config: parse_config_mode(obj, ConfigMode::Auto)?,
+        hidden: parse_bool(obj, "hidden", false)?,
+        no_ignore: parse_bool(obj, "no_ignore", false)?,
+        no_ignore_parent: parse_bool(obj, "no_ignore_parent", false)?,
+        no_ignore_dot: parse_bool(obj, "no_ignore_dot", false)?,
+        no_ignore_vcs: parse_bool(obj, "no_ignore_vcs", false)?,
+        treat_doc_strings_as_comments: parse_bool(obj, "treat_doc_strings_as_comments", false)?,
+    })
 }
 
 fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdError> {
-    if let Some(lang_obj) = args.get("lang") {
-        serde_json::from_value(lang_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        Ok(LangSettings {
-            top: parse_usize(args, "top", 0)?,
-            files: parse_bool(args, "files", false)?,
-            children: parse_children_mode(args, ChildrenMode::Collapse)?,
-            redact: parse_optional_redact_mode(args)?,
-        })
-    }
+    // Use nested object if present, otherwise use root
+    let obj = args.get("lang").unwrap_or(args);
+
+    Ok(LangSettings {
+        top: parse_usize(obj, "top", 0)?,
+        files: parse_bool(obj, "files", false)?,
+        children: parse_children_mode(obj, ChildrenMode::Collapse)?,
+        redact: parse_optional_redact_mode(obj)?,
+    })
 }
 
 fn parse_module_settings(args: &Value) -> Result<ModuleSettings, TokmdError> {
-    if let Some(module_obj) = args.get("module") {
-        serde_json::from_value(module_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        Ok(ModuleSettings {
-            top: parse_usize(args, "top", 0)?,
-            module_roots: parse_string_array(
-                args,
-                "module_roots",
-                vec!["crates".to_string(), "packages".to_string()],
-            )?,
-            module_depth: parse_usize(args, "module_depth", 2)?,
-            children: parse_child_include_mode(args, ChildIncludeMode::Separate)?,
-            redact: parse_optional_redact_mode(args)?,
-        })
-    }
+    // Use nested object if present, otherwise use root
+    let obj = args.get("module").unwrap_or(args);
+
+    Ok(ModuleSettings {
+        top: parse_usize(obj, "top", 0)?,
+        module_roots: parse_string_array(
+            obj,
+            "module_roots",
+            vec!["crates".to_string(), "packages".to_string()],
+        )?,
+        module_depth: parse_usize(obj, "module_depth", 2)?,
+        children: parse_child_include_mode(obj, ChildIncludeMode::Separate)?,
+        redact: parse_optional_redact_mode(obj)?,
+    })
 }
 
 fn parse_export_settings(args: &Value) -> Result<ExportSettings, TokmdError> {
-    if let Some(export_obj) = args.get("export") {
-        serde_json::from_value(export_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        Ok(ExportSettings {
-            format: parse_export_format(args, ExportFormat::Jsonl)?,
-            module_roots: parse_string_array(
-                args,
-                "module_roots",
-                vec!["crates".to_string(), "packages".to_string()],
-            )?,
-            module_depth: parse_usize(args, "module_depth", 2)?,
-            children: parse_child_include_mode(args, ChildIncludeMode::Separate)?,
-            min_code: parse_usize(args, "min_code", 0)?,
-            max_rows: parse_usize(args, "max_rows", 0)?,
-            redact: parse_redact_mode(args, RedactMode::None)?,
-            meta: parse_bool(args, "meta", true)?,
-            strip_prefix: parse_optional_string(args, "strip_prefix")?,
-        })
-    }
+    // Use nested object if present, otherwise use root
+    let obj = args.get("export").unwrap_or(args);
+
+    Ok(ExportSettings {
+        format: parse_export_format(obj, ExportFormat::Jsonl)?,
+        module_roots: parse_string_array(
+            obj,
+            "module_roots",
+            vec!["crates".to_string(), "packages".to_string()],
+        )?,
+        module_depth: parse_usize(obj, "module_depth", 2)?,
+        children: parse_child_include_mode(obj, ChildIncludeMode::Separate)?,
+        min_code: parse_usize(obj, "min_code", 0)?,
+        max_rows: parse_usize(obj, "max_rows", 0)?,
+        redact: parse_redact_mode(obj, RedactMode::None)?,
+        meta: parse_bool(obj, "meta", true)?,
+        strip_prefix: parse_optional_string(obj, "strip_prefix")?,
+    })
 }
 
 #[allow(dead_code)]
 fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
-    if let Some(analyze_obj) = args.get("analyze") {
-        serde_json::from_value(analyze_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        Ok(AnalyzeSettings {
-            preset: parse_string(args, "preset", "receipt")?,
-            window: parse_optional_usize(args, "window")?,
-            git: parse_optional_bool(args, "git")?,
-            max_files: parse_optional_usize(args, "max_files")?,
-            max_bytes: parse_optional_u64(args, "max_bytes")?,
-            max_file_bytes: parse_optional_u64(args, "max_file_bytes")?,
-            max_commits: parse_optional_usize(args, "max_commits")?,
-            max_commit_files: parse_optional_usize(args, "max_commit_files")?,
-            granularity: parse_string(args, "granularity", "module")?,
-        })
-    }
+    // Use nested object if present, otherwise use root
+    let obj = args.get("analyze").unwrap_or(args);
+
+    Ok(AnalyzeSettings {
+        preset: parse_string(obj, "preset", "receipt")?,
+        window: parse_optional_usize(obj, "window")?,
+        git: parse_optional_bool(obj, "git")?,
+        max_files: parse_optional_usize(obj, "max_files")?,
+        max_bytes: parse_optional_u64(obj, "max_bytes")?,
+        max_file_bytes: parse_optional_u64(obj, "max_file_bytes")?,
+        max_commits: parse_optional_usize(obj, "max_commits")?,
+        max_commit_files: parse_optional_usize(obj, "max_commit_files")?,
+        granularity: parse_string(obj, "granularity", "module")?,
+    })
 }
 
 fn parse_diff_settings(args: &Value) -> Result<DiffSettings, TokmdError> {
-    if let Some(diff_obj) = args.get("diff") {
-        serde_json::from_value(diff_obj.clone()).map_err(|e| TokmdError::invalid_json(e))
-    } else {
-        let from = args
-            .get("from")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
-            .ok_or_else(|| {
-                TokmdError::new(
-                    crate::error::ErrorCode::InvalidSettings,
-                    "Missing 'from' field for diff",
-                )
-            })?;
+    // Use nested object if present, otherwise use root
+    let obj = args.get("diff").unwrap_or(args);
 
-        let to = args
-            .get("to")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
-            .ok_or_else(|| {
-                TokmdError::new(
-                    crate::error::ErrorCode::InvalidSettings,
-                    "Missing 'to' field for diff",
-                )
-            })?;
+    let from = parse_required_string(obj, "from")?;
+    let to = parse_required_string(obj, "to")?;
 
-        Ok(DiffSettings { from, to })
-    }
+    Ok(DiffSettings { from, to })
 }
 
 /// Get the tokmd version string.
@@ -591,5 +578,154 @@ mod tests {
                 .unwrap()
                 .contains("format")
         );
+    }
+
+    // ========================================================================
+    // Envelope totality invariant tests
+    // ========================================================================
+
+    #[test]
+    fn run_json_always_returns_valid_json() {
+        let test_cases = vec![
+            ("", ""),
+            ("lang", ""),
+            ("lang", "null"),
+            ("lang", "[]"),
+            ("lang", "123"),
+            ("lang", r#"{"paths": null}"#),
+            ("lang", r#"{"top": -1}"#),
+            ("\0", "{}"),
+            ("lang", r#"{"paths": [1, 2, 3]}"#),
+            ("export", r#"{"format": "invalid"}"#),
+            ("unknown_mode", "{}"),
+        ];
+
+        for (mode, args) in test_cases {
+            let result = run_json(mode, args);
+            let parsed: Result<Value, _> = serde_json::from_str(&result);
+            assert!(
+                parsed.is_ok(),
+                "Invalid JSON for mode={:?} args={:?}: {}",
+                mode,
+                args,
+                result
+            );
+            let parsed = parsed.unwrap();
+            assert!(
+                parsed.get("ok").is_some(),
+                "Missing 'ok' field for mode={:?} args={:?}",
+                mode,
+                args
+            );
+        }
+    }
+
+    // ========================================================================
+    // Nested object parsing error tests
+    // ========================================================================
+
+    #[test]
+    fn nested_scan_object_invalid_bool_returns_error() {
+        let result = run_json("lang", r#"{"scan": {"hidden": "yes"}}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("hidden")
+        );
+    }
+
+    #[test]
+    fn nested_lang_object_invalid_top_returns_error() {
+        let result = run_json("lang", r#"{"lang": {"top": "ten"}}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("top")
+        );
+    }
+
+    // ========================================================================
+    // Null handling tests
+    // ========================================================================
+
+    #[test]
+    fn null_values_use_defaults() {
+        let args: Value = serde_json::json!({"top": null, "files": null});
+        let settings = parse_lang_settings(&args).unwrap();
+        assert_eq!(settings.top, 0);
+        assert!(!settings.files);
+    }
+
+    #[test]
+    fn null_paths_uses_default() {
+        let args: Value = serde_json::json!({"paths": null});
+        let settings = parse_scan_settings(&args).unwrap();
+        assert_eq!(settings.paths, vec!["."]);
+    }
+
+    // ========================================================================
+    // Array element position error tests
+    // ========================================================================
+
+    #[test]
+    fn array_element_error_includes_index() {
+        let args: Value = serde_json::json!({"paths": ["valid", 123, "also_valid"]});
+        let err = parse_scan_settings(&args).unwrap_err();
+        assert!(
+            err.message.contains("paths[1]"),
+            "Error should include index: {}",
+            err.message
+        );
+    }
+
+    // ========================================================================
+    // Diff field validation tests
+    // ========================================================================
+
+    #[test]
+    fn diff_missing_from_returns_error() {
+        let result = run_json("diff", r#"{"to": "receipt.json"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("from")
+        );
+    }
+
+    #[test]
+    fn diff_wrong_type_from_returns_error() {
+        let result = run_json("diff", r#"{"from": 123, "to": "receipt.json"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("from")
+        );
+    }
+
+    // ========================================================================
+    // Feature-gated tests
+    // ========================================================================
+
+    #[test]
+    #[cfg(not(feature = "analysis"))]
+    fn analyze_without_feature_returns_not_implemented() {
+        let result = run_json("analyze", "{}");
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "not_implemented");
     }
 }
