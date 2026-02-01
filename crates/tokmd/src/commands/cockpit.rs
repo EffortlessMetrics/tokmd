@@ -1838,7 +1838,7 @@ fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<Fil
         .arg(repo_root)
         .arg("diff")
         .arg("--numstat")
-        .arg(format!("{}...{}", base, head))
+        .arg(format!("{}..{}", base, head))
         .output()
         .context("Failed to run git diff --numstat")?;
 
