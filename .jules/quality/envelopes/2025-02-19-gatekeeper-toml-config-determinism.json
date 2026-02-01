@@ -1,0 +1,15 @@
+{
+  "run_id": "2025-02-19-gatekeeper-toml-config-determinism",
+  "status": "success",
+  "target": "crates/tokmd-config",
+  "gates": {
+    "build": "pass",
+    "test": "pass",
+    "fmt": "pass",
+    "clippy": "pass"
+  },
+  "receipts": [
+    "Refactored TomlConfig.view to BTreeMap",
+    "Added determinism test"
+  ]
+}
