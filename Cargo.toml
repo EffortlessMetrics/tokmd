@@ -43,7 +43,7 @@ default-members = [
 # xtask is a workspace member but excluded from default-members
 
 [workspace.package]
-version = "1.3.0"
+version = "1.3.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/EffortlessMetrics/tokmd"

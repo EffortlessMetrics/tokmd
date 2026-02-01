@@ -72,3 +72,14 @@ jobs:
         with:
           files: artifacts/**/*
           generate_release_notes: true
+
+      - name: Update major version tag
+        run: |
+          # Extract major version from tag (v1.2.3 -> v1)
+          TAG="${GITHUB_REF#refs/tags/}"
+          MAJOR="${TAG%%.*}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -fa "$MAJOR" -m "Update $MAJOR to $TAG"
+          git push origin "$MAJOR" --force

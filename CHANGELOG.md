@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-01-31
+
+### Added
+- **Action Test Workflow**: CI workflow to test the GitHub Action on all platforms and formats
+- **README Badges**: Downloads, Docs.rs, and GitHub Marketplace badges
+
+### Changed
+- **GitHub Action**: Fail fast on download failure instead of slow cargo fallback
+- **GitHub Action**: Added `format` input for export format (json, jsonl, csv)
+- **GitHub Action**: Added `artifact` input to control artifact uploads
+- **GitHub Action**: Added Marketplace branding (icon, color)
+- **GitHub Action**: Removed unused `token` input
+- **GitHub Action**: Renamed output from `receipt-json` to `receipt`
+- **Release Workflow**: Automatically updates major version tag (v1) on release
+
 ## [1.3.0] - 2026-01-31
 
 ### Added
