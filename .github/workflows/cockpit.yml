@@ -58,8 +58,8 @@ jobs:
       - name: Post or update PR comment
         uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: cockpit-comment.md
-          comment_tag: SECTION:COCKPIT
+          file-path: cockpit-comment.md
+          comment-tag: SECTION:COCKPIT
 
       - name: Upload cockpit receipt
         uses: actions/upload-artifact@v6
