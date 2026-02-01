@@ -39,6 +39,20 @@
 
 ---
 
+## Trend
+
+<!-- SECTION:TREND -->
+<!-- AI-FILL:TREND -->
+| Metric | Current | Previous | Delta | Direction |
+|--------|---------|----------|-------|-----------|
+| Health | <!-- health_current --> | <!-- health_previous --> | <!-- health_delta --> | <!-- health_direction --> |
+| Risk | <!-- risk_current --> | <!-- risk_previous --> | <!-- risk_delta --> | <!-- risk_direction --> |
+| Complexity | <!-- complexity_summary --> | | | <!-- complexity_direction --> |
+<!-- /AI-FILL:TREND -->
+<!-- /SECTION:TREND -->
+
+---
+
 ## Review Plan
 
 <!-- AI-FILL:REVIEW_PLAN -->

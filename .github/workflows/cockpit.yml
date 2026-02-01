@@ -27,6 +27,12 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cockpit
+          cache-on-failure: true
+
       - name: Build and install tokmd
         run: cargo install --path crates/tokmd --features git --locked
 

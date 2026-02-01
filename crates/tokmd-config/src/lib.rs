@@ -711,6 +711,13 @@ pub struct CockpitArgs {
     /// Output file (stdout if omitted).
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
+
+    /// Path to baseline receipt for trend comparison.
+    ///
+    /// When provided, cockpit will compute delta metrics showing how
+    /// the current state compares to the baseline.
+    #[arg(long, value_name = "PATH")]
+    pub baseline: Option<std::path::PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

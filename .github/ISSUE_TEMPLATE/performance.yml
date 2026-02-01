@@ -1,7 +1,7 @@
 name: Performance Issue
 description: Report slow performance or suggest optimizations
 title: "[Perf]: "
-labels: ["performance"]
+labels: ["performance", "triage"]
 body:
   - type: markdown
     attributes:

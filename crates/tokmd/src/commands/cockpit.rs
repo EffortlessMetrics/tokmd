@@ -32,7 +32,12 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-        let receipt = compute_cockpit(&repo_root, &args.base, &args.head)?;
+        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head)?;
+
+        // Load baseline and compute trend if provided
+        if let Some(baseline_path) = &args.baseline {
+            receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
+        }
 
         let output = match args.format {
             cli::CockpitFormat::Json => render_json(&receipt)?,
@@ -53,6 +58,141 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
     }
 }
 
+/// Load baseline receipt and compute trend comparison.
+fn load_and_compute_trend(
+    baseline_path: &std::path::Path,
+    current: &CockpitReceipt,
+) -> Result<TrendComparison> {
+    // Try to load baseline
+    let content = match std::fs::read_to_string(baseline_path) {
+        Ok(c) => c,
+        Err(_) => {
+            return Ok(TrendComparison {
+                baseline_available: false,
+                baseline_path: Some(baseline_path.to_string_lossy().to_string()),
+                ..Default::default()
+            });
+        }
+    };
+
+    let baseline: CockpitReceipt = match serde_json::from_str(&content) {
+        Ok(b) => b,
+        Err(_) => {
+            return Ok(TrendComparison {
+                baseline_available: false,
+                baseline_path: Some(baseline_path.to_string_lossy().to_string()),
+                ..Default::default()
+            });
+        }
+    };
+
+    // Compute health trend
+    let health = compute_metric_trend(
+        current.code_health.score as f64,
+        baseline.code_health.score as f64,
+        true, // Higher is better for health
+    );
+
+    // Compute risk trend
+    let risk = compute_metric_trend(
+        current.risk.score as f64,
+        baseline.risk.score as f64,
+        false, // Lower is better for risk
+    );
+
+    // Compute complexity trend indicator
+    let complexity = compute_complexity_trend(current, &baseline);
+
+    Ok(TrendComparison {
+        baseline_available: true,
+        baseline_path: Some(baseline_path.to_string_lossy().to_string()),
+        baseline_generated_at_ms: Some(baseline.generated_at_ms),
+        health: Some(health),
+        risk: Some(risk),
+        complexity: Some(complexity),
+    })
+}
+
+/// Compute trend metric with direction.
+fn compute_metric_trend(current: f64, previous: f64, higher_is_better: bool) -> TrendMetric {
+    let delta = current - previous;
+    let delta_pct = if previous != 0.0 {
+        (delta / previous) * 100.0
+    } else if current != 0.0 {
+        100.0
+    } else {
+        0.0
+    };
+
+    // Determine direction based on whether improvement means higher or lower
+    let direction = if delta.abs() < 1.0 {
+        TrendDirection::Stable
+    } else if higher_is_better {
+        if delta > 0.0 {
+            TrendDirection::Improving
+        } else {
+            TrendDirection::Degrading
+        }
+    } else {
+        // Lower is better (e.g., risk)
+        if delta < 0.0 {
+            TrendDirection::Improving
+        } else {
+            TrendDirection::Degrading
+        }
+    };
+
+    TrendMetric {
+        current,
+        previous,
+        delta,
+        delta_pct: round_pct(delta_pct),
+        direction,
+    }
+}
+
+/// Compute complexity trend indicator.
+fn compute_complexity_trend(current: &CockpitReceipt, baseline: &CockpitReceipt) -> TrendIndicator {
+    // Compare complexity gate results if available
+    let current_complexity = current
+        .evidence
+        .complexity
+        .as_ref()
+        .map(|c| c.avg_cyclomatic)
+        .unwrap_or(0.0);
+    let baseline_complexity = baseline
+        .evidence
+        .complexity
+        .as_ref()
+        .map(|c| c.avg_cyclomatic)
+        .unwrap_or(0.0);
+
+    let delta = current_complexity - baseline_complexity;
+
+    let direction = if delta.abs() < 0.5 {
+        TrendDirection::Stable
+    } else if delta < 0.0 {
+        TrendDirection::Improving
+    } else {
+        TrendDirection::Degrading
+    };
+
+    let summary = match direction {
+        TrendDirection::Improving => "Complexity decreased".to_string(),
+        TrendDirection::Stable => "Complexity stable".to_string(),
+        TrendDirection::Degrading => "Complexity increased".to_string(),
+    };
+
+    TrendIndicator {
+        direction,
+        summary,
+        files_increased: 0, // Would require per-file comparison
+        files_decreased: 0,
+        avg_cyclomatic_delta: Some(round_pct(delta)),
+        avg_cognitive_delta: None,
+    }
+}
+
 /// Cockpit receipt containing all PR metrics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CockpitReceipt {
@@ -67,6 +207,9 @@ pub struct CockpitReceipt {
     pub contracts: Contracts,
     pub evidence: Evidence,
     pub review_plan: Vec<ReviewItem>,
+    /// Trend comparison with baseline (if --baseline was provided).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trend: Option<TrendComparison>,
 }
 
 /// Evidence section containing hard gates.
@@ -419,6 +562,91 @@ pub struct ReviewItem {
     pub lines_changed: Option<usize>,
 }
 
+// =============================================================================
+// Trend Comparison Types
+// =============================================================================
+
+/// Trend comparison between current state and baseline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrendComparison {
+    /// Whether a baseline was successfully loaded.
+    pub baseline_available: bool,
+    /// Path to the baseline file used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub baseline_path: Option<String>,
+    /// Timestamp of baseline generation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub baseline_generated_at_ms: Option<u64>,
+    /// Health score trend.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub health: Option<TrendMetric>,
+    /// Risk score trend.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub risk: Option<TrendMetric>,
+    /// Complexity trend indicator.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub complexity: Option<TrendIndicator>,
+}
+
+/// A trend metric with current, previous, delta values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrendMetric {
+    /// Current value.
+    pub current: f64,
+    /// Previous (baseline) value.
+    pub previous: f64,
+    /// Absolute delta (current - previous).
+    pub delta: f64,
+    /// Percentage change.
+    pub delta_pct: f64,
+    /// Direction of change.
+    pub direction: TrendDirection,
+}
+
+/// Complexity trend indicator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrendIndicator {
+    /// Overall trend direction.
+    pub direction: TrendDirection,
+    /// Human-readable summary.
+    pub summary: String,
+    /// Number of files that got more complex.
+    pub files_increased: usize,
+    /// Number of files that got less complex.
+    pub files_decreased: usize,
+    /// Average cyclomatic delta.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avg_cyclomatic_delta: Option<f64>,
+    /// Average cognitive delta.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avg_cognitive_delta: Option<f64>,
+}
+
+/// Direction of a trend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrendDirection {
+    /// Improving (lower risk, lower complexity, higher health).
+    Improving,
+    /// Stable (within tolerance).
+    Stable,
+    /// Degrading (higher risk, higher complexity, lower health).
+    Degrading,
+}
+
+impl Default for TrendComparison {
+    fn default() -> Self {
+        Self {
+            baseline_available: false,
+            baseline_path: None,
+            baseline_generated_at_ms: None,
+            health: None,
+            risk: None,
+            complexity: None,
+        }
+    }
+}
+
 #[cfg(feature = "git")]
 fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<CockpitReceipt> {
     let generated_at_ms = std::time::SystemTime::now()
@@ -463,6 +691,7 @@ fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<Cockpi
         contracts,
         evidence,
         review_plan,
+        trend: None, // Populated by handle() if --baseline is provided
     })
 }
 

@@ -1,0 +1,49 @@
+{
+  "name": "@tokmd/core",
+  "version": "1.3.1",
+  "description": "Code inventory receipts and analytics - Node.js bindings",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "binaryName": "tokmd",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
+    ]
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "optionalDependencies": {
+    "@tokmd/core-darwin-arm64": "1.3.1",
+    "@tokmd/core-darwin-x64": "1.3.1",
+    "@tokmd/core-linux-arm64-gnu": "1.3.1",
+    "@tokmd/core-linux-x64-gnu": "1.3.1",
+    "@tokmd/core-win32-x64-msvc": "1.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EffortlessMetrics/tokmd.git"
+  },
+  "keywords": [
+    "code-analysis",
+    "loc",
+    "tokei",
+    "inventory",
+    "analytics",
+    "napi"
+  ],
+  "author": "Steven Zimmerman <git@effortlesssteven.com>",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/EffortlessMetrics/tokmd/issues"
+  },
+  "homepage": "https://github.com/EffortlessMetrics/tokmd#readme",
+  "engines": {
+    "node": ">= 18"
+  }
+}
