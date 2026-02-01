@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **ARM Builds**: Release binaries for macOS ARM (M1/M2) and Linux ARM64
 - **SHA256 Checksums**: Release artifacts now include `checksums.txt`
+- **Shell Completions**: Release includes `completions.tar.gz` with bash/zsh/fish/powershell/elvish
 - **Auto-publish**: Release workflow publishes to crates.io automatically
 - **Action Test Workflow**: CI workflow to test the GitHub Action on all platforms and formats
 - **README Badges**: Downloads, Docs.rs, and GitHub Marketplace badges
@@ -18,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CODEOWNERS**: Default code review assignments
 - **.editorconfig**: Consistent editor formatting rules
 - **Issue Templates**: YAML form-based bug report and feature request templates
+- **cargo-deny**: License compliance and security advisory auditing in CI
+- **Typos CI**: Spell checking for code and documentation
+- **MSRV**: Minimum Supported Rust Version (1.85) documented and tested in CI
+- **Homebrew Formula**: `brew tap EffortlessMetrics/tap && brew install tokmd`
+- **CITATION.cff**: Academic citation metadata
 
 ### Changed
 - **GitHub Action**: Fail fast on download failure instead of slow cargo fallback

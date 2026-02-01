@@ -234,6 +234,13 @@ nix profile install github:EffortlessMetrics/tokmd
 nix build
 ```
 
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap EffortlessMetrics/tap
+brew install tokmd
+```
+
 ### From crates.io
 
 ```bash

@@ -86,6 +86,20 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R artifacts
 
+      - name: Generate shell completions
+        run: |
+          mkdir -p completions
+          chmod +x artifacts/tokmd-linux-amd64/tokmd-linux-amd64
+          TOKMD=artifacts/tokmd-linux-amd64/tokmd-linux-amd64
+          $TOKMD completions bash > completions/tokmd.bash
+          $TOKMD completions zsh > completions/_tokmd
+          $TOKMD completions fish > completions/tokmd.fish
+          $TOKMD completions powershell > completions/_tokmd.ps1
+          $TOKMD completions elvish > completions/tokmd.elv
+          ls -la completions/
+          mkdir -p artifacts/completions
+          tar -czvf artifacts/completions/completions.tar.gz -C completions .
+
       - name: Generate SHA256 checksums
         run: |
           cd artifacts
