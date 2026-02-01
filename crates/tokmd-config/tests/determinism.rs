@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use tokmd_config::{Profile, UserConfig, TomlConfig, ViewProfile};
+use tokmd_config::{Profile, TomlConfig, UserConfig, ViewProfile};
 
 #[test]
 fn test_user_config_determinism() {

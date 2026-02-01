@@ -10,6 +10,7 @@
   },
   "receipts": [
     "Refactored TomlConfig.view to BTreeMap",
-    "Added determinism test"
+    "Added determinism test",
+    "Ran cargo fmt to fix import ordering"
   ]
 }
