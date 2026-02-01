@@ -705,7 +705,7 @@ pub struct CockpitArgs {
     pub head: String,
 
     /// Output format.
-    #[arg(long, value_enum, default_value_t = CockpitFormat::Json)]
+    #[arg(long, value_enum, default_value_t = CockpitFormat::Md)]
     pub format: CockpitFormat,
 
     /// Output file (stdout if omitted).
@@ -717,9 +717,9 @@ pub struct CockpitArgs {
 #[serde(rename_all = "kebab-case")]
 pub enum CockpitFormat {
     /// JSON output with full metrics.
-    #[default]
     Json,
     /// Markdown output for human readability.
+    #[default]
     Md,
     /// Section-based output for PR template filling.
     Sections,

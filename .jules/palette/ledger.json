@@ -1,8 +1,9 @@
 [
   {
-    "date": "2026-01-30T13:18:35Z",
+    "run_id": "20260201-130435",
+    "timestamp_utc": "2026-02-01T13:04:35Z",
     "lane": "scout",
-    "target": "cli-help-defaults",
+    "target": "tokmd cockpit default format",
     "pr_link": null,
     "gates": {
       "build": "PASS",

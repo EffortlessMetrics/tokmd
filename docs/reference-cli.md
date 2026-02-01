@@ -385,7 +385,7 @@ Generates comprehensive PR metrics for code review automation. This command anal
 | :--- | :--- | :--- |
 | `--base <REF>` | Base reference to compare from (e.g., `main`, commit SHA). | `main` |
 | `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
-| `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
+| `--format <FMT>` | Output format: `json`, `md`, `sections`. | `md` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--no-progress` | Disable progress spinners. | `false` |
 
