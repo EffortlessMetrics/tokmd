@@ -15,6 +15,7 @@
 [package]
 name = "tokmd-fuzz"
 version = "0.0.0"
+license.workspace = true
 publish = false
 edition = "2024"
 

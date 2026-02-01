@@ -47,5 +47,8 @@ jsonl = "jsonl"
 loc = "loc"
 sloc = "sloc"
 
+# Mathematical abbreviations (numerator/denominator)
+numer = "numer"
+
 [type.rust]
 # Rust-specific settings if needed

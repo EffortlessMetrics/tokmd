@@ -42,10 +42,10 @@ jobs:
           set -euo pipefail
 
           # Generate sections format for PR comment
-          tokmd cockpit "origin/${{ github.base_ref }}" HEAD --format sections > cockpit-sections.md
+          tokmd cockpit --base "origin/${{ github.base_ref }}" --head HEAD --format sections > cockpit-sections.md
 
           # Generate JSON receipt for artifact
-          tokmd cockpit "origin/${{ github.base_ref }}" HEAD --format json > cockpit-receipt.json
+          tokmd cockpit --base "origin/${{ github.base_ref }}" --head HEAD --format json > cockpit-receipt.json
 
           # Wrap sections with HTML comment markers for updateable comment
           {

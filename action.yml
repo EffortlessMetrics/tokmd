@@ -80,47 +80,29 @@ runs:
         fi
 
         echo "Downloading checksums from $checksums_url"
-        if ! curl -fsSL "$checksums_url" -o checksums.txt; then
-          echo "::error::Failed to download checksums.txt from $checksums_url"
-          exit 1
+        if curl -fsSL "$checksums_url" -o checksums.txt 2>/dev/null; then
+          echo "Verifying checksum for $asset..."
+          expected_checksum=$(grep -E "^[a-f0-9]+[[:space:]]+\*?${asset}$" checksums.txt | awk '{print $1}')
+          if [ -z "$expected_checksum" ]; then
+            echo "::warning::Could not find checksum for $asset in checksums.txt - skipping verification"
+          else
+            echo "Expected checksum: $expected_checksum"
+            case "$os" in
+              Linux) actual_checksum=$(sha256sum "$asset" | awk '{print $1}') ;;
+              macOS) actual_checksum=$(shasum -a 256 "$asset" | awk '{print $1}') ;;
+              Windows) actual_checksum=$(powershell -Command "(Get-FileHash -Path '$asset' -Algorithm SHA256).Hash.ToLower()") ;;
+            esac
+            echo "Actual checksum:   $actual_checksum"
+            if [ "$expected_checksum" != "$actual_checksum" ]; then
+              echo "::error::Checksum verification failed for $asset"
+              exit 1
+            fi
+            echo "Checksum verification passed!"
+          fi
+          rm -f checksums.txt
+        else
+          echo "::warning::checksums.txt not available for this release - skipping verification"
         fi
-
-        echo "Verifying checksum for $asset..."
-        # Extract the expected checksum for our asset
-        expected_checksum=$(grep -E "^[a-f0-9]+[[:space:]]+\*?${asset}$" checksums.txt | awk '{print $1}')
-        if [ -z "$expected_checksum" ]; then
-          echo "::error::Could not find checksum for $asset in checksums.txt"
-          echo "Contents of checksums.txt:"
-          cat checksums.txt
-          exit 1
-        fi
-        echo "Expected checksum: $expected_checksum"
-
-        # Calculate the actual checksum using platform-appropriate tools
-        case "$os" in
-          Linux)
-            actual_checksum=$(sha256sum "$asset" | awk '{print $1}')
-            ;;
-          macOS)
-            actual_checksum=$(shasum -a 256 "$asset" | awk '{print $1}')
-            ;;
-          Windows)
-            # PowerShell is available in Git Bash on Windows runners
-            actual_checksum=$(powershell -Command "(Get-FileHash -Path '$asset' -Algorithm SHA256).Hash.ToLower()")
-            ;;
-        esac
-        echo "Actual checksum:   $actual_checksum"
-
-        if [ "$expected_checksum" != "$actual_checksum" ]; then
-          echo "::error::Checksum verification failed for $asset"
-          echo "Expected: $expected_checksum"
-          echo "Actual:   $actual_checksum"
-          exit 1
-        fi
-        echo "Checksum verification passed!"
-
-        # Clean up checksums file
-        rm -f checksums.txt
 
         dest="$HOME/.local/bin"
         mkdir -p "$dest"

@@ -32,7 +32,12 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head)?;
+        let range_mode = match args.diff_range {
+            cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
+            cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
+        };
+
+        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
 
         // Load baseline and compute trend if provided
         if let Some(baseline_path) = &args.baseline {
@@ -635,18 +640,23 @@ pub enum TrendDirection {
 }
 
 #[cfg(feature = "git")]
-fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<CockpitReceipt> {
+fn compute_cockpit(
+    repo_root: &PathBuf,
+    base: &str,
+    head: &str,
+    range_mode: tokmd_git::GitRangeMode,
+) -> Result<CockpitReceipt> {
     let generated_at_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as u64;
 
     // Get changed files with their stats
-    let file_stats = get_file_stats(repo_root, base, head)?;
+    let file_stats = get_file_stats(repo_root, base, head, range_mode)?;
     let changed_files: Vec<String> = file_stats.iter().map(|f| f.path.clone()).collect();
 
     // Get change surface from git
-    let change_surface = compute_change_surface(repo_root, base, head, &file_stats)?;
+    let change_surface = compute_change_surface(repo_root, base, head, &file_stats, range_mode)?;
 
     // Compute composition with test ratio
     let composition = compute_composition(&changed_files);
@@ -661,7 +671,14 @@ fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<Cockpi
     let risk = compute_risk(&file_stats, &contracts, &code_health);
 
     // Compute all gate evidence
-    let evidence = compute_evidence(repo_root, base, head, &changed_files, &contracts)?;
+    let evidence = compute_evidence(
+        repo_root,
+        base,
+        head,
+        &changed_files,
+        &contracts,
+        range_mode,
+    )?;
 
     // Generate review plan with complexity scores
     let review_plan = generate_review_plan(&file_stats, &contracts);
@@ -690,8 +707,9 @@ fn compute_evidence(
     head: &str,
     changed_files: &[String],
     contracts_info: &Contracts,
+    range_mode: tokmd_git::GitRangeMode,
 ) -> Result<Evidence> {
-    let mutation = compute_mutation_gate(repo_root, base, head, changed_files)?;
+    let mutation = compute_mutation_gate(repo_root, base, head, changed_files, range_mode)?;
     let diff_coverage = compute_diff_coverage_gate(repo_root)?;
     let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
     let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
@@ -1334,6 +1352,7 @@ fn compute_mutation_gate(
     _base: &str,
     _head: &str,
     changed_files: &[String],
+    _range_mode: tokmd_git::GitRangeMode,
 ) -> Result<MutationGate> {
     // Filter to relevant Rust source files
     let relevant_files: Vec<String> = changed_files
@@ -1841,15 +1860,19 @@ impl FileStats {
 /// - `A..B`  = commits reachable from B but not A (actual diff)
 /// - `A...B` = commits reachable from either but not both (symmetric difference)
 #[cfg(feature = "git")]
-fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<FileStats>> {
-    // NOTE: Using two-dot syntax for accurate diff stats between commits.
-    // Three-dot would show changes from merge-base, inflating counts.
+fn get_file_stats(
+    repo_root: &PathBuf,
+    base: &str,
+    head: &str,
+    range_mode: tokmd_git::GitRangeMode,
+) -> Result<Vec<FileStats>> {
+    let range = range_mode.format(base, head);
     let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .arg("diff")
         .arg("--numstat")
-        .arg(format!("{}..{}", base, head))
+        .arg(&range)
         .output()
         .context("Failed to run git diff --numstat")?;
 
@@ -1891,9 +1914,10 @@ fn compute_change_surface(
     base: &str,
     head: &str,
     file_stats: &[FileStats],
+    range_mode: tokmd_git::GitRangeMode,
 ) -> Result<ChangeSurface> {
     // Get commit count
-    let commits = get_commit_count(repo_root, base, head)?;
+    let commits = get_commit_count(repo_root, base, head, range_mode)?;
 
     // Calculate totals from file stats
     let files_changed = file_stats.len();
@@ -1947,13 +1971,19 @@ fn compute_change_concentration(file_stats: &[FileStats]) -> f64 {
 }
 
 #[cfg(feature = "git")]
-fn get_commit_count(repo_root: &PathBuf, base: &str, head: &str) -> Result<usize> {
+fn get_commit_count(
+    repo_root: &PathBuf,
+    base: &str,
+    head: &str,
+    range_mode: tokmd_git::GitRangeMode,
+) -> Result<usize> {
+    let range = range_mode.format(base, head);
     let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .arg("rev-list")
         .arg("--count")
-        .arg(format!("{}..{}", base, head))
+        .arg(&range)
         .output()
         .context("Failed to run git rev-list")?;
 

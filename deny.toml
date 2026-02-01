@@ -10,24 +10,17 @@ all-features = true
 # ------------------------------------------------------------------------------
 [advisories]
 db-path = "~/.cargo/advisory-db"
-url = "https://github.com/rustsec/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
 ignore = []
-# Deny any crate with a known vulnerability
-vulnerability = "deny"
-# Deny unmaintained crates
-unmaintained = "deny"
-# Warn on yanked crates
+unmaintained = "all"
 yanked = "warn"
-# Warn on crates with open notices
-notice = "warn"
 
 # ------------------------------------------------------------------------------
 # Licenses: only allow permissive open-source licenses
 # ------------------------------------------------------------------------------
 [licenses]
-unlicensed = "deny"
 confidence-threshold = 0.8
-# Allow common permissive licenses
+# Allow common permissive licenses (default-deny for unlisted)
 allow = [
     "MIT",
     "Apache-2.0",
@@ -40,10 +33,10 @@ allow = [
     "CC0-1.0",
     "Unlicense",
     "MPL-2.0",
+    "NCSA",
     "Unicode-3.0",
     "Unicode-DFS-2016",
 ]
-copyleft = "warn"
 
 [[licenses.clarify]]
 name = "ring"
