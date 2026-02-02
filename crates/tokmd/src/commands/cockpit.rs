@@ -2,23 +2,24 @@
 //!
 //! Generates PR cockpit metrics for code review automation.
 
-use std::cmp::Reverse;
-use std::collections::BTreeMap;
+#[cfg(feature = "git")]
 use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
+#[cfg(feature = "git")]
+use std::path::PathBuf;
 
-use anyhow::{Context, Result, bail};
-use serde::{Deserialize, Serialize};
+use anyhow::{Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
 use tokmd_config as cli;
 
-/// Cockpit receipt schema version.
-const SCHEMA_VERSION: u32 = 3;
+#[cfg(feature = "git")]
+use internal::*;
 
 /// Handle the cockpit command.
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
     {
+        let _ = args;
         bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
     }
 
@@ -53,774 +54,583 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
     }
 }
 
-/// Cockpit receipt containing all PR metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CockpitReceipt {
-    pub schema_version: u32,
-    pub generated_at_ms: u64,
-    pub base_ref: String,
-    pub head_ref: String,
-    pub change_surface: ChangeSurface,
-    pub composition: Composition,
-    pub code_health: CodeHealth,
-    pub risk: Risk,
-    pub contracts: Contracts,
-    pub evidence: Evidence,
-    pub review_plan: Vec<ReviewItem>,
-}
-
-/// Evidence section containing hard gates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Evidence {
-    /// Aggregate status of all gates.
-    pub overall_status: GateStatus,
-    /// Mutation testing gate (always present).
-    pub mutation: MutationGate,
-    /// Diff coverage gate (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub diff_coverage: Option<DiffCoverageGate>,
-    /// Contract diff gate (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub contracts: Option<ContractDiffGate>,
-    /// Supply chain gate (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub supply_chain: Option<SupplyChainGate>,
-    /// Determinism gate (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub determinism: Option<DeterminismGate>,
-}
-
-/// Status of a gate check.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum GateStatus {
-    Pass,    // Gate passed
-    Fail,    // Gate failed
-    Skipped, // No relevant files changed
-    Pending, // Results not available and couldn't run
-}
-
-/// Source of evidence/gate results.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EvidenceSource {
-    CiArtifact, // Downloaded from CI workflow artifact
-    Cached,     // Found in local cache (.tokmd/cache/)
-    RanLocal,   // Executed locally during this run
-}
-
-/// Commit match quality for evidence.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum CommitMatch {
-    Exact,   // Evidence commit SHA matches HEAD exactly
-    Partial, // Evidence covers merge base or subset
-    Stale,   // Evidence from different commit
-    Unknown, // Could not determine
-}
-
-/// Scope coverage for a gate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScopeCoverage {
-    /// Files in scope for the gate.
-    pub relevant: Vec<String>,
-    /// Files actually tested.
-    pub tested: Vec<String>,
-    /// Coverage ratio (tested/relevant, 0.0-1.0).
-    pub ratio: f64,
-    /// Lines in scope (optional, for line-level gates).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lines_relevant: Option<usize>,
-    /// Lines actually tested (optional, for line-level gates).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lines_tested: Option<usize>,
-}
-
-/// Common metadata for all gates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GateMeta {
-    pub status: GateStatus,
-    pub source: EvidenceSource,
-    pub commit_match: CommitMatch,
-    pub scope: ScopeCoverage,
-    /// SHA this evidence was generated for.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub evidence_commit: Option<String>,
-    /// Timestamp when evidence was generated (ms since epoch).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub evidence_generated_at_ms: Option<u64>,
-}
-
-/// Mutation testing gate results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MutationGate {
-    #[serde(flatten)]
-    pub meta: GateMeta,
-    pub survivors: Vec<MutationSurvivor>,
-    pub killed: usize,
-    pub timeout: usize,
-    pub unviable: usize,
-}
-
-/// Diff coverage gate results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiffCoverageGate {
-    #[serde(flatten)]
-    pub meta: GateMeta,
-    pub lines_added: usize,
-    pub lines_covered: usize,
-    pub coverage_pct: f64,
-    pub uncovered_hunks: Vec<UncoveredHunk>,
-}
-
-/// Uncovered hunk in diff coverage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UncoveredHunk {
-    pub file: String,
-    pub start_line: usize,
-    pub end_line: usize,
-}
-
-/// Contract diff gate results (compound gate).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractDiffGate {
-    #[serde(flatten)]
-    pub meta: GateMeta,
-    /// Semver sub-gate.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub semver: Option<SemverSubGate>,
-    /// CLI sub-gate.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cli: Option<CliSubGate>,
-    /// Schema sub-gate.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub schema: Option<SchemaSubGate>,
-    /// Count of failed sub-gates.
-    pub failures: usize,
-}
-
-/// Semver sub-gate for contract diff.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SemverSubGate {
-    pub status: GateStatus,
-    pub breaking_changes: Vec<BreakingChange>,
-}
-
-/// Breaking change detected by semver check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BreakingChange {
-    pub kind: String,
-    pub path: String,
-    pub message: String,
-}
-
-/// CLI sub-gate for contract diff.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CliSubGate {
-    pub status: GateStatus,
-    pub diff_summary: Option<String>,
-}
-
-/// Schema sub-gate for contract diff.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchemaSubGate {
-    pub status: GateStatus,
-    pub diff_summary: Option<String>,
-}
-
-/// Supply chain gate results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SupplyChainGate {
-    #[serde(flatten)]
-    pub meta: GateMeta,
-    pub vulnerabilities: Vec<Vulnerability>,
-    pub denied: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub advisory_db_version: Option<String>,
-}
-
-/// Vulnerability from cargo-audit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Vulnerability {
-    pub id: String,
-    pub package: String,
-    pub severity: String,
-    pub title: String,
-}
-
-/// Determinism gate results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeterminismGate {
-    #[serde(flatten)]
-    pub meta: GateMeta,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub expected_hash: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub actual_hash: Option<String>,
-    pub algo: String,
-    pub differences: Vec<String>,
-}
-
-/// A mutation that survived testing (escaped detection).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MutationSurvivor {
-    pub file: String,
-    pub line: usize,
-    pub mutation: String,
-}
-
-/// Change surface metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChangeSurface {
-    pub commits: usize,
-    pub files_changed: usize,
-    pub insertions: usize,
-    pub deletions: usize,
-    pub net_lines: i64,
-    /// Churn velocity: average lines changed per commit
-    pub churn_velocity: f64,
-    /// Change concentration: what % of changes are in top 20% of files
-    pub change_concentration: f64,
-}
-
-/// File composition breakdown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Composition {
-    pub code_pct: f64,
-    pub test_pct: f64,
-    pub docs_pct: f64,
-    pub config_pct: f64,
-    /// Test-to-code ratio (tests / code files)
-    pub test_ratio: f64,
-}
-
-/// Code health indicators for DevEx.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CodeHealth {
-    /// Overall health score (0-100)
-    pub score: u32,
-    /// Health grade (A-F)
-    pub grade: String,
-    /// Number of large files (>500 lines) being changed
-    pub large_files_touched: usize,
-    /// Average file size in changed files
-    pub avg_file_size: usize,
-    /// Complexity indicator based on file patterns
-    pub complexity_indicator: ComplexityIndicator,
-    /// Files with potential issues
-    pub warnings: Vec<HealthWarning>,
-}
-
-/// Complexity indicator levels.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ComplexityIndicator {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
-/// Health warning for specific files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HealthWarning {
-    pub path: String,
-    pub warning_type: WarningType,
-    pub message: String,
-}
-
-/// Types of health warnings.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum WarningType {
-    LargeFile,
-    HighChurn,
-    LowTestCoverage,
-    ComplexChange,
-    BusFactor,
-}
-
-/// Risk indicators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Risk {
-    pub hotspots_touched: Vec<String>,
-    pub bus_factor_warnings: Vec<String>,
-    /// Overall risk level for this PR
-    pub level: RiskLevel,
-    /// Risk score (0-100)
-    pub score: u32,
-}
-
-/// Risk level classification.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum RiskLevel {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
-/// Contract change indicators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Contracts {
-    pub api_changed: bool,
-    pub cli_changed: bool,
-    pub schema_changed: bool,
-    /// Number of breaking change indicators
-    pub breaking_indicators: usize,
-}
-
-/// Review plan item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReviewItem {
-    pub path: String,
-    pub reason: String,
-    pub priority: u32,
-    /// Estimated review complexity (1-5)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub complexity: Option<u8>,
-    /// Lines changed in this file
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lines_changed: Option<usize>,
-}
-
 #[cfg(feature = "git")]
-fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<CockpitReceipt> {
-    let generated_at_ms = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64;
+mod internal {
+    use super::*;
+    use std::cmp::Reverse;
+    use std::collections::BTreeMap;
+    use std::path::Path;
+    use std::process::Command;
+    use serde::{Deserialize, Serialize};
 
-    // Get changed files with their stats
-    let file_stats = get_file_stats(repo_root, base, head)?;
-    let changed_files: Vec<String> = file_stats.iter().map(|f| f.path.clone()).collect();
+    /// Cockpit receipt schema version.
+    const SCHEMA_VERSION: u32 = 3;
 
-    // Get change surface from git
-    let change_surface = compute_change_surface(repo_root, base, head, &file_stats)?;
-
-    // Compute composition with test ratio
-    let composition = compute_composition(&changed_files);
-
-    // Detect contract changes
-    let contracts = detect_contracts(&changed_files);
-
-    // Compute code health
-    let code_health = compute_code_health(&file_stats, &contracts);
-
-    // Compute risk based on various factors
-    let risk = compute_risk(&file_stats, &contracts, &code_health);
-
-    // Compute all gate evidence
-    let evidence = compute_evidence(repo_root, base, head, &changed_files, &contracts)?;
-
-    // Generate review plan with complexity scores
-    let review_plan = generate_review_plan(&file_stats, &contracts);
-
-    Ok(CockpitReceipt {
-        schema_version: SCHEMA_VERSION,
-        generated_at_ms,
-        base_ref: base.to_string(),
-        head_ref: head.to_string(),
-        change_surface,
-        composition,
-        code_health,
-        risk,
-        contracts,
-        evidence,
-        review_plan,
-    })
-}
-
-/// Compute evidence section with all gates.
-#[cfg(feature = "git")]
-fn compute_evidence(
-    repo_root: &PathBuf,
-    base: &str,
-    head: &str,
-    changed_files: &[String],
-    contracts_info: &Contracts,
-) -> Result<Evidence> {
-    let mutation = compute_mutation_gate(repo_root, base, head, changed_files)?;
-    let diff_coverage = compute_diff_coverage_gate(repo_root)?;
-    let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
-    let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
-    let determinism = compute_determinism_gate(repo_root)?;
-
-    // Compute overall status: any Fail → Fail, all Pass → Pass, otherwise Pending/Skipped
-    let overall_status = compute_overall_status(
-        &mutation,
-        &diff_coverage,
-        &contracts,
-        &supply_chain,
-        &determinism,
-    );
-
-    Ok(Evidence {
-        overall_status,
-        mutation,
-        diff_coverage,
-        contracts,
-        supply_chain,
-        determinism,
-    })
-}
-
-/// Compute overall status from all gates.
-fn compute_overall_status(
-    mutation: &MutationGate,
-    diff_coverage: &Option<DiffCoverageGate>,
-    contracts: &Option<ContractDiffGate>,
-    supply_chain: &Option<SupplyChainGate>,
-    determinism: &Option<DeterminismGate>,
-) -> GateStatus {
-    let statuses: Vec<GateStatus> = [
-        Some(mutation.meta.status),
-        diff_coverage.as_ref().map(|g| g.meta.status),
-        contracts.as_ref().map(|g| g.meta.status),
-        supply_chain.as_ref().map(|g| g.meta.status),
-        determinism.as_ref().map(|g| g.meta.status),
-    ]
-    .into_iter()
-    .flatten()
-    .collect();
-
-    if statuses.is_empty() {
-        return GateStatus::Skipped;
+    /// Cockpit receipt containing all PR metrics.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CockpitReceipt {
+        pub schema_version: u32,
+        pub generated_at_ms: u64,
+        pub base_ref: String,
+        pub head_ref: String,
+        pub change_surface: ChangeSurface,
+        pub composition: Composition,
+        pub code_health: CodeHealth,
+        pub risk: Risk,
+        pub contracts: Contracts,
+        pub evidence: Evidence,
+        pub review_plan: Vec<ReviewItem>,
     }
 
-    // Any Fail → overall Fail
-    if statuses.contains(&GateStatus::Fail) {
-        return GateStatus::Fail;
+    /// Evidence section containing hard gates.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Evidence {
+        /// Aggregate status of all gates.
+        pub overall_status: GateStatus,
+        /// Mutation testing gate (always present).
+        pub mutation: MutationGate,
+        /// Diff coverage gate (optional).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub diff_coverage: Option<DiffCoverageGate>,
+        /// Contract diff gate (optional).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub contracts: Option<ContractDiffGate>,
+        /// Supply chain gate (optional).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub supply_chain: Option<SupplyChainGate>,
+        /// Determinism gate (optional).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub determinism: Option<DeterminismGate>,
     }
 
-    // All Pass → overall Pass
-    if statuses.iter().all(|s| *s == GateStatus::Pass) {
-        return GateStatus::Pass;
+    /// Status of a gate check.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "lowercase")]
+    pub enum GateStatus {
+        Pass,    // Gate passed
+        Fail,    // Gate failed
+        Skipped, // No relevant files changed
+        Pending, // Results not available and couldn't run
     }
 
-    // Any Pending (and no Fail) → overall Pending
-    if statuses.contains(&GateStatus::Pending) {
-        return GateStatus::Pending;
+    /// Source of evidence/gate results.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum EvidenceSource {
+        CiArtifact, // Downloaded from CI workflow artifact
+        Cached,     // Found in local cache (.tokmd/cache/)
+        RanLocal,   // Executed locally during this run
     }
 
-    // Otherwise (mix of Pass and Skipped) → Pass
-    GateStatus::Pass
-}
-
-/// Compute diff coverage gate.
-/// Looks for coverage.json or lcov.info artifact.
-#[cfg(feature = "git")]
-fn compute_diff_coverage_gate(_repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
-    // TODO: Look for coverage artifacts and parse them
-    // For now, return None (gate not configured)
-    Ok(None)
-}
-
-/// Compute contract diff gate (semver, CLI, schema).
-#[cfg(feature = "git")]
-fn compute_contract_gate(
-    _repo_root: &Path,
-    changed_files: &[String],
-    contracts_info: &Contracts,
-) -> Result<Option<ContractDiffGate>> {
-    // Only compute if any contract-relevant files changed
-    if !contracts_info.api_changed && !contracts_info.cli_changed && !contracts_info.schema_changed
-    {
-        return Ok(None);
+    /// Commit match quality for evidence.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "lowercase")]
+    pub enum CommitMatch {
+        Exact,   // Evidence commit SHA matches HEAD exactly
+        Partial, // Evidence covers merge base or subset
+        Stale,   // Evidence from different commit
+        Unknown, // Could not determine
     }
 
-    let mut failures = 0;
-    let mut semver = None;
-    let mut cli = None;
-    let mut schema = None;
-
-    // Check for semver changes (API files)
-    if contracts_info.api_changed {
-        // TODO: Run cargo-semver-checks if available
-        // For now, mark as pending
-        semver = Some(SemverSubGate {
-            status: GateStatus::Pending,
-            breaking_changes: Vec::new(),
-        });
+    /// Scope coverage for a gate.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ScopeCoverage {
+        /// Files in scope for the gate.
+        pub relevant: Vec<String>,
+        /// Files actually tested.
+        pub tested: Vec<String>,
+        /// Coverage ratio (tested/relevant, 0.0-1.0).
+        pub ratio: f64,
+        /// Lines in scope (optional, for line-level gates).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lines_relevant: Option<usize>,
+        /// Lines actually tested (optional, for line-level gates).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lines_tested: Option<usize>,
     }
 
-    // Check for CLI changes
-    if contracts_info.cli_changed {
-        // TODO: Diff --help output
-        cli = Some(CliSubGate {
-            status: GateStatus::Pending,
-            diff_summary: None,
-        });
+    /// Common metadata for all gates.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct GateMeta {
+        pub status: GateStatus,
+        pub source: EvidenceSource,
+        pub commit_match: CommitMatch,
+        pub scope: ScopeCoverage,
+        /// SHA this evidence was generated for.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub evidence_commit: Option<String>,
+        /// Timestamp when evidence was generated (ms since epoch).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub evidence_generated_at_ms: Option<u64>,
     }
 
-    // Check for schema changes
-    if contracts_info.schema_changed {
-        // TODO: Diff schema.json
-        schema = Some(SchemaSubGate {
-            status: GateStatus::Pending,
-            diff_summary: None,
-        });
+    /// Mutation testing gate results.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct MutationGate {
+        #[serde(flatten)]
+        pub meta: GateMeta,
+        pub survivors: Vec<MutationSurvivor>,
+        pub killed: usize,
+        pub timeout: usize,
+        pub unviable: usize,
     }
 
-    // Count failures from sub-gates
-    if let Some(ref sg) = semver
-        && sg.status == GateStatus::Fail
-    {
-        failures += 1;
-    }
-    if let Some(ref cg) = cli
-        && cg.status == GateStatus::Fail
-    {
-        failures += 1;
-    }
-    if let Some(ref scg) = schema
-        && scg.status == GateStatus::Fail
-    {
-        failures += 1;
+    /// Diff coverage gate results.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DiffCoverageGate {
+        #[serde(flatten)]
+        pub meta: GateMeta,
+        pub lines_added: usize,
+        pub lines_covered: usize,
+        pub coverage_pct: f64,
+        pub uncovered_hunks: Vec<UncoveredHunk>,
     }
 
-    // Determine overall status
-    let status = if failures > 0 {
-        GateStatus::Fail
-    } else {
-        // Check if any are pending
-        let any_pending = [
-            semver.as_ref().map(|g| g.status),
-            cli.as_ref().map(|g| g.status),
-            schema.as_ref().map(|g| g.status),
+    /// Uncovered hunk in diff coverage.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct UncoveredHunk {
+        pub file: String,
+        pub start_line: usize,
+        pub end_line: usize,
+    }
+
+    /// Contract diff gate results (compound gate).
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ContractDiffGate {
+        #[serde(flatten)]
+        pub meta: GateMeta,
+        /// Semver sub-gate.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub semver: Option<SemverSubGate>,
+        /// CLI sub-gate.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub cli: Option<CliSubGate>,
+        /// Schema sub-gate.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub schema: Option<SchemaSubGate>,
+        /// Count of failed sub-gates.
+        pub failures: usize,
+    }
+
+    /// Semver sub-gate for contract diff.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct SemverSubGate {
+        pub status: GateStatus,
+        pub breaking_changes: Vec<BreakingChange>,
+    }
+
+    /// Breaking change detected by semver check.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct BreakingChange {
+        pub kind: String,
+        pub path: String,
+        pub message: String,
+    }
+
+    /// CLI sub-gate for contract diff.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CliSubGate {
+        pub status: GateStatus,
+        pub diff_summary: Option<String>,
+    }
+
+    /// Schema sub-gate for contract diff.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct SchemaSubGate {
+        pub status: GateStatus,
+        pub diff_summary: Option<String>,
+    }
+
+    /// Supply chain gate results.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct SupplyChainGate {
+        #[serde(flatten)]
+        pub meta: GateMeta,
+        pub vulnerabilities: Vec<Vulnerability>,
+        pub denied: Vec<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub advisory_db_version: Option<String>,
+    }
+
+    /// Vulnerability from cargo-audit.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Vulnerability {
+        pub id: String,
+        pub package: String,
+        pub severity: String,
+        pub title: String,
+    }
+
+    /// Determinism gate results.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DeterminismGate {
+        #[serde(flatten)]
+        pub meta: GateMeta,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub expected_hash: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub actual_hash: Option<String>,
+        pub algo: String,
+        pub differences: Vec<String>,
+    }
+
+    /// A mutation that survived testing (escaped detection).
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct MutationSurvivor {
+        pub file: String,
+        pub line: usize,
+        pub mutation: String,
+    }
+
+    /// Change surface metrics.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ChangeSurface {
+        pub commits: usize,
+        pub files_changed: usize,
+        pub insertions: usize,
+        pub deletions: usize,
+        pub net_lines: i64,
+        /// Churn velocity: average lines changed per commit
+        pub churn_velocity: f64,
+        /// Change concentration: what % of changes are in top 20% of files
+        pub change_concentration: f64,
+    }
+
+    /// File composition breakdown.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Composition {
+        pub code_pct: f64,
+        pub test_pct: f64,
+        pub docs_pct: f64,
+        pub config_pct: f64,
+        /// Test-to-code ratio (tests / code files)
+        pub test_ratio: f64,
+    }
+
+    /// Code health indicators for DevEx.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CodeHealth {
+        /// Overall health score (0-100)
+        pub score: u32,
+        /// Health grade (A-F)
+        pub grade: String,
+        /// Number of large files (>500 lines) being changed
+        pub large_files_touched: usize,
+        /// Average file size in changed files
+        pub avg_file_size: usize,
+        /// Complexity indicator based on file patterns
+        pub complexity_indicator: ComplexityIndicator,
+        /// Files with potential issues
+        pub warnings: Vec<HealthWarning>,
+    }
+
+    /// Complexity indicator levels.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "lowercase")]
+    pub enum ComplexityIndicator {
+        Low,
+        Medium,
+        High,
+        Critical,
+    }
+
+    /// Health warning for specific files.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct HealthWarning {
+        pub path: String,
+        pub warning_type: WarningType,
+        pub message: String,
+    }
+
+    /// Types of health warnings.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum WarningType {
+        LargeFile,
+        HighChurn,
+        LowTestCoverage,
+        ComplexChange,
+        BusFactor,
+    }
+
+    /// Risk indicators.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Risk {
+        pub hotspots_touched: Vec<String>,
+        pub bus_factor_warnings: Vec<String>,
+        /// Overall risk level for this PR
+        pub level: RiskLevel,
+        /// Risk score (0-100)
+        pub score: u32,
+    }
+
+    /// Risk level classification.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "lowercase")]
+    pub enum RiskLevel {
+        Low,
+        Medium,
+        High,
+        Critical,
+    }
+
+    /// Contract change indicators.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Contracts {
+        pub api_changed: bool,
+        pub cli_changed: bool,
+        pub schema_changed: bool,
+        /// Number of breaking change indicators
+        pub breaking_indicators: usize,
+    }
+
+    /// Review plan item.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ReviewItem {
+        pub path: String,
+        pub reason: String,
+        pub priority: u32,
+        /// Estimated review complexity (1-5)
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub complexity: Option<u8>,
+        /// Lines changed in this file
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lines_changed: Option<usize>,
+    }
+
+    pub(crate) fn compute_cockpit(repo_root: &PathBuf, base: &str, head: &str) -> Result<CockpitReceipt> {
+        let generated_at_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as u64;
+
+        // Get changed files with their stats
+        let file_stats = get_file_stats(repo_root, base, head)?;
+        let changed_files: Vec<String> = file_stats.iter().map(|f| f.path.clone()).collect();
+
+        // Get change surface from git
+        let change_surface = compute_change_surface(repo_root, base, head, &file_stats)?;
+
+        // Compute composition with test ratio
+        let composition = compute_composition(&changed_files);
+
+        // Detect contract changes
+        let contracts = detect_contracts(&changed_files);
+
+        // Compute code health
+        let code_health = compute_code_health(&file_stats, &contracts);
+
+        // Compute risk based on various factors
+        let risk = compute_risk(&file_stats, &contracts, &code_health);
+
+        // Compute all gate evidence
+        let evidence = compute_evidence(repo_root, base, head, &changed_files, &contracts)?;
+
+        // Generate review plan with complexity scores
+        let review_plan = generate_review_plan(&file_stats, &contracts);
+
+        Ok(CockpitReceipt {
+            schema_version: SCHEMA_VERSION,
+            generated_at_ms,
+            base_ref: base.to_string(),
+            head_ref: head.to_string(),
+            change_surface,
+            composition,
+            code_health,
+            risk,
+            contracts,
+            evidence,
+            review_plan,
+        })
+    }
+
+    /// Compute evidence section with all gates.
+    fn compute_evidence(
+        repo_root: &PathBuf,
+        base: &str,
+        head: &str,
+        changed_files: &[String],
+        contracts_info: &Contracts,
+    ) -> Result<Evidence> {
+        let mutation = compute_mutation_gate(repo_root, base, head, changed_files)?;
+        let diff_coverage = compute_diff_coverage_gate(repo_root)?;
+        let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
+        let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
+        let determinism = compute_determinism_gate(repo_root)?;
+
+        // Compute overall status: any Fail → Fail, all Pass → Pass, otherwise Pending/Skipped
+        let overall_status = compute_overall_status(
+            &mutation,
+            &diff_coverage,
+            &contracts,
+            &supply_chain,
+            &determinism,
+        );
+
+        Ok(Evidence {
+            overall_status,
+            mutation,
+            diff_coverage,
+            contracts,
+            supply_chain,
+            determinism,
+        })
+    }
+
+    /// Compute overall status from all gates.
+    fn compute_overall_status(
+        mutation: &MutationGate,
+        diff_coverage: &Option<DiffCoverageGate>,
+        contracts: &Option<ContractDiffGate>,
+        supply_chain: &Option<SupplyChainGate>,
+        determinism: &Option<DeterminismGate>,
+    ) -> GateStatus {
+        let statuses: Vec<GateStatus> = [
+            Some(mutation.meta.status),
+            diff_coverage.as_ref().map(|g| g.meta.status),
+            contracts.as_ref().map(|g| g.meta.status),
+            supply_chain.as_ref().map(|g| g.meta.status),
+            determinism.as_ref().map(|g| g.meta.status),
         ]
         .into_iter()
         .flatten()
-        .any(|s| s == GateStatus::Pending);
+        .collect();
 
-        if any_pending {
-            GateStatus::Pending
-        } else {
-            GateStatus::Pass
+        if statuses.is_empty() {
+            return GateStatus::Skipped;
         }
-    };
 
-    // Collect relevant files for scope
-    let relevant: Vec<String> = changed_files
-        .iter()
-        .filter(|f| {
-            f.ends_with("/src/lib.rs")
-                || f.ends_with("/mod.rs")
-                || f.contains("crates/tokmd/src/commands/")
-                || f.contains("crates/tokmd-config/")
-                || *f == "docs/schema.json"
-        })
-        .cloned()
-        .collect();
+        // Any Fail → overall Fail
+        if statuses.contains(&GateStatus::Fail) {
+            return GateStatus::Fail;
+        }
 
-    Ok(Some(ContractDiffGate {
-        meta: GateMeta {
-            status,
-            source: EvidenceSource::RanLocal,
-            commit_match: CommitMatch::Unknown,
-            scope: ScopeCoverage {
-                relevant: relevant.clone(),
-                tested: relevant,
-                ratio: 1.0,
-                lines_relevant: None,
-                lines_tested: None,
-            },
-            evidence_commit: None,
-            evidence_generated_at_ms: None,
-        },
-        semver,
-        cli,
-        schema,
-        failures,
-    }))
-}
+        // All Pass → overall Pass
+        if statuses.iter().all(|s| *s == GateStatus::Pass) {
+            return GateStatus::Pass;
+        }
 
-/// Compute supply chain gate.
-/// Checks if Cargo.lock changed and runs cargo-audit if available.
-#[cfg(feature = "git")]
-fn compute_supply_chain_gate(
-    _repo_root: &Path,
-    changed_files: &[String],
-) -> Result<Option<SupplyChainGate>> {
-    // Only compute if Cargo.lock changed
-    let lock_changed = changed_files.iter().any(|f| f.ends_with("Cargo.lock"));
-    if !lock_changed {
-        return Ok(None);
+        // Any Pending (and no Fail) → overall Pending
+        if statuses.contains(&GateStatus::Pending) {
+            return GateStatus::Pending;
+        }
+
+        // Otherwise (mix of Pass and Skipped) → Pass
+        GateStatus::Pass
     }
 
-    // Check if cargo-audit is available
-    let check = Command::new("cargo").arg("audit").arg("--version").output();
-
-    let status = if check.is_ok() && check.unwrap().status.success() {
-        // TODO: Actually run cargo audit and parse results
-        GateStatus::Pending
-    } else {
-        GateStatus::Pending
-    };
-
-    Ok(Some(SupplyChainGate {
-        meta: GateMeta {
-            status,
-            source: EvidenceSource::RanLocal,
-            commit_match: CommitMatch::Unknown,
-            scope: ScopeCoverage {
-                relevant: vec!["Cargo.lock".to_string()],
-                tested: vec!["Cargo.lock".to_string()],
-                ratio: 1.0,
-                lines_relevant: None,
-                lines_tested: None,
-            },
-            evidence_commit: None,
-            evidence_generated_at_ms: None,
-        },
-        vulnerabilities: Vec::new(),
-        denied: Vec::new(),
-        advisory_db_version: None,
-    }))
-}
-
-/// Compute determinism gate.
-/// Compares expected hash (from baseline) with actual hash.
-#[cfg(feature = "git")]
-fn compute_determinism_gate(_repo_root: &Path) -> Result<Option<DeterminismGate>> {
-    // TODO: Look for baseline hash and compare with current
-    // For now, return None (no baseline available)
-    Ok(None)
-}
-
-/// Check if a file is a relevant Rust source file for mutation testing.
-/// Excludes test files, fuzz targets, etc.
-fn is_relevant_rust_source(path: &str) -> bool {
-    let path_lower = path.to_lowercase();
-
-    // Must be a .rs file
-    if !path_lower.ends_with(".rs") {
-        return false;
+    /// Compute diff coverage gate.
+    /// Looks for coverage.json or lcov.info artifact.
+    fn compute_diff_coverage_gate(_repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
+        // TODO: Look for coverage artifacts and parse them
+        // For now, return None (gate not configured)
+        Ok(None)
     }
 
-    // Exclude test directories
-    if path_lower.contains("/tests/") || path_lower.starts_with("tests/") {
-        return false;
-    }
+    /// Compute contract diff gate (semver, CLI, schema).
+    fn compute_contract_gate(
+        _repo_root: &Path,
+        changed_files: &[String],
+        contracts_info: &Contracts,
+    ) -> Result<Option<ContractDiffGate>> {
+        // Only compute if any contract-relevant files changed
+        if !contracts_info.api_changed && !contracts_info.cli_changed && !contracts_info.schema_changed
+        {
+            return Ok(None);
+        }
 
-    // Exclude test files
-    if path_lower.ends_with("_test.rs") || path_lower.ends_with("_tests.rs") {
-        return false;
-    }
+        let mut failures = 0;
+        let mut semver = None;
+        let mut cli = None;
+        let mut schema = None;
 
-    // Exclude fuzz targets
-    if path_lower.contains("/fuzz/") || path_lower.starts_with("fuzz/") {
-        return false;
-    }
+        // Check for semver changes (API files)
+        if contracts_info.api_changed {
+            // TODO: Run cargo-semver-checks if available
+            // For now, mark as pending
+            semver = Some(SemverSubGate {
+                status: GateStatus::Pending,
+                breaking_changes: Vec::new(),
+            });
+        }
 
-    true
-}
+        // Check for CLI changes
+        if contracts_info.cli_changed {
+            // TODO: Diff --help output
+            cli = Some(CliSubGate {
+                status: GateStatus::Pending,
+                diff_summary: None,
+            });
+        }
 
-/// Get the current HEAD commit hash.
-#[cfg(feature = "git")]
-fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("rev-parse")
-        .arg("HEAD")
-        .output()
-        .context("Failed to run git rev-parse HEAD")?;
+        // Check for schema changes
+        if contracts_info.schema_changed {
+            // TODO: Diff schema.json
+            schema = Some(SchemaSubGate {
+                status: GateStatus::Pending,
+                diff_summary: None,
+            });
+        }
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("git rev-parse HEAD failed: {}", stderr.trim());
-    }
+        // Count failures from sub-gates
+        if let Some(ref sg) = semver
+            && sg.status == GateStatus::Fail
+        {
+            failures += 1;
+        }
+        if let Some(ref cg) = cli
+            && cg.status == GateStatus::Fail
+        {
+            failures += 1;
+        }
+        if let Some(ref scg) = schema
+            && scg.status == GateStatus::Fail
+        {
+            failures += 1;
+        }
 
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-}
+        // Determine overall status
+        let status = if failures > 0 {
+            GateStatus::Fail
+        } else {
+            // Check if any are pending
+            let any_pending = [
+                semver.as_ref().map(|g| g.status),
+                cli.as_ref().map(|g| g.status),
+                schema.as_ref().map(|g| g.status),
+            ]
+            .into_iter()
+            .flatten()
+            .any(|s| s == GateStatus::Pending);
 
-/// CI workflow summary format (mutants-summary.json).
-#[derive(Debug, Clone, Deserialize)]
-struct CiMutantsSummary {
-    #[allow(dead_code)]
-    schema_version: u32,
-    commit: String,
-    #[allow(dead_code)]
-    base_ref: String,
-    status: String,
-    scope: Vec<String>,
-    survivors: Vec<CiSurvivor>,
-    killed: usize,
-    timeout: usize,
-    unviable: usize,
-}
+            if any_pending {
+                GateStatus::Pending
+            } else {
+                GateStatus::Pass
+            }
+        };
 
-#[derive(Debug, Clone, Deserialize)]
-struct CiSurvivor {
-    file: String,
-    line: usize,
-    mutation: String,
-}
+        // Collect relevant files for scope
+        let relevant: Vec<String> = changed_files
+            .iter()
+            .filter(|f| {
+                f.ends_with("/src/lib.rs")
+                    || f.ends_with("/mod.rs")
+                    || f.contains("crates/tokmd/src/commands/")
+                    || f.contains("crates/tokmd-config/")
+                    || *f == "docs/schema.json"
+            })
+            .cloned()
+            .collect();
 
-/// Parsed mutation outcome from cargo-mutants output.
-#[derive(Debug, Clone, Deserialize)]
-struct MutantsOutcome {
-    outcomes: Vec<MutantOutcomeEntry>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct MutantOutcomeEntry {
-    scenario: MutantScenario,
-    summary: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-#[allow(non_snake_case, dead_code)]
-enum MutantScenario {
-    BaselineString(String),
-    Mutant { Mutant: MutantInfo },
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct MutantInfo {
-    file: String,
-    name: String,
-    span: MutantSpan,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct MutantSpan {
-    start: MutantPosition,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct MutantPosition {
-    line: usize,
-}
-
-/// Compute the mutation gate status.
-#[cfg(feature = "git")]
-fn compute_mutation_gate(
-    repo_root: &PathBuf,
-    _base: &str,
-    _head: &str,
-    changed_files: &[String],
-) -> Result<MutationGate> {
-    // Filter to relevant Rust source files
-    let relevant_files: Vec<String> = changed_files
-        .iter()
-        .filter(|f| is_relevant_rust_source(f))
-        .cloned()
-        .collect();
-
-    // If no relevant files, skip
-    if relevant_files.is_empty() {
-        return Ok(MutationGate {
+        Ok(Some(ContractDiffGate {
             meta: GateMeta {
-                status: GateStatus::Skipped,
+                status,
                 source: EvidenceSource::RanLocal,
                 commit_match: CommitMatch::Unknown,
                 scope: ScopeCoverage {
-                    relevant: Vec::new(),
-                    tested: Vec::new(),
+                    relevant: relevant.clone(),
+                    tested: relevant,
                     ratio: 1.0,
                     lines_relevant: None,
                     lines_tested: None,
@@ -828,251 +638,442 @@ fn compute_mutation_gate(
                 evidence_commit: None,
                 evidence_generated_at_ms: None,
             },
-            survivors: Vec::new(),
-            killed: 0,
-            timeout: 0,
-            unviable: 0,
-        });
+            semver,
+            cli,
+            schema,
+            failures,
+        }))
     }
 
-    let head_commit = get_head_commit(repo_root)?;
-
-    // Try to find cached results
-    if let Some(gate) = try_load_ci_artifact(repo_root, &head_commit, &relevant_files)? {
-        return Ok(gate);
-    }
-
-    if let Some(gate) = try_load_cached(repo_root, &head_commit, &relevant_files)? {
-        return Ok(gate);
-    }
-
-    // Try to run mutations
-    run_mutations(repo_root, &relevant_files)
-}
-
-/// Try to load mutation results from CI artifact.
-/// Checks for mutants-summary.json (our format) first, then falls back to mutants.out/outcomes.json.
-#[cfg(feature = "git")]
-fn try_load_ci_artifact(
-    repo_root: &Path,
-    head_commit: &str,
-    relevant_files: &[String],
-) -> Result<Option<MutationGate>> {
-    // First, check for our summary format (mutants-summary.json)
-    let summary_path = repo_root.join("mutants-summary.json");
-    if summary_path.exists()
-        && let Ok(content) = std::fs::read_to_string(&summary_path)
-        && let Ok(summary) = serde_json::from_str::<CiMutantsSummary>(&content)
-    {
-        // Determine commit match quality
-        let commit_match = if summary.commit.starts_with(head_commit)
-            || head_commit.starts_with(&summary.commit)
-        {
-            CommitMatch::Exact
-        } else {
-            CommitMatch::Stale
-        };
-
-        // Skip stale artifacts
-        if commit_match == CommitMatch::Stale {
+    /// Compute supply chain gate.
+    /// Checks if Cargo.lock changed and runs cargo-audit if available.
+    fn compute_supply_chain_gate(
+        _repo_root: &Path,
+        changed_files: &[String],
+    ) -> Result<Option<SupplyChainGate>> {
+        // Only compute if Cargo.lock changed
+        let lock_changed = changed_files.iter().any(|f| f.ends_with("Cargo.lock"));
+        if !lock_changed {
             return Ok(None);
         }
 
-        let status = match summary.status.as_str() {
-            "pass" => GateStatus::Pass,
-            "fail" => GateStatus::Fail,
-            "skipped" => GateStatus::Skipped,
-            _ => GateStatus::Pending,
-        };
+        // Check if cargo-audit is available
+        let check = Command::new("cargo").arg("audit").arg("--version").output();
 
-        let survivors: Vec<MutationSurvivor> = summary
-            .survivors
-            .into_iter()
-            .map(|s| MutationSurvivor {
-                file: s.file,
-                line: s.line,
-                mutation: s.mutation,
-            })
-            .collect();
-
-        let tested = summary.scope.clone();
-        let scope_ratio = if relevant_files.is_empty() {
-            1.0
+        let status = if check.is_ok() && check.unwrap().status.success() {
+            // TODO: Actually run cargo audit and parse results
+            GateStatus::Pending
         } else {
-            tested.len() as f64 / relevant_files.len() as f64
+            GateStatus::Pending
         };
 
-        let gate = MutationGate {
+        Ok(Some(SupplyChainGate {
             meta: GateMeta {
                 status,
-                source: EvidenceSource::CiArtifact,
-                commit_match,
+                source: EvidenceSource::RanLocal,
+                commit_match: CommitMatch::Unknown,
                 scope: ScopeCoverage {
-                    relevant: relevant_files.to_vec(),
-                    tested,
-                    ratio: scope_ratio.min(1.0),
+                    relevant: vec!["Cargo.lock".to_string()],
+                    tested: vec!["Cargo.lock".to_string()],
+                    ratio: 1.0,
                     lines_relevant: None,
                     lines_tested: None,
                 },
-                evidence_commit: Some(summary.commit),
+                evidence_commit: None,
                 evidence_generated_at_ms: None,
             },
-            survivors,
-            killed: summary.killed,
-            timeout: summary.timeout,
-            unviable: summary.unviable,
-        };
+            vulnerabilities: Vec::new(),
+            denied: Vec::new(),
+            advisory_db_version: None,
+        }))
+    }
+
+    /// Compute determinism gate.
+    /// Compares expected hash (from baseline) with actual hash.
+    fn compute_determinism_gate(_repo_root: &Path) -> Result<Option<DeterminismGate>> {
+        // TODO: Look for baseline hash and compare with current
+        // For now, return None (no baseline available)
+        Ok(None)
+    }
+
+    /// Check if a file is a relevant Rust source file for mutation testing.
+    /// Excludes test files, fuzz targets, etc.
+    fn is_relevant_rust_source(path: &str) -> bool {
+        let path_lower = path.to_lowercase();
+
+        // Must be a .rs file
+        if !path_lower.ends_with(".rs") {
+            return false;
+        }
+
+        // Exclude test directories
+        if path_lower.contains("/tests/") || path_lower.starts_with("tests/") {
+            return false;
+        }
+
+        // Exclude test files
+        if path_lower.ends_with("_test.rs") || path_lower.ends_with("_tests.rs") {
+            return false;
+        }
+
+        // Exclude fuzz targets
+        if path_lower.contains("/fuzz/") || path_lower.starts_with("fuzz/") {
+            return false;
+        }
+
+        true
+    }
+
+    /// Get the current HEAD commit hash.
+    fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
+        let output = Command::new("git")
+            .arg("-C")
+            .arg(repo_root)
+            .arg("rev-parse")
+            .arg("HEAD")
+            .output()
+            .context("Failed to run git rev-parse HEAD")?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            bail!("git rev-parse HEAD failed: {}", stderr.trim());
+        }
+
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
+    /// CI workflow summary format (mutants-summary.json).
+    #[derive(Debug, Clone, Deserialize)]
+    struct CiMutantsSummary {
+        #[allow(dead_code)]
+        schema_version: u32,
+        commit: String,
+        #[allow(dead_code)]
+        base_ref: String,
+        status: String,
+        scope: Vec<String>,
+        survivors: Vec<CiSurvivor>,
+        killed: usize,
+        timeout: usize,
+        unviable: usize,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    struct CiSurvivor {
+        file: String,
+        line: usize,
+        mutation: String,
+    }
+
+    /// Parsed mutation outcome from cargo-mutants output.
+    #[derive(Debug, Clone, Deserialize)]
+    struct MutantsOutcome {
+        outcomes: Vec<MutantOutcomeEntry>,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    struct MutantOutcomeEntry {
+        scenario: MutantScenario,
+        summary: String,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(untagged)]
+    #[allow(non_snake_case, dead_code)]
+    enum MutantScenario {
+        BaselineString(String),
+        Mutant { Mutant: MutantInfo },
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    struct MutantInfo {
+        file: String,
+        name: String,
+        span: MutantSpan,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    struct MutantSpan {
+        start: MutantPosition,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    struct MutantPosition {
+        line: usize,
+    }
+
+    /// Compute the mutation gate status.
+    fn compute_mutation_gate(
+        repo_root: &PathBuf,
+        _base: &str,
+        _head: &str,
+        changed_files: &[String],
+    ) -> Result<MutationGate> {
+        // Filter to relevant Rust source files
+        let relevant_files: Vec<String> = changed_files
+            .iter()
+            .filter(|f| is_relevant_rust_source(f))
+            .cloned()
+            .collect();
+
+        // If no relevant files, skip
+        if relevant_files.is_empty() {
+            return Ok(MutationGate {
+                meta: GateMeta {
+                    status: GateStatus::Skipped,
+                    source: EvidenceSource::RanLocal,
+                    commit_match: CommitMatch::Unknown,
+                    scope: ScopeCoverage {
+                        relevant: Vec::new(),
+                        tested: Vec::new(),
+                        ratio: 1.0,
+                        lines_relevant: None,
+                        lines_tested: None,
+                    },
+                    evidence_commit: None,
+                    evidence_generated_at_ms: None,
+                },
+                survivors: Vec::new(),
+                killed: 0,
+                timeout: 0,
+                unviable: 0,
+            });
+        }
+
+        let head_commit = get_head_commit(repo_root)?;
+
+        // Try to find cached results
+        if let Some(gate) = try_load_ci_artifact(repo_root, &head_commit, &relevant_files)? {
+            return Ok(gate);
+        }
+
+        if let Some(gate) = try_load_cached(repo_root, &head_commit, &relevant_files)? {
+            return Ok(gate);
+        }
+
+        // Try to run mutations
+        run_mutations(repo_root, &relevant_files)
+    }
+
+    /// Try to load mutation results from CI artifact.
+    /// Checks for mutants-summary.json (our format) first, then falls back to mutants.out/outcomes.json.
+    fn try_load_ci_artifact(
+        repo_root: &Path,
+        head_commit: &str,
+        relevant_files: &[String],
+    ) -> Result<Option<MutationGate>> {
+        // First, check for our summary format (mutants-summary.json)
+        let summary_path = repo_root.join("mutants-summary.json");
+        if summary_path.exists()
+            && let Ok(content) = std::fs::read_to_string(&summary_path)
+            && let Ok(summary) = serde_json::from_str::<CiMutantsSummary>(&content)
+        {
+            // Determine commit match quality
+            let commit_match = if summary.commit.starts_with(head_commit)
+                || head_commit.starts_with(&summary.commit)
+            {
+                CommitMatch::Exact
+            } else {
+                CommitMatch::Stale
+            };
+
+            // Skip stale artifacts
+            if commit_match == CommitMatch::Stale {
+                return Ok(None);
+            }
+
+            let status = match summary.status.as_str() {
+                "pass" => GateStatus::Pass,
+                "fail" => GateStatus::Fail,
+                "skipped" => GateStatus::Skipped,
+                _ => GateStatus::Pending,
+            };
+
+            let survivors: Vec<MutationSurvivor> = summary
+                .survivors
+                .into_iter()
+                .map(|s| MutationSurvivor {
+                    file: s.file,
+                    line: s.line,
+                    mutation: s.mutation,
+                })
+                .collect();
+
+            let tested = summary.scope.clone();
+            let scope_ratio = if relevant_files.is_empty() {
+                1.0
+            } else {
+                tested.len() as f64 / relevant_files.len() as f64
+            };
+
+            let gate = MutationGate {
+                meta: GateMeta {
+                    status,
+                    source: EvidenceSource::CiArtifact,
+                    commit_match,
+                    scope: ScopeCoverage {
+                        relevant: relevant_files.to_vec(),
+                        tested,
+                        ratio: scope_ratio.min(1.0),
+                        lines_relevant: None,
+                        lines_tested: None,
+                    },
+                    evidence_commit: Some(summary.commit),
+                    evidence_generated_at_ms: None,
+                },
+                survivors,
+                killed: summary.killed,
+                timeout: summary.timeout,
+                unviable: summary.unviable,
+            };
+
+            // Cache the results for future use
+            cache_mutation_results(repo_root, head_commit, &gate)?;
+
+            return Ok(Some(gate));
+        }
+
+        // Fall back to raw cargo-mutants output (mutants.out/outcomes.json)
+        let outcomes_path = repo_root.join("mutants.out").join("outcomes.json");
+        if !outcomes_path.exists() {
+            return Ok(None);
+        }
+
+        // Parse outcomes.json
+        let content = std::fs::read_to_string(&outcomes_path)
+            .with_context(|| format!("Failed to read {}", outcomes_path.display()))?;
+
+        let outcomes: MutantsOutcome = serde_json::from_str(&content)
+            .with_context(|| format!("Failed to parse {}", outcomes_path.display()))?;
+
+        let gate = parse_mutation_outcomes(
+            &outcomes,
+            relevant_files,
+            EvidenceSource::CiArtifact,
+            head_commit,
+        );
 
         // Cache the results for future use
         cache_mutation_results(repo_root, head_commit, &gate)?;
 
-        return Ok(Some(gate));
+        Ok(Some(gate))
     }
 
-    // Fall back to raw cargo-mutants output (mutants.out/outcomes.json)
-    let outcomes_path = repo_root.join("mutants.out").join("outcomes.json");
-    if !outcomes_path.exists() {
-        return Ok(None);
+    /// Try to load mutation results from local cache (.tokmd/cache/mutants-{commit}.json).
+    fn try_load_cached(
+        repo_root: &Path,
+        head_commit: &str,
+        relevant_files: &[String],
+    ) -> Result<Option<MutationGate>> {
+        let cache_dir = repo_root.join(".tokmd").join("cache");
+        let cache_file = cache_dir.join(format!(
+            "mutants-{}.json",
+            &head_commit[..12.min(head_commit.len())]
+        ));
+
+        if !cache_file.exists() {
+            return Ok(None);
+        }
+
+        let content = std::fs::read_to_string(&cache_file)
+            .with_context(|| format!("Failed to read cache file {}", cache_file.display()))?;
+
+        let mut gate: MutationGate = serde_json::from_str(&content)
+            .with_context(|| format!("Failed to parse cache file {}", cache_file.display()))?;
+
+        // Verify scope matches (or is superset of) relevant files
+        let cached_scope: std::collections::HashSet<_> = gate.meta.scope.tested.iter().collect();
+        let needed: Vec<_> = relevant_files
+            .iter()
+            .filter(|f| !cached_scope.contains(f))
+            .collect();
+
+        if !needed.is_empty() {
+            // Cache doesn't cover all files we need
+            return Ok(None);
+        }
+
+        gate.meta.source = EvidenceSource::Cached;
+        gate.meta.commit_match = CommitMatch::Exact;
+        Ok(Some(gate))
     }
 
-    // Parse outcomes.json
-    let content = std::fs::read_to_string(&outcomes_path)
-        .with_context(|| format!("Failed to read {}", outcomes_path.display()))?;
+    /// Cache mutation results for future use.
+    fn cache_mutation_results(repo_root: &Path, head_commit: &str, gate: &MutationGate) -> Result<()> {
+        let cache_dir = repo_root.join(".tokmd").join("cache");
+        std::fs::create_dir_all(&cache_dir)?;
 
-    let outcomes: MutantsOutcome = serde_json::from_str(&content)
-        .with_context(|| format!("Failed to parse {}", outcomes_path.display()))?;
+        let cache_file = cache_dir.join(format!(
+            "mutants-{}.json",
+            &head_commit[..12.min(head_commit.len())]
+        ));
+        let content = serde_json::to_string_pretty(gate)?;
+        std::fs::write(&cache_file, content)?;
 
-    let gate = parse_mutation_outcomes(
-        &outcomes,
-        relevant_files,
-        EvidenceSource::CiArtifact,
-        head_commit,
-    );
-
-    // Cache the results for future use
-    cache_mutation_results(repo_root, head_commit, &gate)?;
-
-    Ok(Some(gate))
-}
-
-/// Try to load mutation results from local cache (.tokmd/cache/mutants-{commit}.json).
-#[cfg(feature = "git")]
-fn try_load_cached(
-    repo_root: &Path,
-    head_commit: &str,
-    relevant_files: &[String],
-) -> Result<Option<MutationGate>> {
-    let cache_dir = repo_root.join(".tokmd").join("cache");
-    let cache_file = cache_dir.join(format!(
-        "mutants-{}.json",
-        &head_commit[..12.min(head_commit.len())]
-    ));
-
-    if !cache_file.exists() {
-        return Ok(None);
+        Ok(())
     }
 
-    let content = std::fs::read_to_string(&cache_file)
-        .with_context(|| format!("Failed to read cache file {}", cache_file.display()))?;
+    /// Run mutation testing on the given files.
+    fn run_mutations(repo_root: &PathBuf, relevant_files: &[String]) -> Result<MutationGate> {
+        // Check if cargo-mutants is available
+        let check = Command::new("cargo")
+            .arg("mutants")
+            .arg("--version")
+            .output();
 
-    let mut gate: MutationGate = serde_json::from_str(&content)
-        .with_context(|| format!("Failed to parse cache file {}", cache_file.display()))?;
+        let head_commit = get_head_commit(repo_root).ok();
 
-    // Verify scope matches (or is superset of) relevant files
-    let cached_scope: std::collections::HashSet<_> = gate.meta.scope.tested.iter().collect();
-    let needed: Vec<_> = relevant_files
-        .iter()
-        .filter(|f| !cached_scope.contains(f))
-        .collect();
-
-    if !needed.is_empty() {
-        // Cache doesn't cover all files we need
-        return Ok(None);
-    }
-
-    gate.meta.source = EvidenceSource::Cached;
-    gate.meta.commit_match = CommitMatch::Exact;
-    Ok(Some(gate))
-}
-
-/// Cache mutation results for future use.
-#[cfg(feature = "git")]
-fn cache_mutation_results(repo_root: &Path, head_commit: &str, gate: &MutationGate) -> Result<()> {
-    let cache_dir = repo_root.join(".tokmd").join("cache");
-    std::fs::create_dir_all(&cache_dir)?;
-
-    let cache_file = cache_dir.join(format!(
-        "mutants-{}.json",
-        &head_commit[..12.min(head_commit.len())]
-    ));
-    let content = serde_json::to_string_pretty(gate)?;
-    std::fs::write(&cache_file, content)?;
-
-    Ok(())
-}
-
-/// Run mutation testing on the given files.
-#[cfg(feature = "git")]
-fn run_mutations(repo_root: &PathBuf, relevant_files: &[String]) -> Result<MutationGate> {
-    // Check if cargo-mutants is available
-    let check = Command::new("cargo")
-        .arg("mutants")
-        .arg("--version")
-        .output();
-
-    let head_commit = get_head_commit(repo_root).ok();
-
-    if check.is_err() || !check.unwrap().status.success() {
-        // cargo-mutants not installed
-        return Ok(MutationGate {
-            meta: GateMeta {
-                status: GateStatus::Pending,
-                source: EvidenceSource::RanLocal,
-                commit_match: CommitMatch::Unknown,
-                scope: ScopeCoverage {
-                    relevant: relevant_files.to_vec(),
-                    tested: Vec::new(),
-                    ratio: 0.0,
-                    lines_relevant: None,
-                    lines_tested: None,
+        if check.is_err() || !check.unwrap().status.success() {
+            // cargo-mutants not installed
+            return Ok(MutationGate {
+                meta: GateMeta {
+                    status: GateStatus::Pending,
+                    source: EvidenceSource::RanLocal,
+                    commit_match: CommitMatch::Unknown,
+                    scope: ScopeCoverage {
+                        relevant: relevant_files.to_vec(),
+                        tested: Vec::new(),
+                        ratio: 0.0,
+                        lines_relevant: None,
+                        lines_tested: None,
+                    },
+                    evidence_commit: head_commit,
+                    evidence_generated_at_ms: None,
                 },
-                evidence_commit: head_commit,
-                evidence_generated_at_ms: None,
-            },
-            survivors: Vec::new(),
-            killed: 0,
-            timeout: 0,
-            unviable: 0,
-        });
-    }
+                survivors: Vec::new(),
+                killed: 0,
+                timeout: 0,
+                unviable: 0,
+            });
+        }
 
-    let mut all_survivors = Vec::new();
-    let mut total_killed = 0usize;
-    let mut total_timeout = 0usize;
-    let mut total_unviable = 0usize;
-    let mut tested_files = Vec::new();
+        let mut all_survivors = Vec::new();
+        let mut total_killed = 0usize;
+        let mut total_timeout = 0usize;
+        let mut total_unviable = 0usize;
+        let mut tested_files = Vec::new();
 
-    for file in relevant_files.iter().take(20) {
-        // Limit to 20 files like CI
-        // Determine if file is in a crate subdirectory
-        let (work_dir, file_arg) = if file.starts_with("crates/") {
-            // Extract crate directory (e.g., "crates/tokmd-types")
-            let parts: Vec<&str> = file.splitn(3, '/').collect();
-            if parts.len() >= 3 {
-                let crate_dir = repo_root.join(parts[0]).join(parts[1]);
-                if crate_dir.join("Cargo.toml").exists() {
-                    // Run from crate directory with relative path
-                    let rel_path = parts[2..].join("/");
-                    (crate_dir, rel_path)
+        for file in relevant_files.iter().take(20) {
+            // Limit to 20 files like CI
+            // Determine if file is in a crate subdirectory
+            let (work_dir, file_arg) = if file.starts_with("crates/") {
+                // Extract crate directory (e.g., "crates/tokmd-types")
+                let parts: Vec<&str> = file.splitn(3, '/').collect();
+                if parts.len() >= 3 {
+                    let crate_dir = repo_root.join(parts[0]).join(parts[1]);
+                    if crate_dir.join("Cargo.toml").exists() {
+                        // Run from crate directory with relative path
+                        let rel_path = parts[2..].join("/");
+                        (crate_dir, rel_path)
+                    } else {
+                        (repo_root.clone(), file.clone())
+                    }
                 } else {
                     (repo_root.clone(), file.clone())
                 }
             } else {
                 (repo_root.clone(), file.clone())
-            }
-        } else {
-            (repo_root.clone(), file.clone())
-        };
+            };
 
         let output = Command::new("cargo")
             .arg("mutants")
@@ -1253,38 +1254,6 @@ fn parse_mutation_outcomes(
     }
 }
 
-/// Compute evidence when git feature is disabled.
-#[cfg(not(feature = "git"))]
-fn compute_evidence_disabled() -> Evidence {
-    Evidence {
-        overall_status: GateStatus::Skipped,
-        mutation: MutationGate {
-            meta: GateMeta {
-                status: GateStatus::Skipped,
-                source: EvidenceSource::RanLocal,
-                commit_match: CommitMatch::Unknown,
-                scope: ScopeCoverage {
-                    relevant: Vec::new(),
-                    tested: Vec::new(),
-                    ratio: 1.0,
-                    lines_relevant: None,
-                    lines_tested: None,
-                },
-                evidence_commit: None,
-                evidence_generated_at_ms: None,
-            },
-            survivors: Vec::new(),
-            killed: 0,
-            timeout: 0,
-            unviable: 0,
-        },
-        diff_coverage: None,
-        contracts: None,
-        supply_chain: None,
-        determinism: None,
-    }
-}
-
 /// Per-file statistics from git diff.
 #[derive(Debug, Clone)]
 struct FileStats {
@@ -1299,7 +1268,6 @@ impl FileStats {
     }
 }
 
-#[cfg(feature = "git")]
 fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<FileStats>> {
     let output = Command::new("git")
         .arg("-C")
@@ -1342,7 +1310,6 @@ fn get_file_stats(repo_root: &PathBuf, base: &str, head: &str) -> Result<Vec<Fil
     Ok(stats)
 }
 
-#[cfg(feature = "git")]
 fn compute_change_surface(
     repo_root: &PathBuf,
     base: &str,
@@ -1403,7 +1370,6 @@ fn compute_change_concentration(file_stats: &[FileStats]) -> f64 {
     round_pct(top_lines as f64 / total_lines as f64 * 100.0)
 }
 
-#[cfg(feature = "git")]
 fn get_commit_count(repo_root: &PathBuf, base: &str, head: &str) -> Result<usize> {
     let output = Command::new("git")
         .arg("-C")
@@ -1892,11 +1858,11 @@ fn generate_review_plan(file_stats: &[FileStats], contracts: &Contracts) -> Vec<
     items
 }
 
-fn render_json(receipt: &CockpitReceipt) -> Result<String> {
+pub(super) fn render_json(receipt: &CockpitReceipt) -> Result<String> {
     serde_json::to_string_pretty(receipt).context("Failed to serialize cockpit receipt")
 }
 
-fn render_markdown(receipt: &CockpitReceipt) -> String {
+pub(super) fn render_markdown(receipt: &CockpitReceipt) -> String {
     let mut out = String::new();
 
     out.push_str("## Glass Cockpit\n\n");
@@ -2275,7 +2241,7 @@ fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
     }
 }
 
-fn render_sections(receipt: &CockpitReceipt) -> String {
+pub(super) fn render_sections(receipt: &CockpitReceipt) -> String {
     let mut out = String::new();
 
     // COCKPIT section (for AI-FILL:COCKPIT)
@@ -2725,4 +2691,5 @@ mod tests {
         let json = serde_json::to_string(&source).unwrap();
         assert_eq!(json, "\"ran_local\"");
     }
+}
 }

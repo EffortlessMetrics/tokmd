@@ -1,0 +1,32 @@
+{
+  "id": "run-20240525-compat-004",
+  "persona": "compat",
+  "status": "completed",
+  "gates": {
+    "build": "pass",
+    "test": "pass",
+    "fmt": "pass",
+    "clippy": "pass",
+    "no-default-features": "pass",
+    "all-features": "pass"
+  },
+  "history": [
+    {
+      "step": "bootstrap",
+      "status": "done"
+    },
+    {
+      "step": "verify-no-default",
+      "status": "failed-initially-with-warnings"
+    },
+    {
+      "step": "implement-fix",
+      "status": "done"
+    },
+    {
+      "step": "verify-fix",
+      "status": "pass"
+    }
+  ],
+  "receipts": []
+}
