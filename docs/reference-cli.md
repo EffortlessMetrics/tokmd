@@ -423,6 +423,8 @@ Generates comprehensive PR metrics for code review automation. This command anal
 
 > **Note**: Requires the `git` feature. If git is not available or you're not in a git repository, the command will fail with an error.
 
+> **Diff Syntax**: The cockpit command uses two-dot diff syntax (`A..B`) internally for accurate line counts when comparing refs. This provides direct comparison between the base and head, which is appropriate for comparing tags, releases, or explicit refs.
+
 **Examples**:
 ```bash
 # Generate JSON metrics for current PR

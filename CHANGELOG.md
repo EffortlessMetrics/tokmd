@@ -29,17 +29,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced JSON schema properties
 
 ### Changed
+- **MSRV**: Minimum Supported Rust Version bumped to 1.89 (from 1.85)
 - **Schema Version**: Analysis receipts now use `schema_version: 4` (from 3)
 - **FFI Error Handling**: Improved error formatting and response envelope handling
 - **GitHub Action**: Added checksum verification for downloaded assets
+- **Nix Flake**: Replaced `cleanCargoSource` with `mkSrc` for improved source filtering
+- **cargo-deny**: Updated to version 0.18.6
 
 ### Fixed
 - **Gate Comparisons**: Fixed string comparison to handle "inf"/"nan" strings correctly without parsing as floats
+- **Cockpit**: Use two-dot diff syntax (`A..B`) for accurate line counts when comparing tags/releases
 
 ### Internal
-- **Documentation**: Added microcrate extraction analysis documents
-- **Test Refactoring**: Improved test assertions for better readability
+- **Documentation**: Added microcrate extraction analysis documents and git diff syntax guidance
+- **Test Refactoring**: Improved test assertions for better readability; simplified configuration setup in property tests
 - **Proptest Regressions**: Added regression seeds for property-based tests
+- **CI**: Updated cargo-deny action to use `taiki-e/install-action` for improved advisory checks
+- **Dependencies**: Bumped PyO3 and pyo3-build-config versions
 
 ## [1.3.1] - 2026-01-31
 
