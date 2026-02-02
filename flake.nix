@@ -52,7 +52,9 @@
           # Keep proptest regression files
           || (pkgs.lib.hasSuffix ".proptest-regressions" baseName)
           # Keep gitignore files (used by tests)
-          || (baseName == ".gitignore");
+          || (baseName == ".gitignore")
+          # Keep schema.json for validation tests
+          || (pkgs.lib.hasSuffix "docs/schema.json" p);
       };
     in
     {

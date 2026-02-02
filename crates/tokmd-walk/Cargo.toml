@@ -16,5 +16,5 @@ anyhow = "1.0.100"
 ignore = "0.4.22"
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest.workspace = true
 tempfile = "3.10.1"

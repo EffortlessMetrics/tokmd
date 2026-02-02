@@ -15,5 +15,5 @@ documentation = "https://docs.rs/tokmd-git"
 anyhow = "1.0.100"
 
 [dev-dependencies]
-proptest = "1"
+proptest.workspace = true
 tempfile = "3"

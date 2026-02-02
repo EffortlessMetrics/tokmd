@@ -16,5 +16,5 @@ anyhow = "1.0.100"
 tokmd-config.workspace = true
 
 [dev-dependencies]
-proptest = "1.6.0"
+proptest.workspace = true
 tempfile = "3.10.1"
