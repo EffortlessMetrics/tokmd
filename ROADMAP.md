@@ -194,7 +194,18 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ## Planned: v1.5.0 — Baseline & Ratchet System
 
-**Goal**: Baseline storage and ratchet-based quality gates.
+**Goal**: Baseline storage, ratchet-based quality gates, and ecosystem integration.
+
+### Ecosystem Integration
+
+| Feature                    | Status     | Description                                              |
+| :------------------------- | :--------- | :------------------------------------------------------- |
+| Ecosystem envelope spec    | 📋 Planned | Standardized report format for multi-sensor integration  |
+| `tokmd sensor cockpit`     | 📋 Planned | Emit envelope at `artifacts/tokmd/report.json`           |
+| Finding ID registry        | 📋 Planned | Stable `tokmd.<category>.<code>` identifiers             |
+| Budget enforcement         | 📋 Planned | `--findings-limit` for display budget compliance         |
+
+See `docs/ecosystem-envelope.md` for protocol specification.
 
 ### Baseline System
 

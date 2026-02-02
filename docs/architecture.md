@@ -167,6 +167,23 @@ ui = ["dialoguer", "indicatif"]  # Interactive CLI
 
 ## Future Architecture (Planned)
 
+### Ecosystem Sensor Mode (v1.5+)
+
+New `tokmd sensor` subcommand family for multi-tool integration:
+
+```
+tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
+```
+
+Outputs:
+- `artifacts/tokmd/report.json` — Ecosystem envelope (standardized)
+- `artifacts/tokmd/cockpit.json` — Full tokmd-native receipt
+- `artifacts/tokmd/comment.md` — PR comment markdown
+
+Key architectural rule: tokmd is a **sensor**, not a director. Integration happens via receipts, not library linking across repos.
+
+See [ecosystem-envelope.md](ecosystem-envelope.md) for protocol specification.
+
 ### tokmd-settings Split (v1.5+)
 
 Decouple configuration from CLI parsing:

@@ -199,6 +199,7 @@ cargo +nightly fuzz list  # List all targets
 - `docs/design.md`: Design principles, system context, data model
 - `docs/requirements.md`: Requirements, interfaces, quality bar
 - `docs/implementation-plan.md`: Phased roadmap for future work
+- `docs/ecosystem-envelope.md`: Multi-sensor integration protocol (planned v1.5+)
 
 ### User Guides
 - `docs/tutorial.md`: Getting started guide

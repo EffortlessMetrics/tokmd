@@ -2,6 +2,52 @@
 
 This document outlines planned improvements aligned with the roadmap.
 
+## Phase 0: Ecosystem Envelope Protocol (v1.5.0)
+
+**Goal**: Enable tokmd to integrate with multi-sensor cockpit directors.
+
+See [ecosystem-envelope.md](ecosystem-envelope.md) for full specification.
+
+### Protocol Design
+
+1. **Envelope schema v1**: Stable top-level, tool-specific `data` underneath
+2. **Verdict semantics**: `pass`, `fail`, `warn`, `skip`, `pending`
+3. **Finding format**: Portable structure with `<tool>.<category>.<code>` IDs
+4. **Artifact convention**: `artifacts/tokmd/report.json`
+
+### CLI Surface
+
+New `tokmd sensor` subcommand family:
+```bash
+tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
+```
+
+### Work Items
+
+- [ ] Design and document envelope schema v1
+- [ ] Define tokmd finding ID registry (see ecosystem-envelope.md)
+- [ ] Implement `tokmd sensor cockpit` command
+- [ ] Map cockpit receipt fields → envelope verdict/findings
+- [ ] Implement `--findings-limit` budget enforcement
+- [ ] Write `artifacts/tokmd/report.json` and `comment.md`
+- [ ] Integration tests for envelope output
+- [ ] JSON Schema for envelope validation
+
+### Tests
+
+- Golden fixtures: Sample cockpit → envelope transformation
+- Property tests: Verdict aggregation rules
+- Schema validation: Envelope conforms to spec
+- Integration tests: CLI produces canonical artifacts
+
+### Compatibility
+
+- Existing `tokmd cockpit` command unchanged
+- Envelope is additive (new command, not replacement)
+- `data` field embeds full tokmd-native receipt for consumers needing richness
+
+---
+
 ## Phase 1: Baseline & Ratchet System (v1.5.0)
 
 **Goal**: Enable quality improvement tracking over time.

@@ -107,6 +107,31 @@ tokmd is a gatekeeper-class tool. Minimum evidence:
 - Fuzz testing for parsers and path handling
 - Mutation testing gates for critical crates
 
+## Ecosystem Integration (Planned v1.5+)
+
+tokmd SHOULD support integration with multi-sensor cockpit systems:
+
+### Role
+- tokmd is a **sensor**, not a director
+- Integration via **receipts**, not library linking
+- tokmd MUST remain useful standalone
+
+### Ecosystem Envelope
+- `tokmd sensor cockpit` emits standardized envelope at `artifacts/tokmd/report.json`
+- Envelope provides verdict + findings + minimal metadata
+- tokmd-native cockpit receipt embedded under `data` field
+- See [ecosystem-envelope.md](ecosystem-envelope.md) for specification
+
+### Finding Identity
+- Findings MUST use stable namespaced IDs: `<tool>.<category>.<code>`
+- Example: `tokmd.risk.hotspot`, `tokmd.gate.mutation_failed`
+- Finding registry documented in ecosystem-envelope.md
+
+### Budget Compliance
+- Respect `--findings-limit` for display budget enforcement
+- Stable truncation with explicit markers
+- Directors aggregate; sensors respect allocation
+
 ## Non-Goals
 
 - **Not a director**: tokmd is a sensor, not an orchestrator
