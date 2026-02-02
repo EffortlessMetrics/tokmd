@@ -2,7 +2,7 @@
   "run_id": "20260202T130413Z",
   "timestamp_utc": "2026-02-02T13:04:13Z",
   "lane": "scout",
-  "target": "crates/tokmd/src/commands/cockpit.rs",
+  "target": "crates/tokmd/src/commands/cockpit.rs & build config",
   "commands": [
     {
       "cmd": "cargo build --package tokmd --features git",
@@ -23,7 +23,12 @@
       "cmd": "cargo clippy --package tokmd --features git -- -D warnings",
       "exit_code": 0,
       "result": "PASS"
+    },
+    {
+      "cmd": "cargo test --package tokmd --test schema_validation",
+      "exit_code": 0,
+      "result": "PASS"
     }
   ],
-  "results_summary": "Removed brittle unwrap calls in cockpit command handler."
+  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failure in Nix build by including docs in check source."
 }
