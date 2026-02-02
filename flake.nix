@@ -27,19 +27,23 @@
       mkCraneLib = system: crane.mkLib (mkPkgs system);
 
       # Source filter that includes cargo sources plus HTML templates (for include_str!)
-      mkSrc = craneLib: craneLib.path {
+      # Used for builds where we want a minimal closure
+      mkBuildSrc = craneLib: craneLib.path {
         path = ./.;
         filter = path: type:
           (craneLib.filterCargoSources path type)
           || (builtins.match ".*\\.html$" path != null);
       };
+
+      # Full source for tests/checks - keeps fixtures, golden files, ignore files, etc.
+      mkCheckSrc = craneLib: craneLib.cleanCargoSource ./.;
     in
     {
       packages = forAllSystems (system:
         let
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
-          src = mkSrc craneLib;
+          src = mkBuildSrc craneLib;
 
           commonArgs = {
             pname = "tokmd";
@@ -81,7 +85,7 @@
       checks = forAllSystems (system:
         let
           craneLib = mkCraneLib system;
-          src = mkSrc craneLib;
+          src = mkCheckSrc craneLib;
           commonArgs = {
             inherit src;
             strictDeps = true;
