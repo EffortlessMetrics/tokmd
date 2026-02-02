@@ -44,8 +44,9 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 
 ### Schema Version
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 2;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
 ```
+v4 added cognitive complexity, nesting depth, and function-level details to `ComplexityReport`.
 
 ### Optional Fields
 All analysis sections are `Option<T>` to support preset-based inclusion:

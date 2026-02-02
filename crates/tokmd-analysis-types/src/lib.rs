@@ -20,7 +20,8 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 2;
+/// v4: Added cognitive complexity, nesting depth, and function-level details.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -44,6 +45,7 @@ pub struct AnalysisReceipt {
     pub git: Option<GitReport>,
     pub imports: Option<ImportReport>,
     pub dup: Option<DuplicateReport>,
+    pub complexity: Option<ComplexityReport>,
     pub fun: Option<FunReport>,
 }
 
@@ -554,6 +556,85 @@ pub struct DuplicateGroup {
     pub hash: String,
     pub bytes: u64,
     pub files: Vec<String>,
+}
+
+// -------------------
+// Complexity metrics
+// -------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplexityReport {
+    pub total_functions: usize,
+    pub avg_function_length: f64,
+    pub max_function_length: usize,
+    pub avg_cyclomatic: f64,
+    pub max_cyclomatic: usize,
+    /// Average cognitive complexity across files.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avg_cognitive: Option<f64>,
+    /// Maximum cognitive complexity found.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_cognitive: Option<usize>,
+    /// Average nesting depth across files.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avg_nesting_depth: Option<f64>,
+    /// Maximum nesting depth found.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_nesting_depth: Option<usize>,
+    pub high_risk_files: usize,
+    pub files: Vec<FileComplexity>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileComplexity {
+    pub path: String,
+    pub module: String,
+    pub function_count: usize,
+    pub max_function_length: usize,
+    pub cyclomatic_complexity: usize,
+    /// Cognitive complexity for this file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cognitive_complexity: Option<usize>,
+    /// Maximum nesting depth in this file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_nesting: Option<usize>,
+    pub risk_level: ComplexityRisk,
+    /// Function-level complexity details (only when --detail-functions is used).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub functions: Option<Vec<FunctionComplexityDetail>>,
+}
+
+/// Function-level complexity details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionComplexityDetail {
+    /// Function name.
+    pub name: String,
+    /// Start line (1-indexed).
+    pub line_start: usize,
+    /// End line (1-indexed).
+    pub line_end: usize,
+    /// Function length in lines.
+    pub length: usize,
+    /// Cyclomatic complexity.
+    pub cyclomatic: usize,
+    /// Cognitive complexity (if computed).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cognitive: Option<usize>,
+    /// Maximum nesting depth within the function.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_nesting: Option<usize>,
+    /// Number of parameters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub param_count: Option<usize>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ComplexityRisk {
+    Low,
+    Moderate,
+    High,
+    Critical,
 }
 
 // ---------

@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-31
+
+### Added
+- **Node.js Bindings**: New `tokmd-node` crate with napi-rs bindings for npm
+  - Full API access: `version()`, `schemaVersion()`, `lang()`, `module()`, `export()`, `analyze()`, `diff()`
+  - TypeScript definitions included
+  - Async/sync variants for all methods
+- **Python Bindings**: New `tokmd-python` crate with PyO3 bindings for PyPI
+  - Full API access with Pythonic interface
+  - Type stubs for IDE support (`py.typed`)
+  - Comprehensive test suite
+- **FFI Layer**: Enhanced `tokmd-core` with C-compatible FFI functions
+  - JSON-based API for language interop
+  - Structured error handling with error codes
+  - Settings configuration via JSON
+- **Version Bump Command**: `cargo xtask bump <VERSION>` for workspace-wide version management
+  - Updates all Cargo.toml files atomically
+  - Optional `--schema` flag for schema version constants
+  - Dry-run mode for previewing changes
+- **Complexity Metrics**: Extended complexity analysis in analysis receipts
+  - Trend analysis for complexity over time
+  - Enhanced JSON schema properties
+
+### Changed
+- **MSRV**: Minimum Supported Rust Version bumped to 1.89 (from 1.85)
+- **Schema Version**: Analysis receipts now use `schema_version: 4` (from 3)
+- **FFI Error Handling**: Improved error formatting and response envelope handling
+- **GitHub Action**: Added checksum verification for downloaded assets
+- **Nix Flake**: Replaced `cleanCargoSource` with `mkSrc` for improved source filtering
+- **cargo-deny**: Updated to version 0.18.6
+
+### Fixed
+- **Gate Comparisons**: Fixed string comparison to handle "inf"/"nan" strings correctly without parsing as floats
+- **Cockpit**: Use two-dot diff syntax (`A..B`) for accurate line counts when comparing tags/releases
+
+### Internal
+- **Documentation**: Added microcrate extraction analysis documents and git diff syntax guidance
+- **Test Refactoring**: Improved test assertions for better readability; simplified configuration setup in property tests
+- **Proptest Regressions**: Added regression seeds for property-based tests
+- **CI**: Updated cargo-deny action to use `taiki-e/install-action` for improved advisory checks
+- **Dependencies**: Bumped PyO3 and pyo3-build-config versions
+
+## [1.3.1] - 2026-01-31
+
+### Added
+- **ARM Builds**: Release binaries for macOS ARM (M1/M2) and Linux ARM64
+- **SHA256 Checksums**: Release artifacts now include `checksums.txt`
+- **Shell Completions**: Release includes `completions.tar.gz` with bash/zsh/fish/powershell/elvish
+- **Auto-publish**: Release workflow publishes to crates.io automatically
+- **Action Test Workflow**: CI workflow to test the GitHub Action on all platforms and formats
+- **README Badges**: Downloads, Docs.rs, and GitHub Marketplace badges
+- **SECURITY.md**: Security vulnerability reporting policy
+- **FUNDING.yml**: GitHub Sponsors configuration
+- **CODEOWNERS**: Default code review assignments
+- **.editorconfig**: Consistent editor formatting rules
+- **Issue Templates**: YAML form-based bug report and feature request templates
+- **cargo-deny**: License compliance and security advisory auditing in CI
+- **Typos CI**: Spell checking for code and documentation
+- **MSRV**: Minimum Supported Rust Version (1.85) documented and tested in CI
+- **Homebrew Formula**: `brew tap EffortlessMetrics/tap && brew install tokmd`
+- **CITATION.cff**: Academic citation metadata
+- **Docker Image**: Multi-arch image at `ghcr.io/effortlessmetrics/tokmd`
+- **SLSA Attestations**: Supply chain provenance for release binaries
+- **Scoop Manifest**: Windows package manager support
+- **WinGet Manifest**: Windows Package Manager support
+- **AUR PKGBUILD**: Arch Linux package support
+
+### Changed
+- **GitHub Action**: Fail fast on download failure instead of slow cargo fallback
+- **GitHub Action**: Added `format` input for export format (json, jsonl, csv)
+- **GitHub Action**: Added `artifact` input to control artifact uploads
+- **GitHub Action**: Added Marketplace branding (icon, color)
+- **GitHub Action**: Removed unused `token` input
+- **GitHub Action**: Renamed output from `receipt-json` to `receipt`
+- **Release Workflow**: Automatically updates major version tag (v1) on release
+- **.gitattributes**: Enhanced with LF normalization and binary file handling
+
 ## [1.3.0] - 2026-01-31
 
 ### Added

@@ -23,12 +23,12 @@ fn simple_shuffle<T>(vec: &mut [T], seed: u64) {
 fn create_dummy_row(i: usize) -> FileRow {
     FileRow {
         path: format!("src/file_{}.rs", i),
-        module: if i % 2 == 0 {
+        module: if i.is_multiple_of(2) {
             "src".to_string()
         } else {
             "tests".to_string()
         },
-        lang: if i % 3 == 0 {
+        lang: if i.is_multiple_of(3) {
             "Rust".to_string()
         } else {
             "TOML".to_string()

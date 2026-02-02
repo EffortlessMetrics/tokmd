@@ -28,6 +28,26 @@ pub struct GitCommit {
     pub files: Vec<String>,
 }
 
+/// Git range syntax for comparing commits.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum GitRangeMode {
+    /// Two-dot syntax: `A..B` - commits in B but not A.
+    #[default]
+    TwoDot,
+    /// Three-dot syntax: `A...B` - symmetric difference from merge-base.
+    ThreeDot,
+}
+
+impl GitRangeMode {
+    /// Format the range string for git commands.
+    pub fn format(&self, base: &str, head: &str) -> String {
+        match self {
+            GitRangeMode::TwoDot => format!("{}..{}", base, head),
+            GitRangeMode::ThreeDot => format!("{}...{}", base, head),
+        }
+    }
+}
+
 pub fn git_available() -> bool {
     Command::new("git")
         .arg("--version")
@@ -122,4 +142,24 @@ pub fn collect_history(
     }
 
     Ok(commits)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn git_range_two_dot_format() {
+        assert_eq!(GitRangeMode::TwoDot.format("main", "HEAD"), "main..HEAD");
+    }
+
+    #[test]
+    fn git_range_three_dot_format() {
+        assert_eq!(GitRangeMode::ThreeDot.format("main", "HEAD"), "main...HEAD");
+    }
+
+    #[test]
+    fn git_range_default_is_two_dot() {
+        assert_eq!(GitRangeMode::default(), GitRangeMode::TwoDot);
+    }
 }

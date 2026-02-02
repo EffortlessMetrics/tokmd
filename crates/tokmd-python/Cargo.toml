@@ -1,0 +1,27 @@
+[package]
+name = "tokmd-python"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Python bindings for tokmd - code inventory and analytics"
+readme = "README.md"
+keywords = ["code-analysis", "python", "bindings", "pyo3", "tokei"]
+categories = ["development-tools::ffi"]
+# This crate produces a native Python extension, not a crates.io library
+publish = false
+
+[lib]
+name = "tokmd"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py39"] }
+serde_json = "1.0"
+tokmd-core = { workspace = true, features = ["analysis"] }
+tokmd-types.workspace = true
+tokmd-analysis-types.workspace = true
+
+[build-dependencies]
+pyo3-build-config = "0.24"

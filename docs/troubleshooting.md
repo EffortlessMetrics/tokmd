@@ -429,6 +429,37 @@ git worktree list
 
 ---
 
+### Inaccurate Line Counts in Cockpit
+
+**Symptom**:
+The `change_surface` metrics in cockpit output show incorrect or unexpected line counts when comparing branches or tags.
+
+**Cause**:
+Git diff syntax matters. Two-dot (`A..B`) and three-dot (`A...B`) produce different results:
+
+| Syntax | Meaning |
+|--------|---------|
+| `A..B` | Direct comparison between A and B |
+| `A...B` | Changes since the branches diverged (merge-base) |
+
+**Solution**:
+For comparing releases or tags, use explicit refs:
+```bash
+# Comparing releases (uses two-dot internally)
+tokmd cockpit --base v1.3.0 --head v1.4.0
+
+# Comparing branches
+tokmd cockpit --base main --head feature-branch
+```
+
+If you're seeing unexpected counts in CI, ensure your refs are correct:
+```bash
+# Verify what git sees
+git log --oneline v1.3.0..v1.4.0  # Two-dot for direct comparison
+```
+
+---
+
 ### Understanding Gate Statuses
 
 **Symptom**:

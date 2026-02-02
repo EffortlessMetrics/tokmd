@@ -45,9 +45,11 @@ All types are designed for deterministic serialization:
 
 ### Schema Versioning
 ```rust
-pub const SCHEMA_VERSION: u8 = 2;
+pub const SCHEMA_VERSION: u32 = 2;
 ```
 Increment when modifying JSON output structure. Update `docs/schema.json` accordingly.
+
+This version applies to core receipts: `lang`, `module`, `export`, `diff`, `context`, `run`.
 
 ### Children/Embedded Language Handling
 - `ChildrenMode::Collapse` - Merge embedded languages into parent totals

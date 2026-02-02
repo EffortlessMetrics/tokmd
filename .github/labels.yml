@@ -1,0 +1,114 @@
+# GitHub Labels Configuration
+# Sync with: gh label sync --labels .github/labels.yml
+# Or use the sync-labels workflow
+
+# Issue Types (from templates)
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+
+- name: enhancement
+  color: a2eeef
+  description: New feature or request
+
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to documentation
+
+- name: performance
+  color: fbca04
+  description: Performance improvements or issues
+
+# Workflow Labels
+- name: triage
+  color: ededed
+  description: Needs initial review and categorization
+
+- name: good first issue
+  color: 7057ff
+  description: Good for newcomers
+
+- name: help wanted
+  color: 008672
+  description: Extra attention is needed
+
+# Priority
+- name: "priority: critical"
+  color: b60205
+  description: Must be fixed immediately
+
+- name: "priority: high"
+  color: d93f0b
+  description: Should be fixed soon
+
+- name: "priority: medium"
+  color: fbca04
+  description: Normal priority
+
+- name: "priority: low"
+  color: c2e0c6
+  description: Nice to have
+
+# Status
+- name: "status: blocked"
+  color: d876e3
+  description: Blocked by another issue or external factor
+
+- name: "status: needs-info"
+  color: d876e3
+  description: Awaiting more information from reporter
+
+- name: "status: wontfix"
+  color: ffffff
+  description: This will not be worked on
+
+- name: "status: duplicate"
+  color: cfd3d7
+  description: This issue or PR already exists
+
+# Area (matching template dropdowns)
+- name: "area: cli"
+  color: c5def5
+  description: CLI commands and flags
+
+- name: "area: analysis"
+  color: c5def5
+  description: Analysis presets and enrichers
+
+- name: "area: output"
+  color: c5def5
+  description: Output formats (JSON, Markdown, CSV, etc.)
+
+- name: "area: gate"
+  color: c5def5
+  description: Policy evaluation and gates
+
+- name: "area: git"
+  color: c5def5
+  description: Git integration and history analysis
+
+- name: "area: action"
+  color: c5def5
+  description: GitHub Action
+
+- name: "area: bindings"
+  color: c5def5
+  description: Language bindings (Python, Node.js, FFI)
+
+# Semantic Versioning Impact
+- name: "semver: patch"
+  color: c2e0c6
+  description: Bug fix, no API changes
+
+- name: "semver: minor"
+  color: bfdadc
+  description: New feature, backwards compatible
+
+- name: "semver: major"
+  color: f9d0c4
+  description: Breaking change
+
+# Schema
+- name: "schema: breaking"
+  color: f9d0c4
+  description: Changes receipt schema version

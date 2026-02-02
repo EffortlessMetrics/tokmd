@@ -3,10 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
   };
 
   outputs = { self, nixpkgs, crane, ... }:
@@ -25,13 +22,45 @@
 
       mkPkgs = system: import nixpkgs { inherit system; };
       mkCraneLib = system: crane.mkLib (mkPkgs system);
+
+      # Source filter that includes cargo sources plus HTML templates (for include_str!)
+      # Used for builds where we want a minimal closure
+      mkBuildSrc = craneLib: craneLib.path {
+        path = ./.;
+        filter = path: type:
+          (craneLib.filterCargoSources path type)
+          || (builtins.match ".*\\.html$" path != null);
+      };
+
+      # Full source for tests/checks - keeps fixtures, golden files, ignore files, etc.
+      # cleanCargoSource is too restrictive; we need templates, test data, and snapshots
+      mkCheckSrc = craneLib: pkgs: pkgs.lib.cleanSourceWith {
+        src = ./.;
+        filter = path: type:
+          let
+            p = toString path;
+            baseName = baseNameOf path;
+          in
+          # Keep standard Cargo sources
+          (craneLib.filterCargoSources path type)
+          # Keep HTML templates (for include_str!)
+          || (builtins.match ".*\\.html$" path != null)
+          # Keep test directories and their contents
+          || (pkgs.lib.hasInfix "/tests/" p)
+          # Keep snapshot files
+          || (pkgs.lib.hasSuffix ".snap" baseName)
+          # Keep proptest regression files
+          || (pkgs.lib.hasSuffix ".proptest-regressions" baseName)
+          # Keep gitignore files (used by tests)
+          || (baseName == ".gitignore");
+      };
     in
     {
       packages = forAllSystems (system:
         let
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
-          src = craneLib.cleanCargoSource ./.;
+          src = mkBuildSrc craneLib;
 
           commonArgs = {
             pname = "tokmd";
@@ -72,8 +101,9 @@
 
       checks = forAllSystems (system:
         let
+          pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
-          src = craneLib.cleanCargoSource ./.;
+          src = mkCheckSrc craneLib pkgs;
           commonArgs = {
             inherit src;
             strictDeps = true;

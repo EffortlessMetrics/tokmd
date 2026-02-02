@@ -711,6 +711,17 @@ pub struct CockpitArgs {
     /// Output file (stdout if omitted).
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
+
+    /// Path to baseline receipt for trend comparison.
+    ///
+    /// When provided, cockpit will compute delta metrics showing how
+    /// the current state compares to the baseline.
+    #[arg(long, value_name = "PATH")]
+    pub baseline: Option<std::path::PathBuf>,
+
+    /// Diff range syntax: two-dot (default) or three-dot.
+    #[arg(long, value_enum, default_value_t = DiffRangeMode::TwoDot)]
+    pub diff_range: DiffRangeMode,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -723,6 +734,16 @@ pub enum CockpitFormat {
     Md,
     /// Section-based output for PR template filling.
     Sections,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum DiffRangeMode {
+    /// Two-dot syntax (A..B) - direct diff between commits.
+    #[default]
+    TwoDot,
+    /// Three-dot syntax (A...B) - diff from merge-base.
+    ThreeDot,
 }
 
 // =============================================================================

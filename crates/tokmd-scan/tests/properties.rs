@@ -342,13 +342,15 @@ proptest! {
         };
 
         // Build config
-        let mut cfg = tokei::Config::default();
-        cfg.hidden = Some(true);
-        cfg.no_ignore = Some(true);
-        cfg.no_ignore_dot = Some(true);
-        cfg.no_ignore_parent = Some(true);
-        cfg.no_ignore_vcs = Some(true);
-        cfg.treat_doc_strings_as_comments = Some(true);
+        let cfg = tokei::Config {
+            hidden: Some(true),
+            no_ignore: Some(true),
+            no_ignore_dot: Some(true),
+            no_ignore_parent: Some(true),
+            no_ignore_vcs: Some(true),
+            treat_doc_strings_as_comments: Some(true),
+            ..Default::default()
+        };
 
         // All should be true
         prop_assert_eq!(cfg.hidden, Some(true));

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 2.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 4.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -243,7 +243,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 2 },
+        "schema_version": { "type": "integer", "const": 4 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -263,6 +263,7 @@
         "git": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/GitReport" }] },
         "imports": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ImportReport" }] },
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
+        "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
         "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
       }
     },
@@ -862,6 +863,60 @@
         "files": { "type": "array", "items": { "type": "string" }, "description": "Duplicate file paths." }
       }
     },
+    "ComplexityReport": {
+      "type": "object",
+      "description": "Code complexity analysis.",
+      "required": ["total_functions", "avg_function_length", "max_function_length", "avg_cyclomatic", "max_cyclomatic", "high_risk_files", "files"],
+      "properties": {
+        "total_functions": { "type": "integer", "description": "Total number of functions detected." },
+        "avg_function_length": { "type": "number", "description": "Average function length in lines." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity." },
+        "avg_cognitive": { "type": ["number", "null"], "description": "Average cognitive complexity across files." },
+        "max_cognitive": { "type": ["integer", "null"], "description": "Maximum cognitive complexity found." },
+        "avg_nesting_depth": { "type": ["number", "null"], "description": "Average nesting depth across files." },
+        "max_nesting_depth": { "type": ["integer", "null"], "description": "Maximum nesting depth found." },
+        "high_risk_files": { "type": "integer", "description": "Number of high-risk files." },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileComplexity" } }
+      }
+    },
+    "FileComplexity": {
+      "type": "object",
+      "description": "Complexity metrics for a single file.",
+      "required": ["path", "module", "function_count", "max_function_length", "cyclomatic_complexity", "risk_level"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "module": { "type": "string", "description": "Module containing the file." },
+        "function_count": { "type": "integer", "description": "Number of functions in the file." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "cyclomatic_complexity": { "type": "integer", "description": "Estimated cyclomatic complexity." },
+        "cognitive_complexity": { "type": ["integer", "null"], "description": "Cognitive complexity for this file." },
+        "max_nesting": { "type": ["integer", "null"], "description": "Maximum nesting depth in this file." },
+        "risk_level": { "$ref": "#/definitions/ComplexityRisk" },
+        "functions": { "type": ["array", "null"], "items": { "$ref": "#/definitions/FunctionComplexityDetail" }, "description": "Function-level complexity details (optional)." }
+      }
+    },
+    "FunctionComplexityDetail": {
+      "type": "object",
+      "description": "Function-level complexity details.",
+      "required": ["name", "line_start", "line_end", "length", "cyclomatic"],
+      "properties": {
+        "name": { "type": "string", "description": "Function name." },
+        "line_start": { "type": "integer", "description": "Start line (1-indexed)." },
+        "line_end": { "type": "integer", "description": "End line (1-indexed)." },
+        "length": { "type": "integer", "description": "Function length in lines." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity." },
+        "cognitive": { "type": ["integer", "null"], "description": "Cognitive complexity (if computed)." },
+        "max_nesting": { "type": ["integer", "null"], "description": "Maximum nesting depth within the function." },
+        "param_count": { "type": ["integer", "null"], "description": "Number of parameters." }
+      }
+    },
+    "ComplexityRisk": {
+      "type": "string",
+      "enum": ["low", "moderate", "high", "critical"],
+      "description": "Complexity risk classification."
+    },
     "FunReport": {
       "type": "object",
       "description": "Fun/novelty outputs.",
@@ -895,8 +950,52 @@
         "risk": { "$ref": "#/definitions/Risk" },
         "contracts": { "$ref": "#/definitions/Contracts" },
         "evidence": { "$ref": "#/definitions/Evidence" },
-        "review_plan": { "type": "array", "items": { "$ref": "#/definitions/ReviewItem" }, "description": "Prioritized list of files to review." }
+        "review_plan": { "type": "array", "items": { "$ref": "#/definitions/ReviewItem" }, "description": "Prioritized list of files to review." },
+        "trend": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendComparison" }], "description": "Trend comparison with baseline (if --baseline was provided)." }
       }
+    },
+    "TrendComparison": {
+      "type": "object",
+      "description": "Trend comparison between current state and baseline.",
+      "required": ["baseline_available"],
+      "properties": {
+        "baseline_available": { "type": "boolean", "description": "Whether a baseline was successfully loaded." },
+        "baseline_path": { "type": ["string", "null"], "description": "Path to the baseline file used." },
+        "baseline_generated_at_ms": { "type": ["integer", "null"], "description": "Timestamp of baseline generation." },
+        "health": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendMetric" }], "description": "Health score trend." },
+        "risk": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendMetric" }], "description": "Risk score trend." },
+        "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendIndicator" }], "description": "Complexity trend indicator." }
+      }
+    },
+    "TrendMetric": {
+      "type": "object",
+      "description": "A trend metric with current, previous, delta values.",
+      "required": ["current", "previous", "delta", "delta_pct", "direction"],
+      "properties": {
+        "current": { "type": "number", "description": "Current value." },
+        "previous": { "type": "number", "description": "Previous (baseline) value." },
+        "delta": { "type": "number", "description": "Absolute delta (current - previous)." },
+        "delta_pct": { "type": "number", "description": "Percentage change." },
+        "direction": { "$ref": "#/definitions/TrendDirection" }
+      }
+    },
+    "TrendIndicator": {
+      "type": "object",
+      "description": "Complexity trend indicator.",
+      "required": ["direction", "summary", "files_increased", "files_decreased"],
+      "properties": {
+        "direction": { "$ref": "#/definitions/TrendDirection" },
+        "summary": { "type": "string", "description": "Human-readable summary." },
+        "files_increased": { "type": "integer", "description": "Number of files that got more complex." },
+        "files_decreased": { "type": "integer", "description": "Number of files that got less complex." },
+        "avg_cyclomatic_delta": { "type": ["number", "null"], "description": "Average cyclomatic delta." },
+        "avg_cognitive_delta": { "type": ["number", "null"], "description": "Average cognitive delta." }
+      }
+    },
+    "TrendDirection": {
+      "type": "string",
+      "enum": ["improving", "stable", "degrading"],
+      "description": "Direction of a trend."
     },
     "ChangeSurface": {
       "type": "object",
