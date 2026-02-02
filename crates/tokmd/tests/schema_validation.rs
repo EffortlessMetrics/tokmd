@@ -10,18 +10,9 @@ use std::path::PathBuf;
 
 /// Load the JSON schema from docs/schema.json
 fn load_schema() -> Result<Value> {
-    let schema_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .context("no parent")?
-        .parent()
-        .context("no grandparent")?
-        .join("docs")
-        .join("schema.json");
-
-    let schema_content =
-        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
-
-    serde_json::from_str(&schema_content).context("Failed to parse schema.json")
+    // Use include_str! to embed the schema at compile time, avoiding runtime path issues in CI
+    let schema_content = include_str!("../../../docs/schema.json");
+    serde_json::from_str(schema_content).context("Failed to parse schema.json")
 }
 
 /// Build a validator for a specific definition in the schema
