@@ -44,17 +44,26 @@ fn create_test_repo() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
+    // Configure git user for commits - CRITICAL for CI environments where global config is missing
+    let config_email = Command::new("git")
         .args(["config", "user.email", "test@example.com"])
         .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    if !config_email.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
+
+    let config_name = Command::new("git")
         .args(["config", "user.name", "Test User"])
         .current_dir(&temp_dir)
         .output()
         .ok()?;
+    if !config_name.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
@@ -350,17 +359,26 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
+    // Configure git user for commits - CRITICAL for CI environments where global config is missing
+    let config_email = Command::new("git")
         .args(["config", "user.email", "test@example.com"])
         .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    if !config_email.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
+
+    let config_name = Command::new("git")
         .args(["config", "user.name", "Test User"])
         .current_dir(&temp_dir)
         .output()
         .ok()?;
+    if !config_name.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
 
     // Create a commit with 5 files
     for i in 1..=5 {
