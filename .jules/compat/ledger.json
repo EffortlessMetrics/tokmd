@@ -16,6 +16,6 @@
     "run_id": "run-20240525-compat-004",
     "date": "2024-05-25",
     "target": "tokmd",
-    "improvement": "fixed unused warnings in no-default-features build for cockpit command"
+    "improvement": "fixed unused warnings in no-default-features build for cockpit command and corrected rustfmt violations"
   }
 ]

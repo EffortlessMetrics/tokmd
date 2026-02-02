@@ -26,6 +26,14 @@
     {
       "step": "verify-fix",
       "status": "pass"
+    },
+    {
+      "step": "verify-fmt",
+      "status": "failed-initially"
+    },
+    {
+      "step": "fix-fmt",
+      "status": "pass"
     }
   ],
   "receipts": []
