@@ -1,0 +1,20 @@
+{
+  "run_id": "20260202-proptest",
+  "status": "success",
+  "gates": {
+    "build": "PASS",
+    "test": "PASS",
+    "fmt": "PASS",
+    "clippy": "PASS"
+  },
+  "receipts": [
+    {
+      "description": "cargo tree -d (verification)",
+      "output": "No rand 0.9 duplicates found."
+    },
+    {
+      "description": "cargo test --workspace",
+      "output": "All tests passed."
+    }
+  ]
+}

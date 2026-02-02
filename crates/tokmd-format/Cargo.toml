@@ -23,6 +23,6 @@ tokmd-redact.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest.workspace = true
 insta = { version = "1.39.0", features = ["json"] }
 tempfile = "3.19.1"
