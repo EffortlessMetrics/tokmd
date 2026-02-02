@@ -35,5 +35,5 @@
       "result": "PASS"
     }
   ],
-  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failures in Nix build and tokmd-git tests."
+  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failures in Nix build and tokmd-git tests (robustness against missing git config)."
 }
