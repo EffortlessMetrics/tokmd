@@ -1,0 +1,25 @@
+{
+  "run_id": "20260202-bolt",
+  "timestamp_utc": "2026-02-02T13:15:22Z",
+  "lane": "scout",
+  "target": "derived.rs",
+  "proof_method": "benchmark",
+  "gates": {
+    "test": "PASS"
+  },
+  "commands": [
+    {
+      "cmd": "cargo run --example bench_derived --package tokmd-analysis --release",
+      "result": "841ms"
+    },
+    {
+      "cmd": "cargo run --example bench_derived --package tokmd-analysis --release",
+      "result": "780ms"
+    },
+    {
+      "cmd": "cargo test --package tokmd-analysis",
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Reduced derived report generation time by ~7% (61ms) by avoiding String allocations."
+}
