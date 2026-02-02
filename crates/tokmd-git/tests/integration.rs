@@ -44,17 +44,20 @@ fn create_test_repo() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
+    // Configure git user for commits (local config only)
+    let _ = Command::new("git")
         .args(["config", "user.email", "test@example.com"])
         .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+        .output();
+    let _ = Command::new("git")
         .args(["config", "user.name", "Test User"])
         .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+        .output();
+    // Also disable gpg signing to avoid CI issues
+    let _ = Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(&temp_dir)
+        .output();
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
@@ -350,17 +353,20 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
+    // Configure git user for commits (local config only)
+    let _ = Command::new("git")
         .args(["config", "user.email", "test@example.com"])
         .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+        .output();
+    let _ = Command::new("git")
         .args(["config", "user.name", "Test User"])
         .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+        .output();
+    // Also disable gpg signing to avoid CI issues
+    let _ = Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(&temp_dir)
+        .output();
 
     // Create a commit with 5 files
     for i in 1..=5 {

@@ -28,7 +28,12 @@
       "cmd": "cargo test --package tokmd --test schema_validation",
       "exit_code": 0,
       "result": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-git --test integration",
+      "exit_code": 0,
+      "result": "PASS"
     }
   ],
-  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failure in Nix build by including docs in check source."
+  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failures in Nix build and tokmd-git tests."
 }
