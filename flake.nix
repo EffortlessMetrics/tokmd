@@ -119,7 +119,10 @@
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
           });
           fmt = craneLib.cargoFmt { inherit src; };
-          test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
+          test = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            nativeBuildInputs = [ pkgs.git ];
+          });
         });
 
       devShells = forAllSystems (system:
