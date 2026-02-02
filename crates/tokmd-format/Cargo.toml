@@ -24,5 +24,5 @@ tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.9.0"
-insta = { version = "1.39.0", features = ["json"] }
+insta = { version = "1.46.2", features = ["json"] }
 tempfile = "3.19.1"
