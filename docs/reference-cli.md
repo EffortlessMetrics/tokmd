@@ -103,14 +103,15 @@ Executes a full scan and saves all artifacts to a run directory.
 | `--module-roots <DIRS>` | Comma-separated list of root directories. | `.` |
 | `--module-depth <N>` | How deep to group modules. | `1` |
 | `--children <MODE>` | Handling of embedded languages. | `collapse` |
-| `--preset <PRESET>` | Analysis preset to include. | `receipt` |
+| `--analysis <PRESET>` | Analysis preset to include (e.g., `receipt`, `deep`). | `(none)` |
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 
 **Output files**:
+- `receipt.json` — Run manifest (index)
 - `lang.json` — Language summary receipt
 - `module.json` — Module summary receipt
 - `export.jsonl` — File-level inventory
-- `analysis.json` — Derived metrics and enrichments
+- `analysis.json` — Derived metrics (only if `--analysis` is used)
 
 **Example**:
 ```bash
@@ -118,7 +119,7 @@ Executes a full scan and saves all artifacts to a run directory.
 tokmd run --output-dir .runs/baseline
 
 # Full run with deep analysis
-tokmd run --output-dir .runs/full --preset deep
+tokmd run --output-dir .runs/full --analysis deep
 ```
 
 ### `tokmd analyze`

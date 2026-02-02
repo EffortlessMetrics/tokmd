@@ -210,10 +210,10 @@ tokmd run --output-dir .runs/baseline
 ```
 
 This creates:
+- `receipt.json` — Run manifest
 - `lang.json` — Language summary
 - `module.json` — Module breakdown
 - `export.jsonl` — File inventory
-- `analysis.json` — Derived metrics
 
 Later, you can diff against this baseline:
 
