@@ -40,11 +40,10 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
 | 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 | 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
-| 4 | `tokmd-core` | Library facade for external consumers |
+| 4 | `tokmd-core` | Library facade with FFI layer |
 | 5 | `tokmd` | CLI binary |
-| — | `tokmd-ffi` | C-compatible FFI layer (planned) |
-| — | `tokmd-python` | PyO3 bindings for PyPI (planned) |
-| — | `tokmd-node` | napi-rs bindings for npm (planned) |
+| 5 | `tokmd-python` | PyO3 bindings for PyPI |
+| 5 | `tokmd-node` | napi-rs bindings for npm |
 
 ### CLI Commands
 
@@ -62,6 +61,30 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - `tokmd init` — Generate `.tokeignore` template
 - `tokmd check-ignore` — Explain why files are being ignored
 - `tokmd completions` — Generate shell completions
+
+### Library API (tokmd-core)
+
+The `tokmd-core` crate provides a clap-free library facade for embedding:
+
+**Workflow Functions** (Rust):
+- `lang_workflow(scan, lang) -> LangReceipt`
+- `module_workflow(scan, module) -> ModuleReceipt`
+- `export_workflow(scan, export) -> ExportReceipt`
+- `diff_workflow(settings) -> DiffReceipt`
+
+**FFI Layer** (`ffi::run_json`):
+- Single JSON entrypoint: `run_json(mode, args_json) -> String`
+- Modes: `lang`, `module`, `export`, `analyze`, `diff`, `version`
+- Response envelope: `{"ok": bool, "data": {...}, "error": {...}}`
+
+**Python Bindings** (tokmd-python):
+- `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
+- Returns native Python dicts
+- Releases GIL during long scans
+
+**Node.js Bindings** (tokmd-node):
+- All functions return Promises (async)
+- Uses `tokio::task::spawn_blocking()` for non-blocking event loop
 
 ### Analysis Presets
 
@@ -106,8 +129,8 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
   - Cockpit receipts: `SCHEMA_VERSION = 3` (local to cockpit.rs)
 
 ### Feature Flags
-- `git`: Git history analysis (requires git2)
-- `content`: File content scanning
+- `git`: Git history analysis (uses shell `git log`)
+- `content`: File content scanning (entropy, tags, hashing)
 - `walk`: Filesystem traversal for assets
 
 ### Git Diff Syntax (Two-dot vs Three-dot)
@@ -126,9 +149,9 @@ When invoking `git diff` or `git log` with range syntax:
 - **Golden snapshots**: Using `insta` crate (timestamps normalized)
 - **Crate-level tests**: Each crate has its own `tests/` directory
 - **Unit tests**: In-module tests
-- **Property-based tests**: Using `proptest` for invariant verification (tokmd-redact, tokmd-tokeignore, tokmd-walk)
-- **Fuzz targets**: Using `libfuzzer` for crash/panic detection (see `fuzz/` directory)
-- **Mutation testing**: Using `cargo-mutants` for test quality verification
+- **Property-based tests**: Using `proptest` across 14 crates for invariant verification
+- **Fuzz targets**: 9 targets using `libfuzzer` (see `fuzz/` directory) with seed corpus and dictionaries
+- **Mutation testing**: Using `cargo-mutants` for test quality verification (configured in `.cargo/mutants.toml`)
 
 Run a single test:
 ```bash
@@ -150,6 +173,12 @@ Run mutation testing:
 cargo mutants --file crates/tokmd-redact/src/lib.rs
 ```
 
+Run fuzz targets:
+```bash
+cargo +nightly fuzz run fuzz_entropy --features content
+cargo +nightly fuzz list  # List all targets
+```
+
 ## Key Dependencies
 
 | Crate | Purpose |
@@ -159,19 +188,34 @@ cargo mutants --file crates/tokmd-redact/src/lib.rs
 | `serde`/`serde_json` | JSON serialization |
 | `blake3` | Fast hashing for redaction and integrity |
 | `anyhow` | Error handling |
-| `git2` | Git history analysis (optional) |
 | `ignore` | File walking with gitignore support |
+| `pyo3` | Python bindings (tokmd-python) |
+| `napi-rs` | Node.js bindings (tokmd-node) |
 
 ## Documentation
 
-- `docs/recipes.md`: Real-world usage examples
+### Architecture & Design
+- `docs/architecture.md`: Crate hierarchy, data flow, dependency rules
+- `docs/design.md`: Design principles, system context, data model
+- `docs/requirements.md`: Requirements, interfaces, quality bar
+- `docs/implementation-plan.md`: Phased roadmap for future work
+
+### User Guides
 - `docs/tutorial.md`: Getting started guide
+- `docs/recipes.md`: Real-world usage examples
 - `docs/reference-cli.md`: CLI flag reference
-- `docs/explanation.md`: Philosophy and design principles
+- `docs/troubleshooting.md`: Common issues and solutions
+
+### Technical Reference
 - `docs/SCHEMA.md`: Receipt format documentation
 - `docs/schema.json`: Formal JSON Schema Draft 7 definition
+- `docs/testing.md`: Testing strategy and frameworks
+
+### Product & Philosophy
 - `docs/PRODUCT.md`: Product contract and invariants
-- `docs/troubleshooting.md`: Common issues and solutions
+- `docs/explanation.md`: Philosophy and design principles
+
+### Project
 - `ROADMAP.md`: Current status and future plans
 - `CHANGELOG.md`: Version history
 - `CONTRIBUTING.md`: Development setup, testing, and publishing guide
