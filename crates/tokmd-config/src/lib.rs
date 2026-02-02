@@ -437,8 +437,12 @@ pub struct BadgeArgs {
 #[derive(Args, Debug, Clone)]
 pub struct InitArgs {
     /// Target directory (defaults to ".").
-    #[arg(long, value_name = "DIR", default_value = ".")]
-    pub dir: PathBuf,
+    #[arg(value_name = "DIR")]
+    pub path: Option<PathBuf>,
+
+    /// Target directory (deprecated, use positional argument).
+    #[arg(long, value_name = "DIR", hide = true)]
+    pub dir: Option<PathBuf>,
 
     /// Overwrite an existing `.tokeignore`.
     #[arg(long)]
