@@ -1,0 +1,39 @@
+{
+  "run_id": "20260202T130413Z",
+  "timestamp_utc": "2026-02-02T13:04:13Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/commands/cockpit.rs & build config",
+  "commands": [
+    {
+      "cmd": "cargo build --package tokmd --features git",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --package tokmd --features git",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo clippy --package tokmd --features git -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo test --package tokmd --test schema_validation",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-git --test integration",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Removed brittle unwrap calls in cockpit command handler and fixed CI failures in Nix build and tokmd-git tests (robustness against missing git config)."
+}

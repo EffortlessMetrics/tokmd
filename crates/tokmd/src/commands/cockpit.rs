@@ -925,11 +925,12 @@ fn compute_supply_chain_gate(
     // Check if cargo-audit is available
     let check = Command::new("cargo").arg("audit").arg("--version").output();
 
-    let status = if check.is_ok() && check.unwrap().status.success() {
-        // TODO: Actually run cargo audit and parse results
-        GateStatus::Pending
-    } else {
-        GateStatus::Pending
+    let status = match check {
+        Ok(output) if output.status.success() => {
+            // TODO: Actually run cargo audit and parse results
+            GateStatus::Pending
+        }
+        _ => GateStatus::Pending,
     };
 
     Ok(Some(SupplyChainGate {
@@ -1572,7 +1573,12 @@ fn run_mutations(repo_root: &PathBuf, relevant_files: &[String]) -> Result<Mutat
 
     let head_commit = get_head_commit(repo_root).ok();
 
-    if check.is_err() || !check.unwrap().status.success() {
+    let mutants_available = match check {
+        Ok(output) => output.status.success(),
+        Err(_) => false,
+    };
+
+    if !mutants_available {
         // cargo-mutants not installed
         return Ok(MutationGate {
             meta: GateMeta {
