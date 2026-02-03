@@ -252,13 +252,15 @@ pub fn create_module_report(
     }
 
     // Unique parent files per module.
+    // Optimization: reuse file_rows instead of re-scanning/normalizing paths.
+    // Note: file_rows is exhaustive (contains all files, not truncated), so this is safe and accurate.
     let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+    for row in &file_rows {
+        if row.kind == FileKind::Parent {
+            module_files
+                .entry(row.module.clone())
+                .or_default()
+                .insert(row.path.clone());
         }
     }
 
