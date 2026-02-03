@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 use tokei::{Config, Languages};
 use tokmd_model::create_module_report;
-use tokmd_types::{ChildIncludeMode};
+use tokmd_types::ChildIncludeMode;
 
 fn main() {
     let root = PathBuf::from("target/bench_temp_module");
