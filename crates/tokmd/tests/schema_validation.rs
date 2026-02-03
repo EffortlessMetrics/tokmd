@@ -8,8 +8,9 @@ use assert_cmd::Command;
 use serde_json::Value;
 use std::path::PathBuf;
 
-/// Load the JSON schema from docs/schema.json
-fn load_schema() -> Result<Value> {
+/// Load the JSON schema from docs/schema.json.
+/// Returns Ok(None) if the file is missing (e.g. in packaged builds).
+fn load_schema() -> Result<Option<Value>> {
     let schema_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .context("no parent")?
@@ -18,10 +19,14 @@ fn load_schema() -> Result<Value> {
         .join("docs")
         .join("schema.json");
 
-    let schema_content =
-        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
-
-    serde_json::from_str(&schema_content).context("Failed to parse schema.json")
+    match std::fs::read_to_string(&schema_path) {
+        Ok(content) => {
+            let json = serde_json::from_str(&content).context("Failed to parse schema.json")?;
+            Ok(Some(json))
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e).context("Failed to read schema.json"),
+    }
 }
 
 /// Build a validator for a specific definition in the schema
@@ -50,7 +55,13 @@ fn tokmd_cmd() -> Command {
 
 #[test]
 fn test_lang_receipt_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "LangReceipt")?;
 
     let output = tokmd_cmd().arg("--format").arg("json").output()?;
@@ -74,7 +85,13 @@ fn test_lang_receipt_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_module_receipt_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "ModuleReceipt")?;
 
     let output = tokmd_cmd()
@@ -102,7 +119,13 @@ fn test_module_receipt_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_export_receipt_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "ExportReceipt")?;
 
     let output = tokmd_cmd()
@@ -130,7 +153,13 @@ fn test_export_receipt_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_export_meta_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "ExportMeta")?;
 
     let output = tokmd_cmd()
@@ -161,7 +190,13 @@ fn test_export_meta_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_export_row_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "ExportRow")?;
 
     let output = tokmd_cmd()
@@ -197,7 +232,13 @@ fn test_export_row_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_analysis_receipt_validates_against_schema() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "AnalysisReceipt")?;
 
     // Test with the default 'receipt' preset
@@ -228,7 +269,13 @@ fn test_analysis_receipt_validates_against_schema() -> Result<()> {
 
 #[test]
 fn test_analysis_receipt_health_preset_validates() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "AnalysisReceipt")?;
 
     // Test with the 'health' preset which includes TODO density
@@ -259,7 +306,13 @@ fn test_analysis_receipt_health_preset_validates() -> Result<()> {
 
 #[test]
 fn test_analysis_receipt_supply_preset_validates() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "AnalysisReceipt")?;
 
     // Test with the 'supply' preset which includes assets and dependencies
@@ -290,7 +343,13 @@ fn test_analysis_receipt_supply_preset_validates() -> Result<()> {
 
 #[test]
 fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
     let validator = build_validator_for_definition(&schema, "AnalysisReceipt")?;
 
     // Test with a context window to exercise the context_window report
@@ -330,7 +389,13 @@ fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
 #[test]
 fn test_schema_version_matches_constant() -> Result<()> {
     // Verify that the schema versions in schema.json match SCHEMA_VERSION in code
-    let schema = load_schema()?;
+    let schema = match load_schema()? {
+        Some(s) => s,
+        None => {
+            eprintln!("Skipping schema validation: docs/schema.json not found");
+            return Ok(());
+        }
+    };
 
     // Check LangReceipt schema_version const
     let lang_version =
