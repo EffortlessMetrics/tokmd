@@ -1,0 +1,14 @@
+{
+  "run_id": "2026-02-03-gatekeeper-config-toml-determinism",
+  "goal": "Lock deterministic ordering for TomlConfig views",
+  "lane": "scout",
+  "decision": "Option A (Replace HashMap with BTreeMap in TomlConfig)",
+  "changes": [
+    "crates/tokmd-config/src/lib.rs",
+    "crates/tokmd-config/tests/determinism.rs"
+  ],
+  "verification": {
+    "test": "cargo test -p tokmd-config --test determinism",
+    "workspace": "cargo test --workspace && cargo clippy --workspace -- -D warnings"
+  }
+}
