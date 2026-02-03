@@ -19,7 +19,10 @@ fn load_schema() -> Result<Option<Value>> {
         .join("schema.json");
 
     if !schema_path.exists() {
-        println!("Skipping schema validation: schema.json not found at {}", schema_path.display());
+        println!(
+            "Skipping schema validation: schema.json not found at {}",
+            schema_path.display()
+        );
         return Ok(None);
     }
 
