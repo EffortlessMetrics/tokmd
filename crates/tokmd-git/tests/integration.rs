@@ -44,17 +44,16 @@ fn create_test_repo() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
-        .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    // Configure git to allow commits
+    // We use environment variables for identity to avoid polluting global config
+    // and to work reliably in CI environments
+    let envs = [
+        ("GIT_AUTHOR_NAME", "Test User"),
+        ("GIT_AUTHOR_EMAIL", "test@example.com"),
+        ("GIT_COMMITTER_NAME", "Test User"),
+        ("GIT_COMMITTER_EMAIL", "test@example.com"),
+    ];
+
     Command::new("git")
         .args(["config", "commit.gpgsign", "false"])
         .current_dir(&temp_dir)
@@ -72,6 +71,7 @@ fn create_test_repo() -> Option<TempGitRepo> {
     let commit1 = Command::new("git")
         .args(["commit", "-m", "First commit"])
         .current_dir(&temp_dir)
+        .envs(envs)
         .output()
         .ok()?;
     if !commit1.status.success() {
@@ -90,6 +90,7 @@ fn create_test_repo() -> Option<TempGitRepo> {
     Command::new("git")
         .args(["commit", "-m", "Second commit"])
         .current_dir(&temp_dir)
+        .envs(envs)
         .output()
         .ok()?;
 
@@ -103,6 +104,7 @@ fn create_test_repo() -> Option<TempGitRepo> {
     Command::new("git")
         .args(["commit", "-m", "Third commit"])
         .current_dir(&temp_dir)
+        .envs(envs)
         .output()
         .ok()?;
 
@@ -355,17 +357,14 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         return None;
     }
 
-    // Configure git user for commits
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
-        .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    // Configure git to allow commits
+    let envs = [
+        ("GIT_AUTHOR_NAME", "Test User"),
+        ("GIT_AUTHOR_EMAIL", "test@example.com"),
+        ("GIT_COMMITTER_NAME", "Test User"),
+        ("GIT_COMMITTER_EMAIL", "test@example.com"),
+    ];
+
     Command::new("git")
         .args(["config", "commit.gpgsign", "false"])
         .current_dir(&temp_dir)
@@ -385,6 +384,7 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
     let commit_result = Command::new("git")
         .args(["commit", "-m", "Commit with 5 files"])
         .current_dir(&temp_dir)
+        .envs(envs)
         .output()
         .ok()?;
     if !commit_result.status.success() {
