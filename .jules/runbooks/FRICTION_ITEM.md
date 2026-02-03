@@ -1,17 +1,13 @@
----
-# Friction item
+# Friction Item
 
-id: FRIC-YYYYMMDD-###
-tags: [palette, dx]
+## 💥 The Pain
+(What hurts? What is slow/fragile/unsafe?)
 
-## Pain
-What hurts, in one paragraph.
+## 🔎 Evidence
+(Command output, error log, or pointer to code)
 
-## Evidence
-- file paths
-- commands / outputs
-- screenshots (if relevant)
+## ✅ Done When
+(Clear acceptance criteria)
 
-## Done when
-- [ ] acceptance criteria
----
+## 🏷️ Tags
+(security, quality, compat, perf, docs)

@@ -88,8 +88,14 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         module_depth: 2,
         children: cli::ChildIncludeMode::Separate,
     };
-    format::write_module_json_to_file(&module_path, &module_report, &scan_args, &module_args_meta)
-        .context("Failed to write module.json")?;
+    format::write_module_json_to_file(
+        &module_path,
+        &module_report,
+        &scan_args,
+        &module_args_meta,
+        Some(redact_mode),
+    )
+    .context("Failed to write module.json")?;
 
     // Write export.jsonl (with redaction support)
     let export_path = output_dir.join("export.jsonl");
