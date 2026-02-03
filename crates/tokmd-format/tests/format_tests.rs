@@ -1486,7 +1486,7 @@ fn test_write_module_json_to_file_writes_valid_json() {
     let temp_dir = tempfile::tempdir().expect("create temp dir");
     let file_path = temp_dir.path().join("module.json");
 
-    write_module_json_to_file(&file_path, &report, &scan, &args_meta)
+    write_module_json_to_file(&file_path, &report, &scan, &args_meta, None)
         .expect("write_module_json_to_file should succeed");
 
     // Verify file exists and contains valid JSON

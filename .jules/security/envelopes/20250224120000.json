@@ -1,0 +1,33 @@
+{
+  "run_id": "20250224120000",
+  "timestamp_utc": "2025-02-24T12:00:00Z",
+  "lane": "scout",
+  "target": "redaction-leak-module-json",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "test result: ok. 172 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+    }
+  ],
+  "results_summary": "Fix verified. All tests passed."
+}

@@ -16,5 +16,14 @@
     "gates_run": ["test"],
     "status": "PASS",
     "friction_ids_created": []
+  },
+  {
+    "timestamp_utc": "2025-02-24T12:00:00Z",
+    "lane": "scout",
+    "target": "redaction-leak-module-json",
+    "pr_link": "tbd",
+    "gates_run": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids_created": []
   }
 ]

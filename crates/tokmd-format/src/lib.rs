@@ -727,6 +727,7 @@ pub fn write_module_json_to_file(
     report: &ModuleReport,
     scan: &ScanArgs,
     args_meta: &ModuleArgsMeta,
+    redact: Option<RedactMode>,
 ) -> Result<()> {
     let receipt = ModuleReceipt {
         schema_version: tokmd_types::SCHEMA_VERSION,
@@ -737,11 +738,38 @@ pub fn write_module_json_to_file(
         warnings: vec![],
         scan: scan.clone(),
         args: args_meta.clone(),
-        report: report.clone(),
+        report: redact_module_report(report.clone(), redact.unwrap_or(RedactMode::None)),
     };
     let file = File::create(path)?;
     serde_json::to_writer(file, &receipt)?;
     Ok(())
+}
+
+fn redact_module_report(report: ModuleReport, mode: RedactMode) -> ModuleReport {
+    if mode != RedactMode::All {
+        return report;
+    }
+
+    let rows = report
+        .rows
+        .into_iter()
+        .map(|mut row| {
+            row.module = short_hash(&row.module);
+            row
+        })
+        .collect();
+
+    let module_roots = report
+        .module_roots
+        .into_iter()
+        .map(|root| short_hash(&root))
+        .collect();
+
+    ModuleReport {
+        rows,
+        module_roots,
+        ..report
+    }
 }
 
 /// Write export data as JSONL to a file path.
