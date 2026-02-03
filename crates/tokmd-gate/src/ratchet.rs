@@ -17,7 +17,11 @@ use serde_json::Value;
 /// # Returns
 /// A `RatchetResult` with pass/fail status and detailed information.
 #[cfg_attr(not(test), allow(dead_code))]
-pub(crate) fn evaluate_ratchet(rule: &RatchetRule, baseline: &Value, current: &Value) -> RatchetResult {
+pub(crate) fn evaluate_ratchet(
+    rule: &RatchetRule,
+    baseline: &Value,
+    current: &Value,
+) -> RatchetResult {
     let baseline_resolved = resolve_pointer(baseline, &rule.pointer);
     let current_resolved = resolve_pointer(current, &rule.pointer);
 

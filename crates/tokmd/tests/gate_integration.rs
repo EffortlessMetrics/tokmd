@@ -88,7 +88,9 @@ fn test_gate_requires_policy() {
         .args(["gate"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("No policy or ratchet rules specified"));
+        .stderr(predicate::str::contains(
+            "No policy or ratchet rules specified",
+        ));
 }
 
 #[test]

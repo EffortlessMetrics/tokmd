@@ -143,6 +143,9 @@ pub enum Commands {
 
     /// Generate a complexity baseline for trend tracking.
     Baseline(BaselineArgs),
+
+    /// Bundle codebase for LLM handoff.
+    Handoff(HandoffArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -770,6 +773,75 @@ pub enum CockpitFormat {
     Md,
     /// Section-based output for PR template filling.
     Sections,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct HandoffArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to ".".
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
+
+    /// Output directory for handoff artifacts.
+    #[arg(long, default_value = ".handoff")]
+    pub out_dir: PathBuf,
+
+    /// Token budget with optional k/m suffix (e.g., "128k", "1m", "50000").
+    #[arg(long, default_value = "128k")]
+    pub budget: String,
+
+    /// Packing strategy for code bundle.
+    #[arg(long, value_enum, default_value_t = ContextStrategy::Greedy)]
+    pub strategy: ContextStrategy,
+
+    /// Metric to rank files by for packing.
+    #[arg(long, value_enum, default_value_t = ValueMetric::Hotspot)]
+    pub rank_by: ValueMetric,
+
+    /// Intelligence preset level.
+    #[arg(long, value_enum, default_value_t = HandoffPreset::Risk)]
+    pub preset: HandoffPreset,
+
+    /// Module roots (see `tokmd module`).
+    #[arg(long, value_delimiter = ',')]
+    pub module_roots: Option<Vec<String>>,
+
+    /// Module depth (see `tokmd module`).
+    #[arg(long)]
+    pub module_depth: Option<usize>,
+
+    /// Overwrite existing output directory.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Strip blank lines from code bundle.
+    #[arg(long)]
+    pub compress: bool,
+
+    /// Disable git-based features.
+    #[arg(long = "no-git")]
+    pub no_git: bool,
+
+    /// Maximum commits to scan for git metrics.
+    #[arg(long, default_value = "1000")]
+    pub max_commits: usize,
+
+    /// Maximum files per commit to process.
+    #[arg(long, default_value = "100")]
+    pub max_commit_files: usize,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum HandoffPreset {
+    /// Minimal: tree + map only.
+    Minimal,
+    /// Standard: + complexity, derived.
+    Standard,
+    /// Risk: + hotspots, coupling (default).
+    #[default]
+    Risk,
+    /// Deep: everything.
+    Deep,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

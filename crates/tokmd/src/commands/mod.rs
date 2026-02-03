@@ -8,6 +8,7 @@ pub(crate) mod context;
 pub(crate) mod diff;
 pub(crate) mod export;
 pub(crate) mod gate;
+pub(crate) mod handoff;
 pub(crate) mod init;
 pub(crate) mod lang;
 pub(crate) mod module;
@@ -37,5 +38,6 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Gate(args) => gate::handle(args, global, resolved),
         cli::Commands::Cockpit(args) => cockpit::handle(args, global),
         cli::Commands::Baseline(args) => baseline::handle(args, global),
+        cli::Commands::Handoff(args) => handoff::handle(args, global),
     }
 }
