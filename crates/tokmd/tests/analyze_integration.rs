@@ -71,3 +71,28 @@ fn analyze_writes_json_to_output_dir() {
     let json: Value = serde_json::from_str(&content).expect("analysis.json is not valid JSON");
     assert_eq!(json["mode"], "analysis");
 }
+
+#[test]
+fn analyze_window_suffix() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--window")
+        .arg("128k")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}",
+        output.status
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("invalid JSON output");
+
+    // Verify parsed value in args meta
+    assert_eq!(json["args"]["window_tokens"], 128000);
+}

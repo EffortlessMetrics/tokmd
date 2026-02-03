@@ -360,7 +360,7 @@ pub struct CliAnalyzeArgs {
 
     /// Context window size (tokens) for utilization bars.
     #[arg(long)]
-    pub window: Option<usize>,
+    pub window: Option<String>,
 
     /// Force-enable git-based metrics.
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "no_git")]
