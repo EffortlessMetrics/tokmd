@@ -200,6 +200,128 @@ pub struct RuleResult {
     pub message: Option<String>,
 }
 
+/// Ratchet rule for gradual improvement.
+///
+/// Ratchet rules enforce that metrics don't regress beyond acceptable bounds
+/// when compared to a baseline. This enables gradual quality improvement by
+/// allowing teams to "ratchet" down thresholds over time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatchetRule {
+    /// JSON pointer to the metric (e.g., "/complexity/avg_cyclomatic").
+    pub pointer: String,
+
+    /// Maximum allowed increase percentage from baseline.
+    /// For example, 10.0 means the current value can be at most 10% higher than baseline.
+    #[serde(default)]
+    pub max_increase_pct: Option<f64>,
+
+    /// Maximum allowed absolute value.
+    /// This acts as a hard ceiling regardless of baseline.
+    #[serde(default)]
+    pub max_value: Option<f64>,
+
+    /// Rule severity level.
+    #[serde(default)]
+    pub level: RuleLevel,
+
+    /// Human-readable description of the rule.
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// Result of ratchet evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatchetResult {
+    /// The rule that was evaluated.
+    pub rule: RatchetRule,
+
+    /// Whether the ratchet check passed.
+    pub passed: bool,
+
+    /// Baseline value (if found).
+    pub baseline_value: Option<f64>,
+
+    /// Current value.
+    pub current_value: f64,
+
+    /// Percentage change from baseline (if baseline exists).
+    pub change_pct: Option<f64>,
+
+    /// Human-readable message describing the result.
+    pub message: String,
+}
+
+/// Configuration for ratchet rules.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct RatchetConfig {
+    /// Ratchet rules to evaluate.
+    pub rules: Vec<RatchetRule>,
+
+    /// Stop evaluation on first error.
+    #[serde(default)]
+    pub fail_fast: bool,
+
+    /// Allow missing baseline values (treat as pass) instead of error.
+    #[serde(default)]
+    pub allow_missing_baseline: bool,
+
+    /// Allow missing current values (treat as pass) instead of error.
+    #[serde(default)]
+    pub allow_missing_current: bool,
+}
+
+impl RatchetConfig {
+    /// Parse ratchet config from TOML string.
+    pub fn from_toml(s: &str) -> Result<Self, GateError> {
+        Ok(toml::from_str(s)?)
+    }
+
+    /// Load ratchet config from a TOML file.
+    pub fn from_file(path: &Path) -> Result<Self, GateError> {
+        let content = std::fs::read_to_string(path)?;
+        Self::from_toml(&content)
+    }
+}
+
+/// Overall result of ratchet evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatchetGateResult {
+    /// Overall pass/fail.
+    pub passed: bool,
+
+    /// Individual ratchet results.
+    pub ratchet_results: Vec<RatchetResult>,
+
+    /// Count of errors.
+    pub errors: usize,
+
+    /// Count of warnings.
+    pub warnings: usize,
+}
+
+impl RatchetGateResult {
+    /// Create a new ratchet gate result from ratchet results.
+    pub fn from_results(ratchet_results: Vec<RatchetResult>) -> Self {
+        let errors = ratchet_results
+            .iter()
+            .filter(|r| !r.passed && r.rule.level == RuleLevel::Error)
+            .count();
+        let warnings = ratchet_results
+            .iter()
+            .filter(|r| !r.passed && r.rule.level == RuleLevel::Warn)
+            .count();
+        let passed = errors == 0;
+
+        Self {
+            passed,
+            ratchet_results,
+            errors,
+            warnings,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

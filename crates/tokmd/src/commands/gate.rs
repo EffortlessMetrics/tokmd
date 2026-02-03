@@ -1,11 +1,15 @@
 //! Handler for the `tokmd gate` command.
 
 use anyhow::{Context, Result, bail};
+use serde::Serialize;
 use std::path::Path;
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
-use tokmd_gate::{GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy};
+use tokmd_gate::{
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
+    RuleOperator, evaluate_policy, evaluate_ratchet_policy,
+};
 
 use crate::analysis_utils;
 use crate::config::ResolvedConfig;
@@ -14,33 +18,121 @@ use crate::export_bundle;
 /// Exit code for gate failure.
 const EXIT_FAIL: i32 = 1;
 
+/// Combined result of policy and ratchet evaluation.
+#[derive(Debug, Clone, Serialize)]
+struct CombinedGateResult {
+    /// Overall pass/fail (policy errors + ratchet errors = 0).
+    pub passed: bool,
+    /// Policy evaluation result.
+    pub policy: Option<GateResult>,
+    /// Ratchet evaluation result.
+    pub ratchet: Option<RatchetGateResult>,
+    /// Total errors (policy + ratchet).
+    pub total_errors: usize,
+    /// Total warnings (policy + ratchet).
+    pub total_warnings: usize,
+}
+
 /// Handle the gate command.
 pub(crate) fn handle(
     args: cli::CliGateArgs,
     global: &cli::GlobalArgs,
     resolved: &ResolvedConfig,
 ) -> Result<()> {
-    // Load policy from file, CLI args, or config
-    let policy = load_policy(&args, resolved)?;
-
-    // Load or compute receipt
+    // Load or compute receipt (current state)
     let receipt = load_or_compute_receipt(&args, global)?;
 
-    // Evaluate policy
-    let result = evaluate_policy(&receipt, &policy);
+    // Load policy from file, CLI args, or config (may be None if only ratchet is used)
+    let policy = load_policy(&args, resolved).ok();
+
+    // Load baseline if provided
+    let baseline = load_baseline(&args, resolved)?;
+
+    // Load ratchet config if baseline provided
+    let ratchet_config = if baseline.is_some() {
+        load_ratchet_config(&args, resolved)?
+    } else {
+        None
+    };
+
+    // Ensure we have at least policy or ratchet rules
+    if policy.is_none() && ratchet_config.is_none() {
+        bail!(
+            "No policy or ratchet rules specified.\n\
+             \n\
+             Use --policy <path> for policy rules, or\n\
+             --baseline <path> with --ratchet-config <path> for ratchet rules, or\n\
+             add rules to [gate] in tokmd.toml.\n\
+             \n\
+             Example tokmd.toml with policy rules:\n\
+             \n\
+             [[gate.rules]]\n\
+             name = \"max_tokens\"\n\
+             pointer = \"/derived/totals/tokens\"\n\
+             op = \"lte\"\n\
+             value = 500000\n\
+             \n\
+             Example tokmd.toml with ratchet rules:\n\
+             \n\
+             [gate]\n\
+             baseline = \".tokmd/baseline.json\"\n\
+             \n\
+             [[gate.ratchet]]\n\
+             pointer = \"/complexity/avg_cyclomatic\"\n\
+             max_increase_pct = 10.0\n\
+             description = \"Avg cyclomatic complexity\""
+        );
+    }
+
+    // Evaluate policy rules (if present)
+    let policy_result = policy.as_ref().map(|p| evaluate_policy(&receipt, p));
+
+    // Evaluate ratchet rules (if baseline and ratchet config present)
+    let ratchet_result = match (&baseline, &ratchet_config) {
+        (Some(baseline_value), Some(ratchet)) => {
+            Some(evaluate_ratchet_policy(ratchet, baseline_value, &receipt))
+        }
+        _ => None,
+    };
+
+    // Combine results
+    let combined = combine_results(policy_result, ratchet_result);
 
     // Output results
     match args.format {
-        cli::GateFormat::Text => print_text_result(&result),
-        cli::GateFormat::Json => print_json_result(&result)?,
+        cli::GateFormat::Text => print_text_result(&combined),
+        cli::GateFormat::Json => print_json_result(&combined)?,
     }
 
     // Exit with appropriate code
-    if !result.passed {
+    if !combined.passed {
         std::process::exit(EXIT_FAIL);
     }
 
     Ok(())
+}
+
+/// Combine policy and ratchet results into a single result.
+fn combine_results(
+    policy: Option<GateResult>,
+    ratchet: Option<RatchetGateResult>,
+) -> CombinedGateResult {
+    let policy_errors = policy.as_ref().map(|p| p.errors).unwrap_or(0);
+    let policy_warnings = policy.as_ref().map(|p| p.warnings).unwrap_or(0);
+    let ratchet_errors = ratchet.as_ref().map(|r| r.errors).unwrap_or(0);
+    let ratchet_warnings = ratchet.as_ref().map(|r| r.warnings).unwrap_or(0);
+
+    let total_errors = policy_errors + ratchet_errors;
+    let total_warnings = policy_warnings + ratchet_warnings;
+    let passed = total_errors == 0;
+
+    CombinedGateResult {
+        passed,
+        policy,
+        ratchet,
+        total_errors,
+        total_warnings,
+    }
 }
 
 /// Load policy from file or config.
@@ -80,21 +172,90 @@ fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<Pol
     }
 
     // No policy found
-    bail!(
-        "No policy specified. Use --policy <path> or add rules to [gate] in tokmd.toml.\n\
-         \n\
-         Example tokmd.toml:\n\
-         \n\
-         [[gate.rules]]\n\
-         name = \"max_tokens\"\n\
-         pointer = \"/derived/totals/tokens\"\n\
-         op = \"lte\"\n\
-         value = 500000\n\
-         level = \"error\"\n\
-         message = \"Codebase exceeds token budget\"\n\
-         \n\
-         Or use a separate policy file with --policy <path>"
-    )
+    bail!("No policy specified")
+}
+
+/// Load baseline receipt for ratchet comparison.
+fn load_baseline(
+    args: &cli::CliGateArgs,
+    resolved: &ResolvedConfig,
+) -> Result<Option<serde_json::Value>> {
+    // 1. CLI --baseline flag takes precedence
+    if let Some(baseline_path) = &args.baseline {
+        let content = std::fs::read_to_string(baseline_path)
+            .with_context(|| format!("Failed to read baseline from {}", baseline_path.display()))?;
+        let value: serde_json::Value = serde_json::from_str(&content).with_context(|| {
+            format!(
+                "Failed to parse baseline JSON from {}",
+                baseline_path.display()
+            )
+        })?;
+        return Ok(Some(value));
+    }
+
+    // 2. Check tokmd.toml [gate.baseline]
+    if let Some(toml) = resolved.toml
+        && let Some(baseline_path) = &toml.gate.baseline
+    {
+        let path = std::path::PathBuf::from(baseline_path);
+        let content = std::fs::read_to_string(&path)
+            .with_context(|| format!("Failed to read baseline from {}", path.display()))?;
+        let value: serde_json::Value = serde_json::from_str(&content)
+            .with_context(|| format!("Failed to parse baseline JSON from {}", path.display()))?;
+        return Ok(Some(value));
+    }
+
+    // No baseline specified
+    Ok(None)
+}
+
+/// Load ratchet config from file or TOML config.
+fn load_ratchet_config(
+    args: &cli::CliGateArgs,
+    resolved: &ResolvedConfig,
+) -> Result<Option<RatchetConfig>> {
+    // 1. CLI --ratchet-config flag takes precedence
+    if let Some(ratchet_path) = &args.ratchet_config {
+        let config = RatchetConfig::from_file(ratchet_path).with_context(|| {
+            format!(
+                "Failed to load ratchet config from {}",
+                ratchet_path.display()
+            )
+        })?;
+        return Ok(Some(config));
+    }
+
+    // 2. Check tokmd.toml [[gate.ratchet]] for inline rules
+    if let Some(toml) = resolved.toml {
+        let gate_config = &toml.gate;
+
+        if let Some(rules) = &gate_config.ratchet
+            && !rules.is_empty()
+        {
+            let ratchet_rules: Vec<RatchetRule> = rules.iter().map(convert_ratchet_rule).collect();
+
+            return Ok(Some(RatchetConfig {
+                rules: ratchet_rules,
+                fail_fast: gate_config.fail_fast.unwrap_or(false),
+                allow_missing_baseline: gate_config.allow_missing_baseline.unwrap_or(false),
+                allow_missing_current: gate_config.allow_missing_current.unwrap_or(false),
+            }));
+        }
+    }
+
+    // No ratchet config found
+    Ok(None)
+}
+
+/// Convert a config RatchetRuleConfig to a gate RatchetRule.
+fn convert_ratchet_rule(rule: &cli::RatchetRuleConfig) -> RatchetRule {
+    RatchetRule {
+        pointer: rule.pointer.clone(),
+        max_increase_pct: rule.max_increase_pct,
+        max_value: rule.max_value,
+        level: parse_level(rule.level.as_deref()),
+        description: rule.description.clone(),
+    }
 }
 
 /// Convert a config GateRule to a gate PolicyRule.
@@ -215,46 +376,108 @@ fn compute_receipt(
     serde_json::to_value(&receipt).context("Failed to serialize receipt to JSON")
 }
 
-/// Print results in text format.
-fn print_text_result(result: &GateResult) {
+/// Print combined results in text format.
+fn print_text_result(result: &CombinedGateResult) {
+    let policy_count = result
+        .policy
+        .as_ref()
+        .map(|p| p.rule_results.len())
+        .unwrap_or(0);
+    let ratchet_count = result
+        .ratchet
+        .as_ref()
+        .map(|r| r.ratchet_results.len())
+        .unwrap_or(0);
+    let total_rules = policy_count + ratchet_count;
+
     if result.passed {
-        println!(
-            "Gate PASSED ({} rules evaluated)",
-            result.rule_results.len()
-        );
+        println!("Gate PASSED ({} rules evaluated)", total_rules);
     } else {
         println!(
             "Gate FAILED: {} error(s), {} warning(s)",
-            result.errors, result.warnings
+            result.total_errors, result.total_warnings
         );
     }
 
     println!();
 
-    for rule_result in &result.rule_results {
-        let status = if rule_result.passed { "PASS" } else { "FAIL" };
-        let level = match rule_result.level {
-            RuleLevel::Error => "error",
-            RuleLevel::Warn => "warn",
-        };
+    // Print policy results
+    if let Some(policy) = &result.policy
+        && !policy.rule_results.is_empty()
+    {
+        println!("Policy Rules:");
+        for rule_result in &policy.rule_results {
+            let status = if rule_result.passed { "PASS" } else { "FAIL" };
+            let level = match rule_result.level {
+                RuleLevel::Error => "error",
+                RuleLevel::Warn => "warn",
+            };
 
-        if rule_result.passed {
-            println!("  [{}] {} ({})", status, rule_result.name, level);
-        } else {
-            println!("  [{}] {} ({})", status, rule_result.name, level);
-            println!("        Expected: {}", rule_result.expected);
-            if let Some(actual) = &rule_result.actual {
-                println!("        Actual: {}", actual);
+            if rule_result.passed {
+                println!("  [{}] {} ({})", status, rule_result.name, level);
+            } else {
+                println!("  [{}] {} ({})", status, rule_result.name, level);
+                println!("        Expected: {}", rule_result.expected);
+                if let Some(actual) = &rule_result.actual {
+                    println!("        Actual: {}", actual);
+                }
+                if let Some(msg) = &rule_result.message {
+                    println!("        Message: {}", msg);
+                }
             }
-            if let Some(msg) = &rule_result.message {
-                println!("        Message: {}", msg);
+        }
+        println!();
+    }
+
+    // Print ratchet results
+    if let Some(ratchet) = &result.ratchet
+        && !ratchet.ratchet_results.is_empty()
+    {
+        println!("Ratchet Rules:");
+        for ratchet_result in &ratchet.ratchet_results {
+            let status = if ratchet_result.passed {
+                "PASS"
+            } else {
+                "FAIL"
+            };
+            let level = match ratchet_result.rule.level {
+                RuleLevel::Error => "error",
+                RuleLevel::Warn => "warn",
+            };
+
+            let name = ratchet_result
+                .rule
+                .description
+                .as_deref()
+                .unwrap_or(&ratchet_result.rule.pointer);
+
+            println!("  [{}] {} ({})", status, name, level);
+
+            if let Some(baseline) = ratchet_result.baseline_value {
+                if let Some(pct) = ratchet_result.change_pct {
+                    println!(
+                        "        Baseline: {:.2} -> Current: {:.2} ({:+.2}%)",
+                        baseline, ratchet_result.current_value, pct
+                    );
+                } else {
+                    println!(
+                        "        Baseline: {:.2}, Current: {:.2}",
+                        baseline, ratchet_result.current_value
+                    );
+                }
+            } else {
+                println!("        Current: {:.2}", ratchet_result.current_value);
+            }
+
+            if !ratchet_result.passed {
+                println!("        Message: {}", ratchet_result.message);
             }
         }
     }
 }
 
-/// Print results in JSON format.
-fn print_json_result(result: &GateResult) -> Result<()> {
+/// Print combined results in JSON format.
+fn print_json_result(result: &CombinedGateResult) -> Result<()> {
     let json = serde_json::to_string_pretty(&result)?;
     println!("{}", json);
     Ok(())

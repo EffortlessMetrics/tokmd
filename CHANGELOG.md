@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - Unreleased
+
+### Added
+
+- **Baseline System**: New `tokmd baseline` command for tracking complexity metrics over time
+  - Generate complexity baselines to `.tokmd/baseline.json` (or custom path via `--output`)
+  - Captures git commit SHA for traceability
+  - Support for determinism baselines with build hash tracking (planned for v1.5.1)
+  - Baseline types: `ComplexityBaseline`, `BaselineMetrics`, `FileBaselineEntry`
+  - Baseline JSON schema in `docs/baseline.schema.json`
+
+- **Ratchet Rules**: Gradual improvement enforcement in `tokmd gate`
+  - `--baseline` flag for comparing current state against stored baselines
+  - `--ratchet-config` flag for external ratchet rule files
+  - `max_increase_pct` constraint for allowing bounded metric regression
+  - `max_value` constraint for absolute ceiling enforcement
+  - Inline ratchet rules via `[[gate.ratchet]]` in `tokmd.toml`
+  - Combined policy + ratchet evaluation with unified pass/fail reporting
+
+- **Ecosystem Envelope Protocol**: Standardized output format for multi-sensor integration
+  - `Envelope` type with verdict, findings, gates, and artifacts sections
+  - Finding ID registry with `tokmd.<category>.<code>` format (e.g., `tokmd.risk.hotspot`)
+  - Verdict aggregation: pass/fail/warn/skip/pending
+  - Builder pattern APIs for constructing envelopes programmatically
+
+- **Finding ID Constants**: New `tokmd_analysis_types::findings` module
+  - Risk findings: `hotspot`, `coupling`, `bus_factor`, `complexity_high`, `cognitive_high`, `nesting_deep`
+  - Contract findings: `schema_changed`, `api_changed`, `cli_changed`
+  - Supply chain findings: `lockfile_changed`, `new_dependency`, `vulnerability`
+  - Gate findings: `mutation_failed`, `coverage_failed`, `complexity_failed`
+  - Security findings: `entropy_high`, `license_conflict`
+  - Architecture findings: `circular_dep`, `layer_violation`
+
+### Changed
+
+- **Gate Config**: Extended `GateConfig` in `tokmd.toml` with ratchet support
+  - New fields: `baseline`, `ratchet`, `allow_missing_baseline`, `allow_missing_current`
+- **Gate CLI**: `tokmd gate` now supports combined policy and ratchet evaluation
+- **Gate Output**: JSON output includes separate `policy` and `ratchet` result sections
+- Extended `tokmd-analysis-types` with baseline and envelope structures
+- New `BASELINE_VERSION = 1` and `ENVELOPE_VERSION = 1` constants
+
+### Internal
+
+- New `ratchet.rs` module in `tokmd-gate` for ratchet evaluation logic
+- Comprehensive integration tests for ratchet workflow
+- Property-based tests for ratchet evaluation
+
 ## [1.4.0] - 2026-01-31
 
 ### Added

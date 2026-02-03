@@ -60,35 +60,9 @@ Run the scan once. Derive all views (lang, module, export, analysis) from that s
                      Receipts (JSON/JSONL/CSV)
 ```
 
-### Ecosystem Integration Mode (Planned v1.5+)
-
-tokmd can operate as a **sensor** in a multi-tool cockpit ecosystem:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Cockpit Director                         │
-│            (aggregates sensor reports)                      │
-└──────────────┬──────────────┬──────────────┬───────────────┘
-               │              │              │
-        ┌──────┴──────┐ ┌─────┴─────┐ ┌──────┴──────┐
-        │   tokmd     │ │  coverage │ │   linter    │
-        │   sensor    │ │   sensor  │ │   sensor    │
-        └─────────────┘ └───────────┘ └─────────────┘
-               │              │              │
-               ▼              ▼              ▼
-     artifacts/tokmd/  artifacts/cov/  artifacts/lint/
-        report.json      report.json     report.json
-```
-
-Key rules:
-- tokmd is a **sensor**, not the director
-- Integration via **receipts**, not library linking
-- Envelope format is stable; tool-specific data under `data` field
-- See [ecosystem-envelope.md](ecosystem-envelope.md) for protocol spec
-
 ## Data Model
 
-### tokmd-native Receipt Envelope
+### Receipt Envelope
 
 Every JSON receipt includes:
 ```json
@@ -105,28 +79,7 @@ Every JSON receipt includes:
 }
 ```
 
-### Ecosystem Envelope (Planned v1.5+)
-
-For multi-sensor integration, tokmd emits a standardized envelope:
-```json
-{
-  "envelope_version": 1,
-  "tool": { "name": "tokmd", "version": "1.5.0", "mode": "cockpit" },
-  "verdict": "warn",
-  "summary": "3 risk signals, 1 gate pending",
-  "findings": [ ... ],
-  "gates": { "status": "pending", "items": [ ... ] },
-  "data": { /* full tokmd-native cockpit receipt */ }
-}
-```
-
-Design principles:
-- **Stable top-level**: Envelope schema is minimal, versioned separately
-- **Rich underneath**: Tool-specific data under `data` field
-- **Verdict-first**: Quick pass/fail without parsing tool data
-- **Findings portable**: Common structure for cross-tool aggregation
-
-See [ecosystem-envelope.md](ecosystem-envelope.md) for full specification.
+tokmd is a **sensor**: it produces receipts, not orchestration. External directors can aggregate tokmd receipts with other tools.
 
 ### Schema Versioning
 

@@ -9,7 +9,10 @@
     { "$ref": "#/definitions/ExportMeta" },
     { "$ref": "#/definitions/ExportRow" },
     { "$ref": "#/definitions/AnalysisReceipt" },
-    { "$ref": "#/definitions/CockpitReceipt" }
+    { "$ref": "#/definitions/CockpitReceipt" },
+    { "$ref": "#/definitions/Envelope" },
+    { "$ref": "#/definitions/ComplexityBaseline" },
+    { "$ref": "#/definitions/DeterminismBaseline" }
   ],
   "definitions": {
     "ScanStatus": {
@@ -1298,6 +1301,153 @@
         "priority": { "type": "integer", "description": "Review priority (higher = more important)." },
         "complexity": { "type": "integer", "description": "Estimated review complexity (1-5)." },
         "lines_changed": { "type": "integer", "description": "Lines changed in this file." }
+      }
+    },
+    "Envelope": {
+      "type": "object",
+      "description": "Ecosystem envelope for multi-sensor integration. Provides a standardized JSON format for integrating with external orchestrators.",
+      "required": ["envelope_version", "tool", "generated_at", "verdict", "summary", "findings"],
+      "properties": {
+        "envelope_version": { "type": "integer", "const": 1, "description": "Schema version (currently 1)." },
+        "tool": { "$ref": "#/definitions/EnvelopeTool" },
+        "generated_at": { "type": "string", "description": "Generation timestamp (ISO 8601 format)." },
+        "verdict": { "$ref": "#/definitions/Verdict" },
+        "summary": { "type": "string", "description": "Human-readable one-line summary." },
+        "findings": { "type": "array", "items": { "$ref": "#/definitions/Finding" }, "description": "List of findings (may be empty)." },
+        "gates": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/GatesEnvelope" }], "description": "Evidence gate status." },
+        "artifacts": { "oneOf": [{ "type": "null" }, { "type": "array", "items": { "$ref": "#/definitions/Artifact" } }], "description": "Related artifact paths." },
+        "data": { "description": "Tool-specific payload (opaque to director)." }
+      }
+    },
+    "EnvelopeTool": {
+      "type": "object",
+      "description": "Tool identification for envelope.",
+      "required": ["name", "version", "mode"],
+      "properties": {
+        "name": { "type": "string", "description": "Tool name (e.g., 'tokmd')." },
+        "version": { "type": "string", "description": "Tool version (e.g., '1.5.0')." },
+        "mode": { "type": "string", "description": "Operation mode (e.g., 'cockpit', 'analyze')." }
+      }
+    },
+    "Verdict": {
+      "type": "string",
+      "enum": ["pass", "fail", "warn", "skip", "pending"],
+      "description": "Overall verdict for the envelope. Directors aggregate verdicts: fail > pending > warn > pass > skip."
+    },
+    "Finding": {
+      "type": "object",
+      "description": "A finding reported by the tool. Finding IDs follow the convention: <tool>.<category>.<code> (e.g., 'tokmd.risk.hotspot').",
+      "required": ["id", "severity", "title", "message"],
+      "properties": {
+        "id": { "type": "string", "description": "Finding identifier (e.g., 'tokmd.risk.hotspot')." },
+        "severity": { "$ref": "#/definitions/FindingSeverity" },
+        "title": { "type": "string", "description": "Short title for the finding." },
+        "message": { "type": "string", "description": "Detailed message describing the finding." },
+        "location": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FindingLocation" }], "description": "Source location (if applicable)." },
+        "evidence": { "description": "Additional evidence data." },
+        "docs_url": { "type": ["string", "null"], "description": "Documentation URL for this finding type." }
+      }
+    },
+    "FindingSeverity": {
+      "type": "string",
+      "enum": ["error", "warn", "info"],
+      "description": "Severity level for findings. 'error' blocks merge (hard gate failure), 'warn' is review recommended, 'info' is informational."
+    },
+    "FindingLocation": {
+      "type": "object",
+      "description": "Source location for a finding.",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "description": "File path (normalized to forward slashes)." },
+        "line": { "type": ["integer", "null"], "description": "Line number (1-indexed)." },
+        "column": { "type": ["integer", "null"], "description": "Column number (1-indexed)." }
+      }
+    },
+    "GatesEnvelope": {
+      "type": "object",
+      "description": "Evidence gates envelope section.",
+      "required": ["status", "items"],
+      "properties": {
+        "status": { "$ref": "#/definitions/Verdict", "description": "Overall gate status." },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/GateItem" }, "description": "Individual gate items." }
+      }
+    },
+    "GateItem": {
+      "type": "object",
+      "description": "Individual gate item in the gates envelope.",
+      "required": ["id", "status"],
+      "properties": {
+        "id": { "type": "string", "description": "Gate identifier (e.g., 'mutation', 'diff_coverage')." },
+        "status": { "$ref": "#/definitions/Verdict", "description": "Gate status." },
+        "threshold": { "type": ["number", "null"], "description": "Threshold value (if applicable)." },
+        "actual": { "type": ["number", "null"], "description": "Actual measured value (if applicable)." },
+        "reason": { "type": ["string", "null"], "description": "Reason for the status (especially for pending/fail)." },
+        "source": { "type": ["string", "null"], "description": "Data source (e.g., 'ci_artifact', 'computed')." },
+        "artifact_path": { "type": ["string", "null"], "description": "Path to the source artifact (if applicable)." }
+      }
+    },
+    "Artifact": {
+      "type": "object",
+      "description": "Artifact reference in the envelope.",
+      "required": ["type", "path"],
+      "properties": {
+        "type": { "type": "string", "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')." },
+        "path": { "type": "string", "description": "Path to the artifact file." }
+      }
+    },
+    "ComplexityBaseline": {
+      "type": "object",
+      "description": "Complexity baseline for tracking trends over time. Used by the ratchet system to enforce that complexity metrics do not regress across commits.",
+      "required": ["baseline_version", "generated_at", "metrics", "files"],
+      "properties": {
+        "baseline_version": { "type": "integer", "const": 1, "description": "Schema version for forward compatibility." },
+        "generated_at": { "type": "string", "description": "ISO 8601 timestamp when this baseline was generated." },
+        "commit": { "type": ["string", "null"], "description": "Git commit SHA at which this baseline was captured, if available." },
+        "metrics": { "$ref": "#/definitions/BaselineMetrics" },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileBaselineEntry" }, "description": "Per-file baseline entries for granular tracking." }
+      }
+    },
+    "BaselineMetrics": {
+      "type": "object",
+      "description": "Aggregate baseline metrics for the entire codebase.",
+      "required": ["total_code_lines", "total_files", "avg_cyclomatic", "max_cyclomatic", "avg_cognitive", "max_cognitive", "avg_nesting_depth", "max_nesting_depth", "function_count", "avg_function_length"],
+      "properties": {
+        "total_code_lines": { "type": "integer", "description": "Total lines of code across all files." },
+        "total_files": { "type": "integer", "description": "Total number of source files." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity across all functions." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity found in any function." },
+        "avg_cognitive": { "type": "number", "description": "Average cognitive complexity across all functions." },
+        "max_cognitive": { "type": "integer", "description": "Maximum cognitive complexity found in any function." },
+        "avg_nesting_depth": { "type": "number", "description": "Average nesting depth across all functions." },
+        "max_nesting_depth": { "type": "integer", "description": "Maximum nesting depth found in any function." },
+        "function_count": { "type": "integer", "description": "Total number of functions analyzed." },
+        "avg_function_length": { "type": "number", "description": "Average function length in lines." }
+      }
+    },
+    "FileBaselineEntry": {
+      "type": "object",
+      "description": "Per-file baseline entry for granular complexity tracking.",
+      "required": ["path", "code_lines", "cyclomatic", "cognitive", "max_nesting", "function_count"],
+      "properties": {
+        "path": { "type": "string", "description": "Normalized file path (forward slashes)." },
+        "code_lines": { "type": "integer", "description": "Lines of code in this file." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity for this file." },
+        "cognitive": { "type": "integer", "description": "Cognitive complexity for this file." },
+        "max_nesting": { "type": "integer", "description": "Maximum nesting depth in this file." },
+        "function_count": { "type": "integer", "description": "Number of functions in this file." },
+        "content_hash": { "type": ["string", "null"], "description": "BLAKE3 hash of file content for change detection." }
+      }
+    },
+    "DeterminismBaseline": {
+      "type": "object",
+      "description": "Build determinism baseline for reproducibility verification. Tracks hashes of build artifacts and source inputs.",
+      "required": ["baseline_version", "generated_at", "build_hash", "source_hash"],
+      "properties": {
+        "baseline_version": { "type": "integer", "const": 1, "description": "Schema version for forward compatibility." },
+        "generated_at": { "type": "string", "description": "ISO 8601 timestamp when this baseline was generated." },
+        "build_hash": { "type": "string", "description": "Hash of the final build artifact." },
+        "source_hash": { "type": "string", "description": "Hash of all source files combined." },
+        "cargo_lock_hash": { "type": ["string", "null"], "description": "Hash of Cargo.lock if present (Rust projects)." }
       }
     }
   }

@@ -19,6 +19,8 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `context`, `run` |
 | **Analysis** | 4 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | (local) | `cockpit` |
+| **Envelope** | 1 | `ENVELOPE_VERSION` | ecosystem envelope |
+| **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 
 ### Version Changelog
 
@@ -43,11 +45,25 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 |---------|---------|
 | **3** | Initial cockpit receipt for PR metrics with evidence gates, change surface, composition, code health, risk assessment, contracts, and review plan |
 
+#### Envelope
+
+| Version | Changes |
+|---------|---------|
+| **1** | Initial envelope specification for multi-sensor integration with findings, gates, and artifacts |
+
+#### Baseline
+
+| Version | Changes |
+|---------|---------|
+| **1** | Initial baseline format with complexity tracking (`ComplexityBaseline`) and determinism verification (`DeterminismBaseline`) |
+
 ### Code References
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;`
 - **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
+- **Envelope**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ENVELOPE_VERSION: u32 = 1;`
+- **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 
 ---
 
@@ -573,6 +589,202 @@ Present when `--git` is enabled or preset includes git analysis.
 | `imports` | `architecture` | Module dependency graph |
 | `dup` | `deep` | Duplicate file detection |
 | `fun` | `fun` | Novelty outputs (eco-label) |
+
+---
+
+---
+
+## 6. Ecosystem Envelope
+
+The ecosystem envelope provides a standardized JSON format for multi-sensor integration. It allows tokmd to integrate with external orchestrators ("directors") that aggregate reports from multiple code quality sensors into a unified PR view.
+
+**Schema version**: 1
+
+### Envelope Structure
+
+```json
+{
+  "envelope_version": 1,
+  "tool": {
+    "name": "tokmd",
+    "version": "1.5.0",
+    "mode": "cockpit"
+  },
+  "generated_at": "2024-01-27T10:30:00Z",
+  "verdict": "warn",
+  "summary": "2 warnings: hotspot touched, low test coverage",
+  "findings": [
+    {
+      "id": "tokmd.risk.hotspot",
+      "severity": "warn",
+      "title": "Hotspot file touched",
+      "message": "src/core/engine.rs is a high-churn file",
+      "location": { "path": "src/core/engine.rs", "line": 42 }
+    }
+  ],
+  "gates": {
+    "status": "pass",
+    "items": [
+      { "id": "mutation", "status": "pass", "threshold": 0.8, "actual": 0.92 }
+    ]
+  },
+  "artifacts": [
+    { "type": "receipt", "path": "tokmd-cockpit.json" }
+  ],
+  "data": { /* tool-specific payload */ }
+}
+```
+
+### Envelope Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `envelope_version` | `integer` | Schema version (currently 1). |
+| `tool` | `object` | Tool identification (name, version, mode). |
+| `generated_at` | `string` | ISO 8601 timestamp. |
+| `verdict` | `string` | Overall result: `pass`, `fail`, `warn`, `skip`, or `pending`. |
+| `summary` | `string` | Human-readable one-line summary. |
+| `findings` | `array` | List of findings (may be empty). |
+| `gates` | `object\|null` | Evidence gate status (optional). |
+| `artifacts` | `array\|null` | Related artifact paths (optional). |
+| `data` | `any\|null` | Tool-specific payload, opaque to director (optional). |
+
+### Verdict Enum
+
+| Value | Description |
+| :--- | :--- |
+| `pass` | All checks passed, no significant findings. |
+| `fail` | Hard failure (evidence gate failed, policy violation). |
+| `warn` | Soft warnings present, review recommended. |
+| `skip` | Sensor skipped (missing inputs, not applicable). |
+| `pending` | Awaiting external data (CI artifacts, etc.). |
+
+Directors aggregate verdicts with precedence: `fail` > `pending` > `warn` > `pass` > `skip`.
+
+### Finding Structure
+
+Findings follow the ID convention: `<tool>.<category>.<code>` (e.g., `tokmd.risk.hotspot`).
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `string` | Finding identifier. |
+| `severity` | `string` | Severity: `error`, `warn`, or `info`. |
+| `title` | `string` | Short title. |
+| `message` | `string` | Detailed message. |
+| `location` | `object\|null` | Source location (`path`, `line`, `column`). |
+| `evidence` | `any\|null` | Additional evidence data. |
+| `docs_url` | `string\|null` | Documentation URL for this finding type. |
+
+### GatesEnvelope Structure
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `status` | `string` | Overall gate status (Verdict enum). |
+| `items` | `array` | Individual gate items. |
+
+### GateItem Structure
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `string` | Gate identifier (e.g., `mutation`, `diff_coverage`). |
+| `status` | `string` | Gate status (Verdict enum). |
+| `threshold` | `number\|null` | Threshold value. |
+| `actual` | `number\|null` | Actual measured value. |
+| `reason` | `string\|null` | Reason for status. |
+| `source` | `string\|null` | Data source (e.g., `ci_artifact`, `computed`). |
+| `artifact_path` | `string\|null` | Path to source artifact. |
+
+---
+
+## 7. Baseline Types
+
+Baseline files support complexity tracking and build determinism verification for the ratchet system.
+
+**Schema version**: 1
+
+### ComplexityBaseline
+
+Used to track complexity trends over time and enforce that metrics do not regress.
+
+```json
+{
+  "baseline_version": 1,
+  "generated_at": "2024-01-27T10:30:00Z",
+  "commit": "abc123def456",
+  "metrics": {
+    "total_code_lines": 10000,
+    "total_files": 120,
+    "avg_cyclomatic": 3.5,
+    "max_cyclomatic": 25,
+    "avg_cognitive": 5.2,
+    "max_cognitive": 42,
+    "avg_nesting_depth": 2.1,
+    "max_nesting_depth": 8,
+    "function_count": 450,
+    "avg_function_length": 15.3
+  },
+  "files": [
+    {
+      "path": "src/main.rs",
+      "code_lines": 200,
+      "cyclomatic": 12,
+      "cognitive": 18,
+      "max_nesting": 4,
+      "function_count": 8,
+      "content_hash": "abc123..."
+    }
+  ]
+}
+```
+
+### BaselineMetrics Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `total_code_lines` | `integer` | Total lines of code. |
+| `total_files` | `integer` | Total source files. |
+| `avg_cyclomatic` | `number` | Average cyclomatic complexity. |
+| `max_cyclomatic` | `integer` | Maximum cyclomatic complexity. |
+| `avg_cognitive` | `number` | Average cognitive complexity. |
+| `max_cognitive` | `integer` | Maximum cognitive complexity. |
+| `avg_nesting_depth` | `number` | Average nesting depth. |
+| `max_nesting_depth` | `integer` | Maximum nesting depth. |
+| `function_count` | `integer` | Total functions analyzed. |
+| `avg_function_length` | `number` | Average function length. |
+
+### FileBaselineEntry Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `path` | `string` | Normalized file path. |
+| `code_lines` | `integer` | Lines of code. |
+| `cyclomatic` | `integer` | Cyclomatic complexity. |
+| `cognitive` | `integer` | Cognitive complexity. |
+| `max_nesting` | `integer` | Maximum nesting depth. |
+| `function_count` | `integer` | Number of functions. |
+| `content_hash` | `string\|null` | BLAKE3 hash for change detection. |
+
+### DeterminismBaseline
+
+Tracks build artifact hashes for reproducibility verification.
+
+```json
+{
+  "baseline_version": 1,
+  "generated_at": "2024-01-27T10:30:00Z",
+  "build_hash": "abc123...",
+  "source_hash": "def456...",
+  "cargo_lock_hash": "789abc..."
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `baseline_version` | `integer` | Schema version (currently 1). |
+| `generated_at` | `string` | ISO 8601 timestamp. |
+| `build_hash` | `string` | Hash of the final build artifact. |
+| `source_hash` | `string` | Hash of all source files combined. |
+| `cargo_lock_hash` | `string\|null` | Hash of Cargo.lock (Rust projects). |
 
 ---
 

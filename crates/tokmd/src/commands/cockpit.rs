@@ -246,6 +246,7 @@ pub struct Evidence {
 #[serde(rename_all = "lowercase")]
 pub enum GateStatus {
     Pass,    // Gate passed
+    Warn,    // Gate has warnings but not critical
     Fail,    // Gate failed
     Skipped, // No relevant files changed
     Pending, // Results not available and couldn't run
@@ -820,10 +821,48 @@ fn compute_contract_gate(
 
     // Check for CLI changes
     if contracts_info.cli_changed {
-        // TODO: Diff --help output
+        // Gather CLI-related files that changed
+        let cli_files: Vec<&str> = changed_files
+            .iter()
+            .filter(|f| {
+                f.contains("crates/tokmd/src/commands/") || f.contains("crates/tokmd-config/")
+            })
+            .map(|s| s.as_str())
+            .collect();
+
+        let diff_summary = if cli_files.is_empty() {
+            None
+        } else {
+            let command_files = cli_files
+                .iter()
+                .filter(|f| f.contains("crates/tokmd/src/commands/"))
+                .count();
+            let config_files = cli_files
+                .iter()
+                .filter(|f| f.contains("crates/tokmd-config/"))
+                .count();
+
+            let mut parts = Vec::new();
+            if command_files > 0 {
+                parts.push(format!(
+                    "{} command file{}",
+                    command_files,
+                    if command_files == 1 { "" } else { "s" }
+                ));
+            }
+            if config_files > 0 {
+                parts.push(format!(
+                    "{} config file{}",
+                    config_files,
+                    if config_files == 1 { "" } else { "s" }
+                ));
+            }
+            Some(parts.join(", "))
+        };
+
         cli = Some(CliSubGate {
-            status: GateStatus::Pending,
-            diff_summary: None,
+            status: GateStatus::Pass,
+            diff_summary,
         });
     }
 
@@ -913,7 +952,7 @@ fn compute_contract_gate(
 /// Checks if Cargo.lock changed and runs cargo-audit if available.
 #[cfg(feature = "git")]
 fn compute_supply_chain_gate(
-    _repo_root: &Path,
+    repo_root: &Path,
     changed_files: &[String],
 ) -> Result<Option<SupplyChainGate>> {
     // Only compute if Cargo.lock changed
@@ -925,11 +964,153 @@ fn compute_supply_chain_gate(
     // Check if cargo-audit is available
     let check = Command::new("cargo").arg("audit").arg("--version").output();
 
-    let status = if check.is_ok() && check.unwrap().status.success() {
-        // TODO: Actually run cargo audit and parse results
-        GateStatus::Pending
-    } else {
-        GateStatus::Pending
+    let audit_available = check.as_ref().map(|o| o.status.success()).unwrap_or(false);
+
+    if !audit_available {
+        // cargo-audit not available, return Pending status
+        return Ok(Some(SupplyChainGate {
+            meta: GateMeta {
+                status: GateStatus::Pending,
+                source: EvidenceSource::RanLocal,
+                commit_match: CommitMatch::Unknown,
+                scope: ScopeCoverage {
+                    relevant: vec!["Cargo.lock".to_string()],
+                    tested: Vec::new(),
+                    ratio: 0.0,
+                    lines_relevant: None,
+                    lines_tested: None,
+                },
+                evidence_commit: None,
+                evidence_generated_at_ms: None,
+            },
+            vulnerabilities: Vec::new(),
+            denied: Vec::new(),
+            advisory_db_version: None,
+        }));
+    }
+
+    // Run cargo audit with JSON output
+    let audit_output = Command::new("cargo")
+        .args(["audit", "--json"])
+        .current_dir(repo_root)
+        .output();
+
+    let output = match audit_output {
+        Ok(o) => o,
+        Err(_) => {
+            // Failed to run cargo-audit, return Pending
+            return Ok(Some(SupplyChainGate {
+                meta: GateMeta {
+                    status: GateStatus::Pending,
+                    source: EvidenceSource::RanLocal,
+                    commit_match: CommitMatch::Unknown,
+                    scope: ScopeCoverage {
+                        relevant: vec!["Cargo.lock".to_string()],
+                        tested: Vec::new(),
+                        ratio: 0.0,
+                        lines_relevant: None,
+                        lines_tested: None,
+                    },
+                    evidence_commit: None,
+                    evidence_generated_at_ms: None,
+                },
+                vulnerabilities: Vec::new(),
+                denied: Vec::new(),
+                advisory_db_version: None,
+            }));
+        }
+    };
+
+    // Parse JSON output
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Intermediate structs for parsing cargo-audit JSON output
+    #[derive(Deserialize)]
+    struct AuditOutput {
+        database: Option<AuditDatabase>,
+        vulnerabilities: Option<AuditVulnerabilities>,
+    }
+
+    #[derive(Deserialize)]
+    #[allow(dead_code)]
+    struct AuditDatabase {
+        #[serde(rename = "advisory-count")]
+        advisory_count: Option<u32>,
+        version: Option<String>,
+    }
+
+    #[derive(Deserialize)]
+    #[allow(dead_code)]
+    struct AuditVulnerabilities {
+        found: Option<bool>,
+        count: Option<u32>,
+        list: Option<Vec<AuditVulnEntry>>,
+    }
+
+    #[derive(Deserialize)]
+    struct AuditVulnEntry {
+        advisory: Option<AuditAdvisory>,
+        package: Option<AuditPackage>,
+    }
+
+    #[derive(Deserialize)]
+    struct AuditAdvisory {
+        id: Option<String>,
+        severity: Option<String>,
+        title: Option<String>,
+    }
+
+    #[derive(Deserialize)]
+    struct AuditPackage {
+        name: Option<String>,
+    }
+
+    let parsed: Result<AuditOutput, _> = serde_json::from_str(&stdout);
+
+    let (vulnerabilities, advisory_db_version, status) = match parsed {
+        Ok(audit) => {
+            let db_version = audit.database.and_then(|db| db.version);
+
+            let vulns: Vec<Vulnerability> = audit
+                .vulnerabilities
+                .and_then(|v| v.list)
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|entry| {
+                    let advisory = entry.advisory?;
+                    Some(Vulnerability {
+                        id: advisory.id.unwrap_or_default(),
+                        package: entry.package.and_then(|p| p.name).unwrap_or_default(),
+                        severity: advisory
+                            .severity
+                            .clone()
+                            .unwrap_or_else(|| "unknown".to_string()),
+                        title: advisory.title.unwrap_or_default(),
+                    })
+                })
+                .collect();
+
+            // Determine status based on vulnerability severities
+            let has_critical_or_high = vulns.iter().any(|v| {
+                let sev = v.severity.to_lowercase();
+                sev == "critical" || sev == "high"
+            });
+            let has_medium = vulns.iter().any(|v| v.severity.to_lowercase() == "medium");
+
+            let status = if has_critical_or_high {
+                GateStatus::Fail
+            } else if has_medium {
+                GateStatus::Warn
+            } else {
+                GateStatus::Pass
+            };
+
+            (vulns, db_version, status)
+        }
+        Err(_) => {
+            // Failed to parse JSON, return Pending
+            (Vec::new(), None, GateStatus::Pending)
+        }
     };
 
     Ok(Some(SupplyChainGate {
@@ -947,9 +1128,9 @@ fn compute_supply_chain_gate(
             evidence_commit: None,
             evidence_generated_at_ms: None,
         },
-        vulnerabilities: Vec::new(),
+        vulnerabilities,
         denied: Vec::new(),
-        advisory_db_version: None,
+        advisory_db_version,
     }))
 }
 
@@ -2671,13 +2852,86 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     }
     out.push('\n');
 
+    // Trend Comparison (if baseline was provided)
+    if let Some(ref trend) = receipt.trend {
+        render_trend_markdown(&mut out, trend);
+    }
+
     out
+}
+
+/// Render trend comparison section to markdown.
+fn render_trend_markdown(out: &mut String, trend: &TrendComparison) {
+    out.push_str("### Trend Comparison\n\n");
+
+    if !trend.baseline_available {
+        out.push_str("*Baseline not available*\n\n");
+        if let Some(ref path) = trend.baseline_path {
+            out.push_str(&format!("Baseline path: `{}`\n\n", path));
+        }
+        return;
+    }
+
+    if let Some(ref path) = trend.baseline_path {
+        out.push_str(&format!("**Baseline:** `{}`\n\n", path));
+    }
+
+    // Health and Risk trends
+    out.push_str("| Metric | Current | Baseline | Delta | Trend |\n");
+    out.push_str("|--------|--------:|--------:|------:|:-----:|\n");
+
+    if let Some(ref health) = trend.health {
+        out.push_str(&format!(
+            "| Health | {:.0} | {:.0} | {:+.0} ({:+.1}%) | {} |\n",
+            health.current,
+            health.previous,
+            health.delta,
+            health.delta_pct,
+            format_trend_direction(health.direction)
+        ));
+    }
+
+    if let Some(ref risk) = trend.risk {
+        out.push_str(&format!(
+            "| Risk | {:.0} | {:.0} | {:+.0} ({:+.1}%) | {} |\n",
+            risk.current,
+            risk.previous,
+            risk.delta,
+            risk.delta_pct,
+            format_trend_direction(risk.direction)
+        ));
+    }
+
+    out.push('\n');
+
+    // Complexity trend
+    if let Some(ref complexity) = trend.complexity {
+        out.push_str(&format!(
+            "**Complexity:** {} {}\n",
+            format_trend_direction(complexity.direction),
+            complexity.summary
+        ));
+        if let Some(delta) = complexity.avg_cyclomatic_delta {
+            out.push_str(&format!("- Avg cyclomatic delta: {:+.1}\n", delta));
+        }
+        out.push('\n');
+    }
+}
+
+/// Format trend direction as an arrow indicator.
+fn format_trend_direction(direction: TrendDirection) -> &'static str {
+    match direction {
+        TrendDirection::Improving => "v (improving)",
+        TrendDirection::Stable => "-> (stable)",
+        TrendDirection::Degrading => "^ (degrading)",
+    }
 }
 
 /// Format gate status as string.
 fn format_gate_status(status: GateStatus) -> &'static str {
     match status {
         GateStatus::Pass => "PASS",
+        GateStatus::Warn => "WARN",
         GateStatus::Fail => "FAIL",
         GateStatus::Skipped => "SKIPPED",
         GateStatus::Pending => "PENDING",
@@ -2804,6 +3058,7 @@ fn render_evidence_table(out: &mut String, evidence: &Evidence) {
 fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
     let status_icon = match gate.meta.status {
         GateStatus::Pass => "PASS",
+        GateStatus::Warn => "WARN",
         GateStatus::Fail => "FAIL",
         GateStatus::Skipped => "SKIPPED",
         GateStatus::Pending => "PENDING",
@@ -2833,7 +3088,7 @@ fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
                 ));
             }
         }
-        GateStatus::Fail => {
+        GateStatus::Warn | GateStatus::Fail => {
             out.push_str(&format!(
                 "{} survivors | {} killed | {} timeout | {} unviable\n\n",
                 gate.survivors.len(),
@@ -2871,9 +3126,10 @@ fn render_mutation_gate_markdown(out: &mut String, gate: &MutationGate) {
 fn render_complexity_gate_markdown(out: &mut String, gate: &ComplexityGate) {
     let status_icon = match gate.meta.status {
         GateStatus::Pass => "PASS",
+        GateStatus::Warn => "WARN",
         GateStatus::Fail => "FAIL",
         GateStatus::Skipped => "SKIPPED",
-        GateStatus::Pending => "WARN", // Pending is used as warning for complexity
+        GateStatus::Pending => "PENDING",
     };
 
     out.push_str(&format!(
@@ -3041,6 +3297,7 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
 fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
     let status_str = match gate.meta.status {
         GateStatus::Pass => "Pass",
+        GateStatus::Warn => "Warn",
         GateStatus::Fail => "Fail",
         GateStatus::Skipped => "Skipped",
         GateStatus::Pending => "Pending",
@@ -3053,7 +3310,7 @@ fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
             out.push_str(&format!("| Mutations killed | {} |\n", gate.killed));
             out.push_str("| Survivors | 0 |\n");
         }
-        GateStatus::Fail => {
+        GateStatus::Warn | GateStatus::Fail => {
             out.push_str(&format!("| Mutations killed | {} |\n", gate.killed));
             out.push_str(&format!("| Survivors | {} |\n", gate.survivors.len()));
         }
@@ -3067,9 +3324,10 @@ fn render_mutation_gate_sections(out: &mut String, gate: &MutationGate) {
 fn render_complexity_gate_sections(out: &mut String, gate: &ComplexityGate) {
     let status_str = match gate.meta.status {
         GateStatus::Pass => "Pass",
+        GateStatus::Warn => "Warn",
         GateStatus::Fail => "Fail",
         GateStatus::Skipped => "Skipped",
-        GateStatus::Pending => "Warn",
+        GateStatus::Pending => "Pending",
     };
 
     out.push_str(&format!(

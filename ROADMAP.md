@@ -24,8 +24,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration.   |
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
-| **v1.5.0** | 🔭 Planned  | Baseline system, ratchet gates, advanced analysis.           |
-| **v1.6.0** | 🔭 Planned  | Cognitive complexity, complexity gates, advanced analysis.   |
+| **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope.          |
+| **v1.6.0** | 🔭 Planned  | Halstead metrics, function detail export, complexity gates.  |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system, tree-sitter.  |
 
 ---
@@ -192,36 +192,42 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Planned: v1.5.0 — Baseline & Ratchet System
+## Completed: v1.5.0 — Baseline & Ratchet System
 
-**Goal**: Baseline storage, ratchet-based quality gates, and ecosystem integration.
-
-### Ecosystem Integration
-
-| Feature                    | Status     | Description                                              |
-| :------------------------- | :--------- | :------------------------------------------------------- |
-| Ecosystem envelope spec    | 📋 Planned | Standardized report format for multi-sensor integration  |
-| `tokmd sensor cockpit`     | 📋 Planned | Emit envelope at `artifacts/tokmd/report.json`           |
-| Finding ID registry        | 📋 Planned | Stable `tokmd.<category>.<code>` identifiers             |
-| Budget enforcement         | 📋 Planned | `--findings-limit` for display budget compliance         |
-
-See `docs/ecosystem-envelope.md` for protocol specification.
+**Goal**: Baseline storage and ratchet-based quality gates.
 
 ### Baseline System
 
-| Feature                  | Status     | Description                                                  |
-| :----------------------- | :--------- | :----------------------------------------------------------- |
-| Baseline storage         | 📋 Planned | `.tokmd/baseline.json` for storing complexity baseline       |
-| `tokmd baseline` command | 📋 Planned | Generate baseline from current state                         |
-| Baseline types           | 📋 Planned | `ComplexityBaseline`, `BaselineMetrics`, `FileBaselineEntry` |
+| Feature                  | Status      | Description                                                  |
+| :----------------------- | :---------- | :----------------------------------------------------------- |
+| Baseline storage         | ✅ Complete | `.tokmd/baseline.json` for storing complexity baseline       |
+| `tokmd baseline` command | ✅ Complete | Generate baseline from current state                         |
+| Baseline types           | ✅ Complete | `ComplexityBaseline`, `BaselineMetrics`, `FileBaselineEntry` |
+| Baseline JSON Schema     | ✅ Complete | `docs/baseline.schema.json` formal definition                |
 
 ### Ratchet Rules
 
-| Feature                       | Status     | Description                                      |
-| :---------------------------- | :--------- | :----------------------------------------------- |
-| Ratchet rules in `tokmd.toml` | 📋 Planned | `[[gate.ratchet]]` configuration                 |
-| Ratchet evaluation            | 📋 Planned | `evaluate_ratchet()` in tokmd-gate               |
-| Max increase percentage       | 📋 Planned | `max_increase_pct` field for gradual improvement |
+| Feature                       | Status      | Description                                        |
+| :---------------------------- | :---------- | :------------------------------------------------- |
+| Ratchet rules in `tokmd.toml` | ✅ Complete | `[[gate.ratchet]]` configuration                   |
+| Ratchet evaluation            | ✅ Complete | `evaluate_ratchet()` in tokmd-gate                 |
+| Max increase percentage       | ✅ Complete | `max_increase_pct` field for gradual improvement   |
+| Max value ceiling             | ✅ Complete | `max_value` field for absolute ceiling enforcement |
+| Gate integration              | ✅ Complete | `--baseline` and `--ratchet-config` CLI flags      |
+
+### Ecosystem Envelope
+
+| Feature             | Status      | Description                                       |
+| :------------------ | :---------- | :------------------------------------------------ |
+| Envelope types      | ✅ Complete | `Envelope`, `Finding`, `GatesEnvelope`, `Verdict` |
+| Finding ID registry | ✅ Complete | `tokmd.<category>.<code>` format constants        |
+| Builder APIs        | ✅ Complete | Fluent API for constructing envelopes             |
+
+---
+
+## Planned: v1.6.0 — Advanced Complexity Features
+
+**Goal**: Deeper complexity analysis and gating.
 
 ### Advanced Features
 
@@ -230,6 +236,7 @@ See `docs/ecosystem-envelope.md` for protocol specification.
 | Halstead metrics       | 📋 Planned | Optional, feature-gated Halstead complexity metrics |
 | Function detail export | 📋 Planned | `--detail-functions` flag for function-level output |
 | Complexity histogram   | 📋 Planned | Distribution of complexity scores across codebase   |
+| Complexity gates       | 📋 Planned | Gate rules targeting specific complexity metrics    |
 
 ---
 

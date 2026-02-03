@@ -2,53 +2,7 @@
 
 This document outlines planned improvements aligned with the roadmap.
 
-## Phase 0: Ecosystem Envelope Protocol (v1.5.0)
-
-**Goal**: Enable tokmd to integrate with multi-sensor cockpit directors.
-
-See [ecosystem-envelope.md](ecosystem-envelope.md) for full specification.
-
-### Protocol Design
-
-1. **Envelope schema v1**: Stable top-level, tool-specific `data` underneath
-2. **Verdict semantics**: `pass`, `fail`, `warn`, `skip`, `pending`
-3. **Finding format**: Portable structure with `<tool>.<category>.<code>` IDs
-4. **Artifact convention**: `artifacts/tokmd/report.json`
-
-### CLI Surface
-
-New `tokmd sensor` subcommand family:
-```bash
-tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
-```
-
-### Work Items
-
-- [ ] Design and document envelope schema v1
-- [ ] Define tokmd finding ID registry (see ecosystem-envelope.md)
-- [ ] Implement `tokmd sensor cockpit` command
-- [ ] Map cockpit receipt fields → envelope verdict/findings
-- [ ] Implement `--findings-limit` budget enforcement
-- [ ] Write `artifacts/tokmd/report.json` and `comment.md`
-- [ ] Integration tests for envelope output
-- [ ] JSON Schema for envelope validation
-
-### Tests
-
-- Golden fixtures: Sample cockpit → envelope transformation
-- Property tests: Verdict aggregation rules
-- Schema validation: Envelope conforms to spec
-- Integration tests: CLI produces canonical artifacts
-
-### Compatibility
-
-- Existing `tokmd cockpit` command unchanged
-- Envelope is additive (new command, not replacement)
-- `data` field embeds full tokmd-native receipt for consumers needing richness
-
----
-
-## Phase 1: Baseline & Ratchet System (v1.5.0)
+## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
 **Goal**: Enable quality improvement tracking over time.
 
@@ -61,23 +15,27 @@ tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
 ### Ratchet Rules
 
 1. **Configuration**: `[[gate.ratchet]]` in `tokmd.toml`
-2. **Evaluation**: `evaluate_ratchet()` in tokmd-gate
-3. **Parameters**: `max_increase_pct` for gradual improvement
+2. **Evaluation**: `evaluate_ratchet_policy()` in tokmd-gate
+3. **Parameters**: `max_increase_pct` and `max_value` for gradual improvement
 
 ### Work Items
 
-- [ ] Design baseline schema (additive to existing receipts)
-- [ ] Implement `tokmd baseline` command
-- [ ] Add `--baseline` flag to `tokmd gate`
-- [ ] Add ratchet rule types to tokmd-gate
-- [ ] Integration tests for ratchet evaluation
-- [ ] Documentation and migration guide
+- [x] Design baseline schema (additive to existing receipts)
+- [x] Implement `tokmd baseline` command
+- [x] Add `--baseline` flag to `tokmd gate`
+- [x] Add `--ratchet-config` flag to `tokmd gate`
+- [x] Add ratchet rule types to tokmd-gate
+- [x] Implement `evaluate_ratchet_policy()` with `max_increase_pct` and `max_value`
+- [x] Integration tests for ratchet evaluation
+- [x] Baseline JSON schema (`docs/baseline.schema.json`)
+- [x] Ecosystem envelope types for multi-sensor integration
 
 ### Tests
 
-- Golden fixtures: Baseline generation and comparison
-- Property tests: Ratchet evaluation monotonicity
-- Integration tests: CLI baseline workflow
+- [x] Golden fixtures: Baseline generation and comparison
+- [x] Unit tests: Ratchet evaluation edge cases (boundary conditions, missing values)
+- [x] Integration tests: CLI baseline + ratchet workflow
+- [x] Combined policy + ratchet gate evaluation
 
 ---
 

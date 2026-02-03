@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tokmd.dev/schemas/baseline.v1.json",
+  "title": "tokmd Complexity Baseline",
+  "description": "Baseline for tracking complexity metrics over time",
+  "type": "object",
+  "required": ["baseline_version", "generated_at", "metrics", "files"],
+  "properties": {
+    "baseline_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "Timestamp when baseline was generated (seconds:nanoseconds)"
+    },
+    "commit": {
+      "type": "string",
+      "description": "Git commit hash when baseline was generated"
+    },
+    "metrics": { "$ref": "#/definitions/BaselineMetrics" },
+    "files": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/FileBaselineEntry" }
+    },
+    "complexity": {
+      "$ref": "#/definitions/ComplexitySection",
+      "description": "Complexity section mirroring analysis receipt structure for ratchet compatibility"
+    }
+  },
+  "definitions": {
+    "BaselineMetrics": {
+      "type": "object",
+      "required": ["total_code_lines", "total_files", "avg_cyclomatic", "max_cyclomatic"],
+      "properties": {
+        "total_code_lines": { "type": "integer", "minimum": 0 },
+        "total_files": { "type": "integer", "minimum": 0 },
+        "avg_cyclomatic": { "type": "number", "minimum": 0 },
+        "max_cyclomatic": { "type": "integer", "minimum": 0 },
+        "avg_cognitive": { "type": "number", "minimum": 0 },
+        "max_cognitive": { "type": "integer", "minimum": 0 },
+        "avg_nesting_depth": { "type": "number", "minimum": 0 },
+        "max_nesting_depth": { "type": "integer", "minimum": 0 },
+        "function_count": { "type": "integer", "minimum": 0 },
+        "avg_function_length": { "type": "number", "minimum": 0 }
+      }
+    },
+    "FileBaselineEntry": {
+      "type": "object",
+      "required": ["path", "code_lines"],
+      "properties": {
+        "path": { "type": "string" },
+        "code_lines": { "type": "integer", "minimum": 0 },
+        "cyclomatic": { "type": "integer", "minimum": 0 },
+        "cognitive": { "type": "integer", "minimum": 0 },
+        "max_nesting": { "type": "integer", "minimum": 0 },
+        "function_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": "string" }
+      }
+    },
+    "ComplexitySection": {
+      "type": "object",
+      "description": "Mirrors analysis receipt complexity structure for ratchet evaluation",
+      "required": ["total_functions", "avg_function_length", "max_function_length", "avg_cyclomatic", "max_cyclomatic", "high_risk_files"],
+      "properties": {
+        "total_functions": { "type": "integer", "minimum": 0 },
+        "avg_function_length": { "type": "number", "minimum": 0 },
+        "max_function_length": { "type": "integer", "minimum": 0 },
+        "avg_cyclomatic": { "type": "number", "minimum": 0 },
+        "max_cyclomatic": { "type": "integer", "minimum": 0 },
+        "avg_cognitive": { "type": "number", "minimum": 0 },
+        "max_cognitive": { "type": "integer", "minimum": 0 },
+        "avg_nesting_depth": { "type": "number", "minimum": 0 },
+        "max_nesting_depth": { "type": "integer", "minimum": 0 },
+        "high_risk_files": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

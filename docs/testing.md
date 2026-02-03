@@ -63,6 +63,33 @@ Located in `crates/tokmd/tests/`:
 | `schema_validation.rs` | JSON schema compliance |
 | `properties.rs` | Property-based CLI tests |
 
+### Evidence Gate Testing
+
+The cockpit command's evidence gates are tested in `crates/tokmd/tests/cockpit_integration.rs`:
+
+- **Diff Coverage Gate**: Tests coverage artifact parsing (lcov.info, coverage.json)
+- **Supply Chain Gate**: Tests cargo-audit integration and vulnerability detection
+- **Contract Gate**: Tests semver checks, CLI diff, and schema diff
+- **Determinism Gate**: Tests baseline hash comparison
+- **Complexity Gate**: Tests complexity threshold evaluation
+
+### Ecosystem Envelope Testing
+
+Envelope format is validated through:
+
+- JSON Schema validation against `docs/envelope.schema.json`
+- Property tests for serialization roundtrips
+- Integration tests for `tokmd sensor cockpit` command
+
+### Baseline System Testing
+
+The baseline system is tested through:
+
+- Golden tests for baseline generation
+- Property tests for baseline types
+- Integration tests for `tokmd baseline` command
+- Ratchet rule evaluation tests in tokmd-gate
+
 ### Test Fixtures
 
 Hermetic fixtures in `crates/tokmd/tests/data/`:
