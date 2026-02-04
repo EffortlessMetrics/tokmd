@@ -109,6 +109,9 @@
           commonArgs = {
             inherit src;
             strictDeps = true;
+            nativeBuildInputs = [
+              pkgs.git
+            ];
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
