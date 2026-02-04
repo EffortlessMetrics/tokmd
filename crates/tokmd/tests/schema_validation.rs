@@ -19,14 +19,14 @@ fn load_schema() -> Result<Option<Value>> {
         .join("docs")
         .join("schema.json");
 
-    match std::fs::read_to_string(&schema_path) {
-        Ok(content) => {
-            let json = serde_json::from_str(&content).context("Failed to parse schema.json")?;
-            Ok(Some(json))
-        }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(e).context("Failed to read schema.json"),
+    if !schema_path.exists() {
+        return Ok(None);
     }
+
+    let content =
+        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
+    let json = serde_json::from_str(&content).context("Failed to parse schema.json")?;
+    Ok(Some(json))
 }
 
 /// Build a validator for a specific definition in the schema
