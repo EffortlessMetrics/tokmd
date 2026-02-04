@@ -1026,11 +1026,50 @@ pub struct ViewProfile {
 
 impl TomlConfig {
     /// Load configuration from a TOML string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_config::TomlConfig;
+    ///
+    /// let toml = r#"
+    /// [scan]
+    /// paths = ["src", "tests"]
+    /// hidden = true
+    ///
+    /// [view.llm]
+    /// format = "jsonl"
+    /// redact = "paths"
+    /// "#;
+    ///
+    /// let config = TomlConfig::parse(toml).unwrap();
+    ///
+    /// assert_eq!(config.scan.paths.unwrap(), vec!["src", "tests"]);
+    /// assert_eq!(config.scan.hidden, Some(true));
+    /// assert_eq!(config.view["llm"].format, Some("jsonl".to_string()));
+    /// ```
     pub fn parse(s: &str) -> Result<Self, toml::de::Error> {
         toml::from_str(s)
     }
 
     /// Load configuration from a file path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::io::Write;
+    /// use tokmd_config::TomlConfig;
+    /// use tempfile::NamedTempFile;
+    ///
+    /// let mut file = NamedTempFile::new().unwrap();
+    /// writeln!(file, r#"
+    /// [module]
+    /// depth = 3
+    /// "#).unwrap();
+    ///
+    /// let config = TomlConfig::from_file(file.path()).unwrap();
+    /// assert_eq!(config.module.depth, Some(3));
+    /// ```
     pub fn from_file(path: &Path) -> std::io::Result<Self> {
         let content = std::fs::read_to_string(path)?;
         toml::from_str(&content)
