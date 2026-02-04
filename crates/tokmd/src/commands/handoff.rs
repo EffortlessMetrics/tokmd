@@ -195,6 +195,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         tool: ToolInfo::current(),
         mode: "handoff".to_string(),
         inputs: paths.iter().map(|p| p.display().to_string()).collect(),
+        output_dir: args.out_dir.display().to_string(),
         budget_tokens: budget,
         used_tokens,
         utilization_pct: round_f64(utilization, 2),

@@ -50,6 +50,10 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             cli::CockpitFormat::Sections => render_sections(&receipt),
         };
 
+        if let Some(artifacts_dir) = &args.artifacts_dir {
+            write_artifacts(artifacts_dir, &receipt)?;
+        }
+
         if let Some(output_path) = &args.output {
             let mut file = std::fs::File::create(output_path).with_context(|| {
                 format!("Failed to create output file: {}", output_path.display())
@@ -3289,6 +3293,66 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
     }
     out.push_str("\n```\n");
     out.push_str("<!-- /SECTION:RECEIPTS -->\n");
+
+    out
+}
+
+fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
+    std::fs::create_dir_all(dir)
+        .with_context(|| format!("Failed to create artifacts dir: {}", dir.display()))?;
+
+    let report_path = dir.join("report.json");
+    let report_json = render_json(receipt)?;
+    std::fs::write(&report_path, report_json)
+        .with_context(|| format!("Failed to write {}", report_path.display()))?;
+
+    let comment_path = dir.join("comment.md");
+    let comment = render_comment(receipt);
+    std::fs::write(&comment_path, comment)
+        .with_context(|| format!("Failed to write {}", comment_path.display()))?;
+
+    Ok(())
+}
+
+fn render_comment(receipt: &CockpitReceipt) -> String {
+    let mut out = String::new();
+
+    out.push_str(&format!(
+        "- Change surface: {} commits, {} files, +{}/-{} (net {})\n",
+        receipt.change_surface.commits,
+        receipt.change_surface.files_changed,
+        receipt.change_surface.insertions,
+        receipt.change_surface.deletions,
+        receipt.change_surface.net_lines
+    ));
+
+    out.push_str(&format!(
+        "- Risk: {:?} ({} / 100)\n",
+        receipt.risk.level, receipt.risk.score
+    ));
+
+    let mut hotspots = receipt.risk.hotspots_touched.clone();
+    hotspots.sort();
+    let hotspot_list = if hotspots.is_empty() {
+        "none".to_string()
+    } else {
+        hotspots.into_iter().take(3).collect::<Vec<_>>().join(", ")
+    };
+    out.push_str(&format!("- Hotspots touched: {}\n", hotspot_list));
+
+    let mut review = receipt.review_plan.clone();
+    review.sort_by(|a, b| a.priority.cmp(&b.priority).then_with(|| a.path.cmp(&b.path)));
+    let review_list = if review.is_empty() {
+        "none".to_string()
+    } else {
+        review
+            .into_iter()
+            .take(5)
+            .map(|r| r.path)
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    out.push_str(&format!("- Review plan: {}\n", review_list));
 
     out
 }

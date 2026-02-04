@@ -47,12 +47,13 @@ fn test_handoff_manifest_valid_json() {
         serde_json::from_str(&manifest_content).expect("manifest.json should be valid JSON");
 
     // Verify required fields
-    assert!(parsed["schema_version"].is_number());
+    assert_eq!(parsed["schema_version"].as_u64(), Some(3));
     assert!(parsed["generated_at_ms"].is_number());
     assert!(parsed["tool"]["name"].as_str() == Some("tokmd"));
     assert!(parsed["mode"].as_str() == Some("handoff"));
     assert!(parsed["budget_tokens"].is_number());
     assert!(parsed["used_tokens"].is_number());
+    assert!(parsed["output_dir"].is_string());
     assert!(parsed["capabilities"].is_array());
     assert!(parsed["artifacts"].is_array());
     assert!(parsed["included_files"].is_array());

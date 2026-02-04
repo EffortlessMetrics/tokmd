@@ -1,6 +1,7 @@
 # tokmd Receipt Schema
 
-> **Note**: A machine-readable JSON Schema definition is available at [schema.json](schema.json).
+> **Note**: Core/analysis receipts are defined in [schema.json](schema.json).  
+> Handoff manifests are defined in [handoff.schema.json](handoff.schema.json).
 
 `tokmd` produces structured JSON outputs called "receipts". These schemas are stable and intended for machine consumption.
 
@@ -21,6 +22,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Cockpit** | 3 | (local) | `cockpit` |
 | **Envelope** | 1 | `ENVELOPE_VERSION` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
+| **Handoff** | 3 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
 
 ### Version Changelog
 
@@ -57,6 +59,12 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 |---------|---------|
 | **1** | Initial baseline format with complexity tracking (`ComplexityBaseline`) and determinism verification (`DeterminismBaseline`) |
 
+#### Handoff Manifest
+
+| Version | Changes |
+|---------|---------|
+| **3** | Added `output_dir`, formalized manifest schema (see `docs/handoff.schema.json`) |
+
 ### Code References
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
@@ -64,6 +72,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ENVELOPE_VERSION: u32 = 1;`
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
+- **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 3;`
 
 ---
 

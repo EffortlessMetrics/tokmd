@@ -322,6 +322,62 @@ fn test_cockpit_output_file() {
 }
 
 #[test]
+fn test_cockpit_artifacts_dir() {
+    if !git_available() {
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !init_git_repo(dir.path()) {
+        return;
+    }
+
+    std::fs::write(dir.path().join("code.rs"), "fn code() {}").unwrap();
+    if !git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "test"])
+        .current_dir(dir.path())
+        .status();
+
+    std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
+    if !git_add_commit(dir.path(), "New") {
+        return;
+    }
+
+    let artifacts_dir = dir.path().join("artifacts").join("tokmd");
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--artifacts-dir")
+        .arg(&artifacts_dir)
+        .assert()
+        .success();
+
+    let report_path = artifacts_dir.join("report.json");
+    let comment_path = artifacts_dir.join("comment.md");
+    assert!(report_path.exists(), "report.json should exist");
+    assert!(comment_path.exists(), "comment.md should exist");
+
+    let report = std::fs::read_to_string(&report_path).unwrap();
+    let _: serde_json::Value = serde_json::from_str(&report).expect("valid JSON in report");
+
+    let comment = std::fs::read_to_string(&comment_path).unwrap();
+    let bullet_count = comment.lines().filter(|l| l.trim_start().starts_with("- ")).count();
+    assert!(
+        (3..=8).contains(&bullet_count),
+        "comment bullet count should be 3-8, got {}",
+        bullet_count
+    );
+}
+
+#[test]
 fn test_cockpit_not_in_git_repo() {
     // Given: A directory that is not a git repo
     let dir = tempdir().unwrap();

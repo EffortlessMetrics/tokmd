@@ -1562,16 +1562,33 @@ fn test_context_bundle_dir() -> Result<()> {
         "receipt should have budget_tokens"
     );
 
-    // Verify manifest.json has file list
+    // Verify manifest.json has authoritative fields
     let manifest_content = std::fs::read_to_string(bundle_dir.join("manifest.json"))?;
     let manifest: serde_json::Value = serde_json::from_str(&manifest_content)?;
+    assert_eq!(
+        manifest.get("schema_version").and_then(|v| v.as_u64()),
+        Some(1),
+        "manifest schema_version should be 1"
+    );
     assert!(
-        manifest.get("files").is_some(),
-        "manifest should have files array"
+        manifest.get("included_files").is_some(),
+        "manifest should have included_files array"
     );
     assert!(
         manifest.get("bundle_bytes").is_some(),
         "manifest should have bundle_bytes"
+    );
+    assert!(
+        manifest.get("excluded_paths").is_some(),
+        "manifest should have excluded_paths"
+    );
+    assert!(
+        manifest.get("excluded_patterns").is_some(),
+        "manifest should have excluded_patterns"
+    );
+    assert!(
+        manifest.get("artifacts").is_some(),
+        "manifest should have artifacts list"
     );
 
     Ok(())

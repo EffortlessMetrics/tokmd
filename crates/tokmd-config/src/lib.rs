@@ -732,6 +732,10 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
 
+    /// Write cockpit artifacts (report.json, comment.md) to directory.
+    #[arg(long, value_name = "DIR")]
+    pub artifacts_dir: Option<std::path::PathBuf>,
+
     /// Path to baseline receipt for trend comparison.
     ///
     /// When provided, cockpit will compute delta metrics showing how

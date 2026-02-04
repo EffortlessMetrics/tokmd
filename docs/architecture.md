@@ -2,6 +2,8 @@
 
 This document describes the internal architecture of tokmd for contributors and library consumers.
 
+See also: [tokmd Architecture Role](tokmd-role.md) - tokmd's position in the sensors -> receipts -> cockpit stack.
+
 ## Design Principles
 
 1. **Receipts are the bus**: Schemaed outputs are the record, not logs

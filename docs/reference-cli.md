@@ -389,6 +389,42 @@ tokmd context --budget 200k --bundle-dir ./ctx-bundle
 tokmd context --budget 128k --log runs.jsonl
 ```
 
+### `tokmd handoff`
+
+Creates a handoff bundle for LLM review and automation. The output directory contains `manifest.json`, `map.jsonl`, `intelligence.json`, and `code.txt`.
+
+**Usage**: `tokmd handoff [PATHS...] [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--out-dir <DIR>` | Output directory for handoff artifacts. | `.handoff` |
+| `--budget <SIZE>` | Token budget with optional k/m suffix. | `128k` |
+| `--strategy <STRATEGY>` | Packing strategy: `greedy`, `spread`. | `greedy` |
+| `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `hotspot` |
+| `--preset <LEVEL>` | Intelligence preset: `minimal`, `standard`, `risk`, `deep`. | `risk` |
+| `--module-roots <DIRS>` | Comma-separated module roots for grouping. | `(none)` |
+| `--module-depth <N>` | Module depth for grouping. | `2` |
+| `--force` | Overwrite existing output directory. | `false` |
+| `--compress` | Strip blank lines in `code.txt`. | `false` |
+| `--no-git` | Disable git-based enrichment. | `false` |
+| `--max-commits <N>` | Max commits to scan for git metrics. | `1000` |
+| `--max-commit-files <N>` | Max files per commit to process. | `100` |
+
+**Examples**:
+```bash
+# Default handoff bundle to .handoff/
+tokmd handoff
+
+# Custom output directory
+tokmd handoff --out-dir ./artifacts/handoff
+
+# Smaller budget and spread strategy
+tokmd handoff --budget 64k --strategy spread
+
+# Disable git enrichment
+tokmd handoff --no-git
+```
+
 ### `tokmd check-ignore`
 
 Explains why files are being ignored. Useful for troubleshooting when files unexpectedly appear or disappear from scans.
@@ -462,6 +498,7 @@ Generates comprehensive PR metrics for code review automation. This command anal
 | `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
 | `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
+| `--artifacts-dir <DIR>` | Write `report.json` + `comment.md` to a directory. | `(none)` |
 | `--no-progress` | Disable progress spinners. | `false` |
 
 **Output Formats**:
@@ -510,6 +547,9 @@ tokmd cockpit --base origin/main --head feature-branch --format md
 
 # Generate sections for PR template
 tokmd cockpit --format sections --output pr-metrics.txt
+
+# Write canonical cockpit artifacts
+tokmd cockpit --artifacts-dir artifacts/tokmd
 
 # Custom base ref for release branches
 tokmd cockpit --base release/v1.2 --head HEAD

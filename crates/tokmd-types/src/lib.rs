@@ -452,7 +452,10 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
-pub const HANDOFF_SCHEMA_VERSION: u32 = 2;
+pub const HANDOFF_SCHEMA_VERSION: u32 = 3;
+
+/// Schema version for context bundle manifests.
+pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 1;
 
 /// Manifest for a handoff bundle containing LLM-ready artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -462,6 +465,7 @@ pub struct HandoffManifest {
     pub tool: ToolInfo,
     pub mode: String,
     pub inputs: Vec<String>,
+    pub output_dir: String,
     pub budget_tokens: usize,
     pub used_tokens: usize,
     pub utilization_pct: f64,
@@ -475,6 +479,33 @@ pub struct HandoffManifest {
     pub total_files: usize,
     pub bundled_files: usize,
     pub intelligence_preset: String,
+}
+
+/// Manifest for a context bundle directory (bundle.txt + receipt.json + manifest.json).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextBundleManifest {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String,
+    pub budget_tokens: usize,
+    pub used_tokens: usize,
+    pub utilization_pct: f64,
+    pub strategy: String,
+    pub rank_by: String,
+    pub file_count: usize,
+    pub bundle_bytes: usize,
+    pub artifacts: Vec<ArtifactEntry>,
+    pub included_files: Vec<ContextFileRow>,
+    pub excluded_paths: Vec<ContextExcludedPath>,
+    pub excluded_patterns: Vec<String>,
+}
+
+/// Explicitly excluded path with reason for context bundles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextExcludedPath {
+    pub path: String,
+    pub reason: String,
 }
 
 /// Intelligence bundle for handoff containing tree, hotspots, complexity, and derived metrics.
