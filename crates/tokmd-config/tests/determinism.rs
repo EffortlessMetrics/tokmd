@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use tokmd_config::{Profile, UserConfig};
+use tokmd_config::{Profile, UserConfig, TomlConfig, ViewProfile};
 
 #[test]
 fn test_user_config_determinism() {
@@ -56,4 +56,25 @@ fn test_user_config_determinism() {
         r_beta,
         r_zebra
     );
+}
+
+#[test]
+fn test_view_serialization_order() {
+    let mut config = TomlConfig::default();
+
+    // Insert in non-alphabetical order
+    config.view.insert("zebra".to_string(), ViewProfile::default());
+    config.view.insert("apple".to_string(), ViewProfile::default());
+    config.view.insert("mango".to_string(), ViewProfile::default());
+
+    let output = toml::to_string_pretty(&config).expect("serialization failed");
+
+    // Find indices of keys in the output
+    let zebra_idx = output.find("[view.zebra]").expect("zebra missing");
+    let apple_idx = output.find("[view.apple]").expect("apple missing");
+    let mango_idx = output.find("[view.mango]").expect("mango missing");
+
+    // Assert strictly sorted order
+    assert!(apple_idx < mango_idx, "apple should be before mango");
+    assert!(mango_idx < zebra_idx, "mango should be before zebra");
 }

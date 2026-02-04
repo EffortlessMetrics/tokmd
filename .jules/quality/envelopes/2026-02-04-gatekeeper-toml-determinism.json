@@ -1,0 +1,15 @@
+{
+  "run_id": "2026-02-04-gatekeeper-toml-determinism",
+  "start_time": "2026-02-04T00:00:00Z",
+  "lane": "B",
+  "target": "crates/tokmd-config/src/lib.rs",
+  "option": "Option B (Scout Discovery)",
+  "changes": [
+    "crates/tokmd-config/src/lib.rs",
+    "crates/tokmd-config/tests/determinism.rs"
+  ],
+  "verification": {
+    "determinism_test": "cargo test -p tokmd-config --test determinism",
+    "workspace_test": "cargo test --workspace"
+  }
+}

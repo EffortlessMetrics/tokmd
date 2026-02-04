@@ -8,5 +8,10 @@
     "run_id": "2026-01-30-gatekeeper-analysis-determinism",
     "timestamp": "2026-01-30T11:00:00Z",
     "summary": "Added determinism regression test for analysis reports."
+  },
+  {
+    "run_id": "2026-02-04-gatekeeper-toml-determinism",
+    "timestamp": "2026-02-04T12:00:00Z",
+    "summary": "Switched TomlConfig to BTreeMap for deterministic serialization."
   }
 ]
