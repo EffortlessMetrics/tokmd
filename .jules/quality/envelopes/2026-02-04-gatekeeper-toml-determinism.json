@@ -9,7 +9,8 @@
     "crates/tokmd-config/tests/determinism.rs",
     "Cargo.lock",
     "flake.nix",
-    "crates/tokmd/tests/schema_validation.rs"
+    "crates/tokmd/tests/schema_validation.rs",
+    "crates/tokmd-git/tests/integration.rs"
   ],
   "verification": {
     "determinism_test": "cargo test -p tokmd-config --test determinism",
