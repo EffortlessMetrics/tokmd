@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use tokmd_config::{Profile, UserConfig, TomlConfig, ViewProfile};
+use tokmd_config::{Profile, TomlConfig, UserConfig, ViewProfile};
 
 #[test]
 fn test_user_config_determinism() {
@@ -63,9 +63,15 @@ fn test_view_serialization_order() {
     let mut config = TomlConfig::default();
 
     // Insert in non-alphabetical order
-    config.view.insert("zebra".to_string(), ViewProfile::default());
-    config.view.insert("apple".to_string(), ViewProfile::default());
-    config.view.insert("mango".to_string(), ViewProfile::default());
+    config
+        .view
+        .insert("zebra".to_string(), ViewProfile::default());
+    config
+        .view
+        .insert("apple".to_string(), ViewProfile::default());
+    config
+        .view
+        .insert("mango".to_string(), ViewProfile::default());
 
     let output = toml::to_string_pretty(&config).expect("serialization failed");
 

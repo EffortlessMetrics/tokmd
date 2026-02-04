@@ -6,10 +6,13 @@
   "option": "Option B (Scout Discovery)",
   "changes": [
     "crates/tokmd-config/src/lib.rs",
-    "crates/tokmd-config/tests/determinism.rs"
+    "crates/tokmd-config/tests/determinism.rs",
+    "Cargo.lock"
   ],
   "verification": {
     "determinism_test": "cargo test -p tokmd-config --test determinism",
-    "workspace_test": "cargo test --workspace"
+    "workspace_test": "cargo test --workspace",
+    "format_check": "cargo fmt -- --check",
+    "update_bytes": "cargo update -p bytes"
   }
 }
