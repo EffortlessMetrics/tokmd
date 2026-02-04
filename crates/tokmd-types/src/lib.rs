@@ -452,7 +452,7 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
-pub const HANDOFF_SCHEMA_VERSION: u32 = 1;
+pub const HANDOFF_SCHEMA_VERSION: u32 = 2;
 
 /// Manifest for a handoff bundle containing LLM-ready artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -469,6 +469,9 @@ pub struct HandoffManifest {
     pub rank_by: String,
     pub capabilities: Vec<CapabilityStatus>,
     pub artifacts: Vec<ArtifactEntry>,
+    pub included_files: Vec<ContextFileRow>,
+    pub excluded_paths: Vec<HandoffExcludedPath>,
+    pub excluded_patterns: Vec<String>,
     pub total_files: usize,
     pub bundled_files: usize,
     pub intelligence_preset: String,
@@ -477,15 +480,19 @@ pub struct HandoffManifest {
 /// Intelligence bundle for handoff containing tree, hotspots, complexity, and derived metrics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffIntelligence {
-    pub schema_version: u32,
-    pub generated_at_ms: u128,
-    pub tool: ToolInfo,
     pub tree: Option<String>,
+    pub tree_depth: Option<usize>,
     pub hotspots: Option<Vec<HandoffHotspot>>,
     pub complexity: Option<HandoffComplexity>,
     pub derived: Option<HandoffDerived>,
     pub warnings: Vec<String>,
-    pub capabilities: Vec<CapabilityStatus>,
+}
+
+/// Explicitly excluded path with reason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffExcludedPath {
+    pub path: String,
+    pub reason: String,
 }
 
 /// Simplified hotspot row for handoff intelligence.
@@ -548,4 +555,13 @@ pub struct ArtifactEntry {
     pub path: String,
     pub description: String,
     pub bytes: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hash: Option<ArtifactHash>,
+}
+
+/// Hash for artifact integrity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactHash {
+    pub algo: String,
+    pub hash: String,
 }

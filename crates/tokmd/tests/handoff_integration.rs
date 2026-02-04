@@ -55,6 +55,14 @@ fn test_handoff_manifest_valid_json() {
     assert!(parsed["used_tokens"].is_number());
     assert!(parsed["capabilities"].is_array());
     assert!(parsed["artifacts"].is_array());
+    assert!(parsed["included_files"].is_array());
+    assert!(parsed["excluded_paths"].is_array());
+    assert!(parsed["excluded_patterns"].is_array());
+
+    let artifacts = parsed["artifacts"].as_array().unwrap();
+    let map = artifacts.iter().find(|a| a["name"] == "map").unwrap();
+    assert!(map["hash"]["algo"] == "blake3");
+    assert!(map["hash"]["hash"].is_string());
 }
 
 #[test]
@@ -74,11 +82,47 @@ fn test_handoff_intelligence_valid_json() {
         serde_json::from_str(&intel_content).expect("intelligence.json should be valid JSON");
 
     // Verify required fields
-    assert!(parsed["schema_version"].is_number());
-    assert!(parsed["generated_at_ms"].is_number());
     assert!(parsed["tree"].is_string());
+    assert!(parsed["tree_depth"].is_number());
     assert!(parsed["warnings"].is_array());
-    assert!(parsed["capabilities"].is_array());
+    assert!(parsed.get("schema_version").is_none());
+    assert!(parsed.get("generated_at_ms").is_none());
+    assert!(parsed.get("capabilities").is_none());
+}
+
+#[test]
+fn test_handoff_excludes_output_dir_from_scan() {
+    let dir = tempdir().unwrap();
+    let root = dir.path();
+    fs::write(root.join("main.rs"), "fn main() {}").unwrap();
+
+    let out_dir = root.join(".handoff");
+    fs::create_dir_all(&out_dir).unwrap();
+    fs::write(out_dir.join("should_skip.rs"), "fn skip() {}").unwrap();
+
+    let mut cmd = tokmd_cmd();
+    cmd.current_dir(root);
+    cmd.arg("handoff")
+        .arg(root)
+        .arg("--out-dir")
+        .arg(&out_dir)
+        .arg("--force")
+        .assert()
+        .success();
+
+    let manifest_content = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&manifest_content).unwrap();
+    let excluded = parsed["excluded_paths"].as_array().unwrap();
+    assert!(
+        excluded.iter().any(|p| p["path"] == ".handoff"),
+        "manifest should record output dir exclusion"
+    );
+
+    let map_content = fs::read_to_string(out_dir.join("map.jsonl")).unwrap();
+    assert!(
+        !map_content.contains("should_skip.rs"),
+        "map should not include files from output directory"
+    );
 }
 
 #[test]

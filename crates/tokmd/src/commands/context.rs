@@ -52,9 +52,14 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     // Parse budget
     let budget = context_pack::parse_budget(&args.budget)?;
 
+    let root = paths.first().cloned().unwrap_or_else(|| PathBuf::from("."));
+
     // Scan and create export data
     progress.set_message("Scanning codebase...");
-    let languages = scan::scan(&paths, global)?;
+    let mut scan_args = global.clone();
+    exclude_output_path(&root, args.out.as_ref(), &mut scan_args);
+    exclude_output_path(&root, args.bundle_dir.as_ref(), &mut scan_args);
+    let languages = scan::scan(&paths, &scan_args)?;
     let module_roots = args.module_roots.clone().unwrap_or_default();
     let module_depth = args.module_depth.unwrap_or(2);
 
@@ -502,6 +507,33 @@ fn write_bundle_directory(
     eprintln!("  - manifest.json ({} bytes)", manifest_json.len());
 
     Ok(bundle_bytes)
+}
+
+fn exclude_output_path(root: &Path, path: Option<&PathBuf>, scan_args: &mut cli::GlobalArgs) {
+    let Some(path) = path else { return };
+    let pattern = normalize_exclude_pattern(root, path);
+    if !pattern.is_empty()
+        && !scan_args
+            .excluded
+            .iter()
+            .any(|p| normalize_path(p) == pattern)
+    {
+        scan_args.excluded.push(pattern);
+    }
+}
+
+fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
+    let rel = if path.is_absolute() {
+        path.strip_prefix(root).unwrap_or(path)
+    } else {
+        path
+    };
+    let out = normalize_path(&rel.to_string_lossy());
+    out.strip_prefix("./").unwrap_or(&out).to_string()
+}
+
+fn normalize_path(path: &str) -> String {
+    path.replace('\\', "/")
 }
 
 /// Append a log record to a JSONL file.
