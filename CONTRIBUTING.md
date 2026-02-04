@@ -325,24 +325,59 @@ just publish        # cargo xtask publish --yes
 just publish-tag    # cargo xtask publish --yes --tag
 ```
 
-## Language Bindings (Planned)
+## Language Bindings
 
-We're building native FFI bindings for Python and Node.js:
+Native bindings are available for Python and Node.js:
 
 ```
 crates/
-├── tokmd-ffi/      # C-compatible FFI layer (shared)
+├── tokmd-core/     # FFI layer via ffi::run_json()
 ├── tokmd-python/   # PyO3 bindings → PyPI
 └── tokmd-node/     # napi-rs bindings → npm
 ```
 
+### Python (tokmd-python)
+
+```python
+import tokmd
+
+# All functions return native Python dicts
+result = tokmd.lang(paths=["src"])
+result = tokmd.analyze(paths=["."], preset="risk")
+```
+
+- Install: `pip install tokmd`
+- Functions: `lang()`, `module()`, `export()`, `analyze()`, `diff()`
+- Releases GIL during long scans
+
+### Node.js (tokmd-node)
+
+```javascript
+const tokmd = require('tokmd');
+
+// All functions return Promises
+const result = await tokmd.lang({ paths: ['src'] });
+const analysis = await tokmd.analyze({ paths: ['.'], preset: 'risk' });
+```
+
+- Install: `npm install tokmd`
+- Functions: `lang()`, `module()`, `export()`, `analyze()`, `diff()`
+- Non-blocking via `spawn_blocking()`
+
+### FFI Interface
+
+Both bindings use the unified FFI layer in `tokmd-core`:
+
+```rust
+pub fn run_json(mode: &str, args_json: &str) -> String
+// Response: {"ok": bool, "data": {...}, "error": {...}}
+```
+
 **Design principles:**
 - JSON serialization at FFI boundary for simplicity
-- Mirror the CLI's mental model (`scan`, `analyze`, `diff`)
+- Mirror the CLI's mental model (`lang`, `analyze`, `diff`)
 - Return native language types (Python dicts, JS objects)
 - Cross-platform wheels/prebuilds via CI matrix
-
-If you're interested in helping with bindings, see the `tokmd-ffi` crate (once created) for the shared interface.
 
 ## AI-Assisted Development
 

@@ -1,42 +1,57 @@
-# Common dev tasks for tokmd (works on macOS/Linux/Windows as long as cargo is on PATH).
+# tokmd justfile - shortcuts for common tasks
+# See https://just.systems for installation
 
-default: ci
+# Default recipe: show available recipes
+default:
+    @just --list
 
-fmt:
-    cargo fmt -- --check
-
-clippy:
-    cargo clippy --all-targets --all-features -- -D warnings
-
-test:
-    cargo test --all-features
-
-ci: fmt clippy test
-
-# Packaging sanity (what actually ships)
-package:
-    cargo package -p tokmd --list
-
-# Publishing helpers (via xtask)
+# Preview publish order without executing
 publish-plan:
     cargo xtask publish --plan --verbose
 
+# Dry-run validation (runs cargo publish --dry-run)
 publish-dry:
     cargo xtask publish --dry-run
 
-# Fast dry-run (skip tests/checks, just validate packaging)
-publish-dry-fast:
-    cargo xtask publish --dry-run --skip-checks
-
+# Publish all crates to crates.io
 publish:
     cargo xtask publish --yes
 
+# Publish all crates and create git tag
 publish-tag:
     cargo xtask publish --yes --tag
 
-install:
-    cargo install --path crates/tokmd --force
+# Resume publishing from a specific crate
+publish-from crate:
+    cargo xtask publish --from {{crate}} --yes
 
-# Generate PR cockpit metrics
-cockpit base="main" head="HEAD":
-    cargo run -p tokmd --release -- cockpit --base {{base}} --head {{head}}
+# Validate packaging contents for all publishable crates
+package-check:
+    cargo xtask publish --dry-run
+
+# Build all crates
+build:
+    cargo build --all-features
+
+# Build in release mode
+build-release:
+    cargo build --release --all-features
+
+# Run all tests
+test:
+    cargo test --all-features --verbose
+
+# Run clippy with strict warnings
+lint:
+    cargo clippy --all-features -- -D warnings
+
+# Format code
+fmt:
+    cargo fmt
+
+# Check formatting without modifying
+fmt-check:
+    cargo fmt -- --check
+
+# Run all checks (fmt, lint, test)
+check: fmt-check lint test

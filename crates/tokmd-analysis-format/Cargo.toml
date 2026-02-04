@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["formatting", "markdown", "json", "visualization", "code-analysis"]
 categories = ["development-tools", "encoding"]
 documentation = "https://docs.rs/tokmd-analysis-format"
+include = ["src/", "README.md", "Cargo.toml"]
 
 [features]
 default = []
