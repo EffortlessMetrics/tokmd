@@ -1,0 +1,18 @@
+{
+  "run_id": "20260204-123348",
+  "timestamp": "2026-02-04T12:33:48Z",
+  "persona": "Auditor",
+  "target": "proptest",
+  "action": "unify version to 1.9.0",
+  "status": "verified",
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-tokeignore",
+      "result": "passed"
+    },
+    {
+      "command": "cargo test -p tokmd-git",
+      "result": "passed"
+    }
+  ]
+}
