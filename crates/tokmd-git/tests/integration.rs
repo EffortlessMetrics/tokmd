@@ -40,9 +40,21 @@ fn create_test_repo() -> Option<TempGitRepo> {
         .output()
         .ok()?;
     if !status.status.success() {
+        eprintln!(
+            "git init failed: stdout={:?}, stderr={:?}",
+            String::from_utf8_lossy(&status.stdout),
+            String::from_utf8_lossy(&status.stderr)
+        );
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
+
+    // Disable GPG signing to prevent "gpg failed to sign the data" errors in CI
+    Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(&temp_dir)
+        .output()
+        .ok()?;
 
     // Configure git user for commits
     Command::new("git")
@@ -346,9 +358,21 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         .output()
         .ok()?;
     if !status.status.success() {
+        eprintln!(
+            "git init failed: stdout={:?}, stderr={:?}",
+            String::from_utf8_lossy(&status.stdout),
+            String::from_utf8_lossy(&status.stderr)
+        );
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
+
+    // Disable GPG signing to prevent "gpg failed to sign the data" errors in CI
+    Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(&temp_dir)
+        .output()
+        .ok()?;
 
     // Configure git user for commits
     Command::new("git")
