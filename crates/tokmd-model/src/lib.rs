@@ -253,12 +253,12 @@ pub fn create_module_report(
 
     // Unique parent files per module.
     let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+    for r in &file_rows {
+        if r.kind == FileKind::Parent {
+            module_files
+                .entry(r.module.clone())
+                .or_default()
+                .insert(r.path.clone());
         }
     }
 
