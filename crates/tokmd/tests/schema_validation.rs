@@ -1,7 +1,8 @@
 //! Schema validation tests for tokmd JSON outputs.
 //!
 //! These tests verify that the actual CLI output conforms to the JSON schema
-//! defined in `docs/schema.json`.
+//! defined in the embedded schemas. Schemas are embedded at compile time using
+//! `include_str!` to ensure tests work in packaged crate environments (e.g., Nix).
 
 use anyhow::{Context, Result};
 use assert_cmd::Command;
@@ -9,36 +10,21 @@ use serde_json::Value;
 use std::path::PathBuf;
 use tempfile::tempdir;
 
-/// Load the JSON schema from docs/schema.json
+/// Embedded JSON schema for tokmd receipts (from schemas/schema.json)
+const SCHEMA_JSON: &str = include_str!("../schemas/schema.json");
+
+/// Embedded JSON schema for handoff manifests (from schemas/handoff.schema.json)
+const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json");
+
+/// Load the JSON schema from embedded content
 fn load_schema() -> Result<Value> {
-    let schema_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .context("no parent")?
-        .parent()
-        .context("no grandparent")?
-        .join("docs")
-        .join("schema.json");
-
-    let schema_content =
-        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
-
-    serde_json::from_str(&schema_content).context("Failed to parse schema.json")
+    serde_json::from_str(SCHEMA_JSON).context("Failed to parse embedded schema.json")
 }
 
-/// Load the handoff JSON schema from docs/handoff.schema.json
+/// Load the handoff JSON schema from embedded content
 fn load_handoff_schema() -> Result<Value> {
-    let schema_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .context("no parent")?
-        .parent()
-        .context("no grandparent")?
-        .join("docs")
-        .join("handoff.schema.json");
-
-    let schema_content =
-        std::fs::read_to_string(&schema_path).context("Failed to read handoff.schema.json")?;
-
-    serde_json::from_str(&schema_content).context("Failed to parse handoff.schema.json")
+    serde_json::from_str(HANDOFF_SCHEMA_JSON)
+        .context("Failed to parse embedded handoff.schema.json")
 }
 
 /// Build a validator for a specific definition in the schema

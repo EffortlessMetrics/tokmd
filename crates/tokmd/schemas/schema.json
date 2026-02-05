@@ -1,0 +1,1454 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tokmd Receipt",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 4.",
+  "oneOf": [
+    { "$ref": "#/definitions/LangReceipt" },
+    { "$ref": "#/definitions/ModuleReceipt" },
+    { "$ref": "#/definitions/ExportReceipt" },
+    { "$ref": "#/definitions/ExportMeta" },
+    { "$ref": "#/definitions/ExportRow" },
+    { "$ref": "#/definitions/AnalysisReceipt" },
+    { "$ref": "#/definitions/CockpitReceipt" },
+    { "$ref": "#/definitions/Envelope" },
+    { "$ref": "#/definitions/ComplexityBaseline" },
+    { "$ref": "#/definitions/DeterminismBaseline" }
+  ],
+  "definitions": {
+    "ScanStatus": {
+      "type": "string",
+      "enum": ["complete", "partial"],
+      "description": "Status of the scan operation."
+    },
+    "LangReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd --format json` or `tokmd lang --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "lang" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/LangArgsMeta" },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/LangRow" } },
+        "total": { "$ref": "#/definitions/Totals" },
+        "with_files": { "type": "boolean", "description": "Whether file counts were included (flattened from report)." },
+        "children": { "$ref": "#/definitions/ChildrenMode", "description": "Children handling mode (flattened from report)." },
+        "top": { "type": "integer", "description": "Top N limit used (flattened from report)." }
+      }
+    },
+    "ModuleReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd module --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows", "total"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "module" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ModuleArgsMeta" },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/ModuleRow" } },
+        "total": { "$ref": "#/definitions/Totals" },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories (flattened from report)." },
+        "module_depth": { "type": "integer", "description": "Module depth limit (flattened from report)." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "Children handling mode (flattened from report)." },
+        "top": { "type": "integer", "description": "Top N limit used (flattened from report)." }
+      }
+    },
+    "ExportReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd export --format json`.",
+      "required": ["schema_version", "tool", "mode", "status", "warnings", "scan", "args", "rows"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" },
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/FileRow" } },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories (flattened from data)." },
+        "module_depth": { "type": "integer", "description": "Module depth limit (flattened from data)." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "Children handling mode (flattened from data)." }
+      }
+    },
+    "ExportMeta": {
+      "type": "object",
+      "description": "First line of JSONL export output (`tokmd export --format jsonl`).",
+      "required": ["type", "schema_version", "tool", "mode", "status", "warnings", "scan", "args"],
+      "properties": {
+        "type": { "type": "string", "const": "meta" },
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the scan ran." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "export" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the scan." },
+        "scan": { "$ref": "#/definitions/ScanArgs" },
+        "args": { "$ref": "#/definitions/ExportArgsMeta" }
+      }
+    },
+    "ExportRow": {
+      "type": "object",
+      "description": "Data row in JSONL export output (lines 2+ of `tokmd export --format jsonl`).",
+      "required": ["type", "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens"],
+      "properties": {
+        "type": { "type": "string", "const": "row" },
+        "path": { "type": "string", "description": "Relative file path (normalized to forward slashes)." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Detected language." },
+        "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
+      }
+    },
+    "ToolInfo": {
+      "type": "object",
+      "description": "Information about the tool that generated the receipt.",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "description": "The name of the tool (tokmd)." },
+        "version": { "type": "string", "description": "The version of the tool used." }
+      }
+    },
+    "ScanArgs": {
+      "type": "object",
+      "description": "Configuration used for the file scan.",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" }, "description": "Input paths scanned." },
+        "excluded": { "type": "array", "items": { "type": "string" }, "description": "Patterns excluded from scan." },
+        "excluded_redacted": { "type": "boolean", "description": "True if excluded patterns were redacted (replaced with hashes)." },
+        "config": { "enum": ["auto", "none"], "description": "Configuration mode used." },
+        "hidden": { "type": "boolean", "description": "Whether hidden files were included." },
+        "no_ignore": { "type": "boolean", "description": "Whether all ignore files were disregarded." },
+        "no_ignore_parent": { "type": "boolean", "description": "Whether parent ignore files were disregarded." },
+        "no_ignore_dot": { "type": "boolean", "description": "Whether .ignore files were disregarded." },
+        "no_ignore_vcs": { "type": "boolean", "description": "Whether VCS ignore files (.gitignore) were disregarded." },
+        "treat_doc_strings_as_comments": { "type": "boolean", "description": "Whether doc strings were counted as comments." }
+      }
+    },
+    "LangArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the language summary command.",
+      "properties": {
+        "format": { "type": "string", "description": "Output format used." },
+        "top": { "type": "integer", "description": "Top N languages to show (0 = all)." },
+        "with_files": { "type": "boolean", "description": "Whether file counts were included." },
+        "children": { "$ref": "#/definitions/ChildrenMode", "description": "How embedded languages are handled." }
+      }
+    },
+    "ModuleArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the module summary command.",
+      "properties": {
+        "format": { "type": "string", "description": "Output format used." },
+        "top": { "type": "integer", "description": "Top N modules to show (0 = all)." },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories." },
+        "module_depth": { "type": "integer", "description": "Module depth limit." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "How embedded languages are handled." }
+      }
+    },
+    "ExportArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the export command.",
+      "properties": {
+        "format": { "enum": ["csv", "jsonl", "json"], "description": "Output format used." },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories." },
+        "module_depth": { "type": "integer", "description": "Module depth limit." },
+        "children": { "$ref": "#/definitions/ChildIncludeMode", "description": "How embedded languages are handled." },
+        "min_code": { "type": "integer", "description": "Minimum code lines filter." },
+        "max_rows": { "type": "integer", "description": "Maximum rows to output (0 = unlimited)." },
+        "redact": { "enum": ["none", "paths", "all"], "description": "Redaction mode for sensitive data." },
+        "strip_prefix": { "type": ["string", "null"], "description": "Path prefix to strip from output paths." },
+        "strip_prefix_redacted": { "type": "boolean", "description": "True if strip_prefix was redacted (replaced with a hash)." }
+      }
+    },
+    "Totals": {
+      "type": "object",
+      "description": "Aggregate totals for a receipt.",
+      "required": ["code", "lines", "files", "bytes", "tokens", "avg_lines"],
+      "properties": {
+        "code": { "type": "integer", "description": "Total lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Total number of files processed." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated total token count." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
+      }
+    },
+    "LangRow": {
+      "type": "object",
+      "description": "A row in the language summary report.",
+      "required": ["lang", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
+      "properties": {
+        "lang": { "type": "string", "description": "Language name (e.g., Rust, Markdown)." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Number of files." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes for this language." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this language." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
+      }
+    },
+    "ModuleRow": {
+      "type": "object",
+      "description": "A row in the module summary report.",
+      "required": ["module", "code", "lines", "files", "bytes", "tokens", "avg_lines"],
+      "properties": {
+        "module": { "type": "string", "description": "Module path/name." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "files": { "type": "integer", "description": "Number of files." },
+        "bytes": { "type": "integer", "description": "Total file size in bytes for this module." },
+        "tokens": { "type": "integer", "description": "Estimated token count for this module." },
+        "avg_lines": { "type": "integer", "description": "Average lines per file." }
+      }
+    },
+    "FileRow": {
+      "type": "object",
+      "description": "A file row in the export data (used in ExportReceipt.rows).",
+      "required": ["path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens"],
+      "properties": {
+        "path": { "type": "string", "description": "Relative file path (normalized to forward slashes)." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Language of the file/block." },
+        "kind": { "enum": ["parent", "child"], "description": "Whether this is a physical file (parent) or embedded code block (child)." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines (code + comments + blanks)." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated token count." }
+      }
+    },
+    "ChildrenMode": {
+      "enum": ["collapse", "separate"],
+      "description": "How embedded languages are handled in lang reports. 'collapse' merges into parent totals, 'separate' shows as distinct rows."
+    },
+    "ChildIncludeMode": {
+      "enum": ["separate", "parents-only"],
+      "description": "How embedded languages are handled in module/export reports. 'separate' includes child rows, 'parents-only' excludes them."
+    },
+    "AnalysisReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd analyze --format json`.",
+      "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 4 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "analysis" },
+        "status": { "$ref": "#/definitions/ScanStatus" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Any warnings generated during the analysis." },
+        "source": { "$ref": "#/definitions/AnalysisSource" },
+        "args": { "$ref": "#/definitions/AnalysisArgsMeta" },
+        "archetype": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/Archetype" }] },
+        "topics": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TopicClouds" }] },
+        "entropy": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EntropyReport" }] },
+        "predictive_churn": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/PredictiveChurnReport" }] },
+        "corporate_fingerprint": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CorporateFingerprint" }] },
+        "license": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/LicenseReport" }] },
+        "derived": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DerivedReport" }] },
+        "assets": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/AssetReport" }] },
+        "deps": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DependencyReport" }] },
+        "git": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/GitReport" }] },
+        "imports": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ImportReport" }] },
+        "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
+        "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
+        "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
+      }
+    },
+    "AnalysisSource": {
+      "type": "object",
+      "description": "Source information for analysis.",
+      "required": ["inputs", "module_roots", "module_depth", "children"],
+      "properties": {
+        "inputs": { "type": "array", "items": { "type": "string" }, "description": "Input paths or files analyzed." },
+        "export_path": { "type": ["string", "null"], "description": "Path to the export file if used as input." },
+        "base_receipt_path": { "type": ["string", "null"], "description": "Path to the base receipt if used." },
+        "export_schema_version": { "type": ["integer", "null"], "description": "Schema version of the export file." },
+        "export_generated_at_ms": { "type": ["integer", "null"], "description": "Timestamp of the export file." },
+        "base_signature": { "type": ["string", "null"], "description": "Integrity hash of the base data." },
+        "module_roots": { "type": "array", "items": { "type": "string" }, "description": "Module root directories." },
+        "module_depth": { "type": "integer", "description": "Module depth limit." },
+        "children": { "type": "string", "description": "Children handling mode used." }
+      }
+    },
+    "AnalysisArgsMeta": {
+      "type": "object",
+      "description": "Arguments used for the analyze command.",
+      "required": ["preset", "format", "import_granularity"],
+      "properties": {
+        "preset": { "type": "string", "description": "Analysis preset used." },
+        "format": { "type": "string", "description": "Output format used." },
+        "window_tokens": { "type": ["integer", "null"], "description": "Context window size in tokens." },
+        "git": { "type": ["boolean", "null"], "description": "Whether git metrics were enabled." },
+        "max_files": { "type": ["integer", "null"], "description": "Maximum files limit." },
+        "max_bytes": { "type": ["integer", "null"], "description": "Maximum bytes limit." },
+        "max_commits": { "type": ["integer", "null"], "description": "Maximum commits limit." },
+        "max_commit_files": { "type": ["integer", "null"], "description": "Maximum files per commit limit." },
+        "max_file_bytes": { "type": ["integer", "null"], "description": "Maximum bytes per file limit." },
+        "import_granularity": { "type": "string", "description": "Import graph granularity (module or file)." }
+      }
+    },
+    "Archetype": {
+      "type": "object",
+      "description": "Project archetype detection result.",
+      "required": ["kind", "evidence"],
+      "properties": {
+        "kind": { "type": "string", "description": "Detected archetype kind." },
+        "evidence": { "type": "array", "items": { "type": "string" }, "description": "Evidence supporting the archetype detection." }
+      }
+    },
+    "TopicClouds": {
+      "type": "object",
+      "description": "Semantic topic analysis results.",
+      "required": ["per_module", "overall"],
+      "properties": {
+        "per_module": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/definitions/TopicTerm" } }, "description": "Topics per module." },
+        "overall": { "type": "array", "items": { "$ref": "#/definitions/TopicTerm" }, "description": "Overall project topics." }
+      }
+    },
+    "TopicTerm": {
+      "type": "object",
+      "description": "A topic term with scoring.",
+      "required": ["term", "score", "tf", "df"],
+      "properties": {
+        "term": { "type": "string", "description": "The topic term." },
+        "score": { "type": "number", "description": "TF-IDF score." },
+        "tf": { "type": "integer", "description": "Term frequency." },
+        "df": { "type": "integer", "description": "Document frequency." }
+      }
+    },
+    "EntropyReport": {
+      "type": "object",
+      "description": "Entropy profiling results.",
+      "required": ["suspects"],
+      "properties": {
+        "suspects": { "type": "array", "items": { "$ref": "#/definitions/EntropyFinding" }, "description": "Files with unusual entropy." }
+      }
+    },
+    "EntropyFinding": {
+      "type": "object",
+      "description": "A file with unusual entropy.",
+      "required": ["path", "module", "entropy_bits_per_byte", "sample_bytes", "class"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "module": { "type": "string", "description": "Module containing the file." },
+        "entropy_bits_per_byte": { "type": "number", "description": "Entropy in bits per byte." },
+        "sample_bytes": { "type": "integer", "description": "Number of bytes sampled." },
+        "class": { "enum": ["low", "normal", "suspicious", "high"], "description": "Entropy classification." }
+      }
+    },
+    "PredictiveChurnReport": {
+      "type": "object",
+      "description": "Predictive churn analysis.",
+      "required": ["per_module"],
+      "properties": {
+        "per_module": { "type": "object", "additionalProperties": { "$ref": "#/definitions/ChurnTrend" }, "description": "Churn trends per module." }
+      }
+    },
+    "ChurnTrend": {
+      "type": "object",
+      "description": "Churn trend for a module.",
+      "required": ["slope", "r2", "recent_change", "classification"],
+      "properties": {
+        "slope": { "type": "number", "description": "Trend slope." },
+        "r2": { "type": "number", "description": "R-squared fit quality." },
+        "recent_change": { "type": "integer", "description": "Recent change count." },
+        "classification": { "enum": ["rising", "flat", "falling"], "description": "Trend classification." }
+      }
+    },
+    "CorporateFingerprint": {
+      "type": "object",
+      "description": "Corporate fingerprint from git history.",
+      "required": ["domains"],
+      "properties": {
+        "domains": { "type": "array", "items": { "$ref": "#/definitions/DomainStat" }, "description": "Email domain statistics." }
+      }
+    },
+    "DomainStat": {
+      "type": "object",
+      "description": "Statistics for an email domain.",
+      "required": ["domain", "commits", "pct"],
+      "properties": {
+        "domain": { "type": "string", "description": "Email domain." },
+        "commits": { "type": "integer", "description": "Number of commits." },
+        "pct": { "type": "number", "description": "Percentage of total commits." }
+      }
+    },
+    "LicenseReport": {
+      "type": "object",
+      "description": "License detection results.",
+      "required": ["findings"],
+      "properties": {
+        "findings": { "type": "array", "items": { "$ref": "#/definitions/LicenseFinding" }, "description": "License findings." },
+        "effective": { "type": ["string", "null"], "description": "Effective license SPDX identifier." }
+      }
+    },
+    "LicenseFinding": {
+      "type": "object",
+      "description": "A license finding.",
+      "required": ["spdx", "confidence", "source_path", "source_kind"],
+      "properties": {
+        "spdx": { "type": "string", "description": "SPDX license identifier." },
+        "confidence": { "type": "number", "description": "Detection confidence (0-1)." },
+        "source_path": { "type": "string", "description": "Path where license was found." },
+        "source_kind": { "enum": ["metadata", "text"], "description": "Type of license source." }
+      }
+    },
+    "DerivedReport": {
+      "type": "object",
+      "description": "Derived analytics report.",
+      "required": ["totals", "doc_density", "whitespace", "verbosity", "max_file", "lang_purity", "nesting", "test_density", "boilerplate", "polyglot", "distribution", "histogram", "top", "reading_time", "integrity"],
+      "properties": {
+        "totals": { "$ref": "#/definitions/DerivedTotals" },
+        "doc_density": { "$ref": "#/definitions/RatioReport" },
+        "whitespace": { "$ref": "#/definitions/RatioReport" },
+        "verbosity": { "$ref": "#/definitions/RateReport" },
+        "max_file": { "$ref": "#/definitions/MaxFileReport" },
+        "lang_purity": { "$ref": "#/definitions/LangPurityReport" },
+        "nesting": { "$ref": "#/definitions/NestingReport" },
+        "test_density": { "$ref": "#/definitions/TestDensityReport" },
+        "boilerplate": { "$ref": "#/definitions/BoilerplateReport" },
+        "polyglot": { "$ref": "#/definitions/PolyglotReport" },
+        "distribution": { "$ref": "#/definitions/DistributionReport" },
+        "histogram": { "type": "array", "items": { "$ref": "#/definitions/HistogramBucket" } },
+        "top": { "$ref": "#/definitions/TopOffenders" },
+        "tree": { "type": ["string", "null"], "description": "Directory tree representation." },
+        "reading_time": { "$ref": "#/definitions/ReadingTimeReport" },
+        "context_window": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ContextWindowReport" }] },
+        "cocomo": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CocomoReport" }] },
+        "todo": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TodoReport" }] },
+        "integrity": { "$ref": "#/definitions/IntegrityReport" }
+      }
+    },
+    "DerivedTotals": {
+      "type": "object",
+      "description": "Totals for derived analysis.",
+      "required": ["files", "code", "comments", "blanks", "lines", "bytes", "tokens"],
+      "properties": {
+        "files": { "type": "integer", "description": "Total files." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines." },
+        "bytes": { "type": "integer", "description": "Total bytes." },
+        "tokens": { "type": "integer", "description": "Estimated tokens." }
+      }
+    },
+    "RatioReport": {
+      "type": "object",
+      "description": "A ratio metric report.",
+      "required": ["total", "by_lang", "by_module"],
+      "properties": {
+        "total": { "$ref": "#/definitions/RatioRow" },
+        "by_lang": { "type": "array", "items": { "$ref": "#/definitions/RatioRow" } },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/RatioRow" } }
+      }
+    },
+    "RatioRow": {
+      "type": "object",
+      "description": "A ratio metric row.",
+      "required": ["key", "numerator", "denominator", "ratio"],
+      "properties": {
+        "key": { "type": "string", "description": "Language or module name." },
+        "numerator": { "type": "integer", "description": "Numerator value." },
+        "denominator": { "type": "integer", "description": "Denominator value." },
+        "ratio": { "type": "number", "description": "Computed ratio." }
+      }
+    },
+    "RateReport": {
+      "type": "object",
+      "description": "A rate metric report.",
+      "required": ["total", "by_lang", "by_module"],
+      "properties": {
+        "total": { "$ref": "#/definitions/RateRow" },
+        "by_lang": { "type": "array", "items": { "$ref": "#/definitions/RateRow" } },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/RateRow" } }
+      }
+    },
+    "RateRow": {
+      "type": "object",
+      "description": "A rate metric row.",
+      "required": ["key", "numerator", "denominator", "rate"],
+      "properties": {
+        "key": { "type": "string", "description": "Language or module name." },
+        "numerator": { "type": "integer", "description": "Numerator value." },
+        "denominator": { "type": "integer", "description": "Denominator value." },
+        "rate": { "type": "number", "description": "Computed rate." }
+      }
+    },
+    "MaxFileReport": {
+      "type": "object",
+      "description": "Maximum file statistics.",
+      "required": ["overall", "by_lang", "by_module"],
+      "properties": {
+        "overall": { "$ref": "#/definitions/FileStatRow" },
+        "by_lang": { "type": "array", "items": { "$ref": "#/definitions/MaxFileRow" } },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/MaxFileRow" } }
+      }
+    },
+    "MaxFileRow": {
+      "type": "object",
+      "description": "Maximum file for a category.",
+      "required": ["key", "file"],
+      "properties": {
+        "key": { "type": "string", "description": "Language or module name." },
+        "file": { "$ref": "#/definitions/FileStatRow" }
+      }
+    },
+    "FileStatRow": {
+      "type": "object",
+      "description": "File statistics row.",
+      "required": ["path", "module", "lang", "code", "comments", "blanks", "lines", "bytes", "tokens", "depth"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "module": { "type": "string", "description": "Module containing the file." },
+        "lang": { "type": "string", "description": "File language." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "comments": { "type": "integer", "description": "Lines of comments." },
+        "blanks": { "type": "integer", "description": "Blank lines." },
+        "lines": { "type": "integer", "description": "Total lines." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "tokens": { "type": "integer", "description": "Estimated tokens." },
+        "doc_pct": { "type": ["number", "null"], "description": "Documentation percentage." },
+        "bytes_per_line": { "type": ["number", "null"], "description": "Bytes per line." },
+        "depth": { "type": "integer", "description": "Directory depth." }
+      }
+    },
+    "LangPurityReport": {
+      "type": "object",
+      "description": "Language purity analysis.",
+      "required": ["rows"],
+      "properties": {
+        "rows": { "type": "array", "items": { "$ref": "#/definitions/LangPurityRow" } }
+      }
+    },
+    "LangPurityRow": {
+      "type": "object",
+      "description": "Language purity for a module.",
+      "required": ["module", "lang_count", "dominant_lang", "dominant_lines", "dominant_pct"],
+      "properties": {
+        "module": { "type": "string", "description": "Module name." },
+        "lang_count": { "type": "integer", "description": "Number of languages in module." },
+        "dominant_lang": { "type": "string", "description": "Most common language." },
+        "dominant_lines": { "type": "integer", "description": "Lines in dominant language." },
+        "dominant_pct": { "type": "number", "description": "Percentage of dominant language." }
+      }
+    },
+    "NestingReport": {
+      "type": "object",
+      "description": "Directory nesting analysis.",
+      "required": ["max", "avg", "by_module"],
+      "properties": {
+        "max": { "type": "integer", "description": "Maximum nesting depth." },
+        "avg": { "type": "number", "description": "Average nesting depth." },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/NestingRow" } }
+      }
+    },
+    "NestingRow": {
+      "type": "object",
+      "description": "Nesting statistics for a module.",
+      "required": ["key", "max", "avg"],
+      "properties": {
+        "key": { "type": "string", "description": "Module name." },
+        "max": { "type": "integer", "description": "Maximum depth." },
+        "avg": { "type": "number", "description": "Average depth." }
+      }
+    },
+    "TestDensityReport": {
+      "type": "object",
+      "description": "Test density analysis.",
+      "required": ["test_lines", "prod_lines", "test_files", "prod_files", "ratio"],
+      "properties": {
+        "test_lines": { "type": "integer", "description": "Lines in test files." },
+        "prod_lines": { "type": "integer", "description": "Lines in production files." },
+        "test_files": { "type": "integer", "description": "Number of test files." },
+        "prod_files": { "type": "integer", "description": "Number of production files." },
+        "ratio": { "type": "number", "description": "Test to production ratio." }
+      }
+    },
+    "BoilerplateReport": {
+      "type": "object",
+      "description": "Boilerplate analysis.",
+      "required": ["infra_lines", "logic_lines", "ratio", "infra_langs"],
+      "properties": {
+        "infra_lines": { "type": "integer", "description": "Lines in infrastructure files." },
+        "logic_lines": { "type": "integer", "description": "Lines in logic files." },
+        "ratio": { "type": "number", "description": "Infrastructure to total ratio." },
+        "infra_langs": { "type": "array", "items": { "type": "string" }, "description": "Languages considered infrastructure." }
+      }
+    },
+    "PolyglotReport": {
+      "type": "object",
+      "description": "Polyglot analysis.",
+      "required": ["lang_count", "entropy", "dominant_lang", "dominant_lines", "dominant_pct"],
+      "properties": {
+        "lang_count": { "type": "integer", "description": "Number of languages." },
+        "entropy": { "type": "number", "description": "Language entropy." },
+        "dominant_lang": { "type": "string", "description": "Most common language." },
+        "dominant_lines": { "type": "integer", "description": "Lines in dominant language." },
+        "dominant_pct": { "type": "number", "description": "Percentage of dominant language." }
+      }
+    },
+    "DistributionReport": {
+      "type": "object",
+      "description": "File size distribution analysis.",
+      "required": ["count", "min", "max", "mean", "median", "p90", "p99", "gini"],
+      "properties": {
+        "count": { "type": "integer", "description": "Number of files." },
+        "min": { "type": "integer", "description": "Minimum file size (lines)." },
+        "max": { "type": "integer", "description": "Maximum file size (lines)." },
+        "mean": { "type": "number", "description": "Mean file size." },
+        "median": { "type": "number", "description": "Median file size." },
+        "p90": { "type": "number", "description": "90th percentile file size." },
+        "p99": { "type": "number", "description": "99th percentile file size." },
+        "gini": { "type": "number", "description": "Gini coefficient of file sizes." }
+      }
+    },
+    "HistogramBucket": {
+      "type": "object",
+      "description": "A histogram bucket for file sizes.",
+      "required": ["label", "min", "files", "pct"],
+      "properties": {
+        "label": { "type": "string", "description": "Bucket label." },
+        "min": { "type": "integer", "description": "Minimum lines in bucket." },
+        "max": { "type": ["integer", "null"], "description": "Maximum lines in bucket (null for unbounded)." },
+        "files": { "type": "integer", "description": "Number of files in bucket." },
+        "pct": { "type": "number", "description": "Percentage of files in bucket." }
+      }
+    },
+    "TopOffenders": {
+      "type": "object",
+      "description": "Top offender files by various metrics.",
+      "required": ["largest_lines", "largest_tokens", "largest_bytes", "least_documented", "most_dense"],
+      "properties": {
+        "largest_lines": { "type": "array", "items": { "$ref": "#/definitions/FileStatRow" } },
+        "largest_tokens": { "type": "array", "items": { "$ref": "#/definitions/FileStatRow" } },
+        "largest_bytes": { "type": "array", "items": { "$ref": "#/definitions/FileStatRow" } },
+        "least_documented": { "type": "array", "items": { "$ref": "#/definitions/FileStatRow" } },
+        "most_dense": { "type": "array", "items": { "$ref": "#/definitions/FileStatRow" } }
+      }
+    },
+    "ReadingTimeReport": {
+      "type": "object",
+      "description": "Estimated reading time.",
+      "required": ["minutes", "lines_per_minute", "basis_lines"],
+      "properties": {
+        "minutes": { "type": "number", "description": "Estimated reading time in minutes." },
+        "lines_per_minute": { "type": "integer", "description": "Lines per minute rate used." },
+        "basis_lines": { "type": "integer", "description": "Total lines used for calculation." }
+      }
+    },
+    "ContextWindowReport": {
+      "type": "object",
+      "description": "Context window utilization.",
+      "required": ["window_tokens", "total_tokens", "pct", "fits"],
+      "properties": {
+        "window_tokens": { "type": "integer", "description": "Context window size." },
+        "total_tokens": { "type": "integer", "description": "Total project tokens." },
+        "pct": { "type": "number", "description": "Utilization percentage." },
+        "fits": { "type": "boolean", "description": "Whether project fits in window." }
+      }
+    },
+    "CocomoReport": {
+      "type": "object",
+      "description": "COCOMO effort estimation.",
+      "required": ["mode", "kloc", "effort_pm", "duration_months", "staff", "a", "b", "c", "d"],
+      "properties": {
+        "mode": { "type": "string", "description": "COCOMO mode (organic, semi-detached, embedded)." },
+        "kloc": { "type": "number", "description": "Thousands of lines of code." },
+        "effort_pm": { "type": "number", "description": "Effort in person-months." },
+        "duration_months": { "type": "number", "description": "Estimated duration in months." },
+        "staff": { "type": "number", "description": "Estimated staff size." },
+        "a": { "type": "number", "description": "COCOMO a coefficient." },
+        "b": { "type": "number", "description": "COCOMO b coefficient." },
+        "c": { "type": "number", "description": "COCOMO c coefficient." },
+        "d": { "type": "number", "description": "COCOMO d coefficient." }
+      }
+    },
+    "TodoReport": {
+      "type": "object",
+      "description": "TODO comment analysis.",
+      "required": ["total", "density_per_kloc", "tags"],
+      "properties": {
+        "total": { "type": "integer", "description": "Total TODO comments." },
+        "density_per_kloc": { "type": "number", "description": "TODOs per thousand lines of code." },
+        "tags": { "type": "array", "items": { "$ref": "#/definitions/TodoTagRow" } }
+      }
+    },
+    "TodoTagRow": {
+      "type": "object",
+      "description": "TODO tag statistics.",
+      "required": ["tag", "count"],
+      "properties": {
+        "tag": { "type": "string", "description": "Tag name (TODO, FIXME, etc.)." },
+        "count": { "type": "integer", "description": "Number of occurrences." }
+      }
+    },
+    "IntegrityReport": {
+      "type": "object",
+      "description": "Data integrity information.",
+      "required": ["algo", "hash", "entries"],
+      "properties": {
+        "algo": { "type": "string", "description": "Hash algorithm used." },
+        "hash": { "type": "string", "description": "Integrity hash." },
+        "entries": { "type": "integer", "description": "Number of entries hashed." }
+      }
+    },
+    "AssetReport": {
+      "type": "object",
+      "description": "Non-code asset analysis.",
+      "required": ["total_files", "total_bytes", "categories", "top_files"],
+      "properties": {
+        "total_files": { "type": "integer", "description": "Total asset files." },
+        "total_bytes": { "type": "integer", "description": "Total asset bytes." },
+        "categories": { "type": "array", "items": { "$ref": "#/definitions/AssetCategoryRow" } },
+        "top_files": { "type": "array", "items": { "$ref": "#/definitions/AssetFileRow" } }
+      }
+    },
+    "AssetCategoryRow": {
+      "type": "object",
+      "description": "Asset category statistics.",
+      "required": ["category", "files", "bytes", "extensions"],
+      "properties": {
+        "category": { "type": "string", "description": "Category name." },
+        "files": { "type": "integer", "description": "Number of files." },
+        "bytes": { "type": "integer", "description": "Total bytes." },
+        "extensions": { "type": "array", "items": { "type": "string" }, "description": "File extensions in category." }
+      }
+    },
+    "AssetFileRow": {
+      "type": "object",
+      "description": "Individual asset file.",
+      "required": ["path", "bytes", "category", "extension"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "bytes": { "type": "integer", "description": "File size." },
+        "category": { "type": "string", "description": "Asset category." },
+        "extension": { "type": "string", "description": "File extension." }
+      }
+    },
+    "DependencyReport": {
+      "type": "object",
+      "description": "Dependency lockfile analysis.",
+      "required": ["total", "lockfiles"],
+      "properties": {
+        "total": { "type": "integer", "description": "Total dependencies." },
+        "lockfiles": { "type": "array", "items": { "$ref": "#/definitions/LockfileReport" } }
+      }
+    },
+    "LockfileReport": {
+      "type": "object",
+      "description": "A lockfile analysis.",
+      "required": ["path", "kind", "dependencies"],
+      "properties": {
+        "path": { "type": "string", "description": "Lockfile path." },
+        "kind": { "type": "string", "description": "Lockfile type (cargo, npm, etc.)." },
+        "dependencies": { "type": "integer", "description": "Number of dependencies." }
+      }
+    },
+    "GitReport": {
+      "type": "object",
+      "description": "Git history analysis.",
+      "required": ["commits_scanned", "files_seen", "hotspots", "bus_factor", "freshness", "coupling"],
+      "properties": {
+        "commits_scanned": { "type": "integer", "description": "Number of commits analyzed." },
+        "files_seen": { "type": "integer", "description": "Number of files in history." },
+        "hotspots": { "type": "array", "items": { "$ref": "#/definitions/HotspotRow" } },
+        "bus_factor": { "type": "array", "items": { "$ref": "#/definitions/BusFactorRow" } },
+        "freshness": { "$ref": "#/definitions/FreshnessReport" },
+        "coupling": { "type": "array", "items": { "$ref": "#/definitions/CouplingRow" } }
+      }
+    },
+    "HotspotRow": {
+      "type": "object",
+      "description": "A file hotspot.",
+      "required": ["path", "commits", "lines", "score"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "commits": { "type": "integer", "description": "Number of commits." },
+        "lines": { "type": "integer", "description": "Lines of code." },
+        "score": { "type": "integer", "description": "Hotspot score." }
+      }
+    },
+    "BusFactorRow": {
+      "type": "object",
+      "description": "Bus factor for a module.",
+      "required": ["module", "authors"],
+      "properties": {
+        "module": { "type": "string", "description": "Module name." },
+        "authors": { "type": "integer", "description": "Number of authors." }
+      }
+    },
+    "FreshnessReport": {
+      "type": "object",
+      "description": "Code freshness analysis.",
+      "required": ["threshold_days", "stale_files", "total_files", "stale_pct", "by_module"],
+      "properties": {
+        "threshold_days": { "type": "integer", "description": "Stale threshold in days." },
+        "stale_files": { "type": "integer", "description": "Number of stale files." },
+        "total_files": { "type": "integer", "description": "Total files analyzed." },
+        "stale_pct": { "type": "number", "description": "Percentage of stale files." },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleFreshnessRow" } }
+      }
+    },
+    "ModuleFreshnessRow": {
+      "type": "object",
+      "description": "Freshness for a module.",
+      "required": ["module", "avg_days", "p90_days", "stale_pct"],
+      "properties": {
+        "module": { "type": "string", "description": "Module name." },
+        "avg_days": { "type": "number", "description": "Average days since last change." },
+        "p90_days": { "type": "number", "description": "90th percentile days." },
+        "stale_pct": { "type": "number", "description": "Percentage of stale files." }
+      }
+    },
+    "CouplingRow": {
+      "type": "object",
+      "description": "File coupling from co-changes.",
+      "required": ["left", "right", "count"],
+      "properties": {
+        "left": { "type": "string", "description": "First file." },
+        "right": { "type": "string", "description": "Second file." },
+        "count": { "type": "integer", "description": "Number of co-changes." }
+      }
+    },
+    "ImportReport": {
+      "type": "object",
+      "description": "Import graph analysis.",
+      "required": ["granularity", "edges"],
+      "properties": {
+        "granularity": { "type": "string", "description": "Graph granularity (module or file)." },
+        "edges": { "type": "array", "items": { "$ref": "#/definitions/ImportEdge" } }
+      }
+    },
+    "ImportEdge": {
+      "type": "object",
+      "description": "An import edge.",
+      "required": ["from", "to", "count"],
+      "properties": {
+        "from": { "type": "string", "description": "Source module/file." },
+        "to": { "type": "string", "description": "Target module/file." },
+        "count": { "type": "integer", "description": "Number of imports." }
+      }
+    },
+    "DuplicateReport": {
+      "type": "object",
+      "description": "Duplicate file detection.",
+      "required": ["groups", "wasted_bytes", "strategy"],
+      "properties": {
+        "groups": { "type": "array", "items": { "$ref": "#/definitions/DuplicateGroup" } },
+        "wasted_bytes": { "type": "integer", "description": "Bytes wasted by duplicates." },
+        "strategy": { "type": "string", "description": "Deduplication strategy used." }
+      }
+    },
+    "DuplicateGroup": {
+      "type": "object",
+      "description": "A group of duplicate files.",
+      "required": ["hash", "bytes", "files"],
+      "properties": {
+        "hash": { "type": "string", "description": "Content hash." },
+        "bytes": { "type": "integer", "description": "File size." },
+        "files": { "type": "array", "items": { "type": "string" }, "description": "Duplicate file paths." }
+      }
+    },
+    "ComplexityReport": {
+      "type": "object",
+      "description": "Code complexity analysis.",
+      "required": ["total_functions", "avg_function_length", "max_function_length", "avg_cyclomatic", "max_cyclomatic", "high_risk_files", "files"],
+      "properties": {
+        "total_functions": { "type": "integer", "description": "Total number of functions detected." },
+        "avg_function_length": { "type": "number", "description": "Average function length in lines." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity." },
+        "avg_cognitive": { "type": ["number", "null"], "description": "Average cognitive complexity across files." },
+        "max_cognitive": { "type": ["integer", "null"], "description": "Maximum cognitive complexity found." },
+        "avg_nesting_depth": { "type": ["number", "null"], "description": "Average nesting depth across files." },
+        "max_nesting_depth": { "type": ["integer", "null"], "description": "Maximum nesting depth found." },
+        "high_risk_files": { "type": "integer", "description": "Number of high-risk files." },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileComplexity" } }
+      }
+    },
+    "FileComplexity": {
+      "type": "object",
+      "description": "Complexity metrics for a single file.",
+      "required": ["path", "module", "function_count", "max_function_length", "cyclomatic_complexity", "risk_level"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "module": { "type": "string", "description": "Module containing the file." },
+        "function_count": { "type": "integer", "description": "Number of functions in the file." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." },
+        "cyclomatic_complexity": { "type": "integer", "description": "Estimated cyclomatic complexity." },
+        "cognitive_complexity": { "type": ["integer", "null"], "description": "Cognitive complexity for this file." },
+        "max_nesting": { "type": ["integer", "null"], "description": "Maximum nesting depth in this file." },
+        "risk_level": { "$ref": "#/definitions/ComplexityRisk" },
+        "functions": { "type": ["array", "null"], "items": { "$ref": "#/definitions/FunctionComplexityDetail" }, "description": "Function-level complexity details (optional)." }
+      }
+    },
+    "FunctionComplexityDetail": {
+      "type": "object",
+      "description": "Function-level complexity details.",
+      "required": ["name", "line_start", "line_end", "length", "cyclomatic"],
+      "properties": {
+        "name": { "type": "string", "description": "Function name." },
+        "line_start": { "type": "integer", "description": "Start line (1-indexed)." },
+        "line_end": { "type": "integer", "description": "End line (1-indexed)." },
+        "length": { "type": "integer", "description": "Function length in lines." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity." },
+        "cognitive": { "type": ["integer", "null"], "description": "Cognitive complexity (if computed)." },
+        "max_nesting": { "type": ["integer", "null"], "description": "Maximum nesting depth within the function." },
+        "param_count": { "type": ["integer", "null"], "description": "Number of parameters." }
+      }
+    },
+    "ComplexityRisk": {
+      "type": "string",
+      "enum": ["low", "moderate", "high", "critical"],
+      "description": "Complexity risk classification."
+    },
+    "FunReport": {
+      "type": "object",
+      "description": "Fun/novelty outputs.",
+      "properties": {
+        "eco_label": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EcoLabel" }] }
+      }
+    },
+    "EcoLabel": {
+      "type": "object",
+      "description": "Eco-label for the project.",
+      "required": ["score", "label", "bytes", "notes"],
+      "properties": {
+        "score": { "type": "number", "description": "Eco score." },
+        "label": { "type": "string", "description": "Eco label (A-F)." },
+        "bytes": { "type": "integer", "description": "Total bytes." },
+        "notes": { "type": "string", "description": "Notes about the rating." }
+      }
+    },
+    "CockpitReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd cockpit --format json`. Contains PR metrics for code review automation.",
+      "required": ["schema_version", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 3 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the cockpit metrics were generated." },
+        "base_ref": { "type": "string", "description": "Base git reference (branch or commit)." },
+        "head_ref": { "type": "string", "description": "Head git reference (branch or commit)." },
+        "change_surface": { "$ref": "#/definitions/ChangeSurface" },
+        "composition": { "$ref": "#/definitions/Composition" },
+        "code_health": { "$ref": "#/definitions/CodeHealth" },
+        "risk": { "$ref": "#/definitions/Risk" },
+        "contracts": { "$ref": "#/definitions/Contracts" },
+        "evidence": { "$ref": "#/definitions/Evidence" },
+        "review_plan": { "type": "array", "items": { "$ref": "#/definitions/ReviewItem" }, "description": "Prioritized list of files to review." },
+        "trend": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendComparison" }], "description": "Trend comparison with baseline (if --baseline was provided)." }
+      }
+    },
+    "TrendComparison": {
+      "type": "object",
+      "description": "Trend comparison between current state and baseline.",
+      "required": ["baseline_available"],
+      "properties": {
+        "baseline_available": { "type": "boolean", "description": "Whether a baseline was successfully loaded." },
+        "baseline_path": { "type": ["string", "null"], "description": "Path to the baseline file used." },
+        "baseline_generated_at_ms": { "type": ["integer", "null"], "description": "Timestamp of baseline generation." },
+        "health": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendMetric" }], "description": "Health score trend." },
+        "risk": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendMetric" }], "description": "Risk score trend." },
+        "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TrendIndicator" }], "description": "Complexity trend indicator." }
+      }
+    },
+    "TrendMetric": {
+      "type": "object",
+      "description": "A trend metric with current, previous, delta values.",
+      "required": ["current", "previous", "delta", "delta_pct", "direction"],
+      "properties": {
+        "current": { "type": "number", "description": "Current value." },
+        "previous": { "type": "number", "description": "Previous (baseline) value." },
+        "delta": { "type": "number", "description": "Absolute delta (current - previous)." },
+        "delta_pct": { "type": "number", "description": "Percentage change." },
+        "direction": { "$ref": "#/definitions/TrendDirection" }
+      }
+    },
+    "TrendIndicator": {
+      "type": "object",
+      "description": "Complexity trend indicator.",
+      "required": ["direction", "summary", "files_increased", "files_decreased"],
+      "properties": {
+        "direction": { "$ref": "#/definitions/TrendDirection" },
+        "summary": { "type": "string", "description": "Human-readable summary." },
+        "files_increased": { "type": "integer", "description": "Number of files that got more complex." },
+        "files_decreased": { "type": "integer", "description": "Number of files that got less complex." },
+        "avg_cyclomatic_delta": { "type": ["number", "null"], "description": "Average cyclomatic delta." },
+        "avg_cognitive_delta": { "type": ["number", "null"], "description": "Average cognitive delta." }
+      }
+    },
+    "TrendDirection": {
+      "type": "string",
+      "enum": ["improving", "stable", "degrading"],
+      "description": "Direction of a trend."
+    },
+    "ChangeSurface": {
+      "type": "object",
+      "description": "Change surface metrics for a PR.",
+      "required": ["commits", "files_changed", "insertions", "deletions", "net_lines", "churn_velocity", "change_concentration"],
+      "properties": {
+        "commits": { "type": "integer", "description": "Number of commits in the PR." },
+        "files_changed": { "type": "integer", "description": "Number of files changed." },
+        "insertions": { "type": "integer", "description": "Lines inserted." },
+        "deletions": { "type": "integer", "description": "Lines deleted." },
+        "net_lines": { "type": "integer", "description": "Net lines changed (insertions - deletions)." },
+        "churn_velocity": { "type": "number", "description": "Average lines changed per commit." },
+        "change_concentration": { "type": "number", "description": "Percentage of changes in top 20% of files." }
+      }
+    },
+    "Composition": {
+      "type": "object",
+      "description": "File composition breakdown for changed files.",
+      "required": ["code_pct", "test_pct", "docs_pct", "config_pct", "test_ratio"],
+      "properties": {
+        "code_pct": { "type": "number", "description": "Percentage of code files." },
+        "test_pct": { "type": "number", "description": "Percentage of test files." },
+        "docs_pct": { "type": "number", "description": "Percentage of documentation files." },
+        "config_pct": { "type": "number", "description": "Percentage of configuration files." },
+        "test_ratio": { "type": "number", "description": "Test-to-code ratio (tests / code files)." }
+      }
+    },
+    "CodeHealth": {
+      "type": "object",
+      "description": "Code health indicators for DevEx.",
+      "required": ["score", "grade", "large_files_touched", "avg_file_size", "complexity_indicator", "warnings"],
+      "properties": {
+        "score": { "type": "integer", "description": "Overall health score (0-100)." },
+        "grade": { "type": "string", "description": "Health grade (A-F)." },
+        "large_files_touched": { "type": "integer", "description": "Number of large files (>500 lines) being changed." },
+        "avg_file_size": { "type": "integer", "description": "Average file size in changed files." },
+        "complexity_indicator": { "$ref": "#/definitions/ComplexityIndicator" },
+        "warnings": { "type": "array", "items": { "$ref": "#/definitions/HealthWarning" }, "description": "Files with potential issues." }
+      }
+    },
+    "ComplexityIndicator": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Complexity indicator levels."
+    },
+    "HealthWarning": {
+      "type": "object",
+      "description": "Health warning for a specific file.",
+      "required": ["path", "warning_type", "message"],
+      "properties": {
+        "path": { "type": "string", "description": "File path." },
+        "warning_type": { "$ref": "#/definitions/WarningType" },
+        "message": { "type": "string", "description": "Warning message." }
+      }
+    },
+    "WarningType": {
+      "type": "string",
+      "enum": ["large_file", "high_churn", "low_test_coverage", "complex_change", "bus_factor"],
+      "description": "Types of health warnings."
+    },
+    "Risk": {
+      "type": "object",
+      "description": "Risk indicators for a PR.",
+      "required": ["hotspots_touched", "bus_factor_warnings", "level", "score"],
+      "properties": {
+        "hotspots_touched": { "type": "array", "items": { "type": "string" }, "description": "Hotspot files touched by this PR." },
+        "bus_factor_warnings": { "type": "array", "items": { "type": "string" }, "description": "Files with low bus factor being touched." },
+        "level": { "$ref": "#/definitions/RiskLevel" },
+        "score": { "type": "integer", "description": "Risk score (0-100)." }
+      }
+    },
+    "RiskLevel": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Risk level classification."
+    },
+    "Contracts": {
+      "type": "object",
+      "description": "Contract change indicators.",
+      "required": ["api_changed", "cli_changed", "schema_changed", "breaking_indicators"],
+      "properties": {
+        "api_changed": { "type": "boolean", "description": "Whether API files were changed." },
+        "cli_changed": { "type": "boolean", "description": "Whether CLI files were changed." },
+        "schema_changed": { "type": "boolean", "description": "Whether schema files were changed." },
+        "breaking_indicators": { "type": "integer", "description": "Number of breaking change indicators." }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "Evidence section containing hard gates.",
+      "required": ["overall_status", "mutation"],
+      "properties": {
+        "overall_status": { "$ref": "#/definitions/GateStatus" },
+        "mutation": { "$ref": "#/definitions/MutationGate" },
+        "diff_coverage": { "$ref": "#/definitions/DiffCoverageGate" },
+        "contracts": { "$ref": "#/definitions/ContractDiffGate" },
+        "supply_chain": { "$ref": "#/definitions/SupplyChainGate" },
+        "determinism": { "$ref": "#/definitions/DeterminismGate" }
+      }
+    },
+    "GateStatus": {
+      "type": "string",
+      "enum": ["pass", "fail", "skipped", "pending"],
+      "description": "Status of a gate check. 'pass' = gate passed, 'fail' = gate failed, 'skipped' = no relevant files changed, 'pending' = results not available."
+    },
+    "EvidenceSource": {
+      "type": "string",
+      "enum": ["ci_artifact", "cached", "ran_local"],
+      "description": "Source of evidence/gate results. 'ci_artifact' = downloaded from CI, 'cached' = found in local cache, 'ran_local' = executed locally."
+    },
+    "CommitMatch": {
+      "type": "string",
+      "enum": ["exact", "partial", "stale", "unknown"],
+      "description": "Commit match quality for evidence. 'exact' = matches HEAD, 'partial' = covers merge base, 'stale' = different commit, 'unknown' = could not determine."
+    },
+    "ScopeCoverage": {
+      "type": "object",
+      "description": "Scope coverage for a gate.",
+      "required": ["relevant", "tested", "ratio"],
+      "properties": {
+        "relevant": { "type": "array", "items": { "type": "string" }, "description": "Files in scope for the gate." },
+        "tested": { "type": "array", "items": { "type": "string" }, "description": "Files actually tested." },
+        "ratio": { "type": "number", "description": "Coverage ratio (tested/relevant, 0.0-1.0)." },
+        "lines_relevant": { "type": "integer", "description": "Lines in scope (for line-level gates)." },
+        "lines_tested": { "type": "integer", "description": "Lines actually tested (for line-level gates)." }
+      }
+    },
+    "GateMeta": {
+      "type": "object",
+      "description": "Common metadata for all gates.",
+      "required": ["status", "source", "commit_match", "scope"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." }
+      }
+    },
+    "MutationGate": {
+      "type": "object",
+      "description": "Mutation testing gate results.",
+      "required": ["status", "source", "commit_match", "scope", "survivors", "killed", "timeout", "unviable"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "survivors": { "type": "array", "items": { "$ref": "#/definitions/MutationSurvivor" }, "description": "Mutations that survived testing." },
+        "killed": { "type": "integer", "description": "Number of mutations killed." },
+        "timeout": { "type": "integer", "description": "Number of mutations that timed out." },
+        "unviable": { "type": "integer", "description": "Number of unviable mutations." }
+      }
+    },
+    "MutationSurvivor": {
+      "type": "object",
+      "description": "A mutation that survived testing (escaped detection).",
+      "required": ["file", "line", "mutation"],
+      "properties": {
+        "file": { "type": "string", "description": "File containing the mutation." },
+        "line": { "type": "integer", "description": "Line number of the mutation." },
+        "mutation": { "type": "string", "description": "Description of the mutation." }
+      }
+    },
+    "DiffCoverageGate": {
+      "type": "object",
+      "description": "Diff coverage gate results.",
+      "required": ["status", "source", "commit_match", "scope", "lines_added", "lines_covered", "coverage_pct", "uncovered_hunks"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "lines_added": { "type": "integer", "description": "Total lines added in diff." },
+        "lines_covered": { "type": "integer", "description": "Lines covered by tests." },
+        "coverage_pct": { "type": "number", "description": "Coverage percentage." },
+        "uncovered_hunks": { "type": "array", "items": { "$ref": "#/definitions/UncoveredHunk" }, "description": "Uncovered code hunks." }
+      }
+    },
+    "UncoveredHunk": {
+      "type": "object",
+      "description": "An uncovered code hunk in diff coverage.",
+      "required": ["file", "start_line", "end_line"],
+      "properties": {
+        "file": { "type": "string", "description": "File path." },
+        "start_line": { "type": "integer", "description": "Start line of uncovered hunk." },
+        "end_line": { "type": "integer", "description": "End line of uncovered hunk." }
+      }
+    },
+    "ContractDiffGate": {
+      "type": "object",
+      "description": "Contract diff gate results (compound gate).",
+      "required": ["status", "source", "commit_match", "scope", "failures"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "semver": { "$ref": "#/definitions/SemverSubGate" },
+        "cli": { "$ref": "#/definitions/CliSubGate" },
+        "schema": { "$ref": "#/definitions/SchemaSubGate" },
+        "failures": { "type": "integer", "description": "Count of failed sub-gates." }
+      }
+    },
+    "SemverSubGate": {
+      "type": "object",
+      "description": "Semver sub-gate for contract diff.",
+      "required": ["status", "breaking_changes"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "breaking_changes": { "type": "array", "items": { "$ref": "#/definitions/BreakingChange" }, "description": "Breaking changes detected." }
+      }
+    },
+    "BreakingChange": {
+      "type": "object",
+      "description": "A breaking change detected by semver check.",
+      "required": ["kind", "path", "message"],
+      "properties": {
+        "kind": { "type": "string", "description": "Type of breaking change." },
+        "path": { "type": "string", "description": "Path to the changed item." },
+        "message": { "type": "string", "description": "Description of the breaking change." }
+      }
+    },
+    "CliSubGate": {
+      "type": "object",
+      "description": "CLI sub-gate for contract diff.",
+      "required": ["status"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "diff_summary": { "type": "string", "description": "Summary of CLI changes." }
+      }
+    },
+    "SchemaSubGate": {
+      "type": "object",
+      "description": "Schema sub-gate for contract diff.",
+      "required": ["status"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "diff_summary": { "type": "string", "description": "Summary of schema changes." }
+      }
+    },
+    "SupplyChainGate": {
+      "type": "object",
+      "description": "Supply chain gate results.",
+      "required": ["status", "source", "commit_match", "scope", "vulnerabilities", "denied"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "vulnerabilities": { "type": "array", "items": { "$ref": "#/definitions/Vulnerability" }, "description": "Security vulnerabilities found." },
+        "denied": { "type": "array", "items": { "type": "string" }, "description": "Denied dependencies." },
+        "advisory_db_version": { "type": "string", "description": "Version of the advisory database used." }
+      }
+    },
+    "Vulnerability": {
+      "type": "object",
+      "description": "A security vulnerability from cargo-audit.",
+      "required": ["id", "package", "severity", "title"],
+      "properties": {
+        "id": { "type": "string", "description": "Vulnerability ID (e.g., RUSTSEC-XXXX-XXXX)." },
+        "package": { "type": "string", "description": "Affected package name." },
+        "severity": { "type": "string", "description": "Severity level." },
+        "title": { "type": "string", "description": "Vulnerability title." }
+      }
+    },
+    "DeterminismGate": {
+      "type": "object",
+      "description": "Determinism gate results.",
+      "required": ["status", "source", "commit_match", "scope", "algo", "differences"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "expected_hash": { "type": "string", "description": "Expected build hash." },
+        "actual_hash": { "type": "string", "description": "Actual build hash." },
+        "algo": { "type": "string", "description": "Hash algorithm used." },
+        "differences": { "type": "array", "items": { "type": "string" }, "description": "Differences detected." }
+      }
+    },
+    "ReviewItem": {
+      "type": "object",
+      "description": "A review plan item.",
+      "required": ["path", "reason", "priority"],
+      "properties": {
+        "path": { "type": "string", "description": "File path to review." },
+        "reason": { "type": "string", "description": "Reason for including in review plan." },
+        "priority": { "type": "integer", "description": "Review priority (higher = more important)." },
+        "complexity": { "type": "integer", "description": "Estimated review complexity (1-5)." },
+        "lines_changed": { "type": "integer", "description": "Lines changed in this file." }
+      }
+    },
+    "Envelope": {
+      "type": "object",
+      "description": "Ecosystem envelope for multi-sensor integration. Provides a standardized JSON format for integrating with external orchestrators.",
+      "required": ["envelope_version", "tool", "generated_at", "verdict", "summary", "findings"],
+      "properties": {
+        "envelope_version": { "type": "integer", "const": 1, "description": "Schema version (currently 1)." },
+        "tool": { "$ref": "#/definitions/EnvelopeTool" },
+        "generated_at": { "type": "string", "description": "Generation timestamp (ISO 8601 format)." },
+        "verdict": { "$ref": "#/definitions/Verdict" },
+        "summary": { "type": "string", "description": "Human-readable one-line summary." },
+        "findings": { "type": "array", "items": { "$ref": "#/definitions/Finding" }, "description": "List of findings (may be empty)." },
+        "gates": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/GatesEnvelope" }], "description": "Evidence gate status." },
+        "artifacts": { "oneOf": [{ "type": "null" }, { "type": "array", "items": { "$ref": "#/definitions/Artifact" } }], "description": "Related artifact paths." },
+        "data": { "description": "Tool-specific payload (opaque to director)." }
+      }
+    },
+    "EnvelopeTool": {
+      "type": "object",
+      "description": "Tool identification for envelope.",
+      "required": ["name", "version", "mode"],
+      "properties": {
+        "name": { "type": "string", "description": "Tool name (e.g., 'tokmd')." },
+        "version": { "type": "string", "description": "Tool version (e.g., '1.5.0')." },
+        "mode": { "type": "string", "description": "Operation mode (e.g., 'cockpit', 'analyze')." }
+      }
+    },
+    "Verdict": {
+      "type": "string",
+      "enum": ["pass", "fail", "warn", "skip", "pending"],
+      "description": "Overall verdict for the envelope. Directors aggregate verdicts: fail > pending > warn > pass > skip."
+    },
+    "Finding": {
+      "type": "object",
+      "description": "A finding reported by the tool. Finding IDs follow the convention: <tool>.<category>.<code> (e.g., 'tokmd.risk.hotspot').",
+      "required": ["id", "severity", "title", "message"],
+      "properties": {
+        "id": { "type": "string", "description": "Finding identifier (e.g., 'tokmd.risk.hotspot')." },
+        "severity": { "$ref": "#/definitions/FindingSeverity" },
+        "title": { "type": "string", "description": "Short title for the finding." },
+        "message": { "type": "string", "description": "Detailed message describing the finding." },
+        "location": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FindingLocation" }], "description": "Source location (if applicable)." },
+        "evidence": { "description": "Additional evidence data." },
+        "docs_url": { "type": ["string", "null"], "description": "Documentation URL for this finding type." }
+      }
+    },
+    "FindingSeverity": {
+      "type": "string",
+      "enum": ["error", "warn", "info"],
+      "description": "Severity level for findings. 'error' blocks merge (hard gate failure), 'warn' is review recommended, 'info' is informational."
+    },
+    "FindingLocation": {
+      "type": "object",
+      "description": "Source location for a finding.",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "description": "File path (normalized to forward slashes)." },
+        "line": { "type": ["integer", "null"], "description": "Line number (1-indexed)." },
+        "column": { "type": ["integer", "null"], "description": "Column number (1-indexed)." }
+      }
+    },
+    "GatesEnvelope": {
+      "type": "object",
+      "description": "Evidence gates envelope section.",
+      "required": ["status", "items"],
+      "properties": {
+        "status": { "$ref": "#/definitions/Verdict", "description": "Overall gate status." },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/GateItem" }, "description": "Individual gate items." }
+      }
+    },
+    "GateItem": {
+      "type": "object",
+      "description": "Individual gate item in the gates envelope.",
+      "required": ["id", "status"],
+      "properties": {
+        "id": { "type": "string", "description": "Gate identifier (e.g., 'mutation', 'diff_coverage')." },
+        "status": { "$ref": "#/definitions/Verdict", "description": "Gate status." },
+        "threshold": { "type": ["number", "null"], "description": "Threshold value (if applicable)." },
+        "actual": { "type": ["number", "null"], "description": "Actual measured value (if applicable)." },
+        "reason": { "type": ["string", "null"], "description": "Reason for the status (especially for pending/fail)." },
+        "source": { "type": ["string", "null"], "description": "Data source (e.g., 'ci_artifact', 'computed')." },
+        "artifact_path": { "type": ["string", "null"], "description": "Path to the source artifact (if applicable)." }
+      }
+    },
+    "Artifact": {
+      "type": "object",
+      "description": "Artifact reference in the envelope.",
+      "required": ["type", "path"],
+      "properties": {
+        "type": { "type": "string", "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')." },
+        "path": { "type": "string", "description": "Path to the artifact file." }
+      }
+    },
+    "ComplexityBaseline": {
+      "type": "object",
+      "description": "Complexity baseline for tracking trends over time. Used by the ratchet system to enforce that complexity metrics do not regress across commits.",
+      "required": ["baseline_version", "generated_at", "metrics", "files"],
+      "properties": {
+        "baseline_version": { "type": "integer", "const": 1, "description": "Schema version for forward compatibility." },
+        "generated_at": { "type": "string", "description": "ISO 8601 timestamp when this baseline was generated." },
+        "commit": { "type": ["string", "null"], "description": "Git commit SHA at which this baseline was captured, if available." },
+        "metrics": { "$ref": "#/definitions/BaselineMetrics" },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileBaselineEntry" }, "description": "Per-file baseline entries for granular tracking." }
+      }
+    },
+    "BaselineMetrics": {
+      "type": "object",
+      "description": "Aggregate baseline metrics for the entire codebase.",
+      "required": ["total_code_lines", "total_files", "avg_cyclomatic", "max_cyclomatic", "avg_cognitive", "max_cognitive", "avg_nesting_depth", "max_nesting_depth", "function_count", "avg_function_length"],
+      "properties": {
+        "total_code_lines": { "type": "integer", "description": "Total lines of code across all files." },
+        "total_files": { "type": "integer", "description": "Total number of source files." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity across all functions." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity found in any function." },
+        "avg_cognitive": { "type": "number", "description": "Average cognitive complexity across all functions." },
+        "max_cognitive": { "type": "integer", "description": "Maximum cognitive complexity found in any function." },
+        "avg_nesting_depth": { "type": "number", "description": "Average nesting depth across all functions." },
+        "max_nesting_depth": { "type": "integer", "description": "Maximum nesting depth found in any function." },
+        "function_count": { "type": "integer", "description": "Total number of functions analyzed." },
+        "avg_function_length": { "type": "number", "description": "Average function length in lines." }
+      }
+    },
+    "FileBaselineEntry": {
+      "type": "object",
+      "description": "Per-file baseline entry for granular complexity tracking.",
+      "required": ["path", "code_lines", "cyclomatic", "cognitive", "max_nesting", "function_count"],
+      "properties": {
+        "path": { "type": "string", "description": "Normalized file path (forward slashes)." },
+        "code_lines": { "type": "integer", "description": "Lines of code in this file." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity for this file." },
+        "cognitive": { "type": "integer", "description": "Cognitive complexity for this file." },
+        "max_nesting": { "type": "integer", "description": "Maximum nesting depth in this file." },
+        "function_count": { "type": "integer", "description": "Number of functions in this file." },
+        "content_hash": { "type": ["string", "null"], "description": "BLAKE3 hash of file content for change detection." }
+      }
+    },
+    "DeterminismBaseline": {
+      "type": "object",
+      "description": "Build determinism baseline for reproducibility verification. Tracks hashes of build artifacts and source inputs.",
+      "required": ["baseline_version", "generated_at", "build_hash", "source_hash"],
+      "properties": {
+        "baseline_version": { "type": "integer", "const": 1, "description": "Schema version for forward compatibility." },
+        "generated_at": { "type": "string", "description": "ISO 8601 timestamp when this baseline was generated." },
+        "build_hash": { "type": "string", "description": "Hash of the final build artifact." },
+        "source_hash": { "type": "string", "description": "Hash of all source files combined." },
+        "cargo_lock_hash": { "type": ["string", "null"], "description": "Hash of Cargo.lock if present (Rust projects)." }
+      }
+    }
+  }
+}
