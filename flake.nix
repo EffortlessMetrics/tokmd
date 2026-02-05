@@ -45,6 +45,8 @@
           (craneLib.filterCargoSources path type)
           # Keep HTML templates (for include_str!)
           || (builtins.match ".*\\.html$" path != null)
+          # Keep embedded schemas (include_str! in tests / clippy --all-targets)
+          || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep snapshot files
