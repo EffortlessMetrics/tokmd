@@ -47,6 +47,8 @@
           || (builtins.match ".*\\.html$" path != null)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
+          # Keep docs directory (for schema validation tests)
+          || (pkgs.lib.hasInfix "/docs/" p)
           # Keep snapshot files
           || (pkgs.lib.hasSuffix ".snap" baseName)
           # Keep proptest regression files
