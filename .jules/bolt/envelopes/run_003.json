@@ -1,0 +1,14 @@
+{
+  "run_id": "run_003",
+  "timestamp_utc": "2024-10-24T12:00:00Z",
+  "lane": "Lane B (Scout)",
+  "target": "crates/tokmd-model/src/lib.rs:create_module_report",
+  "proof_method": "cargo run -p tokmd-model --example bench_perf --release",
+  "commands": [
+    {
+      "cmd": "cargo run -p tokmd-model --example bench_perf --release",
+      "result": "Time per iteration: 171.36ms"
+    }
+  ],
+  "results_summary": "Baseline: 171.36ms"
+}
