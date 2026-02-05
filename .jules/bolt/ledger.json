@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2024-10-24",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs:create_module_report",
+    "proof_method": "cargo run -p tokmd-model --example bench_perf --release",
+    "pr_link": "TODO",
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

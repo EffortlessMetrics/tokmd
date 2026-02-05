@@ -244,21 +244,32 @@ pub fn create_module_report(
 
     let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
     for r in &file_rows {
-        let entry = by_module.entry(r.module.clone()).or_default();
-        entry.code += r.code;
-        entry.lines += r.lines;
-        entry.bytes += r.bytes;
-        entry.tokens += r.tokens;
+        if let Some(entry) = by_module.get_mut(&r.module) {
+            entry.code += r.code;
+            entry.lines += r.lines;
+            entry.bytes += r.bytes;
+            entry.tokens += r.tokens;
+        } else {
+            let mut entry = Agg::default();
+            entry.code += r.code;
+            entry.lines += r.lines;
+            entry.bytes += r.bytes;
+            entry.tokens += r.tokens;
+            by_module.insert(r.module.clone(), entry);
+        }
     }
 
     // Unique parent files per module.
     let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+    for r in &file_rows {
+        if r.kind == FileKind::Parent {
+            if let Some(set) = module_files.get_mut(&r.module) {
+                set.insert(r.path.clone());
+            } else {
+                let mut set = BTreeSet::new();
+                set.insert(r.path.clone());
+                module_files.insert(r.module.clone(), set);
+            }
         }
     }
 
