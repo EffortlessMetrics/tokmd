@@ -11,5 +11,18 @@
       "clippy": "PASS"
     },
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-05T00:00:00Z",
+    "lane": "scout",
+    "target": "Add json-pretty format to lang and module commands",
+    "pr_link": null,
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids": []
   }
 ]

@@ -371,6 +371,8 @@ pub enum TableFormat {
     Tsv,
     /// JSON (compact).
     Json,
+    /// JSON (pretty-printed).
+    JsonPretty,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

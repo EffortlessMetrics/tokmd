@@ -114,7 +114,7 @@ pub fn write_lang_report_to<W: Write>(
         TableFormat::Tsv => {
             out.write_all(render_lang_tsv(report).as_bytes())?;
         }
-        TableFormat::Json => {
+        TableFormat::Json | TableFormat::JsonPretty => {
             let receipt = LangReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
@@ -131,7 +131,11 @@ pub fn write_lang_report_to<W: Write>(
                 },
                 report: report.clone(),
             };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            if args.format == TableFormat::JsonPretty {
+                writeln!(out, "{}", serde_json::to_string_pretty(&receipt)?)?;
+            } else {
+                writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            }
         }
     }
     Ok(())
@@ -250,7 +254,7 @@ pub fn write_module_report_to<W: Write>(
         TableFormat::Tsv => {
             out.write_all(render_module_tsv(report).as_bytes())?;
         }
-        TableFormat::Json => {
+        TableFormat::Json | TableFormat::JsonPretty => {
             let receipt = ModuleReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
@@ -268,7 +272,11 @@ pub fn write_module_report_to<W: Write>(
                 },
                 report: report.clone(),
             };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            if args.format == TableFormat::JsonPretty {
+                writeln!(out, "{}", serde_json::to_string_pretty(&receipt)?)?;
+            } else {
+                writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            }
         }
     }
     Ok(())

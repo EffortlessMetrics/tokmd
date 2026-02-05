@@ -1,0 +1,57 @@
+{
+  "run_id": "20260205-palette-01",
+  "timestamp_utc": "2026-02-05T00:00:00Z",
+  "lane": "Scout",
+  "target": "Add json-pretty format to lang and module commands",
+  "commands": [
+    {
+      "cmd": "cargo check -p tokmd-types",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "Finished `dev` profile"
+    },
+    {
+      "cmd": "cargo check -p tokmd-format",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "Finished `dev` profile"
+    },
+    {
+      "cmd": "cargo test -p tokmd-format",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "test result: ok. 40 passed"
+    },
+    {
+      "cmd": "cargo run --bin tokmd -- --format json-pretty",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "Output valid JSON"
+    },
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "Finished `dev` profile"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "All tests passed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "No output"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "Finished `dev` profile"
+    }
+  ],
+  "results_summary": "All verifications passed. Added JsonPretty to TableFormat."
+}
