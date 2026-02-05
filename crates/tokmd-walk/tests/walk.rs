@@ -5,6 +5,14 @@ use std::path::PathBuf;
 use tempfile::TempDir;
 use tokmd_walk::{file_size, license_candidates, list_files};
 
+fn git_available() -> bool {
+    std::process::Command::new("git")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
 // ========================
 // License Candidates Tests
 // ========================
@@ -380,6 +388,9 @@ fn list_files_excludes_directories() {
 
 #[test]
 fn list_files_in_git_repo_returns_tracked_files() {
+    if !git_available() {
+        return;
+    }
     let temp = TempDir::new().unwrap();
 
     // Initialize a git repo
@@ -401,6 +412,13 @@ fn list_files_in_git_repo_returns_tracked_files() {
         .current_dir(temp.path())
         .output()
         .expect("git config name failed");
+
+    // Explicitly disable GPG signing to prevent test failures in environments without GPG
+    std::process::Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(temp.path())
+        .output()
+        .expect("git config gpgsign failed");
 
     // Create and add files
     std::fs::write(temp.path().join("tracked.txt"), "tracked").unwrap();
@@ -447,6 +465,9 @@ fn list_files_in_git_repo_returns_tracked_files() {
 
 #[test]
 fn list_files_in_git_repo_respects_max_files() {
+    if !git_available() {
+        return;
+    }
     let temp = TempDir::new().unwrap();
 
     // Initialize a git repo
@@ -468,6 +489,13 @@ fn list_files_in_git_repo_respects_max_files() {
         .current_dir(temp.path())
         .output()
         .expect("git config name failed");
+
+    // Explicitly disable GPG signing
+    std::process::Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(temp.path())
+        .output()
+        .expect("git config gpgsign failed");
 
     // Create multiple files
     std::fs::write(temp.path().join("a.txt"), "a").unwrap();
@@ -498,6 +526,9 @@ fn list_files_in_git_repo_respects_max_files() {
 
 #[test]
 fn list_files_in_git_repo_max_files_equals_file_count() {
+    if !git_available() {
+        return;
+    }
     // This test attempts to kill the `> with >=` mutant for the git truncation path.
     // When limit == files.len(), we should NOT truncate.
     // Note: This mutation may be semantically equivalent since truncate(n) when len==n is a no-op.
@@ -522,6 +553,13 @@ fn list_files_in_git_repo_max_files_equals_file_count() {
         .current_dir(temp.path())
         .output()
         .expect("git config name failed");
+
+    // Explicitly disable GPG signing
+    std::process::Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(temp.path())
+        .output()
+        .expect("git config gpgsign failed");
 
     // Create exactly 3 files
     std::fs::write(temp.path().join("a.txt"), "a").unwrap();
@@ -561,6 +599,9 @@ fn list_files_in_git_repo_max_files_equals_file_count() {
 
 #[test]
 fn list_files_in_git_repo_with_max_files_zero() {
+    if !git_available() {
+        return;
+    }
     let temp = TempDir::new().unwrap();
 
     // Initialize a git repo
@@ -582,6 +623,13 @@ fn list_files_in_git_repo_with_max_files_zero() {
         .current_dir(temp.path())
         .output()
         .expect("git config name failed");
+
+    // Explicitly disable GPG signing
+    std::process::Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(temp.path())
+        .output()
+        .expect("git config gpgsign failed");
 
     // Create and commit a file
     std::fs::write(temp.path().join("file.txt"), "content").unwrap();
