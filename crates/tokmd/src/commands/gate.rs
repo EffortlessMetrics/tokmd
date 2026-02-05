@@ -317,7 +317,15 @@ fn load_or_compute_receipt(
     }
 
     // Otherwise, compute analysis receipt
-    let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
+    // Default to Health preset when baseline is provided (it includes complexity metrics),
+    // otherwise Receipt for lightweight checks
+    let preset = args.preset.unwrap_or_else(|| {
+        if args.baseline.is_some() {
+            cli::AnalysisPreset::Health
+        } else {
+            cli::AnalysisPreset::Receipt
+        }
+    });
     compute_receipt(&input, preset, global)
 }
 

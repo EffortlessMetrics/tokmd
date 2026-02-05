@@ -920,17 +920,51 @@ pub struct DeterminismBaseline {
     pub cargo_lock_hash: Option<String>,
 }
 
-/// Helper to convert milliseconds timestamp to ISO 8601 string.
+/// Helper to convert milliseconds timestamp to RFC 3339 / ISO 8601 string.
 fn chrono_timestamp_iso8601(ms: u128) -> String {
-    // Simple conversion: ms to seconds, format as basic ISO timestamp
-    let secs = (ms / 1000) as i64;
-    let nanos = ((ms % 1000) * 1_000_000) as u32;
+    // Convert milliseconds to seconds and remaining millis
+    let total_secs = (ms / 1000) as i64;
+    let millis = (ms % 1000) as u32;
 
-    // Use a basic formatting approach without external chrono dependency
-    // Format: YYYY-MM-DDTHH:MM:SS.sssZ
-    // For simplicity, we output the Unix timestamp in a parseable format
-    // A proper implementation would use chrono, but we keep dependencies minimal
-    format!("{}:{:09}", secs, nanos)
+    // Constants for date calculation
+    const SECS_PER_MIN: i64 = 60;
+    const SECS_PER_HOUR: i64 = 3600;
+    const SECS_PER_DAY: i64 = 86400;
+
+    // Days since Unix epoch (1970-01-01)
+    let days = total_secs / SECS_PER_DAY;
+    let day_secs = total_secs % SECS_PER_DAY;
+
+    // Handle negative timestamps (before epoch)
+    let (days, day_secs) = if day_secs < 0 {
+        (days - 1, day_secs + SECS_PER_DAY)
+    } else {
+        (days, day_secs)
+    };
+
+    // Time of day
+    let hour = day_secs / SECS_PER_HOUR;
+    let min = (day_secs % SECS_PER_HOUR) / SECS_PER_MIN;
+    let sec = day_secs % SECS_PER_MIN;
+
+    // Convert days since epoch to year/month/day
+    // Using algorithm from Howard Hinnant's date library
+    let z = days + 719468; // shift to March 1, year 0
+    let era = if z >= 0 { z } else { z - 146096 } / 146097;
+    let doe = (z - era * 146097) as u32; // day of era [0, 146096]
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // year of era
+    let y = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // day of year
+    let mp = (5 * doy + 2) / 153; // month pseudo
+    let d = doy - (153 * mp + 2) / 5 + 1; // day
+    let m = if mp < 10 { mp + 3 } else { mp - 9 }; // month
+    let y = if m <= 2 { y + 1 } else { y }; // year
+
+    // Format as RFC 3339: YYYY-MM-DDTHH:MM:SS.sssZ
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+        y, m, d, hour, min, sec, millis
+    )
 }
 
 // ---------
