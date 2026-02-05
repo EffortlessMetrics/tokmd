@@ -1,0 +1,12 @@
+{
+  "id": "run-03",
+  "start_time": "2024-05-23T11:00:00Z",
+  "target": "toml",
+  "lane": "B",
+  "decision": "Unify toml dependency to v0.8 across workspace",
+  "receipts": [
+    "cargo check --workspace: passed",
+    "cargo tree -d: toml duplication removed (v0.9 gone)",
+    "cargo test --workspace: passed"
+  ]
+}
