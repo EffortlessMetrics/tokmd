@@ -8,6 +8,8 @@
     "cargo check --workspace: passed",
     "cargo tree -d: toml duplication removed (v0.9 gone)",
     "cargo test --workspace: passed",
-    "cargo update -p bytes: updated to v1.11.1 (fixes RUSTSEC-2026-0007)"
+    "cargo update -p bytes: updated to v1.11.1 (fixes RUSTSEC-2026-0007)",
+    "flake.nix: added git to check inputs (fixes CI)",
+    "integration.rs: disabled GPG signing (fixes CI)"
   ]
 }

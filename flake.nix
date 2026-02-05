@@ -119,7 +119,11 @@
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
           });
           fmt = craneLib.cargoFmt { inherit src; };
-          test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
+          test = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            # git is needed for integration tests in tokmd-git
+            nativeBuildInputs = [ pkgs.git ];
+          });
         });
 
       devShells = forAllSystems (system:
