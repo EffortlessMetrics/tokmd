@@ -2,21 +2,11 @@
 //!
 //! Generates PR cockpit metrics for code review automation.
 
-use std::cmp::Reverse;
-use std::collections::BTreeMap;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-
-use anyhow::{Context, Result, bail};
-use serde::{Deserialize, Serialize};
+use anyhow::{Result, bail};
 use tokmd_config as cli;
 
-/// Cockpit receipt schema version.
-const SCHEMA_VERSION: u32 = 3;
-
 /// Handle the cockpit command.
-pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
+pub(crate) fn handle(_args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
     {
         bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
@@ -24,6 +14,10 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 
     #[cfg(feature = "git")]
     {
+        use anyhow::Context;
+        use git_features::*;
+        use std::io::Write;
+
         if !tokmd_git::git_available() {
             bail!("git is not available on PATH");
         }
@@ -32,25 +26,25 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-        let range_mode = match args.diff_range {
+        let range_mode = match _args.diff_range {
             cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
             cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
         };
 
-        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
+        let mut receipt = compute_cockpit(&repo_root, &_args.base, &_args.head, range_mode)?;
 
         // Load baseline and compute trend if provided
-        if let Some(baseline_path) = &args.baseline {
+        if let Some(baseline_path) = &_args.baseline {
             receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
         }
 
-        let output = match args.format {
+        let output = match _args.format {
             cli::CockpitFormat::Json => render_json(&receipt)?,
             cli::CockpitFormat::Md => render_markdown(&receipt),
             cli::CockpitFormat::Sections => render_sections(&receipt),
         };
 
-        if let Some(output_path) = &args.output {
+        if let Some(output_path) = &_args.output {
             let mut file = std::fs::File::create(output_path).with_context(|| {
                 format!("Failed to create output file: {}", output_path.display())
             })?;
@@ -63,9 +57,22 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
     }
 }
 
-/// Load baseline receipt and compute trend comparison.
-fn load_and_compute_trend(
-    baseline_path: &std::path::Path,
+#[cfg(feature = "git")]
+mod git_features {
+    use super::*;
+    use anyhow::Context;
+    use serde::{Deserialize, Serialize};
+    use std::cmp::Reverse;
+    use std::collections::BTreeMap;
+    use std::path::{Path, PathBuf};
+    use std::process::Command;
+
+    /// Cockpit receipt schema version.
+    const SCHEMA_VERSION: u32 = 3;
+
+    /// Load baseline receipt and compute trend comparison.
+    pub(crate) fn load_and_compute_trend(
+        baseline_path: &std::path::Path,
     current: &CockpitReceipt,
 ) -> Result<TrendComparison> {
     // Try to load baseline
@@ -639,8 +646,7 @@ pub enum TrendDirection {
     Degrading,
 }
 
-#[cfg(feature = "git")]
-fn compute_cockpit(
+pub(crate) fn compute_cockpit(
     repo_root: &PathBuf,
     base: &str,
     head: &str,
@@ -2465,11 +2471,11 @@ fn generate_review_plan(file_stats: &[FileStats], contracts: &Contracts) -> Vec<
     items
 }
 
-fn render_json(receipt: &CockpitReceipt) -> Result<String> {
+pub(crate) fn render_json(receipt: &CockpitReceipt) -> Result<String> {
     serde_json::to_string_pretty(receipt).context("Failed to serialize cockpit receipt")
 }
 
-fn render_markdown(receipt: &CockpitReceipt) -> String {
+pub(crate) fn render_markdown(receipt: &CockpitReceipt) -> String {
     let mut out = String::new();
 
     out.push_str("## Glass Cockpit\n\n");
@@ -2902,7 +2908,7 @@ fn render_complexity_gate_markdown(out: &mut String, gate: &ComplexityGate) {
     }
 }
 
-fn render_sections(receipt: &CockpitReceipt) -> String {
+pub(crate) fn render_sections(receipt: &CockpitReceipt) -> String {
     let mut out = String::new();
 
     // COCKPIT section (for AI-FILL:COCKPIT)
@@ -3572,4 +3578,5 @@ fn third() {
         assert_eq!(deserialized.high_complexity_files.len(), 1);
         assert_eq!(deserialized.high_complexity_files[0].cyclomatic, 20);
     }
+}
 }
