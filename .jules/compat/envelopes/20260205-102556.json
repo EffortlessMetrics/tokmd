@@ -1,0 +1,21 @@
+{
+  "run_id": "20260205-102556",
+  "timestamp": "2026-02-05T10:25:56Z",
+  "target": "cockpit no-default-features unused code",
+  "lane": "Lane B (Scout Discovery)",
+  "status": "success",
+  "receipts": [
+    {
+      "command": "cargo check --no-default-features",
+      "result": "success (0 warnings)"
+    },
+    {
+      "command": "cargo check --all-features",
+      "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd --lib commands::cockpit --all-features",
+      "result": "success (24 passed)"
+    }
+  ]
+}
