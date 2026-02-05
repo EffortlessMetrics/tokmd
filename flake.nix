@@ -47,6 +47,8 @@
           || (builtins.match ".*\\.html$" path != null)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
+          # Keep docs directory (needed for schema validation tests)
+          || (pkgs.lib.hasInfix "/docs/" p)
           # Keep snapshot files
           || (pkgs.lib.hasSuffix ".snap" baseName)
           # Keep proptest regression files
@@ -117,7 +119,11 @@
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
           });
           fmt = craneLib.cargoFmt { inherit src; };
-          test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
+          test = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            # git is needed for integration tests in tokmd-git
+            nativeBuildInputs = [ pkgs.git ];
+          });
         });
 
       devShells = forAllSystems (system:
