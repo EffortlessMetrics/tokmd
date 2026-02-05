@@ -3,7 +3,7 @@
   "timestamp": "2026-02-05T10:52:43Z",
   "lane": "B",
   "target": "Unify proptest versions in workspace and Fix CI Failures",
-  "decision": "Option A: Update divergent crates (tokmd-tokeignore, tokmd-git) to proptest 1.9.0. Fix RUSTSEC-2026-0007 in Cargo.lock. Fix Nix CI by whitelisting docs/ in flake.nix.",
+  "decision": "Option A: Update divergent crates (tokmd-tokeignore, tokmd-git) to proptest 1.9.0. Fix RUSTSEC-2026-0007 in Cargo.lock. Fix Nix CI by whitelisting docs/ and adding git to nativeBuildInputs.",
   "receipts": [
     {
       "command": "cargo test -p tokmd-tokeignore",
