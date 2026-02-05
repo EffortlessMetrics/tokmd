@@ -37,8 +37,9 @@ use tokmd_config as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_types::{
-    ArtifactEntry, ArtifactHash, ContextBundleManifest, ContextExcludedPath, ContextFileRow,
-    ContextLogRecord, ContextReceipt, CONTEXT_BUNDLE_SCHEMA_VERSION, SCHEMA_VERSION, ToolInfo,
+    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, ContextBundleManifest,
+    ContextExcludedPath, ContextFileRow, ContextLogRecord, ContextReceipt, SCHEMA_VERSION,
+    ToolInfo,
 };
 
 use crate::context_pack;
@@ -441,6 +442,7 @@ fn write_output_file(path: &Path, content: &str, force: bool) -> Result<()> {
 /// Write bundle to a directory with manifest.
 /// Streams bundle.txt directly to avoid memory blowup.
 /// Returns the total bytes of bundle.txt (the main output).
+#[allow(clippy::too_many_arguments)]
 fn write_bundle_directory(
     dir: &Path,
     args: &cli::CliContextArgs,

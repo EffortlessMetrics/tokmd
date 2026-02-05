@@ -369,7 +369,10 @@ fn test_cockpit_artifacts_dir() {
     let _: serde_json::Value = serde_json::from_str(&report).expect("valid JSON in report");
 
     let comment = std::fs::read_to_string(&comment_path).unwrap();
-    let bullet_count = comment.lines().filter(|l| l.trim_start().starts_with("- ")).count();
+    let bullet_count = comment
+        .lines()
+        .filter(|l| l.trim_start().starts_with("- "))
+        .count();
     assert!(
         (3..=8).contains(&bullet_count),
         "comment bullet count should be 3-8, got {}",

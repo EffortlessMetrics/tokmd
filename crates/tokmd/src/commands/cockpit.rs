@@ -3341,7 +3341,11 @@ fn render_comment(receipt: &CockpitReceipt) -> String {
     out.push_str(&format!("- Hotspots touched: {}\n", hotspot_list));
 
     let mut review = receipt.review_plan.clone();
-    review.sort_by(|a, b| a.priority.cmp(&b.priority).then_with(|| a.path.cmp(&b.path)));
+    review.sort_by(|a, b| {
+        a.priority
+            .cmp(&b.priority)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     let review_list = if review.is_empty() {
         "none".to_string()
     } else {

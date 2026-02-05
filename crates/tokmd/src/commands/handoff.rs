@@ -482,11 +482,11 @@ fn build_tree(export: &ExportData, max_depth: usize) -> String {
         node.files += 1;
         node.lines += lines;
         node.tokens += tokens;
-        if let Some((head, tail)) = parts.split_first() {
-            if !tail.is_empty() {
-                let child = node.children.entry(head.to_string()).or_default();
-                insert(child, tail, lines, tokens);
-            }
+        if let Some((head, tail)) = parts.split_first()
+            && !tail.is_empty()
+        {
+            let child = node.children.entry(head.to_string()).or_default();
+            insert(child, tail, lines, tokens);
         }
     }
 
