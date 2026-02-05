@@ -20,9 +20,9 @@
   {
     "timestamp_utc": "2026-02-05T00:00:00Z",
     "lane": "scout",
-    "target": "crates/tokmd-format/src/lib.rs - Remove unwrap() in normalize_scan_input",
+    "target": "crates/tokmd-format/src/lib.rs - Remove unwrap() + CI Stabilization",
     "pr_link": "tbd",
-    "gates_run": ["build", "test", "fmt", "clippy"],
+    "gates_run": ["build", "test", "fmt", "clippy", "audit"],
     "status": "PASS",
     "friction_ids_created": []
   }

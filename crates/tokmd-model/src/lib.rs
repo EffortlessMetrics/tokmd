@@ -506,6 +506,11 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         slice = stripped;
     }
 
+    // Ensure we stripped all leading ./
+    while let Some(stripped) = slice.strip_prefix("./") {
+        slice = stripped;
+    }
+
     if let Some(prefix) = strip_prefix {
         let p_cow = prefix.to_string_lossy();
         // Strip leading ./ from prefix so it can match normalized paths
@@ -539,11 +544,16 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         }
     }
 
-    slice = slice.trim_start_matches('/');
-
-    // After trimming slashes, we might be left with a leading ./ (e.g. from "/./")
-    if let Some(stripped) = slice.strip_prefix("./") {
-        slice = stripped;
+    // Loop until clean: removing leading slashes might expose new ./, and vice versa.
+    loop {
+        let original_len = slice.len();
+        slice = slice.trim_start_matches('/');
+        if let Some(stripped) = slice.strip_prefix("./") {
+            slice = stripped;
+        }
+        if slice.len() == original_len {
+            break;
+        }
     }
 
     if slice.len() == s.len() {
