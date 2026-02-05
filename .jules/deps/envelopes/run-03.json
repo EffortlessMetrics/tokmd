@@ -7,6 +7,7 @@
   "receipts": [
     "cargo check --workspace: passed",
     "cargo tree -d: toml duplication removed (v0.9 gone)",
-    "cargo test --workspace: passed"
+    "cargo test --workspace: passed",
+    "cargo update -p bytes: updated to v1.11.1 (fixes RUSTSEC-2026-0007)"
   ]
 }
