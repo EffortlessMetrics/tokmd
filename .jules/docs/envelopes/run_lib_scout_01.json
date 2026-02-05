@@ -1,0 +1,13 @@
+{
+  "run_id": "run_lib_scout_01",
+  "timestamp": "2026-02-05T10:45:52Z",
+  "status": "success",
+  "lane": "B",
+  "target": "analyze --window support for k/m suffixes",
+  "receipts": [
+    {
+      "command": "tokmd analyze --window 128k",
+      "output_snippet": "Window tokens: 128000"
+    }
+  ]
+}

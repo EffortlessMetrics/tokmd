@@ -4,11 +4,18 @@ use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
 use crate::analysis_utils;
+use crate::context_pack;
 use crate::export_bundle;
 use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);
+
+    let window_tokens = if let Some(w) = &args.window {
+        Some(context_pack::parse_budget(w)?)
+    } else {
+        None
+    };
 
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
     let format = args.format.unwrap_or(cli::AnalysisFormat::Md);
@@ -41,7 +48,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     let args_meta = analysis_types::AnalysisArgsMeta {
         preset: analysis_utils::preset_to_string(preset),
         format: analysis_utils::format_to_string(format),
-        window_tokens: args.window,
+        window_tokens,
         git: git_flag,
         max_files: args.max_files,
         max_bytes: args.max_bytes,
@@ -60,7 +67,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
             max_commits: args.max_commits,
             max_commit_files: args.max_commit_files,
         },
-        window_tokens: args.window,
+        window_tokens,
         git: git_flag,
         import_granularity: analysis_utils::map_granularity(granularity),
     };
