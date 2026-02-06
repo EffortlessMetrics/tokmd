@@ -140,6 +140,12 @@ pub enum Commands {
 
     /// Generate PR cockpit metrics for code review.
     Cockpit(CockpitArgs),
+
+    /// Generate a complexity baseline for trend tracking.
+    Baseline(BaselineArgs),
+
+    /// Bundle codebase for LLM handoff.
+    Handoff(HandoffArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -671,6 +677,20 @@ pub struct CliGateArgs {
     #[arg(long)]
     pub policy: Option<PathBuf>,
 
+    /// Path to baseline receipt for ratchet comparison.
+    ///
+    /// When provided, gate will evaluate ratchet rules comparing current
+    /// metrics against the baseline values.
+    #[arg(long, value_name = "PATH")]
+    pub baseline: Option<PathBuf>,
+
+    /// Path to ratchet config file (TOML format).
+    ///
+    /// Defines rules for comparing current metrics against baseline.
+    /// Can also be specified inline in tokmd.toml under [[gate.ratchet]].
+    #[arg(long, value_name = "PATH")]
+    pub ratchet_config: Option<PathBuf>,
+
     /// Analysis preset (for compute-then-gate mode).
     #[arg(long, value_enum)]
     pub preset: Option<AnalysisPreset>,
@@ -712,6 +732,10 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
 
+    /// Write cockpit artifacts (report.json, comment.md) to directory.
+    #[arg(long, value_name = "DIR")]
+    pub artifacts_dir: Option<std::path::PathBuf>,
+
     /// Path to baseline receipt for trend comparison.
     ///
     /// When provided, cockpit will compute delta metrics showing how
@@ -724,6 +748,25 @@ pub struct CockpitArgs {
     pub diff_range: DiffRangeMode,
 }
 
+#[derive(Args, Debug, Clone)]
+pub struct BaselineArgs {
+    /// Target path to analyze.
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+
+    /// Output path for baseline file.
+    #[arg(long, default_value = ".tokmd/baseline.json")]
+    pub output: PathBuf,
+
+    /// Include determinism baseline (hash build artifacts).
+    #[arg(long)]
+    pub determinism: bool,
+
+    /// Force overwrite existing baseline.
+    #[arg(long, short)]
+    pub force: bool,
+}
+
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum CockpitFormat {
@@ -734,6 +777,75 @@ pub enum CockpitFormat {
     Md,
     /// Section-based output for PR template filling.
     Sections,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct HandoffArgs {
+    /// Paths to scan (directories, files, or globs). Defaults to ".".
+    #[arg(value_name = "PATH")]
+    pub paths: Option<Vec<PathBuf>>,
+
+    /// Output directory for handoff artifacts.
+    #[arg(long, default_value = ".handoff")]
+    pub out_dir: PathBuf,
+
+    /// Token budget with optional k/m suffix (e.g., "128k", "1m", "50000").
+    #[arg(long, default_value = "128k")]
+    pub budget: String,
+
+    /// Packing strategy for code bundle.
+    #[arg(long, value_enum, default_value_t = ContextStrategy::Greedy)]
+    pub strategy: ContextStrategy,
+
+    /// Metric to rank files by for packing.
+    #[arg(long, value_enum, default_value_t = ValueMetric::Hotspot)]
+    pub rank_by: ValueMetric,
+
+    /// Intelligence preset level.
+    #[arg(long, value_enum, default_value_t = HandoffPreset::Risk)]
+    pub preset: HandoffPreset,
+
+    /// Module roots (see `tokmd module`).
+    #[arg(long, value_delimiter = ',')]
+    pub module_roots: Option<Vec<String>>,
+
+    /// Module depth (see `tokmd module`).
+    #[arg(long)]
+    pub module_depth: Option<usize>,
+
+    /// Overwrite existing output directory.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Strip blank lines from code bundle.
+    #[arg(long)]
+    pub compress: bool,
+
+    /// Disable git-based features.
+    #[arg(long = "no-git")]
+    pub no_git: bool,
+
+    /// Maximum commits to scan for git metrics.
+    #[arg(long, default_value = "1000")]
+    pub max_commits: usize,
+
+    /// Maximum files per commit to process.
+    #[arg(long, default_value = "100")]
+    pub max_commit_files: usize,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum HandoffPreset {
+    /// Minimal: tree + map only.
+    Minimal,
+    /// Standard: + complexity, derived.
+    Standard,
+    /// Risk: + hotspots, coupling (default).
+    #[default]
+    Risk,
+    /// Deep: everything.
+    Deep,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -916,6 +1028,9 @@ pub struct GateConfig {
     /// Path to policy file.
     pub policy: Option<String>,
 
+    /// Path to baseline file for ratchet comparison.
+    pub baseline: Option<String>,
+
     /// Analysis preset for compute-then-gate mode.
     pub preset: Option<String>,
 
@@ -924,6 +1039,38 @@ pub struct GateConfig {
 
     /// Inline policy rules.
     pub rules: Option<Vec<GateRule>>,
+
+    /// Inline ratchet rules for baseline comparison.
+    pub ratchet: Option<Vec<RatchetRuleConfig>>,
+
+    /// Allow missing baseline values (treat as pass).
+    pub allow_missing_baseline: Option<bool>,
+
+    /// Allow missing current values (treat as pass).
+    pub allow_missing_current: Option<bool>,
+}
+
+/// A single ratchet rule for baseline comparison (TOML configuration).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatchetRuleConfig {
+    /// JSON Pointer to the metric (e.g., "/complexity/avg_cyclomatic").
+    pub pointer: String,
+
+    /// Maximum allowed percentage increase from baseline.
+    #[serde(default)]
+    pub max_increase_pct: Option<f64>,
+
+    /// Maximum allowed absolute value (hard ceiling).
+    #[serde(default)]
+    pub max_value: Option<f64>,
+
+    /// Rule severity level: "error" (default) or "warn".
+    #[serde(default)]
+    pub level: Option<String>,
+
+    /// Human-readable description of the rule.
+    #[serde(default)]
+    pub description: Option<String>,
 }
 
 /// A single gate policy rule (for inline TOML configuration).

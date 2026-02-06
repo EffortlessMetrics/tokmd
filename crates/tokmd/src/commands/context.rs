@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
+use blake3::Hasher;
 
 /// A writer wrapper that counts bytes written.
 struct CountingWriter<W: Write> {
@@ -35,7 +36,11 @@ impl<W: Write> Write for CountingWriter<W> {
 use tokmd_config as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
-use tokmd_types::{ContextFileRow, ContextLogRecord, ContextReceipt, SCHEMA_VERSION, ToolInfo};
+use tokmd_types::{
+    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, ContextBundleManifest,
+    ContextExcludedPath, ContextFileRow, ContextLogRecord, ContextReceipt, SCHEMA_VERSION,
+    ToolInfo,
+};
 
 use crate::context_pack;
 use crate::git_scoring;
@@ -52,9 +57,34 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     // Parse budget
     let budget = context_pack::parse_budget(&args.budget)?;
 
+    let root = paths.first().cloned().unwrap_or_else(|| PathBuf::from("."));
+
     // Scan and create export data
     progress.set_message("Scanning codebase...");
-    let languages = scan::scan(&paths, global)?;
+    let mut scan_args = global.clone();
+    let mut excluded_paths: Vec<ContextExcludedPath> = Vec::new();
+    add_excluded_path(
+        &root,
+        args.out.as_ref(),
+        "out_file",
+        &mut scan_args,
+        &mut excluded_paths,
+    );
+    add_excluded_path(
+        &root,
+        args.bundle_dir.as_ref(),
+        "bundle_dir",
+        &mut scan_args,
+        &mut excluded_paths,
+    );
+    add_excluded_path(
+        &root,
+        args.log.as_ref(),
+        "log_file",
+        &mut scan_args,
+        &mut excluded_paths,
+    );
+    let languages = scan::scan(&paths, &scan_args)?;
     let module_roots = args.module_roots.clone().unwrap_or_default();
     let module_depth = args.module_depth.unwrap_or(2);
 
@@ -133,6 +163,8 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
             used_tokens,
             utilization,
             args.force,
+            &excluded_paths,
+            &scan_args.excluded,
         )?
     } else {
         // For bundle output mode, stream directly to destination
@@ -410,6 +442,7 @@ fn write_output_file(path: &Path, content: &str, force: bool) -> Result<()> {
 /// Write bundle to a directory with manifest.
 /// Streams bundle.txt directly to avoid memory blowup.
 /// Returns the total bytes of bundle.txt (the main output).
+#[allow(clippy::too_many_arguments)]
 fn write_bundle_directory(
     dir: &Path,
     args: &cli::CliContextArgs,
@@ -418,6 +451,8 @@ fn write_bundle_directory(
     used_tokens: usize,
     utilization: f64,
     force: bool,
+    excluded_paths: &[ContextExcludedPath],
+    excluded_patterns: &[String],
 ) -> Result<usize> {
     // Check if directory exists and is non-empty
     if dir.exists() {
@@ -436,14 +471,16 @@ fn write_bundle_directory(
             .with_context(|| format!("Failed to create bundle directory: {}", dir.display()))?;
     }
 
+    let now_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
+
     // Write receipt.json
     let receipt_path = dir.join("receipt.json");
     let receipt = ContextReceipt {
         schema_version: SCHEMA_VERSION,
-        generated_at_ms: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
+        generated_at_ms: now_ms,
         tool: ToolInfo::current(),
         mode: "context".to_string(),
         budget_tokens: budget,
@@ -466,32 +503,55 @@ fn write_bundle_directory(
     write_bundle_output(&mut counter, selected, args.compress)?;
     counter.flush()?;
     let bundle_bytes = counter.bytes() as usize;
+    let bundle_hash = hash_file(&bundle_path)?;
 
-    // Write manifest.json (list of files with metadata)
+    // Build artifacts list
+    let artifacts = vec![
+        ArtifactEntry {
+            name: "manifest".to_string(),
+            path: "manifest.json".to_string(),
+            description: "Context bundle manifest".to_string(),
+            bytes: 0, // Self-referential hash omitted
+            hash: None,
+        },
+        ArtifactEntry {
+            name: "receipt".to_string(),
+            path: "receipt.json".to_string(),
+            description: "Context selection receipt".to_string(),
+            bytes: receipt_json.len() as u64,
+            hash: None,
+        },
+        ArtifactEntry {
+            name: "bundle".to_string(),
+            path: "bundle.txt".to_string(),
+            description: "Token-budgeted code bundle".to_string(),
+            bytes: bundle_bytes as u64,
+            hash: Some(ArtifactHash {
+                algo: "blake3".to_string(),
+                hash: bundle_hash,
+            }),
+        },
+    ];
+
+    // Write manifest.json (authoritative index)
     let manifest_path = dir.join("manifest.json");
-    let manifest = serde_json::json!({
-        "schema_version": SCHEMA_VERSION,
-        "generated_at_ms": SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
-        "budget_tokens": budget,
-        "used_tokens": used_tokens,
-        "utilization_pct": utilization,
-        "file_count": selected.len(),
-        "bundle_bytes": bundle_bytes,
-        "files": selected.iter().map(|f| {
-            serde_json::json!({
-                "path": f.path,
-                "module": f.module,
-                "lang": f.lang,
-                "tokens": f.tokens,
-                "code": f.code,
-                "lines": f.lines,
-                "bytes": f.bytes,
-            })
-        }).collect::<Vec<_>>(),
-    });
+    let manifest = ContextBundleManifest {
+        schema_version: CONTEXT_BUNDLE_SCHEMA_VERSION,
+        generated_at_ms: now_ms,
+        tool: ToolInfo::current(),
+        mode: "context_bundle".to_string(),
+        budget_tokens: budget,
+        used_tokens,
+        utilization_pct: utilization,
+        strategy: format!("{:?}", args.strategy).to_lowercase(),
+        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
+        file_count: selected.len(),
+        bundle_bytes,
+        artifacts,
+        included_files: selected.to_vec(),
+        excluded_paths: excluded_paths.to_vec(),
+        excluded_patterns: excluded_patterns.to_vec(),
+    };
     let manifest_json = serde_json::to_string_pretty(&manifest)?;
     fs::write(&manifest_path, &manifest_json)
         .with_context(|| format!("Failed to write manifest: {}", manifest_path.display()))?;
@@ -502,6 +562,64 @@ fn write_bundle_directory(
     eprintln!("  - manifest.json ({} bytes)", manifest_json.len());
 
     Ok(bundle_bytes)
+}
+
+fn add_excluded_path(
+    root: &Path,
+    path: Option<&PathBuf>,
+    reason: &str,
+    scan_args: &mut cli::GlobalArgs,
+    excluded_paths: &mut Vec<ContextExcludedPath>,
+) {
+    let Some(path) = path else { return };
+    let pattern = normalize_exclude_pattern(root, path);
+    if pattern.is_empty() {
+        return;
+    }
+
+    if !scan_args
+        .excluded
+        .iter()
+        .any(|p| normalize_path(p) == pattern)
+    {
+        scan_args.excluded.push(pattern.clone());
+    }
+
+    if !excluded_paths.iter().any(|p| p.path == pattern) {
+        excluded_paths.push(ContextExcludedPath {
+            path: pattern,
+            reason: reason.to_string(),
+        });
+    }
+}
+
+fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
+    let rel = if path.is_absolute() {
+        path.strip_prefix(root).unwrap_or(path)
+    } else {
+        path
+    };
+    let out = normalize_path(&rel.to_string_lossy());
+    out.strip_prefix("./").unwrap_or(&out).to_string()
+}
+
+fn normalize_path(path: &str) -> String {
+    path.replace('\\', "/")
+}
+
+fn hash_file(path: &Path) -> Result<String> {
+    let mut file =
+        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
+    let mut hasher = Hasher::new();
+    let mut buf = [0u8; 8 * 1024];
+    loop {
+        let n = file.read(&mut buf)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buf[..n]);
+    }
+    Ok(hasher.finalize().to_hex().to_string())
 }
 
 /// Append a log record to a JSONL file.

@@ -8,6 +8,7 @@
 //! * Policy rule types and parsing
 //! * JSON Pointer resolution
 //! * Rule evaluation logic
+//! * Ratchet evaluation for trend tracking
 //!
 //! ## Example
 //! ```ignore
@@ -20,10 +21,13 @@
 
 mod evaluate;
 mod pointer;
+mod ratchet;
 mod types;
 
 pub use evaluate::evaluate_policy;
 pub use pointer::resolve_pointer;
+pub use ratchet::evaluate_ratchet_policy;
 pub use types::{
-    GateError, GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, RuleResult,
+    GateError, GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult,
+    RatchetResult, RatchetRule, RuleLevel, RuleOperator, RuleResult,
 };

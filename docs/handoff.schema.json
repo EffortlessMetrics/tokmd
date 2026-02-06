@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tokmd.dev/schemas/handoff.manifest.v3.json",
+  "title": "tokmd Handoff Manifest",
+  "description": "Manifest for tokmd handoff bundles (manifest.json)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at_ms",
+    "tool",
+    "mode",
+    "inputs",
+    "output_dir",
+    "budget_tokens",
+    "used_tokens",
+    "utilization_pct",
+    "strategy",
+    "rank_by",
+    "capabilities",
+    "artifacts",
+    "included_files",
+    "excluded_paths",
+    "excluded_patterns",
+    "total_files",
+    "bundled_files",
+    "intelligence_preset"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 3 },
+    "generated_at_ms": { "type": "integer", "minimum": 0 },
+    "tool": { "$ref": "#/definitions/ToolInfo" },
+    "mode": { "type": "string", "const": "handoff" },
+    "inputs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "output_dir": { "type": "string" },
+    "budget_tokens": { "type": "integer", "minimum": 0 },
+    "used_tokens": { "type": "integer", "minimum": 0 },
+    "utilization_pct": { "type": "number", "minimum": 0 },
+    "strategy": { "type": "string" },
+    "rank_by": { "type": "string" },
+    "capabilities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/CapabilityStatus" }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ArtifactEntry" }
+    },
+    "included_files": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ContextFileRow" }
+    },
+    "excluded_paths": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/HandoffExcludedPath" }
+    },
+    "excluded_patterns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "total_files": { "type": "integer", "minimum": 0 },
+    "bundled_files": { "type": "integer", "minimum": 0 },
+    "intelligence_preset": { "type": "string" }
+  },
+  "definitions": {
+    "ToolInfo": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "CapabilityStatus": {
+      "type": "object",
+      "required": ["name", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["available", "skipped", "unavailable"]
+        },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "ArtifactEntry": {
+      "type": "object",
+      "required": ["name", "path", "description", "bytes"],
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "description": { "type": "string" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "hash": { "$ref": "#/definitions/ArtifactHash" }
+      }
+    },
+    "ArtifactHash": {
+      "type": "object",
+      "required": ["algo", "hash"],
+      "properties": {
+        "algo": { "type": "string" },
+        "hash": { "type": "string" }
+      }
+    },
+    "ContextFileRow": {
+      "type": "object",
+      "required": [
+        "path",
+        "module",
+        "lang",
+        "tokens",
+        "code",
+        "lines",
+        "bytes",
+        "value"
+      ],
+      "properties": {
+        "path": { "type": "string" },
+        "module": { "type": "string" },
+        "lang": { "type": "string" },
+        "tokens": { "type": "integer", "minimum": 0 },
+        "code": { "type": "integer", "minimum": 0 },
+        "lines": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "value": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "HandoffExcludedPath": {
+      "type": "object",
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,27 +1,30 @@
 //! Schema validation tests for tokmd JSON outputs.
 //!
 //! These tests verify that the actual CLI output conforms to the JSON schema
-//! defined in `docs/schema.json`.
+//! defined in the embedded schemas. Schemas are embedded at compile time using
+//! `include_str!` to ensure tests work in packaged crate environments (e.g., Nix).
 
 use anyhow::{Context, Result};
 use assert_cmd::Command;
 use serde_json::Value;
 use std::path::PathBuf;
+use tempfile::tempdir;
 
-/// Load the JSON schema from docs/schema.json
+/// Embedded JSON schema for tokmd receipts (from schemas/schema.json)
+const SCHEMA_JSON: &str = include_str!("../schemas/schema.json");
+
+/// Embedded JSON schema for handoff manifests (from schemas/handoff.schema.json)
+const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json");
+
+/// Load the JSON schema from embedded content
 fn load_schema() -> Result<Value> {
-    let schema_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .context("no parent")?
-        .parent()
-        .context("no grandparent")?
-        .join("docs")
-        .join("schema.json");
+    serde_json::from_str(SCHEMA_JSON).context("Failed to parse embedded schema.json")
+}
 
-    let schema_content =
-        std::fs::read_to_string(&schema_path).context("Failed to read schema.json")?;
-
-    serde_json::from_str(&schema_content).context("Failed to parse schema.json")
+/// Load the handoff JSON schema from embedded content
+fn load_handoff_schema() -> Result<Value> {
+    serde_json::from_str(HANDOFF_SCHEMA_JSON)
+        .context("Failed to parse embedded handoff.schema.json")
 }
 
 /// Build a validator for a specific definition in the schema
@@ -386,5 +389,42 @@ fn test_schema_version_matches_constant() -> Result<()> {
         4,
         "AnalysisReceipt schema_version should be 4"
     );
+    Ok(())
+}
+
+#[test]
+fn test_handoff_manifest_validates_against_schema() -> Result<()> {
+    let schema = load_handoff_schema()?;
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile handoff schema: {}", e))?;
+
+    let dir = tempdir()?;
+    let out_dir = dir.path().join("handoff_out");
+
+    let output = tokmd_cmd()
+        .arg("handoff")
+        .arg("--out-dir")
+        .arg(&out_dir)
+        .output()?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        panic!("tokmd handoff failed: {}", stderr);
+    }
+
+    let manifest_content =
+        std::fs::read_to_string(out_dir.join("manifest.json")).context("read manifest.json")?;
+    let json: Value = serde_json::from_str(&manifest_content)?;
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "Handoff manifest validation failed:\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    }
     Ok(())
 }

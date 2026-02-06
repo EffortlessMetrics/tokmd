@@ -83,10 +83,10 @@ pub fn pack_spread(
     // Filter to parent files only
     let parents: Vec<_> = rows.iter().filter(|r| r.kind == FileKind::Parent).collect();
 
-    // Group by (module, lang)
-    let mut groups: BTreeMap<(String, String), Vec<&FileRow>> = BTreeMap::new();
+    // Group by module (module-first spread)
+    let mut groups: BTreeMap<String, Vec<&FileRow>> = BTreeMap::new();
     for row in &parents {
-        let key = (row.module.clone(), row.lang.clone());
+        let key = row.module.clone();
         groups.entry(key).or_default().push(row);
     }
 
@@ -104,7 +104,7 @@ pub fn pack_spread(
     let spread_budget = (budget as f64 * 0.7) as usize; // 70% for spread
 
     // Round-robin selection
-    let mut group_indices: BTreeMap<(String, String), usize> = BTreeMap::new();
+    let mut group_indices: BTreeMap<String, usize> = BTreeMap::new();
     let mut made_progress = true;
 
     while made_progress && used_tokens < spread_budget {
@@ -744,6 +744,27 @@ mod tests {
         assert!(
             first_two.contains(&&"mod2/best.py".to_string()),
             "Spread should pick best from mod2 early"
+        );
+    }
+
+    #[test]
+    fn test_pack_spread_module_first_avoids_language_bias() {
+        let rows = vec![
+            make_test_row("mod1/a.rs", "mod1", "Rust", 50, 100),
+            make_test_row("mod1/a.py", "mod1", "Python", 50, 90),
+            make_test_row("mod2/b.rs", "mod2", "Rust", 50, 80),
+        ];
+
+        let result = pack_spread(&rows, 200, ValueMetric::Code, None);
+        let first_two: Vec<_> = result.iter().take(2).map(|r| r.path.as_str()).collect();
+
+        assert!(
+            first_two.iter().any(|p| p.starts_with("mod1/")),
+            "First two picks should include mod1"
+        );
+        assert!(
+            first_two.iter().any(|p| p.starts_with("mod2/")),
+            "First two picks should include mod2"
         );
     }
 

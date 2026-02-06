@@ -446,3 +446,153 @@ pub struct ContextLogRecord {
     pub total_bytes: usize,
     pub output_destination: String,
 }
+
+// -----------------------
+// Handoff types
+// -----------------------
+
+/// Schema version for handoff receipts.
+pub const HANDOFF_SCHEMA_VERSION: u32 = 3;
+
+/// Schema version for context bundle manifests.
+pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 1;
+
+/// Manifest for a handoff bundle containing LLM-ready artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffManifest {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String,
+    pub inputs: Vec<String>,
+    pub output_dir: String,
+    pub budget_tokens: usize,
+    pub used_tokens: usize,
+    pub utilization_pct: f64,
+    pub strategy: String,
+    pub rank_by: String,
+    pub capabilities: Vec<CapabilityStatus>,
+    pub artifacts: Vec<ArtifactEntry>,
+    pub included_files: Vec<ContextFileRow>,
+    pub excluded_paths: Vec<HandoffExcludedPath>,
+    pub excluded_patterns: Vec<String>,
+    pub total_files: usize,
+    pub bundled_files: usize,
+    pub intelligence_preset: String,
+}
+
+/// Manifest for a context bundle directory (bundle.txt + receipt.json + manifest.json).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextBundleManifest {
+    pub schema_version: u32,
+    pub generated_at_ms: u128,
+    pub tool: ToolInfo,
+    pub mode: String,
+    pub budget_tokens: usize,
+    pub used_tokens: usize,
+    pub utilization_pct: f64,
+    pub strategy: String,
+    pub rank_by: String,
+    pub file_count: usize,
+    pub bundle_bytes: usize,
+    pub artifacts: Vec<ArtifactEntry>,
+    pub included_files: Vec<ContextFileRow>,
+    pub excluded_paths: Vec<ContextExcludedPath>,
+    pub excluded_patterns: Vec<String>,
+}
+
+/// Explicitly excluded path with reason for context bundles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextExcludedPath {
+    pub path: String,
+    pub reason: String,
+}
+
+/// Intelligence bundle for handoff containing tree, hotspots, complexity, and derived metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffIntelligence {
+    pub tree: Option<String>,
+    pub tree_depth: Option<usize>,
+    pub hotspots: Option<Vec<HandoffHotspot>>,
+    pub complexity: Option<HandoffComplexity>,
+    pub derived: Option<HandoffDerived>,
+    pub warnings: Vec<String>,
+}
+
+/// Explicitly excluded path with reason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffExcludedPath {
+    pub path: String,
+    pub reason: String,
+}
+
+/// Simplified hotspot row for handoff intelligence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffHotspot {
+    pub path: String,
+    pub commits: usize,
+    pub lines: usize,
+    pub score: usize,
+}
+
+/// Simplified complexity report for handoff intelligence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffComplexity {
+    pub total_functions: usize,
+    pub avg_function_length: f64,
+    pub max_function_length: usize,
+    pub avg_cyclomatic: f64,
+    pub max_cyclomatic: usize,
+    pub high_risk_files: usize,
+}
+
+/// Simplified derived metrics for handoff intelligence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffDerived {
+    pub total_files: usize,
+    pub total_code: usize,
+    pub total_lines: usize,
+    pub total_tokens: usize,
+    pub lang_count: usize,
+    pub dominant_lang: String,
+    pub dominant_pct: f64,
+}
+
+/// Status of a detected capability.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapabilityStatus {
+    pub name: String,
+    pub status: CapabilityState,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+/// State of a capability: available, skipped, or unavailable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CapabilityState {
+    /// Capability is available and was used.
+    Available,
+    /// Capability is available but was skipped (e.g., --no-git flag).
+    Skipped,
+    /// Capability is unavailable (e.g., not in a git repo).
+    Unavailable,
+}
+
+/// Entry describing an artifact in the handoff bundle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactEntry {
+    pub name: String,
+    pub path: String,
+    pub description: String,
+    pub bytes: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hash: Option<ArtifactHash>,
+}
+
+/// Hash for artifact integrity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactHash {
+    pub algo: String,
+    pub hash: String,
+}
