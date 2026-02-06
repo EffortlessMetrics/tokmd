@@ -1,0 +1,16 @@
+{
+  "id": "deps-audit-01",
+  "date": "2026-02-03",
+  "lane": "B",
+  "target": "serde_json in crates/tokmd/Cargo.toml",
+  "receipts": [
+    {
+      "command": "cargo build --package tokmd --all-features",
+      "result": "success"
+    },
+    {
+      "command": "cargo test --package tokmd",
+      "result": "success"
+    }
+  ]
+}

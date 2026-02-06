@@ -19,5 +19,12 @@
     "target": "dev-dependencies",
     "action": "sync-proptest",
     "status": "success"
+  },
+  {
+    "run_id": "deps-audit-01",
+    "timestamp": "2026-02-03T12:00:00Z",
+    "target": "crates/tokmd/Cargo.toml",
+    "action": "remove-duplicate-dep",
+    "status": "success"
   }
 ]
