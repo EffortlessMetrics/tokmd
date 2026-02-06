@@ -1,0 +1,46 @@
+{
+  "run_id": "run-20260201-01",
+  "timestamp_utc": "2026-02-01T12:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-format/src/lib.rs:normalize_scan_input",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd-format",
+      "result": "PASS",
+      "details": "38 passed + 40 passed"
+    },
+    {
+      "cmd": "cargo test -p tokmd-format",
+      "result": "PASS",
+      "details": "38 passed + 40 passed"
+    },
+    {
+      "cmd": "cargo build --verbose",
+      "result": "PASS",
+      "details": "Build successful"
+    },
+    {
+      "cmd": "CI=true cargo test",
+      "result": "PASS",
+      "details": "Full suite passed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "result": "PASS",
+      "details": "Format check passed"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "result": "PASS",
+      "details": "Clippy passed"
+    }
+  ],
+  "results": {
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    }
+  }
+}
