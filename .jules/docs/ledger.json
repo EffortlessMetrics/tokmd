@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "run-docs-001",
+    "date": "2026-02-01",
+    "persona": "Librarian",
+    "description": "Added 'Automated Code Review' section to README highlighting `tokmd cockpit`"
   }
 ]
