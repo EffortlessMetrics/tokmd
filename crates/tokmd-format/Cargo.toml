@@ -12,7 +12,7 @@ categories = ["development-tools", "encoding"]
 documentation = "https://docs.rs/tokmd-format"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 csv = "1.4.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
@@ -23,6 +23,6 @@ tokmd-redact.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.9.0"
-insta = { version = "1.39.0", features = ["json"] }
+proptest = "1.10.0"
+insta = { version = "1.46.3", features = ["json"] }
 tempfile = "3.19.1"

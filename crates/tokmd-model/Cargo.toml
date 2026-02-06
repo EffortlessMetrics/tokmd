@@ -12,11 +12,11 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-model"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 serde = { version = "1.0.228", features = ["derive"] }
 tokei = { version = "14.0.0", default-features = false }
 tokmd-config.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest = "1.10.0"

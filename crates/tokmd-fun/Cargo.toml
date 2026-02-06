@@ -12,8 +12,8 @@ categories = ["development-tools", "visualization"]
 documentation = "https://docs.rs/tokmd-fun"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 midly = "0.5.3"
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest = "1.10.0"

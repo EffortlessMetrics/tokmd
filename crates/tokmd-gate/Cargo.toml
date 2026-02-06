@@ -19,4 +19,4 @@ thiserror = "2.0.18"
 toml = "0.9.8"
 
 [dev-dependencies]
-proptest = "1.9.0"
+proptest = "1.10.0"
