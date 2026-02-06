@@ -36,7 +36,6 @@ default-members = [
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
-    "crates/tokmd-python",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
     "crates/tokmd-tokeignore",
