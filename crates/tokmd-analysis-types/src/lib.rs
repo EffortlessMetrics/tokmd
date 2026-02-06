@@ -993,17 +993,17 @@ pub struct EcoLabel {
 pub const ENVELOPE_VERSION: u32 = tokmd_envelope::SENSOR_REPORT_VERSION;
 
 // Re-export all envelope types with backwards-compatible aliases
+pub use tokmd_envelope::Artifact;
+pub use tokmd_envelope::Finding;
+pub use tokmd_envelope::FindingLocation;
+pub use tokmd_envelope::FindingSeverity;
+pub use tokmd_envelope::GateItem;
+pub use tokmd_envelope::GateResults as GatesEnvelope;
 pub use tokmd_envelope::SensorReport as Envelope;
 pub use tokmd_envelope::ToolMeta as EnvelopeTool;
 pub use tokmd_envelope::Verdict;
-pub use tokmd_envelope::Finding;
-pub use tokmd_envelope::FindingSeverity;
-pub use tokmd_envelope::FindingLocation;
-pub use tokmd_envelope::GateResults as GatesEnvelope;
-pub use tokmd_envelope::GateItem;
-pub use tokmd_envelope::Artifact;
 
 // Also re-export the canonical names for new code
+pub use tokmd_envelope::GateResults;
 pub use tokmd_envelope::SensorReport;
 pub use tokmd_envelope::ToolMeta;
-pub use tokmd_envelope::GateResults;

@@ -70,11 +70,7 @@ mod tests {
             "0.1.0"
         }
 
-        fn run(
-            &self,
-            settings: &DummySettings,
-            substrate: &RepoSubstrate,
-        ) -> Result<SensorReport> {
+        fn run(&self, settings: &DummySettings, substrate: &RepoSubstrate) -> Result<SensorReport> {
             let verdict = if substrate.total_code_lines > settings.threshold {
                 Verdict::Warn
             } else {

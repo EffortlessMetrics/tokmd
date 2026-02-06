@@ -6,9 +6,7 @@ use std::io::Write;
 
 use anyhow::{Context, Result, bail};
 use tokmd_config as cli;
-use tokmd_envelope::{
-    Artifact, Finding, FindingSeverity, GateResults, SensorReport, ToolMeta, Verdict,
-};
+use tokmd_envelope::{Artifact, Finding, FindingSeverity, SensorReport, ToolMeta, Verdict};
 use tokmd_sensor::substrate_builder;
 use tokmd_settings::ScanOptions;
 
@@ -252,5 +250,8 @@ fn now_iso8601() -> String {
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     let y = if m <= 2 { y + 1 } else { y };
 
-    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, m, d, hour, min, sec)
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+        y, m, d, hour, min, sec
+    )
 }

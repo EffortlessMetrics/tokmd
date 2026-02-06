@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn scan_with_nonexistent_path_returns_error() {
         let args = default_scan_options();
-        let paths = vec![PathBuf::from("/nonexistent/path/that/does/not/exist")];
+        let paths = vec![PathBuf::from("/__tokmd_test_nonexistent_path_9f3a2b1c__")];
         let result = scan(&paths, &args);
         // Should return an error for nonexistent paths
         assert!(result.is_err());

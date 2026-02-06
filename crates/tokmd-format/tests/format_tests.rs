@@ -8,10 +8,10 @@
 
 use std::path::PathBuf;
 
-use tokmd_config::{ChildIncludeMode, ChildrenMode, GlobalArgs};
 use tokmd_format::{
     compute_diff_rows, compute_diff_totals, normalize_scan_input, render_diff_md, scan_args,
 };
+use tokmd_settings::{ChildIncludeMode, ChildrenMode, ScanOptions};
 use tokmd_types::{
     ConfigMode, ExportArgs, ExportArgsMeta, ExportData, ExportFormat, FileKind, FileRow,
     LangArgsMeta, LangReport, LangRow, ModuleArgsMeta, ModuleReport, ModuleRow, RedactMode,
@@ -26,7 +26,7 @@ use tokmd_types::{
 #[test]
 fn test_scan_args_redact_paths_mode() {
     let paths = vec![PathBuf::from("src/lib.rs")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         excluded: vec!["target".to_string()],
         ..Default::default()
     };
@@ -51,7 +51,7 @@ fn test_scan_args_redact_paths_mode() {
 #[test]
 fn test_scan_args_redact_all_mode() {
     let paths = vec![PathBuf::from("src/main.rs")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         excluded: vec!["node_modules".to_string()],
         ..Default::default()
     };
@@ -73,7 +73,7 @@ fn test_scan_args_redact_all_mode() {
 #[test]
 fn test_scan_args_redact_none_mode() {
     let paths = vec![PathBuf::from("src/lib.rs")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         excluded: vec!["target".to_string()],
         ..Default::default()
     };
@@ -94,7 +94,7 @@ fn test_scan_args_redact_none_mode() {
 #[test]
 fn test_scan_args_no_redact_option() {
     let paths = vec![PathBuf::from("src/lib.rs")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         excluded: vec!["target".to_string()],
         ..Default::default()
     };
@@ -115,7 +115,7 @@ fn test_scan_args_no_redact_option() {
 #[test]
 fn test_scan_args_empty_excluded_with_redact() {
     let paths = vec![PathBuf::from("src/lib.rs")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         excluded: vec![], // empty
         ..Default::default()
     };
@@ -134,7 +134,7 @@ fn test_scan_args_empty_excluded_with_redact() {
 #[test]
 fn test_scan_args_preserves_global_flags() {
     let paths = vec![PathBuf::from(".")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         hidden: true,
         no_ignore: true,
         no_ignore_parent: false,
@@ -159,7 +159,7 @@ fn test_scan_args_preserves_global_flags() {
 #[test]
 fn test_scan_args_no_ignore_implies_sub_flags() {
     let paths = vec![PathBuf::from(".")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         no_ignore: true,
         no_ignore_parent: false,
         no_ignore_dot: false,
@@ -179,7 +179,7 @@ fn test_scan_args_no_ignore_implies_sub_flags() {
 #[test]
 fn test_scan_args_individual_sub_flags() {
     let paths = vec![PathBuf::from(".")];
-    let global = GlobalArgs {
+    let global = ScanOptions {
         no_ignore: false,
         no_ignore_parent: true,
         no_ignore_dot: false,
@@ -507,7 +507,7 @@ fn test_write_export_csv_format() {
         children: ChildIncludeMode::Separate,
     };
 
-    let _global = GlobalArgs::default();
+    let _global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Csv,
@@ -560,7 +560,7 @@ fn test_write_export_jsonl_with_meta() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -610,7 +610,7 @@ fn test_write_export_jsonl_without_meta() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -663,7 +663,7 @@ fn test_write_export_json_with_redaction() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
@@ -818,7 +818,7 @@ fn test_jsonl_generated_at_ms_is_reasonable() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -877,7 +877,7 @@ fn test_json_generated_at_ms_is_reasonable() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
@@ -965,7 +965,7 @@ fn test_write_export_writes_to_file() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let temp_file = tempfile::NamedTempFile::new().expect("create temp file");
     let temp_path = temp_file.path().to_path_buf();
 
@@ -1029,7 +1029,7 @@ fn test_jsonl_strip_prefix_redacted_with_paths_mode() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -1087,7 +1087,7 @@ fn test_jsonl_strip_prefix_redacted_with_all_mode() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -1145,7 +1145,7 @@ fn test_jsonl_strip_prefix_redacted_false_when_no_strip_prefix() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -1207,7 +1207,7 @@ fn test_jsonl_no_redaction_with_none_mode() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
@@ -1269,7 +1269,7 @@ fn test_json_strip_prefix_redacted_with_paths_mode() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
@@ -1322,7 +1322,7 @@ fn test_json_no_redaction_with_none_mode() {
         children: ChildIncludeMode::Separate,
     };
 
-    let global = GlobalArgs::default();
+    let global = ScanOptions::default();
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,

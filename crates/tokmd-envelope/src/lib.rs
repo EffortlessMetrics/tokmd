@@ -434,9 +434,11 @@ mod tests {
         )
         .with_gates(GateResults::new(
             Verdict::Fail,
-            vec![GateItem::new("mutation", Verdict::Fail)
-                .with_threshold(80.0, 72.0)
-                .with_reason("Below threshold")],
+            vec![
+                GateItem::new("mutation", Verdict::Fail)
+                    .with_threshold(80.0, 72.0)
+                    .with_reason("Below threshold"),
+            ],
         ));
         let json = serde_json::to_string(&report).unwrap();
         let back: SensorReport = serde_json::from_str(&json).unwrap();

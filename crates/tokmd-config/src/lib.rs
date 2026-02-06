@@ -851,8 +851,6 @@ pub enum HandoffPreset {
     Deep,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
 #[derive(Args, Debug, Clone)]
 pub struct SensorArgs {
     /// Base reference to compare from (default: main).
@@ -882,6 +880,8 @@ pub enum SensorFormat {
     Md,
 }
 
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
 pub enum DiffRangeMode {
     /// Two-dot syntax (A..B) - direct diff between commits.
     #[default]

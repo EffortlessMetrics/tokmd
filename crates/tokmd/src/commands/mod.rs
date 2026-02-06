@@ -13,6 +13,7 @@ pub(crate) mod init;
 pub(crate) mod lang;
 pub(crate) mod module;
 pub(crate) mod run;
+pub(crate) mod sensor;
 pub(crate) mod tools;
 
 use anyhow::Result;
@@ -39,5 +40,6 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Cockpit(args) => cockpit::handle(args, global),
         cli::Commands::Baseline(args) => baseline::handle(args, global),
         cli::Commands::Handoff(args) => handoff::handle(args, global),
+        cli::Commands::Sensor(args) => sensor::handle(args, global),
     }
 }
