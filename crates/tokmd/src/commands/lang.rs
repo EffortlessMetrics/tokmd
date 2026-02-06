@@ -3,6 +3,7 @@ use tokmd_config as cli;
 use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;
+use tokmd_settings::ScanOptions;
 
 use crate::config::{self, ResolvedConfig};
 
@@ -12,8 +13,9 @@ pub(crate) fn handle(
     resolved: &ResolvedConfig,
 ) -> Result<()> {
     let args = config::resolve_lang_with_config(&cli_args, resolved);
-    let languages = scan::scan(&args.paths, global)?;
+    let scan_opts = ScanOptions::from(global);
+    let languages = scan::scan(&args.paths, &scan_opts)?;
     let report = model::create_lang_report(&languages, args.top, args.files, args.children);
-    format::print_lang_report(&report, global, &args)?;
+    format::print_lang_report(&report, &scan_opts, &args)?;
     Ok(())
 }

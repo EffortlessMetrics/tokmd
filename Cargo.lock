@@ -2909,11 +2909,15 @@ dependencies = [
  "tokmd-analysis-format",
  "tokmd-analysis-types",
  "tokmd-config",
+ "tokmd-envelope",
  "tokmd-format",
  "tokmd-gate",
  "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
+ "tokmd-sensor",
+ "tokmd-settings",
+ "tokmd-substrate",
  "tokmd-tokeignore",
  "tokmd-types",
  "toml 0.9.11+spec-1.1.0",
@@ -2961,6 +2965,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "tokmd-envelope",
  "tokmd-types",
 ]
 
@@ -2973,6 +2978,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+ "tokmd-settings",
  "tokmd-types",
  "toml 0.8.23",
 ]
@@ -3001,7 +3007,17 @@ dependencies = [
  "tokmd-format",
  "tokmd-model",
  "tokmd-scan",
+ "tokmd-settings",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-envelope"
+version = "1.5.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3016,8 +3032,8 @@ dependencies = [
  "serde_json",
  "tempfile",
  "time",
- "tokmd-config",
  "tokmd-redact",
+ "tokmd-settings",
  "tokmd-types",
  "uuid",
 ]
@@ -3075,7 +3091,6 @@ dependencies = [
  "proptest",
  "serde",
  "tokei",
- "tokmd-config",
  "tokmd-types",
 ]
 
@@ -3120,8 +3135,43 @@ dependencies = [
  "anyhow",
  "proptest",
  "tokei",
- "tokmd-config",
+ "tokmd-settings",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-sensor"
+version = "1.5.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "tokmd-envelope",
+ "tokmd-git",
+ "tokmd-model",
+ "tokmd-scan",
+ "tokmd-settings",
+ "tokmd-substrate",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-settings"
+version = "1.5.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-substrate"
+version = "1.5.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

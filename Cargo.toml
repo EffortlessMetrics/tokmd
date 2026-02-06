@@ -8,6 +8,7 @@ members = [
     "crates/tokmd-config",
     "crates/tokmd-core",
     "crates/tokmd-content",
+    "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
     "crates/tokmd-gate",
@@ -17,6 +18,9 @@ members = [
     "crates/tokmd-python",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
+    "crates/tokmd-sensor",
+    "crates/tokmd-settings",
+    "crates/tokmd-substrate",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
     "crates/tokmd-walk",
@@ -31,6 +35,7 @@ default-members = [
     "crates/tokmd-config",
     "crates/tokmd-core",
     "crates/tokmd-content",
+    "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
     "crates/tokmd-gate",
@@ -38,6 +43,9 @@ default-members = [
     "crates/tokmd-model",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
+    "crates/tokmd-sensor",
+    "crates/tokmd-settings",
+    "crates/tokmd-substrate",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
     "crates/tokmd-walk",
@@ -61,6 +69,7 @@ tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.5.
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.5.0" }
 tokmd-config = { path = "crates/tokmd-config", version = "1.5.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.5.0" }
+tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.5.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.5.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.5.0" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.5.0" }
@@ -68,6 +77,9 @@ tokmd-git = { path = "crates/tokmd-git", version = "1.5.0" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.5.0" }
 tokmd-redact = { path = "crates/tokmd-redact", version = "1.5.0" }
 tokmd-scan = { path = "crates/tokmd-scan", version = "1.5.0" }
+tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.5.0" }
+tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.5.0" }
+tokmd-settings = { path = "crates/tokmd-settings", version = "1.5.0" }
 tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.5.0" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.5.0" }
 tokmd-walk = { path = "crates/tokmd-walk", version = "1.5.0" }

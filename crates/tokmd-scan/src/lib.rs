@@ -18,10 +18,10 @@ use anyhow::Result;
 use std::path::PathBuf;
 use tokei::{Config, Languages};
 
-use tokmd_config::GlobalArgs;
+use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
 
-pub fn scan(paths: &[PathBuf], args: &GlobalArgs) -> Result<Languages> {
+pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
     let mut cfg = match args.config {
         ConfigMode::Auto => Config::from_config_files(),
         ConfigMode::None => Config::default(),
@@ -68,8 +68,8 @@ pub fn scan(paths: &[PathBuf], args: &GlobalArgs) -> Result<Languages> {
 mod tests {
     use super::*;
 
-    fn default_global_args() -> GlobalArgs {
-        GlobalArgs {
+    fn default_scan_options() -> ScanOptions {
+        ScanOptions {
             excluded: vec![],
             config: ConfigMode::Auto,
             hidden: false,
@@ -78,8 +78,6 @@ mod tests {
             no_ignore_dot: false,
             no_ignore_vcs: false,
             treat_doc_strings_as_comments: false,
-            verbose: 0,
-            no_progress: false,
         }
     }
 
@@ -94,7 +92,7 @@ mod tests {
 
     #[test]
     fn scan_finds_rust_files() {
-        let args = default_global_args();
+        let args = default_scan_options();
         let paths = vec![test_path()];
         let result = scan(&paths, &args).unwrap();
         // Should find at least this lib.rs file
@@ -104,7 +102,7 @@ mod tests {
 
     #[test]
     fn scan_with_nonexistent_path_returns_error() {
-        let args = default_global_args();
+        let args = default_scan_options();
         let paths = vec![PathBuf::from("/nonexistent/path/that/does/not/exist")];
         let result = scan(&paths, &args);
         // Should return an error for nonexistent paths
@@ -118,7 +116,7 @@ mod tests {
 
     #[test]
     fn scan_with_hidden_flag() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.hidden = true;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
@@ -127,7 +125,7 @@ mod tests {
 
     #[test]
     fn scan_with_no_ignore_flag() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.no_ignore = true;
         let paths = vec![test_path()];
         // no_ignore should imply all other no_ignore_* flags
@@ -137,7 +135,7 @@ mod tests {
 
     #[test]
     fn scan_with_individual_no_ignore_flags() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.no_ignore_parent = true;
         args.no_ignore_dot = true;
         args.no_ignore_vcs = true;
@@ -148,7 +146,7 @@ mod tests {
 
     #[test]
     fn scan_with_treat_doc_strings_as_comments() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.treat_doc_strings_as_comments = true;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
@@ -157,7 +155,7 @@ mod tests {
 
     #[test]
     fn scan_with_config_mode_none() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.config = ConfigMode::None;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
@@ -166,7 +164,7 @@ mod tests {
 
     #[test]
     fn scan_with_excluded_patterns() {
-        let mut args = default_global_args();
+        let mut args = default_scan_options();
         args.excluded = vec!["target".to_string(), "*.min.js".to_string()];
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
@@ -175,7 +173,7 @@ mod tests {
 
     #[test]
     fn scan_with_all_flags_combined() {
-        let args = GlobalArgs {
+        let args = ScanOptions {
             excluded: vec!["node_modules".to_string()],
             config: ConfigMode::None,
             hidden: true,
@@ -184,8 +182,6 @@ mod tests {
             no_ignore_dot: true,
             no_ignore_vcs: true,
             treat_doc_strings_as_comments: true,
-            verbose: 2,
-            no_progress: true,
         };
         let paths = vec![test_path()];
         // Should handle all flags without panicking
@@ -195,7 +191,7 @@ mod tests {
 
     #[test]
     fn scan_returns_code_stats() {
-        let args = default_global_args();
+        let args = default_scan_options();
         let paths = vec![test_path()];
         let result = scan(&paths, &args).unwrap();
 

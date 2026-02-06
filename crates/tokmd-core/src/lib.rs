@@ -63,6 +63,7 @@ pub use tokmd_types as types;
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
 use tokmd_config::GlobalArgs;
 use tokmd_format::scan_args;
+use tokmd_settings::ScanOptions;
 use tokmd_types::{
     DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, LangArgs, LangArgsMeta, LangReceipt,
     LangReport, ModuleArgsMeta, ModuleReceipt, RedactMode, SCHEMA_VERSION, ScanStatus, ToolInfo,
@@ -92,11 +93,11 @@ fn now_ms() -> u128 {
 ///
 /// A `LangReceipt` containing the language summary.
 pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt> {
-    let global = settings_to_global_args(scan);
+    let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
 
     // Scan
-    let languages = tokmd_scan::scan(&paths, &global)?;
+    let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
     let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
@@ -109,7 +110,7 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
         mode: "lang".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![],
-        scan: scan_args(&paths, &global, lang.redact),
+        scan: scan_args(&paths, &scan_opts, lang.redact),
         args: LangArgsMeta {
             format: "json".to_string(),
             top: lang.top,
@@ -133,11 +134,11 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
 ///
 /// A `ModuleReceipt` containing the module breakdown.
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
-    let global = settings_to_global_args(scan);
+    let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
 
     // Scan
-    let languages = tokmd_scan::scan(&paths, &global)?;
+    let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
     let report = tokmd_model::create_module_report(
@@ -156,7 +157,7 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
         mode: "module".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![],
-        scan: scan_args(&paths, &global, module.redact),
+        scan: scan_args(&paths, &scan_opts, module.redact),
         args: ModuleArgsMeta {
             format: "json".to_string(),
             top: module.top,
@@ -181,12 +182,12 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
 ///
 /// An `ExportReceipt` containing file-level data.
 pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
-    let global = settings_to_global_args(scan);
+    let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
     let strip_prefix = export.strip_prefix.as_deref();
 
     // Scan
-    let languages = tokmd_scan::scan(&paths, &global)?;
+    let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
     let data = tokmd_model::create_export_data(
@@ -211,7 +212,7 @@ pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<E
         mode: "export".to_string(),
         status: ScanStatus::Complete,
         warnings: vec![],
-        scan: scan_args(&paths, &global, Some(export.redact)),
+        scan: scan_args(&paths, &scan_opts, Some(export.redact)),
         args: ExportArgsMeta {
             format: export.format,
             module_roots: export.module_roots.clone(),
@@ -306,7 +307,8 @@ pub fn scan_workflow(
     redact: Option<RedactMode>,
 ) -> Result<LangReceipt> {
     // 1. Scan
-    let languages = tokmd_scan::scan(&lang.paths, global)?;
+    let scan_opts = ScanOptions::from(global);
+    let languages = tokmd_scan::scan(&lang.paths, &scan_opts)?;
 
     // 2. Model (Aggregation & Filtering)
     // create_lang_report handles filtering (top N) and children mode
@@ -314,7 +316,7 @@ pub fn scan_workflow(
 
     // 3. Receipt Construction
     // We construct the receipt manually as it's just a data carrier.
-    let scan_args = scan_args(&lang.paths, global, redact);
+    let scan_args = scan_args(&lang.paths, &scan_opts, redact);
 
     let receipt = LangReceipt {
         schema_version: SCHEMA_VERSION,
@@ -340,20 +342,9 @@ pub fn scan_workflow(
 // Helper functions
 // =============================================================================
 
-/// Convert ScanSettings to GlobalArgs for compatibility with lower-tier crates.
-fn settings_to_global_args(scan: &ScanSettings) -> GlobalArgs {
-    GlobalArgs {
-        excluded: scan.excluded.clone(),
-        config: scan.config,
-        hidden: scan.hidden,
-        no_ignore: scan.no_ignore,
-        no_ignore_parent: scan.no_ignore_parent,
-        no_ignore_dot: scan.no_ignore_dot,
-        no_ignore_vcs: scan.no_ignore_vcs,
-        treat_doc_strings_as_comments: scan.treat_doc_strings_as_comments,
-        verbose: 0,
-        no_progress: true,
-    }
+/// Convert ScanSettings to ScanOptions for lower-tier crates.
+fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
+    scan.options.clone()
 }
 
 /// Load a LangReport from a file path or scan a directory.
@@ -426,19 +417,21 @@ mod tests {
     }
 
     #[test]
-    fn settings_to_global_args_preserves_values() {
+    fn settings_to_scan_options_preserves_values() {
         let scan = ScanSettings {
             paths: vec!["src".to_string()],
-            excluded: vec!["target".to_string()],
-            hidden: true,
-            no_ignore: true,
-            ..Default::default()
+            options: ScanOptions {
+                excluded: vec!["target".to_string()],
+                hidden: true,
+                no_ignore: true,
+                ..Default::default()
+            },
         };
 
-        let global = settings_to_global_args(&scan);
-        assert_eq!(global.excluded, vec!["target"]);
-        assert!(global.hidden);
-        assert!(global.no_ignore);
+        let opts = settings_to_scan_options(&scan);
+        assert_eq!(opts.excluded, vec!["target"]);
+        assert!(opts.hidden);
+        assert!(opts.no_ignore);
     }
 
     #[test]

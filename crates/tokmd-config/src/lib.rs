@@ -146,6 +146,9 @@ pub enum Commands {
 
     /// Bundle codebase for LLM handoff.
     Handoff(HandoffArgs),
+
+    /// Run as a conforming sensor, producing a SensorReport.
+    Sensor(SensorArgs),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -850,6 +853,35 @@ pub enum HandoffPreset {
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
+#[derive(Args, Debug, Clone)]
+pub struct SensorArgs {
+    /// Base reference to compare from (default: main).
+    #[arg(long, default_value = "main")]
+    pub base: String,
+
+    /// Head reference to compare to (default: HEAD).
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Output file for the sensor report (stdout if omitted).
+    #[arg(long, value_name = "PATH")]
+    pub output: Option<std::path::PathBuf>,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = SensorFormat::Json)]
+    pub format: SensorFormat,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum SensorFormat {
+    /// JSON sensor report.
+    #[default]
+    Json,
+    /// Markdown summary.
+    Md,
+}
+
 pub enum DiffRangeMode {
     /// Two-dot syntax (A..B) - direct diff between commits.
     #[default]
@@ -1189,3 +1221,37 @@ use std::path::Path;
 
 /// Result type alias for TOML parsing errors.
 pub type TomlResult<T> = Result<T, toml::de::Error>;
+
+// ============================================================
+// Conversions between CLI GlobalArgs and Tier-0 ScanOptions
+// ============================================================
+
+impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
+    fn from(g: &GlobalArgs) -> Self {
+        Self {
+            excluded: g.excluded.clone(),
+            config: g.config,
+            hidden: g.hidden,
+            no_ignore: g.no_ignore,
+            no_ignore_parent: g.no_ignore_parent,
+            no_ignore_dot: g.no_ignore_dot,
+            no_ignore_vcs: g.no_ignore_vcs,
+            treat_doc_strings_as_comments: g.treat_doc_strings_as_comments,
+        }
+    }
+}
+
+impl From<GlobalArgs> for tokmd_settings::ScanOptions {
+    fn from(g: GlobalArgs) -> Self {
+        Self {
+            excluded: g.excluded,
+            config: g.config,
+            hidden: g.hidden,
+            no_ignore: g.no_ignore,
+            no_ignore_parent: g.no_ignore_parent,
+            no_ignore_dot: g.no_ignore_dot,
+            no_ignore_vcs: g.no_ignore_vcs,
+            treat_doc_strings_as_comments: g.treat_doc_strings_as_comments,
+        }
+    }
+}

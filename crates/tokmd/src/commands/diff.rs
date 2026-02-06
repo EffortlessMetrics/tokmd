@@ -101,7 +101,8 @@ fn lang_report_from_git_ref(revision: &str, global: &cli::GlobalArgs) -> Result<
     let _cwd = ScopedCwd::new(&worktree.path)
         .with_context(|| format!("Failed to enter worktree for '{}'", revision))?;
 
-    let languages = scan::scan(std::slice::from_ref(&worktree.path), global)?;
+    let scan_opts = tokmd_settings::ScanOptions::from(global);
+    let languages = scan::scan(std::slice::from_ref(&worktree.path), &scan_opts)?;
     Ok(model::create_lang_report(
         &languages,
         0,

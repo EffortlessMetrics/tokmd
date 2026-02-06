@@ -62,7 +62,8 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     progress.set_message("Scanning codebase...");
     let mut scan_args = global.clone();
     let excluded_paths = exclude_output_dir(&root, &args.out_dir, &mut scan_args);
-    let languages = scan::scan(&paths, &scan_args)?;
+    let scan_opts = tokmd_settings::ScanOptions::from(&scan_args);
+    let languages = scan::scan(&paths, &scan_opts)?;
     let module_roots = args.module_roots.clone().unwrap_or_default();
     let module_depth = args.module_depth.unwrap_or(2);
 

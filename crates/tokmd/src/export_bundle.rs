@@ -81,7 +81,8 @@ pub(crate) fn load_export_from_inputs(
 }
 
 fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result<ExportBundle> {
-    let languages = scan::scan(paths, global)?;
+    let scan_opts = tokmd_settings::ScanOptions::from(global);
+    let languages = scan::scan(paths, &scan_opts)?;
     let meta = ExportMetaLite::default();
     let export = model::create_export_data(
         &languages,

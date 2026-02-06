@@ -1,21 +1,18 @@
 [package]
-name = "tokmd-analysis-types"
+name = "tokmd-substrate"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Analysis receipt contracts for tokmd."
+description = "Shared repo substrate context for cross-sensor coordination."
 readme = "README.md"
-keywords = ["code-analysis", "metrics", "receipts", "schema", "serde"]
+keywords = ["substrate", "context", "sensor", "code-analysis"]
 categories = ["development-tools", "data-structures"]
-documentation = "https://docs.rs/tokmd-analysis-types"
+documentation = "https://docs.rs/tokmd-substrate"
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-tokmd-envelope.workspace = true
-tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.9.0"

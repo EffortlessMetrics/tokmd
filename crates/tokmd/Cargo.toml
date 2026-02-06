@@ -50,7 +50,11 @@ tokmd-analysis-format = { workspace = true, features = ["fun"] }
 tokmd-analysis-types.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
+tokmd-envelope.workspace = true
 tokmd-scan.workspace = true
+tokmd-sensor.workspace = true
+tokmd-settings.workspace = true
+tokmd-substrate.workspace = true
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true

@@ -1,21 +1,19 @@
 [package]
-name = "tokmd-analysis-types"
+name = "tokmd-envelope"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Analysis receipt contracts for tokmd."
+description = "Cross-fleet SensorReport contract for multi-sensor integration."
 readme = "README.md"
-keywords = ["code-analysis", "metrics", "receipts", "schema", "serde"]
+keywords = ["sensor", "envelope", "findings", "verdict", "contract"]
 categories = ["development-tools", "data-structures"]
-documentation = "https://docs.rs/tokmd-analysis-types"
+documentation = "https://docs.rs/tokmd-envelope"
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-tokmd-envelope.workspace = true
-tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.9.0"
