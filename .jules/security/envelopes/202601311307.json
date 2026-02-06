@@ -1,0 +1,19 @@
+{
+  "run_id": "202601311307",
+  "timestamp_utc": "2026-01-31T13:07:00Z",
+  "lane": "scout",
+  "target": "module.json redaction leakage",
+  "commands": [
+    {
+      "cmd": "cargo run -- run reproduction --output-dir output_redact_all --redact all",
+      "status": 0,
+      "result": "Before fix: module names visible. After fix: module names redacted."
+    },
+    {
+      "cmd": "cargo test --workspace",
+      "status": 0,
+      "result": "All tests passed."
+    }
+  ],
+  "results_summary": "Fixed redaction leak in module.json where module names were not hashed when using --redact all."
+}
