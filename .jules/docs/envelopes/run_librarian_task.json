@@ -1,0 +1,24 @@
+{
+  "run_id": "run_librarian_task",
+  "persona": "Librarian",
+  "status": "complete",
+  "target_lane": "B",
+  "receipts": [
+    {
+      "type": "verification",
+      "description": "Verified `tokmd run` CLI flags and output files via reproduction",
+      "command": "cargo run --package tokmd -- run ...",
+      "result": "Confirmed --analysis flag and conditional analysis.json output"
+    },
+    {
+      "type": "change",
+      "description": "Updated docs/reference-cli.md to fix `tokmd run` documentation",
+      "files": ["docs/reference-cli.md"]
+    },
+    {
+      "type": "change",
+      "description": "Updated docs/tutorial.md to fix `tokmd run` output list",
+      "files": ["docs/tutorial.md"]
+    }
+  ]
+}
