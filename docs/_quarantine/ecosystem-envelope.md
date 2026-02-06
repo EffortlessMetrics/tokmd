@@ -38,7 +38,7 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 ```json
 {
   "$schema": "https://tokmd.dev/schemas/envelope.v1.json",
-  "envelope_version": 1,
+  "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
     "version": "1.5.0",
@@ -49,7 +49,8 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
   "summary": "3 risk signals, 1 evidence gate pending",
   "findings": [
     {
-      "id": "tokmd.risk.hotspot",
+      "check_id": "risk",
+      "code": "hotspot",
       "severity": "warn",
       "title": "High-churn file modified",
       "message": "src/parser.rs has 47 commits in 90 days",
@@ -95,7 +96,7 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `envelope_version` | integer | Yes | Schema version (currently 1) |
+| `schema` | string | Yes | Schema identifier (e.g., `"sensor.report.v1"`) |
 | `tool` | object | Yes | Tool identification |
 | `generated_at` | string (ISO 8601) | Yes | Generation timestamp |
 | `verdict` | enum | Yes | Overall result: `pass`, `fail`, `warn`, `skip`, `pending` |
@@ -129,7 +130,8 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 
 ```json
 {
-  "id": "tokmd.risk.hotspot",
+  "check_id": "risk",
+  "code": "hotspot",
   "severity": "warn",
   "title": "High-churn file modified",
   "message": "src/parser.rs has 47 commits in 90 days",
@@ -146,24 +148,24 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 }
 ```
 
-#### Finding ID Convention
+#### Finding Identity
 
-Format: `<tool>.<category>.<code>`
+Findings use `(check_id, code)` for identity. Combined with `tool.name`, this forms the triple `(tool, check_id, code)` for buildfix routing.
 
-tokmd finding IDs:
-| ID | Severity | Description |
-|----|----------|-------------|
-| `tokmd.risk.hotspot` | warn | High-churn file modified |
-| `tokmd.risk.coupling` | warn | High-coupling file modified |
-| `tokmd.risk.bus_factor` | warn | Single-author file modified |
-| `tokmd.risk.complexity_high` | warn | Cyclomatic complexity > threshold |
-| `tokmd.risk.cognitive_high` | warn | Cognitive complexity > threshold |
-| `tokmd.contract.schema_changed` | info | Schema version changed |
-| `tokmd.contract.api_changed` | warn | Public API surface changed |
-| `tokmd.supply.lockfile_changed` | info | Dependency lockfile modified |
-| `tokmd.supply.new_dependency` | info | New dependency added |
-| `tokmd.gate.mutation_failed` | fail | Mutation testing threshold not met |
-| `tokmd.gate.coverage_failed` | fail | Diff coverage threshold not met |
+tokmd findings:
+| check_id | code | Severity | Description |
+|----------|------|----------|-------------|
+| `risk` | `hotspot` | warn | High-churn file modified |
+| `risk` | `coupling` | warn | High-coupling file modified |
+| `risk` | `bus_factor` | warn | Single-author file modified |
+| `risk` | `complexity_high` | warn | Cyclomatic complexity > threshold |
+| `risk` | `cognitive_high` | warn | Cognitive complexity > threshold |
+| `contract` | `schema_changed` | info | Schema version changed |
+| `contract` | `api_changed` | warn | Public API surface changed |
+| `supply` | `lockfile_changed` | info | Dependency lockfile modified |
+| `supply` | `new_dependency` | info | New dependency added |
+| `gate` | `mutation_failed` | fail | Mutation testing threshold not met |
+| `gate` | `coverage_failed` | fail | Diff coverage threshold not met |
 
 #### Severity Levels
 
@@ -267,7 +269,7 @@ Tools should respect their allocation when `--findings-limit` is passed.
 
 ## Versioning
 
-- Envelope schema uses integer versioning: `envelope_version: 1`
+- Envelope schema uses string identifiers: `schema: "sensor.report.v1"`
 - Additive changes (new optional fields) stay within v1
 - Breaking changes require v2
 - Tool-specific `data` follows tool's own schema version

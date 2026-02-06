@@ -851,7 +851,7 @@ pub enum HandoffPreset {
     Deep,
 }
 
-#[derive(Args, Debug, Clone)]
+#[derive(Args, Debug, Clone, Serialize, Deserialize)]
 pub struct SensorArgs {
     /// Base reference to compare from (default: main).
     #[arg(long, default_value = "main")]
@@ -861,9 +861,13 @@ pub struct SensorArgs {
     #[arg(long, default_value = "HEAD")]
     pub head: String,
 
-    /// Output file for the sensor report (stdout if omitted).
-    #[arg(long, value_name = "PATH")]
-    pub output: Option<std::path::PathBuf>,
+    /// Output file for the sensor report.
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "artifacts/tokmd/report.json"
+    )]
+    pub output: std::path::PathBuf,
 
     /// Output format.
     #[arg(long, value_enum, default_value_t = SensorFormat::Json)]

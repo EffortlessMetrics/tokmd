@@ -3134,6 +3134,7 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "proptest",
+ "tempfile",
  "tokei",
  "tokmd-settings",
  "tokmd-types",

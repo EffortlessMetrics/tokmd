@@ -988,9 +988,9 @@ pub struct EcoLabel {
 // Ecosystem Envelope (v1) — re-exported from tokmd-envelope
 // =========================
 
-/// Schema version for ecosystem envelope format.
+/// Schema identifier for ecosystem envelope format.
 /// v1: Initial envelope specification for multi-sensor integration.
-pub const ENVELOPE_VERSION: u32 = tokmd_envelope::SENSOR_REPORT_VERSION;
+pub const ENVELOPE_SCHEMA: &str = tokmd_envelope::SENSOR_REPORT_SCHEMA;
 
 // Re-export all envelope types with backwards-compatible aliases
 pub use tokmd_envelope::Artifact;

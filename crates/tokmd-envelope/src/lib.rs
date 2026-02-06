@@ -20,9 +20,9 @@ pub mod findings;
 
 use serde::{Deserialize, Serialize};
 
-/// Schema version for sensor report format.
+/// Schema identifier for sensor report format.
 /// v1: Initial sensor report specification for multi-sensor integration.
-pub const SENSOR_REPORT_VERSION: u32 = 1;
+pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";
 
 /// Sensor report envelope for multi-sensor integration.
 ///
@@ -37,8 +37,8 @@ pub const SENSOR_REPORT_VERSION: u32 = 1;
 /// - **Self-describing**: Schema version and tool metadata enable forward compatibility
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SensorReport {
-    /// Schema version (currently 1).
-    pub sensor_report_version: u32,
+    /// Schema identifier (e.g., "sensor.report.v1").
+    pub schema: String,
     /// Tool identification.
     pub tool: ToolMeta,
     /// Generation timestamp (ISO 8601 format).
@@ -92,12 +92,15 @@ pub enum Verdict {
 
 /// A finding reported by the sensor.
 ///
-/// Finding IDs follow the convention: `<tool>.<category>.<code>`
-/// (e.g., `tokmd.risk.hotspot`, `tokmd.gate.mutation_failed`).
+/// Findings use a `(check_id, code)` tuple for identity. Combined with
+/// `tool.name` this forms the triple `(tool, check_id, code)` used for
+/// buildfix routing and cockpit policy (e.g., `("tokmd", "risk", "hotspot")`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Finding {
-    /// Finding identifier (e.g., "tokmd.risk.hotspot").
-    pub id: String,
+    /// Check category (e.g., "risk", "contract", "gate").
+    pub check_id: String,
+    /// Finding code within the category (e.g., "hotspot", "coupling").
+    pub code: String,
     /// Severity level.
     pub severity: FindingSeverity,
     /// Short title for the finding.
@@ -191,7 +194,7 @@ impl SensorReport {
     /// Create a new sensor report with the current version.
     pub fn new(tool: ToolMeta, generated_at: String, verdict: Verdict, summary: String) -> Self {
         Self {
-            sensor_report_version: SENSOR_REPORT_VERSION,
+            schema: SENSOR_REPORT_SCHEMA.to_string(),
             tool,
             generated_at,
             verdict,
@@ -246,13 +249,15 @@ impl ToolMeta {
 impl Finding {
     /// Create a new finding with required fields.
     pub fn new(
-        id: impl Into<String>,
+        check_id: impl Into<String>,
+        code: impl Into<String>,
         severity: FindingSeverity,
         title: impl Into<String>,
         message: impl Into<String>,
     ) -> Self {
         Self {
-            id: id.into(),
+            check_id: check_id.into(),
+            code: code.into(),
             severity,
             title: title.into(),
             message: message.into(),
@@ -396,7 +401,7 @@ mod tests {
         );
         let json = serde_json::to_string(&report).unwrap();
         let back: SensorReport = serde_json::from_str(&json).unwrap();
-        assert_eq!(back.sensor_report_version, SENSOR_REPORT_VERSION);
+        assert_eq!(back.schema, SENSOR_REPORT_SCHEMA);
         assert_eq!(back.verdict, Verdict::Pass);
         assert_eq!(back.tool.name, "tokmd");
     }
@@ -411,6 +416,7 @@ mod tests {
         );
         report.add_finding(
             Finding::new(
+                findings::risk::CHECK_ID,
                 findings::risk::HOTSPOT,
                 FindingSeverity::Warn,
                 "High-churn file",
@@ -421,7 +427,8 @@ mod tests {
         let json = serde_json::to_string(&report).unwrap();
         let back: SensorReport = serde_json::from_str(&json).unwrap();
         assert_eq!(back.findings.len(), 1);
-        assert_eq!(back.findings[0].id, "tokmd.risk.hotspot");
+        assert_eq!(back.findings[0].check_id, "risk");
+        assert_eq!(back.findings[0].code, "hotspot");
     }
 
     #[test]
@@ -452,7 +459,7 @@ mod tests {
     }
 
     #[test]
-    fn sensor_report_version_field_name() {
+    fn schema_field_contains_string_identifier() {
         let report = SensorReport::new(
             ToolMeta::tokmd("1.5.0", "test"),
             "2024-01-01T00:00:00Z".to_string(),
@@ -460,6 +467,7 @@ mod tests {
             "test".to_string(),
         );
         let json = serde_json::to_string(&report).unwrap();
-        assert!(json.contains("sensor_report_version"));
+        assert!(json.contains("\"schema\""));
+        assert!(json.contains("sensor.report.v1"));
     }
 }

@@ -645,7 +645,7 @@ pub enum TrendDirection {
 }
 
 #[cfg(feature = "git")]
-fn compute_cockpit(
+pub(crate) fn compute_cockpit(
     repo_root: &PathBuf,
     base: &str,
     head: &str,

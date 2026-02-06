@@ -20,7 +20,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `context`, `run` |
 | **Analysis** | 4 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | (local) | `cockpit` |
-| **Envelope** | 1 | `ENVELOPE_VERSION` | ecosystem envelope |
+| **Envelope** | `"sensor.report.v1"` | `ENVELOPE_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 3 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
 
@@ -70,7 +70,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;`
 - **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
-- **Envelope**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ENVELOPE_VERSION: u32 = 1;`
+- **Envelope**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ENVELOPE_SCHEMA: &str = "sensor.report.v1";`
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 3;`
 
@@ -607,13 +607,13 @@ Present when `--git` is enabled or preset includes git analysis.
 
 The ecosystem envelope provides a standardized JSON format for multi-sensor integration. It allows tokmd to integrate with external orchestrators ("directors") that aggregate reports from multiple code quality sensors into a unified PR view.
 
-**Schema version**: 1
+**Schema**: `"sensor.report.v1"`
 
 ### Envelope Structure
 
 ```json
 {
-  "envelope_version": 1,
+  "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
     "version": "1.5.0",
@@ -624,7 +624,8 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
   "summary": "2 warnings: hotspot touched, low test coverage",
   "findings": [
     {
-      "id": "tokmd.risk.hotspot",
+      "check_id": "risk",
+      "code": "hotspot",
       "severity": "warn",
       "title": "Hotspot file touched",
       "message": "src/core/engine.rs is a high-churn file",
@@ -648,7 +649,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `envelope_version` | `integer` | Schema version (currently 1). |
+| `schema` | `string` | Schema identifier (e.g., `"sensor.report.v1"`). |
 | `tool` | `object` | Tool identification (name, version, mode). |
 | `generated_at` | `string` | ISO 8601 timestamp. |
 | `verdict` | `string` | Overall result: `pass`, `fail`, `warn`, `skip`, or `pending`. |
@@ -672,11 +673,12 @@ Directors aggregate verdicts with precedence: `fail` > `pending` > `warn` > `pas
 
 ### Finding Structure
 
-Findings follow the ID convention: `<tool>.<category>.<code>` (e.g., `tokmd.risk.hotspot`).
+Findings use `(check_id, code)` for identity. Combined with `tool.name`, this forms the triple `(tool, check_id, code)` (e.g., `("tokmd", "risk", "hotspot")`).
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `id` | `string` | Finding identifier. |
+| `check_id` | `string` | Check category (e.g., `"risk"`, `"contract"`). |
+| `code` | `string` | Finding code within the category (e.g., `"hotspot"`). |
 | `severity` | `string` | Severity: `error`, `warn`, or `info`. |
 | `title` | `string` | Short title. |
 | `message` | `string` | Detailed message. |

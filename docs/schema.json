@@ -1306,9 +1306,9 @@
     "Envelope": {
       "type": "object",
       "description": "Ecosystem envelope for multi-sensor integration. Provides a standardized JSON format for integrating with external orchestrators.",
-      "required": ["envelope_version", "tool", "generated_at", "verdict", "summary", "findings"],
+      "required": ["schema", "tool", "generated_at", "verdict", "summary", "findings"],
       "properties": {
-        "envelope_version": { "type": "integer", "const": 1, "description": "Schema version (currently 1)." },
+        "schema": { "type": "string", "const": "sensor.report.v1", "description": "Schema identifier (e.g., 'sensor.report.v1')." },
         "tool": { "$ref": "#/definitions/EnvelopeTool" },
         "generated_at": { "type": "string", "description": "Generation timestamp (ISO 8601 format)." },
         "verdict": { "$ref": "#/definitions/Verdict" },
@@ -1336,10 +1336,11 @@
     },
     "Finding": {
       "type": "object",
-      "description": "A finding reported by the tool. Finding IDs follow the convention: <tool>.<category>.<code> (e.g., 'tokmd.risk.hotspot').",
-      "required": ["id", "severity", "title", "message"],
+      "description": "A finding reported by the tool. Uses (check_id, code) tuple for identity, forming (tool, check_id, code) triple with tool.name.",
+      "required": ["check_id", "code", "severity", "title", "message"],
       "properties": {
-        "id": { "type": "string", "description": "Finding identifier (e.g., 'tokmd.risk.hotspot')." },
+        "check_id": { "type": "string", "description": "Check category (e.g., 'risk', 'contract')." },
+        "code": { "type": "string", "description": "Finding code within the category (e.g., 'hotspot')." },
         "severity": { "$ref": "#/definitions/FindingSeverity" },
         "title": { "type": "string", "description": "Short title for the finding." },
         "message": { "type": "string", "description": "Detailed message describing the finding." },

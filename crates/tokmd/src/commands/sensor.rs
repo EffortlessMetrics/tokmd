@@ -1,14 +1,17 @@
 //! Handler for the `tokmd sensor` command.
 //!
-//! Runs tokmd as a conforming sensor, producing a `SensorReport`.
+//! Runs tokmd as a conforming sensor, producing a `SensorReport` envelope
+//! backed by cockpit computation. Always writes a canonical JSON receipt
+//! to the output path; with `--format md` also prints markdown to stdout.
 
 use std::io::Write;
 
 use anyhow::{Context, Result, bail};
 use tokmd_config as cli;
-use tokmd_envelope::{Artifact, Finding, FindingSeverity, SensorReport, ToolMeta, Verdict};
-use tokmd_sensor::substrate_builder;
-use tokmd_settings::ScanOptions;
+use tokmd_envelope::findings;
+use tokmd_envelope::{
+    Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
+};
 
 pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
@@ -19,6 +22,8 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 
     #[cfg(feature = "git")]
     {
+        let _ = global; // scan opts not needed for cockpit path
+
         if !tokmd_git::git_available() {
             bail!("git is not available on PATH");
         }
@@ -27,85 +32,64 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-        let scan_opts = ScanOptions::from(global);
-        let repo_root_str = repo_root.display().to_string().replace('\\', "/");
+        // Use two-dot range for sensor (same convention as cockpit)
+        let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
-        // Build diff range from git
-        let diff_range = build_diff_range(&repo_root, &args.base, &args.head)?;
+        // Run cockpit computation
+        let cockpit_receipt =
+            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
 
-        // Build substrate
-        let substrate = substrate_builder::build_substrate(
-            &repo_root_str,
-            &scan_opts,
-            &["crates".to_string(), "packages".to_string()],
-            2,
-            Some(diff_range),
-        )?;
-
-        // Build the sensor report
+        // Build the sensor report envelope
         let generated_at = now_iso8601();
+        let verdict = map_verdict(cockpit_receipt.evidence.overall_status);
+
         let mut report = SensorReport::new(
             ToolMeta::tokmd(env!("CARGO_PKG_VERSION"), "sensor"),
             generated_at,
-            Verdict::Pass,
-            format!(
-                "{} files, {} code lines, {} changed in {}..{}",
-                substrate.files.len(),
-                substrate.total_code_lines,
-                substrate.diff_files().count(),
-                args.base,
-                args.head,
-            ),
+            verdict,
+            build_summary(&cockpit_receipt, &args.base, &args.head),
         );
 
-        // Add findings for diff files
-        let diff_file_count = substrate.diff_files().count();
-        if diff_file_count > 0 {
-            report.add_finding(Finding::new(
-                "tokmd.sensor.diff_summary",
-                FindingSeverity::Info,
-                "Diff summary",
-                format!(
-                    "{} files changed in {}..{}",
-                    diff_file_count, args.base, args.head
-                ),
-            ));
-        }
+        // Map evidence gates → envelope gates
+        report = report.with_gates(map_gates(&cockpit_receipt.evidence));
 
-        // Add data payload with substrate summary
+        // Emit findings from cockpit data
+        emit_risk_findings(&mut report, &cockpit_receipt.risk);
+        emit_contract_findings(&mut report, &cockpit_receipt.contracts);
+
+        // Embed full cockpit receipt under data.cockpit_receipt
+        let cockpit_json = serde_json::to_value(&cockpit_receipt)?;
         let data = serde_json::json!({
-            "total_files": substrate.files.len(),
-            "total_code_lines": substrate.total_code_lines,
-            "total_tokens": substrate.total_tokens,
-            "total_bytes": substrate.total_bytes,
-            "languages": substrate.lang_summary.len(),
-            "diff_files": diff_file_count,
+            "cockpit_receipt": cockpit_json,
         });
         report = report.with_data(data);
 
-        // Add artifact reference
-        if let Some(ref output_path) = args.output {
-            let path_str = output_path.display().to_string().replace('\\', "/");
-            report = report.with_artifacts(vec![Artifact::receipt(&path_str)]);
+        // Add artifact reference for the output path
+        let output_path = &args.output;
+        let path_str = output_path.display().to_string().replace('\\', "/");
+        report = report.with_artifacts(vec![Artifact::receipt(&path_str)]);
+
+        // Always write canonical JSON receipt to output path
+        let json_str = serde_json::to_string_pretty(&report)?;
+        if let Some(parent) = output_path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent)?;
         }
+        let mut file = std::fs::File::create(output_path)
+            .with_context(|| format!("Failed to create output file: {}", output_path.display()))?;
+        file.write_all(json_str.as_bytes())?;
 
-        // Render output
-        let output_str = match args.format {
-            cli::SensorFormat::Json => serde_json::to_string_pretty(&report)?,
-            cli::SensorFormat::Md => render_sensor_md(&report),
-        };
-
-        // Write output
-        if let Some(output_path) = &args.output {
-            if let Some(parent) = output_path.parent() {
-                std::fs::create_dir_all(parent)?;
+        // When --format md, also print markdown to stdout
+        match args.format {
+            cli::SensorFormat::Json => {
+                // JSON already written to file; also print to stdout
+                print!("{}", json_str);
             }
-            let mut file = std::fs::File::create(output_path).with_context(|| {
-                format!("Failed to create output file: {}", output_path.display())
-            })?;
-            file.write_all(output_str.as_bytes())?;
-        } else {
-            print!("{}", output_str);
+            cli::SensorFormat::Md => {
+                // JSON written to file; print markdown to stdout
+                print!("{}", render_sensor_md(&report));
+            }
         }
 
         Ok(())
@@ -113,88 +97,137 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 }
 
 #[cfg(feature = "git")]
-fn build_diff_range(
-    repo_root: &std::path::Path,
-    base: &str,
-    head: &str,
-) -> Result<tokmd_substrate::DiffRange> {
-    use std::process::Command;
-
-    // Get changed files
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("diff")
-        .arg("--name-only")
-        .arg(format!("{}..{}", base, head))
-        .output()
-        .context("Failed to run git diff --name-only")?;
-
-    let changed_files: Vec<String> = String::from_utf8_lossy(&output.stdout)
-        .lines()
-        .filter(|l| !l.is_empty())
-        .map(|l| l.replace('\\', "/"))
-        .collect();
-
-    // Get commit count
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("rev-list")
-        .arg("--count")
-        .arg(format!("{}..{}", base, head))
-        .output()
-        .context("Failed to run git rev-list --count")?;
-
-    let commit_count: usize = String::from_utf8_lossy(&output.stdout)
-        .trim()
-        .parse()
-        .unwrap_or(0);
-
-    // Get diff stats
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .arg("diff")
-        .arg("--shortstat")
-        .arg(format!("{}..{}", base, head))
-        .output()
-        .context("Failed to run git diff --shortstat")?;
-
-    let stat_line = String::from_utf8_lossy(&output.stdout);
-    let (insertions, deletions) = parse_shortstat(&stat_line);
-
-    Ok(tokmd_substrate::DiffRange {
-        base: base.to_string(),
-        head: head.to_string(),
-        changed_files,
-        commit_count,
-        insertions,
-        deletions,
-    })
+fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
+    format!(
+        "{} files changed, +{}/-{}, health {}/100, risk {:?} in {}..{}",
+        receipt.change_surface.files_changed,
+        receipt.change_surface.insertions,
+        receipt.change_surface.deletions,
+        receipt.code_health.score,
+        receipt.risk.level,
+        base,
+        head,
+    )
 }
 
+/// Map cockpit GateStatus → envelope Verdict.
 #[cfg(feature = "git")]
-fn parse_shortstat(s: &str) -> (usize, usize) {
-    let mut insertions = 0;
-    let mut deletions = 0;
-    for part in s.split(',') {
-        let part = part.trim();
-        if part.contains("insertion") {
-            insertions = part
-                .split_whitespace()
-                .next()
-                .and_then(|n| n.parse().ok())
-                .unwrap_or(0);
-        } else if part.contains("deletion") {
-            deletions = part
-                .split_whitespace()
-                .next()
-                .and_then(|n| n.parse().ok())
-                .unwrap_or(0);
-        }
+fn map_verdict(status: super::cockpit::GateStatus) -> Verdict {
+    match status {
+        super::cockpit::GateStatus::Pass => Verdict::Pass,
+        super::cockpit::GateStatus::Warn => Verdict::Warn,
+        super::cockpit::GateStatus::Fail => Verdict::Fail,
+        super::cockpit::GateStatus::Skipped => Verdict::Skip,
+        super::cockpit::GateStatus::Pending => Verdict::Pending,
     }
-    (insertions, deletions)
+}
+
+/// Map cockpit Evidence → envelope GateResults.
+#[cfg(feature = "git")]
+fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
+    let mut items = Vec::new();
+
+    // Mutation gate (always present)
+    items.push(
+        GateItem::new("mutation", map_verdict(evidence.mutation.meta.status))
+            .with_source("computed"),
+    );
+
+    // Optional gates
+    if let Some(ref dc) = evidence.diff_coverage {
+        items.push(
+            GateItem::new("diff_coverage", map_verdict(dc.meta.status))
+                .with_threshold(0.8, dc.coverage_pct)
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref c) = evidence.contracts {
+        let mut gate =
+            GateItem::new("contracts", map_verdict(c.meta.status)).with_source("computed");
+        if c.failures > 0 {
+            gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
+        }
+        items.push(gate);
+    }
+
+    if let Some(ref sc) = evidence.supply_chain {
+        items.push(
+            GateItem::new("supply_chain", map_verdict(sc.meta.status)).with_source("computed"),
+        );
+    }
+
+    if let Some(ref det) = evidence.determinism {
+        items.push(
+            GateItem::new("determinism", map_verdict(det.meta.status)).with_source("computed"),
+        );
+    }
+
+    if let Some(ref cx) = evidence.complexity {
+        items
+            .push(GateItem::new("complexity", map_verdict(cx.meta.status)).with_source("computed"));
+    }
+
+    GateResults::new(map_verdict(evidence.overall_status), items)
+}
+
+/// Emit risk findings from cockpit data.
+#[cfg(feature = "git")]
+fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
+    for hotspot in &risk.hotspots_touched {
+        report.add_finding(
+            Finding::new(
+                findings::risk::CHECK_ID,
+                findings::risk::HOTSPOT,
+                FindingSeverity::Warn,
+                "Hotspot file touched",
+                format!("{} is a high-churn file", hotspot),
+            )
+            .with_location(tokmd_envelope::FindingLocation::path(hotspot)),
+        );
+    }
+
+    for path in &risk.bus_factor_warnings {
+        report.add_finding(Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::BUS_FACTOR,
+            FindingSeverity::Warn,
+            "Bus factor warning",
+            format!("{} has single-author ownership", path),
+        ));
+    }
+}
+
+/// Emit contract findings from cockpit data.
+#[cfg(feature = "git")]
+fn emit_contract_findings(report: &mut SensorReport, contracts: &super::cockpit::Contracts) {
+    if contracts.schema_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::SCHEMA_CHANGED,
+            FindingSeverity::Info,
+            "Schema version changed",
+            "Schema version files were modified in this PR",
+        ));
+    }
+    if contracts.api_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::API_CHANGED,
+            FindingSeverity::Warn,
+            "Public API changed",
+            "Public API surface files were modified",
+        ));
+    }
+    if contracts.cli_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::CLI_CHANGED,
+            FindingSeverity::Info,
+            "CLI interface changed",
+            "CLI definition files were modified",
+        ));
+    }
 }
 
 fn render_sensor_md(report: &SensorReport) -> String {
@@ -210,7 +243,11 @@ fn render_sensor_md(report: &SensorReport) -> String {
         let _ = writeln!(s, "### Findings");
         let _ = writeln!(s);
         for f in &report.findings {
-            let _ = writeln!(s, "- **[{:?}]** {} — {}", f.severity, f.title, f.message);
+            let _ = writeln!(
+                s,
+                "- **[{:?}]** {}.{}: {} — {}",
+                f.severity, f.check_id, f.code, f.title, f.message
+            );
         }
         let _ = writeln!(s);
     }
