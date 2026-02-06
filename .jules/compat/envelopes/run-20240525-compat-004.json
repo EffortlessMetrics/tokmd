@@ -1,0 +1,7 @@
+{
+  "run_id": "run-20240525-compat-004",
+  "date": "2024-05-25",
+  "target": "tokmd",
+  "improvement": "removed unused code/warnings in cockpit command for no-git build",
+  "status": "in_progress"
+}

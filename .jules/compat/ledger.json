@@ -5,11 +5,22 @@
     "target": "tokmd",
     "improvement": "exposed features for lightweight build"
   },
-  {"run_id": "run-20240523-compat-002", "date": "2024-05-23", "target": "tokmd", "improvement": "fixed rustfmt violations"},
+  {
+    "run_id": "run-20240523-compat-002",
+    "date": "2024-05-23",
+    "target": "tokmd",
+    "improvement": "fixed rustfmt violations"
+  },
   {
     "run_id": "run-20240524-compat-003",
     "date": "2024-05-24",
     "target": "tokmd-analysis",
     "improvement": "fixed unused fields warning in no-default-features build"
+  },
+  {
+    "run_id": "run-20240525-compat-004",
+    "date": "2024-05-25",
+    "target": "tokmd",
+    "improvement": "fixed unused code warnings in cockpit command when git disabled"
   }
 ]
