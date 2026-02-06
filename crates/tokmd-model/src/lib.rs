@@ -244,6 +244,14 @@ pub fn create_module_report(
 
     let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
     for r in &file_rows {
+        if let Some(entry) = by_module.get_mut(&r.module) {
+            entry.code += r.code;
+            entry.lines += r.lines;
+            entry.bytes += r.bytes;
+            entry.tokens += r.tokens;
+            continue;
+        }
+
         let entry = by_module.entry(r.module.clone()).or_default();
         entry.code += r.code;
         entry.lines += r.lines;

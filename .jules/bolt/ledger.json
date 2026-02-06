@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-06T00:00:00Z",
+    "lane": "scout",
+    "target": "Reduce allocations in create_module_report",
+    "proof_method": "bench_perf.rs",
+    "pr_link": null,
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]
