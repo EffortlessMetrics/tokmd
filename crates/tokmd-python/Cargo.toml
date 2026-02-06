@@ -24,4 +24,4 @@ tokmd-types.workspace = true
 tokmd-analysis-types.workspace = true
 
 [build-dependencies]
-pyo3-build-config = "0.24"
+pyo3-build-config = "0.28"
