@@ -23,7 +23,12 @@ macro_rules! roundtrip_test {
 }
 
 // All variants for each enum
-const TABLE_FORMATS: [TableFormat; 3] = [TableFormat::Md, TableFormat::Tsv, TableFormat::Json];
+const TABLE_FORMATS: [TableFormat; 4] = [
+    TableFormat::Md,
+    TableFormat::Tsv,
+    TableFormat::Json,
+    TableFormat::JsonPretty,
+];
 
 const EXPORT_FORMATS: [ExportFormat; 3] =
     [ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json];
@@ -180,7 +185,7 @@ proptest! {
     #[test]
     fn unknown_table_format_fails(unknown in "[a-z]{5,10}") {
         // Ensure random strings don't parse as valid formats (unless they happen to match)
-        if !["md", "tsv", "json"].contains(&unknown.as_str()) {
+        if !["md", "tsv", "json", "json-pretty"].contains(&unknown.as_str()) {
             let json = format!("\"{}\"", unknown);
             let result: Result<TableFormat, _> = serde_json::from_str(&json);
             prop_assert!(result.is_err(), "Unknown format '{}' should fail to parse", unknown);

@@ -114,7 +114,12 @@ pub fn write_lang_report_to<W: Write>(
         TableFormat::Tsv => {
             out.write_all(render_lang_tsv(report).as_bytes())?;
         }
-        TableFormat::Json => {
+        TableFormat::Json | TableFormat::JsonPretty => {
+            let format_str = if args.format == TableFormat::JsonPretty {
+                "json-pretty"
+            } else {
+                "json"
+            };
             let receipt = LangReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
@@ -124,14 +129,19 @@ pub fn write_lang_report_to<W: Write>(
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: LangArgsMeta {
-                    format: "json".to_string(),
+                    format: format_str.to_string(),
                     top: report.top,
                     with_files: report.with_files,
                     children: report.children,
                 },
                 report: report.clone(),
             };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            let s = if args.format == TableFormat::JsonPretty {
+                serde_json::to_string_pretty(&receipt)?
+            } else {
+                serde_json::to_string(&receipt)?
+            };
+            writeln!(out, "{}", s)?;
         }
     }
     Ok(())
@@ -250,7 +260,12 @@ pub fn write_module_report_to<W: Write>(
         TableFormat::Tsv => {
             out.write_all(render_module_tsv(report).as_bytes())?;
         }
-        TableFormat::Json => {
+        TableFormat::Json | TableFormat::JsonPretty => {
+            let format_str = if args.format == TableFormat::JsonPretty {
+                "json-pretty"
+            } else {
+                "json"
+            };
             let receipt = ModuleReceipt {
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
@@ -260,7 +275,7 @@ pub fn write_module_report_to<W: Write>(
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: ModuleArgsMeta {
-                    format: "json".to_string(),
+                    format: format_str.to_string(),
                     top: report.top,
                     module_roots: report.module_roots.clone(),
                     module_depth: report.module_depth,
@@ -268,7 +283,12 @@ pub fn write_module_report_to<W: Write>(
                 },
                 report: report.clone(),
             };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            let s = if args.format == TableFormat::JsonPretty {
+                serde_json::to_string_pretty(&receipt)?
+            } else {
+                serde_json::to_string(&receipt)?
+            };
+            writeln!(out, "{}", s)?;
         }
     }
     Ok(())

@@ -1,0 +1,18 @@
+{
+  "run_id": "run-2026-02-06",
+  "timestamp_utc": "2026-02-06T00:00:00Z",
+  "lane": "scout",
+  "target": "Enable json-pretty output format",
+  "commands": [
+    "cargo build --bin tokmd",
+    "cargo test --package tokmd-config",
+    "./target/debug/tokmd lang --format json-pretty",
+    "./target/debug/tokmd module --format json-pretty"
+  ],
+  "results_summary": [
+    "Build passed",
+    "Property tests passed",
+    "CLI lang json-pretty output confirmed",
+    "CLI module json-pretty output confirmed"
+  ]
+}
