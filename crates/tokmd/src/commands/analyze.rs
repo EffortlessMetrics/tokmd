@@ -4,6 +4,7 @@ use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
 use crate::analysis_utils;
+use crate::context_pack;
 use crate::export_bundle;
 use crate::progress::Progress;
 
@@ -12,6 +13,14 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
 
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
     let format = args.format.unwrap_or(cli::AnalysisFormat::Md);
+
+    // Parse window tokens (e.g., "128k" -> 128000)
+    let window_tokens = if let Some(ref w) = args.window {
+        Some(context_pack::parse_budget(w).context("Invalid window size format")?)
+    } else {
+        None
+    };
+
     let git_flag = if args.git {
         Some(true)
     } else if args.no_git {
@@ -41,7 +50,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     let args_meta = analysis_types::AnalysisArgsMeta {
         preset: analysis_utils::preset_to_string(preset),
         format: analysis_utils::format_to_string(format),
-        window_tokens: args.window,
+        window_tokens,
         git: git_flag,
         max_files: args.max_files,
         max_bytes: args.max_bytes,
@@ -60,7 +69,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
             max_commits: args.max_commits,
             max_commit_files: args.max_commit_files,
         },
-        window_tokens: args.window,
+        window_tokens,
         git: git_flag,
         import_granularity: analysis_utils::map_granularity(granularity),
     };
