@@ -235,7 +235,11 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
         return Ok(());
     }
 
-    let dir: PathBuf = args.dir.clone();
+    let dir: PathBuf = args
+        .path
+        .clone()
+        .or_else(|| args.dir.clone())
+        .unwrap_or_else(|| PathBuf::from("."));
     if !dir.exists() {
         bail!("Directory does not exist: {}", dir.display());
     }
