@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `gate`, `tools`, `context`, `handoff`, `init`, `check-ignore`, `completions`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `sensor`, `gate`, `tools`, `context`, `handoff`, `init`, `check-ignore`, `completions`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -509,6 +509,43 @@ tokmd cockpit --artifacts-dir artifacts/tokmd
 
 # Custom base ref for release branches
 tokmd cockpit --base release/v1.2 --head HEAD
+```
+
+### `tokmd sensor`
+
+Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. Always writes a canonical JSON receipt to the output path; with `--format md` also prints markdown to stdout.
+
+**Usage**: `tokmd sensor [OPTIONS]`
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--base <REF>` | Base reference to compare from. | `main` |
+| `--head <REF>` | Head reference to compare to. | `HEAD` |
+| `--output <PATH>` | Output file for the sensor report. | `artifacts/tokmd/report.json` |
+| `--format <FMT>` | Output format: `json`, `md`. | `json` |
+
+**Output**:
+
+The sensor command produces a `sensor.report.v1` JSON envelope containing:
+- **verdict**: Overall pass/fail/warn mapped from cockpit evidence gates
+- **findings**: Risk hotspots, bus factor warnings, and contract change signals
+- **gates**: Evidence gate results from the cockpit computation
+- **data.cockpit_receipt**: Full cockpit receipt embedded for tool-specific analysis
+
+When `--format md` is used, the JSON receipt is still written to `--output` and a markdown summary is printed to stdout.
+
+> **Note**: Requires the `git` feature and a git repository. Uses two-dot diff syntax for accurate line counts.
+
+**Examples**:
+```bash
+# Generate sensor report with defaults
+tokmd sensor
+
+# Custom refs and output path
+tokmd sensor --base origin/main --head feature-branch --output ci/report.json
+
+# Markdown summary to stdout, JSON to file
+tokmd sensor --format md
 ```
 
 ### `tokmd gate`

@@ -163,7 +163,8 @@ fn print_mode_works_with_all_templates() {
 
 #[test]
 fn error_when_directory_does_not_exist() {
-    let nonexistent = PathBuf::from("/__tokmd_test_nonexistent_path_9f3a2b1c__");
+    let dir = TempDir::new().unwrap();
+    let nonexistent = dir.path().join("definitely-not-created");
     let args = make_args(nonexistent, InitProfile::Default, false, false);
 
     let result = init_tokeignore(&args);

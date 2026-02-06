@@ -19,3 +19,4 @@ tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.9.0"
+tempfile = "3"

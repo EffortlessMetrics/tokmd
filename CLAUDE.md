@@ -55,6 +55,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - `tokmd badge` — SVG badge generation
 - `tokmd diff` — Compare two runs or receipts
 - `tokmd cockpit` — PR metrics for code review with evidence gates
+- `tokmd sensor` — Conforming sensor producing sensor.report.v1 envelope
 - `tokmd gate` — Policy-based quality gates with JSON pointer rules
 - `tokmd tools` — Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema)
 - `tokmd context` — Pack files into LLM context window within token budget

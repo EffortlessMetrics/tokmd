@@ -26,6 +26,7 @@ CLI binary orchestrating all other crates. This is the **Tier 5** entry point fo
 | `tokmd badge` | SVG badge generation |
 | `tokmd diff` | Compare two runs or receipts |
 | `tokmd cockpit` | PR metrics with evidence gates |
+| `tokmd sensor` | Conforming sensor (sensor.report.v1 envelope) |
 | `tokmd gate` | Policy-based quality gates |
 | `tokmd tools` | LLM tool definitions |
 | `tokmd context` | Pack files into LLM context window |
@@ -61,6 +62,7 @@ src/
 │   ├── run.rs       # Full scan with artifacts
 │   ├── diff.rs      # Receipt comparison
 │   ├── cockpit.rs   # PR metrics and evidence gates
+│   ├── sensor.rs    # Conforming sensor (envelope output)
 │   ├── gate.rs      # Policy-based quality gates
 │   └── tools.rs     # LLM tool definitions
 ├── export_bundle.rs # Export file handling
