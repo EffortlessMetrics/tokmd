@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Verdict aggregation: pass/fail/warn/skip/pending
   - Builder pattern APIs for constructing envelopes programmatically
 
+- **Handoff Command**: New `tokmd handoff` for creating LLM-ready code bundles
+  - Generates `.handoff/` directory with `manifest.json`, `map.jsonl`, `intelligence.json`, and `code.txt`
+  - Token-budgeted file selection with `--budget` and `--strategy` options
+  - Risk-ranked ordering via `--rank-by` (hotspot, code, tokens, churn)
+  - Intelligence presets: `minimal`, `standard`, `risk`, `deep`
+  - Deterministic output with BLAKE3 integrity hashes
+
 - **Finding ID Constants**: New `tokmd_analysis_types::findings` module
   - Risk findings: `hotspot`, `coupling`, `bus_factor`, `complexity_high`, `cognitive_high`, `nesting_deep`
   - Contract findings: `schema_changed`, `api_changed`, `cli_changed`

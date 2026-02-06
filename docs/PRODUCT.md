@@ -6,7 +6,7 @@
 
 **tokmd transforms code scans into actionable intelligence: receipts for automation, metrics for understanding, and signals for decision-making.**
 
-It is not just a counter. It is a **code intelligence platform** that converts raw counts into trusted artifacts and derived insights.
+It is not just a counter. It is a **lightweight code intelligence tool** that converts raw counts into trusted artifacts and derived insights.
 
 ## The Problems We Solve
 
@@ -106,7 +106,7 @@ Analysis provides information, not judgments:
 
 `tokmd` explicitly does **not**:
 *   Format or lint code (use rustfmt, eslint)
-*   Scan for vulnerabilities (use cargo-audit, npm audit)
+*   Implement vulnerability detection (tokmd delegates to cargo-audit/npm audit but does not maintain its own advisory database)
 *   Execute tests (use cargo test, pytest)
 *   Parse AST deeply (uses heuristics, not full parsers)
 *   Score or rank developers

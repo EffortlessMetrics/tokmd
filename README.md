@@ -21,7 +21,7 @@ Repo stats are easy to compute (cloc, tokei) but annoying to **use**.
 
 ## The Product
 
-`tokmd` is a code intelligence platform built on the excellent [`tokei`](https://github.com/XAMPPRocky/tokei) library. It produces **receipts** (deterministic artifacts) and **analysis** (derived insights).
+`tokmd` is a lightweight code intelligence tool built on the excellent [`tokei`](https://github.com/XAMPPRocky/tokei) library. It produces **receipts** (deterministic artifacts) and **analysis** (derived insights).
 
 - **Receipts**: Schema'd, normalized artifacts that represent the "shape" of your code.
 - **Analysis**: Derived metrics like doc density, test coverage, hotspots, and effort estimation.

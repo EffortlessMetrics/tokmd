@@ -4,7 +4,7 @@ This document details the command-line interface for `tokmd`.
 
 ## Global Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `gate`, `sensor`, `tools`, `context`, `init`, `check-ignore`, `completions`).
+These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `gate`, `tools`, `context`, `handoff`, `init`, `check-ignore`, `completions`).
 
 | Flag | Description |
 | :--- | :--- |
@@ -257,50 +257,6 @@ tokmd diff main HEAD
 
 # Compare a run to current state
 tokmd diff .runs/baseline .
-```
-
-### `tokmd sensor`
-
-Emits analysis in ecosystem envelope format for multi-sensor integration. This enables tokmd to participate in multi-tool analysis pipelines by producing standardized output envelopes.
-
-**Subcommands**:
-- `cockpit` - Emit cockpit metrics in envelope format
-
-#### `tokmd sensor cockpit`
-
-Wraps the cockpit command output in an ecosystem envelope for integration with other analysis tools and CI systems.
-
-**Usage**: `tokmd sensor cockpit --base <REF> [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--base <REF>` | Base commit/tag for comparison (required). | - |
-| `--head <REF>` | Head commit/tag for comparison. | `HEAD` |
-| `--output <DIR>` | Output directory for artifacts. | `artifacts/tokmd/` |
-| `--findings-limit <N>` | Maximum findings to include in envelope. | `20` |
-| `--embed-data` | Embed full receipt in data field. | `true` |
-
-**Output Files**:
-
-| File | Description |
-| :--- | :--- |
-| `report.json` | Ecosystem envelope in standardized format |
-| `cockpit.json` | Full native cockpit receipt |
-| `comment.md` | PR comment markdown for GitHub/GitLab |
-
-**Examples**:
-```bash
-# Generate envelope for PR comparison
-tokmd sensor cockpit --base main --head feature-branch
-
-# Custom output directory
-tokmd sensor cockpit --base v1.4.0 --head v1.5.0 --output ci-artifacts/
-
-# Limit findings in envelope
-tokmd sensor cockpit --base main --findings-limit 10
-
-# Without embedded data (smaller envelope)
-tokmd sensor cockpit --base main --no-embed-data
 ```
 
 ### `tokmd init`
