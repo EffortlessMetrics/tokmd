@@ -19,5 +19,12 @@
     "target": "dev-dependencies",
     "action": "sync-proptest",
     "status": "success"
+  },
+  {
+    "run_id": "auditor-20260206-125124",
+    "timestamp": "2026-02-06T12:51:24Z",
+    "target": "tokmd-core",
+    "action": "remove-unused-dep",
+    "status": "success"
   }
 ]
