@@ -15,6 +15,6 @@
     "run_id": "20260218-librarian",
     "date": "2026-02-18",
     "persona": "Librarian",
-    "description": "Documented `tokmd handoff` and `tokmd baseline` commands in README and CLI reference"
+    "description": "Documented `tokmd handoff` in README and updated `time` crate to fix RUSTSEC-2026-0009"
   }
 ]
