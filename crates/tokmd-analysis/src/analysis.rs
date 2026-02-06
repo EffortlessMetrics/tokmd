@@ -309,6 +309,84 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
     }
 }
 
+/// Orchestrates the analysis process based on the requested preset and arguments.
+///
+/// This function coordinates various analysis modules (derived metrics, git history,
+/// file content analysis, etc.) to produce a comprehensive `AnalysisReceipt`.
+///
+/// # Example
+///
+/// ```
+/// use tokmd_analysis::{analyze, AnalysisContext, AnalysisRequest, AnalysisPreset, AnalysisLimits, ImportGranularity};
+/// use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
+/// use tokmd_types::{ExportData, FileRow, FileKind, ChildIncludeMode};
+/// use std::path::PathBuf;
+///
+/// // 1. Construct input data (simulating a scan result)
+/// let export = ExportData {
+///     rows: vec![
+///         FileRow {
+///             path: "src/lib.rs".to_string(),
+///             module: "src".to_string(),
+///             lang: "Rust".to_string(),
+///             kind: FileKind::Parent,
+///             code: 100,
+///             comments: 20,
+///             blanks: 10,
+///             lines: 130,
+///             bytes: 1024,
+///             tokens: 500,
+///         }
+///     ],
+///     module_roots: vec!["src".to_string()],
+///     module_depth: 1,
+///     children: ChildIncludeMode::ParentsOnly,
+/// };
+///
+/// // 2. Setup context and request
+/// let ctx = AnalysisContext {
+///     export,
+///     root: PathBuf::from("."),
+///     source: AnalysisSource {
+///         inputs: vec![],
+///         export_path: None,
+///         base_receipt_path: None,
+///         export_schema_version: None,
+///         export_generated_at_ms: None,
+///         base_signature: None,
+///         module_roots: vec![],
+///         module_depth: 0,
+///         children: "collapse".to_string(),
+///     },
+/// };
+///
+/// let req = AnalysisRequest {
+///     preset: AnalysisPreset::Receipt,
+///     args: AnalysisArgsMeta {
+///         preset: "receipt".to_string(),
+///         format: "json".to_string(),
+///         window_tokens: None,
+///         git: None,
+///         max_files: None,
+///         max_bytes: None,
+///         max_file_bytes: None,
+///         max_commits: None,
+///         max_commit_files: None,
+///         import_granularity: "module".to_string(),
+///     },
+///     limits: AnalysisLimits::default(),
+///     window_tokens: None,
+///     git: None,
+///     import_granularity: ImportGranularity::Module,
+/// };
+///
+/// // 3. Run analysis
+/// let receipt = analyze(ctx, req).unwrap();
+/// let derived = receipt.derived.unwrap();
+///
+/// assert_eq!(derived.totals.code, 100);
+/// assert_eq!(derived.totals.comments, 20);
+/// ```
 pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisReceipt> {
     let mut warnings: Vec<String> = Vec::new();
     #[cfg_attr(not(feature = "content"), allow(unused_mut))]

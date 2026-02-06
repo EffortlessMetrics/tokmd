@@ -55,6 +55,12 @@ fn create_test_repo() -> Option<TempGitRepo> {
         .current_dir(&temp_dir)
         .output()
         .ok()?;
+    // Explicitly disable GPG signing to avoid failures in CI environments
+    Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(&temp_dir)
+        .output()
+        .ok()?;
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
@@ -358,6 +364,12 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         .ok()?;
     Command::new("git")
         .args(["config", "user.name", "Test User"])
+        .current_dir(&temp_dir)
+        .output()
+        .ok()?;
+    // Explicitly disable GPG signing to avoid failures in CI environments
+    Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
         .current_dir(&temp_dir)
         .output()
         .ok()?;
