@@ -309,6 +309,8 @@ fn test_cockpit_output_file() {
         .arg("cockpit")
         .arg("--base")
         .arg("main")
+        .arg("--format")
+        .arg("json")
         .arg("--output")
         .arg(&output_file)
         .assert()
