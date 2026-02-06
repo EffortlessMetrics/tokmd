@@ -8,5 +8,10 @@
     "run_id": "2026-01-30-gatekeeper-analysis-determinism",
     "timestamp": "2026-01-30T11:00:00Z",
     "summary": "Added determinism regression test for analysis reports."
+  },
+  {
+    "run_id": "2025-02-20-gatekeeper-scout",
+    "timestamp": "2025-02-20T12:00:00Z",
+    "summary": "Integrated tokmd-python into workspace default-members and fixed lints."
   }
 ]
