@@ -1,0 +1,17 @@
+{
+  "run_id": "20260218-librarian",
+  "timestamp": "2026-02-18T10:00:00Z",
+  "persona": "Librarian",
+  "lane": "B",
+  "target": "README.md and docs/reference-cli.md",
+  "decision": "Option A (Recommended)",
+  "changes": [
+    "README.md",
+    "docs/reference-cli.md"
+  ],
+  "gates": [
+    "cargo build"
+  ],
+  "status": "success",
+  "notes": "Documented `tokmd handoff` and `tokmd baseline` which were missing from docs."
+}
