@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Scan API**: `tokmd_scan::scan()` now accepts `&ScanOptions` instead of `&GlobalArgs`, decoupling Tier 1 from CLI types
 - **Core Workflows**: `tokmd-core` workflow functions now use settings types (`ScanSettings`, `LangSettings`, etc.) instead of Clap-based args
-- **Envelope Schema**: Replaced `sensor_report_version: u32` with `schema: String` (`"sensor.report.v1"`)
+- **Envelope Schema**: Changed schema identifier from numeric `sensor_report_version: u32` to semantic string `schema: String` (`"sensor.report.v1"`)
 - **Finding Identity**: Replaced `Finding.id` with `(check_id, code)` tuple for category-based routing
 - **Analysis Types**: Moved envelope and findings types to dedicated `tokmd-envelope` crate
 - **Core Settings**: `tokmd-core` re-exports from `tokmd-settings` for backwards compatibility

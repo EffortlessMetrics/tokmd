@@ -1247,15 +1247,6 @@ impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
 
 impl From<GlobalArgs> for tokmd_settings::ScanOptions {
     fn from(g: GlobalArgs) -> Self {
-        Self {
-            excluded: g.excluded,
-            config: g.config,
-            hidden: g.hidden,
-            no_ignore: g.no_ignore,
-            no_ignore_parent: g.no_ignore_parent,
-            no_ignore_dot: g.no_ignore_dot,
-            no_ignore_vcs: g.no_ignore_vcs,
-            treat_doc_strings_as_comments: g.treat_doc_strings_as_comments,
-        }
+        Self::from(&g)
     }
 }

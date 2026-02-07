@@ -33,11 +33,20 @@ pub fn build_substrate(
         Some(std::path::Path::new(repo_root)),
     );
 
-    // Build the set of changed files for diff marking
-    let changed_set: std::collections::HashSet<&str> = diff_range
+    // Normalize changed_files through the same path normalization used for file rows,
+    // so both sides use identical path representation regardless of scan/git root differences.
+    let strip_prefix = std::path::Path::new(repo_root);
+    let normalized_changed: Vec<String> = diff_range
         .as_ref()
-        .map(|dr| dr.changed_files.iter().map(|s| s.as_str()).collect())
+        .map(|dr| {
+            dr.changed_files
+                .iter()
+                .map(|s| tokmd_model::normalize_path(std::path::Path::new(s), Some(strip_prefix)))
+                .collect()
+        })
         .unwrap_or_default();
+    let changed_set: std::collections::HashSet<&str> =
+        normalized_changed.iter().map(|s| s.as_str()).collect();
 
     // Convert file rows to substrate files
     let files: Vec<SubstrateFile> = file_rows
@@ -116,16 +125,19 @@ mod tests {
     #[test]
     fn build_substrate_with_diff_range() {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let scan_root = format!("{}/src", manifest_dir);
+        // After strip_prefix, file rows have paths like "lib.rs", "substrate_builder.rs".
+        // Provide changed_files relative to scan_root so normalization produces matching paths.
         let diff = DiffRange {
             base: "main".to_string(),
             head: "HEAD".to_string(),
-            changed_files: vec!["src/lib.rs".to_string()],
+            changed_files: vec![format!("{}/lib.rs", scan_root)],
             commit_count: 1,
             insertions: 5,
             deletions: 2,
         };
         let substrate = build_substrate(
-            &format!("{}/src", manifest_dir),
+            &scan_root,
             &ScanOptions::default(),
             &[],
             2,
@@ -134,19 +146,20 @@ mod tests {
         .unwrap();
 
         assert!(substrate.diff_range.is_some());
-        // With strip_prefix correctly set, files matching the diff should be marked
         let diff_files: Vec<&str> = substrate
             .files
             .iter()
             .filter(|f| f.in_diff)
             .map(|f| f.path.as_str())
             .collect();
-        // The test diff contains "src/lib.rs" but we scan {manifest}/src,
-        // so after stripping the repo root the paths become relative (e.g. "lib.rs").
-        // Regardless, verify the mechanism works without panic and with stable counts.
         assert!(
-            diff_files.len() <= substrate.files.len(),
-            "in_diff count should not exceed total files"
+            !diff_files.is_empty(),
+            "at least one file should be marked in_diff"
+        );
+        assert!(
+            diff_files.contains(&"lib.rs"),
+            "lib.rs should be marked in_diff, got: {:?}",
+            diff_files
         );
     }
 }
