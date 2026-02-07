@@ -25,8 +25,10 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
-| **v1.6.0** | 🔭 Planned  | Halstead metrics, function detail export, histogram integration. |
-| **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system, tree-sitter.  |
+| **v1.6.0** | 🔭 Planned  | Halstead metrics, maintainability index, function detail export. |
+| **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
+| **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
+| **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 
 ---
 
@@ -229,7 +231,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 **Goal**: Deeper complexity analysis and gating.
 
-### Advanced Features
+### Complexity Features
 
 | Feature                | Status      | Description                                          |
 | :--------------------- | :---------- | :--------------------------------------------------- |
@@ -237,6 +239,48 @@ This document outlines the evolution of `tokmd` and the path forward.
 | Function detail export | 📋 Planned  | `--detail-functions` flag for function-level output  |
 | Complexity histogram   | 🔧 Partial  | Types and function exist; wire into analysis pipeline |
 | Complexity gates       | ✅ Complete | Shipped in cockpit evidence gate system              |
+
+### Derived Metrics
+
+| Feature                   | Status      | Description                                               |
+| :------------------------ | :---------- | :-------------------------------------------------------- |
+| Maintainability Index     | 📋 Planned  | Composite of cyclomatic, Halstead, and LOC (SEI formula)  |
+| Technical debt ratio      | 📋 Planned  | Complexity-to-size ratio as a heuristic debt signal       |
+| Duplication density       | 📋 Planned  | Extend duplicate detection into a per-module density metric |
+| API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
+| Code age distribution     | 📋 Planned  | Extend git freshness into age buckets with trend tracking |
+
+---
+
+## Planned: v1.7.0 — UX & Output Quality
+
+**Goal**: Improve the developer experience for interactive CLI usage and output readability.
+
+### Output Improvements
+
+| Feature                   | Status      | Description                                               |
+| :------------------------ | :---------- | :-------------------------------------------------------- |
+| Colored diff output       | 📋 Planned  | Terminal colors in `tokmd diff` for additions/removals    |
+| Summary comparison tables | 📋 Planned  | Side-by-side metric comparisons in diff and cockpit       |
+| Compact table mode        | 📋 Planned  | `--compact` flag for narrow terminals (elide zero columns) |
+| Sparkline trends          | 📋 Planned  | Inline unicode sparklines for metric trends in markdown   |
+
+### Interactive Experience
+
+| Feature                   | Status      | Description                                               |
+| :------------------------ | :---------- | :-------------------------------------------------------- |
+| Progress indicators       | 📋 Planned  | Spinner/progress bar for long scans via `indicatif`       |
+| Structured error messages | 📋 Planned  | Actionable hints on common failures (missing git, bad paths) |
+| `--explain` flag          | 📋 Planned  | Human-readable explanation of any metric or finding       |
+| Tab completion for flags  | 📋 Planned  | Dynamic completions for `--preset`, `--format`, etc.      |
+
+### Scope Notes
+
+UX work is explicitly **incremental and non-breaking**:
+- No changes to JSON/JSONL receipt schemas (these are machine surfaces)
+- Terminal enhancements are opt-in and degrade gracefully on dumb terminals
+- Progress output goes to stderr, never stdout (preserving pipe-ability)
+- Color respects `NO_COLOR` / `CLICOLOR` environment conventions
 
 ---
 
@@ -272,17 +316,7 @@ _Goal: Native integration in CI pipelines and tooling ecosystems._
 - JSON-in/JSON-out FFI boundary via `run_json()`
 - Structured error types for FFI
 
-#### B. Tree-sitter Integration
-
-_Goal: Accurate parsing for precise complexity metrics._
-
-- tree-sitter integration for multi-language AST parsing
-- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
-- Accurate function boundary detection
-- Nested scope analysis for cognitive complexity
-- Call graph extraction for coupling analysis
-
-#### C. MCP Server Mode
+#### B. MCP Server Mode
 
 _Goal: Native integration with Claude and other MCP-compatible clients._
 
@@ -291,7 +325,7 @@ _Goal: Native integration with Claude and other MCP-compatible clients._
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
 - Streaming: Incremental analysis results
 
-#### D. Streaming Analysis
+#### C. Streaming Analysis
 
 _Goal: Handle massive repositories without memory pressure._
 
@@ -300,7 +334,7 @@ _Goal: Handle massive repositories without memory pressure._
 - Memory-bounded analysis limits
 - Progress reporting via stderr
 
-#### E. Plugin System
+#### D. Plugin System
 
 _Goal: Extensible enrichers without core changes._
 
@@ -310,7 +344,7 @@ _Goal: Extensible enrichers without core changes._
 
 ### v2.1 — Intelligence Features
 
-#### F. Smart Suggestions
+#### E. Smart Suggestions
 
 _Goal: Actionable recommendations, not just metrics._
 
@@ -318,7 +352,7 @@ _Goal: Actionable recommendations, not just metrics._
 - `tokmd suggest --review` — Files likely to need attention
 - `tokmd suggest --test` — Untested code paths
 
-#### G. Diff Intelligence
+#### F. Diff Intelligence
 
 _Goal: Semantic diff beyond structural changes._
 
@@ -326,7 +360,7 @@ _Goal: Semantic diff beyond structural changes._
 - Breaking change indicators
 - Migration path suggestions
 
-#### H. Watch Mode
+#### G. Watch Mode
 
 _Goal: Continuous analysis during development._
 
@@ -336,7 +370,7 @@ _Goal: Continuous analysis during development._
 
 ### v2.2 — Ecosystem Integration
 
-#### I. CI/CD Native
+#### H. CI/CD Native
 
 _Goal: First-class CI pipeline support._
 
@@ -345,7 +379,7 @@ _Goal: First-class CI pipeline support._
 - Trend tracking across commits
 - Threshold-based failures (e.g., fail if complexity increases)
 
-#### J. Editor Extensions
+#### I. Editor Extensions
 
 _Goal: Analysis at your fingertips._
 
@@ -353,7 +387,7 @@ _Goal: Analysis at your fingertips._
 - Neovim plugin for buffer analysis
 - JetBrains plugin
 
-#### K. Cloud Dashboard
+#### J. Cloud Dashboard
 
 _Goal: Historical tracking and team insights._
 
@@ -361,6 +395,18 @@ _Goal: Historical tracking and team insights._
 - Trend visualization
 - Team comparison views
 - Alert on anomalies
+
+### v3.0 — Tree-sitter Integration (Long-term)
+
+_Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap._
+
+#### K. Tree-sitter AST Parsing
+
+- `tokmd-treesitter` crate with multi-language AST parsing
+- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
+- Accurate function boundary detection
+- Nested scope analysis for cognitive complexity
+- Call graph extraction for coupling analysis
 
 ---
 
@@ -372,7 +418,7 @@ These are explicitly out of scope for tokmd:
 - **Dependency vulnerability scanning** — tokmd delegates to external tools (cargo-audit, npm audit) when available; it does not maintain its own advisory database
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
-- **Full AST analysis** — tokmd uses heuristics, not parsers (until v2.0 tree-sitter integration)
+- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.0 aspiration)
 
 ---
 

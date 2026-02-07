@@ -27,10 +27,14 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 |------|-------|---------|
 | 0 | `tokmd-types` | Core data structures, no dependencies |
 | 0 | `tokmd-analysis-types` | Analysis receipt types |
+| 0 | `tokmd-settings` | Clap-free settings types (`ScanOptions`, etc.) |
+| 0 | `tokmd-envelope` | Cross-fleet `SensorReport` contract |
+| 0 | `tokmd-substrate` | Shared repo context (`RepoSubstrate`) |
 | 1 | `tokmd-scan` | tokei wrapper for code scanning |
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
 | 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
 | 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
+| 1 | `tokmd-sensor` | `EffortlessSensor` trait + substrate builder |
 | 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
 | 2 | `tokmd-walk` | File system traversal for assets |
 | 2 | `tokmd-content` | File content scanning (entropy, imports) |

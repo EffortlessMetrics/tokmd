@@ -16,9 +16,11 @@ See also: [tokmd responsibilities](../tokmd-role.md) - tokmd's position in the s
 tokmd follows a tiered microcrate architecture with strict dependency rules.
 
 ```
-Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types
+Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
+                       tokmd-envelope, tokmd-substrate
          ↓
-Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore
+Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore,
+                       tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
@@ -35,6 +37,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 |-------|---------|--------------|
 | `tokmd-types` | Core receipt DTOs (`LangRow`, `ModuleRow`, `FileRow`, `Totals`) | `serde` only |
 | `tokmd-analysis-types` | Analysis receipt DTOs | `serde`, `tokmd-types` |
+| `tokmd-settings` | Clap-free settings types (`ScanOptions`, `LangSettings`, etc.) | `serde`, `tokmd-types` |
+| `tokmd-envelope` | Cross-fleet `SensorReport` contract (`Verdict`, `Finding`, `GateResults`) | `serde`, `serde_json` |
+| `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
 
 **Schema Versions** (separate per family):
 - Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, context, run)
@@ -49,6 +54,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-model` | Aggregation logic: tokei results → tokmd receipts |
 | `tokmd-redact` | BLAKE3-based path hashing and redaction |
 | `tokmd-tokeignore` | `.tokeignore` template generation |
+| `tokmd-sensor` | `EffortlessSensor` trait + `build_substrate()` builder |
 
 ### Tier 2: Adapters
 
@@ -115,7 +121,26 @@ Optional:           Core:
 - tokmd-walk        - topics
 ```
 
-### Flow C: Library API (tokmd-core)
+### Flow C: Sensor Integration (tokmd-sensor)
+
+```
+ScanOptions → build_substrate() → RepoSubstrate (shared context)
+                                       ↓
+                            ┌──────────┴──────────┐
+                            ↓                     ↓
+                     Sensor A.run()         Sensor B.run()
+                            ↓                     ↓
+                      SensorReport          SensorReport
+                            ↓                     ↓
+                            └──────────┬──────────┘
+                                       ↓
+                              Director aggregates
+```
+
+"Substrate once, sensors many" — the scan runs once, then each `EffortlessSensor`
+receives the same `RepoSubstrate` and produces a standardized `SensorReport` envelope.
+
+### Flow D: Library API (tokmd-core)
 
 ```
 Settings → Workflow Functions → Receipt → JSON
@@ -167,19 +192,23 @@ ui = ["dialoguer", "indicatif"]  # Interactive CLI
 - Clap-facing argument models
 - UI affordances
 
-## Future Architecture (Planned)
+## Sensor Integration Architecture
 
-### tokmd-settings Split (v1.5+)
+The sensor subsystem enables multi-sensor pipelines where tokmd acts as one sensor
+among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 
-Decouple configuration from CLI parsing:
+### Key Crates
 
-```
-Current:  tokmd-config (clap + config + settings)
-Future:   tokmd-settings (pure config types)
-          tokmd-cli (clap parsing, workspace-only)
-```
+| Crate | Role |
+|-------|------|
+| `tokmd-substrate` | Shared scan context (files, languages, diff range) — built once |
+| `tokmd-envelope` | Standardized report contract (`sensor.report.v1`) |
+| `tokmd-settings` | Clap-free settings for library/FFI consumers |
+| `tokmd-sensor` | `EffortlessSensor` trait + substrate builder |
 
-This enables:
-- `tokmd-core` depends on `tokmd-settings` (no clap)
-- Cleaner library API for embedders
-- Smaller dependency tree for bindings
+### Design Principles
+
+1. **Substrate once, sensors many**: A single I/O pass builds `RepoSubstrate`, eliminating redundant scans
+2. **Standardized envelope**: All sensors emit `SensorReport` with findings, verdicts, and gates
+3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
+4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation

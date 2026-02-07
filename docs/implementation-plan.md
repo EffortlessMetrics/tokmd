@@ -39,45 +39,33 @@ This document outlines planned improvements aligned with the roadmap.
 
 ---
 
-## Phase 2: Configuration Decoupling
+## Phase 2: Configuration Decoupling ✅ Complete
 
 **Goal**: Clean separation of clap from library API.
 
-### tokmd-settings Crate
+### tokmd-settings Crate ✅
 
-1. **Create** `tokmd-settings` crate:
-   - Pure configuration types (no clap)
-   - TOML parsing
-   - Defaults and profile application
+1. **Created** `tokmd-settings` crate with pure configuration types (no clap)
+2. **Settings types**: `ScanOptions`, `ScanSettings`, `LangSettings`, `ModuleSettings`, `ExportSettings`, `AnalyzeSettings`, `DiffSettings`
+3. **Dependency chain**: `tokmd-core` depends on `tokmd-settings` (not `tokmd-config`); `tokmd-scan` accepts `&ScanOptions`
 
-2. **Migrate** configuration types from `tokmd-config`:
-   - Move structs to `tokmd-settings`
-   - Keep clap args in `tokmd-config`
+### Sensor Integration Crates ✅
 
-3. **Update** dependencies:
-   - `tokmd-core` depends on `tokmd-settings` (not `tokmd-config`)
-   - `tokmd` binary uses both
+As part of this phase, three additional Tier 0 crates were created:
 
-### Benefits
-
-- Cleaner library API for embedders
-- Smaller dependency tree for bindings
-- Better separation of concerns
+- **`tokmd-envelope`**: Cross-fleet `SensorReport` contract (`sensor.report.v1` schema)
+- **`tokmd-substrate`**: Shared `RepoSubstrate` context for multi-sensor pipelines
+- **`tokmd-sensor`** (Tier 1): `EffortlessSensor` trait + `build_substrate()` builder
 
 ### Work Items
 
-- [ ] Create tokmd-settings crate
-- [ ] Define pure Settings types (no clap derive)
-- [ ] Implement TOML parsing in tokmd-settings
-- [ ] Update tokmd-core to use tokmd-settings
-- [ ] Update tokmd-config to re-export or wrap
-- [ ] Update bindings to use new settings
-
-### Tests
-
-- Unit tests: Config parsing + defaults
-- Property tests: Profile mapping invariants
-- Doc tests: Configuration examples parse correctly
+- [x] Create tokmd-settings crate
+- [x] Define pure Settings types (no clap derive)
+- [x] Update tokmd-scan to accept `&ScanOptions`
+- [x] Update tokmd-core to use tokmd-settings
+- [x] Update tokmd-config to re-export or wrap
+- [ ] Implement TOML parsing in tokmd-settings (currently handled by tokmd-config)
+- [ ] Update bindings to use new settings directly
 
 ---
 
@@ -146,56 +134,77 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 2. **Visualization**: ASCII histogram in markdown
 3. **Trend**: Compare histograms across baselines
 
+### Derived Metrics
+
+1. **Maintainability Index**: Composite of cyclomatic, Halstead, and LOC (SEI formula)
+2. **Technical debt ratio**: Complexity-to-size ratio as a heuristic debt signal
+3. **Duplication density**: Per-module metric extending duplicate detection
+4. **API surface area**: Public export ratio (language-specific heuristics)
+5. **Code age distribution**: Age buckets extending git freshness
+
 ### Work Items
 
 - [ ] Implement Halstead metrics calculation
 - [ ] Add function detail export format
 - [ ] Generate complexity histogram
-- [ ] Add complexity gates to tokmd gate
+- [ ] Implement Maintainability Index (MI) as composite enricher
+- [ ] Add technical debt ratio enricher
+- [ ] Extend duplicate detection into duplication density metric
+- [ ] Add code age distribution to git enrichers
 - [ ] Documentation and examples
 
 ### Tests
 
 - Property tests: Halstead calculation invariants
+- Property tests: MI monotonicity (worse inputs → worse score)
 - Golden tests: Function detail output format
 - Integration tests: Complexity gate evaluation
 
 ---
 
-## Phase 5: Tree-sitter Integration (v2.0)
+## Phase 4b: UX & Output Quality (v1.7.0)
 
-**Goal**: Accurate parsing for precise metrics.
+**Goal**: Improve developer experience for interactive CLI usage.
 
-### Language Support
+### Output Improvements
 
-1. **Parser crate**: `tokmd-treesitter` (new)
-2. **Languages**: Rust, TypeScript, Python, Go, Java
-3. **Feature-gated**: Optional dependency
+1. **Colored diff**: Terminal colors for additions/removals in `tokmd diff`
+2. **Summary comparison tables**: Side-by-side metric comparisons
+3. **Compact table mode**: `--compact` flag for narrow terminals
+4. **Sparkline trends**: Unicode sparklines for metric trends
 
-### Capabilities
+### Interactive Experience
 
-- Accurate function boundary detection
-- Nested scope analysis for cognitive complexity
-- Call graph extraction for coupling analysis
+1. **Progress indicators**: Spinner/progress bar for long scans via `indicatif`
+2. **Structured errors**: Actionable hints on common failures
+3. **`--explain` flag**: Human-readable explanation of any metric or finding
+4. **Dynamic completions**: Tab completion for preset/format values
+
+### Scope Constraints
+
+- No changes to JSON/JSONL receipt schemas (machine surfaces are stable)
+- Terminal enhancements degrade gracefully on dumb terminals
+- Progress output goes to stderr only (preserving pipe-ability)
+- Color respects `NO_COLOR` / `CLICOLOR` conventions
 
 ### Work Items
 
-- [ ] Create tokmd-treesitter crate
-- [ ] Implement language-specific parsers
-- [ ] Integrate with tokmd-content
-- [ ] Update complexity calculation
-- [ ] Performance benchmarks
+- [ ] Add `indicatif` progress bars for scan and analysis phases
+- [ ] Implement colored diff output with `NO_COLOR` support
+- [ ] Add `--compact` mode for narrow terminal tables
+- [ ] Implement `--explain` flag for metric definitions
+- [ ] Improve error messages with actionable hints
+- [ ] Add sparkline unicode rendering for trend data
 
 ### Tests
 
-- Unit tests: Parser correctness per language
-- Golden tests: Parse tree snapshots
-- Fuzz tests: Parser robustness
-- Benchmarks: Performance regression detection
+- Integration tests: Output modes (color, compact, explain)
+- Golden tests: Compact table format snapshots
+- Unit tests: Sparkline rendering edge cases
 
 ---
 
-## Phase 6: MCP Server Mode (v2.0)
+## Phase 5: MCP Server Mode (v2.0)
 
 **Goal**: Native integration with Claude and MCP clients.
 
@@ -229,6 +238,46 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 - Integration tests: MCP protocol compliance
 - E2E tests: Claude integration scenarios
+
+---
+
+## Phase 6: Tree-sitter Integration (v3.0 — Long-term)
+
+**Goal**: Accurate parsing for precise metrics. This is a significant R&D effort requiring multi-language grammar integration, cross-platform build toolchains, and extensive correctness validation. Intentionally deferred well beyond v2.x.
+
+### Language Support
+
+1. **Parser crate**: `tokmd-treesitter` (new)
+2. **Languages**: Rust, TypeScript, Python, Go, Java
+3. **Feature-gated**: Optional dependency
+
+### Capabilities
+
+- Accurate function boundary detection
+- Nested scope analysis for cognitive complexity
+- Call graph extraction for coupling analysis
+
+### Prerequisites
+
+- Stable tokmd-core API (Phase 3)
+- Halstead and function-level metrics (Phase 4) as integration surface
+- MCP server mode (Phase 5) to validate use cases that require AST precision
+
+### Work Items
+
+- [ ] Evaluate tree-sitter grammar availability and build complexity per language
+- [ ] Create tokmd-treesitter crate with feature-gated dependency
+- [ ] Implement language-specific parsers
+- [ ] Integrate with tokmd-content for precise boundary detection
+- [ ] Update complexity calculation to use AST when available
+- [ ] Performance benchmarks (must not regress heuristic-based path)
+
+### Tests
+
+- Unit tests: Parser correctness per language
+- Golden tests: Parse tree snapshots
+- Fuzz tests: Parser robustness
+- Benchmarks: Performance regression detection
 
 ---
 
