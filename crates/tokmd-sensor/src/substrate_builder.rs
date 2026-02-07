@@ -125,25 +125,18 @@ mod tests {
     #[test]
     fn build_substrate_with_diff_range() {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let scan_root = format!("{}/src", manifest_dir);
-        // After strip_prefix, file rows have paths like "lib.rs", "substrate_builder.rs".
-        // Provide changed_files relative to scan_root so normalization produces matching paths.
+        // Use crate root as repo_root (not src/), so file rows have paths like "src/lib.rs".
+        // Provide changed_files as repo-relative paths, matching git diff --numstat output.
         let diff = DiffRange {
             base: "main".to_string(),
             head: "HEAD".to_string(),
-            changed_files: vec![format!("{}/lib.rs", scan_root)],
+            changed_files: vec!["src/lib.rs".to_string()],
             commit_count: 1,
             insertions: 5,
             deletions: 2,
         };
-        let substrate = build_substrate(
-            &scan_root,
-            &ScanOptions::default(),
-            &[],
-            2,
-            Some(diff),
-        )
-        .unwrap();
+        let substrate =
+            build_substrate(manifest_dir, &ScanOptions::default(), &[], 2, Some(diff)).unwrap();
 
         assert!(substrate.diff_range.is_some());
         let diff_files: Vec<&str> = substrate
@@ -157,9 +150,20 @@ mod tests {
             "at least one file should be marked in_diff"
         );
         assert!(
-            diff_files.contains(&"lib.rs"),
-            "lib.rs should be marked in_diff, got: {:?}",
+            diff_files.contains(&"src/lib.rs"),
+            "src/lib.rs should be marked in_diff, got: {:?}",
             diff_files
+        );
+        // Selectivity: files not in changed_files should NOT be marked
+        let non_diff: Vec<&str> = substrate
+            .files
+            .iter()
+            .filter(|f| !f.in_diff && f.path.contains("substrate_builder"))
+            .map(|f| f.path.as_str())
+            .collect();
+        assert!(
+            !non_diff.is_empty(),
+            "substrate_builder.rs should exist but not be in_diff"
         );
     }
 }
