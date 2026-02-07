@@ -315,6 +315,28 @@ impl FindingLocation {
     }
 }
 
+impl std::fmt::Display for Verdict {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Verdict::Pass => write!(f, "pass"),
+            Verdict::Fail => write!(f, "fail"),
+            Verdict::Warn => write!(f, "warn"),
+            Verdict::Skip => write!(f, "skip"),
+            Verdict::Pending => write!(f, "pending"),
+        }
+    }
+}
+
+impl std::fmt::Display for FindingSeverity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FindingSeverity::Error => write!(f, "error"),
+            FindingSeverity::Warn => write!(f, "warn"),
+            FindingSeverity::Info => write!(f, "info"),
+        }
+    }
+}
+
 impl GateResults {
     /// Create a new gate results section.
     pub fn new(status: Verdict, items: Vec<GateItem>) -> Self {
@@ -469,5 +491,33 @@ mod tests {
         let json = serde_json::to_string(&report).unwrap();
         assert!(json.contains("\"schema\""));
         assert!(json.contains("sensor.report.v1"));
+    }
+
+    #[test]
+    fn verdict_display_matches_serde() {
+        for (variant, expected) in [
+            (Verdict::Pass, "pass"),
+            (Verdict::Fail, "fail"),
+            (Verdict::Warn, "warn"),
+            (Verdict::Skip, "skip"),
+            (Verdict::Pending, "pending"),
+        ] {
+            assert_eq!(variant.to_string(), expected);
+            let json = serde_json::to_value(variant).unwrap();
+            assert_eq!(json.as_str().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn finding_severity_display_matches_serde() {
+        for (variant, expected) in [
+            (FindingSeverity::Error, "error"),
+            (FindingSeverity::Warn, "warn"),
+            (FindingSeverity::Info, "info"),
+        ] {
+            assert_eq!(variant.to_string(), expected);
+            let json = serde_json::to_value(variant).unwrap();
+            assert_eq!(json.as_str().unwrap(), expected);
+        }
     }
 }

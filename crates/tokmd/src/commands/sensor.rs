@@ -99,7 +99,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 #[cfg(feature = "git")]
 fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
     format!(
-        "{} files changed, +{}/-{}, health {}/100, risk {:?} in {}..{}",
+        "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
         receipt.change_surface.files_changed,
         receipt.change_surface.insertions,
         receipt.change_surface.deletions,
@@ -235,7 +235,7 @@ fn render_sensor_md(report: &SensorReport) -> String {
     let mut s = String::new();
     let _ = writeln!(s, "## Sensor Report: {}", report.tool.name);
     let _ = writeln!(s);
-    let _ = writeln!(s, "**Verdict**: {:?}", report.verdict);
+    let _ = writeln!(s, "**Verdict**: {}", report.verdict);
     let _ = writeln!(s, "**Summary**: {}", report.summary);
     let _ = writeln!(s);
 
@@ -245,7 +245,7 @@ fn render_sensor_md(report: &SensorReport) -> String {
         for f in &report.findings {
             let _ = writeln!(
                 s,
-                "- **[{:?}]** {}.{}: {} — {}",
+                "- **[{}]** {}.{}: {} — {}",
                 f.severity, f.check_id, f.code, f.title, f.message
             );
         }
@@ -253,10 +253,10 @@ fn render_sensor_md(report: &SensorReport) -> String {
     }
 
     if let Some(ref gates) = report.gates {
-        let _ = writeln!(s, "### Gates ({:?})", gates.status);
+        let _ = writeln!(s, "### Gates ({})", gates.status);
         let _ = writeln!(s);
         for g in &gates.items {
-            let _ = writeln!(s, "- **{}**: {:?}", g.id, g.status);
+            let _ = writeln!(s, "- **{}**: {}", g.id, g.status);
         }
     }
 
@@ -264,31 +264,7 @@ fn render_sensor_md(report: &SensorReport) -> String {
 }
 
 fn now_iso8601() -> String {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = now.as_secs();
-    // Simple UTC format - good enough for sensor reports
-    let days = secs / 86400;
-    let day_secs = secs % 86400;
-    let hour = day_secs / 3600;
-    let min = (day_secs % 3600) / 60;
-    let sec = day_secs % 60;
-
-    // Simple epoch day → date conversion (Hinnant algorithm)
-    let z = days as i64 + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = (z - era * 146097) as u32;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe as i64 + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let y = if m <= 2 { y + 1 } else { y };
-
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-        y, m, d, hour, min, sec
-    )
+    time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
 }
