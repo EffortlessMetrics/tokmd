@@ -154,6 +154,7 @@ fn run(py: Python<'_>, mode: &str, args: &Bound<'_, PyDict>) -> PyResult<PyObjec
 ///     ...     print(f"{row['lang']}: {row['code']} lines")
 #[pyfunction]
 #[pyo3(signature = (paths=None, top=0, files=false, children=None, redact=None, excluded=None, hidden=false))]
+#[allow(clippy::too_many_arguments)]
 fn lang(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -197,6 +198,7 @@ fn lang(
 ///     ...     print(f"{row['module']}: {row['code']} lines")
 #[pyfunction]
 #[pyo3(signature = (paths=None, top=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))]
+#[allow(clippy::too_many_arguments)]
 fn module(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -245,6 +247,7 @@ fn module(
 ///     >>> print(f"Found {len(result['rows'])} files")
 #[pyfunction]
 #[pyo3(signature = (paths=None, format=None, min_code=0, max_rows=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))]
+#[allow(clippy::too_many_arguments)]
 fn export(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -301,6 +304,7 @@ fn export(
 ///     ...     print(f"Doc density: {result['derived']['doc_density']['total']['ratio']:.1%}")
 #[pyfunction]
 #[pyo3(signature = (paths=None, preset=None, window=None, git=None, max_files=None, max_bytes=None, max_commits=None, excluded=None, hidden=false))]
+#[allow(clippy::too_many_arguments)]
 fn analyze(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -376,10 +380,8 @@ fn build_args<'py>(
         args.set_item("top", top)?;
     }
 
-    if let Some(ex) = excluded {
-        if !ex.is_empty() {
-            args.set_item("excluded", ex)?;
-        }
+    if let Some(ex) = excluded.filter(|e| !e.is_empty()) {
+        args.set_item("excluded", ex)?;
     }
 
     if hidden {

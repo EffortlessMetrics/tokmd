@@ -1,0 +1,19 @@
+{
+  "run_id": "2025-02-20-gatekeeper-scout",
+  "status": "complete",
+  "lane": "B",
+  "target": "Integrate tokmd-python into CI and fix lints",
+  "gates": ["build", "clippy"],
+  "receipts": [
+    {
+      "command": "cargo clippy --workspace --all-features -- -D warnings",
+      "result": "success",
+      "timestamp": "2025-02-20T12:00:00Z"
+    },
+    {
+      "command": "cargo build",
+      "result": "success",
+      "timestamp": "2025-02-20T12:05:00Z"
+    }
+  ]
+}
