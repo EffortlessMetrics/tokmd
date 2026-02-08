@@ -1,0 +1,21 @@
+{
+  "run_id": "20260206-1333-10284",
+  "timestamp_utc": "2026-02-06T13:33:00Z",
+  "lane": "scout",
+  "target": "Deterministic TomlConfig",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd-config --test determinism",
+      "exit_code": 101,
+      "result": "FAIL (expected)",
+      "details": "test_toml_config_determinism failed as expected due to non-deterministic HashMap"
+    },
+    {
+      "cmd": "cargo test -p tokmd-config --test determinism",
+      "exit_code": 0,
+      "result": "PASS",
+      "details": "test_toml_config_determinism passed after switching to BTreeMap"
+    }
+  ],
+  "results_summary": "Confirmed non-determinism in TomlConfig serialization and fixed it by using BTreeMap."
+}
