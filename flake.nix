@@ -54,7 +54,9 @@
           # Keep proptest regression files
           || (pkgs.lib.hasSuffix ".proptest-regressions" baseName)
           # Keep gitignore files (used by tests)
-          || (baseName == ".gitignore");
+          || (baseName == ".gitignore")
+          # Keep docs (schema.json used by tests)
+          || (pkgs.lib.hasInfix "/docs/" p);
       };
     in
     {
@@ -109,6 +111,7 @@
           commonArgs = {
             inherit src;
             strictDeps = true;
+            nativeBuildInputs = [ pkgs.git ];
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
