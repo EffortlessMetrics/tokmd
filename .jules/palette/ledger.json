@@ -11,5 +11,16 @@
       "clippy": "PASS"
     },
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-06T00:00:00Z",
+    "lane": "scout",
+    "target": "Enable json-pretty output format",
+    "pr_link": "TBD",
+    "gates": {
+      "build": "PASS",
+      "test": "PASS"
+    },
+    "friction_ids": []
   }
 ]
