@@ -84,6 +84,7 @@ fn test_derive_report_determinism() {
         window_tokens: None,
         git: Some(false),
         import_granularity: ImportGranularity::Module,
+        detail_functions: false,
     };
 
     let base_export = ExportData {

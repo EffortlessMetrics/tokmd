@@ -100,6 +100,7 @@ fn derived_metrics_basic() {
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
+        detail_functions: false,
     };
 
     let receipt = analyze(ctx, request).expect("analysis");

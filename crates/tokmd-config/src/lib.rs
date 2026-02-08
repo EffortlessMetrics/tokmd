@@ -406,6 +406,10 @@ pub struct CliAnalyzeArgs {
     /// Import graph granularity [default: module].
     #[arg(long, value_enum)]
     pub granularity: Option<ImportGranularity>,
+
+    /// Include function-level complexity details in output.
+    #[arg(long)]
+    pub detail_functions: bool,
 }
 
 #[derive(Args, Debug, Clone)]

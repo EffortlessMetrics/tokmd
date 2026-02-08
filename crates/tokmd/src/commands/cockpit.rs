@@ -748,7 +748,7 @@ fn compute_evidence(
 ) -> Result<Evidence> {
     let mutation = compute_mutation_gate(repo_root, base, head, changed_files, range_mode)?;
     let diff_coverage = compute_diff_coverage_gate(repo_root)?;
-    let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
+    let contracts = compute_contract_gate(repo_root, base, head, changed_files, contracts_info)?;
     let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
     let determinism = compute_determinism_gate(repo_root)?;
     let complexity = compute_complexity_gate(repo_root, changed_files)?;
@@ -819,18 +819,163 @@ fn compute_overall_status(
 }
 
 /// Compute diff coverage gate.
-/// Looks for coverage.json or lcov.info artifact.
+/// Looks for coverage artifacts (lcov.info, coverage.json, cobertura.xml) and parses them.
 #[cfg(feature = "git")]
-fn compute_diff_coverage_gate(_repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
-    // TODO: Look for coverage artifacts and parse them
-    // For now, return None (gate not configured)
-    Ok(None)
+fn compute_diff_coverage_gate(repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
+    // Search for coverage artifacts in common locations
+    let search_paths = [
+        "coverage/lcov.info",
+        "target/coverage/lcov.info",
+        "lcov.info",
+        "coverage/cobertura.xml",
+        "target/coverage/cobertura.xml",
+        "cobertura.xml",
+        "coverage/coverage.json",
+        "target/coverage/coverage.json",
+        "coverage.json",
+    ];
+
+    let mut lcov_path: Option<PathBuf> = None;
+    for candidate in &search_paths {
+        let path = repo_root.join(candidate);
+        if path.exists() {
+            lcov_path = Some(path);
+            break;
+        }
+    }
+
+    let lcov_path = match lcov_path {
+        Some(p) => p,
+        None => return Ok(None), // No coverage artifact found
+    };
+
+    // Only parse lcov.info format for now (most common in Rust via cargo-llvm-cov)
+    let path_str = lcov_path.to_string_lossy();
+    if !path_str.ends_with("lcov.info") {
+        // We found a coverage file but can't parse non-lcov yet
+        return Ok(None);
+    }
+
+    let content = match std::fs::read_to_string(&lcov_path) {
+        Ok(c) => c,
+        Err(_) => return Ok(None),
+    };
+
+    // Parse lcov format: collect DA:line,count entries per source file
+    let mut total_lines_added: usize = 0;
+    let mut total_lines_covered: usize = 0;
+    let mut uncovered_hunks: Vec<UncoveredHunk> = Vec::new();
+    let mut current_file = String::new();
+    let mut file_uncovered: Vec<usize> = Vec::new();
+
+    for line in content.lines() {
+        if let Some(sf) = line.strip_prefix("SF:") {
+            // Flush previous file's uncovered hunks
+            flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+            current_file = sf.to_string();
+            file_uncovered.clear();
+        } else if let Some(da) = line.strip_prefix("DA:") {
+            // DA:line_number,execution_count
+            let parts: Vec<&str> = da.splitn(2, ',').collect();
+            if parts.len() == 2 {
+                if let (Ok(line_no), Ok(count)) = (
+                    parts[0].parse::<usize>(),
+                    parts[1].parse::<usize>(),
+                ) {
+                    total_lines_added += 1;
+                    if count > 0 {
+                        total_lines_covered += 1;
+                    } else {
+                        file_uncovered.push(line_no);
+                    }
+                }
+            }
+        } else if line == "end_of_record" {
+            flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+            current_file.clear();
+            file_uncovered.clear();
+        }
+    }
+    // Flush last file
+    flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+
+    if total_lines_added == 0 {
+        return Ok(None);
+    }
+
+    let coverage_pct = round_pct(total_lines_covered as f64 / total_lines_added as f64 * 100.0);
+    let status = if coverage_pct >= 80.0 {
+        GateStatus::Pass
+    } else if coverage_pct >= 50.0 {
+        GateStatus::Pending // Warn-level
+    } else {
+        GateStatus::Fail
+    };
+
+    // Limit uncovered hunks to avoid huge output
+    uncovered_hunks.truncate(20);
+
+    Ok(Some(DiffCoverageGate {
+        meta: GateMeta {
+            status,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: Vec::new(),
+                tested: Vec::new(),
+                ratio: coverage_pct / 100.0,
+                lines_relevant: Some(total_lines_added),
+                lines_tested: Some(total_lines_covered),
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        lines_added: total_lines_added,
+        lines_covered: total_lines_covered,
+        coverage_pct,
+        uncovered_hunks,
+    }))
+}
+
+/// Flush consecutive uncovered lines into hunk ranges.
+fn flush_uncovered_hunks(
+    file: &str,
+    uncovered: &[usize],
+    hunks: &mut Vec<UncoveredHunk>,
+) {
+    if uncovered.is_empty() || file.is_empty() {
+        return;
+    }
+    let mut sorted = uncovered.to_vec();
+    sorted.sort_unstable();
+    let mut start = sorted[0];
+    let mut end = sorted[0];
+    for &line in &sorted[1..] {
+        if line == end + 1 {
+            end = line;
+        } else {
+            hunks.push(UncoveredHunk {
+                file: file.to_string(),
+                start_line: start,
+                end_line: end,
+            });
+            start = line;
+            end = line;
+        }
+    }
+    hunks.push(UncoveredHunk {
+        file: file.to_string(),
+        start_line: start,
+        end_line: end,
+    });
 }
 
 /// Compute contract diff gate (semver, CLI, schema).
 #[cfg(feature = "git")]
 fn compute_contract_gate(
-    _repo_root: &Path,
+    repo_root: &Path,
+    base: &str,
+    head: &str,
     changed_files: &[String],
     contracts_info: &Contracts,
 ) -> Result<Option<ContractDiffGate>> {
@@ -847,12 +992,7 @@ fn compute_contract_gate(
 
     // Check for semver changes (API files)
     if contracts_info.api_changed {
-        // TODO: Run cargo-semver-checks if available
-        // For now, mark as pending
-        semver = Some(SemverSubGate {
-            status: GateStatus::Pending,
-            breaking_changes: Vec::new(),
-        });
+        semver = Some(run_semver_check(repo_root));
     }
 
     // Check for CLI changes
@@ -904,11 +1044,7 @@ fn compute_contract_gate(
 
     // Check for schema changes
     if contracts_info.schema_changed {
-        // TODO: Diff schema.json
-        schema = Some(SchemaSubGate {
-            status: GateStatus::Pending,
-            diff_summary: None,
-        });
+        schema = Some(run_schema_diff(repo_root, base, head));
     }
 
     // Count failures from sub-gates
@@ -982,6 +1118,179 @@ fn compute_contract_gate(
         schema,
         failures,
     }))
+}
+
+/// Run cargo-semver-checks if available.
+/// Returns a SemverSubGate with the result.
+fn run_semver_check(repo_root: &Path) -> SemverSubGate {
+    // Check if cargo-semver-checks is available
+    let available = Command::new("cargo")
+        .args(["semver-checks", "--version"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+
+    if !available {
+        return SemverSubGate {
+            status: GateStatus::Pending,
+            breaking_changes: Vec::new(),
+        };
+    }
+
+    // Run cargo semver-checks
+    let output = match Command::new("cargo")
+        .args(["semver-checks", "check-release"])
+        .current_dir(repo_root)
+        .output()
+    {
+        Ok(o) => o,
+        Err(_) => {
+            return SemverSubGate {
+                status: GateStatus::Pending,
+                breaking_changes: Vec::new(),
+            };
+        }
+    };
+
+    if output.status.success() {
+        // Exit 0 = no breaking changes
+        return SemverSubGate {
+            status: GateStatus::Pass,
+            breaking_changes: Vec::new(),
+        };
+    }
+
+    // Non-zero exit = breaking changes found
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let combined = format!("{}{}", stdout, stderr);
+
+    // Parse breaking changes from output lines
+    // cargo-semver-checks output format: "--- failure[kind]: message ---" or similar
+    let mut breaking_changes: Vec<BreakingChange> = Vec::new();
+    for line in combined.lines() {
+        let trimmed = line.trim();
+        if trimmed.contains("BREAKING") || trimmed.starts_with("---") {
+            breaking_changes.push(BreakingChange {
+                kind: "semver".to_string(),
+                path: String::new(),
+                message: trimmed.to_string(),
+            });
+        }
+    }
+
+    // If we couldn't parse specific changes but the tool failed, add a generic entry
+    if breaking_changes.is_empty() {
+        breaking_changes.push(BreakingChange {
+            kind: "semver".to_string(),
+            path: String::new(),
+            message: "cargo-semver-checks reported breaking changes".to_string(),
+        });
+    }
+
+    // Limit output
+    breaking_changes.truncate(20);
+
+    SemverSubGate {
+        status: GateStatus::Fail,
+        breaking_changes,
+    }
+}
+
+/// Run git diff on docs/schema.json to detect schema changes.
+/// Returns a SchemaSubGate with the result.
+fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
+    // Use two-dot syntax for comparing refs directly (per project convention)
+    let range = format!("{}..{}", base, head);
+    let output = match Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["diff", &range, "--", "docs/schema.json"])
+        .output()
+    {
+        Ok(o) => o,
+        Err(_) => {
+            return SchemaSubGate {
+                status: GateStatus::Pending,
+                diff_summary: None,
+            };
+        }
+    };
+
+    if !output.status.success() {
+        return SchemaSubGate {
+            status: GateStatus::Pending,
+            diff_summary: None,
+        };
+    }
+
+    let diff = String::from_utf8_lossy(&output.stdout);
+    if diff.trim().is_empty() {
+        // No diff means schema.json didn't change between these refs
+        return SchemaSubGate {
+            status: GateStatus::Pass,
+            diff_summary: None,
+        };
+    }
+
+    // Analyze the diff for breaking vs additive changes
+    let mut additions = 0usize;
+    let mut removals = 0usize;
+    let mut has_type_change = false;
+
+    for line in diff.lines() {
+        if line.starts_with('+') && !line.starts_with("+++") {
+            additions += 1;
+        } else if line.starts_with('-') && !line.starts_with("---") {
+            removals += 1;
+            // Check for type changes (field type modifications)
+            let trimmed = line.trim_start_matches('-').trim();
+            if trimmed.contains("\"type\"") {
+                has_type_change = true;
+            }
+        }
+    }
+
+    let (status, summary) = if removals == 0 {
+        // Only additions = safe additive change
+        (
+            GateStatus::Pass,
+            Some(format!(
+                "schema.json: {} line{} added (additive only)",
+                additions,
+                if additions == 1 { "" } else { "s" }
+            )),
+        )
+    } else if has_type_change || removals > additions {
+        // Type changes or net removals = likely breaking
+        (
+            GateStatus::Fail,
+            Some(format!(
+                "schema.json: {} addition{}, {} removal{} (potential breaking change)",
+                additions,
+                if additions == 1 { "" } else { "s" },
+                removals,
+                if removals == 1 { "" } else { "s" }
+            )),
+        )
+    } else {
+        // Removals but mostly additions = warn
+        (
+            GateStatus::Pass,
+            Some(format!(
+                "schema.json: {} addition{}, {} removal{}",
+                additions,
+                if additions == 1 { "" } else { "s" },
+                removals,
+                if removals == 1 { "" } else { "s" }
+            )),
+        )
+    };
+
+    SchemaSubGate {
+        status,
+        diff_summary: summary,
+    }
 }
 
 /// Compute supply chain gate.

@@ -25,7 +25,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
-| **v1.6.0** | 🔭 Planned  | Halstead metrics, maintainability index, function detail export. |
+| **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, function detail export. |
 | **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
@@ -227,7 +227,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Planned: v1.6.0 — Advanced Complexity Features
+## Completed: v1.6.0 — Advanced Complexity Features
 
 **Goal**: Deeper complexity analysis and gating.
 
@@ -235,20 +235,30 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 | Feature                | Status      | Description                                          |
 | :--------------------- | :---------- | :--------------------------------------------------- |
-| Halstead metrics       | 📋 Planned  | Optional, feature-gated Halstead complexity metrics  |
-| Function detail export | 📋 Planned  | `--detail-functions` flag for function-level output  |
-| Complexity histogram   | 🔧 Partial  | Types and function exist; wire into analysis pipeline |
+| Halstead metrics       | ✅ Complete | Feature-gated (`halstead`) Halstead software science metrics |
+| Function detail export | ✅ Complete | `--detail-functions` flag for function-level output  |
+| Complexity histogram   | ✅ Complete | Wired into analysis pipeline from pre-existing implementation |
 | Complexity gates       | ✅ Complete | Shipped in cockpit evidence gate system              |
 
 ### Derived Metrics
 
 | Feature                   | Status      | Description                                               |
 | :------------------------ | :---------- | :-------------------------------------------------------- |
-| Maintainability Index     | 📋 Planned  | Composite of cyclomatic, Halstead, and LOC (SEI formula)  |
+| Maintainability Index     | ✅ Complete | SEI formula (simplified without Halstead, full with)      |
 | Technical debt ratio      | 📋 Planned  | Complexity-to-size ratio as a heuristic debt signal       |
 | Duplication density       | 📋 Planned  | Extend duplicate detection into a per-module density metric |
 | API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
 | Code age distribution     | 📋 Planned  | Extend git freshness into age buckets with trend tracking |
+
+### Schema Changes
+
+- **Analysis schema version**: 4 → 5
+- **New types**: `HalsteadMetrics`, `MaintainabilityIndex`
+- **New fields in `ComplexityReport`**: `halstead`, `maintainability_index`, `histogram` (now populated)
+- **New CLI flag**: `--detail-functions` on `tokmd analyze`
+- **New feature flag**: `halstead` in `tokmd-analysis`
+- **Cockpit gates completed**: diff coverage (lcov), semver checks, schema diff
+- **Handoff complexity**: Real data from file analysis (replaces heuristic)
 
 ---
 

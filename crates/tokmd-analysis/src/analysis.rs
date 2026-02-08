@@ -71,6 +71,7 @@ pub struct AnalysisRequest {
     pub window_tokens: Option<usize>,
     pub git: Option<bool>,
     pub import_granularity: ImportGranularity,
+    pub detail_functions: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -87,6 +88,8 @@ struct AnalysisPlan {
     entropy: bool,
     license: bool,
     complexity: bool,
+    #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+    halstead: bool,
     #[cfg(feature = "git")]
     churn: bool,
     #[cfg(feature = "git")]
@@ -94,15 +97,24 @@ struct AnalysisPlan {
 }
 
 impl AnalysisPlan {
+    #[cfg_attr(
+        not(all(feature = "halstead", feature = "content", feature = "walk")),
+        allow(unused_mut)
+    )]
     fn needs_files(&self) -> bool {
-        self.assets
+        let mut needs = self.assets
             || self.deps
             || self.todo
             || self.dup
             || self.imports
             || self.entropy
             || self.license
-            || self.complexity
+            || self.complexity;
+        #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+        {
+            needs = needs || self.halstead;
+        }
+        needs
     }
 }
 
@@ -121,6 +133,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -139,6 +153,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: true,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: true,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -157,6 +173,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: true,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: true,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -175,6 +193,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -193,6 +213,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -211,6 +233,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -229,6 +253,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: true,
             license: true,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -247,6 +273,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -265,6 +293,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: true,
             #[cfg(feature = "git")]
@@ -283,6 +313,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: true,
             license: true,
             complexity: true,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: true,
             #[cfg(feature = "git")]
             churn: true,
             #[cfg(feature = "git")]
@@ -301,6 +333,8 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
             #[cfg(feature = "git")]
             churn: false,
             #[cfg(feature = "git")]
@@ -564,6 +598,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
                     list,
                     &ctx.export,
                     &req.limits,
+                    req.detail_functions,
                 ) {
                     Ok(report) => complexity = Some(report),
                     Err(err) => warnings.push(format!("complexity scan failed: {}", err)),
@@ -572,6 +607,49 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push("content/walk feature disabled; skipping complexity analysis".to_string());
+    }
+
+    // Halstead metrics (feature-gated)
+    #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+    if plan.halstead {
+        if let Some(list) = files.as_deref() {
+            match crate::halstead::build_halstead_report(
+                &ctx.root,
+                list,
+                &ctx.export,
+                &req.limits,
+            ) {
+                Ok(halstead_report) => {
+                    // Wire Halstead into complexity report if available
+                    if let Some(ref mut cx) = complexity {
+                        // Update maintainability index with Halstead volume
+                        if let Some(ref mut mi) = cx.maintainability_index {
+                            let vol = halstead_report.volume;
+                            if vol > 0.0 {
+                                mi.avg_halstead_volume = Some(vol);
+                                // Recompute with full SEI formula
+                                let score = (171.0
+                                    - 5.2 * vol.ln()
+                                    - 0.23 * mi.avg_cyclomatic
+                                    - 16.2 * mi.avg_loc.ln())
+                                .max(0.0);
+                                let factor = 100.0;
+                                mi.score = (score * factor).round() / factor;
+                                mi.grade = if mi.score >= 85.0 {
+                                    "A".to_string()
+                                } else if mi.score >= 65.0 {
+                                    "B".to_string()
+                                } else {
+                                    "C".to_string()
+                                };
+                            }
+                        }
+                        cx.halstead = Some(halstead_report);
+                    }
+                }
+                Err(err) => warnings.push(format!("halstead scan failed: {}", err)),
+            }
+        }
     }
 
     if plan.fun {
