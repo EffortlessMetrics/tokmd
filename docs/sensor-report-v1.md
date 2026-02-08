@@ -1,12 +1,12 @@
-# Ecosystem Envelope Specification
+# sensor.report.v1 Protocol Specification
 
-> **Status**: Planned (v2.0+)
+> **Status**: Implemented (v1.5+)
 >
-> This document specifies a standardized report envelope for integrating tokmd with multi-sensor cockpit systems.
+> This document specifies the standardized sensor report envelope for integrating tokmd with multi-sensor CI governance systems.
 
 ## Overview
 
-The ecosystem envelope is a standardized JSON format that allows tokmd to integrate with external orchestrators ("directors") that aggregate reports from multiple code quality sensors into a unified PR view.
+The `sensor.report.v1` protocol defines a standardized JSON envelope format that enables tokmd to integrate with external orchestrators ("directors") that aggregate reports from multiple code quality sensors into a unified PR view.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -32,19 +32,25 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 2. **Verdict-first**: Quick pass/fail/warn determination without parsing tool-specific data
 3. **Findings are portable**: Common finding structure for cross-tool aggregation
 4. **Self-describing**: Schema version and tool metadata enable forward compatibility
+5. **No Green By Omission**: Capabilities block explicitly reports what ran vs. what was skipped
 
-## Envelope Schema (v1)
+## Envelope Schema
+
+The formal JSON Schema is available at:
+- `contracts/sensor.report.v1/schema.json` (canonical)
+- `crates/tokmd/schemas/sensor.report.v1.schema.json` (for tests)
+
+### Example Envelope
 
 ```json
 {
-  "$schema": "https://tokmd.dev/schemas/envelope.v1.json",
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
     "version": "1.5.0",
     "mode": "cockpit"
   },
-  "generated_at": "2026-02-02T12:00:00Z",
+  "generated_at": "2026-02-07T12:00:00Z",
   "verdict": "warn",
   "summary": "3 risk signals, 1 evidence gate pending",
   "findings": [
@@ -56,23 +62,9 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
       "message": "src/parser.rs has 47 commits in 90 days",
       "location": {
         "path": "src/parser.rs"
-      },
-      "evidence": {
-        "commits": 47,
-        "window_days": 90
       }
     }
   ],
-  "gates": {
-    "status": "pending",
-    "items": [
-      {
-        "id": "mutation",
-        "status": "pending",
-        "reason": "CI artifact not found"
-      }
-    ]
-  },
   "artifacts": [
     {
       "type": "comment",
@@ -83,9 +75,23 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
       "path": "artifacts/tokmd/cockpit.json"
     }
   ],
+  "capabilities": {
+    "mutation": { "status": "available" },
+    "diff_coverage": { "status": "unavailable", "reason": "no coverage artifact found" },
+    "contracts": { "status": "available" },
+    "determinism": { "status": "skipped", "reason": "no baseline available" }
+  },
   "data": {
-    // Full tokmd-native cockpit receipt embedded here
-    // Schema: tokmd cockpit v3
+    "gates": {
+      "status": "pending",
+      "items": [
+        {
+          "id": "mutation",
+          "status": "pending",
+          "reason": "CI artifact not found"
+        }
+      ]
+    }
   }
 }
 ```
@@ -96,14 +102,14 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema` | string | Yes | Schema identifier (e.g., `"sensor.report.v1"`) |
+| `schema` | string | Yes | Schema identifier: `"sensor.report.v1"` |
 | `tool` | object | Yes | Tool identification |
 | `generated_at` | string (ISO 8601) | Yes | Generation timestamp |
 | `verdict` | enum | Yes | Overall result: `pass`, `fail`, `warn`, `skip`, `pending` |
 | `summary` | string | Yes | Human-readable one-line summary |
 | `findings` | array | Yes | List of findings (may be empty) |
-| `gates` | object | No | Evidence gate status |
 | `artifacts` | array | No | Related artifact paths |
+| `capabilities` | object | No | Capability availability for "No Green By Omission" |
 | `data` | object | No | Tool-specific payload (opaque to director) |
 
 ### Tool Object
@@ -118,13 +124,15 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 
 ### Verdict Enum
 
-| Value | Meaning |
-|-------|---------|
-| `pass` | All checks passed, no significant findings |
-| `fail` | Hard failure (evidence gate failed, policy violation) |
-| `warn` | Soft warnings present, review recommended |
-| `skip` | Sensor skipped (missing inputs, not applicable) |
-| `pending` | Awaiting external data (CI artifacts, etc.) |
+| Value | Meaning | Aggregation Priority |
+|-------|---------|---------------------|
+| `fail` | Hard failure (gate failed, policy violation) | 1 (highest) |
+| `pending` | Awaiting external data (CI artifacts, etc.) | 2 |
+| `warn` | Soft warnings present, review recommended | 3 |
+| `pass` | All checks passed, no significant findings | 4 |
+| `skip` | Sensor skipped (missing inputs, not applicable) | 5 (lowest) |
+
+Directors aggregate: highest-priority verdict wins.
 
 ### Finding Object
 
@@ -137,8 +145,8 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
   "message": "src/parser.rs has 47 commits in 90 days",
   "location": {
     "path": "src/parser.rs",
-    "line": null,
-    "column": null
+    "line": 42,
+    "column": 1
   },
   "evidence": {
     "commits": 47,
@@ -152,7 +160,8 @@ The ecosystem envelope is a standardized JSON format that allows tokmd to integr
 
 Findings use `(check_id, code)` for identity. Combined with `tool.name`, this forms the triple `(tool, check_id, code)` for buildfix routing.
 
-tokmd findings:
+#### tokmd Finding Registry
+
 | check_id | code | Severity | Description |
 |----------|------|----------|-------------|
 | `risk` | `hotspot` | warn | High-churn file modified |
@@ -164,8 +173,8 @@ tokmd findings:
 | `contract` | `api_changed` | warn | Public API surface changed |
 | `supply` | `lockfile_changed` | info | Dependency lockfile modified |
 | `supply` | `new_dependency` | info | New dependency added |
-| `gate` | `mutation_failed` | fail | Mutation testing threshold not met |
-| `gate` | `coverage_failed` | fail | Diff coverage threshold not met |
+| `gate` | `mutation_failed` | error | Mutation testing threshold not met |
+| `gate` | `coverage_failed` | error | Diff coverage threshold not met |
 
 #### Severity Levels
 
@@ -175,7 +184,32 @@ tokmd findings:
 | `warn` | Review recommended |
 | `info` | Informational, no action required |
 
-### Gates Object
+### Capabilities Object (No Green By Omission)
+
+The `capabilities` field prevents false positives from missing checks. Directors can distinguish between "all checks passed" and "no checks ran".
+
+```json
+{
+  "mutation": { "status": "available" },
+  "diff_coverage": { "status": "unavailable", "reason": "no coverage artifact" },
+  "contracts": { "status": "available" },
+  "determinism": { "status": "skipped", "reason": "no baseline" }
+}
+```
+
+#### Capability States
+
+| Status | Meaning |
+|--------|---------|
+| `available` | Check was available and ran |
+| `unavailable` | Check could not run (missing prerequisites) |
+| `skipped` | Check was deliberately skipped |
+
+The `reason` field is optional and explains why a capability is unavailable or skipped.
+
+### Gates Object (inside `data`)
+
+Gates are embedded in `data.gates`, not as a top-level field. This keeps the stable envelope surface minimal while allowing tool-specific gate structures.
 
 ```json
 {
@@ -206,42 +240,43 @@ Gate IDs:
 - `determinism` — Build reproducibility
 - `complexity` — Complexity thresholds
 
-## Artifact Paths
+## CLI Integration
+
+### Sensor Mode in Cockpit
+
+The `--sensor-mode` flag enables CI-friendly envelope output:
+
+```bash
+# Emit envelope alongside cockpit artifacts
+tokmd cockpit --base main --head HEAD --sensor-mode --artifacts-dir artifacts/tokmd/
+```
+
+In sensor mode:
+- Writes `report.json` (sensor.report.v1 envelope) to artifacts directory
+- Always exits 0 if envelope was written successfully
+- Uses `verdict` field instead of exit code to signal pass/fail
+- Includes `capabilities` block showing what was available
+
+### Standalone Sensor Command
+
+The `tokmd sensor` command emits sensor.report.v1 envelope directly:
+
+```bash
+tokmd sensor --base main --head HEAD --output artifacts/tokmd/
+```
+
+### Artifact Layout
 
 Canonical output location: `artifacts/<tool>/`
 
-For tokmd:
 ```
 artifacts/
 └── tokmd/
-    ├── report.json      # Ecosystem envelope
+    ├── report.json      # sensor.report.v1 envelope
     ├── cockpit.json     # Full tokmd-native receipt
     ├── comment.md       # PR comment markdown
     └── badge.svg        # Optional badge
 ```
-
-## CLI Integration
-
-### Sensor Mode
-
-New command to emit ecosystem envelope:
-
-```bash
-# Emit envelope to artifacts/tokmd/report.json
-tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
-
-# With explicit artifact directory
-tokmd sensor cockpit --base v1.3.0 --head v1.4.0 --artifacts-dir ./ci-artifacts/
-```
-
-### Options
-
-| Flag | Description |
-|------|-------------|
-| `--output DIR` | Output directory (default: `artifacts/tokmd/`) |
-| `--findings-limit N` | Max findings in envelope (default: 20) |
-| `--embed-data` | Embed full tokmd receipt in `data` field (default: true) |
-| `--no-embed-data` | Reference receipt via `artifacts` instead of embedding |
 
 ## Director Integration
 
@@ -250,9 +285,30 @@ tokmd sensor cockpit --base v1.3.0 --head v1.4.0 --artifacts-dir ./ci-artifacts/
 Directors should:
 1. Collect `report.json` from each sensor's artifact directory
 2. Aggregate verdicts: `fail` > `pending` > `warn` > `pass` > `skip`
-3. Merge findings with deduplication by `id`
-4. Respect per-tool `findings_limit` to prevent flood
+3. Merge findings with deduplication by `(tool, check_id, code)`
+4. Check `capabilities` to detect silent failures
 5. Generate unified PR comment from aggregated data
+
+### No Green By Omission
+
+Directors MUST check capabilities before treating `verdict: pass` as success:
+
+```python
+def is_truly_passing(report):
+    if report["verdict"] != "pass":
+        return False
+
+    # Check that required capabilities ran
+    required = {"mutation", "diff_coverage", "contracts"}
+    capabilities = report.get("capabilities", {})
+
+    for cap in required:
+        status = capabilities.get(cap, {}).get("status")
+        if status != "available":
+            return False  # Missing required check
+
+    return True
+```
 
 ### Budget Enforcement
 
@@ -265,8 +321,6 @@ max_findings_per_tool = 15
 max_summary_lines = 10
 ```
 
-Tools should respect their allocation when `--findings-limit` is passed.
-
 ## Versioning
 
 - Envelope schema uses string identifiers: `schema: "sensor.report.v1"`
@@ -274,40 +328,22 @@ Tools should respect their allocation when `--findings-limit` is passed.
 - Breaking changes require v2
 - Tool-specific `data` follows tool's own schema version
 
-## Migration from tokmd-native Cockpit
+## Contract Location
 
-Current `tokmd cockpit` output remains unchanged. The envelope is an additional output format:
+The formal JSON Schema and examples are located at:
 
-```bash
-# Current (unchanged)
-tokmd cockpit --base main --head HEAD --format json > cockpit.json
-
-# New sensor mode (envelope)
-tokmd sensor cockpit --base main --head HEAD --output artifacts/tokmd/
+```
+contracts/
+└── sensor.report.v1/
+    ├── schema.json       # JSON Schema Draft 7
+    ├── README.md         # Protocol overview
+    └── examples/
+        ├── pass.json     # Passing envelope
+        └── fail.json     # Failing envelope
 ```
 
-The `tokmd sensor` subcommand family handles envelope-wrapped outputs for ecosystem integration.
+## See Also
 
-## Future Extensions
-
-### Planned Finding Categories
-
-- `tokmd.security.entropy_high` — High-entropy file (potential secrets)
-- `tokmd.security.license_conflict` — License compatibility issue
-- `tokmd.architecture.circular_dep` — Circular import detected
-- `tokmd.architecture.layer_violation` — Architecture boundary crossed
-
-### Cross-Tool Correlation
-
-Directors may correlate findings across tools:
-```json
-{
-  "correlation": {
-    "files": ["src/parser.rs"],
-    "tools": ["tokmd", "coverage", "linter"],
-    "summary": "Hot file with low coverage and lint warnings"
-  }
-}
-```
-
-This is director-side logic, not part of the envelope spec.
+- [SCHEMA.md](SCHEMA.md) — All tokmd receipt schemas
+- [reference-cli.md](reference-cli.md) — CLI flag reference
+- [contracts/sensor.report.v1/README.md](../contracts/sensor.report.v1/README.md) — Contract documentation

@@ -50,16 +50,15 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
             build_summary(&cockpit_receipt, &args.base, &args.head),
         );
 
-        // Map evidence gates → envelope gates
-        report = report.with_gates(map_gates(&cockpit_receipt.evidence));
-
         // Emit findings from cockpit data
         emit_risk_findings(&mut report, &cockpit_receipt.risk);
         emit_contract_findings(&mut report, &cockpit_receipt.contracts);
 
-        // Embed full cockpit receipt under data.cockpit_receipt
+        // Embed gates and full cockpit receipt under data
+        let gates = map_gates(&cockpit_receipt.evidence);
         let cockpit_json = serde_json::to_value(&cockpit_receipt)?;
         let data = serde_json::json!({
+            "gates": serde_json::to_value(&gates)?,
             "cockpit_receipt": cockpit_json,
         });
         report = report.with_data(data);
@@ -252,7 +251,11 @@ fn render_sensor_md(report: &SensorReport) -> String {
         let _ = writeln!(s);
     }
 
-    if let Some(ref gates) = report.gates {
+    // Extract gates from data (gates are embedded inside data, not top-level)
+    if let Some(ref data) = report.data
+        && let Some(gates_val) = data.get("gates")
+        && let Ok(gates) = serde_json::from_value::<GateResults>(gates_val.clone())
+    {
         let _ = writeln!(s, "### Gates ({})", gates.status);
         let _ = writeln!(s);
         for g in &gates.items {

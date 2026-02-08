@@ -455,6 +455,9 @@ Generates comprehensive PR metrics for code review automation. This command anal
 | `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--artifacts-dir <DIR>` | Write `report.json` + `comment.md` to a directory. | `(none)` |
+| `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
+| `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
+| `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
 | `--no-progress` | Disable progress spinners. | `false` |
 
 **Output Formats**:
@@ -509,6 +512,9 @@ tokmd cockpit --artifacts-dir artifacts/tokmd
 
 # Custom base ref for release branches
 tokmd cockpit --base release/v1.2 --head HEAD
+
+# Sensor mode: emit sensor.report.v1 envelope alongside artifacts (CI-friendly)
+tokmd cockpit --sensor-mode --artifacts-dir artifacts/tokmd
 ```
 
 ### `tokmd sensor`

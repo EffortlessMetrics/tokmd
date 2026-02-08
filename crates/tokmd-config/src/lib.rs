@@ -749,6 +749,15 @@ pub struct CockpitArgs {
     /// Diff range syntax: two-dot (default) or three-dot.
     #[arg(long, value_enum, default_value_t = DiffRangeMode::TwoDot)]
     pub diff_range: DiffRangeMode,
+
+    /// Run in sensor mode for CI integration.
+    ///
+    /// When enabled:
+    /// - Always writes sensor.report.v1 envelope to artifacts_dir/report.json
+    /// - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
+    /// - Reports capability availability for "No Green By Omission"
+    #[arg(long)]
+    pub sensor_mode: bool,
 }
 
 #[derive(Args, Debug, Clone)]

@@ -49,12 +49,15 @@ pub struct SensorReport {
     pub summary: String,
     /// List of findings (may be empty).
     pub findings: Vec<Finding>,
-    /// Evidence gate status.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub gates: Option<GateResults>,
     /// Related artifact paths.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Vec<Artifact>>,
+    /// Capability availability status for "No Green By Omission".
+    ///
+    /// Reports which checks were available, unavailable, or skipped.
+    /// Enables directors to distinguish between "all passed" and "nothing ran".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capabilities: Option<std::collections::BTreeMap<String, CapabilityStatus>>,
     /// Tool-specific payload (opaque to director).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
@@ -186,6 +189,70 @@ pub struct Artifact {
     pub path: String,
 }
 
+/// Status of a capability for "No Green By Omission".
+///
+/// Enables directors to distinguish between checks that:
+/// - Passed (available and ran successfully)
+/// - Weren't applicable (skipped due to no relevant files)
+/// - Couldn't run (unavailable due to missing tools or inputs)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapabilityStatus {
+    /// Whether the capability was available, unavailable, or skipped.
+    pub status: CapabilityState,
+    /// Optional reason explaining the status.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+/// State of a capability.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CapabilityState {
+    /// Capability was available and produced results.
+    Available,
+    /// Capability was not available (missing tool, missing inputs).
+    Unavailable,
+    /// Capability was skipped (no relevant files, not applicable).
+    Skipped,
+}
+
+impl CapabilityStatus {
+    /// Create a new capability status.
+    pub fn new(status: CapabilityState) -> Self {
+        Self {
+            status,
+            reason: None,
+        }
+    }
+
+    /// Create an available capability status.
+    pub fn available() -> Self {
+        Self::new(CapabilityState::Available)
+    }
+
+    /// Create an unavailable capability status with a reason.
+    pub fn unavailable(reason: impl Into<String>) -> Self {
+        Self {
+            status: CapabilityState::Unavailable,
+            reason: Some(reason.into()),
+        }
+    }
+
+    /// Create a skipped capability status with a reason.
+    pub fn skipped(reason: impl Into<String>) -> Self {
+        Self {
+            status: CapabilityState::Skipped,
+            reason: Some(reason.into()),
+        }
+    }
+
+    /// Add a reason to the capability status.
+    pub fn with_reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason = Some(reason.into());
+        self
+    }
+}
+
 // --------------------------
 // Builder/helper methods
 // --------------------------
@@ -200,8 +267,8 @@ impl SensorReport {
             verdict,
             summary,
             findings: Vec::new(),
-            gates: None,
             artifacts: None,
+            capabilities: None,
             data: None,
         }
     }
@@ -209,12 +276,6 @@ impl SensorReport {
     /// Add a finding to the report.
     pub fn add_finding(&mut self, finding: Finding) {
         self.findings.push(finding);
-    }
-
-    /// Set the gates section.
-    pub fn with_gates(mut self, gates: GateResults) -> Self {
-        self.gates = Some(gates);
-        self
     }
 
     /// Set the artifacts section.
@@ -227,6 +288,22 @@ impl SensorReport {
     pub fn with_data(mut self, data: serde_json::Value) -> Self {
         self.data = Some(data);
         self
+    }
+
+    /// Set the capabilities section for "No Green By Omission".
+    pub fn with_capabilities(
+        mut self,
+        capabilities: std::collections::BTreeMap<String, CapabilityStatus>,
+    ) -> Self {
+        self.capabilities = Some(capabilities);
+        self
+    }
+
+    /// Add a single capability to the report.
+    pub fn add_capability(&mut self, name: impl Into<String>, status: CapabilityStatus) {
+        self.capabilities
+            .get_or_insert_with(std::collections::BTreeMap::new)
+            .insert(name.into(), status);
     }
 }
 
@@ -451,28 +528,37 @@ mod tests {
         assert_eq!(back.findings.len(), 1);
         assert_eq!(back.findings[0].check_id, "risk");
         assert_eq!(back.findings[0].code, "hotspot");
+
+        // Verify finding_id composition
+        let fid = findings::finding_id("tokmd", findings::risk::CHECK_ID, findings::risk::HOTSPOT);
+        assert_eq!(fid, "tokmd.risk.hotspot");
     }
 
     #[test]
-    fn serde_roundtrip_with_gates() {
-        let report = SensorReport::new(
-            ToolMeta::tokmd("1.5.0", "cockpit"),
-            "2024-01-01T00:00:00Z".to_string(),
-            Verdict::Fail,
-            "Gate failed".to_string(),
-        )
-        .with_gates(GateResults::new(
+    fn serde_roundtrip_with_gates_in_data() {
+        let gates = GateResults::new(
             Verdict::Fail,
             vec![
                 GateItem::new("mutation", Verdict::Fail)
                     .with_threshold(80.0, 72.0)
                     .with_reason("Below threshold"),
             ],
-        ));
+        );
+        let report = SensorReport::new(
+            ToolMeta::tokmd("1.5.0", "cockpit"),
+            "2024-01-01T00:00:00Z".to_string(),
+            Verdict::Fail,
+            "Gate failed".to_string(),
+        )
+        .with_data(serde_json::json!({
+            "gates": serde_json::to_value(&gates).unwrap(),
+        }));
         let json = serde_json::to_string(&report).unwrap();
         let back: SensorReport = serde_json::from_str(&json).unwrap();
-        assert!(back.gates.is_some());
-        assert_eq!(back.gates.unwrap().items[0].id, "mutation");
+        let data = back.data.unwrap();
+        let back_gates: GateResults = serde_json::from_value(data["gates"].clone()).unwrap();
+        assert_eq!(back_gates.items[0].id, "mutation");
+        assert_eq!(back_gates.status, Verdict::Fail);
     }
 
     #[test]
@@ -519,5 +605,74 @@ mod tests {
             let json = serde_json::to_value(variant).unwrap();
             assert_eq!(json.as_str().unwrap(), expected);
         }
+    }
+
+    #[test]
+    fn capability_status_serde_roundtrip() {
+        let status = CapabilityStatus::available();
+        let json = serde_json::to_string(&status).unwrap();
+        let back: CapabilityStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.status, CapabilityState::Available);
+        assert!(back.reason.is_none());
+    }
+
+    #[test]
+    fn capability_status_with_reason() {
+        let status = CapabilityStatus::unavailable("cargo-mutants not installed");
+        let json = serde_json::to_string(&status).unwrap();
+        let back: CapabilityStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.status, CapabilityState::Unavailable);
+        assert_eq!(back.reason.as_deref(), Some("cargo-mutants not installed"));
+    }
+
+    #[test]
+    fn sensor_report_with_capabilities() {
+        use std::collections::BTreeMap;
+
+        let mut caps = BTreeMap::new();
+        caps.insert("mutation".to_string(), CapabilityStatus::available());
+        caps.insert(
+            "coverage".to_string(),
+            CapabilityStatus::unavailable("no coverage artifact"),
+        );
+        caps.insert(
+            "semver".to_string(),
+            CapabilityStatus::skipped("no API files changed"),
+        );
+
+        let report = SensorReport::new(
+            ToolMeta::tokmd("1.5.0", "cockpit"),
+            "2024-01-01T00:00:00Z".to_string(),
+            Verdict::Pass,
+            "All checks passed".to_string(),
+        )
+        .with_capabilities(caps);
+
+        let json = serde_json::to_string(&report).unwrap();
+        assert!(json.contains("\"capabilities\""));
+        assert!(json.contains("\"mutation\""));
+        assert!(json.contains("\"available\""));
+
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+        let caps = back.capabilities.unwrap();
+        assert_eq!(caps.len(), 3);
+        assert_eq!(caps["mutation"].status, CapabilityState::Available);
+        assert_eq!(caps["coverage"].status, CapabilityState::Unavailable);
+        assert_eq!(caps["semver"].status, CapabilityState::Skipped);
+    }
+
+    #[test]
+    fn sensor_report_add_capability() {
+        let mut report = SensorReport::new(
+            ToolMeta::tokmd("1.5.0", "cockpit"),
+            "2024-01-01T00:00:00Z".to_string(),
+            Verdict::Pass,
+            "All checks passed".to_string(),
+        );
+        report.add_capability("mutation", CapabilityStatus::available());
+        report.add_capability("coverage", CapabilityStatus::unavailable("missing"));
+
+        let caps = report.capabilities.unwrap();
+        assert_eq!(caps.len(), 2);
     }
 }

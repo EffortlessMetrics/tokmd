@@ -11,6 +11,10 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use tokmd_config as cli;
+use tokmd_envelope::{
+    Artifact, CapabilityStatus, Finding, FindingSeverity, GateItem, GateResults, SensorReport,
+    ToolMeta, Verdict, findings,
+};
 
 /// Cockpit receipt schema version.
 const SCHEMA_VERSION: u32 = 3;
@@ -19,6 +23,7 @@ const SCHEMA_VERSION: u32 = 3;
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
     {
+        let _ = &args; // Silence unused warning
         bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
     }
 
@@ -44,6 +49,22 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
         }
 
+        // In sensor mode, write envelope to artifacts_dir
+        if args.sensor_mode {
+            let artifacts_dir = args
+                .artifacts_dir
+                .as_ref()
+                .cloned()
+                .unwrap_or_else(|| PathBuf::from("artifacts/tokmd"));
+            write_sensor_artifacts(&artifacts_dir, &receipt, &args.base, &args.head)?;
+
+            // In sensor mode, always print JSON to stdout for piping
+            let output = render_json(&receipt)?;
+            print!("{}", output);
+            return Ok(());
+        }
+
+        // Standard (non-sensor) mode
         let output = match args.format {
             cli::CockpitFormat::Json => render_json(&receipt)?,
             cli::CockpitFormat::Md => render_markdown(&receipt),
@@ -3323,6 +3344,332 @@ fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
         .with_context(|| format!("Failed to write {}", comment_path.display()))?;
 
     Ok(())
+}
+
+/// Write sensor.report.v1 envelope to artifacts directory.
+///
+/// This function is used in sensor mode to produce a conforming envelope
+/// that can be consumed by external directors (e.g., cockpitctl).
+fn write_sensor_artifacts(
+    dir: &Path,
+    receipt: &CockpitReceipt,
+    base: &str,
+    head: &str,
+) -> Result<()> {
+    std::fs::create_dir_all(dir)
+        .with_context(|| format!("Failed to create artifacts dir: {}", dir.display()))?;
+
+    // Convert cockpit receipt to sensor report envelope
+    let envelope = cockpit_to_envelope(receipt, base, head);
+
+    // Write sensor.report.v1 envelope
+    let report_path = dir.join("report.json");
+    let report_json = serde_json::to_string_pretty(&envelope)
+        .context("Failed to serialize sensor report")?;
+    std::fs::write(&report_path, &report_json)
+        .with_context(|| format!("Failed to write {}", report_path.display()))?;
+
+    // Also write comment.md for PR integration
+    let comment_path = dir.join("comment.md");
+    let comment = render_comment(receipt);
+    std::fs::write(&comment_path, comment)
+        .with_context(|| format!("Failed to write {}", comment_path.display()))?;
+
+    Ok(())
+}
+
+/// Convert a CockpitReceipt to a sensor.report.v1 SensorReport envelope.
+fn cockpit_to_envelope(receipt: &CockpitReceipt, base: &str, head: &str) -> SensorReport {
+    let generated_at = now_iso8601();
+    let verdict = map_gate_status_to_verdict(receipt.evidence.overall_status);
+
+    // Build summary
+    let summary = format!(
+        "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
+        receipt.change_surface.files_changed,
+        receipt.change_surface.insertions,
+        receipt.change_surface.deletions,
+        receipt.code_health.score,
+        receipt.risk.level,
+        base,
+        head,
+    );
+
+    let mut report = SensorReport::new(
+        ToolMeta::tokmd(env!("CARGO_PKG_VERSION"), "cockpit"),
+        generated_at,
+        verdict,
+        summary,
+    );
+
+    // Add findings from cockpit data
+    add_risk_findings(&mut report, &receipt.risk);
+    add_contract_findings(&mut report, &receipt.contracts);
+    add_gate_findings(&mut report, &receipt.evidence);
+
+    // Build gates data
+    let gates = evidence_to_gate_results(&receipt.evidence);
+
+    // Build capabilities
+    let capabilities = build_capabilities(&receipt.evidence);
+    report = report.with_capabilities(capabilities);
+
+    // Embed gates and full cockpit receipt in data
+    let data = serde_json::json!({
+        "gates": serde_json::to_value(&gates).unwrap_or(serde_json::Value::Null),
+        "cockpit_receipt": serde_json::to_value(receipt).unwrap_or(serde_json::Value::Null),
+    });
+    report = report.with_data(data);
+
+    // Add artifact references
+    report = report.with_artifacts(vec![
+        Artifact::receipt("report.json"),
+        Artifact::comment("comment.md"),
+    ]);
+
+    report
+}
+
+/// Map cockpit GateStatus to envelope Verdict.
+fn map_gate_status_to_verdict(status: GateStatus) -> Verdict {
+    match status {
+        GateStatus::Pass => Verdict::Pass,
+        GateStatus::Warn => Verdict::Warn,
+        GateStatus::Fail => Verdict::Fail,
+        GateStatus::Skipped => Verdict::Skip,
+        GateStatus::Pending => Verdict::Pending,
+    }
+}
+
+/// Convert cockpit Evidence to envelope GateResults.
+fn evidence_to_gate_results(evidence: &Evidence) -> GateResults {
+    let mut items = Vec::new();
+
+    // Mutation gate (always present)
+    items.push(
+        GateItem::new("mutation", map_gate_status_to_verdict(evidence.mutation.meta.status))
+            .with_source("computed"),
+    );
+
+    // Optional gates
+    if let Some(ref dc) = evidence.diff_coverage {
+        items.push(
+            GateItem::new("diff_coverage", map_gate_status_to_verdict(dc.meta.status))
+                .with_threshold(0.8, dc.coverage_pct)
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref c) = evidence.contracts {
+        let mut gate = GateItem::new("contracts", map_gate_status_to_verdict(c.meta.status))
+            .with_source("computed");
+        if c.failures > 0 {
+            gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
+        }
+        items.push(gate);
+    }
+
+    if let Some(ref sc) = evidence.supply_chain {
+        items.push(
+            GateItem::new("supply_chain", map_gate_status_to_verdict(sc.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref det) = evidence.determinism {
+        items.push(
+            GateItem::new("determinism", map_gate_status_to_verdict(det.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref cx) = evidence.complexity {
+        items.push(
+            GateItem::new("complexity", map_gate_status_to_verdict(cx.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    GateResults::new(map_gate_status_to_verdict(evidence.overall_status), items)
+}
+
+/// Build capabilities map for "No Green By Omission".
+fn build_capabilities(evidence: &Evidence) -> BTreeMap<String, CapabilityStatus> {
+    let mut caps = BTreeMap::new();
+
+    // Mutation testing capability
+    caps.insert(
+        "mutation".to_string(),
+        match evidence.mutation.meta.status {
+            GateStatus::Skipped => {
+                CapabilityStatus::skipped("no relevant Rust source files")
+            }
+            GateStatus::Pending => {
+                CapabilityStatus::unavailable("cargo-mutants not installed")
+            }
+            _ => CapabilityStatus::available(),
+        },
+    );
+
+    // Diff coverage capability
+    caps.insert(
+        "diff_coverage".to_string(),
+        match &evidence.diff_coverage {
+            Some(dc) if dc.meta.status != GateStatus::Pending => {
+                CapabilityStatus::available()
+            }
+            Some(_) => CapabilityStatus::unavailable("no coverage artifact found"),
+            None => CapabilityStatus::skipped("not configured"),
+        },
+    );
+
+    // Contracts capability
+    caps.insert(
+        "contracts".to_string(),
+        match &evidence.contracts {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no contract files changed"),
+        },
+    );
+
+    // Supply chain capability
+    caps.insert(
+        "supply_chain".to_string(),
+        match &evidence.supply_chain {
+            Some(sc) if sc.meta.status == GateStatus::Pending => {
+                CapabilityStatus::unavailable("cargo-audit not installed")
+            }
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no lockfile changed"),
+        },
+    );
+
+    // Determinism capability
+    caps.insert(
+        "determinism".to_string(),
+        match &evidence.determinism {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no baseline available"),
+        },
+    );
+
+    // Complexity capability
+    caps.insert(
+        "complexity".to_string(),
+        match &evidence.complexity {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no relevant source files"),
+        },
+    );
+
+    caps
+}
+
+/// Add risk findings to the sensor report.
+fn add_risk_findings(report: &mut SensorReport, risk: &Risk) {
+    for hotspot in &risk.hotspots_touched {
+        report.add_finding(
+            Finding::new(
+                findings::risk::CHECK_ID,
+                findings::risk::HOTSPOT,
+                FindingSeverity::Warn,
+                "Hotspot file touched",
+                format!("{} is a high-churn file", hotspot),
+            )
+            .with_location(tokmd_envelope::FindingLocation::path(hotspot)),
+        );
+    }
+
+    for path in &risk.bus_factor_warnings {
+        report.add_finding(Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::BUS_FACTOR,
+            FindingSeverity::Warn,
+            "Bus factor warning",
+            format!("{} has single-author ownership", path),
+        ));
+    }
+}
+
+/// Add contract findings to the sensor report.
+fn add_contract_findings(report: &mut SensorReport, contracts: &Contracts) {
+    if contracts.schema_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::SCHEMA_CHANGED,
+            FindingSeverity::Info,
+            "Schema version changed",
+            "Schema version files were modified in this PR",
+        ));
+    }
+    if contracts.api_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::API_CHANGED,
+            FindingSeverity::Warn,
+            "Public API changed",
+            "Public API surface files were modified",
+        ));
+    }
+    if contracts.cli_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::CLI_CHANGED,
+            FindingSeverity::Info,
+            "CLI interface changed",
+            "CLI definition files were modified",
+        ));
+    }
+}
+
+/// Add gate failure findings to the sensor report.
+fn add_gate_findings(report: &mut SensorReport, evidence: &Evidence) {
+    // Add findings for failed gates
+    if evidence.mutation.meta.status == GateStatus::Fail {
+        let survivor_count = evidence.mutation.survivors.len();
+        report.add_finding(Finding::new(
+            findings::gate::CHECK_ID,
+            findings::gate::MUTATION_FAILED,
+            FindingSeverity::Error,
+            "Mutation testing failed",
+            format!("{} mutant(s) survived", survivor_count),
+        ));
+    }
+
+    if let Some(ref cx) = evidence.complexity
+        && cx.meta.status == GateStatus::Fail
+    {
+        report.add_finding(Finding::new(
+            findings::gate::CHECK_ID,
+            findings::gate::COMPLEXITY_FAILED,
+            FindingSeverity::Error,
+            "Complexity gate failed",
+            format!(
+                "{} file(s) exceed complexity threshold",
+                cx.high_complexity_files.len()
+            ),
+        ));
+    }
+
+    if let Some(ref sc) = evidence.supply_chain
+        && sc.meta.status == GateStatus::Fail
+    {
+        let vuln_count = sc.vulnerabilities.len();
+        report.add_finding(Finding::new(
+            findings::supply::CHECK_ID,
+            findings::supply::VULNERABILITY,
+            FindingSeverity::Error,
+            "Supply chain vulnerabilities",
+            format!("{} vulnerability(ies) detected", vuln_count),
+        ));
+    }
+}
+
+/// Get current timestamp in ISO 8601 format.
+fn now_iso8601() -> String {
+    time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
 }
 
 fn render_comment(receipt: &CockpitReceipt) -> String {

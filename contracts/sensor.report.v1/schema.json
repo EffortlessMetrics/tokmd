@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tokmd.dev/schemas/sensor.report.v1.json",
+  "title": "sensor.report.v1",
+  "description": "Standardized sensor report format for multi-sensor CI integration",
+  "type": "object",
+  "required": ["schema", "tool", "generated_at", "verdict", "summary", "findings"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "sensor.report.v1",
+      "description": "Schema identifier for this report format"
+    },
+    "tool": { "$ref": "#/definitions/ToolMeta" },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when this report was generated"
+    },
+    "verdict": { "$ref": "#/definitions/Verdict" },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable one-line summary of the report"
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Finding" },
+      "description": "List of findings (may be empty)"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Artifact" },
+      "description": "Related artifact paths"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/CapabilityStatus" },
+      "description": "Capability availability status for 'No Green By Omission'"
+    },
+    "data": {
+      "description": "Tool-specific payload (opaque to director). Gates and tool receipts are embedded here.",
+      "type": "object"
+    }
+  },
+  "definitions": {
+    "ToolMeta": {
+      "type": "object",
+      "required": ["name", "version", "mode"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool name (e.g., 'tokmd')"
+        },
+        "version": {
+          "type": "string",
+          "description": "Tool version (e.g., '1.5.0')"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Operation mode (e.g., 'cockpit', 'analyze')"
+        }
+      }
+    },
+    "Verdict": {
+      "type": "string",
+      "enum": ["pass", "fail", "warn", "skip", "pending"],
+      "description": "Overall verdict. Directors aggregate: fail > pending > warn > pass > skip"
+    },
+    "Finding": {
+      "type": "object",
+      "required": ["check_id", "code", "severity", "title", "message"],
+      "properties": {
+        "check_id": {
+          "type": "string",
+          "description": "Check category (e.g., 'risk', 'contract', 'gate')"
+        },
+        "code": {
+          "type": "string",
+          "description": "Finding code within the category (e.g., 'hotspot', 'coupling')"
+        },
+        "severity": { "$ref": "#/definitions/FindingSeverity" },
+        "title": {
+          "type": "string",
+          "description": "Short title for the finding"
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed message describing the finding"
+        },
+        "location": { "$ref": "#/definitions/FindingLocation" },
+        "evidence": {
+          "description": "Additional evidence data"
+        },
+        "docs_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Documentation URL for this finding type"
+        }
+      }
+    },
+    "FindingSeverity": {
+      "type": "string",
+      "enum": ["error", "warn", "info"],
+      "description": "Severity level: error (blocks merge), warn (review recommended), info (no action required)"
+    },
+    "FindingLocation": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path (normalized to forward slashes)"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Line number (1-indexed)"
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Column number (1-indexed)"
+        }
+      }
+    },
+    "GateResults": {
+      "type": "object",
+      "required": ["status", "items"],
+      "properties": {
+        "status": { "$ref": "#/definitions/Verdict" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/GateItem" }
+        }
+      }
+    },
+    "GateItem": {
+      "type": "object",
+      "required": ["id", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Gate identifier (e.g., 'mutation', 'diff_coverage')"
+        },
+        "status": { "$ref": "#/definitions/Verdict" },
+        "threshold": {
+          "type": "number",
+          "description": "Threshold value (if applicable)"
+        },
+        "actual": {
+          "type": "number",
+          "description": "Actual measured value (if applicable)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for the status (especially for pending/fail)"
+        },
+        "source": {
+          "type": "string",
+          "description": "Data source (e.g., 'ci_artifact', 'computed')"
+        },
+        "artifact_path": {
+          "type": "string",
+          "description": "Path to the source artifact (if applicable)"
+        }
+      }
+    },
+    "Artifact": {
+      "type": "object",
+      "required": ["type", "path"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to the artifact file"
+        }
+      }
+    },
+    "CapabilityStatus": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["available", "unavailable", "skipped"],
+          "description": "Whether the capability was available, unavailable, or skipped"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Optional reason explaining the status"
+        }
+      }
+    }
+  }
+}

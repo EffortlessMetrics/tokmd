@@ -16,6 +16,9 @@ const SCHEMA_JSON: &str = include_str!("../schemas/schema.json");
 /// Embedded JSON schema for handoff manifests (from schemas/handoff.schema.json)
 const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json");
 
+/// Embedded JSON schema for sensor.report.v1 envelope (from schemas/sensor.report.v1.schema.json)
+const SENSOR_REPORT_SCHEMA_JSON: &str = include_str!("../schemas/sensor.report.v1.schema.json");
+
 /// Load the JSON schema from embedded content
 fn load_schema() -> Result<Value> {
     serde_json::from_str(SCHEMA_JSON).context("Failed to parse embedded schema.json")
@@ -25,6 +28,12 @@ fn load_schema() -> Result<Value> {
 fn load_handoff_schema() -> Result<Value> {
     serde_json::from_str(HANDOFF_SCHEMA_JSON)
         .context("Failed to parse embedded handoff.schema.json")
+}
+
+/// Load the sensor.report.v1 JSON schema from embedded content
+fn load_sensor_report_schema() -> Result<Value> {
+    serde_json::from_str(SENSOR_REPORT_SCHEMA_JSON)
+        .context("Failed to parse embedded sensor.report.v1.schema.json")
 }
 
 /// Build a validator for a specific definition in the schema
@@ -426,5 +435,175 @@ fn test_handoff_manifest_validates_against_schema() -> Result<()> {
             serde_json::to_string_pretty(&json).unwrap_or_default()
         );
     }
+    Ok(())
+}
+
+// =============================================================================
+// sensor.report.v1 Schema Validation Tests
+// =============================================================================
+
+#[test]
+fn test_sensor_report_schema_is_valid_json_schema() -> Result<()> {
+    // Verify the schema itself is valid JSON Schema
+    let schema = load_sensor_report_schema()?;
+    jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("sensor.report.v1 schema is not valid: {}", e))?;
+    Ok(())
+}
+
+#[test]
+fn test_sensor_report_example_pass_validates() -> Result<()> {
+    let schema = load_sensor_report_schema()?;
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
+
+    // Read the pass example from contracts
+    let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("contracts")
+        .join("sensor.report.v1")
+        .join("examples")
+        .join("pass.json");
+
+    let content = std::fs::read_to_string(&example_path)
+        .with_context(|| format!("Failed to read {}", example_path.display()))?;
+    let json: Value = serde_json::from_str(&content)?;
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "sensor.report.v1 pass example validation failed:\n{}",
+            error_messages.join("\n")
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn test_sensor_report_example_fail_validates() -> Result<()> {
+    let schema = load_sensor_report_schema()?;
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
+
+    // Read the fail example from contracts
+    let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("contracts")
+        .join("sensor.report.v1")
+        .join("examples")
+        .join("fail.json");
+
+    let content = std::fs::read_to_string(&example_path)
+        .with_context(|| format!("Failed to read {}", example_path.display()))?;
+    let json: Value = serde_json::from_str(&content)?;
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "sensor.report.v1 fail example validation failed:\n{}",
+            error_messages.join("\n")
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn test_envelope_struct_validates_against_sensor_report_v1() -> Result<()> {
+    use tokmd_envelope::{CapabilityStatus, SensorReport, ToolMeta, Verdict};
+
+    let schema = load_sensor_report_schema()?;
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
+
+    // Create a SensorReport using the Rust struct
+    let mut report = SensorReport::new(
+        ToolMeta::tokmd("1.5.0", "cockpit"),
+        "2024-01-15T10:30:00Z".to_string(),
+        Verdict::Pass,
+        "Test summary".to_string(),
+    );
+
+    // Add a capability
+    report.add_capability("mutation", CapabilityStatus::available());
+
+    // Serialize to JSON
+    let json: Value = serde_json::to_value(&report)?;
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "SensorReport struct does not validate against schema:\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn test_envelope_output_determinism() -> Result<()> {
+    use tokmd_envelope::{
+        Artifact, CapabilityStatus, Finding, FindingSeverity, GateItem, GateResults, SensorReport,
+        ToolMeta, Verdict, findings,
+    };
+
+    // Create identical reports twice
+    let build_report = || {
+        let mut caps = std::collections::BTreeMap::new();
+        caps.insert("mutation".to_string(), CapabilityStatus::available());
+        caps.insert(
+            "coverage".to_string(),
+            CapabilityStatus::unavailable("missing"),
+        );
+
+        let mut report = SensorReport::new(
+            ToolMeta::tokmd("1.5.0", "cockpit"),
+            "2024-01-15T10:30:00Z".to_string(),
+            Verdict::Warn,
+            "Test summary".to_string(),
+        );
+
+        report.add_finding(Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::HOTSPOT,
+            FindingSeverity::Warn,
+            "Hotspot",
+            "Message",
+        ));
+
+        let gates = GateResults::new(Verdict::Warn, vec![GateItem::new("test", Verdict::Warn)]);
+        report = report.with_data(serde_json::json!({ "gates": gates }));
+        report = report.with_capabilities(caps);
+        report = report.with_artifacts(vec![Artifact::receipt("report.json")]);
+
+        report
+    };
+
+    let report1 = build_report();
+    let report2 = build_report();
+
+    let json1 = serde_json::to_string_pretty(&report1)?;
+    let json2 = serde_json::to_string_pretty(&report2)?;
+
+    assert_eq!(
+        json1, json2,
+        "SensorReport serialization should be deterministic"
+    );
+
     Ok(())
 }
