@@ -809,9 +809,7 @@ fn estimate_cyclomatic_simple(lang: &str, text: &str) -> usize {
         "javascript" | "typescript" => &[
             "if ", "else if ", "switch ", "case ", "while ", "for ", "&&", "||", "catch ",
         ],
-        "python" => &[
-            "if ", "elif ", "while ", "for ", "except ", " and ", " or ",
-        ],
+        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
         "go" => &[
             "if ", "else if ", "switch ", "case ", "for ", "select ", "&&", "||",
         ],

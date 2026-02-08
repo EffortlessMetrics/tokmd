@@ -119,6 +119,10 @@ pub struct Finding {
     /// Documentation URL for this finding type.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub docs_url: Option<String>,
+    /// Stable identity fingerprint for deduplication and buildfix routing.
+    /// BLAKE3 hash of (tool_name, check_id, code, location.path).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
 }
 
 /// Severity level for findings.
@@ -182,11 +186,17 @@ pub struct GateItem {
 /// Artifact reference in the sensor report.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Artifact {
+    /// Artifact identifier (e.g., "analysis", "handoff").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     /// Artifact type (e.g., "comment", "receipt", "badge").
     #[serde(rename = "type")]
     pub artifact_type: String,
     /// Path to the artifact file.
     pub path: String,
+    /// MIME type (e.g., "application/json").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime: Option<String>,
 }
 
 /// Status of a capability for "No Green By Omission".
@@ -341,6 +351,7 @@ impl Finding {
             location: None,
             evidence: None,
             docs_url: None,
+            fingerprint: None,
         }
     }
 
@@ -359,6 +370,27 @@ impl Finding {
     /// Add a documentation URL to the finding.
     pub fn with_docs_url(mut self, url: impl Into<String>) -> Self {
         self.docs_url = Some(url.into());
+        self
+    }
+
+    /// Compute a stable fingerprint from `(tool_name, check_id, code, path)`.
+    ///
+    /// Returns first 16 bytes (32 hex chars) of a BLAKE3 hash for compactness.
+    pub fn compute_fingerprint(&self, tool_name: &str) -> String {
+        let path = self
+            .location
+            .as_ref()
+            .map(|l| l.path.as_str())
+            .unwrap_or("");
+        let identity = format!("{}\0{}\0{}\0{}", tool_name, self.check_id, self.code, path);
+        let hash = blake3::hash(identity.as_bytes());
+        let hex = hash.to_hex();
+        hex[..32].to_string()
+    }
+
+    /// Auto-compute and set fingerprint. Builder pattern.
+    pub fn with_fingerprint(mut self, tool_name: &str) -> Self {
+        self.fingerprint = Some(self.compute_fingerprint(tool_name));
         self
     }
 }
@@ -465,8 +497,10 @@ impl Artifact {
     /// Create a new artifact reference.
     pub fn new(artifact_type: impl Into<String>, path: impl Into<String>) -> Self {
         Self {
+            id: None,
             artifact_type: artifact_type.into(),
             path: path.into(),
+            mime: None,
         }
     }
 
@@ -483,6 +517,18 @@ impl Artifact {
     /// Create a badge artifact.
     pub fn badge(path: impl Into<String>) -> Self {
         Self::new("badge", path)
+    }
+
+    /// Set the artifact ID. Builder pattern.
+    pub fn with_id(mut self, id: impl Into<String>) -> Self {
+        self.id = Some(id.into());
+        self
+    }
+
+    /// Set the MIME type. Builder pattern.
+    pub fn with_mime(mut self, mime: impl Into<String>) -> Self {
+        self.mime = Some(mime.into());
+        self
     }
 }
 

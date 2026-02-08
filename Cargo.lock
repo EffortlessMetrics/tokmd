@@ -3015,6 +3015,7 @@ dependencies = [
 name = "tokmd-envelope"
 version = "1.5.0"
 dependencies = [
+ "blake3",
  "proptest",
  "serde",
  "serde_json",

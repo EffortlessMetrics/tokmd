@@ -300,6 +300,27 @@ fn count_functions(lang: &str, text: &str) -> (usize, usize) {
     }
 }
 
+/// Check if a trimmed line starts a Rust function definition.
+/// Ordered from most specific to least specific to match correctly.
+fn is_rust_fn_start(trimmed: &str) -> bool {
+    trimmed.starts_with("pub(crate) async fn ")
+        || trimmed.starts_with("pub(super) async fn ")
+        || trimmed.starts_with("pub(crate) unsafe fn ")
+        || trimmed.starts_with("pub(super) unsafe fn ")
+        || trimmed.starts_with("pub(crate) const fn ")
+        || trimmed.starts_with("pub(super) const fn ")
+        || trimmed.starts_with("pub(crate) fn ")
+        || trimmed.starts_with("pub(super) fn ")
+        || trimmed.starts_with("pub async fn ")
+        || trimmed.starts_with("pub unsafe fn ")
+        || trimmed.starts_with("pub const fn ")
+        || trimmed.starts_with("async fn ")
+        || trimmed.starts_with("unsafe fn ")
+        || trimmed.starts_with("const fn ")
+        || trimmed.starts_with("pub fn ")
+        || trimmed.starts_with("fn ")
+}
+
 fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
     let mut count = 0;
     let mut max_len = 0;
@@ -311,14 +332,7 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
         let trimmed = line.trim();
 
         // Detect function start
-        if !in_fn
-            && (trimmed.starts_with("fn ")
-                || trimmed.starts_with("pub fn ")
-                || trimmed.starts_with("pub(crate) fn ")
-                || trimmed.starts_with("pub(super) fn ")
-                || trimmed.starts_with("async fn ")
-                || trimmed.starts_with("pub async fn "))
-        {
+        if !in_fn && is_rust_fn_start(trimmed) {
             count += 1;
             in_fn = true;
             fn_start = i;
@@ -553,24 +567,18 @@ fn estimate_cyclomatic(lang: &str, text: &str) -> usize {
     let mut complexity = 1usize;
 
     let keywords: &[&str] = match lang.to_lowercase().as_str() {
-        "rust" => &[
-            "if ", "else if ", "match ", "while ", "for ", "loop ", "?", "&&", "||",
-        ],
-        "javascript" | "typescript" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
-        "python" => &[
-            "if ", "elif ", "while ", "for ", "except ", " and ", " or ", " if ",
-        ],
-        "go" => &[
-            "if ", "else if ", "switch ", "case ", "for ", "select ", "&&", "||",
-        ],
-        "c" | "c++" | "java" | "c#" | "php" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
+        "rust" => &["if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
+        "javascript" | "typescript" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
+        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
+        "go" => &["if ", "case ", "for ", "select ", "&&", "||"],
+        "c" | "c++" | "java" | "c#" | "php" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
         "ruby" => &[
-            "if ", "elsif ", "unless ", "while ", "until ", "for ", "case ", "when ", "rescue ",
-            " and ", " or ",
+            "if ", "elsif ", "unless ", "while ", "until ", "for ", "when ", "rescue ", " and ",
+            " or ",
         ],
         _ => &[],
     };
@@ -764,13 +772,7 @@ fn detect_fn_spans_rust(lines: &[&str]) -> Vec<(usize, usize, String)> {
     let mut i = 0;
     while i < lines.len() {
         let trimmed = lines[i].trim();
-        if trimmed.starts_with("fn ")
-            || trimmed.starts_with("pub fn ")
-            || trimmed.starts_with("pub(crate) fn ")
-            || trimmed.starts_with("pub(super) fn ")
-            || trimmed.starts_with("async fn ")
-            || trimmed.starts_with("pub async fn ")
-        {
+        if is_rust_fn_start(trimmed) {
             let name = extract_rust_fn_name(trimmed);
             let start = i;
             let end = find_brace_end_at(lines, i);
@@ -815,8 +817,27 @@ fn detect_fn_spans_python(lines: &[&str]) -> Vec<(usize, usize, String)> {
         let trimmed = lines[i].trim();
         if trimmed.starts_with("def ") || trimmed.starts_with("async def ") {
             let name = extract_python_fn_name(trimmed);
-            let start = i;
             let base_indent = lines[i].len() - lines[i].trim_start().len();
+
+            // Walk upward to include decorator lines (@...)
+            let mut start = i;
+            {
+                let mut k = i;
+                while k > 0 {
+                    let prev = lines[k - 1].trim();
+                    if prev.is_empty() {
+                        k -= 1;
+                        continue;
+                    }
+                    let prev_indent = lines[k - 1].len() - lines[k - 1].trim_start().len();
+                    if prev_indent == base_indent && prev.starts_with('@') {
+                        start = k - 1;
+                        k -= 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
             let mut end = i;
             let mut j = i + 1;
             while j < lines.len() {
@@ -872,7 +893,8 @@ fn detect_fn_spans_c_style(lines: &[&str]) -> Vec<(usize, usize, String)> {
             && !trimmed.starts_with("while ")
             && !trimmed.starts_with("for ")
             && !trimmed.starts_with("switch ")
-            && !trimmed.starts_with("//");
+            && !trimmed.starts_with("//")
+            && !trimmed.starts_with('#');
         if looks_like_fn {
             let name = extract_c_fn_name(trimmed);
             let start = i;
@@ -1011,14 +1033,14 @@ fn extract_c_fn_name(line: &str) -> String {
 
 /// Count function parameters from a line.
 fn count_params(line: &str) -> usize {
-    if let Some(open) = line.find('(') {
-        if let Some(close) = line.find(')') {
-            let params = line[open + 1..close].trim();
-            if params.is_empty() {
-                return 0;
-            }
-            return params.split(',').count();
+    if let Some(open) = line.find('(')
+        && let Some(close) = line.find(')')
+    {
+        let params = line[open + 1..close].trim();
+        if params.is_empty() {
+            return 0;
         }
+        return params.split(',').count();
     }
     0
 }
@@ -1027,17 +1049,15 @@ fn count_params(line: &str) -> usize {
 fn estimate_cyclomatic_inline(lang: &str, text: &str) -> usize {
     let mut complexity = 1usize;
     let keywords: &[&str] = match lang {
-        "rust" => &["if ", "else if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
-        "javascript" | "typescript" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
-        "python" => &[
-            "if ", "elif ", "while ", "for ", "except ", " and ", " or ", " if ",
-        ],
-        "go" => &["if ", "else if ", "switch ", "case ", "for ", "select ", "&&", "||"],
-        "c" | "c++" | "java" | "c#" | "php" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
+        "rust" => &["if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
+        "javascript" | "typescript" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
+        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
+        "go" => &["if ", "case ", "for ", "select ", "&&", "||"],
+        "c" | "c++" | "java" | "c#" | "php" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
         _ => &[],
     };
     let lower = text.to_lowercase();
@@ -1116,7 +1136,46 @@ fn complex(x: i32) -> i32 {
 "#;
         let cyclo = estimate_cyclomatic("rust", code);
         // Base 1 + 2 ifs + 1 match = 4
-        assert!(cyclo >= 4);
+        assert_eq!(cyclo, 4);
+    }
+
+    #[test]
+    fn test_estimate_cyclomatic_rust_no_else_if_double_count() {
+        // "else if" should only count once (as "if"), not as both "if" and "else if"
+        let code = r#"
+fn branchy(x: i32) -> i32 {
+    if x > 0 {
+        1
+    } else if x < 0 {
+        -1
+    } else if x == 0 {
+        0
+    } else {
+        42
+    }
+}
+"#;
+        let cyclo = estimate_cyclomatic("rust", code);
+        // Base 1 + 3 ifs (the initial "if" + 2 "else if" each matched by "if ")
+        assert_eq!(cyclo, 4);
+    }
+
+    #[test]
+    fn test_estimate_cyclomatic_js_no_switch_double_count() {
+        // "switch" removed; only "case" contributes
+        let code = r#"
+function classify(x) {
+    switch (x) {
+        case 1: return "one";
+        case 2: return "two";
+        case 3: return "three";
+        default: return "other";
+    }
+}
+"#;
+        let cyclo = estimate_cyclomatic("javascript", code);
+        // Base 1 + 3 cases = 4
+        assert_eq!(cyclo, 4);
     }
 
     #[test]
@@ -1165,5 +1224,105 @@ fn complex(x: i32) -> i32 {
         assert!(is_complexity_lang("Python"));
         assert!(!is_complexity_lang("Markdown"));
         assert!(!is_complexity_lang("JSON"));
+    }
+
+    #[test]
+    fn test_detect_fn_rust_qualifiers() {
+        let code = r#"
+pub(crate) async fn crate_async() {
+    todo!()
+}
+
+pub(super) async fn super_async() {
+    todo!()
+}
+
+pub(crate) unsafe fn crate_unsafe() {
+    todo!()
+}
+
+pub unsafe fn public_unsafe() {
+    todo!()
+}
+
+pub(crate) const fn crate_const() -> u32 {
+    42
+}
+
+pub const fn public_const() -> u32 {
+    0
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_rust(&lines);
+        let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            vec![
+                "crate_async",
+                "super_async",
+                "crate_unsafe",
+                "public_unsafe",
+                "crate_const",
+                "public_const",
+            ]
+        );
+
+        // Also verify count_rust_functions picks them all up
+        let (count, _) = count_rust_functions(&lines);
+        assert_eq!(count, 6);
+    }
+
+    #[test]
+    fn test_detect_fn_python_decorators() {
+        let code = r#"
+@staticmethod
+def plain_static():
+    pass
+
+@app.route("/")
+@login_required
+def index():
+    return "hello"
+
+def no_decorator():
+    pass
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_python(&lines);
+        assert_eq!(spans.len(), 3);
+
+        // First function: @staticmethod + def plain_static
+        let (start, _end, ref name) = spans[0];
+        assert_eq!(name, "plain_static");
+        // The span should start at the decorator line
+        assert!(lines[start].trim().starts_with('@'));
+
+        // Second function: two decorators + def index
+        let (start2, _end2, ref name2) = spans[1];
+        assert_eq!(name2, "index");
+        assert!(lines[start2].trim().starts_with('@'));
+
+        // Third function: no decorator
+        let (start3, _end3, ref name3) = spans[2];
+        assert_eq!(name3, "no_decorator");
+        assert!(lines[start3].trim().starts_with("def "));
+    }
+
+    #[test]
+    fn test_detect_fn_c_style_no_preprocessor() {
+        let code = r#"
+#define THING(x) { }
+#define MACRO(a, b) { a + b; }
+
+int main(int argc, char** argv) {
+    return 0;
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_c_style(&lines);
+        // Should only detect main, not #define macros
+        assert_eq!(spans.len(), 1);
+        assert_eq!(spans[0].2, "main");
     }
 }

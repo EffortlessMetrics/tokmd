@@ -877,17 +877,15 @@ fn compute_diff_coverage_gate(repo_root: &Path) -> Result<Option<DiffCoverageGat
         } else if let Some(da) = line.strip_prefix("DA:") {
             // DA:line_number,execution_count
             let parts: Vec<&str> = da.splitn(2, ',').collect();
-            if parts.len() == 2 {
-                if let (Ok(line_no), Ok(count)) = (
-                    parts[0].parse::<usize>(),
-                    parts[1].parse::<usize>(),
-                ) {
-                    total_lines_added += 1;
-                    if count > 0 {
-                        total_lines_covered += 1;
-                    } else {
-                        file_uncovered.push(line_no);
-                    }
+            if parts.len() == 2
+                && let (Ok(line_no), Ok(count)) =
+                    (parts[0].parse::<usize>(), parts[1].parse::<usize>())
+            {
+                total_lines_added += 1;
+                if count > 0 {
+                    total_lines_covered += 1;
+                } else {
+                    file_uncovered.push(line_no);
                 }
             }
         } else if line == "end_of_record" {
@@ -938,11 +936,7 @@ fn compute_diff_coverage_gate(repo_root: &Path) -> Result<Option<DiffCoverageGat
 }
 
 /// Flush consecutive uncovered lines into hunk ranges.
-fn flush_uncovered_hunks(
-    file: &str,
-    uncovered: &[usize],
-    hunks: &mut Vec<UncoveredHunk>,
-) {
+fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<UncoveredHunk>) {
     if uncovered.is_empty() || file.is_empty() {
         return;
     }
@@ -3673,8 +3667,8 @@ fn write_sensor_artifacts(
 
     // Write sensor.report.v1 envelope
     let report_path = dir.join("report.json");
-    let report_json = serde_json::to_string_pretty(&envelope)
-        .context("Failed to serialize sensor report")?;
+    let report_json =
+        serde_json::to_string_pretty(&envelope).context("Failed to serialize sensor report")?;
     std::fs::write(&report_path, &report_json)
         .with_context(|| format!("Failed to write {}", report_path.display()))?;
 
@@ -3756,8 +3750,11 @@ fn evidence_to_gate_results(evidence: &Evidence) -> GateResults {
 
     // Mutation gate (always present)
     items.push(
-        GateItem::new("mutation", map_gate_status_to_verdict(evidence.mutation.meta.status))
-            .with_source("computed"),
+        GateItem::new(
+            "mutation",
+            map_gate_status_to_verdict(evidence.mutation.meta.status),
+        )
+        .with_source("computed"),
     );
 
     // Optional gates
@@ -3810,12 +3807,8 @@ fn build_capabilities(evidence: &Evidence) -> BTreeMap<String, CapabilityStatus>
     caps.insert(
         "mutation".to_string(),
         match evidence.mutation.meta.status {
-            GateStatus::Skipped => {
-                CapabilityStatus::skipped("no relevant Rust source files")
-            }
-            GateStatus::Pending => {
-                CapabilityStatus::unavailable("cargo-mutants not installed")
-            }
+            GateStatus::Skipped => CapabilityStatus::skipped("no relevant Rust source files"),
+            GateStatus::Pending => CapabilityStatus::unavailable("cargo-mutants not installed"),
             _ => CapabilityStatus::available(),
         },
     );
@@ -3824,9 +3817,7 @@ fn build_capabilities(evidence: &Evidence) -> BTreeMap<String, CapabilityStatus>
     caps.insert(
         "diff_coverage".to_string(),
         match &evidence.diff_coverage {
-            Some(dc) if dc.meta.status != GateStatus::Pending => {
-                CapabilityStatus::available()
-            }
+            Some(dc) if dc.meta.status != GateStatus::Pending => CapabilityStatus::available(),
             Some(_) => CapabilityStatus::unavailable("no coverage artifact found"),
             None => CapabilityStatus::skipped("not configured"),
         },

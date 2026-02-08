@@ -26,8 +26,6 @@ mod churn;
 mod complexity;
 #[cfg(feature = "content")]
 mod content;
-#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-mod halstead;
 mod derived;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod entropy;
@@ -36,6 +34,8 @@ mod fingerprint;
 mod fun;
 #[cfg(feature = "git")]
 mod git;
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+mod halstead;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod license;
 mod topics;
