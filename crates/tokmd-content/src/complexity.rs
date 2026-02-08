@@ -80,8 +80,9 @@ impl FunctionSpan {
 }
 
 // Regex patterns for different languages
-static RUST_FN: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\s*(pub\s+)?(async\s+)?fn\s+\w+").unwrap());
+static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(pub(\(\w+\))?\s+)?(async\s+)?(unsafe\s+)?(const\s+)?fn\s+\w+").unwrap()
+});
 
 static PYTHON_DEF: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\s*(async\s+)?def\s+\w+").unwrap());
@@ -195,13 +196,8 @@ fn find_brace_end(lines: &[&str], start_line: usize) -> Option<usize> {
         }
     }
 
-    // Return last line if we found an opening brace but no matching close,
-    // or None if no opening brace was found at all.
-    if found_open {
-        Some(lines.len().saturating_sub(1))
-    } else {
-        None
-    }
+    // Both cases (no open brace, or unclosed braces) → None
+    None
 }
 
 /// Detect functions in indentation-based languages (Python).
@@ -211,8 +207,29 @@ fn detect_indented_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpa
 
     while i < lines.len() {
         if pattern.is_match(lines[i]) {
-            let start = i;
+            let mut start = i;
             let base_indent = get_indent(lines[i]);
+
+            // Walk upward to include decorator lines at the same indent level.
+            // Skip blank lines only tentatively; commit only if a decorator is found.
+            {
+                let mut probe = start;
+                while probe > 0 {
+                    let prev = lines[probe - 1].trim();
+                    if prev.is_empty() {
+                        probe -= 1;
+                        continue;
+                    }
+                    let prev_indent = get_indent(lines[probe - 1]);
+                    if prev_indent == base_indent && prev.starts_with('@') {
+                        probe -= 1;
+                        start = probe; // commit: include this decorator (and skipped blanks)
+                    } else {
+                        break;
+                    }
+                }
+            }
+
             let end = find_indent_end(lines, i, base_indent);
             spans.push(FunctionSpan {
                 start_line: start,

@@ -1436,7 +1436,9 @@
       "required": ["type", "path"],
       "properties": {
         "type": { "type": "string", "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')." },
-        "path": { "type": "string", "description": "Path to the artifact file." }
+        "path": { "type": "string", "description": "Path to the artifact file." },
+        "id": { "type": ["string", "null"], "description": "Artifact identifier (e.g., 'receipt', 'cockpit', 'comment')." },
+        "mime": { "type": ["string", "null"], "description": "MIME type (e.g., 'application/json', 'text/markdown')." }
       }
     },
     "ComplexityBaseline": {

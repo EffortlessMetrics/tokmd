@@ -941,11 +941,8 @@ fn find_brace_end_at(lines: &[&str], start_line: usize) -> Option<usize> {
             }
         }
     }
-    if found_open {
-        Some(lines.len().saturating_sub(1))
-    } else {
-        None
-    }
+    // Both cases (no open brace, or unclosed braces) → None
+    None
 }
 
 /// Extract Rust function name from a line containing "fn ".
