@@ -1,0 +1,25 @@
+{
+  "run_id": "run-gatekeeper-proptest-unification",
+  "timestamp": "2026-02-05T10:52:43Z",
+  "lane": "B",
+  "target": "Unify proptest versions in workspace and Fix CI Failures",
+  "decision": "Option A: Update divergent crates (tokmd-tokeignore, tokmd-git) to proptest 1.9.0. Fix RUSTSEC-2026-0007 in Cargo.lock. Fix Nix CI by whitelisting docs/ and adding git to nativeBuildInputs.",
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-tokeignore",
+      "result": "Passed (17 properties, 15 unit tests)"
+    },
+    {
+      "command": "cargo test -p tokmd-git",
+      "result": "Passed (25 properties, 13 integration tests)"
+    },
+    {
+      "command": "cargo update -p bytes",
+      "result": "Updated bytes v1.11.0 -> v1.11.1 (Fixed RUSTSEC-2026-0007)"
+    },
+    {
+      "command": "cargo test",
+      "result": "All tests passed (including schema_validation)"
+    }
+  ]
+}
