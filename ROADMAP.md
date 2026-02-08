@@ -4,7 +4,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ## Vision
 
-`tokmd` is a **code intelligence platform** that transforms repository scans into actionable insights for humans, machines, and LLMs.
+`tokmd` is a **lightweight code intelligence tool** that transforms repository scans into actionable insights for humans, machines, and LLMs.
 
 - **Receipt-Grade**: Outputs are deterministic, versioned, and safe for automated pipelines.
 - **Analysis-Ready**: Rich derived metrics, git integration, and semantic analysis.
@@ -24,8 +24,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.2.0** | ✅ Complete | Microcrate architecture, context packing, git integration.   |
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
-| **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope.          |
-| **v1.6.0** | 🔭 Planned  | Halstead metrics, function detail export, complexity gates.  |
+| **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
+| **v1.6.0** | 🔭 Planned  | Halstead metrics, function detail export, histogram integration. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system, tree-sitter.  |
 
 ---
@@ -231,12 +231,12 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### Advanced Features
 
-| Feature                | Status     | Description                                         |
-| :--------------------- | :--------- | :-------------------------------------------------- |
-| Halstead metrics       | 📋 Planned | Optional, feature-gated Halstead complexity metrics |
-| Function detail export | 📋 Planned | `--detail-functions` flag for function-level output |
-| Complexity histogram   | 📋 Planned | Distribution of complexity scores across codebase   |
-| Complexity gates       | 📋 Planned | Gate rules targeting specific complexity metrics    |
+| Feature                | Status      | Description                                          |
+| :--------------------- | :---------- | :--------------------------------------------------- |
+| Halstead metrics       | 📋 Planned  | Optional, feature-gated Halstead complexity metrics  |
+| Function detail export | 📋 Planned  | `--detail-functions` flag for function-level output  |
+| Complexity histogram   | 🔧 Partial  | Types and function exist; wire into analysis pipeline |
+| Complexity gates       | ✅ Complete | Shipped in cockpit evidence gate system              |
 
 ---
 
@@ -369,7 +369,7 @@ _Goal: Historical tracking and team insights._
 These are explicitly out of scope for tokmd:
 
 - **Code formatting/linting** — Use dedicated tools (rustfmt, eslint)
-- **Dependency vulnerability scanning** — Use cargo-audit, npm audit
+- **Dependency vulnerability scanning** — tokmd delegates to external tools (cargo-audit, npm audit) when available; it does not maintain its own advisory database
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
 - **Full AST analysis** — tokmd uses heuristics, not parsers (until v2.0 tree-sitter integration)

@@ -50,7 +50,11 @@ tokmd-analysis-format = { workspace = true, features = ["fun"] }
 tokmd-analysis-types.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
+tokmd-envelope.workspace = true
 tokmd-scan.workspace = true
+tokmd-sensor.workspace = true
+tokmd-settings.workspace = true
+tokmd-substrate.workspace = true
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true
@@ -65,6 +69,7 @@ serde_json = "1.0.149"
 tokmd-gate.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }
 blake3.workspace = true
+time = { version = "0.3", features = ["formatting"] }
 
 [dev-dependencies]
 assert_cmd = "2.1.2"

@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Sensor Command**: New `tokmd sensor` for producing conforming `sensor.report.v1` envelopes
+  - Wraps cockpit computation and maps results to standardized findings and gates
+  - `--base` / `--head` flags for git diff range
+  - `--output` for artifact path (default: `artifacts/tokmd/report.json`)
+  - `--format json|md` output selection
+  - Emits risk findings (hotspots) and contract findings (schema/API/CLI changes)
+  - Maps cockpit evidence gates to envelope `GateResults`
+
+- **New Crate `tokmd-sensor`** (Tier 1): Sensor integration layer
+  - `EffortlessSensor` trait with `name()`, `version()`, `run(settings, substrate)` contract
+  - `build_substrate()` function runs tokei scan once and builds shared `RepoSubstrate`
+  - Enables pluggable multi-sensor architecture
+
+- **New Crate `tokmd-settings`** (Tier 0): Clap-free configuration types
+  - `ScanOptions`, `ScanSettings`, `LangSettings`, `ModuleSettings`, `ExportSettings`, `AnalyzeSettings`, `DiffSettings`
+  - Decouples lower-tier crates from `clap` dependency
+  - Enables library usage and FFI/Python/Node bindings without pulling in CLI types
+
+- **New Crate `tokmd-envelope`** (Tier 0): Cross-fleet sensor report contract
+  - `SensorReport` envelope with schema `"sensor.report.v1"`
+  - `Verdict` enum: `Pass`, `Fail`, `Warn`, `Skip`, `Pending` with aggregation rules
+  - `Finding` type with `(check_id, code)` tuple for buildfix routing
+  - `GateResults` and `GateItem` for evidence gate status
+  - `ToolMeta` and `Artifact` metadata types
+  - Finding registry with constants for risk, contract, supply, gate, security, and architecture categories
+
+- **New Crate `tokmd-substrate`** (Tier 0): Shared repository context
+  - `RepoSubstrate` with file metrics, language summaries, diff range, and totals
+  - `SubstrateFile` per-file metrics including `in_diff` flag
+  - `DiffRange` for git context (base, head, changed files, insertions, deletions)
+  - Helper methods: `diff_files()`, `files_for_lang()`
+  - Single I/O pass feeds multiple sensors, eliminating redundant scans
+
+### Changed
+
+- **Scan API**: `tokmd_scan::scan()` now accepts `&ScanOptions` instead of `&GlobalArgs`, decoupling Tier 1 from CLI types
+- **Core Workflows**: `tokmd-core` workflow functions now use settings types (`ScanSettings`, `LangSettings`, etc.) instead of Clap-based args
+- **Envelope Schema**: Changed schema identifier from numeric `sensor_report_version: u32` to semantic string `schema: String` (`"sensor.report.v1"`)
+- **Finding Identity**: Replaced `Finding.id` with `(check_id, code)` tuple for category-based routing
+- **Analysis Types**: Moved envelope and findings types to dedicated `tokmd-envelope` crate
+- **Core Settings**: `tokmd-core` re-exports from `tokmd-settings` for backwards compatibility
+
+### Internal
+
+- Hardened tests: replaced sentinel nonexistent paths with `tempdir` in `tokmd-scan` and `tokmd-tokeignore`
+- Added `tempfile` dev-dependency to `tokmd-scan`
+- Added README files for `tokmd-sensor`, `tokmd-envelope`, `tokmd-substrate`, `tokmd-settings`
+- Added `tokmd sensor` documentation to `reference-cli.md`
+- Updated `docs/schema.json` and `docs/SCHEMA.md` for new envelope fields
+
 ## [1.5.0] - 2026-02-05
 
 ### Added
@@ -29,6 +83,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Finding ID registry with `tokmd.<category>.<code>` format (e.g., `tokmd.risk.hotspot`)
   - Verdict aggregation: pass/fail/warn/skip/pending
   - Builder pattern APIs for constructing envelopes programmatically
+
+- **Handoff Command**: New `tokmd handoff` for creating LLM-ready code bundles
+  - Generates `.handoff/` directory with `manifest.json`, `map.jsonl`, `intelligence.json`, and `code.txt`
+  - Token-budgeted file selection with `--budget` and `--strategy` options
+  - Risk-ranked ordering via `--rank-by` (hotspot, code, tokens, churn)
+  - Intelligence presets: `minimal`, `standard`, `risk`, `deep`
+  - Deterministic output with BLAKE3 integrity hashes
 
 - **Finding ID Constants**: New `tokmd_analysis_types::findings` module
   - Risk findings: `hotspot`, `coupling`, `bus_factor`, `complexity_high`, `cognitive_high`, `nesting_deep`

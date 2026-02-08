@@ -30,7 +30,7 @@ use serde::Serialize;
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
-use tokmd_config::GlobalArgs;
+use tokmd_settings::ScanOptions;
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow,
     LangArgs, LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
@@ -67,7 +67,7 @@ pub fn normalize_scan_input(p: &Path) -> String {
 /// - `None` or `Some(RedactMode::None)`: Paths shown as-is (normalized only)
 /// - `Some(RedactMode::Paths)`: Hash file paths, preserve extension
 /// - `Some(RedactMode::All)`: Hash paths and excluded patterns
-pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMode>) -> ScanArgs {
+pub fn scan_args(paths: &[PathBuf], global: &ScanOptions, redact: Option<RedactMode>) -> ScanArgs {
     let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
     let excluded_redacted = should_redact && !global.excluded.is_empty();
 
@@ -104,7 +104,7 @@ pub fn scan_args(paths: &[PathBuf], global: &GlobalArgs, redact: Option<RedactMo
 pub fn write_lang_report_to<W: Write>(
     mut out: W,
     report: &LangReport,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &LangArgs,
 ) -> Result<()> {
     match args.format {
@@ -140,7 +140,7 @@ pub fn write_lang_report_to<W: Write>(
 /// Print a language report to stdout.
 ///
 /// Thin wrapper around [`write_lang_report_to`] for stdout.
-pub fn print_lang_report(report: &LangReport, global: &GlobalArgs, args: &LangArgs) -> Result<()> {
+pub fn print_lang_report(report: &LangReport, global: &ScanOptions, args: &LangArgs) -> Result<()> {
     let stdout = io::stdout();
     let out = stdout.lock();
     write_lang_report_to(out, report, global, args)
@@ -240,7 +240,7 @@ fn render_lang_tsv(report: &LangReport) -> String {
 pub fn write_module_report_to<W: Write>(
     mut out: W,
     report: &ModuleReport,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ModuleArgs,
 ) -> Result<()> {
     match args.format {
@@ -279,7 +279,7 @@ pub fn write_module_report_to<W: Write>(
 /// Thin wrapper around [`write_module_report_to`] for stdout.
 pub fn print_module_report(
     report: &ModuleReport,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ModuleArgs,
 ) -> Result<()> {
     let stdout = io::stdout();
@@ -360,7 +360,7 @@ struct JsonlRow<'a> {
     row: &'a FileRow,
 }
 
-pub fn write_export(export: &ExportData, global: &GlobalArgs, args: &ExportArgs) -> Result<()> {
+pub fn write_export(export: &ExportData, global: &ScanOptions, args: &ExportArgs) -> Result<()> {
     match &args.out {
         Some(path) => {
             let file = File::create(path)?;
@@ -381,7 +381,7 @@ pub fn write_export(export: &ExportData, global: &GlobalArgs, args: &ExportArgs)
 fn write_export_to<W: Write>(
     out: &mut W,
     export: &ExportData,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
     match args.format {
@@ -431,7 +431,7 @@ fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArg
 fn write_export_jsonl<W: Write>(
     out: &mut W,
     export: &ExportData,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
@@ -483,7 +483,7 @@ fn write_export_jsonl<W: Write>(
 fn write_export_json<W: Write>(
     out: &mut W,
     export: &ExportData,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
     if args.meta {
@@ -748,7 +748,7 @@ pub fn write_module_json_to_file(
 ///
 /// This is a convenience function for the `run` command that accepts
 /// pre-constructed `ScanArgs` and `ExportArgsMeta` rather than requiring
-/// the full `GlobalArgs` and `ExportArgs` structs.
+/// the full `ScanOptions` and `ExportArgs` structs.
 pub fn write_export_jsonl_to_file(
     path: &Path,
     export: &ExportData,
@@ -981,7 +981,7 @@ pub fn write_export_csv_to<W: Write>(
 pub fn write_export_jsonl_to<W: Write>(
     out: &mut W,
     export: &ExportData,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
     write_export_jsonl(out, export, global, args)
@@ -992,7 +992,7 @@ pub fn write_export_jsonl_to<W: Write>(
 pub fn write_export_json_to<W: Write>(
     out: &mut W,
     export: &ExportData,
-    global: &GlobalArgs,
+    global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
     write_export_json(out, export, global, args)
@@ -1012,7 +1012,7 @@ pub fn write_export_cyclonedx_to<W: Write>(
 mod tests {
     use super::*;
     use proptest::prelude::*;
-    use tokmd_config::ChildrenMode;
+    use tokmd_settings::ChildrenMode;
     use tokmd_types::{LangRow, ModuleRow, Totals};
 
     fn sample_lang_report(with_files: bool) -> LangReport {
@@ -1083,7 +1083,7 @@ mod tests {
             },
             module_roots: vec!["crates".to_string()],
             module_depth: 2,
-            children: tokmd_config::ChildIncludeMode::Separate,
+            children: tokmd_settings::ChildIncludeMode::Separate,
             top: 0,
         }
     }
@@ -1680,8 +1680,8 @@ mod tests {
     // write_*_to Tests (mutation killers)
     // ========================
 
-    fn sample_global_args() -> GlobalArgs {
-        GlobalArgs::default()
+    fn sample_global_args() -> ScanOptions {
+        ScanOptions::default()
     }
 
     fn sample_lang_args(format: TableFormat) -> LangArgs {
@@ -1701,7 +1701,7 @@ mod tests {
             top: 0,
             module_roots: vec!["crates".to_string()],
             module_depth: 2,
-            children: tokmd_config::ChildIncludeMode::Separate,
+            children: tokmd_settings::ChildIncludeMode::Separate,
         }
     }
 

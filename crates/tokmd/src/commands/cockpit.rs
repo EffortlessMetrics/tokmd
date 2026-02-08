@@ -548,6 +548,17 @@ pub enum RiskLevel {
     Critical,
 }
 
+impl std::fmt::Display for RiskLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RiskLevel::Low => write!(f, "low"),
+            RiskLevel::Medium => write!(f, "medium"),
+            RiskLevel::High => write!(f, "high"),
+            RiskLevel::Critical => write!(f, "critical"),
+        }
+    }
+}
+
 /// Contract change indicators.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Contracts {
@@ -645,7 +656,7 @@ pub enum TrendDirection {
 }
 
 #[cfg(feature = "git")]
-fn compute_cockpit(
+pub(crate) fn compute_cockpit(
     repo_root: &PathBuf,
     base: &str,
     head: &str,
@@ -2661,7 +2672,7 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
 
     // Health summary badge-style
     out.push_str(&format!(
-        "**Health:** {} ({}/100) | **Risk:** {:?} ({}/100)\n\n",
+        "**Health:** {} ({}/100) | **Risk:** {} ({}/100)\n\n",
         receipt.code_health.grade,
         receipt.code_health.score,
         receipt.risk.level,
@@ -3174,7 +3185,7 @@ fn render_sections(receipt: &CockpitReceipt) -> String {
         receipt.code_health.grade, receipt.code_health.score
     ));
     out.push_str(&format!(
-        "| **Risk** | {:?} ({}/100) |\n",
+        "| **Risk** | {} ({}/100) |\n",
         receipt.risk.level, receipt.risk.score
     ));
     out.push_str("| **Change Surface** | |\n");
@@ -3327,7 +3338,7 @@ fn render_comment(receipt: &CockpitReceipt) -> String {
     ));
 
     out.push_str(&format!(
-        "- Risk: {:?} ({} / 100)\n",
+        "- Risk: {} ({} / 100)\n",
         receipt.risk.level, receipt.risk.score
     ));
 

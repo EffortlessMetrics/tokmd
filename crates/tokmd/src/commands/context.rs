@@ -84,7 +84,8 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
         &mut scan_args,
         &mut excluded_paths,
     );
-    let languages = scan::scan(&paths, &scan_args)?;
+    let scan_opts = tokmd_settings::ScanOptions::from(&scan_args);
+    let languages = scan::scan(&paths, &scan_opts)?;
     let module_roots = args.module_roots.clone().unwrap_or_default();
     let module_depth = args.module_depth.unwrap_or(2);
 

@@ -1,28 +1,23 @@
 //! Property-based tests for tokmd-scan.
 //!
-//! These tests verify that the GlobalArgs to tokei Config mapping is correct
+//! These tests verify that the ScanOptions to tokei Config mapping is correct
 //! and never panics for any valid combination of inputs.
 //!
 //! ## Test Coverage
 //!
 //! 1. **Flag implication**: `no_ignore` implies all `no_ignore_*` flags
-//! 2. **Config mapping never panics**: Any valid GlobalArgs produces valid Config
+//! 2. **Config mapping never panics**: Any valid ScanOptions produces valid Config
 //! 3. **ConfigMode handling**: Auto vs None both succeed without panicking
 //! 4. **Excluded patterns**: Empty, multiple, and special glob patterns work
 
 use proptest::prelude::*;
 use proptest::string::string_regex;
-use tokmd_config::GlobalArgs;
+use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
 
 // ============================================================================
 // Strategies
 // ============================================================================
-
-/// Strategy for generating arbitrary verbosity levels (0-3).
-fn arb_verbose() -> impl Strategy<Value = u8> {
-    0u8..=3
-}
 
 /// Strategy for generating valid exclude patterns.
 ///
@@ -70,11 +65,11 @@ fn arb_config_mode() -> impl Strategy<Value = ConfigMode> {
     prop_oneof![Just(ConfigMode::Auto), Just(ConfigMode::None),]
 }
 
-/// Strategy for generating arbitrary GlobalArgs.
+/// Strategy for generating arbitrary ScanOptions.
 ///
 /// This generates all possible combinations of boolean flags, exclude patterns,
 /// config modes, and verbosity levels.
-fn arb_global_args() -> impl Strategy<Value = GlobalArgs> {
+fn arb_global_args() -> impl Strategy<Value = ScanOptions> {
     (
         arb_excluded(),
         arb_config_mode(),
@@ -84,8 +79,6 @@ fn arb_global_args() -> impl Strategy<Value = GlobalArgs> {
         any::<bool>(), // no_ignore_dot
         any::<bool>(), // no_ignore_vcs
         any::<bool>(), // treat_doc_strings_as_comments
-        arb_verbose(),
-        any::<bool>(), // no_progress
     )
         .prop_map(
             |(
@@ -97,9 +90,7 @@ fn arb_global_args() -> impl Strategy<Value = GlobalArgs> {
                 no_ignore_dot,
                 no_ignore_vcs,
                 treat_doc_strings_as_comments,
-                verbose,
-                no_progress,
-            )| GlobalArgs {
+            )| ScanOptions {
                 excluded,
                 config,
                 hidden,
@@ -108,30 +99,28 @@ fn arb_global_args() -> impl Strategy<Value = GlobalArgs> {
                 no_ignore_dot,
                 no_ignore_vcs,
                 treat_doc_strings_as_comments,
-                verbose,
-                no_progress,
             },
         )
 }
 
-/// Strategy for GlobalArgs with no_ignore = true.
-fn arb_global_args_with_no_ignore() -> impl Strategy<Value = GlobalArgs> {
+/// Strategy for ScanOptions with no_ignore = true.
+fn arb_global_args_with_no_ignore() -> impl Strategy<Value = ScanOptions> {
     arb_global_args().prop_map(|mut args| {
         args.no_ignore = true;
         args
     })
 }
 
-/// Strategy for GlobalArgs with empty excluded list.
-fn arb_global_args_empty_excluded() -> impl Strategy<Value = GlobalArgs> {
+/// Strategy for ScanOptions with empty excluded list.
+fn arb_global_args_empty_excluded() -> impl Strategy<Value = ScanOptions> {
     arb_global_args().prop_map(|mut args| {
         args.excluded = vec![];
         args
     })
 }
 
-/// Strategy for GlobalArgs with many exclude patterns (stress test).
-fn arb_global_args_many_excludes() -> impl Strategy<Value = GlobalArgs> {
+/// Strategy for ScanOptions with many exclude patterns (stress test).
+fn arb_global_args_many_excludes() -> impl Strategy<Value = ScanOptions> {
     (
         arb_global_args(),
         prop::collection::vec(arb_exclude_pattern(), 10..=20),
@@ -147,7 +136,7 @@ fn arb_global_args_many_excludes() -> impl Strategy<Value = GlobalArgs> {
 // ============================================================================
 
 proptest! {
-    /// Any valid GlobalArgs should produce a tokei Config without panicking.
+    /// Any valid ScanOptions should produce a tokei Config without panicking.
     ///
     /// This is the primary safety property: we can't test the actual scan
     /// behavior without filesystem access, but we can ensure the configuration
@@ -328,7 +317,7 @@ proptest! {
     /// All boolean flags set to true should work.
     #[test]
     fn all_flags_true_works(_dummy in 0..100u8) {
-        let args = GlobalArgs {
+        let args = ScanOptions {
             excluded: vec!["target".to_string(), "node_modules".to_string()],
             config: ConfigMode::None,
             hidden: true,
@@ -337,8 +326,6 @@ proptest! {
             no_ignore_dot: true,
             no_ignore_vcs: true,
             treat_doc_strings_as_comments: true,
-            verbose: 3,
-            no_progress: true,
         };
 
         // Build config
@@ -365,7 +352,7 @@ proptest! {
     /// All boolean flags set to false should work.
     #[test]
     fn all_flags_false_works(_dummy in 0..100u8) {
-        let args = GlobalArgs {
+        let args = ScanOptions {
             excluded: vec![],
             config: ConfigMode::Auto,
             hidden: false,
@@ -374,8 +361,6 @@ proptest! {
             no_ignore_dot: false,
             no_ignore_vcs: false,
             treat_doc_strings_as_comments: false,
-            verbose: 0,
-            no_progress: false,
         };
 
         // With all flags false, config remains at defaults
@@ -391,7 +376,7 @@ proptest! {
     /// Hidden flag should be independent of ignore flags.
     #[test]
     fn hidden_flag_independent(hidden in any::<bool>(), no_ignore in any::<bool>()) {
-        let args = GlobalArgs {
+        let args = ScanOptions {
             excluded: vec![],
             config: ConfigMode::None,
             hidden,
@@ -400,8 +385,6 @@ proptest! {
             no_ignore_dot: false,
             no_ignore_vcs: false,
             treat_doc_strings_as_comments: false,
-            verbose: 0,
-            no_progress: false,
         };
 
         let mut cfg = tokei::Config::default();
@@ -440,56 +423,10 @@ proptest! {
 // ============================================================================
 
 proptest! {
-    /// Verbosity level should not affect config creation.
-    #[test]
-    fn verbose_levels_work(verbose in 0u8..=255) {
-        let args = GlobalArgs {
-            excluded: vec![],
-            config: ConfigMode::None,
-            hidden: false,
-            no_ignore: false,
-            no_ignore_parent: false,
-            no_ignore_dot: false,
-            no_ignore_vcs: false,
-            treat_doc_strings_as_comments: false,
-            verbose,
-            no_progress: false,
-        };
-
-        // Verbosity doesn't affect tokei config, just verify it's stored
-        prop_assert_eq!(args.verbose, verbose);
-
-        // Config creation should succeed regardless of verbosity
-        let _cfg = tokei::Config::default();
-    }
-
-    /// no_progress flag should not affect config creation.
-    #[test]
-    fn no_progress_flag_works(no_progress in any::<bool>()) {
-        let args = GlobalArgs {
-            excluded: vec![],
-            config: ConfigMode::None,
-            hidden: false,
-            no_ignore: false,
-            no_ignore_parent: false,
-            no_ignore_dot: false,
-            no_ignore_vcs: false,
-            treat_doc_strings_as_comments: false,
-            verbose: 0,
-            no_progress,
-        };
-
-        // no_progress doesn't affect tokei config, just verify it's stored
-        prop_assert_eq!(args.no_progress, no_progress);
-
-        // Config creation should succeed
-        let _cfg = tokei::Config::default();
-    }
-
-    /// Default GlobalArgs should produce valid config.
+    /// Default ScanOptions should produce valid config.
     #[test]
     fn default_global_args_work(_dummy in 0..100u8) {
-        let args = GlobalArgs::default();
+        let args = ScanOptions::default();
 
         // Should have sensible defaults
         prop_assert!(args.excluded.is_empty());
@@ -499,8 +436,6 @@ proptest! {
         prop_assert!(!args.no_ignore_parent);
         prop_assert!(!args.no_ignore_vcs);
         prop_assert!(!args.treat_doc_strings_as_comments);
-        prop_assert_eq!(args.verbose, 0);
-        prop_assert!(!args.no_progress);
 
         // Config creation should succeed
         let _cfg = tokei::Config::default();
@@ -512,13 +447,13 @@ proptest! {
 // ============================================================================
 
 proptest! {
-    /// GlobalArgs to config mapping should be deterministic.
+    /// ScanOptions to config mapping should be deterministic.
     ///
-    /// The same GlobalArgs should always produce the same Config behavior.
+    /// The same ScanOptions should always produce the same Config behavior.
     #[test]
     fn config_mapping_is_deterministic(args in arb_global_args()) {
         // Build config twice with the same args
-        let build_config = |args: &GlobalArgs| {
+        let build_config = |args: &ScanOptions| {
             let mut cfg = match args.config {
                 ConfigMode::Auto => tokei::Config::from_config_files(),
                 ConfigMode::None => tokei::Config::default(),

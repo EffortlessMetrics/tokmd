@@ -4,11 +4,11 @@
   "title": "tokmd Ecosystem Envelope",
   "description": "Standardized report format for multi-sensor integration",
   "type": "object",
-  "required": ["envelope_version", "tool", "generated_at", "verdict", "summary", "findings"],
+  "required": ["schema", "tool", "generated_at", "verdict", "summary", "findings"],
   "properties": {
-    "envelope_version": {
-      "type": "integer",
-      "const": 1
+    "schema": {
+      "type": "string",
+      "const": "sensor.report.v1"
     },
     "tool": { "$ref": "#/definitions/EnvelopeTool" },
     "generated_at": {
@@ -44,9 +44,10 @@
     },
     "Finding": {
       "type": "object",
-      "required": ["id", "severity", "title", "message"],
+      "required": ["check_id", "code", "severity", "title", "message"],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z]+\\.[a-z_]+\\.[a-z_]+$" },
+        "check_id": { "type": "string", "description": "Check category (e.g., 'risk', 'contract')." },
+        "code": { "type": "string", "description": "Finding code within the category (e.g., 'hotspot')." },
         "severity": { "$ref": "#/definitions/FindingSeverity" },
         "title": { "type": "string" },
         "message": { "type": "string" },

@@ -56,8 +56,10 @@ fn lang_workflow_respects_top_setting() {
 fn scan_settings_excluded_patterns() {
     let scan = ScanSettings {
         paths: vec!["src".to_string()],
-        excluded: vec!["**/tests/**".to_string()],
-        ..Default::default()
+        options: tokmd_core::settings::ScanOptions {
+            excluded: vec!["**/tests/**".to_string()],
+            ..Default::default()
+        },
     };
     let lang = LangSettings::default();
 

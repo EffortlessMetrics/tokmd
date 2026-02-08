@@ -293,14 +293,16 @@ fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
 
     Ok(ScanSettings {
         paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
-        excluded: parse_string_array(obj, "excluded", vec![])?,
-        config: parse_config_mode(obj, ConfigMode::Auto)?,
-        hidden: parse_bool(obj, "hidden", false)?,
-        no_ignore: parse_bool(obj, "no_ignore", false)?,
-        no_ignore_parent: parse_bool(obj, "no_ignore_parent", false)?,
-        no_ignore_dot: parse_bool(obj, "no_ignore_dot", false)?,
-        no_ignore_vcs: parse_bool(obj, "no_ignore_vcs", false)?,
-        treat_doc_strings_as_comments: parse_bool(obj, "treat_doc_strings_as_comments", false)?,
+        options: crate::settings::ScanOptions {
+            excluded: parse_string_array(obj, "excluded", vec![])?,
+            config: parse_config_mode(obj, ConfigMode::Auto)?,
+            hidden: parse_bool(obj, "hidden", false)?,
+            no_ignore: parse_bool(obj, "no_ignore", false)?,
+            no_ignore_parent: parse_bool(obj, "no_ignore_parent", false)?,
+            no_ignore_dot: parse_bool(obj, "no_ignore_dot", false)?,
+            no_ignore_vcs: parse_bool(obj, "no_ignore_vcs", false)?,
+            treat_doc_strings_as_comments: parse_bool(obj, "treat_doc_strings_as_comments", false)?,
+        },
     })
 }
 
@@ -437,7 +439,7 @@ mod tests {
         let args: Value = serde_json::json!({});
         let settings = parse_scan_settings(&args).unwrap();
         assert_eq!(settings.paths, vec!["."]);
-        assert!(!settings.hidden);
+        assert!(!settings.options.hidden);
     }
 
     #[test]
@@ -448,7 +450,7 @@ mod tests {
         });
         let settings = parse_scan_settings(&args).unwrap();
         assert_eq!(settings.paths, vec!["src", "lib"]);
-        assert!(settings.hidden);
+        assert!(settings.options.hidden);
     }
 
     #[test]
