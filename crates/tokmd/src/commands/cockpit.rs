@@ -1532,8 +1532,12 @@ fn compute_complexity_gate(
         }
     }
 
-    // Sort high complexity files by cyclomatic complexity (descending)
-    high_complexity_files.sort_by(|a, b| b.cyclomatic.cmp(&a.cyclomatic));
+    // Sort high complexity files by cyclomatic complexity (descending), then path for determinism
+    high_complexity_files.sort_by(|a, b| {
+        b.cyclomatic
+            .cmp(&a.cyclomatic)
+            .then_with(|| a.path.cmp(&b.path))
+    });
 
     let avg_cyclomatic = if files_analyzed > 0 {
         round_pct(total_complexity as f64 / files_analyzed as f64)

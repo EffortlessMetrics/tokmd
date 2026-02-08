@@ -155,12 +155,16 @@ fn detect_brace_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> 
     while i < lines.len() {
         if pattern.is_match(lines[i]) {
             let start = i;
-            let end = find_brace_end(lines, i);
-            spans.push(FunctionSpan {
-                start_line: start,
-                end_line: end,
-            });
-            i = end + 1;
+            if let Some(end) = find_brace_end(lines, i) {
+                spans.push(FunctionSpan {
+                    start_line: start,
+                    end_line: end,
+                });
+                i = end + 1;
+            } else {
+                // No body found (trait sig, abstract, extern) — skip
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -170,8 +174,11 @@ fn detect_brace_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> 
 }
 
 /// Find the closing brace for a function starting at `start_line`.
-fn find_brace_end(lines: &[&str], start_line: usize) -> usize {
-    let mut brace_count = 0;
+///
+/// Returns `None` if no opening brace is found (e.g., trait method
+/// signatures, extern declarations, abstract methods).
+fn find_brace_end(lines: &[&str], start_line: usize) -> Option<usize> {
+    let mut brace_count: usize = 0;
     let mut found_open = false;
 
     for (i, line) in lines.iter().enumerate().skip(start_line) {
@@ -180,16 +187,21 @@ fn find_brace_end(lines: &[&str], start_line: usize) -> usize {
                 brace_count += 1;
                 found_open = true;
             } else if ch == '}' {
-                brace_count -= 1;
+                brace_count = brace_count.saturating_sub(1);
                 if found_open && brace_count == 0 {
-                    return i;
+                    return Some(i);
                 }
             }
         }
     }
 
-    // If we couldn't find matching braces, return last line
-    lines.len().saturating_sub(1)
+    // Return last line if we found an opening brace but no matching close,
+    // or None if no opening brace was found at all.
+    if found_open {
+        Some(lines.len().saturating_sub(1))
+    } else {
+        None
+    }
 }
 
 /// Detect functions in indentation-based languages (Python).
@@ -258,13 +270,14 @@ fn detect_js_functions(lines: &[&str]) -> Vec<FunctionSpan> {
             // by requiring the line to have meaningful content
             if is_likely_function_start(line) {
                 let start = i;
-                let end = find_brace_end(lines, i);
-                spans.push(FunctionSpan {
-                    start_line: start,
-                    end_line: end,
-                });
-                i = end + 1;
-                continue;
+                if let Some(end) = find_brace_end(lines, i) {
+                    spans.push(FunctionSpan {
+                        start_line: start,
+                        end_line: end,
+                    });
+                    i = end + 1;
+                    continue;
+                }
             }
         }
         i += 1;
@@ -894,12 +907,15 @@ fn detect_c_style_functions(lines: &[&str]) -> Vec<FunctionSpan> {
 
         if looks_like_fn && !is_control {
             let start = i;
-            let end = find_brace_end(lines, i);
-            spans.push(FunctionSpan {
-                start_line: start,
-                end_line: end,
-            });
-            i = end + 1;
+            if let Some(end) = find_brace_end(lines, i) {
+                spans.push(FunctionSpan {
+                    start_line: start,
+                    end_line: end,
+                });
+                i = end + 1;
+            } else {
+                i += 1;
+            }
         } else {
             i += 1;
         }

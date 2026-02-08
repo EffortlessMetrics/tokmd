@@ -82,10 +82,6 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         let cockpit_json_str = serde_json::to_string_pretty(&cockpit_receipt)?;
         std::fs::write(&cockpit_sidecar_path, cockpit_json_str.as_bytes())?;
 
-        // Write comment.md alongside report.json
-        let comment_md = render_sensor_md(&report);
-        std::fs::write(&comment_path, comment_md.as_bytes())?;
-
         // Slim data: only gates + summary metrics (no embedded cockpit receipt)
         let gates = map_gates(&cockpit_receipt.evidence);
         let data = serde_json::json!({
@@ -115,6 +111,10 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
                 .with_mime("text/markdown"),
         ]);
 
+        // Render markdown AFTER data + artifacts are populated so gates section is included
+        let comment_md = render_sensor_md(&report);
+        std::fs::write(&comment_path, comment_md.as_bytes())?;
+
         // Write canonical JSON report to output path
         let json_str = serde_json::to_string_pretty(&report)?;
         let mut file = std::fs::File::create(output_path)
@@ -127,7 +127,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
                 print!("{}", json_str);
             }
             cli::SensorFormat::Md => {
-                print!("{}", render_sensor_md(&report));
+                print!("{}", comment_md);
             }
         }
 

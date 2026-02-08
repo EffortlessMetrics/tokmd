@@ -1389,6 +1389,7 @@
         "message": { "type": "string", "description": "Detailed message describing the finding." },
         "location": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FindingLocation" }], "description": "Source location (if applicable)." },
         "evidence": { "description": "Additional evidence data." },
+        "fingerprint": { "type": ["string", "null"], "description": "Stable identity fingerprint (BLAKE3 hash of tool_name, check_id, code, location.path) for deduplication." },
         "docs_url": { "type": ["string", "null"], "description": "Documentation URL for this finding type." }
       }
     },
@@ -1436,7 +1437,9 @@
       "required": ["type", "path"],
       "properties": {
         "type": { "type": "string", "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')." },
-        "path": { "type": "string", "description": "Path to the artifact file." }
+        "path": { "type": "string", "description": "Path to the artifact file." },
+        "id": { "type": ["string", "null"], "description": "Artifact identifier (e.g., 'receipt', 'cockpit', 'comment')." },
+        "mime": { "type": ["string", "null"], "description": "MIME type (e.g., 'application/json', 'text/markdown')." }
       }
     },
     "ComplexityBaseline": {

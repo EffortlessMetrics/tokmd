@@ -775,9 +775,13 @@ fn detect_fn_spans_rust(lines: &[&str]) -> Vec<(usize, usize, String)> {
         if is_rust_fn_start(trimmed) {
             let name = extract_rust_fn_name(trimmed);
             let start = i;
-            let end = find_brace_end_at(lines, i);
-            spans.push((start, end, name));
-            i = end + 1;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                // No body found (trait sig, abstract, extern) — skip
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -799,9 +803,12 @@ fn detect_fn_spans_js(lines: &[&str]) -> Vec<(usize, usize, String)> {
         if is_fn && !trimmed.starts_with("//") {
             let name = extract_js_fn_name(trimmed);
             let start = i;
-            let end = find_brace_end_at(lines, i);
-            spans.push((start, end, name));
-            i = end + 1;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -871,9 +878,12 @@ fn detect_fn_spans_go(lines: &[&str]) -> Vec<(usize, usize, String)> {
         if trimmed.starts_with("func ") {
             let name = extract_go_fn_name(trimmed);
             let start = i;
-            let end = find_brace_end_at(lines, i);
-            spans.push((start, end, name));
-            i = end + 1;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -898,9 +908,12 @@ fn detect_fn_spans_c_style(lines: &[&str]) -> Vec<(usize, usize, String)> {
         if looks_like_fn {
             let name = extract_c_fn_name(trimmed);
             let start = i;
-            let end = find_brace_end_at(lines, i);
-            spans.push((start, end, name));
-            i = end + 1;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -909,7 +922,10 @@ fn detect_fn_spans_c_style(lines: &[&str]) -> Vec<(usize, usize, String)> {
 }
 
 /// Find closing brace for a block starting at `start_line`.
-fn find_brace_end_at(lines: &[&str], start_line: usize) -> usize {
+///
+/// Returns `None` if no opening brace is found (e.g., trait method
+/// signatures, extern declarations, abstract methods).
+fn find_brace_end_at(lines: &[&str], start_line: usize) -> Option<usize> {
     let mut depth: usize = 0;
     let mut found_open = false;
     for (i, line) in lines.iter().enumerate().skip(start_line) {
@@ -920,12 +936,16 @@ fn find_brace_end_at(lines: &[&str], start_line: usize) -> usize {
             } else if ch == '}' {
                 depth = depth.saturating_sub(1);
                 if found_open && depth == 0 {
-                    return i;
+                    return Some(i);
                 }
             }
         }
     }
-    lines.len().saturating_sub(1)
+    if found_open {
+        Some(lines.len().saturating_sub(1))
+    } else {
+        None
+    }
 }
 
 /// Extract Rust function name from a line containing "fn ".
