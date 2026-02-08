@@ -82,6 +82,18 @@ tokmd context --budget 128k --output bundle --out context.txt
 tokmd context --budget 128k --output list
 ```
 
+### LLM Handoff
+
+Prepare a comprehensive bundle for LLM ingestion, including code, map, and intelligence:
+
+```bash
+# Generate .handoff/ directory with code.txt, map.jsonl, and intelligence.json
+tokmd handoff
+
+# Customize budget and output
+tokmd handoff --budget 200k --out-dir ./llm-bundle
+```
+
 ### PR Summaries
 
 Add a `tokmd` summary to show reviewers the repo shape:
@@ -115,10 +127,12 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd`              | Language summary (lines, files, bytes).                         |
 | `tokmd module`       | Group stats by directories (`crates/`, `src/`).                 |
 | `tokmd context`      | Pack files into an LLM context window.                          |
+| `tokmd handoff`      | Bundle codebase for LLM handoff (code + intelligence).          |
 | `tokmd export`       | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools.  |
 | `tokmd run`          | Full scan with artifact output to a directory.                  |
 | `tokmd analyze`      | Derived metrics and enrichments.                                |
 | `tokmd badge`        | SVG badge for a metric (lines, tokens, doc%).                   |
+| `tokmd baseline`     | Generate a complexity baseline for trend tracking.              |
 | `tokmd diff`         | Compare two runs, receipts, or git refs.                        |
 | `tokmd cockpit`      | PR metrics for code review (evidence gates, risk, review plan). |
 | `tokmd gate`         | Policy-based quality gates with JSON pointer rules.             |
