@@ -3090,6 +3090,8 @@ dependencies = [
  "anyhow",
  "proptest",
  "serde",
+ "serde_json",
+ "tempfile",
  "tokei",
  "tokmd-types",
 ]
