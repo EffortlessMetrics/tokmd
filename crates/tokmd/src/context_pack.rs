@@ -3,22 +3,150 @@
 use std::collections::BTreeMap;
 
 use tokmd_config::{ContextStrategy, ValueMetric};
-use tokmd_types::{ContextFileRow, FileKind, FileRow};
+use tokmd_types::{ContextFileRow, FileKind, FileRow, SmartExcludedFile};
 
 use crate::git_scoring::GitScores;
 
-/// Parse a budget string with optional k/m suffix into token count.
-pub fn parse_budget(budget: &str) -> anyhow::Result<usize> {
-    let budget = budget.trim().to_lowercase();
-    if let Some(num) = budget.strip_suffix('k') {
-        let n: f64 = num.trim().parse()?;
-        Ok((n * 1000.0) as usize)
-    } else if let Some(num) = budget.strip_suffix('m') {
-        let n: f64 = num.trim().parse()?;
-        Ok((n * 1_000_000.0) as usize)
-    } else {
-        Ok(budget.parse()?)
+// ---------------------------------------------------------------------------
+// Smart-exclude patterns: filtered at the packing layer, not the scan layer.
+// Lockfiles stay in the horizon (map.jsonl) but are excluded from the payload
+// (code.txt) by default.
+// ---------------------------------------------------------------------------
+
+const SMART_EXCLUDE_PATTERNS: &[(&str, &str)] = &[
+    // Lockfiles
+    ("Cargo.lock", "lockfile"),
+    ("package-lock.json", "lockfile"),
+    ("pnpm-lock.yaml", "lockfile"),
+    ("yarn.lock", "lockfile"),
+    ("poetry.lock", "lockfile"),
+    ("Pipfile.lock", "lockfile"),
+    ("go.sum", "lockfile"),
+    ("composer.lock", "lockfile"),
+    ("Gemfile.lock", "lockfile"),
+    // Minified / maps
+    (".min.js", "minified"),
+    (".min.css", "minified"),
+    (".js.map", "sourcemap"),
+    (".css.map", "sourcemap"),
+];
+
+/// Check if a path should be smart-excluded. Returns the reason if excluded.
+pub fn is_smart_excluded(path: &str) -> Option<&'static str> {
+    let basename = path.rsplit('/').next().unwrap_or(path);
+    for &(pattern, reason) in SMART_EXCLUDE_PATTERNS {
+        // Exact basename match for lockfiles
+        if basename == pattern {
+            return Some(reason);
+        }
+        // Suffix match for minified/sourcemap patterns
+        if pattern.starts_with('.') && basename.ends_with(pattern) {
+            return Some(reason);
+        }
     }
+    None
+}
+
+// ---------------------------------------------------------------------------
+// Spine reservation: must-include files get a reserved budget fraction.
+// ---------------------------------------------------------------------------
+
+const SPINE_PATTERNS: &[&str] = &[
+    "README.md",
+    "README",
+    "README.rst",
+    "README.txt",
+    "ROADMAP.md",
+    "docs/ROADMAP.md",
+    "CONTRIBUTING.md",
+    "Cargo.toml",
+    "package.json",
+    "pyproject.toml",
+    "go.mod",
+    "docs/architecture.md",
+    "docs/design.md",
+    "tokmd.toml",
+    "cockpit.toml",
+];
+
+/// Fraction of total budget reserved for spine files.
+const SPINE_BUDGET_FRACTION: f64 = 0.05;
+/// Maximum tokens reserved for spine files.
+const SPINE_BUDGET_CAP: usize = 5000;
+
+fn is_spine_file(path: &str) -> bool {
+    let normalized = path.replace('\\', "/");
+    let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
+    for &pattern in SPINE_PATTERNS {
+        if pattern.contains('/') {
+            // Full path pattern
+            if normalized == pattern || normalized.ends_with(&format!("/{}", pattern)) {
+                return true;
+            }
+        } else {
+            // Basename pattern
+            if basename == pattern {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Options for file selection with smart excludes and spine reservation.
+#[derive(Default)]
+pub struct SelectOptions {
+    pub no_smart_exclude: bool,
+}
+
+/// Result of file selection including smart-excluded files.
+pub struct SelectResult {
+    pub selected: Vec<ContextFileRow>,
+    pub smart_excluded: Vec<SmartExcludedFile>,
+}
+
+/// Parse a budget string with optional k/m/g suffix into token count.
+///
+/// Accepts:
+/// - Plain numbers: "50000"
+/// - Suffix `k` (×1,000): "128k", "1.5k"
+/// - Suffix `m` (×1,000,000): "1m", "0.5m"
+/// - Suffix `g` (×1,000,000,000): "1g", "0.5g"
+/// - Keywords `unlimited` or `max`: returns `usize::MAX`
+pub fn parse_budget(budget: &str) -> anyhow::Result<usize> {
+    let input = budget.trim().to_lowercase();
+
+    if input == "unlimited" || input == "max" {
+        return Ok(usize::MAX);
+    }
+
+    let (num_str, multiplier) = if let Some(num) = input.strip_suffix('k') {
+        (num.trim(), 1_000.0)
+    } else if let Some(num) = input.strip_suffix('m') {
+        (num.trim(), 1_000_000.0)
+    } else if let Some(num) = input.strip_suffix('g') {
+        (num.trim(), 1_000_000_000.0)
+    } else {
+        (input.as_str(), 1.0)
+    };
+
+    let n: f64 = num_str.parse().map_err(|_| {
+        anyhow::anyhow!(
+            "Invalid budget '{}': expected <number>[k|m|g] or 'unlimited' (examples: 128k, 1m, 1g, unlimited)",
+            budget.trim()
+        )
+    })?;
+
+    let result = n * multiplier;
+    if result > usize::MAX as f64 {
+        anyhow::bail!(
+            "Invalid budget '{}': value overflows (max is {})",
+            budget.trim(),
+            usize::MAX
+        );
+    }
+
+    Ok(result as usize)
 }
 
 /// Get the value of a file row based on the selected metric.
@@ -147,7 +275,8 @@ pub fn pack_spread(
     selected
 }
 
-/// Select files based on strategy.
+/// Select files based on strategy (no smart excludes, no spine reservation).
+#[allow(dead_code)]
 pub fn select_files(
     rows: &[FileRow],
     budget: usize,
@@ -155,9 +284,126 @@ pub fn select_files(
     metric: ValueMetric,
     git_scores: Option<&GitScores>,
 ) -> Vec<ContextFileRow> {
-    match strategy {
-        ContextStrategy::Greedy => pack_greedy(rows, budget, metric, git_scores),
-        ContextStrategy::Spread => pack_spread(rows, budget, metric, git_scores),
+    select_files_with_options(
+        rows,
+        budget,
+        strategy,
+        metric,
+        git_scores,
+        &SelectOptions {
+            no_smart_exclude: true,
+        },
+    )
+    .selected
+}
+
+/// Select files with smart excludes and spine reservation.
+pub fn select_files_with_options(
+    rows: &[FileRow],
+    budget: usize,
+    strategy: ContextStrategy,
+    metric: ValueMetric,
+    git_scores: Option<&GitScores>,
+    options: &SelectOptions,
+) -> SelectResult {
+    // Step 1: Partition smart-excluded files
+    let mut smart_excluded = Vec::new();
+    let candidates: Vec<&FileRow> = if options.no_smart_exclude {
+        rows.iter().collect()
+    } else {
+        rows.iter()
+            .filter(|row| {
+                if row.kind != FileKind::Parent {
+                    return true; // Don't filter children (they're filtered later)
+                }
+                let path = normalize_path(&row.path);
+                if let Some(reason) = is_smart_excluded(&path) {
+                    smart_excluded.push(SmartExcludedFile {
+                        path,
+                        reason: reason.to_string(),
+                        tokens: row.tokens,
+                    });
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect()
+    };
+
+    // Collect candidates back into a Vec<FileRow> (needed by pack functions)
+    let candidate_rows: Vec<FileRow> = candidates.into_iter().cloned().collect();
+
+    // Step 2: Spine reservation
+    let spine_budget = std::cmp::min(
+        (budget as f64 * SPINE_BUDGET_FRACTION) as usize,
+        SPINE_BUDGET_CAP,
+    );
+
+    let parents: Vec<&FileRow> = candidate_rows
+        .iter()
+        .filter(|r| r.kind == FileKind::Parent)
+        .collect();
+
+    // Find spine candidates
+    let mut spine_files: Vec<ContextFileRow> = Vec::new();
+    let mut spine_used = 0;
+    let mut spine_paths: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    // Sort spine candidates by tokens ascending (fill smaller files first)
+    let mut spine_candidates: Vec<&FileRow> = parents
+        .iter()
+        .filter(|r| is_spine_file(&r.path))
+        .copied()
+        .collect();
+    spine_candidates.sort_by(|a, b| a.tokens.cmp(&b.tokens).then_with(|| a.path.cmp(&b.path)));
+
+    for row in spine_candidates {
+        if spine_used + row.tokens <= spine_budget {
+            spine_used += row.tokens;
+            spine_paths.insert(row.path.clone());
+            spine_files.push(to_context_row_with_reason(row, metric, git_scores, "spine"));
+        }
+    }
+
+    // Step 3: Normal selection with remaining budget, excluding spine files
+    let remaining_budget = budget.saturating_sub(spine_used);
+    let non_spine_rows: Vec<FileRow> = candidate_rows
+        .iter()
+        .filter(|r| !spine_paths.contains(&r.path))
+        .cloned()
+        .collect();
+
+    let metric_name = match metric {
+        ValueMetric::Code => "code",
+        ValueMetric::Tokens => "tokens",
+        ValueMetric::Churn => "churn",
+        ValueMetric::Hotspot => "hotspot",
+    };
+
+    let mut ranked: Vec<ContextFileRow> = match strategy {
+        ContextStrategy::Greedy => {
+            pack_greedy(&non_spine_rows, remaining_budget, metric, git_scores)
+        }
+        ContextStrategy::Spread => {
+            pack_spread(&non_spine_rows, remaining_budget, metric, git_scores)
+        }
+    };
+
+    // Tag ranked files with their metric reason
+    for file in &mut ranked {
+        if file.rank_reason.is_empty() {
+            file.rank_reason = metric_name.to_string();
+        }
+    }
+
+    // Step 4: Concatenate spine + ranked
+    let mut selected = spine_files;
+    selected.extend(ranked);
+
+    SelectResult {
+        selected,
+        smart_excluded,
     }
 }
 
@@ -165,6 +411,15 @@ fn to_context_row(
     row: &FileRow,
     metric: ValueMetric,
     git_scores: Option<&GitScores>,
+) -> ContextFileRow {
+    to_context_row_with_reason(row, metric, git_scores, "")
+}
+
+fn to_context_row_with_reason(
+    row: &FileRow,
+    metric: ValueMetric,
+    git_scores: Option<&GitScores>,
+    reason: &str,
 ) -> ContextFileRow {
     ContextFileRow {
         path: row.path.clone(),
@@ -175,6 +430,7 @@ fn to_context_row(
         lines: row.lines,
         bytes: row.bytes,
         value: get_value(row, metric, git_scores),
+        rank_reason: reason.to_string(),
     }
 }
 
@@ -218,6 +474,22 @@ mod tests {
         assert_eq!(parse_budget("1m").unwrap(), 1_000_000);
         assert_eq!(parse_budget("50000").unwrap(), 50_000);
         assert_eq!(parse_budget("1.5k").unwrap(), 1_500);
+    }
+
+    #[test]
+    fn test_parse_budget_g_suffix() {
+        assert_eq!(parse_budget("1g").unwrap(), 1_000_000_000);
+        assert_eq!(parse_budget("0.5g").unwrap(), 500_000_000);
+        assert_eq!(parse_budget("2G").unwrap(), 2_000_000_000);
+    }
+
+    #[test]
+    fn test_parse_budget_unlimited() {
+        assert_eq!(parse_budget("unlimited").unwrap(), usize::MAX);
+        assert_eq!(parse_budget("max").unwrap(), usize::MAX);
+        assert_eq!(parse_budget("UNLIMITED").unwrap(), usize::MAX);
+        assert_eq!(parse_budget("MAX").unwrap(), usize::MAX);
+        assert_eq!(parse_budget("  unlimited  ").unwrap(), usize::MAX);
     }
 
     #[test]
@@ -478,6 +750,7 @@ mod tests {
         assert_eq!(ctx_row.lines, 50);
         assert_eq!(ctx_row.bytes, 500);
         assert_eq!(ctx_row.value, 50); // Code metric
+        assert_eq!(ctx_row.rank_reason, ""); // Default empty
     }
 
     #[test]
@@ -916,7 +1189,26 @@ mod tests {
 
     #[test]
     fn test_parse_budget_invalid_alpha() {
-        assert!(parse_budget("abc").is_err());
+        let err = parse_budget("abc").unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("Invalid budget"),
+            "Expected guidance message, got: {msg}"
+        );
+        assert!(
+            msg.contains("128k"),
+            "Expected example in guidance, got: {msg}"
+        );
+    }
+
+    #[test]
+    fn test_parse_budget_invalid_suffix() {
+        let err = parse_budget("1x").unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("Invalid budget"),
+            "Expected guidance message, got: {msg}"
+        );
     }
 
     #[test]
@@ -928,6 +1220,18 @@ mod tests {
     fn test_parse_budget_invalid_suffix_only() {
         assert!(parse_budget("k").is_err());
         assert!(parse_budget("m").is_err());
+        assert!(parse_budget("g").is_err());
+    }
+
+    #[test]
+    fn test_parse_budget_overflow() {
+        // 999999999999g = ~1e21, which overflows u64-sized usize
+        let err = parse_budget("999999999999g").unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("overflows"),
+            "Expected overflow message, got: {msg}"
+        );
     }
 
     // ==================== All-child rows produce empty result ====================
@@ -1073,5 +1377,169 @@ mod tests {
         assert_eq!(result[0].path, "aaa.rs");
         assert_eq!(result[1].path, "mmm.rs");
         assert_eq!(result[2].path, "zzz.rs");
+    }
+
+    // ==================== Smart exclude tests ====================
+
+    #[test]
+    fn test_is_smart_excluded_lockfiles() {
+        assert_eq!(is_smart_excluded("Cargo.lock"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("package-lock.json"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("yarn.lock"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("go.sum"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("poetry.lock"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("Gemfile.lock"), Some("lockfile"));
+        assert_eq!(is_smart_excluded("some/dir/Cargo.lock"), Some("lockfile"));
+    }
+
+    #[test]
+    fn test_is_smart_excluded_minified() {
+        assert_eq!(is_smart_excluded("app.min.js"), Some("minified"));
+        assert_eq!(is_smart_excluded("style.min.css"), Some("minified"));
+        assert_eq!(is_smart_excluded("vendor/app.min.js"), Some("minified"));
+    }
+
+    #[test]
+    fn test_is_smart_excluded_sourcemaps() {
+        assert_eq!(is_smart_excluded("app.js.map"), Some("sourcemap"));
+        assert_eq!(is_smart_excluded("style.css.map"), Some("sourcemap"));
+    }
+
+    #[test]
+    fn test_is_smart_excluded_normal_files() {
+        assert_eq!(is_smart_excluded("main.rs"), None);
+        assert_eq!(is_smart_excluded("Cargo.toml"), None);
+        assert_eq!(is_smart_excluded("app.js"), None);
+        assert_eq!(is_smart_excluded("style.css"), None);
+    }
+
+    #[test]
+    fn test_is_spine_file() {
+        assert!(is_spine_file("README.md"));
+        assert!(is_spine_file("Cargo.toml"));
+        assert!(is_spine_file("ROADMAP.md"));
+        assert!(is_spine_file("CONTRIBUTING.md"));
+        assert!(is_spine_file("package.json"));
+        assert!(is_spine_file("docs/architecture.md"));
+        assert!(is_spine_file("some/path/README.md"));
+        assert!(!is_spine_file("src/main.rs"));
+        assert!(!is_spine_file("README_backup.md"));
+    }
+
+    #[test]
+    fn test_select_files_with_options_smart_exclude() {
+        let rows = vec![
+            make_test_row("src/main.rs", "src", "Rust", 100, 50),
+            make_test_row("Cargo.lock", ".", "TOML", 500, 200),
+            make_test_row("src/lib.rs", "src", "Rust", 100, 40),
+        ];
+        let result = select_files_with_options(
+            &rows,
+            1000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: false,
+            },
+        );
+
+        // Cargo.lock should be smart-excluded
+        assert_eq!(result.smart_excluded.len(), 1);
+        assert_eq!(result.smart_excluded[0].path, "Cargo.lock");
+        assert_eq!(result.smart_excluded[0].reason, "lockfile");
+
+        // Only non-excluded files selected
+        let paths: Vec<&str> = result.selected.iter().map(|r| r.path.as_str()).collect();
+        assert!(!paths.contains(&"Cargo.lock"));
+        assert!(paths.contains(&"src/main.rs"));
+        assert!(paths.contains(&"src/lib.rs"));
+    }
+
+    #[test]
+    fn test_select_files_with_options_no_smart_exclude() {
+        let rows = vec![
+            make_test_row("src/main.rs", "src", "Rust", 100, 50),
+            make_test_row("Cargo.lock", ".", "TOML", 100, 200),
+        ];
+        let result = select_files_with_options(
+            &rows,
+            1000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+            },
+        );
+
+        // No smart excludes when disabled
+        assert!(result.smart_excluded.is_empty());
+        assert_eq!(result.selected.len(), 2);
+    }
+
+    #[test]
+    fn test_select_files_with_options_spine_reservation() {
+        let rows = vec![
+            make_test_row("README.md", ".", "Markdown", 50, 30),
+            make_test_row("src/big.rs", "src", "Rust", 100, 100),
+            make_test_row("src/small.rs", "src", "Rust", 50, 50),
+        ];
+        // Budget 2000: spine_budget = min(2000*0.05, 5000) = 100
+        // README.md (50 tokens) fits in spine budget
+        let result = select_files_with_options(
+            &rows,
+            2000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+            },
+        );
+
+        // README.md should be spine-reserved and appear first
+        assert!(!result.selected.is_empty());
+        let readme_entry = result.selected.iter().find(|f| f.path == "README.md");
+        assert!(
+            readme_entry.is_some(),
+            "README.md should be in selected files"
+        );
+        assert_eq!(readme_entry.unwrap().rank_reason, "spine");
+    }
+
+    #[test]
+    fn test_select_files_with_options_rank_reason() {
+        let rows = vec![make_test_row("src/main.rs", "src", "Rust", 100, 50)];
+        let result = select_files_with_options(
+            &rows,
+            1000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+            },
+        );
+
+        assert_eq!(result.selected.len(), 1);
+        assert_eq!(result.selected[0].rank_reason, "code");
+    }
+
+    #[test]
+    fn test_select_files_with_options_rank_reason_hotspot() {
+        let rows = vec![make_test_row("src/main.rs", "src", "Rust", 100, 50)];
+        let result = select_files_with_options(
+            &rows,
+            1000,
+            ContextStrategy::Greedy,
+            ValueMetric::Hotspot,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+            },
+        );
+
+        assert_eq!(result.selected[0].rank_reason, "hotspot");
     }
 }

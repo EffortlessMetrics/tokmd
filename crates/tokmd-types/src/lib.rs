@@ -297,6 +297,8 @@ pub struct ContextFileRow {
     pub lines: usize,
     pub bytes: usize,
     pub value: usize,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub rank_reason: String,
 }
 
 // -----------------------
@@ -476,9 +478,18 @@ pub struct HandoffManifest {
     pub included_files: Vec<ContextFileRow>,
     pub excluded_paths: Vec<HandoffExcludedPath>,
     pub excluded_patterns: Vec<String>,
+    pub smart_excluded_files: Vec<SmartExcludedFile>,
     pub total_files: usize,
     pub bundled_files: usize,
     pub intelligence_preset: String,
+}
+
+/// A file excluded by smart-exclude heuristics (lockfiles, minified, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmartExcludedFile {
+    pub path: String,
+    pub reason: String,
+    pub tokens: usize,
 }
 
 /// Manifest for a context bundle directory (bundle.txt + receipt.json + manifest.json).

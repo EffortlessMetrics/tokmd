@@ -301,24 +301,59 @@ fn count_functions(lang: &str, text: &str) -> (usize, usize) {
 }
 
 /// Check if a trimmed line starts a Rust function definition.
-/// Ordered from most specific to least specific to match correctly.
+///
+/// Handles all visibility qualifiers including `pub(in path::here)`,
+/// optional `async`, `unsafe`, `const`, and `extern "ABI"` modifiers.
 fn is_rust_fn_start(trimmed: &str) -> bool {
-    trimmed.starts_with("pub(crate) async fn ")
-        || trimmed.starts_with("pub(super) async fn ")
-        || trimmed.starts_with("pub(crate) unsafe fn ")
-        || trimmed.starts_with("pub(super) unsafe fn ")
-        || trimmed.starts_with("pub(crate) const fn ")
-        || trimmed.starts_with("pub(super) const fn ")
-        || trimmed.starts_with("pub(crate) fn ")
-        || trimmed.starts_with("pub(super) fn ")
-        || trimmed.starts_with("pub async fn ")
-        || trimmed.starts_with("pub unsafe fn ")
-        || trimmed.starts_with("pub const fn ")
-        || trimmed.starts_with("async fn ")
-        || trimmed.starts_with("unsafe fn ")
-        || trimmed.starts_with("const fn ")
-        || trimmed.starts_with("pub fn ")
-        || trimmed.starts_with("fn ")
+    // Fast path: find "fn " in the line
+    let Some(fn_pos) = trimmed.find("fn ") else {
+        return false;
+    };
+
+    // Everything before "fn " must be valid qualifiers
+    let prefix = trimmed[..fn_pos].trim();
+    if prefix.is_empty() {
+        return true; // bare "fn name"
+    }
+
+    // Parse prefix: valid tokens are pub/pub(...), async, unsafe, const, extern "..."
+    let mut rest = prefix;
+    while !rest.is_empty() {
+        rest = rest.trim_start();
+        if rest.is_empty() {
+            break;
+        }
+        if rest.starts_with("pub(") {
+            // Skip pub(...) with arbitrary content (e.g., pub(in crate::foo))
+            if let Some(close) = rest.find(')') {
+                rest = &rest[close + 1..];
+            } else {
+                return false; // Unclosed paren
+            }
+        } else if let Some(r) = rest.strip_prefix("pub") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("async") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("unsafe") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("const") {
+            rest = r;
+        } else if rest.starts_with("extern") {
+            // extern "ABI" - skip the ABI string
+            rest = rest["extern".len()..].trim_start();
+            if rest.starts_with('"') {
+                if let Some(close) = rest[1..].find('"') {
+                    rest = &rest[close + 2..];
+                } else {
+                    return false; // Unclosed string
+                }
+            }
+        } else {
+            return false; // Unknown token
+        }
+    }
+
+    true
 }
 
 fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
@@ -1241,6 +1276,37 @@ function classify(x) {
         assert!(is_complexity_lang("Python"));
         assert!(!is_complexity_lang("Markdown"));
         assert!(!is_complexity_lang("JSON"));
+    }
+
+    #[test]
+    fn test_is_rust_fn_start_extended() {
+        // Standard cases
+        assert!(is_rust_fn_start("fn foo()"));
+        assert!(is_rust_fn_start("pub fn foo()"));
+        assert!(is_rust_fn_start("pub(crate) fn foo()"));
+        assert!(is_rust_fn_start("pub(super) fn foo()"));
+        assert!(is_rust_fn_start("async fn foo()"));
+        assert!(is_rust_fn_start("pub async fn foo()"));
+        assert!(is_rust_fn_start("unsafe fn foo()"));
+        assert!(is_rust_fn_start("const fn foo()"));
+
+        // Extended: pub(in path) visibility
+        assert!(is_rust_fn_start("pub(in crate::foo) fn bar()"));
+        assert!(is_rust_fn_start("pub(in crate::foo::bar) fn baz()"));
+
+        // Extended: extern "ABI" functions
+        assert!(is_rust_fn_start(r#"extern "C" fn callback()"#));
+        assert!(is_rust_fn_start(r#"pub extern "C" fn callback()"#));
+        assert!(is_rust_fn_start(r#"pub unsafe extern "C" fn callback()"#));
+
+        // Extended: multi-qualifier combos
+        assert!(is_rust_fn_start("pub(crate) unsafe async fn baz()"));
+        assert!(is_rust_fn_start("pub(super) const fn helper()"));
+
+        // Negative cases
+        assert!(!is_rust_fn_start("let fn_name = 5;"));
+        assert!(!is_rust_fn_start("// fn foo()"));
+        assert!(!is_rust_fn_start("struct Foo {"));
     }
 
     #[test]

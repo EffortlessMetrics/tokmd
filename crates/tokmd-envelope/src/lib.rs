@@ -721,4 +721,129 @@ mod tests {
         let caps = report.capabilities.unwrap();
         assert_eq!(caps.len(), 2);
     }
+
+    #[test]
+    fn capability_status_with_reason_builder() {
+        let status = CapabilityStatus::available().with_reason("extra context");
+        assert_eq!(status.status, CapabilityState::Available);
+        assert_eq!(status.reason.as_deref(), Some("extra context"));
+    }
+
+    #[test]
+    fn sensor_report_with_artifacts_and_data() {
+        let artifact = Artifact::comment("out/comment.md")
+            .with_id("commentary")
+            .with_mime("text/markdown");
+        let report = SensorReport::new(
+            ToolMeta::tokmd("1.5.0", "cockpit"),
+            "2024-01-01T00:00:00Z".to_string(),
+            Verdict::Pass,
+            "Artifacts attached".to_string(),
+        )
+        .with_artifacts(vec![artifact.clone()])
+        .with_data(serde_json::json!({ "key": "value" }));
+
+        let artifacts = report.artifacts.as_ref().unwrap();
+        assert_eq!(artifacts.len(), 1);
+        assert_eq!(artifacts[0].artifact_type, "comment");
+        assert_eq!(artifacts[0].id.as_deref(), Some("commentary"));
+        assert_eq!(artifacts[0].mime.as_deref(), Some("text/markdown"));
+        assert_eq!(report.data.as_ref().unwrap()["key"], "value");
+    }
+
+    #[test]
+    fn finding_builders_and_fingerprint() {
+        let location = FindingLocation::path_line_column("src/lib.rs", 10, 2);
+        let finding = Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::COUPLING,
+            FindingSeverity::Info,
+            "Coupled module",
+            "Modules share excessive dependencies",
+        )
+        .with_location(location.clone())
+        .with_evidence(serde_json::json!({ "coupling": 0.87 }))
+        .with_docs_url("https://example.com/docs/coupling");
+
+        let expected_identity = format!(
+            "{}\0{}\0{}\0{}",
+            "tokmd",
+            findings::risk::CHECK_ID,
+            findings::risk::COUPLING,
+            location.path
+        );
+        let expected_hash = blake3::hash(expected_identity.as_bytes()).to_hex();
+        let expected_fingerprint = expected_hash[..32].to_string();
+
+        assert_eq!(finding.compute_fingerprint("tokmd"), expected_fingerprint);
+
+        let with_fp = finding.clone().with_fingerprint("tokmd");
+        assert_eq!(with_fp.fingerprint.as_deref(), Some(expected_fingerprint.as_str()));
+
+        let no_location = Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::HOTSPOT,
+            FindingSeverity::Warn,
+            "Hotspot",
+            "Churn is elevated",
+        );
+        assert_ne!(
+            no_location.compute_fingerprint("tokmd"),
+            finding.compute_fingerprint("tokmd")
+        );
+    }
+
+    #[test]
+    fn finding_location_constructors() {
+        let path_only = FindingLocation::path("src/main.rs");
+        assert_eq!(path_only.path, "src/main.rs");
+        assert_eq!(path_only.line, None);
+        assert_eq!(path_only.column, None);
+
+        let path_line = FindingLocation::path_line("src/main.rs", 42);
+        assert_eq!(path_line.path, "src/main.rs");
+        assert_eq!(path_line.line, Some(42));
+        assert_eq!(path_line.column, None);
+
+        let path_line_column = FindingLocation::path_line_column("src/main.rs", 7, 3);
+        assert_eq!(path_line_column.path, "src/main.rs");
+        assert_eq!(path_line_column.line, Some(7));
+        assert_eq!(path_line_column.column, Some(3));
+    }
+
+    #[test]
+    fn gate_item_builder_fields() {
+        let gate = GateItem::new("diff_coverage", Verdict::Warn)
+            .with_threshold(0.8, 0.72)
+            .with_reason("Below threshold")
+            .with_source("ci_artifact")
+            .with_artifact_path("coverage/lcov.info");
+
+        assert_eq!(gate.id, "diff_coverage");
+        assert_eq!(gate.status, Verdict::Warn);
+        assert_eq!(gate.threshold, Some(0.8));
+        assert_eq!(gate.actual, Some(0.72));
+        assert_eq!(gate.reason.as_deref(), Some("Below threshold"));
+        assert_eq!(gate.source.as_deref(), Some("ci_artifact"));
+        assert_eq!(gate.artifact_path.as_deref(), Some("coverage/lcov.info"));
+    }
+
+    #[test]
+    fn artifact_builders_cover_variants() {
+        let custom = Artifact::new("custom", "out/custom.json");
+        assert_eq!(custom.artifact_type, "custom");
+        assert_eq!(custom.path, "out/custom.json");
+
+        let comment = Artifact::comment("out/comment.md");
+        assert_eq!(comment.artifact_type, "comment");
+        assert_eq!(comment.path, "out/comment.md");
+
+        let receipt = Artifact::receipt("out/receipt.json");
+        assert_eq!(receipt.artifact_type, "receipt");
+        assert_eq!(receipt.path, "out/receipt.json");
+
+        let badge = Artifact::badge("out/badge.svg");
+        assert_eq!(badge.artifact_type, "badge");
+        assert_eq!(badge.path, "out/badge.svg");
+    }
 }

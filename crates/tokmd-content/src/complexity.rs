@@ -81,7 +81,9 @@ impl FunctionSpan {
 
 // Regex patterns for different languages
 static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*(pub(\(\w+\))?\s+)?(async\s+)?(unsafe\s+)?(const\s+)?fn\s+\w+").unwrap()
+    // Qualifiers can appear in various orders: pub async unsafe fn, pub unsafe async fn, etc.
+    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+\w+"#)
+        .unwrap()
 });
 
 static PYTHON_DEF: LazyLock<Regex> =
@@ -1379,6 +1381,50 @@ fn complex() {
     fn rust_language_alias() {
         let code = "fn test() {}";
         let metrics = analyze_functions(code, "rs");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_in_path_function() {
+        let code = r#"
+pub(in crate::foo) fn bar() {
+    println!("hello");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_extern_c_function() {
+        let code = r#"
+extern "C" fn callback() {
+    println!("called from C");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_crate_unsafe_async_function() {
+        let code = r#"
+pub(crate) unsafe async fn baz() {
+    println!("unsafe async");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_super_const_function() {
+        let code = r#"
+pub(super) const fn helper() -> u32 {
+    42
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
         assert_eq!(metrics.function_count, 1);
     }
 

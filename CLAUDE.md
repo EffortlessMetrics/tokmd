@@ -63,6 +63,8 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 - `tokmd gate` — Policy-based quality gates with JSON pointer rules
 - `tokmd tools` — Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema)
 - `tokmd context` — Pack files into LLM context window within token budget
+- `tokmd baseline` — Capture complexity baseline for trend tracking
+- `tokmd handoff` — Bundle codebase for LLM handoff with intelligence presets
 - `tokmd init` — Generate `.tokeignore` template
 - `tokmd check-ignore` — Explain why files are being ignored
 - `tokmd completions` — Generate shell completions
@@ -96,8 +98,8 @@ The `tokmd-core` crate provides a clap-free library facade for embedding:
 | Preset | Includes |
 |--------|----------|
 | `receipt` | Core derived metrics (density, distribution, COCOMO) |
-| `health` | + TODO density |
-| `risk` | + Git hotspots, coupling, freshness |
+| `health` | + TODO density, complexity, Halstead metrics |
+| `risk` | + Git hotspots, coupling, freshness, complexity, Halstead metrics |
 | `supply` | + Assets, dependency lockfiles |
 | `architecture` | + Import graph |
 | `topics` | Semantic topic clouds |
@@ -130,13 +132,16 @@ The `tokmd-core` crate provides a clap-free library facade for embedding:
 - Update `docs/schema.json` (formal JSON Schema) when structures change
 - **Schema versions are separate for each receipt family**:
   - Core receipts (`lang`, `module`, `export`, `diff`, `context`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
-  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 4` (in `tokmd-analysis-types`)
+  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 5` (in `tokmd-analysis-types`)
   - Cockpit receipts: `SCHEMA_VERSION = 3` (local to cockpit.rs)
+  - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 3` (in `tokmd-types`)
+  - Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 1` (in `tokmd-types`)
 
 ### Feature Flags
 - `git`: Git history analysis (uses shell `git log`)
 - `content`: File content scanning (entropy, tags, hashing)
 - `walk`: Filesystem traversal for assets
+- `halstead`: Halstead metrics computation (requires `content` + `walk`)
 
 ### Git Diff Syntax (Two-dot vs Three-dot)
 When invoking `git diff` or `git log` with range syntax:

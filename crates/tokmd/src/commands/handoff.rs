@@ -97,13 +97,18 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
 
     // Select files for code bundle
     progress.set_message("Selecting files for code bundle...");
-    let selected = context_pack::select_files(
+    let select_result = context_pack::select_files_with_options(
         &export.rows,
         budget,
         args.strategy,
         args.rank_by,
         git_scores.as_ref(),
+        &context_pack::SelectOptions {
+            no_smart_exclude: args.no_smart_exclude,
+        },
     );
+    let selected = select_result.selected;
+    let smart_excluded_files = select_result.smart_excluded;
 
     let used_tokens: usize = selected.iter().map(|f| f.tokens).sum();
     let utilization = if budget > 0 {
@@ -207,6 +212,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         included_files: selected.clone(),
         excluded_paths: excluded_paths.clone(),
         excluded_patterns: scan_args.excluded.clone(),
+        smart_excluded_files,
         total_files: export
             .rows
             .iter()
@@ -656,14 +662,7 @@ fn read_file_capped(path: &Path, max_bytes: usize) -> Option<String> {
 fn count_functions_simple(lang: &str, text: &str) -> (usize, usize) {
     let lines: Vec<&str> = text.lines().collect();
     match lang.to_lowercase().as_str() {
-        "rust" => count_brace_functions(&lines, |t| {
-            t.starts_with("fn ")
-                || t.starts_with("pub fn ")
-                || t.starts_with("pub(crate) fn ")
-                || t.starts_with("pub(super) fn ")
-                || t.starts_with("async fn ")
-                || t.starts_with("pub async fn ")
-        }),
+        "rust" => count_brace_functions(&lines, is_rust_fn_start_simple),
         "go" => count_brace_functions(&lines, |t| t.starts_with("func ")),
         "javascript" | "typescript" => count_brace_functions(&lines, |t| {
             t.starts_with("function ")
@@ -687,6 +686,52 @@ fn count_functions_simple(lang: &str, text: &str) -> (usize, usize) {
         "ruby" => count_ruby_functions_simple(&lines),
         _ => (0, 0),
     }
+}
+
+/// Check if a trimmed line starts a Rust function definition.
+/// Handles all visibility qualifiers including `pub(in path)`, extern "ABI", etc.
+fn is_rust_fn_start_simple(trimmed: &str) -> bool {
+    let Some(fn_pos) = trimmed.find("fn ") else {
+        return false;
+    };
+    let prefix = trimmed[..fn_pos].trim();
+    if prefix.is_empty() {
+        return true;
+    }
+    let mut rest = prefix;
+    while !rest.is_empty() {
+        rest = rest.trim_start();
+        if rest.is_empty() {
+            break;
+        }
+        if rest.starts_with("pub(") {
+            if let Some(close) = rest.find(')') {
+                rest = &rest[close + 1..];
+            } else {
+                return false;
+            }
+        } else if let Some(r) = rest.strip_prefix("pub") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("async") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("unsafe") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("const") {
+            rest = r;
+        } else if rest.starts_with("extern") {
+            rest = rest["extern".len()..].trim_start();
+            if rest.starts_with('"') {
+                if let Some(close) = rest[1..].find('"') {
+                    rest = &rest[close + 2..];
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+    }
+    true
 }
 
 /// Count functions in brace-delimited languages.

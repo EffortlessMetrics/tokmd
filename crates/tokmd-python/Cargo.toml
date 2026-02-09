@@ -25,3 +25,6 @@ tokmd-analysis-types.workspace = true
 
 [build-dependencies]
 pyo3-build-config = "0.24"
+
+[dev-dependencies]
+tempfile = "3"

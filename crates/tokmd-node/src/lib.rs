@@ -6,7 +6,9 @@
 #![deny(clippy::all)]
 
 use napi::bindgen_prelude::*;
+#[cfg(not(test))]
 use napi_derive::napi;
+use serde::Serialize;
 
 /// Get the tokmd version string.
 ///
@@ -17,7 +19,7 @@ use napi_derive::napi;
 /// import { version } from '@tokmd/core';
 /// console.log(version()); // "1.3.1"
 /// ```
-#[napi]
+#[cfg_attr(not(test), napi)]
 pub fn version() -> String {
     tokmd_core::ffi::version().to_string()
 }
@@ -31,7 +33,7 @@ pub fn version() -> String {
 /// import { schemaVersion } from '@tokmd/core';
 /// console.log(schemaVersion()); // 2
 /// ```
-#[napi]
+#[cfg_attr(not(test), napi)]
 pub fn schema_version() -> u32 {
     tokmd_core::ffi::schema_version()
 }
@@ -51,40 +53,47 @@ pub fn schema_version() -> u32 {
 /// const result = await runJson("lang", JSON.stringify({ paths: ["."] }));
 /// const data = JSON.parse(result);
 /// ```
-#[napi]
-pub async fn run_json(mode: String, args_json: String) -> Result<String> {
+fn encode_args<T: Serialize>(args: &T) -> Result<String> {
+    serde_json::to_string(args).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
+}
+
+fn parse_envelope(result_json: &str) -> Result<serde_json::Value> {
+    serde_json::from_str(result_json)
+        .map_err(|e| Error::from_reason(format!("JSON parse error: {}", e)))
+}
+
+async fn run_blocking<F>(f: F) -> Result<String>
+where
+    F: FnOnce() -> String + Send + 'static,
+{
     // Run in a blocking task to not block the event loop
-    tokio::task::spawn_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json))
+    tokio::task::spawn_blocking(f)
         .await
         .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))
 }
 
-/// Run a tokmd operation and return the result as a JavaScript object.
-///
-/// @param mode - The operation mode ("lang", "module", "export", "analyze", "diff", "version")
-/// @param args - Object containing the arguments
-/// @returns Promise resolving to the result object (the `data` field from the response envelope)
-/// @throws Error if the operation fails
-///
-/// @example
-/// ```javascript
-/// import { run } from '@tokmd/core';
-/// const result = await run("lang", { paths: ["."], top: 10 });
-/// console.log(result.rows[0].lang);
-/// ```
-#[napi]
-pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Value> {
-    let args_json = serde_json::to_string(&args)
-        .map_err(|e| Error::from_reason(format!("JSON error: {}", e)))?;
+#[cfg_attr(not(test), napi)]
+pub async fn run_json(mode: String, args_json: String) -> Result<String> {
+    run_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json)).await
+}
 
-    let result_json =
-        tokio::task::spawn_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json))
-            .await
-            .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))?;
+fn parse_and_extract(result_json: Result<String>) -> Result<serde_json::Value> {
+    let result_json = result_json?;
+    let envelope = parse_envelope(&result_json)?;
+    extract_envelope(envelope)
+}
 
-    let envelope: serde_json::Value = serde_json::from_str(&result_json)
-        .map_err(|e| Error::from_reason(format!("JSON parse error: {}", e)))?;
+async fn run_with_args_json(mode: String, args_json: Result<String>) -> Result<serde_json::Value> {
+    let args_json = args_json?;
+    let result_json = run_blocking(move || tokmd_core::ffi::run_json(&mode, &args_json)).await;
+    parse_and_extract(result_json)
+}
 
+fn options_or_empty(options: Option<serde_json::Value>) -> serde_json::Value {
+    options.unwrap_or_else(|| serde_json::json!({}))
+}
+
+fn extract_envelope(envelope: serde_json::Value) -> Result<serde_json::Value> {
     // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
     let ok = envelope
         .get("ok")
@@ -119,6 +128,24 @@ pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Va
     Err(Error::from_reason(message))
 }
 
+/// Run a tokmd operation and return the result as a JavaScript object.
+///
+/// @param mode - The operation mode ("lang", "module", "export", "analyze", "diff", "version")
+/// @param args - Object containing the arguments
+/// @returns Promise resolving to the result object (the `data` field from the response envelope)
+/// @throws Error if the operation fails
+///
+/// @example
+/// ```javascript
+/// import { run } from '@tokmd/core';
+/// const result = await run("lang", { paths: ["."], top: 10 });
+/// console.log(result.rows[0].lang);
+/// ```
+#[cfg_attr(not(test), napi)]
+pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Value> {
+    run_with_args_json(mode, encode_args(&args)).await
+}
+
 /// Scan paths and return a language summary.
 ///
 /// @param options - Scan options
@@ -139,9 +166,9 @@ pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Va
 ///   console.log(`${row.lang}: ${row.code} lines`);
 /// }
 /// ```
-#[napi(ts_args_type = "options?: LangOptions")]
+#[cfg_attr(not(test), napi(ts_args_type = "options?: LangOptions"))]
 pub async fn lang(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options.unwrap_or_else(|| serde_json::json!({}));
+    let args = options_or_empty(options);
     run("lang".to_string(), args).await
 }
 
@@ -161,9 +188,12 @@ pub async fn lang(options: Option<serde_json::Value>) -> Result<serde_json::Valu
 /// import { module } from '@tokmd/core';
 /// const result = await module({ paths: ["."], module_roots: ["crates"] });
 /// ```
-#[napi(js_name = "module", ts_args_type = "options?: ModuleOptions")]
+#[cfg_attr(
+    not(test),
+    napi(js_name = "module", ts_args_type = "options?: ModuleOptions")
+)]
 pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options.unwrap_or_else(|| serde_json::json!({}));
+    let args = options_or_empty(options);
     run("module".to_string(), args).await
 }
 
@@ -182,9 +212,12 @@ pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 /// const result = await exportData({ paths: ["src"], min_code: 10 });
 /// console.log(`Found ${result.rows.length} files`);
 /// ```
-#[napi(js_name = "export", ts_args_type = "options?: ExportOptions")]
+#[cfg_attr(
+    not(test),
+    napi(js_name = "export", ts_args_type = "options?: ExportOptions")
+)]
 pub async fn export_fn(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options.unwrap_or_else(|| serde_json::json!({}));
+    let args = options_or_empty(options);
     run("export".to_string(), args).await
 }
 
@@ -205,9 +238,9 @@ pub async fn export_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 ///   console.log(`Doc density: ${result.derived.doc_density.total.ratio}`);
 /// }
 /// ```
-#[napi(ts_args_type = "options?: AnalyzeOptions")]
+#[cfg_attr(not(test), napi(ts_args_type = "options?: AnalyzeOptions"))]
 pub async fn analyze(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options.unwrap_or_else(|| serde_json::json!({}));
+    let args = options_or_empty(options);
     run("analyze".to_string(), args).await
 }
 
@@ -223,11 +256,221 @@ pub async fn analyze(options: Option<serde_json::Value>) -> Result<serde_json::V
 /// const result = await diff("old_receipt.json", "new_receipt.json");
 /// console.log(`Total delta: ${result.totals.delta_code} lines`);
 /// ```
-#[napi]
+#[cfg_attr(not(test), napi)]
 pub async fn diff(from_path: String, to_path: String) -> Result<serde_json::Value> {
     let args = serde_json::json!({
         "from": from_path,
         "to": to_path
     });
     run("diff".to_string(), args).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use std::fs;
+    use std::future::Future;
+    use std::path::Path;
+
+    fn block_on<T>(future: impl Future<Output = Result<T>>) -> Result<T> {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(2)
+            .build()
+            .expect("build tokio runtime");
+        runtime.block_on(future)
+    }
+
+    fn write_file(root: &Path, rel: &str, contents: &str) {
+        let path = root.join(rel);
+        let parent = path.parent().unwrap_or(root);
+        fs::create_dir_all(parent).expect("create parent dirs");
+        fs::write(path, contents).expect("write file");
+    }
+
+    fn make_repo(contents: &str) -> tempfile::TempDir {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        write_file(dir.path(), "src/lib.rs", contents);
+        dir
+    }
+
+    #[test]
+    fn version_and_schema_version_are_nonzero() {
+        let v = version();
+        assert!(!v.is_empty());
+        let schema = schema_version();
+        assert!(schema > 0);
+    }
+
+    #[test]
+    fn run_json_version_returns_envelope() {
+        let output = block_on(run_json("version".to_string(), "{}".to_string()))
+            .expect("run_json should succeed");
+        let env: serde_json::Value = serde_json::from_str(&output).expect("parse json");
+        assert!(env["ok"].as_bool().unwrap_or(false));
+        assert!(env["data"]["version"].as_str().unwrap_or("").len() > 0);
+        assert!(env["data"]["schema_version"].as_u64().unwrap_or(0) > 0);
+    }
+
+    #[test]
+    fn run_json_invalid_json_returns_error_envelope() {
+        let output = block_on(run_json("lang".to_string(), "{".to_string()))
+            .expect("run_json should return envelope");
+        let env: serde_json::Value = serde_json::from_str(&output).expect("parse json");
+        assert!(!env["ok"].as_bool().unwrap_or(true));
+        assert_eq!(env["error"]["code"].as_str().unwrap_or(""), "invalid_json");
+    }
+
+    #[test]
+    fn run_invalid_mode_returns_error() {
+        let err = block_on(run("nope".to_string(), json!({}))).unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("unknown_mode"));
+    }
+
+    #[test]
+    fn wrappers_scan_small_repo() {
+        let repo = make_repo("fn main() { println!(\"hi\"); }\n");
+        let path = repo.path().to_string_lossy().to_string();
+
+        let lang_result = block_on(lang(Some(json!({
+            "paths": [path.clone()],
+            "files": true
+        }))))
+        .expect("lang should succeed");
+        assert_eq!(lang_result["mode"].as_str().unwrap_or(""), "lang");
+        assert!(
+            lang_result["rows"]
+                .as_array()
+                .map(|r| !r.is_empty())
+                .unwrap_or(false)
+        );
+
+        let module_result = block_on(module_fn(Some(json!({
+            "paths": [path.clone()],
+            "module_roots": ["src"],
+            "module_depth": 1
+        }))))
+        .expect("module should succeed");
+        assert_eq!(module_result["mode"].as_str().unwrap_or(""), "module");
+        assert!(
+            module_result["rows"]
+                .as_array()
+                .map(|r| !r.is_empty())
+                .unwrap_or(false)
+        );
+
+        let export_result = block_on(export_fn(Some(json!({
+            "paths": [path.clone()],
+            "format": "json"
+        }))))
+        .expect("export should succeed");
+        assert_eq!(export_result["mode"].as_str().unwrap_or(""), "export");
+        assert!(
+            export_result["rows"]
+                .as_array()
+                .map(|r| !r.is_empty())
+                .unwrap_or(false)
+        );
+    }
+
+    #[test]
+    fn analyze_returns_not_implemented() {
+        let repo = make_repo("fn main() {}\n");
+        let path = repo.path().to_string_lossy().to_string();
+        let err = block_on(analyze(Some(json!({ "paths": [path] })))).unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("not_implemented"));
+    }
+
+    #[test]
+    fn diff_compares_two_paths() {
+        let repo_a = make_repo("fn main() { println!(\"a\"); }\n");
+        let repo_b = make_repo("fn main() { println!(\"b\"); }\n");
+        let path_a = repo_a.path().to_string_lossy().to_string();
+        let path_b = repo_b.path().to_string_lossy().to_string();
+
+        let diff_result = block_on(diff(path_a, path_b)).expect("diff should succeed");
+        assert_eq!(diff_result["mode"].as_str().unwrap_or(""), "diff");
+        assert!(diff_result.get("totals").is_some());
+    }
+
+    #[test]
+    fn extract_envelope_returns_envelope_when_data_missing() {
+        let envelope = json!({
+            "ok": true,
+            "mode": "version"
+        });
+        let result = extract_envelope(envelope.clone()).expect("should return envelope");
+        assert_eq!(result, envelope);
+    }
+
+    #[test]
+    fn extract_envelope_returns_unknown_error_when_error_missing() {
+        let err = extract_envelope(json!({ "ok": false })).unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("Unknown error"));
+    }
+
+    #[derive(Debug)]
+    struct BadSerialize;
+
+    impl Serialize for BadSerialize {
+        fn serialize<S>(&self, _serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            Err(serde::ser::Error::custom("boom"))
+        }
+    }
+
+    #[test]
+    fn encode_args_maps_serde_error() {
+        let err = encode_args(&BadSerialize).unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("JSON error"));
+    }
+
+    #[test]
+    fn parse_envelope_maps_json_error() {
+        let err = parse_envelope("{").unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("JSON parse error"));
+    }
+
+    #[test]
+    fn run_blocking_maps_join_error() {
+        let err = block_on(run_blocking(|| panic!("boom"))).unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("Task join error"));
+    }
+
+    #[test]
+    fn options_or_empty_returns_default() {
+        assert_eq!(options_or_empty(None), json!({}));
+        let value = json!({ "paths": ["src"] });
+        assert_eq!(options_or_empty(Some(value.clone())), value);
+    }
+
+    #[test]
+    fn run_with_args_json_propagates_encode_error() {
+        let err = block_on(run_with_args_json(
+            "lang".to_string(),
+            Err(Error::from_reason("encode fail")),
+        ))
+        .unwrap_err();
+        assert!(err.to_string().contains("encode fail"));
+    }
+
+    #[test]
+    fn parse_and_extract_propagates_result_error() {
+        let err = parse_and_extract(Err(Error::from_reason("join fail"))).unwrap_err();
+        assert!(err.to_string().contains("join fail"));
+    }
+
+    #[test]
+    fn parse_and_extract_maps_json_error() {
+        let err = parse_and_extract(Ok("{".to_string())).unwrap_err();
+        assert!(err.to_string().contains("JSON parse error"));
+    }
 }

@@ -87,6 +87,19 @@ tokei --languages
 | `0` | Comparison successful, changes found or no changes |
 | `1` | Error during comparison |
 
+**`gate`**:
+| Code | Meaning |
+|------|---------|
+| `0` | All rules passed |
+| `1` | One or more rules failed |
+| `2` | Policy error (invalid file, parse error) |
+
+**`sensor`**:
+| Code | Meaning |
+|------|---------|
+| `0` | Sensor report generated successfully |
+| `1` | Error during sensor execution |
+
 ---
 
 ## Inconsistent Byte Counts
@@ -703,6 +716,68 @@ threshold = 2
 **3. Check the gate command documentation**:
 ```bash
 tokmd gate --help
+```
+
+---
+
+## Sensor Command Issues
+
+### Missing or Incomplete Envelope
+
+**Symptom**:
+`tokmd sensor` produces an envelope with missing fields or empty metrics.
+
+**Common Causes**:
+
+**1. Shallow git clone**
+
+The sensor enriches the envelope with git metadata (commit SHA, branch name). Shallow clones may lack this information:
+```bash
+# In CI, ensure sufficient history
+git fetch --unshallow
+# Or fetch enough depth
+git fetch --depth=100
+```
+
+**2. No git repository**
+
+The sensor works without git, but the envelope will lack git-related fields (commit, branch, repository URL). This is expected behavior.
+
+**3. Envelope format expectations**
+
+The sensor produces a `sensor.report.v1` envelope. Ensure downstream consumers expect this format:
+```bash
+# Inspect the envelope structure
+tokmd sensor --format json | jq 'keys'
+
+# Verify schema version
+tokmd sensor --format json | jq '.schema_version'
+```
+
+### Sensor in CI Pipelines
+
+**Symptom**:
+Sensor output is empty or missing metrics when run in CI.
+
+**Solutions**:
+
+**1. Ensure paths exist**:
+```bash
+# Verify the scan directory is available
+ls -la src/
+tokmd sensor -p src
+```
+
+**2. Check feature availability**:
+The sensor uses the same feature flags as other commands. Git and content features must be enabled at compile time for full metrics.
+
+**3. Pipe output correctly**:
+```bash
+# Write to file for artifact upload
+tokmd sensor --format json > sensor-report.json
+
+# Or pipe to a collector
+tokmd sensor --format json | curl -X POST -d @- https://your-collector/api/reports
 ```
 
 ---
