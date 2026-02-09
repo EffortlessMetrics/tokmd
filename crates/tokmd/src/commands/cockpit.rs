@@ -4091,6 +4091,9 @@ fn render_complexity_gate_sections(out: &mut String, gate: &ComplexityGate) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::io::Write;
+    use tempfile::tempdir;
 
     #[test]
     fn test_classify_file_code() {
@@ -4559,5 +4562,113 @@ fn third() {
         assert_eq!(deserialized.files_analyzed, 2);
         assert_eq!(deserialized.high_complexity_files.len(), 1);
         assert_eq!(deserialized.high_complexity_files[0].cyclomatic, 20);
+    }
+
+    #[test]
+    fn test_format_helpers() {
+        assert_eq!(format_gate_status(GateStatus::Pass), "PASS");
+        assert_eq!(format_gate_status(GateStatus::Warn), "WARN");
+        assert_eq!(format_gate_status(GateStatus::Fail), "FAIL");
+        assert_eq!(format_gate_status(GateStatus::Skipped), "SKIPPED");
+        assert_eq!(format_gate_status(GateStatus::Pending), "PENDING");
+
+        assert_eq!(format_source(EvidenceSource::CiArtifact), "CI artifact");
+        assert_eq!(format_source(EvidenceSource::Cached), "cached");
+        assert_eq!(format_source(EvidenceSource::RanLocal), "local");
+
+        assert_eq!(format_commit_match(CommitMatch::Exact), "exact");
+        assert_eq!(format_commit_match(CommitMatch::Partial), "partial");
+        assert_eq!(format_commit_match(CommitMatch::Stale), "stale");
+        assert_eq!(format_commit_match(CommitMatch::Unknown), "-");
+
+        let empty_scope = ScopeCoverage {
+            relevant: Vec::new(),
+            tested: Vec::new(),
+            ratio: 0.0,
+            lines_relevant: None,
+            lines_tested: None,
+        };
+        assert_eq!(format_scope(&empty_scope), "-");
+
+        let scope = ScopeCoverage {
+            relevant: vec!["a.rs".to_string(), "b.rs".to_string()],
+            tested: vec!["a.rs".to_string()],
+            ratio: 0.5,
+            lines_relevant: None,
+            lines_tested: None,
+        };
+        assert_eq!(format_scope(&scope), "1/2 (50%)");
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_none_when_missing_artifacts() {
+        let temp = tempdir().expect("tempdir");
+        let gate = compute_diff_coverage_gate(temp.path()).expect("gate");
+        assert!(gate.is_none());
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_ignores_non_lcov_artifact() {
+        let temp = tempdir().expect("tempdir");
+        let coverage_dir = temp.path().join("coverage");
+        fs::create_dir_all(&coverage_dir).expect("coverage dir");
+        let coverage_json = coverage_dir.join("coverage.json");
+        fs::write(&coverage_json, "{}").expect("write coverage json");
+
+        let gate = compute_diff_coverage_gate(temp.path()).expect("gate");
+        assert!(gate.is_none());
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_parses_lcov_and_groups_hunks() {
+        let temp = tempdir().expect("tempdir");
+        let coverage_dir = temp.path().join("coverage");
+        fs::create_dir_all(&coverage_dir).expect("coverage dir");
+        let lcov_path = coverage_dir.join("lcov.info");
+
+        let mut file = fs::File::create(&lcov_path).expect("create lcov");
+        writeln!(
+            file,
+            "SF:src/lib.rs\nDA:1,1\nDA:2,0\nDA:3,0\nDA:4,1\nDA:5,0\nend_of_record\nSF:src/main.rs\nDA:10,1\nDA:11,1\nDA:12,0\nend_of_record"
+        )
+        .expect("write lcov");
+
+        let gate = compute_diff_coverage_gate(temp.path())
+            .expect("gate")
+            .expect("some gate");
+
+        assert_eq!(gate.lines_added, 8);
+        assert_eq!(gate.lines_covered, 4);
+        assert_eq!(gate.coverage_pct, 50.0);
+        assert_eq!(gate.meta.status, GateStatus::Pending);
+
+        assert_eq!(gate.uncovered_hunks.len(), 3);
+        let first = &gate.uncovered_hunks[0];
+        assert_eq!(first.file, "src/lib.rs");
+        assert_eq!(first.start_line, 2);
+        assert_eq!(first.end_line, 3);
+
+        let second = &gate.uncovered_hunks[1];
+        assert_eq!(second.file, "src/lib.rs");
+        assert_eq!(second.start_line, 5);
+        assert_eq!(second.end_line, 5);
+
+        let third = &gate.uncovered_hunks[2];
+        assert_eq!(third.file, "src/main.rs");
+        assert_eq!(third.start_line, 12);
+        assert_eq!(third.end_line, 12);
+    }
+
+    #[test]
+    fn flush_uncovered_hunks_handles_empty_inputs() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("", &[1, 2, 3], &mut hunks);
+        assert!(hunks.is_empty());
+
+        flush_uncovered_hunks("src/lib.rs", &[], &mut hunks);
+        assert!(hunks.is_empty());
     }
 }
