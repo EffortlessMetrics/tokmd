@@ -10,6 +10,12 @@ use anyhow::Context;
 use std::fs;
 
 pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
+    let target_dir = args
+        .path
+        .clone()
+        .or_else(|| args.dir.clone())
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+
     // Non-interactive modes: print or explicit non-interactive flag or no ui feature
     #[cfg(not(feature = "ui"))]
     let use_wizard = false;
@@ -24,13 +30,14 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
     // Run interactive wizard (only available with ui feature)
     #[cfg(feature = "ui")]
     {
-        match wizard::run_init_wizard(&args.dir)? {
+        match wizard::run_init_wizard(&target_dir)? {
             Some(result) => {
                 // Write .tokeignore if requested
                 if result.write_tokeignore {
                     let profile = wizard::project_type_to_profile(result.project_type);
                     let modified_args = cli::InitArgs {
-                        dir: args.dir.clone(),
+                        path: Some(target_dir.clone()),
+                        dir: None,
                         force: args.force,
                         print: false,
                         template: profile,
@@ -42,7 +49,7 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
 
                 // Write tokmd.toml if requested
                 if result.write_config {
-                    let config_path = args.dir.join("tokmd.toml");
+                    let config_path = target_dir.join("tokmd.toml");
 
                     if config_path.exists() && !args.force {
                         eprintln!("tokmd.toml already exists. Use --force to overwrite.");

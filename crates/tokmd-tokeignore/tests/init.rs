@@ -8,7 +8,8 @@ use tokmd_tokeignore::init_tokeignore;
 
 fn make_args(dir: PathBuf, template: InitProfile, force: bool, print: bool) -> InitArgs {
     InitArgs {
-        dir,
+        path: Some(dir),
+        dir: None,
         template,
         force,
         print,
