@@ -778,7 +778,10 @@ mod tests {
         assert_eq!(finding.compute_fingerprint("tokmd"), expected_fingerprint);
 
         let with_fp = finding.clone().with_fingerprint("tokmd");
-        assert_eq!(with_fp.fingerprint.as_deref(), Some(expected_fingerprint.as_str()));
+        assert_eq!(
+            with_fp.fingerprint.as_deref(),
+            Some(expected_fingerprint.as_str())
+        );
 
         let no_location = Finding::new(
             findings::risk::CHECK_ID,
