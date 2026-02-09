@@ -323,7 +323,7 @@ tokmd cockpit --base develop --head feature/my-branch
 
 **Output in Markdown for PR descriptions**:
 ```bash
-tokmd cockpit --format md --output pr-metrics.md
+tokmd cockpit --output pr-metrics.md
 ```
 
 **What you get**:

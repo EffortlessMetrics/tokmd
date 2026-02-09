@@ -1,0 +1,17 @@
+{
+  "run_id": "20260201-130435",
+  "timestamp_utc": "2026-02-01T13:04:35Z",
+  "lane": "scout",
+  "target": "tokmd cockpit default format",
+  "commands": [
+    {
+      "cmd": "cargo test --test cockpit_integration",
+      "exit_code": 0,
+      "summary": "PASS"
+    }
+  ],
+  "results_summary": [
+    "Changed default format of tokmd cockpit to markdown",
+    "Updated docs and tests"
+  ]
+}

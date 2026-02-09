@@ -353,13 +353,13 @@ Generate comprehensive PR metrics for code review automation with evidence gates
 
 ```bash
 # Generate JSON metrics for CI parsing
-tokmd cockpit
+tokmd cockpit --format json
 
 # Markdown summary for PR description
-tokmd cockpit --format md
+tokmd cockpit
 
 # Compare specific refs
-tokmd cockpit --base origin/main --head feature-branch --format md
+tokmd cockpit --base origin/main --head feature-branch
 
 # Generate sections for PR template filling
 tokmd cockpit --format sections --output pr-metrics.txt
@@ -392,7 +392,7 @@ jobs:
 
       - name: Generate cockpit metrics
         run: |
-          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format md > cockpit.md
+          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD > cockpit.md
 
       - name: Post PR comment
         uses: actions/github-script@v7
