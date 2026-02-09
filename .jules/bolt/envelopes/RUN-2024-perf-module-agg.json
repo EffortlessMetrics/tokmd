@@ -1,0 +1,22 @@
+{
+  "run_id": "RUN-2024-perf-module-agg",
+  "timestamp_utc": "2024-10-24T12:00:00Z",
+  "lane": "scout",
+  "target": "create_module_report",
+  "proof_method": "bench_module_example",
+  "commands": [
+    {
+      "cmd": "cargo run --release --example bench_module -p tokmd-model",
+      "result": "3.802451ms avg per iteration (1000 files)"
+    },
+    {
+      "cmd": "cargo run --release --example bench_module -p tokmd-model",
+      "result": "3.310260ms avg per iteration (1000 files)"
+    },
+    {
+      "cmd": "cargo test -p tokmd-model",
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Optimization successful. Improved from 3.80ms to 3.31ms (~13% speedup). Verified with tests."
+}
