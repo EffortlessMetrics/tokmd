@@ -577,8 +577,7 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 
 **Ratchet Sources** (in order of precedence):
 1. `--ratchet-config <path>` CLI argument
-2. `[gate].ratchet` path in `tokmd.toml`
-3. `[[gate.ratchet]]` inline rules in `tokmd.toml`
+2. `[[gate.ratchet]]` inline rules in `tokmd.toml`
 
 **Exit Codes**:
 | Code | Meaning |
@@ -623,19 +622,18 @@ Ratchet rules ensure metrics improve (or don't regress) over time by comparing a
 ```toml
 # In tokmd.toml or ratchet.toml
 [[gate.ratchet]]
-name = "complexity_ratchet"
-metric = "avg_cyclomatic"         # Metric to track from baseline
-max_increase_pct = 0.0            # Strict no-regression (default)
-# max_increase_pct = 5.0          # Allow 5% regression
-max_value = 10.0                  # Absolute ceiling (fail if > 10 regardless of baseline)
+pointer = "/complexity/avg_cyclomatic"   # JSON pointer to metric in baseline
+max_increase_pct = 0.0                   # Strict no-regression (default)
+# max_increase_pct = 5.0                 # Allow 5% regression
+max_value = 10.0                         # Absolute ceiling (fail if > 10 regardless of baseline)
 level = "error"
-message = "Average complexity has increased"
+description = "Average cyclomatic complexity"
 
 [[gate.ratchet]]
-name = "function_length_ratchet"
-metric = "avg_function_length"
+pointer = "/complexity/avg_function_length"
 max_increase_pct = 2.0
 level = "warn"
+description = "Average function length"
 ```
 
 **Supported Operators**:
@@ -885,11 +883,10 @@ message = "Documentation below 10%"
 
 # Ratchet rules for gradual improvement
 [[gate.ratchet]]
-name = "complexity_ratchet"
-metric = "avg_cyclomatic"
+pointer = "/complexity/avg_cyclomatic"
 max_increase_pct = 0.0
 level = "error"
-message = "Complexity regression detected"
+description = "Complexity regression detected"
 
 # =============================================================================
 # Named Profiles (view profiles)

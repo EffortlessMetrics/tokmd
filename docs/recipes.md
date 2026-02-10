@@ -251,10 +251,10 @@ Ensure that code metrics (like complexity) do not get worse over time.
 2. **Configure ratchet in `tokmd.toml`**:
    ```toml
    [[gate.ratchet]]
-   name = "complexity_ratchet"
-   metric = "avg_cyclomatic"
+   pointer = "/complexity/avg_cyclomatic"
    max_increase_pct = 0.0  # Strict no-regression
    level = "error"
+   description = "Average cyclomatic complexity"
    ```
 
 3. **Run gate in PR**:

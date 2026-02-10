@@ -311,8 +311,9 @@ You can also enforce that metrics improve (or don't get worse) over time using *
 2. Define a ratchet rule in `tokmd.toml`:
    ```toml
    [[gate.ratchet]]
-   metric = "avg_cyclomatic"
+   pointer = "/complexity/avg_cyclomatic"
    max_increase_pct = 0.0
+   description = "Average cyclomatic complexity"
    ```
 3. Run with baseline: `tokmd gate --baseline .tokmd/baseline.json`
 
