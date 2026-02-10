@@ -448,11 +448,14 @@ tokmd baseline
 
 **Customizing the baseline**:
 ```bash
-# Baseline specific directories
-tokmd baseline -p src crates
+# Baseline a specific directory
+tokmd baseline src
 
 # Write to a specific output file
-tokmd baseline --out .tokmd/baseline.json
+tokmd baseline --output .tokmd/baseline.json
+
+# Overwrite if it exists
+tokmd baseline --force
 ```
 
 The baseline is used by the ratchet system to enforce that complexity does not regress across commits. See the [Recipes](recipes.md) for CI integration examples.
@@ -496,7 +499,7 @@ tokmd handoff --preset deep
 tokmd handoff --budget 200k
 
 # Custom output directory
-tokmd handoff --output-dir my-handoff/
+tokmd handoff --out-dir my-handoff/
 ```
 
 **What to do with the output**: Feed the `.handoff/` directory contents to your LLM. The manifest tells the AI what's available, the map provides the full file inventory, the intelligence file gives structural insights, and the code bundle contains the actual source within your token budget.

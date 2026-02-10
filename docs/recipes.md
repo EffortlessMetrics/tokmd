@@ -701,7 +701,7 @@ jobs:
         run: cargo install tokmd
 
       - name: Generate handoff bundle
-        run: tokmd handoff --preset risk --budget 128k --output-dir .handoff
+        run: tokmd handoff --preset risk --budget 128k --out-dir .handoff
 
       - name: Upload handoff artifact
         uses: actions/upload-artifact@v4

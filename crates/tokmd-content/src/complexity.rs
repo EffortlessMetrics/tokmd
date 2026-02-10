@@ -82,7 +82,7 @@ impl FunctionSpan {
 // Regex patterns for different languages
 static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
     // Qualifiers can appear in various orders: pub async unsafe fn, pub unsafe async fn, etc.
-    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+\w+"#)
+    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+(?:r#)?[A-Za-z_]\w*"#)
         .unwrap()
 });
 
@@ -1411,6 +1411,17 @@ extern "C" fn callback() {
         let code = r#"
 pub(crate) unsafe async fn baz() {
     println!("unsafe async");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_raw_identifier_function() {
+        let code = r#"
+pub(crate) unsafe fn r#match() {
+    println!("raw ident");
 }
 "#;
         let metrics = analyze_functions(code, "rust");
