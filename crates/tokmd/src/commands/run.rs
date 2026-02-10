@@ -160,6 +160,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
             window_tokens: None,
             git: None,
             import_granularity: analysis::ImportGranularity::Module,
+            detail_functions: false,
         };
         let ctx = analysis::AnalysisContext {
             export: export_data.clone(),

@@ -21,12 +21,18 @@
       "type": "array",
       "items": { "$ref": "#/definitions/Finding" }
     },
-    "gates": { "$ref": "#/definitions/GatesEnvelope" },
     "artifacts": {
       "type": "array",
       "items": { "$ref": "#/definitions/Artifact" }
     },
-    "data": {}
+    "data": {
+      "description": "Tool-specific payload (opaque to director). Gates and cockpit receipt are embedded here.",
+      "type": "object",
+      "properties": {
+        "gates": { "$ref": "#/definitions/GatesEnvelope" },
+        "cockpit_receipt": {}
+      }
+    }
   },
   "definitions": {
     "EnvelopeTool": {

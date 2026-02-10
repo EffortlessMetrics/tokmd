@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 4 },
+        "schema_version": { "type": "integer", "const": 5 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -881,7 +881,50 @@
         "avg_nesting_depth": { "type": ["number", "null"], "description": "Average nesting depth across files." },
         "max_nesting_depth": { "type": ["integer", "null"], "description": "Maximum nesting depth found." },
         "high_risk_files": { "type": "integer", "description": "Number of high-risk files." },
+        "histogram": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityHistogram" }], "description": "Cyclomatic complexity distribution histogram." },
+        "halstead": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/HalsteadMetrics" }], "description": "Halstead software science metrics (requires halstead feature)." },
+        "maintainability_index": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/MaintainabilityIndex" }], "description": "Composite maintainability index." },
         "files": { "type": "array", "items": { "$ref": "#/definitions/FileComplexity" } }
+      }
+    },
+    "HalsteadMetrics": {
+      "type": "object",
+      "description": "Halstead software science metrics.",
+      "required": ["distinct_operators", "distinct_operands", "total_operators", "total_operands", "vocabulary", "length", "volume", "difficulty", "effort", "time_seconds", "estimated_bugs"],
+      "properties": {
+        "distinct_operators": { "type": "integer", "description": "Number of distinct operators (n1)." },
+        "distinct_operands": { "type": "integer", "description": "Number of distinct operands (n2)." },
+        "total_operators": { "type": "integer", "description": "Total number of operators (N1)." },
+        "total_operands": { "type": "integer", "description": "Total number of operands (N2)." },
+        "vocabulary": { "type": "integer", "description": "Program vocabulary: n1 + n2." },
+        "length": { "type": "integer", "description": "Program length: N1 + N2." },
+        "volume": { "type": "number", "description": "Volume: N * log2(n)." },
+        "difficulty": { "type": "number", "description": "Difficulty: (n1/2) * (N2/n2)." },
+        "effort": { "type": "number", "description": "Effort: D * V." },
+        "time_seconds": { "type": "number", "description": "Estimated programming time in seconds." },
+        "estimated_bugs": { "type": "number", "description": "Estimated number of bugs: V / 3000." }
+      }
+    },
+    "MaintainabilityIndex": {
+      "type": "object",
+      "description": "Composite maintainability index based on the SEI formula.",
+      "required": ["score", "avg_cyclomatic", "avg_loc", "grade"],
+      "properties": {
+        "score": { "type": "number", "description": "Maintainability index score (0-171)." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity used." },
+        "avg_loc": { "type": "number", "description": "Average lines of code per file." },
+        "avg_halstead_volume": { "type": ["number", "null"], "description": "Average Halstead volume (if computed)." },
+        "grade": { "type": "string", "description": "Letter grade: A (>=85), B (65-84), C (<65)." }
+      }
+    },
+    "ComplexityHistogram": {
+      "type": "object",
+      "description": "Histogram of cyclomatic complexity distribution across files.",
+      "required": ["buckets", "counts", "total"],
+      "properties": {
+        "buckets": { "type": "array", "items": { "type": "integer" }, "description": "Bucket boundaries." },
+        "counts": { "type": "array", "items": { "type": "integer" }, "description": "Count of files in each bucket." },
+        "total": { "type": "integer", "description": "Total files analyzed." }
       }
     },
     "FileComplexity": {
@@ -1346,6 +1389,7 @@
         "message": { "type": "string", "description": "Detailed message describing the finding." },
         "location": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FindingLocation" }], "description": "Source location (if applicable)." },
         "evidence": { "description": "Additional evidence data." },
+        "fingerprint": { "type": ["string", "null"], "description": "Stable identity fingerprint (BLAKE3 hash of tool_name, check_id, code, location.path) for deduplication." },
         "docs_url": { "type": ["string", "null"], "description": "Documentation URL for this finding type." }
       }
     },
@@ -1393,7 +1437,9 @@
       "required": ["type", "path"],
       "properties": {
         "type": { "type": "string", "description": "Artifact type (e.g., 'comment', 'receipt', 'badge')." },
-        "path": { "type": "string", "description": "Path to the artifact file." }
+        "path": { "type": "string", "description": "Path to the artifact file." },
+        "id": { "type": ["string", "null"], "description": "Artifact identifier (e.g., 'receipt', 'cockpit', 'comment')." },
+        "mime": { "type": ["string", "null"], "description": "MIME type (e.g., 'application/json', 'text/markdown')." }
       }
     },
     "ComplexityBaseline": {

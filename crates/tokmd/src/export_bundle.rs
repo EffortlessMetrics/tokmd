@@ -248,3 +248,179 @@ fn load_export_json_content(content: &str) -> Result<(tokmd_types::ExportData, E
         meta,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+    use tokmd_config::GlobalArgs;
+    use tokmd_types::{
+        ChildIncludeMode, ConfigMode, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt,
+        FileKind, FileRow, RedactMode, RunReceipt, ScanArgs, ScanStatus, ToolInfo,
+    };
+
+    fn sample_row() -> FileRow {
+        FileRow {
+            path: "src/main.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 10,
+            comments: 0,
+            blanks: 0,
+            lines: 10,
+            bytes: 120,
+            tokens: 50,
+        }
+    }
+
+    fn sample_args_meta() -> ExportArgsMeta {
+        ExportArgsMeta {
+            format: ExportFormat::Jsonl,
+            module_roots: vec!["src".to_string()],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+            min_code: 0,
+            max_rows: 0,
+            redact: RedactMode::None,
+            strip_prefix: None,
+            strip_prefix_redacted: false,
+        }
+    }
+
+    fn sample_scan_args() -> ScanArgs {
+        ScanArgs {
+            paths: vec![".".to_string()],
+            excluded: Vec::new(),
+            excluded_redacted: false,
+            config: ConfigMode::Auto,
+            hidden: false,
+            no_ignore: false,
+            no_ignore_parent: false,
+            no_ignore_dot: false,
+            no_ignore_vcs: false,
+            treat_doc_strings_as_comments: false,
+        }
+    }
+
+    #[test]
+    fn load_export_jsonl_content_parses_meta_and_rows() {
+        let args = sample_args_meta();
+        let meta_line = serde_json::json!({
+            "type": "meta",
+            "schema_version": 2,
+            "generated_at_ms": 123,
+            "args": args,
+        });
+        let row = sample_row();
+        let content = format!("{}\n{}\n", meta_line, serde_json::to_string(&row).unwrap());
+
+        let (export, meta) = load_export_jsonl_content(&content).unwrap();
+        assert_eq!(meta.schema_version, Some(2));
+        assert_eq!(meta.generated_at_ms, Some(123));
+        assert_eq!(meta.module_roots, vec!["src".to_string()]);
+        assert_eq!(meta.module_depth, 1);
+        assert_eq!(export.rows.len(), 1);
+        assert_eq!(export.rows[0].path, "src/main.rs");
+    }
+
+    #[test]
+    fn load_export_json_content_with_receipt() {
+        let row = sample_row();
+        let args = sample_args_meta();
+        let receipt = ExportReceipt {
+            schema_version: 2,
+            generated_at_ms: 42,
+            tool: ToolInfo {
+                name: "tokmd".to_string(),
+                version: "0.0.0".to_string(),
+            },
+            mode: "export".to_string(),
+            status: ScanStatus::Complete,
+            warnings: Vec::new(),
+            scan: sample_scan_args(),
+            args: args.clone(),
+            data: ExportData {
+                rows: vec![row.clone()],
+                module_roots: args.module_roots.clone(),
+                module_depth: args.module_depth,
+                children: args.children,
+            },
+        };
+        let content = serde_json::to_string(&receipt).unwrap();
+
+        let (export, meta) = load_export_json_content(&content).unwrap();
+        assert_eq!(meta.schema_version, Some(2));
+        assert_eq!(meta.generated_at_ms, Some(42));
+        assert_eq!(meta.module_roots, vec!["src".to_string()]);
+        assert_eq!(export.rows.len(), 1);
+        assert_eq!(export.rows[0].path, row.path);
+    }
+
+    #[test]
+    fn load_export_json_content_with_raw_rows() {
+        let rows = vec![sample_row()];
+        let content = serde_json::to_string(&rows).unwrap();
+
+        let (export, meta) = load_export_json_content(&content).unwrap();
+        assert!(meta.schema_version.is_none());
+        assert_eq!(export.rows.len(), 1);
+        assert_eq!(export.rows[0].path, "src/main.rs");
+    }
+
+    #[test]
+    fn load_export_from_inputs_prefers_receipt_in_dir() {
+        let dir = tempdir().unwrap();
+        let export_path = dir.path().join("export.jsonl");
+        let receipt_path = dir.path().join("receipt.json");
+
+        let args = sample_args_meta();
+        let meta_line = serde_json::json!({
+            "type": "meta",
+            "schema_version": 2,
+            "generated_at_ms": 999,
+            "args": args,
+        });
+        let row = sample_row();
+        let jsonl = format!("{}\n{}\n", meta_line, serde_json::to_string(&row).unwrap());
+        std::fs::write(&export_path, jsonl).unwrap();
+
+        let receipt = RunReceipt {
+            schema_version: 2,
+            generated_at_ms: 999,
+            lang_file: "lang.json".to_string(),
+            module_file: "module.json".to_string(),
+            export_file: "export.jsonl".to_string(),
+        };
+        std::fs::write(&receipt_path, serde_json::to_string(&receipt).unwrap()).unwrap();
+
+        let bundle =
+            load_export_from_inputs(&[dir.path().to_path_buf()], &GlobalArgs::default()).unwrap();
+        assert_eq!(bundle.export.rows.len(), 1);
+        assert_eq!(
+            bundle.export_path.as_ref().unwrap().file_name().unwrap(),
+            "export.jsonl"
+        );
+        assert_eq!(
+            bundle.entry_point.as_ref().unwrap().file_name().unwrap(),
+            "receipt.json"
+        );
+    }
+
+    #[test]
+    fn load_export_from_inputs_scans_non_json_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("sample.rs");
+        std::fs::write(&file_path, "fn main() {}\n").unwrap();
+
+        let bundle = load_export_from_inputs(&[file_path.clone()], &GlobalArgs::default()).unwrap();
+        assert!(bundle.export_path.is_none());
+        assert!(
+            bundle
+                .export
+                .rows
+                .iter()
+                .any(|row| row.path.contains("sample.rs"))
+        );
+    }
+}

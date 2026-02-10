@@ -63,6 +63,7 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
         window_tokens: None,
         git: git_flag,
         import_granularity: analysis::ImportGranularity::Module,
+        detail_functions: false,
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,

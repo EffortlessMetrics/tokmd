@@ -630,7 +630,88 @@ fi
 exit 0
 ```
 
-### 21. Baseline Tracking Workflow
+### 21. LLM Handoff Bundles
+
+Create optimized code bundles for handing off to AI assistants.
+
+**Goal**: Package your codebase with intelligence metadata for effective LLM collaboration.
+
+**Basic handoff**:
+```bash
+# Create a handoff bundle with default settings (risk preset)
+tokmd handoff
+```
+
+This creates a `.handoff/` directory with `manifest.json`, `map.jsonl`, `intelligence.json`, and `code.txt`.
+
+**Different intelligence presets**:
+```bash
+# Minimal: just tree and map (fastest)
+tokmd handoff --preset minimal
+
+# Standard: add complexity and derived metrics
+tokmd handoff --preset standard
+
+# Risk: add hotspots and coupling analysis (default)
+tokmd handoff --preset risk
+
+# Deep: everything for thorough review
+tokmd handoff --preset deep
+```
+
+**Customizing token budget and strategy**:
+```bash
+# Larger budget for models with bigger context windows
+tokmd handoff --budget 200k
+
+# Spread strategy for broader coverage
+tokmd handoff --budget 128k --strategy spread
+
+# Prioritize recently-changed files
+tokmd handoff --rank-by churn
+```
+
+**Using handoff output with AI assistants**:
+```bash
+# Generate the bundle
+tokmd handoff --preset risk --budget 128k
+
+# The manifest tells the AI what's available
+cat .handoff/manifest.json | jq '.artifacts'
+
+# Feed the code bundle to your LLM
+cat .handoff/code.txt | pbcopy  # macOS
+```
+
+**CI integration for automated handoffs**:
+```yaml
+name: Generate Handoff
+on:
+  pull_request:
+
+jobs:
+  handoff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tokmd
+        run: cargo install tokmd
+
+      - name: Generate handoff bundle
+        run: tokmd handoff --preset risk --budget 128k --output-dir .handoff
+
+      - name: Upload handoff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: handoff-${{ github.sha }}
+          path: .handoff/
+          retention-days: 30
+```
+
+### 22. Baseline Tracking Workflow
 
 Track code metrics over time with automated baseline management.
 
@@ -643,6 +724,16 @@ tokmd run --output-dir .tokmd/baselines/initial
 # Commit the baseline
 git add .tokmd/baselines/initial
 git commit -m "chore: add tokmd baseline"
+```
+
+**Complexity baseline**:
+```bash
+# Capture a complexity baseline at the current commit
+tokmd baseline --out .tokmd/baseline.json
+
+# Commit for CI ratchet tracking
+git add .tokmd/baseline.json
+git commit -m "chore: add complexity baseline"
 ```
 
 **Weekly baseline update (CI)**:

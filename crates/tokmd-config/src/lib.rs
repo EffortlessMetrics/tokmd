@@ -55,7 +55,12 @@ pub struct GlobalArgs {
     /// Examples:
     ///   --exclude target
     ///   --exclude "**/*.min.js"
-    #[arg(long = "exclude", visible_alias = "ignore", value_name = "PATTERN")]
+    #[arg(
+        long = "exclude",
+        visible_alias = "ignore",
+        value_name = "PATTERN",
+        global = true
+    )]
     pub excluded: Vec<String>,
 
     /// Whether to load `tokei.toml` / `.tokeirc`.
@@ -406,6 +411,10 @@ pub struct CliAnalyzeArgs {
     /// Import graph granularity [default: module].
     #[arg(long, value_enum)]
     pub granularity: Option<ImportGranularity>,
+
+    /// Include function-level complexity details in output.
+    #[arg(long)]
+    pub detail_functions: bool,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -533,7 +542,7 @@ pub struct CliContextArgs {
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Token budget with optional k/m suffix (e.g., "128k", "1m", "50000").
+    /// Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited").
     #[arg(long, default_value = "128k")]
     pub budget: String,
 
@@ -552,6 +561,10 @@ pub struct CliContextArgs {
     /// Strip blank lines from bundle output.
     #[arg(long)]
     pub compress: bool,
+
+    /// Disable smart exclusion of lockfiles, minified files, and generated artifacts.
+    #[arg(long)]
+    pub no_smart_exclude: bool,
 
     /// Module roots (see `tokmd module`).
     #[arg(long, value_delimiter = ',')]
@@ -749,6 +762,15 @@ pub struct CockpitArgs {
     /// Diff range syntax: two-dot (default) or three-dot.
     #[arg(long, value_enum, default_value_t = DiffRangeMode::TwoDot)]
     pub diff_range: DiffRangeMode,
+
+    /// Run in sensor mode for CI integration.
+    ///
+    /// When enabled:
+    /// - Always writes sensor.report.v1 envelope to artifacts_dir/report.json
+    /// - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
+    /// - Reports capability availability for "No Green By Omission"
+    #[arg(long)]
+    pub sensor_mode: bool,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -792,7 +814,7 @@ pub struct HandoffArgs {
     #[arg(long, default_value = ".handoff")]
     pub out_dir: PathBuf,
 
-    /// Token budget with optional k/m suffix (e.g., "128k", "1m", "50000").
+    /// Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited").
     #[arg(long, default_value = "128k")]
     pub budget: String,
 
@@ -823,6 +845,10 @@ pub struct HandoffArgs {
     /// Strip blank lines from code bundle.
     #[arg(long)]
     pub compress: bool,
+
+    /// Disable smart exclusion of lockfiles, minified files, and generated artifacts.
+    #[arg(long)]
+    pub no_smart_exclude: bool,
 
     /// Disable git-based features.
     #[arg(long = "no-git")]

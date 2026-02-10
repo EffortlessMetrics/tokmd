@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use tokmd_analysis_types::{ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity};
+use tokmd_analysis_types::{
+    ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity,
+    FunctionComplexityDetail, MaintainabilityIndex,
+};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use crate::analysis::AnalysisLimits;
@@ -53,6 +56,7 @@ pub(crate) fn build_complexity_report(
     files: &[PathBuf],
     export: &ExportData,
     limits: &AnalysisLimits,
+    detail_functions: bool,
 ) -> Result<ComplexityReport> {
     let mut row_map: BTreeMap<String, &FileRow> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
@@ -117,6 +121,12 @@ pub(crate) fn build_complexity_report(
             max_nesting,
         );
 
+        let functions = if detail_functions {
+            Some(extract_function_details(&row.lang, &text))
+        } else {
+            None
+        };
+
         file_complexities.push(FileComplexity {
             path: rel_str,
             module: row.module.clone(),
@@ -126,7 +136,7 @@ pub(crate) fn build_complexity_report(
             cognitive_complexity,
             max_nesting,
             risk_level,
-            functions: None, // Will be populated when --detail-functions is used
+            functions,
         });
     }
 
@@ -215,6 +225,12 @@ pub(crate) fn build_complexity_report(
         })
         .count();
 
+    // Generate histogram from all files before truncating
+    let histogram = generate_complexity_histogram(&file_complexities, 5);
+
+    // Compute maintainability index
+    let maintainability_index = compute_maintainability_index(avg_cyclomatic, file_count, export);
+
     // Only keep top files by complexity
     file_complexities.truncate(MAX_COMPLEXITY_FILES);
 
@@ -229,7 +245,9 @@ pub(crate) fn build_complexity_report(
         avg_nesting_depth,
         max_nesting_depth,
         high_risk_files,
-        histogram: None,
+        histogram: Some(histogram),
+        halstead: None, // Populated when halstead feature is enabled
+        maintainability_index,
         files: file_complexities,
     })
 }
@@ -247,7 +265,6 @@ pub(crate) fn build_complexity_report(
 ///
 /// # Note
 /// This function is planned for integration in v1.6.0.
-#[allow(dead_code)]
 pub fn generate_complexity_histogram(
     files: &[FileComplexity],
     bucket_size: u32,
@@ -283,6 +300,62 @@ fn count_functions(lang: &str, text: &str) -> (usize, usize) {
     }
 }
 
+/// Check if a trimmed line starts a Rust function definition.
+///
+/// Handles all visibility qualifiers including `pub(in path::here)`,
+/// optional `async`, `unsafe`, `const`, and `extern "ABI"` modifiers.
+fn is_rust_fn_start(trimmed: &str) -> bool {
+    // Fast path: find "fn " in the line
+    let Some(fn_pos) = trimmed.find("fn ") else {
+        return false;
+    };
+
+    // Everything before "fn " must be valid qualifiers
+    let prefix = trimmed[..fn_pos].trim();
+    if prefix.is_empty() {
+        return true; // bare "fn name"
+    }
+
+    // Parse prefix: valid tokens are pub/pub(...), async, unsafe, const, extern "..."
+    let mut rest = prefix;
+    while !rest.is_empty() {
+        rest = rest.trim_start();
+        if rest.is_empty() {
+            break;
+        }
+        if rest.starts_with("pub(") {
+            // Skip pub(...) with arbitrary content (e.g., pub(in crate::foo))
+            if let Some(close) = rest.find(')') {
+                rest = &rest[close + 1..];
+            } else {
+                return false; // Unclosed paren
+            }
+        } else if let Some(r) = rest.strip_prefix("pub") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("async") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("unsafe") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("const") {
+            rest = r;
+        } else if rest.starts_with("extern") {
+            // extern "ABI" - skip the ABI string
+            rest = rest["extern".len()..].trim_start();
+            if rest.starts_with('"') {
+                if let Some(close) = rest[1..].find('"') {
+                    rest = &rest[close + 2..];
+                } else {
+                    return false; // Unclosed string
+                }
+            }
+        } else {
+            return false; // Unknown token
+        }
+    }
+
+    true
+}
+
 fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
     let mut count = 0;
     let mut max_len = 0;
@@ -294,14 +367,7 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
         let trimmed = line.trim();
 
         // Detect function start
-        if !in_fn
-            && (trimmed.starts_with("fn ")
-                || trimmed.starts_with("pub fn ")
-                || trimmed.starts_with("pub(crate) fn ")
-                || trimmed.starts_with("pub(super) fn ")
-                || trimmed.starts_with("async fn ")
-                || trimmed.starts_with("pub async fn "))
-        {
+        if !in_fn && is_rust_fn_start(trimmed) {
             count += 1;
             in_fn = true;
             fn_start = i;
@@ -536,24 +602,18 @@ fn estimate_cyclomatic(lang: &str, text: &str) -> usize {
     let mut complexity = 1usize;
 
     let keywords: &[&str] = match lang.to_lowercase().as_str() {
-        "rust" => &[
-            "if ", "else if ", "match ", "while ", "for ", "loop ", "?", "&&", "||",
-        ],
-        "javascript" | "typescript" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
-        "python" => &[
-            "if ", "elif ", "while ", "for ", "except ", " and ", " or ", " if ",
-        ],
-        "go" => &[
-            "if ", "else if ", "switch ", "case ", "for ", "select ", "&&", "||",
-        ],
-        "c" | "c++" | "java" | "c#" | "php" => &[
-            "if ", "else if ", "switch ", "case ", "while ", "for ", "?", "&&", "||", "catch ",
-        ],
+        "rust" => &["if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
+        "javascript" | "typescript" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
+        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
+        "go" => &["if ", "case ", "for ", "select ", "&&", "||"],
+        "c" | "c++" | "java" | "c#" | "php" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
         "ruby" => &[
-            "if ", "elsif ", "unless ", "while ", "until ", "for ", "case ", "when ", "rescue ",
-            " and ", " or ",
+            "if ", "elsif ", "unless ", "while ", "until ", "for ", "when ", "rescue ", " and ",
+            " or ",
         ],
         _ => &[],
     };
@@ -632,6 +692,433 @@ fn classify_risk_extended(
     }
 }
 
+/// Compute the Maintainability Index using the simplified SEI formula.
+///
+/// MI = 171 - 0.23 * CC - 16.2 * ln(LOC)
+///
+/// When Halstead volume is available, the full formula is:
+/// MI = 171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)
+fn compute_maintainability_index(
+    avg_cyclomatic: f64,
+    file_count: usize,
+    export: &ExportData,
+) -> Option<MaintainabilityIndex> {
+    if file_count == 0 {
+        return None;
+    }
+
+    let total_code: usize = export
+        .rows
+        .iter()
+        .filter(|r| r.kind == FileKind::Parent)
+        .map(|r| r.code)
+        .sum();
+    let parent_count = export
+        .rows
+        .iter()
+        .filter(|r| r.kind == FileKind::Parent)
+        .count();
+    if parent_count == 0 {
+        return None;
+    }
+
+    let avg_loc = total_code as f64 / parent_count as f64;
+    if avg_loc <= 0.0 {
+        return None;
+    }
+
+    // Simplified SEI formula (without Halstead volume)
+    let score = (171.0 - 0.23 * avg_cyclomatic - 16.2 * avg_loc.ln()).max(0.0);
+    let score = round_f64(score, 2);
+
+    let grade = if score >= 85.0 {
+        "A".to_string()
+    } else if score >= 65.0 {
+        "B".to_string()
+    } else {
+        "C".to_string()
+    };
+
+    Some(MaintainabilityIndex {
+        score,
+        avg_cyclomatic,
+        avg_loc: round_f64(avg_loc, 2),
+        avg_halstead_volume: None,
+        grade,
+    })
+}
+
+/// Extract function-level complexity details for a source file.
+fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDetail> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mapped_lang = map_language_for_complexity(lang);
+
+    let fn_spans: Vec<(usize, usize, String)> = match lang.to_lowercase().as_str() {
+        "rust" => detect_fn_spans_rust(&lines),
+        "javascript" | "typescript" => detect_fn_spans_js(&lines),
+        "python" => detect_fn_spans_python(&lines),
+        "go" => detect_fn_spans_go(&lines),
+        "c" | "c++" | "java" | "c#" | "php" => detect_fn_spans_c_style(&lines),
+        _ => Vec::new(),
+    };
+
+    fn_spans
+        .into_iter()
+        .map(|(start, end, name)| {
+            let length = end.saturating_sub(start) + 1;
+            let fn_text = lines[start..=end.min(lines.len() - 1)].join("\n");
+            let cyclomatic = estimate_cyclomatic_inline(mapped_lang, &fn_text);
+
+            let cognitive_result =
+                tokmd_content::complexity::estimate_cognitive_complexity(&fn_text, mapped_lang);
+            let cognitive = Some(cognitive_result.total);
+
+            let nesting_result =
+                tokmd_content::complexity::analyze_nesting_depth(&fn_text, mapped_lang);
+            let max_nesting = if nesting_result.max_depth > 0 {
+                Some(nesting_result.max_depth)
+            } else {
+                None
+            };
+
+            let param_count = count_params(lines.get(start).unwrap_or(&""));
+
+            FunctionComplexityDetail {
+                name,
+                line_start: start + 1,
+                line_end: end + 1,
+                length,
+                cyclomatic,
+                cognitive,
+                max_nesting,
+                param_count: if param_count > 0 {
+                    Some(param_count)
+                } else {
+                    None
+                },
+            }
+        })
+        .collect()
+}
+
+/// Detect Rust function spans: (start_line, end_line, name).
+fn detect_fn_spans_rust(lines: &[&str]) -> Vec<(usize, usize, String)> {
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        if is_rust_fn_start(trimmed) {
+            let name = extract_rust_fn_name(trimmed);
+            let start = i;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                // No body found (trait sig, abstract, extern) — skip
+                i += 1;
+            }
+        } else {
+            i += 1;
+        }
+    }
+    spans
+}
+
+/// Detect JS/TS function spans.
+fn detect_fn_spans_js(lines: &[&str]) -> Vec<(usize, usize, String)> {
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        let is_fn = trimmed.starts_with("function ")
+            || trimmed.starts_with("async function ")
+            || trimmed.starts_with("export function ")
+            || trimmed.starts_with("export async function ")
+            || trimmed.contains("=> {");
+        if is_fn && !trimmed.starts_with("//") {
+            let name = extract_js_fn_name(trimmed);
+            let start = i;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
+        } else {
+            i += 1;
+        }
+    }
+    spans
+}
+
+/// Detect Python function spans.
+fn detect_fn_spans_python(lines: &[&str]) -> Vec<(usize, usize, String)> {
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        if trimmed.starts_with("def ") || trimmed.starts_with("async def ") {
+            let name = extract_python_fn_name(trimmed);
+            let base_indent = lines[i].len() - lines[i].trim_start().len();
+
+            // Walk upward to include decorator lines (@...)
+            let mut start = i;
+            {
+                let mut k = i;
+                while k > 0 {
+                    let prev = lines[k - 1].trim();
+                    if prev.is_empty() {
+                        k -= 1;
+                        continue;
+                    }
+                    let prev_indent = lines[k - 1].len() - lines[k - 1].trim_start().len();
+                    if prev_indent == base_indent && prev.starts_with('@') {
+                        start = k - 1;
+                        k -= 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            let mut end = i;
+            let mut j = i + 1;
+            while j < lines.len() {
+                let lt = lines[j].trim();
+                if lt.is_empty() || lt.starts_with('#') {
+                    j += 1;
+                    continue;
+                }
+                let indent = lines[j].len() - lines[j].trim_start().len();
+                if indent <= base_indent {
+                    break;
+                }
+                end = j;
+                j += 1;
+            }
+            spans.push((start, end, name));
+            i = end + 1;
+        } else {
+            i += 1;
+        }
+    }
+    spans
+}
+
+/// Detect Go function spans.
+fn detect_fn_spans_go(lines: &[&str]) -> Vec<(usize, usize, String)> {
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        if trimmed.starts_with("func ") {
+            let name = extract_go_fn_name(trimmed);
+            let start = i;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
+        } else {
+            i += 1;
+        }
+    }
+    spans
+}
+
+/// Detect C-style function spans.
+fn detect_fn_spans_c_style(lines: &[&str]) -> Vec<(usize, usize, String)> {
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        let looks_like_fn = (trimmed.ends_with(") {") || trimmed.ends_with("){"))
+            && !trimmed.starts_with("if ")
+            && !trimmed.starts_with("if(")
+            && !trimmed.starts_with("while ")
+            && !trimmed.starts_with("for ")
+            && !trimmed.starts_with("switch ")
+            && !trimmed.starts_with("//")
+            && !trimmed.starts_with('#');
+        if looks_like_fn {
+            let name = extract_c_fn_name(trimmed);
+            let start = i;
+            if let Some(end) = find_brace_end_at(lines, i) {
+                spans.push((start, end, name));
+                i = end + 1;
+            } else {
+                i += 1;
+            }
+        } else {
+            i += 1;
+        }
+    }
+    spans
+}
+
+/// Find closing brace for a block starting at `start_line`.
+///
+/// Returns `None` if no opening brace is found (e.g., trait method
+/// signatures, extern declarations, abstract methods).
+fn find_brace_end_at(lines: &[&str], start_line: usize) -> Option<usize> {
+    let mut depth: usize = 0;
+    let mut found_open = false;
+    for (i, line) in lines.iter().enumerate().skip(start_line) {
+        for ch in line.chars() {
+            if ch == '{' {
+                depth += 1;
+                found_open = true;
+            } else if ch == '}' {
+                depth = depth.saturating_sub(1);
+                if found_open && depth == 0 {
+                    return Some(i);
+                }
+            }
+        }
+    }
+    // Both cases (no open brace, or unclosed braces) → None
+    None
+}
+
+/// Extract Rust function name from a line containing "fn ".
+fn extract_rust_fn_name(line: &str) -> String {
+    if let Some(idx) = line.find("fn ") {
+        let after = &line[idx + 3..];
+        let name: String = after
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_')
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    "<unknown>".to_string()
+}
+
+fn extract_js_fn_name(line: &str) -> String {
+    if let Some(idx) = line.find("function ") {
+        let after = &line[idx + 9..];
+        let name: String = after
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '$')
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    if let Some(paren_idx) = line.find('(') {
+        let before = line[..paren_idx].trim();
+        let name: String = before
+            .chars()
+            .rev()
+            .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '$')
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    "<anonymous>".to_string()
+}
+
+fn extract_python_fn_name(line: &str) -> String {
+    let keyword = if line.contains("async def ") {
+        "async def "
+    } else {
+        "def "
+    };
+    if let Some(idx) = line.find(keyword) {
+        let after = &line[idx + keyword.len()..];
+        let name: String = after
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_')
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    "<unknown>".to_string()
+}
+
+fn extract_go_fn_name(line: &str) -> String {
+    if let Some(idx) = line.find("func ") {
+        let after = &line[idx + 5..];
+        let after = if after.starts_with('(') {
+            if let Some(close) = after.find(')') {
+                after[close + 1..].trim_start()
+            } else {
+                after
+            }
+        } else {
+            after
+        };
+        let name: String = after
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_')
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    "<unknown>".to_string()
+}
+
+fn extract_c_fn_name(line: &str) -> String {
+    if let Some(paren_idx) = line.find('(') {
+        let before = line[..paren_idx].trim();
+        let name: String = before
+            .chars()
+            .rev()
+            .take_while(|c| c.is_alphanumeric() || *c == '_')
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        if !name.is_empty() {
+            return name;
+        }
+    }
+    "<unknown>".to_string()
+}
+
+/// Count function parameters from a line.
+fn count_params(line: &str) -> usize {
+    if let Some(open) = line.find('(')
+        && let Some(close) = line.find(')')
+    {
+        let params = line[open + 1..close].trim();
+        if params.is_empty() {
+            return 0;
+        }
+        return params.split(',').count();
+    }
+    0
+}
+
+/// Estimate cyclomatic complexity for a function body.
+fn estimate_cyclomatic_inline(lang: &str, text: &str) -> usize {
+    let mut complexity = 1usize;
+    let keywords: &[&str] = match lang {
+        "rust" => &["if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
+        "javascript" | "typescript" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
+        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
+        "go" => &["if ", "case ", "for ", "select ", "&&", "||"],
+        "c" | "c++" | "java" | "c#" | "php" => {
+            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
+        }
+        _ => &[],
+    };
+    let lower = text.to_lowercase();
+    for keyword in keywords {
+        complexity += lower.matches(keyword).count();
+    }
+    complexity
+}
+
 fn round_f64(val: f64, decimals: u32) -> f64 {
     let factor = 10f64.powi(decimals as i32);
     (val * factor).round() / factor
@@ -701,7 +1188,46 @@ fn complex(x: i32) -> i32 {
 "#;
         let cyclo = estimate_cyclomatic("rust", code);
         // Base 1 + 2 ifs + 1 match = 4
-        assert!(cyclo >= 4);
+        assert_eq!(cyclo, 4);
+    }
+
+    #[test]
+    fn test_estimate_cyclomatic_rust_no_else_if_double_count() {
+        // "else if" should only count once (as "if"), not as both "if" and "else if"
+        let code = r#"
+fn branchy(x: i32) -> i32 {
+    if x > 0 {
+        1
+    } else if x < 0 {
+        -1
+    } else if x == 0 {
+        0
+    } else {
+        42
+    }
+}
+"#;
+        let cyclo = estimate_cyclomatic("rust", code);
+        // Base 1 + 3 ifs (the initial "if" + 2 "else if" each matched by "if ")
+        assert_eq!(cyclo, 4);
+    }
+
+    #[test]
+    fn test_estimate_cyclomatic_js_no_switch_double_count() {
+        // "switch" removed; only "case" contributes
+        let code = r#"
+function classify(x) {
+    switch (x) {
+        case 1: return "one";
+        case 2: return "two";
+        case 3: return "three";
+        default: return "other";
+    }
+}
+"#;
+        let cyclo = estimate_cyclomatic("javascript", code);
+        // Base 1 + 3 cases = 4
+        assert_eq!(cyclo, 4);
     }
 
     #[test]
@@ -750,5 +1276,136 @@ fn complex(x: i32) -> i32 {
         assert!(is_complexity_lang("Python"));
         assert!(!is_complexity_lang("Markdown"));
         assert!(!is_complexity_lang("JSON"));
+    }
+
+    #[test]
+    fn test_is_rust_fn_start_extended() {
+        // Standard cases
+        assert!(is_rust_fn_start("fn foo()"));
+        assert!(is_rust_fn_start("pub fn foo()"));
+        assert!(is_rust_fn_start("pub(crate) fn foo()"));
+        assert!(is_rust_fn_start("pub(super) fn foo()"));
+        assert!(is_rust_fn_start("async fn foo()"));
+        assert!(is_rust_fn_start("pub async fn foo()"));
+        assert!(is_rust_fn_start("unsafe fn foo()"));
+        assert!(is_rust_fn_start("const fn foo()"));
+
+        // Extended: pub(in path) visibility
+        assert!(is_rust_fn_start("pub(in crate::foo) fn bar()"));
+        assert!(is_rust_fn_start("pub(in crate::foo::bar) fn baz()"));
+
+        // Extended: extern "ABI" functions
+        assert!(is_rust_fn_start(r#"extern "C" fn callback()"#));
+        assert!(is_rust_fn_start(r#"pub extern "C" fn callback()"#));
+        assert!(is_rust_fn_start(r#"pub unsafe extern "C" fn callback()"#));
+
+        // Extended: multi-qualifier combos
+        assert!(is_rust_fn_start("pub(crate) unsafe async fn baz()"));
+        assert!(is_rust_fn_start("pub(super) const fn helper()"));
+
+        // Negative cases
+        assert!(!is_rust_fn_start("let fn_name = 5;"));
+        assert!(!is_rust_fn_start("// fn foo()"));
+        assert!(!is_rust_fn_start("struct Foo {"));
+    }
+
+    #[test]
+    fn test_detect_fn_rust_qualifiers() {
+        let code = r#"
+pub(crate) async fn crate_async() {
+    todo!()
+}
+
+pub(super) async fn super_async() {
+    todo!()
+}
+
+pub(crate) unsafe fn crate_unsafe() {
+    todo!()
+}
+
+pub unsafe fn public_unsafe() {
+    todo!()
+}
+
+pub(crate) const fn crate_const() -> u32 {
+    42
+}
+
+pub const fn public_const() -> u32 {
+    0
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_rust(&lines);
+        let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            vec![
+                "crate_async",
+                "super_async",
+                "crate_unsafe",
+                "public_unsafe",
+                "crate_const",
+                "public_const",
+            ]
+        );
+
+        // Also verify count_rust_functions picks them all up
+        let (count, _) = count_rust_functions(&lines);
+        assert_eq!(count, 6);
+    }
+
+    #[test]
+    fn test_detect_fn_python_decorators() {
+        let code = r#"
+@staticmethod
+def plain_static():
+    pass
+
+@app.route("/")
+@login_required
+def index():
+    return "hello"
+
+def no_decorator():
+    pass
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_python(&lines);
+        assert_eq!(spans.len(), 3);
+
+        // First function: @staticmethod + def plain_static
+        let (start, _end, ref name) = spans[0];
+        assert_eq!(name, "plain_static");
+        // The span should start at the decorator line
+        assert!(lines[start].trim().starts_with('@'));
+
+        // Second function: two decorators + def index
+        let (start2, _end2, ref name2) = spans[1];
+        assert_eq!(name2, "index");
+        assert!(lines[start2].trim().starts_with('@'));
+
+        // Third function: no decorator
+        let (start3, _end3, ref name3) = spans[2];
+        assert_eq!(name3, "no_decorator");
+        assert!(lines[start3].trim().starts_with("def "));
+    }
+
+    #[test]
+    fn test_detect_fn_c_style_no_preprocessor() {
+        let code = r#"
+#define THING(x) { }
+#define MACRO(a, b) { a + b; }
+
+int main(int argc, char** argv) {
+    return 0;
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let spans = detect_fn_spans_c_style(&lines);
+        // Should only detect main, not #define macros
+        assert_eq!(spans.len(), 1);
+        assert_eq!(spans[0].2, "main");
     }
 }

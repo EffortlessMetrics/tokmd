@@ -609,6 +609,8 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
 
 **Schema**: `"sensor.report.v1"`
 
+> **Contract**: The full JSON Schema and protocol documentation are available in [`contracts/sensor.report.v1/`](../contracts/sensor.report.v1/).
+
 ### Envelope Structure
 
 ```json
@@ -632,16 +634,23 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
       "location": { "path": "src/core/engine.rs", "line": 42 }
     }
   ],
-  "gates": {
-    "status": "pass",
-    "items": [
-      { "id": "mutation", "status": "pass", "threshold": 0.8, "actual": 0.92 }
-    ]
-  },
   "artifacts": [
-    { "type": "receipt", "path": "tokmd-cockpit.json" }
+    { "type": "receipt", "path": "artifacts/tokmd/report.json" }
   ],
-  "data": { /* tool-specific payload */ }
+  "capabilities": {
+    "mutation": { "status": "available" },
+    "coverage": { "status": "unavailable", "reason": "no coverage artifact" },
+    "semver": { "status": "skipped", "reason": "no API files changed" }
+  },
+  "data": {
+    "gates": {
+      "status": "pass",
+      "items": [
+        { "id": "mutation", "status": "pass", "threshold": 0.8, "actual": 0.92 }
+      ]
+    },
+    "cockpit_receipt": {}
+  }
 }
 ```
 
@@ -655,9 +664,9 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
 | `verdict` | `string` | Overall result: `pass`, `fail`, `warn`, `skip`, or `pending`. |
 | `summary` | `string` | Human-readable one-line summary. |
 | `findings` | `array` | List of findings (may be empty). |
-| `gates` | `object\|null` | Evidence gate status (optional). |
 | `artifacts` | `array\|null` | Related artifact paths (optional). |
-| `data` | `any\|null` | Tool-specific payload, opaque to director (optional). |
+| `capabilities` | `object\|null` | Capability availability status for "No Green By Omission" (see below). |
+| `data` | `object\|null` | Tool-specific payload (opaque to director); gates and cockpit receipt are embedded here. |
 
 ### Verdict Enum
 
@@ -704,6 +713,36 @@ Findings use `(check_id, code)` for identity. Combined with `tool.name`, this fo
 | `reason` | `string\|null` | Reason for status. |
 | `source` | `string\|null` | Data source (e.g., `ci_artifact`, `computed`). |
 | `artifact_path` | `string\|null` | Path to source artifact. |
+
+### Capabilities (No Green By Omission)
+
+The `capabilities` field explicitly reports which checks were available, unavailable, or skipped. This enables directors to distinguish between:
+- "All checks passed" (capabilities available, verdict pass)
+- "Nothing ran" (capabilities unavailable/skipped)
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `status` | `string` | One of `available`, `unavailable`, or `skipped`. |
+| `reason` | `string\|null` | Explanation for the status. |
+
+**Capability States:**
+
+| State | Meaning |
+| :--- | :--- |
+| `available` | Capability was available and produced results. |
+| `unavailable` | Capability was not available (missing tool, missing inputs). |
+| `skipped` | Capability was skipped (no relevant files, not applicable). |
+
+**Standard Capabilities (tokmd):**
+
+| Capability | Description |
+| :--- | :--- |
+| `mutation` | Mutation testing via cargo-mutants. |
+| `diff_coverage` | Diff coverage analysis. |
+| `contracts` | Contract change detection (semver, CLI, schema). |
+| `supply_chain` | Supply chain security via cargo-audit. |
+| `determinism` | Build determinism verification. |
+| `complexity` | Cyclomatic complexity analysis. |
 
 ---
 

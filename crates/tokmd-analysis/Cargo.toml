@@ -16,6 +16,7 @@ default = []
 git = ["dep:tokmd-git"]
 walk = ["dep:tokmd-walk"]
 content = ["dep:tokmd-content"]
+halstead = ["dep:tokmd-content"]
 
 [dependencies]
 anyhow = "1.0.100"

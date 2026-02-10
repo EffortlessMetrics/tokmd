@@ -11,6 +11,10 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use tokmd_config as cli;
+use tokmd_envelope::{
+    Artifact, CapabilityStatus, Finding, FindingSeverity, GateItem, GateResults, SensorReport,
+    ToolMeta, Verdict, findings,
+};
 
 /// Cockpit receipt schema version.
 const SCHEMA_VERSION: u32 = 3;
@@ -19,6 +23,7 @@ const SCHEMA_VERSION: u32 = 3;
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
     {
+        let _ = &args; // Silence unused warning
         bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
     }
 
@@ -44,6 +49,22 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
         }
 
+        // In sensor mode, write envelope to artifacts_dir
+        if args.sensor_mode {
+            let artifacts_dir = args
+                .artifacts_dir
+                .as_ref()
+                .cloned()
+                .unwrap_or_else(|| PathBuf::from("artifacts/tokmd"));
+            write_sensor_artifacts(&artifacts_dir, &receipt, &args.base, &args.head)?;
+
+            // In sensor mode, always print JSON to stdout for piping
+            let output = render_json(&receipt)?;
+            print!("{}", output);
+            return Ok(());
+        }
+
+        // Standard (non-sensor) mode
         let output = match args.format {
             cli::CockpitFormat::Json => render_json(&receipt)?,
             cli::CockpitFormat::Md => render_markdown(&receipt),
@@ -727,7 +748,7 @@ fn compute_evidence(
 ) -> Result<Evidence> {
     let mutation = compute_mutation_gate(repo_root, base, head, changed_files, range_mode)?;
     let diff_coverage = compute_diff_coverage_gate(repo_root)?;
-    let contracts = compute_contract_gate(repo_root, changed_files, contracts_info)?;
+    let contracts = compute_contract_gate(repo_root, base, head, changed_files, contracts_info)?;
     let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
     let determinism = compute_determinism_gate(repo_root)?;
     let complexity = compute_complexity_gate(repo_root, changed_files)?;
@@ -798,18 +819,157 @@ fn compute_overall_status(
 }
 
 /// Compute diff coverage gate.
-/// Looks for coverage.json or lcov.info artifact.
+/// Looks for coverage artifacts (lcov.info, coverage.json, cobertura.xml) and parses them.
 #[cfg(feature = "git")]
-fn compute_diff_coverage_gate(_repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
-    // TODO: Look for coverage artifacts and parse them
-    // For now, return None (gate not configured)
-    Ok(None)
+fn compute_diff_coverage_gate(repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
+    // Search for coverage artifacts in common locations
+    let search_paths = [
+        "coverage/lcov.info",
+        "target/coverage/lcov.info",
+        "lcov.info",
+        "coverage/cobertura.xml",
+        "target/coverage/cobertura.xml",
+        "cobertura.xml",
+        "coverage/coverage.json",
+        "target/coverage/coverage.json",
+        "coverage.json",
+    ];
+
+    let mut lcov_path: Option<PathBuf> = None;
+    for candidate in &search_paths {
+        let path = repo_root.join(candidate);
+        if path.exists() {
+            lcov_path = Some(path);
+            break;
+        }
+    }
+
+    let lcov_path = match lcov_path {
+        Some(p) => p,
+        None => return Ok(None), // No coverage artifact found
+    };
+
+    // Only parse lcov.info format for now (most common in Rust via cargo-llvm-cov)
+    let path_str = lcov_path.to_string_lossy();
+    if !path_str.ends_with("lcov.info") {
+        // We found a coverage file but can't parse non-lcov yet
+        return Ok(None);
+    }
+
+    let content = match std::fs::read_to_string(&lcov_path) {
+        Ok(c) => c,
+        Err(_) => return Ok(None),
+    };
+
+    // Parse lcov format: collect DA:line,count entries per source file
+    let mut total_lines_added: usize = 0;
+    let mut total_lines_covered: usize = 0;
+    let mut uncovered_hunks: Vec<UncoveredHunk> = Vec::new();
+    let mut current_file = String::new();
+    let mut file_uncovered: Vec<usize> = Vec::new();
+
+    for line in content.lines() {
+        if let Some(sf) = line.strip_prefix("SF:") {
+            // Flush previous file's uncovered hunks
+            flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+            current_file = sf.to_string();
+            file_uncovered.clear();
+        } else if let Some(da) = line.strip_prefix("DA:") {
+            // DA:line_number,execution_count
+            let parts: Vec<&str> = da.splitn(2, ',').collect();
+            if parts.len() == 2
+                && let (Ok(line_no), Ok(count)) =
+                    (parts[0].parse::<usize>(), parts[1].parse::<usize>())
+            {
+                total_lines_added += 1;
+                if count > 0 {
+                    total_lines_covered += 1;
+                } else {
+                    file_uncovered.push(line_no);
+                }
+            }
+        } else if line == "end_of_record" {
+            flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+            current_file.clear();
+            file_uncovered.clear();
+        }
+    }
+    // Flush last file
+    flush_uncovered_hunks(&current_file, &file_uncovered, &mut uncovered_hunks);
+
+    if total_lines_added == 0 {
+        return Ok(None);
+    }
+
+    let coverage_pct = round_pct(total_lines_covered as f64 / total_lines_added as f64 * 100.0);
+    let status = if coverage_pct >= 80.0 {
+        GateStatus::Pass
+    } else if coverage_pct >= 50.0 {
+        GateStatus::Pending // Warn-level
+    } else {
+        GateStatus::Fail
+    };
+
+    // Limit uncovered hunks to avoid huge output
+    uncovered_hunks.truncate(20);
+
+    Ok(Some(DiffCoverageGate {
+        meta: GateMeta {
+            status,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: Vec::new(),
+                tested: Vec::new(),
+                ratio: coverage_pct / 100.0,
+                lines_relevant: Some(total_lines_added),
+                lines_tested: Some(total_lines_covered),
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        lines_added: total_lines_added,
+        lines_covered: total_lines_covered,
+        coverage_pct,
+        uncovered_hunks,
+    }))
+}
+
+/// Flush consecutive uncovered lines into hunk ranges.
+fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<UncoveredHunk>) {
+    if uncovered.is_empty() || file.is_empty() {
+        return;
+    }
+    let mut sorted = uncovered.to_vec();
+    sorted.sort_unstable();
+    let mut start = sorted[0];
+    let mut end = sorted[0];
+    for &line in &sorted[1..] {
+        if line == end + 1 {
+            end = line;
+        } else {
+            hunks.push(UncoveredHunk {
+                file: file.to_string(),
+                start_line: start,
+                end_line: end,
+            });
+            start = line;
+            end = line;
+        }
+    }
+    hunks.push(UncoveredHunk {
+        file: file.to_string(),
+        start_line: start,
+        end_line: end,
+    });
 }
 
 /// Compute contract diff gate (semver, CLI, schema).
 #[cfg(feature = "git")]
 fn compute_contract_gate(
-    _repo_root: &Path,
+    repo_root: &Path,
+    base: &str,
+    head: &str,
     changed_files: &[String],
     contracts_info: &Contracts,
 ) -> Result<Option<ContractDiffGate>> {
@@ -826,12 +986,7 @@ fn compute_contract_gate(
 
     // Check for semver changes (API files)
     if contracts_info.api_changed {
-        // TODO: Run cargo-semver-checks if available
-        // For now, mark as pending
-        semver = Some(SemverSubGate {
-            status: GateStatus::Pending,
-            breaking_changes: Vec::new(),
-        });
+        semver = Some(run_semver_check(repo_root));
     }
 
     // Check for CLI changes
@@ -883,11 +1038,7 @@ fn compute_contract_gate(
 
     // Check for schema changes
     if contracts_info.schema_changed {
-        // TODO: Diff schema.json
-        schema = Some(SchemaSubGate {
-            status: GateStatus::Pending,
-            diff_summary: None,
-        });
+        schema = Some(run_schema_diff(repo_root, base, head));
     }
 
     // Count failures from sub-gates
@@ -961,6 +1112,179 @@ fn compute_contract_gate(
         schema,
         failures,
     }))
+}
+
+/// Run cargo-semver-checks if available.
+/// Returns a SemverSubGate with the result.
+fn run_semver_check(repo_root: &Path) -> SemverSubGate {
+    // Check if cargo-semver-checks is available
+    let available = Command::new("cargo")
+        .args(["semver-checks", "--version"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+
+    if !available {
+        return SemverSubGate {
+            status: GateStatus::Pending,
+            breaking_changes: Vec::new(),
+        };
+    }
+
+    // Run cargo semver-checks
+    let output = match Command::new("cargo")
+        .args(["semver-checks", "check-release"])
+        .current_dir(repo_root)
+        .output()
+    {
+        Ok(o) => o,
+        Err(_) => {
+            return SemverSubGate {
+                status: GateStatus::Pending,
+                breaking_changes: Vec::new(),
+            };
+        }
+    };
+
+    if output.status.success() {
+        // Exit 0 = no breaking changes
+        return SemverSubGate {
+            status: GateStatus::Pass,
+            breaking_changes: Vec::new(),
+        };
+    }
+
+    // Non-zero exit = breaking changes found
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let combined = format!("{}{}", stdout, stderr);
+
+    // Parse breaking changes from output lines
+    // cargo-semver-checks output format: "--- failure[kind]: message ---" or similar
+    let mut breaking_changes: Vec<BreakingChange> = Vec::new();
+    for line in combined.lines() {
+        let trimmed = line.trim();
+        if trimmed.contains("BREAKING") || trimmed.starts_with("---") {
+            breaking_changes.push(BreakingChange {
+                kind: "semver".to_string(),
+                path: String::new(),
+                message: trimmed.to_string(),
+            });
+        }
+    }
+
+    // If we couldn't parse specific changes but the tool failed, add a generic entry
+    if breaking_changes.is_empty() {
+        breaking_changes.push(BreakingChange {
+            kind: "semver".to_string(),
+            path: String::new(),
+            message: "cargo-semver-checks reported breaking changes".to_string(),
+        });
+    }
+
+    // Limit output
+    breaking_changes.truncate(20);
+
+    SemverSubGate {
+        status: GateStatus::Fail,
+        breaking_changes,
+    }
+}
+
+/// Run git diff on docs/schema.json to detect schema changes.
+/// Returns a SchemaSubGate with the result.
+fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
+    // Use two-dot syntax for comparing refs directly (per project convention)
+    let range = format!("{}..{}", base, head);
+    let output = match Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["diff", &range, "--", "docs/schema.json"])
+        .output()
+    {
+        Ok(o) => o,
+        Err(_) => {
+            return SchemaSubGate {
+                status: GateStatus::Pending,
+                diff_summary: None,
+            };
+        }
+    };
+
+    if !output.status.success() {
+        return SchemaSubGate {
+            status: GateStatus::Pending,
+            diff_summary: None,
+        };
+    }
+
+    let diff = String::from_utf8_lossy(&output.stdout);
+    if diff.trim().is_empty() {
+        // No diff means schema.json didn't change between these refs
+        return SchemaSubGate {
+            status: GateStatus::Pass,
+            diff_summary: None,
+        };
+    }
+
+    // Analyze the diff for breaking vs additive changes
+    let mut additions = 0usize;
+    let mut removals = 0usize;
+    let mut has_type_change = false;
+
+    for line in diff.lines() {
+        if line.starts_with('+') && !line.starts_with("+++") {
+            additions += 1;
+        } else if line.starts_with('-') && !line.starts_with("---") {
+            removals += 1;
+            // Check for type changes (field type modifications)
+            let trimmed = line.trim_start_matches('-').trim();
+            if trimmed.contains("\"type\"") {
+                has_type_change = true;
+            }
+        }
+    }
+
+    let (status, summary) = if removals == 0 {
+        // Only additions = safe additive change
+        (
+            GateStatus::Pass,
+            Some(format!(
+                "schema.json: {} line{} added (additive only)",
+                additions,
+                if additions == 1 { "" } else { "s" }
+            )),
+        )
+    } else if has_type_change || removals > additions {
+        // Type changes or net removals = likely breaking
+        (
+            GateStatus::Fail,
+            Some(format!(
+                "schema.json: {} addition{}, {} removal{} (potential breaking change)",
+                additions,
+                if additions == 1 { "" } else { "s" },
+                removals,
+                if removals == 1 { "" } else { "s" }
+            )),
+        )
+    } else {
+        // Removals but mostly additions = warn
+        (
+            GateStatus::Pass,
+            Some(format!(
+                "schema.json: {} addition{}, {} removal{}",
+                additions,
+                if additions == 1 { "" } else { "s" },
+                removals,
+                if removals == 1 { "" } else { "s" }
+            )),
+        )
+    };
+
+    SchemaSubGate {
+        status,
+        diff_summary: summary,
+    }
 }
 
 /// Compute supply chain gate.
@@ -1208,8 +1532,12 @@ fn compute_complexity_gate(
         }
     }
 
-    // Sort high complexity files by cyclomatic complexity (descending)
-    high_complexity_files.sort_by(|a, b| b.cyclomatic.cmp(&a.cyclomatic));
+    // Sort high complexity files by cyclomatic complexity (descending), then path for determinism
+    high_complexity_files.sort_by(|a, b| {
+        b.cyclomatic
+            .cmp(&a.cyclomatic)
+            .then_with(|| a.path.cmp(&b.path))
+    });
 
     let avg_cyclomatic = if files_analyzed > 0 {
         round_pct(total_complexity as f64 / files_analyzed as f64)
@@ -3325,6 +3653,329 @@ fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     Ok(())
 }
 
+/// Write sensor.report.v1 envelope to artifacts directory.
+///
+/// This function is used in sensor mode to produce a conforming envelope
+/// that can be consumed by external directors (e.g., cockpitctl).
+fn write_sensor_artifacts(
+    dir: &Path,
+    receipt: &CockpitReceipt,
+    base: &str,
+    head: &str,
+) -> Result<()> {
+    std::fs::create_dir_all(dir)
+        .with_context(|| format!("Failed to create artifacts dir: {}", dir.display()))?;
+
+    // Convert cockpit receipt to sensor report envelope
+    let envelope = cockpit_to_envelope(receipt, base, head);
+
+    // Write sensor.report.v1 envelope
+    let report_path = dir.join("report.json");
+    let report_json =
+        serde_json::to_string_pretty(&envelope).context("Failed to serialize sensor report")?;
+    std::fs::write(&report_path, &report_json)
+        .with_context(|| format!("Failed to write {}", report_path.display()))?;
+
+    // Also write comment.md for PR integration
+    let comment_path = dir.join("comment.md");
+    let comment = render_comment(receipt);
+    std::fs::write(&comment_path, comment)
+        .with_context(|| format!("Failed to write {}", comment_path.display()))?;
+
+    Ok(())
+}
+
+/// Convert a CockpitReceipt to a sensor.report.v1 SensorReport envelope.
+fn cockpit_to_envelope(receipt: &CockpitReceipt, base: &str, head: &str) -> SensorReport {
+    let generated_at = now_iso8601();
+    let verdict = map_gate_status_to_verdict(receipt.evidence.overall_status);
+
+    // Build summary
+    let summary = format!(
+        "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
+        receipt.change_surface.files_changed,
+        receipt.change_surface.insertions,
+        receipt.change_surface.deletions,
+        receipt.code_health.score,
+        receipt.risk.level,
+        base,
+        head,
+    );
+
+    let mut report = SensorReport::new(
+        ToolMeta::tokmd(env!("CARGO_PKG_VERSION"), "cockpit"),
+        generated_at,
+        verdict,
+        summary,
+    );
+
+    // Add findings from cockpit data
+    add_risk_findings(&mut report, &receipt.risk);
+    add_contract_findings(&mut report, &receipt.contracts);
+    add_gate_findings(&mut report, &receipt.evidence);
+
+    // Build gates data
+    let gates = evidence_to_gate_results(&receipt.evidence);
+
+    // Build capabilities
+    let capabilities = build_capabilities(&receipt.evidence);
+    report = report.with_capabilities(capabilities);
+
+    // Embed gates and full cockpit receipt in data
+    let data = serde_json::json!({
+        "gates": serde_json::to_value(&gates).unwrap_or(serde_json::Value::Null),
+        "cockpit_receipt": serde_json::to_value(receipt).unwrap_or(serde_json::Value::Null),
+    });
+    report = report.with_data(data);
+
+    // Add artifact references
+    report = report.with_artifacts(vec![
+        Artifact::receipt("report.json"),
+        Artifact::comment("comment.md"),
+    ]);
+
+    report
+}
+
+/// Map cockpit GateStatus to envelope Verdict.
+fn map_gate_status_to_verdict(status: GateStatus) -> Verdict {
+    match status {
+        GateStatus::Pass => Verdict::Pass,
+        GateStatus::Warn => Verdict::Warn,
+        GateStatus::Fail => Verdict::Fail,
+        GateStatus::Skipped => Verdict::Skip,
+        GateStatus::Pending => Verdict::Pending,
+    }
+}
+
+/// Convert cockpit Evidence to envelope GateResults.
+fn evidence_to_gate_results(evidence: &Evidence) -> GateResults {
+    let mut items = Vec::new();
+
+    // Mutation gate (always present)
+    items.push(
+        GateItem::new(
+            "mutation",
+            map_gate_status_to_verdict(evidence.mutation.meta.status),
+        )
+        .with_source("computed"),
+    );
+
+    // Optional gates
+    if let Some(ref dc) = evidence.diff_coverage {
+        items.push(
+            GateItem::new("diff_coverage", map_gate_status_to_verdict(dc.meta.status))
+                .with_threshold(0.8, dc.coverage_pct)
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref c) = evidence.contracts {
+        let mut gate = GateItem::new("contracts", map_gate_status_to_verdict(c.meta.status))
+            .with_source("computed");
+        if c.failures > 0 {
+            gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
+        }
+        items.push(gate);
+    }
+
+    if let Some(ref sc) = evidence.supply_chain {
+        items.push(
+            GateItem::new("supply_chain", map_gate_status_to_verdict(sc.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref det) = evidence.determinism {
+        items.push(
+            GateItem::new("determinism", map_gate_status_to_verdict(det.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    if let Some(ref cx) = evidence.complexity {
+        items.push(
+            GateItem::new("complexity", map_gate_status_to_verdict(cx.meta.status))
+                .with_source("computed"),
+        );
+    }
+
+    GateResults::new(map_gate_status_to_verdict(evidence.overall_status), items)
+}
+
+/// Build capabilities map for "No Green By Omission".
+fn build_capabilities(evidence: &Evidence) -> BTreeMap<String, CapabilityStatus> {
+    let mut caps = BTreeMap::new();
+
+    // Mutation testing capability
+    caps.insert(
+        "mutation".to_string(),
+        match evidence.mutation.meta.status {
+            GateStatus::Skipped => CapabilityStatus::skipped("no relevant Rust source files"),
+            GateStatus::Pending => CapabilityStatus::unavailable("cargo-mutants not installed"),
+            _ => CapabilityStatus::available(),
+        },
+    );
+
+    // Diff coverage capability
+    caps.insert(
+        "diff_coverage".to_string(),
+        match &evidence.diff_coverage {
+            Some(dc) if dc.meta.status != GateStatus::Pending => CapabilityStatus::available(),
+            Some(_) => CapabilityStatus::unavailable("no coverage artifact found"),
+            None => CapabilityStatus::skipped("not configured"),
+        },
+    );
+
+    // Contracts capability
+    caps.insert(
+        "contracts".to_string(),
+        match &evidence.contracts {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no contract files changed"),
+        },
+    );
+
+    // Supply chain capability
+    caps.insert(
+        "supply_chain".to_string(),
+        match &evidence.supply_chain {
+            Some(sc) if sc.meta.status == GateStatus::Pending => {
+                CapabilityStatus::unavailable("cargo-audit not installed")
+            }
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no lockfile changed"),
+        },
+    );
+
+    // Determinism capability
+    caps.insert(
+        "determinism".to_string(),
+        match &evidence.determinism {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no baseline available"),
+        },
+    );
+
+    // Complexity capability
+    caps.insert(
+        "complexity".to_string(),
+        match &evidence.complexity {
+            Some(_) => CapabilityStatus::available(),
+            None => CapabilityStatus::skipped("no relevant source files"),
+        },
+    );
+
+    caps
+}
+
+/// Add risk findings to the sensor report.
+fn add_risk_findings(report: &mut SensorReport, risk: &Risk) {
+    for hotspot in &risk.hotspots_touched {
+        report.add_finding(
+            Finding::new(
+                findings::risk::CHECK_ID,
+                findings::risk::HOTSPOT,
+                FindingSeverity::Warn,
+                "Hotspot file touched",
+                format!("{} is a high-churn file", hotspot),
+            )
+            .with_location(tokmd_envelope::FindingLocation::path(hotspot)),
+        );
+    }
+
+    for path in &risk.bus_factor_warnings {
+        report.add_finding(Finding::new(
+            findings::risk::CHECK_ID,
+            findings::risk::BUS_FACTOR,
+            FindingSeverity::Warn,
+            "Bus factor warning",
+            format!("{} has single-author ownership", path),
+        ));
+    }
+}
+
+/// Add contract findings to the sensor report.
+fn add_contract_findings(report: &mut SensorReport, contracts: &Contracts) {
+    if contracts.schema_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::SCHEMA_CHANGED,
+            FindingSeverity::Info,
+            "Schema version changed",
+            "Schema version files were modified in this PR",
+        ));
+    }
+    if contracts.api_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::API_CHANGED,
+            FindingSeverity::Warn,
+            "Public API changed",
+            "Public API surface files were modified",
+        ));
+    }
+    if contracts.cli_changed {
+        report.add_finding(Finding::new(
+            findings::contract::CHECK_ID,
+            findings::contract::CLI_CHANGED,
+            FindingSeverity::Info,
+            "CLI interface changed",
+            "CLI definition files were modified",
+        ));
+    }
+}
+
+/// Add gate failure findings to the sensor report.
+fn add_gate_findings(report: &mut SensorReport, evidence: &Evidence) {
+    // Add findings for failed gates
+    if evidence.mutation.meta.status == GateStatus::Fail {
+        let survivor_count = evidence.mutation.survivors.len();
+        report.add_finding(Finding::new(
+            findings::gate::CHECK_ID,
+            findings::gate::MUTATION_FAILED,
+            FindingSeverity::Error,
+            "Mutation testing failed",
+            format!("{} mutant(s) survived", survivor_count),
+        ));
+    }
+
+    if let Some(ref cx) = evidence.complexity
+        && cx.meta.status == GateStatus::Fail
+    {
+        report.add_finding(Finding::new(
+            findings::gate::CHECK_ID,
+            findings::gate::COMPLEXITY_FAILED,
+            FindingSeverity::Error,
+            "Complexity gate failed",
+            format!(
+                "{} file(s) exceed complexity threshold",
+                cx.high_complexity_files.len()
+            ),
+        ));
+    }
+
+    if let Some(ref sc) = evidence.supply_chain
+        && sc.meta.status == GateStatus::Fail
+    {
+        let vuln_count = sc.vulnerabilities.len();
+        report.add_finding(Finding::new(
+            findings::supply::CHECK_ID,
+            findings::supply::VULNERABILITY,
+            FindingSeverity::Error,
+            "Supply chain vulnerabilities",
+            format!("{} vulnerability(ies) detected", vuln_count),
+        ));
+    }
+}
+
+/// Get current timestamp in ISO 8601 format.
+fn now_iso8601() -> String {
+    time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
+}
+
 fn render_comment(receipt: &CockpitReceipt) -> String {
     let mut out = String::new();
 
@@ -3440,6 +4091,9 @@ fn render_complexity_gate_sections(out: &mut String, gate: &ComplexityGate) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::io::Write;
+    use tempfile::tempdir;
 
     #[test]
     fn test_classify_file_code() {
@@ -3908,5 +4562,113 @@ fn third() {
         assert_eq!(deserialized.files_analyzed, 2);
         assert_eq!(deserialized.high_complexity_files.len(), 1);
         assert_eq!(deserialized.high_complexity_files[0].cyclomatic, 20);
+    }
+
+    #[test]
+    fn test_format_helpers() {
+        assert_eq!(format_gate_status(GateStatus::Pass), "PASS");
+        assert_eq!(format_gate_status(GateStatus::Warn), "WARN");
+        assert_eq!(format_gate_status(GateStatus::Fail), "FAIL");
+        assert_eq!(format_gate_status(GateStatus::Skipped), "SKIPPED");
+        assert_eq!(format_gate_status(GateStatus::Pending), "PENDING");
+
+        assert_eq!(format_source(EvidenceSource::CiArtifact), "CI artifact");
+        assert_eq!(format_source(EvidenceSource::Cached), "cached");
+        assert_eq!(format_source(EvidenceSource::RanLocal), "local");
+
+        assert_eq!(format_commit_match(CommitMatch::Exact), "exact");
+        assert_eq!(format_commit_match(CommitMatch::Partial), "partial");
+        assert_eq!(format_commit_match(CommitMatch::Stale), "stale");
+        assert_eq!(format_commit_match(CommitMatch::Unknown), "-");
+
+        let empty_scope = ScopeCoverage {
+            relevant: Vec::new(),
+            tested: Vec::new(),
+            ratio: 0.0,
+            lines_relevant: None,
+            lines_tested: None,
+        };
+        assert_eq!(format_scope(&empty_scope), "-");
+
+        let scope = ScopeCoverage {
+            relevant: vec!["a.rs".to_string(), "b.rs".to_string()],
+            tested: vec!["a.rs".to_string()],
+            ratio: 0.5,
+            lines_relevant: None,
+            lines_tested: None,
+        };
+        assert_eq!(format_scope(&scope), "1/2 (50%)");
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_none_when_missing_artifacts() {
+        let temp = tempdir().expect("tempdir");
+        let gate = compute_diff_coverage_gate(temp.path()).expect("gate");
+        assert!(gate.is_none());
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_ignores_non_lcov_artifact() {
+        let temp = tempdir().expect("tempdir");
+        let coverage_dir = temp.path().join("coverage");
+        fs::create_dir_all(&coverage_dir).expect("coverage dir");
+        let coverage_json = coverage_dir.join("coverage.json");
+        fs::write(&coverage_json, "{}").expect("write coverage json");
+
+        let gate = compute_diff_coverage_gate(temp.path()).expect("gate");
+        assert!(gate.is_none());
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn diff_coverage_gate_parses_lcov_and_groups_hunks() {
+        let temp = tempdir().expect("tempdir");
+        let coverage_dir = temp.path().join("coverage");
+        fs::create_dir_all(&coverage_dir).expect("coverage dir");
+        let lcov_path = coverage_dir.join("lcov.info");
+
+        let mut file = fs::File::create(&lcov_path).expect("create lcov");
+        writeln!(
+            file,
+            "SF:src/lib.rs\nDA:1,1\nDA:2,0\nDA:3,0\nDA:4,1\nDA:5,0\nend_of_record\nSF:src/main.rs\nDA:10,1\nDA:11,1\nDA:12,0\nend_of_record"
+        )
+        .expect("write lcov");
+
+        let gate = compute_diff_coverage_gate(temp.path())
+            .expect("gate")
+            .expect("some gate");
+
+        assert_eq!(gate.lines_added, 8);
+        assert_eq!(gate.lines_covered, 4);
+        assert_eq!(gate.coverage_pct, 50.0);
+        assert_eq!(gate.meta.status, GateStatus::Pending);
+
+        assert_eq!(gate.uncovered_hunks.len(), 3);
+        let first = &gate.uncovered_hunks[0];
+        assert_eq!(first.file, "src/lib.rs");
+        assert_eq!(first.start_line, 2);
+        assert_eq!(first.end_line, 3);
+
+        let second = &gate.uncovered_hunks[1];
+        assert_eq!(second.file, "src/lib.rs");
+        assert_eq!(second.start_line, 5);
+        assert_eq!(second.end_line, 5);
+
+        let third = &gate.uncovered_hunks[2];
+        assert_eq!(third.file, "src/main.rs");
+        assert_eq!(third.start_line, 12);
+        assert_eq!(third.end_line, 12);
+    }
+
+    #[test]
+    fn flush_uncovered_hunks_handles_empty_inputs() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("", &[1, 2, 3], &mut hunks);
+        assert!(hunks.is_empty());
+
+        flush_uncovered_hunks("src/lib.rs", &[], &mut hunks);
+        assert!(hunks.is_empty());
     }
 }

@@ -90,6 +90,7 @@ fn render_md_snapshot() {
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
+        detail_functions: false,
     };
 
     let receipt = analyze(ctx, request).expect("analysis");

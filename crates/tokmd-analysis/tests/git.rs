@@ -137,6 +137,7 @@ mod git_tests {
             window_tokens: None,
             git: Some(true),
             import_granularity: ImportGranularity::Module,
+            detail_functions: false,
         };
 
         let receipt = analyze(ctx, request).expect("analysis");

@@ -85,3 +85,8 @@ pub mod sensor {
     /// Diff summary finding
     pub const DIFF_SUMMARY: &str = "diff_summary";
 }
+
+/// Compose a fully-qualified finding ID from the triple `(tool, check_id, code)`.
+pub fn finding_id(tool_name: &str, check_id: &str, code: &str) -> String {
+    format!("{}.{}.{}", tool_name, check_id, code)
+}

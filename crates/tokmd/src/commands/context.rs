@@ -133,13 +133,17 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
 
     // Select files based on strategy
     progress.set_message("Selecting files for context...");
-    let selected = context_pack::select_files(
+    let select_result = context_pack::select_files_with_options(
         &export.rows,
         budget,
         args.strategy,
         args.rank_by,
         git_scores.as_ref(),
+        &context_pack::SelectOptions {
+            no_smart_exclude: args.no_smart_exclude,
+        },
     );
+    let selected = select_result.selected;
 
     let used_tokens: usize = selected.iter().map(|f| f.tokens).sum();
     let utilization = if budget > 0 {

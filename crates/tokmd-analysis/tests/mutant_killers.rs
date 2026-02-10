@@ -50,6 +50,7 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
+        detail_functions: false,
     }
 }
 

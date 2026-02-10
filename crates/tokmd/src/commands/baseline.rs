@@ -64,6 +64,7 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
         window_tokens: None,
         git: None,
         import_granularity: analysis::ImportGranularity::Module,
+        detail_functions: false,
     };
 
     let ctx = analysis::AnalysisContext {

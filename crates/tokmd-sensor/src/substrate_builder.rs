@@ -113,11 +113,8 @@ mod tests {
         )
         .unwrap();
 
-        assert!(!substrate.files.is_empty(), "should find some files");
-        assert!(
-            substrate.lang_summary.contains_key("Rust"),
-            "should find Rust"
-        );
+        assert!(!substrate.files.is_empty());
+        assert!(substrate.lang_summary.contains_key("Rust"));
         assert!(substrate.total_code_lines > 0);
         assert!(substrate.diff_range.is_none());
     }
@@ -145,15 +142,8 @@ mod tests {
             .filter(|f| f.in_diff)
             .map(|f| f.path.as_str())
             .collect();
-        assert!(
-            !diff_files.is_empty(),
-            "at least one file should be marked in_diff"
-        );
-        assert!(
-            diff_files.contains(&"src/lib.rs"),
-            "src/lib.rs should be marked in_diff, got: {:?}",
-            diff_files
-        );
+        assert!(!diff_files.is_empty());
+        assert!(diff_files.contains(&"src/lib.rs"));
         // Selectivity: files not in changed_files should NOT be marked
         let non_diff: Vec<&str> = substrate
             .files
@@ -161,9 +151,20 @@ mod tests {
             .filter(|f| !f.in_diff && f.path.contains("substrate_builder"))
             .map(|f| f.path.as_str())
             .collect();
-        assert!(
-            !non_diff.is_empty(),
-            "substrate_builder.rs should exist but not be in_diff"
+        assert!(!non_diff.is_empty());
+    }
+
+    #[test]
+    fn build_substrate_errors_on_missing_root() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let missing = dir.path().join("definitely-not-created");
+        let result = build_substrate(
+            missing.to_string_lossy().as_ref(),
+            &ScanOptions::default(),
+            &[],
+            2,
+            None,
         );
+        assert!(result.is_err());
     }
 }

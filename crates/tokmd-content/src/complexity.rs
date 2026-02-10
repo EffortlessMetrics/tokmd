@@ -80,8 +80,11 @@ impl FunctionSpan {
 }
 
 // Regex patterns for different languages
-static RUST_FN: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\s*(pub\s+)?(async\s+)?fn\s+\w+").unwrap());
+static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
+    // Qualifiers can appear in various orders: pub async unsafe fn, pub unsafe async fn, etc.
+    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+\w+"#)
+        .unwrap()
+});
 
 static PYTHON_DEF: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\s*(async\s+)?def\s+\w+").unwrap());
@@ -155,12 +158,16 @@ fn detect_brace_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> 
     while i < lines.len() {
         if pattern.is_match(lines[i]) {
             let start = i;
-            let end = find_brace_end(lines, i);
-            spans.push(FunctionSpan {
-                start_line: start,
-                end_line: end,
-            });
-            i = end + 1;
+            if let Some(end) = find_brace_end(lines, i) {
+                spans.push(FunctionSpan {
+                    start_line: start,
+                    end_line: end,
+                });
+                i = end + 1;
+            } else {
+                // No body found (trait sig, abstract, extern) — skip
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -170,8 +177,11 @@ fn detect_brace_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> 
 }
 
 /// Find the closing brace for a function starting at `start_line`.
-fn find_brace_end(lines: &[&str], start_line: usize) -> usize {
-    let mut brace_count = 0;
+///
+/// Returns `None` if no opening brace is found (e.g., trait method
+/// signatures, extern declarations, abstract methods).
+fn find_brace_end(lines: &[&str], start_line: usize) -> Option<usize> {
+    let mut brace_count: usize = 0;
     let mut found_open = false;
 
     for (i, line) in lines.iter().enumerate().skip(start_line) {
@@ -180,16 +190,16 @@ fn find_brace_end(lines: &[&str], start_line: usize) -> usize {
                 brace_count += 1;
                 found_open = true;
             } else if ch == '}' {
-                brace_count -= 1;
+                brace_count = brace_count.saturating_sub(1);
                 if found_open && brace_count == 0 {
-                    return i;
+                    return Some(i);
                 }
             }
         }
     }
 
-    // If we couldn't find matching braces, return last line
-    lines.len().saturating_sub(1)
+    // Both cases (no open brace, or unclosed braces) → None
+    None
 }
 
 /// Detect functions in indentation-based languages (Python).
@@ -199,8 +209,29 @@ fn detect_indented_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpa
 
     while i < lines.len() {
         if pattern.is_match(lines[i]) {
-            let start = i;
+            let mut start = i;
             let base_indent = get_indent(lines[i]);
+
+            // Walk upward to include decorator lines at the same indent level.
+            // Skip blank lines only tentatively; commit only if a decorator is found.
+            {
+                let mut probe = start;
+                while probe > 0 {
+                    let prev = lines[probe - 1].trim();
+                    if prev.is_empty() {
+                        probe -= 1;
+                        continue;
+                    }
+                    let prev_indent = get_indent(lines[probe - 1]);
+                    if prev_indent == base_indent && prev.starts_with('@') {
+                        probe -= 1;
+                        start = probe; // commit: include this decorator (and skipped blanks)
+                    } else {
+                        break;
+                    }
+                }
+            }
+
             let end = find_indent_end(lines, i, base_indent);
             spans.push(FunctionSpan {
                 start_line: start,
@@ -258,13 +289,14 @@ fn detect_js_functions(lines: &[&str]) -> Vec<FunctionSpan> {
             // by requiring the line to have meaningful content
             if is_likely_function_start(line) {
                 let start = i;
-                let end = find_brace_end(lines, i);
-                spans.push(FunctionSpan {
-                    start_line: start,
-                    end_line: end,
-                });
-                i = end + 1;
-                continue;
+                if let Some(end) = find_brace_end(lines, i) {
+                    spans.push(FunctionSpan {
+                        start_line: start,
+                        end_line: end,
+                    });
+                    i = end + 1;
+                    continue;
+                }
             }
         }
         i += 1;
@@ -894,12 +926,15 @@ fn detect_c_style_functions(lines: &[&str]) -> Vec<FunctionSpan> {
 
         if looks_like_fn && !is_control {
             let start = i;
-            let end = find_brace_end(lines, i);
-            spans.push(FunctionSpan {
-                start_line: start,
-                end_line: end,
-            });
-            i = end + 1;
+            if let Some(end) = find_brace_end(lines, i) {
+                spans.push(FunctionSpan {
+                    start_line: start,
+                    end_line: end,
+                });
+                i = end + 1;
+            } else {
+                i += 1;
+            }
         } else {
             i += 1;
         }
@@ -1346,6 +1381,50 @@ fn complex() {
     fn rust_language_alias() {
         let code = "fn test() {}";
         let metrics = analyze_functions(code, "rs");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_in_path_function() {
+        let code = r#"
+pub(in crate::foo) fn bar() {
+    println!("hello");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_extern_c_function() {
+        let code = r#"
+extern "C" fn callback() {
+    println!("called from C");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_crate_unsafe_async_function() {
+        let code = r#"
+pub(crate) unsafe async fn baz() {
+    println!("unsafe async");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_pub_super_const_function() {
+        let code = r#"
+pub(super) const fn helper() -> u32 {
+    42
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
         assert_eq!(metrics.function_count, 1);
     }
 

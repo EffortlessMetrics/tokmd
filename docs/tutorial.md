@@ -433,6 +433,76 @@ This enables your AI agent to intelligently invoke tokmd commands with validated
 
 ---
 
+## Step 15: Creating a Complexity Baseline
+
+**Goal**: Capture a snapshot of your codebase's complexity metrics at a known-good state, so you can track trends and prevent regressions.
+
+```bash
+tokmd baseline
+```
+
+**What happened?**
+- tokmd scanned the codebase and computed complexity metrics (cyclomatic complexity, function length, Halstead metrics).
+- It captured the current git commit SHA to anchor the baseline.
+- A JSON baseline file was written with per-file and aggregate complexity data.
+
+**Customizing the baseline**:
+```bash
+# Baseline specific directories
+tokmd baseline -p src crates
+
+# Write to a specific output file
+tokmd baseline --out .tokmd/baseline.json
+```
+
+The baseline is used by the ratchet system to enforce that complexity does not regress across commits. See the [Recipes](recipes.md) for CI integration examples.
+
+---
+
+## Step 16: Bundling Code for LLM Handoff
+
+**Goal**: Create a structured bundle of your codebase optimized for handing off to an AI assistant.
+
+```bash
+tokmd handoff
+```
+
+This creates a `.handoff/` directory with four artifacts:
+
+| File | Purpose |
+|------|---------|
+| `manifest.json` | Bundle metadata, token budgets, capabilities |
+| `map.jsonl` | Complete file inventory (streaming format) |
+| `intelligence.json` | Tree, hotspots, complexity, and derived metrics |
+| `code.txt` | Token-budgeted code bundle |
+
+**Choosing an intelligence preset**:
+
+| Preset | Includes |
+|--------|----------|
+| `minimal` | Tree + map only |
+| `standard` | + complexity, derived metrics |
+| `risk` | + hotspots, coupling (default) |
+| `deep` | Everything |
+
+```bash
+# Minimal bundle for quick context
+tokmd handoff --preset minimal
+
+# Deep analysis for thorough review
+tokmd handoff --preset deep
+
+# Custom token budget
+tokmd handoff --budget 200k
+
+# Custom output directory
+tokmd handoff --output-dir my-handoff/
+```
+
+**What to do with the output**: Feed the `.handoff/` directory contents to your LLM. The manifest tells the AI what's available, the map provides the full file inventory, the intelligence file gives structural insights, and the code bundle contains the actual source within your token budget.
+
+---
+
 ## Next Steps
 
 - Check out the **[Recipes](recipes.md)** for more advanced workflows.

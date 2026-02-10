@@ -30,6 +30,8 @@ CLI binary orchestrating all other crates. This is the **Tier 5** entry point fo
 | `tokmd gate` | Policy-based quality gates |
 | `tokmd tools` | LLM tool definitions |
 | `tokmd context` | Pack files into LLM context window |
+| `tokmd baseline` | Capture complexity baseline for trend tracking |
+| `tokmd handoff` | Bundle codebase for LLM handoff |
 | `tokmd init` | Generate .tokeignore template |
 | `tokmd check-ignore` | Explain why files are ignored |
 | `tokmd completions` | Generate shell completions |
@@ -64,7 +66,9 @@ src/
 │   ├── cockpit.rs   # PR metrics and evidence gates
 │   ├── sensor.rs    # Conforming sensor (envelope output)
 │   ├── gate.rs      # Policy-based quality gates
-│   └── tools.rs     # LLM tool definitions
+│   ├── tools.rs     # LLM tool definitions
+│   ├── baseline.rs  # Complexity baseline generation
+│   └── handoff.rs   # LLM handoff bundle creation
 ├── export_bundle.rs # Export file handling
 ├── context_pack.rs  # Context packing logic
 ├── analysis_utils.rs

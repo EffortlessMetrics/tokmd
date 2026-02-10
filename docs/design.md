@@ -105,7 +105,7 @@ Evolution rules:
 
 Wraps tokei library:
 ```
-GlobalArgs → tokei Config
+ScanOptions → tokei Config
 tokei Languages → tokmd receipts (via tokmd-model)
 ```
 

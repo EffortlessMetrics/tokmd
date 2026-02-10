@@ -38,8 +38,8 @@ pub fn normalize_root(path: &Path) -> PathBuf
 | Preset | Includes |
 |--------|----------|
 | `Receipt` | Core derived metrics (density, distribution, COCOMO) |
-| `Health` | + TODO density |
-| `Risk` | + Git hotspots, coupling, freshness |
+| `Health` | + TODO density, complexity, Halstead metrics |
+| `Risk` | + Git hotspots, coupling, freshness, complexity, Halstead metrics |
 | `Supply` | + Assets, dependency lockfiles |
 | `Architecture` | + Import graph |
 | `Topics` | Semantic topic clouds |

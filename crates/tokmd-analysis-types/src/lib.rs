@@ -22,8 +22,8 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-/// v4: Added cognitive complexity, nesting depth, and function-level details.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
+/// v5: Added Halstead metrics, maintainability index, complexity histogram wiring.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 5;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -561,6 +561,61 @@ pub struct DuplicateGroup {
 }
 
 // -------------------
+// Halstead metrics
+// -------------------
+
+/// Halstead software science metrics computed from operator/operand token counts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HalsteadMetrics {
+    /// Number of distinct operators (n1).
+    pub distinct_operators: usize,
+    /// Number of distinct operands (n2).
+    pub distinct_operands: usize,
+    /// Total number of operators (N1).
+    pub total_operators: usize,
+    /// Total number of operands (N2).
+    pub total_operands: usize,
+    /// Program vocabulary: n1 + n2.
+    pub vocabulary: usize,
+    /// Program length: N1 + N2.
+    pub length: usize,
+    /// Volume: N * log2(n).
+    pub volume: f64,
+    /// Difficulty: (n1/2) * (N2/n2).
+    pub difficulty: f64,
+    /// Effort: D * V.
+    pub effort: f64,
+    /// Estimated programming time in seconds: E / 18.
+    pub time_seconds: f64,
+    /// Estimated number of bugs: V / 3000.
+    pub estimated_bugs: f64,
+}
+
+// -------------------
+// Maintainability Index
+// -------------------
+
+/// Composite maintainability index based on the SEI formula.
+///
+/// MI = 171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)
+///
+/// When Halstead volume is unavailable, a simplified formula is used.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintainabilityIndex {
+    /// Maintainability index score (0-171 scale, higher is better).
+    pub score: f64,
+    /// Average cyclomatic complexity used in calculation.
+    pub avg_cyclomatic: f64,
+    /// Average lines of code per file used in calculation.
+    pub avg_loc: f64,
+    /// Average Halstead volume (if Halstead metrics were computed).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avg_halstead_volume: Option<f64>,
+    /// Letter grade: "A" (>=85), "B" (65-84), "C" (<65).
+    pub grade: String,
+}
+
+// -------------------
 // Complexity metrics
 // -------------------
 
@@ -587,6 +642,12 @@ pub struct ComplexityReport {
     /// Histogram of cyclomatic complexity distribution.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub histogram: Option<ComplexityHistogram>,
+    /// Halstead software science metrics (requires `halstead` feature).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub halstead: Option<HalsteadMetrics>,
+    /// Composite maintainability index.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maintainability_index: Option<MaintainabilityIndex>,
     pub files: Vec<FileComplexity>,
 }
 
