@@ -1,0 +1,4 @@
+repository:
+  description: "Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase."
+  homepage: "https://github.com/EffortlessMetrics/tokmd"
+  topics: "rust, code-analysis, cli, llm, metrics, tokei, devex"

@@ -6,6 +6,7 @@
 *.md @EffortlessMetrics
 
 # CI/CD
+/.github/settings.yml @EffortlessMetrics
 /.github/ @EffortlessMetrics
 
 # Core crates
