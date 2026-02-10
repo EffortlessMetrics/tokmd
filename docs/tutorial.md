@@ -303,6 +303,21 @@ message = "Codebase exceeds token budget"
 
 See the [CLI Reference](reference-cli.md#tokmd-gate) for available operators and policy options.
 
+**Preventing Regression with Ratchet Rules**:
+
+You can also enforce that metrics improve (or don't get worse) over time using **Ratchet Rules**. This compares the current state against a baseline:
+
+1. Generate a baseline: `tokmd baseline`
+2. Define a ratchet rule in `tokmd.toml`:
+   ```toml
+   [[gate.ratchet]]
+   metric = "avg_cyclomatic"
+   max_increase_pct = 0.0
+   ```
+3. Run with baseline: `tokmd gate --baseline .tokmd/baseline.json`
+
+This ensures your code quality acts like a ratchet—it can go up, but never down.
+
 ---
 
 ## Step 13: Generating PR Metrics with `tokmd cockpit`
