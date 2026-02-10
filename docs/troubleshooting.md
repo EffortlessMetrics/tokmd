@@ -750,8 +750,8 @@ The sensor produces a `sensor.report.v1` envelope. Ensure downstream consumers e
 # Inspect the envelope structure
 tokmd sensor --format json | jq 'keys'
 
-# Verify schema version
-tokmd sensor --format json | jq '.schema_version'
+# Verify schema discriminator
+tokmd sensor --format json | jq '.schema'
 ```
 
 ### Sensor in CI Pipelines
@@ -765,7 +765,7 @@ Sensor output is empty or missing metrics when run in CI.
 ```bash
 # Verify the scan directory is available
 ls -la src/
-tokmd sensor -p src
+tokmd sensor
 ```
 
 **2. Check feature availability**:

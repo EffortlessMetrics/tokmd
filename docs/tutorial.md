@@ -303,6 +303,22 @@ message = "Codebase exceeds token budget"
 
 See the [CLI Reference](reference-cli.md#tokmd-gate) for available operators and policy options.
 
+**Preventing Regression with Ratchet Rules**:
+
+You can also enforce that metrics improve (or don't get worse) over time using **Ratchet Rules**. This compares the current state against a baseline:
+
+1. Generate a baseline: `tokmd baseline`
+2. Define a ratchet rule in `tokmd.toml`:
+   ```toml
+   [[gate.ratchet]]
+   pointer = "/complexity/avg_cyclomatic"
+   max_increase_pct = 0.0
+   description = "Average cyclomatic complexity"
+   ```
+3. Run with baseline: `tokmd gate --baseline .tokmd/baseline.json`
+
+This ensures your code quality acts like a ratchet—it can go up, but never down.
+
 ---
 
 ## Step 13: Generating PR Metrics with `tokmd cockpit`
@@ -448,11 +464,14 @@ tokmd baseline
 
 **Customizing the baseline**:
 ```bash
-# Baseline specific directories
-tokmd baseline -p src crates
+# Baseline a specific directory
+tokmd baseline src
 
 # Write to a specific output file
-tokmd baseline --out .tokmd/baseline.json
+tokmd baseline --output .tokmd/baseline.json
+
+# Overwrite if it exists
+tokmd baseline --force
 ```
 
 The baseline is used by the ratchet system to enforce that complexity does not regress across commits. See the [Recipes](recipes.md) for CI integration examples.
@@ -496,7 +515,7 @@ tokmd handoff --preset deep
 tokmd handoff --budget 200k
 
 # Custom output directory
-tokmd handoff --output-dir my-handoff/
+tokmd handoff --out-dir my-handoff/
 ```
 
 **What to do with the output**: Feed the `.handoff/` directory contents to your LLM. The manifest tells the AI what's available, the map provides the full file inventory, the intelligence file gives structural insights, and the code bundle contains the actual source within your token budget.

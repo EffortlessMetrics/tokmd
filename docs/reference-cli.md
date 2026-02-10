@@ -564,6 +564,8 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 | :--- | :--- | :--- |
 | `--input <PATH>` | Analysis receipt JSON or path to scan. | `.` |
 | `--policy <PATH>` | Path to policy TOML file. | from config |
+| `--ratchet-config <PATH>` | Path to ratchet config TOML file. | from config |
+| `--baseline <PATH>` | Path to baseline JSON file for ratchet comparison. | from config |
 | `--preset <PRESET>` | Analysis preset for compute-then-gate mode. | `receipt` |
 | `--format <FMT>` | Output format: `text`, `json`. | `text` |
 | `--fail-fast` | Stop on first error. | `false` |
@@ -572,6 +574,10 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 1. `--policy <path>` CLI argument
 2. `[gate].policy` path in `tokmd.toml`
 3. `[[gate.rules]]` inline rules in `tokmd.toml`
+
+**Ratchet Sources** (in order of precedence):
+1. `--ratchet-config <path>` CLI argument
+2. `[[gate.ratchet]]` inline rules in `tokmd.toml`
 
 **Exit Codes**:
 | Code | Meaning |
@@ -607,6 +613,27 @@ pointer = "/license/effective"
 op = "in"
 values = ["MIT", "Apache-2.0", "BSD-3-Clause"]
 level = "error"
+```
+
+**Ratchet Rules (Gradual Improvement)**:
+
+Ratchet rules ensure metrics improve (or don't regress) over time by comparing against a baseline.
+
+```toml
+# In tokmd.toml or ratchet.toml
+[[gate.ratchet]]
+pointer = "/complexity/avg_cyclomatic"   # JSON pointer to metric in baseline
+max_increase_pct = 0.0                   # Strict no-regression (default)
+# max_increase_pct = 5.0                 # Allow 5% regression
+max_value = 10.0                         # Absolute ceiling (fail if > 10 regardless of baseline)
+level = "error"
+description = "Average cyclomatic complexity"
+
+[[gate.ratchet]]
+pointer = "/complexity/avg_function_length"
+max_increase_pct = 2.0
+level = "warn"
+description = "Average function length"
 ```
 
 **Supported Operators**:
@@ -853,6 +880,13 @@ op = "gte"
 value = 0.1
 level = "warn"
 message = "Documentation below 10%"
+
+# Ratchet rules for gradual improvement
+[[gate.ratchet]]
+pointer = "/complexity/avg_cyclomatic"
+max_increase_pct = 0.0
+level = "error"
+description = "Complexity regression detected"
 
 # =============================================================================
 # Named Profiles (view profiles)

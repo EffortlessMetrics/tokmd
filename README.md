@@ -2,11 +2,11 @@
 
 > **Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase.**
 
-[![License](https://img.shields.io/crates/l/tokmd.svg)](https://crates.io/crates/tokmd)
-[![Crates.io](https://img.shields.io/crates/v/tokmd.svg)](https://crates.io/crates/tokmd)
-[![Downloads](https://img.shields.io/crates/d/tokmd.svg)](https://crates.io/crates/tokmd)
-[![Docs.rs](https://docs.rs/tokmd/badge.svg)](https://docs.rs/tokmd)
-[![CI](https://github.com/EffortlessMetrics/tokmd/workflows/CI/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml)
+[![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
+[![Crates.io](https://img.shields.io/crates/v/tokmd)](https://crates.io/crates/tokmd)
+[![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
+[![Docs.rs](https://img.shields.io/docsrs/tokmd)](https://docs.rs/tokmd)
+[![CI](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-tokmd--receipt-blue?logo=github)](https://github.com/marketplace/actions/tokmd-receipt)
 
 ## The Pain

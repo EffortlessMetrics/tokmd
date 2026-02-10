@@ -237,6 +237,36 @@ if [ "$COUNT" -gt 0 ]; then
 fi
 ```
 
+## 10b. CI Gate: Ratchet Rules (Gradual Improvement)
+
+Ensure that code metrics (like complexity) do not get worse over time.
+
+**Goal**: Fail CI if average complexity increases compared to the `main` branch baseline.
+
+1. **Generate baseline on main**:
+   ```bash
+   tokmd baseline --output baseline.json
+   ```
+
+2. **Configure ratchet in `tokmd.toml`**:
+   ```toml
+   [[gate.ratchet]]
+   pointer = "/complexity/avg_cyclomatic"
+   max_increase_pct = 0.0  # Strict no-regression
+   level = "error"
+   description = "Average cyclomatic complexity"
+   ```
+
+3. **Run gate in PR**:
+   ```bash
+   tokmd gate --baseline baseline.json
+   ```
+
+**How it works**:
+- The gate compares current metrics against `baseline.json`.
+- If `avg_cyclomatic` in the PR is higher than the baseline, the gate fails.
+- `max_increase_pct` allows a small buffer (e.g., 5.0 = 5% increase allowed) to prevent flaky failures.
+
 ## 11. Configuring Ignores
 
 By default, `tokmd` respects `.gitignore`. Sometimes you want to ignore *more* (like tests or vendored code) without changing git behavior.
@@ -701,7 +731,7 @@ jobs:
         run: cargo install tokmd
 
       - name: Generate handoff bundle
-        run: tokmd handoff --preset risk --budget 128k --output-dir .handoff
+        run: tokmd handoff --preset risk --budget 128k --out-dir .handoff
 
       - name: Upload handoff artifact
         uses: actions/upload-artifact@v4

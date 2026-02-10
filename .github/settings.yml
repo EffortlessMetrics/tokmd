@@ -1,0 +1,48 @@
+# .github/settings.yml
+# This file is synced to GitHub repository settings by the 'Settings' Probot app.
+# Documentation: https://probot.github.io/apps/settings/
+
+repository:
+  description: "Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase."
+  homepage: "https://www.tokmd.org/"
+  topics: "markdown, rust, cli, tsv, csv, ci, monorepo, tokei, devex, code-metrics, sloc, loc, jsonl, github-actions, ai-tools, repository-analysis, llm, llmops, code-statistics"
+
+  # Merge Settings
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+  delete_branch_on_merge: true
+  squash_merge_commit_title: PR_TITLE
+  squash_merge_commit_message: PR_BODY
+
+  # Features
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_downloads: true
+
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+      required_status_checks:
+        strict: true
+        contexts:
+          - "MSRV Check"
+          - "Build & Test (ubuntu-latest)"
+          - "Build & Test (macos-latest)"
+          - "Build & Test (windows-latest)"
+          - "Rustfmt"
+          - "Clippy"
+          - "Cargo Deny"
+          - "Typos"
+          - "Proptest Smoke"
+          - "Publish Plan"
+          - "Mutation Testing (Required)"
+      enforce_admins: false
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false

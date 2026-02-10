@@ -82,7 +82,7 @@ impl FunctionSpan {
 // Regex patterns for different languages
 static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
     // Qualifiers can appear in various orders: pub async unsafe fn, pub unsafe async fn, etc.
-    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+\w+"#)
+    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+(?:r#)?\p{XID_Start}\p{XID_Continue}*"#)
         .unwrap()
 });
 
@@ -1418,6 +1418,17 @@ pub(crate) unsafe async fn baz() {
     }
 
     #[test]
+    fn rust_raw_identifier_function() {
+        let code = r#"
+pub(crate) unsafe fn r#match() {
+    println!("raw ident");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
     fn rust_pub_super_const_function() {
         let code = r#"
 pub(super) const fn helper() -> u32 {
@@ -2726,5 +2737,20 @@ fn main() {
         );
         // Should track which lines have max depth
         assert!(!result.max_depth_lines.is_empty());
+    }
+
+    #[test]
+    fn rust_unicode_function_name() {
+        let code = r#"
+fn café() {
+    println!("unicode");
+}
+
+fn 你好() {
+    println!("chinese");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 2);
     }
 }

@@ -51,11 +51,20 @@
 - [x] **Corporate Fingerprint**: Author domain statistics
 - [x] **License Radar**: SPDX detection from LICENSE files and metadata
 
+### v1.4.0 — Bindings & FFI
+- [x] **Python Bindings (PyPI)**: Native FFI via PyO3 + maturin
+- [x] **Node.js Bindings (npm)**: Native FFI via napi-rs
+- [x] **FFI Layer**: C-compatible FFI functions in `tokmd-core`
+
+### v1.5.0 — Ecosystem & Baselines
+- [x] **Baseline System**: `tokmd baseline` for complexity/determinism tracking
+- [x] **Ratchet Rules**: Gradual improvement enforcement in `tokmd gate`
+- [x] **Ecosystem Envelope**: Standardized `sensor.report.v1` format
+- [x] **Handoff Command**: `tokmd handoff` for LLM bundles
+
 ## Future
 
 ### v2.0 — Platform Evolution
-- [ ] **Python Bindings (PyPI)**: Native FFI via PyO3 + maturin
-- [ ] **Node.js Bindings (npm)**: Native FFI via napi-rs
 - [ ] **MCP Server Mode**: `tokmd serve` for Claude/MCP integration
 - [ ] **Streaming Analysis**: JSONL streaming for large repos
 - [ ] **Plugin System**: WASM-based extensible enrichers
