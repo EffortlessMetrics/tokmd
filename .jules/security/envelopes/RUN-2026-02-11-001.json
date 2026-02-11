@@ -1,0 +1,29 @@
+{
+  "run_id": "RUN-2026-02-11-001",
+  "timestamp_utc": "2026-02-11T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-format/src/lib.rs",
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "success",
+      "notes": "Build passed"
+    },
+    {
+      "command": "CI=true cargo test --verbose",
+      "result": "success",
+      "notes": "All tests passed (fixed test config issues in CI)"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "success",
+      "notes": "Code is formatted"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "success",
+      "notes": "Fixed clippy error in export_bundle.rs and unused imports in tok_integration.rs"
+    }
+  ],
+  "results_summary": "Removed unwrap() in normalize_scan_input. Fixed blocking CI clippy error in export_bundle.rs. Fixed CI test failures in tok_integration and schema_validation."
+}
