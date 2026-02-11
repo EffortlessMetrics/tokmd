@@ -261,7 +261,7 @@ pub struct ModuleArgs {
 pub struct ExportArgs {
     pub paths: Vec<PathBuf>,
     pub format: ExportFormat,
-    pub out: Option<PathBuf>,
+    pub output: Option<PathBuf>,
     pub module_roots: Vec<String>,
     pub module_depth: usize,
     pub children: ChildIncludeMode,

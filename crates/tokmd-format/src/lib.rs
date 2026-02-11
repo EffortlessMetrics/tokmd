@@ -361,7 +361,7 @@ struct JsonlRow<'a> {
 }
 
 pub fn write_export(export: &ExportData, global: &ScanOptions, args: &ExportArgs) -> Result<()> {
-    match &args.out {
+    match &args.output {
         Some(path) => {
             let file = File::create(path)?;
             let mut out = BufWriter::new(file);

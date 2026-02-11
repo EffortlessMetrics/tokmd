@@ -1,0 +1,931 @@
+{
+  "baseline_version": 1,
+  "generated_at": "2026-02-11T09:26:40.532Z",
+  "commit": "0cb32e9692ed3bbc2dc5ab7bceb3be2ab26aba83",
+  "metrics": {
+    "total_code_lines": 55491,
+    "total_files": 286,
+    "avg_cyclomatic": 34.71,
+    "max_cyclomatic": 464,
+    "avg_cognitive": 58.86,
+    "max_cognitive": 1285,
+    "avg_nesting_depth": 4.46,
+    "max_nesting_depth": 17,
+    "function_count": 2034,
+    "avg_function_length": 52.31
+  },
+  "files": [
+    {
+      "path": "crates/tokmd-content/src/complexity.rs",
+      "code_lines": 0,
+      "cyclomatic": 464,
+      "cognitive": 1285,
+      "max_nesting": 12,
+      "function_count": 26,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/cockpit.rs",
+      "code_lines": 0,
+      "cyclomatic": 391,
+      "cognitive": 512,
+      "max_nesting": 6,
+      "function_count": 37,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/complexity.rs",
+      "code_lines": 0,
+      "cyclomatic": 321,
+      "cognitive": 974,
+      "max_nesting": 10,
+      "function_count": 9,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/handoff.rs",
+      "code_lines": 0,
+      "cyclomatic": 239,
+      "cognitive": 539,
+      "max_nesting": 9,
+      "function_count": 11,
+      "content_hash": null
+    },
+    {
+      "path": "xtask/src/tasks/publish.rs",
+      "code_lines": 0,
+      "cyclomatic": 205,
+      "cognitive": 340,
+      "max_nesting": 9,
+      "function_count": 20,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/integration.rs",
+      "code_lines": 0,
+      "cyclomatic": 151,
+      "cognitive": 54,
+      "max_nesting": 7,
+      "function_count": 2,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis-format/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 126,
+      "cognitive": 260,
+      "max_nesting": 17,
+      "function_count": 95,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/context.rs",
+      "code_lines": 0,
+      "cyclomatic": 126,
+      "cognitive": 93,
+      "max_nesting": 7,
+      "function_count": 18,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-model/tests/model_tests.rs",
+      "code_lines": 0,
+      "cyclomatic": 112,
+      "cognitive": 156,
+      "max_nesting": 7,
+      "function_count": 54,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-format/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 111,
+      "cognitive": 105,
+      "max_nesting": 10,
+      "function_count": 74,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/schema_validation.rs",
+      "code_lines": 0,
+      "cyclomatic": 99,
+      "cognitive": 37,
+      "max_nesting": 6,
+      "function_count": 21,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-core/src/ffi.rs",
+      "code_lines": 0,
+      "cyclomatic": 98,
+      "cognitive": 58,
+      "max_nesting": 6,
+      "function_count": 53,
+      "content_hash": null
+    },
+    {
+      "path": "xtask/src/tasks/bump.rs",
+      "code_lines": 0,
+      "cyclomatic": 90,
+      "cognitive": 109,
+      "max_nesting": 8,
+      "function_count": 19,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/gate.rs",
+      "code_lines": 0,
+      "cyclomatic": 84,
+      "cognitive": 101,
+      "max_nesting": 8,
+      "function_count": 13,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-model/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 82,
+      "cognitive": 168,
+      "max_nesting": 6,
+      "function_count": 26,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-python/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 77,
+      "cognitive": 61,
+      "max_nesting": 6,
+      "function_count": 37,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-config/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 73,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 4,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/check_ignore.rs",
+      "code_lines": 0,
+      "cyclomatic": 72,
+      "cognitive": 133,
+      "max_nesting": 10,
+      "function_count": 13,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-git/tests/integration.rs",
+      "code_lines": 0,
+      "cyclomatic": 70,
+      "cognitive": 34,
+      "max_nesting": 4,
+      "function_count": 16,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/index.js",
+      "code_lines": 0,
+      "cyclomatic": 70,
+      "cognitive": 189,
+      "max_nesting": 6,
+      "function_count": 18,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/content.rs",
+      "code_lines": 0,
+      "cyclomatic": 66,
+      "cognitive": 74,
+      "max_nesting": 4,
+      "function_count": 12,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/derived.rs",
+      "code_lines": 0,
+      "cyclomatic": 66,
+      "cognitive": 115,
+      "max_nesting": 7,
+      "function_count": 19,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/context_pack.rs",
+      "code_lines": 0,
+      "cyclomatic": 66,
+      "cognitive": 107,
+      "max_nesting": 6,
+      "function_count": 90,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/config.rs",
+      "code_lines": 0,
+      "cyclomatic": 62,
+      "cognitive": 66,
+      "max_nesting": 4,
+      "function_count": 25,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/analysis.rs",
+      "code_lines": 0,
+      "cyclomatic": 61,
+      "cognitive": 196,
+      "max_nesting": 9,
+      "function_count": 4,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/halstead.rs",
+      "code_lines": 0,
+      "cyclomatic": 61,
+      "cognitive": 98,
+      "max_nesting": 7,
+      "function_count": 9,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/index.d.ts",
+      "code_lines": 0,
+      "cyclomatic": 60,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 2,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis-types/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 55,
+      "cognitive": 15,
+      "max_nesting": 8,
+      "function_count": 6,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/sensor.rs",
+      "code_lines": 0,
+      "cyclomatic": 53,
+      "cognitive": 52,
+      "max_nesting": 8,
+      "function_count": 22,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-gate/src/evaluate.rs",
+      "code_lines": 0,
+      "cyclomatic": 52,
+      "cognitive": 62,
+      "max_nesting": 8,
+      "function_count": 28,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-tokeignore/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 51,
+      "cognitive": 47,
+      "max_nesting": 5,
+      "function_count": 20,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-envelope/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 48,
+      "cognitive": 8,
+      "max_nesting": 6,
+      "function_count": 53,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/diff.rs",
+      "code_lines": 0,
+      "cyclomatic": 47,
+      "cognitive": 46,
+      "max_nesting": 6,
+      "function_count": 11,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-scan/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 43,
+      "cognitive": 63,
+      "max_nesting": 4,
+      "function_count": 21,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/license.rs",
+      "code_lines": 0,
+      "cyclomatic": 42,
+      "cognitive": 50,
+      "max_nesting": 4,
+      "function_count": 12,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis-format/tests/render_fun.rs",
+      "code_lines": 0,
+      "cyclomatic": 41,
+      "cognitive": 52,
+      "max_nesting": 5,
+      "function_count": 8,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/tools_schema.rs",
+      "code_lines": 0,
+      "cyclomatic": 41,
+      "cognitive": 53,
+      "max_nesting": 4,
+      "function_count": 13,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/npm/index.d.ts",
+      "code_lines": 0,
+      "cyclomatic": 40,
+      "cognitive": 0,
+      "max_nesting": 2,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/export_bundle.rs",
+      "code_lines": 0,
+      "cyclomatic": 40,
+      "cognitive": 35,
+      "max_nesting": 4,
+      "function_count": 15,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/git_scoring.rs",
+      "code_lines": 0,
+      "cyclomatic": 39,
+      "cognitive": 34,
+      "max_nesting": 4,
+      "function_count": 19,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/archetype.rs",
+      "code_lines": 0,
+      "cyclomatic": 38,
+      "cognitive": 26,
+      "max_nesting": 4,
+      "function_count": 37,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/npm/index.js",
+      "code_lines": 0,
+      "cyclomatic": 38,
+      "cognitive": 95,
+      "max_nesting": 6,
+      "function_count": 9,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-format/tests/format_tests.rs",
+      "code_lines": 0,
+      "cyclomatic": 36,
+      "cognitive": 17,
+      "max_nesting": 4,
+      "function_count": 43,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/cockpit_integration.rs",
+      "code_lines": 0,
+      "cyclomatic": 36,
+      "cognitive": 66,
+      "max_nesting": 3,
+      "function_count": 12,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-core/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 35,
+      "cognitive": 21,
+      "max_nesting": 5,
+      "function_count": 15,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-content/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 33,
+      "cognitive": 36,
+      "max_nesting": 4,
+      "function_count": 28,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-git/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 32,
+      "cognitive": 59,
+      "max_nesting": 5,
+      "function_count": 8,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-fun/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 31,
+      "cognitive": 35,
+      "max_nesting": 7,
+      "function_count": 33,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-core/src/error.rs",
+      "code_lines": 0,
+      "cyclomatic": 30,
+      "cognitive": 12,
+      "max_nesting": 9,
+      "function_count": 29,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-gate/src/ratchet.rs",
+      "code_lines": 0,
+      "cyclomatic": 30,
+      "cognitive": 43,
+      "max_nesting": 8,
+      "function_count": 32,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-types/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 30,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/interactive/wizard.rs",
+      "code_lines": 0,
+      "cyclomatic": 30,
+      "cognitive": 22,
+      "max_nesting": 4,
+      "function_count": 49,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/baseline.rs",
+      "code_lines": 0,
+      "cyclomatic": 28,
+      "cognitive": 8,
+      "max_nesting": 3,
+      "function_count": 4,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/assets.rs",
+      "code_lines": 0,
+      "cyclomatic": 27,
+      "cognitive": 45,
+      "max_nesting": 5,
+      "function_count": 9,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-walk/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 27,
+      "cognitive": 39,
+      "max_nesting": 3,
+      "function_count": 4,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-gate/src/types.rs",
+      "code_lines": 0,
+      "cyclomatic": 26,
+      "cognitive": 6,
+      "max_nesting": 3,
+      "function_count": 12,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/git.rs",
+      "code_lines": 0,
+      "cyclomatic": 25,
+      "cognitive": 48,
+      "max_nesting": 6,
+      "function_count": 4,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-git/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 25,
+      "cognitive": 14,
+      "max_nesting": 5,
+      "function_count": 35,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 25,
+      "cognitive": 13,
+      "max_nesting": 5,
+      "function_count": 22,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-settings/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 22,
+      "cognitive": 0,
+      "max_nesting": 4,
+      "function_count": 25,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/util.rs",
+      "code_lines": 0,
+      "cyclomatic": 21,
+      "cognitive": 8,
+      "max_nesting": 8,
+      "function_count": 36,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-walk/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 21,
+      "cognitive": 18,
+      "max_nesting": 5,
+      "function_count": 22,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/churn.rs",
+      "code_lines": 0,
+      "cyclomatic": 19,
+      "cognitive": 23,
+      "max_nesting": 4,
+      "function_count": 7,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/badge.rs",
+      "code_lines": 0,
+      "cyclomatic": 19,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_toml_config.rs",
+      "code_lines": 0,
+      "cyclomatic": 19,
+      "cognitive": 0,
+      "max_nesting": 6,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/run.rs",
+      "code_lines": 0,
+      "cyclomatic": 18,
+      "cognitive": 0,
+      "max_nesting": 4,
+      "function_count": 2,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/entropy.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 12,
+      "max_nesting": 4,
+      "function_count": 6,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-redact/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 16,
+      "max_nesting": 7,
+      "function_count": 26,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/sensor_integration.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 32,
+      "max_nesting": 3,
+      "function_count": 5,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_json_types.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_module_key.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 0,
+      "max_nesting": 7,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_normalize_path.rs",
+      "code_lines": 0,
+      "cyclomatic": 17,
+      "cognitive": 0,
+      "max_nesting": 5,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/topics.rs",
+      "code_lines": 0,
+      "cyclomatic": 16,
+      "cognitive": 18,
+      "max_nesting": 4,
+      "function_count": 6,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/init.rs",
+      "code_lines": 0,
+      "cyclomatic": 16,
+      "cognitive": 0,
+      "max_nesting": 8,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-config/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 15,
+      "cognitive": 9,
+      "max_nesting": 5,
+      "function_count": 6,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/analysis_utils.rs",
+      "code_lines": 0,
+      "cyclomatic": 15,
+      "cognitive": 2,
+      "max_nesting": 4,
+      "function_count": 17,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_policy_toml.rs",
+      "code_lines": 0,
+      "cyclomatic": 15,
+      "cognitive": 0,
+      "max_nesting": 8,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "xtask/src/tasks/cockpit.rs",
+      "code_lines": 0,
+      "cyclomatic": 15,
+      "cognitive": 12,
+      "max_nesting": 3,
+      "function_count": 2,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-gate/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 13,
+      "cognitive": 6,
+      "max_nesting": 5,
+      "function_count": 41,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-scan/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 13,
+      "cognitive": 19,
+      "max_nesting": 4,
+      "function_count": 13,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/progress.rs",
+      "code_lines": 0,
+      "cyclomatic": 13,
+      "cognitive": 15,
+      "max_nesting": 6,
+      "function_count": 10,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/run_diff.rs",
+      "code_lines": 0,
+      "cyclomatic": 13,
+      "cognitive": 17,
+      "max_nesting": 4,
+      "function_count": 17,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/fingerprint.rs",
+      "code_lines": 0,
+      "cyclomatic": 12,
+      "cognitive": 3,
+      "max_nesting": 5,
+      "function_count": 6,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/tests/mutant_killers.rs",
+      "code_lines": 0,
+      "cyclomatic": 12,
+      "cognitive": 14,
+      "max_nesting": 4,
+      "function_count": 33,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/tests/common/mod.rs",
+      "code_lines": 0,
+      "cyclomatic": 12,
+      "cognitive": 6,
+      "max_nesting": 4,
+      "function_count": 2,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-tokeignore/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 11,
+      "cognitive": 10,
+      "max_nesting": 3,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-node/__test__/index.spec.mjs",
+      "code_lines": 0,
+      "cyclomatic": 10,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 8,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-python/python/tokmd/__init__.py",
+      "code_lines": 0,
+      "cyclomatic": 10,
+      "cognitive": 0,
+      "max_nesting": 1,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-redact/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 10,
+      "cognitive": 2,
+      "max_nesting": 2,
+      "function_count": 13,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/commands/analyze.rs",
+      "code_lines": 0,
+      "cyclomatic": 10,
+      "cognitive": 0,
+      "max_nesting": 3,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "xtask/src/cli.rs",
+      "code_lines": 0,
+      "cyclomatic": 10,
+      "cognitive": 0,
+      "max_nesting": 2,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/tests/determinism.rs",
+      "code_lines": 0,
+      "cyclomatic": 9,
+      "cognitive": 17,
+      "max_nesting": 4,
+      "function_count": 3,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-fun/src/lib.rs",
+      "code_lines": 0,
+      "cyclomatic": 9,
+      "cognitive": 14,
+      "max_nesting": 7,
+      "function_count": 3,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-fun/tests/mutant_tests.rs",
+      "code_lines": 0,
+      "cyclomatic": 9,
+      "cognitive": 10,
+      "max_nesting": 5,
+      "function_count": 20,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-gate/src/pointer.rs",
+      "code_lines": 0,
+      "cyclomatic": 9,
+      "cognitive": 9,
+      "max_nesting": 4,
+      "function_count": 10,
+      "content_hash": null
+    },
+    {
+      "path": "fuzz/fuzz_targets/fuzz_redact.rs",
+      "code_lines": 0,
+      "cyclomatic": 9,
+      "cognitive": 0,
+      "max_nesting": 4,
+      "function_count": 0,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-analysis/src/fun.rs",
+      "code_lines": 0,
+      "cyclomatic": 8,
+      "cognitive": 0,
+      "max_nesting": 4,
+      "function_count": 1,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-content/tests/properties.rs",
+      "code_lines": 0,
+      "cyclomatic": 8,
+      "cognitive": 2,
+      "max_nesting": 4,
+      "function_count": 16,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd-tokeignore/tests/init.rs",
+      "code_lines": 0,
+      "cyclomatic": 8,
+      "cognitive": 12,
+      "max_nesting": 4,
+      "function_count": 16,
+      "content_hash": null
+    },
+    {
+      "path": "crates/tokmd/src/interactive/tty.rs",
+      "code_lines": 0,
+      "cyclomatic": 8,
+      "cognitive": 8,
+      "max_nesting": 2,
+      "function_count": 10,
+      "content_hash": null
+    }
+  ],
+  "complexity": {
+    "total_functions": 2034,
+    "avg_function_length": 52.31,
+    "max_function_length": 509,
+    "avg_cyclomatic": 34.71,
+    "max_cyclomatic": 464,
+    "avg_cognitive": 58.86,
+    "max_cognitive": 1285,
+    "avg_nesting_depth": 4.46,
+    "max_nesting_depth": 17,
+    "high_risk_files": 55
+  }
+}

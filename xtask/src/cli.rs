@@ -16,6 +16,19 @@ pub enum Commands {
     Publish(PublishArgs),
     /// Generate PR cockpit metrics for CI
     Cockpit(CockpitArgs),
+    /// Manage documentation and verify examples
+    Docs(DocsArgs),
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct DocsArgs {
+    /// Verify that generated documentation blocks are up to date
+    #[arg(long)]
+    pub check: bool,
+
+    /// Update documentation blocks in place
+    #[arg(long)]
+    pub update: bool,
 }
 
 #[derive(Args, Debug, Clone, Default)]

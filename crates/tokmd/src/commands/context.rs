@@ -65,7 +65,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     let mut excluded_paths: Vec<ContextExcludedPath> = Vec::new();
     add_excluded_path(
         &root,
-        args.out.as_ref(),
+        args.output.as_ref(),
         "out_file",
         &mut scan_args,
         &mut excluded_paths,
@@ -214,7 +214,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
 fn determine_output_destination(args: &cli::CliContextArgs) -> String {
     if let Some(ref bundle_dir) = args.bundle_dir {
         format!("bundle:{}", bundle_dir.display())
-    } else if let Some(ref out_path) = args.out {
+    } else if let Some(ref out_path) = args.output {
         format!("file:{}", out_path.display())
     } else {
         "stdout".to_string()
@@ -231,14 +231,14 @@ fn write_to_destination(
     used_tokens: usize,
     utilization: f64,
 ) -> Result<usize> {
-    match args.output {
+    match args.output_mode {
         cli::ContextOutput::Bundle => {
             // Stream bundle output directly to destination
             write_bundle_to_destination(args, selected)
         }
         cli::ContextOutput::List | cli::ContextOutput::Json => {
             // Build string for list/json (small outputs)
-            let content = match args.output {
+            let content = match args.output_mode {
                 cli::ContextOutput::List => {
                     format_list_output(selected, budget, used_tokens, utilization, args.strategy)
                 }
@@ -249,7 +249,7 @@ fn write_to_destination(
             };
             let total_bytes = content.len();
 
-            if let Some(ref out_path) = args.out {
+            if let Some(ref out_path) = args.output {
                 write_output_file(out_path, &content, args.force)?;
             } else {
                 print!("{}", content);
@@ -266,7 +266,7 @@ fn write_bundle_to_destination(
     args: &cli::CliContextArgs,
     selected: &[ContextFileRow],
 ) -> Result<usize> {
-    if let Some(ref out_path) = args.out {
+    if let Some(ref out_path) = args.output {
         // Open file with proper semantics: create_new fails if exists (unless --force)
         let file = if args.force {
             OpenOptions::new()

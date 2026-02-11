@@ -322,8 +322,8 @@ pub struct CliExportArgs {
     pub format: Option<ExportFormat>,
 
     /// Write output to this file instead of stdout.
-    #[arg(long, value_name = "PATH")]
-    pub out: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", visible_alias = "out")]
+    pub output: Option<PathBuf>,
 
     /// Module roots (see `tokmd module`) [default: crates,packages].
     #[arg(long, value_delimiter = ',')]
@@ -448,8 +448,8 @@ pub struct BadgeArgs {
     pub max_commit_files: Option<usize>,
 
     /// Output file for the badge (defaults to stdout).
-    #[arg(long)]
-    pub out: Option<PathBuf>,
+    #[arg(long, visible_alias = "out")]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -555,8 +555,8 @@ pub struct CliContextArgs {
     pub rank_by: ValueMetric,
 
     /// Output mode.
-    #[arg(long, value_enum, default_value_t = ContextOutput::List)]
-    pub output: ContextOutput,
+    #[arg(long = "mode", value_enum, default_value_t = ContextOutput::List)]
+    pub output_mode: ContextOutput,
 
     /// Strip blank lines from bundle output.
     #[arg(long)]
@@ -591,8 +591,8 @@ pub struct CliContextArgs {
     pub max_commit_files: usize,
 
     /// Write output to file instead of stdout.
-    #[arg(long, value_name = "PATH")]
-    pub out: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", visible_alias = "out")]
+    pub output: Option<PathBuf>,
 
     /// Overwrite existing output file.
     #[arg(long)]

@@ -387,7 +387,7 @@ pub fn resolve_export(
                     .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
             })
             .unwrap_or(cli::ExportFormat::Jsonl),
-        out: cli_args.out.clone(),
+        output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
             .clone()
@@ -449,7 +449,7 @@ pub fn resolve_export_with_config(
                     .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
             })
             .unwrap_or(cli::ExportFormat::Jsonl),
-        out: cli_args.out.clone(),
+        output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
             .clone()

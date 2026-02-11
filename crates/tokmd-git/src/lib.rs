@@ -144,6 +144,72 @@ pub fn collect_history(
     Ok(commits)
 }
 
+/// Get the set of added line numbers per file between two refs.
+pub fn get_added_lines(
+    repo_root: &Path,
+    base: &str,
+    head: &str,
+    range_mode: GitRangeMode,
+) -> Result<std::collections::BTreeMap<PathBuf, std::collections::BTreeSet<usize>>> {
+    let range = range_mode.format(base, head);
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["diff", "--unified=0", &range])
+        .output()
+        .context("Failed to run git diff")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow::anyhow!("git diff failed: {}", stderr.trim()));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut result: std::collections::BTreeMap<PathBuf, std::collections::BTreeSet<usize>> =
+        std::collections::BTreeMap::new();
+    let mut current_file: Option<PathBuf> = None;
+
+    for line in stdout.lines() {
+        if let Some(file_path) = line.strip_prefix("+++ b/") {
+            current_file = Some(PathBuf::from(file_path));
+            continue;
+        }
+
+        if line.starts_with("@@") {
+            let Some(file) = current_file.as_ref() else {
+                continue;
+            };
+
+            // Hunk header: @@ -a,b +c,d @@
+            // We care about +c,d
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() < 3 {
+                continue;
+            }
+
+            let new_range = parts[2]; // +c,d
+            let range_str = new_range.strip_prefix('+').unwrap_or(new_range);
+            let range_parts: Vec<&str> = range_str.split(',').collect();
+
+            let start: usize = range_parts[0].parse().unwrap_or(0);
+            let count: usize = if range_parts.len() > 1 {
+                range_parts[1].parse().unwrap_or(1)
+            } else {
+                1
+            };
+
+            if count > 0 && start > 0 {
+                let set = result.entry(file.clone()).or_default();
+                for i in 0..count {
+                    set.insert(start + i);
+                }
+            }
+        }
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -108,6 +108,17 @@ jobs:
         env:
           CI: true
 
+  docs-check:
+    name: Docs Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Check documentation drift
+        run: cargo xtask docs --check
+        env:
+          CI: true
+
   nix:
     name: Nix Build
     runs-on: ${{ matrix.os }}
@@ -207,3 +218,29 @@ jobs:
             crates/**/mutants.out/
           if-no-files-found: ignore
           retention-days: 14
+
+  ci-required:
+    name: CI (Required)
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - msrv
+      - build
+      - fmt
+      - clippy
+      - deny
+      - typos
+      - proptest-smoke
+      - publish-plan
+      - docs-check
+      - nix
+      - mutation
+    steps:
+      - name: Check overall status
+        run: |
+          # If any needed job failed or was cancelled, fail this job
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more required jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All required jobs passed (or were skipped)."

@@ -43,7 +43,7 @@ tokmd > summary.md
 tokmd module --module-roots crates,packages
 
 # 3. Pack for LLM context (smart selection)
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # 4. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md
@@ -52,7 +52,7 @@ tokmd analyze --preset receipt --format md
 tokmd analyze --preset risk --format md
 
 # 6. Generate a badge
-tokmd badge --metric lines --out badge.svg
+tokmd badge --metric lines --output badge.svg
 
 # 7. Diff two states
 tokmd diff main HEAD
@@ -65,9 +65,9 @@ tokmd diff main HEAD
 Pack files into an LLM context window with budget-aware selection:
 
 ```bash
-tokmd context --budget 128k --output bundle --out context.txt  # Ready to paste
+tokmd context --budget 128k --output bundle --output context.txt  # Ready to paste
 tokmd context --budget 200k --strategy spread                  # Coverage across modules
-tokmd context --budget 100k --output bundle --compress --out context.txt  # Strip blank lines for density
+tokmd context --budget 100k --output bundle --compress --output context.txt  # Strip blank lines for density
 ```
 
 ### LLM Context Planning
@@ -76,7 +76,7 @@ Smartly select files to fit your context window:
 
 ```bash
 # Pack top files by code volume into 128k tokens
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # Or generate a manifest to see what fits
 tokmd context --budget 128k --output list
