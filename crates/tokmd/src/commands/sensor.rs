@@ -227,7 +227,11 @@ fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
         );
     }
 
-    for path in risk.bus_factor_warnings.iter().take(MAX_FINDINGS_PER_CATEGORY) {
+    for path in risk
+        .bus_factor_warnings
+        .iter()
+        .take(MAX_FINDINGS_PER_CATEGORY)
+    {
         report.add_finding(
             Finding::new(
                 findings::risk::CHECK_ID,

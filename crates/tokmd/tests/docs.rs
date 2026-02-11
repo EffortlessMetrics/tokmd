@@ -141,11 +141,15 @@ fn recipe_gate_with_baseline() {
 
     // Then gate against it (should pass since it's the same state)
     let ratchet_path = tmp.path().join("ratchet.toml");
-    std::fs::write(&ratchet_path, r#"
+    std::fs::write(
+        &ratchet_path,
+        r#"
 [[rules]]
 pointer = "/complexity/avg_cyclomatic"
 max_increase_pct = 10.0
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     tokmd()
         .arg("gate")

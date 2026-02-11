@@ -11,10 +11,7 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use tokmd_config as cli;
-use tokmd_envelope::{
-    SensorReport,
-    ToolMeta, Verdict,
-};
+use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
 
 /// Cockpit receipt schema version.
 const SCHEMA_VERSION: u32 = 3;
@@ -2152,7 +2149,10 @@ fn compute_change_surface(
     };
 
     // Simple change concentration: what % of changes are in top 20% of files
-    let mut changes: Vec<usize> = file_stats.iter().map(|s| s.insertions + s.deletions).collect();
+    let mut changes: Vec<usize> = file_stats
+        .iter()
+        .map(|s| s.insertions + s.deletions)
+        .collect();
     changes.sort_by_key(|&c| Reverse(c));
 
     let top_count = (files_changed as f64 * 0.2).ceil() as usize;
@@ -2185,7 +2185,11 @@ fn compute_composition(files: &[String]) -> Composition {
 
     for file in files {
         let path = file.to_lowercase();
-        if path.ends_with(".rs") || path.ends_with(".js") || path.ends_with(".ts") || path.ends_with(".py") {
+        if path.ends_with(".rs")
+            || path.ends_with(".js")
+            || path.ends_with(".ts")
+            || path.ends_with(".py")
+        {
             if path.contains("test") || path.contains("_spec") {
                 test += 1;
             } else {
@@ -2193,14 +2197,23 @@ fn compute_composition(files: &[String]) -> Composition {
             }
         } else if path.ends_with(".md") || path.contains("/docs/") {
             docs += 1;
-        } else if path.ends_with(".toml") || path.ends_with(".json") || path.ends_with(".yml") || path.ends_with(".yaml") {
+        } else if path.ends_with(".toml")
+            || path.ends_with(".json")
+            || path.ends_with(".yml")
+            || path.ends_with(".yaml")
+        {
             config += 1;
         }
     }
 
     let total = (code + test + docs + config) as f64;
     let (code_pct, test_pct, docs_pct, config_pct) = if total > 0.0 {
-        (code as f64 / total, test as f64 / total, docs as f64 / total, config as f64 / total)
+        (
+            code as f64 / total,
+            test as f64 / total,
+            docs as f64 / total,
+            config as f64 / total,
+        )
     } else {
         (0.0, 0.0, 0.0, 0.0)
     };
@@ -2241,8 +2254,12 @@ fn detect_contracts(files: &[String]) -> Contracts {
         }
     }
 
-    if api_changed { breaking_indicators += 1; }
-    if schema_changed { breaking_indicators += 1; }
+    if api_changed {
+        breaking_indicators += 1;
+    }
+    if schema_changed {
+        breaking_indicators += 1;
+    }
 
     Contracts {
         api_changed,
@@ -2304,7 +2321,8 @@ fn compute_code_health(file_stats: &[FileStat], contracts: &Contracts) -> CodeHe
         70..=79 => "C",
         60..=69 => "D",
         _ => "F",
-    }.to_string();
+    }
+    .to_string();
 
     CodeHealth {
         score,
@@ -2350,8 +2368,20 @@ fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> Vec<
 
     for stat in file_stats {
         let lines = stat.insertions + stat.deletions;
-        let priority = if lines > 200 { 1 } else if lines > 50 { 2 } else { 3 };
-        let complexity = if lines > 300 { 5 } else if lines > 100 { 3 } else { 1 };
+        let priority = if lines > 200 {
+            1
+        } else if lines > 50 {
+            2
+        } else {
+            3
+        };
+        let complexity = if lines > 300 {
+            5
+        } else if lines > 100 {
+            3
+        } else {
+            1
+        };
 
         items.push(ReviewItem {
             path: stat.path.clone(),

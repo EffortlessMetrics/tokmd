@@ -1,6 +1,6 @@
-use std::process::Command;
-use anyhow::{Result, bail, Context};
 use crate::cli::DocsArgs;
+use anyhow::{Context, Result, bail};
+use std::process::Command;
 
 pub fn run(args: DocsArgs) -> Result<()> {
     let repo_root = std::env::current_dir()?;
@@ -16,7 +16,7 @@ pub fn run(args: DocsArgs) -> Result<()> {
 
     // We look for patterns like <!-- HELP: lang --> ... <!-- /HELP: lang -->
     // and replace the content with the output of `tokmd <command> --help`
-    
+
     let markers = [
         ("", "lang"), // Default is lang
         ("module", "module"),
@@ -45,10 +45,10 @@ pub fn run(args: DocsArgs) -> Result<()> {
             if let Some(end_idx) = new_content.find(&end_marker) {
                 let help_output = get_tokmd_help(cmd_name)?;
                 let wrapped_help = format!("```text\n{}\n```", help_output.trim());
-                
+
                 let range_start = start_idx + start_marker.len();
                 let old_help = new_content[range_start..end_idx].trim();
-                
+
                 if old_help != wrapped_help.trim() {
                     drift = true;
                     if args.update {
@@ -68,7 +68,10 @@ pub fn run(args: DocsArgs) -> Result<()> {
             std::fs::write(&ref_md_path, new_content)?;
             println!("Updated {}", ref_md_path.display());
         } else if args.check {
-            bail!("Documentation drift detected in {}. Run `cargo xtask docs --update` to fix.", ref_md_path.display());
+            bail!(
+                "Documentation drift detected in {}. Run `cargo xtask docs --update` to fix.",
+                ref_md_path.display()
+            );
         }
     } else {
         println!("Documentation is up to date.");
@@ -79,7 +82,12 @@ pub fn run(args: DocsArgs) -> Result<()> {
 
 fn get_tokmd_help(cmd: &str) -> Result<String> {
     let mut command = Command::new("cargo");
-    command.arg("run").arg("-q").arg("-p").arg("tokmd").arg("--");
+    command
+        .arg("run")
+        .arg("-q")
+        .arg("-p")
+        .arg("tokmd")
+        .arg("--");
     if !cmd.is_empty() {
         command.arg(cmd);
     }
@@ -87,7 +95,10 @@ fn get_tokmd_help(cmd: &str) -> Result<String> {
 
     let output = command.output().context("Failed to run tokmd --help")?;
     if !output.status.success() {
-        bail!("tokmd --help failed: {}", String::from_utf8_lossy(&output.stderr));
+        bail!(
+            "tokmd --help failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
