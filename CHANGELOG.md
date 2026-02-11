@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-11
+
 ### Added
 
 - **Sensor Command**: New `tokmd sensor` for producing conforming `sensor.report.v1` envelopes

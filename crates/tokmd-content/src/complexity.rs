@@ -1462,17 +1462,6 @@ fn 你好() {
         assert_eq!(metrics.function_count, 2);
     }
 
-    #[test]
-    fn rust_raw_identifier_function() {
-        let code = r#"
-pub(crate) unsafe fn r#match() {
-    println!("raw ident");
-}
-"#;
-        let metrics = analyze_functions(code, "rust");
-        assert_eq!(metrics.function_count, 1);
-    }
-
     // ========================
     // Python tests
     // ========================
@@ -2771,20 +2760,5 @@ fn main() {
         );
         // Should track which lines have max depth
         assert!(!result.max_depth_lines.is_empty());
-    }
-
-    #[test]
-    fn rust_unicode_function_name() {
-        let code = r#"
-fn café() {
-    println!("unicode");
-}
-
-fn 你好() {
-    println!("chinese");
-}
-"#;
-        let metrics = analyze_functions(code, "rust");
-        assert_eq!(metrics.function_count, 2);
     }
 }
