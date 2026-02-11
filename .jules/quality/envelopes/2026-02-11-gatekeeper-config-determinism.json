@@ -13,6 +13,15 @@
       "command": "cargo test -p tokmd-config --test determinism",
       "result": "success",
       "output": "test test_toml_config_determinism ... ok"
+    },
+    {
+      "command": "cargo fmt -- --check crates/tokmd-config/tests/determinism.rs",
+      "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd --test tok_integration",
+      "result": "success",
+      "output": "running 0 tests"
     }
   ]
 }
