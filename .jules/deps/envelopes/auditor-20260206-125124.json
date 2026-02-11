@@ -1,0 +1,24 @@
+{
+  "run_id": "auditor-20260206-125124",
+  "status": "success",
+  "target": "tokmd-core",
+  "action": "remove-unused-dep",
+  "receipts": [
+    {
+      "command": "cargo build -p tokmd-core",
+      "result": "success"
+    },
+    {
+      "command": "cargo clippy -p tokmd-core",
+      "result": "success"
+    },
+    {
+      "command": "cargo fmt",
+      "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd-core",
+      "result": "success"
+    }
+  ]
+}
