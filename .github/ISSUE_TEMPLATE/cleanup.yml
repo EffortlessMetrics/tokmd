@@ -1,0 +1,87 @@
+name: Technical Debt / Cleanup
+description: Suggest code cleanup, refactoring, or maintenance tasks
+title: "[Cleanup]: "
+labels: ["maintenance", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us keep the tokmd codebase clean and maintainable. Use this template to suggest refactors, dependency updates, or other maintenance tasks.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be cleaned up or refactored?
+      placeholder: |
+        The `foo` module has become too large and should be split into smaller files...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Cleanup Type
+      options:
+        - Refactoring
+        - Dependency update
+        - Code style / Linting
+        - Test improvements
+        - Dead code removal
+        - Technical debt
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why is this cleanup necessary? How will it improve the project?
+      placeholder: |
+        This will make it easier to add new features to X...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Changes
+      description: How would you like to see this implemented?
+      placeholder: |
+        Move `struct A` to a new crate `tokmd-a`...
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      options:
+        - Core logic (tokmd-core, tokmd-model)
+        - CLI (tokmd, tokmd-config)
+        - Analysis (tokmd-analysis)
+        - Envelopes (tokmd-envelope)
+        - Documentation
+        - CI / Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Willingness to Contribute
+      description: Would you be interested in performing this cleanup?
+      options:
+        - "Yes - I'd like to do this"
+        - "Maybe - I'd need guidance"
+        - "No - just suggesting"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
