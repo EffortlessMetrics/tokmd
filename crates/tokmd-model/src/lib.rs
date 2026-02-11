@@ -39,7 +39,9 @@ pub fn compute_file_metrics(languages: &Languages) -> FileMetrics {
     let mut metrics = HashMap::new();
     for (_lang_type, lang) in languages.iter() {
         for report in &lang.reports {
-            let bytes = fs::metadata(&report.name).map(|m| m.len() as usize).unwrap_or(0);
+            let bytes = fs::metadata(&report.name)
+                .map(|m| m.len() as usize)
+                .unwrap_or(0);
             let tokens = bytes / CHARS_PER_TOKEN;
             metrics.insert(report.name.clone(), (bytes, tokens));
         }
@@ -355,6 +357,7 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_export_data(
     languages: &Languages,
     metrics: &FileMetrics,

@@ -117,7 +117,8 @@ fn lang_report_top_truncates_and_adds_other() {
     let full_report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     if full_report.rows.len() > 1 {
-        let top1_report = create_lang_report(&languages, &metrics, 1, false, ChildrenMode::Collapse);
+        let top1_report =
+            create_lang_report(&languages, &metrics, 1, false, ChildrenMode::Collapse);
 
         // Should have exactly 2 rows: top 1 + "Other"
         assert_eq!(top1_report.rows.len(), 2, "Should have top 1 + Other");
@@ -197,8 +198,14 @@ fn lang_report_tokens_approximates_bytes() {
 fn module_report_sums_correctly() {
     let languages = scan_path(&crate_src_path());
     let metrics = compute_file_metrics(&languages);
-    let report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     // Totals should be consistent
     let row_code: usize = report.rows.iter().map(|r| r.code).sum();
@@ -212,8 +219,14 @@ fn module_report_sums_correctly() {
 fn module_report_sorted_descending_by_code() {
     let languages = scan_path(&crate_src_path());
     let metrics = compute_file_metrics(&languages);
-    let report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     for i in 1..report.rows.len() {
         assert!(
@@ -227,8 +240,14 @@ fn module_report_sorted_descending_by_code() {
 fn module_report_top_truncates() {
     let languages = scan_path(&crate_src_path());
     let metrics = compute_file_metrics(&languages);
-    let full_report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let full_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     if full_report.rows.len() > 1 {
         let top1_report = create_module_report(
@@ -654,8 +673,14 @@ fn verify_code_accumulation_is_addition() {
     assert!(manual_tokens > 0, "Should have some tokens");
 
     // Verify totals through module report
-    let module_report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let module_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
     assert_eq!(
         module_report.total.code, manual_code,
         "Module report total code should match manual sum"
@@ -870,7 +895,8 @@ fn lang_report_top_truncation_boundary_conditions() {
     }
 
     // Test top = 0 should NOT truncate (0 means no limit)
-    let no_limit_report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
+    let no_limit_report =
+        create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
     assert!(
         !no_limit_report.rows.iter().any(|r| r.lang == "Other"),
         "top = 0 should not add Other"
@@ -883,8 +909,14 @@ fn lang_report_top_truncation_boundary_conditions() {
 fn module_report_accumulates_all_metrics_correctly() {
     let languages = scan_path(&crate_src_path());
     let metrics = compute_file_metrics(&languages);
-    let report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     // Verify that totals are sums, not products
     // With multiplication from 0 starting point, would get 0
@@ -922,8 +954,14 @@ fn module_report_accumulates_all_metrics_correctly() {
 fn module_report_top_truncation_boundary_conditions() {
     let languages = scan_path(&crate_src_path());
     let metrics = compute_file_metrics(&languages);
-    let full_report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let full_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     if full_report.rows.len() >= 2 {
         // Test exact boundary: top = rows.len() should NOT truncate
@@ -961,8 +999,14 @@ fn module_report_top_truncation_boundary_conditions() {
     }
 
     // Test top = 0 should NOT truncate
-    let no_limit_report =
-        create_module_report(&languages, &metrics, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let no_limit_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
     assert!(
         !no_limit_report.rows.iter().any(|r| r.module == "Other"),
         "top = 0 should not add Other"

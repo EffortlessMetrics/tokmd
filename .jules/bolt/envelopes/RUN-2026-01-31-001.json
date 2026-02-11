@@ -12,6 +12,14 @@
     {
       "command": "CI=true cargo test --verbose",
       "result": "success"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "success"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "success"
     }
   ],
   "results_summary": "PASS"
