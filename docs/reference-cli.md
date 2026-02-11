@@ -579,6 +579,19 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 1. `--ratchet-config <path>` CLI argument
 2. `[[gate.ratchet]]` inline rules in `tokmd.toml`
 
+**Pointer Rules**:
+Ratchets use [JSON Pointer (RFC 6901)](https://datatracker.ietf.org/doc/html/rfc6901) to reference values in the baseline.
+- `/` separates tokens.
+- `~1` represents `/` in a token.
+- `~0` represents `~` in a token.
+
+**Pointer Discovery**:
+To find valid pointers for your project, run this command against a baseline JSON:
+```bash
+# Show all scalar JSON Pointers in the baseline
+jq -r 'paths(scalars) as $p | "/" + ($p | map(tostring) | join("/"))' baseline.json | sort
+```
+
 **Exit Codes**:
 | Code | Meaning |
 |------|---------|

@@ -25,7 +25,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
-| **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, function detail export. |
+| **v1.6.0** | 🚧 In Progress | Halstead metrics, maintainability index, function detail export. |
 | **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |

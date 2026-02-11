@@ -263,9 +263,15 @@ Ensure that code metrics (like complexity) do not get worse over time.
    ```
 
 **How it works**:
-- The gate compares current metrics against `baseline.json`.
-- If `avg_cyclomatic` in the PR is higher than the baseline, the gate fails.
-- `max_increase_pct` allows a small buffer (e.g., 5.0 = 5% increase allowed) to prevent flaky failures.
+- The gate compares current metrics against `baseline.json` using the **JSON Pointer**.
+- If the value in the PR is higher than the baseline, the gate fails.
+- `max_increase_pct` allows a small buffer (e.g., 5.0 = 5% increase allowed).
+
+**Pointer Discovery**:
+To find valid pointers for your project, run:
+```bash
+jq -r 'paths(scalars) as $p | "/" + ($p | map(tostring) | join("/"))' baseline.json | sort
+```
 
 ## 11. Configuring Ignores
 

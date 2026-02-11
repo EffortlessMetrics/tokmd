@@ -82,7 +82,8 @@ impl FunctionSpan {
 // Regex patterns for different languages
 static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
     // Qualifiers can appear in various orders: pub async unsafe fn, pub unsafe async fn, etc.
-    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+(?:r#)?\p{XID_Start}\p{XID_Continue}*"#)
+    // Identifier aligns with Rust spec: (XID_Start | _) XID_Continue*
+    Regex::new(r#"^\s*(pub(\([^)]+\))?\s+)?((async|unsafe|const|extern\s+"[^"]*")\s+)*fn\s+(?:r#)?(?:_|[\p{XID_Start}])\p{XID_Continue}*"#)
         .unwrap()
 });
 
@@ -1433,6 +1434,39 @@ pub(crate) unsafe fn r#match() {
         let code = r#"
 pub(super) const fn helper() -> u32 {
     42
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_leading_underscore_function_name() {
+        let code = "fn _private_helper() {}";
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 1);
+    }
+
+    #[test]
+    fn rust_unicode_function_name() {
+        let code = r#"
+fn café() {
+    println!("unicode");
+}
+
+fn 你好() {
+    println!("chinese");
+}
+"#;
+        let metrics = analyze_functions(code, "rust");
+        assert_eq!(metrics.function_count, 2);
+    }
+
+    #[test]
+    fn rust_raw_identifier_function() {
+        let code = r#"
+pub(crate) unsafe fn r#match() {
+    println!("raw ident");
 }
 "#;
         let metrics = analyze_functions(code, "rust");
