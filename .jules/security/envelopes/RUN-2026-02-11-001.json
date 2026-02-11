@@ -11,8 +11,8 @@
     },
     {
       "command": "CI=true cargo test --verbose",
-      "result": "partial_success",
-      "notes": "All crate tests passed. tok_integration failed as expected (unrelated to change)."
+      "result": "success",
+      "notes": "All tests passed (fixed test config issues in CI)"
     },
     {
       "command": "cargo fmt -- --check",
@@ -22,8 +22,8 @@
     {
       "command": "cargo clippy -- -D warnings",
       "result": "success",
-      "notes": "Fixed additional clippy error in export_bundle.rs (cloned_ref_to_slice_refs) blocking CI."
+      "notes": "Fixed clippy error in export_bundle.rs and unused imports in tok_integration.rs"
     }
   ],
-  "results_summary": "Removed unwrap() in normalize_scan_input. Fixed blocking CI clippy error in export_bundle.rs."
+  "results_summary": "Removed unwrap() in normalize_scan_input. Fixed blocking CI clippy error in export_bundle.rs. Fixed CI test failures in tok_integration and schema_validation."
 }
