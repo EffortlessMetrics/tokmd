@@ -22,8 +22,8 @@
     {
       "command": "cargo clippy -- -D warnings",
       "result": "success",
-      "notes": "No clippy warnings"
+      "notes": "Fixed additional clippy error in export_bundle.rs (cloned_ref_to_slice_refs) blocking CI."
     }
   ],
-  "results_summary": "Removed unwrap() in normalize_scan_input. Verified with tests."
+  "results_summary": "Removed unwrap() in normalize_scan_input. Fixed blocking CI clippy error in export_bundle.rs."
 }
