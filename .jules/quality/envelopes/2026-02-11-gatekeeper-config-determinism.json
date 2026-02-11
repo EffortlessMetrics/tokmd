@@ -1,0 +1,18 @@
+{
+  "run_id": "2026-02-11-gatekeeper-config-determinism",
+  "start_time": "2026-02-11T15:08:07Z",
+  "lane": "scout_discovery",
+  "target": "crates/tokmd-config/src/lib.rs",
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-config --test determinism",
+      "result": "failed",
+      "output": "failures:\n    test_toml_config_determinism"
+    },
+    {
+      "command": "cargo test -p tokmd-config --test determinism",
+      "result": "success",
+      "output": "test test_toml_config_determinism ... ok"
+    }
+  ]
+}
