@@ -20,6 +20,14 @@
     {
       "command": "cargo fmt -- --check",
       "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd --test tok_integration",
+      "result": "success (skipped 0 tests)"
+    },
+    {
+      "command": "cargo clippy -p tokmd -- -D warnings",
+      "result": "success"
     }
   ],
   "results_summary": "PASS"
