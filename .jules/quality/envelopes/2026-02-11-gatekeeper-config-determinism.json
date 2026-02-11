@@ -27,6 +27,10 @@
       "command": "cargo clippy -p tokmd --all-targets -- -D warnings",
       "result": "success",
       "output": "clippy checks passed"
+    },
+    {
+      "command": "cargo fmt -- --check crates/tokmd/src/export_bundle.rs",
+      "result": "success"
     }
   ]
 }
