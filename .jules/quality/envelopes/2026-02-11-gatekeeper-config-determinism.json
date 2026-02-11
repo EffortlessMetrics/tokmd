@@ -22,6 +22,11 @@
       "command": "cargo test -p tokmd --test tok_integration",
       "result": "success",
       "output": "running 0 tests"
+    },
+    {
+      "command": "cargo clippy -p tokmd --all-targets -- -D warnings",
+      "result": "success",
+      "output": "clippy checks passed"
     }
   ]
 }
