@@ -1,0 +1,18 @@
+{
+  "run_id": "RUN-2026-01-31-001",
+  "timestamp_utc": "2026-01-31T10:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs:get_file_metrics",
+  "proof_method": "structural",
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "success"
+    },
+    {
+      "command": "CI=true cargo test --verbose",
+      "result": "success"
+    }
+  ],
+  "results_summary": "PASS"
+}

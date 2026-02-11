@@ -24,9 +24,13 @@ pub fn build_substrate(
     // Run tokei scan
     let languages = tokmd_scan::scan(&paths, scan_options)?;
 
+    // Compute metrics
+    let metrics = tokmd_model::compute_file_metrics(&languages);
+
     // Build file rows using the model layer
     let file_rows = tokmd_model::collect_file_rows(
         &languages,
+        &metrics,
         module_roots,
         module_depth,
         ChildIncludeMode::ParentsOnly,

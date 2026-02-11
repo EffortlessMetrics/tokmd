@@ -100,7 +100,14 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
-    let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
+    let metrics = tokmd_model::compute_file_metrics(&languages);
+    let report = tokmd_model::create_lang_report(
+        &languages,
+        &metrics,
+        lang.top,
+        lang.files,
+        lang.children,
+    );
 
     // Build receipt
     let receipt = LangReceipt {
@@ -141,8 +148,10 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
+    let metrics = tokmd_model::compute_file_metrics(&languages);
     let report = tokmd_model::create_module_report(
         &languages,
+        &metrics,
         &module.module_roots,
         module.module_depth,
         module.children,
@@ -190,8 +199,10 @@ pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<E
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
 
     // Model
+    let metrics = tokmd_model::compute_file_metrics(&languages);
     let data = tokmd_model::create_export_data(
         &languages,
+        &metrics,
         &export.module_roots,
         export.module_depth,
         export.children,
@@ -312,7 +323,14 @@ pub fn scan_workflow(
 
     // 2. Model (Aggregation & Filtering)
     // create_lang_report handles filtering (top N) and children mode
-    let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
+    let metrics = tokmd_model::compute_file_metrics(&languages);
+    let report = tokmd_model::create_lang_report(
+        &languages,
+        &metrics,
+        lang.top,
+        lang.files,
+        lang.children,
+    );
 
     // 3. Receipt Construction
     // We construct the receipt manually as it's just a data carrier.

@@ -84,8 +84,10 @@ fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result
     let scan_opts = tokmd_settings::ScanOptions::from(global);
     let languages = scan::scan(paths, &scan_opts)?;
     let meta = ExportMetaLite::default();
+    let metrics = model::compute_file_metrics(&languages);
     let export = model::create_export_data(
         &languages,
+        &metrics,
         &meta.module_roots,
         meta.module_depth,
         meta.children,

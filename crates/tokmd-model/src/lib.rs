@@ -17,9 +17,9 @@
 //! * Tokei interaction (use tokmd-scan)
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use tokei::{LanguageType, Languages};
 use tokmd_types::{
@@ -30,17 +30,26 @@ use tokmd_types::{
 /// Simple heuristic: 1 token ~= 4 chars (bytes).
 const CHARS_PER_TOKEN: usize = 4;
 
-fn get_file_metrics(path: &Path) -> (usize, usize) {
-    // Best-effort size calculation.
-    // If the file was deleted or is inaccessible during the scan post-processing,
-    // we return 0 bytes/tokens rather than crashing.
-    let bytes = fs::metadata(path).map(|m| m.len() as usize).unwrap_or(0);
-    let tokens = bytes / CHARS_PER_TOKEN;
-    (bytes, tokens)
+/// Map of file path to (bytes, tokens).
+pub type FileMetrics = HashMap<PathBuf, (usize, usize)>;
+
+/// Compute file metrics (bytes, tokens) for all files in the scan.
+/// This centralizes filesystem calls to avoid redundant `stat` operations.
+pub fn compute_file_metrics(languages: &Languages) -> FileMetrics {
+    let mut metrics = HashMap::new();
+    for (_lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            let bytes = fs::metadata(&report.name).map(|m| m.len() as usize).unwrap_or(0);
+            let tokens = bytes / CHARS_PER_TOKEN;
+            metrics.insert(report.name.clone(), (bytes, tokens));
+        }
+    }
+    metrics
 }
 
 pub fn create_lang_report(
     languages: &Languages,
+    metrics: &FileMetrics,
     top: usize,
     with_files: bool,
     children: ChildrenMode,
@@ -82,9 +91,10 @@ pub fn create_lang_report(
                 let mut bytes_sum = 0;
                 let mut tokens_sum = 0;
                 for report in &lang.reports {
-                    let (b, t) = get_file_metrics(&report.name);
-                    bytes_sum += b;
-                    tokens_sum += t;
+                    if let Some(&(b, t)) = metrics.get(&report.name) {
+                        bytes_sum += b;
+                        tokens_sum += t;
+                    }
                 }
 
                 let lines = sum.code + sum.comments + sum.blanks;
@@ -118,9 +128,10 @@ pub fn create_lang_report(
                     let mut bytes_sum = 0;
                     let mut tokens_sum = 0;
                     for report in &lang.reports {
-                        let (b, t) = get_file_metrics(&report.name);
-                        bytes_sum += b;
-                        tokens_sum += t;
+                        if let Some(&(b, t)) = metrics.get(&report.name) {
+                            bytes_sum += b;
+                            tokens_sum += t;
+                        }
                     }
 
                     rows.push(LangRow {
@@ -226,13 +237,21 @@ fn fold_other_lang(rows: &[LangRow]) -> LangRow {
 
 pub fn create_module_report(
     languages: &Languages,
+    metrics: &FileMetrics,
     module_roots: &[String],
     module_depth: usize,
     children: ChildIncludeMode,
     top: usize,
 ) -> ModuleReport {
     // Aggregate stats per module, but count files uniquely (parent files only).
-    let file_rows = collect_file_rows(languages, module_roots, module_depth, children, None);
+    let file_rows = collect_file_rows(
+        languages,
+        metrics,
+        module_roots,
+        module_depth,
+        children,
+        None,
+    );
 
     #[derive(Default)]
     struct Agg {
@@ -338,6 +357,7 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
 
 pub fn create_export_data(
     languages: &Languages,
+    metrics: &FileMetrics,
     module_roots: &[String],
     module_depth: usize,
     children: ChildIncludeMode,
@@ -347,6 +367,7 @@ pub fn create_export_data(
 ) -> ExportData {
     let mut rows = collect_file_rows(
         languages,
+        metrics,
         module_roots,
         module_depth,
         children,
@@ -377,6 +398,7 @@ pub fn create_export_data(
 /// reports for the same tuple.
 pub fn collect_file_rows(
     languages: &Languages,
+    metrics: &FileMetrics,
     module_roots: &[String],
     module_depth: usize,
     children: ChildIncludeMode,
@@ -407,7 +429,7 @@ pub fn collect_file_rows(
             let path = normalize_path(&report.name, strip_prefix);
             let module = module_key_from_normalized(&path, module_roots, module_depth);
             let st = report.stats.summarise();
-            let (bytes, tokens) = get_file_metrics(&report.name);
+            let (bytes, tokens) = metrics.get(&report.name).copied().unwrap_or((0, 0));
 
             let key = Key {
                 path: path.clone(),
