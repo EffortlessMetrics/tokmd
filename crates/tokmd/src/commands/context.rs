@@ -90,8 +90,10 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     let module_depth = args.module_depth.unwrap_or(2);
 
     progress.set_message("Building export data...");
+    let metrics = model::compute_file_metrics(&languages);
     let export = model::create_export_data(
         &languages,
+        &metrics,
         &module_roots,
         module_depth,
         cli::ChildIncludeMode::ParentsOnly,

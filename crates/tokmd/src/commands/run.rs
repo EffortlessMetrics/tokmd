@@ -20,7 +20,11 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     let scan_opts = ScanOptions::from(global);
     let languages = scan::scan(&args.paths, &scan_opts)?;
 
-    // 2. Determine output directory
+    // 2. Compute metrics once (prevents 3x stat calls)
+    progress.set_message("Computing metrics...");
+    let metrics = model::compute_file_metrics(&languages);
+
+    // 3. Determine output directory
     let output_dir = if let Some(d) = args.output_dir {
         std::fs::create_dir_all(&d).context("Failed to create output directory")?;
         d
@@ -43,11 +47,13 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     progress.finish_and_clear();
     println!("Writing run artifacts to: {}", output_dir.display());
 
-    // 3. Generate Reports
+    // 4. Generate Reports
     progress.set_message("Generating reports...");
-    let lang_report = model::create_lang_report(&languages, 0, false, cli::ChildrenMode::Collapse);
+    let lang_report =
+        model::create_lang_report(&languages, &metrics, 0, false, cli::ChildrenMode::Collapse);
     let module_report = model::create_module_report(
         &languages,
+        &metrics,
         &["crates".to_string(), "packages".to_string()],
         2,
         cli::ChildIncludeMode::Separate,
@@ -55,6 +61,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     );
     let export_data = model::create_export_data(
         &languages,
+        &metrics,
         &["crates".to_string(), "packages".to_string()],
         2,
         cli::ChildIncludeMode::Separate,
@@ -67,7 +74,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
     let scan_args = format::scan_args(&args.paths, &scan_opts, Some(redact_mode));
 
-    // 4. Write artifacts using tokmd-format for consistency
+    // 5. Write artifacts using tokmd-format for consistency
     progress.set_message("Writing artifacts...");
 
     // Write lang.json
@@ -109,7 +116,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     format::write_export_jsonl_to_file(&export_path, &export_data, &scan_args, &export_args_meta)
         .context("Failed to write export.jsonl")?;
 
-    // 5. Write receipt.json
+    // 6. Write receipt.json
     let receipt = tokmd_types::RunReceipt {
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),

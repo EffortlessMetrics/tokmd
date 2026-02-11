@@ -84,8 +84,10 @@ fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result
     let scan_opts = tokmd_settings::ScanOptions::from(global);
     let languages = scan::scan(paths, &scan_opts)?;
     let meta = ExportMetaLite::default();
+    let metrics = model::compute_file_metrics(&languages);
     let export = model::create_export_data(
         &languages,
+        &metrics,
         &meta.module_roots,
         meta.module_depth,
         meta.children,
@@ -413,7 +415,7 @@ mod tests {
         let file_path = dir.path().join("sample.rs");
         std::fs::write(&file_path, "fn main() {}\n").unwrap();
 
-        let bundle = load_export_from_inputs(&[file_path.clone()], &GlobalArgs::default()).unwrap();
+        let bundle = load_export_from_inputs(std::slice::from_ref(&file_path), &GlobalArgs::default()).unwrap();
         assert!(bundle.export_path.is_none());
         assert!(
             bundle

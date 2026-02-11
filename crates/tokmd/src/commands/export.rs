@@ -15,9 +15,11 @@ pub(crate) fn handle(
     let args = config::resolve_export_with_config(&cli_args, resolved);
     let scan_opts = ScanOptions::from(global);
     let languages = scan::scan(&args.paths, &scan_opts)?;
+    let metrics = model::compute_file_metrics(&languages);
     let strip_prefix = args.strip_prefix.as_deref();
     let export = model::create_export_data(
         &languages,
+        &metrics,
         &args.module_roots,
         args.module_depth,
         args.children,

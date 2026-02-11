@@ -6,8 +6,8 @@
 use std::path::PathBuf;
 use tokei::{Config, LanguageType, Languages};
 use tokmd_model::{
-    avg, collect_file_rows, create_export_data, create_lang_report, create_module_report,
-    module_key, normalize_path, unique_parent_file_count,
+    avg, collect_file_rows, compute_file_metrics, create_export_data, create_lang_report,
+    create_module_report, module_key, normalize_path, unique_parent_file_count,
 };
 use tokmd_types::{ChildIncludeMode, ChildrenMode};
 
@@ -32,7 +32,8 @@ fn crate_src_path() -> String {
 #[test]
 fn lang_report_collapse_sums_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // Totals should match sum of rows
     let row_code: usize = report.rows.iter().map(|r| r.code).sum();
@@ -61,7 +62,8 @@ fn lang_report_collapse_sums_correctly() {
 #[test]
 fn lang_report_separate_sums_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     // Totals should match sum of rows
     let row_code: usize = report.rows.iter().map(|r| r.code).sum();
@@ -80,7 +82,8 @@ fn lang_report_separate_sums_correctly() {
 #[test]
 fn lang_report_sorted_descending_by_code() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     for i in 1..report.rows.len() {
         assert!(
@@ -95,7 +98,8 @@ fn lang_report_sorted_descending_by_code() {
 #[test]
 fn lang_report_skips_zero_code_languages() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     for row in &report.rows {
         assert!(
@@ -109,10 +113,12 @@ fn lang_report_skips_zero_code_languages() {
 #[test]
 fn lang_report_top_truncates_and_adds_other() {
     let languages = scan_path(&crate_src_path());
-    let full_report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let full_report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     if full_report.rows.len() > 1 {
-        let top1_report = create_lang_report(&languages, 1, false, ChildrenMode::Collapse);
+        let top1_report =
+            create_lang_report(&languages, &metrics, 1, false, ChildrenMode::Collapse);
 
         // Should have exactly 2 rows: top 1 + "Other"
         assert_eq!(top1_report.rows.len(), 2, "Should have top 1 + Other");
@@ -133,7 +139,8 @@ fn lang_report_top_truncates_and_adds_other() {
 #[test]
 fn lang_report_lines_includes_all_components() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // For each language, lines should be code + comments + blanks
     // We verify by checking that lines >= code (since comments and blanks are non-negative)
@@ -151,7 +158,8 @@ fn lang_report_lines_includes_all_components() {
 #[test]
 fn lang_report_avg_lines_calculated_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     for row in &report.rows {
         if row.files > 0 {
@@ -168,7 +176,8 @@ fn lang_report_avg_lines_calculated_correctly() {
 #[test]
 fn lang_report_tokens_approximates_bytes() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // tokens = bytes / 4 (CHARS_PER_TOKEN)
     for row in &report.rows {
@@ -188,7 +197,15 @@ fn lang_report_tokens_approximates_bytes() {
 #[test]
 fn module_report_sums_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     // Totals should be consistent
     let row_code: usize = report.rows.iter().map(|r| r.code).sum();
@@ -201,7 +218,15 @@ fn module_report_sums_correctly() {
 #[test]
 fn module_report_sorted_descending_by_code() {
     let languages = scan_path(&crate_src_path());
-    let report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     for i in 1..report.rows.len() {
         assert!(
@@ -214,11 +239,25 @@ fn module_report_sorted_descending_by_code() {
 #[test]
 fn module_report_top_truncates() {
     let languages = scan_path(&crate_src_path());
-    let full_report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let metrics = compute_file_metrics(&languages);
+    let full_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     if full_report.rows.len() > 1 {
-        let top1_report =
-            create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 1);
+        let top1_report = create_module_report(
+            &languages,
+            &metrics,
+            &[],
+            2,
+            ChildIncludeMode::ParentsOnly,
+            1,
+        );
 
         assert_eq!(top1_report.rows.len(), 2, "Should have top 1 + Other");
         assert_eq!(
@@ -235,10 +274,12 @@ fn module_report_top_truncates() {
 #[test]
 fn export_data_min_code_filters_correctly() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
 
     // Get all rows first
     let all_data = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -254,6 +295,7 @@ fn export_data_min_code_filters_correctly() {
         if max_code > 1 {
             let filtered = create_export_data(
                 &languages,
+                &metrics,
                 &[],
                 2,
                 ChildIncludeMode::ParentsOnly,
@@ -284,8 +326,10 @@ fn export_data_min_code_filters_correctly() {
 #[test]
 fn export_data_max_rows_truncates() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
     let all_data = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -297,6 +341,7 @@ fn export_data_max_rows_truncates() {
     if all_data.rows.len() > 1 {
         let limited = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -316,8 +361,10 @@ fn export_data_max_rows_truncates() {
 #[test]
 fn export_data_sorted_by_code_then_path() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
     let data = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -345,7 +392,15 @@ fn export_data_sorted_by_code_then_path() {
 #[test]
 fn collect_file_rows_returns_valid_rows() {
     let languages = scan_path(&crate_src_path());
-    let rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::ParentsOnly, None);
+    let metrics = compute_file_metrics(&languages);
+    let rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        None,
+    );
 
     for row in &rows {
         // Each row should have lines = code + comments + blanks
@@ -369,8 +424,23 @@ fn collect_file_rows_returns_valid_rows() {
 #[test]
 fn collect_file_rows_separate_includes_children() {
     let languages = scan_path(&crate_src_path());
-    let collapse_rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::ParentsOnly, None);
-    let separate_rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::Separate, None);
+    let metrics = compute_file_metrics(&languages);
+    let collapse_rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        None,
+    );
+    let separate_rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::Separate,
+        None,
+    );
 
     // Separate mode should have at least as many rows as collapse mode
     // (it includes child rows which collapse mode merges)
@@ -580,7 +650,15 @@ fn avg_one_file() {
 #[test]
 fn verify_code_accumulation_is_addition() {
     let languages = scan_path(&crate_src_path());
-    let rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::ParentsOnly, None);
+    let metrics = compute_file_metrics(&languages);
+    let rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        None,
+    );
 
     // Manually compute totals by adding
     let manual_code: usize = rows.iter().map(|r| r.code).sum();
@@ -595,7 +673,14 @@ fn verify_code_accumulation_is_addition() {
     assert!(manual_tokens > 0, "Should have some tokens");
 
     // Verify totals through module report
-    let module_report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let module_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
     assert_eq!(
         module_report.total.code, manual_code,
         "Module report total code should match manual sum"
@@ -637,7 +722,8 @@ fn lang_report_collapse_code_zero_check_excludes_zero() {
     // This test verifies that when code == 0, the language is skipped.
     // If mutated to !=, zero-code languages would be included and non-zero excluded.
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // All rows should have code > 0
     for row in &report.rows {
@@ -654,7 +740,8 @@ fn lang_report_collapse_code_zero_check_excludes_zero() {
 #[test]
 fn lang_report_separate_code_zero_check_excludes_zero() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     // All rows should have code > 0
     for row in &report.rows {
@@ -671,7 +758,8 @@ fn lang_report_separate_code_zero_check_excludes_zero() {
 #[test]
 fn lang_report_lines_equals_code_plus_comments_plus_blanks() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // For each language, manually check that lines is the sum of components
     for (lang_type, lang) in languages.iter() {
@@ -698,7 +786,8 @@ fn lang_report_lines_equals_code_plus_comments_plus_blanks() {
 #[test]
 fn lang_report_separate_code_greater_than_zero_check() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     // All non-embedded rows should have code > 0 (not >= 0, not == 0, not < 0)
     for row in &report.rows {
@@ -718,7 +807,8 @@ fn lang_report_separate_code_greater_than_zero_check() {
 #[test]
 fn lang_report_accumulates_bytes_and_tokens_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     // Verify that bytes and tokens are sums, not products
     // If bytes were multiplied instead of added, we'd get 0 (if any file has 0 bytes)
@@ -740,7 +830,8 @@ fn lang_report_accumulates_bytes_and_tokens_correctly() {
 #[test]
 fn lang_report_separate_accumulates_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     // For embedded languages, code should be positive (accumulated by +=)
     // If it was *= starting from 0, it would remain 0
@@ -762,12 +853,14 @@ fn lang_report_separate_accumulates_correctly() {
 #[test]
 fn lang_report_top_truncation_boundary_conditions() {
     let languages = scan_path(&crate_src_path());
-    let full_report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let metrics = compute_file_metrics(&languages);
+    let full_report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
 
     if full_report.rows.len() >= 2 {
         // Test exact boundary: top = rows.len() should NOT truncate
         let exact_report = create_lang_report(
             &languages,
+            &metrics,
             full_report.rows.len(),
             false,
             ChildrenMode::Collapse,
@@ -785,6 +878,7 @@ fn lang_report_top_truncation_boundary_conditions() {
         // Test top = rows.len() - 1 should truncate
         let truncated_report = create_lang_report(
             &languages,
+            &metrics,
             full_report.rows.len() - 1,
             false,
             ChildrenMode::Collapse,
@@ -801,7 +895,8 @@ fn lang_report_top_truncation_boundary_conditions() {
     }
 
     // Test top = 0 should NOT truncate (0 means no limit)
-    let no_limit_report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
+    let no_limit_report =
+        create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Collapse);
     assert!(
         !no_limit_report.rows.iter().any(|r| r.lang == "Other"),
         "top = 0 should not add Other"
@@ -813,7 +908,15 @@ fn lang_report_top_truncation_boundary_conditions() {
 #[test]
 fn module_report_accumulates_all_metrics_correctly() {
     let languages = scan_path(&crate_src_path());
-    let report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     // Verify that totals are sums, not products
     // With multiplication from 0 starting point, would get 0
@@ -850,12 +953,21 @@ fn module_report_accumulates_all_metrics_correctly() {
 #[test]
 fn module_report_top_truncation_boundary_conditions() {
     let languages = scan_path(&crate_src_path());
-    let full_report = create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let metrics = compute_file_metrics(&languages);
+    let full_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
 
     if full_report.rows.len() >= 2 {
         // Test exact boundary: top = rows.len() should NOT truncate
         let exact_report = create_module_report(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -874,6 +986,7 @@ fn module_report_top_truncation_boundary_conditions() {
         // Test top = rows.len() - 1 should truncate
         let truncated_report = create_module_report(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -886,8 +999,14 @@ fn module_report_top_truncation_boundary_conditions() {
     }
 
     // Test top = 0 should NOT truncate
-    let no_limit_report =
-        create_module_report(&languages, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let no_limit_report = create_module_report(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
     assert!(
         !no_limit_report.rows.iter().any(|r| r.module == "Other"),
         "top = 0 should not add Other"
@@ -899,10 +1018,12 @@ fn module_report_top_truncation_boundary_conditions() {
 #[test]
 fn export_data_min_code_boundary_conditions() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
 
     // Get baseline with min_code = 0 (should include all)
     let baseline = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -915,6 +1036,7 @@ fn export_data_min_code_boundary_conditions() {
         // min_code = 0 should not filter anything (condition is: if min_code > 0)
         let with_zero = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -931,6 +1053,7 @@ fn export_data_min_code_boundary_conditions() {
         // min_code = 1 should filter zero-code rows (if any)
         let with_one = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -952,8 +1075,10 @@ fn export_data_min_code_boundary_conditions() {
 #[test]
 fn export_data_min_code_filter_uses_greater_or_equal() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
     let all_data = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -969,6 +1094,7 @@ fn export_data_min_code_filter_uses_greater_or_equal() {
             // Filter with min_code = some_code should include rows with exactly that code
             let filtered = create_export_data(
                 &languages,
+                &metrics,
                 &[],
                 2,
                 ChildIncludeMode::ParentsOnly,
@@ -991,8 +1117,10 @@ fn export_data_min_code_filter_uses_greater_or_equal() {
 #[test]
 fn export_data_max_rows_boundary_conditions() {
     let languages = scan_path(&crate_src_path());
+    let metrics = compute_file_metrics(&languages);
     let all_data = create_export_data(
         &languages,
+        &metrics,
         &[],
         2,
         ChildIncludeMode::ParentsOnly,
@@ -1008,6 +1136,7 @@ fn export_data_max_rows_boundary_conditions() {
         // max_rows = all_data.rows.len() should NOT truncate (condition: rows.len() > max_rows)
         let exact = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -1024,6 +1153,7 @@ fn export_data_max_rows_boundary_conditions() {
         // max_rows = 1 should truncate to 1
         let one = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -1036,6 +1166,7 @@ fn export_data_max_rows_boundary_conditions() {
         // max_rows = all_data.rows.len() - 1 should truncate
         let less_one = create_export_data(
             &languages,
+            &metrics,
             &[],
             2,
             ChildIncludeMode::ParentsOnly,
@@ -1056,7 +1187,15 @@ fn export_data_max_rows_boundary_conditions() {
 #[test]
 fn collect_file_rows_accumulates_stats_correctly() {
     let languages = scan_path(&crate_src_path());
-    let rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::ParentsOnly, None);
+    let metrics = compute_file_metrics(&languages);
+    let rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        None,
+    );
 
     // Verify that each row has consistent stats
     for row in &rows {
@@ -1096,7 +1235,15 @@ fn collect_file_rows_accumulates_stats_correctly() {
 #[test]
 fn collect_file_rows_separate_accumulates_child_stats() {
     let languages = scan_path(&crate_src_path());
-    let rows = collect_file_rows(&languages, &[], 2, ChildIncludeMode::Separate, None);
+    let metrics = compute_file_metrics(&languages);
+    let rows = collect_file_rows(
+        &languages,
+        &metrics,
+        &[],
+        2,
+        ChildIncludeMode::Separate,
+        None,
+    );
 
     // Each row should have consistent lines = code + comments + blanks
     for row in &rows {
@@ -1187,7 +1334,8 @@ fn normalize_path_not_operators() {
 #[test]
 fn lang_report_separate_lines_calculation() {
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     for (lang_type, lang) in languages.iter() {
         if lang.code == 0 {
@@ -1217,7 +1365,8 @@ fn lang_report_embedded_accumulation() {
     // This test ensures that embedded language stats are accumulated with +=
     // If *= was used instead, starting from 0, all embedded stats would be 0
     let languages = scan_path(&crate_src_path());
-    let report = create_lang_report(&languages, 0, false, ChildrenMode::Separate);
+    let metrics = compute_file_metrics(&languages);
+    let report = create_lang_report(&languages, &metrics, 0, false, ChildrenMode::Separate);
 
     // Check that non-embedded rows have positive stats
     for row in &report.rows {

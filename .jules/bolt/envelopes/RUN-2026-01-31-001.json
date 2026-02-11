@@ -1,0 +1,34 @@
+{
+  "run_id": "RUN-2026-01-31-001",
+  "timestamp_utc": "2026-01-31T10:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs:get_file_metrics",
+  "proof_method": "structural",
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "success"
+    },
+    {
+      "command": "CI=true cargo test --verbose",
+      "result": "success"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "success"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd --test tok_integration",
+      "result": "success (skipped 0 tests)"
+    },
+    {
+      "command": "cargo clippy -p tokmd -- -D warnings",
+      "result": "success"
+    }
+  ],
+  "results_summary": "PASS"
+}

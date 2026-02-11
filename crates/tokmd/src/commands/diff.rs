@@ -103,8 +103,10 @@ fn lang_report_from_git_ref(revision: &str, global: &cli::GlobalArgs) -> Result<
 
     let scan_opts = tokmd_settings::ScanOptions::from(global);
     let languages = scan::scan(std::slice::from_ref(&worktree.path), &scan_opts)?;
+    let metrics = model::compute_file_metrics(&languages);
     Ok(model::create_lang_report(
         &languages,
+        &metrics,
         0,
         false,
         cli::ChildrenMode::Collapse,

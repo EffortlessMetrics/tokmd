@@ -15,8 +15,10 @@ pub(crate) fn handle(
     let args = config::resolve_module_with_config(&cli_args, resolved);
     let scan_opts = ScanOptions::from(global);
     let languages = scan::scan(&args.paths, &scan_opts)?;
+    let metrics = model::compute_file_metrics(&languages);
     let report = model::create_module_report(
         &languages,
+        &metrics,
         &args.module_roots,
         args.module_depth,
         args.children,
