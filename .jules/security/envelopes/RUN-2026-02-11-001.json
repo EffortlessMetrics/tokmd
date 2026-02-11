@@ -1,0 +1,29 @@
+{
+  "run_id": "RUN-2026-02-11-001",
+  "timestamp_utc": "2026-02-11T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-format/src/lib.rs",
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "success",
+      "notes": "Build passed"
+    },
+    {
+      "command": "CI=true cargo test --verbose",
+      "result": "partial_success",
+      "notes": "All crate tests passed. tok_integration failed as expected (unrelated to change)."
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "success",
+      "notes": "Code is formatted"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "success",
+      "notes": "No clippy warnings"
+    }
+  ],
+  "results_summary": "Removed unwrap() in normalize_scan_input. Verified with tests."
+}

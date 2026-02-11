@@ -50,8 +50,8 @@ fn now_ms() -> u128 {
 /// before storing paths in receipts to ensure consistent output across OS.
 pub fn normalize_scan_input(p: &Path) -> String {
     let mut s = p.display().to_string().replace('\\', "/");
-    while s.starts_with("./") {
-        s = s.strip_prefix("./").unwrap().to_string();
+    while let Some(stripped) = s.strip_prefix("./") {
+        s = stripped.to_string();
     }
     if s.is_empty() { ".".to_string() } else { s }
 }
