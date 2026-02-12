@@ -37,3 +37,12 @@
   "status": "success",
   "note": "Fixed schema validation tests by copying examples to crate directory"
 }
+{
+  "date": "2024-10-25",
+  "lane": "B",
+  "target": "tokmd-format",
+  "proof_method": "snapshot",
+  "gates": [],
+  "status": "success",
+  "note": "Fixed integration tests by adding real content to json files and updating .gitignore"
+}
