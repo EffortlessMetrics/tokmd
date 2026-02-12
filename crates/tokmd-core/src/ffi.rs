@@ -398,75 +398,84 @@ pub fn schema_version() -> u32 {
 mod tests {
     use super::*;
 
+    type TestResult = Result<(), Box<dyn std::error::Error>>;
+
     #[test]
-    fn run_json_version() {
+    fn run_json_version() -> TestResult {
         let result = run_json("version", "{}");
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], true);
         assert!(
             parsed["data"]["version"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing version")?
                 .contains(env!("CARGO_PKG_VERSION"))
         );
         assert!(parsed["data"]["schema_version"].is_number());
+        Ok(())
     }
 
     #[test]
-    fn run_json_unknown_mode() {
+    fn run_json_unknown_mode() -> TestResult {
         let result = run_json("unknown", "{}");
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "unknown_mode");
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("unknown")
         );
+        Ok(())
     }
 
     #[test]
-    fn run_json_invalid_json() {
+    fn run_json_invalid_json() -> TestResult {
         let result = run_json("lang", "not valid json");
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_json");
+        Ok(())
     }
 
     #[test]
-    fn parse_scan_settings_defaults() {
+    fn parse_scan_settings_defaults() -> TestResult {
         let args: Value = serde_json::json!({});
-        let settings = parse_scan_settings(&args).unwrap();
+        let settings = parse_scan_settings(&args)?;
         assert_eq!(settings.paths, vec!["."]);
         assert!(!settings.options.hidden);
+        Ok(())
     }
 
     #[test]
-    fn parse_scan_settings_with_paths() {
+    fn parse_scan_settings_with_paths() -> TestResult {
         let args: Value = serde_json::json!({
             "paths": ["src", "lib"],
             "hidden": true
         });
-        let settings = parse_scan_settings(&args).unwrap();
+        let settings = parse_scan_settings(&args)?;
         assert_eq!(settings.paths, vec!["src", "lib"]);
         assert!(settings.options.hidden);
+        Ok(())
     }
 
     #[test]
-    fn parse_lang_settings_defaults() {
+    fn parse_lang_settings_defaults() -> TestResult {
         let args: Value = serde_json::json!({});
-        let settings = parse_lang_settings(&args).unwrap();
+        let settings = parse_lang_settings(&args)?;
         assert_eq!(settings.top, 0);
         assert!(!settings.files);
+        Ok(())
     }
 
     #[test]
-    fn parse_module_settings_defaults() {
+    fn parse_module_settings_defaults() -> TestResult {
         let args: Value = serde_json::json!({});
-        let settings = parse_module_settings(&args).unwrap();
+        let settings = parse_module_settings(&args)?;
         assert_eq!(settings.module_depth, 2);
         assert!(settings.module_roots.contains(&"crates".to_string()));
+        Ok(())
     }
 
     #[test]
@@ -488,7 +497,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_bool() {
         let args: Value = serde_json::json!({"hidden": "yes"});
-        let err = parse_scan_settings(&args).unwrap_err();
+        let err = parse_scan_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("hidden"));
         assert!(err.message.contains("boolean"));
@@ -497,7 +506,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_usize() {
         let args: Value = serde_json::json!({"top": "ten"});
-        let err = parse_lang_settings(&args).unwrap_err();
+        let err = parse_lang_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("top"));
         assert!(err.message.contains("integer"));
@@ -506,7 +515,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_children_mode() {
         let args: Value = serde_json::json!({"children": "invalid"});
-        let err = parse_lang_settings(&args).unwrap_err();
+        let err = parse_lang_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("children"));
         assert!(err.message.contains("collapse"));
@@ -515,7 +524,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_child_include_mode() {
         let args: Value = serde_json::json!({"children": "invalid"});
-        let err = parse_module_settings(&args).unwrap_err();
+        let err = parse_module_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("children"));
         assert!(err.message.contains("separate"));
@@ -524,7 +533,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_redact_mode() {
         let args: Value = serde_json::json!({"redact": "invalid"});
-        let err = parse_export_settings(&args).unwrap_err();
+        let err = parse_export_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("redact"));
     }
@@ -532,7 +541,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_format() {
         let args: Value = serde_json::json!({"format": "yaml"});
-        let err = parse_export_settings(&args).unwrap_err();
+        let err = parse_export_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("format"));
     }
@@ -540,7 +549,7 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_string_array() {
         let args: Value = serde_json::json!({"paths": "not-an-array"});
-        let err = parse_scan_settings(&args).unwrap_err();
+        let err = parse_scan_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("paths"));
         assert!(err.message.contains("array"));
@@ -549,37 +558,39 @@ mod tests {
     #[test]
     fn strict_parsing_invalid_config_mode() {
         let args: Value = serde_json::json!({"config": "invalid"});
-        let err = parse_scan_settings(&args).unwrap_err();
+        let err = parse_scan_settings(&args).expect_err("should fail");
         assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
         assert!(err.message.contains("config"));
     }
 
     #[test]
-    fn run_json_invalid_children_returns_error_envelope() {
+    fn run_json_invalid_children_returns_error_envelope() -> TestResult {
         let result = run_json("lang", r#"{"children": "invalid"}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("children")
         );
+        Ok(())
     }
 
     #[test]
-    fn run_json_invalid_format_returns_error_envelope() {
+    fn run_json_invalid_format_returns_error_envelope() -> TestResult {
         let result = run_json("export", r#"{"format": "yaml"}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("format")
         );
+        Ok(())
     }
 
     // ========================================================================
@@ -587,7 +598,7 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn run_json_always_returns_valid_json() {
+    fn run_json_always_returns_valid_json() -> TestResult {
         let test_cases = vec![
             ("", ""),
             ("lang", ""),
@@ -612,7 +623,7 @@ mod tests {
                 args,
                 result
             );
-            let parsed = parsed.unwrap();
+            let parsed = parsed?;
             assert!(
                 parsed.get("ok").is_some(),
                 "Missing 'ok' field for mode={:?} args={:?}",
@@ -620,6 +631,7 @@ mod tests {
                 args
             );
         }
+        Ok(())
     }
 
     // ========================================================================
@@ -627,26 +639,28 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn nested_scan_object_invalid_bool_returns_error() {
+    fn nested_scan_object_invalid_bool_returns_error() -> TestResult {
         let result = run_json("lang", r#"{"scan": {"hidden": "yes"}}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("hidden")
         );
+        Ok(())
     }
 
     #[test]
-    fn nested_lang_object_invalid_top_returns_error() {
+    fn nested_lang_object_invalid_top_returns_error() -> TestResult {
         let result = run_json("lang", r#"{"lang": {"top": "ten"}}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(parsed["error"]["message"].as_str().unwrap().contains("top"));
+        assert!(parsed["error"]["message"].as_str().ok_or("missing message")?.contains("top"));
+        Ok(())
     }
 
     // ========================================================================
@@ -654,18 +668,20 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn null_values_use_defaults() {
+    fn null_values_use_defaults() -> TestResult {
         let args: Value = serde_json::json!({"top": null, "files": null});
-        let settings = parse_lang_settings(&args).unwrap();
+        let settings = parse_lang_settings(&args)?;
         assert_eq!(settings.top, 0);
         assert!(!settings.files);
+        Ok(())
     }
 
     #[test]
-    fn null_paths_uses_default() {
+    fn null_paths_uses_default() -> TestResult {
         let args: Value = serde_json::json!({"paths": null});
-        let settings = parse_scan_settings(&args).unwrap();
+        let settings = parse_scan_settings(&args)?;
         assert_eq!(settings.paths, vec!["."]);
+        Ok(())
     }
 
     // ========================================================================
@@ -675,7 +691,7 @@ mod tests {
     #[test]
     fn array_element_error_includes_index() {
         let args: Value = serde_json::json!({"paths": ["valid", 123, "also_valid"]});
-        let err = parse_scan_settings(&args).unwrap_err();
+        let err = parse_scan_settings(&args).expect_err("should fail");
         assert!(
             err.message.contains("paths[1]"),
             "Error should include index: {}",
@@ -688,29 +704,31 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn diff_missing_from_returns_error() {
+    fn diff_missing_from_returns_error() -> TestResult {
         let result = run_json("diff", r#"{"to": "receipt.json"}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("from")
         );
+        Ok(())
     }
 
     #[test]
-    fn diff_wrong_type_from_returns_error() {
+    fn diff_wrong_type_from_returns_error() -> TestResult {
         let result = run_json("diff", r#"{"from": 123, "to": "receipt.json"}"#);
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("from")
         );
+        Ok(())
     }
 
     // ========================================================================
@@ -719,10 +737,11 @@ mod tests {
 
     #[test]
     #[cfg(not(feature = "analysis"))]
-    fn analyze_without_feature_returns_not_implemented() {
+    fn analyze_without_feature_returns_not_implemented() -> TestResult {
         let result = run_json("analyze", "{}");
-        let parsed: Value = serde_json::from_str(&result).unwrap();
+        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "not_implemented");
+        Ok(())
     }
 }

@@ -294,6 +294,8 @@ impl ErrorResponse {
 mod tests {
     use super::*;
 
+    type TestResult = Result<(), Box<dyn std::error::Error>>;
+
     #[test]
     fn error_codes_serialize_to_snake_case() {
         let err = TokmdError::path_not_found("/some/path");
@@ -326,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    fn response_envelope_success() {
+    fn response_envelope_success() -> TestResult {
         let data = serde_json::json!({"rows": []});
         let envelope = ResponseEnvelope::success(data.clone());
         assert!(envelope.ok);
@@ -334,14 +336,15 @@ mod tests {
         assert!(envelope.error.is_none());
 
         let json = envelope.to_json();
-        let parsed: Value = serde_json::from_str(&json).unwrap();
+        let parsed: Value = serde_json::from_str(&json)?;
         assert_eq!(parsed["ok"], true);
         assert!(parsed["data"].is_object());
         assert!(parsed.get("error").is_none());
+        Ok(())
     }
 
     #[test]
-    fn response_envelope_error() {
+    fn response_envelope_error() -> TestResult {
         let err = TokmdError::invalid_field("format", "'json', 'csv', or 'jsonl'");
         let envelope = ResponseEnvelope::error(&err);
         assert!(!envelope.ok);
@@ -349,15 +352,16 @@ mod tests {
         assert!(envelope.error.is_some());
 
         let json = envelope.to_json();
-        let parsed: Value = serde_json::from_str(&json).unwrap();
+        let parsed: Value = serde_json::from_str(&json)?;
         assert_eq!(parsed["ok"], false);
         assert!(parsed.get("data").is_none());
         assert_eq!(parsed["error"]["code"], "invalid_settings");
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .unwrap()
+                .ok_or("missing message")?
                 .contains("format")
         );
+        Ok(())
     }
 }
