@@ -39,7 +39,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 
         // Run cockpit computation
         let cockpit_receipt =
-            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
+            crate::commands::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
 
         // Build the sensor report envelope
         let generated_at = now_iso8601();
@@ -140,7 +140,7 @@ mod impl_git {
     };
 
     #[cfg(feature = "git")]
-    pub(crate) fn build_summary(receipt: &super::super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
+    pub(crate) fn build_summary(receipt: &crate::commands::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
         format!(
             "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
             receipt.change_surface.files_changed,
@@ -155,19 +155,19 @@ mod impl_git {
 
     /// Map cockpit GateStatus → envelope Verdict.
     #[cfg(feature = "git")]
-    pub(crate) fn map_verdict(status: super::super::cockpit::GateStatus) -> Verdict {
+    pub(crate) fn map_verdict(status: crate::commands::cockpit::GateStatus) -> Verdict {
         match status {
-            super::super::cockpit::GateStatus::Pass => Verdict::Pass,
-            super::super::cockpit::GateStatus::Warn => Verdict::Warn,
-            super::super::cockpit::GateStatus::Fail => Verdict::Fail,
-            super::super::cockpit::GateStatus::Skipped => Verdict::Skip,
-            super::super::cockpit::GateStatus::Pending => Verdict::Pending,
+            crate::commands::cockpit::GateStatus::Pass => Verdict::Pass,
+            crate::commands::cockpit::GateStatus::Warn => Verdict::Warn,
+            crate::commands::cockpit::GateStatus::Fail => Verdict::Fail,
+            crate::commands::cockpit::GateStatus::Skipped => Verdict::Skip,
+            crate::commands::cockpit::GateStatus::Pending => Verdict::Pending,
         }
     }
 
     /// Map cockpit Evidence → envelope GateResults.
     #[cfg(feature = "git")]
-    pub(crate) fn map_gates(evidence: &super::super::cockpit::Evidence) -> GateResults {
+    pub(crate) fn map_gates(evidence: &crate::commands::cockpit::Evidence) -> GateResults {
         let mut items = Vec::new();
 
         // Mutation gate (always present)
@@ -216,7 +216,7 @@ mod impl_git {
 
     /// Emit risk findings from cockpit data.
     #[cfg(feature = "git")]
-    pub(crate) fn emit_risk_findings(report: &mut SensorReport, risk: &super::super::cockpit::Risk) {
+    pub(crate) fn emit_risk_findings(report: &mut SensorReport, risk: &crate::commands::cockpit::Risk) {
         for hotspot in &risk.hotspots_touched {
             report.add_finding(
                 Finding::new(
@@ -247,7 +247,7 @@ mod impl_git {
 
     /// Emit contract findings from cockpit data.
     #[cfg(feature = "git")]
-    pub(crate) fn emit_contract_findings(report: &mut SensorReport, contracts: &super::super::cockpit::Contracts) {
+    pub(crate) fn emit_contract_findings(report: &mut SensorReport, contracts: &crate::commands::cockpit::Contracts) {
         if contracts.schema_changed {
             report.add_finding(
                 Finding::new(
@@ -291,7 +291,7 @@ mod impl_git {
     /// Inspects the complexity gate and emits per-file findings for high cyclomatic
     /// complexity. Capped at `MAX_FINDINGS_PER_CATEGORY` per category.
     #[cfg(feature = "git")]
-    pub(crate) fn emit_complexity_findings(report: &mut SensorReport, evidence: &super::super::cockpit::Evidence) {
+    pub(crate) fn emit_complexity_findings(report: &mut SensorReport, evidence: &crate::commands::cockpit::Evidence) {
         let Some(ref cx) = evidence.complexity else {
             return;
         };
@@ -328,9 +328,9 @@ mod impl_git {
     ///
     /// Inspects evidence gates and emits findings for any that failed.
     #[cfg(feature = "git")]
-    pub(crate) fn emit_gate_findings(report: &mut SensorReport, evidence: &super::super::cockpit::Evidence) {
+    pub(crate) fn emit_gate_findings(report: &mut SensorReport, evidence: &crate::commands::cockpit::Evidence) {
         // Mutation gate failure
-        if evidence.mutation.meta.status == super::super::cockpit::GateStatus::Fail {
+        if evidence.mutation.meta.status == crate::commands::cockpit::GateStatus::Fail {
             report.add_finding(
                 Finding::new(
                     findings::gate::CHECK_ID,
@@ -348,7 +348,7 @@ mod impl_git {
 
         // Diff coverage gate failure
         if let Some(ref dc) = evidence.diff_coverage
-            && dc.meta.status == super::super::cockpit::GateStatus::Fail
+            && dc.meta.status == crate::commands::cockpit::GateStatus::Fail
         {
             report.add_finding(
                 Finding::new(
@@ -369,7 +369,7 @@ mod impl_git {
 
         // Complexity gate failure
         if let Some(ref cx) = evidence.complexity
-            && cx.meta.status == super::super::cockpit::GateStatus::Fail
+            && cx.meta.status == crate::commands::cockpit::GateStatus::Fail
         {
             report.add_finding(
                 Finding::new(
@@ -440,7 +440,7 @@ mod tests {
 
 
     #[cfg(feature = "git")]
-    use super::super::super::cockpit::{
+    use crate::commands::cockpit::{
         CommitMatch, ComplexityGate, ContractDiffGate, DeterminismGate, DiffCoverageGate, Evidence,
         EvidenceSource, GateMeta, GateStatus, HighComplexityFile, MutationGate, MutationSurvivor,
         Risk, RiskLevel, ScopeCoverage, SupplyChainGate, UncoveredHunk,
@@ -484,7 +484,7 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn map_verdict_covers_all_gate_statuses() {
-        use super::super::super::cockpit::GateStatus;
+        use crate::commands::cockpit::GateStatus;
 
         assert_eq!(map_verdict(GateStatus::Pass), Verdict::Pass);
         assert_eq!(map_verdict(GateStatus::Warn), Verdict::Warn);
@@ -547,12 +547,12 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn build_summary_formats_expected_fields() {
-        let receipt = super::super::super::cockpit::CockpitReceipt {
+        let receipt = crate::commands::cockpit::CockpitReceipt {
             schema_version: 3,
             generated_at_ms: 0,
             base_ref: "main".to_string(),
             head_ref: "HEAD".to_string(),
-            change_surface: super::super::super::cockpit::ChangeSurface {
+            change_surface: crate::commands::cockpit::ChangeSurface {
                 commits: 1,
                 files_changed: 2,
                 insertions: 10,
@@ -561,19 +561,19 @@ mod tests {
                 churn_velocity: 15.0,
                 change_concentration: 0.4,
             },
-            composition: super::super::super::cockpit::Composition {
+            composition: crate::commands::cockpit::Composition {
                 code_pct: 0.8,
                 test_pct: 0.1,
                 docs_pct: 0.05,
                 config_pct: 0.05,
                 test_ratio: 0.2,
             },
-            code_health: super::super::super::cockpit::CodeHealth {
+            code_health: crate::commands::cockpit::CodeHealth {
                 score: 75,
                 grade: "B".to_string(),
                 large_files_touched: 0,
                 avg_file_size: 10,
-                complexity_indicator: super::super::super::cockpit::ComplexityIndicator::Low,
+                complexity_indicator: crate::commands::cockpit::ComplexityIndicator::Low,
                 warnings: vec![],
             },
             risk: Risk {
@@ -582,7 +582,7 @@ mod tests {
                 level: RiskLevel::High,
                 score: 80,
             },
-            contracts: super::super::super::cockpit::Contracts {
+            contracts: crate::commands::cockpit::Contracts {
                 api_changed: false,
                 cli_changed: false,
                 schema_changed: false,
@@ -720,7 +720,7 @@ mod tests {
             Verdict::Warn,
             "Summary".to_string(),
         );
-        let contracts = super::super::super::cockpit::Contracts {
+        let contracts = crate::commands::cockpit::Contracts {
             api_changed: true,
             cli_changed: true,
             schema_changed: true,

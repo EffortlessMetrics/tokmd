@@ -4095,7 +4095,6 @@ pub(crate) mod impl_git {
                 ));
             }
         }
-    }
 
 
 #[cfg(test)]
@@ -4681,5 +4680,6 @@ fn third() {
         flush_uncovered_hunks("src/lib.rs", &[], &mut hunks);
         assert!(hunks.is_empty());
     }
+}
 }
 }
