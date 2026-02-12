@@ -1,0 +1,29 @@
+{
+  "run_id": "RUN-2025-02-19-001",
+  "timestamp_utc": "2025-02-19T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/config.rs: try_load_toml silently suppresses parsing errors",
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo test --test config_error",
+      "result": "PASS (after fix)"
+    },
+    {
+      "command": "cargo test --test integration",
+      "result": "PASS"
+    }
+  ],
+  "results_summary": "Fixed silent config parsing errors. Added reproduction test."
+}

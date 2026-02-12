@@ -42,7 +42,7 @@ pub use config::{
 
 pub fn run() -> Result<()> {
     let cli = cli::Cli::parse();
-    let config_ctx = config::load_config();
+    let config_ctx = config::load_config()?;
     let profile_name = config::get_profile_name(cli.profile.as_ref());
     let resolved = config::resolve_config(&config_ctx, profile_name.as_deref());
     commands::dispatch(cli, &resolved)
