@@ -1,0 +1,18 @@
+{
+  "run_id": "RUN-2026-02-12",
+  "timestamp_utc": "2026-02-12T12:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-git/src/lib.rs:collect_history",
+  "proof_method": "cargo run --release --example bench_git_log",
+  "commands": [
+    {"cmd": "cargo run --release --example bench_module_report", "result": "28.7ms baseline"},
+    {"cmd": "cargo run --release --example bench_module_report", "result": "32.2ms (reverted)"},
+    {"cmd": "cargo run --release --example bench_git_log", "result": "229ms baseline"},
+    {"cmd": "cargo run --release --example bench_git_log", "result": "171ms optimized"},
+    {"cmd": "cargo build --verbose", "result": "PASS"},
+    {"cmd": "CI=true cargo test --verbose", "result": "PASS"},
+    {"cmd": "cargo fmt -- --check", "result": "PASS"},
+    {"cmd": "cargo clippy -- -D warnings", "result": "PASS"}
+  ],
+  "results_summary": "Optimized git log parsing by reducing String allocations per line. Benchmark shows ~25% improvement."
+}

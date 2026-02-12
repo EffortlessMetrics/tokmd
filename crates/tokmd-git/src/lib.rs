@@ -96,49 +96,62 @@ pub fn collect_history(
     let stdout = child.stdout.take().context("Missing git log stdout")?;
     let reader = BufReader::new(stdout);
 
-    let mut commits: Vec<GitCommit> = Vec::new();
-    let mut current: Option<GitCommit> = None;
-
-    for line in reader.lines() {
-        let line = line?;
-        if line.trim().is_empty() {
-            if let Some(commit) = current.take() {
-                commits.push(commit);
-                if max_commits.is_some_and(|limit| commits.len() >= limit) {
-                    break;
-                }
-            }
-            continue;
-        }
-
-        if current.is_none() {
-            let mut parts = line.splitn(2, '|');
-            let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
-            let author = parts.next().unwrap_or("").to_string();
-            current = Some(GitCommit {
-                timestamp: ts,
-                author,
-                files: Vec::new(),
-            });
-            continue;
-        }
-
-        if let Some(commit) = current.as_mut()
-            && max_commit_files
-                .map(|limit| commit.files.len() < limit)
-                .unwrap_or(true)
-        {
-            commit.files.push(line.trim().to_string());
-        }
-    }
-
-    if let Some(commit) = current.take() {
-        commits.push(commit);
-    }
+    let commits = parse_git_log(reader, max_commits, max_commit_files)?;
 
     let status = child.wait()?;
     if !status.success() {
         return Err(anyhow::anyhow!("git log failed"));
+    }
+
+    Ok(commits)
+}
+
+/// Parse git log output from a reader.
+///
+/// This function is exposed to allow benchmarking and testing without running actual git commands.
+pub fn parse_git_log<R: BufRead>(
+    mut reader: R,
+    max_commits: Option<usize>,
+    max_commit_files: Option<usize>,
+) -> Result<Vec<GitCommit>> {
+    let mut commits: Vec<GitCommit> = Vec::new();
+    let mut current: Option<GitCommit> = None;
+    let mut line = String::new();
+
+    while reader.read_line(&mut line)? > 0 {
+        {
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                if let Some(commit) = current.take() {
+                    commits.push(commit);
+                    if max_commits.is_some_and(|limit| commits.len() >= limit) {
+                        break;
+                    }
+                }
+                line.clear();
+                continue;
+            }
+
+            if current.is_none() {
+                let mut parts = trimmed.splitn(2, '|');
+                let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
+                let author = parts.next().unwrap_or("").to_string();
+                current = Some(GitCommit {
+                    timestamp: ts,
+                    author,
+                    files: Vec::new(),
+                });
+            } else if let Some(commit) = current.as_mut() {
+                if max_commit_files.map_or(true, |limit| commit.files.len() < limit) {
+                    commit.files.push(trimmed.to_string());
+                }
+            }
+        }
+        line.clear();
+    }
+
+    if let Some(commit) = current.take() {
+        commits.push(commit);
     }
 
     Ok(commits)
@@ -161,5 +174,23 @@ mod tests {
     #[test]
     fn git_range_default_is_two_dot() {
         assert_eq!(GitRangeMode::default(), GitRangeMode::TwoDot);
+    }
+
+    #[test]
+    fn test_parse_git_log() {
+        let input = "1600000000|author@example.com\nfile1.rs\nfile2.rs\n\n1600000001|author2@example.com\nfile3.rs\n";
+        let reader = std::io::Cursor::new(input);
+        let commits = parse_git_log(reader, None, None).unwrap();
+
+        assert_eq!(commits.len(), 2);
+        assert_eq!(commits[0].timestamp, 1600000000);
+        assert_eq!(commits[0].author, "author@example.com");
+        assert_eq!(commits[0].files.len(), 2);
+        assert_eq!(commits[0].files[0], "file1.rs");
+
+        assert_eq!(commits[1].timestamp, 1600000001);
+        assert_eq!(commits[1].author, "author2@example.com");
+        assert_eq!(commits[1].files.len(), 1);
+        assert_eq!(commits[1].files[0], "file3.rs");
     }
 }
