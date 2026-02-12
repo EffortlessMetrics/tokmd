@@ -1,24 +1,19 @@
-//! Handler for the `tokmd sensor` command.
+//! Handler for the  command.
 //!
-//! Runs tokmd as a conforming sensor, producing a `SensorReport` envelope
-//! backed by cockpit computation. Implements a 3-layer output topology:
-//!
-//! 1. **report.json** — Thin envelope with findings, gates, summary metrics
-//! 2. **extras/cockpit_receipt.json** — Full cockpit receipt sidecar
-//! 3. **comment.md** — Markdown summary for PR comments
+//! Runs tokmd as a conforming sensor, producing a  envelope
+//! backed by cockpit computation.
 
-use std::io::Write;
-
-use anyhow::{Context, Result, bail};
-use tokmd_config as cli;
-use tokmd_envelope::findings;
-use tokmd_envelope::{
-    Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
-};
-
-/// Maximum findings emitted per category to avoid spamming the bus.
 #[cfg(feature = "git")]
-const MAX_FINDINGS_PER_CATEGORY: usize = 10;
+use std::io::Write;
+#[cfg(feature = "git")]
+use anyhow::Context;
+use anyhow::{Result, bail};
+use tokmd_config as cli;
+#[cfg(feature = "git")]
+use tokmd_envelope::{Artifact, SensorReport, ToolMeta};
+
+#[cfg(feature = "git")]
+pub(crate) use impl_git::*;
 
 pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
@@ -135,303 +130,317 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
     }
 }
 
+
 #[cfg(feature = "git")]
-fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
-    format!(
-        "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
-        receipt.change_surface.files_changed,
-        receipt.change_surface.insertions,
-        receipt.change_surface.deletions,
-        receipt.code_health.score,
-        receipt.risk.level,
-        base,
-        head,
-    )
-}
-
-/// Map cockpit GateStatus → envelope Verdict.
-#[cfg(feature = "git")]
-fn map_verdict(status: super::cockpit::GateStatus) -> Verdict {
-    match status {
-        super::cockpit::GateStatus::Pass => Verdict::Pass,
-        super::cockpit::GateStatus::Warn => Verdict::Warn,
-        super::cockpit::GateStatus::Fail => Verdict::Fail,
-        super::cockpit::GateStatus::Skipped => Verdict::Skip,
-        super::cockpit::GateStatus::Pending => Verdict::Pending,
-    }
-}
-
-/// Map cockpit Evidence → envelope GateResults.
-#[cfg(feature = "git")]
-fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
-    let mut items = Vec::new();
-
-    // Mutation gate (always present)
-    items.push(
-        GateItem::new("mutation", map_verdict(evidence.mutation.meta.status))
-            .with_source("computed"),
-    );
-
-    // Optional gates
-    if let Some(ref dc) = evidence.diff_coverage {
-        items.push(
-            GateItem::new("diff_coverage", map_verdict(dc.meta.status))
-                .with_threshold(0.8, dc.coverage_pct)
-                .with_source("computed"),
-        );
-    }
-
-    if let Some(ref c) = evidence.contracts {
-        let mut gate =
-            GateItem::new("contracts", map_verdict(c.meta.status)).with_source("computed");
-        if c.failures > 0 {
-            gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
-        }
-        items.push(gate);
-    }
-
-    if let Some(ref sc) = evidence.supply_chain {
-        items.push(
-            GateItem::new("supply_chain", map_verdict(sc.meta.status)).with_source("computed"),
-        );
-    }
-
-    if let Some(ref det) = evidence.determinism {
-        items.push(
-            GateItem::new("determinism", map_verdict(det.meta.status)).with_source("computed"),
-        );
-    }
-
-    if let Some(ref cx) = evidence.complexity {
-        items
-            .push(GateItem::new("complexity", map_verdict(cx.meta.status)).with_source("computed"));
-    }
-
-    GateResults::new(map_verdict(evidence.overall_status), items)
-}
-
-/// Emit risk findings from cockpit data.
-#[cfg(feature = "git")]
-fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
-    for hotspot in &risk.hotspots_touched {
-        report.add_finding(
-            Finding::new(
-                findings::risk::CHECK_ID,
-                findings::risk::HOTSPOT,
-                FindingSeverity::Warn,
-                "Hotspot file touched",
-                format!("{} is a high-churn file", hotspot),
-            )
-            .with_location(tokmd_envelope::FindingLocation::path(hotspot))
-            .with_fingerprint("tokmd"),
-        );
-    }
-
-    for path in &risk.bus_factor_warnings {
-        report.add_finding(
-            Finding::new(
-                findings::risk::CHECK_ID,
-                findings::risk::BUS_FACTOR,
-                FindingSeverity::Warn,
-                "Bus factor warning",
-                format!("{} has single-author ownership", path),
-            )
-            .with_fingerprint("tokmd"),
-        );
-    }
-}
-
-/// Emit contract findings from cockpit data.
-#[cfg(feature = "git")]
-fn emit_contract_findings(report: &mut SensorReport, contracts: &super::cockpit::Contracts) {
-    if contracts.schema_changed {
-        report.add_finding(
-            Finding::new(
-                findings::contract::CHECK_ID,
-                findings::contract::SCHEMA_CHANGED,
-                FindingSeverity::Info,
-                "Schema version changed",
-                "Schema version files were modified in this PR",
-            )
-            .with_fingerprint("tokmd"),
-        );
-    }
-    if contracts.api_changed {
-        report.add_finding(
-            Finding::new(
-                findings::contract::CHECK_ID,
-                findings::contract::API_CHANGED,
-                FindingSeverity::Warn,
-                "Public API changed",
-                "Public API surface files were modified",
-            )
-            .with_fingerprint("tokmd"),
-        );
-    }
-    if contracts.cli_changed {
-        report.add_finding(
-            Finding::new(
-                findings::contract::CHECK_ID,
-                findings::contract::CLI_CHANGED,
-                FindingSeverity::Info,
-                "CLI interface changed",
-                "CLI definition files were modified",
-            )
-            .with_fingerprint("tokmd"),
-        );
-    }
-}
-
-/// Emit complexity findings from cockpit evidence.
-///
-/// Inspects the complexity gate and emits per-file findings for high cyclomatic
-/// complexity. Capped at `MAX_FINDINGS_PER_CATEGORY` per category.
-#[cfg(feature = "git")]
-fn emit_complexity_findings(report: &mut SensorReport, evidence: &super::cockpit::Evidence) {
-    let Some(ref cx) = evidence.complexity else {
-        return;
+mod impl_git {
+    /// Maximum findings emitted per category to avoid spamming the bus.
+    pub(crate) const MAX_FINDINGS_PER_CATEGORY: usize = 10;
+    use tokmd_envelope::{
+        Finding, FindingSeverity, GateItem, GateResults, SensorReport, Verdict, findings,
     };
 
-    // Emit COMPLEXITY_HIGH findings for high-complexity files
-    for file in cx
-        .high_complexity_files
-        .iter()
-        .take(MAX_FINDINGS_PER_CATEGORY)
-    {
-        report.add_finding(
-            Finding::new(
-                findings::risk::CHECK_ID,
-                findings::risk::COMPLEXITY_HIGH,
-                FindingSeverity::Warn,
-                "High cyclomatic complexity",
-                format!(
-                    "{} has cyclomatic complexity {} ({} functions)",
-                    file.path, file.cyclomatic, file.function_count
-                ),
-            )
-            .with_location(tokmd_envelope::FindingLocation::path(&file.path))
-            .with_evidence(serde_json::json!({
-                "cyclomatic": file.cyclomatic,
-                "function_count": file.function_count,
-                "max_function_length": file.max_function_length,
-            }))
-            .with_fingerprint("tokmd"),
-        );
-    }
-}
-
-/// Emit gate failure findings from cockpit evidence.
-///
-/// Inspects evidence gates and emits findings for any that failed.
-#[cfg(feature = "git")]
-fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evidence) {
-    // Mutation gate failure
-    if evidence.mutation.meta.status == super::cockpit::GateStatus::Fail {
-        report.add_finding(
-            Finding::new(
-                findings::gate::CHECK_ID,
-                findings::gate::MUTATION_FAILED,
-                FindingSeverity::Error,
-                "Mutation gate failed",
-                format!(
-                    "{} mutation(s) survived testing",
-                    evidence.mutation.survivors.len()
-                ),
-            )
-            .with_fingerprint("tokmd"),
-        );
+    #[cfg(feature = "git")]
+    pub(crate) fn build_summary(receipt: &super::super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
+        format!(
+            "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
+            receipt.change_surface.files_changed,
+            receipt.change_surface.insertions,
+            receipt.change_surface.deletions,
+            receipt.code_health.score,
+            receipt.risk.level,
+            base,
+            head,
+        )
     }
 
-    // Diff coverage gate failure
-    if let Some(ref dc) = evidence.diff_coverage
-        && dc.meta.status == super::cockpit::GateStatus::Fail
-    {
-        report.add_finding(
-            Finding::new(
-                findings::gate::CHECK_ID,
-                findings::gate::COVERAGE_FAILED,
-                FindingSeverity::Error,
-                "Diff coverage gate failed",
-                format!(
-                    "Coverage {:.1}% below threshold ({} of {} lines covered)",
-                    dc.coverage_pct * 100.0,
-                    dc.lines_covered,
-                    dc.lines_added
-                ),
-            )
-            .with_fingerprint("tokmd"),
-        );
+    /// Map cockpit GateStatus → envelope Verdict.
+    #[cfg(feature = "git")]
+    pub(crate) fn map_verdict(status: super::super::cockpit::GateStatus) -> Verdict {
+        match status {
+            super::super::cockpit::GateStatus::Pass => Verdict::Pass,
+            super::super::cockpit::GateStatus::Warn => Verdict::Warn,
+            super::super::cockpit::GateStatus::Fail => Verdict::Fail,
+            super::super::cockpit::GateStatus::Skipped => Verdict::Skip,
+            super::super::cockpit::GateStatus::Pending => Verdict::Pending,
+        }
     }
 
-    // Complexity gate failure
-    if let Some(ref cx) = evidence.complexity
-        && cx.meta.status == super::cockpit::GateStatus::Fail
-    {
-        report.add_finding(
-            Finding::new(
-                findings::gate::CHECK_ID,
-                findings::gate::COMPLEXITY_FAILED,
-                FindingSeverity::Error,
-                "Complexity gate failed",
-                format!(
-                    "Max cyclomatic {} exceeds threshold ({} files analyzed)",
-                    cx.max_cyclomatic, cx.files_analyzed
-                ),
-            )
-            .with_fingerprint("tokmd"),
+    /// Map cockpit Evidence → envelope GateResults.
+    #[cfg(feature = "git")]
+    pub(crate) fn map_gates(evidence: &super::super::cockpit::Evidence) -> GateResults {
+        let mut items = Vec::new();
+
+        // Mutation gate (always present)
+        items.push(
+            GateItem::new("mutation", map_verdict(evidence.mutation.meta.status))
+                .with_source("computed"),
         );
-    }
-}
 
-fn render_sensor_md(report: &SensorReport) -> String {
-    use std::fmt::Write;
-    let mut s = String::new();
-    let _ = writeln!(s, "## Sensor Report: {}", report.tool.name);
-    let _ = writeln!(s);
-    let _ = writeln!(s, "**Verdict**: {}", report.verdict);
-    let _ = writeln!(s, "**Summary**: {}", report.summary);
-    let _ = writeln!(s);
-
-    if !report.findings.is_empty() {
-        let _ = writeln!(s, "### Findings");
-        let _ = writeln!(s);
-        for f in &report.findings {
-            let _ = writeln!(
-                s,
-                "- **[{}]** {}.{}: {} — {}",
-                f.severity, f.check_id, f.code, f.title, f.message
+        // Optional gates
+        if let Some(ref dc) = evidence.diff_coverage {
+            items.push(
+                GateItem::new("diff_coverage", map_verdict(dc.meta.status))
+                    .with_threshold(0.8, dc.coverage_pct)
+                    .with_source("computed"),
             );
         }
-        let _ = writeln!(s);
+
+        if let Some(ref c) = evidence.contracts {
+            let mut gate =
+                GateItem::new("contracts", map_verdict(c.meta.status)).with_source("computed");
+            if c.failures > 0 {
+                gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
+            }
+            items.push(gate);
+        }
+
+        if let Some(ref sc) = evidence.supply_chain {
+            items.push(
+                GateItem::new("supply_chain", map_verdict(sc.meta.status)).with_source("computed"),
+            );
+        }
+
+        if let Some(ref det) = evidence.determinism {
+            items.push(
+                GateItem::new("determinism", map_verdict(det.meta.status)).with_source("computed"),
+            );
+        }
+
+        if let Some(ref cx) = evidence.complexity {
+            items
+                .push(GateItem::new("complexity", map_verdict(cx.meta.status)).with_source("computed"));
+        }
+
+        GateResults::new(map_verdict(evidence.overall_status), items)
     }
 
-    // Extract gates from data (gates are embedded inside data, not top-level)
-    if let Some(ref data) = report.data
-        && let Some(gates_val) = data.get("gates")
-        && let Ok(gates) = serde_json::from_value::<GateResults>(gates_val.clone())
-    {
-        let _ = writeln!(s, "### Gates ({})", gates.status);
-        let _ = writeln!(s);
-        for g in &gates.items {
-            let _ = writeln!(s, "- **{}**: {}", g.id, g.status);
+    /// Emit risk findings from cockpit data.
+    #[cfg(feature = "git")]
+    pub(crate) fn emit_risk_findings(report: &mut SensorReport, risk: &super::super::cockpit::Risk) {
+        for hotspot in &risk.hotspots_touched {
+            report.add_finding(
+                Finding::new(
+                    findings::risk::CHECK_ID,
+                    findings::risk::HOTSPOT,
+                    FindingSeverity::Warn,
+                    "Hotspot file touched",
+                    format!("{} is a high-churn file", hotspot),
+                )
+                .with_location(tokmd_envelope::FindingLocation::path(hotspot))
+                .with_fingerprint("tokmd"),
+            );
+        }
+
+        for path in &risk.bus_factor_warnings {
+            report.add_finding(
+                Finding::new(
+                    findings::risk::CHECK_ID,
+                    findings::risk::BUS_FACTOR,
+                    FindingSeverity::Warn,
+                    "Bus factor warning",
+                    format!("{} has single-author ownership", path),
+                )
+                .with_fingerprint("tokmd"),
+            );
         }
     }
 
-    s
-}
+    /// Emit contract findings from cockpit data.
+    #[cfg(feature = "git")]
+    pub(crate) fn emit_contract_findings(report: &mut SensorReport, contracts: &super::super::cockpit::Contracts) {
+        if contracts.schema_changed {
+            report.add_finding(
+                Finding::new(
+                    findings::contract::CHECK_ID,
+                    findings::contract::SCHEMA_CHANGED,
+                    FindingSeverity::Info,
+                    "Schema version changed",
+                    "Schema version files were modified in this PR",
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+        if contracts.api_changed {
+            report.add_finding(
+                Finding::new(
+                    findings::contract::CHECK_ID,
+                    findings::contract::API_CHANGED,
+                    FindingSeverity::Warn,
+                    "Public API changed",
+                    "Public API surface files were modified",
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+        if contracts.cli_changed {
+            report.add_finding(
+                Finding::new(
+                    findings::contract::CHECK_ID,
+                    findings::contract::CLI_CHANGED,
+                    FindingSeverity::Info,
+                    "CLI interface changed",
+                    "CLI definition files were modified",
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+    }
 
-fn now_iso8601() -> String {
-    time::OffsetDateTime::now_utc()
-        .format(&time::format_description::well_known::Rfc3339)
-        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
-}
+    /// Emit complexity findings from cockpit evidence.
+    ///
+    /// Inspects the complexity gate and emits per-file findings for high cyclomatic
+    /// complexity. Capped at `MAX_FINDINGS_PER_CATEGORY` per category.
+    #[cfg(feature = "git")]
+    pub(crate) fn emit_complexity_findings(report: &mut SensorReport, evidence: &super::super::cockpit::Evidence) {
+        let Some(ref cx) = evidence.complexity else {
+            return;
+        };
+
+        // Emit COMPLEXITY_HIGH findings for high-complexity files
+        for file in cx
+            .high_complexity_files
+            .iter()
+            .take(MAX_FINDINGS_PER_CATEGORY)
+        {
+            report.add_finding(
+                Finding::new(
+                    findings::risk::CHECK_ID,
+                    findings::risk::COMPLEXITY_HIGH,
+                    FindingSeverity::Warn,
+                    "High cyclomatic complexity",
+                    format!(
+                        "{} has cyclomatic complexity {} ({} functions)",
+                        file.path, file.cyclomatic, file.function_count
+                    ),
+                )
+                .with_location(tokmd_envelope::FindingLocation::path(&file.path))
+                .with_evidence(serde_json::json!({
+                    "cyclomatic": file.cyclomatic,
+                    "function_count": file.function_count,
+                    "max_function_length": file.max_function_length,
+                }))
+                .with_fingerprint("tokmd"),
+            );
+        }
+    }
+
+    /// Emit gate failure findings from cockpit evidence.
+    ///
+    /// Inspects evidence gates and emits findings for any that failed.
+    #[cfg(feature = "git")]
+    pub(crate) fn emit_gate_findings(report: &mut SensorReport, evidence: &super::super::cockpit::Evidence) {
+        // Mutation gate failure
+        if evidence.mutation.meta.status == super::super::cockpit::GateStatus::Fail {
+            report.add_finding(
+                Finding::new(
+                    findings::gate::CHECK_ID,
+                    findings::gate::MUTATION_FAILED,
+                    FindingSeverity::Error,
+                    "Mutation gate failed",
+                    format!(
+                        "{} mutation(s) survived testing",
+                        evidence.mutation.survivors.len()
+                    ),
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+
+        // Diff coverage gate failure
+        if let Some(ref dc) = evidence.diff_coverage
+            && dc.meta.status == super::super::cockpit::GateStatus::Fail
+        {
+            report.add_finding(
+                Finding::new(
+                    findings::gate::CHECK_ID,
+                    findings::gate::COVERAGE_FAILED,
+                    FindingSeverity::Error,
+                    "Diff coverage gate failed",
+                    format!(
+                        "Coverage {:.1}% below threshold ({} of {} lines covered)",
+                        dc.coverage_pct * 100.0,
+                        dc.lines_covered,
+                        dc.lines_added
+                    ),
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+
+        // Complexity gate failure
+        if let Some(ref cx) = evidence.complexity
+            && cx.meta.status == super::super::cockpit::GateStatus::Fail
+        {
+            report.add_finding(
+                Finding::new(
+                    findings::gate::CHECK_ID,
+                    findings::gate::COMPLEXITY_FAILED,
+                    FindingSeverity::Error,
+                    "Complexity gate failed",
+                    format!(
+                        "Max cyclomatic {} exceeds threshold ({} files analyzed)",
+                        cx.max_cyclomatic, cx.files_analyzed
+                    ),
+                )
+                .with_fingerprint("tokmd"),
+            );
+        }
+    }
+
+    pub(crate) fn render_sensor_md(report: &SensorReport) -> String {
+        use std::fmt::Write;
+        let mut s = String::new();
+        let _ = writeln!(s, "## Sensor Report: {}", report.tool.name);
+        let _ = writeln!(s);
+        let _ = writeln!(s, "**Verdict**: {}", report.verdict);
+        let _ = writeln!(s, "**Summary**: {}", report.summary);
+        let _ = writeln!(s);
+
+        if !report.findings.is_empty() {
+            let _ = writeln!(s, "### Findings");
+            let _ = writeln!(s);
+            for f in &report.findings {
+                let _ = writeln!(
+                    s,
+                    "- **[{}]** {}.{}: {} — {}",
+                    f.severity, f.check_id, f.code, f.title, f.message
+                );
+            }
+            let _ = writeln!(s);
+        }
+
+        // Extract gates from data (gates are embedded inside data, not top-level)
+        if let Some(ref data) = report.data
+            && let Some(gates_val) = data.get("gates")
+            && let Ok(gates) = serde_json::from_value::<GateResults>(gates_val.clone())
+        {
+            let _ = writeln!(s, "### Gates ({})", gates.status);
+            let _ = writeln!(s);
+            for g in &gates.items {
+                let _ = writeln!(s, "- **{}**: {}", g.id, g.status);
+            }
+        }
+
+        s
+    }
+
+    pub(crate) fn now_iso8601() -> String {
+        time::OffsetDateTime::now_utc()
+            .format(&time::format_description::well_known::Rfc3339)
+            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
+    }
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokmd_envelope::{
+        Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict, findings,
+    };
+
 
     #[cfg(feature = "git")]
-    use super::super::cockpit::{
+    use super::super::super::cockpit::{
         CommitMatch, ComplexityGate, ContractDiffGate, DeterminismGate, DiffCoverageGate, Evidence,
         EvidenceSource, GateMeta, GateStatus, HighComplexityFile, MutationGate, MutationSurvivor,
         Risk, RiskLevel, ScopeCoverage, SupplyChainGate, UncoveredHunk,
@@ -475,7 +484,7 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn map_verdict_covers_all_gate_statuses() {
-        use super::super::cockpit::GateStatus;
+        use super::super::super::cockpit::GateStatus;
 
         assert_eq!(map_verdict(GateStatus::Pass), Verdict::Pass);
         assert_eq!(map_verdict(GateStatus::Warn), Verdict::Warn);
@@ -538,12 +547,12 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn build_summary_formats_expected_fields() {
-        let receipt = super::super::cockpit::CockpitReceipt {
+        let receipt = super::super::super::cockpit::CockpitReceipt {
             schema_version: 3,
             generated_at_ms: 0,
             base_ref: "main".to_string(),
             head_ref: "HEAD".to_string(),
-            change_surface: super::super::cockpit::ChangeSurface {
+            change_surface: super::super::super::cockpit::ChangeSurface {
                 commits: 1,
                 files_changed: 2,
                 insertions: 10,
@@ -552,19 +561,19 @@ mod tests {
                 churn_velocity: 15.0,
                 change_concentration: 0.4,
             },
-            composition: super::super::cockpit::Composition {
+            composition: super::super::super::cockpit::Composition {
                 code_pct: 0.8,
                 test_pct: 0.1,
                 docs_pct: 0.05,
                 config_pct: 0.05,
                 test_ratio: 0.2,
             },
-            code_health: super::super::cockpit::CodeHealth {
+            code_health: super::super::super::cockpit::CodeHealth {
                 score: 75,
                 grade: "B".to_string(),
                 large_files_touched: 0,
                 avg_file_size: 10,
-                complexity_indicator: super::super::cockpit::ComplexityIndicator::Low,
+                complexity_indicator: super::super::super::cockpit::ComplexityIndicator::Low,
                 warnings: vec![],
             },
             risk: Risk {
@@ -573,7 +582,7 @@ mod tests {
                 level: RiskLevel::High,
                 score: 80,
             },
-            contracts: super::super::cockpit::Contracts {
+            contracts: super::super::super::cockpit::Contracts {
                 api_changed: false,
                 cli_changed: false,
                 schema_changed: false,
@@ -711,7 +720,7 @@ mod tests {
             Verdict::Warn,
             "Summary".to_string(),
         );
-        let contracts = super::super::cockpit::Contracts {
+        let contracts = super::super::super::cockpit::Contracts {
             api_changed: true,
             cli_changed: true,
             schema_changed: true,
@@ -805,4 +814,5 @@ mod tests {
             assert!(codes.contains(code), "missing gate finding {code}");
         }
     }
+}
 }
