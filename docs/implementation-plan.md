@@ -112,7 +112,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 4: Advanced Complexity Features (v1.6.0)
+## Phase 4: Advanced Complexity Features (v1.6.0) ✅ Complete
 
 **Goal**: Deeper complexity analysis and gating.
 
@@ -144,14 +144,14 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [ ] Implement Halstead metrics calculation
-- [ ] Add function detail export format
-- [ ] Generate complexity histogram
-- [ ] Implement Maintainability Index (MI) as composite enricher
+- [x] Implement Halstead metrics calculation
+- [x] Add function detail export format
+- [x] Generate complexity histogram
+- [x] Implement Maintainability Index (MI) as composite enricher
 - [ ] Add technical debt ratio enricher
 - [ ] Extend duplicate detection into duplication density metric
 - [ ] Add code age distribution to git enrichers
-- [ ] Documentation and examples
+- [x] Documentation and examples
 
 ### Tests
 

@@ -61,6 +61,7 @@ Located in `crates/tokmd/tests/`:
 | `analyze_integration.rs` | Analysis presets |
 | `run_diff.rs` | Receipt comparison |
 | `schema_validation.rs` | JSON schema compliance |
+| `docs.rs` | Documentation freshness verification |
 | `properties.rs` | Property-based CLI tests |
 
 ### Evidence Gate Testing

@@ -439,7 +439,7 @@ with open("tokmd-tools.json") as f:
 
 # Pass to your LLM API
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-sonnet-4-5-20250929",
     tools=tools["tools"],
     messages=[{"role": "user", "content": "Analyze this codebase for me"}]
 )

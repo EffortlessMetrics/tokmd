@@ -52,6 +52,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Finding Identity**: Replaced `Finding.id` with `(check_id, code)` tuple for category-based routing
 - **Analysis Types**: Moved envelope and findings types to dedicated `tokmd-envelope` crate
 - **Core Settings**: `tokmd-core` re-exports from `tokmd-settings` for backwards compatibility
+- **CLI Args**: Renamed `--out` to `--output` across `export`, `badge`, and `context` commands (old name kept as visible alias)
+- **Context Command**: Renamed `--output` (mode selector) to `--mode` to avoid collision with `--output` (file path)
+- **Cockpit Diff Coverage**: Now intersects LCOV data with git-added lines for accurate diff-scoped coverage instead of whole-file coverage
+
+### Fixed
+
+- **Rust Function Regex**: Fixed pattern to match `(_|XID_Start) XID_Continue*` per Rust language spec; `fn _private_helper()` now correctly detected
+- **Cross-Platform Docs**: xtask docs task now normalizes `tokmd.exe` → `tokmd` and CRLF → LF for platform-independent reference output
 
 ### Internal
 
@@ -60,6 +68,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added README files for `tokmd-sensor`, `tokmd-envelope`, `tokmd-substrate`, `tokmd-settings`
 - Added `tokmd sensor` documentation to `reference-cli.md`
 - Updated `docs/schema.json` and `docs/SCHEMA.md` for new envelope fields
+- Added `get_added_lines()` API in `tokmd-git` for per-file added-line extraction from git diff
+- Added `xtask docs` command for automated CLI reference regeneration
+- Added docs integration test verifying `reference-cli.md` stays in sync with CLI help output
+- Added issue templates for cleanup tasks and expanded options for commands
 
 ## [1.5.0] - 2026-02-05
 

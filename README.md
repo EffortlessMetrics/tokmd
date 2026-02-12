@@ -121,7 +121,10 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd badge`        | SVG badge for a metric (lines, tokens, doc%).                   |
 | `tokmd diff`         | Compare two runs, receipts, or git refs.                        |
 | `tokmd cockpit`      | PR metrics for code review (evidence gates, risk, review plan). |
+| `tokmd sensor`       | Conforming sensor producing `sensor.report.v1` envelope.        |
 | `tokmd gate`         | Policy-based quality gates with JSON pointer rules.             |
+| `tokmd baseline`     | Capture complexity baseline for trend tracking.                 |
+| `tokmd handoff`      | Bundle codebase for LLM handoff with intelligence presets.      |
 | `tokmd tools`        | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
 | `tokmd init`         | Generate a `.tokeignore` file (supports templates).             |
 | `tokmd check-ignore` | Explain why files are being ignored (troubleshooting).          |
@@ -280,12 +283,12 @@ cargo install tokmd
     paths: "."
 ```
 
-### Coming Soon: Language Bindings
+### Language Bindings
 
 Native FFI bindings for CI pipelines and tooling:
 
-- **Python**: `pip install tokmd` (PyPI)
-- **Node.js**: `npm install @tokmd/core` (npm)
+- **Python**: `pip install tokmd` (PyPI) — `tokmd.lang()`, `tokmd.analyze()`, etc.
+- **Node.js**: `npm install @tokmd/core` (npm) — async API with Promises
 
 ## Documentation
 

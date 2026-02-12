@@ -33,7 +33,7 @@ Generates a summary of code statistics grouped by **Language**.
 ```text
 Configuration schemas and defaults for tokmd.
 
-Usage: tokmd.exe [OPTIONS] [PATH]... [COMMAND]
+Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
 
 Commands:
   lang          Language summary (default)
@@ -559,7 +559,7 @@ Generates comprehensive PR metrics for code review automation. This command anal
 ```text
 Generate PR cockpit metrics for code review
 
-Usage: tokmd.exe cockpit [OPTIONS]
+Usage: tokmd cockpit [OPTIONS]
 
 Options:
       --base <BASE>
@@ -706,7 +706,7 @@ Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backe
 ```text
 Run as a conforming sensor, producing a SensorReport
 
-Usage: tokmd.exe sensor [OPTIONS]
+Usage: tokmd sensor [OPTIONS]
 
 Options:
       --base <BASE>
@@ -794,7 +794,7 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 ```text
 Evaluate policy rules against analysis receipts
 
-Usage: tokmd.exe gate [OPTIONS] [INPUT]
+Usage: tokmd gate [OPTIONS] [INPUT]
 
 Arguments:
   [INPUT]

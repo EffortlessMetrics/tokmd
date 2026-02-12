@@ -100,5 +100,12 @@ fn get_tokmd_help(cmd: &str) -> Result<String> {
         );
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    let mut s = String::from_utf8_lossy(&output.stdout).to_string();
+    
+    // Normalize cross-platform drift:
+    // - Windows prints `tokmd.exe` in Usage lines; Unix prints `tokmd`
+    // - CRLF vs LF line endings
+    s = s.replace("\r\n", "\n");
+    s = s.replace("tokmd.exe", "tokmd");
+    Ok(s)
 }

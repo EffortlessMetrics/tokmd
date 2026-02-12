@@ -25,7 +25,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
-| **v1.6.0** | 🚧 In Progress | Halstead metrics, maintainability index, function detail export. |
+| **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
 | **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
@@ -75,10 +75,14 @@ This document outlines the evolution of `tokmd` and the path forward.
 | :--- | :---------------------- | :------------------------------------ |
 | 0    | `tokmd-types`           | Core data structures, no dependencies |
 | 0    | `tokmd-analysis-types`  | Analysis receipt types                |
+| 0    | `tokmd-settings`        | Clap-free settings types              |
+| 0    | `tokmd-envelope`        | Cross-fleet sensor report contract    |
+| 0    | `tokmd-substrate`       | Shared repo context (`RepoSubstrate`) |
 | 1    | `tokmd-scan`            | tokei wrapper                         |
 | 1    | `tokmd-model`           | Aggregation logic                     |
 | 1    | `tokmd-tokeignore`      | Template generation                   |
 | 1    | `tokmd-redact`          | BLAKE3-based path redaction utilities |
+| 1    | `tokmd-sensor`          | `EffortlessSensor` trait + builder    |
 | 2    | `tokmd-format`          | Output rendering                      |
 | 2    | `tokmd-walk`            | File system traversal                 |
 | 2    | `tokmd-content`         | File content scanning                 |
@@ -86,15 +90,16 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
 | 3    | `tokmd-analysis-format` | Analysis output rendering             |
 | 3    | `tokmd-fun`             | Fun/novelty outputs                   |
+| 3    | `tokmd-gate`            | Policy evaluation with JSON pointer   |
 | 4    | `tokmd-config`          | Configuration loading                 |
-| 4    | `tokmd-core`            | Library facade                        |
+| 4    | `tokmd-core`            | Library facade with FFI layer         |
 | 5    | `tokmd`                 | CLI binary                            |
-| —    | `tokmd-python`          | Python bindings (PyO3)                |
-| —    | `tokmd-node`            | Node.js bindings (napi-rs)            |
+| 5    | `tokmd-python`          | Python bindings (PyO3)                |
+| 5    | `tokmd-node`            | Node.js bindings (napi-rs)            |
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: 16 focused crates for modularity
+- [x] **Microcrate Architecture**: Focused crates for modularity (now 23 crates)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
@@ -227,9 +232,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Completed: v1.6.0 — Advanced Complexity Features
+## Completed: v1.6.0 — Advanced Complexity & Sensor Envelope
 
-**Goal**: Deeper complexity analysis and gating.
+**Goal**: Deeper complexity analysis, sensor envelope, and cockpit overhaul.
 
 ### Complexity Features
 
@@ -239,6 +244,16 @@ This document outlines the evolution of `tokmd` and the path forward.
 | Function detail export | ✅ Complete | `--detail-functions` flag for function-level output  |
 | Complexity histogram   | ✅ Complete | Wired into analysis pipeline from pre-existing implementation |
 | Complexity gates       | ✅ Complete | Shipped in cockpit evidence gate system              |
+
+### Sensor & Envelope
+
+| Feature                  | Status      | Description                                          |
+| :----------------------- | :---------- | :--------------------------------------------------- |
+| `tokmd sensor` command   | ✅ Complete | Conforming sensor producing `sensor.report.v1` envelope |
+| `tokmd-sensor` crate     | ✅ Complete | `EffortlessSensor` trait + substrate builder          |
+| `tokmd-envelope` crate   | ✅ Complete | Cross-fleet `SensorReport` contract with verdicts    |
+| `tokmd-substrate` crate  | ✅ Complete | Shared `RepoSubstrate` for single-I/O-pass sensors  |
+| `tokmd-settings` crate   | ✅ Complete | Clap-free settings types for library/FFI usage       |
 
 ### Derived Metrics
 
@@ -250,6 +265,17 @@ This document outlines the evolution of `tokmd` and the path forward.
 | API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
 | Code age distribution     | 📋 Planned  | Extend git freshness into age buckets with trend tracking |
 
+### Cockpit & CLI Improvements
+
+| Feature                     | Status      | Description                                             |
+| :-------------------------- | :---------- | :------------------------------------------------------ |
+| Diff coverage overhaul      | ✅ Complete | LCOV intersected with git-added lines for accurate coverage |
+| `get_added_lines()` in git  | ✅ Complete | New API for per-file added-line extraction from git diff |
+| CLI arg normalization       | ✅ Complete | `--out` → `--output` (with backward-compatible alias)   |
+| Rust fn regex compliance    | ✅ Complete | `(_\|XID_Start) XID_Continue*` per Rust spec            |
+| Cross-platform docs         | ✅ Complete | xtask docs normalizes `tokmd.exe` → `tokmd`, CRLF → LF |
+| Docs integration test       | ✅ Complete | Automated reference-cli.md freshness verification       |
+
 ### Schema Changes
 
 - **Analysis schema version**: 4 → 5
@@ -259,6 +285,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - **New feature flag**: `halstead` in `tokmd-analysis`
 - **Cockpit gates completed**: diff coverage (lcov), semver checks, schema diff
 - **Handoff complexity**: Real data from file analysis (replaces heuristic)
+- **New crates**: `tokmd-sensor`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate`
 
 ---
 

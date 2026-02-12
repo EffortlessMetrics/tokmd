@@ -9,6 +9,8 @@ crates/*/target
 /context.json
 /context.txt
 /sbom.json
+/test_analysis.json
+/test_baseline.json
 /tokmd-*.json
 /tokmd-*.md
 

@@ -40,6 +40,8 @@ tokmd produces deterministic code inventory receipts and PR-focused context for:
 | `gate` | Policy evaluation over receipts |
 | `sensor` | Conforming sensor report (`sensor.report.v1` envelope) |
 | `context` | LLM context packing within budget |
+| `baseline` | Capture complexity baseline for trend tracking |
+| `handoff` | Bundle codebase for LLM handoff with intelligence presets |
 | `tools` | LLM tool definition generation |
 | `badge` | SVG metric badges |
 | `init` | `.tokeignore` template generation |
@@ -50,7 +52,7 @@ tokmd produces deterministic code inventory receipts and PR-focused context for:
 
 Output MUST be stable and schemaed when `--format json/jsonl/csv`:
 - **Core receipts** (lang, module, export, diff, context, run): Schema v2
-- **Analysis receipts**: Schema v4
+- **Analysis receipts**: Schema v5
 - **Cockpit receipts**: Schema v3
 
 ### Library API (tokmd-core)
