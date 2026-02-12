@@ -45,16 +45,19 @@ tokmd module --module-roots crates,packages
 # 3. Pack for LLM context (smart selection)
 tokmd context --budget 128k --output bundle --out context.txt
 
-# 4. Analysis report (derived metrics)
+# 4. Bundle for AI agents (manifest + map + code)
+tokmd handoff --output-dir .handoff
+
+# 5. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md
 
-# 5. Git risk analysis (hotspots, freshness)
+# 6. Git risk analysis (hotspots, freshness)
 tokmd analyze --preset risk --format md
 
-# 6. Generate a badge
+# 7. Generate a badge
 tokmd badge --metric lines --out badge.svg
 
-# 7. Diff two states
+# 8. Diff two states
 tokmd diff main HEAD
 ```
 
@@ -80,6 +83,18 @@ tokmd context --budget 128k --output bundle --out context.txt
 
 # Or generate a manifest to see what fits
 tokmd context --budget 128k --output list
+```
+
+### Codebase Handoff
+
+Create a complete bundle for LLM agents to reason about your codebase:
+
+```bash
+# Generate manifest.json, map.jsonl, intelligence.json, and code.txt
+tokmd handoff --output-dir .handoff
+
+# Customize for smaller models
+tokmd handoff --budget 32k --preset minimal
 ```
 
 ### PR Summaries
@@ -115,6 +130,7 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd`              | Language summary (lines, files, bytes).                         |
 | `tokmd module`       | Group stats by directories (`crates/`, `src/`).                 |
 | `tokmd context`      | Pack files into an LLM context window.                          |
+| `tokmd handoff`      | Bundle codebase for LLM handoff (manifest + map + code).        |
 | `tokmd export`       | File-level dataset (JSONL/CSV/CycloneDX) for downstream tools.  |
 | `tokmd run`          | Full scan with artifact output to a directory.                  |
 | `tokmd analyze`      | Derived metrics and enrichments.                                |

@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "RUN-2026-01-31-001",
+    "date": "2026-01-31",
+    "persona": "Librarian",
+    "description": "Documented `tokmd handoff` command in README for automated agent workflows"
   }
 ]
