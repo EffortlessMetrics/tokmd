@@ -132,7 +132,11 @@ pub fn parse_git_log<R: BufRead>(
                 continue;
             }
 
-            if current.is_none() {
+            if let Some(commit) = current.as_mut() {
+                if max_commit_files.is_none_or(|limit| commit.files.len() < limit) {
+                    commit.files.push(trimmed.to_string());
+                }
+            } else {
                 let mut parts = trimmed.splitn(2, '|');
                 let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
                 let author = parts.next().unwrap_or("").to_string();
@@ -141,10 +145,6 @@ pub fn parse_git_log<R: BufRead>(
                     author,
                     files: Vec::new(),
                 });
-            } else if let Some(commit) = current.as_mut() {
-                if max_commit_files.map_or(true, |limit| commit.files.len() < limit) {
-                    commit.files.push(trimmed.to_string());
-                }
             }
         }
         line.clear();
