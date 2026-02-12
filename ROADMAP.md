@@ -99,7 +99,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: Focused crates for modularity (now 23 crates)
+- [x] **Microcrate Architecture**: Focused crates for modularity (16 crates)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell

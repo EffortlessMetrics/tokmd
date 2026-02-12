@@ -13,6 +13,7 @@ crates/*/target
 /test_baseline.json
 /tokmd-*.json
 /tokmd-*.md
+!/tokmd-role.md
 
 /.runs/pr_glass_cockpit
 

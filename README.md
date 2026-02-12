@@ -283,12 +283,12 @@ cargo install tokmd
     paths: "."
 ```
 
-### Language Bindings
+### Language Bindings (Build from Source)
 
-Native FFI bindings for CI pipelines and tooling:
+Native FFI bindings for CI pipelines and tooling (not yet published to package registries):
 
-- **Python**: `pip install tokmd` (PyPI) — `tokmd.lang()`, `tokmd.analyze()`, etc.
-- **Node.js**: `npm install @tokmd/core` (npm) — async API with Promises
+- **Python**: `cd crates/tokmd-python && maturin develop` — `tokmd.lang()`, `tokmd.analyze()`, etc.
+- **Node.js**: `cd crates/tokmd-node && npm run build` — async API with Promises
 
 ## Documentation
 

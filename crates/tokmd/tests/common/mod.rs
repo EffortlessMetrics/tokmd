@@ -4,7 +4,10 @@
 //! environments, including cargo-mutants which copies the crate to a temp
 //! directory without the parent `.git/` marker.
 
+#![allow(dead_code)]
+
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::OnceLock;
 
 static FIXTURE_ROOT: OnceLock<PathBuf> = OnceLock::new();
@@ -54,4 +57,75 @@ pub fn fixture_root() -> &'static Path {
             dst
         })
         .as_path()
+}
+
+// ---------------------------------------------------------------------------
+// Git helpers – shared by sensor_integration and cockpit_integration tests.
+// ---------------------------------------------------------------------------
+
+/// Returns `true` when `git --version` succeeds on the current `PATH`.
+pub fn git_available() -> bool {
+    Command::new("git")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
+/// Initialise a fresh git repo in `dir` with default branch `main`.
+pub fn init_git_repo(dir: &Path) -> bool {
+    let commands = [
+        vec!["init"],
+        vec!["symbolic-ref", "HEAD", "refs/heads/main"],
+        vec!["config", "user.email", "test@test.com"],
+        vec!["config", "user.name", "Test User"],
+    ];
+
+    for args in &commands {
+        let status = Command::new("git").args(args).current_dir(dir).status();
+        if !status.map(|s| s.success()).unwrap_or(false) {
+            return false;
+        }
+    }
+    true
+}
+
+/// Stage everything and commit with the given `message`.
+pub fn git_add_commit(dir: &Path, message: &str) -> bool {
+    let commands = [vec!["add", "."], vec!["commit", "-m", message]];
+
+    for args in &commands {
+        let status = Command::new("git").args(args).current_dir(dir).status();
+        if !status.map(|s| s.success()).unwrap_or(false) {
+            return false;
+        }
+    }
+    true
+}
+
+/// Return the HEAD commit SHA, or `None` on failure.
+pub fn git_head(dir: &Path) -> Option<String> {
+    Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .current_dir(dir)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+}
+
+/// Write a minimal `mutants-summary.json` that satisfies the mutation gate.
+///
+/// The sensor command checks for this file to decide whether mutation testing
+/// already ran.  Writing it with the current HEAD commit prevents
+/// cargo-mutants from being invoked during the test.
+pub fn write_mutants_summary(dir: &Path, commit: &str, scope: &str, status: &str) {
+    let json = format!(
+        r#"{{"commit":"{}","scope":"{}","status":"{}","survivors":[],"killed":0,"timeout":0,"unviable":0}}"#,
+        commit, scope, status
+    );
+    let mutants_dir = dir.join("mutants.out");
+    std::fs::create_dir_all(&mutants_dir).expect("create mutants.out dir");
+    std::fs::write(mutants_dir.join("mutants-summary.json"), json)
+        .expect("write mutants-summary.json");
 }

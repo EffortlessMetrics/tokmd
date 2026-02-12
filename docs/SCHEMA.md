@@ -20,7 +20,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `context`, `run` |
 | **Analysis** | 5 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | (local) | `cockpit` |
-| **Envelope** | `"sensor.report.v1"` | `ENVELOPE_SCHEMA` | ecosystem envelope |
+| **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 3 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
 
@@ -71,9 +71,18 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 5;`
 - **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
-- **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const ENVELOPE_SCHEMA: &str = "sensor.report.v1";`
+- **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 3;`
+
+### Canonical vs Backward Compatibility
+
+The `tokmd-analysis-types` crate provides `ENVELOPE_SCHEMA_VERSION` as a **backward compatibility alias** for the sensor report schema. The canonical constant is now `tokmd-envelope::SENSOR_REPORT_SCHEMA_VERSION`.
+
+**New code should use**: `tokmd-envelope::SENSOR_REPORT_SCHEMA_VERSION` (canonical)
+**Legacy code continues to use**: `tokmd-analysis-types::ENVELOPE_SCHEMA_VERSION` (alias)
+
+This alias is maintained for compatibility with existing code that imports from `tokmd-analysis-types`.
 
 ---
 
