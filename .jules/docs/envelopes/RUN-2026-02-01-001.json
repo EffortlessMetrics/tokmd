@@ -1,0 +1,13 @@
+{
+  "run_id": "RUN-2026-02-01-001",
+  "date": "2026-02-01",
+  "persona": "Librarian",
+  "lane": "B",
+  "target": "crates/tokmd-core/src/lib.rs",
+  "receipts": [
+    {
+      "command": "cargo test --doc -p tokmd-core",
+      "result": "running 3 tests\ntest crates/tokmd-core/src/ffi.rs - ffi::run_json (line 51) ... ignored\ntest crates/tokmd-core/src/lib.rs - (line 24) ... ok\ntest crates/tokmd-core/src/lib.rs - (line 42) ... ok\n\ntest result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+    }
+  ]
+}

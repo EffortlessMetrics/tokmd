@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "RUN-2026-02-01-001",
+    "date": "2026-02-01",
+    "persona": "Librarian",
+    "description": "Enabled runnable doctests in tokmd-core library facade"
   }
 ]
