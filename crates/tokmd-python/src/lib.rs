@@ -177,6 +177,7 @@ fn run_with_json_module(
     not(test),
     pyo3(signature = (paths=None, top=0, files=false, children=None, redact=None, excluded=None, hidden=false))
 )]
+#[allow(clippy::too_many_arguments)]
 fn lang(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -223,6 +224,7 @@ fn lang(
     not(test),
     pyo3(signature = (paths=None, top=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))
 )]
+#[allow(clippy::too_many_arguments)]
 fn module(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -276,6 +278,7 @@ fn module(
     not(test),
     pyo3(signature = (paths=None, format=None, min_code=0, max_rows=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))
 )]
+#[allow(clippy::too_many_arguments)]
 fn export(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -337,6 +340,7 @@ fn export(
     not(test),
     pyo3(signature = (paths=None, preset=None, window=None, git=None, max_files=None, max_bytes=None, max_commits=None, excluded=None, hidden=false))
 )]
+#[allow(clippy::too_many_arguments)]
 fn analyze(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -412,10 +416,8 @@ fn build_args<'py>(
         args.set_item("top", top).expect("set top");
     }
 
-    if let Some(ex) = excluded {
-        if !ex.is_empty() {
-            args.set_item("excluded", ex).expect("set excluded");
-        }
+    if let Some(ex) = excluded.filter(|x| !x.is_empty()) {
+        args.set_item("excluded", ex).expect("set excluded");
     }
 
     if hidden {
@@ -516,7 +518,7 @@ mod tests {
             let output = run_json(py, "version", "{}").expect("run_json should succeed");
             let env: serde_json::Value = serde_json::from_str(&output).expect("parse json");
             assert!(env["ok"].as_bool().unwrap_or(false));
-            assert!(env["data"]["version"].as_str().unwrap_or("").len() > 0);
+            assert!(!env["data"]["version"].as_str().unwrap_or("").is_empty());
             assert!(env["data"]["schema_version"].as_u64().unwrap_or(0) > 0);
         });
     }
