@@ -1667,6 +1667,46 @@ fn test_cyclonedx_child_has_kind_property() {
     assert_eq!(kind_prop.unwrap()["value"], "child");
 }
 
+#[test]
+fn test_write_export_cyclonedx_deterministic() {
+    use std::io::Cursor;
+
+    let export = ExportData {
+        rows: vec![FileRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 20,
+            blanks: 10,
+            lines: 130,
+            bytes: 1000,
+            tokens: 250,
+        }],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut buffer = Cursor::new(Vec::new());
+    let serial = Some("urn:uuid:12345678-1234-1234-1234-1234567890ab".to_string());
+    let timestamp = Some("2024-01-01T00:00:00Z".to_string());
+
+    tokmd_format::write_export_cyclonedx_with_options(
+        &mut buffer,
+        &export,
+        RedactMode::None,
+        serial,
+        timestamp,
+    )
+    .unwrap();
+
+    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+    insta::assert_json_snapshot!(json);
+}
+
 // ============================================================================
 // compute_diff_totals multi-row accumulation killers
 // Kills: += → -= or *= mutations in compute_diff_totals
