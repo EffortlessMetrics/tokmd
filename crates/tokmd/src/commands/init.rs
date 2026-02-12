@@ -1,13 +1,10 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::fs;
 use tokmd_config as cli;
 use tokmd_tokeignore as tokeignore;
 
 #[cfg(feature = "ui")]
 use crate::interactive::{self, wizard};
-#[cfg(feature = "ui")]
-use anyhow::Context;
-#[cfg(feature = "ui")]
-use std::fs;
 
 pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
     // Non-interactive modes: print or explicit non-interactive flag or no ui feature
@@ -18,7 +15,28 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
         !args.print && !args.non_interactive && interactive::tty::should_be_interactive();
 
     if !use_wizard {
-        return tokeignore::init_tokeignore(&args).map(|_| ());
+        tokeignore::init_tokeignore(&args)?;
+
+        if args.write_config {
+            let toml_content = args
+                .template
+                .default_toml()
+                .context("Failed to generate default TOML")?;
+
+            if args.print {
+                println!("\n{}", toml_content);
+            } else {
+                let config_path = args.dir.join("tokmd.toml");
+                if config_path.exists() && !args.force {
+                    eprintln!("tokmd.toml already exists. Use --force to overwrite.");
+                } else {
+                    fs::write(&config_path, toml_content)
+                        .with_context(|| format!("Failed to write {}", config_path.display()))?;
+                    eprintln!("Wrote {}", config_path.display());
+                }
+            }
+        }
+        return Ok(());
     }
 
     // Run interactive wizard (only available with ui feature)
@@ -35,6 +53,7 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
                         print: false,
                         template: profile,
                         non_interactive: true,
+                        write_config: false,
                     };
                     tokeignore::init_tokeignore(&modified_args)?;
                     eprintln!("Created .tokeignore");

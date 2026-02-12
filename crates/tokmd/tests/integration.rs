@@ -362,6 +362,29 @@ fn test_init_command() {
 }
 
 #[test]
+fn test_init_write_config() -> Result<()> {
+    // Given: A temporary directory
+    let dir = tempdir()?;
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+
+    // When: We run `init --write-config`
+    cmd.current_dir(dir.path())
+        .arg("init")
+        .arg("--write-config")
+        .assert()
+        .success();
+
+    // Then: Both files should be created
+    assert!(dir.path().join(".tokeignore").exists());
+    assert!(dir.path().join("tokmd.toml").exists());
+
+    // Verify content of tokmd.toml
+    let content = std::fs::read_to_string(dir.path().join("tokmd.toml"))?;
+    assert!(content.contains("# tokmd configuration"));
+    Ok(())
+}
+
+#[test]
 fn test_module_custom_roots() {
     // Given: A file structure where we can simulate roots.
     // 'src' is a folder in tests/data.
