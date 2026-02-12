@@ -457,15 +457,11 @@ fn test_sensor_report_example_pass_validates() -> Result<()> {
     let validator = jsonschema::validator_for(&schema)
         .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
 
-    // Read the pass example from contracts
+    // Read the pass example from local test data (copied from contracts for CI sandboxing)
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("contracts")
-        .join("sensor.report.v1")
-        .join("examples")
+        .join("tests")
+        .join("data")
+        .join("sensor_report")
         .join("pass.json");
 
     let content = std::fs::read_to_string(&example_path)
@@ -491,15 +487,11 @@ fn test_sensor_report_example_fail_validates() -> Result<()> {
     let validator = jsonschema::validator_for(&schema)
         .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
 
-    // Read the fail example from contracts
+    // Read the fail example from local test data (copied from contracts for CI sandboxing)
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("contracts")
-        .join("sensor.report.v1")
-        .join("examples")
+        .join("tests")
+        .join("data")
+        .join("sensor_report")
         .join("fail.json");
 
     let content = std::fs::read_to_string(&example_path)
