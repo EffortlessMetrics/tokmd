@@ -1,0 +1,22 @@
+{
+  "id": "RUN-2026-01-31-001",
+  "date": "2026-01-31",
+  "lane": "B",
+  "target": "README.md",
+  "proof_method": "manual verification + test fix",
+  "pr_link": "TBD",
+  "gates": ["build", "test", "fmt", "clippy"],
+  "status": "success",
+  "receipts": [
+    {
+      "command": "tokmd handoff --output-dir .handoff",
+      "result": "success",
+      "notes": "Verified generated artifacts locally"
+    },
+    {
+      "command": "cargo test",
+      "result": "success",
+      "notes": "Fixed tok_integration.rs feature gate to pass tests"
+    }
+  ]
+}
