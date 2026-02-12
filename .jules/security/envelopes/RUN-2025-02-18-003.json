@@ -1,0 +1,13 @@
+{
+  "run_id": "RUN-2025-02-18-003",
+  "timestamp_utc": "2025-02-18T13:23:17Z",
+  "lane": "scout",
+  "target": "crates/tokmd-core/src/ffi.rs",
+  "commands": [
+    {
+      "command": "cargo test -p tokmd-core",
+      "result": "success"
+    }
+  ],
+  "results_summary": "PASS"
+}

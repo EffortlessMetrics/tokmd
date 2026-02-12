@@ -16,5 +16,14 @@
     "gates_run": ["test"],
     "status": "PASS",
     "friction_ids_created": []
+  },
+  {
+    "timestamp_utc": "2025-02-18T00:18:00Z",
+    "lane": "scout",
+    "target": "crates/tokmd-core/src/ffi.rs",
+    "pr_link": "tbd",
+    "gates_run": ["test"],
+    "status": "PASS",
+    "friction_ids_created": []
   }
 ]
