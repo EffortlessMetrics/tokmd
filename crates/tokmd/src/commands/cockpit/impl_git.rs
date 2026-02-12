@@ -4,7 +4,6 @@
 
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -17,8 +16,6 @@ use tokmd_envelope::{
 
 /// Cockpit receipt schema version.
 const SCHEMA_VERSION: u32 = 3;
-
-/// Handle the cockpit command.
 
 /// Load baseline receipt and compute trend comparison.
 pub(crate) fn load_and_compute_trend(
@@ -4023,6 +4020,7 @@ fn render_complexity_gate_sections(out: &mut String, gate: &ComplexityGate) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
     use std::fs;
     use tempfile::tempdir;
 
