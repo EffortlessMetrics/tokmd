@@ -10,3 +10,12 @@
     "summary": "Added determinism regression test for analysis reports."
   }
 ]
+{
+  "date": "2024-10-25",
+  "lane": "B",
+  "target": "tokmd-format",
+  "proof_method": "snapshot",
+  "gates": [],
+  "status": "success",
+  "note": "Introduced write_export_cyclonedx_with_options for deterministic testing"
+}
