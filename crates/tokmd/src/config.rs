@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Result;
 use clap::ValueEnum;
 use tokmd_config as cli;
 
@@ -27,15 +28,15 @@ impl ConfigContext {
 }
 
 /// Load all configuration sources.
-pub(crate) fn load_config() -> ConfigContext {
-    let toml_result = discover_toml_config();
+pub(crate) fn load_config() -> Result<ConfigContext> {
+    let toml_result = discover_toml_config()?;
     let json = load_json_config();
 
-    ConfigContext {
+    Ok(ConfigContext {
         toml: toml_result.as_ref().map(|(config, _)| config.clone()),
         toml_path: toml_result.map(|(_, path)| path),
         json,
-    }
+    })
 }
 
 /// Discover TOML configuration following the precedence chain:
@@ -43,12 +44,12 @@ pub(crate) fn load_config() -> ConfigContext {
 /// 2. ./tokmd.toml (current directory)
 /// 3. Parent directories up to root
 /// 4. ~/.config/tokmd/tokmd.toml (user config)
-fn discover_toml_config() -> Option<(cli::TomlConfig, PathBuf)> {
+fn discover_toml_config() -> Result<Option<(cli::TomlConfig, PathBuf)>> {
     // 1. Check TOKMD_CONFIG environment variable
     if let Ok(config_path) = std::env::var("TOKMD_CONFIG") {
         let path = PathBuf::from(&config_path);
-        if let Some(result) = try_load_toml(&path) {
-            return Some(result);
+        if let Some(result) = try_load_toml(&path)? {
+            return Ok(Some(result));
         }
     }
 
@@ -57,8 +58,8 @@ fn discover_toml_config() -> Option<(cli::TomlConfig, PathBuf)> {
         let mut dir = Some(cwd.as_path());
         while let Some(d) = dir {
             let config_path = d.join("tokmd.toml");
-            if let Some(result) = try_load_toml(&config_path) {
-                return Some(result);
+            if let Some(result) = try_load_toml(&config_path)? {
+                return Ok(Some(result));
             }
             dir = d.parent();
         }
@@ -67,22 +68,27 @@ fn discover_toml_config() -> Option<(cli::TomlConfig, PathBuf)> {
     // 3. Check user config directory
     if let Some(config_dir) = dirs::config_dir() {
         let user_config_path = config_dir.join("tokmd").join("tokmd.toml");
-        if let Some(result) = try_load_toml(&user_config_path) {
-            return Some(result);
+        if let Some(result) = try_load_toml(&user_config_path)? {
+            return Ok(Some(result));
         }
     }
 
-    None
+    Ok(None)
 }
 
 /// Try to load a TOML config file if it exists.
-fn try_load_toml(path: &std::path::Path) -> Option<(cli::TomlConfig, PathBuf)> {
+fn try_load_toml(path: &std::path::Path) -> Result<Option<(cli::TomlConfig, PathBuf)>> {
     if path.exists() {
-        cli::TomlConfig::from_file(path)
-            .ok()
-            .map(|config| (config, path.to_path_buf()))
+        match cli::TomlConfig::from_file(path) {
+            Ok(config) => Ok(Some((config, path.to_path_buf()))),
+            Err(e) => Err(anyhow::anyhow!(
+                "Failed to parse configuration file at {}: {}",
+                path.display(),
+                e
+            )),
+        }
     } else {
-        None
+        Ok(None)
     }
 }
 
