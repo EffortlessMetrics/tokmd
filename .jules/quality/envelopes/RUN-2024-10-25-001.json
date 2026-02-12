@@ -6,7 +6,7 @@
   "proof_method": "snapshot",
   "receipts": [
     {
-      "command": "cargo test -p tokmd-format",
+      "command": "cargo test -p tokmd --test tok_integration",
       "result": "success"
     }
   ]
