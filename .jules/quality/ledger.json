@@ -28,3 +28,12 @@
   "status": "success",
   "note": "Fixed CI clippy and test failures"
 }
+{
+  "date": "2024-10-25",
+  "lane": "B",
+  "target": "tokmd-format",
+  "proof_method": "snapshot",
+  "gates": [],
+  "status": "success",
+  "note": "Fixed schema validation tests by copying examples to crate directory"
+}
