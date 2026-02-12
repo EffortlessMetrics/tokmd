@@ -308,7 +308,7 @@ mod tests {
             .expect("run_json should succeed");
         let env: serde_json::Value = serde_json::from_str(&output).expect("parse json");
         assert!(env["ok"].as_bool().unwrap_or(false));
-        assert!(env["data"]["version"].as_str().unwrap_or("").len() > 0);
+        assert!(!env["data"]["version"].as_str().unwrap_or("").is_empty());
         assert!(env["data"]["schema_version"].as_u64().unwrap_or(0) > 0);
     }
 

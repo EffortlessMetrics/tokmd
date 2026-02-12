@@ -41,23 +41,22 @@ pub fn run(args: DocsArgs) -> Result<()> {
         let start_marker = format!("<!-- HELP: {} -->", marker_id);
         let end_marker = format!("<!-- /HELP: {} -->", marker_id);
 
-        if let Some(start_idx) = new_content.find(&start_marker) {
-            if let Some(end_idx) = new_content.find(&end_marker) {
-                let help_output = get_tokmd_help(cmd_name)?;
-                let wrapped_help = format!("```text\n{}\n```", help_output.trim());
+        if let Some(start_idx) = new_content.find(&start_marker)
+            && let Some(end_idx) = new_content.find(&end_marker) {
+            let help_output = get_tokmd_help(cmd_name)?;
+            let wrapped_help = format!("```text\n{}\n```", help_output.trim());
 
-                let range_start = start_idx + start_marker.len();
-                let old_help = new_content[range_start..end_idx].trim();
+            let range_start = start_idx + start_marker.len();
+            let old_help = new_content[range_start..end_idx].trim();
 
-                if old_help != wrapped_help.trim() {
-                    drift = true;
-                    if args.update {
-                        let mut replacement = String::new();
-                        replacement.push('\n');
-                        replacement.push_str(&wrapped_help);
-                        replacement.push('\n');
-                        new_content.replace_range(range_start..end_idx, &replacement);
-                    }
+            if old_help != wrapped_help.trim() {
+                drift = true;
+                if args.update {
+                    let mut replacement = String::new();
+                    replacement.push('\n');
+                    replacement.push_str(&wrapped_help);
+                    replacement.push('\n');
+                    new_content.replace_range(range_start..end_idx, &replacement);
                 }
             }
         }
