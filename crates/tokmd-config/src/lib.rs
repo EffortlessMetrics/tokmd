@@ -599,7 +599,7 @@ pub struct CliContextArgs {
     pub force: bool,
 
     /// Write bundle to directory with manifest (for large outputs).
-    #[arg(long, value_name = "DIR", conflicts_with = "out")]
+    #[arg(long, value_name = "DIR", conflicts_with = "output")]
     pub bundle_dir: Option<PathBuf>,
 
     /// Warn if output exceeds N bytes (default: 10MB, 0=disable).
