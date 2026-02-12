@@ -21,7 +21,7 @@
 //!
 //! ## Example
 //!
-//! ```rust,no_run
+//! ```rust
 //! use tokmd_core::{lang_workflow, settings::{ScanSettings, LangSettings}};
 //!
 //! // Configure scan
@@ -39,7 +39,7 @@
 //!
 //! ## JSON API (for bindings)
 //!
-//! ```rust,no_run
+//! ```rust
 //! use tokmd_core::ffi::run_json;
 //!
 //! let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
