@@ -408,7 +408,7 @@ mod tests {
         assert!(
             parsed["data"]["version"]
                 .as_str()
-                .ok_or("missing version")?
+                .ok_or("missing version".to_string())?
                 .contains(env!("CARGO_PKG_VERSION"))
         );
         assert!(parsed["data"]["schema_version"].is_number());
@@ -424,7 +424,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("unknown")
         );
         Ok(())
@@ -572,7 +572,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("children")
         );
         Ok(())
@@ -587,7 +587,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("format")
         );
         Ok(())
@@ -647,7 +647,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("hidden")
         );
         Ok(())
@@ -659,7 +659,12 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(parsed["error"]["message"].as_str().ok_or("missing message")?.contains("top"));
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or("missing message".to_string())?
+                .contains("top")
+        );
         Ok(())
     }
 
@@ -711,7 +716,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("from")
         );
         Ok(())
@@ -725,7 +730,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("from")
         );
         Ok(())

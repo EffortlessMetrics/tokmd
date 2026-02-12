@@ -359,7 +359,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("missing message")?
+                .ok_or("missing message".to_string())?
                 .contains("format")
         );
         Ok(())
