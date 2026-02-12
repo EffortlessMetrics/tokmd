@@ -413,11 +413,9 @@ mod tests {
         let file_path = dir.path().join("sample.rs");
         std::fs::write(&file_path, "fn main() {}\n").unwrap();
 
-        let bundle = load_export_from_inputs(
-            std::slice::from_ref(&file_path),
-            &GlobalArgs::default(),
-        )
-        .unwrap();
+        let bundle =
+            load_export_from_inputs(std::slice::from_ref(&file_path), &GlobalArgs::default())
+                .unwrap();
         assert!(bundle.export_path.is_none());
         assert!(
             bundle
