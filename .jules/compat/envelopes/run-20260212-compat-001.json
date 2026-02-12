@@ -1,0 +1,19 @@
+{
+  "run_id": "run-20260212-compat-001",
+  "date": "2026-02-12",
+  "lane": "B",
+  "target": "tokmd",
+  "proof_method": "cargo build --no-default-features",
+  "status": "success",
+  "gates": ["build", "test"],
+  "receipts": [
+    {
+      "command": "cargo build -p tokmd --no-default-features",
+      "result": "success (0 warnings)"
+    },
+    {
+      "command": "cargo build -p tokmd",
+      "result": "success"
+    }
+  ]
+}
