@@ -265,13 +265,13 @@ fn test_limit_top_files() {
     // Given: Multiple files
     // When: We run lang report with --top 1
     // Then: Only 1 language (plus potentially 'Total'/'Other') should be detailed
-    // Note: Rust is likely the top lang here.
+    // Note: JSON is the top lang here because of the sensor report test data.
     let mut cmd = tokmd_cmd();
     cmd.arg("--top")
         .arg("1")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Rust"));
+        .stdout(predicate::str::contains("JSON"));
 }
 
 #[test]
@@ -774,13 +774,19 @@ fn test_redact_all() {
 #[test]
 fn test_module_top_exact() {
     let mut cmd = tokmd_cmd();
+    // We have 3 modules: (root), src, sensor_report.
+    // Asking for top 2 means one will be dropped into "Other".
+    // Since sensor_report has 2 files and src has 1, and (root) has 6,
+    // the order by code lines is sensor_report (114), (root) (35), src (3).
+    // So "src" gets dropped into "Other".
+    // We need to ask for top 3 to see all of them without "Other".
     cmd.arg("module")
         .arg("--top")
-        .arg("2")
+        .arg("3")
         .assert()
         .success()
         .stdout(predicate::str::contains("(root)"))
-        .stdout(predicate::str::contains("src"))
+        .stdout(predicate::str::contains("sensor_report"))
         .stdout(predicate::str::contains("Other").not());
 }
 
