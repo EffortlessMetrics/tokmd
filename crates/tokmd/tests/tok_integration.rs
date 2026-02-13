@@ -1,10 +1,11 @@
+#![cfg(feature = "alias-tok")]
+
 mod common;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
 
 #[test]
-#[cfg(feature = "alias-tok")]
 fn tok_default_lang_output() {
     let bin_path = env!("CARGO_BIN_EXE_tok");
     if !std::path::Path::new(bin_path).exists() {
