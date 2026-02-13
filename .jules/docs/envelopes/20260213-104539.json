@@ -1,0 +1,21 @@
+{
+  "run_id": "20260213-104539",
+  "status": "complete",
+  "lane": "scout_discovery",
+  "target": "docs/tutorial.md",
+  "description": "Fix incorrect 'tokmd init --interactive' instruction in tutorial",
+  "receipts": [
+    {
+      "command": "target/debug/tokmd init --help",
+      "result": "Usage: tokmd init [OPTIONS]\n\nOptions:\n      --dir <DIR>\n          Target directory (defaults to \".\")\n          \n          [default: .]\n\n      --exclude <PATTERN>\n          Exclude pattern(s) using gitignore syntax. Repeatable.\n          \n          Examples: --exclude target --exclude \"**/*.min.js\"\n          \n          [aliases: --ignore]\n\n      --force\n          Overwrite an existing `.tokeignore`\n\n      --print\n          Print the template to stdout instead of writing a file\n\n      --template <TEMPLATE>\n          Which template profile to use\n          \n          [default: default]\n          [possible values: default, rust, node, mono, python, go, cpp]\n\n      --non-interactive\n          Skip interactive wizard and use defaults\n\n      --no-progress\n          Disable progress spinners\n\n      --profile <PROFILE>\n          Configuration profile to use (e.g., \"llm_safe\", \"ci\")\n          \n          [aliases: --view]\n\n  -h, --help\n          Print help (see a summary with '-h')"
+    },
+    {
+      "command": "target/debug/tokmd init --interactive",
+      "result": "error: unexpected argument '--interactive' found\n\n  tip: a similar argument exists: '--non-interactive'\n\nUsage: tokmd init --non-interactive\n\nFor more information, try '--help'."
+    },
+    {
+      "action": "Updated docs/tutorial.md",
+      "diff": "@@ -30,10 +30,10 @@\n \n ## Step 0.5: Quick Setup with Interactive Wizard (Optional)\n \n-For first-time setup, run the interactive wizard to configure tokmd for your project:\n+For first-time setup, run the interactive wizard to configure tokmd for your project (runs by default in interactive mode):\n \n ```bash\n-tokmd init --interactive\n+tokmd init\n ```"
+    }
+  ]
+}
