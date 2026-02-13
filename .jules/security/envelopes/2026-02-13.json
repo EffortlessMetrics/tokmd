@@ -8,7 +8,12 @@
       "cmd": "cargo check -p tokmd-python",
       "exit_code": 0,
       "output_summary": "PASS (Checked tokmd-python v1.5.0)"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd -- -D warnings",
+      "exit_code": 0,
+      "output_summary": "PASS (Fixed clippy::cloned_ref_to_slice_refs)"
     }
   ],
-  "results_summary": "Replaced 23 instances of `expect` with `?` in FFI boundary code. Verified compilation."
+  "results_summary": "Replaced 23 instances of `expect` with `?` in FFI boundary code. Fixed clippy lint in `tokmd` crate."
 }
