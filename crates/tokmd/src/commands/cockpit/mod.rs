@@ -16,6 +16,8 @@ pub(crate) fn handle(args: cli::CockpitArgs, global: &cli::GlobalArgs) -> Result
     #[cfg(not(feature = "git"))]
     {
         let _ = (args, global);
-        anyhow::bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
+        anyhow::bail!(
+            "The cockpit command requires the 'git' feature. Rebuild with --features git"
+        );
     }
 }
