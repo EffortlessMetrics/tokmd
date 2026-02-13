@@ -276,6 +276,20 @@ pub fn project_type_to_profile(project_type: ProjectType) -> tokmd_config::InitP
     }
 }
 
+impl From<tokmd_config::InitProfile> for ProjectType {
+    fn from(profile: tokmd_config::InitProfile) -> Self {
+        match profile {
+            tokmd_config::InitProfile::Rust => ProjectType::Rust,
+            tokmd_config::InitProfile::Node => ProjectType::Node,
+            tokmd_config::InitProfile::Python => ProjectType::Python,
+            tokmd_config::InitProfile::Go => ProjectType::Go,
+            tokmd_config::InitProfile::Cpp => ProjectType::Cpp,
+            tokmd_config::InitProfile::Mono => ProjectType::Mono,
+            tokmd_config::InitProfile::Default => ProjectType::Other,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
