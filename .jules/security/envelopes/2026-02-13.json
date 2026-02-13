@@ -13,7 +13,12 @@
       "cmd": "cargo clippy -p tokmd -- -D warnings",
       "exit_code": 0,
       "output_summary": "PASS (Fixed clippy::cloned_ref_to_slice_refs)"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "output_summary": "PASS (Fixed rustfmt issue)"
     }
   ],
-  "results_summary": "Replaced 23 instances of `expect` with `?` in FFI boundary code. Fixed clippy lint in `tokmd` crate."
+  "results_summary": "Replaced 23 instances of `expect` with `?` in FFI boundary code. Fixed clippy lint and rustfmt issue in `tokmd` crate."
 }
