@@ -48,8 +48,8 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         "total",
         totals.comments,
         totals.code + totals.comments,
-        group_ratio(&parents, |r| r.lang.clone(), |r| (r.comments, r.code)),
-        group_ratio(&parents, |r| r.module.clone(), |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| &r.lang, |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| &r.module, |r| (r.comments, r.code)),
     );
 
     let whitespace = build_ratio_report(
@@ -58,12 +58,12 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         totals.code + totals.comments,
         group_ratio(
             &parents,
-            |r| r.lang.clone(),
+            |r| &r.lang,
             |r| (r.blanks, r.code + r.comments),
         ),
         group_ratio(
             &parents,
-            |r| r.module.clone(),
+            |r| &r.module,
             |r| (r.blanks, r.code + r.comments),
         ),
     );
@@ -72,8 +72,8 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         "total",
         totals.bytes,
         totals.lines,
-        group_rate(&parents, |r| r.lang.clone(), |r| (r.bytes, r.lines)),
-        group_rate(&parents, |r| r.module.clone(), |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| &r.lang, |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| &r.module, |r| (r.bytes, r.lines)),
     );
 
     let file_stats = build_file_stats(&parents);
@@ -250,16 +250,19 @@ fn group_ratio<FKey, FVals>(
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
+    FKey: Fn(&FileRow) -> &str,
     FVals: Fn(&FileRow) -> (usize, usize),
 {
     let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for row in rows {
         let key = key_fn(row);
         let (numer, denom_part) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom_part;
+        if let Some(entry) = map.get_mut(key) {
+            entry.0 += numer;
+            entry.1 += denom_part;
+        } else {
+            map.insert(key.to_string(), (numer, denom_part));
+        }
     }
     map
 }
@@ -270,16 +273,19 @@ fn group_rate<FKey, FVals>(
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
+    FKey: Fn(&FileRow) -> &str,
     FVals: Fn(&FileRow) -> (usize, usize),
 {
     let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for row in rows {
         let key = key_fn(row);
         let (numer, denom) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom;
+        if let Some(entry) = map.get_mut(key) {
+            entry.0 += numer;
+            entry.1 += denom;
+        } else {
+            map.insert(key.to_string(), (numer, denom));
+        }
     }
     map
 }
@@ -326,27 +332,25 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
     let mut by_module: BTreeMap<String, FileStatRow> = BTreeMap::new();
 
     for row in rows {
-        by_lang
-            .entry(row.lang.clone())
-            .and_modify(|existing| {
-                if row.lines > existing.lines
-                    || (row.lines == existing.lines && row.path < existing.path)
-                {
-                    *existing = row.clone();
-                }
-            })
-            .or_insert_with(|| row.clone());
+        if let Some(existing) = by_lang.get_mut(&row.lang) {
+            if row.lines > existing.lines
+                || (row.lines == existing.lines && row.path < existing.path)
+            {
+                *existing = row.clone();
+            }
+        } else {
+            by_lang.insert(row.lang.clone(), row.clone());
+        }
 
-        by_module
-            .entry(row.module.clone())
-            .and_modify(|existing| {
-                if row.lines > existing.lines
-                    || (row.lines == existing.lines && row.path < existing.path)
-                {
-                    *existing = row.clone();
-                }
-            })
-            .or_insert_with(|| row.clone());
+        if let Some(existing) = by_module.get_mut(&row.module) {
+            if row.lines > existing.lines
+                || (row.lines == existing.lines && row.path < existing.path)
+            {
+                *existing = row.clone();
+            }
+        } else {
+            by_module.insert(row.module.clone(), row.clone());
+        }
     }
 
     MaxFileReport {
@@ -366,8 +370,17 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
     let mut by_module: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
 
     for row in rows {
-        let entry = by_module.entry(row.module.clone()).or_default();
-        *entry.entry(row.lang.clone()).or_insert(0) += row.lines;
+        let entry = if let Some(e) = by_module.get_mut(&row.module) {
+            e
+        } else {
+            by_module.entry(row.module.clone()).or_default()
+        };
+
+        if let Some(count) = entry.get_mut(&row.lang) {
+            *count += row.lines;
+        } else {
+            entry.insert(row.lang.clone(), row.lines);
+        }
     }
 
     let mut out = Vec::new();
@@ -416,10 +429,11 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
     for row in rows {
         total_depth += row.depth;
         max_depth = max_depth.max(row.depth);
-        by_module
-            .entry(row.module.clone())
-            .or_default()
-            .push(row.depth);
+        if let Some(depths) = by_module.get_mut(&row.module) {
+            depths.push(row.depth);
+        } else {
+            by_module.insert(row.module.clone(), vec![row.depth]);
+        }
     }
 
     let avg = round_f64(total_depth as f64 / rows.len() as f64, 2);
@@ -487,7 +501,9 @@ fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
     for row in rows {
         if is_infra_lang(&row.lang) {
             infra_lines += row.lines;
-            infra_langs.insert(row.lang.clone());
+            if !infra_langs.contains(&row.lang) {
+                infra_langs.insert(row.lang.clone());
+            }
         } else {
             logic_lines += row.lines;
         }
@@ -513,7 +529,11 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     let mut total = 0usize;
 
     for row in rows {
-        *by_lang.entry(row.lang.clone()).or_insert(0) += row.code;
+        if let Some(count) = by_lang.get_mut(&row.lang) {
+            *count += row.code;
+        } else {
+            by_lang.insert(row.lang.clone(), row.code);
+        }
         total += row.code;
     }
 

@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-13",
+    "lane": "scout",
+    "target": "crates/tokmd-analysis/src/derived.rs",
+    "proof_method": "benchmark (3.87s -> 3.40s)",
+    "pr_link": "TODO",
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

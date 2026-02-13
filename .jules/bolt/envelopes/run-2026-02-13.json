@@ -1,0 +1,40 @@
+{
+  "run_id": "2026-02-13",
+  "timestamp_utc": "2026-02-13T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-analysis/src/derived.rs",
+  "proof_method": "benchmark",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd-analysis --lib derived::benchmarks -- --nocapture",
+      "exit_code": 0,
+      "output_snippet": "bench_derive_report: 3.871335771s"
+    },
+    {
+      "cmd": "cargo test -p tokmd-analysis --lib derived::benchmarks -- --nocapture (after opt)",
+      "exit_code": 0,
+      "output_snippet": "bench_derive_report: 3.400190631s"
+    },
+    {
+      "cmd": "cargo test -p tokmd-analysis",
+      "exit_code": 0,
+      "output_snippet": "test result: ok. 55 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "output_snippet": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "output_snippet": ""
+    }
+  ],
+  "results_summary": [
+    "Baseline benchmark: 3.87s",
+    "Optimized benchmark: 3.40s",
+    "Improvement: ~12%",
+    "All tests passed"
+  ]
+}
