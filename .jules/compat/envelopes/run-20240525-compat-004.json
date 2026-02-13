@@ -1,0 +1,20 @@
+{
+  "run_id": "run-20240525-compat-004",
+  "persona": "Compat",
+  "status": "complete",
+  "target": "scout_discovery",
+  "receipts": [
+    {
+      "command": "cargo build -p tokmd --no-default-features",
+      "result": "success (reduced warnings 102 -> 6)"
+    },
+    {
+      "command": "cargo build -p tokmd --all-features",
+      "result": "success (clean)"
+    },
+    {
+      "command": "cargo test -p tokmd",
+      "result": "success"
+    }
+  ]
+}
