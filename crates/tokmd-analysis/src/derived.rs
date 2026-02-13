@@ -56,16 +56,8 @@ pub(crate) fn derive_report(export: &ExportData, window_tokens: Option<usize>) -
         "total",
         totals.blanks,
         totals.code + totals.comments,
-        group_ratio(
-            &parents,
-            |r| &r.lang,
-            |r| (r.blanks, r.code + r.comments),
-        ),
-        group_ratio(
-            &parents,
-            |r| &r.module,
-            |r| (r.blanks, r.code + r.comments),
-        ),
+        group_ratio(&parents, |r| &r.lang, |r| (r.blanks, r.code + r.comments)),
+        group_ratio(&parents, |r| &r.module, |r| (r.blanks, r.code + r.comments)),
     );
 
     let verbosity = build_rate_report(
