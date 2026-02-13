@@ -473,6 +473,10 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
+
+    /// Write a default `tokmd.toml` configuration file.
+    #[arg(long)]
+    pub write_config: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

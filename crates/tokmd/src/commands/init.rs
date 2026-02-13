@@ -18,7 +18,32 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
         !args.print && !args.non_interactive && interactive::tty::should_be_interactive();
 
     if !use_wizard {
-        return tokeignore::init_tokeignore(&args).map(|_| ());
+        tokeignore::init_tokeignore(&args)?;
+
+        #[cfg(feature = "ui")]
+        if args.write_config && !args.print {
+            let project_type: wizard::ProjectType = args.template.into();
+            let result = wizard::WizardResult {
+                project_type,
+                module_roots: project_type.default_module_roots(),
+                module_depth: 2,
+                context_budget: "128k".to_string(),
+                write_config: true,
+                write_tokeignore: true, // Already handled by init_tokeignore
+            };
+
+            let config_path = args.dir.join("tokmd.toml");
+            if config_path.exists() && !args.force {
+                eprintln!("tokmd.toml already exists. Use --force to overwrite.");
+            } else {
+                let config_content = wizard::generate_toml_config(&result)?;
+                fs::write(&config_path, config_content)
+                    .with_context(|| format!("Failed to write {}", config_path.display()))?;
+                eprintln!("Created tokmd.toml");
+            }
+        }
+
+        return Ok(());
     }
 
     // Run interactive wizard (only available with ui feature)
@@ -35,6 +60,7 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
                         print: false,
                         template: profile,
                         non_interactive: true,
+                        write_config: false,
                     };
                     tokeignore::init_tokeignore(&modified_args)?;
                     eprintln!("Created .tokeignore");
