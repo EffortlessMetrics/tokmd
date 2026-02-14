@@ -33,7 +33,13 @@
       "exit_code": 0,
       "summary": "PASS",
       "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.22s"
+    },
+    {
+      "cmd": "cargo clippy --all-targets -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "Cleaned up clippy::cloned_ref_to_slice_refs in export_bundle.rs tests"
     }
   ],
-  "results_summary": "Replaced unwrap() with expect() in crates/tokmd/src/progress.rs. Fixed CI failure by gating tok_integration.rs behind alias-tok feature."
+  "results_summary": "Replaced unwrap() with expect() in progress.rs. Fixed CI failure by gating tok_integration.rs. Fixed clippy lint in export_bundle.rs tests."
 }
