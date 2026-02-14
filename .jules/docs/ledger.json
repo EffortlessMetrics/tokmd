@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "2026-02-14-110104",
+    "date": "2026-02-14",
+    "persona": "Librarian",
+    "description": "Updated README.md to reflect available Python/Node bindings"
   }
 ]

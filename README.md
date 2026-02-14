@@ -280,12 +280,44 @@ cargo install tokmd
     paths: "."
 ```
 
-### Coming Soon: Language Bindings
+## Language Bindings
 
 Native FFI bindings for CI pipelines and tooling:
 
-- **Python**: `pip install tokmd` (PyPI)
-- **Node.js**: `npm install @tokmd/core` (npm)
+### Python
+
+```bash
+pip install tokmd
+```
+
+```python
+import tokmd
+
+# Get language summary
+result = tokmd.lang(paths=["src"])
+for row in result["rows"]:
+    print(f"{row['lang']}: {row['code']} lines")
+```
+
+See [tokmd-python](crates/tokmd-python/README.md) for full documentation.
+
+### Node.js
+
+```bash
+npm install @tokmd/core
+```
+
+```javascript
+import { lang } from '@tokmd/core';
+
+// Get language summary
+const result = await lang({ paths: ['src'] });
+for (const row of result.rows) {
+  console.log(`${row.lang}: ${row.code} lines`);
+}
+```
+
+See [tokmd-node](crates/tokmd-node/README.md) for full documentation.
 
 ## Documentation
 
