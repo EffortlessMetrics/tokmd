@@ -21,71 +21,62 @@ const SCHEMA_VERSION: u32 = 3;
 
 /// Handle the cockpit command.
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
-    #[cfg(not(feature = "git"))]
-    {
-        let _ = &args; // Silence unused warning
-        bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
+    if !tokmd_git::git_available() {
+        bail!("git is not available on PATH");
     }
 
-    #[cfg(feature = "git")]
-    {
-        if !tokmd_git::git_available() {
-            bail!("git is not available on PATH");
-        }
+    let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
+    let repo_root = tokmd_git::repo_root(&cwd)
+        .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-        let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
-        let repo_root = tokmd_git::repo_root(&cwd)
-            .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
+    let range_mode = match args.diff_range {
+        cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
+        cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
+    };
 
-        let range_mode = match args.diff_range {
-            cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
-            cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
-        };
+    let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
 
-        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
-
-        // Load baseline and compute trend if provided
-        if let Some(baseline_path) = &args.baseline {
-            receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
-        }
-
-        // In sensor mode, write envelope to artifacts_dir
-        if args.sensor_mode {
-            let artifacts_dir = args
-                .artifacts_dir
-                .as_ref()
-                .cloned()
-                .unwrap_or_else(|| PathBuf::from("artifacts/tokmd"));
-            write_sensor_artifacts(&artifacts_dir, &receipt, &args.base, &args.head)?;
-
-            // In sensor mode, always print JSON to stdout for piping
-            let output = render_json(&receipt)?;
-            print!("{}", output);
-            return Ok(());
-        }
-
-        // Standard (non-sensor) mode
-        let output = match args.format {
-            cli::CockpitFormat::Json => render_json(&receipt)?,
-            cli::CockpitFormat::Md => render_markdown(&receipt),
-            cli::CockpitFormat::Sections => render_sections(&receipt),
-        };
-
-        if let Some(artifacts_dir) = &args.artifacts_dir {
-            write_artifacts(artifacts_dir, &receipt)?;
-        }
-
-        if let Some(output_path) = &args.output {
-            let mut file = std::fs::File::create(output_path).with_context(|| {
-                format!("Failed to create output file: {}", output_path.display())
-            })?;
-            file.write_all(output.as_bytes())?;
-        } else {
-            print!("{}", output);
-        }
-
-        Ok(())
+    // Load baseline and compute trend if provided
+    if let Some(baseline_path) = &args.baseline {
+        receipt.trend = Some(load_and_compute_trend(baseline_path, &receipt)?);
     }
+
+    // In sensor mode, write envelope to artifacts_dir
+    if args.sensor_mode {
+        let artifacts_dir = args
+            .artifacts_dir
+            .as_ref()
+            .cloned()
+            .unwrap_or_else(|| PathBuf::from("artifacts/tokmd"));
+        write_sensor_artifacts(&artifacts_dir, &receipt, &args.base, &args.head)?;
+
+        // In sensor mode, always print JSON to stdout for piping
+        let output = render_json(&receipt)?;
+        print!("{}", output);
+        return Ok(());
+    }
+
+    // Standard (non-sensor) mode
+    let output = match args.format {
+        cli::CockpitFormat::Json => render_json(&receipt)?,
+        cli::CockpitFormat::Md => render_markdown(&receipt),
+        cli::CockpitFormat::Sections => render_sections(&receipt),
+    };
+
+    if let Some(artifacts_dir) = &args.artifacts_dir {
+        write_artifacts(artifacts_dir, &receipt)?;
+    }
+
+    if let Some(output_path) = &args.output {
+        let mut file = std::fs::File::create(output_path).with_context(|| {
+            format!("Failed to create output file: {}", output_path.display())
+        })?;
+        file.write_all(output.as_bytes())?;
+    } else {
+        print!("{}", output);
+    }
+
+    Ok(())
 }
 
 /// Load baseline receipt and compute trend comparison.
@@ -676,7 +667,6 @@ pub enum TrendDirection {
     Degrading,
 }
 
-#[cfg(feature = "git")]
 pub(crate) fn compute_cockpit(
     repo_root: &PathBuf,
     base: &str,
@@ -737,7 +727,6 @@ pub(crate) fn compute_cockpit(
 }
 
 /// Compute evidence section with all gates.
-#[cfg(feature = "git")]
 fn compute_evidence(
     repo_root: &PathBuf,
     base: &str,
@@ -820,7 +809,6 @@ fn compute_overall_status(
 
 /// Compute diff coverage gate.
 /// Looks for coverage artifacts (lcov.info, coverage.json, cobertura.xml) and parses them.
-#[cfg(feature = "git")]
 fn compute_diff_coverage_gate(repo_root: &Path) -> Result<Option<DiffCoverageGate>> {
     // Search for coverage artifacts in common locations
     let search_paths = [
@@ -965,7 +953,6 @@ fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<Uncove
 }
 
 /// Compute contract diff gate (semver, CLI, schema).
-#[cfg(feature = "git")]
 fn compute_contract_gate(
     repo_root: &Path,
     base: &str,
@@ -1289,7 +1276,6 @@ fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
 
 /// Compute supply chain gate.
 /// Checks if Cargo.lock changed and runs cargo-audit if available.
-#[cfg(feature = "git")]
 fn compute_supply_chain_gate(
     repo_root: &Path,
     changed_files: &[String],
@@ -1475,7 +1461,6 @@ fn compute_supply_chain_gate(
 
 /// Compute determinism gate.
 /// Compares expected hash (from baseline) with actual hash.
-#[cfg(feature = "git")]
 fn compute_determinism_gate(_repo_root: &Path) -> Result<Option<DeterminismGate>> {
     // TODO: Look for baseline hash and compare with current
     // For now, return None (no baseline available)
@@ -1487,7 +1472,6 @@ const COMPLEXITY_THRESHOLD: u32 = 15;
 
 /// Compute complexity gate.
 /// Analyzes cyclomatic complexity of changed Rust source files.
-#[cfg(feature = "git")]
 fn compute_complexity_gate(
     repo_root: &Path,
     changed_files: &[String],
@@ -1791,7 +1775,6 @@ fn is_relevant_rust_source(path: &str) -> bool {
 }
 
 /// Get the current HEAD commit hash.
-#[cfg(feature = "git")]
 fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
     let output = Command::new("git")
         .arg("-C")
@@ -1870,7 +1853,6 @@ struct MutantPosition {
 }
 
 /// Compute the mutation gate status.
-#[cfg(feature = "git")]
 fn compute_mutation_gate(
     repo_root: &PathBuf,
     _base: &str,
@@ -1926,7 +1908,6 @@ fn compute_mutation_gate(
 
 /// Try to load mutation results from CI artifact.
 /// Checks for mutants-summary.json (our format) first, then falls back to mutants.out/outcomes.json.
-#[cfg(feature = "git")]
 fn try_load_ci_artifact(
     repo_root: &Path,
     head_commit: &str,
@@ -2030,7 +2011,6 @@ fn try_load_ci_artifact(
 }
 
 /// Try to load mutation results from local cache (.tokmd/cache/mutants-{commit}.json).
-#[cfg(feature = "git")]
 fn try_load_cached(
     repo_root: &Path,
     head_commit: &str,
@@ -2070,7 +2050,6 @@ fn try_load_cached(
 }
 
 /// Cache mutation results for future use.
-#[cfg(feature = "git")]
 fn cache_mutation_results(repo_root: &Path, head_commit: &str, gate: &MutationGate) -> Result<()> {
     let cache_dir = repo_root.join(".tokmd").join("cache");
     std::fs::create_dir_all(&cache_dir)?;
@@ -2086,7 +2065,6 @@ fn cache_mutation_results(repo_root: &Path, head_commit: &str, gate: &MutationGa
 }
 
 /// Run mutation testing on the given files.
-#[cfg(feature = "git")]
 fn run_mutations(repo_root: &PathBuf, relevant_files: &[String]) -> Result<MutationGate> {
     // Check if cargo-mutants is available
     let check = Command::new("cargo")
@@ -2327,38 +2305,7 @@ fn parse_mutation_outcomes(
     }
 }
 
-/// Compute evidence when git feature is disabled.
-#[cfg(not(feature = "git"))]
-fn compute_evidence_disabled() -> Evidence {
-    Evidence {
-        overall_status: GateStatus::Skipped,
-        mutation: MutationGate {
-            meta: GateMeta {
-                status: GateStatus::Skipped,
-                source: EvidenceSource::RanLocal,
-                commit_match: CommitMatch::Unknown,
-                scope: ScopeCoverage {
-                    relevant: Vec::new(),
-                    tested: Vec::new(),
-                    ratio: 1.0,
-                    lines_relevant: None,
-                    lines_tested: None,
-                },
-                evidence_commit: None,
-                evidence_generated_at_ms: None,
-            },
-            survivors: Vec::new(),
-            killed: 0,
-            timeout: 0,
-            unviable: 0,
-        },
-        diff_coverage: None,
-        contracts: None,
-        supply_chain: None,
-        determinism: None,
-        complexity: None,
-    }
-}
+
 
 /// Per-file statistics from git diff.
 #[derive(Debug, Clone)]
@@ -2383,7 +2330,6 @@ impl FileStats {
 /// Two-dot vs three-dot:
 /// - `A..B`  = commits reachable from B but not A (actual diff)
 /// - `A...B` = commits reachable from either but not both (symmetric difference)
-#[cfg(feature = "git")]
 fn get_file_stats(
     repo_root: &PathBuf,
     base: &str,
@@ -2432,7 +2378,6 @@ fn get_file_stats(
     Ok(stats)
 }
 
-#[cfg(feature = "git")]
 fn compute_change_surface(
     repo_root: &PathBuf,
     base: &str,
@@ -2494,7 +2439,6 @@ fn compute_change_concentration(file_stats: &[FileStats]) -> f64 {
     round_pct(top_lines as f64 / total_lines as f64 * 100.0)
 }
 
-#[cfg(feature = "git")]
 fn get_commit_count(
     repo_root: &PathBuf,
     base: &str,
@@ -4600,16 +4544,14 @@ fn third() {
         assert_eq!(format_scope(&scope), "1/2 (50%)");
     }
 
-    #[cfg(feature = "git")]
-    #[test]
+        #[test]
     fn diff_coverage_gate_none_when_missing_artifacts() {
         let temp = tempdir().expect("tempdir");
         let gate = compute_diff_coverage_gate(temp.path()).expect("gate");
         assert!(gate.is_none());
     }
 
-    #[cfg(feature = "git")]
-    #[test]
+        #[test]
     fn diff_coverage_gate_ignores_non_lcov_artifact() {
         let temp = tempdir().expect("tempdir");
         let coverage_dir = temp.path().join("coverage");
@@ -4621,8 +4563,7 @@ fn third() {
         assert!(gate.is_none());
     }
 
-    #[cfg(feature = "git")]
-    #[test]
+        #[test]
     fn diff_coverage_gate_parses_lcov_and_groups_hunks() {
         let temp = tempdir().expect("tempdir");
         let coverage_dir = temp.path().join("coverage");
