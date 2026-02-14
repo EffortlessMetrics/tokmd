@@ -26,7 +26,7 @@
       "cmd": "cargo fmt -- --check",
       "exit_code": 0,
       "summary": "PASS",
-      "output": ""
+      "output": "Cleaned up formatting in export_bundle.rs"
     },
     {
       "cmd": "cargo clippy -- -D warnings",
@@ -41,5 +41,5 @@
       "output": "Cleaned up clippy::cloned_ref_to_slice_refs in export_bundle.rs tests"
     }
   ],
-  "results_summary": "Replaced unwrap() with expect() in progress.rs. Fixed CI failure by gating tok_integration.rs. Fixed clippy lint in export_bundle.rs tests."
+  "results_summary": "Replaced unwrap() with expect() in progress.rs. Fixed CI failure by gating tok_integration.rs. Fixed clippy lint and formatting in export_bundle.rs tests."
 }
