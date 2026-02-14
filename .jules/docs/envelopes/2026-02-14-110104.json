@@ -1,0 +1,16 @@
+{
+  "run_id": "2026-02-14-110104",
+  "lane": "B",
+  "goal": "Update README.md to reflect available Python/Node bindings",
+  "drift": "README.md lists bindings as 'Coming Soon', but they are implemented and have READMEs.",
+  "receipts": [
+    {
+      "command": "cargo check -p tokmd-python",
+      "result": "passed"
+    },
+    {
+      "command": "cargo check -p tokmd-node",
+      "result": "passed"
+    }
+  ]
+}
