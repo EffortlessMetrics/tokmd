@@ -607,9 +607,21 @@ fn write_export_cyclonedx<W: Write>(
     export: &ExportData,
     redact: RedactMode,
 ) -> Result<()> {
-    let timestamp = OffsetDateTime::now_utc()
-        .format(&Rfc3339)
-        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string());
+    write_export_cyclonedx_impl(out, export, redact, None, None)
+}
+
+fn write_export_cyclonedx_impl<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    redact: RedactMode,
+    serial_number: Option<String>,
+    timestamp: Option<String>,
+) -> Result<()> {
+    let timestamp = timestamp.unwrap_or_else(|| {
+        OffsetDateTime::now_utc()
+            .format(&Rfc3339)
+            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
+    });
 
     // Apply redaction to rows before generating components
     let components: Vec<CycloneDxComponent> = redact_rows(&export.rows, redact)
@@ -669,7 +681,7 @@ fn write_export_cyclonedx<W: Write>(
     let bom = CycloneDxBom {
         bom_format: "CycloneDX",
         spec_version: "1.6",
-        serial_number: format!("urn:uuid:{}", uuid::Uuid::new_v4()),
+        serial_number: serial_number.unwrap_or_else(|| format!("urn:uuid:{}", uuid::Uuid::new_v4())),
         version: 1,
         metadata: CycloneDxMetadata {
             timestamp,
@@ -1006,6 +1018,18 @@ pub fn write_export_cyclonedx_to<W: Write>(
     redact: RedactMode,
 ) -> Result<()> {
     write_export_cyclonedx(out, export, redact)
+}
+
+/// Write CycloneDX export to a writer with explicit options (exposed for testing).
+#[doc(hidden)]
+pub fn write_export_cyclonedx_with_options<W: Write>(
+    out: &mut W,
+    export: &ExportData,
+    redact: RedactMode,
+    serial_number: Option<String>,
+    timestamp: Option<String>,
+) -> Result<()> {
+    write_export_cyclonedx_impl(out, export, redact, serial_number, timestamp)
 }
 
 #[cfg(test)]

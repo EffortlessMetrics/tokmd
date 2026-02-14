@@ -1758,3 +1758,54 @@ fn test_compute_diff_totals_nonzero_deltas() {
     // delta_tokens = 150 + 20 = 170 (non-zero!)
     assert_eq!(totals.delta_tokens, 170);
 }
+
+// ============================================================================
+// Deterministic CycloneDX snapshot tests
+// ============================================================================
+
+#[test]
+fn test_cyclonedx_snapshot_deterministic() {
+    use std::io::Cursor;
+
+    let export = ExportData {
+        rows: vec![
+            FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 100,
+                comments: 20,
+                blanks: 10,
+                lines: 130,
+                bytes: 1000,
+                tokens: 250,
+            },
+        ],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut buffer = Cursor::new(Vec::new());
+
+    // Use fixed values for determinism
+    let serial = Some("urn:uuid:00000000-0000-0000-0000-000000000000".to_string());
+    let timestamp = Some("1970-01-01T00:00:00Z".to_string());
+
+    tokmd_format::write_export_cyclonedx_with_options(
+        &mut buffer,
+        &export,
+        RedactMode::None,
+        serial,
+        timestamp
+    ).unwrap();
+
+    let output = String::from_utf8(buffer.into_inner()).unwrap();
+
+    // Parse JSON to ensure formatting is consistent before snapshot
+    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let pretty = serde_json::to_string_pretty(&json).unwrap();
+
+    insta::assert_snapshot!(pretty);
+}
