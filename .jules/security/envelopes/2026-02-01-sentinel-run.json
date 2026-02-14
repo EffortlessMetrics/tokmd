@@ -1,0 +1,39 @@
+{
+  "run_id": "2026-02-01-sentinel-run",
+  "timestamp_utc": "2026-02-01T12:00:00Z",
+  "lane": "Lane B (Scout)",
+  "target": "crates/tokmd/src/progress.rs",
+  "commands": [
+    {
+      "cmd": "cargo check -p tokmd --features ui",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.77s"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 101,
+      "summary": "FAIL (known issue in tok_integration)",
+      "output": "tok_default_lang_output ... FAILED"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.22s"
+    }
+  ],
+  "results_summary": "Replaced unwrap() with expect() in crates/tokmd/src/progress.rs. Verification mostly passed, with known integration test failure unrelated to changes."
+}
