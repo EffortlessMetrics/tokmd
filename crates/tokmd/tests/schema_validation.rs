@@ -459,11 +459,7 @@ fn test_sensor_report_example_pass_validates() -> Result<()> {
 
     // Read the pass example from contracts
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("contracts")
+        .join("tests/data/contracts")
         .join("sensor.report.v1")
         .join("examples")
         .join("pass.json");
@@ -493,11 +489,7 @@ fn test_sensor_report_example_fail_validates() -> Result<()> {
 
     // Read the fail example from contracts
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("contracts")
+        .join("tests/data/contracts")
         .join("sensor.report.v1")
         .join("examples")
         .join("fail.json");
