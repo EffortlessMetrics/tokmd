@@ -244,27 +244,41 @@ pub fn create_module_report(
 
     let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
     for r in &file_rows {
-        let entry = by_module.entry(r.module.clone()).or_default();
-        entry.code += r.code;
-        entry.lines += r.lines;
-        entry.bytes += r.bytes;
-        entry.tokens += r.tokens;
+        // OPTIMIZATION: Use get_mut to avoid cloning the module string if it already exists.
+        if let Some(agg) = by_module.get_mut(&r.module) {
+            agg.code += r.code;
+            agg.lines += r.lines;
+            agg.bytes += r.bytes;
+            agg.tokens += r.tokens;
+        } else {
+            let mut agg = Agg::default();
+            agg.code += r.code;
+            agg.lines += r.lines;
+            agg.bytes += r.bytes;
+            agg.tokens += r.tokens;
+            by_module.insert(r.module.clone(), agg);
+        }
     }
 
     // Unique parent files per module.
-    let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
+    // OPTIMIZATION: Reuse file_rows to avoid re-scanning languages and re-normalizing paths.
+    // We use &str keys borrowing from file_rows to avoid further allocations.
+    let mut module_files: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut total_files_set: BTreeSet<&str> = BTreeSet::new();
+
+    for r in &file_rows {
+        if r.kind == FileKind::Parent {
+            module_files.entry(&r.module).or_default().insert(&r.path);
+            total_files_set.insert(&r.path);
         }
     }
 
     let mut rows: Vec<ModuleRow> = Vec::new();
     for (module, agg) in by_module {
-        let files = module_files.get(&module).map(|s| s.len()).unwrap_or(0);
+        let files = module_files
+            .get(module.as_str())
+            .map(|s| s.len())
+            .unwrap_or(0);
         rows.push(ModuleRow {
             module,
             code: agg.code,
@@ -285,7 +299,7 @@ pub fn create_module_report(
         rows.push(other);
     }
 
-    let total_files = unique_parent_file_count(languages);
+    let total_files = total_files_set.len();
     let total_code: usize = file_rows.iter().map(|r| r.code).sum();
     let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
     let total_bytes: usize = file_rows.iter().map(|r| r.bytes).sum();
