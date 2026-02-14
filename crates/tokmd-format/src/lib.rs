@@ -681,7 +681,8 @@ fn write_export_cyclonedx_impl<W: Write>(
     let bom = CycloneDxBom {
         bom_format: "CycloneDX",
         spec_version: "1.6",
-        serial_number: serial_number.unwrap_or_else(|| format!("urn:uuid:{}", uuid::Uuid::new_v4())),
+        serial_number: serial_number
+            .unwrap_or_else(|| format!("urn:uuid:{}", uuid::Uuid::new_v4())),
         version: 1,
         metadata: CycloneDxMetadata {
             timestamp,

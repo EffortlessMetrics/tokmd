@@ -1768,20 +1768,18 @@ fn test_cyclonedx_snapshot_deterministic() {
     use std::io::Cursor;
 
     let export = ExportData {
-        rows: vec![
-            FileRow {
-                path: "src/lib.rs".to_string(),
-                module: "src".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 20,
-                blanks: 10,
-                lines: 130,
-                bytes: 1000,
-                tokens: 250,
-            },
-        ],
+        rows: vec![FileRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 20,
+            blanks: 10,
+            lines: 130,
+            bytes: 1000,
+            tokens: 250,
+        }],
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1798,8 +1796,9 @@ fn test_cyclonedx_snapshot_deterministic() {
         &export,
         RedactMode::None,
         serial,
-        timestamp
-    ).unwrap();
+        timestamp,
+    )
+    .unwrap();
 
     let output = String::from_utf8(buffer.into_inner()).unwrap();
 
