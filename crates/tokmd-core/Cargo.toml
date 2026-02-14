@@ -19,7 +19,6 @@ analysis = ["tokmd-analysis-types"]
 anyhow = "1.0.100"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "2.0"
 tokmd-config.workspace = true
 tokmd-format.workspace = true
 tokmd-settings.workspace = true

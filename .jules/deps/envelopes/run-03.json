@@ -1,0 +1,13 @@
+{
+  "run_id": "run-03",
+  "timestamp": "2026-02-14T12:37:22Z",
+  "target": "tokmd-core",
+  "action": "remove-unused-dep",
+  "status": "success",
+  "receipts": [
+    "cargo check -p tokmd-core: success",
+    "cargo test -p tokmd-core: success",
+    "cargo clippy -p tokmd-core: success",
+    "cargo fmt: success"
+  ]
+}
