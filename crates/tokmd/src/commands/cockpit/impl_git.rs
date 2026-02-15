@@ -23,8 +23,8 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
     }
 
     let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
-    let repo_root = tokmd_git::repo_root(&cwd)
-        .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
+    let repo_root =
+        tokmd_git::repo_root(&cwd).ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
     let range_mode = match args.diff_range {
         cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
@@ -71,9 +71,8 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
     }
 
     if let Some(output_path) = &args.output {
-        let mut file = std::fs::File::create(output_path).with_context(|| {
-            format!("Failed to create output file: {}", output_path.display())
-        })?;
+        let mut file = std::fs::File::create(output_path)
+            .with_context(|| format!("Failed to create output file: {}", output_path.display()))?;
         file.write_all(output.as_bytes())?;
     } else {
         print!("{}", output);

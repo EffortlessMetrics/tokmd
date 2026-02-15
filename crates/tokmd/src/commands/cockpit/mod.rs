@@ -14,7 +14,7 @@ pub use impl_git::*;
 pub(crate) fn handle(args: cli::CockpitArgs, global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(feature = "git")]
     {
-        return impl_git::handle(args, global);
+        impl_git::handle(args, global)
     }
 
     #[cfg(not(feature = "git"))]

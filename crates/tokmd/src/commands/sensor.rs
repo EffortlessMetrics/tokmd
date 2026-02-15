@@ -10,9 +10,9 @@
 #[cfg(feature = "git")]
 use std::io::Write;
 
-use anyhow::{Result, bail};
 #[cfg(feature = "git")]
 use anyhow::Context;
+use anyhow::{Result, bail};
 use tokmd_config as cli;
 
 #[cfg(feature = "git")]
