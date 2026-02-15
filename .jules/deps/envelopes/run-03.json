@@ -3,13 +3,15 @@
   "start_time": "2026-02-15T12:53:35Z",
   "target": "tokmd-tokeignore",
   "lane": "B",
-  "decision": "Align proptest dev-dependency with workspace standards (1.6.0 -> 1.9.0)",
+  "decision": "Align proptest dev-dependency with workspace standards (1.6.0 -> 1.9.0). Also fixed CI failures (formatting and test environment).",
   "security_tools": {
     "cargo_audit": "unavailable",
     "cargo_deny": "unavailable"
   },
   "receipts": [
     "cargo check -p tokmd-tokeignore: passed",
-    "cargo test -p tokmd-tokeignore: passed (32 tests passed)"
+    "cargo test -p tokmd-tokeignore: passed (32 tests passed)",
+    "cargo check -p tokmd: passed",
+    "cargo test -p tokmd --test docs: passed (recipe_sensor_json fixed)"
   ]
 }

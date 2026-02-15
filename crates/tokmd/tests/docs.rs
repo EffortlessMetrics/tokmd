@@ -120,6 +120,8 @@ fn recipe_sensor_json() {
         .arg("json")
         .arg("--output")
         .arg(&report_path)
+        .arg("--base")
+        .arg("HEAD")
         .assert()
         .success();
     assert!(report_path.exists());
