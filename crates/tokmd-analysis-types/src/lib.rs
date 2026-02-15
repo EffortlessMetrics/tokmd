@@ -773,6 +773,11 @@ pub struct ComplexityBaseline {
     /// when comparing baselines against current analysis receipts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub complexity: Option<BaselineComplexitySection>,
+    /// Determinism baseline for reproducibility verification.
+    ///
+    /// Present when the baseline was generated with `--determinism`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub determinism: Option<DeterminismBaseline>,
 }
 
 impl ComplexityBaseline {
@@ -785,6 +790,7 @@ impl ComplexityBaseline {
             metrics: BaselineMetrics::default(),
             files: Vec::new(),
             complexity: None,
+            determinism: None,
         }
     }
 
@@ -860,6 +866,7 @@ impl ComplexityBaseline {
             metrics,
             files,
             complexity,
+            determinism: None,
         }
     }
 }

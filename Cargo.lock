@@ -2895,6 +2895,7 @@ dependencies = [
  "console 0.16.2",
  "dialoguer",
  "dirs",
+ "ignore",
  "indicatif",
  "insta",
  "jsonschema",

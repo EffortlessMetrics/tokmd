@@ -39,7 +39,13 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
         };
 
-        let mut receipt = compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
+        let mut receipt = compute_cockpit(
+            &repo_root,
+            &args.base,
+            &args.head,
+            range_mode,
+            args.baseline.as_deref(),
+        )?;
 
         // Load baseline and compute trend if provided
         if let Some(baseline_path) = &args.baseline {
@@ -679,6 +685,7 @@ pub(crate) fn compute_cockpit(
     base: &str,
     head: &str,
     range_mode: tokmd_git::GitRangeMode,
+    baseline_path: Option<&Path>,
 ) -> Result<CockpitReceipt> {
     let generated_at_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -712,6 +719,7 @@ pub(crate) fn compute_cockpit(
         &changed_files,
         &contracts,
         range_mode,
+        baseline_path,
     )?;
 
     // Generate review plan with complexity scores
@@ -742,12 +750,13 @@ fn compute_evidence(
     changed_files: &[String],
     contracts_info: &Contracts,
     range_mode: tokmd_git::GitRangeMode,
+    baseline_path: Option<&Path>,
 ) -> Result<Evidence> {
     let mutation = compute_mutation_gate(repo_root, base, head, changed_files, range_mode)?;
     let diff_coverage = compute_diff_coverage_gate(repo_root, base, head, range_mode)?;
     let contracts = compute_contract_gate(repo_root, base, head, changed_files, contracts_info)?;
     let supply_chain = compute_supply_chain_gate(repo_root, changed_files)?;
-    let determinism = compute_determinism_gate(repo_root)?;
+    let determinism = compute_determinism_gate(repo_root, baseline_path)?;
     let complexity = compute_complexity_gate(repo_root, changed_files)?;
 
     // Compute overall status: any Fail → Fail, all Pass → Pass, otherwise Pending/Skipped
@@ -1517,12 +1526,95 @@ fn compute_supply_chain_gate(
 }
 
 /// Compute determinism gate.
-/// Compares expected hash (from baseline) with actual hash.
+/// Compares expected source hash (from baseline) with a fresh hash of the repo.
 #[cfg(feature = "git")]
-fn compute_determinism_gate(_repo_root: &Path) -> Result<Option<DeterminismGate>> {
-    // TODO: Look for baseline hash and compare with current
-    // For now, return None (no baseline available)
-    Ok(None)
+fn compute_determinism_gate(
+    repo_root: &Path,
+    baseline_path: Option<&Path>,
+) -> Result<Option<DeterminismGate>> {
+    use tokmd_analysis_types::ComplexityBaseline;
+
+    // Resolve baseline: explicit path or default location
+    let resolved_path = match baseline_path {
+        Some(p) => p.to_path_buf(),
+        None => repo_root.join(".tokmd/baseline.json"),
+    };
+
+    // If no baseline file exists, skip the gate
+    if !resolved_path.exists() {
+        return Ok(None);
+    }
+
+    // Parse baseline
+    let content = std::fs::read_to_string(&resolved_path)
+        .with_context(|| format!("failed to read baseline at {}", resolved_path.display()))?;
+    let baseline: ComplexityBaseline = serde_json::from_str(&content)
+        .with_context(|| format!("failed to parse baseline at {}", resolved_path.display()))?;
+
+    // If baseline has no determinism section, skip the gate
+    let det = match &baseline.determinism {
+        Some(d) => d,
+        None => return Ok(None),
+    };
+
+    // Recompute current source hash by walking the repo
+    let actual_hash = crate::determinism::hash_files_from_walk(repo_root)?;
+    let expected_hash = &det.source_hash;
+
+    let mut differences = Vec::new();
+
+    if actual_hash != *expected_hash {
+        differences.push(format!(
+            "source hash mismatch: expected {}, got {}",
+            &expected_hash[..16],
+            &actual_hash[..16],
+        ));
+    }
+
+    // Check Cargo.lock hash if baseline had one
+    if let Some(expected_lock) = &det.cargo_lock_hash {
+        let actual_lock = crate::determinism::hash_cargo_lock(repo_root)?;
+        match actual_lock {
+            Some(ref actual) if actual != expected_lock => {
+                differences.push(format!(
+                    "Cargo.lock hash mismatch: expected {}, got {}",
+                    &expected_lock[..16],
+                    &actual[..16],
+                ));
+            }
+            None => {
+                differences.push("Cargo.lock missing (was present in baseline)".to_string());
+            }
+            _ => {}
+        }
+    }
+
+    let status = if differences.is_empty() {
+        GateStatus::Pass
+    } else {
+        GateStatus::Warn
+    };
+
+    Ok(Some(DeterminismGate {
+        meta: GateMeta {
+            status,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: vec!["source files".to_string()],
+                tested: vec!["source files".to_string()],
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        expected_hash: Some(expected_hash.clone()),
+        actual_hash: Some(actual_hash),
+        algo: "blake3".to_string(),
+        differences,
+    }))
 }
 
 /// Cyclomatic complexity threshold for high complexity.

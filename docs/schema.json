@@ -1451,7 +1451,8 @@
         "generated_at": { "type": "string", "description": "ISO 8601 timestamp when this baseline was generated." },
         "commit": { "type": ["string", "null"], "description": "Git commit SHA at which this baseline was captured, if available." },
         "metrics": { "$ref": "#/definitions/BaselineMetrics" },
-        "files": { "type": "array", "items": { "$ref": "#/definitions/FileBaselineEntry" }, "description": "Per-file baseline entries for granular tracking." }
+        "files": { "type": "array", "items": { "$ref": "#/definitions/FileBaselineEntry" }, "description": "Per-file baseline entries for granular tracking." },
+        "determinism": { "$ref": "#/definitions/DeterminismBaseline", "description": "Determinism baseline for reproducibility verification. Present when generated with --determinism." }
       }
     },
     "BaselineMetrics": {

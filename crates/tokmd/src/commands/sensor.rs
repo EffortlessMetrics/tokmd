@@ -42,9 +42,9 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Use two-dot range for sensor (same convention as cockpit)
         let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
-        // Run cockpit computation
+        // Run cockpit computation (sensor mode has no baseline path)
         let cockpit_receipt =
-            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
+            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode, None)?;
 
         // Build the sensor report envelope
         let generated_at = now_iso8601();
