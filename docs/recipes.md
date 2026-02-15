@@ -10,16 +10,16 @@ When you need to feed actual code to an LLM (not just metadata), use the `contex
 
 ```bash
 # Pack files into 128k tokens (Claude's context window)
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # Spread coverage across modules instead of just largest files
-tokmd context --budget 128k --strategy spread --output bundle --out context.txt
+tokmd context --budget 128k --strategy spread --output bundle --output context.txt
 
 # Strip blank lines for maximum density
-tokmd context --budget 128k --output bundle --compress --out context.txt
+tokmd context --budget 128k --output bundle --compress --output context.txt
 
 # Use module roots for better organization
-tokmd context --budget 128k --module-roots crates,src --strategy spread --out context.txt
+tokmd context --budget 128k --module-roots crates,src --strategy spread --output context.txt
 ```
 
 **Why**:
@@ -149,13 +149,13 @@ Add live metrics to your project README.
 
 ```bash
 # Lines of code badge
-tokmd badge --metric lines --out badges/lines.svg
+tokmd badge --metric lines --output badges/lines.svg
 
 # Token count badge
-tokmd badge --metric tokens --out badges/tokens.svg
+tokmd badge --metric tokens --output badges/tokens.svg
 
 # Documentation percentage badge
-tokmd badge --metric doc --out badges/doc.svg
+tokmd badge --metric doc --output badges/doc.svg
 ```
 
 Then embed in your README:
@@ -263,9 +263,15 @@ Ensure that code metrics (like complexity) do not get worse over time.
    ```
 
 **How it works**:
-- The gate compares current metrics against `baseline.json`.
-- If `avg_cyclomatic` in the PR is higher than the baseline, the gate fails.
-- `max_increase_pct` allows a small buffer (e.g., 5.0 = 5% increase allowed) to prevent flaky failures.
+- The gate compares current metrics against `baseline.json` using the **JSON Pointer**.
+- If the value in the PR is higher than the baseline, the gate fails.
+- `max_increase_pct` allows a small buffer (e.g., 5.0 = 5% increase allowed).
+
+**Pointer Discovery**:
+To find valid pointers for your project, run:
+```bash
+jq -r 'paths(scalars) as $p | "/" + ($p | map(tostring) | join("/"))' baseline.json | sort
+```
 
 ## 11. Configuring Ignores
 
@@ -336,7 +342,7 @@ Export your codebase inventory as a CycloneDX Software Bill of Materials.
 tokmd export --format cyclonedx > bom.json
 
 # Or write directly to file
-tokmd export --format cyclonedx --out bom.json
+tokmd export --format cyclonedx --output bom.json
 
 # Combine with filtering
 tokmd export --format cyclonedx --min-code 10 --max-rows 500 > bom.json
@@ -505,10 +511,9 @@ jobs:
       - name: Generate badges
         run: |
           mkdir -p badges
-          tokmd badge --metric lines --out badges/lines.svg
-          tokmd badge --metric tokens --out badges/tokens.svg
-          tokmd badge --metric doc --out badges/doc.svg
-
+          tokmd badge --metric lines --output badges/lines.svg
+          tokmd badge --metric tokens --output badges/tokens.svg
+          tokmd badge --metric doc --output badges/doc.svg
       - name: Commit badges
         run: |
           git config user.name "github-actions[bot]"
@@ -759,7 +764,7 @@ git commit -m "chore: add tokmd baseline"
 **Complexity baseline**:
 ```bash
 # Capture a complexity baseline at the current commit
-tokmd baseline --out .tokmd/baseline.json
+tokmd baseline --output .tokmd/baseline.json
 
 # Commit for CI ratchet tracking
 git add .tokmd/baseline.json

@@ -66,6 +66,9 @@ body:
         - analyze
         - cockpit
         - gate
+        - baseline
+        - handoff
+        - sensor
         - badge
         - diff
         - context
@@ -113,6 +116,7 @@ body:
         - cargo install --git
         - Built from source
         - GitHub Release binary
+        - Language Bindings (Python, Node.js)
         - Homebrew
         - Nix
         - Docker

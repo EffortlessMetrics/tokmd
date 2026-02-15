@@ -9,8 +9,11 @@ crates/*/target
 /context.json
 /context.txt
 /sbom.json
+/test_analysis.json
+/test_baseline.json
 /tokmd-*.json
 /tokmd-*.md
+!/tokmd-role.md
 
 /.runs/pr_glass_cockpit
 
@@ -27,3 +30,6 @@ mutants.out.old/
 .runs/
 
 .tokmd/cache/
+
+# Windows artifacts
+nul

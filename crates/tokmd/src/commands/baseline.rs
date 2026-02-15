@@ -6,10 +6,13 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
+use tokmd_analysis_types::{
+    AnalysisArgsMeta, AnalysisSource, ComplexityBaseline, DeterminismBaseline,
+};
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
+use crate::determinism;
 use crate::export_bundle;
 use crate::progress::Progress;
 
@@ -28,6 +31,14 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     progress.set_message("Loading export data...");
     let inputs = vec![args.path.clone()];
     let bundle = export_bundle::load_export_from_inputs(&inputs, global)?;
+
+    // Save file paths and root before the bundle is consumed by analysis
+    let scan_root = bundle.root.clone();
+    let file_paths: Vec<String> = if args.determinism {
+        bundle.export.rows.iter().map(|r| r.path.clone()).collect()
+    } else {
+        Vec::new()
+    };
 
     // Build analysis source metadata
     let source = AnalysisSource {
@@ -82,6 +93,13 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     // Capture git commit SHA if in a git repo
     baseline.commit = capture_git_commit(&args.path);
 
+    // Compute determinism baseline if requested
+    if args.determinism {
+        progress.set_message("Computing determinism hashes...");
+        baseline.determinism =
+            Some(compute_determinism_baseline(&scan_root, &file_paths)?);
+    }
+
     // Create output directory if needed
     if let Some(parent) = args.output.parent()
         && !parent.as_os_str().is_empty()
@@ -116,14 +134,39 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
         "  Avg cyclomatic: {:.2}, Max: {}",
         baseline.metrics.avg_cyclomatic, baseline.metrics.max_cyclomatic
     );
-
-    // TODO v1.5.1: Add --determinism flag support
-    // This would hash build artifacts via tokmd-content for reproducibility verification
-    if args.determinism {
-        eprintln!("Warning: --determinism flag not yet implemented (deferred to v1.5.1)");
+    if let Some(det) = &baseline.determinism {
+        eprintln!("  Source hash: {}", det.source_hash);
+        if let Some(lock_hash) = &det.cargo_lock_hash {
+            eprintln!("  Cargo.lock hash: {}", lock_hash);
+        }
     }
 
     Ok(())
+}
+
+/// Compute a determinism baseline from export file paths.
+///
+/// Hashes all source files and optionally `Cargo.lock` to create a
+/// reproducibility fingerprint.
+fn compute_determinism_baseline(
+    root: &Path,
+    file_paths: &[String],
+) -> Result<DeterminismBaseline> {
+    let path_refs: Vec<&str> = file_paths.iter().map(|s| s.as_str()).collect();
+    let source_hash = determinism::hash_files_from_paths(root, &path_refs)?;
+    let cargo_lock_hash = determinism::hash_cargo_lock(root)?;
+
+    let generated_at = time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_default();
+
+    Ok(DeterminismBaseline {
+        baseline_version: 1,
+        generated_at,
+        build_hash: String::new(),
+        source_hash,
+        cargo_lock_hash,
+    })
 }
 
 /// Capture the current git commit SHA from the repository.

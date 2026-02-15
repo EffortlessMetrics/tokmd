@@ -361,7 +361,9 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
     let mut max_len = 0;
     let mut in_fn = false;
     let mut fn_start = 0;
-    let mut brace_depth = 0;
+    let mut brace_depth: i32 = 0;
+    let mut in_string = false;
+    let mut in_block_comment = false;
 
     for (i, line) in lines.iter().enumerate() {
         let trimmed = line.trim();
@@ -375,13 +377,52 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
         }
 
         if in_fn {
-            brace_depth += line.chars().filter(|&c| c == '{').count();
-            brace_depth = brace_depth.saturating_sub(line.chars().filter(|&c| c == '}').count());
+            let chars: Vec<char> = line.chars().collect();
+            let mut j = 0;
+            while j < chars.len() {
+                let c = chars[j];
+                let next = chars.get(j + 1).copied();
 
-            if brace_depth == 0 && line.contains('}') {
-                let fn_len = i - fn_start + 1;
-                max_len = max_len.max(fn_len);
-                in_fn = false;
+                if in_block_comment {
+                    if c == '*' && next == Some('/') {
+                        in_block_comment = false;
+                        j += 2;
+                        continue;
+                    }
+                    j += 1;
+                    continue;
+                }
+
+                if c == '/' && next == Some('/') {
+                    break; // Line comment
+                }
+
+                if c == '/' && next == Some('*') {
+                    in_block_comment = true;
+                    j += 2;
+                    continue;
+                }
+
+                if c == '"' && (j == 0 || chars[j - 1] != '\\') {
+                    in_string = !in_string;
+                    j += 1;
+                    continue;
+                }
+
+                if !in_string && !in_block_comment {
+                    if c == '{' {
+                        brace_depth += 1;
+                    } else if c == '}' {
+                        brace_depth = brace_depth.saturating_sub(1);
+                        if brace_depth == 0 {
+                            let fn_len = i - fn_start + 1;
+                            max_len = max_len.max(fn_len);
+                            in_fn = false;
+                            break;
+                        }
+                    }
+                }
+                j += 1;
             }
         }
     }
@@ -579,6 +620,9 @@ fn count_ruby_functions(lines: &[&str]) -> (usize, usize) {
                 || trimmed.starts_with("if ")
                 || trimmed.starts_with("unless ")
                 || trimmed.starts_with("case ")
+                || trimmed.starts_with("while ")
+                || trimmed.starts_with("until ")
+                || trimmed.starts_with("for ")
             {
                 depth += 1;
             }

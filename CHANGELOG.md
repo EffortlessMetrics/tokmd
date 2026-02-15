@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **File Classification**: Auto-detect generated, vendored, fixture, lockfile, minified, sourcemap, and dense data blob files during context packing
+- **Inclusion Policies**: Per-file budget caps (`--max-file-pct`, `--max-file-tokens`) with Full/HeadTail/Summary/Skip policies
+- **Head/Tail Truncation**: Oversized files emit 60% head + 40% tail with omission marker
+- **Graceful Metric Fallback**: When git scores unavailable for `--rank-by hotspot/churn`, falls back to code lines with transparent `fallback_reason`
+- **Error Suggestions**: Actionable suggestions on git, config, and path errors (`with_suggestions()` builder)
+
+### Changed
+
+- **Handoff Schema**: v3 → v4 — added `rank_by_effective`, `fallback_reason`, `excluded_by_policy`, per-file `policy`/`classifications`
+- **Context Bundle Schema**: v1 → v2 — added policy tracking fields
+- **Context Receipt Schema**: Split from Core (`SCHEMA_VERSION = 2`) to own `CONTEXT_SCHEMA_VERSION = 3`
+- **Diff Markdown**: Added comparison summary table (From / To / Delta / Change %)
+
+### Fixed
+
+- **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
+
+## [1.6.0] - 2026-02-11
+
+### Added
+
 - **Sensor Command**: New `tokmd sensor` for producing conforming `sensor.report.v1` envelopes
   - Wraps cockpit computation and maps results to standardized findings and gates
   - `--base` / `--head` flags for git diff range
@@ -50,6 +71,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Finding Identity**: Replaced `Finding.id` with `(check_id, code)` tuple for category-based routing
 - **Analysis Types**: Moved envelope and findings types to dedicated `tokmd-envelope` crate
 - **Core Settings**: `tokmd-core` re-exports from `tokmd-settings` for backwards compatibility
+- **CLI Args**: Renamed `--out` to `--output` across `export`, `badge`, and `context` commands (old name kept as visible alias)
+- **Context Command**: Renamed `--output` (mode selector) to `--mode` to avoid collision with `--output` (file path)
+- **Cockpit Diff Coverage**: Now intersects LCOV data with git-added lines for accurate diff-scoped coverage instead of whole-file coverage
+
+### Fixed
+
+- **Rust Function Regex**: Fixed pattern to match `(_|XID_Start) XID_Continue*` per Rust language spec; `fn _private_helper()` now correctly detected
+- **Cross-Platform Docs**: xtask docs task now normalizes `tokmd.exe` → `tokmd` and CRLF → LF for platform-independent reference output
 
 ### Internal
 
@@ -58,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added README files for `tokmd-sensor`, `tokmd-envelope`, `tokmd-substrate`, `tokmd-settings`
 - Added `tokmd sensor` documentation to `reference-cli.md`
 - Updated `docs/schema.json` and `docs/SCHEMA.md` for new envelope fields
+- Added `get_added_lines()` API in `tokmd-git` for per-file added-line extraction from git diff
+- Added `xtask docs` command for automated CLI reference regeneration
+- Added docs integration test verifying `reference-cli.md` stays in sync with CLI help output
+- Added issue templates for cleanup tasks and expanded options for commands
 
 ## [1.5.0] - 2026-02-05
 

@@ -36,10 +36,14 @@ The codebase uses a tiered microcrate architecture:
 crates/
 ├── tokmd-types/           # Tier 0: Core data structures
 ├── tokmd-analysis-types/  # Tier 0: Analysis receipt types
+├── tokmd-settings/        # Tier 0: Clap-free settings types
+├── tokmd-envelope/        # Tier 0: Cross-fleet sensor report contract
+├── tokmd-substrate/       # Tier 0: Shared repo context
 ├── tokmd-scan/            # Tier 1: tokei wrapper
 ├── tokmd-model/           # Tier 1: Aggregation logic
 ├── tokmd-tokeignore/      # Tier 1: Template generation
 ├── tokmd-redact/          # Tier 1: BLAKE3-based path redaction
+├── tokmd-sensor/          # Tier 1: Sensor trait + substrate builder
 ├── tokmd-format/          # Tier 2: Output rendering
 ├── tokmd-walk/            # Tier 2: File system traversal
 ├── tokmd-content/         # Tier 2: Content scanning
@@ -47,9 +51,12 @@ crates/
 ├── tokmd-analysis/        # Tier 3: Analysis orchestration
 ├── tokmd-analysis-format/ # Tier 3: Analysis output
 ├── tokmd-fun/             # Tier 3: Novelty outputs
+├── tokmd-gate/            # Tier 3: Policy evaluation
 ├── tokmd-config/          # Tier 4: Configuration
-├── tokmd-core/            # Tier 4: Library facade
-└── tokmd/                 # Tier 5: CLI binary
+├── tokmd-core/            # Tier 4: Library facade + FFI
+├── tokmd/                 # Tier 5: CLI binary
+├── tokmd-python/          # Tier 5: Python bindings (PyO3)
+└── tokmd-node/            # Tier 5: Node.js bindings (napi-rs)
 ```
 
 ## Testing Strategy
@@ -276,6 +283,7 @@ Some features are gated to allow selective compilation:
 - `git`: Git history analysis (shells out to `git` command)
 - `content`: File content scanning (entropy, TODOs, duplicates)
 - `walk`: Filesystem traversal for assets
+- `halstead`: Halstead software science metrics (requires `content` + `walk`)
 
 When adding new features with heavy dependencies, consider making them optional.
 

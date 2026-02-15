@@ -43,7 +43,7 @@ tokmd > summary.md
 tokmd module --module-roots crates,packages
 
 # 3. Pack for LLM context (smart selection)
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # 4. Analysis report (derived metrics)
 tokmd analyze --preset receipt --format md
@@ -52,7 +52,7 @@ tokmd analyze --preset receipt --format md
 tokmd analyze --preset risk --format md
 
 # 6. Generate a badge
-tokmd badge --metric lines --out badge.svg
+tokmd badge --metric lines --output badge.svg
 
 # 7. Diff two states
 tokmd diff main HEAD
@@ -65,9 +65,9 @@ tokmd diff main HEAD
 Pack files into an LLM context window with budget-aware selection:
 
 ```bash
-tokmd context --budget 128k --output bundle --out context.txt  # Ready to paste
+tokmd context --budget 128k --output bundle --output context.txt  # Ready to paste
 tokmd context --budget 200k --strategy spread                  # Coverage across modules
-tokmd context --budget 100k --output bundle --compress --out context.txt  # Strip blank lines for density
+tokmd context --budget 100k --output bundle --compress --output context.txt  # Strip blank lines for density
 ```
 
 ### LLM Context Planning
@@ -76,7 +76,7 @@ Smartly select files to fit your context window:
 
 ```bash
 # Pack top files by code volume into 128k tokens
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # Or generate a manifest to see what fits
 tokmd context --budget 128k --output list
@@ -121,7 +121,10 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd badge`        | SVG badge for a metric (lines, tokens, doc%).                   |
 | `tokmd diff`         | Compare two runs, receipts, or git refs.                        |
 | `tokmd cockpit`      | PR metrics for code review (evidence gates, risk, review plan). |
+| `tokmd sensor`       | Conforming sensor producing `sensor.report.v1` envelope.        |
 | `tokmd gate`         | Policy-based quality gates with JSON pointer rules.             |
+| `tokmd baseline`     | Capture complexity baseline for trend tracking.                 |
+| `tokmd handoff`      | Bundle codebase for LLM handoff with intelligence presets.      |
 | `tokmd tools`        | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
 | `tokmd init`         | Generate a `.tokeignore` file (supports templates).             |
 | `tokmd check-ignore` | Explain why files are being ignored (troubleshooting).          |
@@ -280,12 +283,12 @@ cargo install tokmd
     paths: "."
 ```
 
-### Coming Soon: Language Bindings
+### Language Bindings (Build from Source)
 
-Native FFI bindings for CI pipelines and tooling:
+Native FFI bindings for CI pipelines and tooling (not yet published to package registries):
 
-- **Python**: `pip install tokmd` (PyPI)
-- **Node.js**: `npm install @tokmd/core` (npm)
+- **Python**: `cd crates/tokmd-python && maturin develop` — `tokmd.lang()`, `tokmd.analyze()`, etc.
+- **Node.js**: `cd crates/tokmd-node && npm run build` — async API with Promises
 
 ## Documentation
 

@@ -511,7 +511,7 @@ fn test_write_export_csv_format() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Csv,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -564,7 +564,7 @@ fn test_write_export_jsonl_with_meta() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec![],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -614,7 +614,7 @@ fn test_write_export_jsonl_without_meta() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec![],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -667,7 +667,7 @@ fn test_write_export_json_with_redaction() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -822,7 +822,7 @@ fn test_jsonl_generated_at_ms_is_reasonable() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec![],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -881,7 +881,7 @@ fn test_json_generated_at_ms_is_reasonable() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
-        out: None,
+        output: None,
         module_roots: vec![],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -972,7 +972,7 @@ fn test_write_export_writes_to_file() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: Some(temp_path.clone()),
+        output: Some(temp_path.clone()),
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1033,7 +1033,7 @@ fn test_jsonl_strip_prefix_redacted_with_paths_mode() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1091,7 +1091,7 @@ fn test_jsonl_strip_prefix_redacted_with_all_mode() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1149,7 +1149,7 @@ fn test_jsonl_strip_prefix_redacted_false_when_no_strip_prefix() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1211,7 +1211,7 @@ fn test_jsonl_no_redaction_with_none_mode() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Jsonl,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1273,7 +1273,7 @@ fn test_json_strip_prefix_redacted_with_paths_mode() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
@@ -1326,7 +1326,7 @@ fn test_json_no_redaction_with_none_mode() {
     let args = ExportArgs {
         paths: vec![PathBuf::from(".")],
         format: ExportFormat::Json,
-        out: None,
+        output: None,
         module_roots: vec!["src".to_string()],
         module_depth: 1,
         children: ChildIncludeMode::Separate,

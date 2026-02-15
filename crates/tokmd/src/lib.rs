@@ -23,6 +23,7 @@ mod badge;
 mod commands;
 mod config;
 mod context_pack;
+mod determinism;
 mod export_bundle;
 mod git_scoring;
 #[cfg(feature = "ui")]

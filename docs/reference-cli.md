@@ -29,6 +29,115 @@ These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `an
 
 Generates a summary of code statistics grouped by **Language**.
 
+<!-- HELP: lang -->
+```text
+Configuration schemas and defaults for tokmd.
+
+Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
+
+Commands:
+  lang          Language summary (default)
+  module        Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
+  export        Export a file-level dataset (CSV / JSONL / JSON)
+  analyze       Analyze receipts or paths to produce derived metrics
+  badge         Render a simple SVG badge for a metric
+  init          Write a `.tokeignore` template to the target directory
+  completions   Generate shell completions
+  run           Run a full scan and save receipts to a state directory
+  diff          Compare two receipts or runs
+  context       Pack files into an LLM context window within a token budget
+  check-ignore  Check why a file is being ignored (for troubleshooting)
+  tools         Output CLI schema as JSON for AI agents
+  gate          Evaluate policy rules against analysis receipts
+  cockpit       Generate PR cockpit metrics for code review
+  baseline      Generate a complexity baseline for trend tracking
+  handoff       Bundle codebase for LLM handoff
+  sensor        Run as a conforming sensor, producing a SensorReport
+  help          Print this message or the help of the given subcommand(s)
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+          
+          Examples: --exclude target --exclude "**/*.min.js"
+          
+          [aliases: --ignore]
+
+      --config <CONFIG>
+          Whether to load `tokei.toml` / `.tokeirc`
+
+          Possible values:
+          - auto: Read `tokei.toml` / `.tokeirc` if present
+          - none: Ignore config files
+          
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+          
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+          
+          [aliases: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
+
+  -v, --verbose...
+          Verbose output (repeat for more detail)
+
+      --no-progress
+          Disable progress spinners
+
+      --format <FORMAT>
+          Output format [default: md]
+
+          Possible values:
+          - md:   Markdown table (great for pasting into ChatGPT)
+          - tsv:  Tab-separated values (good for piping to other tools)
+          - json: JSON (compact)
+
+      --top <TOP>
+          Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows
+
+      --files
+          Include file counts and average lines per file
+
+      --children <CHILDREN>
+          How to handle embedded languages (tokei "children" / blobs) [default: collapse]
+
+          Possible values:
+          - collapse: Merge embedded content into the parent language totals
+          - separate: Show embedded languages as separate "(embedded)" rows
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+          
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+```
+<!-- /HELP: lang -->
+
 **Usage**: `tokmd [FLAGS] [OPTIONS]`
 
 | Option | Description | Default |
@@ -216,18 +325,18 @@ Renders a simple SVG badge for a metric.
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 | `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
-| `--out <PATH>` | Write badge to a file. | stdout |
+| `--output <PATH>` | Write badge to a file. | stdout |
 
 **Example**:
 ```bash
 # Token badge to a file
-tokmd badge --metric tokens --out badge.svg
+tokmd badge --metric tokens --output badge.svg
 
 # Lines badge to stdout
 tokmd badge --metric lines
 
 # Documentation percentage badge
-tokmd badge --metric doc --out docs-badge.svg
+tokmd badge --metric doc --output docs-badge.svg
 ```
 
 ### `tokmd diff`
@@ -313,7 +422,7 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--compress` | Strip blank lines from bundle output. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
-| `--out <PATH>` | Write output to file instead of stdout. | `(stdout)` |
+| `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--force` | Overwrite existing output file. | `false` |
 | `--bundle-dir <DIR>` | Write bundle to directory with manifest (receipt.json, bundle.txt, manifest.json). | `(none)` |
 | `--log <PATH>` | Append JSONL record to log file (metadata only). | `(none)` |
@@ -327,16 +436,16 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 tokmd context --budget 128k
 
 # Create a bundle ready to paste into Claude
-tokmd context --budget 128k --output bundle --out context.txt
+tokmd context --budget 128k --output bundle --output context.txt
 
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
 
 # Compressed bundle (no blank lines)
-tokmd context --budget 100k --output bundle --compress --out bundle.txt
+tokmd context --budget 100k --output bundle --compress --output bundle.txt
 
 # JSON receipt for programmatic use
-tokmd context --budget 128k --output json --out selection.json
+tokmd context --budget 128k --output json --output selection.json
 
 # Bundle to directory for large outputs
 tokmd context --budget 200k --bundle-dir ./ctx-bundle
@@ -446,6 +555,78 @@ tokmd tools --format jsonschema --pretty > schema.json
 
 Generates comprehensive PR metrics for code review automation. This command analyzes changes between two git refs and produces a structured report with evidence gates for CI integration.
 
+<!-- HELP: cockpit -->
+```text
+Generate PR cockpit metrics for code review
+
+Usage: tokmd cockpit [OPTIONS]
+
+Options:
+      --base <BASE>
+          Base reference to compare from (default: main)
+          
+          [default: main]
+
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+          
+          Examples: --exclude target --exclude "**/*.min.js"
+          
+          [aliases: --ignore]
+
+      --head <HEAD>
+          Head reference to compare to (default: HEAD)
+          
+          [default: HEAD]
+
+      --format <FORMAT>
+          Output format
+
+          Possible values:
+          - json:     JSON output with full metrics
+          - md:       Markdown output for human readability
+          - sections: Section-based output for PR template filling
+          
+          [default: json]
+
+      --output <PATH>
+          Output file (stdout if omitted)
+
+      --artifacts-dir <DIR>
+          Write cockpit artifacts (report.json, comment.md) to directory
+
+      --baseline <PATH>
+          Path to baseline receipt for trend comparison.
+          
+          When provided, cockpit will compute delta metrics showing how the current state compares to the baseline.
+
+      --diff-range <DIFF_RANGE>
+          Diff range syntax: two-dot (default) or three-dot
+
+          Possible values:
+          - two-dot:   Two-dot syntax (A..B) - direct diff between commits
+          - three-dot: Three-dot syntax (A...B) - diff from merge-base
+          
+          [default: two-dot]
+
+      --sensor-mode
+          Run in sensor mode for CI integration.
+          
+          When enabled: - Always writes sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code) - Reports capability availability for "No Green By Omission"
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+          
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: cockpit -->
+
 **Usage**: `tokmd cockpit [OPTIONS]`
 
 | Option | Description | Default |
@@ -521,6 +702,57 @@ tokmd cockpit --sensor-mode --artifacts-dir artifacts/tokmd
 
 Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. Always writes a canonical JSON receipt to the output path; with `--format md` also prints markdown to stdout.
 
+<!-- HELP: sensor -->
+```text
+Run as a conforming sensor, producing a SensorReport
+
+Usage: tokmd sensor [OPTIONS]
+
+Options:
+      --base <BASE>
+          Base reference to compare from (default: main)
+          
+          [default: main]
+
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+          
+          Examples: --exclude target --exclude "**/*.min.js"
+          
+          [aliases: --ignore]
+
+      --head <HEAD>
+          Head reference to compare to (default: HEAD)
+          
+          [default: HEAD]
+
+      --output <PATH>
+          Output file for the sensor report
+          
+          [default: artifacts/tokmd/report.json]
+
+      --format <FORMAT>
+          Output format
+
+          Possible values:
+          - json: JSON sensor report
+          - md:   Markdown summary
+          
+          [default: json]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+          
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: sensor -->
+
 **Usage**: `tokmd sensor [OPTIONS]`
 
 | Option | Description | Default |
@@ -558,6 +790,67 @@ tokmd sensor --format md
 
 Evaluates policy rules against analysis receipts for CI gating. Use this to enforce code quality standards in your pipeline.
 
+<!-- HELP: gate -->
+```text
+Evaluate policy rules against analysis receipts
+
+Usage: tokmd gate [OPTIONS] [INPUT]
+
+Arguments:
+  [INPUT]
+          Input analysis receipt or path to scan
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+          
+          Examples: --exclude target --exclude "**/*.min.js"
+          
+          [aliases: --ignore]
+
+      --policy <POLICY>
+          Path to policy file (TOML format)
+
+      --baseline <PATH>
+          Path to baseline receipt for ratchet comparison.
+          
+          When provided, gate will evaluate ratchet rules comparing current metrics against the baseline values.
+
+      --ratchet-config <PATH>
+          Path to ratchet config file (TOML format).
+          
+          Defines rules for comparing current metrics against baseline. Can also be specified inline in tokmd.toml under [[gate.ratchet]].
+
+      --preset <PRESET>
+          Analysis preset (for compute-then-gate mode)
+          
+          [possible values: receipt, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --format <FORMAT>
+          Output format
+
+          Possible values:
+          - text: Human-readable text output
+          - json: JSON output
+          
+          [default: text]
+
+      --fail-fast
+          Fail fast on first error
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+          
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: gate -->
+
 **Usage**: `tokmd gate [INPUT] [OPTIONS]`
 
 | Option | Description | Default |
@@ -578,6 +871,19 @@ Evaluates policy rules against analysis receipts for CI gating. Use this to enfo
 **Ratchet Sources** (in order of precedence):
 1. `--ratchet-config <path>` CLI argument
 2. `[[gate.ratchet]]` inline rules in `tokmd.toml`
+
+**Pointer Rules**:
+Ratchets use [JSON Pointer (RFC 6901)](https://datatracker.ietf.org/doc/html/rfc6901) to reference values in the baseline.
+- `/` separates tokens.
+- `~1` represents `/` in a token.
+- `~0` represents `~` in a token.
+
+**Pointer Discovery**:
+To find valid pointers for your project, run this command against a baseline JSON:
+```bash
+# Show all scalar JSON Pointers in the baseline
+jq -r 'paths(scalars) as $p | "/" + ($p | map(tostring) | join("/"))' baseline.json | sort
+```
 
 **Exit Codes**:
 | Code | Meaning |

@@ -42,9 +42,9 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Use two-dot range for sensor (same convention as cockpit)
         let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
-        // Run cockpit computation
+        // Run cockpit computation (sensor mode has no baseline path)
         let cockpit_receipt =
-            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode)?;
+            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode, None)?;
 
         // Build the sensor report envelope
         let generated_at = now_iso8601();
@@ -213,7 +213,7 @@ fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
 /// Emit risk findings from cockpit data.
 #[cfg(feature = "git")]
 fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
-    for hotspot in &risk.hotspots_touched {
+    for hotspot in risk.hotspots_touched.iter().take(MAX_FINDINGS_PER_CATEGORY) {
         report.add_finding(
             Finding::new(
                 findings::risk::CHECK_ID,
@@ -227,7 +227,11 @@ fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
         );
     }
 
-    for path in &risk.bus_factor_warnings {
+    for path in risk
+        .bus_factor_warnings
+        .iter()
+        .take(MAX_FINDINGS_PER_CATEGORY)
+    {
         report.add_finding(
             Finding::new(
                 findings::risk::CHECK_ID,
@@ -236,6 +240,7 @@ fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
                 "Bus factor warning",
                 format!("{} has single-author ownership", path),
             )
+            .with_location(tokmd_envelope::FindingLocation::path(path))
             .with_fingerprint("tokmd"),
         );
     }
@@ -699,7 +704,7 @@ mod tests {
             .iter()
             .find(|f| f.code == findings::risk::BUS_FACTOR)
             .expect("bus factor finding");
-        assert!(bus_factor.location.is_none());
+        assert!(bus_factor.location.is_some());
     }
 
     #[cfg(feature = "git")]

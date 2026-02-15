@@ -1567,8 +1567,8 @@ fn test_context_bundle_dir() -> Result<()> {
     let manifest: serde_json::Value = serde_json::from_str(&manifest_content)?;
     assert_eq!(
         manifest.get("schema_version").and_then(|v| v.as_u64()),
-        Some(1),
-        "manifest schema_version should be 1"
+        Some(2),
+        "manifest schema_version should be 2"
     );
     assert!(
         manifest.get("included_files").is_some(),

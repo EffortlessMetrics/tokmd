@@ -105,12 +105,18 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         git_scores.as_ref(),
         &context_pack::SelectOptions {
             no_smart_exclude: args.no_smart_exclude,
+            max_file_pct: args.max_file_pct,
+            max_file_tokens: args.max_file_tokens,
+            ..Default::default()
         },
     );
     let selected = select_result.selected;
     let smart_excluded_files = select_result.smart_excluded;
 
-    let used_tokens: usize = selected.iter().map(|f| f.tokens).sum();
+    let used_tokens: usize = selected
+        .iter()
+        .map(|f| f.effective_tokens.unwrap_or(f.tokens))
+        .sum();
     let utilization = if budget > 0 {
         (used_tokens as f64 / budget as f64) * 100.0
     } else {
@@ -220,6 +226,13 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
             .count(),
         bundled_files: selected.len(),
         intelligence_preset: format!("{:?}", args.preset).to_lowercase(),
+        rank_by_effective: if select_result.fallback_reason.is_some() {
+            Some(select_result.rank_by_effective.clone())
+        } else {
+            None
+        },
+        fallback_reason: select_result.fallback_reason.clone(),
+        excluded_by_policy: select_result.excluded_by_policy.clone(),
     };
 
     let manifest_path = args.out_dir.join("manifest.json");
@@ -942,7 +955,7 @@ fn write_map_jsonl(path: &Path, export: &ExportData) -> Result<u64> {
     Ok(bytes)
 }
 
-/// Write code bundle with file contents.
+/// Write code bundle with file contents, dispatching based on inclusion policy.
 fn write_code_bundle(
     path: &Path,
     selected: &[tokmd_types::ContextFileRow],
@@ -959,37 +972,63 @@ fn write_code_bundle(
             continue;
         }
 
-        let header = format!("// === {} ===\n", ctx_file.path);
-        writer.write_all(header.as_bytes())?;
-        bytes += header.len() as u64;
+        match ctx_file.policy {
+            tokmd_types::InclusionPolicy::Full => {
+                let header = format!("// === {} ===\n", ctx_file.path);
+                writer.write_all(header.as_bytes())?;
+                bytes += header.len() as u64;
 
-        if compress {
-            // Strip blank lines
-            let f = File::open(&file_path)
-                .with_context(|| format!("Failed to open file: {}", file_path.display()))?;
-            let reader = BufReader::new(f);
-            for line in reader.lines() {
-                let line =
-                    line.with_context(|| format!("Failed to read file: {}", file_path.display()))?;
-                if !line.trim().is_empty() {
-                    writeln!(writer, "{}", line)?;
-                    bytes += line.len() as u64 + 1;
+                if compress {
+                    let f = File::open(&file_path)
+                        .with_context(|| format!("Failed to open file: {}", file_path.display()))?;
+                    let reader = BufReader::new(f);
+                    for line in reader.lines() {
+                        let line = line.with_context(|| {
+                            format!("Failed to read file: {}", file_path.display())
+                        })?;
+                        if !line.trim().is_empty() {
+                            writeln!(writer, "{}", line)?;
+                            bytes += line.len() as u64 + 1;
+                        }
+                    }
+                    writeln!(writer)?;
+                    bytes += 1;
+                } else {
+                    let content = fs::read_to_string(&file_path)
+                        .with_context(|| format!("Failed to read file: {}", file_path.display()))?;
+                    writer.write_all(content.as_bytes())?;
+                    bytes += content.len() as u64;
+                    if !content.ends_with('\n') {
+                        writeln!(writer)?;
+                        bytes += 1;
+                    }
+                    writeln!(writer)?;
+                    bytes += 1;
                 }
             }
-            writeln!(writer)?;
-            bytes += 1;
-        } else {
-            // Stream content directly
-            let content = fs::read_to_string(&file_path)
-                .with_context(|| format!("Failed to read file: {}", file_path.display()))?;
-            writer.write_all(content.as_bytes())?;
-            bytes += content.len() as u64;
-            if !content.ends_with('\n') {
+            tokmd_types::InclusionPolicy::HeadTail => {
+                let header = format!("// === {} ===\n", ctx_file.path);
+                writer.write_all(header.as_bytes())?;
+                bytes += header.len() as u64;
+
+                // Capture head/tail output to count bytes
+                let mut buf = Vec::new();
+                crate::context_pack::write_head_tail(&mut buf, &file_path, ctx_file, compress)?;
+                writer.write_all(&buf)?;
+                bytes += buf.len() as u64;
+
                 writeln!(writer)?;
                 bytes += 1;
             }
-            writeln!(writer)?;
-            bytes += 1;
+            tokmd_types::InclusionPolicy::Summary | tokmd_types::InclusionPolicy::Skip => {
+                let header = format!(
+                    "// === {} [skipped: {}] ===\n\n",
+                    ctx_file.path,
+                    ctx_file.policy_reason.as_deref().unwrap_or("policy")
+                );
+                writer.write_all(header.as_bytes())?;
+                bytes += header.len() as u64;
+            }
         }
     }
 

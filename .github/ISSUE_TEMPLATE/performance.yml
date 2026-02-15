@@ -35,8 +35,14 @@ body:
         - analyze
         - cockpit
         - gate
+        - baseline
+        - handoff
+        - sensor
+        - badge
         - context
         - diff
+        - tools
+        - init
         - Multiple commands
         - General startup time
     validations:

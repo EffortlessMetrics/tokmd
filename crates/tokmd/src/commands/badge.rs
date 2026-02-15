@@ -109,8 +109,8 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
     let label = badge_utils::badge_metric_label(metric);
     let svg = badge_utils::badge_svg(label, &value);
 
-    if let Some(out) = args.out {
-        std::fs::write(out, svg)?;
+    if let Some(output) = args.output {
+        std::fs::write(output, svg)?;
     } else {
         print!("{}", svg);
     }

@@ -57,8 +57,7 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     let tail_len = max_bytes.saturating_sub(head_len);
 
     let mut head = vec![0u8; head_len];
-    let n_head = file.read(&mut head)?;
-    head.truncate(n_head);
+    file.read_exact(&mut head)?;
 
     if tail_len == 0 {
         return Ok(head);
@@ -67,8 +66,7 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     let tail_start = size.saturating_sub(tail_len as u64);
     file.seek(SeekFrom::Start(tail_start))?;
     let mut tail = vec![0u8; tail_len];
-    let n_tail = file.read(&mut tail)?;
-    tail.truncate(n_tail);
+    file.read_exact(&mut tail)?;
 
     head.extend_from_slice(&tail);
     Ok(head)

@@ -322,8 +322,8 @@ pub struct CliExportArgs {
     pub format: Option<ExportFormat>,
 
     /// Write output to this file instead of stdout.
-    #[arg(long, value_name = "PATH")]
-    pub out: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", visible_alias = "out")]
+    pub output: Option<PathBuf>,
 
     /// Module roots (see `tokmd module`) [default: crates,packages].
     #[arg(long, value_delimiter = ',')]
@@ -448,8 +448,8 @@ pub struct BadgeArgs {
     pub max_commit_files: Option<usize>,
 
     /// Output file for the badge (defaults to stdout).
-    #[arg(long)]
-    pub out: Option<PathBuf>,
+    #[arg(long, visible_alias = "out")]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -555,8 +555,8 @@ pub struct CliContextArgs {
     pub rank_by: ValueMetric,
 
     /// Output mode.
-    #[arg(long, value_enum, default_value_t = ContextOutput::List)]
-    pub output: ContextOutput,
+    #[arg(long = "mode", value_enum, default_value_t = ContextOutput::List)]
+    pub output_mode: ContextOutput,
 
     /// Strip blank lines from bundle output.
     #[arg(long)]
@@ -591,15 +591,15 @@ pub struct CliContextArgs {
     pub max_commit_files: usize,
 
     /// Write output to file instead of stdout.
-    #[arg(long, value_name = "PATH")]
-    pub out: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", visible_alias = "out")]
+    pub output: Option<PathBuf>,
 
     /// Overwrite existing output file.
     #[arg(long)]
     pub force: bool,
 
     /// Write bundle to directory with manifest (for large outputs).
-    #[arg(long, value_name = "DIR", conflicts_with = "out")]
+    #[arg(long, value_name = "DIR", conflicts_with = "output")]
     pub bundle_dir: Option<PathBuf>,
 
     /// Warn if output exceeds N bytes (default: 10MB, 0=disable).
@@ -609,6 +609,18 @@ pub struct CliContextArgs {
     /// Append JSONL record to log file (metadata only, not content).
     #[arg(long, value_name = "PATH")]
     pub log: Option<PathBuf>,
+
+    /// Maximum fraction of budget a single file may consume (0.0–1.0).
+    #[arg(long, default_value = "0.15")]
+    pub max_file_pct: f64,
+
+    /// Hard cap on tokens per file (overrides percentage-based cap).
+    #[arg(long)]
+    pub max_file_tokens: Option<usize>,
+
+    /// Error if git scores are unavailable when using churn/hotspot ranking.
+    #[arg(long)]
+    pub require_git_scores: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -861,6 +873,14 @@ pub struct HandoffArgs {
     /// Maximum files per commit to process.
     #[arg(long, default_value = "100")]
     pub max_commit_files: usize,
+
+    /// Maximum fraction of budget a single file may consume (0.0–1.0).
+    #[arg(long, default_value = "0.15")]
+    pub max_file_pct: f64,
+
+    /// Hard cap on tokens per file (overrides percentage-based cap).
+    #[arg(long)]
+    pub max_file_tokens: Option<usize>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

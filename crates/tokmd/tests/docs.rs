@@ -78,3 +78,85 @@ fn recipe_ci_workflow_snippet() {
         .assert()
         .success();
 }
+
+#[test]
+fn recipe_generate_baseline() {
+    // "tokmd baseline --output baseline.json"
+    let tmp = tempfile::tempdir().unwrap();
+    let baseline_path = tmp.path().join("baseline.json");
+    tokmd()
+        .arg("baseline")
+        .arg("--output")
+        .arg(&baseline_path)
+        .assert()
+        .success();
+    assert!(baseline_path.exists());
+}
+
+#[test]
+fn recipe_handoff_bundle() {
+    // "tokmd handoff --out-dir .handoff"
+    let tmp = tempfile::tempdir().unwrap();
+    let handoff_dir = tmp.path().join(".handoff");
+    tokmd()
+        .arg("handoff")
+        .arg("--out-dir")
+        .arg(&handoff_dir)
+        .assert()
+        .success();
+    assert!(handoff_dir.exists());
+    assert!(handoff_dir.join("manifest.json").exists());
+}
+
+#[cfg(feature = "git")]
+#[test]
+fn recipe_sensor_json() {
+    // "tokmd sensor --format json"
+    let tmp = tempfile::tempdir().unwrap();
+    let report_path = tmp.path().join("report.json");
+    tokmd()
+        .arg("sensor")
+        .arg("--format")
+        .arg("json")
+        .arg("--output")
+        .arg(&report_path)
+        .assert()
+        .success();
+    assert!(report_path.exists());
+}
+
+#[test]
+fn recipe_gate_with_baseline() {
+    // "tokmd gate --baseline baseline.json"
+    let tmp = tempfile::tempdir().unwrap();
+    let baseline_path = tmp.path().join("baseline.json");
+
+    // First generate a baseline
+    tokmd()
+        .arg("baseline")
+        .arg("--output")
+        .arg(&baseline_path)
+        .assert()
+        .success();
+
+    // Then gate against it (should pass since it's the same state)
+    let ratchet_path = tmp.path().join("ratchet.toml");
+    std::fs::write(
+        &ratchet_path,
+        r#"
+[[rules]]
+pointer = "/complexity/avg_cyclomatic"
+max_increase_pct = 10.0
+"#,
+    )
+    .unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--baseline")
+        .arg(&baseline_path)
+        .arg("--ratchet-config")
+        .arg(&ratchet_path)
+        .assert()
+        .success();
+}

@@ -37,9 +37,9 @@ use tokmd_config as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_types::{
-    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, ContextBundleManifest,
-    ContextExcludedPath, ContextFileRow, ContextLogRecord, ContextReceipt, SCHEMA_VERSION,
-    ToolInfo,
+    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
+    ContextBundleManifest, ContextExcludedPath, ContextFileRow, ContextLogRecord, ContextReceipt,
+    InclusionPolicy, SCHEMA_VERSION, ToolInfo,
 };
 
 use crate::context_pack;
@@ -65,7 +65,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     let mut excluded_paths: Vec<ContextExcludedPath> = Vec::new();
     add_excluded_path(
         &root,
-        args.out.as_ref(),
+        args.output.as_ref(),
         "out_file",
         &mut scan_args,
         &mut excluded_paths,
@@ -141,11 +141,30 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
         git_scores.as_ref(),
         &context_pack::SelectOptions {
             no_smart_exclude: args.no_smart_exclude,
+            max_file_pct: args.max_file_pct,
+            max_file_tokens: args.max_file_tokens,
+            require_git_scores: args.require_git_scores,
+            ..Default::default()
         },
     );
-    let selected = select_result.selected;
 
-    let used_tokens: usize = selected.iter().map(|f| f.tokens).sum();
+    // Error if require_git_scores is set and a fallback occurred
+    if args.require_git_scores && select_result.fallback_reason.is_some() {
+        anyhow::bail!(
+            "Git scores required but unavailable: {}",
+            select_result
+                .fallback_reason
+                .as_deref()
+                .unwrap_or("unknown")
+        );
+    }
+
+    let selected = &select_result.selected;
+
+    let used_tokens: usize = selected
+        .iter()
+        .map(|f| f.effective_tokens.unwrap_or(f.tokens))
+        .sum();
     let utilization = if budget > 0 {
         (used_tokens as f64 / budget as f64) * 100.0
     } else {
@@ -163,18 +182,26 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
         write_bundle_directory(
             bundle_dir,
             &args,
-            &selected,
+            selected,
             budget,
             used_tokens,
             utilization,
             args.force,
             &excluded_paths,
             &scan_args.excluded,
+            &select_result,
         )?
     } else {
         // For bundle output mode, stream directly to destination
         // For list/json output modes, build string (small outputs)
-        write_to_destination(&args, &selected, budget, used_tokens, utilization)?
+        write_to_destination(
+            &args,
+            selected,
+            budget,
+            used_tokens,
+            utilization,
+            &select_result,
+        )?
     };
 
     // Check size threshold and emit warning if exceeded (after writing)
@@ -214,7 +241,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
 fn determine_output_destination(args: &cli::CliContextArgs) -> String {
     if let Some(ref bundle_dir) = args.bundle_dir {
         format!("bundle:{}", bundle_dir.display())
-    } else if let Some(ref out_path) = args.out {
+    } else if let Some(ref out_path) = args.output {
         format!("file:{}", out_path.display())
     } else {
         "stdout".to_string()
@@ -230,26 +257,32 @@ fn write_to_destination(
     budget: usize,
     used_tokens: usize,
     utilization: f64,
+    select_result: &context_pack::SelectResult,
 ) -> Result<usize> {
-    match args.output {
+    match args.output_mode {
         cli::ContextOutput::Bundle => {
             // Stream bundle output directly to destination
             write_bundle_to_destination(args, selected)
         }
         cli::ContextOutput::List | cli::ContextOutput::Json => {
             // Build string for list/json (small outputs)
-            let content = match args.output {
+            let content = match args.output_mode {
                 cli::ContextOutput::List => {
                     format_list_output(selected, budget, used_tokens, utilization, args.strategy)
                 }
-                cli::ContextOutput::Json => {
-                    format_json_output(selected, budget, used_tokens, utilization, args)?
-                }
+                cli::ContextOutput::Json => format_json_output(
+                    selected,
+                    budget,
+                    used_tokens,
+                    utilization,
+                    args,
+                    select_result,
+                )?,
                 cli::ContextOutput::Bundle => unreachable!(),
             };
             let total_bytes = content.len();
 
-            if let Some(ref out_path) = args.out {
+            if let Some(ref out_path) = args.output {
                 write_output_file(out_path, &content, args.force)?;
             } else {
                 print!("{}", content);
@@ -266,7 +299,7 @@ fn write_bundle_to_destination(
     args: &cli::CliContextArgs,
     selected: &[ContextFileRow],
 ) -> Result<usize> {
-    if let Some(ref out_path) = args.out {
+    if let Some(ref out_path) = args.output {
         // Open file with proper semantics: create_new fails if exists (unless --force)
         let file = if args.force {
             OpenOptions::new()
@@ -338,6 +371,7 @@ fn format_list_output(
 
 /// Write bundle output (concatenated file contents) directly to a writer.
 /// Streams file content to avoid loading entire bundle into memory.
+/// Dispatches based on file inclusion policy (Full / HeadTail / Skip).
 fn write_bundle_output<W: Write>(
     w: &mut W,
     selected: &[ContextFileRow],
@@ -349,39 +383,55 @@ fn write_bundle_output<W: Write>(
             continue;
         }
 
-        writeln!(w, "// === {} ===", file.path)?;
+        match file.policy {
+            InclusionPolicy::Full => {
+                writeln!(w, "// === {} ===", file.path)?;
 
-        if compress {
-            // Strip blank lines only (safe for all languages).
-            let f = File::open(&path)
-                .with_context(|| format!("Failed to open file: {}", path.display()))?;
-            let reader = BufReader::new(f);
-            for line in reader.lines() {
-                let line =
-                    line.with_context(|| format!("Failed to read file: {}", path.display()))?;
-                if !line.trim().is_empty() {
-                    writeln!(w, "{line}")?;
+                if compress {
+                    let f = File::open(&path)
+                        .with_context(|| format!("Failed to open file: {}", path.display()))?;
+                    let reader = BufReader::new(f);
+                    for line in reader.lines() {
+                        let line = line
+                            .with_context(|| format!("Failed to read file: {}", path.display()))?;
+                        if !line.trim().is_empty() {
+                            writeln!(w, "{line}")?;
+                        }
+                    }
+                    writeln!(w)?;
+                } else {
+                    let mut f = File::open(&path)
+                        .with_context(|| format!("Failed to open file: {}", path.display()))?;
+                    let mut buf = [0u8; 16 * 1024];
+                    let mut last: Option<u8> = None;
+                    loop {
+                        let n = f.read(&mut buf)?;
+                        if n == 0 {
+                            break;
+                        }
+                        last = Some(buf[n - 1]);
+                        w.write_all(&buf[..n])?;
+                    }
+                    if last != Some(b'\n') {
+                        w.write_all(b"\n")?;
+                    }
+                    w.write_all(b"\n")?;
                 }
             }
-            writeln!(w)?;
-        } else {
-            // Stream with 16KB buffer
-            let mut f = File::open(&path)
-                .with_context(|| format!("Failed to open file: {}", path.display()))?;
-            let mut buf = [0u8; 16 * 1024];
-            let mut last: Option<u8> = None;
-            loop {
-                let n = f.read(&mut buf)?;
-                if n == 0 {
-                    break;
-                }
-                last = Some(buf[n - 1]);
-                w.write_all(&buf[..n])?;
+            InclusionPolicy::HeadTail => {
+                writeln!(w, "// === {} ===", file.path)?;
+                context_pack::write_head_tail(w, &path, file, compress)?;
+                writeln!(w)?;
             }
-            if last != Some(b'\n') {
-                w.write_all(b"\n")?;
+            InclusionPolicy::Summary | InclusionPolicy::Skip => {
+                writeln!(
+                    w,
+                    "// === {} [skipped: {}] ===",
+                    file.path,
+                    file.policy_reason.as_deref().unwrap_or("policy")
+                )?;
+                writeln!(w)?;
             }
-            w.write_all(b"\n")?;
         }
     }
     Ok(())
@@ -394,9 +444,10 @@ fn format_json_output(
     used_tokens: usize,
     utilization: f64,
     args: &cli::CliContextArgs,
+    select_result: &context_pack::SelectResult,
 ) -> Result<String> {
     let receipt = ContextReceipt {
-        schema_version: SCHEMA_VERSION,
+        schema_version: CONTEXT_SCHEMA_VERSION,
         generated_at_ms: SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -410,6 +461,13 @@ fn format_json_output(
         rank_by: format!("{:?}", args.rank_by).to_lowercase(),
         file_count: selected.len(),
         files: selected.to_vec(),
+        rank_by_effective: if select_result.fallback_reason.is_some() {
+            Some(select_result.rank_by_effective.clone())
+        } else {
+            None
+        },
+        fallback_reason: select_result.fallback_reason.clone(),
+        excluded_by_policy: select_result.excluded_by_policy.clone(),
     };
     let json = serde_json::to_string_pretty(&receipt)?;
     Ok(format!("{}\n", json))
@@ -458,6 +516,7 @@ fn write_bundle_directory(
     force: bool,
     excluded_paths: &[ContextExcludedPath],
     excluded_patterns: &[String],
+    select_result: &context_pack::SelectResult,
 ) -> Result<usize> {
     // Check if directory exists and is non-empty
     if dir.exists() {
@@ -484,7 +543,7 @@ fn write_bundle_directory(
     // Write receipt.json
     let receipt_path = dir.join("receipt.json");
     let receipt = ContextReceipt {
-        schema_version: SCHEMA_VERSION,
+        schema_version: CONTEXT_SCHEMA_VERSION,
         generated_at_ms: now_ms,
         tool: ToolInfo::current(),
         mode: "context".to_string(),
@@ -495,6 +554,13 @@ fn write_bundle_directory(
         rank_by: format!("{:?}", args.rank_by).to_lowercase(),
         file_count: selected.len(),
         files: selected.to_vec(),
+        rank_by_effective: if select_result.fallback_reason.is_some() {
+            Some(select_result.rank_by_effective.clone())
+        } else {
+            None
+        },
+        fallback_reason: select_result.fallback_reason.clone(),
+        excluded_by_policy: select_result.excluded_by_policy.clone(),
     };
     let receipt_json = serde_json::to_string_pretty(&receipt)?;
     fs::write(&receipt_path, &receipt_json)
@@ -556,6 +622,13 @@ fn write_bundle_directory(
         included_files: selected.to_vec(),
         excluded_paths: excluded_paths.to_vec(),
         excluded_patterns: excluded_patterns.to_vec(),
+        rank_by_effective: if select_result.fallback_reason.is_some() {
+            Some(select_result.rank_by_effective.clone())
+        } else {
+            None
+        },
+        fallback_reason: select_result.fallback_reason.clone(),
+        excluded_by_policy: select_result.excluded_by_policy.clone(),
     };
     let manifest_json = serde_json::to_string_pretty(&manifest)?;
     fs::write(&manifest_path, &manifest_json)

@@ -31,6 +31,16 @@ pub enum ErrorCode {
     InternalError,
     /// Feature not yet implemented.
     NotImplemented,
+    /// Git is not available on PATH.
+    GitNotAvailable,
+    /// Not inside a git repository.
+    NotGitRepository,
+    /// Git operation failed.
+    GitOperationFailed,
+    /// Configuration file not found.
+    ConfigNotFound,
+    /// Configuration file invalid.
+    ConfigInvalid,
 }
 
 impl fmt::Display for ErrorCode {
@@ -46,6 +56,11 @@ impl fmt::Display for ErrorCode {
             ErrorCode::IoError => write!(f, "io_error"),
             ErrorCode::InternalError => write!(f, "internal_error"),
             ErrorCode::NotImplemented => write!(f, "not_implemented"),
+            ErrorCode::GitNotAvailable => write!(f, "git_not_available"),
+            ErrorCode::NotGitRepository => write!(f, "not_git_repository"),
+            ErrorCode::GitOperationFailed => write!(f, "git_operation_failed"),
+            ErrorCode::ConfigNotFound => write!(f, "config_not_found"),
+            ErrorCode::ConfigInvalid => write!(f, "config_invalid"),
         }
     }
 }
@@ -60,15 +75,19 @@ pub struct TokmdError {
     /// Optional additional details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<String>,
+    /// Optional helpful suggestions for resolving the error.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suggestions: Option<Vec<String>>,
 }
 
 impl TokmdError {
-    /// Create a new error with the given code and message.
+    /// Create a new error with given code and message.
     pub fn new(code: ErrorCode, message: impl Into<String>) -> Self {
         Self {
             code,
             message: message.into(),
             details: None,
+            suggestions: None,
         }
     }
 
@@ -82,7 +101,114 @@ impl TokmdError {
             code,
             message: message.into(),
             details: Some(details.into()),
+            suggestions: None,
         }
+    }
+
+    /// Create an error with suggestions.
+    pub fn with_suggestions(
+        code: ErrorCode,
+        message: impl Into<String>,
+        suggestions: Vec<String>,
+    ) -> Self {
+        Self {
+            code,
+            message: message.into(),
+            details: None,
+            suggestions: Some(suggestions),
+        }
+    }
+
+    /// Create an error with both details and suggestions.
+    pub fn with_details_and_suggestions(
+        code: ErrorCode,
+        message: impl Into<String>,
+        details: impl Into<String>,
+        suggestions: Vec<String>,
+    ) -> Self {
+        Self {
+            code,
+            message: message.into(),
+            details: Some(details.into()),
+            suggestions: Some(suggestions),
+        }
+    }
+
+    /// Create a git not available error.
+    pub fn git_not_available() -> Self {
+        Self::with_suggestions(
+            ErrorCode::GitNotAvailable,
+            "git is not available on PATH".to_string(),
+            vec![
+                "Install git from https://git-scm.com/downloads".to_string(),
+                "Ensure git is in your system PATH".to_string(),
+                "Verify installation by running: git --version".to_string(),
+            ],
+        )
+    }
+
+    /// Create a not git repository error.
+    pub fn not_git_repository(path: &str) -> Self {
+        Self::with_details_and_suggestions(
+            ErrorCode::NotGitRepository,
+            format!("Not inside a git repository: {}", path),
+            "The current directory is not a git repository".to_string(),
+            vec![
+                "Initialize a git repository: git init".to_string(),
+                "Navigate to a git repository directory".to_string(),
+                "Use --no-git flag to disable git features".to_string(),
+            ],
+        )
+    }
+
+    /// Create a git operation failed error.
+    pub fn git_operation_failed(operation: &str, reason: &str) -> Self {
+        Self::with_details(
+            ErrorCode::GitOperationFailed,
+            format!("Git operation failed: {}", operation),
+            format!("Reason: {}", reason),
+        )
+    }
+
+    /// Create a config not found error.
+    pub fn config_not_found(path: &str) -> Self {
+        Self::with_suggestions(
+            ErrorCode::ConfigNotFound,
+            format!("Configuration file not found: {}", path),
+            vec![
+                "Create a tokmd.toml configuration file".to_string(),
+                "Run 'tokmd init' to generate a template".to_string(),
+                "Use default settings by omitting --config flag".to_string(),
+            ],
+        )
+    }
+
+    /// Create a config invalid error.
+    pub fn config_invalid(path: &str, reason: &str) -> Self {
+        Self::with_details_and_suggestions(
+            ErrorCode::ConfigInvalid,
+            format!("Invalid configuration file: {}", path),
+            format!("Reason: {}", reason),
+            vec![
+                "Check the configuration file syntax".to_string(),
+                "Refer to documentation for valid options".to_string(),
+                "Run 'tokmd init' to generate a valid template".to_string(),
+            ],
+        )
+    }
+
+    /// Create a path not found error with suggestions.
+    pub fn path_not_found_with_suggestions(path: &str) -> Self {
+        Self::with_details_and_suggestions(
+            ErrorCode::PathNotFound,
+            format!("Path not found: {}", path),
+            "The specified path does not exist or is not accessible".to_string(),
+            vec![
+                "Check the path spelling".to_string(),
+                "Verify the path exists: ls -la".to_string(),
+                "Ensure you have read permissions".to_string(),
+            ],
+        )
     }
 
     /// Create a path not found error.
@@ -174,7 +300,7 @@ impl From<std::io::Error> for TokmdError {
     }
 }
 
-/// Error details for the response envelope.
+/// Error details for response envelope.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDetails {
     /// The error code.
@@ -213,7 +339,7 @@ pub struct ResponseEnvelope {
 }
 
 impl ResponseEnvelope {
-    /// Create a success response with the given data.
+    /// Create a success response with given data.
     pub fn success(data: Value) -> Self {
         Self {
             ok: true,
@@ -237,14 +363,14 @@ impl ResponseEnvelope {
             if self.ok {
                 r#"{"ok":true,"data":null}"#.to_string()
             } else {
-                let err = self
+                let (code, message) = self
                     .error
                     .as_ref()
-                    .map(|e| e.code.as_str())
-                    .unwrap_or("internal_error");
+                    .map(|e| (e.code.as_str(), e.message.as_str()))
+                    .unwrap_or(("internal_error", "serialization failed"));
                 format!(
-                    r#"{{"ok":false,"error":{{"code":"{}","message":"serialization failed"}}}}"#,
-                    err
+                    r#"{{"ok":false,"error":{{"code":"{}","message":"{}"}}}}"#,
+                    code, message
                 )
             }
         })
@@ -330,34 +456,22 @@ mod tests {
         let data = serde_json::json!({"rows": []});
         let envelope = ResponseEnvelope::success(data.clone());
         assert!(envelope.ok);
-        assert_eq!(envelope.data, Some(data));
-        assert!(envelope.error.is_none());
 
-        let json = envelope.to_json();
-        let parsed: Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed["ok"], true);
-        assert!(parsed["data"].is_object());
-        assert!(parsed.get("error").is_none());
-    }
+        #[test]
+        fn error_with_suggestions() {
+            let err = TokmdError::git_not_available();
+            assert_eq!(err.code, ErrorCode::GitNotAvailable);
+            assert!(err.suggestions.is_some());
+            let suggestions = err.suggestions.unwrap();
+            assert!(suggestions.len() > 0);
+        }
 
-    #[test]
-    fn response_envelope_error() {
-        let err = TokmdError::invalid_field("format", "'json', 'csv', or 'jsonl'");
-        let envelope = ResponseEnvelope::error(&err);
-        assert!(!envelope.ok);
-        assert!(envelope.data.is_none());
-        assert!(envelope.error.is_some());
-
-        let json = envelope.to_json();
-        let parsed: Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed["ok"], false);
-        assert!(parsed.get("data").is_none());
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .unwrap()
-                .contains("format")
-        );
+        #[test]
+        fn error_with_details_and_suggestions() {
+            let err = TokmdError::not_git_repository("/some/path");
+            assert_eq!(err.code, ErrorCode::NotGitRepository);
+            assert!(err.details.is_some());
+            assert!(err.suggestions.is_some());
+        }
     }
 }

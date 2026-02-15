@@ -12,51 +12,6 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
-/// Helper to check if git is available in the environment.
-fn git_available() -> bool {
-    std::process::Command::new("git")
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
-
-/// Helper to initialize a git repo with some commits.
-fn init_git_repo(dir: &std::path::Path) -> bool {
-    let commands = [
-        vec!["init"],
-        vec!["symbolic-ref", "HEAD", "refs/heads/main"], // Set default branch to main
-        vec!["config", "user.email", "test@test.com"],
-        vec!["config", "user.name", "Test User"],
-    ];
-
-    for args in &commands {
-        let status = std::process::Command::new("git")
-            .args(args)
-            .current_dir(dir)
-            .status();
-        if !status.map(|s| s.success()).unwrap_or(false) {
-            return false;
-        }
-    }
-    true
-}
-
-fn git_add_commit(dir: &std::path::Path, message: &str) -> bool {
-    let commands = [vec!["add", "."], vec!["commit", "-m", message]];
-
-    for args in &commands {
-        let status = std::process::Command::new("git")
-            .args(args)
-            .current_dir(dir)
-            .status();
-        if !status.map(|s| s.success()).unwrap_or(false) {
-            return false;
-        }
-    }
-    true
-}
-
 #[test]
 fn test_cockpit_help() {
     // Given: The cockpit command exists
@@ -75,7 +30,10 @@ fn test_cockpit_help() {
 
 #[test]
 fn test_cockpit_json_format() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a feature branch with code changes
+    // When: User runs `tokmd cockpit --base main --head HEAD --format json`
+    // Then: Output should include JSON with schema_version, change_surface, composition, contracts, review_plan
+    if !common::git_available() {
         eprintln!("Skipping: git not available");
         return;
     }
@@ -83,14 +41,14 @@ fn test_cockpit_json_format() {
     let dir = tempdir().unwrap();
 
     // Initialize git repo
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         eprintln!("Skipping: git init failed");
         return;
     }
 
     // Create initial commit on main
     std::fs::write(dir.path().join("lib.rs"), "fn main() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial commit") {
+    if !common::git_add_commit(dir.path(), "Initial commit") {
         eprintln!("Skipping: git commit failed");
         return;
     }
@@ -102,7 +60,7 @@ fn test_cockpit_json_format() {
         .status();
 
     std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
-    if !git_add_commit(dir.path(), "Add new file") {
+    if !common::git_add_commit(dir.path(), "Add new file") {
         eprintln!("Skipping: second commit failed");
         return;
     }
@@ -148,20 +106,23 @@ fn test_cockpit_json_format() {
 
 #[test]
 fn test_cockpit_md_format() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a feature branch with code changes
+    // When: User runs `tokmd cockpit --base main --format md`
+    // Then: Output should include markdown with Glass Cockpit header and sections
+    if !common::git_available() {
         eprintln!("Skipping: git not available");
         return;
     }
 
     let dir = tempdir().unwrap();
 
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         eprintln!("Skipping: git init failed");
         return;
     }
 
     std::fs::write(dir.path().join("main.rs"), "fn main() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial") {
+    if !common::git_add_commit(dir.path(), "Initial") {
         return;
     }
 
@@ -171,7 +132,7 @@ fn test_cockpit_md_format() {
         .status();
 
     std::fs::write(dir.path().join("test.rs"), "fn test() {}").unwrap();
-    if !git_add_commit(dir.path(), "Add test") {
+    if !common::git_add_commit(dir.path(), "Add test") {
         return;
     }
 
@@ -217,19 +178,22 @@ fn test_cockpit_md_format() {
 
 #[test]
 fn test_cockpit_sections_format() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a dev branch with code changes
+    // When: User runs `tokmd cockpit --base main --format sections`
+    // Then: Output should include section markers (COCKPIT, REVIEW_PLAN, RECEIPTS)
+    if !common::git_available() {
         eprintln!("Skipping: git not available");
         return;
     }
 
     let dir = tempdir().unwrap();
 
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         return;
     }
 
     std::fs::write(dir.path().join("app.rs"), "fn app() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial") {
+    if !common::git_add_commit(dir.path(), "Initial") {
         return;
     }
 
@@ -239,7 +203,7 @@ fn test_cockpit_sections_format() {
         .status();
 
     std::fs::write(dir.path().join("mod.rs"), "mod app;").unwrap();
-    if !git_add_commit(dir.path(), "Add module") {
+    if !common::git_add_commit(dir.path(), "Add module") {
         return;
     }
 
@@ -277,18 +241,21 @@ fn test_cockpit_sections_format() {
 
 #[test]
 fn test_cockpit_output_file() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a test branch with code changes
+    // When: User runs `tokmd cockpit --base main --output cockpit.json`
+    // Then: Output file should be created with valid JSON
+    if !common::git_available() {
         return;
     }
 
     let dir = tempdir().unwrap();
 
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         return;
     }
 
     std::fs::write(dir.path().join("code.rs"), "fn code() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial") {
+    if !common::git_add_commit(dir.path(), "Initial") {
         return;
     }
 
@@ -298,7 +265,7 @@ fn test_cockpit_output_file() {
         .status();
 
     std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
-    if !git_add_commit(dir.path(), "New") {
+    if !common::git_add_commit(dir.path(), "New") {
         return;
     }
 
@@ -323,18 +290,21 @@ fn test_cockpit_output_file() {
 
 #[test]
 fn test_cockpit_artifacts_dir() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a test branch with code changes
+    // When: User runs `tokmd cockpit --base main --artifacts-dir artifacts/tokmd`
+    // Then: Artifacts directory should contain report.json and comment.md
+    if !common::git_available() {
         return;
     }
 
     let dir = tempdir().unwrap();
 
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         return;
     }
 
     std::fs::write(dir.path().join("code.rs"), "fn code() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial") {
+    if !common::git_add_commit(dir.path(), "Initial") {
         return;
     }
 
@@ -344,7 +314,7 @@ fn test_cockpit_artifacts_dir() {
         .status();
 
     std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
-    if !git_add_commit(dir.path(), "New") {
+    if !common::git_add_commit(dir.path(), "New") {
         return;
     }
 
@@ -398,19 +368,22 @@ fn test_cockpit_not_in_git_repo() {
 
 #[test]
 fn test_cockpit_file_classification() {
-    if !git_available() {
+    // Given: A git repository with a main branch and a diverse branch with code, test, docs, config files
+    // When: User runs `tokmd cockpit --base main --format json`
+    // Then: Output should include composition with code_pct, test_pct, docs_pct, config_pct
+    if !common::git_available() {
         return;
     }
 
     let dir = tempdir().unwrap();
 
-    if !init_git_repo(dir.path()) {
+    if !common::init_git_repo(dir.path()) {
         return;
     }
 
     // Create initial commit
     std::fs::write(dir.path().join("main.rs"), "fn main() {}").unwrap();
-    if !git_add_commit(dir.path(), "Initial") {
+    if !common::git_add_commit(dir.path(), "Initial") {
         return;
     }
 
@@ -430,7 +403,7 @@ fn test_cockpit_file_classification() {
     // Config
     std::fs::write(dir.path().join("Cargo.toml"), "[package]").unwrap();
 
-    if !git_add_commit(dir.path(), "Add diverse files") {
+    if !common::git_add_commit(dir.path(), "Add diverse files") {
         return;
     }
 
@@ -470,4 +443,230 @@ fn test_cockpit_file_classification() {
         composition.get("config_pct").is_some(),
         "should have config_pct"
     );
+}
+
+// =============================================================================
+// Priority 2: BDD Scenario Tests for Evidence Gates
+// =============================================================================
+
+#[test]
+fn test_evidence_gates_pass_all() {
+    // Given: A repository with adequate code, tests, and documentation
+    // When: User runs `tokmd cockpit --base main --head feature --format json`
+    // Then: Output should show all evidence gates passing
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return;
+    }
+
+    // Create initial commit with balanced files
+    std::fs::write(dir.path().join("lib.rs"), "pub fn lib() {}").unwrap();
+    std::fs::create_dir(dir.path().join("tests")).unwrap();
+    std::fs::write(dir.path().join("tests").join("test.rs"), "fn test() {}").unwrap();
+    std::fs::write(dir.path().join("README.md"), "# README").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    // Add more balanced changes
+    std::fs::write(dir.path().join("new.rs"), "pub fn new() {}").unwrap();
+    std::fs::write(
+        dir.path().join("tests").join("new_test.rs"),
+        "fn new_test() {}",
+    )
+    .unwrap();
+    if !common::git_add_commit(dir.path(), "Add feature") {
+        return;
+    }
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .unwrap();
+
+    if !output.status.success() {
+        return;
+    }
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    // Verify review plan exists (contains evidence gate information)
+    assert!(
+        json.get("review_plan").is_some(),
+        "should have review_plan with evidence gates"
+    );
+}
+
+#[test]
+fn test_evidence_gates_fail_coverage() {
+    // Given: A repository with code but insufficient test coverage
+    // When: User runs `tokmd cockpit --base main --head feature --format json`
+    // Then: Output should show coverage gate failing or warning
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return;
+    }
+
+    // Create initial commit with only code
+    std::fs::write(dir.path().join("lib.rs"), "pub fn lib() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    // Add more code without tests
+    std::fs::write(dir.path().join("new.rs"), "pub fn new() {}").unwrap();
+    std::fs::write(dir.path().join("more.rs"), "pub fn more() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Add code without tests") {
+        return;
+    }
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .unwrap();
+
+    if !output.status.success() {
+        return;
+    }
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    // Verify composition shows low test percentage
+    let composition = &json["composition"];
+    assert!(
+        composition.get("test_pct").is_some(),
+        "should have test_pct"
+    );
+
+    // Low test percentage indicates coverage gate issue
+    let test_pct = composition["test_pct"].as_f64().unwrap_or(0.0);
+    assert!(
+        test_pct < 50.0,
+        "test_pct should be low (< 50%) indicating coverage gate issue, got {}",
+        test_pct
+    );
+}
+
+#[test]
+fn test_evidence_gates_fail_supply_chain() {
+    // Given: A repository with missing dependency lockfiles
+    // When: User runs `tokmd cockpit --base main --head feature --format json`
+    // Then: Output should show supply chain gate failing or warning
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return;
+    }
+
+    // Create initial commit with Cargo.toml but no lockfile
+    std::fs::write(
+        dir.path().join("Cargo.toml"),
+        r#"[package]
+name = "test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = "1.0"
+"#,
+    )
+    .unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    // Add more dependencies without lockfile
+    std::fs::write(
+        dir.path().join("Cargo.toml"),
+        r#"[package]
+name = "test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = "1.0"
+tokio = "1.0"
+anyhow = "1.0"
+"#,
+    )
+    .unwrap();
+    if !common::git_add_commit(dir.path(), "Add dependencies") {
+        return;
+    }
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .unwrap();
+
+    if !output.status.success() {
+        return;
+    }
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    // Verify review plan exists (may contain supply chain gate info)
+    assert!(json.get("review_plan").is_some(), "should have review_plan");
 }

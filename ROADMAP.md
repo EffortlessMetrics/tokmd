@@ -25,8 +25,10 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.3.0** | ✅ Complete | Advanced enrichers, gate command, interactive wizard.        |
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
-| **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, function detail export. |
+| **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
 | **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
+| **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
+| **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 
@@ -75,10 +77,14 @@ This document outlines the evolution of `tokmd` and the path forward.
 | :--- | :---------------------- | :------------------------------------ |
 | 0    | `tokmd-types`           | Core data structures, no dependencies |
 | 0    | `tokmd-analysis-types`  | Analysis receipt types                |
+| 0    | `tokmd-settings`        | Clap-free settings types              |
+| 0    | `tokmd-envelope`        | Cross-fleet sensor report contract    |
+| 0    | `tokmd-substrate`       | Shared repo context (`RepoSubstrate`) |
 | 1    | `tokmd-scan`            | tokei wrapper                         |
 | 1    | `tokmd-model`           | Aggregation logic                     |
 | 1    | `tokmd-tokeignore`      | Template generation                   |
 | 1    | `tokmd-redact`          | BLAKE3-based path redaction utilities |
+| 1    | `tokmd-sensor`          | `EffortlessSensor` trait + builder    |
 | 2    | `tokmd-format`          | Output rendering                      |
 | 2    | `tokmd-walk`            | File system traversal                 |
 | 2    | `tokmd-content`         | File content scanning                 |
@@ -86,15 +92,16 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
 | 3    | `tokmd-analysis-format` | Analysis output rendering             |
 | 3    | `tokmd-fun`             | Fun/novelty outputs                   |
+| 3    | `tokmd-gate`            | Policy evaluation with JSON pointer   |
 | 4    | `tokmd-config`          | Configuration loading                 |
-| 4    | `tokmd-core`            | Library facade                        |
+| 4    | `tokmd-core`            | Library facade with FFI layer         |
 | 5    | `tokmd`                 | CLI binary                            |
-| —    | `tokmd-python`          | Python bindings (PyO3)                |
-| —    | `tokmd-node`            | Node.js bindings (napi-rs)            |
+| 5    | `tokmd-python`          | Python bindings (PyO3)                |
+| 5    | `tokmd-node`            | Node.js bindings (napi-rs)            |
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: 16 focused crates for modularity
+- [x] **Microcrate Architecture**: Focused crates for modularity (16 crates)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
@@ -227,9 +234,9 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Completed: v1.6.0 — Advanced Complexity Features
+## Completed: v1.6.0 — Advanced Complexity & Sensor Envelope
 
-**Goal**: Deeper complexity analysis and gating.
+**Goal**: Deeper complexity analysis, sensor envelope, and cockpit overhaul.
 
 ### Complexity Features
 
@@ -239,6 +246,16 @@ This document outlines the evolution of `tokmd` and the path forward.
 | Function detail export | ✅ Complete | `--detail-functions` flag for function-level output  |
 | Complexity histogram   | ✅ Complete | Wired into analysis pipeline from pre-existing implementation |
 | Complexity gates       | ✅ Complete | Shipped in cockpit evidence gate system              |
+
+### Sensor & Envelope
+
+| Feature                  | Status      | Description                                          |
+| :----------------------- | :---------- | :--------------------------------------------------- |
+| `tokmd sensor` command   | ✅ Complete | Conforming sensor producing `sensor.report.v1` envelope |
+| `tokmd-sensor` crate     | ✅ Complete | `EffortlessSensor` trait + substrate builder          |
+| `tokmd-envelope` crate   | ✅ Complete | Cross-fleet `SensorReport` contract with verdicts    |
+| `tokmd-substrate` crate  | ✅ Complete | Shared `RepoSubstrate` for single-I/O-pass sensors  |
+| `tokmd-settings` crate   | ✅ Complete | Clap-free settings types for library/FFI usage       |
 
 ### Derived Metrics
 
@@ -250,6 +267,17 @@ This document outlines the evolution of `tokmd` and the path forward.
 | API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
 | Code age distribution     | 📋 Planned  | Extend git freshness into age buckets with trend tracking |
 
+### Cockpit & CLI Improvements
+
+| Feature                     | Status      | Description                                             |
+| :-------------------------- | :---------- | :------------------------------------------------------ |
+| Diff coverage overhaul      | ✅ Complete | LCOV intersected with git-added lines for accurate coverage |
+| `get_added_lines()` in git  | ✅ Complete | New API for per-file added-line extraction from git diff |
+| CLI arg normalization       | ✅ Complete | `--out` → `--output` (with backward-compatible alias)   |
+| Rust fn regex compliance    | ✅ Complete | `(_\|XID_Start) XID_Continue*` per Rust spec            |
+| Cross-platform docs         | ✅ Complete | xtask docs normalizes `tokmd.exe` → `tokmd`, CRLF → LF |
+| Docs integration test       | ✅ Complete | Automated reference-cli.md freshness verification       |
+
 ### Schema Changes
 
 - **Analysis schema version**: 4 → 5
@@ -259,6 +287,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - **New feature flag**: `halstead` in `tokmd-analysis`
 - **Cockpit gates completed**: diff coverage (lcov), semver checks, schema diff
 - **Handoff complexity**: Real data from file analysis (replaces heuristic)
+- **New crates**: `tokmd-sensor`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate`
 
 ---
 
@@ -293,6 +322,43 @@ UX work is explicitly **incremental and non-breaking**:
 - Color respects `NO_COLOR` / `CLICOLOR` environment conventions
 
 ---
+
+## Planned: v1.8.0 — WASM-Ready Core
+
+**Goal:** Make the tokmd engine compile for `wasm32-unknown-unknown` and run against an in-memory repo substrate, producing deterministic receipts that match native output for the same file set (within defined limits).
+
+### Work items
+
+- Host abstraction (IO ports): enumerate files, read bytes, clock, optional logging/progress. Native uses FS; WASM uses an in-memory substrate provided by the host.
+- In-memory scan pipeline: add a scan path that accepts `Vec<(path, bytes)>` instead of filesystem `PathBuf`s so scans can run entirely from memory.
+- CLI/Clap separation hardening: ensure library surface does not depend on `clap` or OS-bound types; keep clap in the CLI crate only.
+- WASM feature profile: add a `wasm` (or `web`) feature that disables OS-bound pieces (`git`, `dirs`, `std::process`) and enables in-memory I/O.
+- WASM CI builds: add `cargo build --target wasm32-unknown-unknown` to CI and optionally `wasm32-wasi` for other runtimes.
+- Conformance tests: golden tests that verify native and wasm-engine outputs match (schema + deterministic ordering).
+
+### Notes & constraints
+
+- Scope limitation: git-history enrichers (hotspots/churn) are unavailable in the browser WASM mode and must be surfaced as "unavailable" in capability reporting.
+- No `std::process` in WASM mode; any shelling out must be feature-gated or moved behind a host capability.
+- Determinism: when scanning from an unordered JS file list, sort paths up front and avoid non-deterministic map iteration.
+
+## Planned: v1.9.0 — WASM Distribution + Browser Runner
+
+**Goal:** Provide a browser-first experience where a user can paste a GitHub repo URL into a web page, the page fetches an archive, runs tokmd in WASM locally, and returns deterministic receipts, markdown, and downloadable artifacts without any server-side computation.
+
+### Work items
+
+- `tokmd-wasm` crate: a dedicated crate exposing a JS-friendly API (via `wasm-bindgen`): `run_lang`, `run_module`, `run_export`, `run_analyze` that accept in-memory file inputs.
+- Browser runner (static app): minimal web UI (repo URL + ref + Run), run scans in a Web Worker, stream progress, and support cancel.
+- Zipball ingestion: fetch `https://api.github.com/repos/{owner}/{repo}/zipball/{ref}` (public or with token), unzip in-browser, filter files (skip vendor/binary by default), and feed `(path, bytes)` to wasm.
+- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, use ETag/If-None-Match, enforce hard limits (max archive size, max file count, max bytes read).
+- Capability reporting: outputs include a capabilities section describing what ran and what was unavailable (e.g., git metrics).
+- Packaging & distribution: publish the WASM bundle as a pinned artifact (GitHub release / npm) for the web app to consume.
+
+### Non-goals for v1.9
+
+- No git-history churn/hotspot metrics in browser mode (offer backend escape hatch later).
+- No mutation testing or heavy tooling in-browser.
 
 ## Future Horizons
 

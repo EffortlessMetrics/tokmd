@@ -103,7 +103,7 @@ This enables:
 
 ### Feature Flags
 Heavy dependencies are feature-gated:
-- `git`: Git history analysis (requires git2)
+- `git`: Git history analysis (shells out to `git` command)
 - `content`: File content scanning
 - `walk`: Filesystem traversal
 

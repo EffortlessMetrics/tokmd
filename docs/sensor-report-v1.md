@@ -47,7 +47,7 @@ The formal JSON Schema is available at:
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "mode": "cockpit"
   },
   "generated_at": "2026-02-07T12:00:00Z",
@@ -117,7 +117,7 @@ The formal JSON Schema is available at:
 ```json
 {
   "name": "tokmd",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "mode": "cockpit"
 }
 ```

@@ -5,7 +5,7 @@ use predicates::prelude::*;
 
 #[test]
 fn tok_default_lang_output() {
-    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tok"));
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(common::fixture_root())
         .assert()
         .success()
