@@ -118,6 +118,8 @@ fn recipe_sensor_json() {
         .arg("sensor")
         .arg("--format")
         .arg("json")
+        .arg("--base")
+        .arg("HEAD")
         .arg("--output")
         .arg(&report_path)
         .assert()
