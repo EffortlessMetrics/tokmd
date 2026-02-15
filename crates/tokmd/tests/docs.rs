@@ -116,6 +116,11 @@ fn recipe_sensor_json() {
     let report_path = tmp.path().join("report.json");
     tokmd()
         .arg("sensor")
+        // Use explicit base/head to avoid assuming 'main' exists in CI shallow clones
+        .arg("--base")
+        .arg("HEAD")
+        .arg("--head")
+        .arg("HEAD")
         .arg("--format")
         .arg("json")
         .arg("--output")
