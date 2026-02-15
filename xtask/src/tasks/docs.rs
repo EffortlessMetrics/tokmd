@@ -42,7 +42,8 @@ pub fn run(args: DocsArgs) -> Result<()> {
         let end_marker = format!("<!-- /HELP: {} -->", marker_id);
 
         if let Some(start_idx) = new_content.find(&start_marker)
-            && let Some(end_idx) = new_content.find(&end_marker) {
+            && let Some(end_idx) = new_content.find(&end_marker)
+        {
             let help_output = get_tokmd_help(cmd_name)?;
             let wrapped_help = format!("```text\n{}\n```", help_output.trim());
 
@@ -101,7 +102,7 @@ fn get_tokmd_help(cmd: &str) -> Result<String> {
     }
 
     let mut s = String::from_utf8_lossy(&output.stdout).to_string();
-    
+
     // Normalize cross-platform drift:
     // - Windows prints `tokmd.exe` in Usage lines; Unix prints `tokmd`
     // - CRLF vs LF line endings

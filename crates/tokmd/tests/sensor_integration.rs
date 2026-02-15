@@ -223,11 +223,11 @@ fn sensor_report_with_risk_findings() {
 
     let stdout = String::from_utf8(output.stdout).expect("stdout utf8");
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    
+
     // Verify sensor report structure
     assert_eq!(json["schema"], "sensor.report.v1");
     assert_eq!(json["tool"]["name"], "tokmd");
-    
+
     // Verify data section exists (which may contain risk findings)
     assert!(json.get("data").is_some());
 }
@@ -261,7 +261,11 @@ fn sensor_report_with_contract_changes() {
         .status();
 
     // Add new files and modify existing ones
-    std::fs::write(dir.path().join("src/lib.rs"), "fn main() { println!(\"updated\"); }\n").unwrap();
+    std::fs::write(
+        dir.path().join("src/lib.rs"),
+        "fn main() { println!(\"updated\"); }\n",
+    )
+    .unwrap();
     std::fs::write(dir.path().join("src/new.rs"), "fn new() {}\n").unwrap();
     if !common::git_add_commit(dir.path(), "Add changes") {
         eprintln!("Skipping: second commit failed");
@@ -288,7 +292,7 @@ fn sensor_report_with_contract_changes() {
 
     let stdout = String::from_utf8(output.stdout).expect("stdout utf8");
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    
+
     // Verify sensor report structure with contract-related data
     assert_eq!(json["schema"], "sensor.report.v1");
     assert!(json.get("data").is_some());
@@ -348,11 +352,11 @@ fn sensor_envelope_verdict_aggregation() {
 
     let stdout = String::from_utf8(output.stdout).expect("stdout utf8");
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    
+
     // Verify envelope structure exists
     assert_eq!(json["schema"], "sensor.report.v1");
     assert!(json.get("data").is_some());
-    
+
     // Verify artifacts section (envelope metadata)
     let artifacts = json
         .get("artifacts")
@@ -617,7 +621,8 @@ fn scenario_four_high_complexity_files_verdict_fail() {
         "complexity gate should be present in gate items"
     );
     assert_eq!(
-        complexity_gate.unwrap()["status"], "fail",
+        complexity_gate.unwrap()["status"],
+        "fail",
         "complexity gate should be fail"
     );
 }

@@ -2409,6 +2409,23 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     let _ = writeln!(s, "## Glass Cockpit");
     let _ = writeln!(s);
 
+    // Summary comparison table
+    s.push_str("### Summary\n\n");
+    s.push_str("|Metric|Value|\n");
+    s.push_str("|---|---:|\n");
+    let _ = writeln!(
+        s,
+        "|Files Changed|{}|",
+        receipt.change_surface.files_changed
+    );
+    let _ = writeln!(s, "|Insertions|{}|", receipt.change_surface.insertions);
+    let _ = writeln!(s, "|Deletions|{}|", receipt.change_surface.deletions);
+    let _ = writeln!(s, "|Net Lines|{}|", receipt.change_surface.net_lines);
+    let _ = writeln!(s, "|Code Health Score|{}/100|", receipt.code_health.score);
+    let _ = writeln!(s, "|Risk Score|{}/100|", receipt.risk.score);
+    let _ = writeln!(s, "|Test Ratio|{:.2}|", receipt.composition.test_ratio);
+    s.push('\n');
+
     // Change Surface section
     let _ = writeln!(s, "### Change Surface");
     let _ = writeln!(s);

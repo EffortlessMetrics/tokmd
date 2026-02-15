@@ -131,11 +131,12 @@ The `tokmd-core` crate provides a clap-free library facade for embedding:
 - Increment schema_version when modifying JSON output structure
 - Update `docs/schema.json` (formal JSON Schema) when structures change
 - **Schema versions are separate for each receipt family**:
-  - Core receipts (`lang`, `module`, `export`, `diff`, `context`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
+  - Core receipts (`lang`, `module`, `export`, `diff`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
   - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 5` (in `tokmd-analysis-types`)
   - Cockpit receipts: `SCHEMA_VERSION = 3` (local to cockpit.rs)
-  - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 3` (in `tokmd-types`)
-  - Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 1` (in `tokmd-types`)
+  - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 4` (in `tokmd-types`)
+  - Context receipts: `CONTEXT_SCHEMA_VERSION = 3` (in `tokmd-types`)
+  - Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 2` (in `tokmd-types`)
 
 ### Feature Flags
 - `git`: Git history analysis (uses shell `git log`)

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **File Classification**: Auto-detect generated, vendored, fixture, lockfile, minified, sourcemap, and dense data blob files during context packing
+- **Inclusion Policies**: Per-file budget caps (`--max-file-pct`, `--max-file-tokens`) with Full/HeadTail/Summary/Skip policies
+- **Head/Tail Truncation**: Oversized files emit 60% head + 40% tail with omission marker
+- **Graceful Metric Fallback**: When git scores unavailable for `--rank-by hotspot/churn`, falls back to code lines with transparent `fallback_reason`
+- **Error Suggestions**: Actionable suggestions on git, config, and path errors (`with_suggestions()` builder)
+
+### Changed
+
+- **Handoff Schema**: v3 → v4 — added `rank_by_effective`, `fallback_reason`, `excluded_by_policy`, per-file `policy`/`classifications`
+- **Context Bundle Schema**: v1 → v2 — added policy tracking fields
+- **Context Receipt Schema**: Split from Core (`SCHEMA_VERSION = 2`) to own `CONTEXT_SCHEMA_VERSION = 3`
+- **Diff Markdown**: Added comparison summary table (From / To / Delta / Change %)
+
+### Fixed
+
+- **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
+
 ## [1.6.0] - 2026-02-11
 
 ### Added

@@ -30,3 +30,6 @@ mutants.out.old/
 .runs/
 
 .tokmd/cache/
+
+# Windows artifacts
+nul

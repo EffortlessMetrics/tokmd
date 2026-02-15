@@ -918,6 +918,35 @@ pub fn render_diff_md(
 
     let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
     s.push('\n');
+
+    // Summary comparison table
+    s.push_str("### Summary\n\n");
+    s.push_str("|Metric|From|To|Delta|Change|\n");
+    s.push_str("|---|---:|---:|---:|---:|\n");
+
+    let old_total = totals.old_code as f64;
+    let new_total = totals.new_code as f64;
+    let delta = totals.delta_code;
+    let change_pct = if old_total > 0.0 {
+        ((new_total - old_total) / old_total) * 100.0
+    } else if new_total > 0.0 {
+        100.0
+    } else {
+        0.0
+    };
+
+    let _ = writeln!(
+        s,
+        "|Total LOC|{}|{}|{}|{:+.1}%|",
+        totals.old_code,
+        totals.new_code,
+        format_delta(delta),
+        change_pct
+    );
+    s.push('\n');
+
+    // Detailed language breakdown
+    s.push_str("### Language Breakdown\n\n");
     s.push_str("|Language|Old LOC|New LOC|Delta|\n");
     s.push_str("|---|---:|---:|---:|\n");
 

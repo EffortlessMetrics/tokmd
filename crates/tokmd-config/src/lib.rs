@@ -609,6 +609,18 @@ pub struct CliContextArgs {
     /// Append JSONL record to log file (metadata only, not content).
     #[arg(long, value_name = "PATH")]
     pub log: Option<PathBuf>,
+
+    /// Maximum fraction of budget a single file may consume (0.0–1.0).
+    #[arg(long, default_value = "0.15")]
+    pub max_file_pct: f64,
+
+    /// Hard cap on tokens per file (overrides percentage-based cap).
+    #[arg(long)]
+    pub max_file_tokens: Option<usize>,
+
+    /// Error if git scores are unavailable when using churn/hotspot ranking.
+    #[arg(long)]
+    pub require_git_scores: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -861,6 +873,14 @@ pub struct HandoffArgs {
     /// Maximum files per commit to process.
     #[arg(long, default_value = "100")]
     pub max_commit_files: usize,
+
+    /// Maximum fraction of budget a single file may consume (0.0–1.0).
+    #[arg(long, default_value = "0.15")]
+    pub max_file_pct: f64,
+
+    /// Hard cap on tokens per file (overrides percentage-based cap).
+    #[arg(long)]
+    pub max_file_tokens: Option<usize>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

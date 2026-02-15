@@ -2,8 +2,14 @@
 
 use std::collections::BTreeMap;
 
+use std::io::Write;
+use std::path::Path;
+
 use tokmd_config::{ContextStrategy, ValueMetric};
-use tokmd_types::{ContextFileRow, FileKind, FileRow, SmartExcludedFile};
+use tokmd_types::{
+    ContextFileRow, FileClassification, FileKind, FileRow, InclusionPolicy, PolicyExcludedFile,
+    SmartExcludedFile,
+};
 
 use crate::git_scoring::GitScores;
 
@@ -94,15 +100,41 @@ fn is_spine_file(path: &str) -> bool {
 }
 
 /// Options for file selection with smart excludes and spine reservation.
-#[derive(Default)]
+#[allow(dead_code)]
 pub struct SelectOptions {
     pub no_smart_exclude: bool,
+    /// Maximum fraction of budget a single file may consume (default 0.15).
+    pub max_file_pct: f64,
+    /// Hard cap on tokens per file (default: None → computed as min(16_000, budget * pct)).
+    pub max_file_tokens: Option<usize>,
+    /// Error if git scores are unavailable and a git-based metric is requested.
+    pub require_git_scores: bool,
+    /// Tokens-per-line threshold above which a file is classified as DataBlob (default 50.0).
+    pub dense_threshold: f64,
+}
+
+impl Default for SelectOptions {
+    fn default() -> Self {
+        Self {
+            no_smart_exclude: false,
+            max_file_pct: 0.15,
+            max_file_tokens: None,
+            require_git_scores: false,
+            dense_threshold: 50.0,
+        }
+    }
 }
 
 /// Result of file selection including smart-excluded files.
 pub struct SelectResult {
     pub selected: Vec<ContextFileRow>,
     pub smart_excluded: Vec<SmartExcludedFile>,
+    /// Files excluded by per-file cap / classification policy.
+    pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Effective ranking metric used (may differ from requested if fallback occurred).
+    pub rank_by_effective: String,
+    /// Reason for fallback if the effective metric differs from the requested one.
+    pub fallback_reason: Option<String>,
 }
 
 /// Parse a budget string with optional k/m/g suffix into token count.
@@ -170,6 +202,276 @@ fn get_value(row: &FileRow, metric: ValueMetric, git_scores: Option<&GitScores>)
 
 fn normalize_path(path: &str) -> String {
     path.replace('\\', "/")
+}
+
+// ---------------------------------------------------------------------------
+// File classification
+// ---------------------------------------------------------------------------
+
+/// Generated file patterns (basename or path-component matches).
+const GENERATED_PATTERNS: &[&str] = &[
+    "node-types.json",
+    "grammar.json",
+    ".generated.",
+    ".pb.go",
+    ".pb.rs",
+    "_pb2.py",
+    ".g.dart",
+    ".freezed.dart",
+];
+
+/// Vendored directory segments.
+const VENDORED_DIRS: &[&str] = &["vendor/", "third_party/", "third-party/", "node_modules/"];
+
+/// Fixture directory segments.
+const FIXTURE_DIRS: &[&str] = &[
+    "fixtures/",
+    "testdata/",
+    "test_data/",
+    "__snapshots__/",
+    "golden/",
+];
+
+/// Classify a file based on its path and density heuristic.
+pub fn classify_file(
+    path: &str,
+    tokens: usize,
+    lines: usize,
+    dense_threshold: f64,
+) -> Vec<FileClassification> {
+    let mut classes = Vec::new();
+    let normalized = normalize_path(path);
+    let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
+
+    // Lockfile (exact basename match from smart-exclude patterns)
+    let lockfiles = [
+        "Cargo.lock",
+        "package-lock.json",
+        "pnpm-lock.yaml",
+        "yarn.lock",
+        "poetry.lock",
+        "Pipfile.lock",
+        "go.sum",
+        "composer.lock",
+        "Gemfile.lock",
+    ];
+    if lockfiles.contains(&basename) {
+        classes.push(FileClassification::Lockfile);
+    }
+
+    // Minified
+    if basename.ends_with(".min.js") || basename.ends_with(".min.css") {
+        classes.push(FileClassification::Minified);
+    }
+
+    // Sourcemap
+    if basename.ends_with(".js.map") || basename.ends_with(".css.map") {
+        classes.push(FileClassification::Sourcemap);
+    }
+
+    // Generated
+    if GENERATED_PATTERNS
+        .iter()
+        .any(|pat| basename == *pat || basename.contains(pat))
+    {
+        classes.push(FileClassification::Generated);
+    }
+
+    // Vendored
+    if VENDORED_DIRS
+        .iter()
+        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
+    {
+        classes.push(FileClassification::Vendored);
+    }
+
+    // Fixture
+    if FIXTURE_DIRS
+        .iter()
+        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
+    {
+        classes.push(FileClassification::Fixture);
+    }
+
+    // DataBlob: high tokens-per-line
+    let effective_lines = lines.max(1);
+    let tpl = tokens as f64 / effective_lines as f64;
+    if tpl > dense_threshold {
+        classes.push(FileClassification::DataBlob);
+    }
+
+    classes.sort();
+    classes.dedup();
+    classes
+}
+
+// ---------------------------------------------------------------------------
+// Metric resolution with fallback tracking
+// ---------------------------------------------------------------------------
+
+/// Result of resolving a ranking metric, with fallback info.
+pub struct ResolvedMetric {
+    pub effective: ValueMetric,
+    pub fallback_reason: Option<String>,
+}
+
+/// Resolve the requested ranking metric, falling back to Code if git scores are unavailable.
+pub fn resolve_metric(requested: ValueMetric, git_scores: Option<&GitScores>) -> ResolvedMetric {
+    match requested {
+        ValueMetric::Hotspot if git_scores.is_none() => ResolvedMetric {
+            effective: ValueMetric::Code,
+            fallback_reason: Some(
+                "hotspot requires git scores; falling back to code lines".to_string(),
+            ),
+        },
+        ValueMetric::Churn if git_scores.is_none() => ResolvedMetric {
+            effective: ValueMetric::Code,
+            fallback_reason: Some(
+                "churn requires git scores; falling back to code lines".to_string(),
+            ),
+        },
+        _ => ResolvedMetric {
+            effective: requested,
+            fallback_reason: None,
+        },
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Per-file cap and policy assignment
+// ---------------------------------------------------------------------------
+
+/// Compute the maximum tokens a single file may consume.
+pub fn compute_file_cap(budget: usize, options: &SelectOptions) -> usize {
+    if budget == usize::MAX {
+        return usize::MAX;
+    }
+    let pct_cap = (budget as f64 * options.max_file_pct) as usize;
+    let hard_cap = options.max_file_tokens.unwrap_or(16_000);
+    pct_cap.min(hard_cap)
+}
+
+/// Assign an inclusion policy to a file based on its size and classifications.
+pub fn assign_policy(
+    tokens: usize,
+    file_cap: usize,
+    classifications: &[FileClassification],
+) -> (InclusionPolicy, Option<String>) {
+    if tokens <= file_cap {
+        return (InclusionPolicy::Full, None);
+    }
+
+    // Generated, DataBlob, or Vendored files over cap → Skip
+    let skip_classes = [
+        FileClassification::Generated,
+        FileClassification::DataBlob,
+        FileClassification::Vendored,
+    ];
+    if classifications.iter().any(|c| skip_classes.contains(c)) {
+        let class_names: Vec<&str> = classifications
+            .iter()
+            .map(|c| match c {
+                FileClassification::Generated => "generated",
+                FileClassification::Fixture => "fixture",
+                FileClassification::Vendored => "vendored",
+                FileClassification::Lockfile => "lockfile",
+                FileClassification::Minified => "minified",
+                FileClassification::DataBlob => "data_blob",
+                FileClassification::Sourcemap => "sourcemap",
+            })
+            .collect();
+        return (
+            InclusionPolicy::Skip,
+            Some(format!(
+                "{} file exceeds cap ({} > {} tokens)",
+                class_names.join("+"),
+                tokens,
+                file_cap
+            )),
+        );
+    }
+
+    // Over cap → HeadTail
+    (
+        InclusionPolicy::HeadTail,
+        Some(format!(
+            "file exceeds cap ({} > {} tokens); head+tail included",
+            tokens, file_cap
+        )),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Head/tail emission
+// ---------------------------------------------------------------------------
+
+/// Write head and tail lines of a file.
+///
+/// Computes target lines from effective_tokens / (tokens / max(1, lines)),
+/// splits 60% head / 40% tail, and emits with an omission separator.
+pub fn write_head_tail<W: Write>(
+    w: &mut W,
+    path: &Path,
+    file: &ContextFileRow,
+    compress: bool,
+) -> anyhow::Result<()> {
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
+
+    let all_lines: Vec<&str> = content.lines().collect();
+    let total_lines = all_lines.len();
+
+    if total_lines == 0 {
+        return Ok(());
+    }
+
+    // Compute target line count from effective tokens
+    let eff = file.effective_tokens.unwrap_or(file.tokens);
+    let tpl = file.tokens as f64 / total_lines.max(1) as f64;
+    let target_lines = if tpl > 0.0 {
+        (eff as f64 / tpl).ceil() as usize
+    } else {
+        total_lines
+    };
+
+    if target_lines >= total_lines {
+        // No need to truncate — write full content
+        for line in &all_lines {
+            if compress && line.trim().is_empty() {
+                continue;
+            }
+            writeln!(w, "{line}")?;
+        }
+        return Ok(());
+    }
+
+    let head_count = (target_lines as f64 * 0.6).ceil() as usize;
+    let tail_count = target_lines.saturating_sub(head_count);
+    let omitted = total_lines.saturating_sub(head_count + tail_count);
+
+    // Head
+    for line in all_lines.iter().take(head_count) {
+        if compress && line.trim().is_empty() {
+            continue;
+        }
+        writeln!(w, "{line}")?;
+    }
+
+    // Separator
+    if omitted > 0 {
+        writeln!(w, "// ... [{omitted} lines omitted] ...")?;
+    }
+
+    // Tail
+    let tail_start = total_lines.saturating_sub(tail_count);
+    for line in all_lines.iter().skip(tail_start) {
+        if compress && line.trim().is_empty() {
+            continue;
+        }
+        writeln!(w, "{line}")?;
+    }
+
+    Ok(())
 }
 
 /// Pack files using greedy strategy: select by value until budget exhausted.
@@ -292,6 +594,7 @@ pub fn select_files(
         git_scores,
         &SelectOptions {
             no_smart_exclude: true,
+            ..Default::default()
         },
     )
     .selected
@@ -306,6 +609,20 @@ pub fn select_files_with_options(
     git_scores: Option<&GitScores>,
     options: &SelectOptions,
 ) -> SelectResult {
+    // Step 0: Resolve metric (detect fallback)
+    let resolved = resolve_metric(metric, git_scores);
+    let effective_metric = resolved.effective;
+
+    // If require_git_scores is set and a fallback occurred, we still proceed
+    // but the caller can check fallback_reason and decide to error.
+
+    let metric_name = match effective_metric {
+        ValueMetric::Code => "code",
+        ValueMetric::Tokens => "tokens",
+        ValueMetric::Churn => "churn",
+        ValueMetric::Hotspot => "hotspot",
+    };
+
     // Step 1: Partition smart-excluded files
     let mut smart_excluded = Vec::new();
     let candidates: Vec<&FileRow> = if options.no_smart_exclude {
@@ -334,23 +651,75 @@ pub fn select_files_with_options(
     // Collect candidates back into a Vec<FileRow> (needed by pack functions)
     let candidate_rows: Vec<FileRow> = candidates.into_iter().cloned().collect();
 
-    // Step 2: Spine reservation
+    // Step 2: Classify all candidates and compute file cap
+    let file_cap = compute_file_cap(budget, options);
+    let mut classification_map: BTreeMap<String, Vec<FileClassification>> = BTreeMap::new();
+    let mut policy_map: BTreeMap<String, (InclusionPolicy, Option<String>)> = BTreeMap::new();
+    let mut excluded_by_policy: Vec<PolicyExcludedFile> = Vec::new();
+
+    for row in candidate_rows.iter().filter(|r| r.kind == FileKind::Parent) {
+        let path = normalize_path(&row.path);
+        let classes = classify_file(&path, row.tokens, row.lines, options.dense_threshold);
+        let (policy, reason) = assign_policy(row.tokens, file_cap, &classes);
+
+        classification_map.insert(path.clone(), classes.clone());
+        policy_map.insert(path.clone(), (policy, reason.clone()));
+
+        // Skip/Summary → move to excluded_by_policy
+        if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
+            excluded_by_policy.push(PolicyExcludedFile {
+                path,
+                original_tokens: row.tokens,
+                policy,
+                reason: reason.unwrap_or_default(),
+                classifications: classes,
+            });
+        }
+    }
+
+    // Step 3: Build pack candidates (excluding policy-skipped files, adjusting tokens for HeadTail)
+    let excluded_paths: std::collections::HashSet<String> =
+        excluded_by_policy.iter().map(|e| e.path.clone()).collect();
+
+    let pack_rows: Vec<FileRow> = candidate_rows
+        .iter()
+        .filter(|r| {
+            if r.kind != FileKind::Parent {
+                return true; // Children pass through (filtered by pack fns)
+            }
+            let path = normalize_path(&r.path);
+            !excluded_paths.contains(&path)
+        })
+        .map(|r| {
+            let path = normalize_path(&r.path);
+            if let Some((InclusionPolicy::HeadTail, _)) = policy_map.get(&path) {
+                // Clamp tokens for budget accounting
+                let capped = r.tokens.min(file_cap);
+                FileRow {
+                    tokens: capped,
+                    ..r.clone()
+                }
+            } else {
+                r.clone()
+            }
+        })
+        .collect();
+
+    // Step 4: Spine reservation
     let spine_budget = std::cmp::min(
         (budget as f64 * SPINE_BUDGET_FRACTION) as usize,
         SPINE_BUDGET_CAP,
     );
 
-    let parents: Vec<&FileRow> = candidate_rows
+    let parents: Vec<&FileRow> = pack_rows
         .iter()
         .filter(|r| r.kind == FileKind::Parent)
         .collect();
 
-    // Find spine candidates
     let mut spine_files: Vec<ContextFileRow> = Vec::new();
     let mut spine_used = 0;
     let mut spine_paths: std::collections::HashSet<String> = std::collections::HashSet::new();
 
-    // Sort spine candidates by tokens ascending (fill smaller files first)
     let mut spine_candidates: Vec<&FileRow> = parents
         .iter()
         .filter(|r| is_spine_file(&r.path))
@@ -362,32 +731,36 @@ pub fn select_files_with_options(
         if spine_used + row.tokens <= spine_budget {
             spine_used += row.tokens;
             spine_paths.insert(row.path.clone());
-            spine_files.push(to_context_row_with_reason(row, metric, git_scores, "spine"));
+            spine_files.push(to_context_row_with_reason(
+                row,
+                effective_metric,
+                git_scores,
+                "spine",
+            ));
         }
     }
 
-    // Step 3: Normal selection with remaining budget, excluding spine files
+    // Step 5: Normal selection with remaining budget, excluding spine files
     let remaining_budget = budget.saturating_sub(spine_used);
-    let non_spine_rows: Vec<FileRow> = candidate_rows
+    let non_spine_rows: Vec<FileRow> = pack_rows
         .iter()
         .filter(|r| !spine_paths.contains(&r.path))
         .cloned()
         .collect();
 
-    let metric_name = match metric {
-        ValueMetric::Code => "code",
-        ValueMetric::Tokens => "tokens",
-        ValueMetric::Churn => "churn",
-        ValueMetric::Hotspot => "hotspot",
-    };
-
     let mut ranked: Vec<ContextFileRow> = match strategy {
-        ContextStrategy::Greedy => {
-            pack_greedy(&non_spine_rows, remaining_budget, metric, git_scores)
-        }
-        ContextStrategy::Spread => {
-            pack_spread(&non_spine_rows, remaining_budget, metric, git_scores)
-        }
+        ContextStrategy::Greedy => pack_greedy(
+            &non_spine_rows,
+            remaining_budget,
+            effective_metric,
+            git_scores,
+        ),
+        ContextStrategy::Spread => pack_spread(
+            &non_spine_rows,
+            remaining_budget,
+            effective_metric,
+            git_scores,
+        ),
     };
 
     // Tag ranked files with their metric reason
@@ -397,13 +770,32 @@ pub fn select_files_with_options(
         }
     }
 
-    // Step 4: Concatenate spine + ranked
+    // Step 6: Concatenate spine + ranked
     let mut selected = spine_files;
     selected.extend(ranked);
+
+    // Step 7: Annotate each selected file with policy, classifications, effective_tokens
+    for file in &mut selected {
+        let path = normalize_path(&file.path);
+        if let Some(classes) = classification_map.get(&path) {
+            file.classifications = classes.clone();
+        }
+        if let Some((policy, reason)) = policy_map.get(&path) {
+            file.policy = *policy;
+            file.policy_reason = reason.clone();
+            if *policy == InclusionPolicy::HeadTail {
+                // effective_tokens is the capped value (file.tokens was already capped)
+                file.effective_tokens = Some(file.tokens);
+            }
+        }
+    }
 
     SelectResult {
         selected,
         smart_excluded,
+        excluded_by_policy,
+        rank_by_effective: metric_name.to_string(),
+        fallback_reason: resolved.fallback_reason,
     }
 }
 
@@ -431,6 +823,10 @@ fn to_context_row_with_reason(
         bytes: row.bytes,
         value: get_value(row, metric, git_scores),
         rank_reason: reason.to_string(),
+        policy: InclusionPolicy::Full,
+        effective_tokens: None,
+        policy_reason: None,
+        classifications: Vec::new(),
     }
 }
 
@@ -1441,6 +1837,7 @@ mod tests {
             None,
             &SelectOptions {
                 no_smart_exclude: false,
+                ..Default::default()
             },
         );
 
@@ -1470,6 +1867,7 @@ mod tests {
             None,
             &SelectOptions {
                 no_smart_exclude: true,
+                ..Default::default()
             },
         );
 
@@ -1495,6 +1893,7 @@ mod tests {
             None,
             &SelectOptions {
                 no_smart_exclude: true,
+                ..Default::default()
             },
         );
 
@@ -1519,6 +1918,7 @@ mod tests {
             None,
             &SelectOptions {
                 no_smart_exclude: true,
+                ..Default::default()
             },
         );
 
@@ -1527,7 +1927,8 @@ mod tests {
     }
 
     #[test]
-    fn test_select_files_with_options_rank_reason_hotspot() {
+    fn test_select_files_with_options_rank_reason_hotspot_fallback() {
+        // Without git scores, hotspot falls back to code
         let rows = vec![make_test_row("src/main.rs", "src", "Rust", 100, 50)];
         let result = select_files_with_options(
             &rows,
@@ -1537,9 +1938,321 @@ mod tests {
             None,
             &SelectOptions {
                 no_smart_exclude: true,
+                ..Default::default()
+            },
+        );
+
+        // Effective metric is "code" due to fallback
+        assert_eq!(result.selected[0].rank_reason, "code");
+        assert_eq!(result.rank_by_effective, "code");
+        assert!(result.fallback_reason.is_some());
+        assert!(result.fallback_reason.as_ref().unwrap().contains("hotspot"));
+    }
+
+    #[test]
+    fn test_select_files_with_options_rank_reason_hotspot_with_git() {
+        // With git scores, hotspot metric is preserved
+        let rows = vec![make_test_row("src/main.rs", "src", "Rust", 100, 50)];
+        let mut hotspots = BTreeMap::new();
+        hotspots.insert("src/main.rs".to_string(), 999);
+        let git_scores = GitScores {
+            hotspots,
+            commit_counts: BTreeMap::new(),
+        };
+        let result = select_files_with_options(
+            &rows,
+            1000,
+            ContextStrategy::Greedy,
+            ValueMetric::Hotspot,
+            Some(&git_scores),
+            &SelectOptions {
+                no_smart_exclude: true,
+                ..Default::default()
             },
         );
 
         assert_eq!(result.selected[0].rank_reason, "hotspot");
+        assert_eq!(result.rank_by_effective, "hotspot");
+        assert!(result.fallback_reason.is_none());
+    }
+
+    // ==================== Classification tests ====================
+
+    #[test]
+    fn test_classify_lockfile() {
+        let classes = classify_file("Cargo.lock", 1000, 100, 50.0);
+        assert!(classes.contains(&FileClassification::Lockfile));
+    }
+
+    #[test]
+    fn test_classify_nested_lockfile() {
+        let classes = classify_file("some/dir/package-lock.json", 1000, 100, 50.0);
+        assert!(classes.contains(&FileClassification::Lockfile));
+    }
+
+    #[test]
+    fn test_classify_generated() {
+        let classes = classify_file("src/parser/node-types.json", 5000, 10, 50.0);
+        assert!(classes.contains(&FileClassification::Generated));
+        // Also DataBlob due to high tokens/line
+        assert!(classes.contains(&FileClassification::DataBlob));
+    }
+
+    #[test]
+    fn test_classify_generated_pb_rs() {
+        let classes = classify_file("proto/types.pb.rs", 1000, 200, 50.0);
+        assert!(classes.contains(&FileClassification::Generated));
+    }
+
+    #[test]
+    fn test_classify_vendored() {
+        let classes = classify_file("vendor/github.com/lib/pq/conn.go", 500, 100, 50.0);
+        assert!(classes.contains(&FileClassification::Vendored));
+    }
+
+    #[test]
+    fn test_classify_fixture() {
+        let classes = classify_file("tests/fixtures/sample.json", 200, 50, 50.0);
+        assert!(classes.contains(&FileClassification::Fixture));
+    }
+
+    #[test]
+    fn test_classify_minified() {
+        let classes = classify_file("dist/app.min.js", 50000, 1, 50.0);
+        assert!(classes.contains(&FileClassification::Minified));
+        assert!(classes.contains(&FileClassification::DataBlob));
+    }
+
+    #[test]
+    fn test_classify_sourcemap() {
+        let classes = classify_file("dist/app.js.map", 30000, 1, 50.0);
+        assert!(classes.contains(&FileClassification::Sourcemap));
+        assert!(classes.contains(&FileClassification::DataBlob));
+    }
+
+    #[test]
+    fn test_classify_dense_blob() {
+        // 1000 tokens / 10 lines = 100 tpl > 50 threshold
+        let classes = classify_file("src/data.rs", 1000, 10, 50.0);
+        assert!(classes.contains(&FileClassification::DataBlob));
+    }
+
+    #[test]
+    fn test_classify_normal_file() {
+        // 100 tokens / 50 lines = 2 tpl < 50 threshold
+        let classes = classify_file("src/main.rs", 100, 50, 50.0);
+        assert!(classes.is_empty());
+    }
+
+    // ==================== Compute file cap tests ====================
+
+    #[test]
+    fn test_compute_file_cap_default() {
+        let opts = SelectOptions::default();
+        // budget 128000 * 0.15 = 19200, min(19200, 16000) = 16000
+        let cap = compute_file_cap(128_000, &opts);
+        assert_eq!(cap, 16_000);
+    }
+
+    #[test]
+    fn test_compute_file_cap_small_budget() {
+        let opts = SelectOptions::default();
+        // budget 10000 * 0.15 = 1500, min(1500, 16000) = 1500
+        let cap = compute_file_cap(10_000, &opts);
+        assert_eq!(cap, 1_500);
+    }
+
+    #[test]
+    fn test_compute_file_cap_custom() {
+        let opts = SelectOptions {
+            max_file_pct: 0.25,
+            max_file_tokens: Some(5_000),
+            ..Default::default()
+        };
+        // budget 100000 * 0.25 = 25000, min(25000, 5000) = 5000
+        let cap = compute_file_cap(100_000, &opts);
+        assert_eq!(cap, 5_000);
+    }
+
+    #[test]
+    fn test_compute_file_cap_unlimited_budget() {
+        let opts = SelectOptions::default();
+        let cap = compute_file_cap(usize::MAX, &opts);
+        assert_eq!(cap, usize::MAX);
+    }
+
+    // ==================== Assign policy tests ====================
+
+    #[test]
+    fn test_assign_policy_under_cap_is_full() {
+        let (policy, reason) = assign_policy(100, 16_000, &[]);
+        assert_eq!(policy, InclusionPolicy::Full);
+        assert!(reason.is_none());
+    }
+
+    #[test]
+    fn test_assign_policy_over_cap_normal_is_head_tail() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[]);
+        assert_eq!(policy, InclusionPolicy::HeadTail);
+        assert!(reason.is_some());
+        assert!(reason.unwrap().contains("head+tail"));
+    }
+
+    #[test]
+    fn test_assign_policy_over_cap_generated_is_skip() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
+        assert_eq!(policy, InclusionPolicy::Skip);
+        assert!(reason.is_some());
+        assert!(reason.unwrap().contains("generated"));
+    }
+
+    #[test]
+    fn test_assign_policy_over_cap_data_blob_is_skip() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::DataBlob]);
+        assert_eq!(policy, InclusionPolicy::Skip);
+        assert!(reason.is_some());
+    }
+
+    #[test]
+    fn test_assign_policy_over_cap_vendored_is_skip() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Vendored]);
+        assert_eq!(policy, InclusionPolicy::Skip);
+        assert!(reason.is_some());
+    }
+
+    #[test]
+    fn test_assign_policy_over_cap_fixture_is_head_tail() {
+        // Fixtures over cap get HeadTail, not Skip (fixture is not in the skip list)
+        let (policy, _) = assign_policy(20_000, 16_000, &[FileClassification::Fixture]);
+        assert_eq!(policy, InclusionPolicy::HeadTail);
+    }
+
+    // ==================== Resolve metric tests ====================
+
+    #[test]
+    fn test_resolve_metric_code_no_fallback() {
+        let resolved = resolve_metric(ValueMetric::Code, None);
+        assert_eq!(resolved.effective, ValueMetric::Code);
+        assert!(resolved.fallback_reason.is_none());
+    }
+
+    #[test]
+    fn test_resolve_metric_hotspot_falls_back() {
+        let resolved = resolve_metric(ValueMetric::Hotspot, None);
+        assert_eq!(resolved.effective, ValueMetric::Code);
+        assert!(resolved.fallback_reason.is_some());
+        assert!(resolved.fallback_reason.unwrap().contains("hotspot"));
+    }
+
+    #[test]
+    fn test_resolve_metric_churn_falls_back() {
+        let resolved = resolve_metric(ValueMetric::Churn, None);
+        assert_eq!(resolved.effective, ValueMetric::Code);
+        assert!(resolved.fallback_reason.is_some());
+        assert!(resolved.fallback_reason.unwrap().contains("churn"));
+    }
+
+    #[test]
+    fn test_resolve_metric_hotspot_with_git_no_fallback() {
+        let git_scores = GitScores {
+            hotspots: BTreeMap::new(),
+            commit_counts: BTreeMap::new(),
+        };
+        let resolved = resolve_metric(ValueMetric::Hotspot, Some(&git_scores));
+        assert_eq!(resolved.effective, ValueMetric::Hotspot);
+        assert!(resolved.fallback_reason.is_none());
+    }
+
+    // ==================== Budget uses effective tokens ====================
+
+    #[test]
+    fn test_budget_uses_effective_tokens() {
+        // A 20k-token file should be capped to fit within budget
+        // With default max_file_pct=0.15, budget=128k → cap=16000
+        let rows = vec![
+            make_test_row("big.rs", "src", "Rust", 20_000, 1000),
+            make_test_row("small.rs", "src", "Rust", 100, 50),
+        ];
+        let result = select_files_with_options(
+            &rows,
+            128_000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+                ..Default::default()
+            },
+        );
+
+        // Both should be selected
+        assert_eq!(result.selected.len(), 2);
+
+        // big.rs should have HeadTail policy
+        let big = result.selected.iter().find(|f| f.path == "big.rs").unwrap();
+        assert_eq!(big.policy, InclusionPolicy::HeadTail);
+        assert!(big.effective_tokens.is_some());
+        assert!(big.effective_tokens.unwrap() <= 16_000);
+
+        // small.rs should have Full policy
+        let small = result
+            .selected
+            .iter()
+            .find(|f| f.path == "small.rs")
+            .unwrap();
+        assert_eq!(small.policy, InclusionPolicy::Full);
+        assert!(small.effective_tokens.is_none());
+    }
+
+    // ==================== Policy-excluded files tracked ====================
+
+    #[test]
+    fn test_generated_over_cap_excluded_by_policy() {
+        // node-types.json with very high tokens → should be skip'd
+        let rows = vec![
+            make_test_row("src/main.rs", "src", "Rust", 100, 50),
+            FileRow {
+                path: "src/parser/node-types.json".to_string(),
+                module: "src".to_string(),
+                lang: "JSON".to_string(),
+                kind: FileKind::Parent,
+                code: 10,
+                comments: 0,
+                blanks: 0,
+                lines: 10,
+                bytes: 500_000,
+                tokens: 117_000,
+            },
+        ];
+        let result = select_files_with_options(
+            &rows,
+            128_000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+                ..Default::default()
+            },
+        );
+
+        // node-types.json should be excluded by policy
+        assert_eq!(result.excluded_by_policy.len(), 1);
+        assert!(
+            result.excluded_by_policy[0]
+                .path
+                .contains("node-types.json")
+        );
+        assert_eq!(result.excluded_by_policy[0].policy, InclusionPolicy::Skip);
+
+        // main.rs should be selected
+        assert!(result.selected.iter().any(|f| f.path == "src/main.rs"));
+        // node-types.json should NOT be in selected
+        assert!(
+            !result
+                .selected
+                .iter()
+                .any(|f| f.path.contains("node-types.json"))
+        );
     }
 }

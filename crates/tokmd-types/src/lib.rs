@@ -285,6 +285,15 @@ pub struct ContextReceipt {
     pub rank_by: String,
     pub file_count: usize,
     pub files: Vec<ContextFileRow>,
+    /// Effective ranking metric (may differ from rank_by if fallback occurred).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rank_by_effective: Option<String>,
+    /// Reason for fallback if rank_by_effective differs from rank_by.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_reason: Option<String>,
+    /// Files excluded by per-file cap / classification policy.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub excluded_by_policy: Vec<PolicyExcludedFile>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -299,6 +308,18 @@ pub struct ContextFileRow {
     pub value: usize,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub rank_reason: String,
+    /// Inclusion policy applied to this file.
+    #[serde(default, skip_serializing_if = "is_default_policy")]
+    pub policy: InclusionPolicy,
+    /// Effective token count when policy != Full (None means same as `tokens`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effective_tokens: Option<usize>,
+    /// Reason for the applied policy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_reason: Option<String>,
+    /// File classifications detected by hygiene analysis.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub classifications: Vec<FileClassification>,
 }
 
 // -----------------------
@@ -454,10 +475,67 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
-pub const HANDOFF_SCHEMA_VERSION: u32 = 3;
+pub const HANDOFF_SCHEMA_VERSION: u32 = 4;
 
 /// Schema version for context bundle manifests.
-pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 1;
+pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;
+
+/// Schema version for context receipts (separate from SCHEMA_VERSION used by lang/module/export/diff).
+pub const CONTEXT_SCHEMA_VERSION: u32 = 3;
+
+// -----------------------
+// Bundle hygiene types
+// -----------------------
+
+/// Classification of a file for bundle hygiene purposes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FileClassification {
+    /// Protobuf output, parser tables, node-types.json, etc.
+    Generated,
+    /// Test fixtures, golden snapshots.
+    Fixture,
+    /// Third-party vendored code.
+    Vendored,
+    /// Cargo.lock, package-lock.json, etc.
+    Lockfile,
+    /// *.min.js, *.min.css.
+    Minified,
+    /// Files with very high tokens-per-line ratio.
+    DataBlob,
+    /// *.js.map, *.css.map.
+    Sourcemap,
+}
+
+/// How a file is included in the context/handoff bundle.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum InclusionPolicy {
+    /// Full file content.
+    #[default]
+    Full,
+    /// First N + last N lines.
+    HeadTail,
+    /// Structural summary (placeholder, behaves as Skip for now).
+    Summary,
+    /// Excluded from payload entirely.
+    Skip,
+}
+
+/// Helper for serde skip_serializing_if on InclusionPolicy.
+fn is_default_policy(policy: &InclusionPolicy) -> bool {
+    *policy == InclusionPolicy::Full
+}
+
+/// A file excluded by per-file cap / classification policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PolicyExcludedFile {
+    pub path: String,
+    pub original_tokens: usize,
+    pub policy: InclusionPolicy,
+    pub reason: String,
+    pub classifications: Vec<FileClassification>,
+}
 
 /// Manifest for a handoff bundle containing LLM-ready artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -482,6 +560,15 @@ pub struct HandoffManifest {
     pub total_files: usize,
     pub bundled_files: usize,
     pub intelligence_preset: String,
+    /// Effective ranking metric (may differ from rank_by if fallback occurred).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rank_by_effective: Option<String>,
+    /// Reason for fallback if rank_by_effective differs from rank_by.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_reason: Option<String>,
+    /// Files excluded by per-file cap / classification policy.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub excluded_by_policy: Vec<PolicyExcludedFile>,
 }
 
 /// A file excluded by smart-exclude heuristics (lockfiles, minified, etc.).
@@ -510,6 +597,15 @@ pub struct ContextBundleManifest {
     pub included_files: Vec<ContextFileRow>,
     pub excluded_paths: Vec<ContextExcludedPath>,
     pub excluded_patterns: Vec<String>,
+    /// Effective ranking metric (may differ from rank_by if fallback occurred).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rank_by_effective: Option<String>,
+    /// Reason for fallback if rank_by_effective differs from rank_by.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_reason: Option<String>,
+    /// Files excluded by per-file cap / classification policy.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub excluded_by_policy: Vec<PolicyExcludedFile>,
 }
 
 /// Explicitly excluded path with reason for context bundles.

@@ -417,9 +417,10 @@ fn build_args<'py>(
     }
 
     if let Some(ex) = excluded
-        && !ex.is_empty() {
-            args.set_item("excluded", ex).expect("set excluded");
-        }
+        && !ex.is_empty()
+    {
+        args.set_item("excluded", ex).expect("set excluded");
+    }
 
     if hidden {
         args.set_item("hidden", hidden).expect("set hidden");

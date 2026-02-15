@@ -482,7 +482,11 @@ fn test_evidence_gates_pass_all() {
 
     // Add more balanced changes
     std::fs::write(dir.path().join("new.rs"), "pub fn new() {}").unwrap();
-    std::fs::write(dir.path().join("tests").join("new_test.rs"), "fn new_test() {}").unwrap();
+    std::fs::write(
+        dir.path().join("tests").join("new_test.rs"),
+        "fn new_test() {}",
+    )
+    .unwrap();
     if !common::git_add_commit(dir.path(), "Add feature") {
         return;
     }
@@ -575,7 +579,7 @@ fn test_evidence_gates_fail_coverage() {
         composition.get("test_pct").is_some(),
         "should have test_pct"
     );
-    
+
     // Low test percentage indicates coverage gate issue
     let test_pct = composition["test_pct"].as_f64().unwrap_or(0.0);
     assert!(
@@ -664,8 +668,5 @@ anyhow = "1.0"
     let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
 
     // Verify review plan exists (may contain supply chain gate info)
-    assert!(
-        json.get("review_plan").is_some(),
-        "should have review_plan"
-    );
+    assert!(json.get("review_plan").is_some(), "should have review_plan");
 }

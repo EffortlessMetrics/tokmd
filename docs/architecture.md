@@ -212,3 +212,34 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 2. **Standardized envelope**: All sensors emit `SensorReport` with findings, verdicts, and gates
 3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
 4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation
+
+## WASM & Browser Runner (v1.8.0 — v1.9.0)
+
+### v1.8.0 — WASM-Ready Core
+
+Goal: Make the tokmd engine compile for `wasm32-unknown-unknown` and run against an in-memory repo substrate so the same deterministic receipts can be produced from an in-memory file set.
+
+Work items:
+- Host abstraction (IO ports): enumerate files, read bytes, clock, and optional logging/progress; native uses FS, WASM uses a host-provided substrate.
+- In-memory scan pipeline: accept `Vec<(path, bytes)>` instead of `PathBuf` to enable scans from memory.
+- CLI/Clap separation: ensure library crates do not depend on `clap`; keep argument parsing in the CLI crate.
+- WASM feature profile: add a `wasm`/`web` feature that disables OS-bound pieces (`git`, `dirs`, `std::process`).
+- WASM CI builds and conformance tests: add `cargo build --target wasm32-unknown-unknown` to CI and golden tests to validate parity.
+
+Notes: Git-history enrichers (hotspots/churn) are not available in browser WASM mode and must be reported as unavailable in capability reporting.
+
+### v1.9.0 — WASM Distribution + Browser Runner
+
+Goal: Ship a `tokmd-wasm` bundle and a minimal static web runner that fetches a GitHub zipball, unpacks in the browser, runs tokmd in a Worker, and renders/downloads deterministic receipts locally without server-side computation.
+
+Work items:
+- `tokmd-wasm` crate: expose JS-friendly APIs (via `wasm-bindgen`): `run_lang`, `run_module`, `run_export`, `run_analyze` accepting in-memory inputs.
+- Browser runner: minimal static app (repo URL + ref + Run) that runs scans in a Web Worker, streams progress, and supports cancel.
+- Zipball ingestion: fetch GitHub zipball (`/zipball/{ref}`), unzip in-browser, filter files (skip vendor/binaries by default), and feed `(path, bytes)` to wasm.
+- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits (max archive size, file count, bytes read).
+- Capability reporting: outputs include a capabilities section indicating which enrichers ran and which were unavailable.
+- Packaging: publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
+
+Non-goals for v1.9.0: no in-browser git churn/hotspot metrics or heavy tooling; provide a backend escape hatch for very large repos or git-based analysis.
+
+
