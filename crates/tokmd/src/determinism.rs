@@ -41,6 +41,7 @@ pub(crate) fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<Strin
 /// Uses the `ignore` crate to respect `.gitignore` rules, then sorts
 /// the discovered paths and hashes them with the same protocol as
 /// [`hash_files_from_paths`].
+#[cfg(feature = "git")]
 pub(crate) fn hash_files_from_walk(root: &Path) -> Result<String> {
     let mut paths: Vec<String> = Vec::new();
 
@@ -158,7 +159,11 @@ mod tests {
     #[test]
     fn test_hash_cargo_lock_present() {
         let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("Cargo.lock"), "[[package]]\nname = \"test\"").unwrap();
+        fs::write(
+            dir.path().join("Cargo.lock"),
+            "[[package]]\nname = \"test\"",
+        )
+        .unwrap();
 
         let result = hash_cargo_lock(dir.path()).unwrap();
         assert!(result.is_some());
@@ -173,6 +178,7 @@ mod tests {
         assert!(result.is_none());
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_hash_files_from_walk_deterministic() {
         let dir = tempfile::tempdir().unwrap();
@@ -186,6 +192,7 @@ mod tests {
         assert_eq!(h1.len(), 64);
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_walk_and_paths_produce_same_hash() {
         let dir = tempfile::tempdir().unwrap();
@@ -197,6 +204,9 @@ mod tests {
         let from_paths = hash_files_from_paths(dir.path(), &["a.rs", "b.rs"]).unwrap();
         let from_walk = hash_files_from_walk(dir.path()).unwrap();
 
-        assert_eq!(from_paths, from_walk, "walk and explicit paths should produce same hash for same files");
+        assert_eq!(
+            from_paths, from_walk,
+            "walk and explicit paths should produce same hash for same files"
+        );
     }
 }

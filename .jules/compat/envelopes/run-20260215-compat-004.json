@@ -1,0 +1,11 @@
+{
+  "id": "run-20260215-compat-004",
+  "goal": "Maximize SRP-quality improvement per reviewer minute.",
+  "target": "no-default-features build warnings",
+  "outcome": "Fixed 75+ warnings by properly gating git-dependent code",
+  "receipts": [
+    "cargo check -p tokmd --no-default-features (clean)",
+    "cargo check -p tokmd --all-features (clean)"
+  ],
+  "timestamp": "2026-02-15T12:00:00Z"
+}
