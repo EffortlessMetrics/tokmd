@@ -16,5 +16,14 @@
     "gates_run": ["test"],
     "status": "PASS",
     "friction_ids_created": []
+  },
+  {
+    "timestamp_utc": "2026-01-31T00:00:00Z",
+    "lane": "scout",
+    "target": "crates/tokmd/src/commands/cockpit.rs",
+    "pr_link": "tbd",
+    "gates_run": ["test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids_created": []
   }
 ]

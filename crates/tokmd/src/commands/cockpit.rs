@@ -883,39 +883,7 @@ fn compute_diff_coverage_gate(
     };
 
     // 3. Parse LCOV into a lookup map: file -> line -> hit_count
-    let mut lcov_data: BTreeMap<String, BTreeMap<usize, usize>> = BTreeMap::new();
-    let mut current_file: Option<String> = None;
-
-    for line in content.lines() {
-        if let Some(sf) = line.strip_prefix("SF:") {
-            // Normalize path to repo-relative
-            let path = sf.replace('\\', "/");
-            // If it's absolute, try to make it relative to repo root
-            let normalized = if let Ok(abs) = Path::new(&path).canonicalize() {
-                if let Ok(rel) = abs.strip_prefix(repo_root.canonicalize().unwrap_or_default()) {
-                    rel.to_string_lossy().replace('\\', "/")
-                } else {
-                    path
-                }
-            } else {
-                path
-            };
-            current_file = Some(normalized);
-            lcov_data.entry(current_file.clone().unwrap()).or_default();
-        } else if let Some(da) = line.strip_prefix("DA:") {
-            if let Some(ref file) = current_file {
-                let parts: Vec<&str> = da.splitn(2, ',').collect();
-                if parts.len() == 2
-                    && let (Ok(line_no), Ok(count)) =
-                        (parts[0].parse::<usize>(), parts[1].parse::<usize>())
-                {
-                    lcov_data.get_mut(file).unwrap().insert(line_no, count);
-                }
-            }
-        } else if line == "end_of_record" {
-            current_file = None;
-        }
-    }
+    let lcov_data = parse_lcov_data(&content, repo_root);
 
     // 4. Intersect added lines with LCOV hits
     let mut total_added = 0usize;
@@ -1014,6 +982,46 @@ fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<Uncove
         start_line: start,
         end_line: end,
     });
+}
+
+/// Parse LCOV content into a map of file -> line -> hit_count.
+fn parse_lcov_data(content: &str, repo_root: &Path) -> BTreeMap<String, BTreeMap<usize, usize>> {
+    let mut lcov_data: BTreeMap<String, BTreeMap<usize, usize>> = BTreeMap::new();
+    let mut current_file: Option<String> = None;
+
+    for line in content.lines() {
+        if let Some(sf) = line.strip_prefix("SF:") {
+            // Normalize path to repo-relative
+            let path = sf.replace('\\', "/");
+            // If it's absolute, try to make it relative to repo root
+            let normalized = if let Ok(abs) = Path::new(&path).canonicalize() {
+                if let Ok(rel) = abs.strip_prefix(repo_root.canonicalize().unwrap_or_default()) {
+                    rel.to_string_lossy().replace('\\', "/")
+                } else {
+                    path
+                }
+            } else {
+                path
+            };
+
+            lcov_data.entry(normalized.clone()).or_default();
+            current_file = Some(normalized);
+        } else if let Some(da) = line.strip_prefix("DA:") {
+            if let Some(ref file) = current_file {
+                let parts: Vec<&str> = da.splitn(2, ',').collect();
+                if parts.len() == 2
+                    && let (Ok(line_no), Ok(count)) =
+                        (parts[0].parse::<usize>(), parts[1].parse::<usize>())
+                    && let Some(entry) = lcov_data.get_mut(file)
+                {
+                    entry.insert(line_no, count);
+                }
+            }
+        } else if line == "end_of_record" {
+            current_file = None;
+        }
+    }
+    lcov_data
 }
 
 /// Compute contract diff gate (semver, CLI, schema).
@@ -3037,4 +3045,77 @@ fn now_iso8601() -> String {
 
 fn round_pct(val: f64) -> f64 {
     (val * 100.0).round() / 100.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_lcov_data_simple() {
+        let content = "SF:src/lib.rs
+DA:1,1
+DA:2,0
+end_of_record
+SF:src/main.rs
+DA:5,3
+end_of_record
+";
+        let repo_root = Path::new(".");
+        let data = parse_lcov_data(content, repo_root);
+
+        assert_eq!(data.len(), 2);
+
+        // Use normalized paths
+        let lib_path = "src/lib.rs";
+        let main_path = "src/main.rs";
+
+        let lib = data.get(lib_path).unwrap();
+        assert_eq!(lib.get(&1), Some(&1));
+        assert_eq!(lib.get(&2), Some(&0));
+        assert_eq!(lib.get(&3), None);
+
+        let main = data.get(main_path).unwrap();
+        assert_eq!(main.get(&5), Some(&3));
+    }
+
+    #[test]
+    fn test_parse_lcov_malformed() {
+        // DA before SF should be ignored
+        // SF without DA is valid (empty file coverage)
+        let content = "DA:1,1
+SF:src/lib.rs
+DA:2,1
+end_of_record
+DA:3,1
+";
+        let repo_root = Path::new(".");
+        let data = parse_lcov_data(content, repo_root);
+
+        assert_eq!(data.len(), 1);
+        let lib = data.get("src/lib.rs").unwrap();
+        assert_eq!(lib.get(&2), Some(&1));
+        assert_eq!(lib.get(&1), None); // Ignored
+    }
+
+    #[test]
+    fn test_parse_lcov_robustness() {
+        // Test various malformed lines that shouldn't panic
+        let content = "SF:foo.rs
+DA:invalid
+DA:1,invalid
+DA:1
+end_of_record
+SF:bar.rs
+DA:1,1,extra
+end_of_record
+";
+        let repo_root = Path::new(".");
+        let data = parse_lcov_data(content, repo_root);
+
+        assert!(data.contains_key("foo.rs"));
+        assert!(data.contains_key("bar.rs"));
+        assert!(data.get("foo.rs").unwrap().is_empty());
+        assert!(data.get("bar.rs").unwrap().is_empty());
+    }
 }

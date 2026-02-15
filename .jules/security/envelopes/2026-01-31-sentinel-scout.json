@@ -1,0 +1,24 @@
+{
+  "run_id": "2026-01-31-sentinel-run-01",
+  "timestamp_utc": "2026-01-31T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/commands/cockpit.rs",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd --lib commands::cockpit --features git",
+      "exit_code": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS"
+    }
+  ],
+  "results_summary": "Refactored LCOV parsing to remove unwrap() calls. Added unit tests."
+}
