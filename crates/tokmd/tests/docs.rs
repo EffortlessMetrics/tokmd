@@ -116,6 +116,8 @@ fn recipe_sensor_json() {
     let report_path = tmp.path().join("report.json");
     tokmd()
         .arg("sensor")
+        .arg("--base")
+        .arg("HEAD")
         .arg("--format")
         .arg("json")
         .arg("--output")
