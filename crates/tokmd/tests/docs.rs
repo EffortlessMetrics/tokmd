@@ -111,11 +111,53 @@ fn recipe_handoff_bundle() {
 #[cfg(feature = "git")]
 #[test]
 fn recipe_sensor_json() {
-    // "tokmd sensor --format json"
+    // Setup a fresh git repo to run sensor against.
+    // This ensures reliability in CI environments (Nix, Tarballs) where .git might be missing.
     let tmp = tempfile::tempdir().unwrap();
-    let report_path = tmp.path().join("report.json");
-    tokmd()
-        .arg("sensor")
+    let repo_path = tmp.path();
+
+    // Initialize git repo
+    std::process::Command::new("git")
+        .arg("init")
+        .current_dir(repo_path)
+        .output()
+        .expect("failed to init git");
+
+    std::process::Command::new("git")
+        .args(&["config", "user.email", "you@example.com"])
+        .current_dir(repo_path)
+        .output()
+        .expect("failed to config git email");
+
+    std::process::Command::new("git")
+        .args(&["config", "user.name", "Your Name"])
+        .current_dir(repo_path)
+        .output()
+        .expect("failed to config git name");
+
+    // Add a file
+    let file_path = repo_path.join("test.rs");
+    std::fs::write(&file_path, "fn main() {}").unwrap();
+
+    std::process::Command::new("git")
+        .args(&["add", "."])
+        .current_dir(repo_path)
+        .output()
+        .expect("failed to git add");
+
+    std::process::Command::new("git")
+        .args(&["commit", "-m", "Initial commit"])
+        .current_dir(repo_path)
+        .output()
+        .expect("failed to git commit");
+
+    let report_path = repo_path.join("report.json");
+
+    // "tokmd sensor --format json"
+    // We construct the command manually to run in the temp repo
+    let mut cmd = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(repo_path);
+    cmd.arg("sensor")
         .arg("--base")
         .arg("HEAD")
         .arg("--format")
