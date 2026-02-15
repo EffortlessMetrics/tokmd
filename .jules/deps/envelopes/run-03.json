@@ -1,9 +1,9 @@
 {
   "id": "run-03",
   "start_time": "2026-02-15T12:53:35Z",
-  "target": "tokmd-tokeignore",
-  "lane": "B",
-  "decision": "Align proptest dev-dependency with workspace standards (1.6.0 -> 1.9.0). Also fixed CI failures (formatting and test environment).",
+  "target": "tokmd",
+  "lane": "A",
+  "decision": "Fix blocking CI failures (unnameable-test-items, rustfmt, git-diff) and align proptest dev-dependency.",
   "security_tools": {
     "cargo_audit": "unavailable",
     "cargo_deny": "unavailable"
@@ -12,6 +12,9 @@
     "cargo check -p tokmd-tokeignore: passed",
     "cargo test -p tokmd-tokeignore: passed (32 tests passed)",
     "cargo check -p tokmd: passed",
-    "cargo test -p tokmd --test docs: passed (recipe_sensor_json fixed)"
+    "cargo test -p tokmd --test docs: passed (recipe_sensor_json fixed)",
+    "cargo check -p tokmd-core: passed",
+    "cargo test -p tokmd-core: passed",
+    "cargo clippy -p tokmd-core: passed"
   ]
 }

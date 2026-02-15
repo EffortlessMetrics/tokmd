@@ -23,8 +23,8 @@
   {
     "run_id": "run-03",
     "timestamp": "2026-02-15T12:53:35Z",
-    "target": "tokmd-tokeignore",
-    "action": "align-proptest",
+    "target": "tokmd",
+    "action": "ci-fix-and-align-deps",
     "status": "success"
   }
 ]
