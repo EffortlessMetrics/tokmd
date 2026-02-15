@@ -124,13 +124,13 @@ fn recipe_sensor_json() {
         .expect("failed to init git");
 
     std::process::Command::new("git")
-        .args(&["config", "user.email", "you@example.com"])
+        .args(["config", "user.email", "you@example.com"])
         .current_dir(repo_path)
         .output()
         .expect("failed to config git email");
 
     std::process::Command::new("git")
-        .args(&["config", "user.name", "Your Name"])
+        .args(["config", "user.name", "Your Name"])
         .current_dir(repo_path)
         .output()
         .expect("failed to config git name");
@@ -140,13 +140,13 @@ fn recipe_sensor_json() {
     std::fs::write(&file_path, "fn main() {}").unwrap();
 
     std::process::Command::new("git")
-        .args(&["add", "."])
+        .args(["add", "."])
         .current_dir(repo_path)
         .output()
         .expect("failed to git add");
 
     std::process::Command::new("git")
-        .args(&["commit", "-m", "Initial commit"])
+        .args(["commit", "-m", "Initial commit"])
         .current_dir(repo_path)
         .output()
         .expect("failed to git commit");
