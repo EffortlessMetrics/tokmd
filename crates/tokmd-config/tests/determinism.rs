@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use tokmd_config::{Profile, UserConfig};
+use tokmd_config::{Profile, TomlConfig, UserConfig, ViewProfile};
 
 #[test]
 fn test_user_config_determinism() {
@@ -55,5 +55,38 @@ fn test_user_config_determinism() {
         "repos: beta ({}) should be before zebra ({})",
         r_beta,
         r_zebra
+    );
+}
+
+#[test]
+fn test_toml_config_determinism() {
+    let mut view = BTreeMap::new();
+    view.insert("zebra".to_string(), ViewProfile::default());
+    view.insert("beta".to_string(), ViewProfile::default());
+    view.insert("alpha".to_string(), ViewProfile::default());
+
+    let config = TomlConfig {
+        view,
+        ..Default::default()
+    };
+
+    let json = serde_json::to_string(&config).expect("failed to serialize");
+
+    // Check view keys order
+    let p_alpha = json.find("\"alpha\":").expect("alpha profile missing");
+    let p_beta = json.find("\"beta\":").expect("beta profile missing");
+    let p_zebra = json.find("\"zebra\":").expect("zebra profile missing");
+
+    assert!(
+        p_alpha < p_beta,
+        "view: alpha ({}) should be before beta ({})",
+        p_alpha,
+        p_beta
+    );
+    assert!(
+        p_beta < p_zebra,
+        "view: beta ({}) should be before zebra ({})",
+        p_beta,
+        p_zebra
     );
 }
