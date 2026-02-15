@@ -1,0 +1,35 @@
+{
+  "run_id": "2026-02-01-run-01",
+  "timestamp_utc": "2026-02-01T00:00:00Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs:collect_file_rows",
+  "proof_method": "cargo run --release --example bench_collect",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "result": "FAIL (then fixed)"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo run --release --example bench_collect",
+      "exit_code": 0,
+      "result": "Baseline: 22.96ms, Optimized: 22.24ms (-3%)"
+    }
+  ],
+  "results_summary": "Eliminated 2 string clones per file in hot aggregation path. Small runtime gain (~3%), but structural improvement reduces allocator pressure."
+}
