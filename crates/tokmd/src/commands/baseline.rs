@@ -96,8 +96,7 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     // Compute determinism baseline if requested
     if args.determinism {
         progress.set_message("Computing determinism hashes...");
-        baseline.determinism =
-            Some(compute_determinism_baseline(&scan_root, &file_paths)?);
+        baseline.determinism = Some(compute_determinism_baseline(&scan_root, &file_paths)?);
     }
 
     // Create output directory if needed
@@ -148,10 +147,7 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
 ///
 /// Hashes all source files and optionally `Cargo.lock` to create a
 /// reproducibility fingerprint.
-fn compute_determinism_baseline(
-    root: &Path,
-    file_paths: &[String],
-) -> Result<DeterminismBaseline> {
+fn compute_determinism_baseline(root: &Path, file_paths: &[String]) -> Result<DeterminismBaseline> {
     let path_refs: Vec<&str> = file_paths.iter().map(|s| s.as_str()).collect();
     let source_hash = determinism::hash_files_from_paths(root, &path_refs)?;
     let cargo_lock_hash = determinism::hash_cargo_lock(root)?;

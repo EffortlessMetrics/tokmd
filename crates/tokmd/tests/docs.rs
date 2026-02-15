@@ -120,6 +120,9 @@ fn recipe_sensor_json() {
         .arg("json")
         .arg("--output")
         .arg(&report_path)
+        // Explicitly set base to HEAD to avoid ambiguity if 'main' is missing in CI environment
+        .arg("--base")
+        .arg("HEAD")
         .assert()
         .success();
     assert!(report_path.exists());
