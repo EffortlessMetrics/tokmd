@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "20241026-100000-librarian-scout",
+    "date": "2024-10-26",
+    "persona": "Librarian",
+    "description": "Sync CLI reference with v1.6.0 reality (init, context, handoff, analyze)"
   }
 ]

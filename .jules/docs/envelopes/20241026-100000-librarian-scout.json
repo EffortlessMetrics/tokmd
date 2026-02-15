@@ -1,0 +1,31 @@
+{
+  "id": "20241026-100000-librarian-scout",
+  "type": "scout",
+  "status": "complete",
+  "steps": [
+    {
+      "step": "bootstrap",
+      "command": "cargo run --bin tokmd -- --help",
+      "output": "v1.6.0"
+    },
+    {
+      "step": "discovery",
+      "findings": [
+        "tokmd init: missing --non-interactive",
+        "tokmd context: docs use --output for mode, CLI uses --mode",
+        "tokmd context: missing git flags and --no-smart-exclude",
+        "tokmd handoff: missing --no-smart-exclude, --max-file-pct",
+        "tokmd analyze: missing --detail-functions, html format"
+      ]
+    },
+    {
+      "step": "implementation",
+      "action": "Updated docs/reference-cli.md to match CLI help output"
+    },
+    {
+      "step": "verification",
+      "method": "manual_review",
+      "result": "pass"
+    }
+  ]
+}
