@@ -243,8 +243,19 @@ pub fn create_module_report(
     }
 
     let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
-    for r in &file_rows {
-        let entry = by_module.entry(r.module.clone()).or_default();
+    let mut total_code = 0;
+    let mut total_lines = 0;
+    let mut total_bytes = 0;
+    let mut total_tokens = 0;
+
+    for r in file_rows {
+        total_code += r.code;
+        total_lines += r.lines;
+        total_bytes += r.bytes;
+        total_tokens += r.tokens;
+
+        // Optimization: r.module is moved into entry key, avoiding clone.
+        let entry = by_module.entry(r.module).or_default();
         entry.code += r.code;
         entry.lines += r.lines;
         entry.bytes += r.bytes;
@@ -286,10 +297,6 @@ pub fn create_module_report(
     }
 
     let total_files = unique_parent_file_count(languages);
-    let total_code: usize = file_rows.iter().map(|r| r.code).sum();
-    let total_lines: usize = file_rows.iter().map(|r| r.lines).sum();
-    let total_bytes: usize = file_rows.iter().map(|r| r.bytes).sum();
-    let total_tokens: usize = file_rows.iter().map(|r| r.tokens).sum();
 
     let total = Totals {
         code: total_code,
@@ -410,7 +417,8 @@ pub fn collect_file_rows(
             let (bytes, tokens) = get_file_metrics(&report.name);
 
             let key = Key {
-                path: path.clone(),
+                // Optimization: path is moved here to avoid allocation.
+                path,
                 lang: lang_type.name().to_string(),
                 kind: FileKind::Parent,
             };
@@ -433,7 +441,8 @@ pub fn collect_file_rows(
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
                     let key = Key {
-                        path: path.clone(),
+                        // Optimization: path is moved here to avoid allocation.
+                        path,
                         lang: child_type.name().to_string(),
                         kind: FileKind::Child,
                     };
