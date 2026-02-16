@@ -49,11 +49,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 
         // Run cockpit computation (sensor mode has no baseline path)
         let cockpit_receipt = super::cockpit::impl_git::compute_cockpit(
-            &repo_root,
-            &args.base,
-            &args.head,
-            range_mode,
-            None,
+            &repo_root, &args.base, &args.head, range_mode, None,
         )?;
 
         // Build the sensor report envelope

@@ -113,8 +113,55 @@ fn recipe_handoff_bundle() {
 fn recipe_sensor_json() {
     // "tokmd sensor --format json"
     let tmp = tempfile::tempdir().unwrap();
-    let report_path = tmp.path().join("report.json");
-    tokmd()
+    let root = tmp.path();
+
+    // Initialize git repo to ensure main..HEAD logic works in CI
+    std::process::Command::new("git")
+        .arg("init")
+        .current_dir(root)
+        .output()
+        .expect("git init failed");
+
+    std::process::Command::new("git")
+        .args(["config", "user.name", "Test User"])
+        .current_dir(root)
+        .output()
+        .expect("git config failed");
+    std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config failed");
+
+    // Add some content
+    let file_path = root.join("src/lib.rs");
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(&file_path, "fn main() {}").unwrap();
+
+    std::process::Command::new("git")
+        .args(["add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add failed");
+
+    std::process::Command::new("git")
+        .args(["commit", "-m", "Initial"])
+        .current_dir(root)
+        .output()
+        .expect("git commit failed");
+
+    // Rename branch to main to match default expectations
+    std::process::Command::new("git")
+        .args(["branch", "-m", "main"])
+        .current_dir(root)
+        .output()
+        .expect("git branch -m failed");
+
+    let report_path = root.join("report.json");
+
+    let mut cmd = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(root);
+    cmd
         .arg("sensor")
         .arg("--format")
         .arg("json")
@@ -122,6 +169,7 @@ fn recipe_sensor_json() {
         .arg(&report_path)
         .assert()
         .success();
+
     assert!(report_path.exists());
 }
 

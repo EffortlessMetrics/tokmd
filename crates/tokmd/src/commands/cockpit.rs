@@ -20,6 +20,8 @@ pub(crate) fn handle(args: cli::CockpitArgs, global: &cli::GlobalArgs) -> Result
     {
         let _ = args;
         let _ = global;
-        anyhow::bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
+        anyhow::bail!(
+            "The cockpit command requires the 'git' feature. Rebuild with --features git"
+        );
     }
 }
