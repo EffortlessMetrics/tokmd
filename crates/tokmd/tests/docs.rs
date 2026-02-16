@@ -114,7 +114,44 @@ fn recipe_sensor_json() {
     // "tokmd sensor --format json"
     let tmp = tempfile::tempdir().unwrap();
     let report_path = tmp.path().join("report.json");
-    tokmd()
+
+    // Initialize a temporary git repo to ensure the test works in CI (where .git might be missing)
+    let repo_path = tmp.path().join("repo");
+    std::fs::create_dir(&repo_path).unwrap();
+
+    // Create a dummy file
+    std::fs::write(repo_path.join("main.rs"), "fn main() {}").unwrap();
+
+    // Init git
+    std::process::Command::new("git")
+        .arg("init")
+        .current_dir(&repo_path)
+        .output()
+        .unwrap();
+    std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(&repo_path)
+        .output()
+        .unwrap();
+    std::process::Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(&repo_path)
+        .output()
+        .unwrap();
+    std::process::Command::new("git")
+        .args(["add", "."])
+        .current_dir(&repo_path)
+        .output()
+        .unwrap();
+    std::process::Command::new("git")
+        .args(["commit", "-m", "initial"])
+        .current_dir(&repo_path)
+        .output()
+        .unwrap();
+
+    // Run tokmd sensor in the repo
+    let mut cmd = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(&repo_path)
         .env("TOKMD_GIT_BASE_REF", "HEAD")
         .arg("sensor")
         .arg("--format")
@@ -123,6 +160,7 @@ fn recipe_sensor_json() {
         .arg(&report_path)
         .assert()
         .success();
+
     assert!(report_path.exists());
 }
 
