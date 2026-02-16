@@ -100,25 +100,25 @@ You want to paste actual code into an LLM, but your repo is too large. Use `cont
 
 ```bash
 # Pack the most valuable files into 128k tokens
-tokmd context --budget 128k --output bundle --output context.txt
+tokmd context --budget 128k --mode bundle --output context.txt
 ```
 
 **What happened?**
 - `--budget 128k`: Set a token limit matching Claude's context window.
-- `--output bundle`: Concatenated selected files into a single text file.
+- `--mode bundle`: Concatenated selected files into a single text file.
 - `--output context.txt`: Write output to a file instead of stdout.
 - Files are selected by size (largest = most valuable) until the budget is exhausted.
 
 **Alternative strategies**:
 ```bash
 # Spread coverage across all modules
-tokmd context --budget 128k --strategy spread --output bundle --output context.txt
+tokmd context --budget 128k --strategy spread --mode bundle --output context.txt
 
 # Strip blank lines for maximum density
-tokmd context --budget 128k --output bundle --compress --output context.txt
+tokmd context --budget 128k --mode bundle --compress --output context.txt
 
 # Use module roots for better organization
-tokmd context --budget 128k --module-roots src,crates --strategy spread --output bundle --output context.txt
+tokmd context --budget 128k --module-roots src,crates --strategy spread --mode bundle --output context.txt
 ```
 
 ## Step 5: Creating a File Inventory for AI

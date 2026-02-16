@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "2026-02-16-librarian-fix-tokmd-context-docs",
+    "date": "2026-02-16",
+    "persona": "Librarian",
+    "description": "Fix incorrect 'tokmd context' usage in examples"
   }
 ]
