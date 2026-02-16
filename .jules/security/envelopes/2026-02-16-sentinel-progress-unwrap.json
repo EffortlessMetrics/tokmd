@@ -23,7 +23,12 @@
       "cmd": "cargo test -p tokmd --test docs",
       "exit_code": 0,
       "result": "PASS (fixed CI failure)"
+    },
+    {
+      "cmd": "cargo test -p tokmd --test schema_validation",
+      "exit_code": 0,
+      "result": "PASS (fixed CI failure)"
     }
   ],
-  "results_summary": "Replaced unwrap() with expect(). Fixed CI failure in docs test by using temp git repo."
+  "results_summary": "Replaced unwrap() with expect(). Fixed CI failure in docs test by using temp git repo. Fixed schema_validation tests by copying test data into test sandbox."
 }
