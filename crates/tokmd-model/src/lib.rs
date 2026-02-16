@@ -540,10 +540,8 @@ pub fn normalize_path_str(path: &Path, strip_prefix: Option<&str>) -> String {
         slice = stripped;
     }
 
-    if let Some(prefix) = strip_prefix {
-        if slice.starts_with(prefix) {
-            slice = &slice[prefix.len()..];
-        }
+    if let Some(stripped) = strip_prefix.and_then(|prefix| slice.strip_prefix(prefix)) {
+        slice = stripped;
     }
 
     slice = slice.trim_start_matches('/');

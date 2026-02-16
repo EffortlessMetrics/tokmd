@@ -28,7 +28,10 @@ fn main() {
 
     let prefix_str = "crates/tokmd-model";
     let prefix = Path::new(prefix_str);
-    println!("Benchmarking WITH PREFIX (Old style - repetitive normalization): {:?}", prefix);
+    println!(
+        "Benchmarking WITH PREFIX (Old style - repetitive normalization): {:?}",
+        prefix
+    );
 
     let start_prefix = Instant::now();
     for _ in 0..iterations {
@@ -44,7 +47,10 @@ fn main() {
     );
 
     let prefix_normalized = "crates/tokmd-model/";
-    println!("Benchmarking WITH PRE-NORMALIZED PREFIX: {:?}", prefix_normalized);
+    println!(
+        "Benchmarking WITH PRE-NORMALIZED PREFIX: {:?}",
+        prefix_normalized
+    );
 
     let start_opt = Instant::now();
     for _ in 0..iterations {
