@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+- **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
+
+## [1.6.1] - 2026-02-16
+
+### Added
+
 - **File Classification**: Auto-detect generated, vendored, fixture, lockfile, minified, sourcemap, and dense data blob files during context packing
 - **Inclusion Policies**: Per-file budget caps (`--max-file-pct`, `--max-file-tokens`) with Full/HeadTail/Summary/Skip policies
 - **Head/Tail Truncation**: Oversized files emit 60% head + 40% tail with omission marker
