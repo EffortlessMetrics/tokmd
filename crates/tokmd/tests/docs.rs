@@ -1,3 +1,5 @@
+mod common;
+
 use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use std::path::PathBuf;
@@ -112,9 +114,30 @@ fn recipe_handoff_bundle() {
 #[test]
 fn recipe_sensor_json() {
     // "tokmd sensor --format json"
+    // Requires a git repo context. We create a temporary one.
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return;
+    }
+
     let tmp = tempfile::tempdir().unwrap();
-    let report_path = tmp.path().join("report.json");
-    tokmd()
+    let repo_dir = tmp.path();
+
+    // Initialize git repo
+    assert!(common::init_git_repo(repo_dir), "Failed to init git repo");
+
+    // Add some files
+    std::fs::write(repo_dir.join("main.rs"), "fn main() {}").unwrap();
+    assert!(
+        common::git_add_commit(repo_dir, "Initial commit"),
+        "Failed to commit"
+    );
+
+    let report_path = repo_dir.join("report.json");
+
+    // Run tokmd sensor in this repo
+    let mut cmd = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(repo_dir)
         .env("TOKMD_GIT_BASE_REF", "HEAD")
         .arg("sensor")
         .arg("--format")
@@ -123,6 +146,7 @@ fn recipe_sensor_json() {
         .arg(&report_path)
         .assert()
         .success();
+
     assert!(report_path.exists());
 }
 
