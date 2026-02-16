@@ -24,6 +24,15 @@ pub(crate) fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<Strin
         let normalized = normalize(rel_path);
         let full = root.join(rel_path);
 
+        // Match walk-based hashing: never include generated/metadata directories,
+        // even if they appear in the exported path set.
+        if normalized.starts_with(".tokmd/")
+            || normalized.starts_with("target/")
+            || normalized.starts_with(".git/")
+        {
+            continue;
+        }
+
         // Skip files that no longer exist (e.g., deleted between scan and baseline)
         let content = match std::fs::read(&full) {
             Ok(c) => c,

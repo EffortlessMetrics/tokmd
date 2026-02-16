@@ -115,6 +115,7 @@ fn recipe_sensor_json() {
     let tmp = tempfile::tempdir().unwrap();
     let report_path = tmp.path().join("report.json");
     tokmd()
+        .env("TOKMD_GIT_BASE_REF", "HEAD")
         .arg("sensor")
         .arg("--format")
         .arg("json")

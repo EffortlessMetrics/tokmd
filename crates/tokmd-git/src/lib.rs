@@ -251,6 +251,12 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
         return Some(requested.to_string());
     }
 
+    // Only use fallback resolution for the CLI default (`main`).
+    // Explicitly requested bases should fail fast if missing.
+    if requested != "main" {
+        return None;
+    }
+
     // TOKMD_GIT_BASE_REF env override
     if let Ok(env_ref) = std::env::var("TOKMD_GIT_BASE_REF")
         && !env_ref.is_empty()
