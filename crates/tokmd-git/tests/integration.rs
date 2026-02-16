@@ -7,7 +7,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tokmd_git::{collect_history, get_added_lines, git_available, repo_root, GitRangeMode};
+use tokmd_git::{GitRangeMode, collect_history, get_added_lines, git_available, repo_root};
 
 /// Create a `Command` for git that ignores inherited `GIT_DIR`/`GIT_WORK_TREE`
 /// and runs in the given directory.
@@ -70,10 +70,7 @@ fn init_test_repo(suffix: &str) -> Option<TempGitRepo> {
 
     // Seed commit so HEAD exists
     std::fs::write(temp_dir.join("README.md"), "initial").ok()?;
-    git_in(&temp_dir)
-        .args(["add", "README.md"])
-        .output()
-        .ok()?;
+    git_in(&temp_dir).args(["add", "README.md"]).output().ok()?;
     let commit = git_in(&temp_dir)
         .args(["commit", "-m", "Initial commit"])
         .output()
@@ -623,10 +620,7 @@ fn test_get_added_lines_new_file_all_lines() {
         .expect("get_added_lines should succeed");
 
     let key = PathBuf::from("brand_new.txt");
-    assert!(
-        result.contains_key(&key),
-        "Should contain brand_new.txt"
-    );
+    assert!(result.contains_key(&key), "Should contain brand_new.txt");
     let expected: BTreeSet<usize> = [1, 2, 3].into_iter().collect();
     assert_eq!(result[&key], expected, "All 3 lines should be added");
 }
