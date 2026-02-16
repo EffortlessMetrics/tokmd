@@ -1,0 +1,13 @@
+{
+  "id": "20260216-124716",
+  "start_time": "2026-02-16T12:47:16Z",
+  "target": "tokmd-core",
+  "lane": "B",
+  "decision": "Remove unused 'thiserror' dependency",
+  "receipts": [
+    "cargo check -p tokmd-core: passed",
+    "cargo test -p tokmd-core: passed",
+    "cargo fmt --all -- --check: passed",
+    "cargo clippy --workspace -- -D warnings: passed"
+  ]
+}
