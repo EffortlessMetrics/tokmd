@@ -1543,6 +1543,10 @@ fn compute_determinism_gate(
 ) -> Result<Option<DeterminismGate>> {
     use tokmd_analysis_types::ComplexityBaseline;
 
+    fn short16(s: &str) -> &str {
+        s.get(..16).unwrap_or(s)
+    }
+
     // Resolve baseline: explicit path or default location
     let resolved_path = match baseline_path {
         Some(p) => p.to_path_buf(),
@@ -1580,8 +1584,8 @@ fn compute_determinism_gate(
     if actual_hash != *expected_hash {
         differences.push(format!(
             "source hash mismatch: expected {}, got {}",
-            expected_hash.get(..16).unwrap_or(expected_hash),
-            actual_hash.get(..16).unwrap_or(&actual_hash),
+            short16(expected_hash),
+            short16(&actual_hash),
         ));
     }
 
@@ -1592,8 +1596,8 @@ fn compute_determinism_gate(
             Some(ref actual) if actual != expected_lock => {
                 differences.push(format!(
                     "Cargo.lock hash mismatch: expected {}, got {}",
-                    expected_lock.get(..16).unwrap_or(expected_lock),
-                    actual.get(..16).unwrap_or(actual),
+                    short16(expected_lock),
+                    short16(actual),
                 ));
             }
             None => {

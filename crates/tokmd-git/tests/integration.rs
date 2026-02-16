@@ -8,6 +8,16 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use tokmd_git::{collect_history, git_available, repo_root};
 
+/// Create a `Command` for git that ignores inherited `GIT_DIR`/`GIT_WORK_TREE`
+/// and runs in the given directory.
+fn git_in(dir: &Path) -> Command {
+    let mut cmd = Command::new("git");
+    cmd.env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .current_dir(dir);
+    cmd
+}
+
 /// Helper to create a temporary git repository with some commits.
 fn create_test_repo() -> Option<TempGitRepo> {
     if !git_available() {
@@ -34,39 +44,28 @@ fn create_test_repo() -> Option<TempGitRepo> {
     std::fs::create_dir_all(&temp_dir).ok()?;
 
     // Initialize git repo
-    let status = Command::new("git")
-        .args(["init"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    let status = git_in(&temp_dir).args(["init"]).output().ok()?;
     if !status.status.success() {
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
 
     // Configure git user for commits
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
     std::fs::write(&file1, "content1").ok()?;
-    Command::new("git")
-        .args(["add", "file1.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    let commit1 = Command::new("git")
+    git_in(&temp_dir).args(["add", "file1.txt"]).output().ok()?;
+    let commit1 = git_in(&temp_dir)
         .args(["commit", "-m", "First commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
     if !commit1.status.success() {
@@ -77,27 +76,17 @@ fn create_test_repo() -> Option<TempGitRepo> {
     // Create second commit with another file
     let file2 = temp_dir.join("file2.txt");
     std::fs::write(&file2, "content2").ok()?;
-    Command::new("git")
-        .args(["add", "file2.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+    git_in(&temp_dir).args(["add", "file2.txt"]).output().ok()?;
+    git_in(&temp_dir)
         .args(["commit", "-m", "Second commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
     // Create third commit modifying existing file
     std::fs::write(&file1, "modified content").ok()?;
-    Command::new("git")
-        .args(["add", "file1.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+    git_in(&temp_dir).args(["add", "file1.txt"]).output().ok()?;
+    git_in(&temp_dir)
         .args(["commit", "-m", "Third commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
@@ -340,25 +329,19 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
     std::fs::create_dir_all(&temp_dir).ok()?;
 
     // Initialize git repo
-    let status = Command::new("git")
-        .args(["init"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    let status = git_in(&temp_dir).args(["init"]).output().ok()?;
     if !status.status.success() {
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
 
     // Configure git user for commits
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
@@ -367,14 +350,9 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         let file = temp_dir.join(format!("file{}.txt", i));
         std::fs::write(&file, format!("content{}", i)).ok()?;
     }
-    Command::new("git")
-        .args(["add", "."])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    let commit_result = Command::new("git")
+    git_in(&temp_dir).args(["add", "."]).output().ok()?;
+    let commit_result = git_in(&temp_dir)
         .args(["commit", "-m", "Commit with 5 files"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
     if !commit_result.status.success() {

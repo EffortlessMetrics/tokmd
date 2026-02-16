@@ -21,6 +21,17 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
 
+/// Create a `Command` for git with process-environment isolation.
+///
+/// Strips `GIT_DIR` and `GIT_WORK_TREE` so that inherited environment
+/// variables cannot override the explicit `-C` path used by all
+/// functions in this crate.
+fn git_cmd() -> Command {
+    let mut cmd = Command::new("git");
+    cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
+    cmd
+}
+
 #[derive(Debug, Clone)]
 pub struct GitCommit {
     pub timestamp: i64,
@@ -49,7 +60,7 @@ impl GitRangeMode {
 }
 
 pub fn git_available() -> bool {
-    Command::new("git")
+    git_cmd()
         .arg("--version")
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -59,7 +70,7 @@ pub fn git_available() -> bool {
 }
 
 pub fn repo_root(path: &Path) -> Option<PathBuf> {
-    let output = Command::new("git")
+    let output = git_cmd()
         .arg("-C")
         .arg(path)
         .arg("rev-parse")
@@ -82,7 +93,7 @@ pub fn collect_history(
     max_commits: Option<usize>,
     max_commit_files: Option<usize>,
 ) -> Result<Vec<GitCommit>> {
-    let mut child = Command::new("git")
+    let mut child = git_cmd()
         .arg("-C")
         .arg(repo_root)
         .arg("log")
@@ -152,7 +163,7 @@ pub fn get_added_lines(
     range_mode: GitRangeMode,
 ) -> Result<std::collections::BTreeMap<PathBuf, std::collections::BTreeSet<usize>>> {
     let range = range_mode.format(base, head);
-    let output = Command::new("git")
+    let output = git_cmd()
         .arg("-C")
         .arg(repo_root)
         .args(["diff", "--unified=0", &range])
@@ -212,7 +223,7 @@ pub fn get_added_lines(
 
 /// Check whether a git revision resolves to a valid commit.
 pub fn rev_exists(repo_root: &Path, rev: &str) -> bool {
-    Command::new("git")
+    git_cmd()
         .arg("-C")
         .arg(repo_root)
         .args(["rev-parse", "--verify", "--quiet"])
@@ -280,6 +291,12 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
 mod tests {
     use super::*;
 
+    fn test_git(dir: &Path) -> Command {
+        let mut cmd = git_cmd();
+        cmd.arg("-C").arg(dir);
+        cmd
+    }
+
     #[test]
     fn git_range_two_dot_format() {
         assert_eq!(GitRangeMode::TwoDot.format("main", "HEAD"), "main..HEAD");
@@ -301,40 +318,20 @@ mod tests {
             return;
         }
         let dir = tempfile::tempdir().unwrap();
-        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
-        unsafe {
-            std::env::remove_var("GIT_DIR");
-        }
 
         // Init repo and create a commit so HEAD resolves
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .arg("init")
-            .output()
-            .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path()).arg("init").output().unwrap();
+        test_git(dir.path())
             .args(["config", "user.email", "test@test.com"])
             .output()
             .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path())
             .args(["config", "user.name", "Test"])
             .output()
             .unwrap();
         std::fs::write(dir.path().join("f.txt"), "hello").unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .args(["add", "."])
-            .output()
-            .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path()).args(["add", "."]).output().unwrap();
+        test_git(dir.path())
             .args(["commit", "-m", "init"])
             .output()
             .unwrap();
@@ -349,40 +346,22 @@ mod tests {
             return;
         }
         let dir = tempfile::tempdir().unwrap();
-        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
-        unsafe {
-            std::env::remove_var("GIT_DIR");
-        }
 
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .arg("init")
-            .args(["-b", "main"])
+        test_git(dir.path())
+            .args(["init", "-b", "main"])
             .output()
             .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path())
             .args(["config", "user.email", "test@test.com"])
             .output()
             .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path())
             .args(["config", "user.name", "Test"])
             .output()
             .unwrap();
         std::fs::write(dir.path().join("f.txt"), "hello").unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .args(["add", "."])
-            .output()
-            .unwrap();
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
+        test_git(dir.path()).args(["add", "."]).output().unwrap();
+        test_git(dir.path())
             .args(["commit", "-m", "init"])
             .output()
             .unwrap();
@@ -399,17 +378,10 @@ mod tests {
             return;
         }
         let dir = tempfile::tempdir().unwrap();
-        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
-        unsafe {
-            std::env::remove_var("GIT_DIR");
-        }
 
         // Init on "trunk" with no commits, no remotes
-        Command::new("git")
-            .arg("-C")
-            .arg(dir.path())
-            .arg("init")
-            .args(["-b", "trunk"])
+        test_git(dir.path())
+            .args(["init", "-b", "trunk"])
             .output()
             .unwrap();
 
