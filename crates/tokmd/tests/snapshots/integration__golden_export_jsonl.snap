@@ -4,7 +4,7 @@ expression: normalized
 ---
 {"type":"meta","schema_version":2,"generated_at_ms":0,"tool":{"name":"tokmd","version":"0.0.0"},"mode":"export","status":"complete","warnings":[],"scan":{"paths":["."],"excluded":[],"config":"auto","hidden":false,"no_ignore":false,"no_ignore_parent":false,"no_ignore_dot":false,"no_ignore_vcs":false,"treat_doc_strings_as_comments":false},"args":{"format":"jsonl","module_roots":["crates","packages"],"module_depth":2,"children":"separate","min_code":0,"max_rows":0,"redact":"none","strip_prefix":null}}
 {"type":"row","path":"large.rs","module":"(root)","lang":"Rust","kind":"parent","code":9,"comments":2,"blanks":0,"lines":11,"bytes":172,"tokens":43}
-{"type":"row","path":"Cargo.toml","module":"(root)","lang":"TOML","kind":"parent","code":5,"comments":0,"blanks":1,"lines":6,"bytes":78,"tokens":19}
+{"type":"row","path":"Cargo.toml","module":"(root)","lang":"TOML","kind":"parent","code":8,"comments":0,"blanks":1,"lines":9,"bytes":165,"tokens":41}
 {"type":"row","path":"mixed.md","module":"(root)","lang":"Markdown","kind":"parent","code":4,"comments":5,"blanks":2,"lines":11,"bytes":118,"tokens":29}
 {"type":"row","path":"mixed.md","module":"(root)","lang":"Rust","kind":"child","code":3,"comments":0,"blanks":0,"lines":3,"bytes":0,"tokens":0}
 {"type":"row","path":"src/main.rs","module":"src","lang":"Rust","kind":"parent","code":3,"comments":0,"blanks":0,"lines":3,"bytes":45,"tokens":11}
