@@ -1,0 +1,25 @@
+{
+  "run_id": "run-03",
+  "status": "success",
+  "target": "tokmd-core",
+  "action": "remove-unused-dep",
+  "log": [
+    "Identified unused `thiserror` dependency in `crates/tokmd-core/Cargo.toml`.",
+    "Removed the dependency.",
+    "Verified with `cargo check`, `cargo test`, `cargo clippy`, and `cargo fmt`."
+  ],
+  "receipts": [
+    {
+      "command": "cargo check -p tokmd-core",
+      "result": "success"
+    },
+    {
+      "command": "cargo test -p tokmd-core",
+      "result": "success"
+    },
+     {
+      "command": "cargo clippy -p tokmd-core -- -D warnings",
+      "result": "success"
+    }
+  ]
+}
