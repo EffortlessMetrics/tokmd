@@ -16,9 +16,9 @@ default = []
 analysis = ["tokmd-analysis-types"]
 
 [dependencies]
-anyhow = "1.0.100"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+anyhow = "1.0.101"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
 thiserror = "2.0"
 tokmd-config.workspace = true
 tokmd-format.workspace = true
@@ -29,3 +29,4 @@ tokmd-types.workspace = true
 
 # Optional analysis support
 tokmd-analysis-types = { workspace = true, optional = true }
+

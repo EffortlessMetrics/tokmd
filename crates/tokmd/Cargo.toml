@@ -43,8 +43,8 @@ path = "src/bin/tok.rs"
 required-features = ["alias-tok"]
 
 [dependencies]
-anyhow = "1.0.100"
-clap = { version = "4.5.56", features = ["derive"] }
+anyhow = "1.0.101"
+clap = { version = "4.5.58", features = ["derive"] }
 tokmd-analysis = { workspace = true }
 tokmd-analysis-format = { workspace = true, features = ["fun"] }
 tokmd-analysis-types.workspace = true
@@ -59,26 +59,27 @@ tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
-clap_complete = "4.5.65"
+clap_complete = "4.5.66"
 dialoguer = { version = "0.12.0", optional = true }
 console = { version = "0.16.2", optional = true }
-indicatif = { version = "0.18.3", optional = true }
+indicatif = { version = "0.18.4", optional = true }
 toml = { version = "0.9.8", optional = true }
 dirs = "6.0.0"
 serde_json = "1.0.149"
 tokmd-gate.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }
 blake3.workspace = true
-ignore = "0.4.22"
-time = { version = "0.3", features = ["formatting"] }
+ignore = "0.4.25"
+time = { version = "0.3.47", features = ["formatting"] }
 
 [dev-dependencies]
 assert_cmd = "2.1.2"
-predicates = "3.1.3"
-tempfile = "3.24.0"
-insta = { version = "1.46.1", features = ["json"] }
-regex = "1.12.2"
-proptest = "1.9.0"
+predicates = "3.1.4"
+tempfile = "3.25.0"
+insta = { version = "1.46.3", features = ["json"] }
+regex = "1.12.3"
+proptest = "1.10.0"
 serde_json = "1.0.149"
 tokmd-model.workspace = true
-jsonschema = "0.40.2"
+jsonschema = "0.42.0"
+

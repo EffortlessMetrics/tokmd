@@ -4,9 +4,84 @@
 //! ensuring they work even when the test is run from a non-git directory
 //! (e.g., during mutation testing).
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tokmd_git::{collect_history, git_available, repo_root};
+use tokmd_git::{GitRangeMode, collect_history, get_added_lines, git_available, repo_root};
+
+/// Create a `Command` for git that ignores inherited `GIT_DIR`/`GIT_WORK_TREE`
+/// and runs in the given directory.
+fn git_in(dir: &Path) -> Command {
+    let mut cmd = Command::new("git");
+    cmd.env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .current_dir(dir);
+    cmd
+}
+
+/// Run `git rev-parse HEAD` in the given directory and return the SHA.
+fn get_head_sha(dir: &Path) -> String {
+    let output = git_in(dir)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .expect("git rev-parse HEAD should succeed");
+    assert!(output.status.success(), "git rev-parse HEAD failed");
+    String::from_utf8_lossy(&output.stdout).trim().to_string()
+}
+
+/// Create an empty initialized git repository with one seed commit.
+fn init_test_repo(suffix: &str) -> Option<TempGitRepo> {
+    if !git_available() {
+        return None;
+    }
+
+    let unique_id = format!(
+        "{}-{:?}-{}-{}",
+        std::process::id(),
+        std::thread::current().id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0),
+        suffix
+    );
+    let temp_dir = std::env::temp_dir().join(format!("tokmd-git-test-{}", unique_id));
+
+    if temp_dir.exists() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+    }
+
+    std::fs::create_dir_all(&temp_dir).ok()?;
+
+    let status = git_in(&temp_dir).args(["init"]).output().ok()?;
+    if !status.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
+
+    git_in(&temp_dir)
+        .args(["config", "user.email", "test@example.com"])
+        .output()
+        .ok()?;
+    git_in(&temp_dir)
+        .args(["config", "user.name", "Test User"])
+        .output()
+        .ok()?;
+
+    // Seed commit so HEAD exists
+    std::fs::write(temp_dir.join("README.md"), "initial").ok()?;
+    git_in(&temp_dir).args(["add", "README.md"]).output().ok()?;
+    let commit = git_in(&temp_dir)
+        .args(["commit", "-m", "Initial commit"])
+        .output()
+        .ok()?;
+    if !commit.status.success() {
+        std::fs::remove_dir_all(&temp_dir).ok();
+        return None;
+    }
+
+    Some(TempGitRepo { path: temp_dir })
+}
 
 /// Helper to create a temporary git repository with some commits.
 fn create_test_repo() -> Option<TempGitRepo> {
@@ -34,39 +109,28 @@ fn create_test_repo() -> Option<TempGitRepo> {
     std::fs::create_dir_all(&temp_dir).ok()?;
 
     // Initialize git repo
-    let status = Command::new("git")
-        .args(["init"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    let status = git_in(&temp_dir).args(["init"]).output().ok()?;
     if !status.status.success() {
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
 
     // Configure git user for commits
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
     std::fs::write(&file1, "content1").ok()?;
-    Command::new("git")
-        .args(["add", "file1.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    let commit1 = Command::new("git")
+    git_in(&temp_dir).args(["add", "file1.txt"]).output().ok()?;
+    let commit1 = git_in(&temp_dir)
         .args(["commit", "-m", "First commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
     if !commit1.status.success() {
@@ -77,27 +141,17 @@ fn create_test_repo() -> Option<TempGitRepo> {
     // Create second commit with another file
     let file2 = temp_dir.join("file2.txt");
     std::fs::write(&file2, "content2").ok()?;
-    Command::new("git")
-        .args(["add", "file2.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+    git_in(&temp_dir).args(["add", "file2.txt"]).output().ok()?;
+    git_in(&temp_dir)
         .args(["commit", "-m", "Second commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
     // Create third commit modifying existing file
     std::fs::write(&file1, "modified content").ok()?;
-    Command::new("git")
-        .args(["add", "file1.txt"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    Command::new("git")
+    git_in(&temp_dir).args(["add", "file1.txt"]).output().ok()?;
+    git_in(&temp_dir)
         .args(["commit", "-m", "Third commit"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
@@ -340,25 +394,19 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
     std::fs::create_dir_all(&temp_dir).ok()?;
 
     // Initialize git repo
-    let status = Command::new("git")
-        .args(["init"])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
+    let status = git_in(&temp_dir).args(["init"]).output().ok()?;
     if !status.status.success() {
         std::fs::remove_dir_all(&temp_dir).ok();
         return None;
     }
 
     // Configure git user for commits
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.email", "test@example.com"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
-    Command::new("git")
+    git_in(&temp_dir)
         .args(["config", "user.name", "Test User"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
 
@@ -367,14 +415,9 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         let file = temp_dir.join(format!("file{}.txt", i));
         std::fs::write(&file, format!("content{}", i)).ok()?;
     }
-    Command::new("git")
-        .args(["add", "."])
-        .current_dir(&temp_dir)
-        .output()
-        .ok()?;
-    let commit_result = Command::new("git")
+    git_in(&temp_dir).args(["add", "."]).output().ok()?;
+    let commit_result = git_in(&temp_dir)
         .args(["commit", "-m", "Commit with 5 files"])
-        .current_dir(&temp_dir)
         .output()
         .ok()?;
     if !commit_result.status.success() {
@@ -467,4 +510,193 @@ fn test_no_max_commit_files_returns_all() {
         "Commit should have all 5 files when no limit, got: {:?}",
         commit.files
     );
+}
+
+// ============================================================================
+// get_added_lines tests
+// ============================================================================
+
+/// Modifying a file between two commits produces correct added line numbers.
+#[test]
+fn test_get_added_lines_single_file() {
+    let repo = init_test_repo("added-single").expect("Should create test repo");
+    let base_sha = get_head_sha(&repo.path);
+
+    // Replace README.md content so the diff shows 3 added lines
+    std::fs::write(repo.path.join("README.md"), "line1\nline2\nline3\n").unwrap();
+    git_in(&repo.path)
+        .args(["add", "README.md"])
+        .output()
+        .unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "modify readme"])
+        .output()
+        .unwrap();
+    let head_sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &base_sha, &head_sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    assert!(
+        result.contains_key(&PathBuf::from("README.md")),
+        "Should contain README.md, got keys: {:?}",
+        result.keys().collect::<Vec<_>>()
+    );
+    let lines = &result[&PathBuf::from("README.md")];
+    let expected: BTreeSet<usize> = [1, 2, 3].into_iter().collect();
+    assert_eq!(*lines, expected, "Should report lines 1-3 as added");
+}
+
+/// Changes across multiple files and a brand-new file are all captured.
+#[test]
+fn test_get_added_lines_multiple_files() {
+    let repo = init_test_repo("added-multi").expect("Should create test repo");
+    let base_sha = get_head_sha(&repo.path);
+
+    // Modify existing file
+    std::fs::write(repo.path.join("README.md"), "updated\n").unwrap();
+    // Add a brand-new file
+    std::fs::write(repo.path.join("new.txt"), "alpha\nbeta\n").unwrap();
+    git_in(&repo.path)
+        .args(["add", "README.md", "new.txt"])
+        .output()
+        .unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "multi-file change"])
+        .output()
+        .unwrap();
+    let head_sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &base_sha, &head_sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    assert!(
+        result.contains_key(&PathBuf::from("README.md")),
+        "Should contain README.md"
+    );
+    assert!(
+        result.contains_key(&PathBuf::from("new.txt")),
+        "Should contain new.txt"
+    );
+    let new_lines = &result[&PathBuf::from("new.txt")];
+    let expected: BTreeSet<usize> = [1, 2].into_iter().collect();
+    assert_eq!(*new_lines, expected, "new.txt should have lines 1-2 added");
+}
+
+/// Same SHA for base and head returns empty map.
+#[test]
+fn test_get_added_lines_no_changes() {
+    let repo = init_test_repo("added-noop").expect("Should create test repo");
+    let sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &sha, &sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    assert!(
+        result.is_empty(),
+        "Same base and head should yield empty map, got: {:?}",
+        result
+    );
+}
+
+/// Brand-new file reports all lines as added.
+#[test]
+fn test_get_added_lines_new_file_all_lines() {
+    let repo = init_test_repo("added-newfile").expect("Should create test repo");
+    let base_sha = get_head_sha(&repo.path);
+
+    std::fs::write(repo.path.join("brand_new.txt"), "alpha\nbeta\ngamma\n").unwrap();
+    git_in(&repo.path)
+        .args(["add", "brand_new.txt"])
+        .output()
+        .unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "add brand new file"])
+        .output()
+        .unwrap();
+    let head_sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &base_sha, &head_sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    let key = PathBuf::from("brand_new.txt");
+    assert!(result.contains_key(&key), "Should contain brand_new.txt");
+    let expected: BTreeSet<usize> = [1, 2, 3].into_iter().collect();
+    assert_eq!(result[&key], expected, "All 3 lines should be added");
+}
+
+/// Deleted file does not appear in result.
+#[test]
+fn test_get_added_lines_deleted_file_excluded() {
+    let repo = init_test_repo("added-deleted").expect("Should create test repo");
+    let base_sha = get_head_sha(&repo.path);
+
+    git_in(&repo.path)
+        .args(["rm", "README.md"])
+        .output()
+        .unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "delete readme"])
+        .output()
+        .unwrap();
+    let head_sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &base_sha, &head_sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    assert!(
+        !result.contains_key(&PathBuf::from("README.md")),
+        "Deleted file should not appear in added lines"
+    );
+    assert!(result.is_empty(), "Only deletion should yield empty map");
+}
+
+/// Nonexistent ref returns Err.
+#[test]
+fn test_get_added_lines_invalid_ref_errors() {
+    let repo = init_test_repo("added-badref").expect("Should create test repo");
+
+    let result = get_added_lines(
+        &repo.path,
+        "deadbeef0000000000000000000000000000dead",
+        "HEAD",
+        GitRangeMode::TwoDot,
+    );
+
+    assert!(
+        result.is_err(),
+        "Nonexistent base ref should produce an error"
+    );
+}
+
+/// Nested paths (e.g. `src/lib.rs`) are correctly keyed.
+#[test]
+fn test_get_added_lines_subdirectory_paths() {
+    let repo = init_test_repo("added-subdir").expect("Should create test repo");
+    let base_sha = get_head_sha(&repo.path);
+
+    let src_dir = repo.path.join("src");
+    std::fs::create_dir_all(&src_dir).unwrap();
+    std::fs::write(src_dir.join("lib.rs"), "fn main() {}\n").unwrap();
+    git_in(&repo.path)
+        .args(["add", "src/lib.rs"])
+        .output()
+        .unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "add nested file"])
+        .output()
+        .unwrap();
+    let head_sha = get_head_sha(&repo.path);
+
+    let result = get_added_lines(&repo.path, &base_sha, &head_sha, GitRangeMode::TwoDot)
+        .expect("get_added_lines should succeed");
+
+    let key = PathBuf::from("src/lib.rs");
+    assert!(
+        result.contains_key(&key),
+        "Should contain src/lib.rs, got keys: {:?}",
+        result.keys().collect::<Vec<_>>()
+    );
+    let expected: BTreeSet<usize> = [1].into_iter().collect();
+    assert_eq!(result[&key], expected, "Should report line 1 as added");
 }

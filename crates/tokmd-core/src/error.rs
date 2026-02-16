@@ -456,22 +456,24 @@ mod tests {
         let data = serde_json::json!({"rows": []});
         let envelope = ResponseEnvelope::success(data.clone());
         assert!(envelope.ok);
+        assert!(envelope.error.is_none());
+        assert_eq!(envelope.data, Some(data));
+    }
 
-        #[test]
-        fn error_with_suggestions() {
-            let err = TokmdError::git_not_available();
-            assert_eq!(err.code, ErrorCode::GitNotAvailable);
-            assert!(err.suggestions.is_some());
-            let suggestions = err.suggestions.unwrap();
-            assert!(suggestions.len() > 0);
-        }
+    #[test]
+    fn error_with_suggestions() {
+        let err = TokmdError::git_not_available();
+        assert_eq!(err.code, ErrorCode::GitNotAvailable);
+        assert!(err.suggestions.is_some());
+        let suggestions = err.suggestions.unwrap();
+        assert!(!suggestions.is_empty());
+    }
 
-        #[test]
-        fn error_with_details_and_suggestions() {
-            let err = TokmdError::not_git_repository("/some/path");
-            assert_eq!(err.code, ErrorCode::NotGitRepository);
-            assert!(err.details.is_some());
-            assert!(err.suggestions.is_some());
-        }
+    #[test]
+    fn error_with_details_and_suggestions() {
+        let err = TokmdError::not_git_repository("/some/path");
+        assert_eq!(err.code, ErrorCode::NotGitRepository);
+        assert!(err.details.is_some());
+        assert!(err.suggestions.is_some());
     }
 }

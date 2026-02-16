@@ -16,6 +16,8 @@
 name = "tokmd-fuzz"
 version = "0.0.0"
 license.workspace = true
+homepage.workspace = true
+repository.workspace = true
 publish = false
 edition = "2024"
 

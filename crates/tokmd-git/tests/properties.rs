@@ -3,6 +3,9 @@
 //! These tests verify parsing logic, edge case handling, and safety properties
 //! without requiring actual git execution.
 
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
+
 use proptest::prelude::*;
 use tokmd_git::{GitCommit, git_available, repo_root};
 
@@ -96,6 +99,55 @@ fn arb_long_file_path() -> impl Strategy<Value = String> {
         path.push_str(".rs");
         path
     })
+}
+
+// ============================================================================
+// Diff Hunk Parsing Helper
+// ============================================================================
+
+/// Mirrors the hunk-parsing logic from `get_added_lines()` in lib.rs.
+/// Extracts added line numbers per file from unified diff output.
+fn parse_diff_output(stdout: &str) -> BTreeMap<PathBuf, BTreeSet<usize>> {
+    let mut result: BTreeMap<PathBuf, BTreeSet<usize>> = BTreeMap::new();
+    let mut current_file: Option<PathBuf> = None;
+
+    for line in stdout.lines() {
+        if let Some(file_path) = line.strip_prefix("+++ b/") {
+            current_file = Some(PathBuf::from(file_path));
+            continue;
+        }
+
+        if line.starts_with("@@") {
+            let Some(file) = current_file.as_ref() else {
+                continue;
+            };
+
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() < 3 {
+                continue;
+            }
+
+            let new_range = parts[2];
+            let range_str = new_range.strip_prefix('+').unwrap_or(new_range);
+            let range_parts: Vec<&str> = range_str.split(',').collect();
+
+            let start: usize = range_parts[0].parse().unwrap_or(0);
+            let count: usize = if range_parts.len() > 1 {
+                range_parts[1].parse().unwrap_or(1)
+            } else {
+                1
+            };
+
+            if count > 0 && start > 0 {
+                let set = result.entry(file.clone()).or_default();
+                for i in 0..count {
+                    set.insert(start + i);
+                }
+            }
+        }
+    }
+
+    result
 }
 
 // ============================================================================
@@ -515,5 +567,80 @@ proptest! {
         let limited = apply_commit_limit(commits.clone(), None);
 
         prop_assert_eq!(limited.len(), commits.len(), "All commits should be returned");
+    }
+}
+
+// ============================================================================
+// Diff hunk parsing property tests
+// ============================================================================
+
+proptest! {
+    /// `@@ ... +start,count @@` produces `{start..start+count}`.
+    #[test]
+    fn hunk_with_count_produces_consecutive_lines(
+        file in arb_file_path(),
+        start in 1usize..1000,
+        count in 1usize..100,
+    ) {
+        let diff = format!(
+            "+++ b/{}\n@@ -1,1 +{},{} @@\n",
+            file, start, count
+        );
+        let result = parse_diff_output(&diff);
+        let expected: BTreeSet<usize> = (start..start + count).collect();
+        let file_path = PathBuf::from(&file);
+        prop_assert_eq!(
+            result.get(&file_path),
+            Some(&expected),
+            "Hunk +{},{} should produce lines {}..{}",
+            start, count, start, start + count
+        );
+    }
+
+    /// `+start,0` produces nothing (deletion-only hunk).
+    #[test]
+    fn hunk_with_zero_count_produces_no_lines(
+        file in arb_file_path(),
+        start in 1usize..1000,
+    ) {
+        let diff = format!(
+            "+++ b/{}\n@@ -1,1 +{},0 @@\n",
+            file, start
+        );
+        let result = parse_diff_output(&diff);
+        prop_assert!(
+            result.is_empty(),
+            "Zero count should produce no lines, got: {:?}",
+            result
+        );
+    }
+
+    /// Random text without `@@` or `+++ b/` yields empty map.
+    #[test]
+    fn no_hunk_headers_produces_empty_result(
+        text in "[a-zA-Z0-9 \n]{0,500}"
+    ) {
+        let result = parse_diff_output(&text);
+        prop_assert!(
+            result.is_empty(),
+            "Text without hunk headers should produce empty result, got: {:?}",
+            result
+        );
+    }
+
+    /// Same input always produces same output.
+    #[test]
+    fn diff_parsing_is_deterministic(
+        file in arb_file_path(),
+        start in 1usize..1000,
+        count in 1usize..100,
+    ) {
+        let diff = format!(
+            "+++ b/{}\n@@ -1,1 +{},{} @@\n",
+            file, start, count
+        );
+        let r1 = parse_diff_output(&diff);
+        let r2 = parse_diff_output(&diff);
+        prop_assert_eq!(r1, r2, "Parsing should be deterministic");
     }
 }

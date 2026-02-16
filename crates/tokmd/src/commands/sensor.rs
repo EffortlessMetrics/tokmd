@@ -42,9 +42,23 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Use two-dot range for sensor (same convention as cockpit)
         let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
+        let resolved_base =
+            tokmd_git::resolve_base_ref(&repo_root, &args.base).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "base ref '{}' not found and no fallback resolved. \
+                 Use --base to specify a valid ref, or set TOKMD_GIT_BASE_REF",
+                    args.base
+                )
+            })?;
+
         // Run cockpit computation (sensor mode has no baseline path)
-        let cockpit_receipt =
-            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode, None)?;
+        let cockpit_receipt = super::cockpit::compute_cockpit(
+            &repo_root,
+            &resolved_base,
+            &args.head,
+            range_mode,
+            None,
+        )?;
 
         // Build the sensor report envelope
         let generated_at = now_iso8601();
@@ -54,7 +68,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
             ToolMeta::tokmd(env!("CARGO_PKG_VERSION"), "sensor"),
             generated_at,
             verdict,
-            build_summary(&cockpit_receipt, &args.base, &args.head),
+            build_summary(&cockpit_receipt, &resolved_base, &args.head),
         );
 
         // Emit findings from cockpit data (all with fingerprints)
