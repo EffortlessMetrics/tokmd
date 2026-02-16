@@ -1,3 +1,5 @@
+#![cfg(feature = "alias-tok")]
+
 mod common;
 
 use assert_cmd::Command;

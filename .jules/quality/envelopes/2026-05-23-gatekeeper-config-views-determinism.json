@@ -1,0 +1,15 @@
+{
+  "run_id": "2026-05-23-gatekeeper-config-views-determinism",
+  "target": "crates/tokmd-config/src/lib.rs",
+  "decision": "Option B (Scout Discovery)",
+  "changes": [
+    "crates/tokmd-config/src/lib.rs",
+    "crates/tokmd-config/tests/determinism.rs"
+  ],
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-config --test determinism",
+      "result": "passed"
+    }
+  ]
+}
