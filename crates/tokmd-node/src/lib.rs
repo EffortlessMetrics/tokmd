@@ -375,12 +375,14 @@ mod tests {
     }
 
     #[test]
-    fn analyze_returns_not_implemented() {
+    fn analyze_returns_receipt() {
         let repo = make_repo("fn main() {}\n");
         let path = repo.path().to_string_lossy().to_string();
-        let err = block_on(analyze(Some(json!({ "paths": [path] })))).unwrap_err();
-        let message = err.to_string();
-        assert!(message.contains("not_implemented"));
+        let result = block_on(analyze(Some(
+            json!({ "paths": [path], "preset": "receipt" }),
+        )))
+        .expect("analyze should succeed");
+        assert_eq!(result["mode"].as_str().unwrap_or(""), "analysis");
     }
 
     #[test]

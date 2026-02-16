@@ -860,7 +860,7 @@ mod tests {
                 "export"
             );
 
-            let err = analyze(
+            let analysis_result = analyze(
                 py,
                 Some(vec![path]),
                 None,
@@ -872,17 +872,28 @@ mod tests {
                 None,
                 false,
             )
-            .unwrap_err();
-            assert!(err.to_string().contains("not_implemented"));
+            .expect("analyze should succeed");
+            let analysis_dict = analysis_result
+                .downcast_bound::<PyDict>(py)
+                .expect("analysis dict");
+            assert_eq!(
+                analysis_dict
+                    .get_item("mode")
+                    .unwrap()
+                    .unwrap()
+                    .extract::<String>()
+                    .unwrap(),
+                "analysis"
+            );
         });
     }
 
     #[test]
-    fn analyze_returns_not_implemented() {
+    fn analyze_returns_receipt() {
         with_py(|py| {
             let repo = make_repo("fn main() {}\n");
             let path = repo.path().to_string_lossy().to_string();
-            let err = analyze(
+            let analysis_result = analyze(
                 py,
                 Some(vec![path]),
                 Some("receipt"),
@@ -894,8 +905,19 @@ mod tests {
                 None,
                 false,
             )
-            .unwrap_err();
-            assert!(err.to_string().contains("not_implemented"));
+            .expect("analyze should succeed");
+            let analysis_dict = analysis_result
+                .downcast_bound::<PyDict>(py)
+                .expect("analysis dict");
+            assert_eq!(
+                analysis_dict
+                    .get_item("mode")
+                    .unwrap()
+                    .unwrap()
+                    .extract::<String>()
+                    .unwrap(),
+                "analysis"
+            );
         });
     }
 

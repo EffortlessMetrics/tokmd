@@ -1,5 +1,7 @@
 //! Integration tests for tokmd-core workflows.
 
+#[cfg(feature = "analysis")]
+use tokmd_core::{analyze_workflow, settings::AnalyzeSettings};
 use tokmd_core::{
     lang_workflow, module_workflow,
     settings::{LangSettings, ModuleSettings, ScanSettings},
@@ -67,4 +69,19 @@ fn scan_settings_excluded_patterns() {
 
     // Should still work with exclusions
     assert_eq!(receipt.mode, "lang");
+}
+
+#[test]
+#[cfg(feature = "analysis")]
+fn analyze_workflow_runs_with_receipt_preset() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let analyze = AnalyzeSettings::default();
+
+    let receipt = analyze_workflow(&scan, &analyze).expect("analyze_workflow should succeed");
+
+    assert_eq!(receipt.mode, "analysis");
+    assert!(
+        receipt.derived.is_some(),
+        "receipt preset should include derived metrics"
+    );
 }

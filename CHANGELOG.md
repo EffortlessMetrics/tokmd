@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **tokmd-core Analyze Workflow**: Implemented `analyze_workflow(scan, analyze)` to run export + analysis directly from the library API and FFI (`run_json("analyze", ...)`)
+
 ### Changed
+
+- **Analyze Settings Validation**: `preset` and `granularity` in FFI analyze args are now strictly validated with `invalid_settings` errors on unknown values
 
 ### Fixed
 
 - **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
+- **Bindings Analyze Path**: Python/Node binding tests now validate successful analyze receipts instead of obsolete `not_implemented` behavior
 
 ## [1.6.1] - 2026-02-16
 
