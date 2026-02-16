@@ -631,6 +631,32 @@ fn test_init_profiles() {
 }
 
 #[test]
+fn test_init_write_config() -> Result<()> {
+    // Given: A temp directory
+    let dir = tempdir()?;
+
+    // When: We run init --write-config --non-interactive
+    let mut cmd = tokmd_cmd();
+    cmd.current_dir(dir.path())
+        .arg("init")
+        .arg("--non-interactive")
+        .arg("--write-config")
+        .assert()
+        .success();
+
+    // Then: tokmd.toml should be created
+    let config_path = dir.path().join("tokmd.toml");
+    assert!(config_path.exists(), "tokmd.toml was not created");
+
+    // And it should contain default configuration
+    let content = std::fs::read_to_string(&config_path)?;
+    assert!(content.contains("# tokmd configuration"));
+    assert!(content.contains("budget = \"128k\""));
+
+    Ok(())
+}
+
+#[test]
 fn test_non_existent_path() {
     // Given: A non-existent path
     // When: We run export
