@@ -2,6 +2,8 @@ use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use std::path::PathBuf;
 
+mod common;
+
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
 /// These run against `tests/data` to ensure stability.
 fn tokmd() -> Command {
@@ -112,9 +114,17 @@ fn recipe_handoff_bundle() {
 #[test]
 fn recipe_sensor_json() {
     // "tokmd sensor --format json"
+    // Requires a git repo with "main" branch
     let tmp = tempfile::tempdir().unwrap();
-    let report_path = tmp.path().join("report.json");
-    tokmd()
+    let dir = tmp.path();
+
+    common::init_git_repo(dir);
+    std::fs::write(dir.join("main.rs"), "fn main() {}").unwrap();
+    common::git_add_commit(dir, "Initial commit");
+
+    let report_path = dir.join("report.json");
+    let mut cmd = assert_cmd::Command::cargo_bin("tokmd").unwrap();
+    cmd.current_dir(dir)
         .arg("sensor")
         .arg("--format")
         .arg("json")
@@ -122,6 +132,7 @@ fn recipe_sensor_json() {
         .arg(&report_path)
         .assert()
         .success();
+
     assert!(report_path.exists());
 }
 
