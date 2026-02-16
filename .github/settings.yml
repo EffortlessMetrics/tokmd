@@ -4,8 +4,23 @@
 
 repository:
   description: "Code intelligence for humans, machines, and LLMs: receipts, metrics, and insights from your codebase."
-  homepage: "https://www.tokmd.org/"
-  topics: "markdown, rust, cli, tsv, csv, ci, monorepo, tokei, devex, code-metrics, sloc, loc, jsonl, github-actions, ai-tools, repository-analysis, llm, llmops, code-statistics"
+  homepage: "https://github.com/EffortlessMetrics/tokmd"
+  topics:
+    - markdown
+    - rust
+    - code-analysis
+    - cli
+    - tsv
+    - csv
+    - jsonl
+    - github-actions
+    - tokei
+    - code-metrics
+    - repository-analysis
+    - llm
+    - llmops
+    - receipts
+    - inventory
 
   # Merge Settings
   allow_squash_merge: true
