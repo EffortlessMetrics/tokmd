@@ -47,6 +47,7 @@ fn make_args(dir: PathBuf, template: InitProfile, force: bool, print: bool) -> I
         force,
         print,
         non_interactive: true,
+        write_config: false,
     }
 }
 

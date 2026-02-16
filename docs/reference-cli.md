@@ -41,7 +41,7 @@ Commands:
   export        Export a file-level dataset (CSV / JSONL / JSON)
   analyze       Analyze receipts or paths to produce derived metrics
   badge         Render a simple SVG badge for a metric
-  init          Write a `.tokeignore` template to the target directory
+  init          Write a `.tokeignore` template and optionally `tokmd.toml` config
   completions   Generate shell completions
   run           Run a full scan and save receipts to a state directory
   diff          Compare two receipts or runs
@@ -370,7 +370,7 @@ tokmd diff .runs/baseline .
 
 ### `tokmd init`
 
-Creates a default `.tokeignore` file in the current directory.
+Creates a default `.tokeignore` template and optionally `tokmd.toml` configuration in the current directory.
 
 **Usage**: `tokmd init [OPTIONS]`
 
@@ -380,6 +380,8 @@ Creates a default `.tokeignore` file in the current directory.
 | `--force` | Overwrite an existing `.tokeignore` file. | `false` |
 | `--print` | Print the template to stdout instead of writing a file. | `false` |
 | `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
+| `--non-interactive` | Skip interactive wizard and use defaults. | `false` |
+| `--write-config` | Write a default `tokmd.toml` configuration file. | `false` |
 
 **Example**:
 ```bash
@@ -397,6 +399,9 @@ tokmd init --force
 
 # Skip interactive wizard
 tokmd init --non-interactive
+
+# Generate config non-interactively
+tokmd init --non-interactive --write-config
 ```
 
 **Interactive Mode**:
