@@ -1,0 +1,35 @@
+{
+  "id": "2026-02-16-librarian-fix-tokmd-context-docs",
+  "date": "2026-02-16",
+  "lane": "B",
+  "task": "Fix incorrect 'tokmd context' usage in examples",
+  "status": "complete",
+  "log": [
+    {
+      "step": "Bootstrap",
+      "status": "complete",
+      "details": "Verified CI gates via cargo test --doc"
+    },
+    {
+      "step": "Select & Decide",
+      "status": "complete",
+      "details": "Selected Lane B: Fix incorrect 'tokmd context' usage in README.md, docs/recipes.md, docs/troubleshooting.md, docs/reference-cli.md, and docs/tutorial.md"
+    },
+    {
+      "step": "Implement",
+      "status": "complete",
+      "details": "Replaced incorrect usages of --output with --mode in all identified files"
+    },
+    {
+      "step": "Verify",
+      "status": "complete",
+      "details": "Verified local execution of corrected commands and ran cargo test"
+    },
+    {
+      "step": "Update .jules",
+      "status": "complete",
+      "details": "Updated ledger.json"
+    }
+  ],
+  "receipts": []
+}
