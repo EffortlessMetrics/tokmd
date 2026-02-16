@@ -39,9 +39,18 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
         };
 
+        let resolved_base =
+            tokmd_git::resolve_base_ref(&repo_root, &args.base).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "base ref '{}' not found and no fallback resolved. \
+                 Use --base to specify a valid ref, or set TOKMD_GIT_BASE_REF",
+                    args.base
+                )
+            })?;
+
         let mut receipt = compute_cockpit(
             &repo_root,
-            &args.base,
+            &resolved_base,
             &args.head,
             range_mode,
             args.baseline.as_deref(),
@@ -59,7 +68,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
                 .as_ref()
                 .cloned()
                 .unwrap_or_else(|| PathBuf::from("artifacts/tokmd"));
-            write_sensor_artifacts(&artifacts_dir, &receipt, &args.base, &args.head)?;
+            write_sensor_artifacts(&artifacts_dir, &receipt, &resolved_base, &args.head)?;
 
             // In sensor mode, always print JSON to stdout for piping
             let output = render_json(&receipt)?;
@@ -1557,8 +1566,13 @@ fn compute_determinism_gate(
         None => return Ok(None),
     };
 
-    // Recompute current source hash by walking the repo
-    let actual_hash = crate::determinism::hash_files_from_walk(repo_root)?;
+    // Recompute current source hash by walking the repo, excluding the baseline file itself
+    let baseline_rel = resolved_path
+        .strip_prefix(repo_root)
+        .ok()
+        .map(|p| p.to_string_lossy().replace('\\', "/"));
+    let exclude: Vec<&str> = baseline_rel.as_deref().into_iter().collect();
+    let actual_hash = crate::determinism::hash_files_from_walk(repo_root, &exclude)?;
     let expected_hash = &det.source_hash;
 
     let mut differences = Vec::new();
@@ -1566,8 +1580,8 @@ fn compute_determinism_gate(
     if actual_hash != *expected_hash {
         differences.push(format!(
             "source hash mismatch: expected {}, got {}",
-            &expected_hash[..16],
-            &actual_hash[..16],
+            expected_hash.get(..16).unwrap_or(expected_hash),
+            actual_hash.get(..16).unwrap_or(&actual_hash),
         ));
     }
 
@@ -1578,8 +1592,8 @@ fn compute_determinism_gate(
             Some(ref actual) if actual != expected_lock => {
                 differences.push(format!(
                     "Cargo.lock hash mismatch: expected {}, got {}",
-                    &expected_lock[..16],
-                    &actual[..16],
+                    expected_lock.get(..16).unwrap_or(expected_lock),
+                    actual.get(..16).unwrap_or(actual),
                 ));
             }
             None => {

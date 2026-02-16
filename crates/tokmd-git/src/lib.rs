@@ -210,6 +210,72 @@ pub fn get_added_lines(
     Ok(result)
 }
 
+/// Check whether a git revision resolves to a valid commit.
+pub fn rev_exists(repo_root: &Path, rev: &str) -> bool {
+    Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["rev-parse", "--verify", "--quiet"])
+        .arg(format!("{rev}^{{commit}}"))
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
+/// Resolve a base ref with a fallback chain for CI environments.
+///
+/// Fallback order:
+/// 1. `requested` itself (fast path)
+/// 2. `TOKMD_GIT_BASE_REF` env var
+/// 3. `origin/{GITHUB_BASE_REF}` (GitHub Actions)
+/// 4. `origin/HEAD` (remote default branch)
+/// 5. `origin/main`, `main`, `origin/master`, `master`
+///
+/// Returns `None` if nothing resolves.
+pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
+    // Fast path: the requested ref exists
+    if rev_exists(repo_root, requested) {
+        return Some(requested.to_string());
+    }
+
+    // TOKMD_GIT_BASE_REF env override
+    if let Ok(env_ref) = std::env::var("TOKMD_GIT_BASE_REF")
+        && !env_ref.is_empty()
+        && rev_exists(repo_root, &env_ref)
+    {
+        return Some(env_ref);
+    }
+
+    // GitHub Actions: origin/$GITHUB_BASE_REF
+    if let Ok(gh_base) = std::env::var("GITHUB_BASE_REF")
+        && !gh_base.is_empty()
+    {
+        let candidate = format!("origin/{gh_base}");
+        if rev_exists(repo_root, &candidate) {
+            return Some(candidate);
+        }
+    }
+
+    // Remote default branch
+    static FALLBACKS: &[&str] = &[
+        "origin/HEAD",
+        "origin/main",
+        "main",
+        "origin/master",
+        "master",
+    ];
+
+    for candidate in FALLBACKS {
+        if rev_exists(repo_root, candidate) {
+            return Some((*candidate).to_string());
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -227,5 +293,127 @@ mod tests {
     #[test]
     fn git_range_default_is_two_dot() {
         assert_eq!(GitRangeMode::default(), GitRangeMode::TwoDot);
+    }
+
+    #[test]
+    fn rev_exists_finds_head_in_repo() {
+        if !git_available() {
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap();
+        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
+        unsafe {
+            std::env::remove_var("GIT_DIR");
+        }
+
+        // Init repo and create a commit so HEAD resolves
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .arg("init")
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["config", "user.email", "test@test.com"])
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["config", "user.name", "Test"])
+            .output()
+            .unwrap();
+        std::fs::write(dir.path().join("f.txt"), "hello").unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["add", "."])
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["commit", "-m", "init"])
+            .output()
+            .unwrap();
+
+        assert!(rev_exists(dir.path(), "HEAD"));
+        assert!(!rev_exists(dir.path(), "nonexistent-branch-abc123"));
+    }
+
+    #[test]
+    fn resolve_base_ref_returns_requested_when_valid() {
+        if !git_available() {
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap();
+        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
+        unsafe {
+            std::env::remove_var("GIT_DIR");
+        }
+
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .arg("init")
+            .args(["-b", "main"])
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["config", "user.email", "test@test.com"])
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["config", "user.name", "Test"])
+            .output()
+            .unwrap();
+        std::fs::write(dir.path().join("f.txt"), "hello").unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["add", "."])
+            .output()
+            .unwrap();
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["commit", "-m", "init"])
+            .output()
+            .unwrap();
+
+        assert_eq!(
+            resolve_base_ref(dir.path(), "main"),
+            Some("main".to_string())
+        );
+    }
+
+    #[test]
+    fn resolve_base_ref_returns_none_when_nothing_resolves() {
+        if !git_available() {
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap();
+        // SAFETY: test-only, single-threaded test; no other thread reads GIT_DIR.
+        unsafe {
+            std::env::remove_var("GIT_DIR");
+        }
+
+        // Init on "trunk" with no commits, no remotes
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .arg("init")
+            .args(["-b", "trunk"])
+            .output()
+            .unwrap();
+
+        // No commits exist, so even "trunk" won't resolve to a commit
+        assert_eq!(resolve_base_ref(dir.path(), "nonexistent"), None);
     }
 }
