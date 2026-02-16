@@ -12,8 +12,9 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-git"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 
 [dev-dependencies]
-proptest = "1"
-tempfile = "3"
+proptest = "1.10.0"
+tempfile = "3.25.0"
+
