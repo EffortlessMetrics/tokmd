@@ -11,5 +11,11 @@
     "date": "2024-05-24",
     "target": "tokmd-analysis",
     "improvement": "fixed unused fields warning in no-default-features build"
+  },
+  {
+    "run_id": "2026-02-16-compat-fix-no-default-features",
+    "date": "2026-02-16",
+    "target": "tokmd",
+    "improvement": "fixed 75+ dead code warnings in no-default-features build by refactoring cockpit and gating sensor"
   }
 ]
