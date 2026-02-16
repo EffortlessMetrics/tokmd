@@ -1,0 +1,41 @@
+{
+  "schema": "sensor.report.v1",
+  "tool": {
+    "name": "tokmd",
+    "version": "1.5.0",
+    "mode": "cockpit"
+  },
+  "generated_at": "2024-01-15T10:30:00Z",
+  "verdict": "pass",
+  "summary": "5 files changed, +120/-45, health 92/100, risk low in main..HEAD",
+  "findings": [
+    {
+      "check_id": "contract",
+      "code": "cli_changed",
+      "severity": "info",
+      "title": "CLI interface changed",
+      "message": "CLI definition files were modified"
+    }
+  ],
+  "artifacts": [
+    { "type": "receipt", "path": "report.json" },
+    { "type": "comment", "path": "comment.md" }
+  ],
+  "capabilities": {
+    "mutation": { "status": "available" },
+    "diff_coverage": { "status": "skipped", "reason": "not configured" },
+    "contracts": { "status": "available" },
+    "supply_chain": { "status": "skipped", "reason": "no lockfile changed" },
+    "determinism": { "status": "skipped", "reason": "no baseline available" },
+    "complexity": { "status": "available" }
+  },
+  "data": {
+    "gates": {
+      "status": "pass",
+      "items": [
+        { "id": "mutation", "status": "pass", "source": "computed" },
+        { "id": "complexity", "status": "pass", "source": "computed" }
+      ]
+    }
+  }
+}
