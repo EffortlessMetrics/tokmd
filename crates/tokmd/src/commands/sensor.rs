@@ -7,11 +7,16 @@
 //! 2. **extras/cockpit_receipt.json** — Full cockpit receipt sidecar
 //! 3. **comment.md** — Markdown summary for PR comments
 
+#[cfg(feature = "git")]
 use std::io::Write;
 
-use anyhow::{Context, Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
+use anyhow::{Result, bail};
 use tokmd_config as cli;
+#[cfg(feature = "git")]
 use tokmd_envelope::findings;
+#[cfg(feature = "git")]
 use tokmd_envelope::{
     Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
 };
@@ -43,8 +48,13 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
         // Run cockpit computation (sensor mode has no baseline path)
-        let cockpit_receipt =
-            super::cockpit::compute_cockpit(&repo_root, &args.base, &args.head, range_mode, None)?;
+        let cockpit_receipt = super::cockpit::impl_git::compute_cockpit(
+            &repo_root,
+            &args.base,
+            &args.head,
+            range_mode,
+            None,
+        )?;
 
         // Build the sensor report envelope
         let generated_at = now_iso8601();
@@ -136,7 +146,11 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 }
 
 #[cfg(feature = "git")]
-fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &str) -> String {
+fn build_summary(
+    receipt: &super::cockpit::impl_git::CockpitReceipt,
+    base: &str,
+    head: &str,
+) -> String {
     format!(
         "{} files changed, +{}/-{}, health {}/100, risk {} in {}..{}",
         receipt.change_surface.files_changed,
@@ -151,19 +165,19 @@ fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &st
 
 /// Map cockpit GateStatus → envelope Verdict.
 #[cfg(feature = "git")]
-fn map_verdict(status: super::cockpit::GateStatus) -> Verdict {
+fn map_verdict(status: super::cockpit::impl_git::GateStatus) -> Verdict {
     match status {
-        super::cockpit::GateStatus::Pass => Verdict::Pass,
-        super::cockpit::GateStatus::Warn => Verdict::Warn,
-        super::cockpit::GateStatus::Fail => Verdict::Fail,
-        super::cockpit::GateStatus::Skipped => Verdict::Skip,
-        super::cockpit::GateStatus::Pending => Verdict::Pending,
+        super::cockpit::impl_git::GateStatus::Pass => Verdict::Pass,
+        super::cockpit::impl_git::GateStatus::Warn => Verdict::Warn,
+        super::cockpit::impl_git::GateStatus::Fail => Verdict::Fail,
+        super::cockpit::impl_git::GateStatus::Skipped => Verdict::Skip,
+        super::cockpit::impl_git::GateStatus::Pending => Verdict::Pending,
     }
 }
 
 /// Map cockpit Evidence → envelope GateResults.
 #[cfg(feature = "git")]
-fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
+fn map_gates(evidence: &super::cockpit::impl_git::Evidence) -> GateResults {
     let mut items = Vec::new();
 
     // Mutation gate (always present)
@@ -212,7 +226,7 @@ fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
 
 /// Emit risk findings from cockpit data.
 #[cfg(feature = "git")]
-fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
+fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::impl_git::Risk) {
     for hotspot in risk.hotspots_touched.iter().take(MAX_FINDINGS_PER_CATEGORY) {
         report.add_finding(
             Finding::new(
@@ -248,7 +262,10 @@ fn emit_risk_findings(report: &mut SensorReport, risk: &super::cockpit::Risk) {
 
 /// Emit contract findings from cockpit data.
 #[cfg(feature = "git")]
-fn emit_contract_findings(report: &mut SensorReport, contracts: &super::cockpit::Contracts) {
+fn emit_contract_findings(
+    report: &mut SensorReport,
+    contracts: &super::cockpit::impl_git::Contracts,
+) {
     if contracts.schema_changed {
         report.add_finding(
             Finding::new(
@@ -292,7 +309,10 @@ fn emit_contract_findings(report: &mut SensorReport, contracts: &super::cockpit:
 /// Inspects the complexity gate and emits per-file findings for high cyclomatic
 /// complexity. Capped at `MAX_FINDINGS_PER_CATEGORY` per category.
 #[cfg(feature = "git")]
-fn emit_complexity_findings(report: &mut SensorReport, evidence: &super::cockpit::Evidence) {
+fn emit_complexity_findings(
+    report: &mut SensorReport,
+    evidence: &super::cockpit::impl_git::Evidence,
+) {
     let Some(ref cx) = evidence.complexity else {
         return;
     };
@@ -329,9 +349,9 @@ fn emit_complexity_findings(report: &mut SensorReport, evidence: &super::cockpit
 ///
 /// Inspects evidence gates and emits findings for any that failed.
 #[cfg(feature = "git")]
-fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evidence) {
+fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::impl_git::Evidence) {
     // Mutation gate failure
-    if evidence.mutation.meta.status == super::cockpit::GateStatus::Fail {
+    if evidence.mutation.meta.status == super::cockpit::impl_git::GateStatus::Fail {
         report.add_finding(
             Finding::new(
                 findings::gate::CHECK_ID,
@@ -349,7 +369,7 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
 
     // Diff coverage gate failure
     if let Some(ref dc) = evidence.diff_coverage
-        && dc.meta.status == super::cockpit::GateStatus::Fail
+        && dc.meta.status == super::cockpit::impl_git::GateStatus::Fail
     {
         report.add_finding(
             Finding::new(
@@ -370,7 +390,7 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
 
     // Complexity gate failure
     if let Some(ref cx) = evidence.complexity
-        && cx.meta.status == super::cockpit::GateStatus::Fail
+        && cx.meta.status == super::cockpit::impl_git::GateStatus::Fail
     {
         report.add_finding(
             Finding::new(
@@ -388,6 +408,7 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
     }
 }
 
+#[cfg(feature = "git")]
 fn render_sensor_md(report: &SensorReport) -> String {
     use std::fmt::Write;
     let mut s = String::new();
@@ -425,6 +446,7 @@ fn render_sensor_md(report: &SensorReport) -> String {
     s
 }
 
+#[cfg(feature = "git")]
 fn now_iso8601() -> String {
     time::OffsetDateTime::now_utc()
         .format(&time::format_description::well_known::Rfc3339)
@@ -432,11 +454,12 @@ fn now_iso8601() -> String {
 }
 
 #[cfg(test)]
+#[cfg(feature = "git")]
 mod tests {
     use super::*;
 
     #[cfg(feature = "git")]
-    use super::super::cockpit::{
+    use super::super::cockpit::impl_git::{
         CommitMatch, ComplexityGate, ContractDiffGate, DeterminismGate, DiffCoverageGate, Evidence,
         EvidenceSource, GateMeta, GateStatus, HighComplexityFile, MutationGate, MutationSurvivor,
         Risk, RiskLevel, ScopeCoverage, SupplyChainGate, UncoveredHunk,
@@ -480,7 +503,7 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn map_verdict_covers_all_gate_statuses() {
-        use super::super::cockpit::GateStatus;
+        use super::super::cockpit::impl_git::GateStatus;
 
         assert_eq!(map_verdict(GateStatus::Pass), Verdict::Pass);
         assert_eq!(map_verdict(GateStatus::Warn), Verdict::Warn);
@@ -543,12 +566,12 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn build_summary_formats_expected_fields() {
-        let receipt = super::super::cockpit::CockpitReceipt {
+        let receipt = super::super::cockpit::impl_git::CockpitReceipt {
             schema_version: 3,
             generated_at_ms: 0,
             base_ref: "main".to_string(),
             head_ref: "HEAD".to_string(),
-            change_surface: super::super::cockpit::ChangeSurface {
+            change_surface: super::super::cockpit::impl_git::ChangeSurface {
                 commits: 1,
                 files_changed: 2,
                 insertions: 10,
@@ -557,19 +580,19 @@ mod tests {
                 churn_velocity: 15.0,
                 change_concentration: 0.4,
             },
-            composition: super::super::cockpit::Composition {
+            composition: super::super::cockpit::impl_git::Composition {
                 code_pct: 0.8,
                 test_pct: 0.1,
                 docs_pct: 0.05,
                 config_pct: 0.05,
                 test_ratio: 0.2,
             },
-            code_health: super::super::cockpit::CodeHealth {
+            code_health: super::super::cockpit::impl_git::CodeHealth {
                 score: 75,
                 grade: "B".to_string(),
                 large_files_touched: 0,
                 avg_file_size: 10,
-                complexity_indicator: super::super::cockpit::ComplexityIndicator::Low,
+                complexity_indicator: super::super::cockpit::impl_git::ComplexityIndicator::Low,
                 warnings: vec![],
             },
             risk: Risk {
@@ -578,7 +601,7 @@ mod tests {
                 level: RiskLevel::High,
                 score: 80,
             },
-            contracts: super::super::cockpit::Contracts {
+            contracts: super::super::cockpit::impl_git::Contracts {
                 api_changed: false,
                 cli_changed: false,
                 schema_changed: false,
@@ -716,7 +739,7 @@ mod tests {
             Verdict::Warn,
             "Summary".to_string(),
         );
-        let contracts = super::super::cockpit::Contracts {
+        let contracts = super::super::cockpit::impl_git::Contracts {
             api_changed: true,
             cli_changed: true,
             schema_changed: true,

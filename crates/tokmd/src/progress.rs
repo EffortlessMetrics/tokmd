@@ -199,8 +199,10 @@ mod ui_impl {
     }
 
     /// A no-op progress bar when `ui` feature is disabled.
+    #[allow(dead_code)]
     pub struct ProgressBarWithEta;
 
+    #[allow(dead_code)]
     impl ProgressBarWithEta {
         /// Create a new progress bar (no-op without `ui` feature).
         pub fn new(_enabled: bool, _total: u64, _message: &str) -> Self {

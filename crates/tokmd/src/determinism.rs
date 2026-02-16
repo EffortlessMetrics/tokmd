@@ -41,6 +41,7 @@ pub(crate) fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<Strin
 /// Uses the `ignore` crate to respect `.gitignore` rules, then sorts
 /// the discovered paths and hashes them with the same protocol as
 /// [`hash_files_from_paths`].
+#[cfg(feature = "git")]
 pub(crate) fn hash_files_from_walk(root: &Path) -> Result<String> {
     let mut paths: Vec<String> = Vec::new();
 
@@ -173,6 +174,7 @@ mod tests {
         assert!(result.is_none());
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_hash_files_from_walk_deterministic() {
         let dir = tempfile::tempdir().unwrap();
@@ -186,6 +188,7 @@ mod tests {
         assert_eq!(h1.len(), 64);
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_walk_and_paths_produce_same_hash() {
         let dir = tempfile::tempdir().unwrap();
