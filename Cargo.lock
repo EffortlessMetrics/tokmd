@@ -2965,7 +2965,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3007,7 +3007,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3025,7 +3025,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-format"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "insta",
@@ -3042,7 +3042,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-types"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "proptest",
  "serde",
@@ -3053,11 +3053,11 @@ dependencies = [
 
 [[package]]
 name = "tokmd-badge"
-version = "1.6.2"
+version = "1.6.3"
 
 [[package]]
 name = "tokmd-config"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "clap",
  "proptest",
@@ -3070,7 +3070,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-content"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3081,7 +3081,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-core"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "serde",
@@ -3099,7 +3099,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-envelope"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "blake3",
  "proptest",
@@ -3109,7 +3109,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-format"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "csv",
@@ -3127,7 +3127,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-fun"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "midly",
@@ -3151,7 +3151,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-gate"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "proptest",
  "serde",
@@ -3163,7 +3163,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-git"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3172,7 +3172,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-model"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3183,7 +3183,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-node"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "napi",
  "napi-build",
@@ -3199,14 +3199,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-progress"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "indicatif",
 ]
 
 [[package]]
 name = "tokmd-python"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -3219,7 +3219,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-redact"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "blake3",
  "proptest",
@@ -3227,7 +3227,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-scan"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3239,7 +3239,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-sensor"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "serde",
@@ -3256,7 +3256,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-settings"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "proptest",
  "serde",
@@ -3268,7 +3268,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-substrate"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "proptest",
  "serde",
@@ -3277,7 +3277,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-tokeignore"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3287,7 +3287,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-types"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "clap",
  "proptest",
@@ -3297,7 +3297,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-walk"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "ignore",
@@ -4244,7 +4244,7 @@ checksum = "9edde0db4769d2dc68579893f2306b26c6ecfbe0ef499b013d731b7b9247e0b9"
 
 [[package]]
 name = "xtask"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "anyhow",
  "cargo_metadata",

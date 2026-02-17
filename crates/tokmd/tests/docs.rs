@@ -111,7 +111,24 @@ fn recipe_handoff_bundle() {
 #[cfg(feature = "git")]
 #[test]
 fn recipe_sensor_json() {
-    // "tokmd sensor --format json"
+    // Skip if the fixtures directory is not inside a git repository
+    // (e.g., in the Nix build sandbox where .git is absent)
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+    let in_git = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&fixtures)
+        .arg("rev-parse")
+        .arg("--show-toplevel")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !in_git {
+        eprintln!("Skipping recipe_sensor_json: not inside a git repository");
+        return;
+    }
+
     let tmp = tempfile::tempdir().unwrap();
     let report_path = tmp.path().join("report.json");
     tokmd()

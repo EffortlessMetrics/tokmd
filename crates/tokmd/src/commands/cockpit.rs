@@ -3143,7 +3143,7 @@ fn sparkline(values: &[f64]) -> String {
     }
 
     if (max - min).abs() < f64::EPSILON {
-        return std::iter::repeat(BARS[3]).take(values.len()).collect();
+        return std::iter::repeat_n(BARS[3], values.len()).collect();
     }
 
     let span = max - min;
