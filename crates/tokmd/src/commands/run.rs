@@ -10,7 +10,7 @@ use tokmd_scan as scan;
 use tokmd_settings::ScanOptions;
 
 use crate::analysis_utils;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);

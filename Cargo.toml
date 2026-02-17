@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-format",
@@ -15,6 +16,7 @@ members = [
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-node",
+    "crates/tokmd-progress",
     "crates/tokmd-python",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
@@ -28,6 +30,7 @@ members = [
     "xtask",
 ]
 default-members = [
+    "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-format",
@@ -41,6 +44,7 @@ default-members = [
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
+    "crates/tokmd-progress",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
     "crates/tokmd-sensor",
@@ -53,7 +57,7 @@ default-members = [
 # xtask is a workspace member but excluded from default-members
 
 [workspace.package]
-version = "1.6.1"
+version = "1.6.3"
 edition = "2024"
 rust-version = "1.92"
 license = "MIT OR Apache-2.0"
@@ -61,29 +65,34 @@ homepage = "https://github.com/EffortlessMetrics/tokmd"
 repository = "https://github.com/EffortlessMetrics/tokmd"
 authors = ["Steven Zimmerman <git@effortlesssteven.com>"]
 
+[workspace.metadata.crane]
+name = "tokmd-workspace"
+
 [workspace.dependencies]
 # Internal crates - centralized for "bump once" version management
-tokmd = { path = "crates/tokmd", version = "1.6.1" }
-tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.6.1" }
-tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.6.1" }
-tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.6.1" }
-tokmd-config = { path = "crates/tokmd-config", version = "1.6.1" }
-tokmd-content = { path = "crates/tokmd-content", version = "1.6.1" }
-tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.6.1" }
-tokmd-core = { path = "crates/tokmd-core", version = "1.6.1" }
-tokmd-format = { path = "crates/tokmd-format", version = "1.6.1" }
-tokmd-fun = { path = "crates/tokmd-fun", version = "1.6.1" }
-tokmd-git = { path = "crates/tokmd-git", version = "1.6.1" }
-tokmd-model = { path = "crates/tokmd-model", version = "1.6.1" }
-tokmd-redact = { path = "crates/tokmd-redact", version = "1.6.1" }
-tokmd-scan = { path = "crates/tokmd-scan", version = "1.6.1" }
-tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.6.1" }
-tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.6.1" }
-tokmd-settings = { path = "crates/tokmd-settings", version = "1.6.1" }
-tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.6.1" }
-tokmd-types = { path = "crates/tokmd-types", version = "1.6.1" }
-tokmd-walk = { path = "crates/tokmd-walk", version = "1.6.1" }
-tokmd-gate = { path = "crates/tokmd-gate", version = "1.6.1" }
+tokmd = { path = "crates/tokmd", version = "1.6.3" }
+tokmd-badge = { path = "crates/tokmd-badge", version = "1.6.3" }
+tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.6.3" }
+tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.6.3" }
+tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.6.3" }
+tokmd-config = { path = "crates/tokmd-config", version = "1.6.3" }
+tokmd-content = { path = "crates/tokmd-content", version = "1.6.3" }
+tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.6.3" }
+tokmd-core = { path = "crates/tokmd-core", version = "1.6.3" }
+tokmd-format = { path = "crates/tokmd-format", version = "1.6.3" }
+tokmd-fun = { path = "crates/tokmd-fun", version = "1.6.3" }
+tokmd-git = { path = "crates/tokmd-git", version = "1.6.3" }
+tokmd-model = { path = "crates/tokmd-model", version = "1.6.3" }
+tokmd-progress = { path = "crates/tokmd-progress", version = "1.6.3" }
+tokmd-redact = { path = "crates/tokmd-redact", version = "1.6.3" }
+tokmd-scan = { path = "crates/tokmd-scan", version = "1.6.3" }
+tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.6.3" }
+tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.6.3" }
+tokmd-settings = { path = "crates/tokmd-settings", version = "1.6.3" }
+tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.6.3" }
+tokmd-types = { path = "crates/tokmd-types", version = "1.6.3" }
+tokmd-walk = { path = "crates/tokmd-walk", version = "1.6.3" }
+tokmd-gate = { path = "crates/tokmd-gate", version = "1.6.3" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"

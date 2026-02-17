@@ -14,7 +14,7 @@ use tokmd_config::{BaselineArgs, GlobalArgs};
 use crate::analysis_utils;
 use crate::determinism;
 use crate::export_bundle;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);

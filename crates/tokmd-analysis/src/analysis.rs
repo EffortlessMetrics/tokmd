@@ -476,7 +476,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(feature = "content")]
         {
             if let Some(list) = files.as_deref() {
-                match build_duplicate_report(&ctx.root, list, &req.limits) {
+                match build_duplicate_report(&ctx.root, list, &ctx.export, &req.limits) {
                     Ok(report) => dup = Some(report),
                     Err(err) => warnings.push(format!("dup scan failed: {}", err)),
                 }

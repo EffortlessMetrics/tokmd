@@ -907,42 +907,205 @@ fn format_delta(delta: i64) -> String {
     }
 }
 
-/// Render diff as Markdown table.
-pub fn render_diff_md(
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DiffColorMode {
+    Off,
+    Ansi,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DiffRenderOptions {
+    pub compact: bool,
+    pub color: DiffColorMode,
+}
+
+impl Default for DiffRenderOptions {
+    fn default() -> Self {
+        Self {
+            compact: false,
+            color: DiffColorMode::Off,
+        }
+    }
+}
+
+fn format_delta_colored(delta: i64, mode: DiffColorMode) -> String {
+    let raw = format_delta(delta);
+    if mode == DiffColorMode::Off {
+        return raw;
+    }
+    if delta > 0 {
+        format!("\x1b[32m{}\x1b[0m", raw)
+    } else if delta < 0 {
+        format!("\x1b[31m{}\x1b[0m", raw)
+    } else {
+        format!("\x1b[33m{}\x1b[0m", raw)
+    }
+}
+
+fn format_pct_delta_colored(delta_pct: f64, mode: DiffColorMode) -> String {
+    let raw = format!("{:+.1}%", delta_pct);
+    if mode == DiffColorMode::Off {
+        return raw;
+    }
+    if delta_pct > 0.0 {
+        format!("\x1b[32m{}\x1b[0m", raw)
+    } else if delta_pct < 0.0 {
+        format!("\x1b[31m{}\x1b[0m", raw)
+    } else {
+        format!("\x1b[33m{}\x1b[0m", raw)
+    }
+}
+
+fn percent_change(old: usize, new: usize) -> f64 {
+    if old > 0 {
+        ((new as f64 - old as f64) / old as f64) * 100.0
+    } else if new > 0 {
+        100.0
+    } else {
+        0.0
+    }
+}
+
+/// Render diff as Markdown table with optional compact/color behavior.
+pub fn render_diff_md_with_options(
     from_source: &str,
     to_source: &str,
     rows: &[DiffRow],
     totals: &DiffTotals,
+    options: DiffRenderOptions,
 ) -> String {
     let mut s = String::new();
 
     let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
     s.push('\n');
 
+    let languages_added = rows
+        .iter()
+        .filter(|r| r.old_code == 0 && r.new_code > 0)
+        .count();
+    let languages_removed = rows
+        .iter()
+        .filter(|r| r.old_code > 0 && r.new_code == 0)
+        .count();
+    let languages_modified = rows
+        .len()
+        .saturating_sub(languages_added + languages_removed);
+
+    if options.compact {
+        s.push_str("### Summary\n\n");
+        s.push_str("|Metric|Value|\n");
+        s.push_str("|---|---:|\n");
+        let _ = writeln!(s, "|From LOC|{}|", totals.old_code);
+        let _ = writeln!(s, "|To LOC|{}|", totals.new_code);
+        let _ = writeln!(
+            s,
+            "|Delta LOC|{}|",
+            format_delta_colored(totals.delta_code, options.color)
+        );
+        let _ = writeln!(
+            s,
+            "|LOC Change|{}|",
+            format_pct_delta_colored(
+                percent_change(totals.old_code, totals.new_code),
+                options.color
+            )
+        );
+        let _ = writeln!(
+            s,
+            "|Delta Lines|{}|",
+            format_delta_colored(totals.delta_lines, options.color)
+        );
+        let _ = writeln!(
+            s,
+            "|Delta Files|{}|",
+            format_delta_colored(totals.delta_files, options.color)
+        );
+        let _ = writeln!(
+            s,
+            "|Delta Bytes|{}|",
+            format_delta_colored(totals.delta_bytes, options.color)
+        );
+        let _ = writeln!(
+            s,
+            "|Delta Tokens|{}|",
+            format_delta_colored(totals.delta_tokens, options.color)
+        );
+        let _ = writeln!(s, "|Languages changed|{}|", rows.len());
+        let _ = writeln!(s, "|Languages added|{}|", languages_added);
+        let _ = writeln!(s, "|Languages removed|{}|", languages_removed);
+        let _ = writeln!(s, "|Languages modified|{}|", languages_modified);
+        return s;
+    }
+
     // Summary comparison table
     s.push_str("### Summary\n\n");
     s.push_str("|Metric|From|To|Delta|Change|\n");
     s.push_str("|---|---:|---:|---:|---:|\n");
 
-    let old_total = totals.old_code as f64;
-    let new_total = totals.new_code as f64;
-    let delta = totals.delta_code;
-    let change_pct = if old_total > 0.0 {
-        ((new_total - old_total) / old_total) * 100.0
-    } else if new_total > 0.0 {
-        100.0
-    } else {
-        0.0
-    };
-
     let _ = writeln!(
         s,
-        "|Total LOC|{}|{}|{}|{:+.1}%|",
+        "|LOC|{}|{}|{}|{}|",
         totals.old_code,
         totals.new_code,
-        format_delta(delta),
-        change_pct
+        format_delta_colored(totals.delta_code, options.color),
+        format_pct_delta_colored(
+            percent_change(totals.old_code, totals.new_code),
+            options.color
+        )
     );
+    let _ = writeln!(
+        s,
+        "|Lines|{}|{}|{}|{}|",
+        totals.old_lines,
+        totals.new_lines,
+        format_delta_colored(totals.delta_lines, options.color),
+        format_pct_delta_colored(
+            percent_change(totals.old_lines, totals.new_lines),
+            options.color
+        )
+    );
+    let _ = writeln!(
+        s,
+        "|Files|{}|{}|{}|{}|",
+        totals.old_files,
+        totals.new_files,
+        format_delta_colored(totals.delta_files, options.color),
+        format_pct_delta_colored(
+            percent_change(totals.old_files, totals.new_files),
+            options.color
+        )
+    );
+    let _ = writeln!(
+        s,
+        "|Bytes|{}|{}|{}|{}|",
+        totals.old_bytes,
+        totals.new_bytes,
+        format_delta_colored(totals.delta_bytes, options.color),
+        format_pct_delta_colored(
+            percent_change(totals.old_bytes, totals.new_bytes),
+            options.color
+        )
+    );
+    let _ = writeln!(
+        s,
+        "|Tokens|{}|{}|{}|{}|",
+        totals.old_tokens,
+        totals.new_tokens,
+        format_delta_colored(totals.delta_tokens, options.color),
+        format_pct_delta_colored(
+            percent_change(totals.old_tokens, totals.new_tokens),
+            options.color
+        )
+    );
+    s.push('\n');
+
+    s.push_str("### Language Movement\n\n");
+    s.push_str("|Type|Count|\n");
+    s.push_str("|---|---:|\n");
+    let _ = writeln!(s, "|Changed|{}|", rows.len());
+    let _ = writeln!(s, "|Added|{}|", languages_added);
+    let _ = writeln!(s, "|Removed|{}|", languages_removed);
+    let _ = writeln!(s, "|Modified|{}|", languages_modified);
     s.push('\n');
 
     // Detailed language breakdown
@@ -957,7 +1120,7 @@ pub fn render_diff_md(
             row.lang,
             row.old_code,
             row.new_code,
-            format_delta(row.delta_code)
+            format_delta_colored(row.delta_code, options.color)
         );
     }
 
@@ -966,10 +1129,26 @@ pub fn render_diff_md(
         "|**Total**|{}|{}|{}|",
         totals.old_code,
         totals.new_code,
-        format_delta(totals.delta_code)
+        format_delta_colored(totals.delta_code, options.color)
     );
 
     s
+}
+
+/// Render diff as Markdown table.
+pub fn render_diff_md(
+    from_source: &str,
+    to_source: &str,
+    rows: &[DiffRow],
+    totals: &DiffTotals,
+) -> String {
+    render_diff_md_with_options(
+        from_source,
+        to_source,
+        rows,
+        totals,
+        DiffRenderOptions::default(),
+    )
 }
 
 /// Create a DiffReceipt for JSON output.
@@ -1567,6 +1746,90 @@ mod tests {
         assert!(md.contains("from"));
         assert!(md.contains("to"));
         assert!(md.contains("Rust"));
+        assert!(md.contains("|LOC|"));
+        assert!(md.contains("|Lines|"));
+        assert!(md.contains("|Files|"));
+        assert!(md.contains("|Bytes|"));
+        assert!(md.contains("|Tokens|"));
+        assert!(md.contains("### Language Movement"));
+    }
+
+    #[test]
+    fn test_render_diff_md_compact_includes_movement_counts() {
+        let from = LangReport {
+            rows: vec![LangRow {
+                lang: "Rust".to_string(),
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            }],
+            total: Totals {
+                code: 10,
+                lines: 10,
+                files: 1,
+                bytes: 100,
+                tokens: 20,
+                avg_lines: 10,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+        let to = LangReport {
+            rows: vec![
+                LangRow {
+                    lang: "Rust".to_string(),
+                    code: 12,
+                    lines: 12,
+                    files: 1,
+                    bytes: 120,
+                    tokens: 24,
+                    avg_lines: 12,
+                },
+                LangRow {
+                    lang: "Python".to_string(),
+                    code: 8,
+                    lines: 8,
+                    files: 1,
+                    bytes: 80,
+                    tokens: 16,
+                    avg_lines: 8,
+                },
+            ],
+            total: Totals {
+                code: 20,
+                lines: 20,
+                files: 2,
+                bytes: 200,
+                tokens: 40,
+                avg_lines: 10,
+            },
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 0,
+        };
+        let rows = compute_diff_rows(&from, &to);
+        let totals = compute_diff_totals(&rows);
+        let md = render_diff_md_with_options(
+            "from",
+            "to",
+            &rows,
+            &totals,
+            DiffRenderOptions {
+                compact: true,
+                color: DiffColorMode::Off,
+            },
+        );
+
+        assert!(md.contains("|Delta Lines|"));
+        assert!(md.contains("|Delta Files|"));
+        assert!(md.contains("|Delta Bytes|"));
+        assert!(md.contains("|Delta Tokens|"));
+        assert!(md.contains("|Languages added|1|"));
+        assert!(md.contains("|Languages modified|1|"));
     }
 
     #[test]

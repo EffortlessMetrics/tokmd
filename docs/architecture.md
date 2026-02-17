@@ -22,7 +22,8 @@ Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore,
                        tokmd-sensor
          ↓
-Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
+Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
+                       tokmd-badge, tokmd-progress
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-fun, tokmd-gate
          ↓
@@ -64,6 +65,8 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-walk` | Filesystem traversal with gitignore support | `walk` |
 | `tokmd-content` | File content scanning (entropy, tags, hashing) | `content` |
 | `tokmd-git` | Git history analysis via shell `git log` | `git` |
+| `tokmd-badge` | SVG badge rendering helpers | — |
+| `tokmd-progress` | Progress spinner and progress-bar abstractions | `ui` |
 
 ### Tier 3: Orchestration
 
@@ -241,5 +244,4 @@ Work items:
 - Packaging: publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
 
 Non-goals for v1.9.0: no in-browser git churn/hotspot metrics or heavy tooling; provide a backend escape hatch for very large repos or git-based analysis.
-
 

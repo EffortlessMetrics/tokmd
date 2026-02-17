@@ -16,6 +16,9 @@
 //! * I/O operations
 //! * Business logic
 
+use std::collections::HashMap;
+use std::path::Path;
+
 use serde::{Deserialize, Serialize};
 
 // Re-export types from tokmd_types for convenience
@@ -316,9 +319,341 @@ pub struct DiffSettings {
     pub to: String,
 }
 
+// =============================================================================
+// TOML Configuration File Structures
+// =============================================================================
+
+/// Root TOML configuration structure.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TomlConfig {
+    /// Scan settings (applies to all commands).
+    pub scan: ScanConfig,
+
+    /// Module command settings.
+    pub module: ModuleConfig,
+
+    /// Export command settings.
+    pub export: ExportConfig,
+
+    /// Analyze command settings.
+    pub analyze: AnalyzeConfig,
+
+    /// Context command settings.
+    pub context: ContextConfig,
+
+    /// Badge command settings.
+    pub badge: BadgeConfig,
+
+    /// Gate command settings.
+    pub gate: GateConfig,
+
+    /// Named view profiles (e.g., [view.llm], [view.ci]).
+    #[serde(default)]
+    pub view: HashMap<String, ViewProfile>,
+}
+
+/// Scan settings shared by all commands.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ScanConfig {
+    /// Paths to scan (default: ["."])
+    pub paths: Option<Vec<String>>,
+
+    /// Glob patterns to exclude.
+    pub exclude: Option<Vec<String>>,
+
+    /// Include hidden files and directories.
+    pub hidden: Option<bool>,
+
+    /// Config file strategy for tokei: "auto" or "none".
+    pub config: Option<String>,
+
+    /// Disable all ignore files.
+    pub no_ignore: Option<bool>,
+
+    /// Disable parent directory ignore file traversal.
+    pub no_ignore_parent: Option<bool>,
+
+    /// Disable .ignore/.tokeignore files.
+    pub no_ignore_dot: Option<bool>,
+
+    /// Disable .gitignore files.
+    pub no_ignore_vcs: Option<bool>,
+
+    /// Treat doc comments as comments instead of code.
+    pub doc_comments: Option<bool>,
+}
+
+/// Module command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ModuleConfig {
+    /// Root directories for module grouping.
+    pub roots: Option<Vec<String>>,
+
+    /// Depth for module grouping.
+    pub depth: Option<usize>,
+
+    /// Children handling: "collapse" or "separate".
+    pub children: Option<String>,
+}
+
+/// Export command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ExportConfig {
+    /// Minimum lines of code to include.
+    pub min_code: Option<usize>,
+
+    /// Maximum rows in output.
+    pub max_rows: Option<usize>,
+
+    /// Redaction mode: "none", "paths", or "all".
+    pub redact: Option<String>,
+
+    /// Output format: "jsonl", "csv", "json", "cyclonedx".
+    pub format: Option<String>,
+
+    /// Children handling: "collapse" or "separate".
+    pub children: Option<String>,
+}
+
+/// Analyze command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AnalyzeConfig {
+    /// Analysis preset.
+    pub preset: Option<String>,
+
+    /// Context window size for utilization analysis.
+    pub window: Option<usize>,
+
+    /// Output format.
+    pub format: Option<String>,
+
+    /// Force git metrics on/off.
+    pub git: Option<bool>,
+
+    /// Max files for asset/deps/content scans.
+    pub max_files: Option<usize>,
+
+    /// Max total bytes for content scans.
+    pub max_bytes: Option<u64>,
+
+    /// Max bytes per file for content scans.
+    pub max_file_bytes: Option<u64>,
+
+    /// Max commits for git metrics.
+    pub max_commits: Option<usize>,
+
+    /// Max files per commit for git metrics.
+    pub max_commit_files: Option<usize>,
+
+    /// Import graph granularity: "module" or "file".
+    pub granularity: Option<String>,
+}
+
+/// Context command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ContextConfig {
+    /// Token budget with optional k/m suffix.
+    pub budget: Option<String>,
+
+    /// Packing strategy: "greedy" or "spread".
+    pub strategy: Option<String>,
+
+    /// Ranking metric: "code", "tokens", "churn", "hotspot".
+    pub rank_by: Option<String>,
+
+    /// Output mode: "list", "bundle", "json".
+    pub output: Option<String>,
+
+    /// Strip blank lines from bundle output.
+    pub compress: Option<bool>,
+}
+
+/// Badge command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BadgeConfig {
+    /// Default metric for badges.
+    pub metric: Option<String>,
+}
+
+/// Gate command settings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GateConfig {
+    /// Path to policy file.
+    pub policy: Option<String>,
+
+    /// Path to baseline file for ratchet comparison.
+    pub baseline: Option<String>,
+
+    /// Analysis preset for compute-then-gate mode.
+    pub preset: Option<String>,
+
+    /// Fail fast on first error.
+    pub fail_fast: Option<bool>,
+
+    /// Inline policy rules.
+    pub rules: Option<Vec<GateRule>>,
+
+    /// Inline ratchet rules for baseline comparison.
+    pub ratchet: Option<Vec<RatchetRuleConfig>>,
+
+    /// Allow missing baseline values (treat as pass).
+    pub allow_missing_baseline: Option<bool>,
+
+    /// Allow missing current values (treat as pass).
+    pub allow_missing_current: Option<bool>,
+}
+
+/// A single ratchet rule for baseline comparison (TOML configuration).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatchetRuleConfig {
+    /// JSON Pointer to the metric (e.g., "/complexity/avg_cyclomatic").
+    pub pointer: String,
+
+    /// Maximum allowed percentage increase from baseline.
+    #[serde(default)]
+    pub max_increase_pct: Option<f64>,
+
+    /// Maximum allowed absolute value (hard ceiling).
+    #[serde(default)]
+    pub max_value: Option<f64>,
+
+    /// Rule severity level: "error" (default) or "warn".
+    #[serde(default)]
+    pub level: Option<String>,
+
+    /// Human-readable description of the rule.
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// A single gate policy rule (for inline TOML configuration).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GateRule {
+    /// Human-readable name for the rule.
+    pub name: String,
+
+    /// JSON Pointer to the value to check (RFC 6901).
+    pub pointer: String,
+
+    /// Comparison operator.
+    pub op: String,
+
+    /// Single value for comparison.
+    #[serde(default)]
+    pub value: Option<serde_json::Value>,
+
+    /// Multiple values for "in" operator.
+    #[serde(default)]
+    pub values: Option<Vec<serde_json::Value>>,
+
+    /// Negate the result.
+    #[serde(default)]
+    pub negate: bool,
+
+    /// Rule severity level: "error" or "warn".
+    #[serde(default)]
+    pub level: Option<String>,
+
+    /// Custom failure message.
+    #[serde(default)]
+    pub message: Option<String>,
+}
+
+/// A named view profile that can override settings for specific use cases.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ViewProfile {
+    // Shared settings
+    /// Output format.
+    pub format: Option<String>,
+
+    /// Show only top N rows.
+    pub top: Option<usize>,
+
+    // Lang settings
+    /// Include file counts in lang output.
+    pub files: Option<bool>,
+
+    // Module / Export settings
+    /// Module roots for grouping.
+    pub module_roots: Option<Vec<String>>,
+
+    /// Module depth for grouping.
+    pub module_depth: Option<usize>,
+
+    /// Minimum lines of code.
+    pub min_code: Option<usize>,
+
+    /// Maximum rows in output.
+    pub max_rows: Option<usize>,
+
+    /// Redaction mode.
+    pub redact: Option<String>,
+
+    /// Include metadata record.
+    pub meta: Option<bool>,
+
+    /// Children handling mode.
+    pub children: Option<String>,
+
+    // Analyze settings
+    /// Analysis preset.
+    pub preset: Option<String>,
+
+    /// Context window size.
+    pub window: Option<usize>,
+
+    // Context settings
+    /// Token budget.
+    pub budget: Option<String>,
+
+    /// Packing strategy.
+    pub strategy: Option<String>,
+
+    /// Ranking metric.
+    pub rank_by: Option<String>,
+
+    /// Output mode for context.
+    pub output: Option<String>,
+
+    /// Strip blank lines.
+    pub compress: Option<bool>,
+
+    // Badge settings
+    /// Badge metric.
+    pub metric: Option<String>,
+}
+
+impl TomlConfig {
+    /// Load configuration from a TOML string.
+    pub fn parse(s: &str) -> Result<Self, toml::de::Error> {
+        toml::from_str(s)
+    }
+
+    /// Load configuration from a file path.
+    pub fn from_file(path: &Path) -> std::io::Result<Self> {
+        let content = std::fs::read_to_string(path)?;
+        toml::from_str(&content)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
+}
+
+/// Result type alias for TOML parsing errors.
+pub type TomlResult<T> = Result<T, toml::de::Error>;
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn scan_options_default() {
@@ -431,5 +766,43 @@ mod tests {
         let back: DiffSettings = serde_json::from_str(&json).unwrap();
         assert_eq!(back.from, "v1.0");
         assert_eq!(back.to, "v2.0");
+    }
+
+    #[test]
+    fn toml_parse_and_view_profiles() {
+        let toml_str = r#"
+[scan]
+hidden = true
+
+[view.llm]
+format = "json"
+top = 10
+"#;
+        let config = TomlConfig::parse(toml_str).expect("parse config");
+        assert_eq!(config.scan.hidden, Some(true));
+        let llm = config.view.get("llm").expect("llm profile");
+        assert_eq!(llm.format.as_deref(), Some("json"));
+        assert_eq!(llm.top, Some(10));
+    }
+
+    #[test]
+    fn toml_from_file_roundtrip() {
+        let toml_content = r#"
+[module]
+depth = 3
+roots = ["src", "tests"]
+"#;
+
+        let mut temp_file = NamedTempFile::new().expect("temp file");
+        temp_file
+            .write_all(toml_content.as_bytes())
+            .expect("write config");
+
+        let config = TomlConfig::from_file(temp_file.path()).expect("load config");
+        assert_eq!(config.module.depth, Some(3));
+        assert_eq!(
+            config.module.roots,
+            Some(vec!["src".to_string(), "tests".to_string()])
+        );
     }
 }

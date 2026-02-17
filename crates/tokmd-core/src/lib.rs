@@ -50,6 +50,10 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
+#[cfg(feature = "analysis")]
+use tokmd_analysis as analysis;
+#[cfg(feature = "analysis")]
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 
 // Public modules
 pub mod error;
@@ -267,19 +271,62 @@ pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
 
 /// Analyze workflow (requires `analysis` feature).
 ///
-/// # Errors
-///
-/// Returns `NotImplemented` error. Analysis workflow is not yet implemented
-/// in the core library. Use the CLI `tokmd analyze` command instead.
+/// Runs export + analysis workflows and returns an `AnalysisReceipt`.
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow(
-    _scan: &ScanSettings,
-    _analyze: &settings::AnalyzeSettings,
+    scan: &ScanSettings,
+    analyze: &settings::AnalyzeSettings,
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
-    Err(
-        error::TokmdError::not_implemented("Analysis workflow not yet implemented in core library")
-            .into(),
-    )
+    let export_receipt = export_workflow(scan, &ExportSettings::default())?;
+    let (preset, preset_meta) = parse_analysis_preset(&analyze.preset)?;
+    let (granularity, granularity_meta) = parse_import_granularity(&analyze.granularity)?;
+
+    let source = AnalysisSource {
+        inputs: scan.paths.clone(),
+        export_path: None,
+        base_receipt_path: None,
+        export_schema_version: Some(export_receipt.schema_version),
+        export_generated_at_ms: Some(export_receipt.generated_at_ms),
+        base_signature: None,
+        module_roots: export_receipt.data.module_roots.clone(),
+        module_depth: export_receipt.data.module_depth,
+        children: child_include_mode_to_string(export_receipt.data.children),
+    };
+
+    let request = analysis::AnalysisRequest {
+        preset,
+        args: AnalysisArgsMeta {
+            preset: preset_meta,
+            format: "json".to_string(),
+            window_tokens: analyze.window,
+            git: analyze.git,
+            max_files: analyze.max_files,
+            max_bytes: analyze.max_bytes,
+            max_file_bytes: analyze.max_file_bytes,
+            max_commits: analyze.max_commits,
+            max_commit_files: analyze.max_commit_files,
+            import_granularity: granularity_meta,
+        },
+        limits: analysis::AnalysisLimits {
+            max_files: analyze.max_files,
+            max_bytes: analyze.max_bytes,
+            max_file_bytes: analyze.max_file_bytes,
+            max_commits: analyze.max_commits,
+            max_commit_files: analyze.max_commit_files,
+        },
+        window_tokens: analyze.window,
+        git: analyze.git,
+        import_granularity: granularity,
+        detail_functions: false,
+    };
+
+    let ctx = analysis::AnalysisContext {
+        export: export_receipt.data,
+        root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+        source,
+    };
+
+    analysis::analyze(ctx, request)
 }
 
 // =============================================================================
@@ -345,6 +392,55 @@ pub fn scan_workflow(
 /// Convert ScanSettings to ScanOptions for lower-tier crates.
 fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
     scan.options.clone()
+}
+
+#[cfg(feature = "analysis")]
+fn parse_analysis_preset(value: &str) -> Result<(analysis::AnalysisPreset, String)> {
+    let normalized = value.trim().to_ascii_lowercase();
+    let preset = match normalized.as_str() {
+        "receipt" => analysis::AnalysisPreset::Receipt,
+        "health" => analysis::AnalysisPreset::Health,
+        "risk" => analysis::AnalysisPreset::Risk,
+        "supply" => analysis::AnalysisPreset::Supply,
+        "architecture" => analysis::AnalysisPreset::Architecture,
+        "topics" => analysis::AnalysisPreset::Topics,
+        "security" => analysis::AnalysisPreset::Security,
+        "identity" => analysis::AnalysisPreset::Identity,
+        "git" => analysis::AnalysisPreset::Git,
+        "deep" => analysis::AnalysisPreset::Deep,
+        "fun" => analysis::AnalysisPreset::Fun,
+        _ => {
+            return Err(error::TokmdError::invalid_field(
+                "preset",
+                "'receipt', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
+            )
+            .into());
+        }
+    };
+    Ok((preset, normalized))
+}
+
+#[cfg(feature = "analysis")]
+fn parse_import_granularity(value: &str) -> Result<(analysis::ImportGranularity, String)> {
+    let normalized = value.trim().to_ascii_lowercase();
+    let granularity = match normalized.as_str() {
+        "module" => analysis::ImportGranularity::Module,
+        "file" => analysis::ImportGranularity::File,
+        _ => {
+            return Err(
+                error::TokmdError::invalid_field("granularity", "'module' or 'file'").into(),
+            );
+        }
+    };
+    Ok((granularity, normalized))
+}
+
+#[cfg(feature = "analysis")]
+fn child_include_mode_to_string(mode: tokmd_types::ChildIncludeMode) -> String {
+    match mode {
+        tokmd_types::ChildIncludeMode::Separate => "separate".to_string(),
+        tokmd_types::ChildIncludeMode::ParentsOnly => "parents-only".to_string(),
+    }
 }
 
 /// Load a LangReport from a file path or scan a directory.

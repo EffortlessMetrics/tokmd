@@ -109,6 +109,7 @@ fn complexity_baseline_from_analysis_with_complexity() {
         histogram: None,
         halstead: None,
         maintainability_index: None,
+        technical_debt: None,
         files: vec![FileComplexity {
             path: "src/lib.rs".to_string(),
             module: "src".to_string(),

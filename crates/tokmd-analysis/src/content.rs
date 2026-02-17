@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    DuplicateGroup, DuplicateReport, ImportEdge, ImportReport, TodoReport, TodoTagRow,
+    DuplicateGroup, DuplicateReport, DuplicationDensityReport, ImportEdge, ImportReport,
+    ModuleDuplicationDensityRow, TodoReport, TodoTagRow,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -70,6 +71,7 @@ pub(crate) fn build_todo_report(
 pub(crate) fn build_duplicate_report(
     root: &Path,
     files: &[PathBuf],
+    export: &ExportData,
     limits: &AnalysisLimits,
 ) -> Result<DuplicateReport> {
     let mut by_size: BTreeMap<u64, Vec<PathBuf>> = BTreeMap::new();
@@ -85,8 +87,23 @@ pub(crate) fn build_duplicate_report(
         by_size.entry(size).or_default().push(rel.clone());
     }
 
+    let mut path_to_module: BTreeMap<String, String> = BTreeMap::new();
+    let mut module_bytes: BTreeMap<String, u64> = BTreeMap::new();
+    for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
+        let normalized = normalize_path(&row.path, root);
+        path_to_module.insert(normalized, row.module.clone());
+        *module_bytes.entry(row.module.clone()).or_insert(0) += row.bytes as u64;
+    }
+
     let mut groups: Vec<DuplicateGroup> = Vec::new();
     let mut wasted_bytes = 0u64;
+    let mut duplicate_files = 0usize;
+    let mut duplicated_bytes = 0u64;
+
+    let mut module_duplicate_files: BTreeMap<String, usize> = BTreeMap::new();
+    let mut module_wasted_files: BTreeMap<String, usize> = BTreeMap::new();
+    let mut module_duplicated_bytes: BTreeMap<String, u64> = BTreeMap::new();
+    let mut module_wasted_bytes: BTreeMap<String, u64> = BTreeMap::new();
 
     for (size, paths) in by_size {
         if paths.len() < 2 || size == 0 {
@@ -108,6 +125,23 @@ pub(crate) fn build_duplicate_report(
             }
             files.sort();
             wasted_bytes += (files.len() as u64 - 1) * size;
+
+            for (idx, file) in files.iter().enumerate() {
+                let module = path_to_module
+                    .get(file)
+                    .cloned()
+                    .unwrap_or_else(|| "(unknown)".to_string());
+                *module_duplicate_files.entry(module.clone()).or_insert(0) += 1;
+                *module_duplicated_bytes.entry(module.clone()).or_insert(0) += size;
+                duplicate_files += 1;
+                duplicated_bytes += size;
+
+                if idx > 0 {
+                    *module_wasted_files.entry(module.clone()).or_insert(0) += 1;
+                    *module_wasted_bytes.entry(module).or_insert(0) += size;
+                }
+            }
+
             groups.push(DuplicateGroup {
                 hash,
                 bytes: size,
@@ -118,10 +152,60 @@ pub(crate) fn build_duplicate_report(
 
     groups.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.hash.cmp(&b.hash)));
 
+    let mut modules: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    modules.extend(module_duplicate_files.keys().cloned());
+    modules.extend(module_wasted_files.keys().cloned());
+
+    let mut by_module: Vec<ModuleDuplicationDensityRow> = modules
+        .into_iter()
+        .map(|module| {
+            let duplicate_files = module_duplicate_files.get(&module).copied().unwrap_or(0);
+            let wasted_files = module_wasted_files.get(&module).copied().unwrap_or(0);
+            let duplicated_bytes = module_duplicated_bytes.get(&module).copied().unwrap_or(0);
+            let wasted_bytes = module_wasted_bytes.get(&module).copied().unwrap_or(0);
+            let module_total = module_bytes.get(&module).copied().unwrap_or(0);
+            let density = if module_total == 0 {
+                0.0
+            } else {
+                round_f64(wasted_bytes as f64 / module_total as f64, 4)
+            };
+            ModuleDuplicationDensityRow {
+                module,
+                duplicate_files,
+                wasted_files,
+                duplicated_bytes,
+                wasted_bytes,
+                module_bytes: module_total,
+                density,
+            }
+        })
+        .collect();
+    by_module.sort_by(|a, b| {
+        b.wasted_bytes
+            .cmp(&a.wasted_bytes)
+            .then_with(|| a.module.cmp(&b.module))
+    });
+
+    let total_codebase_bytes: u64 = module_bytes.values().sum();
+    let wasted_pct_of_codebase = if total_codebase_bytes == 0 {
+        0.0
+    } else {
+        round_f64(wasted_bytes as f64 / total_codebase_bytes as f64, 4)
+    };
+    let density = DuplicationDensityReport {
+        duplicate_groups: groups.len(),
+        duplicate_files,
+        duplicated_bytes,
+        wasted_bytes,
+        wasted_pct_of_codebase,
+        by_module,
+    };
+
     Ok(DuplicateReport {
         groups,
         wasted_bytes,
         strategy: "exact-blake3".to_string(),
+        density: Some(density),
     })
 }
 

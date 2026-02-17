@@ -6,17 +6,15 @@ use std::io::IsTerminal;
 /// Check if we should show interactive output.
 #[cfg(feature = "ui")]
 fn is_interactive() -> bool {
-    // Check if stderr is a TTY (since the spinner writes to stderr)
+    // Check if stderr is a TTY (since the spinner writes to stderr).
     if !std::io::stderr().is_terminal() {
         return false;
     }
 
-    // Check NO_COLOR env var
+    // Respect standard and tool-specific controls.
     if std::env::var("NO_COLOR").is_ok() {
         return false;
     }
-
-    // Check TOKMD_NO_PROGRESS env var
     if std::env::var("TOKMD_NO_PROGRESS").is_ok() {
         return false;
     }
@@ -50,7 +48,7 @@ mod ui_impl {
                 let pb = ProgressBar::new_spinner();
                 pb.set_style(
                     ProgressStyle::with_template("{spinner:.cyan} {msg}")
-                        .unwrap()
+                        .expect("progress template is static and must be valid")
                         .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏", " "]),
                 );
                 pb.enable_steady_tick(Duration::from_millis(80));
@@ -84,6 +82,7 @@ mod ui_impl {
             }
         }
     }
+
     /// A progress bar with ETA support for long-running operations.
     #[allow(dead_code)]
     pub struct ProgressBarWithEta {
@@ -94,12 +93,6 @@ mod ui_impl {
     #[allow(dead_code)]
     impl ProgressBarWithEta {
         /// Create a new progress bar with ETA.
-        ///
-        /// The progress bar is only shown if:
-        /// - `enabled` is true
-        /// - stderr is a TTY
-        /// - NO_COLOR env var is not set
-        /// - TOKMD_NO_PROGRESS env var is not set
         pub fn new(enabled: bool, total: u64, message: &str) -> Self {
             let should_show = enabled && is_interactive();
 
@@ -109,7 +102,7 @@ mod ui_impl {
                     ProgressStyle::with_template(
                         "{spinner:.cyan} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta}) {msg}",
                     )
-                    .unwrap(),
+                    .expect("progress template is static and must be valid"),
                 );
                 pb.set_message(message.to_string());
                 pb.enable_steady_tick(Duration::from_millis(100));
@@ -169,6 +162,12 @@ mod ui_impl {
                 bar.finish_and_clear();
             }
         }
+
+        /// Elapsed runtime since this bar was created.
+        #[allow(dead_code)]
+        pub fn elapsed(&self) -> Option<Duration> {
+            self.start_time.map(|t| t.elapsed())
+        }
     }
 
     impl Drop for ProgressBarWithEta {
@@ -199,8 +198,10 @@ mod ui_impl {
     }
 
     /// A no-op progress bar when `ui` feature is disabled.
+    #[allow(dead_code)]
     pub struct ProgressBarWithEta;
 
+    #[allow(dead_code)]
     impl ProgressBarWithEta {
         /// Create a new progress bar (no-op without `ui` feature).
         pub fn new(_enabled: bool, _total: u64, _message: &str) -> Self {
@@ -230,23 +231,28 @@ mod ui_impl {
     }
 }
 
-pub use ui_impl::Progress;
+pub use ui_impl::{Progress, ProgressBarWithEta};
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_progress_disabled() {
+    fn progress_methods_do_not_panic_when_disabled() {
         let progress = Progress::new(false);
         progress.set_message("test");
         progress.finish_and_clear();
     }
 
     #[test]
-    fn test_progress_methods_no_panic() {
-        let progress = Progress::new(false);
-        progress.set_message("test");
+    fn progress_bar_methods_do_not_panic_when_disabled() {
+        let progress = ProgressBarWithEta::new(false, 10, "scan");
+        progress.inc();
+        progress.inc_by(2);
+        progress.set_position(3);
+        progress.set_message("updated");
+        progress.set_length(20);
+        progress.finish_with_message("done");
         progress.finish_and_clear();
     }
 }

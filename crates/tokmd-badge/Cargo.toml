@@ -1,0 +1,13 @@
+[package]
+name = "tokmd-badge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "SVG badge rendering helpers for tokmd metrics."
+readme = "README.md"
+keywords = ["badge", "svg", "metrics", "tokmd"]
+categories = ["command-line-utilities"]
+
+[dependencies]

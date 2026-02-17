@@ -22,7 +22,8 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-/// v5: Added Halstead metrics, maintainability index, complexity histogram wiring.
+/// v5: Added complexity enrichers (Halstead, maintainability, histogram) with additive
+/// debt/duplication/age signals.
 pub const ANALYSIS_SCHEMA_VERSION: u32 = 5;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -485,6 +486,9 @@ pub struct GitReport {
     pub bus_factor: Vec<BusFactorRow>,
     pub freshness: FreshnessReport,
     pub coupling: Vec<CouplingRow>,
+    /// Code age bucket distribution plus recent refresh trend.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub age_distribution: Option<CodeAgeDistributionReport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -525,6 +529,23 @@ pub struct CouplingRow {
     pub count: usize,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeAgeDistributionReport {
+    pub buckets: Vec<CodeAgeBucket>,
+    pub recent_refreshes: usize,
+    pub prior_refreshes: usize,
+    pub refresh_trend: TrendClass,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeAgeBucket {
+    pub label: String,
+    pub min_days: usize,
+    pub max_days: Option<usize>,
+    pub files: usize,
+    pub pct: f64,
+}
+
 // -----------------
 // Import graph info
 // -----------------
@@ -551,6 +572,9 @@ pub struct DuplicateReport {
     pub groups: Vec<DuplicateGroup>,
     pub wasted_bytes: u64,
     pub strategy: String,
+    /// Duplication density summary overall and by module.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub density: Option<DuplicationDensityReport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -558,6 +582,27 @@ pub struct DuplicateGroup {
     pub hash: String,
     pub bytes: u64,
     pub files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DuplicationDensityReport {
+    pub duplicate_groups: usize,
+    pub duplicate_files: usize,
+    pub duplicated_bytes: u64,
+    pub wasted_bytes: u64,
+    pub wasted_pct_of_codebase: f64,
+    pub by_module: Vec<ModuleDuplicationDensityRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleDuplicationDensityRow {
+    pub module: String,
+    pub duplicate_files: usize,
+    pub wasted_files: usize,
+    pub duplicated_bytes: u64,
+    pub wasted_bytes: u64,
+    pub module_bytes: u64,
+    pub density: f64,
 }
 
 // -------------------
@@ -615,6 +660,28 @@ pub struct MaintainabilityIndex {
     pub grade: String,
 }
 
+/// Complexity-to-size ratio heuristic for technical debt estimation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TechnicalDebtRatio {
+    /// Complexity points per KLOC (higher means denser debt).
+    pub ratio: f64,
+    /// Aggregate complexity points used in the ratio.
+    pub complexity_points: usize,
+    /// KLOC basis used in the ratio denominator.
+    pub code_kloc: f64,
+    /// Bucketed interpretation of debt ratio.
+    pub level: TechnicalDebtLevel,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TechnicalDebtLevel {
+    Low,
+    Moderate,
+    High,
+    Critical,
+}
+
 // -------------------
 // Complexity metrics
 // -------------------
@@ -648,6 +715,9 @@ pub struct ComplexityReport {
     /// Composite maintainability index.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub maintainability_index: Option<MaintainabilityIndex>,
+    /// Complexity-to-size debt heuristic.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub technical_debt: Option<TechnicalDebtRatio>,
     pub files: Vec<FileComplexity>,
 }
 

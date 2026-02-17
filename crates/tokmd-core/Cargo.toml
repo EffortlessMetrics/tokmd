@@ -13,7 +13,14 @@ documentation = "https://docs.rs/tokmd-core"
 
 [features]
 default = []
-analysis = ["tokmd-analysis-types"]
+analysis = [
+    "tokmd-analysis-types",
+    "dep:tokmd-analysis",
+    "tokmd-analysis/git",
+    "tokmd-analysis/walk",
+    "tokmd-analysis/content",
+    "tokmd-analysis/halstead",
+]
 
 [dependencies]
 anyhow = "1.0.101"
@@ -28,5 +35,5 @@ tokmd-scan.workspace = true
 tokmd-types.workspace = true
 
 # Optional analysis support
+tokmd-analysis = { workspace = true, optional = true }
 tokmd-analysis-types = { workspace = true, optional = true }
-

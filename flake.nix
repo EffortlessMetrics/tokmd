@@ -49,6 +49,8 @@
           || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
+          # Keep contract fixtures validated by schema tests
+          || (pkgs.lib.hasInfix "/contracts/" p)
           # Keep snapshot files
           || (pkgs.lib.hasSuffix ".snap" baseName)
           # Keep proptest regression files

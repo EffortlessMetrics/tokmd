@@ -1561,8 +1561,14 @@ fn compute_determinism_gate(
     // Parse baseline
     let content = std::fs::read_to_string(&resolved_path)
         .with_context(|| format!("failed to read baseline at {}", resolved_path.display()))?;
-    let baseline: ComplexityBaseline = serde_json::from_str(&content)
-        .with_context(|| format!("failed to parse baseline at {}", resolved_path.display()))?;
+    let baseline: ComplexityBaseline = match serde_json::from_str(&content) {
+        Ok(parsed) => parsed,
+        Err(_) => {
+            // Baseline may be a cockpit receipt used for trend comparison only.
+            // In that case determinism data is unavailable, so skip this gate.
+            return Ok(None);
+        }
+    };
 
     // If baseline has no determinism section, skip the gate
     let det = match &baseline.determinism {
@@ -2519,9 +2525,9 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     let _ = writeln!(s, "## Glass Cockpit");
     let _ = writeln!(s);
 
-    // Summary comparison table
+    // Summary table
     s.push_str("### Summary\n\n");
-    s.push_str("|Metric|Value|\n");
+    s.push_str("|Metric|Current|\n");
     s.push_str("|---|---:|\n");
     let _ = writeln!(
         s,
@@ -2535,6 +2541,50 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
     let _ = writeln!(s, "|Risk Score|{}/100|", receipt.risk.score);
     let _ = writeln!(s, "|Test Ratio|{:.2}|", receipt.composition.test_ratio);
     s.push('\n');
+
+    if let Some(trend) = receipt.trend.as_ref().filter(|t| t.baseline_available) {
+        s.push_str("### Summary Comparison\n\n");
+        s.push_str("|Metric|Baseline|Current|Delta|Change|\n");
+        s.push_str("|---|---:|---:|---:|---|\n");
+
+        if let Some(health) = &trend.health {
+            let _ = writeln!(
+                s,
+                "|Health Score|{:.1}|{:.1}|{}|{}|",
+                health.previous,
+                health.current,
+                format_signed_f64(health.delta),
+                trend_direction_label(health.direction)
+            );
+        }
+        if let Some(risk) = &trend.risk {
+            let _ = writeln!(
+                s,
+                "|Risk Score|{:.1}|{:.1}|{}|{}|",
+                risk.previous,
+                risk.current,
+                format_signed_f64(risk.delta),
+                trend_direction_label(risk.direction)
+            );
+        }
+        if let Some(complexity) = &trend.complexity {
+            let cyclomatic_delta = complexity
+                .avg_cyclomatic_delta
+                .map(format_signed_f64)
+                .unwrap_or_else(|| "n/a".to_string());
+            let _ = writeln!(
+                s,
+                "|Avg Cyclomatic|n/a|n/a|{}|{}|",
+                cyclomatic_delta,
+                trend_direction_label(complexity.direction)
+            );
+        }
+
+        if let Some(path) = trend.baseline_path.as_deref() {
+            let _ = writeln!(s, "\nBaseline: `{}`", path);
+        }
+        s.push('\n');
+    }
 
     // Change Surface section
     let _ = writeln!(s, "### Change Surface");
@@ -2751,15 +2801,23 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
             if let Some(ref health) = trend.health {
                 let _ = writeln!(
                     s,
-                    "- **Health**: {:.1} → {:.1} ({:.1}%, {:?})",
-                    health.previous, health.current, health.delta_pct, health.direction
+                    "- **Health**: {:.1} → {:.1} {} ({:.1}%, {:?})",
+                    health.previous,
+                    health.current,
+                    sparkline(&[health.previous, health.current]),
+                    health.delta_pct,
+                    health.direction
                 );
             }
             if let Some(ref risk) = trend.risk {
                 let _ = writeln!(
                     s,
-                    "- **Risk**: {:.1} → {:.1} ({:.1}%, {:?})",
-                    risk.previous, risk.current, risk.delta_pct, risk.direction
+                    "- **Risk**: {:.1} → {:.1} {} ({:.1}%, {:?})",
+                    risk.previous,
+                    risk.current,
+                    sparkline(&[risk.previous, risk.current]),
+                    risk.delta_pct,
+                    risk.direction
                 );
             }
             if let Some(ref complexity) = trend.complexity {
@@ -3049,10 +3107,103 @@ fn write_sensor_artifacts(
     Ok(())
 }
 
+fn format_signed_f64(value: f64) -> String {
+    if value > 0.0 {
+        format!("+{value:.2}")
+    } else {
+        format!("{value:.2}")
+    }
+}
+
+fn trend_direction_label(direction: TrendDirection) -> &'static str {
+    match direction {
+        TrendDirection::Improving => "improving",
+        TrendDirection::Stable => "stable",
+        TrendDirection::Degrading => "degrading",
+    }
+}
+
+fn sparkline(values: &[f64]) -> String {
+    if values.is_empty() {
+        return String::new();
+    }
+
+    const BARS: &[char] = &['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+    let min = values
+        .iter()
+        .copied()
+        .fold(f64::INFINITY, |acc, v| acc.min(v));
+    let max = values
+        .iter()
+        .copied()
+        .fold(f64::NEG_INFINITY, |acc, v| acc.max(v));
+
+    if !min.is_finite() || !max.is_finite() {
+        return String::new();
+    }
+
+    if (max - min).abs() < f64::EPSILON {
+        return std::iter::repeat_n(BARS[3], values.len()).collect();
+    }
+
+    let span = max - min;
+    values
+        .iter()
+        .map(|v| {
+            let norm = ((v - min) / span).clamp(0.0, 1.0);
+            let idx = (norm * (BARS.len() as f64 - 1.0)).round() as usize;
+            BARS[idx]
+        })
+        .collect()
+}
+
 fn now_iso8601() -> String {
     "2024-01-01T00:00:00Z".to_string()
 }
 
 fn round_pct(val: f64) -> f64 {
     (val * 100.0).round() / 100.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{TrendDirection, format_signed_f64, sparkline, trend_direction_label};
+
+    #[test]
+    fn sparkline_rises() {
+        let s = sparkline(&[10.0, 20.0, 30.0]);
+        assert_eq!(s.chars().count(), 3);
+        assert!(s.ends_with('█'));
+    }
+
+    #[test]
+    fn sparkline_flat() {
+        let s = sparkline(&[5.0, 5.0, 5.0]);
+        assert_eq!(s, "▄▄▄");
+    }
+
+    #[test]
+    fn sparkline_empty() {
+        assert!(sparkline(&[]).is_empty());
+    }
+
+    #[test]
+    fn signed_float_formatting() {
+        assert_eq!(format_signed_f64(1.25), "+1.25");
+        assert_eq!(format_signed_f64(0.0), "0.00");
+        assert_eq!(format_signed_f64(-1.25), "-1.25");
+    }
+
+    #[test]
+    fn trend_direction_labels_are_stable() {
+        assert_eq!(
+            trend_direction_label(TrendDirection::Improving),
+            "improving"
+        );
+        assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
+        assert_eq!(
+            trend_direction_label(TrendDirection::Degrading),
+            "degrading"
+        );
+    }
 }

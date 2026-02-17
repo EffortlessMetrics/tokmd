@@ -640,7 +640,9 @@ fn test_non_existent_path() {
         .arg("non_existent_file_abc123.txt")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Path not found"));
+        .stderr(predicate::str::contains("Path not found"))
+        .stderr(predicate::str::contains("Hints:"))
+        .stderr(predicate::str::contains("input path exists"));
 }
 
 #[test]

@@ -283,6 +283,33 @@ fn parse_export_format(args: &Value, default: ExportFormat) -> Result<ExportForm
     }
 }
 
+/// Parse and validate analyze preset names.
+fn parse_analyze_preset(args: &Value, default: &str) -> Result<String, TokmdError> {
+    let preset = parse_string(args, "preset", default)?;
+    let normalized = preset.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "receipt" | "health" | "risk" | "supply" | "architecture" | "topics" | "security"
+        | "identity" | "git" | "deep" | "fun" => Ok(normalized),
+        _ => Err(TokmdError::invalid_field(
+            "preset",
+            "'receipt', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
+        )),
+    }
+}
+
+/// Parse and validate import graph granularity.
+fn parse_import_granularity(args: &Value, default: &str) -> Result<String, TokmdError> {
+    let granularity = parse_string(args, "granularity", default)?;
+    let normalized = granularity.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "module" | "file" => Ok(normalized),
+        _ => Err(TokmdError::invalid_field(
+            "granularity",
+            "'module' or 'file'",
+        )),
+    }
+}
+
 // ============================================================================
 // Settings parsers
 // ============================================================================
@@ -362,7 +389,7 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
     let obj = args.get("analyze").unwrap_or(args);
 
     Ok(AnalyzeSettings {
-        preset: parse_string(obj, "preset", "receipt")?,
+        preset: parse_analyze_preset(obj, "receipt")?,
         window: parse_optional_usize(obj, "window")?,
         git: parse_optional_bool(obj, "git")?,
         max_files: parse_optional_usize(obj, "max_files")?,
@@ -370,7 +397,7 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
         max_file_bytes: parse_optional_u64(obj, "max_file_bytes")?,
         max_commits: parse_optional_usize(obj, "max_commits")?,
         max_commit_files: parse_optional_usize(obj, "max_commit_files")?,
-        granularity: parse_string(obj, "granularity", "module")?,
+        granularity: parse_import_granularity(obj, "module")?,
     })
 }
 
@@ -713,9 +740,48 @@ mod tests {
         );
     }
 
+    #[test]
+    #[cfg(feature = "analysis")]
+    fn invalid_analyze_preset_returns_error() {
+        let result = run_json("analyze", r#"{"preset":"unknown"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("preset")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "analysis")]
+    fn invalid_import_granularity_returns_error() {
+        let result = run_json("analyze", r#"{"granularity":"package"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("granularity")
+        );
+    }
+
     // ========================================================================
     // Feature-gated tests
     // ========================================================================
+
+    #[test]
+    #[cfg(feature = "analysis")]
+    fn analyze_with_feature_returns_receipt() {
+        let result = run_json("analyze", r#"{"paths":["src"],"preset":"receipt"}"#);
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], true, "analyze failed: {}", result);
+        assert_eq!(parsed["data"]["mode"], "analysis");
+    }
 
     #[test]
     #[cfg(not(feature = "analysis"))]

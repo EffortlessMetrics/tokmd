@@ -64,7 +64,7 @@ As part of this phase, three additional Tier 0 crates were created:
 - [x] Update tokmd-scan to accept `&ScanOptions`
 - [x] Update tokmd-core to use tokmd-settings
 - [x] Update tokmd-config to re-export or wrap
-- [ ] Implement TOML parsing in tokmd-settings (currently handled by tokmd-config)
+- [x] Implement TOML parsing in tokmd-settings (moved from tokmd-config)
 - [ ] Update bindings to use new settings directly
 
 ---
@@ -100,7 +100,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 ### Work Items
 
 - [ ] Define port traits (if adding extensibility)
-- [ ] Implement `analyze_workflow` (currently stub)
+- [x] Implement `analyze_workflow`
 - [ ] Implement `cockpit_workflow`
 - [ ] Add comprehensive API documentation
 - [ ] Publish tokmd-core to crates.io (when stable)
@@ -148,9 +148,9 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - [x] Add function detail export format
 - [x] Generate complexity histogram
 - [x] Implement Maintainability Index (MI) as composite enricher
-- [ ] Add technical debt ratio enricher
-- [ ] Extend duplicate detection into duplication density metric
-- [ ] Add code age distribution to git enrichers
+- [x] Add technical debt ratio enricher
+- [x] Extend duplicate detection into duplication density metric
+- [x] Add code age distribution to git enrichers
 - [x] Documentation and examples
 
 ### Tests
@@ -162,7 +162,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 4b: UX & Output Quality (v1.7.0)
+## Phase 4b: UX & Output Quality (v1.7.0) ✅ Complete
 
 **Goal**: Improve developer experience for interactive CLI usage.
 
@@ -189,12 +189,14 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [ ] Add `indicatif` progress bars for scan and analysis phases
-- [ ] Implement colored diff output with `NO_COLOR` support
-- [ ] Add `--compact` mode for narrow terminal tables
-- [ ] Implement `--explain` flag for metric definitions
-- [ ] Improve error messages with actionable hints
-- [ ] Add sparkline unicode rendering for trend data
+- [x] Add `indicatif` progress bars for scan and analysis phases
+- [x] Implement colored diff output with `NO_COLOR` support
+- [x] Implement summary comparison tables for diff and cockpit output
+- [x] Add `--compact` mode for narrow terminal tables
+- [x] Implement `--explain` flag for metric definitions
+- [x] Improve error messages with actionable hints
+- [x] Add sparkline unicode rendering for trend data
+- [x] Add dynamic completion values for `--preset` and `--format` flags
 
 ### Tests
 

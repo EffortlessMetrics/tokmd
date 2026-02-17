@@ -249,6 +249,8 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
 | `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
+| `--detail-functions` | Include per-function complexity details in output. | `false` |
+| `--explain <KEY>` | Explain a metric/finding key and exit (`list` to show keys). | `None` |
 
 **Presets**:
 
@@ -353,8 +355,8 @@ Compares two runs, receipts, or directories and shows the delta.
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--format <FMT>` | Output format: `md`, `json`. | `md` |
-| `--module-roots <DIRS>` | Module roots for path scanning. | `.` |
-| `--module-depth <N>` | Module depth for path scanning. | `1` |
+| `--compact` | Summary-only markdown table for narrow terminals. | `false` |
+| `--color <MODE>` | Color policy: `auto`, `always`, `never`. | `auto` |
 
 **Examples**:
 ```bash

@@ -1,13 +1,32 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
+use crate::analysis_explain;
 use crate::analysis_utils;
 use crate::export_bundle;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Result<()> {
+    if let Some(key) = args.explain.as_deref() {
+        let normalized = key.trim().to_ascii_lowercase();
+        if normalized == "list" || normalized == "all" || normalized == "keys" {
+            print!("{}", analysis_explain::catalog());
+            return Ok(());
+        }
+
+        if let Some(explanation) = analysis_explain::lookup(key) {
+            println!("{}", explanation);
+            return Ok(());
+        }
+
+        bail!(
+            "Unknown metric/finding key '{}'. Use --explain list to see supported keys.",
+            key
+        );
+    }
+
     let progress = Progress::new(!global.no_progress);
 
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);

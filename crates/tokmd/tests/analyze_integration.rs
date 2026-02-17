@@ -71,3 +71,53 @@ fn analyze_writes_json_to_output_dir() {
     let json: Value = serde_json::from_str(&content).expect("analysis.json is not valid JSON");
     assert_eq!(json["mode"], "analysis");
 }
+
+#[test]
+fn analyze_explain_known_metric() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--explain")
+        .arg("avg_cyclomatic")
+        .output()
+        .expect("failed to execute tokmd analyze --explain");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze --explain failed: {:?}",
+        output.status
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    assert!(stdout.contains("avg_cyclomatic"));
+    assert!(stdout.contains("complexity"));
+}
+
+#[test]
+fn analyze_explain_list() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--explain")
+        .arg("list")
+        .output()
+        .expect("failed to execute tokmd analyze --explain list");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    assert!(stdout.contains("Available metric/finding keys:"));
+    assert!(stdout.contains("maintainability_index"));
+}
+
+#[test]
+fn analyze_explain_unknown_metric_fails() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg("--explain")
+        .arg("not_a_metric")
+        .output()
+        .expect("failed to execute tokmd analyze --explain unknown");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).expect("invalid UTF-8");
+    assert!(stderr.contains("Unknown metric/finding key"));
+    assert!(stderr.contains("--explain list"));
+}

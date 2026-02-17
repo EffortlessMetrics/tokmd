@@ -177,6 +177,67 @@ fn test_cockpit_md_format() {
 }
 
 #[test]
+fn test_cockpit_md_includes_summary_comparison_with_baseline() {
+    if !common::git_available() {
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+    if !common::init_git_repo(dir.path()) {
+        return;
+    }
+
+    std::fs::write(dir.path().join("main.rs"), "fn main() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    std::fs::write(dir.path().join("feature.rs"), "fn feature() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Add feature") {
+        return;
+    }
+
+    // Write a baseline receipt first.
+    let baseline_path = dir.path().join("baseline.json");
+    let mut baseline_cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let baseline_output = baseline_cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--format")
+        .arg("json")
+        .arg("--output")
+        .arg(&baseline_path)
+        .output()
+        .unwrap();
+    if !baseline_output.status.success() {
+        return;
+    }
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--format")
+        .arg("md")
+        .arg("--baseline")
+        .arg(&baseline_path)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("### Summary Comparison"))
+        .stdout(predicate::str::contains(
+            "|Metric|Baseline|Current|Delta|Change|",
+        ));
+}
+
+#[test]
 fn test_cockpit_sections_format() {
     // Given: A git repository with a main branch and a dev branch with code changes
     // When: User runs `tokmd cockpit --base main --format sections`

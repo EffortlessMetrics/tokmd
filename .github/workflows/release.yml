@@ -151,57 +151,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Publish crates in dependency order
-        continue-on-error: true
-        run: |
-          # Function to publish a crate, continuing if version already exists
-          publish_crate() {
-            local crate=$1
-            echo "Publishing $crate..."
-            if cargo publish -p "$crate" --no-verify 2>&1 | tee /tmp/publish.log; then
-              echo "$crate published successfully"
-            else
-              if grep -q "already uploaded" /tmp/publish.log || grep -q "already exists" /tmp/publish.log; then
-                echo "$crate version already exists, continuing..."
-              else
-                echo "Failed to publish $crate"
-                cat /tmp/publish.log
-                exit 1
-              fi
-            fi
-            # Small delay to allow crates.io to index the new crate
-            sleep 10
-          }
-
-          # Tier 0: Core data structures, no dependencies
-          publish_crate tokmd-types
-          publish_crate tokmd-analysis-types
-
-          # Tier 1: Low-level utilities
-          publish_crate tokmd-scan
-          publish_crate tokmd-model
-          publish_crate tokmd-tokeignore
-          publish_crate tokmd-redact
-
-          # Tier 2: Mid-level components
-          publish_crate tokmd-format
-          publish_crate tokmd-walk
-          publish_crate tokmd-content
-          publish_crate tokmd-git
-
-          # Tier 3: Analysis and enrichment
-          publish_crate tokmd-analysis
-          publish_crate tokmd-analysis-format
-          publish_crate tokmd-fun
-          publish_crate tokmd-gate
-
-          # Tier 4: Configuration and library facade
-          publish_crate tokmd-config
-          publish_crate tokmd-core
-
-          # Tier 5: CLI binary
-          publish_crate tokmd
-
-          echo "All crates published successfully!"
+        run: cargo xtask publish --yes --skip-tests --verbose
 
   docker:
     name: Build and Push Docker Image

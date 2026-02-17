@@ -7,13 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-02-17
+
 ### Added
+
+- **Analyze Explain Mode**: Added `tokmd analyze --explain <key>` for quick human-readable metric/finding definitions (`--explain list` for key discovery)
+- **Diff Output Controls**: Added `tokmd diff --compact` and `tokmd diff --color <auto|always|never>` for narrow terminals and explicit color policy
+- **Cockpit Trend Sparklines**: Added inline unicode sparklines for trend lines in cockpit markdown output
+- **Structured CLI Error Hints**: Added actionable `Hints:` section on common failures (missing git, bad paths, missing refs, invalid explain key, TOML parse issues)
+- **Technical Debt Ratio**: Added `complexity.technical_debt` to analysis receipts (complexity points per KLOC + severity bucket)
+- **Duplication Density**: Added `dup.density` with overall and per-module duplicate waste density metrics
+- **Code Age Distribution**: Added `git.age_distribution` with file age buckets and recent-vs-prior refresh trend
+- **Microcrate: `tokmd-progress`**: Extracted progress spinner/progress-bar primitives from CLI into a dedicated crate
+- **Microcrate: `tokmd-badge`**: Extracted SVG badge rendering into a dedicated clap-free crate
+- **Diff Summary Expansion**: Added side-by-side summary rows for LOC, lines, files, bytes, and tokens plus language movement counts
+- **Cockpit Summary Comparison Table**: Added baseline-aware markdown comparison table (`Baseline`/`Current`/`Delta`/`Change`)
 
 ### Changed
 
+- **Config Microcrate Extraction**: Moved `TomlConfig` schema/parsing types into `tokmd-settings`; `tokmd-config` now re-exports them for compatibility
+- **CLI Wiring**: `tokmd` now consumes `tokmd-progress` and `tokmd-badge` instead of local modules
+- **Determinism Gate Baseline Parsing**: Non-`ComplexityBaseline` files passed to `--baseline` now skip determinism gate instead of hard-failing cockpit runs
+
+## [1.6.2] - 2026-02-16
+
+### Added
+
+- **tokmd-core Analyze Workflow**: Implemented `analyze_workflow(scan, analyze)` to run export + analysis directly from the library API and FFI (`run_json("analyze", ...)`)
+
+### Changed
+
+- **Analyze Settings Validation**: `preset` and `granularity` in FFI analyze args are now strictly validated with `invalid_settings` errors on unknown values
+
 ### Fixed
 
-- **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
+- **Bindings Analyze Path**: Python/Node binding tests now validate successful analyze receipts instead of obsolete `not_implemented` behavior
 
 ## [1.6.1] - 2026-02-16
 

@@ -39,7 +39,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 | Version | Changes |
 |---------|---------|
-| **5** | Added Halstead metrics, maintainability index, complexity histogram to `ComplexityReport` |
+| **5** | Added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution enrichers |
 | **4** | Added cognitive complexity, nesting depth, and function-level details to `ComplexityReport` |
 | **3** | Added `complexity` section with cyclomatic complexity metrics |
 | **2** | Initial analysis receipt structure with presets (receipt, health, risk, supply, architecture, topics, security, identity, git, deep, fun) |
@@ -591,6 +591,18 @@ Present when `--git` is enabled or preset includes git analysis.
       "stale_pct": 0.125,
       "by_module": [...]
     },
+    "age_distribution": {
+      "buckets": [
+        { "label": "0-30d", "min_days": 0, "max_days": 30, "files": 25, "pct": 0.21 },
+        { "label": "31-90d", "min_days": 31, "max_days": 90, "files": 30, "pct": 0.25 },
+        { "label": "91-180d", "min_days": 91, "max_days": 180, "files": 20, "pct": 0.17 },
+        { "label": "181-365d", "min_days": 181, "max_days": 365, "files": 25, "pct": 0.21 },
+        { "label": "366d+", "min_days": 366, "max_days": null, "files": 20, "pct": 0.17 }
+      ],
+      "recent_refreshes": 40,
+      "prior_refreshes": 28,
+      "refresh_trend": "rising"
+    },
     "coupling": [
       { "left": "src/a.rs", "right": "src/b.rs", "count": 12 }
     ]
@@ -610,8 +622,10 @@ Present when `--git` is enabled or preset includes git analysis.
 | `license` | `security` | SPDX license detection |
 | `assets` | `supply` | Non-code file inventory |
 | `deps` | `supply` | Lockfile dependency counts |
+| `git` | `risk`, `identity`, `git`, `deep` | Hotspots, bus factor, freshness, coupling, and code-age distribution |
 | `imports` | `architecture` | Module dependency graph |
-| `dup` | `deep` | Duplicate file detection |
+| `dup` | `deep` | Duplicate file detection with module-level duplication density |
+| `complexity` | `health`, `risk`, `deep` | Cyclomatic/cognitive metrics, maintainability, and technical-debt ratio |
 | `fun` | `fun` | Novelty outputs (eco-label) |
 
 ---
