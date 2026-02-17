@@ -83,16 +83,6 @@ fn init_test_repo(suffix: &str) -> Option<TempGitRepo> {
     Some(TempGitRepo { path: temp_dir })
 }
 
-/// Create a `Command` for git that ignores inherited `GIT_DIR`/`GIT_WORK_TREE`
-/// and runs in the given directory.
-fn git_in(dir: &Path) -> Command {
-    let mut cmd = Command::new("git");
-    cmd.env_remove("GIT_DIR")
-        .env_remove("GIT_WORK_TREE")
-        .current_dir(dir);
-    cmd
-}
-
 /// Helper to create a temporary git repository with some commits.
 fn create_test_repo() -> Option<TempGitRepo> {
     if !git_available() {
