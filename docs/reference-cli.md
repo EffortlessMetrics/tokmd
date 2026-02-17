@@ -239,7 +239,7 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--preset <PRESET>` | Preset bundle (see table below). | `receipt` |
-| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`. | `md` |
+| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`, `html`. | `md` |
 | `--window <TOKENS>` | Context window size for utilization analysis. | `None` |
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 | `--output-dir <DIR>` | Write `analysis.*` into a directory. | stdout |
@@ -249,6 +249,7 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
 | `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
+| `--detail-functions` | Include function-level complexity details in output. | `false` |
 
 **Presets**:
 
@@ -380,6 +381,7 @@ Creates a default `.tokeignore` file in the current directory.
 | `--force` | Overwrite an existing `.tokeignore` file. | `false` |
 | `--print` | Print the template to stdout instead of writing a file. | `false` |
 | `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
+| `--non-interactive` | Skip interactive wizard and use defaults. | `false` |
 
 **Example**:
 ```bash
@@ -418,15 +420,22 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
 | `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
 | `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
-| `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
+| `--mode <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
+| `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--compress` | Strip blank lines from bundle output. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
-| `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--force` | Overwrite existing output file. | `false` |
 | `--bundle-dir <DIR>` | Write bundle to directory with manifest (receipt.json, bundle.txt, manifest.json). | `(none)` |
 | `--log <PATH>` | Append JSONL record to log file (metadata only). | `(none)` |
 | `--max-output-bytes <N>` | Warn if output exceeds N bytes (0=disable). | `10485760` |
+| `--max-file-pct <PCT>` | Maximum fraction of budget a single file may consume (0.0–1.0). | `0.15` |
+| `--max-file-tokens <N>` | Hard cap on tokens per file (overrides percentage-based cap). | `(none)` |
+| `--git` / `--no-git` | Force-enable or disable git-based ranking (required for churn/hotspot). | auto |
+| `--max-commits <N>` | Max commits to scan for git metrics. | `1000` |
+| `--max-commit-files <N>` | Max files per commit to process. | `100` |
+| `--require-git-scores` | Error if git scores are unavailable when using churn/hotspot ranking. | `false` |
+| `--no-smart-exclude` | Disable smart exclusion of lockfiles, minified files, and generated artifacts. | `false` |
 
 > **Note**: `--rank-by churn` and `--rank-by hotspot` require git history. If no git data is available, they fall back to ranking by `code` lines with a warning.
 
@@ -474,6 +483,9 @@ Creates a handoff bundle for LLM review and automation. The output directory con
 | `--no-git` | Disable git-based enrichment. | `false` |
 | `--max-commits <N>` | Max commits to scan for git metrics. | `1000` |
 | `--max-commit-files <N>` | Max files per commit to process. | `100` |
+| `--max-file-pct <PCT>` | Maximum fraction of budget a single file may consume (0.0–1.0). | `0.15` |
+| `--max-file-tokens <N>` | Hard cap on tokens per file (overrides percentage-based cap). | `(none)` |
+| `--no-smart-exclude` | Disable smart exclusion of lockfiles, minified files, and generated artifacts. | `false` |
 
 **Examples**:
 ```bash
