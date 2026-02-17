@@ -1,12 +1,16 @@
 use anyhow::{Context, Result, bail};
 use tokmd_config as cli;
-use tokmd_format::{compute_diff_rows, compute_diff_totals, create_diff_receipt, render_diff_md};
+use tokmd_format::{
+    DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
+    render_diff_md_with_options,
+};
 #[cfg(feature = "git")]
 use tokmd_model as model;
 #[cfg(feature = "git")]
 use tokmd_scan as scan;
 use tokmd_types::LangReport;
 
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "git")]
 use std::process::Command;
@@ -25,7 +29,15 @@ pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()
 
     match args.format {
         cli::DiffFormat::Md => {
-            print!("{}", render_diff_md(&from, &to, &diff_rows, &totals));
+            let color = resolve_color_mode(args.color);
+            let render_options = DiffRenderOptions {
+                compact: args.compact,
+                color,
+            };
+            print!(
+                "{}",
+                render_diff_md_with_options(&from, &to, &diff_rows, &totals, render_options)
+            );
         }
         cli::DiffFormat::Json => {
             let receipt = create_diff_receipt(&from, &to, diff_rows, totals);
@@ -34,6 +46,42 @@ pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()
     }
 
     Ok(())
+}
+
+fn resolve_color_mode(mode: cli::ColorMode) -> DiffColorMode {
+    if should_use_color(mode) {
+        DiffColorMode::Ansi
+    } else {
+        DiffColorMode::Off
+    }
+}
+
+fn should_use_color(mode: cli::ColorMode) -> bool {
+    match mode {
+        cli::ColorMode::Always => true,
+        cli::ColorMode::Never => false,
+        cli::ColorMode::Auto => auto_color_enabled(),
+    }
+}
+
+fn auto_color_enabled() -> bool {
+    if std::env::var("NO_COLOR").is_ok() {
+        return false;
+    }
+
+    if let Ok(force) = std::env::var("CLICOLOR_FORCE")
+        && !force.is_empty()
+    {
+        return force != "0";
+    }
+
+    if let Ok(cli_color) = std::env::var("CLICOLOR")
+        && cli_color == "0"
+    {
+        return false;
+    }
+
+    std::io::stdout().is_terminal()
 }
 
 fn resolve_targets(args: &cli::DiffArgs) -> Result<(String, String)> {

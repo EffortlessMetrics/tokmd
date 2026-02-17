@@ -907,22 +907,67 @@ fn format_delta(delta: i64) -> String {
     }
 }
 
-/// Render diff as Markdown table.
-pub fn render_diff_md(
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DiffColorMode {
+    Off,
+    Ansi,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DiffRenderOptions {
+    pub compact: bool,
+    pub color: DiffColorMode,
+}
+
+impl Default for DiffRenderOptions {
+    fn default() -> Self {
+        Self {
+            compact: false,
+            color: DiffColorMode::Off,
+        }
+    }
+}
+
+fn format_delta_colored(delta: i64, mode: DiffColorMode) -> String {
+    let raw = format_delta(delta);
+    if mode == DiffColorMode::Off {
+        return raw;
+    }
+    if delta > 0 {
+        format!("\x1b[32m{}\x1b[0m", raw)
+    } else if delta < 0 {
+        format!("\x1b[31m{}\x1b[0m", raw)
+    } else {
+        format!("\x1b[33m{}\x1b[0m", raw)
+    }
+}
+
+fn format_pct_delta_colored(delta_pct: f64, mode: DiffColorMode) -> String {
+    let raw = format!("{:+.1}%", delta_pct);
+    if mode == DiffColorMode::Off {
+        return raw;
+    }
+    if delta_pct > 0.0 {
+        format!("\x1b[32m{}\x1b[0m", raw)
+    } else if delta_pct < 0.0 {
+        format!("\x1b[31m{}\x1b[0m", raw)
+    } else {
+        format!("\x1b[33m{}\x1b[0m", raw)
+    }
+}
+
+/// Render diff as Markdown table with optional compact/color behavior.
+pub fn render_diff_md_with_options(
     from_source: &str,
     to_source: &str,
     rows: &[DiffRow],
     totals: &DiffTotals,
+    options: DiffRenderOptions,
 ) -> String {
     let mut s = String::new();
 
     let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
     s.push('\n');
-
-    // Summary comparison table
-    s.push_str("### Summary\n\n");
-    s.push_str("|Metric|From|To|Delta|Change|\n");
-    s.push_str("|---|---:|---:|---:|---:|\n");
 
     let old_total = totals.old_code as f64;
     let new_total = totals.new_code as f64;
@@ -935,13 +980,38 @@ pub fn render_diff_md(
         0.0
     };
 
+    if options.compact {
+        s.push_str("### Summary\n\n");
+        s.push_str("|Metric|Value|\n");
+        s.push_str("|---|---:|\n");
+        let _ = writeln!(s, "|From LOC|{}|", totals.old_code);
+        let _ = writeln!(s, "|To LOC|{}|", totals.new_code);
+        let _ = writeln!(
+            s,
+            "|Delta LOC|{}|",
+            format_delta_colored(delta, options.color)
+        );
+        let _ = writeln!(
+            s,
+            "|Change|{}|",
+            format_pct_delta_colored(change_pct, options.color)
+        );
+        let _ = writeln!(s, "|Languages changed|{}|", rows.len());
+        return s;
+    }
+
+    // Summary comparison table
+    s.push_str("### Summary\n\n");
+    s.push_str("|Metric|From|To|Delta|Change|\n");
+    s.push_str("|---|---:|---:|---:|---:|\n");
+
     let _ = writeln!(
         s,
-        "|Total LOC|{}|{}|{}|{:+.1}%|",
+        "|Total LOC|{}|{}|{}|{}|",
         totals.old_code,
         totals.new_code,
-        format_delta(delta),
-        change_pct
+        format_delta_colored(delta, options.color),
+        format_pct_delta_colored(change_pct, options.color)
     );
     s.push('\n');
 
@@ -957,7 +1027,7 @@ pub fn render_diff_md(
             row.lang,
             row.old_code,
             row.new_code,
-            format_delta(row.delta_code)
+            format_delta_colored(row.delta_code, options.color)
         );
     }
 
@@ -966,10 +1036,26 @@ pub fn render_diff_md(
         "|**Total**|{}|{}|{}|",
         totals.old_code,
         totals.new_code,
-        format_delta(totals.delta_code)
+        format_delta_colored(totals.delta_code, options.color)
     );
 
     s
+}
+
+/// Render diff as Markdown table.
+pub fn render_diff_md(
+    from_source: &str,
+    to_source: &str,
+    rows: &[DiffRow],
+    totals: &DiffTotals,
+) -> String {
+    render_diff_md_with_options(
+        from_source,
+        to_source,
+        rows,
+        totals,
+        DiffRenderOptions::default(),
+    )
 }
 
 /// Create a DiffReceipt for JSON output.

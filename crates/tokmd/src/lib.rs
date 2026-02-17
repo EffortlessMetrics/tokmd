@@ -18,12 +18,14 @@
 //!
 //! This crate should contain minimal business logic.
 
+mod analysis_explain;
 mod analysis_utils;
 mod badge;
 mod commands;
 mod config;
 mod context_pack;
 mod determinism;
+mod error_hints;
 mod export_bundle;
 mod git_scoring;
 #[cfg(feature = "ui")]
@@ -47,4 +49,8 @@ pub fn run() -> Result<()> {
     let profile_name = config::get_profile_name(cli.profile.as_ref());
     let resolved = config::resolve_config(&config_ctx, profile_name.as_deref());
     commands::dispatch(cli, &resolved)
+}
+
+pub fn format_error(err: &anyhow::Error) -> String {
+    error_hints::format(err)
 }

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use tokmd_analysis_types::{
     ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity,
-    FunctionComplexityDetail, MaintainabilityIndex,
+    FunctionComplexityDetail, MaintainabilityIndex, TechnicalDebtLevel, TechnicalDebtRatio,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -13,6 +13,9 @@ use crate::util::normalize_path;
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
+const TECHNICAL_DEBT_LOW_THRESHOLD: f64 = 30.0;
+const TECHNICAL_DEBT_MODERATE_THRESHOLD: f64 = 60.0;
+const TECHNICAL_DEBT_HIGH_THRESHOLD: f64 = 100.0;
 
 /// Map language strings to complexity-compatible names.
 fn map_language_for_complexity(lang: &str) -> &str {
@@ -230,6 +233,7 @@ pub(crate) fn build_complexity_report(
 
     // Compute maintainability index
     let maintainability_index = compute_maintainability_index(avg_cyclomatic, file_count, export);
+    let technical_debt = compute_technical_debt_ratio(export, &file_complexities);
 
     // Only keep top files by complexity
     file_complexities.truncate(MAX_COMPLEXITY_FILES);
@@ -248,6 +252,7 @@ pub(crate) fn build_complexity_report(
         histogram: Some(histogram),
         halstead: None, // Populated when halstead feature is enabled
         maintainability_index,
+        technical_debt,
         files: file_complexities,
     })
 }
@@ -789,6 +794,52 @@ fn compute_maintainability_index(
         avg_loc: round_f64(avg_loc, 2),
         avg_halstead_volume: None,
         grade,
+    })
+}
+
+/// Compute a complexity-to-size heuristic debt ratio.
+///
+/// Ratio = (sum cyclomatic + cognitive complexity points) / KLOC
+fn compute_technical_debt_ratio(
+    export: &ExportData,
+    file_complexities: &[FileComplexity],
+) -> Option<TechnicalDebtRatio> {
+    if file_complexities.is_empty() {
+        return None;
+    }
+
+    let total_code: usize = export
+        .rows
+        .iter()
+        .filter(|r| r.kind == FileKind::Parent)
+        .map(|r| r.code)
+        .sum();
+    if total_code == 0 {
+        return None;
+    }
+
+    let complexity_points: usize = file_complexities
+        .iter()
+        .map(|f| f.cyclomatic_complexity + f.cognitive_complexity.unwrap_or(0))
+        .sum();
+
+    let code_kloc = total_code as f64 / 1000.0;
+    let ratio = round_f64(complexity_points as f64 / code_kloc, 2);
+    let level = if ratio < TECHNICAL_DEBT_LOW_THRESHOLD {
+        TechnicalDebtLevel::Low
+    } else if ratio < TECHNICAL_DEBT_MODERATE_THRESHOLD {
+        TechnicalDebtLevel::Moderate
+    } else if ratio < TECHNICAL_DEBT_HIGH_THRESHOLD {
+        TechnicalDebtLevel::High
+    } else {
+        TechnicalDebtLevel::Critical
+    };
+
+    Some(TechnicalDebtRatio {
+        ratio,
+        complexity_points,
+        code_kloc: round_f64(code_kloc, 4),
+        level,
     })
 }
 
@@ -1451,5 +1502,79 @@ int main(int argc, char** argv) {
         // Should only detect main, not #define macros
         assert_eq!(spans.len(), 1);
         assert_eq!(spans[0].2, "main");
+    }
+
+    #[test]
+    fn test_compute_technical_debt_ratio() {
+        let export = ExportData {
+            rows: vec![FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 1000,
+                comments: 0,
+                blanks: 0,
+                lines: 1000,
+                bytes: 1000,
+                tokens: 250,
+            }],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_config::ChildIncludeMode::Separate,
+        };
+
+        let files = vec![FileComplexity {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            function_count: 3,
+            max_function_length: 20,
+            cyclomatic_complexity: 12,
+            cognitive_complexity: Some(8),
+            max_nesting: Some(2),
+            risk_level: ComplexityRisk::Moderate,
+            functions: None,
+        }];
+
+        let debt = compute_technical_debt_ratio(&export, &files).expect("debt ratio");
+        assert_eq!(debt.complexity_points, 20);
+        assert!((debt.ratio - 20.0).abs() < f64::EPSILON);
+        assert!((debt.code_kloc - 1.0).abs() < f64::EPSILON);
+        assert_eq!(debt.level, TechnicalDebtLevel::Low);
+    }
+
+    #[test]
+    fn test_compute_technical_debt_ratio_none_for_zero_code() {
+        let export = ExportData {
+            rows: vec![FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 0,
+                comments: 0,
+                blanks: 0,
+                lines: 0,
+                bytes: 0,
+                tokens: 0,
+            }],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_config::ChildIncludeMode::Separate,
+        };
+
+        let files = vec![FileComplexity {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            function_count: 1,
+            max_function_length: 1,
+            cyclomatic_complexity: 1,
+            cognitive_complexity: Some(1),
+            max_nesting: Some(1),
+            risk_level: ComplexityRisk::Low,
+            functions: None,
+        }];
+
+        assert!(compute_technical_debt_ratio(&export, &files).is_none());
     }
 }

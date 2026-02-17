@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 4.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 5.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -771,7 +771,8 @@
         "hotspots": { "type": "array", "items": { "$ref": "#/definitions/HotspotRow" } },
         "bus_factor": { "type": "array", "items": { "$ref": "#/definitions/BusFactorRow" } },
         "freshness": { "$ref": "#/definitions/FreshnessReport" },
-        "coupling": { "type": "array", "items": { "$ref": "#/definitions/CouplingRow" } }
+        "coupling": { "type": "array", "items": { "$ref": "#/definitions/CouplingRow" } },
+        "age_distribution": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CodeAgeDistributionReport" }], "description": "Code age bucket distribution with refresh trend." }
       }
     },
     "HotspotRow": {
@@ -827,6 +828,29 @@
         "count": { "type": "integer", "description": "Number of co-changes." }
       }
     },
+    "CodeAgeDistributionReport": {
+      "type": "object",
+      "description": "Code age distribution and refresh trend.",
+      "required": ["buckets", "recent_refreshes", "prior_refreshes", "refresh_trend"],
+      "properties": {
+        "buckets": { "type": "array", "items": { "$ref": "#/definitions/CodeAgeBucket" } },
+        "recent_refreshes": { "type": "integer", "description": "Unique tracked files touched in the most recent 30-day window." },
+        "prior_refreshes": { "type": "integer", "description": "Unique tracked files touched in the prior 30-day window." },
+        "refresh_trend": { "enum": ["rising", "flat", "falling"], "description": "Refresh trend direction comparing recent vs prior window." }
+      }
+    },
+    "CodeAgeBucket": {
+      "type": "object",
+      "description": "A code age bucket.",
+      "required": ["label", "min_days", "max_days", "files", "pct"],
+      "properties": {
+        "label": { "type": "string", "description": "Bucket label." },
+        "min_days": { "type": "integer", "description": "Inclusive minimum age in days." },
+        "max_days": { "type": ["integer", "null"], "description": "Inclusive maximum age in days (null for open-ended bucket)." },
+        "files": { "type": "integer", "description": "File count in this bucket." },
+        "pct": { "type": "number", "description": "Bucket percentage of tracked files." }
+      }
+    },
     "ImportReport": {
       "type": "object",
       "description": "Import graph analysis.",
@@ -853,7 +877,8 @@
       "properties": {
         "groups": { "type": "array", "items": { "$ref": "#/definitions/DuplicateGroup" } },
         "wasted_bytes": { "type": "integer", "description": "Bytes wasted by duplicates." },
-        "strategy": { "type": "string", "description": "Deduplication strategy used." }
+        "strategy": { "type": "string", "description": "Deduplication strategy used." },
+        "density": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicationDensityReport" }], "description": "Duplication density summary overall and by module." }
       }
     },
     "DuplicateGroup": {
@@ -864,6 +889,33 @@
         "hash": { "type": "string", "description": "Content hash." },
         "bytes": { "type": "integer", "description": "File size." },
         "files": { "type": "array", "items": { "type": "string" }, "description": "Duplicate file paths." }
+      }
+    },
+    "DuplicationDensityReport": {
+      "type": "object",
+      "description": "Duplicate density summary with per-module breakdown.",
+      "required": ["duplicate_groups", "duplicate_files", "duplicated_bytes", "wasted_bytes", "wasted_pct_of_codebase", "by_module"],
+      "properties": {
+        "duplicate_groups": { "type": "integer", "description": "Number of duplicate groups." },
+        "duplicate_files": { "type": "integer", "description": "Total files participating in duplicate groups." },
+        "duplicated_bytes": { "type": "integer", "description": "Total bytes represented by duplicate-group files." },
+        "wasted_bytes": { "type": "integer", "description": "Total wasted bytes after subtracting one canonical copy per group." },
+        "wasted_pct_of_codebase": { "type": "number", "description": "Wasted duplicate bytes divided by total codebase bytes." },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleDuplicationDensityRow" } }
+      }
+    },
+    "ModuleDuplicationDensityRow": {
+      "type": "object",
+      "description": "Module-level duplicate density row.",
+      "required": ["module", "duplicate_files", "wasted_files", "duplicated_bytes", "wasted_bytes", "module_bytes", "density"],
+      "properties": {
+        "module": { "type": "string", "description": "Module name." },
+        "duplicate_files": { "type": "integer", "description": "Duplicate-group files in module." },
+        "wasted_files": { "type": "integer", "description": "Redundant duplicate files in module (excluding canonical copies)." },
+        "duplicated_bytes": { "type": "integer", "description": "Bytes represented by duplicate-group files in module." },
+        "wasted_bytes": { "type": "integer", "description": "Wasted duplicate bytes in module." },
+        "module_bytes": { "type": "integer", "description": "Total bytes in module from export rows." },
+        "density": { "type": "number", "description": "Module wasted duplicate bytes divided by module bytes." }
       }
     },
     "ComplexityReport": {
@@ -884,6 +936,7 @@
         "histogram": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityHistogram" }], "description": "Cyclomatic complexity distribution histogram." },
         "halstead": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/HalsteadMetrics" }], "description": "Halstead software science metrics (requires halstead feature)." },
         "maintainability_index": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/MaintainabilityIndex" }], "description": "Composite maintainability index." },
+        "technical_debt": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TechnicalDebtRatio" }], "description": "Complexity-to-size technical debt heuristic." },
         "files": { "type": "array", "items": { "$ref": "#/definitions/FileComplexity" } }
       }
     },
@@ -916,6 +969,22 @@
         "avg_halstead_volume": { "type": ["number", "null"], "description": "Average Halstead volume (if computed)." },
         "grade": { "type": "string", "description": "Letter grade: A (>=85), B (65-84), C (<65)." }
       }
+    },
+    "TechnicalDebtRatio": {
+      "type": "object",
+      "description": "Complexity-to-size heuristic debt ratio.",
+      "required": ["ratio", "complexity_points", "code_kloc", "level"],
+      "properties": {
+        "ratio": { "type": "number", "description": "Complexity points per KLOC." },
+        "complexity_points": { "type": "integer", "description": "Aggregate complexity points used in ratio." },
+        "code_kloc": { "type": "number", "description": "KLOC denominator used for ratio." },
+        "level": { "$ref": "#/definitions/TechnicalDebtLevel" }
+      }
+    },
+    "TechnicalDebtLevel": {
+      "type": "string",
+      "enum": ["low", "moderate", "high", "critical"],
+      "description": "Technical debt severity derived from complexity-to-size ratio."
     },
     "ComplexityHistogram": {
       "type": "object",

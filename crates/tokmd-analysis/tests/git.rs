@@ -145,5 +145,10 @@ mod git_tests {
         assert_eq!(git.commits_scanned, 2);
         assert!(!git.hotspots.is_empty());
         assert!(!git.bus_factor.is_empty());
+        let age = git.age_distribution.expect("age distribution");
+        assert_eq!(age.recent_refreshes, 2);
+        assert_eq!(age.prior_refreshes, 0);
+        assert_eq!(age.refresh_trend, tokmd_analysis_types::TrendClass::Rising);
+        assert!(!age.buckets.is_empty());
     }
 }

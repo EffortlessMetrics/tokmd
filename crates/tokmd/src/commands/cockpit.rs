@@ -2751,15 +2751,23 @@ fn render_markdown(receipt: &CockpitReceipt) -> String {
             if let Some(ref health) = trend.health {
                 let _ = writeln!(
                     s,
-                    "- **Health**: {:.1} → {:.1} ({:.1}%, {:?})",
-                    health.previous, health.current, health.delta_pct, health.direction
+                    "- **Health**: {:.1} → {:.1} {} ({:.1}%, {:?})",
+                    health.previous,
+                    health.current,
+                    sparkline(&[health.previous, health.current]),
+                    health.delta_pct,
+                    health.direction
                 );
             }
             if let Some(ref risk) = trend.risk {
                 let _ = writeln!(
                     s,
-                    "- **Risk**: {:.1} → {:.1} ({:.1}%, {:?})",
-                    risk.previous, risk.current, risk.delta_pct, risk.direction
+                    "- **Risk**: {:.1} → {:.1} {} ({:.1}%, {:?})",
+                    risk.previous,
+                    risk.current,
+                    sparkline(&[risk.previous, risk.current]),
+                    risk.delta_pct,
+                    risk.direction
                 );
             }
             if let Some(ref complexity) = trend.complexity {
@@ -3049,10 +3057,67 @@ fn write_sensor_artifacts(
     Ok(())
 }
 
+fn sparkline(values: &[f64]) -> String {
+    if values.is_empty() {
+        return String::new();
+    }
+
+    const BARS: &[char] = &['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+    let min = values
+        .iter()
+        .copied()
+        .fold(f64::INFINITY, |acc, v| acc.min(v));
+    let max = values
+        .iter()
+        .copied()
+        .fold(f64::NEG_INFINITY, |acc, v| acc.max(v));
+
+    if !min.is_finite() || !max.is_finite() {
+        return String::new();
+    }
+
+    if (max - min).abs() < f64::EPSILON {
+        return std::iter::repeat(BARS[3]).take(values.len()).collect();
+    }
+
+    let span = max - min;
+    values
+        .iter()
+        .map(|v| {
+            let norm = ((v - min) / span).clamp(0.0, 1.0);
+            let idx = (norm * (BARS.len() as f64 - 1.0)).round() as usize;
+            BARS[idx]
+        })
+        .collect()
+}
+
 fn now_iso8601() -> String {
     "2024-01-01T00:00:00Z".to_string()
 }
 
 fn round_pct(val: f64) -> f64 {
     (val * 100.0).round() / 100.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sparkline;
+
+    #[test]
+    fn sparkline_rises() {
+        let s = sparkline(&[10.0, 20.0, 30.0]);
+        assert_eq!(s.chars().count(), 3);
+        assert!(s.ends_with('█'));
+    }
+
+    #[test]
+    fn sparkline_flat() {
+        let s = sparkline(&[5.0, 5.0, 5.0]);
+        assert_eq!(s, "▄▄▄");
+    }
+
+    #[test]
+    fn sparkline_empty() {
+        assert!(sparkline(&[]).is_empty());
+    }
 }

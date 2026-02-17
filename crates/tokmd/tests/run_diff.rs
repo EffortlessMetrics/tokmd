@@ -83,6 +83,83 @@ fn test_diff_identical_runs() {
 }
 
 #[test]
+fn test_diff_compact_mode() {
+    let dir = tempdir().unwrap();
+    let run1_dir = dir.path().join("run1");
+    let run2_dir = dir.path().join("run2");
+
+    let mut cmd1: Command = cargo_bin_cmd!("tokmd");
+    cmd1.current_dir(common::fixture_root())
+        .arg("run")
+        .arg("--output-dir")
+        .arg(run1_dir.to_str().unwrap())
+        .arg(".")
+        .assert()
+        .success();
+
+    let mut cmd2: Command = cargo_bin_cmd!("tokmd");
+    cmd2.current_dir(common::fixture_root())
+        .arg("run")
+        .arg("--output-dir")
+        .arg(run2_dir.to_str().unwrap())
+        .arg(".")
+        .assert()
+        .success();
+
+    let mut cmd_diff: Command = cargo_bin_cmd!("tokmd");
+    cmd_diff
+        .arg("diff")
+        .arg("--compact")
+        .arg("--from")
+        .arg(run1_dir.join("receipt.json").to_str().unwrap())
+        .arg("--to")
+        .arg(run2_dir.join("receipt.json").to_str().unwrap())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("|Metric|Value|"))
+        .stdout(predicate::str::contains("Languages changed"))
+        .stdout(predicate::str::contains("Language Breakdown").not());
+}
+
+#[test]
+fn test_diff_color_always_emits_ansi() {
+    let dir = tempdir().unwrap();
+    let run1_dir = dir.path().join("run1");
+    let run2_dir = dir.path().join("run2");
+
+    let mut cmd1: Command = cargo_bin_cmd!("tokmd");
+    cmd1.current_dir(common::fixture_root())
+        .arg("run")
+        .arg("--output-dir")
+        .arg(run1_dir.to_str().unwrap())
+        .arg(".")
+        .assert()
+        .success();
+
+    let mut cmd2: Command = cargo_bin_cmd!("tokmd");
+    cmd2.current_dir(common::fixture_root())
+        .arg("run")
+        .arg("--output-dir")
+        .arg(run2_dir.to_str().unwrap())
+        .arg(".")
+        .assert()
+        .success();
+
+    let mut cmd_diff: Command = cargo_bin_cmd!("tokmd");
+    cmd_diff
+        .arg("diff")
+        .arg("--color")
+        .arg("always")
+        .arg("--from")
+        .arg(run1_dir.join("receipt.json").to_str().unwrap())
+        .arg("--to")
+        .arg(run2_dir.join("receipt.json").to_str().unwrap())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\u{1b}["));
+}
+
+#[test]
 fn test_run_default_output_creates_local_runs_dir() {
     let dir = tempdir().unwrap();
     let work_dir = dir.path().join("workdir");

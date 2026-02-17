@@ -490,6 +490,32 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             }
             out.push('\n');
         }
+        if let Some(age) = &git.age_distribution {
+            out.push_str("### Code age\n\n");
+            out.push_str(&format!(
+                "- Refresh trend: `{:?}` (recent: `{}`, prior: `{}`)\n\n",
+                age.refresh_trend, age.recent_refreshes, age.prior_refreshes
+            ));
+            if !age.buckets.is_empty() {
+                out.push_str("|Bucket|Min days|Max days|Files|Pct|\n");
+                out.push_str("|---|---:|---:|---:|---:|\n");
+                for bucket in &age.buckets {
+                    let max = bucket
+                        .max_days
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "∞".to_string());
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|{}|\n",
+                        bucket.label,
+                        bucket.min_days,
+                        max,
+                        bucket.files,
+                        fmt_pct(bucket.pct)
+                    ));
+                }
+                out.push('\n');
+            }
+        }
         if !git.coupling.is_empty() {
             out.push_str("### Coupling\n\n");
             out.push_str("|Left|Right|Count|\n");
@@ -520,6 +546,35 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             "- Wasted bytes: `{}`\n- Strategy: `{}`\n\n",
             dup.wasted_bytes, dup.strategy
         ));
+        if let Some(density) = &dup.density {
+            out.push_str("### Duplication density\n\n");
+            out.push_str(&format!(
+                "- Duplicate groups: `{}`\n- Duplicate files: `{}`\n- Duplicated bytes: `{}`\n- Waste vs codebase: `{}`\n\n",
+                density.duplicate_groups,
+                density.duplicate_files,
+                density.duplicated_bytes,
+                fmt_pct(density.wasted_pct_of_codebase)
+            ));
+            if !density.by_module.is_empty() {
+                out.push_str(
+                    "|Module|Dup files|Wasted files|Dup bytes|Wasted bytes|Module bytes|Density|\n",
+                );
+                out.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
+                for row in density.by_module.iter().take(10) {
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|{}|{}|{}|\n",
+                        row.module,
+                        row.duplicate_files,
+                        row.wasted_files,
+                        row.duplicated_bytes,
+                        row.wasted_bytes,
+                        row.module_bytes,
+                        fmt_pct(row.density)
+                    ));
+                }
+                out.push('\n');
+            }
+        }
         if !dup.groups.is_empty() {
             out.push_str("|Hash|Bytes|Files|\n");
             out.push_str("|---|---:|---:|\n");
@@ -2165,6 +2220,18 @@ mod tests {
                 right: "src/b.rs".to_string(),
                 count: 10,
             }],
+            age_distribution: Some(CodeAgeDistributionReport {
+                buckets: vec![CodeAgeBucket {
+                    label: "0-30d".to_string(),
+                    min_days: 0,
+                    max_days: Some(30),
+                    files: 10,
+                    pct: 0.2,
+                }],
+                recent_refreshes: 12,
+                prior_refreshes: 8,
+                refresh_trend: TrendClass::Rising,
+            }),
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Git metrics"));
@@ -2173,6 +2240,9 @@ mod tests {
         assert!(result.contains("|src|3|"));
         assert!(result.contains("Stale threshold (days): `90`"));
         assert!(result.contains("|src|30.00|60.00|5.0%|"));
+        assert!(result.contains("### Code age"));
+        assert!(result.contains("Refresh trend: `Rising`"));
+        assert!(result.contains("|0-30d|0|30|10|20.0%|"));
         assert!(result.contains("|src/a.rs|src/b.rs|10|"));
     }
 
@@ -2193,6 +2263,7 @@ mod tests {
                 by_module: vec![],
             },
             coupling: vec![],
+            age_distribution: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Git metrics"));
@@ -2244,10 +2315,29 @@ mod tests {
                 bytes: 1000,
                 files: vec!["a.txt".to_string(), "b.txt".to_string()],
             }],
+            density: Some(DuplicationDensityReport {
+                duplicate_groups: 1,
+                duplicate_files: 2,
+                duplicated_bytes: 2000,
+                wasted_bytes: 1000,
+                wasted_pct_of_codebase: 0.1,
+                by_module: vec![ModuleDuplicationDensityRow {
+                    module: "src".to_string(),
+                    duplicate_files: 2,
+                    wasted_files: 1,
+                    duplicated_bytes: 2000,
+                    wasted_bytes: 1000,
+                    module_bytes: 10_000,
+                    density: 0.1,
+                }],
+            }),
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Duplicates"));
         assert!(result.contains("- Wasted bytes: `50000`"));
+        assert!(result.contains("### Duplication density"));
+        assert!(result.contains("Waste vs codebase: `10.0%`"));
+        assert!(result.contains("|src|2|1|2000|1000|10000|10.0%|"));
         assert!(result.contains("|abc123|1000|2|")); // 2 files
     }
 
@@ -2259,6 +2349,7 @@ mod tests {
             wasted_bytes: 0,
             strategy: "content".to_string(),
             groups: vec![],
+            density: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Duplicates"));

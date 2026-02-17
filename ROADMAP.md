@@ -26,7 +26,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
 | **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
-| **v1.7.0** | 🔭 Planned  | UX polish: colored diff, progress indicators, --explain flag.    |
+| **v1.7.0** | 🚧 In Progress  | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
@@ -262,10 +262,10 @@ This document outlines the evolution of `tokmd` and the path forward.
 | Feature                   | Status      | Description                                               |
 | :------------------------ | :---------- | :-------------------------------------------------------- |
 | Maintainability Index     | ✅ Complete | SEI formula (simplified without Halstead, full with)      |
-| Technical debt ratio      | 📋 Planned  | Complexity-to-size ratio as a heuristic debt signal       |
-| Duplication density       | 📋 Planned  | Extend duplicate detection into a per-module density metric |
+| Technical debt ratio      | ✅ Complete | Complexity-to-size ratio as a heuristic debt signal       |
+| Duplication density       | ✅ Complete | Extend duplicate detection into a per-module density metric |
 | API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
-| Code age distribution     | 📋 Planned  | Extend git freshness into age buckets with trend tracking |
+| Code age distribution     | ✅ Complete | Extend git freshness into age buckets with trend tracking |
 
 ### Cockpit & CLI Improvements
 
@@ -299,18 +299,18 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 | Feature                   | Status      | Description                                               |
 | :------------------------ | :---------- | :-------------------------------------------------------- |
-| Colored diff output       | 📋 Planned  | Terminal colors in `tokmd diff` for additions/removals    |
+| Colored diff output       | ✅ Complete | Terminal colors in `tokmd diff` for additions/removals    |
 | Summary comparison tables | 📋 Planned  | Side-by-side metric comparisons in diff and cockpit       |
-| Compact table mode        | 📋 Planned  | `--compact` flag for narrow terminals (elide zero columns) |
-| Sparkline trends          | 📋 Planned  | Inline unicode sparklines for metric trends in markdown   |
+| Compact table mode        | ✅ Complete | `--compact` flag for narrow terminals (elide zero columns) |
+| Sparkline trends          | ✅ Complete | Inline unicode sparklines for metric trends in markdown   |
 
 ### Interactive Experience
 
 | Feature                   | Status      | Description                                               |
 | :------------------------ | :---------- | :-------------------------------------------------------- |
-| Progress indicators       | 📋 Planned  | Spinner/progress bar for long scans via `indicatif`       |
-| Structured error messages | 📋 Planned  | Actionable hints on common failures (missing git, bad paths) |
-| `--explain` flag          | 📋 Planned  | Human-readable explanation of any metric or finding       |
+| Progress indicators       | ✅ Complete | Spinner/progress bar for long scans via `indicatif`       |
+| Structured error messages | ✅ Complete | Actionable hints on common failures (missing git, bad paths) |
+| `--explain` flag          | ✅ Complete | Human-readable explanation of any metric or finding       |
 | Tab completion for flags  | 📋 Planned  | Dynamic completions for `--preset`, `--format`, etc.      |
 
 ### Scope Notes
