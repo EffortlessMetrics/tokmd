@@ -65,6 +65,9 @@ homepage = "https://github.com/EffortlessMetrics/tokmd"
 repository = "https://github.com/EffortlessMetrics/tokmd"
 authors = ["Steven Zimmerman <git@effortlesssteven.com>"]
 
+[workspace.metadata.crane]
+name = "tokmd-workspace"
+
 [workspace.dependencies]
 # Internal crates - centralized for "bump once" version management
 tokmd = { path = "crates/tokmd", version = "1.6.3" }
