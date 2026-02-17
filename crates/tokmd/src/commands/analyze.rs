@@ -6,7 +6,7 @@ use tokmd_config as cli;
 use crate::analysis_explain;
 use crate::analysis_utils;
 use crate::export_bundle;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Result<()> {
     if let Some(key) = args.explain.as_deref() {

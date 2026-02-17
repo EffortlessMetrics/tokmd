@@ -25,7 +25,7 @@ use tokmd_types::{
 
 use crate::context_pack;
 use crate::git_scoring;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 const DEFAULT_TREE_DEPTH: usize = 4;
 

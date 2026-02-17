@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-format",
@@ -15,6 +16,7 @@ members = [
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-node",
+    "crates/tokmd-progress",
     "crates/tokmd-python",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
@@ -28,6 +30,7 @@ members = [
     "xtask",
 ]
 default-members = [
+    "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-format",
@@ -41,6 +44,7 @@ default-members = [
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
+    "crates/tokmd-progress",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
     "crates/tokmd-sensor",
@@ -64,6 +68,7 @@ authors = ["Steven Zimmerman <git@effortlesssteven.com>"]
 [workspace.dependencies]
 # Internal crates - centralized for "bump once" version management
 tokmd = { path = "crates/tokmd", version = "1.6.2" }
+tokmd-badge = { path = "crates/tokmd-badge", version = "1.6.2" }
 tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.6.2" }
 tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.6.2" }
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.6.2" }
@@ -75,6 +80,7 @@ tokmd-format = { path = "crates/tokmd-format", version = "1.6.2" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.6.2" }
 tokmd-git = { path = "crates/tokmd-git", version = "1.6.2" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.6.2" }
+tokmd-progress = { path = "crates/tokmd-progress", version = "1.6.2" }
 tokmd-redact = { path = "crates/tokmd-redact", version = "1.6.2" }
 tokmd-scan = { path = "crates/tokmd-scan", version = "1.6.2" }
 tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.6.2" }

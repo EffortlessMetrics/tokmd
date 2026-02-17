@@ -44,7 +44,7 @@ use tokmd_types::{
 
 use crate::context_pack;
 use crate::git_scoring;
-use crate::progress::Progress;
+use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);

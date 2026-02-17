@@ -1,0 +1,18 @@
+[package]
+name = "tokmd-progress"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Progress spinner and progress-bar helpers used by tokmd."
+readme = "README.md"
+keywords = ["cli", "progress", "spinner", "tokmd"]
+categories = ["command-line-utilities"]
+
+[features]
+default = []
+ui = ["dep:indicatif"]
+
+[dependencies]
+indicatif = { version = "0.18.4", optional = true }

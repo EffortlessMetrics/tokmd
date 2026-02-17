@@ -162,7 +162,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 4b: UX & Output Quality (v1.7.0)
+## Phase 4b: UX & Output Quality (v1.7.0) ✅ Complete
 
 **Goal**: Improve developer experience for interactive CLI usage.
 
@@ -191,10 +191,12 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 - [x] Add `indicatif` progress bars for scan and analysis phases
 - [x] Implement colored diff output with `NO_COLOR` support
+- [x] Implement summary comparison tables for diff and cockpit output
 - [x] Add `--compact` mode for narrow terminal tables
 - [x] Implement `--explain` flag for metric definitions
 - [x] Improve error messages with actionable hints
 - [x] Add sparkline unicode rendering for trend data
+- [x] Add dynamic completion values for `--preset` and `--format` flags
 
 ### Tests
 

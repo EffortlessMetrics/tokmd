@@ -2976,7 +2976,6 @@ dependencies = [
  "dialoguer",
  "dirs",
  "ignore",
- "indicatif",
  "insta",
  "jsonschema",
  "predicates",
@@ -2989,12 +2988,14 @@ dependencies = [
  "tokmd-analysis",
  "tokmd-analysis-format",
  "tokmd-analysis-types",
+ "tokmd-badge",
  "tokmd-config",
  "tokmd-envelope",
  "tokmd-format",
  "tokmd-gate",
  "tokmd-git",
  "tokmd-model",
+ "tokmd-progress",
  "tokmd-scan",
  "tokmd-sensor",
  "tokmd-settings",
@@ -3049,6 +3050,10 @@ dependencies = [
  "tokmd-envelope",
  "tokmd-types",
 ]
+
+[[package]]
+name = "tokmd-badge"
+version = "1.6.2"
 
 [[package]]
 name = "tokmd-config"
@@ -3190,6 +3195,13 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-core",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-progress"
+version = "1.6.2"
+dependencies = [
+ "indicatif",
 ]
 
 [[package]]

@@ -31,7 +31,7 @@ alias-tok = []
 git = ["tokmd-analysis/git", "dep:tokmd-git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
-ui = ["dep:dialoguer", "dep:indicatif", "dep:console", "dep:toml"]
+ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
 
 [[bin]]
 name = "tokmd"
@@ -48,9 +48,11 @@ clap = { version = "4.5.58", features = ["derive"] }
 tokmd-analysis = { workspace = true }
 tokmd-analysis-format = { workspace = true, features = ["fun"] }
 tokmd-analysis-types.workspace = true
+tokmd-badge.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
 tokmd-envelope.workspace = true
+tokmd-progress.workspace = true
 tokmd-scan.workspace = true
 tokmd-sensor.workspace = true
 tokmd-settings.workspace = true
@@ -62,7 +64,6 @@ tokmd-git = { workspace = true, optional = true }
 clap_complete = "4.5.66"
 dialoguer = { version = "0.12.0", optional = true }
 console = { version = "0.16.2", optional = true }
-indicatif = { version = "0.18.4", optional = true }
 toml = { version = "0.9.8", optional = true }
 dirs = "6.0.0"
 serde_json = "1.0.149"
@@ -82,4 +83,3 @@ proptest = "1.10.0"
 serde_json = "1.0.149"
 tokmd-model.workspace = true
 jsonschema = "0.42.0"
-

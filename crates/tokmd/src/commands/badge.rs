@@ -1,9 +1,9 @@
 use anyhow::Result;
 use tokmd_analysis as analysis;
+use tokmd_badge::badge_svg;
 use tokmd_config as cli;
 
 use crate::analysis_utils;
-use crate::badge as badge_utils;
 use crate::export_bundle;
 
 pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<()> {
@@ -106,8 +106,8 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
             .unwrap_or_else(|| "n/a".to_string()),
     };
 
-    let label = badge_utils::badge_metric_label(metric);
-    let svg = badge_utils::badge_svg(label, &value);
+    let label = badge_metric_label(metric);
+    let svg = badge_svg(label, &value);
 
     if let Some(output) = args.output {
         std::fs::write(output, svg)?;
@@ -116,4 +116,15 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
     }
 
     Ok(())
+}
+
+fn badge_metric_label(metric: cli::BadgeMetric) -> &'static str {
+    match metric {
+        cli::BadgeMetric::Lines => "lines",
+        cli::BadgeMetric::Tokens => "tokens",
+        cli::BadgeMetric::Bytes => "bytes",
+        cli::BadgeMetric::Doc => "doc",
+        cli::BadgeMetric::Blank => "blank",
+        cli::BadgeMetric::Hotspot => "hotspot",
+    }
 }
