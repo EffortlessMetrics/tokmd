@@ -50,7 +50,7 @@ mod ui_impl {
                 let pb = ProgressBar::new_spinner();
                 pb.set_style(
                     ProgressStyle::with_template("{spinner:.cyan} {msg}")
-                        .unwrap()
+                        .expect("hardcoded progress template should be valid")
                         .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏", " "]),
                 );
                 pb.enable_steady_tick(Duration::from_millis(80));
