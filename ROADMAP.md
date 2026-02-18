@@ -26,7 +26,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.4.0** | ✅ Complete | Complexity metrics, cognitive complexity, PR integration.    |
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
 | **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
-| **v1.7.0** | ✅ Complete | UX polish: colored diff, progress indicators, --explain flag.    |
+| **v1.6.3** | ✅ Complete | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
@@ -291,7 +291,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ---
 
-## Completed: v1.7.0 — UX & Output Quality
+## Completed: v1.6.3 — UX & Output Quality
 
 **Goal**: Improve the developer experience for interactive CLI usage and output readability.
 
@@ -321,7 +321,7 @@ UX work is explicitly **incremental and non-breaking**:
 - Progress output goes to stderr, never stdout (preserving pipe-ability)
 - Color respects `NO_COLOR` / `CLICOLOR` environment conventions
 
-### v1.7.0 Features Delivered
+### v1.6.3 Features Delivered
 
 - [x] Extracted `tokmd-progress` microcrate for CLI progress rendering primitives
 - [x] Extracted `tokmd-badge` microcrate for SVG badge generation

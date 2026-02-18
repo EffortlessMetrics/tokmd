@@ -1561,12 +1561,27 @@ fn compute_determinism_gate(
     // Parse baseline
     let content = std::fs::read_to_string(&resolved_path)
         .with_context(|| format!("failed to read baseline at {}", resolved_path.display()))?;
-    let baseline: ComplexityBaseline = match serde_json::from_str(&content) {
+    let json: serde_json::Value = serde_json::from_str(&content).with_context(|| {
+        format!(
+            "failed to parse baseline JSON at {}",
+            resolved_path.display()
+        )
+    })?;
+    let baseline: ComplexityBaseline = match serde_json::from_value(json.clone()) {
         Ok(parsed) => parsed,
         Err(_) => {
-            // Baseline may be a cockpit receipt used for trend comparison only.
-            // In that case determinism data is unavailable, so skip this gate.
-            return Ok(None);
+            // Allow cockpit receipts for trend comparison; determinism data is unavailable there.
+            let mode = match json.get("mode").and_then(|v| v.as_str()) {
+                Some(m) => m,
+                None => "",
+            };
+            if mode == "cockpit" {
+                return Ok(None);
+            }
+            bail!(
+                "baseline JSON at {} is not a ComplexityBaseline (and not a cockpit receipt)",
+                resolved_path.display()
+            );
         }
     };
 
@@ -3167,7 +3182,15 @@ fn round_pct(val: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "git")]
+    use super::compute_determinism_gate;
     use super::{TrendDirection, format_signed_f64, sparkline, trend_direction_label};
+    #[cfg(feature = "git")]
+    use anyhow::Result;
+    #[cfg(feature = "git")]
+    use std::fs;
+    #[cfg(feature = "git")]
+    use tempfile::tempdir;
 
     #[test]
     fn sparkline_rises() {
@@ -3205,5 +3228,58 @@ mod tests {
             trend_direction_label(TrendDirection::Degrading),
             "degrading"
         );
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn determinism_gate_errors_on_invalid_baseline_json() -> Result<()> {
+        let tmp = tempdir()?;
+        let baseline = tmp.path().join("baseline.json");
+        fs::write(&baseline, "{")?;
+
+        let err = match compute_determinism_gate(tmp.path(), Some(&baseline)) {
+            Ok(_) => {
+                return Err(anyhow::anyhow!(
+                    "invalid JSON should not silently skip determinism gate"
+                ));
+            }
+            Err(err) => err,
+        };
+        assert!(err.to_string().contains("failed to parse baseline JSON at"));
+        Ok(())
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn determinism_gate_skips_cockpit_receipt_baseline() -> Result<()> {
+        let tmp = tempdir()?;
+        let baseline = tmp.path().join("baseline.json");
+        fs::write(&baseline, r#"{"mode":"cockpit"}"#)?;
+
+        let gate = compute_determinism_gate(tmp.path(), Some(&baseline))?;
+        assert!(gate.is_none());
+        Ok(())
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn determinism_gate_errors_on_non_baseline_json_shape() -> Result<()> {
+        let tmp = tempdir()?;
+        let baseline = tmp.path().join("baseline.json");
+        fs::write(&baseline, r#"{"mode":"lang"}"#)?;
+
+        let err = match compute_determinism_gate(tmp.path(), Some(&baseline)) {
+            Ok(_) => {
+                return Err(anyhow::anyhow!(
+                    "non-baseline JSON should be a configuration error"
+                ));
+            }
+            Err(err) => err,
+        };
+        assert!(
+            err.to_string()
+                .contains("is not a ComplexityBaseline (and not a cockpit receipt)")
+        );
+        Ok(())
     }
 }
