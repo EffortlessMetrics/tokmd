@@ -207,7 +207,10 @@ pub fn compute_metric_trend(current: f64, previous: f64, higher_is_better: bool)
 }
 
 /// Compute complexity trend indicator.
-pub fn compute_complexity_trend(current: &CockpitReceipt, baseline: &CockpitReceipt) -> TrendIndicator {
+pub fn compute_complexity_trend(
+    current: &CockpitReceipt,
+    baseline: &CockpitReceipt,
+) -> TrendIndicator {
     // Compare complexity gate results if available
     let current_complexity = current
         .evidence
@@ -2079,7 +2082,10 @@ pub fn sparkline(values: &[f64]) -> String {
         return String::new();
     }
 
-    const BARS: &[char] = &['\u{2581}', '\u{2582}', '\u{2583}', '\u{2584}', '\u{2585}', '\u{2586}', '\u{2587}', '\u{2588}'];
+    const BARS: &[char] = &[
+        '\u{2581}', '\u{2582}', '\u{2583}', '\u{2584}', '\u{2585}', '\u{2586}', '\u{2587}',
+        '\u{2588}',
+    ];
     let min = values
         .iter()
         .copied()

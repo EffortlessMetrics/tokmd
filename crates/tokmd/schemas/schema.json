@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 5 },
+        "schema_version": { "type": "integer", "const": 6 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -267,7 +267,60 @@
         "imports": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ImportReport" }] },
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
         "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
+        "api_surface": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ApiSurfaceReport" }] },
         "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
+      }
+    },
+    "ApiSurfaceReport": {
+      "type": "object",
+      "description": "API surface analysis report.",
+      "required": ["total_items", "public_items", "internal_items", "public_ratio", "documented_ratio", "by_language", "by_module", "top_exporters"],
+      "properties": {
+        "total_items": { "type": "integer", "description": "Total items discovered across all languages." },
+        "public_items": { "type": "integer", "description": "Items with public visibility." },
+        "internal_items": { "type": "integer", "description": "Items with internal/private visibility." },
+        "public_ratio": { "type": "number", "description": "Ratio of public to total items (0.0-1.0)." },
+        "documented_ratio": { "type": "number", "description": "Ratio of documented public items (0.0-1.0)." },
+        "by_language": {
+          "type": "object",
+          "description": "Per-language breakdown.",
+          "additionalProperties": { "$ref": "#/definitions/LangApiSurface" }
+        },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleApiRow" }, "description": "Per-module breakdown." },
+        "top_exporters": { "type": "array", "items": { "$ref": "#/definitions/ApiExportItem" }, "description": "Top exporters (files with most public items)." }
+      }
+    },
+    "LangApiSurface": {
+      "type": "object",
+      "description": "Per-language API surface metrics.",
+      "required": ["total_items", "public_items", "internal_items", "public_ratio"],
+      "properties": {
+        "total_items": { "type": "integer" },
+        "public_items": { "type": "integer" },
+        "internal_items": { "type": "integer" },
+        "public_ratio": { "type": "number" }
+      }
+    },
+    "ModuleApiRow": {
+      "type": "object",
+      "description": "Per-module API surface row.",
+      "required": ["module", "total_items", "public_items", "public_ratio"],
+      "properties": {
+        "module": { "type": "string" },
+        "total_items": { "type": "integer" },
+        "public_items": { "type": "integer" },
+        "public_ratio": { "type": "number" }
+      }
+    },
+    "ApiExportItem": {
+      "type": "object",
+      "description": "A file that exports many public items.",
+      "required": ["path", "lang", "public_items", "total_items"],
+      "properties": {
+        "path": { "type": "string" },
+        "lang": { "type": "string" },
+        "public_items": { "type": "integer" },
+        "total_items": { "type": "integer" }
       }
     },
     "AnalysisSource": {

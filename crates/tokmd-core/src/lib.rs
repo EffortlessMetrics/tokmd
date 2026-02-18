@@ -359,8 +359,8 @@ pub fn cockpit_workflow(
     }
 
     let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
-    let repo_root = tokmd_git::repo_root(&cwd)
-        .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
+    let repo_root =
+        tokmd_git::repo_root(&cwd).ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
     let range_mode = match settings.range_mode.as_str() {
         "three-dot" | "3dot" => tokmd_git::GitRangeMode::ThreeDot,

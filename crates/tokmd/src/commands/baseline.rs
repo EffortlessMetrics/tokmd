@@ -12,8 +12,8 @@ use tokmd_analysis_types::{
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
-use tokmd_cockpit::determinism;
 use crate::export_bundle;
+use tokmd_cockpit::determinism;
 use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
