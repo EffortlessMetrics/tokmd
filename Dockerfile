@@ -3,7 +3,7 @@
 # =============================================================================
 # Stage 1: Build
 # =============================================================================
-FROM rust:1.85-alpine AS builder
+FROM rust:1.92-alpine AS builder
 
 # Install build dependencies for musl-based static linking
 RUN apk add --no-cache musl-dev
