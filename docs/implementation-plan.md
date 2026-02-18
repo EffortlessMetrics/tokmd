@@ -162,7 +162,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 4b: UX & Output Quality (v1.7.0) ✅ Complete
+## Phase 4b: UX & Output Quality (v1.6.3) ✅ Complete
 
 **Goal**: Improve developer experience for interactive CLI usage.
 

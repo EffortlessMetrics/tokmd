@@ -39,6 +39,8 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 2 | `tokmd-walk` | File system traversal for assets |
 | 2 | `tokmd-content` | File content scanning (entropy, imports) |
 | 2 | `tokmd-git` | Git history analysis |
+| 2 | `tokmd-badge` | SVG badge rendering helpers |
+| 2 | `tokmd-progress` | Progress spinner and progress-bar abstractions |
 | 3 | `tokmd-analysis` | Analysis orchestration and enrichers |
 | 3 | `tokmd-analysis-format` | Analysis output rendering |
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |

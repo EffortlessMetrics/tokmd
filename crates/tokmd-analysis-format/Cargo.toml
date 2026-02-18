@@ -28,7 +28,7 @@ tokmd-config.workspace = true
 tokmd-fun = { workspace = true, optional = true }
 
 [dev-dependencies]
-insta = { version = "1.46.1", features = ["json"] }
+insta = { workspace = true }
 midly = "0.5.3"
 tokmd-analysis.workspace = true
 tokmd-types.workspace = true

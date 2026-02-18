@@ -697,28 +697,34 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
     const MAX_RETRIES: u32 = 5;
     let retry_delay = Duration::from_secs(args.retry_delay);
 
-    // Dry-run mode: run cargo publish --dry-run to validate packaging
+    // Dry-run mode: validate packaging locally.
+    //
+    // We use `cargo package --list` instead of `cargo publish --dry-run`
+    // because lockstep workspace releases reference versions that may not yet
+    // exist on crates.io during preparation.
     if args.dry_run {
         println!("  [DRY RUN] Validating {}...", crate_name);
         let output = Command::new("cargo")
-            .args(["publish", "-p", crate_name, "--dry-run", "--locked"])
+            .args(["package", "-p", crate_name, "--list", "--locked"])
             .output()
-            .context("Failed to spawn cargo publish --dry-run")?;
+            .context("Failed to spawn cargo package")?;
 
         if output.status.success() {
             return Ok(PublishResult::Success);
         }
 
         let stderr = String::from_utf8_lossy(&output.stderr);
-        match classify_publish_error(&stderr) {
-            PublishErrorKind::AlreadyPublished => return Ok(PublishResult::AlreadyPublished),
-            _ => {
-                return Ok(PublishResult::Failed(anyhow!(
-                    "Dry-run validation failed:\n{}",
-                    stderr
-                )));
-            }
-        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let details = if stderr.trim().is_empty() {
+            stdout.to_string()
+        } else {
+            stderr.to_string()
+        };
+
+        return Ok(PublishResult::Failed(anyhow!(
+            "Dry-run packaging validation failed:\n{}",
+            details
+        )));
     }
 
     // Actual publish with retries

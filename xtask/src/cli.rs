@@ -37,11 +37,11 @@ pub struct PublishArgs {
     #[arg(long)]
     pub plan: bool,
 
-    /// Run in dry-run mode (runs `cargo publish --dry-run` per crate, validates packaging)
+    /// Run in dry-run mode (runs `cargo package --list` per crate for local packaging validation)
     #[arg(long, short = 'n')]
     pub dry_run: bool,
 
-    /// Run cargo publish --dry-run for each crate before actual publish (deprecated: use --dry-run)
+    /// Deprecated alias for --dry-run
     #[arg(long, hide = true)]
     pub verify: bool,
 

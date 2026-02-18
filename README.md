@@ -137,8 +137,8 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | Preset         | What You Get                                                                |
 | :------------- | :-------------------------------------------------------------------------- |
 | `receipt`      | Totals, doc density, test density, distribution, COCOMO, context window fit |
-| `health`       | + TODO/FIXME density                                                        |
-| `risk`         | + Git hotspots, coupling, freshness, bus factor                             |
+| `health`       | + TODO/FIXME density, complexity, Halstead metrics                          |
+| `risk`         | + Git hotspots, coupling, freshness, complexity, Halstead metrics           |
 | `supply`       | + Asset inventory, dependency lockfile summary                              |
 | `architecture` | + Import/dependency graph                                                   |
 | `topics`       | Semantic topic clouds from path analysis                                    |

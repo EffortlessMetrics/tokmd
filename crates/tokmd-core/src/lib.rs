@@ -320,9 +320,13 @@ pub fn analyze_workflow(
         detail_functions: false,
     };
 
+    let root = derive_analysis_root(scan)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let ctx = analysis::AnalysisContext {
         export: export_receipt.data,
-        root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+        root,
         source,
     };
 
@@ -440,6 +444,27 @@ fn child_include_mode_to_string(mode: tokmd_types::ChildIncludeMode) -> String {
     match mode {
         tokmd_types::ChildIncludeMode::Separate => "separate".to_string(),
         tokmd_types::ChildIncludeMode::ParentsOnly => "parents-only".to_string(),
+    }
+}
+
+#[cfg(feature = "analysis")]
+fn derive_analysis_root(scan: &ScanSettings) -> Option<PathBuf> {
+    let first = scan.paths.first()?;
+    if first.trim().is_empty() {
+        return None;
+    }
+
+    let candidate = PathBuf::from(first);
+    let absolute = if candidate.is_absolute() {
+        candidate
+    } else {
+        std::env::current_dir().ok()?.join(candidate)
+    };
+
+    if absolute.is_dir() {
+        Some(absolute)
+    } else {
+        absolute.parent().map(|p| p.to_path_buf())
     }
 }
 

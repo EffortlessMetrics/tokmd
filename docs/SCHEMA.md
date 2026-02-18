@@ -901,6 +901,7 @@ Cockpit receipts provide PR-focused metrics for code review automation, includin
 ```json
 {
   "schema_version": 3,
+  "mode": "cockpit",
   "generated_at_ms": 1706350000000,
   "base_ref": "main",
   "head_ref": "feature/my-branch",
@@ -1320,6 +1321,7 @@ Prioritized list of files requiring review.
 ```json
 {
   "schema_version": 3,
+  "mode": "cockpit",
   "generated_at_ms": 1706350000000,
   "base_ref": "main",
   "head_ref": "feature/add-cockpit",

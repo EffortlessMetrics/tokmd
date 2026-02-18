@@ -559,6 +559,7 @@ mod tests {
     fn build_summary_formats_expected_fields() {
         let receipt = super::super::cockpit::CockpitReceipt {
             schema_version: 3,
+            mode: "cockpit".to_string(),
             generated_at_ms: 0,
             base_ref: "main".to_string(),
             head_ref: "HEAD".to_string(),

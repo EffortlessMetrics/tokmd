@@ -1,13 +1,34 @@
 //! SVG badge rendering helpers.
 
+fn escape_xml_text(s: &str) -> String {
+    // Minimal XML escaping for text nodes to keep SVG valid and safe.
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&apos;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
 /// Build a compact two-segment SVG badge.
 pub fn badge_svg(label: &str, value: &str) -> String {
-    let label_width = (label.len() as i32 * 7 + 20).max(60);
-    let value_width = (value.len() as i32 * 7 + 20).max(60);
+    // Width is heuristic; char count avoids UTF-8 byte-length drift.
+    let label_chars = label.chars().count() as i32;
+    let value_chars = value.chars().count() as i32;
+    let label_width = (label_chars * 7 + 20).max(60);
+    let value_width = (value_chars * 7 + 20).max(60);
     let width = label_width + value_width;
     let height = 24;
     let label_x = label_width / 2;
     let value_x = label_width + value_width / 2;
+    let label_escaped = escape_xml_text(label);
+    let value_escaped = escape_xml_text(value);
     format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" role=\"img\"><rect width=\"{label_width}\" height=\"{height}\" fill=\"#555\"/><rect x=\"{label_width}\" width=\"{value_width}\" height=\"{height}\" fill=\"#4c9aff\"/><text x=\"{label_x}\" y=\"16\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"11\" text-anchor=\"middle\">{label}</text><text x=\"{value_x}\" y=\"16\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"11\" text-anchor=\"middle\">{value}</text></svg>",
         width = width,
@@ -16,14 +37,14 @@ pub fn badge_svg(label: &str, value: &str) -> String {
         value_width = value_width,
         label_x = label_x,
         value_x = value_x,
-        label = label,
-        value = value
+        label = label_escaped,
+        value = value_escaped
     )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::badge_svg;
+    use super::{badge_svg, escape_xml_text};
 
     #[test]
     fn badge_svg_contains_label_and_value() {
@@ -61,6 +82,17 @@ mod tests {
         let short_svg = badge_svg("a", "1");
         let long_svg = badge_svg("averylonglabel", "averylongvalue");
         assert!(extract_svg_width(&long_svg) > extract_svg_width(&short_svg));
+    }
+
+    #[test]
+    fn badge_svg_escapes_xml_text_nodes() {
+        let label = "a<&>\"'";
+        let value = "b<&>\"'";
+        let svg = badge_svg(label, value);
+        assert!(svg.contains(&escape_xml_text(label)));
+        assert!(svg.contains(&escape_xml_text(value)));
+        assert!(!svg.contains(label));
+        assert!(!svg.contains(value));
     }
 
     fn extract_svg_width(svg: &str) -> i32 {
