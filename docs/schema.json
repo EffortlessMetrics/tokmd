@@ -1056,6 +1056,7 @@
       "required": ["schema_version", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
       "properties": {
         "schema_version": { "type": "integer", "const": 3 },
+        "mode": { "type": "string", "const": "cockpit", "description": "Receipt type discriminator." },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the cockpit metrics were generated." },
         "base_ref": { "type": "string", "description": "Base git reference (branch or commit)." },
         "head_ref": { "type": "string", "description": "Head git reference (branch or commit)." },

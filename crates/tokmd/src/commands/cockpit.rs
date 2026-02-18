@@ -239,6 +239,7 @@ fn compute_complexity_trend(current: &CockpitReceipt, baseline: &CockpitReceipt)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CockpitReceipt {
     pub schema_version: u32,
+    pub mode: String,
     pub generated_at_ms: u64,
     pub base_ref: String,
     pub head_ref: String,
@@ -736,6 +737,7 @@ pub(crate) fn compute_cockpit(
 
     Ok(CockpitReceipt {
         schema_version: SCHEMA_VERSION,
+        mode: "cockpit".to_string(),
         generated_at_ms,
         base_ref: base.to_string(),
         head_ref: head.to_string(),
@@ -1571,10 +1573,10 @@ fn compute_determinism_gate(
         Ok(parsed) => parsed,
         Err(_) => {
             // Allow cockpit receipts for trend comparison; determinism data is unavailable there.
-            let mode = match json.get("mode").and_then(|v| v.as_str()) {
-                Some(m) => m,
-                None => "",
-            };
+            let mode = json
+                .get("mode")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
             if mode == "cockpit" {
                 return Ok(None);
             }

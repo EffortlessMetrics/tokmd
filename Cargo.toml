@@ -96,6 +96,8 @@ tokmd-gate = { path = "crates/tokmd-gate", version = "1.6.3" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"
+thiserror = "2.0.18"
+insta = { version = "1.46.3", features = ["json"] }
 
 [profile.release]
 lto = true
