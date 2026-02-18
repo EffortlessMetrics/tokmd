@@ -1,67 +1,73 @@
 # Release Process
 
-This repository uses a "Microcrates / Ecosystem" publishing model.
-All crates are versioned in lockstep (same version number).
+This repository uses a lockstep microcrate publishing model.
+All publishable workspace crates share the same version.
 
 ## Publishing Order
 
-Because crates have internal dependencies, they must be published in this specific order:
+Publish order is derived automatically from workspace dependency topology.
+Do not maintain a hard-coded list by hand.
 
-**Tier 0 — Data Structures** (no internal deps)
-1.  **`tokmd-types`**
-2.  **`tokmd-analysis-types`**
+Preview the exact order:
 
-**Tier 1 — Core Logic**
-3.  **`tokmd-scan`**
-4.  **`tokmd-model`**
-5.  **`tokmd-tokeignore`**
-6.  **`tokmd-redact`**
-
-**Tier 2 — I/O & Analysis**
-7.  **`tokmd-format`**
-8.  **`tokmd-walk`**
-9.  **`tokmd-content`**
-10. **`tokmd-git`**
-
-**Tier 3 — Enrichment**
-11. **`tokmd-analysis`**
-12. **`tokmd-analysis-format`**
-13. **`tokmd-fun`**
-
-**Tier 4 — Orchestration**
-14. **`tokmd-config`**
-15. **`tokmd-core`**
-
-**Tier 5 — CLI**
-16. **`tokmd`**
+```bash
+cargo xtask publish --plan
+```
 
 ## Steps to Release
 
-1.  **Bump Versions**:
-    Update `[workspace.package].version` in the root `Cargo.toml`.
-    (All crates inherit this version).
+1. **Bump version**
 
-2.  **Commit & Tag**:
-    ```bash
-    git commit -am "chore: release v1.0.x"
-    git tag v1.0.x
-    git push && git push --tags
-    ```
+```bash
+cargo xtask bump <MAJOR.MINOR.PATCH>
+```
 
-3.  **Publish**:
-    Use the included automation script:
+2. **Update changelog**
+- Ensure `CHANGELOG.md` has an entry for the release version.
 
-    ```powershell
-    # Dry run
-    ./scripts/publish-all.ps1 -DryRun
+3. **Commit release changes**
 
-    # Real release
-    ./scripts/publish-all.ps1
-    ```
+```bash
+git commit -am "chore: release vX.Y.Z"
+git push
+```
+
+4. **Run release preflight**
+
+```bash
+cargo xtask publish --dry-run
+```
+
+This performs:
+- git-clean check
+- workspace version consistency check
+- changelog version check
+- full workspace tests (`--all-features`, excluding `tokmd-fuzz`)
+- local package validation (`cargo package --list`) for each publishable crate
+
+5. **Publish to crates.io**
+
+```bash
+cargo xtask publish --yes
+```
+
+Optional tagging via xtask:
+
+```bash
+cargo xtask publish --yes --tag
+# or custom format
+cargo xtask publish --yes --tag --tag-format "release-{version}"
+```
+
+If publishing fails mid-stream, resume from a crate:
+
+```bash
+cargo xtask publish --from <crate-name>
+```
 
 ## Verification
 
 Before releasing, ensure:
-*   `cargo test --workspace` passes.
-*   `cargo clippy --workspace` is clean.
-*   The release profile in root `Cargo.toml` is active.
+- `cargo fmt --check` passes.
+- `cargo clippy --workspace --all-targets --all-features -- -D warnings` passes.
+- `cargo xtask publish --dry-run` passes end-to-end.

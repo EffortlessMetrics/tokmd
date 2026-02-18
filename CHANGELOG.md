@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Release Guide Modernized**: `RELEASE.md` now documents the `cargo xtask publish` workflow (`--plan`, `--dry-run`, `--yes`, `--from`, `--tag`) and removes stale `scripts/publish-all.ps1` references.
+
+### Fixed
+
+- **xtask Dry-Run Reliability**: `cargo xtask publish --dry-run` now validates each crate via `cargo package --list`, avoiding false failures from crates.io dependency propagation during lockstep release preparation.
+
 ## [1.6.3] - 2026-02-17
 
 ### Added
