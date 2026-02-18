@@ -25,6 +25,7 @@ members = [
     "crates/tokmd-substrate",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
+    "crates/tokmd-cockpit",
     "crates/tokmd-walk",
     "fuzz",
     "xtask",
@@ -52,6 +53,7 @@ default-members = [
     "crates/tokmd-substrate",
     "crates/tokmd-tokeignore",
     "crates/tokmd-types",
+    "crates/tokmd-cockpit",
     "crates/tokmd-walk",
 ]
 # xtask is a workspace member but excluded from default-members
@@ -63,7 +65,7 @@ rust-version = "1.92"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/EffortlessMetrics/tokmd"
 repository = "https://github.com/EffortlessMetrics/tokmd"
-authors = ["Steven Zimmerman <git@effortlesssteven.com>"]
+authors = ["Steven Zimmerman, CPA <git@effortlesssteven.com>"]
 
 [workspace.metadata.crane]
 name = "tokmd-workspace"
@@ -93,6 +95,7 @@ tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.6.3" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.6.3" }
 tokmd-walk = { path = "crates/tokmd-walk", version = "1.6.3" }
 tokmd-gate = { path = "crates/tokmd-gate", version = "1.6.3" }
+tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.6.3" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"

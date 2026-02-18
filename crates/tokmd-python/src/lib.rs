@@ -396,6 +396,49 @@ fn diff(py: Python<'_>, from_path: &str, to_path: &str) -> PyResult<PyObject> {
     run(py, "diff", &args)
 }
 
+/// Run cockpit PR metrics analysis.
+///
+/// Args:
+///     base: Base ref to compare from (default: "main")
+///     head: Head ref to compare to (default: "HEAD")
+///     range_mode: Range mode ("two-dot" or "three-dot", default: "two-dot")
+///     baseline: Optional baseline file path for trend comparison
+///
+/// Returns:
+///     dict: Cockpit receipt with metrics, evidence gates, and review plan
+///
+/// Example:
+///     >>> import tokmd
+///     >>> result = tokmd.cockpit(base="main", head="HEAD")
+///     >>> print(f"Health: {result['code_health']['score']}")
+#[cfg_attr(not(test), pyfunction)]
+#[cfg_attr(
+    not(test),
+    pyo3(signature = (base=None, head=None, range_mode=None, baseline=None))
+)]
+fn cockpit(
+    py: Python<'_>,
+    base: Option<&str>,
+    head: Option<&str>,
+    range_mode: Option<&str>,
+    baseline: Option<&str>,
+) -> PyResult<PyObject> {
+    let args = PyDict::new(py);
+    if let Some(b) = base {
+        args.set_item("base", b).expect("set base");
+    }
+    if let Some(h) = head {
+        args.set_item("head", h).expect("set head");
+    }
+    if let Some(rm) = range_mode {
+        args.set_item("range_mode", rm).expect("set range_mode");
+    }
+    if let Some(bl) = baseline {
+        args.set_item("baseline", bl).expect("set baseline");
+    }
+    run(py, "cockpit", &args)
+}
+
 /// Helper to build common arguments dict.
 fn build_args<'py>(
     py: Python<'py>,
@@ -465,6 +508,7 @@ fn _tokmd(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(module, m)?)?;
     m.add_function(wrap_pyfunction!(export, m)?)?;
     m.add_function(wrap_pyfunction!(analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(cockpit, m)?)?;
     m.add_function(wrap_pyfunction!(diff, m)?)?;
 
     Ok(())

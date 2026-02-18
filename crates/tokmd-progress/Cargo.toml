@@ -6,6 +6,7 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 description = "Progress spinner and progress-bar helpers used by tokmd."
+documentation = "https://docs.rs/tokmd-progress"
 readme = "README.md"
 keywords = ["cli", "progress", "spinner", "tokmd"]
 categories = ["command-line-utilities"]

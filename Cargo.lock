@@ -2989,6 +2989,7 @@ dependencies = [
  "tokmd-analysis-format",
  "tokmd-analysis-types",
  "tokmd-badge",
+ "tokmd-cockpit",
  "tokmd-config",
  "tokmd-envelope",
  "tokmd-format",
@@ -3056,6 +3057,23 @@ name = "tokmd-badge"
 version = "1.6.3"
 
 [[package]]
+name = "tokmd-cockpit"
+version = "1.6.3"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "ignore",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "time",
+ "tokmd-analysis-types",
+ "tokmd-envelope",
+ "tokmd-git",
+ "tokmd-types",
+]
+
+[[package]]
 name = "tokmd-config"
 version = "1.6.3"
 dependencies = [
@@ -3089,8 +3107,10 @@ dependencies = [
  "thiserror 2.0.18",
  "tokmd-analysis",
  "tokmd-analysis-types",
+ "tokmd-cockpit",
  "tokmd-config",
  "tokmd-format",
+ "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
  "tokmd-settings",

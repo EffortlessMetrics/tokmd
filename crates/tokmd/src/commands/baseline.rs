@@ -12,7 +12,7 @@ use tokmd_analysis_types::{
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
-use crate::determinism;
+use tokmd_cockpit::determinism;
 use crate::export_bundle;
 use tokmd_progress::Progress;
 

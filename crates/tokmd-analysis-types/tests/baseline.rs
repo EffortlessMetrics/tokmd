@@ -48,6 +48,7 @@ fn base_receipt() -> AnalysisReceipt {
         imports: None,
         dup: None,
         complexity: None,
+        api_surface: None,
         fun: None,
     }
 }

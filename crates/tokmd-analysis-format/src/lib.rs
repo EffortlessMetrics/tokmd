@@ -1003,6 +1003,7 @@ mod tests {
             imports: None,
             dup: None,
             complexity: None,
+            api_surface: None,
             fun: None,
         }
     }

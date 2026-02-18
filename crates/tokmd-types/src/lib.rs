@@ -28,6 +28,8 @@
 //! * Complex business logic
 //! * Tokei dependencies
 
+pub mod cockpit;
+
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};

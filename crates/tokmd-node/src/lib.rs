@@ -244,6 +244,27 @@ pub async fn analyze(options: Option<serde_json::Value>) -> Result<serde_json::V
     run("analyze".to_string(), args).await
 }
 
+/// Run cockpit PR metrics analysis.
+///
+/// @param options - Cockpit options
+/// @param options.base - Base ref to compare from (default: "main")
+/// @param options.head - Head ref to compare to (default: "HEAD")
+/// @param options.range_mode - Range mode ("two-dot" or "three-dot")
+/// @param options.baseline - Optional baseline file path for trend comparison
+/// @returns Promise resolving to cockpit receipt
+///
+/// @example
+/// ```javascript
+/// import { cockpit } from '@tokmd/core';
+/// const result = await cockpit({ base: "main", head: "HEAD" });
+/// console.log(`Health: ${result.code_health.score}`);
+/// ```
+#[cfg_attr(not(test), napi(ts_args_type = "options?: CockpitOptions"))]
+pub async fn cockpit(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
+    let args = options_or_empty(options);
+    run("cockpit".to_string(), args).await
+}
+
 /// Compare two receipts or paths and return a diff.
 ///
 /// @param fromPath - Base receipt file or path to scan
