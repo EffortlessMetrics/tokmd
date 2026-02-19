@@ -1106,7 +1106,7 @@
     "CockpitReceipt": {
       "type": "object",
       "description": "Output from `tokmd cockpit --format json`. Contains PR metrics for code review automation.",
-      "required": ["schema_version", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
+      "required": ["schema_version", "mode", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
       "properties": {
         "schema_version": { "type": "integer", "const": 3 },
         "mode": { "type": "string", "const": "cockpit", "description": "Receipt type discriminator." },
@@ -1262,12 +1262,13 @@
         "diff_coverage": { "$ref": "#/definitions/DiffCoverageGate" },
         "contracts": { "$ref": "#/definitions/ContractDiffGate" },
         "supply_chain": { "$ref": "#/definitions/SupplyChainGate" },
-        "determinism": { "$ref": "#/definitions/DeterminismGate" }
+        "determinism": { "$ref": "#/definitions/DeterminismGate" },
+        "complexity": { "$ref": "#/definitions/ComplexityGate" }
       }
     },
     "GateStatus": {
       "type": "string",
-      "enum": ["pass", "fail", "skipped", "pending"],
+      "enum": ["pass", "warn", "fail", "skipped", "pending"],
       "description": "Status of a gate check. 'pass' = gate passed, 'fail' = gate failed, 'skipped' = no relevant files changed, 'pending' = results not available."
     },
     "EvidenceSource": {
@@ -1455,6 +1456,35 @@
         "actual_hash": { "type": "string", "description": "Actual build hash." },
         "algo": { "type": "string", "description": "Hash algorithm used." },
         "differences": { "type": "array", "items": { "type": "string" }, "description": "Differences detected." }
+      }
+    },
+    "ComplexityGate": {
+      "type": "object",
+      "description": "Complexity gate results.",
+      "required": ["status", "source", "commit_match", "scope", "files_analyzed", "high_complexity_files", "avg_cyclomatic", "max_cyclomatic", "threshold_exceeded"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "files_analyzed": { "type": "integer", "description": "Number of files analyzed for complexity." },
+        "high_complexity_files": { "type": "array", "items": { "$ref": "#/definitions/HighComplexityFile" }, "description": "Files with high cyclomatic complexity." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity across analyzed files." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity found." },
+        "threshold_exceeded": { "type": "boolean", "description": "Whether the complexity threshold was exceeded." }
+      }
+    },
+    "HighComplexityFile": {
+      "type": "object",
+      "description": "A file with high cyclomatic complexity.",
+      "required": ["path", "cyclomatic", "function_count", "max_function_length"],
+      "properties": {
+        "path": { "type": "string", "description": "Path to the file." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity score." },
+        "function_count": { "type": "integer", "description": "Number of functions in the file." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." }
       }
     },
     "ReviewItem": {

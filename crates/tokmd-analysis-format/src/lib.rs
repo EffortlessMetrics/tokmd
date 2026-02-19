@@ -590,6 +590,112 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         }
     }
 
+    if let Some(cx) = &receipt.complexity {
+        out.push_str("## Complexity\n\n");
+        out.push_str("|Metric|Value|\n");
+        out.push_str("|---|---:|\n");
+        out.push_str(&format!("|Total functions|{}|\n", cx.total_functions));
+        out.push_str(&format!(
+            "|Avg function length|{}|\n",
+            fmt_f64(cx.avg_function_length, 1)
+        ));
+        out.push_str(&format!(
+            "|Max function length|{}|\n",
+            cx.max_function_length
+        ));
+        out.push_str(&format!(
+            "|Avg cyclomatic|{}|\n",
+            fmt_f64(cx.avg_cyclomatic, 2)
+        ));
+        out.push_str(&format!("|Max cyclomatic|{}|\n", cx.max_cyclomatic));
+        if let Some(cog) = cx.avg_cognitive {
+            out.push_str(&format!("|Avg cognitive|{}|\n", fmt_f64(cog, 2)));
+        }
+        if let Some(cog) = cx.max_cognitive {
+            out.push_str(&format!("|Max cognitive|{}|\n", cog));
+        }
+        if let Some(nd) = cx.avg_nesting_depth {
+            out.push_str(&format!("|Avg nesting depth|{}|\n", fmt_f64(nd, 2)));
+        }
+        if let Some(nd) = cx.max_nesting_depth {
+            out.push_str(&format!("|Max nesting depth|{}|\n", nd));
+        }
+        out.push_str(&format!("|High risk files|{}|\n\n", cx.high_risk_files));
+
+        if !cx.files.is_empty() {
+            out.push_str("### Top complex files\n\n");
+            out.push_str("|Path|CC|Functions|Max fn length|\n");
+            out.push_str("|---|---:|---:|---:|\n");
+            for f in cx.files.iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|\n",
+                    f.path, f.cyclomatic_complexity, f.function_count, f.max_function_length
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
+    if let Some(api) = &receipt.api_surface {
+        out.push_str("## API surface\n\n");
+        out.push_str("|Metric|Value|\n");
+        out.push_str("|---|---:|\n");
+        out.push_str(&format!("|Total items|{}|\n", api.total_items));
+        out.push_str(&format!("|Public items|{}|\n", api.public_items));
+        out.push_str(&format!("|Internal items|{}|\n", api.internal_items));
+        out.push_str(&format!("|Public ratio|{}|\n", fmt_pct(api.public_ratio)));
+        out.push_str(&format!(
+            "|Documented ratio|{}|\n\n",
+            fmt_pct(api.documented_ratio)
+        ));
+
+        if !api.by_language.is_empty() {
+            out.push_str("### By language\n\n");
+            out.push_str("|Language|Total|Public|Internal|Public%|\n");
+            out.push_str("|---|---:|---:|---:|---:|\n");
+            for (lang, data) in &api.by_language {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|{}|\n",
+                    lang,
+                    data.total_items,
+                    data.public_items,
+                    data.internal_items,
+                    fmt_pct(data.public_ratio)
+                ));
+            }
+            out.push('\n');
+        }
+
+        if !api.by_module.is_empty() {
+            out.push_str("### By module\n\n");
+            out.push_str("|Module|Total|Public|Public%|\n");
+            out.push_str("|---|---:|---:|---:|\n");
+            for row in api.by_module.iter().take(20) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|\n",
+                    row.module,
+                    row.total_items,
+                    row.public_items,
+                    fmt_pct(row.public_ratio)
+                ));
+            }
+            out.push('\n');
+        }
+
+        if !api.top_exporters.is_empty() {
+            out.push_str("### Top exporters\n\n");
+            out.push_str("|Path|Language|Public|Total|\n");
+            out.push_str("|---|---|---:|---:|\n");
+            for item in api.top_exporters.iter().take(10) {
+                out.push_str(&format!(
+                    "|{}|{}|{}|{}|\n",
+                    item.path, item.lang, item.public_items, item.total_items
+                ));
+            }
+            out.push('\n');
+        }
+    }
+
     if let Some(fun) = &receipt.fun
         && let Some(label) = &fun.eco_label
     {

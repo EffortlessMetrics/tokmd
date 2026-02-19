@@ -418,16 +418,17 @@ fn compute_diff_coverage_gate(
             } else {
                 path
             };
-            current_file = Some(normalized);
-            lcov_data.entry(current_file.clone().unwrap()).or_default();
+            current_file = Some(normalized.clone());
+            lcov_data.entry(normalized).or_default();
         } else if let Some(da) = line.strip_prefix("DA:") {
             if let Some(ref file) = current_file {
                 let parts: Vec<&str> = da.splitn(2, ',').collect();
                 if parts.len() == 2
                     && let (Ok(line_no), Ok(count)) =
                         (parts[0].parse::<usize>(), parts[1].parse::<usize>())
+                    && let Some(entry) = lcov_data.get_mut(file.as_str())
                 {
-                    lcov_data.get_mut(file).unwrap().insert(line_no, count);
+                    entry.insert(line_no, count);
                 }
             }
         } else if line == "end_of_record" {
@@ -2116,7 +2117,16 @@ pub fn sparkline(values: &[f64]) -> String {
 
 /// Return the current time as an ISO 8601 string.
 pub fn now_iso8601() -> String {
-    "2024-01-01T00:00:00Z".to_string()
+    let now = time::OffsetDateTime::now_utc();
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+        now.year(),
+        now.month() as u8,
+        now.day(),
+        now.hour(),
+        now.minute(),
+        now.second(),
+    )
 }
 
 /// Round a float to two decimal places.
