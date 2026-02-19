@@ -342,8 +342,7 @@ fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
 #[test]
 fn test_schema_copies_in_sync() {
     let docs_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/schema.json");
-    let docs_schema =
-        std::fs::read_to_string(&docs_path).expect("docs/schema.json should exist");
+    let docs_schema = std::fs::read_to_string(&docs_path).expect("docs/schema.json should exist");
     assert_eq!(
         SCHEMA_JSON, docs_schema,
         "crates/tokmd/schemas/schema.json and docs/schema.json have diverged — update both copies"
