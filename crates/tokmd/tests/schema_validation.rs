@@ -345,8 +345,14 @@ fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
 fn test_schema_copies_in_sync() {
     let docs_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/schema.json");
     let docs_schema = std::fs::read_to_string(&docs_path).expect("docs/schema.json should exist");
+
+    // Parse both as JSON Values to ignore whitespace/CRLF differences
+    let embedded: Value = serde_json::from_str(&SCHEMA_JSON.replace("\r\n", "\n"))
+        .expect("embedded schema.json should be valid JSON");
+    let docs: Value = serde_json::from_str(&docs_schema.replace("\r\n", "\n"))
+        .expect("docs/schema.json should be valid JSON");
     assert_eq!(
-        SCHEMA_JSON, docs_schema,
+        embedded, docs,
         "crates/tokmd/schemas/schema.json and docs/schema.json have diverged — update both copies"
     );
 }

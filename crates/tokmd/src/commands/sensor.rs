@@ -373,9 +373,7 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
                 "Diff coverage gate failed",
                 format!(
                     "Coverage {:.1}% below threshold ({} of {} lines covered)",
-                    dc.coverage_pct * 100.0,
-                    dc.lines_covered,
-                    dc.lines_added
+                    dc.coverage_pct, dc.lines_covered, dc.lines_added
                 ),
             )
             .with_fingerprint("tokmd"),

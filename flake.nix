@@ -47,6 +47,8 @@
           || (builtins.match ".*\\.html$" path != null)
           # Keep embedded schemas (include_str! in tests / clippy --all-targets)
           || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
+          # Keep published schema (sync test compares against embedded copy)
+          || (pkgs.lib.hasInfix "/docs/schema.json" p)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep contract fixtures validated by schema tests

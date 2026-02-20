@@ -334,6 +334,11 @@ fn compute_overall_status(
         return GateStatus::Pending;
     }
 
+    // Any Warn (and no Fail/Pending) -> overall Warn
+    if statuses.contains(&GateStatus::Warn) {
+        return GateStatus::Warn;
+    }
+
     // Otherwise (mix of Pass and Skipped) -> Pass
     GateStatus::Pass
 }
@@ -476,7 +481,7 @@ fn compute_diff_coverage_gate(
     let status = if coverage_pct >= 80.0 {
         GateStatus::Pass
     } else if coverage_pct >= 50.0 {
-        GateStatus::Pending // Warn-level
+        GateStatus::Warn
     } else {
         GateStatus::Fail
     };
@@ -1249,7 +1254,7 @@ fn compute_complexity_gate(
     let high_count = high_complexity_files.len();
     let (status, threshold_exceeded) = match high_count {
         0 => (GateStatus::Pass, false),
-        1..=3 => (GateStatus::Pending, true), // Warn
+        1..=3 => (GateStatus::Warn, true),
         _ => (GateStatus::Fail, true),
     };
 

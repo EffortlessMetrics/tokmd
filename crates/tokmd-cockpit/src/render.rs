@@ -232,8 +232,7 @@ pub fn render_markdown(receipt: &CockpitReceipt) -> String {
         let _ = writeln!(
             s,
             "- **Diff coverage**: {:?} ({:.1}%)",
-            dc.meta.status,
-            dc.coverage_pct * 100.0
+            dc.meta.status, dc.coverage_pct
         );
     }
     if let Some(ref contracts) = receipt.evidence.contracts {
@@ -490,7 +489,7 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
         );
     }
     if let Some(ref dc) = receipt.evidence.diff_coverage {
-        let _ = writeln!(s, "- Diff coverage: {:.1}%", dc.coverage_pct * 100.0);
+        let _ = writeln!(s, "- Diff coverage: {:.1}%", dc.coverage_pct);
     }
     if let Some(ref contracts) = receipt.evidence.contracts
         && contracts.failures > 0
