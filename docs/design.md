@@ -85,8 +85,8 @@ tokmd is a **sensor**: it produces receipts, not orchestration. External directo
 
 Separate versions per receipt family:
 - Core receipts: `SCHEMA_VERSION = 2`
-- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 6`
-- Cockpit receipts: `SCHEMA_VERSION = 3`
+- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 7`
+- Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
 
 Evolution rules:
 - Additive changes within vN (new optional fields)

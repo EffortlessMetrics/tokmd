@@ -33,20 +33,26 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 | `Hotspots` / `BusFactor` / `Freshness` / `Coupling` | Git-derived metrics |
 | `ImportGraph` | Import/dependency edges |
 | `Duplicates` | Content duplication detection |
+| `CommitIntentReport` / `CommitIntentCounts` / `ModuleIntentRow` | Commit intent classification |
+| `NearDuplicateReport` / `NearDupPairRow` / `NearDupParams` | Near-duplicate file detection |
 | `EcoLabel` | Fun eco-label scoring |
 
 ### Enums
 - `EntropyClass` - Low, Medium, High, Suspicious
 - `TrendClass` - Stable, Rising, Falling, Volatile
 - `EffectiveLicense` - Detected license type
+- `NearDupScope` - Module, Global (comparison scope)
+- `CommitIntentKind` - Feat, Fix, Refactor, Docs, Test, Chore, Ci, Other (re-exported from `tokmd-types`)
 
 ## Implementation Details
 
 ### Schema Version
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;
 ```
-v4 added cognitive complexity, nesting depth, and function-level details to `ComplexityReport`.
+v5 added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution.
+v6 added API surface enricher.
+v7 added coupling normalization (Jaccard/Lift), commit intent classification, and near-duplicate detection.
 
 ### Optional Fields
 All analysis sections are `Option<T>` to support preset-based inclusion:

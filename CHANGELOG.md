@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Near-duplicate detection in analysis reports (`--near-dup-enabled`, `--near-dup-threshold`, `--near-dup-scope`)
+- Near-duplicate detection in analysis reports (`--near-dup`, `--near-dup-threshold`, `--near-dup-scope`, `--near-dup-max-files`)
 - Commit intent classification in analysis git reports
 - Coupling metrics: Jaccard similarity and Lift in analysis coupling reports
 - `hash` field on `GitCommit` for commit SHA identification

@@ -21,7 +21,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Context** | 4 | `CONTEXT_SCHEMA_VERSION` | `context` receipt |
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
 | **Analysis** | 7 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
-| **Cockpit** | 3 | (local) | `cockpit` |
+| **Cockpit** | 3 | `COCKPIT_SCHEMA_VERSION` | `cockpit` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 5 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
@@ -83,7 +83,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;`
-- **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
+- **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
@@ -614,8 +614,24 @@ Present when `--git` is enabled or preset includes git analysis.
       "refresh_trend": "rising"
     },
     "coupling": [
-      { "left": "src/a.rs", "right": "src/b.rs", "count": 12 }
-    ]
+      { "left": "src/a.rs", "right": "src/b.rs", "count": 12, "jaccard": 0.35, "lift": 2.1, "n_left": 20, "n_right": 15 }
+    ],
+    "intent": {
+      "total_classified": 500,
+      "counts": {
+        "feat": 120,
+        "fix": 95,
+        "refactor": 80,
+        "docs": 60,
+        "test": 55,
+        "chore": 50,
+        "ci": 25,
+        "other": 15
+      },
+      "by_module": [
+        { "module": "crates/core", "feat": 30, "fix": 20, "refactor": 15, "docs": 10, "test": 8, "chore": 5, "ci": 2, "other": 0 }
+      ]
+    }
   }
 }
 ```
@@ -634,6 +650,7 @@ Present when `--git` is enabled or preset includes git analysis.
 | `deps` | `supply` | Lockfile dependency counts |
 | `git` | `risk`, `identity`, `git`, `deep` | Hotspots, bus factor, freshness, coupling, and code-age distribution |
 | `imports` | `architecture` | Module dependency graph |
+| `near_dup` | `deep` | Near-duplicate file detection with configurable similarity threshold |
 | `dup` | `deep` | Duplicate file detection with module-level duplication density |
 | `complexity` | `health`, `risk`, `deep` | Cyclomatic/cognitive metrics, maintainability, and technical-debt ratio |
 | `fun` | `fun` | Novelty outputs (eco-label) |
