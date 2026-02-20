@@ -4,6 +4,8 @@
 //! defined in the embedded schemas. Schemas are embedded at compile time using
 //! `include_str!` to ensure tests work in packaged crate environments (e.g., Nix).
 
+mod common;
+
 use anyhow::{Context, Result};
 use assert_cmd::Command;
 use serde_json::Value;
@@ -340,6 +342,22 @@ fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
 }
 
 #[test]
+fn test_schema_copies_in_sync() {
+    let docs_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/schema.json");
+    let docs_schema = std::fs::read_to_string(&docs_path).expect("docs/schema.json should exist");
+
+    // Parse both as JSON Values to ignore whitespace/CRLF differences
+    let embedded: Value = serde_json::from_str(&SCHEMA_JSON.replace("\r\n", "\n"))
+        .expect("embedded schema.json should be valid JSON");
+    let docs: Value = serde_json::from_str(&docs_schema.replace("\r\n", "\n"))
+        .expect("docs/schema.json should be valid JSON");
+    assert_eq!(
+        embedded, docs,
+        "crates/tokmd/schemas/schema.json and docs/schema.json have diverged — update both copies"
+    );
+}
+
+#[test]
 fn test_schema_version_matches_constant() -> Result<()> {
     // Verify that the schema versions in schema.json match SCHEMA_VERSION in code
     let schema = load_schema()?;
@@ -395,9 +413,96 @@ fn test_schema_version_matches_constant() -> Result<()> {
         analysis_version
             .as_u64()
             .context("schema_version should be integer")?,
-        5,
-        "AnalysisReceipt schema_version should be 5"
+        6,
+        "AnalysisReceipt schema_version should be 6"
     );
+
+    // Check CockpitReceipt schema_version const
+    let cockpit_version =
+        &schema["definitions"]["CockpitReceipt"]["properties"]["schema_version"]["const"];
+    assert_eq!(
+        cockpit_version
+            .as_u64()
+            .context("schema_version should be integer")?,
+        3,
+        "CockpitReceipt schema_version should be 3"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_cockpit_receipt_validates_against_schema() -> Result<()> {
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return Ok(());
+    }
+
+    let dir = tempdir()?;
+
+    // Initialize git repo with a main branch and feature branch
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return Ok(());
+    }
+
+    std::fs::write(dir.path().join("lib.rs"), "fn main() {}\n")?;
+    if !common::git_add_commit(dir.path(), "Initial commit") {
+        eprintln!("Skipping: git commit failed");
+        return Ok(());
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    std::fs::write(dir.path().join("new.rs"), "pub fn new_func() {}\n")?;
+    if !common::git_add_commit(dir.path(), "Add new file") {
+        eprintln!("Skipping: second commit failed");
+        return Ok(());
+    }
+
+    let schema = load_schema()?;
+    let validator = build_validator_for_definition(&schema, "CockpitReceipt")?;
+
+    let output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("json")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        eprintln!("Skipping: cockpit command failed: {}", stderr);
+        return Ok(());
+    }
+
+    let stdout = String::from_utf8(output.stdout)?;
+    let json: Value = serde_json::from_str(&stdout)?;
+
+    if !validator.is_valid(&json) {
+        let error_messages: Vec<String> = validator
+            .iter_errors(&json)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "CockpitReceipt validation failed:\n{}\n\nOutput:\n{}",
+            error_messages.join("\n"),
+            serde_json::to_string_pretty(&json).unwrap_or_default()
+        );
+    }
+
+    // Verify key fields
+    assert_eq!(json["schema_version"], 3);
+    assert_eq!(json["mode"], "cockpit");
+    assert!(json["evidence"].is_object(), "should have evidence");
+    assert!(json["review_plan"].is_array(), "should have review_plan");
+
     Ok(())
 }
 

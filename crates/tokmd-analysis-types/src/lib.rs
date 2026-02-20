@@ -22,9 +22,8 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-/// v5: Added complexity enrichers (Halstead, maintainability, histogram) with additive
-/// debt/duplication/age signals.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 5;
+/// v6: Added API surface enricher (public export ratios per language).
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 6;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -49,6 +48,7 @@ pub struct AnalysisReceipt {
     pub imports: Option<ImportReport>,
     pub dup: Option<DuplicateReport>,
     pub complexity: Option<ComplexityReport>,
+    pub api_surface: Option<ApiSurfaceReport>,
     pub fun: Option<FunReport>,
 }
 
@@ -1103,6 +1103,73 @@ fn chrono_timestamp_iso8601(ms: u128) -> String {
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
         y, m, d, hour, min, sec, millis
     )
+}
+
+// -------------------
+// API Surface metrics
+// -------------------
+
+/// Public API surface analysis report.
+///
+/// Computes public export ratios per language and module by scanning
+/// source files for exported symbols (pub fn, export function, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiSurfaceReport {
+    /// Total items discovered across all languages.
+    pub total_items: usize,
+    /// Items with public visibility.
+    pub public_items: usize,
+    /// Items with internal/private visibility.
+    pub internal_items: usize,
+    /// Ratio of public to total items (0.0-1.0).
+    pub public_ratio: f64,
+    /// Ratio of documented public items (0.0-1.0).
+    pub documented_ratio: f64,
+    /// Per-language breakdown.
+    pub by_language: BTreeMap<String, LangApiSurface>,
+    /// Per-module breakdown.
+    pub by_module: Vec<ModuleApiRow>,
+    /// Top exporters (files with most public items).
+    pub top_exporters: Vec<ApiExportItem>,
+}
+
+/// Per-language API surface breakdown.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LangApiSurface {
+    /// Total items in this language.
+    pub total_items: usize,
+    /// Public items in this language.
+    pub public_items: usize,
+    /// Internal items in this language.
+    pub internal_items: usize,
+    /// Public ratio for this language.
+    pub public_ratio: f64,
+}
+
+/// Per-module API surface row.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleApiRow {
+    /// Module path.
+    pub module: String,
+    /// Total items in this module.
+    pub total_items: usize,
+    /// Public items in this module.
+    pub public_items: usize,
+    /// Public ratio for this module.
+    pub public_ratio: f64,
+}
+
+/// A file that exports many public items.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiExportItem {
+    /// File path.
+    pub path: String,
+    /// Language of the file.
+    pub lang: String,
+    /// Number of public items exported.
+    pub public_items: usize,
+    /// Total items in the file.
+    pub total_items: usize,
 }
 
 // ---------

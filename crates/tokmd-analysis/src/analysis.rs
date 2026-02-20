@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, AssetReport, ComplexityReport,
-    CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport, FunReport, GitReport,
-    ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
+    ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
+    FunReport, GitReport, ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
@@ -88,6 +88,7 @@ struct AnalysisPlan {
     entropy: bool,
     license: bool,
     complexity: bool,
+    api_surface: bool,
     #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
     halstead: bool,
     #[cfg(feature = "git")]
@@ -109,7 +110,8 @@ impl AnalysisPlan {
             || self.imports
             || self.entropy
             || self.license
-            || self.complexity;
+            || self.complexity
+            || self.api_surface;
         #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
         {
             needs = needs || self.halstead;
@@ -133,6 +135,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -153,6 +156,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: true,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -173,6 +177,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: true,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -193,6 +198,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -213,6 +219,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: true,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -233,6 +240,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -253,6 +261,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: true,
             license: true,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -273,6 +282,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -293,6 +303,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -313,6 +324,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: true,
             license: true,
             complexity: true,
+            api_surface: true,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -333,6 +345,7 @@ fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
             entropy: false,
             license: false,
             complexity: false,
+            api_surface: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -411,6 +424,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     let mut complexity: Option<ComplexityReport> = None;
     #[cfg(not(all(feature = "content", feature = "walk")))]
     let complexity: Option<ComplexityReport> = None;
+
+    #[cfg(all(feature = "content", feature = "walk"))]
+    let mut api_surface: Option<ApiSurfaceReport> = None;
+    #[cfg(not(all(feature = "content", feature = "walk")))]
+    let api_surface: Option<ApiSurfaceReport> = None;
 
     let mut archetype: Option<Archetype> = None;
     let mut topics: Option<TopicClouds> = None;
@@ -609,6 +627,25 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         warnings.push("content/walk feature disabled; skipping complexity analysis".to_string());
     }
 
+    if plan.api_surface {
+        #[cfg(all(feature = "content", feature = "walk"))]
+        {
+            if let Some(list) = files.as_deref() {
+                match crate::api_surface::build_api_surface_report(
+                    &ctx.root,
+                    list,
+                    &ctx.export,
+                    &req.limits,
+                ) {
+                    Ok(report) => api_surface = Some(report),
+                    Err(err) => warnings.push(format!("api surface scan failed: {}", err)),
+                }
+            }
+        }
+        #[cfg(not(all(feature = "content", feature = "walk")))]
+        warnings.push("content/walk feature disabled; skipping API surface analysis".to_string());
+    }
+
     // Halstead metrics (feature-gated)
     #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
     if plan.halstead
@@ -679,6 +716,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         imports,
         dup,
         complexity,
+        api_surface,
         fun,
     };
 

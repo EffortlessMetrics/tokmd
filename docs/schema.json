@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 5 },
+        "schema_version": { "type": "integer", "const": 6 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -267,7 +267,60 @@
         "imports": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ImportReport" }] },
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
         "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
+        "api_surface": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ApiSurfaceReport" }] },
         "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
+      }
+    },
+    "ApiSurfaceReport": {
+      "type": "object",
+      "description": "API surface analysis report.",
+      "required": ["total_items", "public_items", "internal_items", "public_ratio", "documented_ratio", "by_language", "by_module", "top_exporters"],
+      "properties": {
+        "total_items": { "type": "integer", "description": "Total items discovered across all languages." },
+        "public_items": { "type": "integer", "description": "Items with public visibility." },
+        "internal_items": { "type": "integer", "description": "Items with internal/private visibility." },
+        "public_ratio": { "type": "number", "description": "Ratio of public to total items (0.0-1.0)." },
+        "documented_ratio": { "type": "number", "description": "Ratio of documented public items (0.0-1.0)." },
+        "by_language": {
+          "type": "object",
+          "description": "Per-language breakdown.",
+          "additionalProperties": { "$ref": "#/definitions/LangApiSurface" }
+        },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleApiRow" }, "description": "Per-module breakdown." },
+        "top_exporters": { "type": "array", "items": { "$ref": "#/definitions/ApiExportItem" }, "description": "Top exporters (files with most public items)." }
+      }
+    },
+    "LangApiSurface": {
+      "type": "object",
+      "description": "Per-language API surface metrics.",
+      "required": ["total_items", "public_items", "internal_items", "public_ratio"],
+      "properties": {
+        "total_items": { "type": "integer" },
+        "public_items": { "type": "integer" },
+        "internal_items": { "type": "integer" },
+        "public_ratio": { "type": "number" }
+      }
+    },
+    "ModuleApiRow": {
+      "type": "object",
+      "description": "Per-module API surface row.",
+      "required": ["module", "total_items", "public_items", "public_ratio"],
+      "properties": {
+        "module": { "type": "string" },
+        "total_items": { "type": "integer" },
+        "public_items": { "type": "integer" },
+        "public_ratio": { "type": "number" }
+      }
+    },
+    "ApiExportItem": {
+      "type": "object",
+      "description": "A file that exports many public items.",
+      "required": ["path", "lang", "public_items", "total_items"],
+      "properties": {
+        "path": { "type": "string" },
+        "lang": { "type": "string" },
+        "public_items": { "type": "integer" },
+        "total_items": { "type": "integer" }
       }
     },
     "AnalysisSource": {
@@ -1053,7 +1106,7 @@
     "CockpitReceipt": {
       "type": "object",
       "description": "Output from `tokmd cockpit --format json`. Contains PR metrics for code review automation.",
-      "required": ["schema_version", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
+      "required": ["schema_version", "mode", "generated_at_ms", "base_ref", "head_ref", "change_surface", "composition", "code_health", "risk", "contracts", "evidence", "review_plan"],
       "properties": {
         "schema_version": { "type": "integer", "const": 3 },
         "mode": { "type": "string", "const": "cockpit", "description": "Receipt type discriminator." },
@@ -1209,12 +1262,13 @@
         "diff_coverage": { "$ref": "#/definitions/DiffCoverageGate" },
         "contracts": { "$ref": "#/definitions/ContractDiffGate" },
         "supply_chain": { "$ref": "#/definitions/SupplyChainGate" },
-        "determinism": { "$ref": "#/definitions/DeterminismGate" }
+        "determinism": { "$ref": "#/definitions/DeterminismGate" },
+        "complexity": { "$ref": "#/definitions/ComplexityGate" }
       }
     },
     "GateStatus": {
       "type": "string",
-      "enum": ["pass", "fail", "skipped", "pending"],
+      "enum": ["pass", "warn", "fail", "skipped", "pending"],
       "description": "Status of a gate check. 'pass' = gate passed, 'fail' = gate failed, 'skipped' = no relevant files changed, 'pending' = results not available."
     },
     "EvidenceSource": {
@@ -1402,6 +1456,35 @@
         "actual_hash": { "type": "string", "description": "Actual build hash." },
         "algo": { "type": "string", "description": "Hash algorithm used." },
         "differences": { "type": "array", "items": { "type": "string" }, "description": "Differences detected." }
+      }
+    },
+    "ComplexityGate": {
+      "type": "object",
+      "description": "Complexity gate results.",
+      "required": ["status", "source", "commit_match", "scope", "files_analyzed", "high_complexity_files", "avg_cyclomatic", "max_cyclomatic", "threshold_exceeded"],
+      "properties": {
+        "status": { "$ref": "#/definitions/GateStatus" },
+        "source": { "$ref": "#/definitions/EvidenceSource" },
+        "commit_match": { "$ref": "#/definitions/CommitMatch" },
+        "scope": { "$ref": "#/definitions/ScopeCoverage" },
+        "evidence_commit": { "type": "string", "description": "SHA this evidence was generated for." },
+        "evidence_generated_at_ms": { "type": "integer", "description": "Timestamp when evidence was generated (ms since epoch)." },
+        "files_analyzed": { "type": "integer", "description": "Number of files analyzed for complexity." },
+        "high_complexity_files": { "type": "array", "items": { "$ref": "#/definitions/HighComplexityFile" }, "description": "Files with high cyclomatic complexity." },
+        "avg_cyclomatic": { "type": "number", "description": "Average cyclomatic complexity across analyzed files." },
+        "max_cyclomatic": { "type": "integer", "description": "Maximum cyclomatic complexity found." },
+        "threshold_exceeded": { "type": "boolean", "description": "Whether the complexity threshold was exceeded." }
+      }
+    },
+    "HighComplexityFile": {
+      "type": "object",
+      "description": "A file with high cyclomatic complexity.",
+      "required": ["path", "cyclomatic", "function_count", "max_function_length"],
+      "properties": {
+        "path": { "type": "string", "description": "Path to the file." },
+        "cyclomatic": { "type": "integer", "description": "Cyclomatic complexity score." },
+        "function_count": { "type": "integer", "description": "Number of functions in the file." },
+        "max_function_length": { "type": "integer", "description": "Maximum function length in lines." }
       }
     },
     "ReviewItem": {

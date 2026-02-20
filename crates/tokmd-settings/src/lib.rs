@@ -309,6 +309,49 @@ impl Default for AnalyzeSettings {
     }
 }
 
+/// Settings for cockpit PR metrics (`tokmd cockpit`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CockpitSettings {
+    /// Base ref to compare from.
+    #[serde(default = "default_cockpit_base")]
+    pub base: String,
+
+    /// Head ref to compare to.
+    #[serde(default = "default_cockpit_head")]
+    pub head: String,
+
+    /// Range mode: "two-dot" or "three-dot".
+    #[serde(default = "default_cockpit_range_mode")]
+    pub range_mode: String,
+
+    /// Optional baseline file path for trend comparison.
+    #[serde(default)]
+    pub baseline: Option<String>,
+}
+
+fn default_cockpit_base() -> String {
+    "main".to_string()
+}
+
+fn default_cockpit_head() -> String {
+    "HEAD".to_string()
+}
+
+fn default_cockpit_range_mode() -> String {
+    "two-dot".to_string()
+}
+
+impl Default for CockpitSettings {
+    fn default() -> Self {
+        Self {
+            base: default_cockpit_base(),
+            head: default_cockpit_head(),
+            range_mode: default_cockpit_range_mode(),
+            baseline: None,
+        }
+    }
+}
+
 /// Settings for diff comparison (`tokmd diff`).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DiffSettings {
@@ -754,6 +797,31 @@ mod tests {
         let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();
         assert_eq!(back.preset, "receipt");
         assert_eq!(back.granularity, "module");
+    }
+
+    #[test]
+    fn serde_roundtrip_cockpit_settings() {
+        let s = CockpitSettings::default();
+        let json = serde_json::to_string(&s).unwrap();
+        let back: CockpitSettings = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.base, "main");
+        assert_eq!(back.head, "HEAD");
+        assert_eq!(back.range_mode, "two-dot");
+        assert!(back.baseline.is_none());
+    }
+
+    #[test]
+    fn serde_roundtrip_cockpit_settings_with_baseline() {
+        let s = CockpitSettings {
+            base: "v1.0".into(),
+            head: "feature".into(),
+            range_mode: "three-dot".into(),
+            baseline: Some("baseline.json".into()),
+        };
+        let json = serde_json::to_string(&s).unwrap();
+        let back: CockpitSettings = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.base, "v1.0");
+        assert_eq!(back.baseline, Some("baseline.json".to_string()));
     }
 
     #[test]

@@ -28,7 +28,7 @@ exclude = [
 [features]
 default = ["git", "walk", "content", "ui"]
 alias-tok = []
-git = ["tokmd-analysis/git", "dep:tokmd-git"]
+git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
 ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
@@ -60,6 +60,7 @@ tokmd-substrate.workspace = true
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
 tokmd-types.workspace = true
+tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }
 clap_complete = "4.5.66"
 dialoguer = { version = "0.12.0", optional = true }

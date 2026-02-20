@@ -23,7 +23,6 @@ mod analysis_utils;
 mod commands;
 mod config;
 mod context_pack;
-mod determinism;
 mod error_hints;
 mod export_bundle;
 mod git_scoring;

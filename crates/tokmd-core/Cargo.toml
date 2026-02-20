@@ -21,6 +21,7 @@ analysis = [
     "tokmd-analysis/content",
     "tokmd-analysis/halstead",
 ]
+cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
 
 [dependencies]
 anyhow = "1.0.101"
@@ -37,3 +38,7 @@ tokmd-types.workspace = true
 # Optional analysis support
 tokmd-analysis = { workspace = true, optional = true }
 tokmd-analysis-types = { workspace = true, optional = true }
+
+# Optional cockpit support
+tokmd-cockpit = { workspace = true, optional = true }
+tokmd-git = { workspace = true, optional = true }

@@ -96,6 +96,20 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
                 ))
             }
         }
+        "cockpit" => {
+            #[cfg(feature = "cockpit")]
+            {
+                let settings = parse_cockpit_settings(&args)?;
+                let receipt = crate::cockpit_workflow(&settings)?;
+                Ok(serde_json::to_value(&receipt)?)
+            }
+            #[cfg(not(feature = "cockpit"))]
+            {
+                Err(TokmdError::not_implemented(
+                    "cockpit mode requires 'cockpit' feature: enable in Cargo.toml or use CLI",
+                ))
+            }
+        }
         "diff" => {
             let settings = parse_diff_settings(&args)?;
             let receipt = crate::diff_workflow(&settings)?;
@@ -398,6 +412,19 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
         max_commits: parse_optional_usize(obj, "max_commits")?,
         max_commit_files: parse_optional_usize(obj, "max_commit_files")?,
         granularity: parse_import_granularity(obj, "module")?,
+    })
+}
+
+#[allow(dead_code)]
+fn parse_cockpit_settings(args: &Value) -> Result<crate::settings::CockpitSettings, TokmdError> {
+    // Use nested object if present, otherwise use root
+    let obj = args.get("cockpit").unwrap_or(args);
+
+    Ok(crate::settings::CockpitSettings {
+        base: parse_string(obj, "base", "main")?,
+        head: parse_string(obj, "head", "HEAD")?,
+        range_mode: parse_string(obj, "range_mode", "two-dot")?,
+        baseline: parse_optional_string(obj, "baseline")?,
     })
 }
 
@@ -790,5 +817,39 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result).unwrap();
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "not_implemented");
+    }
+
+    #[test]
+    #[cfg(not(feature = "cockpit"))]
+    fn cockpit_without_feature_returns_not_implemented() {
+        let result = run_json("cockpit", "{}");
+        let parsed: Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "not_implemented");
+    }
+
+    #[test]
+    fn parse_cockpit_settings_defaults() {
+        let args: Value = serde_json::json!({});
+        let settings = parse_cockpit_settings(&args).unwrap();
+        assert_eq!(settings.base, "main");
+        assert_eq!(settings.head, "HEAD");
+        assert_eq!(settings.range_mode, "two-dot");
+        assert!(settings.baseline.is_none());
+    }
+
+    #[test]
+    fn parse_cockpit_settings_with_values() {
+        let args: Value = serde_json::json!({
+            "base": "v1.0",
+            "head": "feature",
+            "range_mode": "three-dot",
+            "baseline": "baseline.json"
+        });
+        let settings = parse_cockpit_settings(&args).unwrap();
+        assert_eq!(settings.base, "v1.0");
+        assert_eq!(settings.head, "feature");
+        assert_eq!(settings.range_mode, "three-dot");
+        assert_eq!(settings.baseline, Some("baseline.json".to_string()));
     }
 }

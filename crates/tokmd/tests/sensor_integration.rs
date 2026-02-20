@@ -385,7 +385,7 @@ fn high_cc_source(fn_name: &str) -> String {
 fn scenario_docs_only_change_verdict_pass() {
     // Given: A git repo on main with src/lib.rs + README.md
     // When:  Feature branch changes ONLY README.md
-    // Then:  Sensor should produce verdict=pass, findings=[], mutation gate skip
+    // Then:  Sensor should produce verdict=skip, findings=[], mutation gate skip
     if !common::git_available() {
         eprintln!("Skipping: git not available");
         return;
@@ -453,10 +453,10 @@ fn scenario_docs_only_change_verdict_pass() {
 
     // ---- Assertions ----
 
-    // Verdict must be pass (docs-only change triggers no failure gates)
+    // Verdict must be skip (docs-only change triggers no applicable gates)
     assert_eq!(
-        json["verdict"], "pass",
-        "docs-only change should produce pass verdict, got: {}",
+        json["verdict"], "skip",
+        "docs-only change should produce skip verdict, got: {}",
         json["verdict"]
     );
 

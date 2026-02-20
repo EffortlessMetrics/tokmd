@@ -17,6 +17,8 @@
 //! * File modification
 
 mod analysis;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod api_surface;
 mod archetype;
 #[cfg(feature = "walk")]
 mod assets;

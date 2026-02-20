@@ -13,7 +13,7 @@ use anyhow::{Context, Result};
 /// Paths are sorted before hashing for deterministic output.
 /// Each file contributes `(normalized_path, file_length_le_bytes, file_bytes)`
 /// to an incremental BLAKE3 hasher.
-pub(crate) fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
+pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
     let mut sorted: Vec<&str> = paths.to_vec();
     sorted.sort();
     sorted.dedup();
@@ -50,7 +50,7 @@ pub(crate) fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<Strin
 /// Uses the `ignore` crate to respect `.gitignore` rules, then sorts
 /// the discovered paths and hashes them with the same protocol as
 /// [`hash_files_from_paths`].
-pub(crate) fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String> {
+pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String> {
     let mut paths: Vec<String> = Vec::new();
 
     let walker = ignore::WalkBuilder::new(root)
@@ -102,7 +102,7 @@ pub(crate) fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<
 /// Hash the `Cargo.lock` file at `root`, if present.
 ///
 /// Returns `None` if no `Cargo.lock` exists.
-pub(crate) fn hash_cargo_lock(root: &Path) -> Result<Option<String>> {
+pub fn hash_cargo_lock(root: &Path) -> Result<Option<String>> {
     let lock_path = root.join("Cargo.lock");
     if !lock_path.exists() {
         return Ok(None);
@@ -250,7 +250,7 @@ mod tests {
         fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
         // Create .git marker so ignore crate works properly
         fs::create_dir_all(dir.path().join(".git")).unwrap();
-        // Create .tokmd directory with a baseline file — should be auto-excluded
+        // Create .tokmd directory with a baseline file -- should be auto-excluded
         fs::create_dir_all(dir.path().join(".tokmd")).unwrap();
         fs::write(dir.path().join(".tokmd/baseline.json"), "{}").unwrap();
 
