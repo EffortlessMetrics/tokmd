@@ -547,7 +547,9 @@ pub fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     let verdict = match receipt.evidence.overall_status {
         GateStatus::Pass => Verdict::Pass,
         GateStatus::Fail => Verdict::Fail,
-        _ => Verdict::Warn,
+        GateStatus::Warn => Verdict::Warn,
+        GateStatus::Skipped => Verdict::Skip,
+        GateStatus::Pending => Verdict::Pending,
     };
 
     let report = SensorReport::new(
@@ -590,7 +592,9 @@ pub fn write_sensor_artifacts(
     let verdict = match receipt.evidence.overall_status {
         GateStatus::Pass => Verdict::Pass,
         GateStatus::Fail => Verdict::Fail,
-        _ => Verdict::Warn,
+        GateStatus::Warn => Verdict::Warn,
+        GateStatus::Skipped => Verdict::Skip,
+        GateStatus::Pending => Verdict::Pending,
     };
 
     let report = SensorReport::new(

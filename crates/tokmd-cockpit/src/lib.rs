@@ -1763,7 +1763,7 @@ pub fn get_file_stats(
     let mut stats = Vec::new();
 
     for line in stdout.lines() {
-        let parts: Vec<&str> = line.split_whitespace().collect();
+        let parts: Vec<&str> = line.split('\t').collect();
         if parts.len() == 3 {
             let insertions = parts[0].parse().unwrap_or(0);
             let deletions = parts[1].parse().unwrap_or(0);
