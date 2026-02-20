@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://tokmd.dev/schemas/handoff.manifest.v4.json",
+  "$id": "https://tokmd.dev/schemas/handoff.manifest.v5.json",
   "title": "tokmd Handoff Manifest",
   "description": "Manifest for tokmd handoff bundles (manifest.json)",
   "type": "object",
@@ -26,7 +26,7 @@
     "intelligence_preset"
   ],
   "properties": {
-    "schema_version": { "type": "integer", "const": 4 },
+    "schema_version": { "type": "integer", "const": 5 },
     "generated_at_ms": { "type": "integer", "minimum": 0 },
     "tool": { "$ref": "#/definitions/ToolInfo" },
     "mode": { "type": "string", "const": "handoff" },

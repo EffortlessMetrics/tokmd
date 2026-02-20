@@ -880,8 +880,10 @@
         "left": { "type": "string", "description": "First file." },
         "right": { "type": "string", "description": "Second file." },
         "count": { "type": "integer", "description": "Number of co-changes." },
-        "jaccard": { "type": "number", "description": "Jaccard similarity coefficient." },
-        "lift": { "type": "number", "description": "Lift metric (observed/expected co-change ratio)." }
+        "jaccard": { "type": "number", "description": "Jaccard similarity: count / (n_left + n_right - count)." },
+        "lift": { "type": "number", "description": "Lift: (count * N) / (n_left * n_right), where N = commits_considered." },
+        "n_left": { "type": "integer", "description": "Commits touching left module." },
+        "n_right": { "type": "integer", "description": "Commits touching right module." }
       }
     },
     "CodeAgeDistributionReport": {
@@ -1657,24 +1659,29 @@
     },
     "TokenEstimationMeta": {
       "type": "object",
-      "description": "Token estimation metadata with low/est/high range.",
-      "required": ["bytes_per_token", "tokens_low", "tokens_est", "tokens_high", "source_bytes"],
+      "description": "Token estimation metadata with explicit divisors and low/est/high range.",
+      "required": ["bytes_per_token_est", "bytes_per_token_low", "bytes_per_token_high", "tokens_low", "tokens_est", "tokens_high", "source_bytes"],
       "properties": {
-        "bytes_per_token": { "type": "number" },
-        "tokens_low": { "type": "integer", "minimum": 0 },
+        "bytes_per_token_est": { "type": "number", "description": "Divisor used for main estimate (default 4.0)." },
+        "bytes_per_token_low": { "type": "number", "description": "Conservative divisor — more tokens (default 3.0)." },
+        "bytes_per_token_high": { "type": "number", "description": "Optimistic divisor — fewer tokens (default 5.0)." },
+        "tokens_low": { "type": "integer", "minimum": 0, "description": "Conservative estimate (most tokens)." },
         "tokens_est": { "type": "integer", "minimum": 0 },
-        "tokens_high": { "type": "integer", "minimum": 0 },
+        "tokens_high": { "type": "integer", "minimum": 0, "description": "Optimistic estimate (fewest tokens)." },
         "source_bytes": { "type": "integer", "minimum": 0 }
       }
     },
     "TokenAudit": {
       "type": "object",
-      "description": "Token audit comparing estimated vs actual token usage.",
-      "required": ["actual_bytes", "actual_tokens", "byte_ratio"],
+      "description": "Post-write audit comparing actual output to estimates.",
+      "required": ["output_bytes", "tokens_low", "tokens_est", "tokens_high", "overhead_bytes", "overhead_pct"],
       "properties": {
-        "actual_bytes": { "type": "integer", "minimum": 0 },
-        "actual_tokens": { "$ref": "#/definitions/TokenEstimationMeta" },
-        "byte_ratio": { "type": "number" }
+        "output_bytes": { "type": "integer", "minimum": 0, "description": "Actual bytes written to the output bundle." },
+        "tokens_low": { "type": "integer", "minimum": 0 },
+        "tokens_est": { "type": "integer", "minimum": 0 },
+        "tokens_high": { "type": "integer", "minimum": 0 },
+        "overhead_bytes": { "type": "integer", "minimum": 0, "description": "Bytes of framing/separators/headers." },
+        "overhead_pct": { "type": "number", "minimum": 0, "maximum": 1, "description": "Overhead ratio (0.0-1.0)." }
       }
     },
     "CommitIntentKind": {
@@ -1718,7 +1725,8 @@
       "properties": {
         "overall": { "$ref": "#/definitions/CommitIntentCounts" },
         "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleIntentRow" } },
-        "unknown_pct": { "type": "number" }
+        "unknown_pct": { "type": "number" },
+        "corrective_ratio": { "type": "number", "description": "Corrective ratio: (fix + revert) / total." }
       }
     },
     "NearDupScope": {
@@ -1805,7 +1813,7 @@
       "description": "Output from `tokmd context --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "budget_tokens", "used_tokens", "utilization_pct", "strategy", "rank_by", "file_count", "files"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 3 },
+        "schema_version": { "type": "integer", "const": 4 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the context was generated." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "context" },
@@ -1892,7 +1900,7 @@
       "description": "Output from `tokmd handoff --format json`. Manifest for a handoff bundle.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "inputs", "output_dir", "budget_tokens", "used_tokens", "utilization_pct", "strategy", "rank_by", "capabilities", "artifacts", "included_files", "excluded_paths", "excluded_patterns", "smart_excluded_files", "total_files", "bundled_files", "intelligence_preset"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 4 },
+        "schema_version": { "type": "integer", "const": 5 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the handoff was generated." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "handoff" },

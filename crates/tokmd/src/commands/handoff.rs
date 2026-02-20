@@ -204,7 +204,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
     let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
     let code_audit =
-        tokmd_types::TokenAudit::from_actual(code_bytes as usize, total_file_bytes, 4.0);
+        tokmd_types::TokenAudit::from_output(code_bytes as u64, total_file_bytes as u64);
 
     // Write manifest.json
     let manifest = HandoffManifest {

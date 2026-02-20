@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
-pub use tokmd_analysis_types::CommitIntentKind;
+pub use tokmd_types::CommitIntentKind;
 
 /// Create a `Command` for git with process-environment isolation.
 ///
@@ -37,6 +37,7 @@ fn git_cmd() -> Command {
 pub struct GitCommit {
     pub timestamp: i64,
     pub author: String,
+    pub hash: Option<String>,
     pub subject: String,
     pub files: Vec<String>,
 }
@@ -100,7 +101,7 @@ pub fn collect_history(
         .arg(repo_root)
         .arg("log")
         .arg("--name-only")
-        .arg("--pretty=format:%ct|%ae|%s")
+        .arg("--pretty=format:%ct|%ae|%H|%s")
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
@@ -125,13 +126,20 @@ pub fn collect_history(
         }
 
         if current.is_none() {
-            let mut parts = line.splitn(3, '|');
+            let mut parts = line.splitn(4, '|');
             let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
             let author = parts.next().unwrap_or("").to_string();
+            let hash_str = parts.next().unwrap_or("").to_string();
             let subject = parts.next().unwrap_or("").to_string();
+            let hash = if hash_str.is_empty() {
+                None
+            } else {
+                Some(hash_str)
+            };
             current = Some(GitCommit {
                 timestamp: ts,
                 author,
+                hash,
                 subject,
                 files: Vec::new(),
             });

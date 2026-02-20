@@ -530,12 +530,18 @@ pub struct CouplingRow {
     pub left: String,
     pub right: String,
     pub count: usize,
-    /// Jaccard similarity: count / (touches_left + touches_right - count).
+    /// Jaccard similarity: count / (n_left + n_right - count). Range (0.0, 1.0].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub jaccard: Option<f64>,
-    /// Lift: (count * N) / (touches_left * touches_right), where N = multi-module commits.
+    /// Lift: (count * N) / (n_left * n_right), where N = commits_considered.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lift: Option<f64>,
+    /// Commits touching left module (within commits_considered universe).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub n_left: Option<usize>,
+    /// Commits touching right module (within commits_considered universe).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub n_right: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -559,23 +565,8 @@ pub struct CodeAgeBucket {
 // Commit intent classification
 // --------------------------
 
-/// Kind of commit intent, derived from conventional-commit prefixes or keyword heuristics.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CommitIntentKind {
-    Feat,
-    Fix,
-    Refactor,
-    Docs,
-    Test,
-    Chore,
-    Ci,
-    Build,
-    Perf,
-    Style,
-    Revert,
-    Other,
-}
+// Re-export from tokmd-types (Tier 0) so existing consumers keep working.
+pub use tokmd_types::CommitIntentKind;
 
 /// Overall commit intent classification report.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -586,6 +577,9 @@ pub struct CommitIntentReport {
     pub by_module: Vec<ModuleIntentRow>,
     /// Percentage of commits classified as "other" (unrecognized).
     pub unknown_pct: f64,
+    /// Corrective ratio: (fix + revert) / total. Range [0.0, 1.0].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub corrective_ratio: Option<f64>,
 }
 
 /// Counts per intent kind.

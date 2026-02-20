@@ -16,9 +16,7 @@ use anyhow::Result;
 use rustc_hash::FxHasher;
 use std::hash::{Hash, Hasher};
 
-use tokmd_analysis_types::{
-    NearDupPairRow, NearDupParams, NearDupScope, NearDuplicateReport,
-};
+use tokmd_analysis_types::{NearDupPairRow, NearDupParams, NearDupScope, NearDuplicateReport};
 use tokmd_types::{ExportData, FileKind};
 
 use crate::AnalysisLimits;
@@ -100,7 +98,7 @@ pub(crate) fn build_near_dup_report(
 
         // Count shared fingerprints per pair
         let mut pair_shared: BTreeMap<(usize, usize), usize> = BTreeMap::new();
-        for (_, posting_list) in &inverted {
+        for posting_list in inverted.values() {
             if posting_list.len() > MAX_POSTINGS {
                 continue;
             }
@@ -155,10 +153,7 @@ pub(crate) fn build_near_dup_report(
 }
 
 /// Partition file indices by the specified scope.
-fn partition_files(
-    files: &[&tokmd_types::FileRow],
-    scope: NearDupScope,
-) -> Vec<Vec<usize>> {
+fn partition_files(files: &[&tokmd_types::FileRow], scope: NearDupScope) -> Vec<Vec<usize>> {
     match scope {
         NearDupScope::Global => {
             vec![(0..files.len()).collect()]
@@ -230,7 +225,9 @@ fn winnow(text: &str) -> Vec<u64> {
 
     // Build k-gram hashes
     let kgram_count = tokens.len() - K + 1;
-    let hashes: Vec<u64> = (0..kgram_count).map(|i| hash_kgram(&tokens[i..i + K])).collect();
+    let hashes: Vec<u64> = (0..kgram_count)
+        .map(|i| hash_kgram(&tokens[i..i + K]))
+        .collect();
 
     if hashes.len() < W {
         // Not enough hashes for winnowing; return all
@@ -304,7 +301,7 @@ mod tests {
 
     #[test]
     fn jaccard_of_identical_is_one() {
-        let fps = vec![1u64, 2, 3, 4, 5];
+        let fps = [1u64, 2, 3, 4, 5];
         let shared = fps.len();
         let union = fps.len() + fps.len() - shared;
         let jaccard = shared as f64 / union as f64;

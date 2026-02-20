@@ -3,9 +3,9 @@ use std::path::Path;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts,
-    CommitIntentReport, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleIntentRow,
-    ModuleFreshnessRow, TrendClass,
+    BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentReport,
+    CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
+    TrendClass,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -171,7 +171,7 @@ fn build_coupling(
 ) -> Vec<CouplingRow> {
     let mut pairs: BTreeMap<(String, String), usize> = BTreeMap::new();
     let mut touches: BTreeMap<String, usize> = BTreeMap::new();
-    let mut multi_module_commits: usize = 0;
+    let mut commits_considered: usize = 0;
 
     for commit in commits {
         let mut modules: BTreeSet<String> = BTreeSet::new();
@@ -181,11 +181,13 @@ fn build_coupling(
                 modules.insert(module.clone());
             }
         }
-        if modules.len() >= 2 {
-            multi_module_commits += 1;
+        // Only count commits where at least one file maps to a module
+        if modules.is_empty() {
+            continue;
         }
-        for module in &modules {
-            *touches.entry(module.clone()).or_insert(0) += 1;
+        commits_considered += 1;
+        for m in &modules {
+            *touches.entry(m.clone()).or_insert(0) += 1;
         }
         let modules: Vec<String> = modules.into_iter().collect();
         for i in 0..modules.len() {
@@ -202,20 +204,19 @@ fn build_coupling(
         }
     }
 
-    let n = multi_module_commits;
+    let n = commits_considered;
 
     let mut rows: Vec<CouplingRow> = pairs
         .into_iter()
         .map(|((left, right), count)| {
             let n_a = touches.get(&left).copied().unwrap_or(0);
             let n_b = touches.get(&right).copied().unwrap_or(0);
-
-            let jaccard = if n_a + n_b > count {
-                Some(round_f64(count as f64 / (n_a + n_b - count) as f64, 4))
+            let denom = (n_a + n_b).saturating_sub(count);
+            let jaccard = if denom > 0 {
+                Some(round_f64(count as f64 / denom as f64, 4))
             } else {
                 None
             };
-
             let lift = if n > 0 && n_a > 0 && n_b > 0 {
                 Some(round_f64(
                     (count as f64 * n as f64) / (n_a as f64 * n_b as f64),
@@ -224,13 +225,14 @@ fn build_coupling(
             } else {
                 None
             };
-
             CouplingRow {
                 left,
                 right,
                 count,
                 jaccard,
                 lift,
+                n_left: Some(n_a),
+                n_right: Some(n_b),
             }
         })
         .collect();
@@ -259,10 +261,7 @@ fn build_intent_report(
             }
         }
         for module in modules {
-            by_module_counts
-                .entry(module)
-                .or_default()
-                .increment(kind);
+            by_module_counts.entry(module).or_default().increment(kind);
         }
     }
 
@@ -270,6 +269,15 @@ fn build_intent_report(
         round_f64(overall.other as f64 / overall.total as f64, 4)
     } else {
         0.0
+    };
+
+    let corrective_ratio = if overall.total > 0 {
+        Some(round_f64(
+            (overall.fix + overall.revert) as f64 / overall.total as f64,
+            4,
+        ))
+    } else {
+        None
     };
 
     let mut by_module: Vec<ModuleIntentRow> = by_module_counts
@@ -282,6 +290,7 @@ fn build_intent_report(
         overall,
         by_module,
         unknown_pct,
+        corrective_ratio,
     }
 }
 

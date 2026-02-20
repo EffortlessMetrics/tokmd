@@ -572,8 +572,9 @@ fn write_bundle_directory(
         token_estimation: Some(token_estimation),
         bundle_audit: None, // Populated below after bundle is written
     };
-    let receipt_json = serde_json::to_string_pretty(&receipt)?;
-    fs::write(&receipt_path, &receipt_json)
+    // Write initial receipt.json (bundle_audit populated after bundle is written)
+    let initial_receipt_json = serde_json::to_string_pretty(&receipt)?;
+    fs::write(&receipt_path, &initial_receipt_json)
         .with_context(|| format!("Failed to write receipt: {}", receipt_path.display()))?;
 
     // Write bundle.txt (concatenated content) - stream directly to file
@@ -585,6 +586,15 @@ fn write_bundle_directory(
     counter.flush()?;
     let bundle_bytes = counter.bytes() as usize;
     let bundle_hash = hash_file(&bundle_path)?;
+
+    // Deferred write: rewrite receipt.json with bundle audit
+    let receipt_audit =
+        tokmd_types::TokenAudit::from_output(bundle_bytes as u64, total_file_bytes as u64);
+    let mut receipt = receipt;
+    receipt.bundle_audit = Some(receipt_audit);
+    let receipt_json = serde_json::to_string_pretty(&receipt)?;
+    fs::write(&receipt_path, &receipt_json)
+        .with_context(|| format!("Failed to rewrite receipt: {}", receipt_path.display()))?;
 
     // Build artifacts list
     let artifacts = vec![
@@ -618,7 +628,8 @@ fn write_bundle_directory(
     let manifest_path = dir.join("manifest.json");
     let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
     let bundle_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
-    let bundle_audit = tokmd_types::TokenAudit::from_actual(bundle_bytes, total_file_bytes, 4.0);
+    let bundle_audit =
+        tokmd_types::TokenAudit::from_output(bundle_bytes as u64, total_file_bytes as u64);
     let manifest = ContextBundleManifest {
         schema_version: CONTEXT_BUNDLE_SCHEMA_VERSION,
         generated_at_ms: now_ms,

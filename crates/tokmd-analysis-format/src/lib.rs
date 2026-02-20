@@ -517,24 +517,29 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             }
         }
         if !git.coupling.is_empty() {
-            out.push_str("### Coupling\n\n");
-            out.push_str("|Left|Right|Count|Jaccard|Lift|\n");
-            out.push_str("|---|---|---:|---:|---:|\n");
-            for row in git.coupling.iter().take(10) {
-                let jaccard = row
-                    .jaccard
-                    .map(|v| fmt_f64(v, 4))
-                    .unwrap_or_else(|| "-".to_string());
-                let lift = row
-                    .lift
-                    .map(|v| fmt_f64(v, 4))
-                    .unwrap_or_else(|| "-".to_string());
-                out.push_str(&format!(
-                    "|{}|{}|{}|{}|{}|\n",
-                    row.left, row.right, row.count, jaccard, lift
-                ));
+            // Minimum-support filter: only render rows with count >= 2 to prevent
+            // lift spikes on rare pairs. JSON always includes all rows.
+            let filtered: Vec<_> = git.coupling.iter().filter(|r| r.count >= 2).collect();
+            if !filtered.is_empty() {
+                out.push_str("### Coupling\n\n");
+                out.push_str("|Left|Right|Count|Jaccard|Lift|\n");
+                out.push_str("|---|---|---:|---:|---:|\n");
+                for row in filtered.iter().take(10) {
+                    let jaccard = row
+                        .jaccard
+                        .map(|v| fmt_f64(v, 4))
+                        .unwrap_or_else(|| "-".to_string());
+                    let lift = row
+                        .lift
+                        .map(|v| fmt_f64(v, 4))
+                        .unwrap_or_else(|| "-".to_string());
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|{}|\n",
+                        row.left, row.right, row.count, jaccard, lift
+                    ));
+                }
+                out.push('\n');
             }
-            out.push('\n');
         }
 
         if let Some(intent) = &git.intent {
@@ -562,10 +567,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 }
             }
             out.push_str(&format!("|**total**|{}|\n", o.total));
-            out.push_str(&format!(
-                "\n- Unknown: `{}`\n\n",
-                fmt_pct(intent.unknown_pct)
-            ));
+            out.push_str(&format!("\n- Unknown: `{}`\n", fmt_pct(intent.unknown_pct)));
+            if let Some(cr) = intent.corrective_ratio {
+                out.push_str(&format!(
+                    "- Corrective ratio (fix+revert/total): `{}`\n",
+                    fmt_pct(cr)
+                ));
+            }
+            out.push('\n');
 
             // Maintenance hotspots: modules with highest fix+revert share
             let mut maintenance: Vec<_> = intent
@@ -2434,6 +2443,8 @@ mod tests {
                 count: 10,
                 jaccard: Some(0.5),
                 lift: Some(1.2),
+                n_left: Some(15),
+                n_right: Some(12),
             }],
             age_distribution: Some(CodeAgeDistributionReport {
                 buckets: vec![CodeAgeBucket {

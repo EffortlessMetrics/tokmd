@@ -135,6 +135,28 @@ pub enum ScanStatus {
     Partial,
 }
 
+/// Classification of a commit's intent, derived from subject line.
+///
+/// Lives in `tokmd-types` (Tier 0) so that both `tokmd-git` (Tier 2) and
+/// `tokmd-analysis-types` (Tier 0) can reference it without creating
+/// upward dependency edges.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommitIntentKind {
+    Feat,
+    Fix,
+    Refactor,
+    Docs,
+    Test,
+    Chore,
+    Ci,
+    Build,
+    Perf,
+    Style,
+    Revert,
+    Other,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ToolInfo {
     pub name: String,
@@ -495,60 +517,106 @@ pub const CONTEXT_SCHEMA_VERSION: u32 = 4;
 // Token estimation types
 // -----------------------
 
-/// Token estimation envelope with low/mid/high bounds.
+/// Metadata about how token estimates were produced.
 ///
-/// Provides uncertainty ranges based on a configurable bytes-per-token ratio.
-/// Default ratio is 4.0 bytes/token, with low (÷5) and high (÷3) bounds.
+/// Rails are NOT guaranteed bounds — they are heuristic fences.
+/// Default divisors: est=4.0, low=3.0 (conservative → more tokens),
+/// high=5.0 (optimistic → fewer tokens).
+///
+/// **Invariant**: `tokens_low >= tokens_est >= tokens_high`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenEstimationMeta {
-    /// Bytes-per-token ratio used for estimation.
-    pub bytes_per_token: f64,
-    /// Conservative estimate (ceil(bytes / 5.0)).
+    /// Divisor used for main estimate (default 4.0).
+    pub bytes_per_token_est: f64,
+    /// Conservative divisor — more tokens (default 3.0).
+    pub bytes_per_token_low: f64,
+    /// Optimistic divisor — fewer tokens (default 5.0).
+    pub bytes_per_token_high: f64,
+    /// tokens = source_bytes / bytes_per_token_low (conservative, most tokens).
     pub tokens_low: usize,
-    /// Mid estimate (ceil(bytes / bytes_per_token)).
+    /// tokens = source_bytes / bytes_per_token_est.
     pub tokens_est: usize,
-    /// Aggressive estimate (ceil(bytes / 3.0)).
+    /// tokens = source_bytes / bytes_per_token_high (optimistic, fewest tokens).
     pub tokens_high: usize,
-    /// Source byte count used for estimation.
+    /// Total source bytes used to compute estimates.
     pub source_bytes: usize,
 }
 
 impl TokenEstimationMeta {
-    /// Create estimation from source byte count and bytes-per-token ratio.
+    /// Default bytes-per-token divisors.
+    pub const DEFAULT_BPT_EST: f64 = 4.0;
+    pub const DEFAULT_BPT_LOW: f64 = 3.0;
+    pub const DEFAULT_BPT_HIGH: f64 = 5.0;
+
+    /// Create estimation from source byte count using default divisors.
     pub fn from_bytes(bytes: usize, bpt: f64) -> Self {
+        Self::from_bytes_with_bounds(bytes, bpt, Self::DEFAULT_BPT_LOW, Self::DEFAULT_BPT_HIGH)
+    }
+
+    /// Create estimation from source byte count with explicit low/high divisors.
+    pub fn from_bytes_with_bounds(bytes: usize, bpt_est: f64, bpt_low: f64, bpt_high: f64) -> Self {
         Self {
-            bytes_per_token: bpt,
-            tokens_low: (bytes as f64 / 5.0).ceil() as usize,
-            tokens_est: (bytes as f64 / bpt).ceil() as usize,
-            tokens_high: (bytes as f64 / 3.0).ceil() as usize,
+            bytes_per_token_est: bpt_est,
+            bytes_per_token_low: bpt_low,
+            bytes_per_token_high: bpt_high,
+            tokens_low: (bytes as f64 / bpt_low).ceil() as usize,
+            tokens_est: (bytes as f64 / bpt_est).ceil() as usize,
+            tokens_high: (bytes as f64 / bpt_high).ceil() as usize,
             source_bytes: bytes,
         }
     }
 }
 
-/// Post-bundle audit comparing actual bundle bytes to source estimates.
+/// Post-write audit comparing actual output to estimates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenAudit {
-    /// Actual bytes in the bundle artifact.
-    pub actual_bytes: usize,
-    /// Token estimation derived from actual bytes.
-    pub actual_tokens: TokenEstimationMeta,
-    /// Ratio: actual_bytes / estimated_source_bytes.
-    pub byte_ratio: f64,
+    /// Actual bytes written to the output bundle.
+    pub output_bytes: u64,
+    /// tokens = output_bytes / bytes_per_token_low (conservative, most tokens).
+    pub tokens_low: usize,
+    /// tokens = output_bytes / bytes_per_token_est.
+    pub tokens_est: usize,
+    /// tokens = output_bytes / bytes_per_token_high (optimistic, fewest tokens).
+    pub tokens_high: usize,
+    /// Bytes of framing/separators/headers (output_bytes - content_bytes).
+    pub overhead_bytes: u64,
+    /// overhead_bytes / output_bytes (0.0-1.0).
+    pub overhead_pct: f64,
 }
 
 impl TokenAudit {
-    /// Create an audit from actual bundle bytes and estimated source bytes.
-    pub fn from_actual(actual_bytes: usize, estimated_source_bytes: usize, bpt: f64) -> Self {
-        let byte_ratio = if estimated_source_bytes > 0 {
-            actual_bytes as f64 / estimated_source_bytes as f64
+    /// Create an audit from output bytes and content bytes.
+    pub fn from_output(output_bytes: u64, content_bytes: u64) -> Self {
+        Self::from_output_with_divisors(
+            output_bytes,
+            content_bytes,
+            TokenEstimationMeta::DEFAULT_BPT_EST,
+            TokenEstimationMeta::DEFAULT_BPT_LOW,
+            TokenEstimationMeta::DEFAULT_BPT_HIGH,
+        )
+    }
+
+    /// Create an audit from output bytes with explicit divisors.
+    pub fn from_output_with_divisors(
+        output_bytes: u64,
+        content_bytes: u64,
+        bpt_est: f64,
+        bpt_low: f64,
+        bpt_high: f64,
+    ) -> Self {
+        let overhead_bytes = output_bytes.saturating_sub(content_bytes);
+        let overhead_pct = if output_bytes > 0 {
+            overhead_bytes as f64 / output_bytes as f64
         } else {
             0.0
         };
         Self {
-            actual_bytes,
-            actual_tokens: TokenEstimationMeta::from_bytes(actual_bytes, bpt),
-            byte_ratio,
+            output_bytes,
+            tokens_low: (output_bytes as f64 / bpt_low).ceil() as usize,
+            tokens_est: (output_bytes as f64 / bpt_est).ceil() as usize,
+            tokens_high: (output_bytes as f64 / bpt_high).ceil() as usize,
+            overhead_bytes,
+            overhead_pct,
         }
     }
 }

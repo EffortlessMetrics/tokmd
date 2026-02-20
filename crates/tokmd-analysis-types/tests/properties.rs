@@ -537,7 +537,7 @@ proptest! {
         right in "[a-z/]{5,20}",
         count in 0usize..100
     ) {
-        let row = CouplingRow { left, right, count, jaccard: Some(0.5), lift: Some(1.2) };
+        let row = CouplingRow { left, right, count, jaccard: Some(0.5), lift: Some(1.2), n_left: Some(10), n_right: Some(8) };
 
         let json = serde_json::to_string(&row).expect("serialize");
         let parsed: CouplingRow = serde_json::from_str(&json).expect("deserialize");

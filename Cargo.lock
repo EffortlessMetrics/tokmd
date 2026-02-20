@@ -3189,7 +3189,7 @@ dependencies = [
  "anyhow",
  "proptest",
  "tempfile",
- "tokmd-analysis-types",
+ "tokmd-types",
 ]
 
 [[package]]
