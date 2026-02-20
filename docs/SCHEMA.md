@@ -18,13 +18,13 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | Receipt Family | Current Version | Constant | Applies To |
 |----------------|-----------------|----------|------------|
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `run` |
-| **Context** | 3 | `CONTEXT_SCHEMA_VERSION` | `context` receipt |
+| **Context** | 4 | `CONTEXT_SCHEMA_VERSION` | `context` receipt |
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
-| **Analysis** | 5 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
+| **Analysis** | 7 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | (local) | `cockpit` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
-| **Handoff** | 4 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
+| **Handoff** | 5 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
 
 ### Version Changelog
 
@@ -39,6 +39,8 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 | Version | Changes |
 |---------|---------|
+| **7** | Coupling normalization (Jaccard similarity, Lift), commit intent classification, near-duplicate detection report |
+| **6** | Added API surface enricher (`api_surface` report with public export ratios per language) |
 | **5** | Added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution enrichers |
 | **4** | Added cognitive complexity, nesting depth, and function-level details to `ComplexityReport` |
 | **3** | Added `complexity` section with cyclomatic complexity metrics |
@@ -62,22 +64,30 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 |---------|---------|
 | **1** | Initial baseline format with complexity tracking (`ComplexityBaseline`) and determinism verification (`DeterminismBaseline`) |
 
+#### Context Receipts (`CONTEXT_SCHEMA_VERSION`)
+
+| Version | Changes |
+|---------|---------|
+| **4** | Added `token_estimation` metadata with min/est/max token ranges and divisor fields; added `bundle_audit` section |
+| **3** | Initial standalone context schema (split from core `SCHEMA_VERSION`) |
+
 #### Handoff Manifest
 
 | Version | Changes |
 |---------|---------|
+| **5** | Added `token_estimation` with explicit divisor fields (`bytes_per_token_low`, `bytes_per_token_high`) and `code_audit` metadata |
 | **4** | Added `rank_by_effective`, `fallback_reason`, `excluded_by_policy` to manifest; added `policy`, `effective_tokens`, `classifications` to file rows; added `PolicyExcludedFile` type |
 | **3** | Added `output_dir`, formalized manifest schema (see `docs/handoff.schema.json`) |
 
 ### Code References
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
-- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 5;`
+- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;`
 - **Cockpit**: `crates/tokmd/src/commands/cockpit.rs` - `const SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
-- **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 4;`
-- **Context**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_SCHEMA_VERSION: u32 = 3;`
+- **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
+- **Context**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_SCHEMA_VERSION: u32 = 4;`
 - **Context Bundle**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;`
 
 ### Canonical vs Backward Compatibility
@@ -422,7 +432,7 @@ The `total` object in language and module receipts contains aggregate metrics:
 
 Produced by `tokmd analyze --format json`.
 
-**Schema version**: 5
+**Schema version**: 7
 
 Analysis receipts contain derived metrics and optional enrichments. All sections except `source`, `args`, and `derived` are optional based on the preset used.
 
@@ -430,7 +440,7 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 
 ```json
 {
-  "schema_version": 5,
+  "schema_version": 7,
   "generated_at_ms": 1706350000000,
   "tool": { "name": "tokmd", "version": "1.6.0" },
   "mode": "analysis",

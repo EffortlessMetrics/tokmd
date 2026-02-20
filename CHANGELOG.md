@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Near-duplicate detection in analysis reports (`--near-dup-enabled`, `--near-dup-threshold`, `--near-dup-scope`)
+- Commit intent classification in analysis git reports
+- Coupling metrics: Jaccard similarity and Lift in analysis coupling reports
+- `hash` field on `GitCommit` for commit SHA identification
+- Explicit token estimation divisor fields (`bytes_per_token_low`, `bytes_per_token_high`)
+- Serde alias tests locking backward compatibility of `tokens_min`/`tokens_max` renames
+
+### Changed
+
+- Renamed `tokens_low`/`tokens_high` → `tokens_min`/`tokens_max` with backward-compatible serde aliases
+- Analysis schema version: 6 → 7
+
+### Fixed
+
+- Cockpit verdict rendering: exhaustive `GateStatus` match instead of wildcard catch-all
+
 ## [1.6.3] - 2026-02-17
 
 ### Added

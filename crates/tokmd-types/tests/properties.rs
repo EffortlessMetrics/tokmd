@@ -382,9 +382,15 @@ fn token_estimation_meta_old_field_aliases() {
     let parsed: TokenEstimationMeta =
         serde_json::from_value(json).expect("deserialize with old field names");
 
-    assert_eq!(parsed.tokens_min, 200, "tokens_high should alias to tokens_min");
+    assert_eq!(
+        parsed.tokens_min, 200,
+        "tokens_high should alias to tokens_min"
+    );
     assert_eq!(parsed.tokens_est, 250);
-    assert_eq!(parsed.tokens_max, 334, "tokens_low should alias to tokens_max");
+    assert_eq!(
+        parsed.tokens_max, 334,
+        "tokens_low should alias to tokens_max"
+    );
     assert_eq!(parsed.source_bytes, 1000);
     assert!((parsed.bytes_per_token_est - 4.0).abs() < f64::EPSILON);
     assert!((parsed.bytes_per_token_low - 3.0).abs() < f64::EPSILON);
@@ -398,10 +404,22 @@ fn token_estimation_meta_roundtrip() {
     let json_str = serde_json::to_string(&meta).expect("serialize");
 
     // New field names must appear in serialized output.
-    assert!(json_str.contains("\"tokens_min\""), "should serialize as tokens_min");
-    assert!(json_str.contains("\"tokens_max\""), "should serialize as tokens_max");
-    assert!(!json_str.contains("\"tokens_high\""), "old name tokens_high must not appear");
-    assert!(!json_str.contains("\"tokens_low\""), "old name tokens_low must not appear");
+    assert!(
+        json_str.contains("\"tokens_min\""),
+        "should serialize as tokens_min"
+    );
+    assert!(
+        json_str.contains("\"tokens_max\""),
+        "should serialize as tokens_max"
+    );
+    assert!(
+        !json_str.contains("\"tokens_high\""),
+        "old name tokens_high must not appear"
+    );
+    assert!(
+        !json_str.contains("\"tokens_low\""),
+        "old name tokens_low must not appear"
+    );
 
     let parsed: TokenEstimationMeta =
         serde_json::from_str(&json_str).expect("deserialize roundtrip");
@@ -434,9 +452,15 @@ fn token_audit_old_field_aliases() {
     let parsed: TokenAudit =
         serde_json::from_value(json).expect("deserialize with old field names");
 
-    assert_eq!(parsed.tokens_min, 1000, "tokens_high should alias to tokens_min");
+    assert_eq!(
+        parsed.tokens_min, 1000,
+        "tokens_high should alias to tokens_min"
+    );
     assert_eq!(parsed.tokens_est, 1250);
-    assert_eq!(parsed.tokens_max, 1667, "tokens_low should alias to tokens_max");
+    assert_eq!(
+        parsed.tokens_max, 1667,
+        "tokens_low should alias to tokens_max"
+    );
     assert_eq!(parsed.output_bytes, 5000);
     assert_eq!(parsed.overhead_bytes, 200);
     assert!((parsed.overhead_pct - 0.04).abs() < f64::EPSILON);
@@ -449,10 +473,22 @@ fn token_audit_roundtrip() {
     let json_str = serde_json::to_string(&audit).expect("serialize");
 
     // New field names must appear in serialized output.
-    assert!(json_str.contains("\"tokens_min\""), "should serialize as tokens_min");
-    assert!(json_str.contains("\"tokens_max\""), "should serialize as tokens_max");
-    assert!(!json_str.contains("\"tokens_high\""), "old name tokens_high must not appear");
-    assert!(!json_str.contains("\"tokens_low\""), "old name tokens_low must not appear");
+    assert!(
+        json_str.contains("\"tokens_min\""),
+        "should serialize as tokens_min"
+    );
+    assert!(
+        json_str.contains("\"tokens_max\""),
+        "should serialize as tokens_max"
+    );
+    assert!(
+        !json_str.contains("\"tokens_high\""),
+        "old name tokens_high must not appear"
+    );
+    assert!(
+        !json_str.contains("\"tokens_low\""),
+        "old name tokens_low must not appear"
+    );
 
     let parsed: TokenAudit = serde_json::from_str(&json_str).expect("deserialize roundtrip");
 
