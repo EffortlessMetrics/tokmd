@@ -523,7 +523,7 @@ pub const CONTEXT_SCHEMA_VERSION: u32 = 4;
 /// Default divisors: est=4.0, low=3.0 (conservative → more tokens),
 /// high=5.0 (optimistic → fewer tokens).
 ///
-/// **Invariant**: `tokens_low >= tokens_est >= tokens_high`.
+/// **Invariant**: `tokens_min <= tokens_est <= tokens_max`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenEstimationMeta {
     /// Divisor used for main estimate (default 4.0).
@@ -532,12 +532,14 @@ pub struct TokenEstimationMeta {
     pub bytes_per_token_low: f64,
     /// Optimistic divisor — fewer tokens (default 5.0).
     pub bytes_per_token_high: f64,
-    /// tokens = source_bytes / bytes_per_token_low (conservative, most tokens).
-    pub tokens_low: usize,
+    /// tokens = source_bytes / bytes_per_token_high (optimistic, fewest tokens).
+    #[serde(alias = "tokens_high")]
+    pub tokens_min: usize,
     /// tokens = source_bytes / bytes_per_token_est.
     pub tokens_est: usize,
-    /// tokens = source_bytes / bytes_per_token_high (optimistic, fewest tokens).
-    pub tokens_high: usize,
+    /// tokens = source_bytes / bytes_per_token_low (conservative, most tokens).
+    #[serde(alias = "tokens_low")]
+    pub tokens_max: usize,
     /// Total source bytes used to compute estimates.
     pub source_bytes: usize,
 }
@@ -559,9 +561,9 @@ impl TokenEstimationMeta {
             bytes_per_token_est: bpt_est,
             bytes_per_token_low: bpt_low,
             bytes_per_token_high: bpt_high,
-            tokens_low: (bytes as f64 / bpt_low).ceil() as usize,
+            tokens_min: (bytes as f64 / bpt_high).ceil() as usize,
             tokens_est: (bytes as f64 / bpt_est).ceil() as usize,
-            tokens_high: (bytes as f64 / bpt_high).ceil() as usize,
+            tokens_max: (bytes as f64 / bpt_low).ceil() as usize,
             source_bytes: bytes,
         }
     }
@@ -572,12 +574,14 @@ impl TokenEstimationMeta {
 pub struct TokenAudit {
     /// Actual bytes written to the output bundle.
     pub output_bytes: u64,
-    /// tokens = output_bytes / bytes_per_token_low (conservative, most tokens).
-    pub tokens_low: usize,
+    /// tokens = output_bytes / bytes_per_token_high (optimistic, fewest tokens).
+    #[serde(alias = "tokens_high")]
+    pub tokens_min: usize,
     /// tokens = output_bytes / bytes_per_token_est.
     pub tokens_est: usize,
-    /// tokens = output_bytes / bytes_per_token_high (optimistic, fewest tokens).
-    pub tokens_high: usize,
+    /// tokens = output_bytes / bytes_per_token_low (conservative, most tokens).
+    #[serde(alias = "tokens_low")]
+    pub tokens_max: usize,
     /// Bytes of framing/separators/headers (output_bytes - content_bytes).
     pub overhead_bytes: u64,
     /// overhead_bytes / output_bytes (0.0-1.0).
@@ -612,9 +616,9 @@ impl TokenAudit {
         };
         Self {
             output_bytes,
-            tokens_low: (output_bytes as f64 / bpt_low).ceil() as usize,
+            tokens_min: (output_bytes as f64 / bpt_high).ceil() as usize,
             tokens_est: (output_bytes as f64 / bpt_est).ceil() as usize,
-            tokens_high: (output_bytes as f64 / bpt_high).ceil() as usize,
+            tokens_max: (output_bytes as f64 / bpt_low).ceil() as usize,
             overhead_bytes,
             overhead_pct,
         }

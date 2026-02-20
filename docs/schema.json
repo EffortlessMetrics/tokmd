@@ -1660,26 +1660,26 @@
     "TokenEstimationMeta": {
       "type": "object",
       "description": "Token estimation metadata with explicit divisors and low/est/high range.",
-      "required": ["bytes_per_token_est", "bytes_per_token_low", "bytes_per_token_high", "tokens_low", "tokens_est", "tokens_high", "source_bytes"],
+      "required": ["bytes_per_token_est", "bytes_per_token_low", "bytes_per_token_high", "tokens_min", "tokens_est", "tokens_max", "source_bytes"],
       "properties": {
         "bytes_per_token_est": { "type": "number", "description": "Divisor used for main estimate (default 4.0)." },
         "bytes_per_token_low": { "type": "number", "description": "Conservative divisor — more tokens (default 3.0)." },
         "bytes_per_token_high": { "type": "number", "description": "Optimistic divisor — fewer tokens (default 5.0)." },
-        "tokens_low": { "type": "integer", "minimum": 0, "description": "Conservative estimate (most tokens)." },
+        "tokens_min": { "type": "integer", "minimum": 0, "description": "Optimistic estimate (fewest tokens)." },
         "tokens_est": { "type": "integer", "minimum": 0 },
-        "tokens_high": { "type": "integer", "minimum": 0, "description": "Optimistic estimate (fewest tokens)." },
+        "tokens_max": { "type": "integer", "minimum": 0, "description": "Conservative estimate (most tokens)." },
         "source_bytes": { "type": "integer", "minimum": 0 }
       }
     },
     "TokenAudit": {
       "type": "object",
       "description": "Post-write audit comparing actual output to estimates.",
-      "required": ["output_bytes", "tokens_low", "tokens_est", "tokens_high", "overhead_bytes", "overhead_pct"],
+      "required": ["output_bytes", "tokens_min", "tokens_est", "tokens_max", "overhead_bytes", "overhead_pct"],
       "properties": {
         "output_bytes": { "type": "integer", "minimum": 0, "description": "Actual bytes written to the output bundle." },
-        "tokens_low": { "type": "integer", "minimum": 0 },
+        "tokens_min": { "type": "integer", "minimum": 0 },
         "tokens_est": { "type": "integer", "minimum": 0 },
-        "tokens_high": { "type": "integer", "minimum": 0 },
+        "tokens_max": { "type": "integer", "minimum": 0 },
         "overhead_bytes": { "type": "integer", "minimum": 0, "description": "Bytes of framing/separators/headers." },
         "overhead_pct": { "type": "number", "minimum": 0, "maximum": 1, "description": "Overhead ratio (0.0-1.0)." }
       }
