@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
+pub use tokmd_analysis_types::CommitIntentKind;
 
 /// Create a `Command` for git with process-environment isolation.
 ///
@@ -36,6 +37,7 @@ fn git_cmd() -> Command {
 pub struct GitCommit {
     pub timestamp: i64,
     pub author: String,
+    pub subject: String,
     pub files: Vec<String>,
 }
 
@@ -98,7 +100,7 @@ pub fn collect_history(
         .arg(repo_root)
         .arg("log")
         .arg("--name-only")
-        .arg("--pretty=format:%ct|%ae")
+        .arg("--pretty=format:%ct|%ae|%s")
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
@@ -123,12 +125,14 @@ pub fn collect_history(
         }
 
         if current.is_none() {
-            let mut parts = line.splitn(2, '|');
+            let mut parts = line.splitn(3, '|');
             let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
             let author = parts.next().unwrap_or("").to_string();
+            let subject = parts.next().unwrap_or("").to_string();
             current = Some(GitCommit {
                 timestamp: ts,
                 author,
+                subject,
                 files: Vec::new(),
             });
             continue;
@@ -291,6 +295,125 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
     }
 
     None
+}
+
+// -----------------------
+// Commit intent classification
+// -----------------------
+
+/// Classify a commit subject line into an intent kind.
+///
+/// Uses a two-stage pipeline:
+/// 1. **Conventional Commits**: Parse `type(scope)!: description` prefix
+/// 2. **Keyword heuristic**: Match known keywords in the subject
+pub fn classify_intent(subject: &str) -> CommitIntentKind {
+    let trimmed = subject.trim();
+    if trimmed.is_empty() {
+        return CommitIntentKind::Other;
+    }
+
+    // Check for revert pattern first
+    if trimmed.starts_with("Revert \"") || trimmed.starts_with("revert:") {
+        return CommitIntentKind::Revert;
+    }
+
+    // Try conventional commit parsing
+    if let Some(kind) = parse_conventional_prefix(trimmed) {
+        return kind;
+    }
+
+    // Fall back to keyword heuristic
+    keyword_heuristic(trimmed)
+}
+
+/// Parse a conventional commit prefix like `feat(scope)!: description`.
+fn parse_conventional_prefix(subject: &str) -> Option<CommitIntentKind> {
+    let colon_pos = subject.find(':')?;
+    let prefix = &subject[..colon_pos];
+
+    // Strip optional (scope) and trailing !
+    let prefix = if let Some(paren_pos) = prefix.find('(') {
+        &prefix[..paren_pos]
+    } else {
+        prefix
+    };
+    let prefix = prefix.trim_end_matches('!');
+
+    match prefix.to_ascii_lowercase().as_str() {
+        "feat" | "feature" => Some(CommitIntentKind::Feat),
+        "fix" | "bugfix" | "hotfix" => Some(CommitIntentKind::Fix),
+        "refactor" => Some(CommitIntentKind::Refactor),
+        "docs" | "doc" => Some(CommitIntentKind::Docs),
+        "test" | "tests" => Some(CommitIntentKind::Test),
+        "chore" => Some(CommitIntentKind::Chore),
+        "ci" => Some(CommitIntentKind::Ci),
+        "build" => Some(CommitIntentKind::Build),
+        "perf" => Some(CommitIntentKind::Perf),
+        "style" => Some(CommitIntentKind::Style),
+        "revert" => Some(CommitIntentKind::Revert),
+        _ => None,
+    }
+}
+
+/// Keyword-based heuristic for commit intent classification.
+fn keyword_heuristic(subject: &str) -> CommitIntentKind {
+    let lower = subject.to_ascii_lowercase();
+
+    // Ordered by priority: more specific matches first
+    if contains_word(&lower, "revert") {
+        CommitIntentKind::Revert
+    } else if contains_word(&lower, "fix")
+        || contains_word(&lower, "bug")
+        || contains_word(&lower, "patch")
+        || contains_word(&lower, "hotfix")
+    {
+        CommitIntentKind::Fix
+    } else if contains_word(&lower, "feat")
+        || contains_word(&lower, "feature")
+        || lower.starts_with("add ")
+        || lower.starts_with("implement ")
+        || lower.starts_with("introduce ")
+    {
+        CommitIntentKind::Feat
+    } else if contains_word(&lower, "refactor") || contains_word(&lower, "restructure") {
+        CommitIntentKind::Refactor
+    } else if contains_word(&lower, "doc") || contains_word(&lower, "readme") {
+        CommitIntentKind::Docs
+    } else if contains_word(&lower, "test") {
+        CommitIntentKind::Test
+    } else if contains_word(&lower, "perf")
+        || contains_word(&lower, "performance")
+        || contains_word(&lower, "optimize")
+    {
+        CommitIntentKind::Perf
+    } else if contains_word(&lower, "style")
+        || contains_word(&lower, "format")
+        || contains_word(&lower, "lint")
+    {
+        CommitIntentKind::Style
+    } else if contains_word(&lower, "ci") || contains_word(&lower, "pipeline") {
+        CommitIntentKind::Ci
+    } else if contains_word(&lower, "build") || contains_word(&lower, "deps") {
+        CommitIntentKind::Build
+    } else if contains_word(&lower, "chore") || contains_word(&lower, "cleanup") {
+        CommitIntentKind::Chore
+    } else {
+        CommitIntentKind::Other
+    }
+}
+
+/// Check if a word appears as a word boundary match in the subject.
+fn contains_word(haystack: &str, word: &str) -> bool {
+    for (idx, _) in haystack.match_indices(word) {
+        let before_ok = idx == 0 || !haystack.as_bytes()[idx - 1].is_ascii_alphanumeric();
+        let after_idx = idx + word.len();
+        let after_ok =
+            after_idx >= haystack.len() || !haystack.as_bytes()[after_idx].is_ascii_alphanumeric();
+        if before_ok && after_ok {
+            return true;
+        }
+    }
+    false
 }
 
 #[cfg(test)]

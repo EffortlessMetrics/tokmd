@@ -318,6 +318,10 @@ pub fn analyze_workflow(
         git: analyze.git,
         import_granularity: granularity,
         detail_functions: false,
+        near_dup: false,
+        near_dup_threshold: 0.80,
+        near_dup_max_files: 2000,
+        near_dup_scope: analysis::NearDupScope::Module,
     };
 
     let root = derive_analysis_root(scan)

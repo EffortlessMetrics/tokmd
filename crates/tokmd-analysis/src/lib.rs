@@ -40,10 +40,13 @@ mod git;
 mod halstead;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod license;
+#[cfg(feature = "content")]
+mod near_dup;
 mod topics;
 mod util;
 
 pub use analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
+pub use tokmd_analysis_types::NearDupScope;
 pub use util::normalize_root;

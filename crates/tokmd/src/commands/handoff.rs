@@ -200,6 +200,12 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         },
     ];
 
+    // Compute token estimation and audit
+    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
+    let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
+    let code_audit =
+        tokmd_types::TokenAudit::from_actual(code_bytes as usize, total_file_bytes, 4.0);
+
     // Write manifest.json
     let manifest = HandoffManifest {
         schema_version: HANDOFF_SCHEMA_VERSION,
@@ -233,6 +239,8 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         },
         fallback_reason: select_result.fallback_reason.clone(),
         excluded_by_policy: select_result.excluded_by_policy.clone(),
+        token_estimation: Some(token_estimation),
+        code_audit: Some(code_audit),
     };
 
     let manifest_path = args.out_dir.join("manifest.json");

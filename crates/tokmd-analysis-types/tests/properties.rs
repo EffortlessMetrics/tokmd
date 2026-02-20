@@ -537,7 +537,7 @@ proptest! {
         right in "[a-z/]{5,20}",
         count in 0usize..100
     ) {
-        let row = CouplingRow { left, right, count };
+        let row = CouplingRow { left, right, count, jaccard: Some(0.5), lift: Some(1.2) };
 
         let json = serde_json::to_string(&row).expect("serialize");
         let parsed: CouplingRow = serde_json::from_str(&json).expect("deserialize");
@@ -545,6 +545,8 @@ proptest! {
         prop_assert_eq!(row.left, parsed.left);
         prop_assert_eq!(row.right, parsed.right);
         prop_assert_eq!(row.count, parsed.count);
+        prop_assert_eq!(row.jaccard, parsed.jaccard);
+        prop_assert_eq!(row.lift, parsed.lift);
     }
 
     /// ImportEdge round-trips through JSON.

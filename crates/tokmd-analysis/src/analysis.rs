@@ -4,7 +4,8 @@ use anyhow::Result;
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
     ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
-    FunReport, GitReport, ImportReport, LicenseReport, PredictiveChurnReport, TopicClouds,
+    FunReport, GitReport, ImportReport, LicenseReport, NearDupScope, PredictiveChurnReport,
+    TopicClouds,
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
@@ -72,6 +73,14 @@ pub struct AnalysisRequest {
     pub git: Option<bool>,
     pub import_granularity: ImportGranularity,
     pub detail_functions: bool,
+    /// Enable near-duplicate detection.
+    pub near_dup: bool,
+    /// Near-duplicate similarity threshold (0.0–1.0).
+    pub near_dup_threshold: f64,
+    /// Maximum files to analyze for near-duplicates.
+    pub near_dup_max_files: usize,
+    /// Near-duplicate comparison scope.
+    pub near_dup_scope: NearDupScope,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -502,6 +511,39 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "content"))]
         warnings.push("content feature disabled; skipping duplication scan".to_string());
+    }
+
+    // Near-duplicate detection (opt-in via --near-dup)
+    if req.near_dup {
+        #[cfg(feature = "content")]
+        {
+            match crate::near_dup::build_near_dup_report(
+                &ctx.root,
+                &ctx.export,
+                req.near_dup_scope,
+                req.near_dup_threshold,
+                req.near_dup_max_files,
+                &req.limits,
+            ) {
+                Ok(report) => {
+                    // Attach to existing dup report or create a minimal one
+                    if let Some(ref mut d) = dup {
+                        d.near = Some(report);
+                    } else {
+                        dup = Some(DuplicateReport {
+                            groups: Vec::new(),
+                            wasted_bytes: 0,
+                            strategy: "none".to_string(),
+                            density: None,
+                            near: Some(report),
+                        });
+                    }
+                }
+                Err(err) => warnings.push(format!("near-dup scan failed: {}", err)),
+            }
+        }
+        #[cfg(not(feature = "content"))]
+        warnings.push("content feature disabled; skipping near-dup scan".to_string());
     }
 
     if plan.imports {

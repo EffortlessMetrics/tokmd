@@ -13,6 +13,7 @@ documentation = "https://docs.rs/tokmd-git"
 
 [dependencies]
 anyhow = "1.0.101"
+tokmd-analysis-types = { path = "../tokmd-analysis-types" }
 
 [dev-dependencies]
 proptest = "1.10.0"

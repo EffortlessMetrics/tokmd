@@ -1,5 +1,6 @@
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ExportData, FileKind, FileRow};
@@ -101,6 +102,10 @@ fn derived_metrics_basic() {
         git: None,
         import_granularity: ImportGranularity::Module,
         detail_functions: false,
+        near_dup: false,
+        near_dup_threshold: 0.80,
+        near_dup_max_files: 2000,
+        near_dup_scope: NearDupScope::Module,
     };
 
     let receipt = analyze(ctx, request).expect("analysis");

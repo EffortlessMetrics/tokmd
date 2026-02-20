@@ -88,16 +88,19 @@ mod tests {
             tokmd_git::GitCommit {
                 timestamp: 0,
                 author: "alice@gmail.com".to_string(),
+                subject: String::new(),
                 files: vec![],
             },
             tokmd_git::GitCommit {
                 timestamp: 0,
                 author: "bob@acme.com".to_string(),
+                subject: String::new(),
                 files: vec![],
             },
             tokmd_git::GitCommit {
                 timestamp: 0,
                 author: "carol@acme.com".to_string(),
+                subject: String::new(),
                 files: vec![],
             },
         ];

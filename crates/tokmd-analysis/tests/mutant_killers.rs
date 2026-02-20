@@ -3,7 +3,8 @@
 //! These tests verify specific calculated values, not just that functions run.
 
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_config::ChildIncludeMode;
@@ -51,6 +52,10 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
         git: None,
         import_granularity: ImportGranularity::Module,
         detail_functions: false,
+        near_dup: false,
+        near_dup_threshold: 0.80,
+        near_dup_max_files: 2000,
+        near_dup_scope: NearDupScope::Module,
     }
 }
 

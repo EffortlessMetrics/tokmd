@@ -296,6 +296,12 @@ pub struct ContextReceipt {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_audit: Option<TokenAudit>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -477,13 +483,75 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
-pub const HANDOFF_SCHEMA_VERSION: u32 = 4;
+pub const HANDOFF_SCHEMA_VERSION: u32 = 5;
 
 /// Schema version for context bundle manifests.
 pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;
 
 /// Schema version for context receipts (separate from SCHEMA_VERSION used by lang/module/export/diff).
-pub const CONTEXT_SCHEMA_VERSION: u32 = 3;
+pub const CONTEXT_SCHEMA_VERSION: u32 = 4;
+
+// -----------------------
+// Token estimation types
+// -----------------------
+
+/// Token estimation envelope with low/mid/high bounds.
+///
+/// Provides uncertainty ranges based on a configurable bytes-per-token ratio.
+/// Default ratio is 4.0 bytes/token, with low (÷5) and high (÷3) bounds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenEstimationMeta {
+    /// Bytes-per-token ratio used for estimation.
+    pub bytes_per_token: f64,
+    /// Conservative estimate (ceil(bytes / 5.0)).
+    pub tokens_low: usize,
+    /// Mid estimate (ceil(bytes / bytes_per_token)).
+    pub tokens_est: usize,
+    /// Aggressive estimate (ceil(bytes / 3.0)).
+    pub tokens_high: usize,
+    /// Source byte count used for estimation.
+    pub source_bytes: usize,
+}
+
+impl TokenEstimationMeta {
+    /// Create estimation from source byte count and bytes-per-token ratio.
+    pub fn from_bytes(bytes: usize, bpt: f64) -> Self {
+        Self {
+            bytes_per_token: bpt,
+            tokens_low: (bytes as f64 / 5.0).ceil() as usize,
+            tokens_est: (bytes as f64 / bpt).ceil() as usize,
+            tokens_high: (bytes as f64 / 3.0).ceil() as usize,
+            source_bytes: bytes,
+        }
+    }
+}
+
+/// Post-bundle audit comparing actual bundle bytes to source estimates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAudit {
+    /// Actual bytes in the bundle artifact.
+    pub actual_bytes: usize,
+    /// Token estimation derived from actual bytes.
+    pub actual_tokens: TokenEstimationMeta,
+    /// Ratio: actual_bytes / estimated_source_bytes.
+    pub byte_ratio: f64,
+}
+
+impl TokenAudit {
+    /// Create an audit from actual bundle bytes and estimated source bytes.
+    pub fn from_actual(actual_bytes: usize, estimated_source_bytes: usize, bpt: f64) -> Self {
+        let byte_ratio = if estimated_source_bytes > 0 {
+            actual_bytes as f64 / estimated_source_bytes as f64
+        } else {
+            0.0
+        };
+        Self {
+            actual_bytes,
+            actual_tokens: TokenEstimationMeta::from_bytes(actual_bytes, bpt),
+            byte_ratio,
+        }
+    }
+}
 
 // -----------------------
 // Bundle hygiene types
@@ -571,6 +639,12 @@ pub struct HandoffManifest {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual code bundle bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code_audit: Option<TokenAudit>,
 }
 
 /// A file excluded by smart-exclude heuristics (lockfiles, minified, etc.).
@@ -608,6 +682,12 @@ pub struct ContextBundleManifest {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual bundle bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_audit: Option<TokenAudit>,
 }
 
 /// Explicitly excluded path with reason for context bundles.

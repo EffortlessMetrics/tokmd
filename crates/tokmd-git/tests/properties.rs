@@ -44,10 +44,10 @@ fn arb_author_email() -> impl Strategy<Value = String> {
     ]
 }
 
-/// Strategy for generating git log header lines in the "%ct|%ae" format.
+/// Strategy for generating git log header lines in the "%ct|%ae|%s" format.
 fn arb_git_log_line() -> impl Strategy<Value = String> {
-    (arb_valid_timestamp(), arb_author_email())
-        .prop_map(|(ts, author)| format!("{}|{}", ts, author))
+    (arb_valid_timestamp(), arb_author_email(), "[a-zA-Z0-9 _-]{0,50}")
+        .prop_map(|(ts, author, subject)| format!("{}|{}|{}", ts, author, subject))
 }
 
 /// Strategy for generating malformed git log lines.
@@ -55,9 +55,9 @@ fn arb_malformed_git_log_line() -> impl Strategy<Value = String> {
     prop_oneof![
         // Missing pipe
         arb_valid_timestamp(),
-        // Multiple pipes
-        (arb_valid_timestamp(), arb_author_email(), "[a-z]{1,10}")
-            .prop_map(|(ts, author, extra)| format!("{}|{}|{}", ts, author, extra)),
+        // Multiple pipes (now valid with 3-field format)
+        (arb_valid_timestamp(), arb_author_email(), "[a-z]{1,10}", "[a-z]{1,10}")
+            .prop_map(|(ts, author, subj, extra)| format!("{}|{}|{}|{}", ts, author, subj, extra)),
         // Empty string
         Just("".to_string()),
         // Only pipe
@@ -155,12 +155,13 @@ fn parse_diff_output(stdout: &str) -> BTreeMap<PathBuf, BTreeSet<usize>> {
 // ============================================================================
 
 /// Simulates the parsing logic from collect_history for a single header line.
-/// This mirrors the exact parsing in lib.rs: `line.splitn(2, '|')`
-fn parse_header_line(line: &str) -> (i64, String) {
-    let mut parts = line.splitn(2, '|');
+/// This mirrors the exact parsing in lib.rs: `line.splitn(3, '|')`
+fn parse_header_line(line: &str) -> (i64, String, String) {
+    let mut parts = line.splitn(3, '|');
     let ts = parts.next().unwrap_or("0").parse::<i64>().unwrap_or(0);
     let author = parts.next().unwrap_or("").to_string();
-    (ts, author)
+    let subject = parts.next().unwrap_or("").to_string();
+    (ts, author, subject)
 }
 
 /// Simulates the max_commit_files limit logic.
@@ -191,7 +192,7 @@ proptest! {
         author in arb_author_email()
     ) {
         let line = format!("{}|{}", ts, author);
-        let (parsed_ts, parsed_author) = parse_header_line(&line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(&line);
 
         prop_assert_eq!(parsed_ts, ts, "Timestamp should parse correctly");
         prop_assert_eq!(parsed_author, author, "Author should parse correctly");
@@ -204,7 +205,7 @@ proptest! {
         author in arb_author_email()
     ) {
         let line = format!("{}|{}", invalid_ts, author);
-        let (parsed_ts, parsed_author) = parse_header_line(&line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(&line);
 
         // Invalid timestamp should parse as 0 or a valid i64 (for "-1")
         // The key property is it doesn't panic and produces a valid i64
@@ -217,7 +218,7 @@ proptest! {
     #[test]
     fn empty_author_is_empty_string(ts in arb_valid_timestamp()) {
         let line = format!("{}|", ts);
-        let (_, parsed_author) = parse_header_line(&line);
+        let (_, parsed_author, _) = parse_header_line(&line);
 
         prop_assert_eq!(parsed_author, "", "Empty author should be empty string");
     }
@@ -226,7 +227,7 @@ proptest! {
     #[test]
     fn missing_pipe_produces_empty_author(ts in arb_valid_timestamp()) {
         let line = ts.clone();
-        let (parsed_ts, parsed_author) = parse_header_line(&line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(&line);
 
         // The timestamp string itself becomes the "timestamp" and author is ""
         let expected_ts = ts.parse::<i64>().unwrap_or(0);
@@ -239,7 +240,7 @@ proptest! {
     fn only_pipe_separator(dummy in 0u8..1) {
         let _ = dummy;
         let line = "|";
-        let (parsed_ts, parsed_author) = parse_header_line(line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(line);
 
         prop_assert_eq!(parsed_ts, 0, "Empty timestamp should be 0");
         prop_assert_eq!(parsed_author, "", "Empty author should be empty string");
@@ -250,7 +251,7 @@ proptest! {
     fn empty_line_produces_defaults(dummy in 0u8..1) {
         let _ = dummy;
         let line = "";
-        let (parsed_ts, parsed_author) = parse_header_line(line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(line);
 
         prop_assert_eq!(parsed_ts, 0, "Empty line should produce timestamp 0");
         prop_assert_eq!(parsed_author, "", "Empty line should produce empty author");
@@ -270,6 +271,7 @@ proptest! {
         let commit = GitCommit {
             timestamp: ts,
             author: author.clone(),
+            subject: String::new(),
             files: files.clone(),
         };
 
@@ -281,7 +283,7 @@ proptest! {
     /// Timestamp is always a valid i64 (can be 0 for invalid input).
     #[test]
     fn timestamp_is_valid_i64(line in arb_malformed_git_log_line()) {
-        let (parsed_ts, _) = parse_header_line(&line);
+        let (parsed_ts, _, _) = parse_header_line(&line);
 
         // The key property: parsing never panics and produces a valid i64
         // The type system guarantees i64 bounds, so we verify parsing completes
@@ -295,7 +297,7 @@ proptest! {
     /// Author is always valid UTF-8 string.
     #[test]
     fn author_is_valid_utf8(line in arb_git_log_line()) {
-        let (_, parsed_author) = parse_header_line(&line);
+        let (_, parsed_author, _) = parse_header_line(&line);
 
         // String type guarantees UTF-8 validity
         prop_assert!(parsed_author.is_ascii() || !parsed_author.is_empty() || parsed_author.is_empty());
@@ -349,7 +351,7 @@ proptest! {
     ) {
         let long_email = format!("{}@{}.com", prefix, domain);
         let line = format!("1234567890|{}", long_email);
-        let (parsed_ts, parsed_author) = parse_header_line(&line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(&line);
 
         prop_assert_eq!(parsed_ts, 1234567890);
         prop_assert_eq!(parsed_author, long_email);
@@ -361,6 +363,7 @@ proptest! {
         let commit = GitCommit {
             timestamp: 1234567890,
             author: "test@example.com".to_string(),
+            subject: String::new(),
             files: vec![path.clone()],
         };
 
@@ -368,25 +371,40 @@ proptest! {
         prop_assert!(commit.files[0].len() > 100, "Path should be long");
     }
 
-    /// Multiple pipes in author (only first is used as separator).
+    /// Multiple pipes: format is now "ts|author|subject" with splitn(3).
     #[test]
-    fn multiple_pipes_in_line(
+    fn three_field_parsing(
         ts in arb_valid_timestamp(),
+        author in "[a-z]{1,10}",
+        subject in "[a-z]{1,10}"
+    ) {
+        let line = format!("{}|{}|{}", ts, author, subject);
+        let (_, parsed_author, parsed_subject) = parse_header_line(&line);
+
+        prop_assert_eq!(parsed_author, author, "Author should be second field");
+        prop_assert_eq!(parsed_subject, subject, "Subject should be third field");
+    }
+
+    /// Subject may contain pipes (splitn(3) handles this).
+    #[test]
+    fn subject_with_pipes(
+        ts in arb_valid_timestamp(),
+        author in "[a-z]{1,10}",
         part1 in "[a-z]{1,10}",
         part2 in "[a-z]{1,10}"
     ) {
-        // Line like "123|author|extra" should parse author as "author|extra"
-        let line = format!("{}|{}|{}", ts, part1, part2);
-        let (_, parsed_author) = parse_header_line(&line);
+        let subject = format!("{}|{}", part1, part2);
+        let line = format!("{}|{}|{}", ts, author, subject);
+        let (_, parsed_author, parsed_subject) = parse_header_line(&line);
 
-        let expected_author = format!("{}|{}", part1, part2);
-        prop_assert_eq!(parsed_author, expected_author, "Author should include everything after first pipe");
+        prop_assert_eq!(parsed_author, author, "Author should be second field");
+        prop_assert_eq!(parsed_subject, subject, "Subject should contain pipe");
     }
 
     /// Whitespace-only lines parse as empty.
     #[test]
     fn whitespace_line_parses(spaces in "[ \t]{1,20}") {
-        let (parsed_ts, _) = parse_header_line(&spaces);
+        let (parsed_ts, _, _) = parse_header_line(&spaces);
 
         // Whitespace cannot be parsed as i64, so it becomes 0
         prop_assert_eq!(parsed_ts, 0, "Whitespace should not parse as valid timestamp");
@@ -399,7 +417,7 @@ proptest! {
         author in arb_author_email()
     ) {
         let line = format!("{}|{}", ts, author);
-        let (parsed_ts, parsed_author) = parse_header_line(&line);
+        let (parsed_ts, parsed_author, _) = parse_header_line(&line);
 
         prop_assert_eq!(parsed_ts, ts, "Negative timestamp should parse correctly");
         prop_assert_eq!(parsed_author, author);
@@ -516,8 +534,8 @@ proptest! {
     /// Parsing is deterministic.
     #[test]
     fn parsing_is_deterministic(line in arb_git_log_line()) {
-        let (ts1, author1) = parse_header_line(&line);
-        let (ts2, author2) = parse_header_line(&line);
+        let (ts1, author1, _) = parse_header_line(&line);
+        let (ts2, author2, _) = parse_header_line(&line);
 
         prop_assert_eq!(ts1, ts2, "Timestamp parsing should be deterministic");
         prop_assert_eq!(author1, author2, "Author parsing should be deterministic");
@@ -539,6 +557,7 @@ proptest! {
             .map(|i| GitCommit {
                 timestamp: i as i64,
                 author: format!("author{}@example.com", i),
+                subject: String::new(),
                 files: vec![format!("file{}.rs", i)],
             })
             .collect();
@@ -560,6 +579,7 @@ proptest! {
             .map(|i| GitCommit {
                 timestamp: i as i64,
                 author: format!("author{}@example.com", i),
+                subject: String::new(),
                 files: vec![format!("file{}.rs", i)],
             })
             .collect();

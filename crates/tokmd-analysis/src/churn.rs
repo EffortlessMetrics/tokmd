@@ -169,16 +169,19 @@ mod tests {
             tokmd_git::GitCommit {
                 timestamp: SECONDS_PER_WEEK,
                 author: "a@acme.com".to_string(),
+                subject: String::new(),
                 files: vec!["src/lib.rs".to_string()],
             },
             tokmd_git::GitCommit {
                 timestamp: 2 * SECONDS_PER_WEEK,
                 author: "a@acme.com".to_string(),
+                subject: String::new(),
                 files: vec!["src/lib.rs".to_string()],
             },
             tokmd_git::GitCommit {
                 timestamp: 3 * SECONDS_PER_WEEK,
                 author: "a@acme.com".to_string(),
+                subject: String::new(),
                 files: vec!["src/lib.rs".to_string()],
             },
         ];

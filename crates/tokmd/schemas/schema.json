@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 5.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 7.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 6 },
+        "schema_version": { "type": "integer", "const": 7 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -825,7 +825,8 @@
         "bus_factor": { "type": "array", "items": { "$ref": "#/definitions/BusFactorRow" } },
         "freshness": { "$ref": "#/definitions/FreshnessReport" },
         "coupling": { "type": "array", "items": { "$ref": "#/definitions/CouplingRow" } },
-        "age_distribution": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CodeAgeDistributionReport" }], "description": "Code age bucket distribution with refresh trend." }
+        "age_distribution": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CodeAgeDistributionReport" }], "description": "Code age bucket distribution with refresh trend." },
+        "intent": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/CommitIntentReport" }], "description": "Commit intent classification report." }
       }
     },
     "HotspotRow": {
@@ -878,7 +879,9 @@
       "properties": {
         "left": { "type": "string", "description": "First file." },
         "right": { "type": "string", "description": "Second file." },
-        "count": { "type": "integer", "description": "Number of co-changes." }
+        "count": { "type": "integer", "description": "Number of co-changes." },
+        "jaccard": { "type": "number", "description": "Jaccard similarity coefficient." },
+        "lift": { "type": "number", "description": "Lift metric (observed/expected co-change ratio)." }
       }
     },
     "CodeAgeDistributionReport": {
@@ -931,7 +934,8 @@
         "groups": { "type": "array", "items": { "$ref": "#/definitions/DuplicateGroup" } },
         "wasted_bytes": { "type": "integer", "description": "Bytes wasted by duplicates." },
         "strategy": { "type": "string", "description": "Deduplication strategy used." },
-        "density": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicationDensityReport" }], "description": "Duplication density summary overall and by module." }
+        "density": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicationDensityReport" }], "description": "Duplication density summary overall and by module." },
+        "near": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/NearDuplicateReport" }], "description": "Near-duplicate detection report." }
       }
     },
     "DuplicateGroup": {
@@ -1649,6 +1653,297 @@
         "build_hash": { "type": "string", "description": "Hash of the final build artifact." },
         "source_hash": { "type": "string", "description": "Hash of all source files combined." },
         "cargo_lock_hash": { "type": ["string", "null"], "description": "Hash of Cargo.lock if present (Rust projects)." }
+      }
+    },
+    "TokenEstimationMeta": {
+      "type": "object",
+      "description": "Token estimation metadata with low/est/high range.",
+      "required": ["bytes_per_token", "tokens_low", "tokens_est", "tokens_high", "source_bytes"],
+      "properties": {
+        "bytes_per_token": { "type": "number" },
+        "tokens_low": { "type": "integer", "minimum": 0 },
+        "tokens_est": { "type": "integer", "minimum": 0 },
+        "tokens_high": { "type": "integer", "minimum": 0 },
+        "source_bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "TokenAudit": {
+      "type": "object",
+      "description": "Token audit comparing estimated vs actual token usage.",
+      "required": ["actual_bytes", "actual_tokens", "byte_ratio"],
+      "properties": {
+        "actual_bytes": { "type": "integer", "minimum": 0 },
+        "actual_tokens": { "$ref": "#/definitions/TokenEstimationMeta" },
+        "byte_ratio": { "type": "number" }
+      }
+    },
+    "CommitIntentKind": {
+      "type": "string",
+      "enum": ["feat", "fix", "refactor", "docs", "test", "chore", "ci", "build", "perf", "style", "revert", "other"],
+      "description": "Classification of commit intent based on conventional commit prefixes."
+    },
+    "CommitIntentCounts": {
+      "type": "object",
+      "description": "Counts of commits by intent kind.",
+      "required": ["feat", "fix", "refactor", "docs", "test", "chore", "ci", "build", "perf", "style", "revert", "other", "total"],
+      "properties": {
+        "feat": { "type": "integer", "minimum": 0 },
+        "fix": { "type": "integer", "minimum": 0 },
+        "refactor": { "type": "integer", "minimum": 0 },
+        "docs": { "type": "integer", "minimum": 0 },
+        "test": { "type": "integer", "minimum": 0 },
+        "chore": { "type": "integer", "minimum": 0 },
+        "ci": { "type": "integer", "minimum": 0 },
+        "build": { "type": "integer", "minimum": 0 },
+        "perf": { "type": "integer", "minimum": 0 },
+        "style": { "type": "integer", "minimum": 0 },
+        "revert": { "type": "integer", "minimum": 0 },
+        "other": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ModuleIntentRow": {
+      "type": "object",
+      "description": "Commit intent counts for a specific module.",
+      "required": ["module", "counts"],
+      "properties": {
+        "module": { "type": "string" },
+        "counts": { "$ref": "#/definitions/CommitIntentCounts" }
+      }
+    },
+    "CommitIntentReport": {
+      "type": "object",
+      "description": "Commit intent classification report with overall and per-module breakdowns.",
+      "required": ["overall", "by_module", "unknown_pct"],
+      "properties": {
+        "overall": { "$ref": "#/definitions/CommitIntentCounts" },
+        "by_module": { "type": "array", "items": { "$ref": "#/definitions/ModuleIntentRow" } },
+        "unknown_pct": { "type": "number" }
+      }
+    },
+    "NearDupScope": {
+      "type": "string",
+      "enum": ["module", "lang", "global"],
+      "description": "Scope for near-duplicate detection comparison."
+    },
+    "NearDupParams": {
+      "type": "object",
+      "description": "Parameters used for near-duplicate detection.",
+      "required": ["scope", "threshold", "max_files"],
+      "properties": {
+        "scope": { "$ref": "#/definitions/NearDupScope" },
+        "threshold": { "type": "number" },
+        "max_files": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "NearDupPairRow": {
+      "type": "object",
+      "description": "A pair of near-duplicate files with similarity metrics.",
+      "required": ["left", "right", "similarity", "shared_fingerprints", "left_fingerprints", "right_fingerprints"],
+      "properties": {
+        "left": { "type": "string" },
+        "right": { "type": "string" },
+        "similarity": { "type": "number" },
+        "shared_fingerprints": { "type": "integer", "minimum": 0 },
+        "left_fingerprints": { "type": "integer", "minimum": 0 },
+        "right_fingerprints": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "NearDuplicateReport": {
+      "type": "object",
+      "description": "Near-duplicate detection report using content fingerprinting.",
+      "required": ["params", "pairs", "files_analyzed", "files_skipped"],
+      "properties": {
+        "params": { "$ref": "#/definitions/NearDupParams" },
+        "pairs": { "type": "array", "items": { "$ref": "#/definitions/NearDupPairRow" } },
+        "files_analyzed": { "type": "integer", "minimum": 0 },
+        "files_skipped": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "InclusionPolicy": {
+      "type": "string",
+      "enum": ["full", "head_tail", "summary", "skip"],
+      "description": "Inclusion policy for context/handoff file packing."
+    },
+    "FileClassification": {
+      "type": "string",
+      "enum": ["generated", "fixture", "vendored", "lockfile", "minified", "data_blob", "sourcemap"],
+      "description": "Heuristic classification of a source file."
+    },
+    "ContextFileRow": {
+      "type": "object",
+      "description": "A file included in a context or handoff bundle.",
+      "required": ["path", "module", "lang", "tokens", "code", "lines", "bytes", "value"],
+      "properties": {
+        "path": { "type": "string", "description": "Relative file path." },
+        "module": { "type": "string", "description": "Module the file belongs to." },
+        "lang": { "type": "string", "description": "Detected language." },
+        "tokens": { "type": "integer", "description": "Estimated token count." },
+        "code": { "type": "integer", "description": "Lines of code." },
+        "lines": { "type": "integer", "description": "Total lines." },
+        "bytes": { "type": "integer", "description": "File size in bytes." },
+        "value": { "type": "integer", "description": "Ranking value used for inclusion." },
+        "rank_reason": { "type": "string", "description": "Reason for the ranking value." },
+        "policy": { "$ref": "#/definitions/InclusionPolicy", "description": "Inclusion policy applied." },
+        "effective_tokens": { "type": ["integer", "null"], "description": "Effective token count when policy != full." }
+      }
+    },
+    "PolicyExcludedFile": {
+      "type": "object",
+      "description": "A file excluded by per-file cap or classification policy.",
+      "required": ["path", "original_tokens", "policy", "reason", "classifications"],
+      "properties": {
+        "path": { "type": "string", "description": "Excluded file path." },
+        "original_tokens": { "type": "integer", "description": "Original token count before exclusion." },
+        "policy": { "$ref": "#/definitions/InclusionPolicy" },
+        "reason": { "type": "string", "description": "Reason for exclusion." },
+        "classifications": { "type": "array", "items": { "$ref": "#/definitions/FileClassification" } }
+      }
+    },
+    "ContextReceipt": {
+      "type": "object",
+      "description": "Output from `tokmd context --format json`.",
+      "required": ["schema_version", "generated_at_ms", "tool", "mode", "budget_tokens", "used_tokens", "utilization_pct", "strategy", "rank_by", "file_count", "files"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 3 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the context was generated." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "context" },
+        "budget_tokens": { "type": "integer", "description": "Token budget for the context window." },
+        "used_tokens": { "type": "integer", "description": "Tokens actually used." },
+        "utilization_pct": { "type": "number", "description": "Utilization percentage (used/budget)." },
+        "strategy": { "type": "string", "description": "Packing strategy used." },
+        "rank_by": { "type": "string", "description": "Ranking metric requested." },
+        "file_count": { "type": "integer", "description": "Number of files included." },
+        "files": { "type": "array", "items": { "$ref": "#/definitions/ContextFileRow" } },
+        "rank_by_effective": { "type": "string", "description": "Effective ranking metric (may differ from rank_by if fallback occurred)." },
+        "fallback_reason": { "type": "string", "description": "Reason for fallback if rank_by_effective differs." },
+        "excluded_by_policy": { "type": "array", "items": { "$ref": "#/definitions/PolicyExcludedFile" }, "description": "Files excluded by per-file cap / classification policy." },
+        "token_estimation": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenEstimationMeta" }], "description": "Token estimation envelope with uncertainty bounds." },
+        "bundle_audit": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenAudit" }], "description": "Post-bundle audit comparing actual bytes to estimates." }
+      }
+    },
+    "ContextExcludedPath": {
+      "type": "object",
+      "description": "An excluded path with reason for context bundles.",
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string", "description": "Excluded file path." },
+        "reason": { "type": "string", "description": "Reason for exclusion." }
+      }
+    },
+    "HandoffExcludedPath": {
+      "type": "object",
+      "description": "An excluded path with reason for handoff bundles.",
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string", "description": "Excluded file path." },
+        "reason": { "type": "string", "description": "Reason for exclusion." }
+      }
+    },
+    "SmartExcludedFile": {
+      "type": "object",
+      "description": "A file excluded by smart-exclude heuristics (lockfiles, minified, etc.).",
+      "required": ["path", "reason", "tokens"],
+      "properties": {
+        "path": { "type": "string", "description": "Excluded file path." },
+        "reason": { "type": "string", "description": "Reason for exclusion." },
+        "tokens": { "type": "integer", "description": "Token count of excluded file." }
+      }
+    },
+    "CapabilityState": {
+      "type": "string",
+      "enum": ["available", "skipped", "unavailable"],
+      "description": "State of a capability: available, skipped, or unavailable."
+    },
+    "CapabilityStatus": {
+      "type": "object",
+      "description": "Status of a handoff capability.",
+      "required": ["name", "status"],
+      "properties": {
+        "name": { "type": "string", "description": "Capability name." },
+        "status": { "$ref": "#/definitions/CapabilityState" },
+        "reason": { "type": "string", "description": "Reason for the status." }
+      }
+    },
+    "ArtifactHash": {
+      "type": "object",
+      "description": "Hash for artifact integrity verification.",
+      "required": ["algo", "hash"],
+      "properties": {
+        "algo": { "type": "string", "description": "Hash algorithm (e.g., blake3)." },
+        "hash": { "type": "string", "description": "Hash value." }
+      }
+    },
+    "ArtifactEntry": {
+      "type": "object",
+      "description": "An artifact in a handoff or context bundle.",
+      "required": ["name", "path", "description", "bytes"],
+      "properties": {
+        "name": { "type": "string", "description": "Artifact name." },
+        "path": { "type": "string", "description": "Artifact file path." },
+        "description": { "type": "string", "description": "Artifact description." },
+        "bytes": { "type": "integer", "description": "Artifact size in bytes." },
+        "hash": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ArtifactHash" }], "description": "Integrity hash." }
+      }
+    },
+    "HandoffManifest": {
+      "type": "object",
+      "description": "Output from `tokmd handoff --format json`. Manifest for a handoff bundle.",
+      "required": ["schema_version", "generated_at_ms", "tool", "mode", "inputs", "output_dir", "budget_tokens", "used_tokens", "utilization_pct", "strategy", "rank_by", "capabilities", "artifacts", "included_files", "excluded_paths", "excluded_patterns", "smart_excluded_files", "total_files", "bundled_files", "intelligence_preset"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 4 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the handoff was generated." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "handoff" },
+        "inputs": { "type": "array", "items": { "type": "string" }, "description": "Input paths." },
+        "output_dir": { "type": "string", "description": "Output directory for the bundle." },
+        "budget_tokens": { "type": "integer", "description": "Token budget." },
+        "used_tokens": { "type": "integer", "description": "Tokens actually used." },
+        "utilization_pct": { "type": "number", "description": "Utilization percentage." },
+        "strategy": { "type": "string", "description": "Packing strategy used." },
+        "rank_by": { "type": "string", "description": "Ranking metric requested." },
+        "capabilities": { "type": "array", "items": { "$ref": "#/definitions/CapabilityStatus" } },
+        "artifacts": { "type": "array", "items": { "$ref": "#/definitions/ArtifactEntry" } },
+        "included_files": { "type": "array", "items": { "$ref": "#/definitions/ContextFileRow" } },
+        "excluded_paths": { "type": "array", "items": { "$ref": "#/definitions/HandoffExcludedPath" } },
+        "excluded_patterns": { "type": "array", "items": { "type": "string" } },
+        "smart_excluded_files": { "type": "array", "items": { "$ref": "#/definitions/SmartExcludedFile" } },
+        "total_files": { "type": "integer", "description": "Total files considered." },
+        "bundled_files": { "type": "integer", "description": "Files included in bundle." },
+        "intelligence_preset": { "type": "string", "description": "Intelligence preset used." },
+        "rank_by_effective": { "type": "string", "description": "Effective ranking metric." },
+        "fallback_reason": { "type": "string", "description": "Reason for fallback." },
+        "excluded_by_policy": { "type": "array", "items": { "$ref": "#/definitions/PolicyExcludedFile" }, "description": "Files excluded by classification policy." },
+        "token_estimation": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenEstimationMeta" }], "description": "Token estimation envelope with uncertainty bounds." },
+        "code_audit": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenAudit" }], "description": "Post-bundle audit comparing actual code bundle bytes to estimates." }
+      }
+    },
+    "ContextBundleManifest": {
+      "type": "object",
+      "description": "Manifest for a context bundle directory (bundle.txt + receipt.json + manifest.json).",
+      "required": ["schema_version", "generated_at_ms", "tool", "mode", "budget_tokens", "used_tokens", "utilization_pct", "strategy", "rank_by", "file_count", "bundle_bytes", "artifacts", "included_files", "excluded_paths", "excluded_patterns"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 2 },
+        "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the bundle was generated." },
+        "tool": { "$ref": "#/definitions/ToolInfo" },
+        "mode": { "type": "string", "const": "context-bundle" },
+        "budget_tokens": { "type": "integer", "description": "Token budget." },
+        "used_tokens": { "type": "integer", "description": "Tokens actually used." },
+        "utilization_pct": { "type": "number", "description": "Utilization percentage." },
+        "strategy": { "type": "string", "description": "Packing strategy used." },
+        "rank_by": { "type": "string", "description": "Ranking metric requested." },
+        "file_count": { "type": "integer", "description": "Number of files included." },
+        "bundle_bytes": { "type": "integer", "description": "Total bundle size in bytes." },
+        "artifacts": { "type": "array", "items": { "$ref": "#/definitions/ArtifactEntry" } },
+        "included_files": { "type": "array", "items": { "$ref": "#/definitions/ContextFileRow" } },
+        "excluded_paths": { "type": "array", "items": { "$ref": "#/definitions/ContextExcludedPath" } },
+        "excluded_patterns": { "type": "array", "items": { "type": "string" } },
+        "rank_by_effective": { "type": "string", "description": "Effective ranking metric." },
+        "fallback_reason": { "type": "string", "description": "Reason for fallback." },
+        "excluded_by_policy": { "type": "array", "items": { "$ref": "#/definitions/PolicyExcludedFile" }, "description": "Files excluded by classification policy." },
+        "token_estimation": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenEstimationMeta" }], "description": "Token estimation envelope with uncertainty bounds." },
+        "bundle_audit": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenAudit" }], "description": "Post-bundle audit comparing actual bundle bytes to estimates." }
       }
     }
   }

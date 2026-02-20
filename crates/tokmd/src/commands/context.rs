@@ -446,6 +446,8 @@ fn format_json_output(
     args: &cli::CliContextArgs,
     select_result: &context_pack::SelectResult,
 ) -> Result<String> {
+    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
+    let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
     let receipt = ContextReceipt {
         schema_version: CONTEXT_SCHEMA_VERSION,
         generated_at_ms: SystemTime::now()
@@ -468,6 +470,8 @@ fn format_json_output(
         },
         fallback_reason: select_result.fallback_reason.clone(),
         excluded_by_policy: select_result.excluded_by_policy.clone(),
+        token_estimation: Some(token_estimation),
+        bundle_audit: None,
     };
     let json = serde_json::to_string_pretty(&receipt)?;
     Ok(format!("{}\n", json))
@@ -540,6 +544,10 @@ fn write_bundle_directory(
         .unwrap_or_default()
         .as_millis();
 
+    // Compute token estimation from selected file bytes
+    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
+    let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
+
     // Write receipt.json
     let receipt_path = dir.join("receipt.json");
     let receipt = ContextReceipt {
@@ -561,6 +569,8 @@ fn write_bundle_directory(
         },
         fallback_reason: select_result.fallback_reason.clone(),
         excluded_by_policy: select_result.excluded_by_policy.clone(),
+        token_estimation: Some(token_estimation),
+        bundle_audit: None, // Populated below after bundle is written
     };
     let receipt_json = serde_json::to_string_pretty(&receipt)?;
     fs::write(&receipt_path, &receipt_json)
@@ -606,6 +616,9 @@ fn write_bundle_directory(
 
     // Write manifest.json (authoritative index)
     let manifest_path = dir.join("manifest.json");
+    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
+    let bundle_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
+    let bundle_audit = tokmd_types::TokenAudit::from_actual(bundle_bytes, total_file_bytes, 4.0);
     let manifest = ContextBundleManifest {
         schema_version: CONTEXT_BUNDLE_SCHEMA_VERSION,
         generated_at_ms: now_ms,
@@ -629,6 +642,8 @@ fn write_bundle_directory(
         },
         fallback_reason: select_result.fallback_reason.clone(),
         excluded_by_policy: select_result.excluded_by_policy.clone(),
+        token_estimation: Some(bundle_estimation),
+        bundle_audit: Some(bundle_audit),
     };
     let manifest_json = serde_json::to_string_pretty(&manifest)?;
     fs::write(&manifest_path, &manifest_json)
