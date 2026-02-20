@@ -430,7 +430,7 @@ pub(crate) fn build_api_surface_report(
             break;
         }
 
-        let rel_str = rel.to_string_lossy().replace('\\', "/");
+        let rel_str = normalize_path(&rel.to_string_lossy(), root);
         let row = match row_map.get(&rel_str) {
             Some(r) => *r,
             None => continue,

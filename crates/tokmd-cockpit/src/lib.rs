@@ -339,8 +339,12 @@ fn compute_overall_status(
         return GateStatus::Warn;
     }
 
-    // Otherwise (mix of Pass and Skipped) -> Pass
-    GateStatus::Pass
+    // All Skipped -> Skipped; mix of Pass and Skipped -> Pass
+    if statuses.iter().all(|s| *s == GateStatus::Skipped) {
+        GateStatus::Skipped
+    } else {
+        GateStatus::Pass
+    }
 }
 
 // =============================================================================
@@ -477,10 +481,10 @@ fn compute_diff_coverage_gate(
         return Ok(None);
     }
 
-    let coverage_pct = round_pct(total_covered as f64 / total_added as f64 * 100.0);
-    let status = if coverage_pct >= 80.0 {
+    let coverage_pct = round_pct(total_covered as f64 / total_added as f64);
+    let status = if coverage_pct >= 0.80 {
         GateStatus::Pass
-    } else if coverage_pct >= 50.0 {
+    } else if coverage_pct >= 0.50 {
         GateStatus::Warn
     } else {
         GateStatus::Fail
@@ -497,7 +501,7 @@ fn compute_diff_coverage_gate(
             scope: ScopeCoverage {
                 relevant: lcov_data.keys().cloned().collect(),
                 tested: tested_files.into_iter().collect(),
-                ratio: coverage_pct / 100.0,
+                ratio: coverage_pct,
                 lines_relevant: Some(total_added),
                 lines_tested: Some(total_covered),
             },

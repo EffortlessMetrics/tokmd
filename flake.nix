@@ -49,6 +49,8 @@
           || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep published schema (sync test compares against embedded copy)
           || (pkgs.lib.hasInfix "/docs/schema.json" p)
+          # Keep docs directory (directory entry must pass filter for contents to be evaluated)
+          || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep contract fixtures validated by schema tests

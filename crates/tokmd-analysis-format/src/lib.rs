@@ -614,11 +614,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         if let Some(cog) = cx.max_cognitive {
             out.push_str(&format!("|Max cognitive|{}|\n", cog));
         }
-        if let Some(nd) = cx.avg_nesting_depth {
-            out.push_str(&format!("|Avg nesting depth|{}|\n", fmt_f64(nd, 2)));
+        if let Some(avg_nesting) = cx.avg_nesting_depth {
+            out.push_str(&format!(
+                "|Avg nesting depth|{}|\n",
+                fmt_f64(avg_nesting, 2)
+            ));
         }
-        if let Some(nd) = cx.max_nesting_depth {
-            out.push_str(&format!("|Max nesting depth|{}|\n", nd));
+        if let Some(max_nesting) = cx.max_nesting_depth {
+            out.push_str(&format!("|Max nesting depth|{}|\n", max_nesting));
         }
         out.push_str(&format!("|High risk files|{}|\n\n", cx.high_risk_files));
 
