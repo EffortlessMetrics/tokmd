@@ -4,8 +4,8 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    ContextReceipt, FileKind, FileRow, LangRow, ModuleRow, TokenAudit, TokenEstimationMeta,
-    ToolInfo, Totals, CONTEXT_SCHEMA_VERSION,
+    CONTEXT_SCHEMA_VERSION, ContextReceipt, FileKind, FileRow, LangRow, ModuleRow, TokenAudit,
+    TokenEstimationMeta, ToolInfo, Totals,
 };
 
 // Arbitrary implementations for generating test data
@@ -560,9 +560,7 @@ fn context_receipt_token_rename_backward_compat() {
     assert_eq!(parsed_est.source_bytes, estimation.source_bytes);
 
     // Assert the bundle_audit values round-tripped correctly.
-    let parsed_audit = parsed
-        .bundle_audit
-        .expect("bundle_audit should be present");
+    let parsed_audit = parsed.bundle_audit.expect("bundle_audit should be present");
     assert_eq!(parsed_audit.tokens_min, audit.tokens_min);
     assert_eq!(parsed_audit.tokens_est, audit.tokens_est);
     assert_eq!(parsed_audit.tokens_max, audit.tokens_max);
