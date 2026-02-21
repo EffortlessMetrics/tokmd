@@ -3,7 +3,10 @@
 //! These tests verify that core data types round-trip correctly through JSON.
 
 use proptest::prelude::*;
-use tokmd_types::{FileKind, FileRow, LangRow, ModuleRow, TokenAudit, TokenEstimationMeta, Totals};
+use tokmd_types::{
+    ContextReceipt, FileKind, FileRow, LangRow, ModuleRow, TokenAudit, TokenEstimationMeta,
+    ToolInfo, Totals, CONTEXT_SCHEMA_VERSION,
+};
 
 // Arbitrary implementations for generating test data
 
@@ -498,4 +501,70 @@ fn token_audit_roundtrip() {
     assert_eq!(parsed.output_bytes, audit.output_bytes);
     assert_eq!(parsed.overhead_bytes, audit.overhead_bytes);
     assert!((parsed.overhead_pct - audit.overhead_pct).abs() < f64::EPSILON);
+}
+
+// ========================
+// Full ContextReceipt E2E backward compatibility test
+// ========================
+
+#[test]
+fn context_receipt_token_rename_backward_compat() {
+    // Build a valid ContextReceipt with token_estimation and bundle_audit populated.
+    let estimation = TokenEstimationMeta::from_bytes(10_000, TokenEstimationMeta::DEFAULT_BPT_EST);
+    let audit = TokenAudit::from_output(12_000, 10_000);
+
+    let receipt = ContextReceipt {
+        schema_version: CONTEXT_SCHEMA_VERSION,
+        generated_at_ms: 1_700_000_000_000,
+        tool: ToolInfo::current(),
+        mode: "bundle".to_string(),
+        budget_tokens: 128_000,
+        used_tokens: 2_500,
+        utilization_pct: 1.95,
+        strategy: "greedy".to_string(),
+        rank_by: "code".to_string(),
+        file_count: 1,
+        files: vec![],
+        rank_by_effective: None,
+        fallback_reason: None,
+        excluded_by_policy: vec![],
+        token_estimation: Some(estimation.clone()),
+        bundle_audit: Some(audit.clone()),
+    };
+
+    // Serialize to JSON (uses new field names: tokens_min, tokens_max).
+    let json_str = serde_json::to_string_pretty(&receipt).expect("serialize receipt");
+
+    // Simulate old-format JSON by replacing new names with old aliases.
+    let old_json = json_str
+        .replace("\"tokens_min\"", "\"tokens_high\"")
+        .replace("\"tokens_max\"", "\"tokens_low\"");
+
+    // Verify old names are present and new names are gone.
+    assert!(old_json.contains("\"tokens_high\""));
+    assert!(old_json.contains("\"tokens_low\""));
+    assert!(!old_json.contains("\"tokens_min\""));
+    assert!(!old_json.contains("\"tokens_max\""));
+
+    // Deserialize the old-format JSON back into ContextReceipt.
+    let parsed: ContextReceipt =
+        serde_json::from_str(&old_json).expect("deserialize with old field names");
+
+    // Assert the token_estimation values round-tripped correctly.
+    let parsed_est = parsed
+        .token_estimation
+        .expect("token_estimation should be present");
+    assert_eq!(parsed_est.tokens_min, estimation.tokens_min);
+    assert_eq!(parsed_est.tokens_est, estimation.tokens_est);
+    assert_eq!(parsed_est.tokens_max, estimation.tokens_max);
+    assert_eq!(parsed_est.source_bytes, estimation.source_bytes);
+
+    // Assert the bundle_audit values round-tripped correctly.
+    let parsed_audit = parsed
+        .bundle_audit
+        .expect("bundle_audit should be present");
+    assert_eq!(parsed_audit.tokens_min, audit.tokens_min);
+    assert_eq!(parsed_audit.tokens_est, audit.tokens_est);
+    assert_eq!(parsed_audit.tokens_max, audit.tokens_max);
+    assert_eq!(parsed_audit.output_bytes, audit.output_bytes);
 }

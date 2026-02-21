@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-02-21
+
 ### Added
 
 - Near-duplicate detection in analysis reports (`--near-dup`, `--near-dup-threshold`, `--near-dup-scope`, `--near-dup-max-files`)
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `hash` field on `GitCommit` for commit SHA identification
 - Explicit token estimation divisor fields (`bytes_per_token_low`, `bytes_per_token_high`)
 - Serde alias tests locking backward compatibility of `tokens_min`/`tokens_max` renames
+- Full `ContextReceipt` E2E backward compatibility test for token field renames
 
 ### Changed
 
@@ -24,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Cockpit verdict rendering: exhaustive `GateStatus` match instead of wildcard catch-all
+- `xtask bump`: fixed stale `ANALYSIS_SCHEMA_VERSION` current value (4 → 7), corrected `COCKPIT_SCHEMA_VERSION` path, added missing schema entries (`CONTEXT_SCHEMA_VERSION`, `CONTEXT_BUNDLE_SCHEMA_VERSION`, `HANDOFF_SCHEMA_VERSION`)
 
 ## [1.6.3] - 2026-02-17
 

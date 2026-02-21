@@ -33,17 +33,32 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
     SchemaVersionLocation {
         path: "crates/tokmd-analysis-types/src/lib.rs",
         constant: "ANALYSIS_SCHEMA_VERSION",
-        current: 4,
+        current: 7,
     },
     SchemaVersionLocation {
-        path: "crates/tokmd/src/commands/cockpit.rs",
-        constant: "SCHEMA_VERSION",
+        path: "crates/tokmd-types/src/cockpit.rs",
+        constant: "COCKPIT_SCHEMA_VERSION",
         current: 3,
     },
     SchemaVersionLocation {
         path: "crates/tokmd/src/tools_schema.rs",
         constant: "TOOL_SCHEMA_VERSION",
         current: 1,
+    },
+    SchemaVersionLocation {
+        path: "crates/tokmd-types/src/lib.rs",
+        constant: "CONTEXT_SCHEMA_VERSION",
+        current: 4,
+    },
+    SchemaVersionLocation {
+        path: "crates/tokmd-types/src/lib.rs",
+        constant: "CONTEXT_BUNDLE_SCHEMA_VERSION",
+        current: 2,
+    },
+    SchemaVersionLocation {
+        path: "crates/tokmd-types/src/lib.rs",
+        constant: "HANDOFF_SCHEMA_VERSION",
+        current: 5,
     },
 ];
 
