@@ -81,6 +81,10 @@ pub struct AnalysisRequest {
     pub near_dup_max_files: usize,
     /// Near-duplicate comparison scope.
     pub near_dup_scope: NearDupScope,
+    /// Maximum near-duplicate pairs to emit (truncation guardrail).
+    pub near_dup_max_pairs: Option<usize>,
+    /// Glob patterns to exclude from near-duplicate analysis.
+    pub near_dup_exclude: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -523,7 +527,9 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
                 req.near_dup_scope,
                 req.near_dup_threshold,
                 req.near_dup_max_files,
+                req.near_dup_max_pairs,
                 &req.limits,
+                &req.near_dup_exclude,
             ) {
                 Ok(report) => {
                     // Attach to existing dup report or create a minimal one

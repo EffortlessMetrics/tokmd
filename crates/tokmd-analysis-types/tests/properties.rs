@@ -666,6 +666,94 @@ proptest! {
 }
 
 // ============================================================================
+// Near-duplicate types
+// ============================================================================
+
+proptest! {
+    /// NearDupAlgorithm round-trips through JSON.
+    #[test]
+    fn near_dup_algorithm_roundtrip(
+        k_gram_size in 1usize..100,
+        window_size in 1usize..20,
+        max_postings in 1usize..1000
+    ) {
+        let algo = NearDupAlgorithm { k_gram_size, window_size, max_postings };
+
+        let json = serde_json::to_string(&algo).expect("serialize");
+        let parsed: NearDupAlgorithm = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(algo, parsed);
+    }
+
+    /// NearDupCluster round-trips through JSON.
+    #[test]
+    fn near_dup_cluster_roundtrip(
+        files in prop::collection::vec("[a-z/]{5,20}", 2..=5),
+        max_similarity in 0.0f64..1.0,
+        representative in "[a-z/]{5,20}",
+        pair_count in 1usize..100
+    ) {
+        let cluster = NearDupCluster {
+            files,
+            max_similarity,
+            representative,
+            pair_count,
+        };
+
+        let json = serde_json::to_string(&cluster).expect("serialize");
+        let parsed: NearDupCluster = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(cluster.files, parsed.files);
+        prop_assert!((cluster.max_similarity - parsed.max_similarity).abs() < 1e-10);
+        prop_assert_eq!(cluster.representative, parsed.representative);
+        prop_assert_eq!(cluster.pair_count, parsed.pair_count);
+    }
+
+    /// NearDupStats round-trips through JSON.
+    #[test]
+    fn near_dup_stats_roundtrip(
+        fingerprinting_ms in 0u64..100000,
+        pairing_ms in 0u64..100000,
+        bytes_processed in 0u64..100000000
+    ) {
+        let stats = NearDupStats { fingerprinting_ms, pairing_ms, bytes_processed };
+
+        let json = serde_json::to_string(&stats).expect("serialize");
+        let parsed: NearDupStats = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(stats, parsed);
+    }
+
+    /// NearDupPairRow round-trips through JSON.
+    #[test]
+    fn near_dup_pair_row_roundtrip(
+        left in "[a-z/]{5,20}",
+        right in "[a-z/]{5,20}",
+        similarity in 0.0f64..1.0,
+        shared in 0usize..1000,
+        left_fps in 0usize..10000,
+        right_fps in 0usize..10000
+    ) {
+        let row = NearDupPairRow {
+            left,
+            right,
+            similarity,
+            shared_fingerprints: shared,
+            left_fingerprints: left_fps,
+            right_fingerprints: right_fps,
+        };
+
+        let json = serde_json::to_string(&row).expect("serialize");
+        let parsed: NearDupPairRow = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(row.left, parsed.left);
+        prop_assert_eq!(row.right, parsed.right);
+        prop_assert!((row.similarity - parsed.similarity).abs() < 1e-10);
+        prop_assert_eq!(row.shared_fingerprints, parsed.shared_fingerprints);
+    }
+}
+
+// ============================================================================
 // Schema version constant test
 // ============================================================================
 

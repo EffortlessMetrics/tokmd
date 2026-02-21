@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 7 },
+        "schema_version": { "type": "integer", "const": 8 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -1734,6 +1734,16 @@
       "enum": ["module", "lang", "global"],
       "description": "Scope for near-duplicate detection comparison."
     },
+    "NearDupAlgorithm": {
+      "type": "object",
+      "description": "Algorithm constants for near-duplicate fingerprinting.",
+      "required": ["k_gram_size", "window_size", "max_postings"],
+      "properties": {
+        "k_gram_size": { "type": "integer", "minimum": 1 },
+        "window_size": { "type": "integer", "minimum": 1 },
+        "max_postings": { "type": "integer", "minimum": 1 }
+      }
+    },
     "NearDupParams": {
       "type": "object",
       "description": "Parameters used for near-duplicate detection.",
@@ -1741,7 +1751,12 @@
       "properties": {
         "scope": { "$ref": "#/definitions/NearDupScope" },
         "threshold": { "type": "number" },
-        "max_files": { "type": "integer", "minimum": 0 }
+        "max_files": { "type": "integer", "minimum": 0 },
+        "max_pairs": { "type": "integer", "minimum": 0 },
+        "max_file_bytes": { "type": "integer", "minimum": 0 },
+        "selection_method": { "type": "string" },
+        "algorithm": { "$ref": "#/definitions/NearDupAlgorithm" },
+        "exclude_patterns": { "type": "array", "items": { "type": "string" }, "default": [], "description": "Glob patterns used to exclude files from near-dup analysis." }
       }
     },
     "NearDupPairRow": {
@@ -1757,15 +1772,41 @@
         "right_fingerprints": { "type": "integer", "minimum": 0 }
       }
     },
+    "NearDupCluster": {
+      "type": "object",
+      "description": "A connected component of near-duplicate files.",
+      "required": ["files", "max_similarity", "representative", "pair_count"],
+      "properties": {
+        "files": { "type": "array", "items": { "type": "string" } },
+        "max_similarity": { "type": "number" },
+        "representative": { "type": "string" },
+        "pair_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "NearDupStats": {
+      "type": "object",
+      "description": "Runtime performance statistics for near-duplicate detection.",
+      "required": ["fingerprinting_ms", "pairing_ms", "bytes_processed"],
+      "properties": {
+        "fingerprinting_ms": { "type": "integer", "minimum": 0 },
+        "pairing_ms": { "type": "integer", "minimum": 0 },
+        "bytes_processed": { "type": "integer", "minimum": 0 }
+      }
+    },
     "NearDuplicateReport": {
       "type": "object",
       "description": "Near-duplicate detection report using content fingerprinting.",
-      "required": ["params", "pairs", "files_analyzed", "files_skipped"],
+      "required": ["params", "pairs", "files_analyzed", "files_skipped", "truncated"],
       "properties": {
         "params": { "$ref": "#/definitions/NearDupParams" },
         "pairs": { "type": "array", "items": { "$ref": "#/definitions/NearDupPairRow" } },
         "files_analyzed": { "type": "integer", "minimum": 0 },
-        "files_skipped": { "type": "integer", "minimum": 0 }
+        "files_skipped": { "type": "integer", "minimum": 0 },
+        "eligible_files": { "type": "integer", "minimum": 0 },
+        "clusters": { "type": "array", "items": { "$ref": "#/definitions/NearDupCluster" } },
+        "truncated": { "type": "boolean", "default": false },
+        "excluded_by_pattern": { "type": "integer", "minimum": 0, "description": "Number of files excluded by glob patterns." },
+        "stats": { "$ref": "#/definitions/NearDupStats" }
       }
     },
     "InclusionPolicy": {

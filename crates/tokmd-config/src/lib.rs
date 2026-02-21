@@ -452,6 +452,14 @@ pub struct CliAnalyzeArgs {
     #[arg(long, value_enum)]
     pub near_dup_scope: Option<NearDupScope>,
 
+    /// Maximum near-duplicate pairs to emit (truncation guardrail) [default: 10000].
+    #[arg(long, default_value = "10000")]
+    pub near_dup_max_pairs: usize,
+
+    /// Exclude files matching this glob pattern from near-duplicate analysis. Repeatable.
+    #[arg(long, value_name = "GLOB")]
+    pub near_dup_exclude: Vec<String>,
+
     /// Explain a metric or finding key and exit.
     #[arg(long, value_name = "KEY")]
     pub explain: Option<String>,

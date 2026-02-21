@@ -3012,6 +3012,7 @@ version = "1.7.0"
 dependencies = [
  "anyhow",
  "blake3",
+ "globset",
  "proptest",
  "rustc-hash",
  "serde",

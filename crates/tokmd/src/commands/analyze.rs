@@ -92,6 +92,8 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         near_dup_threshold: args.near_dup_threshold,
         near_dup_max_files: args.near_dup_max_files,
         near_dup_scope,
+        near_dup_max_pairs: Some(args.near_dup_max_pairs),
+        near_dup_exclude: args.near_dup_exclude.clone(),
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,

@@ -677,15 +677,45 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         if let Some(near) = &dup.near {
             out.push_str("### Near duplicates\n\n");
             out.push_str(&format!(
-                "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`\n\n",
+                "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`\n",
                 near.files_analyzed,
                 near.files_skipped,
                 fmt_f64(near.params.threshold, 2),
                 near.params.scope
             ));
+            if let Some(eligible) = near.eligible_files {
+                out.push_str(&format!("- Eligible files: `{}`\n", eligible));
+            }
+            if near.truncated {
+                out.push_str("- **Warning**: Pair list truncated by `max_pairs` limit.\n");
+            }
+            out.push('\n');
+
+            // Clusters (primary human-facing view)
+            if let Some(clusters) = &near.clusters
+                && !clusters.is_empty()
+            {
+                out.push_str("#### Clusters\n\n");
+                out.push_str("|#|Files|Max Similarity|Representative|Pairs|\n");
+                out.push_str("|---:|---:|---:|---|---:|\n");
+                for (i, cluster) in clusters.iter().enumerate() {
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|{}|\n",
+                        i + 1,
+                        cluster.files.len(),
+                        fmt_pct(cluster.max_similarity),
+                        cluster.representative,
+                        cluster.pair_count
+                    ));
+                }
+                out.push('\n');
+            }
+
+            // Pairs (detail view)
             if near.pairs.is_empty() {
                 out.push_str("- No near-duplicate pairs detected.\n\n");
             } else {
+                out.push_str("#### Pairs\n\n");
                 out.push_str("|Left|Right|Similarity|Shared FPs|\n");
                 out.push_str("|---|---|---:|---:|\n");
                 for pair in near.pairs.iter().take(20) {
@@ -698,6 +728,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                     ));
                 }
                 out.push('\n');
+            }
+
+            // Runtime stats footer
+            if let Some(stats) = &near.stats {
+                out.push_str(&format!(
+                    "> Near-dup stats: fingerprinting {}ms, pairing {}ms, {} bytes processed\n\n",
+                    stats.fingerprinting_ms, stats.pairing_ms, stats.bytes_processed
+                ));
             }
         }
     }

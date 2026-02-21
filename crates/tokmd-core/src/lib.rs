@@ -322,6 +322,8 @@ pub fn analyze_workflow(
         near_dup_threshold: 0.80,
         near_dup_max_files: 2000,
         near_dup_scope: analysis::NearDupScope::Module,
+        near_dup_max_pairs: None,
+        near_dup_exclude: Vec::new(),
     };
 
     let root = derive_analysis_root(scan)

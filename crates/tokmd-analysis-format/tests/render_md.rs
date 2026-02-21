@@ -96,6 +96,8 @@ fn render_md_snapshot() {
         near_dup_threshold: 0.80,
         near_dup_max_files: 2000,
         near_dup_scope: NearDupScope::Module,
+        near_dup_max_pairs: None,
+        near_dup_exclude: Vec::new(),
     };
 
     let receipt = analyze(ctx, request).expect("analysis");
