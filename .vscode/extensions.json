@@ -12,6 +12,8 @@
     // General
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig",
-    "usernamehw.errorlens"
+    "usernamehw.errorlens",
+    "redhat.vscode-yaml",
+    "streetsidesoftware.code-spell-checker"
   ]
 }

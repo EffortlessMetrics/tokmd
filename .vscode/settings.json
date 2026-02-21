@@ -9,7 +9,7 @@
   },
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.check.extraArgs": ["--", "-D", "warnings"],
-  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.cargo.allFeatures": true,
   "rust-analyzer.inlayHints.parameterHints.enable": false,
   "rust-analyzer.inlayHints.typeHints.enable": false,
 
@@ -48,5 +48,12 @@
     "fuzz/artifacts": true,
     "mutants.out": true,
     "mutants.out.old": true
+  },
+  "files.watcherExclude": {
+    "**/target/**": true,
+    "fuzz/corpus/**": true,
+    "fuzz/artifacts/**": true,
+    "mutants.out/**": true,
+    "mutants.out.old/**": true
   }
 }
