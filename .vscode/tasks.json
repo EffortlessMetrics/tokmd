@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cargo build",
+      "type": "cargo",
+      "command": "build",
+      "problemMatcher": ["$rustc"],
+      "group": "build"
+    },
+    {
+      "label": "cargo build (release)",
+      "type": "cargo",
+      "command": "build",
+      "args": ["--release"],
+      "problemMatcher": ["$rustc"],
+      "group": "build"
+    },
+    {
+      "label": "cargo test",
+      "type": "cargo",
+      "command": "test",
+      "args": ["--verbose"],
+      "problemMatcher": ["$rustc"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "cargo clippy",
+      "type": "cargo",
+      "command": "clippy",
+      "args": ["--", "-D", "warnings"],
+      "problemMatcher": ["$rustc"],
+      "group": "test"
+    },
+    {
+      "label": "cargo fmt",
+      "type": "cargo",
+      "command": "fmt",
+      "args": ["--all"],
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "cargo fmt -- --check",
+      "type": "cargo",
+      "command": "fmt",
+      "args": ["--all", "--", "--check"],
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "cargo test (current crate)",
+      "type": "cargo",
+      "command": "test",
+      "args": ["-p", "${input:crate}", "--verbose"],
+      "problemMatcher": ["$rustc"],
+      "group": "test"
+    },
+    {
+      "label": "cargo insta review",
+      "type": "shell",
+      "command": "cargo insta review",
+      "problemMatcher": [],
+      "group": "test"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "crate",
+      "type": "pickString",
+      "description": "Select crate to test",
+      "options": [
+        "tokmd",
+        "tokmd-analysis",
+        "tokmd-analysis-format",
+        "tokmd-analysis-types",
+        "tokmd-badge",
+        "tokmd-cockpit",
+        "tokmd-config",
+        "tokmd-content",
+        "tokmd-core",
+        "tokmd-envelope",
+        "tokmd-format",
+        "tokmd-fun",
+        "tokmd-gate",
+        "tokmd-git",
+        "tokmd-model",
+        "tokmd-progress",
+        "tokmd-redact",
+        "tokmd-scan",
+        "tokmd-sensor",
+        "tokmd-settings",
+        "tokmd-substrate",
+        "tokmd-tokeignore",
+        "tokmd-types",
+        "tokmd-walk"
+      ]
+    }
+  ]
+}

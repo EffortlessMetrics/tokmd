@@ -7,17 +7,9 @@
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
-  "emeraldwalk.runonsave": {
-    "commands": [
-      {
-        "match": "\\.rs$",
-        "cmd": "cargo fmt --all --quiet"
-      }
-    ]
-  },
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.check.extraArgs": ["--", "-D", "warnings"],
-  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.cargo.allFeatures": true,
   "rust-analyzer.inlayHints.parameterHints.enable": false,
   "rust-analyzer.inlayHints.typeHints.enable": false,
 
@@ -39,6 +31,11 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
+  // YAML
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
   // Files
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
@@ -46,6 +43,17 @@
     "**/target": true
   },
   "search.exclude": {
-    "**/target": true
+    "**/target": true,
+    "fuzz/corpus": true,
+    "fuzz/artifacts": true,
+    "mutants.out": true,
+    "mutants.out.old": true
+  },
+  "files.watcherExclude": {
+    "**/target/**": true,
+    "fuzz/corpus/**": true,
+    "fuzz/artifacts/**": true,
+    "mutants.out/**": true,
+    "mutants.out.old/**": true
   }
 }
