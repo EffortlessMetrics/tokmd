@@ -41,7 +41,7 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 - `EntropyClass` - Low, Medium, High, Suspicious
 - `TrendClass` - Stable, Rising, Falling, Volatile
 - `EffectiveLicense` - Detected license type
-- `NearDupScope` - Module, Global (comparison scope)
+- `NearDupScope` - Module, Lang, Global (comparison scope)
 - `CommitIntentKind` - Feat, Fix, Refactor, Docs, Test, Chore, Ci, Other (re-exported from `tokmd-types`)
 
 ## Implementation Details

@@ -253,7 +253,7 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--near-dup` | Enable near-duplicate file detection. | `false` |
 | `--near-dup-threshold <N>` | Similarity threshold 0.0–1.0. | `0.80` |
 | `--near-dup-max-files <N>` | Max files to analyze for near-duplicates. | `2000` |
-| `--near-dup-scope <SCOPE>` | Comparison scope: `module` or `global`. | `module` |
+| `--near-dup-scope <SCOPE>` | Comparison scope: `module`, `lang`, or `global`. | `module` |
 | `--explain <KEY>` | Explain a metric/finding key and exit (`list` to show keys). | `None` |
 
 **Presets**:

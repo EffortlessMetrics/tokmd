@@ -48,10 +48,13 @@ pub struct AnalysisReceipt {
 ## Schema Version
 
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 4;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;
 ```
 
 v4 added cognitive complexity, nesting depth, and function-level details.
+v5 added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution.
+v6 added API surface enricher.
+v7 added coupling normalization (Jaccard/Lift), commit intent classification, and near-duplicate detection.
 
 ## Design Principles
 
