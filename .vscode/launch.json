@@ -1,0 +1,111 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tokmd lang",
+      "cargo": {
+        "args": ["build", "-p", "tokmd", "--bin", "tokmd"],
+        "filter": {
+          "name": "tokmd",
+          "kind": "bin"
+        }
+      },
+      "args": ["lang"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tokmd module",
+      "cargo": {
+        "args": ["build", "-p", "tokmd", "--bin", "tokmd"],
+        "filter": {
+          "name": "tokmd",
+          "kind": "bin"
+        }
+      },
+      "args": ["module"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tokmd analyze",
+      "cargo": {
+        "args": ["build", "-p", "tokmd", "--bin", "tokmd"],
+        "filter": {
+          "name": "tokmd",
+          "kind": "bin"
+        }
+      },
+      "args": ["analyze", "--preset", "receipt", "--format", "json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tokmd (custom args)",
+      "cargo": {
+        "args": ["build", "-p", "tokmd", "--bin", "tokmd"],
+        "filter": {
+          "name": "tokmd",
+          "kind": "bin"
+        }
+      },
+      "args": ["${input:subcommand}"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests (current crate)",
+      "cargo": {
+        "args": ["test", "-p", "${input:crate}", "--no-run"],
+        "filter": {
+          "kind": "lib"
+        }
+      },
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "subcommand",
+      "type": "promptString",
+      "description": "tokmd subcommand and args (e.g. 'export --format jsonl')"
+    },
+    {
+      "id": "crate",
+      "type": "pickString",
+      "description": "Select crate to debug tests for",
+      "options": [
+        "tokmd",
+        "tokmd-analysis",
+        "tokmd-analysis-format",
+        "tokmd-analysis-types",
+        "tokmd-badge",
+        "tokmd-cockpit",
+        "tokmd-config",
+        "tokmd-content",
+        "tokmd-core",
+        "tokmd-envelope",
+        "tokmd-format",
+        "tokmd-fun",
+        "tokmd-gate",
+        "tokmd-git",
+        "tokmd-model",
+        "tokmd-progress",
+        "tokmd-redact",
+        "tokmd-scan",
+        "tokmd-sensor",
+        "tokmd-settings",
+        "tokmd-substrate",
+        "tokmd-tokeignore",
+        "tokmd-types",
+        "tokmd-walk"
+      ]
+    }
+  ]
+}
