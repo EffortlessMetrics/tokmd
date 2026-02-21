@@ -3013,6 +3013,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "proptest",
+ "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",
@@ -3188,6 +3189,7 @@ dependencies = [
  "anyhow",
  "proptest",
  "tempfile",
+ "tokmd-types",
 ]
 
 [[package]]

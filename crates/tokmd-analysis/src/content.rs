@@ -206,6 +206,7 @@ pub(crate) fn build_duplicate_report(
         wasted_bytes,
         strategy: "exact-blake3".to_string(),
         density: Some(density),
+        near: None,
     })
 }
 

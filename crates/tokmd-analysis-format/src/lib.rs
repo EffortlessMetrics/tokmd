@@ -517,13 +517,98 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             }
         }
         if !git.coupling.is_empty() {
-            out.push_str("### Coupling\n\n");
-            out.push_str("|Left|Right|Count|\n");
-            out.push_str("|---|---|---:|\n");
-            for row in git.coupling.iter().take(10) {
-                out.push_str(&format!("|{}|{}|{}|\n", row.left, row.right, row.count));
+            // Minimum-support filter: only render rows with count >= 2 to prevent
+            // lift spikes on rare pairs. JSON always includes all rows.
+            let filtered: Vec<_> = git.coupling.iter().filter(|r| r.count >= 2).collect();
+            if !filtered.is_empty() {
+                out.push_str("### Coupling\n\n");
+                out.push_str("|Left|Right|Count|Jaccard|Lift|\n");
+                out.push_str("|---|---|---:|---:|---:|\n");
+                for row in filtered.iter().take(10) {
+                    let jaccard = row
+                        .jaccard
+                        .map(|v| fmt_f64(v, 4))
+                        .unwrap_or_else(|| "-".to_string());
+                    let lift = row
+                        .lift
+                        .map(|v| fmt_f64(v, 4))
+                        .unwrap_or_else(|| "-".to_string());
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|{}|\n",
+                        row.left, row.right, row.count, jaccard, lift
+                    ));
+                }
+                out.push('\n');
+            }
+        }
+
+        if let Some(intent) = &git.intent {
+            out.push_str("### Commit intent\n\n");
+            out.push_str("|Type|Count|\n");
+            out.push_str("|---|---:|\n");
+            let o = &intent.overall;
+            let entries = [
+                ("feat", o.feat),
+                ("fix", o.fix),
+                ("refactor", o.refactor),
+                ("docs", o.docs),
+                ("test", o.test),
+                ("chore", o.chore),
+                ("ci", o.ci),
+                ("build", o.build),
+                ("perf", o.perf),
+                ("style", o.style),
+                ("revert", o.revert),
+                ("other", o.other),
+            ];
+            for (name, count) in entries {
+                if count > 0 {
+                    out.push_str(&format!("|{}|{}|\n", name, count));
+                }
+            }
+            out.push_str(&format!("|**total**|{}|\n", o.total));
+            out.push_str(&format!("\n- Unknown: `{}`\n", fmt_pct(intent.unknown_pct)));
+            if let Some(cr) = intent.corrective_ratio {
+                out.push_str(&format!(
+                    "- Corrective ratio (fix+revert/total): `{}`\n",
+                    fmt_pct(cr)
+                ));
             }
             out.push('\n');
+
+            // Maintenance hotspots: modules with highest fix+revert share
+            let mut maintenance: Vec<_> = intent
+                .by_module
+                .iter()
+                .filter(|m| m.counts.total > 0)
+                .map(|m| {
+                    let fix_revert = m.counts.fix + m.counts.revert;
+                    let share = fix_revert as f64 / m.counts.total as f64;
+                    (m, share)
+                })
+                .filter(|(_, share)| *share > 0.0)
+                .collect();
+            maintenance.sort_by(|a, b| {
+                b.1.partial_cmp(&a.1)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.0.module.cmp(&b.0.module))
+            });
+
+            if !maintenance.is_empty() {
+                out.push_str("#### Maintenance hotspots\n\n");
+                out.push_str("|Module|Fix+Revert|Total|Share|\n");
+                out.push_str("|---|---:|---:|---:|\n");
+                for (m, share) in maintenance.iter().take(10) {
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|\n",
+                        m.module,
+                        m.counts.fix + m.counts.revert,
+                        m.counts.total,
+                        fmt_pct(*share)
+                    ));
+                }
+                out.push('\n');
+            }
         }
     }
 
@@ -587,6 +672,33 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 ));
             }
             out.push('\n');
+        }
+
+        if let Some(near) = &dup.near {
+            out.push_str("### Near duplicates\n\n");
+            out.push_str(&format!(
+                "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`\n\n",
+                near.files_analyzed,
+                near.files_skipped,
+                fmt_f64(near.params.threshold, 2),
+                near.params.scope
+            ));
+            if near.pairs.is_empty() {
+                out.push_str("- No near-duplicate pairs detected.\n\n");
+            } else {
+                out.push_str("|Left|Right|Similarity|Shared FPs|\n");
+                out.push_str("|---|---|---:|---:|\n");
+                for pair in near.pairs.iter().take(20) {
+                    out.push_str(&format!(
+                        "|{}|{}|{}|{}|\n",
+                        pair.left,
+                        pair.right,
+                        fmt_pct(pair.similarity),
+                        pair.shared_fingerprints
+                    ));
+                }
+                out.push('\n');
+            }
         }
     }
 
@@ -2329,6 +2441,10 @@ mod tests {
                 left: "src/a.rs".to_string(),
                 right: "src/b.rs".to_string(),
                 count: 10,
+                jaccard: Some(0.5),
+                lift: Some(1.2),
+                n_left: Some(15),
+                n_right: Some(12),
             }],
             age_distribution: Some(CodeAgeDistributionReport {
                 buckets: vec![CodeAgeBucket {
@@ -2342,6 +2458,7 @@ mod tests {
                 prior_refreshes: 8,
                 refresh_trend: TrendClass::Rising,
             }),
+            intent: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Git metrics"));
@@ -2374,6 +2491,7 @@ mod tests {
             },
             coupling: vec![],
             age_distribution: None,
+            intent: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Git metrics"));
@@ -2441,6 +2559,7 @@ mod tests {
                     density: 0.1,
                 }],
             }),
+            near: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Duplicates"));
@@ -2460,6 +2579,7 @@ mod tests {
             strategy: "content".to_string(),
             groups: vec![],
             density: None,
+            near: None,
         });
         let result = render_md(&receipt);
         assert!(result.contains("## Duplicates"));

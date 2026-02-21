@@ -1,5 +1,6 @@
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
 use tokmd_analysis_format::render;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
@@ -91,6 +92,10 @@ fn render_md_snapshot() {
         git: None,
         import_granularity: ImportGranularity::Module,
         detail_functions: false,
+        near_dup: false,
+        near_dup_threshold: 0.80,
+        near_dup_max_files: 2000,
+        near_dup_scope: NearDupScope::Module,
     };
 
     let receipt = analyze(ctx, request).expect("analysis");

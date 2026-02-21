@@ -3,8 +3,9 @@ use std::path::Path;
 
 use anyhow::Result;
 use tokmd_analysis_types::{
-    BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CouplingRow, FreshnessReport,
-    GitReport, HotspotRow, ModuleFreshnessRow, TrendClass,
+    BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentReport,
+    CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
+    TrendClass,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -78,6 +79,7 @@ pub(crate) fn build_git_report(
     let age_distribution = build_code_age_distribution(&last_change, max_ts, commits);
 
     let coupling = build_coupling(commits, &row_map);
+    let intent = build_intent_report(commits, &row_map);
 
     Ok(GitReport {
         commits_scanned: commits.len(),
@@ -87,6 +89,7 @@ pub(crate) fn build_git_report(
         freshness,
         coupling,
         age_distribution: Some(age_distribution),
+        intent: Some(intent),
     })
 }
 
@@ -167,6 +170,8 @@ fn build_coupling(
     row_map: &BTreeMap<String, (&FileRow, String)>,
 ) -> Vec<CouplingRow> {
     let mut pairs: BTreeMap<(String, String), usize> = BTreeMap::new();
+    let mut touches: BTreeMap<String, usize> = BTreeMap::new();
+    let mut commits_considered: usize = 0;
 
     for commit in commits {
         let mut modules: BTreeSet<String> = BTreeSet::new();
@@ -175,6 +180,14 @@ fn build_coupling(
             if let Some((_row, module)) = row_map.get(&key) {
                 modules.insert(module.clone());
             }
+        }
+        // Only count commits where at least one file maps to a module
+        if modules.is_empty() {
+            continue;
+        }
+        commits_considered += 1;
+        for m in &modules {
+            *touches.entry(m.clone()).or_insert(0) += 1;
         }
         let modules: Vec<String> = modules.into_iter().collect();
         for i in 0..modules.len() {
@@ -191,12 +204,94 @@ fn build_coupling(
         }
     }
 
+    let n = commits_considered;
+
     let mut rows: Vec<CouplingRow> = pairs
         .into_iter()
-        .map(|((left, right), count)| CouplingRow { left, right, count })
+        .map(|((left, right), count)| {
+            let n_a = touches.get(&left).copied().unwrap_or(0);
+            let n_b = touches.get(&right).copied().unwrap_or(0);
+            let denom = (n_a + n_b).saturating_sub(count);
+            let jaccard = if denom > 0 {
+                Some(round_f64(count as f64 / denom as f64, 4))
+            } else {
+                None
+            };
+            let lift = if n > 0 && n_a > 0 && n_b > 0 {
+                Some(round_f64(
+                    (count as f64 * n as f64) / (n_a as f64 * n_b as f64),
+                    4,
+                ))
+            } else {
+                None
+            };
+            CouplingRow {
+                left,
+                right,
+                count,
+                jaccard,
+                lift,
+                n_left: Some(n_a),
+                n_right: Some(n_b),
+            }
+        })
         .collect();
     rows.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.left.cmp(&b.left)));
     rows
+}
+
+#[cfg(feature = "git")]
+fn build_intent_report(
+    commits: &[tokmd_git::GitCommit],
+    row_map: &BTreeMap<String, (&FileRow, String)>,
+) -> CommitIntentReport {
+    let mut overall = CommitIntentCounts::default();
+    let mut by_module_counts: BTreeMap<String, CommitIntentCounts> = BTreeMap::new();
+
+    for commit in commits {
+        let kind = tokmd_git::classify_intent(&commit.subject);
+        overall.increment(kind);
+
+        // Attribute intent to all modules touched by this commit
+        let mut modules: BTreeSet<String> = BTreeSet::new();
+        for file in &commit.files {
+            let key = normalize_git_path(file);
+            if let Some((_row, module)) = row_map.get(&key) {
+                modules.insert(module.clone());
+            }
+        }
+        for module in modules {
+            by_module_counts.entry(module).or_default().increment(kind);
+        }
+    }
+
+    let unknown_pct = if overall.total > 0 {
+        round_f64(overall.other as f64 / overall.total as f64, 4)
+    } else {
+        0.0
+    };
+
+    let corrective_ratio = if overall.total > 0 {
+        Some(round_f64(
+            (overall.fix + overall.revert) as f64 / overall.total as f64,
+            4,
+        ))
+    } else {
+        None
+    };
+
+    let mut by_module: Vec<ModuleIntentRow> = by_module_counts
+        .into_iter()
+        .map(|(module, counts)| ModuleIntentRow { module, counts })
+        .collect();
+    by_module.sort_by(|a, b| a.module.cmp(&b.module));
+
+    CommitIntentReport {
+        overall,
+        by_module,
+        unknown_pct,
+        corrective_ratio,
+    }
 }
 
 #[cfg(feature = "git")]

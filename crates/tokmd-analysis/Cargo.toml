@@ -15,12 +15,13 @@ documentation = "https://docs.rs/tokmd-analysis"
 default = []
 git = ["dep:tokmd-git"]
 walk = ["dep:tokmd-walk"]
-content = ["dep:tokmd-content"]
+content = ["dep:tokmd-content", "dep:rustc-hash"]
 halstead = ["content", "walk"]
 
 [dependencies]
 anyhow = "1.0.101"
 blake3.workspace = true
+rustc-hash = { version = "2", optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 

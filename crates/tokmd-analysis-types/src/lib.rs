@@ -22,8 +22,8 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
-/// v6: Added API surface enricher (public export ratios per language).
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 6;
+/// v7: Added coupling normalization (Jaccard/Lift), commit intent classification, near-duplicate detection.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -489,6 +489,9 @@ pub struct GitReport {
     /// Code age bucket distribution plus recent refresh trend.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub age_distribution: Option<CodeAgeDistributionReport>,
+    /// Commit intent classification (feat/fix/refactor/etc.).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub intent: Option<CommitIntentReport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -527,6 +530,18 @@ pub struct CouplingRow {
     pub left: String,
     pub right: String,
     pub count: usize,
+    /// Jaccard similarity: count / (n_left + n_right - count). Range (0.0, 1.0].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jaccard: Option<f64>,
+    /// Lift: (count * N) / (n_left * n_right), where N = commits_considered.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lift: Option<f64>,
+    /// Commits touching left module (within commits_considered universe).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub n_left: Option<usize>,
+    /// Commits touching right module (within commits_considered universe).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub n_right: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -544,6 +559,118 @@ pub struct CodeAgeBucket {
     pub max_days: Option<usize>,
     pub files: usize,
     pub pct: f64,
+}
+
+// --------------------------
+// Commit intent classification
+// --------------------------
+
+// Re-export from tokmd-types (Tier 0) so existing consumers keep working.
+pub use tokmd_types::CommitIntentKind;
+
+/// Overall commit intent classification report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitIntentReport {
+    /// Aggregate counts across all scanned commits.
+    pub overall: CommitIntentCounts,
+    /// Per-module intent breakdown.
+    pub by_module: Vec<ModuleIntentRow>,
+    /// Percentage of commits classified as "other" (unrecognized).
+    pub unknown_pct: f64,
+    /// Corrective ratio: (fix + revert) / total. Range [0.0, 1.0].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub corrective_ratio: Option<f64>,
+}
+
+/// Counts per intent kind.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CommitIntentCounts {
+    pub feat: usize,
+    pub fix: usize,
+    pub refactor: usize,
+    pub docs: usize,
+    pub test: usize,
+    pub chore: usize,
+    pub ci: usize,
+    pub build: usize,
+    pub perf: usize,
+    pub style: usize,
+    pub revert: usize,
+    pub other: usize,
+    pub total: usize,
+}
+
+impl CommitIntentCounts {
+    /// Increment the count for a given intent kind.
+    pub fn increment(&mut self, kind: CommitIntentKind) {
+        match kind {
+            CommitIntentKind::Feat => self.feat += 1,
+            CommitIntentKind::Fix => self.fix += 1,
+            CommitIntentKind::Refactor => self.refactor += 1,
+            CommitIntentKind::Docs => self.docs += 1,
+            CommitIntentKind::Test => self.test += 1,
+            CommitIntentKind::Chore => self.chore += 1,
+            CommitIntentKind::Ci => self.ci += 1,
+            CommitIntentKind::Build => self.build += 1,
+            CommitIntentKind::Perf => self.perf += 1,
+            CommitIntentKind::Style => self.style += 1,
+            CommitIntentKind::Revert => self.revert += 1,
+            CommitIntentKind::Other => self.other += 1,
+        }
+        self.total += 1;
+    }
+}
+
+/// Per-module intent breakdown row.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleIntentRow {
+    pub module: String,
+    pub counts: CommitIntentCounts,
+}
+
+// ----------------------------
+// Near-duplicate detection
+// ----------------------------
+
+/// Scope for near-duplicate comparison partitioning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum NearDupScope {
+    /// Compare files within the same module.
+    #[default]
+    Module,
+    /// Compare files within the same language.
+    Lang,
+    /// Compare all files globally.
+    Global,
+}
+
+/// Parameters for near-duplicate detection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NearDupParams {
+    pub scope: NearDupScope,
+    pub threshold: f64,
+    pub max_files: usize,
+}
+
+/// Report of near-duplicate file pairs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NearDuplicateReport {
+    pub params: NearDupParams,
+    pub pairs: Vec<NearDupPairRow>,
+    pub files_analyzed: usize,
+    pub files_skipped: usize,
+}
+
+/// A pair of near-duplicate files with similarity score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NearDupPairRow {
+    pub left: String,
+    pub right: String,
+    pub similarity: f64,
+    pub shared_fingerprints: usize,
+    pub left_fingerprints: usize,
+    pub right_fingerprints: usize,
 }
 
 // -----------------
@@ -575,6 +702,9 @@ pub struct DuplicateReport {
     /// Duplication density summary overall and by module.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub density: Option<DuplicationDensityReport>,
+    /// Near-duplicate file pairs detected by fingerprint similarity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub near: Option<NearDuplicateReport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

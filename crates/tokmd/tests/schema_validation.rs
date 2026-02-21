@@ -413,8 +413,8 @@ fn test_schema_version_matches_constant() -> Result<()> {
         analysis_version
             .as_u64()
             .context("schema_version should be integer")?,
-        6,
-        "AnalysisReceipt schema_version should be 6"
+        7,
+        "AnalysisReceipt schema_version should be 7"
     );
 
     // Check CockpitReceipt schema_version const

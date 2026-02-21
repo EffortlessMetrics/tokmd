@@ -436,6 +436,22 @@ pub struct CliAnalyzeArgs {
     #[arg(long)]
     pub detail_functions: bool,
 
+    /// Enable near-duplicate file detection (opt-in).
+    #[arg(long)]
+    pub near_dup: bool,
+
+    /// Near-duplicate similarity threshold (0.0–1.0) [default: 0.80].
+    #[arg(long, default_value = "0.80")]
+    pub near_dup_threshold: f64,
+
+    /// Maximum files to analyze for near-duplicates [default: 2000].
+    #[arg(long, default_value = "2000")]
+    pub near_dup_max_files: usize,
+
+    /// Near-duplicate comparison scope [default: module].
+    #[arg(long, value_enum)]
+    pub near_dup_scope: Option<NearDupScope>,
+
     /// Explain a metric or finding key and exit.
     #[arg(long, value_name = "KEY")]
     pub explain: Option<String>,
@@ -952,6 +968,18 @@ pub enum SensorFormat {
     Json,
     /// Markdown summary.
     Md,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum NearDupScope {
+    /// Compare files within the same module.
+    #[default]
+    Module,
+    /// Compare files within the same language.
+    Lang,
+    /// Compare all files globally.
+    Global,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

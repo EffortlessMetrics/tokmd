@@ -69,6 +69,11 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         max_commit_files: args.max_commit_files,
         import_granularity: analysis_utils::granularity_to_string(granularity),
     };
+    let near_dup_scope = match args.near_dup_scope {
+        Some(cli::NearDupScope::Module) | None => analysis::NearDupScope::Module,
+        Some(cli::NearDupScope::Lang) => analysis::NearDupScope::Lang,
+        Some(cli::NearDupScope::Global) => analysis::NearDupScope::Global,
+    };
     let request = analysis::AnalysisRequest {
         preset: analysis_utils::map_preset(preset),
         args: args_meta,
@@ -83,6 +88,10 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         git: git_flag,
         import_granularity: analysis_utils::map_granularity(granularity),
         detail_functions: args.detail_functions,
+        near_dup: args.near_dup,
+        near_dup_threshold: args.near_dup_threshold,
+        near_dup_max_files: args.near_dup_max_files,
+        near_dup_scope,
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,

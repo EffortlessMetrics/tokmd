@@ -5,7 +5,7 @@ mod git_tests {
     use tempfile::tempdir;
     use tokmd_analysis::{
         AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-        analyze,
+        NearDupScope, analyze,
     };
     use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
     use tokmd_types::{ExportData, FileKind, FileRow};
@@ -138,6 +138,10 @@ mod git_tests {
             git: Some(true),
             import_granularity: ImportGranularity::Module,
             detail_functions: false,
+            near_dup: false,
+            near_dup_threshold: 0.80,
+            near_dup_max_files: 2000,
+            near_dup_scope: NearDupScope::Module,
         };
 
         let receipt = analyze(ctx, request).expect("analysis");

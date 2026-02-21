@@ -161,6 +161,10 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
             git: None,
             import_granularity: analysis::ImportGranularity::Module,
             detail_functions: false,
+            near_dup: false,
+            near_dup_threshold: 0.80,
+            near_dup_max_files: 2000,
+            near_dup_scope: analysis::NearDupScope::Module,
         };
         let ctx = analysis::AnalysisContext {
             export: export_data.clone(),

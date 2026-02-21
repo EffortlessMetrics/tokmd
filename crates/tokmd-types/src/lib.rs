@@ -135,6 +135,28 @@ pub enum ScanStatus {
     Partial,
 }
 
+/// Classification of a commit's intent, derived from subject line.
+///
+/// Lives in `tokmd-types` (Tier 0) so that both `tokmd-git` (Tier 2) and
+/// `tokmd-analysis-types` (Tier 0) can reference it without creating
+/// upward dependency edges.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommitIntentKind {
+    Feat,
+    Fix,
+    Refactor,
+    Docs,
+    Test,
+    Chore,
+    Ci,
+    Build,
+    Perf,
+    Style,
+    Revert,
+    Other,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ToolInfo {
     pub name: String,
@@ -296,6 +318,12 @@ pub struct ContextReceipt {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_audit: Option<TokenAudit>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -477,13 +505,125 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
-pub const HANDOFF_SCHEMA_VERSION: u32 = 4;
+pub const HANDOFF_SCHEMA_VERSION: u32 = 5;
 
 /// Schema version for context bundle manifests.
 pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;
 
 /// Schema version for context receipts (separate from SCHEMA_VERSION used by lang/module/export/diff).
-pub const CONTEXT_SCHEMA_VERSION: u32 = 3;
+pub const CONTEXT_SCHEMA_VERSION: u32 = 4;
+
+// -----------------------
+// Token estimation types
+// -----------------------
+
+/// Metadata about how token estimates were produced.
+///
+/// Rails are NOT guaranteed bounds — they are heuristic fences.
+/// Default divisors: est=4.0, low=3.0 (conservative → more tokens),
+/// high=5.0 (optimistic → fewer tokens).
+///
+/// **Invariant**: `tokens_min <= tokens_est <= tokens_max`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenEstimationMeta {
+    /// Divisor used for main estimate (default 4.0).
+    pub bytes_per_token_est: f64,
+    /// Conservative divisor — more tokens (default 3.0).
+    pub bytes_per_token_low: f64,
+    /// Optimistic divisor — fewer tokens (default 5.0).
+    pub bytes_per_token_high: f64,
+    /// tokens = source_bytes / bytes_per_token_high (optimistic, fewest tokens).
+    #[serde(alias = "tokens_high")]
+    pub tokens_min: usize,
+    /// tokens = source_bytes / bytes_per_token_est.
+    pub tokens_est: usize,
+    /// tokens = source_bytes / bytes_per_token_low (conservative, most tokens).
+    #[serde(alias = "tokens_low")]
+    pub tokens_max: usize,
+    /// Total source bytes used to compute estimates.
+    pub source_bytes: usize,
+}
+
+impl TokenEstimationMeta {
+    /// Default bytes-per-token divisors.
+    pub const DEFAULT_BPT_EST: f64 = 4.0;
+    pub const DEFAULT_BPT_LOW: f64 = 3.0;
+    pub const DEFAULT_BPT_HIGH: f64 = 5.0;
+
+    /// Create estimation from source byte count using default divisors.
+    pub fn from_bytes(bytes: usize, bpt: f64) -> Self {
+        Self::from_bytes_with_bounds(bytes, bpt, Self::DEFAULT_BPT_LOW, Self::DEFAULT_BPT_HIGH)
+    }
+
+    /// Create estimation from source byte count with explicit low/high divisors.
+    pub fn from_bytes_with_bounds(bytes: usize, bpt_est: f64, bpt_low: f64, bpt_high: f64) -> Self {
+        Self {
+            bytes_per_token_est: bpt_est,
+            bytes_per_token_low: bpt_low,
+            bytes_per_token_high: bpt_high,
+            tokens_min: (bytes as f64 / bpt_high).ceil() as usize,
+            tokens_est: (bytes as f64 / bpt_est).ceil() as usize,
+            tokens_max: (bytes as f64 / bpt_low).ceil() as usize,
+            source_bytes: bytes,
+        }
+    }
+}
+
+/// Post-write audit comparing actual output to estimates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAudit {
+    /// Actual bytes written to the output bundle.
+    pub output_bytes: u64,
+    /// tokens = output_bytes / bytes_per_token_high (optimistic, fewest tokens).
+    #[serde(alias = "tokens_high")]
+    pub tokens_min: usize,
+    /// tokens = output_bytes / bytes_per_token_est.
+    pub tokens_est: usize,
+    /// tokens = output_bytes / bytes_per_token_low (conservative, most tokens).
+    #[serde(alias = "tokens_low")]
+    pub tokens_max: usize,
+    /// Bytes of framing/separators/headers (output_bytes - content_bytes).
+    pub overhead_bytes: u64,
+    /// overhead_bytes / output_bytes (0.0-1.0).
+    pub overhead_pct: f64,
+}
+
+impl TokenAudit {
+    /// Create an audit from output bytes and content bytes.
+    pub fn from_output(output_bytes: u64, content_bytes: u64) -> Self {
+        Self::from_output_with_divisors(
+            output_bytes,
+            content_bytes,
+            TokenEstimationMeta::DEFAULT_BPT_EST,
+            TokenEstimationMeta::DEFAULT_BPT_LOW,
+            TokenEstimationMeta::DEFAULT_BPT_HIGH,
+        )
+    }
+
+    /// Create an audit from output bytes with explicit divisors.
+    pub fn from_output_with_divisors(
+        output_bytes: u64,
+        content_bytes: u64,
+        bpt_est: f64,
+        bpt_low: f64,
+        bpt_high: f64,
+    ) -> Self {
+        let overhead_bytes = output_bytes.saturating_sub(content_bytes);
+        let overhead_pct = if output_bytes > 0 {
+            overhead_bytes as f64 / output_bytes as f64
+        } else {
+            0.0
+        };
+        Self {
+            output_bytes,
+            tokens_min: (output_bytes as f64 / bpt_high).ceil() as usize,
+            tokens_est: (output_bytes as f64 / bpt_est).ceil() as usize,
+            tokens_max: (output_bytes as f64 / bpt_low).ceil() as usize,
+            overhead_bytes,
+            overhead_pct,
+        }
+    }
+}
 
 // -----------------------
 // Bundle hygiene types
@@ -571,6 +711,12 @@ pub struct HandoffManifest {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual code bundle bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code_audit: Option<TokenAudit>,
 }
 
 /// A file excluded by smart-exclude heuristics (lockfiles, minified, etc.).
@@ -608,6 +754,12 @@ pub struct ContextBundleManifest {
     /// Files excluded by per-file cap / classification policy.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excluded_by_policy: Vec<PolicyExcludedFile>,
+    /// Token estimation envelope with uncertainty bounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_estimation: Option<TokenEstimationMeta>,
+    /// Post-bundle audit comparing actual bundle bytes to estimates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_audit: Option<TokenAudit>,
 }
 
 /// Explicitly excluded path with reason for context bundles.

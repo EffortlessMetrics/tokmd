@@ -47,7 +47,7 @@ fn test_handoff_manifest_valid_json() {
         serde_json::from_str(&manifest_content).expect("manifest.json should be valid JSON");
 
     // Verify required fields
-    assert_eq!(parsed["schema_version"].as_u64(), Some(4));
+    assert_eq!(parsed["schema_version"].as_u64(), Some(5));
     assert!(parsed["generated_at_ms"].is_number());
     assert!(parsed["tool"]["name"].as_str() == Some("tokmd"));
     assert!(parsed["mode"].as_str() == Some("handoff"));

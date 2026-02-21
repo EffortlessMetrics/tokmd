@@ -250,6 +250,10 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
 | `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
 | `--detail-functions` | Include per-function complexity details in output. | `false` |
+| `--near-dup` | Enable near-duplicate file detection. | `false` |
+| `--near-dup-threshold <N>` | Similarity threshold 0.0–1.0. | `0.80` |
+| `--near-dup-max-files <N>` | Max files to analyze for near-duplicates. | `2000` |
+| `--near-dup-scope <SCOPE>` | Comparison scope: `module`, `lang`, or `global`. | `module` |
 | `--explain <KEY>` | Explain a metric/finding key and exit (`list` to show keys). | `None` |
 
 **Presets**:

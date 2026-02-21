@@ -411,6 +411,7 @@ fn diff(py: Python<'_>, from_path: &str, to_path: &str) -> PyResult<PyObject> {
 ///     >>> import tokmd
 ///     >>> result = tokmd.cockpit(base="main", head="HEAD")
 ///     >>> print(f"Health: {result['code_health']['score']}")
+#[cfg_attr(test, allow(dead_code))]
 #[cfg_attr(not(test), pyfunction)]
 #[cfg_attr(
     not(test),
