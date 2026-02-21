@@ -1,0 +1,18 @@
+{
+  "run_id": "run-2026-02-14-01",
+  "timestamp_utc": "2026-02-14T00:00:00Z",
+  "lane": "Scout",
+  "target": "create_module_report in tokmd-model",
+  "proof_method": "time ./target/release/tokmd module > /dev/null",
+  "commands": [
+    {
+      "cmd": "time ./target/release/tokmd module > /dev/null",
+      "result": "real 0m0.041s, user 0m0.055s, sys 0m0.042s"
+    },
+    {
+      "cmd": "time ./target/release/tokmd module > /dev/null",
+      "result": "real 0m0.023s, user 0m0.035s, sys 0m0.022s"
+    }
+  ],
+  "results_summary": "Baseline: ~41ms -> Optimized: ~23ms (~44% faster)"
+}
