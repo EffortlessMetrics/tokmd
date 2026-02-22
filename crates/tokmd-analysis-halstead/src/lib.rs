@@ -5,8 +5,7 @@ use anyhow::Result;
 use tokmd_analysis_types::HalsteadMetrics;
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use crate::analysis::AnalysisLimits;
-use crate::util::normalize_path;
+use tokmd_analysis_util::{AnalysisLimits, normalize_path};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 
@@ -450,7 +449,7 @@ fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
 }
 
 /// Build aggregated Halstead metrics from source files.
-pub(crate) fn build_halstead_report(
+pub fn build_halstead_report(
     root: &Path,
     files: &[PathBuf],
     export: &ExportData,

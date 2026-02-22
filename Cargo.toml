@@ -4,6 +4,17 @@ members = [
     "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
+    "crates/tokmd-analysis-api-surface",
+    "crates/tokmd-analysis-complexity",
+    "crates/tokmd-analysis-entropy",
+    "crates/tokmd-analysis-license",
+    "crates/tokmd-analysis-halstead",
+    "crates/tokmd-analysis-derived",
+    "crates/tokmd-analysis-content",
+    "crates/tokmd-analysis-git",
+    "crates/tokmd-analysis-util",
+    "crates/tokmd-analysis-assets",
+    "crates/tokmd-analysis-near-dup",
     "crates/tokmd-analysis-format",
     "crates/tokmd-analysis-types",
     "crates/tokmd-config",
@@ -12,6 +23,11 @@ members = [
     "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
+    "crates/tokmd-analysis-fun",
+    "crates/tokmd-analysis-grid",
+    "crates/tokmd-analysis-archetype",
+    "crates/tokmd-analysis-topics",
+    "crates/tokmd-analysis-fingerprint",
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
@@ -34,6 +50,14 @@ default-members = [
     "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
+    "crates/tokmd-analysis-api-surface",
+    "crates/tokmd-analysis-complexity",
+    "crates/tokmd-analysis-entropy",
+    "crates/tokmd-analysis-license",
+    "crates/tokmd-analysis-halstead",
+    "crates/tokmd-analysis-assets",
+    "crates/tokmd-analysis-content",
+    "crates/tokmd-analysis-near-dup",
     "crates/tokmd-analysis-format",
     "crates/tokmd-analysis-types",
     "crates/tokmd-config",
@@ -42,6 +66,11 @@ default-members = [
     "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
+    "crates/tokmd-analysis-fun",
+    "crates/tokmd-analysis-grid",
+    "crates/tokmd-analysis-archetype",
+    "crates/tokmd-analysis-topics",
+    "crates/tokmd-analysis-fingerprint",
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
@@ -55,6 +84,9 @@ default-members = [
     "crates/tokmd-types",
     "crates/tokmd-cockpit",
     "crates/tokmd-walk",
+    "crates/tokmd-analysis-git",
+    "crates/tokmd-analysis-derived",
+    "crates/tokmd-analysis-util",
 ]
 # xtask is a workspace member but excluded from default-members
 
@@ -77,12 +109,28 @@ tokmd-badge = { path = "crates/tokmd-badge", version = "1.7.0" }
 tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.7.0" }
 tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.7.0" }
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.7.0" }
+tokmd-analysis-api-surface = { path = "crates/tokmd-analysis-api-surface", version = "1.7.0" }
+tokmd-analysis-complexity = { path = "crates/tokmd-analysis-complexity", version = "1.7.0" }
+tokmd-analysis-entropy = { path = "crates/tokmd-analysis-entropy", version = "1.7.0" }
+tokmd-analysis-license = { path = "crates/tokmd-analysis-license", version = "1.7.0" }
+tokmd-analysis-halstead = { path = "crates/tokmd-analysis-halstead", version = "1.7.0" }
+tokmd-analysis-assets = { path = "crates/tokmd-analysis-assets", version = "1.7.0" }
+tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.7.0" }
+tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.7.0" }
 tokmd-config = { path = "crates/tokmd-config", version = "1.7.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.7.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.7.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.7.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.7.0" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.7.0" }
+tokmd-analysis-derived = { path = "crates/tokmd-analysis-derived", version = "1.7.0" }
+tokmd-analysis-git = { path = "crates/tokmd-analysis-git", version = "1.7.0" }
+tokmd-analysis-util = { path = "crates/tokmd-analysis-util", version = "1.7.0" }
+tokmd-analysis-fun = { path = "crates/tokmd-analysis-fun", version = "1.7.0" }
+tokmd-analysis-grid = { path = "crates/tokmd-analysis-grid", version = "1.7.0" }
+tokmd-analysis-archetype = { path = "crates/tokmd-analysis-archetype", version = "1.7.0" }
+tokmd-analysis-topics = { path = "crates/tokmd-analysis-topics", version = "1.7.0" }
+tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", version = "1.7.0" }
 tokmd-git = { path = "crates/tokmd-git", version = "1.7.0" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.7.0" }
 tokmd-progress = { path = "crates/tokmd-progress", version = "1.7.0" }
@@ -100,6 +148,7 @@ tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.7.0" }
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"
 thiserror = "2.0.18"
+serde_json = "1.0.149"
 insta = { version = "1.46.3", features = ["json"] }
 
 [profile.release]

@@ -23,7 +23,12 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind};
 
-use crate::AnalysisLimits;
+/// Limits controlling file scope for near-duplicate fingerprinting.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct NearDupLimits {
+    pub max_bytes: Option<u64>,
+    pub max_file_bytes: Option<u64>,
+}
 
 /// Default k-gram size (number of tokens per shingle).
 const K: usize = 25;
@@ -34,14 +39,14 @@ const MAX_POSTINGS: usize = 50;
 
 /// Build a near-duplicate report for the given export data.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn build_near_dup_report(
+pub fn build_near_dup_report(
     root: &Path,
     export: &ExportData,
     scope: NearDupScope,
     threshold: f64,
     max_files: usize,
     max_pairs: Option<usize>,
-    limits: &AnalysisLimits,
+    limits: &NearDupLimits,
     exclude_patterns: &[String],
 ) -> Result<NearDuplicateReport> {
     let max_file_bytes = limits.max_file_bytes.unwrap_or(512_000);

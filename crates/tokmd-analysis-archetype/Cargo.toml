@@ -1,0 +1,16 @@
+[package]
+name = "tokmd-analysis-archetype"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Project archetype inference for analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "archetype", "contracts", "microcrate", "repositories"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-archetype"
+
+[dependencies]
+tokmd-analysis-types.workspace = true
+tokmd-types.workspace = true

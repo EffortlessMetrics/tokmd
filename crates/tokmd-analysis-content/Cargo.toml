@@ -1,0 +1,20 @@
+[package]
+name = "tokmd-analysis-content"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Content-based analysis helpers for tokmd analysis presets."
+readme = "README.md"
+keywords = ["analysis", "duplication", "imports", "todos", "code-intelligence"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-content"
+
+[dependencies]
+anyhow = "1.0.101"
+tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-content.workspace = true
+tokmd-types.workspace = true
+blake3.workspace = true

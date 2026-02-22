@@ -8,8 +8,8 @@ use tokmd_analysis_types::{
 
 const ASSET_TOP_N: usize = 10;
 
-#[cfg(feature = "walk")]
-pub(crate) fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<AssetReport> {
+/// Build aggregate asset inventory for files produced by a walk.
+pub fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<AssetReport> {
     let mut categories: BTreeMap<String, (usize, u64, BTreeSet<String>)> = BTreeMap::new();
     let mut top_files: Vec<AssetFileRow> = Vec::new();
     let mut total_files = 0usize;
@@ -73,7 +73,6 @@ pub(crate) fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<Asse
     })
 }
 
-#[cfg(feature = "walk")]
 fn asset_category(ext: &str) -> Option<&'static str> {
     match ext {
         "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "tiff" | "ico" => Some("image"),
@@ -86,8 +85,8 @@ fn asset_category(ext: &str) -> Option<&'static str> {
     }
 }
 
-#[cfg(feature = "walk")]
-pub(crate) fn build_dependency_report(root: &Path, files: &[PathBuf]) -> Result<DependencyReport> {
+/// Build dependency lockfile summary from detected lockfile paths.
+pub fn build_dependency_report(root: &Path, files: &[PathBuf]) -> Result<DependencyReport> {
     let mut lockfiles: Vec<LockfileReport> = Vec::new();
 
     for rel in files {
@@ -134,12 +133,10 @@ pub(crate) fn build_dependency_report(root: &Path, files: &[PathBuf]) -> Result<
     Ok(DependencyReport { total, lockfiles })
 }
 
-#[cfg(feature = "walk")]
 fn count_cargo_lock(content: &str) -> usize {
     content.matches("[[package]]").count()
 }
 
-#[cfg(feature = "walk")]
 fn count_package_lock(content: &str) -> usize {
     let parsed: serde_json::Value = match serde_json::from_str(content) {
         Ok(v) => v,
@@ -159,7 +156,6 @@ fn count_package_lock(content: &str) -> usize {
         .unwrap_or(0)
 }
 
-#[cfg(feature = "walk")]
 fn count_pnpm_lock(content: &str) -> usize {
     content
         .lines()
@@ -167,7 +163,6 @@ fn count_pnpm_lock(content: &str) -> usize {
         .count()
 }
 
-#[cfg(feature = "walk")]
 fn count_yarn_lock(content: &str) -> usize {
     content
         .lines()
@@ -179,7 +174,6 @@ fn count_yarn_lock(content: &str) -> usize {
         .count()
 }
 
-#[cfg(feature = "walk")]
 fn count_go_sum(content: &str) -> usize {
     let mut seen: BTreeSet<String> = BTreeSet::new();
     for line in content.lines() {
@@ -200,7 +194,6 @@ fn count_go_sum(content: &str) -> usize {
     seen.len()
 }
 
-#[cfg(feature = "walk")]
 fn count_gemfile_lock(content: &str) -> usize {
     let mut count = 0usize;
     let mut in_specs = false;

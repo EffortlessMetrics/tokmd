@@ -2987,6 +2987,7 @@ dependencies = [
  "time",
  "tokmd-analysis",
  "tokmd-analysis-format",
+ "tokmd-analysis-grid",
  "tokmd-analysis-types",
  "tokmd-badge",
  "tokmd-cockpit",
@@ -3012,18 +3013,113 @@ version = "1.7.0"
 dependencies = [
  "anyhow",
  "blake3",
- "globset",
  "proptest",
- "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",
+ "tokmd-analysis-api-surface",
+ "tokmd-analysis-archetype",
+ "tokmd-analysis-assets",
+ "tokmd-analysis-complexity",
+ "tokmd-analysis-content",
+ "tokmd-analysis-derived",
+ "tokmd-analysis-entropy",
+ "tokmd-analysis-fingerprint",
+ "tokmd-analysis-fun",
+ "tokmd-analysis-git",
+ "tokmd-analysis-grid",
+ "tokmd-analysis-halstead",
+ "tokmd-analysis-license",
+ "tokmd-analysis-near-dup",
+ "tokmd-analysis-topics",
  "tokmd-analysis-types",
- "tokmd-config",
+ "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-git",
  "tokmd-types",
  "tokmd-walk",
+]
+
+[[package]]
+name = "tokmd-analysis-api-surface"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-archetype"
+version = "1.7.0"
+dependencies = [
+ "tokmd-analysis-types",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-assets"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "tokmd-analysis-types",
+ "tokmd-walk",
+]
+
+[[package]]
+name = "tokmd-analysis-complexity"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-content"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-derived"
+version = "1.7.0"
+dependencies = [
+ "blake3",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-entropy"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "tempfile",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-fingerprint"
+version = "1.7.0"
+dependencies = [
+ "tokmd-analysis-types",
+ "tokmd-git",
 ]
 
 [[package]]
@@ -3044,6 +3140,74 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-analysis-fun"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "tokmd-analysis-types",
+]
+
+[[package]]
+name = "tokmd-analysis-git"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "proptest",
+ "tempfile",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-git",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-grid"
+version = "1.7.0"
+
+[[package]]
+name = "tokmd-analysis-halstead"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-license"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "tempfile",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-content",
+ "tokmd-walk",
+]
+
+[[package]]
+name = "tokmd-analysis-near-dup"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "globset",
+ "rustc-hash",
+ "tokmd-analysis-types",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-topics"
+version = "1.7.0"
+dependencies = [
+ "tokmd-analysis-types",
+ "tokmd-types",
+]
+
+[[package]]
 name = "tokmd-analysis-types"
 version = "1.7.0"
 dependencies = [
@@ -3051,6 +3215,15 @@ dependencies = [
  "serde",
  "serde_json",
  "tokmd-envelope",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-util"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "tokmd-analysis-types",
  "tokmd-types",
 ]
 

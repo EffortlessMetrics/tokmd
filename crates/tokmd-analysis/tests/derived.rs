@@ -3,7 +3,7 @@ use tokmd_analysis::{
     NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-use tokmd_types::{ExportData, FileKind, FileRow};
+use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 fn sample_export() -> ExportData {
     let rows = vec![
@@ -61,7 +61,7 @@ fn sample_export() -> ExportData {
         rows,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
         module_depth: 2,
-        children: tokmd_config::ChildIncludeMode::Separate,
+        children: ChildIncludeMode::Separate,
     }
 }
 

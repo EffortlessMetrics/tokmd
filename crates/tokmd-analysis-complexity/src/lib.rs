@@ -8,8 +8,7 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use crate::analysis::AnalysisLimits;
-use crate::util::normalize_path;
+use tokmd_analysis_util::{AnalysisLimits, normalize_path};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
@@ -54,7 +53,7 @@ fn is_complexity_lang(lang: &str) -> bool {
 }
 
 /// Build a complexity report by analyzing function counts, lengths, cyclomatic and cognitive complexity.
-pub(crate) fn build_complexity_report(
+pub fn build_complexity_report(
     root: &Path,
     files: &[PathBuf],
     export: &ExportData,
@@ -1521,7 +1520,7 @@ int main(int argc, char** argv) {
             }],
             module_roots: vec![],
             module_depth: 1,
-            children: tokmd_config::ChildIncludeMode::Separate,
+            children: tokmd_types::ChildIncludeMode::Separate,
         };
 
         let files = vec![FileComplexity {
@@ -1560,7 +1559,7 @@ int main(int argc, char** argv) {
             }],
             module_roots: vec![],
             module_depth: 1,
-            children: tokmd_config::ChildIncludeMode::Separate,
+            children: tokmd_types::ChildIncludeMode::Separate,
         };
 
         let files = vec![FileComplexity {

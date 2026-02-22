@@ -19,7 +19,10 @@ analysis = [
     "tokmd-analysis/git",
     "tokmd-analysis/walk",
     "tokmd-analysis/content",
+    "tokmd-analysis/fun",
+    "tokmd-analysis/archetype",
     "tokmd-analysis/halstead",
+    "tokmd-analysis/topics",
 ]
 cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
 

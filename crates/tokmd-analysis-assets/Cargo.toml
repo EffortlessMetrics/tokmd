@@ -1,0 +1,19 @@
+[package]
+name = "tokmd-analysis-assets"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Asset and dependency-report enrichment for tokmd analysis."
+readme = "README.md"
+keywords = ["analysis", "assets", "dependency", "inventory", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-assets"
+
+[dependencies]
+anyhow = "1.0.101"
+serde_json.workspace = true
+tokmd-analysis-types.workspace = true
+tokmd-walk.workspace = true
+

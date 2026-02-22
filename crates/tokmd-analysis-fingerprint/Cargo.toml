@@ -1,0 +1,16 @@
+[package]
+name = "tokmd-analysis-fingerprint"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Corporate fingerprint enrichment for analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "git", "fingerprint", "corporate", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-fingerprint"
+
+[dependencies]
+tokmd-analysis-types.workspace = true
+tokmd-git.workspace = true

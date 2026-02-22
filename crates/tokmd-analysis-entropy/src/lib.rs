@@ -5,13 +5,12 @@ use anyhow::Result;
 use tokmd_analysis_types::{EntropyClass, EntropyFinding, EntropyReport};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use crate::analysis::AnalysisLimits;
-use crate::util::normalize_path;
+use tokmd_analysis_util::{AnalysisLimits, normalize_path};
 
 const DEFAULT_SAMPLE_BYTES: usize = 1024;
 const MAX_SUSPECTS: usize = 50;
 
-pub(crate) fn build_entropy_report(
+pub fn build_entropy_report(
     root: &Path,
     files: &[PathBuf],
     export: &ExportData,
@@ -79,13 +78,12 @@ fn classify_entropy(entropy: f32) -> EntropyClass {
     }
 }
 
-#[cfg(all(test, feature = "content", feature = "walk"))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;
     use tempfile::tempdir;
-    use tokmd_config::ChildIncludeMode;
-    use tokmd_types::{ExportData, FileKind, FileRow};
+    use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
     fn export_for_paths(paths: &[&str]) -> ExportData {
         let rows = paths

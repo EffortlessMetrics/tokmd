@@ -15,7 +15,7 @@ tokmd-analysis = "1.4"
 # Enable optional features
 [dependencies.tokmd-analysis]
 version = "1.4"
-features = ["git", "walk", "content"]
+features = ["git", "walk", "content", "fun", "topics", "archetype"]
 ```
 
 ## Usage
@@ -56,9 +56,9 @@ let receipt = analyze(request)?;
 
 | Module | Feature | Purpose |
 |--------|---------|---------|
-| `archetype` | - | Project kind detection |
+| `archetype` | archetype | Project kind detection |
 | `derived` | - | Core metrics |
-| `topics` | - | Semantic keyword extraction |
+| `topics` | topics | Semantic keyword extraction |
 | `entropy` | content+walk | High-entropy file detection |
 | `license` | content+walk | License radar scanning |
 | `fingerprint` | git | Corporate domain analysis |
@@ -74,6 +74,9 @@ let receipt = analyze(request)?;
 git = ["tokmd-git"]       # Git history analysis
 walk = ["tokmd-walk"]     # Asset discovery
 content = ["tokmd-content"]  # Content scanning
+topics = ["tokmd-analysis-topics"] # Topic-cloud extraction
+archetype = ["tokmd-analysis-archetype"] # Archetype detection
+fun = ["tokmd-analysis-fun"]  # Fun/novelty report enrichers
 ```
 
 ## Key Types

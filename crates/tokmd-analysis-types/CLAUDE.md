@@ -48,7 +48,7 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 
 ### Schema Version
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;
 ```
 v5 added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution.
 v6 added API surface enricher.

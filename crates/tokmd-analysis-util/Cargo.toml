@@ -1,0 +1,19 @@
+[package]
+name = "tokmd-analysis-util"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Shared analysis utility math and normalization helpers."
+readme = "README.md"
+keywords = ["analysis", "utilities", "metrics", "normalization", "testing"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-util"
+
+[dependencies]
+tokmd-types.workspace = true
+tokmd-analysis-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

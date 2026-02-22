@@ -1,3 +1,7 @@
+//! # tokmd-analysis-fingerprint
+//!
+//! Corporate fingerprint enrichment adapter for analysis receipts.
+
 use std::collections::BTreeMap;
 
 use tokmd_analysis_types::{CorporateFingerprint, DomainStat};
@@ -12,9 +16,8 @@ const PUBLIC_DOMAINS: [&str; 7] = [
     "protonmail.com",
 ];
 
-pub(crate) fn build_corporate_fingerprint(
-    commits: &[tokmd_git::GitCommit],
-) -> CorporateFingerprint {
+/// Build a corporate fingerprint from commit author email domains.
+pub fn build_corporate_fingerprint(commits: &[tokmd_git::GitCommit]) -> CorporateFingerprint {
     let mut counts: BTreeMap<String, u32> = BTreeMap::new();
     let mut total = 0u32;
 
@@ -107,7 +110,9 @@ mod tests {
                 files: vec![],
             },
         ];
+
         let report = build_corporate_fingerprint(&commits);
+
         assert!(report.domains.iter().any(|d| d.domain == "public-email"));
         assert!(report.domains.iter().any(|d| d.domain == "acme.com"));
     }

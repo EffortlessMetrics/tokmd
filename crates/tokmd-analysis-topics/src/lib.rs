@@ -1,3 +1,7 @@
+//! # tokmd-analysis-topics
+//!
+//! Topic-cloud extraction microcrate for analysis receipts.
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use tokmd_analysis_types::{TopicClouds, TopicTerm};
@@ -5,7 +9,8 @@ use tokmd_types::{ExportData, FileKind, FileRow};
 
 const TOP_K: usize = 8;
 
-pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
+/// Build lightweight topic clouds from file path tokens.
+pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
     let parents: Vec<&FileRow> = export
         .rows
         .iter()
@@ -162,8 +167,7 @@ fn build_stopwords(export: &ExportData) -> BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokmd_config::ChildIncludeMode;
-    use tokmd_types::{ExportData, FileKind, FileRow};
+    use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
     #[test]
     fn topic_clouds_are_deterministic() {

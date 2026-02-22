@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use tokmd_analysis_types::{LicenseFinding, LicenseReport, LicenseSourceKind};
 
-use crate::analysis::AnalysisLimits;
+use tokmd_analysis_util::AnalysisLimits;
 
 const DEFAULT_MAX_LICENSE_BYTES: u64 = 256 * 1024;
 
-pub(crate) fn build_license_report(
+pub fn build_license_report(
     root: &Path,
     files: &[PathBuf],
     limits: &AnalysisLimits,
@@ -268,7 +268,7 @@ fn license_patterns() -> Vec<LicensePattern> {
     ]
 }
 
-#[cfg(all(test, feature = "content", feature = "walk"))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;

@@ -121,3 +121,73 @@ fn analyze_explain_unknown_metric_fails() {
     assert!(stderr.contains("Unknown metric/finding key"));
     assert!(stderr.contains("--explain list"));
 }
+
+#[test]
+fn analyze_fun_preset_returns_eco_label() {
+    // Given: a fixture repository with a small baseline code footprint
+    // When: analyze is run with --preset fun and json output
+    // Then: eco label metadata is present in the fun section
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("fun")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}",
+        output.status
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("analysis JSON output is invalid");
+
+    let eco_label = json["fun"]["eco_label"]
+        .as_object()
+        .expect("eco_label should be object");
+    assert!(eco_label.get("label").is_some());
+    assert!(eco_label.get("score").is_some());
+    assert!(eco_label.get("notes").is_some());
+}
+
+#[test]
+fn analyze_topics_preset_returns_topic_cloud() {
+    // Given: the same fixture repository used by other analysis tests
+    // When: analyze is run with --preset topics and json output
+    // Then: topic-cloud payload is present and non-empty
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("topics")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}",
+        output.status
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("analysis JSON output is invalid");
+
+    let topics = json["topics"].as_object().expect("topics should be object");
+    let per_module = topics
+        .get("per_module")
+        .and_then(Value::as_object)
+        .expect("topics.per_module should be object");
+    assert!(!per_module.is_empty());
+
+    let overall = topics
+        .get("overall")
+        .and_then(Value::as_array)
+        .expect("topics.overall should be array");
+    assert!(!overall.is_empty());
+}

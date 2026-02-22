@@ -1,0 +1,22 @@
+[package]
+name = "tokmd-analysis-entropy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Entropy profiling for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "entropy", "security", "reporting", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-entropy"
+
+[dependencies]
+anyhow = "1.0.101"
+tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-content.workspace = true
+tokmd-types.workspace = true
+
+[dev-dependencies]
+tempfile = "3.25.0"

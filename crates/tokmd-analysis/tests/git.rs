@@ -8,7 +8,7 @@ mod git_tests {
         NearDupScope, analyze,
     };
     use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-    use tokmd_types::{ExportData, FileKind, FileRow};
+    use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
     fn git_cmd(dir: &std::path::Path, args: &[&str]) {
         let status = Command::new("git")
@@ -100,7 +100,7 @@ mod git_tests {
             ],
             module_roots: vec!["crates".to_string(), "packages".to_string()],
             module_depth: 2,
-            children: tokmd_config::ChildIncludeMode::Separate,
+            children: ChildIncludeMode::Separate,
         };
 
         let ctx = AnalysisContext {

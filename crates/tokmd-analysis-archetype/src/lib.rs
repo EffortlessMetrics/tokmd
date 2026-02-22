@@ -1,9 +1,14 @@
+//! # tokmd-analysis-archetype
+//!
+//! Microcrate for repository archetype inference in analysis receipts.
+
 use std::collections::BTreeSet;
 
 use tokmd_analysis_types::Archetype;
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-pub(crate) fn detect_archetype(export: &ExportData) -> Option<Archetype> {
+/// Infer a high-level project archetype from normalized export metadata.
+pub fn detect_archetype(export: &ExportData) -> Option<Archetype> {
     let parents: Vec<&FileRow> = export
         .rows
         .iter()
@@ -137,8 +142,7 @@ fn python_package(files: &BTreeSet<String>) -> Option<Archetype> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokmd_config::ChildIncludeMode;
-    use tokmd_types::{ExportData, FileKind, FileRow};
+    use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
     fn export_with_paths(paths: &[&str]) -> ExportData {
         let rows = paths
