@@ -1319,9 +1319,7 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
     let mut in_char = false;
     let mut in_block_comment = false;
 
-    let lines: Vec<&str> = content.lines().collect();
-
-    for (line_idx, line) in lines.iter().enumerate() {
+    for (line_idx, line) in content.lines().enumerate() {
         let trimmed = line.trim();
 
         // Skip empty lines
