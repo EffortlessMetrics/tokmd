@@ -25,7 +25,8 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore,
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
                        tokmd-badge, tokmd-progress
          ↓
-Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-fun, tokmd-gate
+Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
+                       tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-config, tokmd-core
          ↓
@@ -44,7 +45,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 
 **Schema Versions** (separate per family):
 - Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, context, run)
-- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 7`
+- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 8`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
 
 ### Tier 1: Core Processing
@@ -73,7 +74,22 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | Crate | Purpose |
 |-------|---------|
 | `tokmd-analysis` | Analysis orchestration with preset system |
+| `tokmd-analysis-api-surface` | API surface analysis |
+| `tokmd-analysis-archetype` | Archetype inference adapter |
+| `tokmd-analysis-assets` | Asset and dependency reports |
+| `tokmd-analysis-complexity` | Cyclomatic/cognitive complexity |
+| `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
+| `tokmd-analysis-derived` | Core derived metrics (density, COCOMO) |
+| `tokmd-analysis-entropy` | High-entropy file detection |
+| `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
+| `tokmd-analysis-git` | Git history analysis adapters |
+| `tokmd-analysis-grid` | Preset/feature matrix metadata |
+| `tokmd-analysis-halstead` | Halstead metrics |
+| `tokmd-analysis-license` | License radar scanning |
+| `tokmd-analysis-near-dup` | Near-duplicate detection |
+| `tokmd-analysis-topics` | Topic-cloud extraction adapter |
+| `tokmd-analysis-util` | Shared analysis utilities |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 
@@ -116,12 +132,14 @@ Filesystem → tokmd-walk → tokmd-scan (tokei) → tokmd-model → tokmd-forma
 ```
 Receipt → tokmd-analysis → Enrichers → tokmd-analysis-format → Output
               ↓
-    ┌─────────┴─────────┐
-    ↓                   ↓
-Optional:           Core:
-- tokmd-git         - archetype
-- tokmd-content     - derived
-- tokmd-walk        - topics
+    ┌───────────────┴────────────────────┐
+    ↓                                  ↓
+Optional:                          Core:
+- tokmd-git            - identity fingerprint, git risk metrics
+- tokmd-content        - topics enrichment adapter
+- tokmd-walk           - scan-adjacent enrichers (assets/dependency reports, entropy/license)
+- tokmd-analysis-fingerprint
+- tokmd-analysis-archetype
 ```
 
 ### Flow C: Sensor Integration (tokmd-sensor)
@@ -179,6 +197,9 @@ tokmd guarantees byte-stable output for identical inputs:
 git = ["tokmd-git"]      # Git history analysis
 content = ["tokmd-content"]  # File content scanning
 walk = ["tokmd-walk"]    # Filesystem traversal
+topics = ["tokmd-analysis-topics"] # Topic extraction
+archetype = ["tokmd-analysis-archetype"] # Repository archetype detection
+fun = ["tokmd-analysis-fun"] # Eco-label and novelty helpers
 ui = ["dialoguer", "indicatif"]  # Interactive CLI
 ```
 
@@ -244,4 +265,3 @@ Work items:
 - Packaging: publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
 
 Non-goals for v1.9.0: no in-browser git churn/hotspot metrics or heavy tooling; provide a backend escape hatch for very large repos or git-based analysis.
-

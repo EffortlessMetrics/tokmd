@@ -20,7 +20,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `run` |
 | **Context** | 4 | `CONTEXT_SCHEMA_VERSION` | `context` receipt |
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
-| **Analysis** | 7 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
+| **Analysis** | 8 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | `COCKPIT_SCHEMA_VERSION` | `cockpit` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
@@ -82,7 +82,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 ### Code References
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
-- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;`
+- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;`
 - **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`

@@ -41,6 +41,31 @@ jobs:
       env:
         CI: true
 
+  feature-boundaries:
+    name: Feature Boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: tokmd-analysis with all features
+        run: cargo test -p tokmd-analysis --all-features --verbose
+        env:
+          CI: true
+
+      - name: tokmd-analysis with no default features
+        run: cargo test -p tokmd-analysis --no-default-features --verbose
+        env:
+          CI: true
+
+      - name: Guard analysis microcrate boundaries
+        run: |
+          set -euo pipefail
+          if grep -rn --include='*.rs' -E 'tokmd_config::|use tokmd_config' crates/tokmd-analysis crates/tokmd-analysis-*/; then
+            echo "::error::tokmd_config leak found in analysis microcrates"
+            exit 1
+          fi
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -235,6 +260,7 @@ jobs:
       - docs-check
       - nix
       - mutation
+      - feature-boundaries
     steps:
       - name: Check overall status
         run: |
