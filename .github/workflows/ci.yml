@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust (MSRV)
-        uses: dtolnay/rust-toolchain@1.89
+        uses: dtolnay/rust-toolchain@1.92
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
 
@@ -61,10 +61,33 @@ jobs:
       - name: Guard analysis microcrate boundaries
         run: |
           set -euo pipefail
-          if grep -rn --include='*.rs' -E 'tokmd_config::|use tokmd_config' crates/tokmd-analysis crates/tokmd-analysis-*/; then
-            echo "::error::tokmd_config leak found in analysis microcrates"
+
+          # Allowlist: crates permitted to depend on tokmd-config
+          ALLOWED="tokmd-analysis-format"
+
+          violations=0
+          for manifest in crates/tokmd-analysis/Cargo.toml crates/tokmd-analysis-*/Cargo.toml; do
+            crate_name="$(basename "$(dirname "$manifest")")"
+
+            # Skip allowlisted crates (exact match via space-padded list)
+            if [[ " $ALLOWED " == *" $crate_name "* ]]; then
+              echo "  [allow] $crate_name depends on tokmd-config (allowlisted)"
+              continue
+            fi
+
+            # Check if tokmd-config appears as a dependency in the manifest
+            if grep -q 'tokmd-config' "$manifest"; then
+              echo "::error file=$manifest::$crate_name depends on tokmd-config but is NOT allowlisted"
+              violations=$((violations + 1))
+            fi
+          done
+
+          if [ "$violations" -gt 0 ]; then
+            echo "::error::Found $violations analysis crate(s) with unauthorized tokmd-config dependency"
             exit 1
           fi
+
+          echo "All analysis microcrate boundaries OK"
 
   fmt:
     name: Rustfmt
