@@ -61,29 +61,7 @@ jobs:
           CI: true
 
       - name: Guard analysis microcrate boundaries
-        run: |
-          python3 - <<'PY'
-          import tomllib, pathlib, sys
-
-          FORBIDDEN = {"tokmd-config"}
-          DEP_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
-
-          violations = 0
-          for manifest in sorted(pathlib.Path("crates").glob("tokmd-analysis*/Cargo.toml")):
-              data = tomllib.loads(manifest.read_text(encoding="utf-8"))
-              crate = data["package"]["name"]
-              for table in DEP_TABLES:
-                  for dep in (data.get(table, {}) or {}):
-                      if dep in FORBIDDEN:
-                          print(f"::error file={manifest}::{crate} has {dep} in [{table}]")
-                          violations += 1
-
-          if violations:
-              print(f"::error::Found {violations} analysis crate(s) with forbidden dependencies")
-              sys.exit(1)
-
-          print("All analysis microcrate boundaries OK")
-          PY
+        run: cargo xtask boundaries-check
 
   fmt:
     name: Rustfmt
