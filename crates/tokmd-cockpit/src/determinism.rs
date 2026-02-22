@@ -34,12 +34,9 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
         }
 
         // Skip files that no longer exist (e.g., deleted between scan and baseline)
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
-
-        feed_file(&mut hasher, &normalized, &content);
+        if feed_file(&mut hasher, &normalized, &full).is_err() {
+            continue;
+        }
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -88,12 +85,9 @@ pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String>
 
     for rel_path in &paths {
         let full = root.join(rel_path);
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
-
-        feed_file(&mut hasher, rel_path, &content);
+        if feed_file(&mut hasher, rel_path, &full).is_err() {
+            continue;
+        }
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -118,10 +112,19 @@ pub fn hash_cargo_lock(root: &Path) -> Result<Option<String>> {
 /// Feed a single file into the incremental hasher.
 ///
 /// Protocol: `hasher.update(path_bytes); hasher.update(len_le_bytes); hasher.update(content)`.
-fn feed_file(hasher: &mut blake3::Hasher, normalized_path: &str, content: &[u8]) {
+fn feed_file(hasher: &mut blake3::Hasher, normalized_path: &str, file_path: &Path) -> Result<()> {
+    // Read file metadata to get length (simulates reading into Vec without allocation)
+    let file = std::fs::File::open(file_path)?;
+    let len = file.metadata()?.len();
+
     hasher.update(normalized_path.as_bytes());
-    hasher.update(&(content.len() as u64).to_le_bytes());
-    hasher.update(content);
+    hasher.update(&len.to_le_bytes());
+
+    // Stream content directly to hasher
+    let mut reader = std::io::BufReader::new(file);
+    std::io::copy(&mut reader, hasher)?;
+
+    Ok(())
 }
 
 /// Normalize a relative path to use forward slashes.
