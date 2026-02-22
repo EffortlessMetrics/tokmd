@@ -12,7 +12,7 @@ use tokmd_analysis_types::{
     IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport,
     RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
 };
-use tokmd_config::AnalysisFormat;
+use tokmd_types::AnalysisFormat;
 use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Create a minimal DerivedReport with the given largest_lines rows.

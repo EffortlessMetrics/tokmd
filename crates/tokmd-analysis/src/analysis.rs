@@ -562,4 +562,3 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
 
     Ok(receipt)
 }
-

@@ -483,6 +483,22 @@ pub enum RedactMode {
     All,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[serde(rename_all = "kebab-case")]
+pub enum AnalysisFormat {
+    Md,
+    Json,
+    Jsonld,
+    Xml,
+    Svg,
+    Mermaid,
+    Obj,
+    Midi,
+    Tree,
+    Html,
+}
+
 /// Log record for context command JSONL append mode.
 /// Contains metadata only (not file contents) for lightweight logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]

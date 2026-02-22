@@ -22,7 +22,7 @@ features = ["fun"]
 
 ```rust
 use tokmd_analysis_format::{render, RenderedOutput};
-use tokmd_config::AnalysisFormat;
+use tokmd_types::AnalysisFormat;
 
 let output = render(&receipt, AnalysisFormat::Md)?;
 

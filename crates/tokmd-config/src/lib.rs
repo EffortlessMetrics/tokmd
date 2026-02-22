@@ -24,7 +24,8 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 pub use tokmd_types::{
-    ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
+    AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode,
+    TableFormat,
 };
 
 /// `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`.
@@ -521,21 +522,6 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum AnalysisFormat {
-    Md,
-    Json,
-    Jsonld,
-    Xml,
-    Svg,
-    Mermaid,
-    Obj,
-    Midi,
-    Tree,
-    Html,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

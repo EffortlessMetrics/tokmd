@@ -64,7 +64,7 @@ Tables limited to top 10 items by default.
 ## Dependencies
 
 - `serde_json`, `time`
-- `tokmd-analysis-types`, `tokmd-config`
+- `tokmd-analysis-types`, `tokmd-types`
 - Optional: `tokmd-fun` (for MIDI/OBJ)
 
 ## Testing

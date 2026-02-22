@@ -4,7 +4,7 @@ use tokmd_analysis::{
 };
 use tokmd_analysis_format::render;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-use tokmd_config::AnalysisFormat;
+use tokmd_types::AnalysisFormat;
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 fn sample_export() -> ExportData {
@@ -51,7 +51,7 @@ fn sample_export() -> ExportData {
         rows,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
         module_depth: 2,
-        children: tokmd_config::ChildIncludeMode::Separate,
+        children: tokmd_types::ChildIncludeMode::Separate,
     }
 }
 

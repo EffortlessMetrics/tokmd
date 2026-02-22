@@ -16,7 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust (MSRV)
-        uses: dtolnay/rust-toolchain@1.92
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.92
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
 
@@ -60,34 +62,28 @@ jobs:
 
       - name: Guard analysis microcrate boundaries
         run: |
-          set -euo pipefail
+          python3 - <<'PY'
+          import tomllib, pathlib, sys
 
-          # Allowlist: crates permitted to depend on tokmd-config
-          ALLOWED="tokmd-analysis-format"
+          FORBIDDEN = {"tokmd-config"}
+          DEP_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
 
-          violations=0
-          for manifest in crates/tokmd-analysis/Cargo.toml crates/tokmd-analysis-*/Cargo.toml; do
-            crate_name="$(basename "$(dirname "$manifest")")"
+          violations = 0
+          for manifest in sorted(pathlib.Path("crates").glob("tokmd-analysis*/Cargo.toml")):
+              data = tomllib.loads(manifest.read_text(encoding="utf-8"))
+              crate = data["package"]["name"]
+              for table in DEP_TABLES:
+                  for dep in (data.get(table, {}) or {}):
+                      if dep in FORBIDDEN:
+                          print(f"::error file={manifest}::{crate} has {dep} in [{table}]")
+                          violations += 1
 
-            # Skip allowlisted crates (exact match via space-padded list)
-            if [[ " $ALLOWED " == *" $crate_name "* ]]; then
-              echo "  [allow] $crate_name depends on tokmd-config (allowlisted)"
-              continue
-            fi
+          if violations:
+              print(f"::error::Found {violations} analysis crate(s) with forbidden dependencies")
+              sys.exit(1)
 
-            # Check if tokmd-config appears as a dependency in the manifest
-            if grep -q 'tokmd-config' "$manifest"; then
-              echo "::error file=$manifest::$crate_name depends on tokmd-config but is NOT allowlisted"
-              violations=$((violations + 1))
-            fi
-          done
-
-          if [ "$violations" -gt 0 ]; then
-            echo "::error::Found $violations analysis crate(s) with unauthorized tokmd-config dependency"
-            exit 1
-          fi
-
-          echo "All analysis microcrate boundaries OK"
+          print("All analysis microcrate boundaries OK")
+          PY
 
   fmt:
     name: Rustfmt

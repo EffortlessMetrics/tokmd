@@ -19,7 +19,7 @@ use anyhow::Result;
 use time::OffsetDateTime;
 use time::macros::format_description;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
-use tokmd_config::AnalysisFormat;
+use tokmd_types::AnalysisFormat;
 
 pub enum RenderedOutput {
     Text(String),
@@ -2679,7 +2679,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_md() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Md).unwrap();
+        let result = render(&receipt, AnalysisFormat::Md).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.starts_with("# tokmd analysis")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2689,7 +2689,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_json() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Json).unwrap();
+        let result = render(&receipt, AnalysisFormat::Json).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.contains("\"schema_version\": 2")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2699,7 +2699,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_xml() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Xml).unwrap();
+        let result = render(&receipt, AnalysisFormat::Xml).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.contains("<analysis>")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2709,7 +2709,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_tree() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Tree).unwrap();
+        let result = render(&receipt, AnalysisFormat::Tree).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.contains("(tree unavailable)")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2719,7 +2719,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_svg() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Svg).unwrap();
+        let result = render(&receipt, AnalysisFormat::Svg).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.contains("<svg")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2729,7 +2729,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_mermaid() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Mermaid).unwrap();
+        let result = render(&receipt, AnalysisFormat::Mermaid).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.starts_with("graph TD")),
             RenderedOutput::Binary(_) => panic!("expected text"),
@@ -2739,7 +2739,7 @@ mod tests {
     #[test]
     fn test_render_dispatch_jsonld() {
         let receipt = minimal_receipt();
-        let result = render(&receipt, tokmd_config::AnalysisFormat::Jsonld).unwrap();
+        let result = render(&receipt, AnalysisFormat::Jsonld).unwrap();
         match result {
             RenderedOutput::Text(s) => assert!(s.contains("@context")),
             RenderedOutput::Binary(_) => panic!("expected text"),
