@@ -15,7 +15,7 @@
 //! * Git history modification
 //! * Complex git operations (use git2 crate directly if needed)
 
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -175,59 +175,87 @@ pub fn get_added_lines(
     range_mode: GitRangeMode,
 ) -> Result<std::collections::BTreeMap<PathBuf, std::collections::BTreeSet<usize>>> {
     let range = range_mode.format(base, head);
-    let output = git_cmd()
+    let mut child = git_cmd()
         .arg("-C")
         .arg(repo_root)
         .args(["diff", "--unified=0", &range])
-        .output()
-        .context("Failed to run git diff")?;
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .context("Failed to spawn git diff")?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow::anyhow!("git diff failed: {}", stderr.trim()));
-    }
+    let stdout = child.stdout.take().context("Missing git diff stdout")?;
+    let mut reader = BufReader::new(stdout);
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let mut result: std::collections::BTreeMap<PathBuf, std::collections::BTreeSet<usize>> =
         std::collections::BTreeMap::new();
     let mut current_file: Option<PathBuf> = None;
+    let mut buffer = Vec::new();
 
-    for line in stdout.lines() {
-        if let Some(file_path) = line.strip_prefix("+++ b/") {
-            current_file = Some(PathBuf::from(file_path));
-            continue;
-        }
+    // Use a loop that allows manual error handling and clean exit
+    let process_result: Result<()> = (|| {
+        loop {
+            buffer.clear();
+            if reader.read_until(b'\n', &mut buffer)? == 0 {
+                break;
+            }
 
-        if line.starts_with("@@") {
-            let Some(file) = current_file.as_ref() else {
-                continue;
-            };
+            let line = String::from_utf8_lossy(&buffer);
+            let trimmed_line = line.trim_end();
 
-            // Hunk header: @@ -a,b +c,d @@
-            // We care about +c,d
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.len() < 3 {
+            if let Some(file_path) = trimmed_line.strip_prefix("+++ b/") {
+                current_file = Some(PathBuf::from(file_path));
                 continue;
             }
 
-            let new_range = parts[2]; // +c,d
-            let range_str = new_range.strip_prefix('+').unwrap_or(new_range);
-            let range_parts: Vec<&str> = range_str.split(',').collect();
+            if trimmed_line.starts_with("@@") {
+                let Some(file) = current_file.as_ref() else {
+                    continue;
+                };
 
-            let start: usize = range_parts[0].parse().unwrap_or(0);
-            let count: usize = if range_parts.len() > 1 {
-                range_parts[1].parse().unwrap_or(1)
-            } else {
-                1
-            };
+                // Hunk header: @@ -a,b +c,d @@
+                // We care about +c,d
+                let parts: Vec<&str> = trimmed_line.split_whitespace().collect();
+                if parts.len() < 3 {
+                    continue;
+                }
 
-            if count > 0 && start > 0 {
-                let set = result.entry(file.clone()).or_default();
-                for i in 0..count {
-                    set.insert(start + i);
+                let new_range = parts[2]; // +c,d
+                let range_str = new_range.strip_prefix('+').unwrap_or(new_range);
+                let range_parts: Vec<&str> = range_str.split(',').collect();
+
+                let start: usize = range_parts[0].parse().unwrap_or(0);
+                let count: usize = if range_parts.len() > 1 {
+                    range_parts[1].parse().unwrap_or(1)
+                } else {
+                    1
+                };
+
+                if count > 0 && start > 0 {
+                    let set = result.entry(file.clone()).or_default();
+                    for i in 0..count {
+                        set.insert(start + i);
+                    }
                 }
             }
         }
+        Ok(())
+    })();
+
+    // Ensure we clean up child process if reading failed
+    if let Err(e) = process_result {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(e);
+    }
+
+    let status = child.wait()?;
+    if !status.success() {
+        let mut stderr = String::new();
+        if let Some(mut err_pipe) = child.stderr {
+            err_pipe.read_to_string(&mut stderr).ok();
+        }
+        return Err(anyhow::anyhow!("git diff failed: {}", stderr.trim()));
     }
 
     Ok(result)
