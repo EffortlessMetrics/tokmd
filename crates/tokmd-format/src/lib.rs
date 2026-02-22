@@ -791,68 +791,62 @@ use tokmd_types::{DiffReceipt, DiffRow, DiffTotals, LangRow};
 
 /// Compute diff rows from two lang reports.
 pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Vec<DiffRow> {
-    // Collect all languages from both reports
-    let mut all_langs: Vec<String> = from_report
-        .rows
-        .iter()
-        .chain(to_report.rows.iter())
-        .map(|r| r.lang.clone())
-        .collect();
-    all_langs.sort();
-    all_langs.dedup();
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let mut all_langs = BTreeSet::new();
+    let mut old_map = BTreeMap::new();
+    for row in &from_report.rows {
+        all_langs.insert(row.lang.as_str());
+        old_map.entry(row.lang.as_str()).or_insert(row);
+    }
+    let mut new_map = BTreeMap::new();
+    for row in &to_report.rows {
+        all_langs.insert(row.lang.as_str());
+        new_map.entry(row.lang.as_str()).or_insert(row);
+    }
 
     all_langs
         .into_iter()
         .filter_map(|lang_name| {
-            let old_row = from_report.rows.iter().find(|r| r.lang == lang_name);
-            let new_row = to_report.rows.iter().find(|r| r.lang == lang_name);
+            let old = old_map.get(lang_name);
+            let new = new_map.get(lang_name);
 
-            let old = old_row.cloned().unwrap_or_else(|| LangRow {
-                lang: lang_name.clone(),
-                code: 0,
-                lines: 0,
-                files: 0,
-                bytes: 0,
-                tokens: 0,
-                avg_lines: 0,
-            });
-            let new = new_row.cloned().unwrap_or_else(|| LangRow {
-                lang: lang_name.clone(),
-                code: 0,
-                lines: 0,
-                files: 0,
-                bytes: 0,
-                tokens: 0,
-                avg_lines: 0,
-            });
+            let (old_code, old_lines, old_files, old_bytes, old_tokens) = match old {
+                Some(r) => (r.code, r.lines, r.files, r.bytes, r.tokens),
+                None => (0, 0, 0, 0, 0),
+            };
+            let (new_code, new_lines, new_files, new_bytes, new_tokens) = match new {
+                Some(r) => (r.code, r.lines, r.files, r.bytes, r.tokens),
+                None => (0, 0, 0, 0, 0),
+            };
 
             // Skip if no change
-            if old.code == new.code
-                && old.lines == new.lines
-                && old.files == new.files
-                && old.bytes == new.bytes
-                && old.tokens == new.tokens
+            if old_code == new_code
+                && old_lines == new_lines
+                && old_files == new_files
+                && old_bytes == new_bytes
+                && old_tokens == new_tokens
             {
                 return None;
             }
 
             Some(DiffRow {
-                lang: lang_name,
-                old_code: old.code,
-                new_code: new.code,
-                delta_code: new.code as i64 - old.code as i64,
-                old_lines: old.lines,
-                new_lines: new.lines,
-                delta_lines: new.lines as i64 - old.lines as i64,
-                old_files: old.files,
-                new_files: new.files,
-                delta_files: new.files as i64 - old.files as i64,
-                old_bytes: old.bytes,
-                new_bytes: new.bytes,
-                delta_bytes: new.bytes as i64 - old.bytes as i64,
-                old_tokens: old.tokens,
-                new_tokens: new.tokens,
-                delta_tokens: new.tokens as i64 - old.tokens as i64,
+                lang: lang_name.to_string(),
+                old_code,
+                new_code,
+                delta_code: new_code as i64 - old_code as i64,
+                old_lines,
+                new_lines,
+                delta_lines: new_lines as i64 - old_lines as i64,
+                old_files,
+                new_files,
+                delta_files: new_files as i64 - old_files as i64,
+                old_bytes,
+                new_bytes,
+                delta_bytes: new_bytes as i64 - old_bytes as i64,
+                old_tokens,
+                new_tokens,
+                delta_tokens: new_tokens as i64 - old_tokens as i64,
             })
         })
         .collect()
