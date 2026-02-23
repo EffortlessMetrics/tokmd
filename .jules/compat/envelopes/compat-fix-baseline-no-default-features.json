@@ -1,0 +1,7 @@
+{
+  "run_id": "compat-fix-baseline-no-default-features",
+  "start_time": "2024-05-22T00:00:00Z",
+  "lane": "scout",
+  "target": "no-default-features build failure",
+  "receipts": []
+}
