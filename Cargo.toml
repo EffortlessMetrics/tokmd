@@ -39,6 +39,7 @@ members = [
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-module-key",
+    "crates/tokmd-exclude",
     "crates/tokmd-path",
     "crates/tokmd-node",
     "crates/tokmd-progress",
@@ -93,6 +94,7 @@ default-members = [
     "crates/tokmd-git",
     "crates/tokmd-model",
     "crates/tokmd-module-key",
+    "crates/tokmd-exclude",
     "crates/tokmd-path",
     "crates/tokmd-progress",
     "crates/tokmd-redact",
@@ -163,6 +165,7 @@ tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", versi
 tokmd-git = { path = "crates/tokmd-git", version = "1.7.0" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.7.0" }
 tokmd-module-key = { path = "crates/tokmd-module-key", version = "1.7.0" }
+tokmd-exclude = { path = "crates/tokmd-exclude", version = "1.7.0" }
 tokmd-path = { path = "crates/tokmd-path", version = "1.7.0" }
 tokmd-progress = { path = "crates/tokmd-progress", version = "1.7.0" }
 tokmd-redact = { path = "crates/tokmd-redact", version = "1.7.0" }

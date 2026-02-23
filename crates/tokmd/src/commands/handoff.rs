@@ -15,6 +15,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
 use tokmd_config as cli;
+use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_model as model;
 use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
@@ -982,28 +983,13 @@ fn exclude_output_dir(
     scan_args: &mut cli::GlobalArgs,
 ) -> Vec<HandoffExcludedPath> {
     let pattern = normalize_exclude_pattern(root, out_dir);
-    if !pattern.is_empty()
-        && !scan_args
-            .excluded
-            .iter()
-            .any(|p| normalize_path(p) == pattern)
-    {
-        scan_args.excluded.push(pattern.clone());
+    if !pattern.is_empty() {
+        let _ = add_exclude_pattern(&mut scan_args.excluded, pattern.clone());
     }
     vec![HandoffExcludedPath {
         path: pattern,
         reason: "output_dir".to_string(),
     }]
-}
-
-fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
-    let rel = if path.is_absolute() {
-        path.strip_prefix(root).unwrap_or(path)
-    } else {
-        path
-    };
-    let out = normalize_path(&rel.to_string_lossy());
-    out.strip_prefix("./").unwrap_or(&out).to_string()
 }
 
 fn hash_bytes(bytes: &[u8]) -> String {

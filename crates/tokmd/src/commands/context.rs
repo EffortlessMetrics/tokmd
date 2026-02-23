@@ -5,6 +5,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
+use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
 
 /// A writer wrapper that counts bytes written.
 struct CountingWriter<W: Write> {
@@ -35,7 +36,6 @@ impl<W: Write> Write for CountingWriter<W> {
 }
 use tokmd_config as cli;
 use tokmd_model as model;
-use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
@@ -681,13 +681,7 @@ fn add_excluded_path(
         return;
     }
 
-    if !scan_args
-        .excluded
-        .iter()
-        .any(|p| normalize_path(p) == pattern)
-    {
-        scan_args.excluded.push(pattern.clone());
-    }
+    let _ = add_exclude_pattern(&mut scan_args.excluded, pattern.clone());
 
     if !excluded_paths.iter().any(|p| p.path == pattern) {
         excluded_paths.push(ContextExcludedPath {
@@ -695,16 +689,6 @@ fn add_excluded_path(
             reason: reason.to_string(),
         });
     }
-}
-
-fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
-    let rel = if path.is_absolute() {
-        path.strip_prefix(root).unwrap_or(path)
-    } else {
-        path
-    };
-    let out = normalize_path(&rel.to_string_lossy());
-    out.strip_prefix("./").unwrap_or(&out).to_string()
 }
 
 fn hash_file(path: &Path) -> Result<String> {

@@ -1,0 +1,18 @@
+[package]
+name = "tokmd-exclude"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility exclude-pattern normalization and matching helpers."
+readme = "README.md"
+keywords = ["exclude", "path", "normalization", "determinism", "scan"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-exclude"
+
+[dependencies]
+tokmd-path.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

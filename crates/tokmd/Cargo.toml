@@ -62,6 +62,7 @@ tokmd-analysis-grid.workspace = true
 tokmd-badge.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
+tokmd-exclude.workspace = true
 tokmd-path.workspace = true
 tokmd-context-git.workspace = true
 tokmd-envelope.workspace = true

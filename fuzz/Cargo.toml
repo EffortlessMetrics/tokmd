@@ -40,6 +40,7 @@ toml = { version = "0.8", optional = true }
 # Microcrate dependencies - each target enables only what it needs
 tokmd-model = { workspace = true, optional = true }
 tokmd-module-key = { workspace = true, optional = true }
+tokmd-exclude = { workspace = true, optional = true }
 tokmd-config = { workspace = true, optional = true }
 tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
@@ -67,6 +68,10 @@ model = ["dep:tokmd-model"]
 # Module key derivation function (tokmd-module-key)
 # Targets: fuzz_module_key
 module_key = ["dep:tokmd-module-key"]
+
+# Exclude-pattern normalization helpers (tokmd-exclude)
+# Targets: fuzz_exclude_pattern
+exclude = ["dep:tokmd-exclude"]
 
 # Configuration file parsing (tokmd-config)
 # Targets: fuzz_toml_config
@@ -130,6 +135,13 @@ path = "fuzz_targets/fuzz_normalize_path.rs"
 test = false
 doc = false
 required-features = ["model"]
+
+[[bin]]
+name = "fuzz_exclude_pattern"
+path = "fuzz_targets/fuzz_exclude_pattern.rs"
+test = false
+doc = false
+required-features = ["exclude"]
 
 [[bin]]
 name = "fuzz_export_tree"

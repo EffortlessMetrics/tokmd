@@ -2995,6 +2995,7 @@ dependencies = [
  "tokmd-config",
  "tokmd-context-git",
  "tokmd-envelope",
+ "tokmd-exclude",
  "tokmd-export-tree",
  "tokmd-format",
  "tokmd-gate",
@@ -3352,6 +3353,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-exclude"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "tokmd-path",
+]
+
+[[package]]
 name = "tokmd-export-tree"
 version = "1.7.0"
 dependencies = [
@@ -3406,6 +3415,7 @@ dependencies = [
  "tokmd-analysis-imports",
  "tokmd-config",
  "tokmd-content",
+ "tokmd-exclude",
  "tokmd-export-tree",
  "tokmd-ffi-envelope",
  "tokmd-gate",

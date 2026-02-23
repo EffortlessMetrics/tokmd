@@ -30,6 +30,7 @@ cargo +nightly fuzz run fuzz_policy_evaluate --features gate
 cargo +nightly fuzz run fuzz_scan_args --features scan_args
 cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
 cargo +nightly fuzz run fuzz_export_tree --features export_tree
+cargo +nightly fuzz run fuzz_exclude_pattern --features exclude
 ```
 
 Limit input size with libfuzzer flags:
@@ -53,6 +54,7 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_scan_args` | `scan_args` | Composite (flags + sections) | Tests deterministic `ScanArgs` shaping |
 | `fuzz_import_parser` | `analysis_imports` | Composite (`lang\nsource`) | Tests import parsing + normalization |
 | `fuzz_export_tree` | `export_tree` | Path-list text | Tests deterministic analysis/handoff tree rendering |
+| `fuzz_exclude_pattern` | `exclude` | Composite (`root\x1fpath`) | Tests exclude-pattern normalization + dedupe invariants |
 
 ### Composite Input Formats
 
@@ -90,7 +92,7 @@ Dictionary files in `fuzz/dict/` improve fuzzing efficiency for structured input
 | `json.dict` | `fuzz_json_types`, `fuzz_json_pointer`, `fuzz_policy_evaluate` |
 | `toml.dict` | `fuzz_toml_config` |
 | `policy.dict` | `fuzz_policy_toml`, `fuzz_policy_evaluate` |
-| `path.dict` | `fuzz_normalize_path`, `fuzz_module_key`, `fuzz_redact` |
+| `path.dict` | `fuzz_normalize_path`, `fuzz_module_key`, `fuzz_redact`, `fuzz_exclude_pattern` |
 | `entropy.dict` | `fuzz_entropy` |
 
 Use a dictionary with:
