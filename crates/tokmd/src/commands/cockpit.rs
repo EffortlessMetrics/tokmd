@@ -8,9 +8,9 @@ use std::io::Write;
 #[cfg(feature = "git")]
 use std::path::PathBuf;
 
-use anyhow::{Result, bail};
 #[cfg(feature = "git")]
 use anyhow::Context;
+use anyhow::{Result, bail};
 use tokmd_config as cli;
 
 // Re-export all cockpit types for backwards compatibility with sensor.rs
