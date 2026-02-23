@@ -10,6 +10,7 @@ use tokmd_analysis_util::{
     empty_file_row, gini_coefficient, is_infra_lang, is_test_path, path_depth, percentile,
     round_f64, safe_ratio,
 };
+use tokmd_export_tree::render_analysis_tree;
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 const LINES_PER_MINUTE: usize = 20;
@@ -631,51 +632,7 @@ fn build_histogram(rows: &[&FileRow]) -> Vec<HistogramBucket> {
 }
 
 pub fn build_tree(export: &ExportData) -> String {
-    #[derive(Default)]
-    struct Node {
-        children: BTreeMap<String, Node>,
-        lines: usize,
-        tokens: usize,
-        is_file: bool,
-    }
-
-    fn insert(node: &mut Node, parts: &[&str], lines: usize, tokens: usize) {
-        node.lines += lines;
-        node.tokens += tokens;
-        if let Some((head, tail)) = parts.split_first() {
-            let child = node.children.entry(head.to_string()).or_default();
-            insert(child, tail, lines, tokens);
-        } else {
-            node.is_file = true;
-        }
-    }
-
-    fn render(node: &Node, name: &str, indent: &str, out: &mut String) {
-        if !name.is_empty() {
-            out.push_str(&format!(
-                "{}{} (lines: {}, tokens: {})\n",
-                indent, name, node.lines, node.tokens
-            ));
-        }
-        let next_indent = if name.is_empty() {
-            indent.to_string()
-        } else {
-            format!("{}  ", indent)
-        };
-        for (child_name, child) in &node.children {
-            render(child, child_name, &next_indent, out);
-        }
-    }
-
-    let mut root = Node::default();
-    for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
-        insert(&mut root, &parts, row.lines, row.tokens);
-    }
-
-    let mut out = String::new();
-    render(&root, "", "", &mut out);
-    out
+    render_analysis_tree(export)
 }
 
 fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {

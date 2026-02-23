@@ -1,0 +1,18 @@
+[package]
+name = "tokmd-export-tree"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility deterministic tree rendering from tokmd ExportData."
+readme = "README.md"
+keywords = ["tree", "export", "determinism", "analysis", "handoff"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-export-tree"
+
+[dependencies]
+tokmd-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

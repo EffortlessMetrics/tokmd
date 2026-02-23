@@ -395,7 +395,10 @@ fn build_intelligence(
     let mut warnings = Vec::new();
 
     // Build tree (always included)
-    let tree = Some(build_tree(export, DEFAULT_TREE_DEPTH));
+    let tree = Some(tokmd_export_tree::render_handoff_tree(
+        export,
+        DEFAULT_TREE_DEPTH,
+    ));
     let tree_depth = tree.as_ref().map(|_| DEFAULT_TREE_DEPTH);
 
     // Build hotspots (Risk/Deep presets)
@@ -494,77 +497,6 @@ fn build_intelligence(
         derived,
         warnings,
     }
-}
-
-/// Build a simple directory tree from export data.
-fn build_tree(export: &ExportData, max_depth: usize) -> String {
-    #[derive(Default)]
-    struct Node {
-        children: BTreeMap<String, Node>,
-        files: usize,
-        lines: usize,
-        tokens: usize,
-    }
-
-    fn insert(node: &mut Node, parts: &[&str], lines: usize, tokens: usize) {
-        node.files += 1;
-        node.lines += lines;
-        node.tokens += tokens;
-        if let Some((head, tail)) = parts.split_first()
-            && !tail.is_empty()
-        {
-            let child = node.children.entry(head.to_string()).or_default();
-            insert(child, tail, lines, tokens);
-        }
-    }
-
-    fn render(
-        node: &Node,
-        name: &str,
-        indent: &str,
-        depth: usize,
-        max_depth: usize,
-        out: &mut String,
-    ) {
-        let display = if name.is_empty() {
-            "".to_string()
-        } else if name == "(root)" {
-            name.to_string()
-        } else {
-            format!("{}/", name)
-        };
-        if !display.is_empty() {
-            out.push_str(&format!(
-                "{}{} (files: {}, lines: {}, tokens: {})\n",
-                indent, display, node.files, node.lines, node.tokens
-            ));
-        }
-        if depth >= max_depth {
-            return;
-        }
-        let next_indent = format!("{}  ", indent);
-        for (child_name, child) in &node.children {
-            render(child, child_name, &next_indent, depth + 1, max_depth, out);
-        }
-    }
-
-    let mut root = Node::default();
-    let parents: Vec<&FileRow> = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .collect();
-    if parents.is_empty() {
-        return String::new();
-    }
-    for row in parents {
-        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
-        insert(&mut root, &parts, row.lines, row.tokens);
-    }
-
-    let mut out = String::new();
-    render(&root, "(root)", "", 0, max_depth, &mut out);
-    out
 }
 
 /// Maximum number of files to analyze for complexity.
@@ -1126,7 +1058,7 @@ mod tests {
             module_depth: 2,
             children: cli::ChildIncludeMode::ParentsOnly,
         };
-        let tree = build_tree(&export, DEFAULT_TREE_DEPTH);
+        let tree = tokmd_export_tree::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
         assert!(tree.is_empty());
     }
 
@@ -1149,7 +1081,7 @@ mod tests {
             module_depth: 2,
             children: cli::ChildIncludeMode::ParentsOnly,
         };
-        let tree = build_tree(&export, 1);
+        let tree = tokmd_export_tree::render_handoff_tree(&export, 1);
         assert!(tree.contains("a/"));
         assert!(!tree.contains("b/"));
         assert!(!tree.contains("file.rs"));

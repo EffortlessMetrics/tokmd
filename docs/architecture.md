@@ -24,7 +24,7 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-module-key, tokmd-path, to
                        tokmd-tokeignore, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
-                       tokmd-context-git, tokmd-badge, tokmd-progress
+                       tokmd-context-git, tokmd-badge, tokmd-progress, tokmd-export-tree
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
                        tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-analysis-explain,
@@ -75,6 +75,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-context-git` | Git-derived hotspot/churn scoring for context ranking | `git` |
 | `tokmd-badge` | SVG badge rendering helpers | — |
 | `tokmd-progress` | Progress spinner and progress-bar abstractions | `ui` |
+| `tokmd-export-tree` | Deterministic tree renderers for analysis/handoff exports | — |
 
 ### Tier 3: Orchestration
 

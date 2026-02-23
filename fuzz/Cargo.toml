@@ -49,6 +49,7 @@ tokmd-scan-args = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
 tokmd-analysis-imports = { workspace = true, optional = true }
 tokmd-ffi-envelope = { workspace = true, optional = true }
+tokmd-export-tree = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -106,6 +107,10 @@ analysis_imports = ["dep:tokmd-analysis-imports"]
 # Targets: fuzz_ffi_envelope
 ffi_envelope = ["dep:tokmd-ffi-envelope", "dep:serde_json"]
 
+# ExportData tree rendering helpers (tokmd-export-tree)
+# Targets: fuzz_export_tree
+export_tree = ["dep:tokmd-export-tree", "dep:tokmd-types"]
+
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
 # ============================================================================
@@ -125,6 +130,13 @@ path = "fuzz_targets/fuzz_normalize_path.rs"
 test = false
 doc = false
 required-features = ["model"]
+
+[[bin]]
+name = "fuzz_export_tree"
+path = "fuzz_targets/fuzz_export_tree.rs"
+test = false
+doc = false
+required-features = ["export_tree"]
 
 # ============================================================================
 # Fuzz Targets - Configuration Parsing

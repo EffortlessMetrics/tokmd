@@ -8,7 +8,7 @@ It computes deterministic aggregate analytics from `ExportData`, including:
 - doc/test/whitespace ratios
 - file distributions and histogram outputs
 - complexity proxy signals like top files, gini/polynomial style indicators
-- optional context-window fit and tree rendering
+- optional context-window fit and tree rendering (via `tokmd-export-tree`)
 
 This is consumed by `tokmd-analysis` and can be used by other adapters
 without pulling optional analysis feature dependencies.

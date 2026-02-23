@@ -26,6 +26,7 @@ members = [
     "crates/tokmd-content",
     "crates/tokmd-context-git",
     "crates/tokmd-envelope",
+    "crates/tokmd-export-tree",
     "crates/tokmd-ffi-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
@@ -79,6 +80,7 @@ default-members = [
     "crates/tokmd-content",
     "crates/tokmd-context-git",
     "crates/tokmd-envelope",
+    "crates/tokmd-export-tree",
     "crates/tokmd-ffi-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
@@ -145,6 +147,7 @@ tokmd-config = { path = "crates/tokmd-config", version = "1.7.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.7.0" }
 tokmd-context-git = { path = "crates/tokmd-context-git", version = "1.7.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.7.0" }
+tokmd-export-tree = { path = "crates/tokmd-export-tree", version = "1.7.0" }
 tokmd-ffi-envelope = { path = "crates/tokmd-ffi-envelope", version = "1.7.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.7.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.7.0" }
