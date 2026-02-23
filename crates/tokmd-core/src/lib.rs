@@ -66,7 +66,7 @@ pub use tokmd_types as types;
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
 use tokmd_config::GlobalArgs;
-use tokmd_format::scan_args;
+use tokmd_scan_args::scan_args;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
     DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, LangArgs, LangArgsMeta, LangReceipt,

@@ -44,6 +44,8 @@ tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
 tokmd-redact = { workspace = true, optional = true }
+tokmd-scan-args = { workspace = true, optional = true }
+tokmd-settings = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -80,6 +82,14 @@ content = ["dep:tokmd-content"]
 # Path redaction utilities (tokmd-redact)
 # Targets: fuzz_redact
 redact = ["dep:tokmd-redact"]
+
+# Scan metadata argument shaping (tokmd-scan-args)
+# Targets: fuzz_scan_args
+scan_args = [
+    "dep:tokmd-scan-args",
+    "dep:tokmd-settings",
+    "dep:tokmd-types",
+]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -179,3 +189,15 @@ path = "fuzz_targets/fuzz_redact.rs"
 test = false
 doc = false
 required-features = ["redact"]
+
+# ============================================================================
+# Fuzz Targets - Scan Args
+# ============================================================================
+# Tests ScanArgs shaping invariants and redaction mode behavior.
+
+[[bin]]
+name = "fuzz_scan_args"
+path = "fuzz_targets/fuzz_scan_args.rs"
+test = false
+doc = false
+required-features = ["scan_args"]

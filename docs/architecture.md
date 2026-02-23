@@ -20,6 +20,7 @@ Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
                        tokmd-envelope, tokmd-substrate
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-path, tokmd-redact,
+                       tokmd-scan-args,
                        tokmd-tokeignore, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
@@ -57,6 +58,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-model` | Aggregation logic: tokei results → tokmd receipts |
 | `tokmd-path` | Cross-platform path normalization helpers (`\\` → `/`, relative path cleanup) |
 | `tokmd-redact` | BLAKE3-based path hashing and redaction |
+| `tokmd-scan-args` | Deterministic `ScanArgs` metadata construction + redaction wiring |
 | `tokmd-tokeignore` | `.tokeignore` template generation |
 | `tokmd-sensor` | `EffortlessSensor` trait + `build_substrate()` builder |
 

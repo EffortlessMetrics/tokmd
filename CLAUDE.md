@@ -34,6 +34,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
 | 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
 | 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
+| 1 | `tokmd-scan-args` | Deterministic `ScanArgs` metadata construction + redaction wiring |
 | 1 | `tokmd-sensor` | `EffortlessSensor` trait + substrate builder |
 | 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
 | 2 | `tokmd-walk` | File system traversal for assets |

@@ -3325,6 +3325,7 @@ dependencies = [
  "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
+ "tokmd-scan-args",
  "tokmd-settings",
  "tokmd-types",
 ]
@@ -3352,6 +3353,7 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-redact",
+ "tokmd-scan-args",
  "tokmd-settings",
  "tokmd-types",
  "uuid",
@@ -3377,6 +3379,8 @@ dependencies = [
  "tokmd-gate",
  "tokmd-model",
  "tokmd-redact",
+ "tokmd-scan-args",
+ "tokmd-settings",
  "tokmd-types",
  "toml 0.8.23",
 ]
@@ -3473,6 +3477,17 @@ dependencies = [
  "proptest",
  "tempfile",
  "tokei",
+ "tokmd-settings",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-scan-args"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "tokmd-path",
+ "tokmd-redact",
  "tokmd-settings",
  "tokmd-types",
 ]

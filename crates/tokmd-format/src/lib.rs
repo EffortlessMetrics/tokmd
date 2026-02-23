@@ -10,7 +10,7 @@
 //! * Markdown and TSV table rendering
 //! * Output file writing
 //! * Redaction integration (via tokmd-redact re-exports)
-//! * ScanArgs construction (single source of truth)
+//! * ScanArgs integration (via tokmd-scan-args re-export)
 //!
 //! ## What does NOT belong here
 //! * Business logic (calculating stats)
@@ -22,8 +22,10 @@ use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
-use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+#[cfg(test)]
+use std::path::PathBuf;
 
 use anyhow::Result;
 use serde::Serialize;
@@ -37,61 +39,13 @@ use tokmd_types::{
     ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
+pub use tokmd_scan_args::{normalize_scan_input, scan_args};
+
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis()
-}
-
-/// Normalize a path to forward slashes and strip leading `./` for cross-platform stability.
-///
-/// This is the canonical normalization function for scan inputs. Use this
-/// before storing paths in receipts to ensure consistent output across OS.
-pub fn normalize_scan_input(p: &Path) -> String {
-    let mut s = p.display().to_string().replace('\\', "/");
-    while s.starts_with("./") {
-        s = s.strip_prefix("./").unwrap().to_string();
-    }
-    if s.is_empty() { ".".to_string() } else { s }
-}
-
-/// Construct `ScanArgs` with optional redaction applied.
-///
-/// This is the single source of truth for building `ScanArgs` from CLI inputs.
-/// All commands that produce receipts should use this function to ensure
-/// consistent redaction and normalization behavior.
-///
-/// # Redaction Behavior
-///
-/// - `None` or `Some(RedactMode::None)`: Paths shown as-is (normalized only)
-/// - `Some(RedactMode::Paths)`: Hash file paths, preserve extension
-/// - `Some(RedactMode::All)`: Hash paths and excluded patterns
-pub fn scan_args(paths: &[PathBuf], global: &ScanOptions, redact: Option<RedactMode>) -> ScanArgs {
-    let should_redact = redact == Some(RedactMode::Paths) || redact == Some(RedactMode::All);
-    let excluded_redacted = should_redact && !global.excluded.is_empty();
-
-    let mut args = ScanArgs {
-        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
-        excluded: if should_redact {
-            global.excluded.iter().map(|p| short_hash(p)).collect()
-        } else {
-            global.excluded.clone()
-        },
-        excluded_redacted,
-        config: global.config,
-        hidden: global.hidden,
-        no_ignore: global.no_ignore,
-        no_ignore_parent: global.no_ignore || global.no_ignore_parent,
-        no_ignore_dot: global.no_ignore || global.no_ignore_dot,
-        no_ignore_vcs: global.no_ignore || global.no_ignore_vcs,
-        treat_doc_strings_as_comments: global.treat_doc_strings_as_comments,
-    };
-
-    if should_redact {
-        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
-    }
-    args
 }
 
 // -----------------------

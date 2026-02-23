@@ -41,6 +41,7 @@ members = [
     "crates/tokmd-python",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
+    "crates/tokmd-scan-args",
     "crates/tokmd-sensor",
     "crates/tokmd-settings",
     "crates/tokmd-substrate",
@@ -88,6 +89,7 @@ default-members = [
     "crates/tokmd-progress",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
+    "crates/tokmd-scan-args",
     "crates/tokmd-sensor",
     "crates/tokmd-settings",
     "crates/tokmd-substrate",
@@ -153,6 +155,7 @@ tokmd-path = { path = "crates/tokmd-path", version = "1.7.0" }
 tokmd-progress = { path = "crates/tokmd-progress", version = "1.7.0" }
 tokmd-redact = { path = "crates/tokmd-redact", version = "1.7.0" }
 tokmd-scan = { path = "crates/tokmd-scan", version = "1.7.0" }
+tokmd-scan-args = { path = "crates/tokmd-scan-args", version = "1.7.0" }
 tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.7.0" }
 tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.7.0" }
 tokmd-settings = { path = "crates/tokmd-settings", version = "1.7.0" }

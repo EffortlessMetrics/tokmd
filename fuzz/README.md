@@ -27,6 +27,7 @@ Examples:
 cargo +nightly fuzz run fuzz_entropy --features content
 cargo +nightly fuzz run fuzz_json_types --features types
 cargo +nightly fuzz run fuzz_policy_evaluate --features gate
+cargo +nightly fuzz run fuzz_scan_args --features scan_args
 ```
 
 Limit input size with libfuzzer flags:
@@ -47,6 +48,7 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_json_pointer` | `gate` | Composite (see below) | Tests RFC 6901 JSON pointer resolution |
 | `fuzz_policy_evaluate` | `gate` | Composite (see below) | Tests policy evaluation logic |
 | `fuzz_redact` | `redact` | Path string | Tests path redaction |
+| `fuzz_scan_args` | `scan_args` | Composite (flags + sections) | Tests deterministic `ScanArgs` shaping |
 
 ### Composite Input Formats
 

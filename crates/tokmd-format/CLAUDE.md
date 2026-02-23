@@ -15,13 +15,12 @@ Output formatting and serialization. This is a **Tier 2** crate that renders tok
 
 ## Public API
 
-### ScanArgs Construction (Single Source of Truth)
+### ScanArgs Construction (Compatibility Re-export)
 ```rust
-/// Canonical function for building ScanArgs with redaction.
-/// All commands producing receipts MUST use this function.
+/// Re-export from tokmd-scan-args.
 pub fn scan_args(paths, global, redact) -> ScanArgs
 
-/// Normalize path separators and strip leading ./
+/// Re-export from tokmd-scan-args.
 pub fn normalize_scan_input(path) -> String
 ```
 
@@ -93,7 +92,7 @@ When `--meta` is enabled:
 ## Dependencies
 
 - `serde_json`, `csv`, `uuid`, `time`
-- `tokmd-redact`, `tokmd-types`, `tokmd-config`
+- `tokmd-redact`, `tokmd-scan-args`, `tokmd-types`
 
 ## Testing
 
