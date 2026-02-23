@@ -1,0 +1,12 @@
+{
+  "id": "20260223-212918",
+  "start_time": "2026-02-23T21:29:25Z",
+  "target": "tokmd",
+  "lane": "B",
+  "decision": "Remove redundant serde_json and tokmd-model from dev-dependencies",
+  "receipts": [
+    "cargo check -p tokmd: passed",
+    "cargo clippy -p tokmd: passed",
+    "cargo test -p tokmd: passed"
+  ]
+}
