@@ -6,6 +6,8 @@ Formatting and rendering for tokmd analysis receipts.
 
 This is a **Tier 3** crate that renders analysis results in multiple formats. It transforms `AnalysisReceipt` structures into human-readable or machine-processable outputs.
 
+The HTML output path is delegated to `tokmd-analysis-html` to keep rendering concerns single-purpose.
+
 ## Installation
 
 ```toml

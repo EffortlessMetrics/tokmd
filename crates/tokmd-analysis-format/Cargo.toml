@@ -20,7 +20,7 @@ fun = ["dep:tokmd-fun"]
 anyhow = "1.0.101"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-time = { version = "0.3.47", features = ["formatting", "macros"] }
+tokmd-analysis-html.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
 
@@ -31,4 +31,3 @@ tokmd-fun = { workspace = true, optional = true }
 insta = { workspace = true }
 midly = "0.5.3"
 tokmd-analysis.workspace = true
-

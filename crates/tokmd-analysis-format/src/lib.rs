@@ -16,8 +16,6 @@
 //! * Base receipt formatting (use tokmd-format)
 
 use anyhow::Result;
-use time::OffsetDateTime;
-use time::macros::format_description;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 use tokmd_types::AnalysisFormat;
 
@@ -1082,132 +1080,7 @@ fn sanitize_mermaid(name: &str) -> String {
 }
 
 fn render_html(receipt: &AnalysisReceipt) -> String {
-    const TEMPLATE: &str = include_str!("templates/report.html");
-
-    // Generate timestamp
-    let timestamp = chrono_lite_timestamp();
-
-    // Build metrics cards
-    let metrics_cards = build_metrics_cards(receipt);
-
-    // Build table rows
-    let table_rows = build_table_rows(receipt);
-
-    // Build JSON data for treemap
-    let report_json = build_report_json(receipt);
-
-    TEMPLATE
-        .replace("{{TIMESTAMP}}", &timestamp)
-        .replace("{{METRICS_CARDS}}", &metrics_cards)
-        .replace("{{TABLE_ROWS}}", &table_rows)
-        .replace("{{REPORT_JSON}}", &report_json)
-}
-
-fn chrono_lite_timestamp() -> String {
-    let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] UTC");
-    OffsetDateTime::now_utc()
-        .format(&format)
-        .unwrap_or_else(|_| "1970-01-01 00:00:00 UTC".to_string())
-}
-
-fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {
-    let mut cards = String::new();
-
-    if let Some(derived) = &receipt.derived {
-        let metrics = [
-            ("Files", derived.totals.files.to_string()),
-            ("Lines", format_number(derived.totals.lines)),
-            ("Code", format_number(derived.totals.code)),
-            ("Tokens", format_number(derived.totals.tokens)),
-            ("Doc%", fmt_pct(derived.doc_density.total.ratio)),
-        ];
-
-        for (label, value) in metrics {
-            cards.push_str(&format!(
-                r#"<div class="metric-card"><span class="value">{}</span><span class="label">{}</span></div>"#,
-                value, label
-            ));
-        }
-
-        // Context fit if available
-        if let Some(ctx) = &derived.context_window {
-            cards.push_str(&format!(
-                r#"<div class="metric-card"><span class="value">{}</span><span class="label">Context Fit</span></div>"#,
-                fmt_pct(ctx.pct)
-            ));
-        }
-    }
-
-    cards
-}
-
-fn build_table_rows(receipt: &AnalysisReceipt) -> String {
-    let mut rows = String::new();
-
-    if let Some(derived) = &receipt.derived {
-        // Use top files from the analysis
-        for row in derived.top.largest_lines.iter().take(100) {
-            rows.push_str(&format!(
-                r#"<tr><td class="path" data-path="{path}">{path}</td><td data-module="{module}">{module}</td><td data-lang="{lang}"><span class="lang-badge">{lang}</span></td><td class="num" data-lines="{lines}">{lines_fmt}</td><td class="num" data-code="{code}">{code_fmt}</td><td class="num" data-tokens="{tokens}">{tokens_fmt}</td><td class="num" data-bytes="{bytes}">{bytes_fmt}</td></tr>"#,
-                path = html_escape(&row.path),
-                module = html_escape(&row.module),
-                lang = html_escape(&row.lang),
-                lines = row.lines,
-                lines_fmt = format_number(row.lines),
-                code = row.code,
-                code_fmt = format_number(row.code),
-                tokens = row.tokens,
-                tokens_fmt = format_number(row.tokens),
-                bytes = row.bytes,
-                bytes_fmt = format_number(row.bytes),
-            ));
-        }
-    }
-
-    rows
-}
-
-fn build_report_json(receipt: &AnalysisReceipt) -> String {
-    // Build a simplified JSON for the treemap
-    let mut files = Vec::new();
-
-    if let Some(derived) = &receipt.derived {
-        for row in &derived.top.largest_lines {
-            files.push(serde_json::json!({
-                "path": row.path,
-                "module": row.module,
-                "lang": row.lang,
-                "code": row.code,
-                "lines": row.lines,
-                "tokens": row.tokens,
-            }));
-        }
-    }
-
-    // Escape < and > to prevent </script> breakout XSS attacks.
-    // JSON remains valid because \u003c and \u003e are valid JSON string escapes.
-    serde_json::json!({ "files": files })
-        .to_string()
-        .replace('<', "\\u003c")
-        .replace('>', "\\u003e")
-}
-
-fn format_number(n: usize) -> String {
-    if n >= 1_000_000 {
-        format!("{:.1}M", n as f64 / 1_000_000.0)
-    } else if n >= 1_000 {
-        format!("{:.1}K", n as f64 / 1_000.0)
-    } else {
-        n.to_string()
-    }
-}
-
-fn html_escape(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#x27;")
+    tokmd_analysis_html::render(receipt)
 }
 
 #[cfg(test)]
@@ -1445,34 +1318,6 @@ mod tests {
         assert_eq!(fmt_f64(3.14159, 4), "3.1416");
         assert_eq!(fmt_f64(0.0, 2), "0.00");
         assert_eq!(fmt_f64(100.0, 0), "100");
-    }
-
-    // Test format_number
-    #[test]
-    fn test_format_number() {
-        assert_eq!(format_number(500), "500");
-        assert_eq!(format_number(1000), "1.0K");
-        assert_eq!(format_number(1500), "1.5K");
-        assert_eq!(format_number(1000000), "1.0M");
-        assert_eq!(format_number(2500000), "2.5M");
-        // Edge cases for comparison operators
-        assert_eq!(format_number(999), "999");
-        assert_eq!(format_number(999999), "1000.0K");
-    }
-
-    // Test html_escape
-    #[test]
-    fn test_html_escape() {
-        assert_eq!(html_escape("hello"), "hello");
-        assert_eq!(html_escape("<script>"), "&lt;script&gt;");
-        assert_eq!(html_escape("a & b"), "a &amp; b");
-        assert_eq!(html_escape("\"quoted\""), "&quot;quoted&quot;");
-        assert_eq!(html_escape("it's"), "it&#x27;s");
-        // All special characters together
-        assert_eq!(
-            html_escape("<a href=\"test\">&'"),
-            "&lt;a href=&quot;test&quot;&gt;&amp;&#x27;"
-        );
     }
 
     // Test sanitize_mermaid
@@ -2744,75 +2589,6 @@ mod tests {
             RenderedOutput::Text(s) => assert!(s.contains("@context")),
             RenderedOutput::Binary(_) => panic!("expected text"),
         }
-    }
-
-    // Test chrono_lite_timestamp produces valid format
-    #[test]
-    fn test_chrono_lite_timestamp() {
-        let ts = chrono_lite_timestamp();
-        // Should be in format "YYYY-MM-DD HH:MM:SS UTC"
-        assert!(ts.contains("UTC"));
-        assert!(ts.len() > 10); // Should be reasonably long
-    }
-
-    // Test build_metrics_cards
-    #[test]
-    fn test_build_metrics_cards() {
-        let mut receipt = minimal_receipt();
-        receipt.derived = Some(sample_derived());
-        let result = build_metrics_cards(&receipt);
-        assert!(result.contains("class=\"metric-card\""));
-        assert!(result.contains("Files"));
-        assert!(result.contains("Lines"));
-        assert!(result.contains("Code"));
-        assert!(result.contains("Context Fit")); // Has context_window
-    }
-
-    // Test build_metrics_cards without derived
-    #[test]
-    fn test_build_metrics_cards_no_derived() {
-        let receipt = minimal_receipt();
-        let result = build_metrics_cards(&receipt);
-        assert!(result.is_empty());
-    }
-
-    // Test build_table_rows
-    #[test]
-    fn test_build_table_rows() {
-        let mut receipt = minimal_receipt();
-        receipt.derived = Some(sample_derived());
-        let result = build_table_rows(&receipt);
-        assert!(result.contains("<tr>"));
-        assert!(result.contains("src/lib.rs"));
-    }
-
-    // Test build_table_rows without derived
-    #[test]
-    fn test_build_table_rows_no_derived() {
-        let receipt = minimal_receipt();
-        let result = build_table_rows(&receipt);
-        assert!(result.is_empty());
-    }
-
-    // Test build_report_json
-    #[test]
-    fn test_build_report_json() {
-        let mut receipt = minimal_receipt();
-        receipt.derived = Some(sample_derived());
-        let result = build_report_json(&receipt);
-        assert!(result.contains("files"));
-        assert!(result.contains("src/lib.rs"));
-        // XSS escaping
-        assert!(!result.contains("<"));
-        assert!(!result.contains(">"));
-    }
-
-    // Test build_report_json without derived
-    #[test]
-    fn test_build_report_json_no_derived() {
-        let receipt = minimal_receipt();
-        let result = build_report_json(&receipt);
-        assert!(result.contains("\"files\":[]"));
     }
 
     // Test render_html

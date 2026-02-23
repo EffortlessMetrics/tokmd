@@ -3138,8 +3138,8 @@ dependencies = [
  "midly",
  "serde",
  "serde_json",
- "time",
  "tokmd-analysis",
+ "tokmd-analysis-html",
  "tokmd-analysis-types",
  "tokmd-fun",
  "tokmd-types",
@@ -3178,6 +3178,16 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-html"
+version = "1.7.0"
+dependencies = [
+ "serde_json",
+ "time",
+ "tokmd-analysis-types",
  "tokmd-types",
 ]
 
