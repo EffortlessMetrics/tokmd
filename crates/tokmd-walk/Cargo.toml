@@ -12,7 +12,7 @@ categories = ["development-tools", "filesystem"]
 documentation = "https://docs.rs/tokmd-walk"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 ignore = "0.4.25"
 
 [dev-dependencies]

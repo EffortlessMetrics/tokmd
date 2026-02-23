@@ -43,8 +43,8 @@ path = "src/bin/tok.rs"
 required-features = ["alias-tok"]
 
 [dependencies]
-anyhow = "1.0.101"
-clap = { version = "4.5.58", features = ["derive"] }
+anyhow = "1.0.102"
+clap = { version = "4.5.60", features = ["derive"] }
 tokmd-analysis = { workspace = true }
 tokmd-analysis-format = { workspace = true, features = ["fun"] }
 tokmd-analysis-types.workspace = true

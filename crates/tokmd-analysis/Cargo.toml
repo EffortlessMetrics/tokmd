@@ -19,7 +19,7 @@ content = ["dep:tokmd-content", "dep:rustc-hash"]
 halstead = ["content", "walk"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 blake3.workspace = true
 rustc-hash = { version = "2", optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
