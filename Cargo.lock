@@ -2994,6 +2994,7 @@ dependencies = [
  "tokmd-cockpit",
  "tokmd-config",
  "tokmd-context-git",
+ "tokmd-context-policy",
  "tokmd-envelope",
  "tokmd-exclude",
  "tokmd-export-tree",
@@ -3326,6 +3327,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-context-policy"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "tokmd-path",
+ "tokmd-types",
+]
+
+[[package]]
 name = "tokmd-core"
 version = "1.7.0"
 dependencies = [
@@ -3419,6 +3429,7 @@ dependencies = [
  "tokmd-analysis-imports",
  "tokmd-config",
  "tokmd-content",
+ "tokmd-context-policy",
  "tokmd-exclude",
  "tokmd-export-tree",
  "tokmd-ffi-envelope",

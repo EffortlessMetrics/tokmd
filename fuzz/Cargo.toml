@@ -42,6 +42,7 @@ tokmd-model = { workspace = true, optional = true }
 tokmd-module-key = { workspace = true, optional = true }
 tokmd-math = { workspace = true, optional = true }
 tokmd-exclude = { workspace = true, optional = true }
+tokmd-context-policy = { workspace = true, optional = true }
 tokmd-config = { workspace = true, optional = true }
 tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
@@ -77,6 +78,10 @@ math_stats = ["dep:tokmd-math"]
 # Exclude-pattern normalization helpers (tokmd-exclude)
 # Targets: fuzz_exclude_pattern
 exclude = ["dep:tokmd-exclude"]
+
+# Context/handoff policy helpers (tokmd-context-policy)
+# Targets: fuzz_context_policy
+context_policy = ["dep:tokmd-context-policy", "dep:tokmd-types"]
 
 # Configuration file parsing (tokmd-config)
 # Targets: fuzz_toml_config
@@ -154,6 +159,13 @@ path = "fuzz_targets/fuzz_exclude_pattern.rs"
 test = false
 doc = false
 required-features = ["exclude"]
+
+[[bin]]
+name = "fuzz_context_policy"
+path = "fuzz_targets/fuzz_context_policy.rs"
+test = false
+doc = false
+required-features = ["context_policy"]
 
 [[bin]]
 name = "fuzz_export_tree"

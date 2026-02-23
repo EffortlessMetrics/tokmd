@@ -31,6 +31,7 @@ cargo +nightly fuzz run fuzz_scan_args --features scan_args
 cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
 cargo +nightly fuzz run fuzz_export_tree --features export_tree
 cargo +nightly fuzz run fuzz_exclude_pattern --features exclude
+cargo +nightly fuzz run fuzz_context_policy --features context_policy
 ```
 
 Limit input size with libfuzzer flags:
@@ -55,6 +56,7 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_import_parser` | `analysis_imports` | Composite (`lang\nsource`) | Tests import parsing + normalization |
 | `fuzz_export_tree` | `export_tree` | Path-list text | Tests deterministic analysis/handoff tree rendering |
 | `fuzz_exclude_pattern` | `exclude` | Composite (`root\x1fpath`) | Tests exclude-pattern normalization + dedupe invariants |
+| `fuzz_context_policy` | `context_policy` | Composite (`path\x1ftokens\x1flines\x1fbudget`) | Tests context policy classification, cap, and inclusion invariants |
 
 ### Composite Input Formats
 

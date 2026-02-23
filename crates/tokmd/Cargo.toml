@@ -65,6 +65,7 @@ tokmd-model.workspace = true
 tokmd-exclude.workspace = true
 tokmd-path.workspace = true
 tokmd-context-git.workspace = true
+tokmd-context-policy.workspace = true
 tokmd-envelope.workspace = true
 tokmd-export-tree.workspace = true
 tokmd-progress.workspace = true
