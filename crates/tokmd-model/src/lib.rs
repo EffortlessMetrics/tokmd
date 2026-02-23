@@ -808,4 +808,95 @@ mod tests {
             }
         }
     }
+
+    // Property-based tests for path normalization and module keys
+    mod path_properties {
+        use super::*;
+        use proptest::prelude::*;
+
+        // Generate strings that look like path components
+        fn arb_path_component() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9_.-]+"
+        }
+
+        // Generate paths with forward slashes
+        fn arb_path(max_depth: usize) -> impl Strategy<Value = String> {
+            prop::collection::vec(arb_path_component(), 1..=max_depth)
+                .prop_map(|comps| comps.join("/"))
+        }
+
+        proptest! {
+            #[test]
+            fn normalize_path_is_idempotent(path in arb_path(5)) {
+                let p = PathBuf::from(&path);
+                let norm1 = normalize_path(&p, None);
+                let p2 = PathBuf::from(&norm1);
+                let norm2 = normalize_path(&p2, None);
+                prop_assert_eq!(norm1, norm2);
+            }
+
+            #[test]
+            fn normalize_path_handles_windows_separators(path in arb_path(5)) {
+                let win_path = path.replace('/', "\\");
+                let p_win = PathBuf::from(&win_path);
+                let p_unix = PathBuf::from(&path);
+
+                let norm_win = normalize_path(&p_win, None);
+                let norm_unix = normalize_path(&p_unix, None);
+
+                prop_assert_eq!(norm_win, norm_unix);
+            }
+
+            #[test]
+            fn normalize_path_no_leading_slash(path in arb_path(5)) {
+                 let p = PathBuf::from(&path);
+                 let norm = normalize_path(&p, None);
+                 prop_assert!(!norm.starts_with('/'));
+            }
+
+            #[test]
+            fn module_key_is_prefix_or_root(
+                path in arb_path(5),
+                roots in prop::collection::vec(arb_path_component(), 1..3),
+                depth in 1usize..5
+            ) {
+                let key = module_key(&path, &roots, depth);
+
+                // If the key is "(root)", it means either root-level file or internal logic
+                if key == "(root)" {
+                    // Should only happen if no slashes in normalized path (root file)
+                    // normalize_path is not called by module_key explicitly on the input string,
+                    // but module_key does its own minimal normalization.
+                    let norm_path = path.trim_start_matches("./");
+                    if !norm_path.contains('/') {
+                         prop_assert_eq!(key, "(root)");
+                    }
+                } else {
+                    // Key should be a prefix of the normalized path
+                    // We need to normalize the input path similarly to how module_key does
+                    // to verify the prefix property.
+                    let p = path.replace('\\', "/");
+                    let p_norm = if let Some(stripped) = p.strip_prefix("./") {
+                        stripped
+                    } else {
+                        &p
+                    };
+                    let p_clean = p_norm.trim_start_matches('/');
+
+                    prop_assert!(p_clean.starts_with(&key), "Key '{}' is not prefix of path '{}'", key, p_clean);
+                }
+            }
+
+            #[test]
+            fn module_key_determinism(
+                path in arb_path(5),
+                roots in prop::collection::vec(arb_path_component(), 1..3),
+                depth in 1usize..5
+            ) {
+                let k1 = module_key(&path, &roots, depth);
+                let k2 = module_key(&path, &roots, depth);
+                prop_assert_eq!(k1, k2);
+            }
+        }
+    }
 }

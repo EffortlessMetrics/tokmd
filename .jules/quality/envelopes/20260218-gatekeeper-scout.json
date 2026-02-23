@@ -1,0 +1,12 @@
+{
+  "run_id": "20260218-gatekeeper-scout",
+  "lane": "B",
+  "status": "complete",
+  "goal": "Add property tests for normalize_path and module_key in tokmd-model",
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-model",
+      "output": "running 17 tests\n... test tests::path_properties::module_key_determinism ... ok\ntest tests::path_properties::normalize_path_handles_windows_separators ... ok\ntest tests::path_properties::normalize_path_no_leading_slash ... ok\ntest tests::path_properties::normalize_path_is_idempotent ... ok\ntest tests::path_properties::module_key_is_prefix_or_root ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s"
+    }
+  ]
+}
