@@ -71,6 +71,7 @@ tokmd-settings.workspace = true
 tokmd-substrate.workspace = true
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
+tokmd-tool-schema.workspace = true
 tokmd-types.workspace = true
 tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }

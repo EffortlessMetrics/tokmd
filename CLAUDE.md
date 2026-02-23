@@ -61,6 +61,7 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
 | 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 | 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
+| 4 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
 | 4 | `tokmd-core` | Library facade with FFI layer |
 | 5 | `tokmd` | CLI binary |
 | 5 | `tokmd-python` | PyO3 bindings for PyPI |

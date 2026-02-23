@@ -23,6 +23,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+pub use tokmd_tool_schema::ToolSchemaFormat;
 pub use tokmd_types::{
     AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode,
     TableFormat,
@@ -713,20 +714,6 @@ pub struct ToolsArgs {
     /// Pretty-print JSON output.
     #[arg(long)]
     pub pretty: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum ToolSchemaFormat {
-    /// OpenAI function calling format.
-    Openai,
-    /// Anthropic tool use format.
-    Anthropic,
-    /// JSON Schema Draft 7 format.
-    #[default]
-    Jsonschema,
-    /// Raw clap structure dump.
-    Clap,
 }
 
 #[derive(Args, Debug, Clone)]

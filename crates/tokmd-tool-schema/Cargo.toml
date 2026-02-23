@@ -1,0 +1,18 @@
+[package]
+name = "tokmd-tool-schema"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Generate AI tool schemas from clap command trees."
+readme = "README.md"
+keywords = ["clap", "schema", "openai", "anthropic", "tools"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-tool-schema"
+
+[dependencies]
+anyhow = "1.0.101"
+clap = { version = "4.5.58", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"

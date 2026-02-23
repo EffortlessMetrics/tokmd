@@ -3005,6 +3005,7 @@ dependencies = [
  "tokmd-settings",
  "tokmd-substrate",
  "tokmd-tokeignore",
+ "tokmd-tool-schema",
  "tokmd-types",
  "toml 0.9.12+spec-1.1.0",
 ]
@@ -3263,6 +3264,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-settings",
+ "tokmd-tool-schema",
  "tokmd-types",
 ]
 
@@ -3493,6 +3495,16 @@ dependencies = [
  "proptest",
  "tempfile",
  "tokmd-config",
+]
+
+[[package]]
+name = "tokmd-tool-schema"
+version = "1.7.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

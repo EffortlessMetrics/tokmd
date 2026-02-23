@@ -1,14 +1,28 @@
-//! CLI schema generation for AI agent tool use.
+//! Tool-schema generation for AI agent tool use.
 //!
-//! This module introspects the clap Command tree and generates
-//! schema output in various formats suitable for AI agents.
+//! This crate introspects a clap `Command` tree and produces schema output in
+//! formats commonly consumed by AI tooling.
 
 use anyhow::Result;
 use clap::{Arg, ArgAction, Command};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
-use tokmd_config::ToolSchemaFormat;
+
+/// Output format for rendered tool schemas.
+#[derive(clap::ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ToolSchemaFormat {
+    /// OpenAI function calling format.
+    Openai,
+    /// Anthropic tool use format.
+    Anthropic,
+    /// JSON Schema Draft 7 format.
+    #[default]
+    Jsonschema,
+    /// Raw clap structure dump.
+    Clap,
+}
 
 /// Schema version for tool definitions.
 pub const TOOL_SCHEMA_VERSION: u32 = 1;
@@ -71,16 +85,16 @@ pub struct ParameterSchema {
     pub enum_values: Option<Vec<String>>,
 }
 
-/// Build the tool schema from a clap Command.
+/// Build the tool schema from a clap `Command`.
 pub fn build_tool_schema(cmd: &Command) -> ToolSchemaOutput {
     let mut tools = Vec::new();
 
-    // Add the root command as a tool (for default lang mode)
+    // Add the root command as a tool (for default lang mode).
     tools.push(build_tool_definition(cmd, None));
 
-    // Add all subcommands
+    // Add all subcommands.
     for subcmd in cmd.get_subcommands() {
-        // Skip help and version subcommands
+        // Skip generated help subcommand.
         let name = subcmd.get_name();
         if name == "help" {
             continue;
@@ -104,9 +118,9 @@ fn build_tool_definition(cmd: &Command, name_override: Option<&str>) -> ToolDefi
 
     let mut parameters = Vec::new();
 
-    // Add arguments
+    // Add arguments.
     for arg in cmd.get_arguments() {
-        // Skip help argument
+        // Skip generated args.
         if arg.get_id() == "help" || arg.get_id() == "version" {
             continue;
         }
@@ -120,24 +134,24 @@ fn build_tool_definition(cmd: &Command, name_override: Option<&str>) -> ToolDefi
     }
 }
 
-/// Build a parameter schema from a clap Arg.
+/// Build a parameter schema from a clap `Arg`.
 fn build_parameter_schema(arg: &Arg) -> ParameterSchema {
     let name = arg.get_id().to_string();
     let description = arg.get_help().map(|s| s.to_string());
 
-    // Determine type based on action and value hints
+    // Determine type based on action and value hints.
     let param_type = determine_param_type(arg);
 
-    // Check if required
+    // Check if required.
     let required = arg.is_required_set();
 
-    // Get default value
+    // Get default value.
     let default = arg
         .get_default_values()
         .first()
         .map(|v| v.to_string_lossy().to_string());
 
-    // Get enum values if applicable
+    // Get enum values if applicable.
     let enum_values = arg
         .get_possible_values()
         .iter()
@@ -159,7 +173,7 @@ fn build_parameter_schema(arg: &Arg) -> ParameterSchema {
     }
 }
 
-/// Determine the parameter type from a clap Arg.
+/// Determine the parameter type from a clap `Arg`.
 fn determine_param_type(arg: &Arg) -> String {
     match arg.get_action() {
         ArgAction::SetTrue | ArgAction::SetFalse => "boolean".to_string(),
@@ -359,9 +373,9 @@ fn render_anthropic(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
 /// Render raw clap structure (for debugging).
 fn render_clap(schema: &ToolSchemaOutput, pretty: bool) -> Result<String> {
     if pretty {
-        Ok(serde_json::to_string_pretty(&schema)?)
+        Ok(serde_json::to_string_pretty(schema)?)
     } else {
-        Ok(serde_json::to_string(&schema)?)
+        Ok(serde_json::to_string(schema)?)
     }
 }
 
@@ -387,7 +401,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_schema() {
+    fn build_schema_includes_subcommands() {
         let cmd = make_test_cmd();
         let schema = build_tool_schema(&cmd);
 
@@ -395,29 +409,33 @@ mod tests {
         assert_eq!(schema.version, "1.0.0");
         assert!(!schema.tools.is_empty());
 
-        let sub = schema.tools.iter().find(|t| t.name == "sub").unwrap();
+        let sub = schema
+            .tools
+            .iter()
+            .find(|tool| tool.name == "sub")
+            .expect("subcommand should exist");
         assert_eq!(sub.parameters.len(), 2);
     }
 
     #[test]
-    fn test_render_openai() {
+    fn render_openai_has_functions_key() {
         let cmd = make_test_cmd();
         let schema = build_tool_schema(&cmd);
-        let output = render_openai(&schema, false).unwrap();
+        let output = render_output(&schema, ToolSchemaFormat::Openai, false).unwrap();
 
         let parsed: Value = serde_json::from_str(&output).unwrap();
         assert!(parsed.get("functions").is_some());
     }
 
     #[test]
-    fn test_render_anthropic() {
+    fn render_anthropic_has_input_schema() {
         let cmd = make_test_cmd();
         let schema = build_tool_schema(&cmd);
-        let output = render_anthropic(&schema, false).unwrap();
+        let output = render_output(&schema, ToolSchemaFormat::Anthropic, false).unwrap();
 
         let parsed: Value = serde_json::from_str(&output).unwrap();
         assert!(parsed.get("tools").is_some());
         let tools = parsed["tools"].as_array().unwrap();
-        assert!(tools.iter().any(|t| t.get("input_schema").is_some()));
+        assert!(tools.iter().any(|tool| tool.get("input_schema").is_some()));
     }
 }

@@ -26,7 +26,6 @@ mod error_hints;
 mod export_bundle;
 #[cfg(feature = "ui")]
 mod interactive;
-mod tools_schema;
 
 use anyhow::Result;
 use clap::Parser;
