@@ -49,6 +49,7 @@ required-features = ["alias-tok"]
 anyhow = "1.0.101"
 clap = { version = "4.5.58", features = ["derive"] }
 tokmd-analysis = { workspace = true }
+tokmd-analysis-explain.workspace = true
 tokmd-analysis-format = { workspace = true }
 tokmd-analysis-types.workspace = true
 tokmd-analysis-grid.workspace = true

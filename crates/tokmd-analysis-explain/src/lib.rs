@@ -155,7 +155,7 @@ fn normalize(key: &str) -> String {
         .replace([' ', '-', '.'], "_")
 }
 
-pub(crate) fn lookup(key: &str) -> Option<String> {
+pub fn lookup(key: &str) -> Option<String> {
     let wanted = normalize(key);
     for entry in ENTRIES {
         if normalize(entry.canonical) == wanted {
@@ -168,7 +168,7 @@ pub(crate) fn lookup(key: &str) -> Option<String> {
     None
 }
 
-pub(crate) fn catalog() -> String {
+pub fn catalog() -> String {
     let mut keys: BTreeSet<&'static str> = BTreeSet::new();
     for entry in ENTRIES {
         keys.insert(entry.canonical);
@@ -180,4 +180,42 @@ pub(crate) fn catalog() -> String {
         out.push('\n');
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lookup_finds_canonical_key() {
+        let value = lookup("avg_cyclomatic").expect("canonical key should resolve");
+        assert!(value.starts_with("avg_cyclomatic:"));
+        assert!(value.contains("complexity"));
+    }
+
+    #[test]
+    fn lookup_finds_alias_with_normalization() {
+        let value = lookup("Distribution-Gini").expect("alias should resolve");
+        assert!(value.starts_with("gini:"));
+    }
+
+    #[test]
+    fn catalog_is_sorted_and_unique() {
+        let catalog = catalog();
+        let keys: Vec<&str> = catalog
+            .lines()
+            .skip(1)
+            .filter_map(|line| line.strip_prefix("- "))
+            .collect();
+
+        assert!(
+            !keys.is_empty(),
+            "catalog should include at least one key line"
+        );
+
+        let mut sorted = keys.clone();
+        sorted.sort_unstable();
+        sorted.dedup();
+        assert_eq!(keys, sorted, "catalog keys should be sorted and unique");
+    }
 }

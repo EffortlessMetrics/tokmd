@@ -26,7 +26,8 @@ Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
                        tokmd-badge, tokmd-progress
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
-                       tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-fun, tokmd-gate
+                       tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-analysis-explain,
+                       tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-config, tokmd-core
          ↓
@@ -81,6 +82,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
 | `tokmd-analysis-derived` | Core derived metrics (density, COCOMO) |
 | `tokmd-analysis-entropy` | High-entropy file detection |
+| `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-analysis-git` | Git history analysis adapters |

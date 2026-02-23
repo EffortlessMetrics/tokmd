@@ -2986,6 +2986,7 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-analysis",
+ "tokmd-analysis-explain",
  "tokmd-analysis-format",
  "tokmd-analysis-grid",
  "tokmd-analysis-types",
@@ -3113,6 +3114,10 @@ dependencies = [
  "tokmd-content",
  "tokmd-types",
 ]
+
+[[package]]
+name = "tokmd-analysis-explain"
+version = "1.7.0"
 
 [[package]]
 name = "tokmd-analysis-fingerprint"

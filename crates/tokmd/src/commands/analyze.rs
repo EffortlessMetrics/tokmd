@@ -1,9 +1,9 @@
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
+use tokmd_analysis_explain as analysis_explain;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
-use crate::analysis_explain;
 use crate::analysis_utils;
 use crate::export_bundle;
 use tokmd_progress::Progress;

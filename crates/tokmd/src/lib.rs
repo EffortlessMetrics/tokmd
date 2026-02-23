@@ -18,7 +18,6 @@
 //!
 //! This crate should contain minimal business logic.
 
-mod analysis_explain;
 mod analysis_utils;
 mod commands;
 mod config;
