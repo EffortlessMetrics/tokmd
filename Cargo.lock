@@ -3388,6 +3388,7 @@ dependencies = [
  "tokmd-content",
  "tokmd-gate",
  "tokmd-model",
+ "tokmd-module-key",
  "tokmd-redact",
  "tokmd-scan-args",
  "tokmd-settings",
@@ -3425,7 +3426,15 @@ dependencies = [
  "proptest",
  "serde",
  "tokei",
+ "tokmd-module-key",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-module-key"
+version = "1.7.0"
+dependencies = [
+ "proptest",
 ]
 
 [[package]]

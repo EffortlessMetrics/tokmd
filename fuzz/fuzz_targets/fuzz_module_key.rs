@@ -1,6 +1,6 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd_model::module_key;
+use tokmd_module_key::module_key;
 
 /// Max input size to prevent pathological parse times
 const MAX_INPUT_SIZE: usize = 4 * 1024; // 4KB for path strings

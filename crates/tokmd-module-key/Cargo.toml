@@ -1,0 +1,15 @@
+[package]
+name = "tokmd-module-key"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility module key derivation for deterministic path grouping."
+readme = "README.md"
+keywords = ["module", "path", "determinism", "grouping", "inventory"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-module-key"
+
+[dev-dependencies]
+proptest = "1.10.0"

@@ -15,8 +15,8 @@ documentation = "https://docs.rs/tokmd-model"
 anyhow = "1.0.101"
 serde = { version = "1.0.228", features = ["derive"] }
 tokei = { version = "14.0.0", default-features = false }
+tokmd-module-key.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.10.0"
-

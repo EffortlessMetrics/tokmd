@@ -43,7 +43,7 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_entropy` | `content` | Raw bytes | Tests entropy calculation |
 | `fuzz_json_types` | `types` | JSON string | Tests JSON deserialization of receipt types |
 | `fuzz_normalize_path` | `model` | Path string | Tests path normalization |
-| `fuzz_module_key` | `model` | Path string | Tests module key computation |
+| `fuzz_module_key` | `module_key` | Path string | Tests module key computation |
 | `fuzz_toml_config` | `config` | TOML string | Tests `tokmd.toml` config parsing |
 | `fuzz_policy_toml` | `gate` | TOML string | Tests policy TOML parsing |
 | `fuzz_json_pointer` | `gate` | Composite (see below) | Tests RFC 6901 JSON pointer resolution |
