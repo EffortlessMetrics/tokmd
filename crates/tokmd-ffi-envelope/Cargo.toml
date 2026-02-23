@@ -1,0 +1,20 @@
+[package]
+name = "tokmd-ffi-envelope"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility FFI response-envelope parsing and extraction for tokmd bindings."
+readme = "README.md"
+keywords = ["ffi", "envelope", "json", "bindings", "deterministic"]
+categories = ["development-tools::ffi"]
+documentation = "https://docs.rs/tokmd-ffi-envelope"
+
+[dependencies]
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"
+tokmd-core.workspace = true

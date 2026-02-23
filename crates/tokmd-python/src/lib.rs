@@ -60,58 +60,20 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
     py.allow_threads(|| Ok(tokmd_core::ffi::run_json(mode, args_json)))
 }
 
-fn dict_get<'py>(dict: &Bound<'py, PyDict>, key: &str) -> Option<Bound<'py, PyAny>> {
-    dict.get_item(key).ok().flatten()
+fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> PyErr {
+    TokmdError::new_err(err.to_string())
 }
 
-fn extract_envelope(_py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<PyObject> {
-    // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
-    if let Ok(dict) = envelope.downcast::<PyDict>() {
-        // Check the "ok" field
-        let ok = dict
-            .get_item("ok")
-            .ok()
-            .flatten()
-            .and_then(|v| v.extract::<bool>().ok())
-            .unwrap_or(false);
+fn extract_data_json(result_json: &str) -> PyResult<String> {
+    tokmd_ffi_envelope::extract_data_json(result_json).map_err(map_envelope_error)
+}
 
-        if ok {
-            // Return the "data" field
-            if let Some(data) = dict_get(dict, "data") {
-                return Ok(data.unbind());
-            }
-            // Fallback: return the whole envelope if "data" is missing
-            return Ok(envelope.clone().unbind());
-        }
-
-        // Extract error details
-        let error_obj = dict_get(dict, "error");
-        let message = if let Some(err) = error_obj {
-            if let Ok(err_dict) = err.downcast::<PyDict>() {
-                let code = err_dict
-                    .get_item("code")
-                    .ok()
-                    .flatten()
-                    .map(|c| c.to_string())
-                    .unwrap_or_else(|| "unknown".to_string());
-                let msg = err_dict
-                    .get_item("message")
-                    .ok()
-                    .flatten()
-                    .map(|m| m.to_string())
-                    .unwrap_or_else(|| "Unknown error".to_string());
-                format!("[{}] {}", code, msg)
-            } else {
-                "Unknown error".to_string()
-            }
-        } else {
-            "Unknown error".to_string()
-        };
-        return Err(TokmdError::new_err(message));
-    }
-
-    // Fallback for unexpected response format
-    Err(TokmdError::new_err("Invalid response format"))
+fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<PyObject> {
+    let json_module = py.import("json")?;
+    let envelope_json: String = json_module.call_method1("dumps", (envelope,))?.extract()?;
+    let data_json = extract_data_json(&envelope_json)?;
+    let data = json_module.call_method1("loads", (data_json,))?;
+    Ok(data.unbind())
 }
 
 /// Run a tokmd operation and return the result as a Python dict.
@@ -148,9 +110,10 @@ fn run_with_json_module(
     // Run the operation (releasing GIL)
     let result_json = py.allow_threads(|| tokmd_core::ffi::run_json(mode, &args_json));
 
-    // Parse result back to Python object and extract data.
-    let envelope = json_module.call_method1("loads", (result_json,))?;
-    extract_envelope(py, &envelope)
+    // Parse/extract with the shared FFI-envelope microcrate, then convert to PyObject.
+    let data_json = extract_data_json(&result_json)?;
+    let data = json_module.call_method1("loads", (data_json,))?;
+    Ok(data.unbind())
 }
 
 /// Scan paths and return a language summary.

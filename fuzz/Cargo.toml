@@ -48,6 +48,7 @@ tokmd-redact = { workspace = true, optional = true }
 tokmd-scan-args = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
 tokmd-analysis-imports = { workspace = true, optional = true }
+tokmd-ffi-envelope = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -100,6 +101,10 @@ scan_args = [
 # Import statement extraction helpers (tokmd-analysis-imports)
 # Targets: fuzz_import_parser
 analysis_imports = ["dep:tokmd-analysis-imports"]
+
+# FFI response-envelope parsing/extraction helpers (tokmd-ffi-envelope)
+# Targets: fuzz_ffi_envelope
+ffi_envelope = ["dep:tokmd-ffi-envelope", "dep:serde_json"]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -211,6 +216,19 @@ path = "fuzz_targets/fuzz_scan_args.rs"
 test = false
 doc = false
 required-features = ["scan_args"]
+
+# ============================================================================
+# Fuzz Targets - FFI Envelope Parsing
+# ============================================================================
+# Tests parser/extractor totality and deterministic behavior for
+# `{"ok": bool, "data": ..., "error": ...}` JSON envelopes.
+
+[[bin]]
+name = "fuzz_ffi_envelope"
+path = "fuzz_targets/fuzz_ffi_envelope.rs"
+test = false
+doc = false
+required-features = ["ffi_envelope"]
 
 # ============================================================================
 # Fuzz Targets - Import Parsing

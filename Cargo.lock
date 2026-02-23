@@ -3350,6 +3350,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-ffi-envelope"
+version = "1.7.0"
+dependencies = [
+ "proptest",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokmd-core",
+]
+
+[[package]]
 name = "tokmd-format"
 version = "1.7.0"
 dependencies = [
@@ -3386,6 +3396,7 @@ dependencies = [
  "tokmd-analysis-imports",
  "tokmd-config",
  "tokmd-content",
+ "tokmd-ffi-envelope",
  "tokmd-gate",
  "tokmd-model",
  "tokmd-module-key",
@@ -3450,6 +3461,7 @@ dependencies = [
  "tokio",
  "tokmd-analysis-types",
  "tokmd-core",
+ "tokmd-ffi-envelope",
  "tokmd-types",
 ]
 
@@ -3477,6 +3489,7 @@ dependencies = [
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-core",
+ "tokmd-ffi-envelope",
  "tokmd-types",
 ]
 
