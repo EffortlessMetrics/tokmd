@@ -6,12 +6,11 @@ use std::io::Write;
 use std::path::Path;
 
 use tokmd_config::{ContextStrategy, ValueMetric};
+use tokmd_context_git::GitScores;
 use tokmd_types::{
     ContextFileRow, FileClassification, FileKind, FileRow, InclusionPolicy, PolicyExcludedFile,
     SmartExcludedFile,
 };
-
-use crate::git_scoring::GitScores;
 
 // ---------------------------------------------------------------------------
 // Smart-exclude patterns: filtered at the packing layer, not the scan layer.

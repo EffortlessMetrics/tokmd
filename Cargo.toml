@@ -21,6 +21,7 @@ members = [
     "crates/tokmd-config",
     "crates/tokmd-core",
     "crates/tokmd-content",
+    "crates/tokmd-context-git",
     "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
@@ -65,6 +66,7 @@ default-members = [
     "crates/tokmd-config",
     "crates/tokmd-core",
     "crates/tokmd-content",
+    "crates/tokmd-context-git",
     "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
@@ -122,6 +124,7 @@ tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "
 tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.7.0" }
 tokmd-config = { path = "crates/tokmd-config", version = "1.7.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.7.0" }
+tokmd-context-git = { path = "crates/tokmd-context-git", version = "1.7.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.7.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.7.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.7.0" }

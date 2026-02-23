@@ -23,7 +23,7 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore,
                        tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
-                       tokmd-badge, tokmd-progress
+                       tokmd-context-git, tokmd-badge, tokmd-progress
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
                        tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-analysis-explain,
@@ -67,6 +67,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-walk` | Filesystem traversal with gitignore support | `walk` |
 | `tokmd-content` | File content scanning (entropy, tags, hashing) | `content` |
 | `tokmd-git` | Git history analysis via shell `git log` | `git` |
+| `tokmd-context-git` | Git-derived hotspot/churn scoring for context ranking | `git` |
 | `tokmd-badge` | SVG badge rendering helpers | — |
 | `tokmd-progress` | Progress spinner and progress-bar abstractions | `ui` |
 
@@ -196,7 +197,7 @@ tokmd guarantees byte-stable output for identical inputs:
 
 ```toml
 [features]
-git = ["tokmd-git"]      # Git history analysis
+git = ["tokmd-git", "tokmd-context-git/git"]      # Git history analysis + context git scores
 content = ["tokmd-content"]  # File content scanning
 walk = ["tokmd-walk"]    # Filesystem traversal
 topics = ["tokmd-analysis-topics"] # Topic extraction

@@ -28,7 +28,13 @@ exclude = [
 [features]
 default = ["git", "walk", "content", "ui", "fun", "topics", "archetype"]
 alias-tok = []
-git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git"]
+git = [
+    "tokmd-analysis/git",
+    "dep:tokmd-git",
+    "dep:tokmd-cockpit",
+    "tokmd-cockpit/git",
+    "tokmd-context-git/git",
+]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
 fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
@@ -56,6 +62,7 @@ tokmd-analysis-grid.workspace = true
 tokmd-badge.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
+tokmd-context-git.workspace = true
 tokmd-envelope.workspace = true
 tokmd-progress.workspace = true
 tokmd-scan.workspace = true

@@ -2993,6 +2993,7 @@ dependencies = [
  "tokmd-badge",
  "tokmd-cockpit",
  "tokmd-config",
+ "tokmd-context-git",
  "tokmd-envelope",
  "tokmd-format",
  "tokmd-gate",
@@ -3274,6 +3275,15 @@ dependencies = [
  "proptest",
  "regex",
  "tempfile",
+]
+
+[[package]]
+name = "tokmd-context-git"
+version = "1.7.0"
+dependencies = [
+ "tempfile",
+ "tokmd-git",
+ "tokmd-types",
 ]
 
 [[package]]

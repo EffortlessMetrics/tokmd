@@ -24,7 +24,6 @@ use tokmd_types::{
 };
 
 use crate::context_pack;
-use crate::git_scoring;
 use tokmd_progress::Progress;
 
 const DEFAULT_TREE_DEPTH: usize = 4;
@@ -85,7 +84,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     // Compute git scores if needed
     progress.set_message("Computing git scores...");
     let git_scores = if should_compute_git(&capabilities) {
-        git_scoring::compute_git_scores(
+        tokmd_context_git::compute_git_scores(
             &root,
             &export.rows,
             args.max_commits,
@@ -390,7 +389,7 @@ fn build_intelligence(
     export: &ExportData,
     args: &cli::HandoffArgs,
     capabilities: &[CapabilityStatus],
-    git_scores: Option<&git_scoring::GitScores>,
+    git_scores: Option<&tokmd_context_git::GitScores>,
 ) -> HandoffIntelligence {
     let mut warnings = Vec::new();
 

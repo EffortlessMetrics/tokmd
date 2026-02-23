@@ -43,7 +43,6 @@ use tokmd_types::{
 };
 
 use crate::context_pack;
-use crate::git_scoring;
 use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Result<()> {
@@ -108,7 +107,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     );
     let git_scores = if needs_git && !args.no_git {
         let root = paths.first().cloned().unwrap_or_else(|| PathBuf::from("."));
-        match git_scoring::compute_git_scores(
+        match tokmd_context_git::compute_git_scores(
             &root,
             &export.rows,
             args.max_commits,
