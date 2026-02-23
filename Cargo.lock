@@ -3099,6 +3099,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
+ "tokmd-math",
  "tokmd-types",
 ]
 
@@ -3110,6 +3111,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-export-tree",
+ "tokmd-math",
  "tokmd-types",
 ]
 
@@ -3171,6 +3173,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-git",
+ "tokmd-math",
  "tokmd-types",
 ]
 
@@ -3262,6 +3265,7 @@ version = "1.7.0"
 dependencies = [
  "proptest",
  "tokmd-analysis-types",
+ "tokmd-math",
  "tokmd-types",
 ]
 
@@ -3419,6 +3423,7 @@ dependencies = [
  "tokmd-export-tree",
  "tokmd-ffi-envelope",
  "tokmd-gate",
+ "tokmd-math",
  "tokmd-model",
  "tokmd-module-key",
  "tokmd-redact",
@@ -3448,6 +3453,13 @@ dependencies = [
  "proptest",
  "tempfile",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-math"
+version = "1.7.0"
+dependencies = [
+ "proptest",
 ]
 
 [[package]]

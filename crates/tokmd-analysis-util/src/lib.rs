@@ -3,6 +3,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use tokmd_analysis_types::FileStatRow;
 
+pub use tokmd_math::{gini_coefficient, percentile, round_f64, safe_ratio};
+
 #[derive(Debug, Clone, Default)]
 pub struct AnalysisLimits {
     pub max_files: Option<usize>,
@@ -80,44 +82,6 @@ pub fn is_infra_lang(lang: &str) -> bool {
     )
 }
 
-pub fn percentile(sorted: &[usize], pct: f64) -> f64 {
-    if sorted.is_empty() {
-        return 0.0;
-    }
-    let idx = (pct * (sorted.len() as f64 - 1.0)).ceil() as usize;
-    sorted[idx.min(sorted.len() - 1)] as f64
-}
-
-pub fn gini_coefficient(sorted: &[usize]) -> f64 {
-    if sorted.is_empty() {
-        return 0.0;
-    }
-    let n = sorted.len() as f64;
-    let sum: f64 = sorted.iter().map(|v| *v as f64).sum();
-    if sum == 0.0 {
-        return 0.0;
-    }
-    let mut accum = 0.0;
-    for (i, value) in sorted.iter().enumerate() {
-        let i = i as f64 + 1.0;
-        accum += (2.0 * i - n - 1.0) * (*value as f64);
-    }
-    accum / (n * sum)
-}
-
-pub fn safe_ratio(numer: usize, denom: usize) -> f64 {
-    if denom == 0 {
-        0.0
-    } else {
-        round_f64(numer as f64 / denom as f64, 4)
-    }
-}
-
-pub fn round_f64(value: f64, decimals: u32) -> f64 {
-    let factor = 10f64.powi(decimals as i32);
-    (value * factor).round() / factor
-}
-
 pub fn empty_file_row() -> FileStatRow {
     FileStatRow {
         path: String::new(),
@@ -144,154 +108,20 @@ mod tests {
     use super::*;
     use proptest::prelude::*;
 
+    #[test]
+    fn normalize_path_replaces_backslashes_and_leading_dot_slash() {
+        let root = PathBuf::from("repo");
+        assert_eq!(normalize_path(r".\src\lib.rs", &root), "src/lib.rs");
+    }
+
+    #[test]
+    fn normalize_path_is_deterministic() {
+        let root = PathBuf::from("repo");
+        let input = r".\src\main.rs";
+        assert_eq!(normalize_path(input, &root), normalize_path(input, &root));
+    }
+
     proptest! {
-        // ========================
-        // Percentile Properties
-        // ========================
-
-        #[test]
-        fn percentile_empty_is_zero(pct in 0.0f64..=1.0) {
-            prop_assert_eq!(percentile(&[], pct), 0.0);
-        }
-
-        #[test]
-        fn percentile_in_bounds(mut values in prop::collection::vec(0usize..10000, 1..100),
-                                 pct in 0.0f64..=1.0) {
-            values.sort();
-            let result = percentile(&values, pct);
-            let min = *values.first().unwrap() as f64;
-            let max = *values.last().unwrap() as f64;
-            prop_assert!(result >= min, "Percentile {} below min {}", result, min);
-            prop_assert!(result <= max, "Percentile {} above max {}", result, max);
-        }
-
-        #[test]
-        fn percentile_zero_is_min(mut values in prop::collection::vec(0usize..10000, 1..100)) {
-            values.sort();
-            let p0 = percentile(&values, 0.0);
-            // 0th percentile uses ceil(0 * (n-1)) = 0, so it's the first element
-            prop_assert_eq!(p0, *values.first().unwrap() as f64);
-        }
-
-        #[test]
-        fn percentile_one_is_max(mut values in prop::collection::vec(0usize..10000, 1..100)) {
-            values.sort();
-            let p100 = percentile(&values, 1.0);
-            prop_assert_eq!(p100, *values.last().unwrap() as f64);
-        }
-
-        #[test]
-        fn percentile_monotonic(mut values in prop::collection::vec(0usize..10000, 2..100),
-                                 pct1 in 0.0f64..=1.0,
-                                 pct2 in 0.0f64..=1.0) {
-            values.sort();
-            let p1 = percentile(&values, pct1);
-            let p2 = percentile(&values, pct2);
-            if pct1 <= pct2 {
-                prop_assert!(p1 <= p2, "Percentile should be monotonic: p({})={} > p({})={}", pct1, p1, pct2, p2);
-            } else {
-                prop_assert!(p1 >= p2, "Percentile should be monotonic: p({})={} < p({})={}", pct1, p1, pct2, p2);
-            }
-        }
-
-        // ========================
-        // Gini Coefficient Properties
-        // ========================
-
-        #[test]
-        fn gini_empty_is_zero(_dummy in 0..1u8) {
-            prop_assert_eq!(gini_coefficient(&[]), 0.0);
-        }
-
-        #[test]
-        fn gini_all_zeros_is_zero(len in 1usize..100) {
-            let values = vec![0usize; len];
-            prop_assert_eq!(gini_coefficient(&values), 0.0);
-        }
-
-        #[test]
-        fn gini_in_bounds(values in prop::collection::vec(0usize..1000, 1..100)) {
-            let mut sorted = values;
-            sorted.sort();
-            let gini = gini_coefficient(&sorted);
-            prop_assert!(gini >= 0.0, "Gini must be non-negative: got {}", gini);
-            prop_assert!(gini <= 1.0, "Gini must be at most 1: got {}", gini);
-        }
-
-        #[test]
-        fn gini_uniform_is_zero(value in 1usize..1000, len in 2usize..100) {
-            // Perfect equality: all same non-zero value
-            let values = vec![value; len];
-            let gini = gini_coefficient(&values);
-            prop_assert!(gini.abs() < 0.0001, "Uniform distribution should have Gini ~0: got {}", gini);
-        }
-
-        #[test]
-        fn gini_one_nonzero_high(len in 2usize..100) {
-            // Maximum inequality: one person has everything
-            let mut values = vec![0usize; len - 1];
-            values.push(1000);
-            values.sort();
-            let gini = gini_coefficient(&values);
-            // Gini approaches (n-1)/n as inequality increases
-            let expected_max = (len - 1) as f64 / len as f64;
-            prop_assert!(gini >= expected_max - 0.01, "Extreme inequality should have high Gini: got {}, expected ~{}", gini, expected_max);
-        }
-
-        // ========================
-        // Safe Ratio Properties
-        // ========================
-
-        #[test]
-        fn safe_ratio_zero_denom_is_zero(numer in 0usize..10000) {
-            prop_assert_eq!(safe_ratio(numer, 0), 0.0);
-        }
-
-        #[test]
-        fn safe_ratio_zero_numer_is_zero(denom in 1usize..10000) {
-            prop_assert_eq!(safe_ratio(0, denom), 0.0);
-        }
-
-        #[test]
-        fn safe_ratio_same_is_one(value in 1usize..10000) {
-            prop_assert_eq!(safe_ratio(value, value), 1.0);
-        }
-
-        #[test]
-        fn safe_ratio_has_limited_decimals(numer in 0usize..10000, denom in 1usize..10000) {
-            let ratio = safe_ratio(numer, denom);
-            let s = format!("{}", ratio);
-            // Split on decimal point and check digits after
-            if let Some(dot_pos) = s.find('.') {
-                let decimals = s.len() - dot_pos - 1;
-                prop_assert!(decimals <= 4, "Should have at most 4 decimals: {} has {}", s, decimals);
-            }
-        }
-
-        // ========================
-        // Round Properties
-        // ========================
-
-        #[test]
-        fn round_idempotent(value in -1000.0f64..1000.0, decimals in 0u32..6) {
-            let once = round_f64(value, decimals);
-            let twice = round_f64(once, decimals);
-            prop_assert!((once - twice).abs() < 1e-10, "Rounding should be idempotent");
-        }
-
-        #[test]
-        fn round_preserves_integer(value in -1000i64..1000) {
-            let f = value as f64;
-            for decimals in 0..6 {
-                let rounded = round_f64(f, decimals);
-                prop_assert_eq!(rounded, f, "Rounding integer should preserve it");
-            }
-        }
-
-        // ========================
-        // Path Depth Properties
-        // ========================
-
         #[test]
         fn path_depth_always_at_least_one(path in "\\PC*") {
             let depth = path_depth(&path);
@@ -322,13 +152,8 @@ mod tests {
             prop_assert_eq!(d_normal, d_leading, "Leading slash should not add depth");
         }
 
-        // ========================
-        // Is Test Path Properties
-        // ========================
-
         #[test]
         fn is_test_path_case_insensitive_for_dirs(prefix in "[a-zA-Z0-9_/]+", suffix in "[a-zA-Z0-9_/]+\\.rs") {
-            // Test directory markers should be case-insensitive
             let lower = format!("{}/test/{}", prefix, suffix);
             let upper = format!("{}/TEST/{}", prefix, suffix);
             let mixed = format!("{}/TeSt/{}", prefix, suffix);
@@ -348,10 +173,6 @@ mod tests {
             let path = format!("src/{}", pattern);
             prop_assert!(is_test_path(&path), "Should detect test file pattern: {}", pattern);
         }
-
-        // ========================
-        // Is Infra Lang Properties
-        // ========================
 
         #[test]
         fn is_infra_lang_case_insensitive(lang in prop::sample::select(vec!["json", "yaml", "toml", "markdown", "xml", "html", "css"])) {

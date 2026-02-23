@@ -20,7 +20,7 @@ Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
                        tokmd-envelope, tokmd-substrate
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-module-key, tokmd-path, tokmd-exclude,
-                       tokmd-redact, tokmd-scan-args,
+                       tokmd-math, tokmd-redact, tokmd-scan-args,
                        tokmd-tokeignore, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
@@ -60,6 +60,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-module-key` | Deterministic module-key derivation from normalized paths |
 | `tokmd-path` | Cross-platform path normalization helpers (`\\` → `/`, relative path cleanup) |
 | `tokmd-exclude` | Deterministic exclude-pattern normalization + dedupe helpers |
+| `tokmd-math` | Deterministic numeric/statistical helpers (`round_f64`, `safe_ratio`, percentile, gini) |
 | `tokmd-redact` | BLAKE3-based path hashing and redaction |
 | `tokmd-scan-args` | Deterministic `ScanArgs` metadata construction + redaction wiring |
 | `tokmd-tokeignore` | `.tokeignore` template generation |

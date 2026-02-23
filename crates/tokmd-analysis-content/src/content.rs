@@ -9,7 +9,7 @@ use tokmd_analysis_types::{
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use tokmd_analysis_util::normalize_path;
-use tokmd_analysis_util::round_f64;
+use tokmd_math::round_f64;
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const IMPORT_MAX_LINES: usize = 200;
