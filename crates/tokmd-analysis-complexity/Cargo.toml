@@ -14,6 +14,7 @@ documentation = "https://docs.rs/tokmd-analysis-complexity"
 [dependencies]
 anyhow = "1.0.101"
 tokmd-analysis-types.workspace = true
+tokmd-analysis-maintainability.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-content.workspace = true
 tokmd-types.workspace = true

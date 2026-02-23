@@ -3034,6 +3034,7 @@ dependencies = [
  "tokmd-analysis-grid",
  "tokmd-analysis-halstead",
  "tokmd-analysis-license",
+ "tokmd-analysis-maintainability",
  "tokmd-analysis-near-dup",
  "tokmd-analysis-topics",
  "tokmd-analysis-types",
@@ -3078,6 +3079,7 @@ name = "tokmd-analysis-complexity"
 version = "1.7.0"
 dependencies = [
  "anyhow",
+ "tokmd-analysis-maintainability",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
@@ -3203,6 +3205,13 @@ dependencies = [
  "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-walk",
+]
+
+[[package]]
+name = "tokmd-analysis-maintainability"
+version = "1.7.0"
+dependencies = [
+ "tokmd-analysis-types",
 ]
 
 [[package]]

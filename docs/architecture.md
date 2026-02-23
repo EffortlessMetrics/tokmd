@@ -27,7 +27,7 @@ Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
                        tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-analysis-explain,
-                       tokmd-analysis-html, tokmd-fun, tokmd-gate
+                       tokmd-analysis-html, tokmd-analysis-maintainability, tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-config, tokmd-core, tokmd-tool-schema
          ↓
@@ -91,6 +91,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-analysis-git` | Git history analysis adapters |
 | `tokmd-analysis-grid` | Preset/feature matrix metadata |
 | `tokmd-analysis-halstead` | Halstead metrics |
+| `tokmd-analysis-maintainability` | Maintainability index scoring + Halstead merge |
 | `tokmd-analysis-license` | License radar scanning |
 | `tokmd-analysis-near-dup` | Near-duplicate detection |
 | `tokmd-analysis-topics` | Topic-cloud extraction adapter |

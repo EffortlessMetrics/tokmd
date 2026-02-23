@@ -37,6 +37,8 @@ use tokmd_analysis_fun::build_fun_report;
 use tokmd_analysis_halstead::build_halstead_report;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_license::build_license_report;
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+use tokmd_analysis_maintainability::attach_halstead_metrics;
 #[cfg(feature = "content")]
 use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
 #[cfg(feature = "topics")]
@@ -481,29 +483,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             Ok(halstead_report) => {
                 // Wire Halstead into complexity report if available
                 if let Some(ref mut cx) = complexity {
-                    // Update maintainability index with Halstead volume
-                    if let Some(ref mut mi) = cx.maintainability_index {
-                        let vol = halstead_report.volume;
-                        if vol > 0.0 {
-                            mi.avg_halstead_volume = Some(vol);
-                            // Recompute with full SEI formula
-                            let score = (171.0
-                                - 5.2 * vol.ln()
-                                - 0.23 * mi.avg_cyclomatic
-                                - 16.2 * mi.avg_loc.ln())
-                            .max(0.0);
-                            let factor = 100.0;
-                            mi.score = (score * factor).round() / factor;
-                            mi.grade = if mi.score >= 85.0 {
-                                "A".to_string()
-                            } else if mi.score >= 65.0 {
-                                "B".to_string()
-                            } else {
-                                "C".to_string()
-                            };
-                        }
-                    }
-                    cx.halstead = Some(halstead_report);
+                    attach_halstead_metrics(cx, halstead_report);
                 }
             }
             Err(err) => warnings.push(format!("halstead scan failed: {}", err)),

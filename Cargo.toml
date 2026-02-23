@@ -11,6 +11,7 @@ members = [
     "crates/tokmd-analysis-entropy",
     "crates/tokmd-analysis-license",
     "crates/tokmd-analysis-halstead",
+    "crates/tokmd-analysis-maintainability",
     "crates/tokmd-analysis-derived",
     "crates/tokmd-analysis-content",
     "crates/tokmd-analysis-git",
@@ -62,6 +63,7 @@ default-members = [
     "crates/tokmd-analysis-entropy",
     "crates/tokmd-analysis-license",
     "crates/tokmd-analysis-halstead",
+    "crates/tokmd-analysis-maintainability",
     "crates/tokmd-analysis-assets",
     "crates/tokmd-analysis-content",
     "crates/tokmd-analysis-near-dup",
@@ -126,6 +128,7 @@ tokmd-analysis-complexity = { path = "crates/tokmd-analysis-complexity", version
 tokmd-analysis-entropy = { path = "crates/tokmd-analysis-entropy", version = "1.7.0" }
 tokmd-analysis-license = { path = "crates/tokmd-analysis-license", version = "1.7.0" }
 tokmd-analysis-halstead = { path = "crates/tokmd-analysis-halstead", version = "1.7.0" }
+tokmd-analysis-maintainability = { path = "crates/tokmd-analysis-maintainability", version = "1.7.0" }
 tokmd-analysis-assets = { path = "crates/tokmd-analysis-assets", version = "1.7.0" }
 tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.7.0" }
 tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.7.0" }

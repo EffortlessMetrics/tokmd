@@ -1,0 +1,15 @@
+[package]
+name = "tokmd-analysis-maintainability"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Maintainability index scoring and Halstead integration for tokmd analysis."
+readme = "README.md"
+keywords = ["analysis", "maintainability", "halstead", "metrics", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-maintainability"
+
+[dependencies]
+tokmd-analysis-types.workspace = true

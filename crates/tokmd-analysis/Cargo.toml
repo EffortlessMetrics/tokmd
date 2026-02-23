@@ -38,6 +38,7 @@ halstead = [
     "content",
     "walk",
     "dep:tokmd-analysis-halstead",
+    "dep:tokmd-analysis-maintainability",
     "tokmd-analysis-grid/halstead",
 ]
 fun = ["dep:tokmd-analysis-fun", "tokmd-analysis-grid/fun"]
@@ -74,6 +75,7 @@ tokmd-analysis-complexity = { workspace = true, optional = true }
 tokmd-analysis-entropy = { workspace = true, optional = true }
 tokmd-analysis-license = { workspace = true, optional = true }
 tokmd-analysis-halstead = { workspace = true, optional = true }
+tokmd-analysis-maintainability = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile = "3.25.0"

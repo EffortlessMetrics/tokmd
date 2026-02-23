@@ -2,9 +2,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use tokmd_analysis_maintainability::compute_maintainability_index;
 use tokmd_analysis_types::{
     ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity,
-    FunctionComplexityDetail, MaintainabilityIndex, TechnicalDebtLevel, TechnicalDebtRatio,
+    FunctionComplexityDetail, TechnicalDebtLevel, TechnicalDebtRatio,
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -231,7 +232,12 @@ pub fn build_complexity_report(
     let histogram = generate_complexity_histogram(&file_complexities, 5);
 
     // Compute maintainability index
-    let maintainability_index = compute_maintainability_index(avg_cyclomatic, file_count, export);
+    let maintainability_index = if file_count == 0 {
+        None
+    } else {
+        average_parent_loc(export)
+            .and_then(|avg_loc| compute_maintainability_index(avg_cyclomatic, avg_loc, None))
+    };
     let technical_debt = compute_technical_debt_ratio(export, &file_complexities);
 
     // Only keep top files by complexity
@@ -740,32 +746,19 @@ fn classify_risk_extended(
     }
 }
 
-/// Compute the Maintainability Index using the simplified SEI formula.
-///
-/// MI = 171 - 0.23 * CC - 16.2 * ln(LOC)
-///
-/// When Halstead volume is available, the full formula is:
-/// MI = 171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)
-fn compute_maintainability_index(
-    avg_cyclomatic: f64,
-    file_count: usize,
-    export: &ExportData,
-) -> Option<MaintainabilityIndex> {
-    if file_count == 0 {
-        return None;
-    }
-
+fn average_parent_loc(export: &ExportData) -> Option<f64> {
     let total_code: usize = export
         .rows
         .iter()
         .filter(|r| r.kind == FileKind::Parent)
         .map(|r| r.code)
         .sum();
-    let parent_count = export
+    let parent_count: usize = export
         .rows
         .iter()
         .filter(|r| r.kind == FileKind::Parent)
         .count();
+
     if parent_count == 0 {
         return None;
     }
@@ -774,26 +767,7 @@ fn compute_maintainability_index(
     if avg_loc <= 0.0 {
         return None;
     }
-
-    // Simplified SEI formula (without Halstead volume)
-    let score = (171.0 - 0.23 * avg_cyclomatic - 16.2 * avg_loc.ln()).max(0.0);
-    let score = round_f64(score, 2);
-
-    let grade = if score >= 85.0 {
-        "A".to_string()
-    } else if score >= 65.0 {
-        "B".to_string()
-    } else {
-        "C".to_string()
-    };
-
-    Some(MaintainabilityIndex {
-        score,
-        avg_cyclomatic,
-        avg_loc: round_f64(avg_loc, 2),
-        avg_halstead_volume: None,
-        grade,
-    })
+    Some(avg_loc)
 }
 
 /// Compute a complexity-to-size heuristic debt ratio.
