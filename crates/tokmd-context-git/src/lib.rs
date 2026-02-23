@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 #[cfg(feature = "git")]
+use tokmd_path::normalize_rel_path as normalize_path;
+#[cfg(feature = "git")]
 use tokmd_types::{FileKind, FileRow};
 
 /// Git-derived scores for file ranking.
@@ -67,14 +69,6 @@ pub fn compute_git_scores(
     _max_commit_files: usize,
 ) -> Option<GitScores> {
     None
-}
-
-/// Normalize path for consistent matching between FileRow and git paths.
-/// Converts backslashes to forward slashes and strips leading `./` prefix.
-#[cfg(feature = "git")]
-fn normalize_path(path: &str) -> String {
-    let out = path.replace('\\', "/");
-    out.strip_prefix("./").unwrap_or(&out).to_string()
 }
 
 #[cfg(all(test, feature = "git"))]

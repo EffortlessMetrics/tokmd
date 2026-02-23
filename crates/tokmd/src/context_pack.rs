@@ -7,6 +7,7 @@ use std::path::Path;
 
 use tokmd_config::{ContextStrategy, ValueMetric};
 use tokmd_context_git::GitScores;
+use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_types::{
     ContextFileRow, FileClassification, FileKind, FileRow, InclusionPolicy, PolicyExcludedFile,
     SmartExcludedFile,
@@ -80,7 +81,7 @@ const SPINE_BUDGET_FRACTION: f64 = 0.05;
 const SPINE_BUDGET_CAP: usize = 5000;
 
 fn is_spine_file(path: &str) -> bool {
-    let normalized = path.replace('\\', "/");
+    let normalized = normalize_path(path);
     let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
     for &pattern in SPINE_PATTERNS {
         if pattern.contains('/') {
@@ -197,10 +198,6 @@ fn get_value(row: &FileRow, metric: ValueMetric, git_scores: Option<&GitScores>)
                 .unwrap_or(row.code)
         }
     }
-}
-
-fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
 }
 
 // ---------------------------------------------------------------------------

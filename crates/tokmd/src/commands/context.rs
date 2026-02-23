@@ -35,6 +35,7 @@ impl<W: Write> Write for CountingWriter<W> {
 }
 use tokmd_config as cli;
 use tokmd_model as model;
+use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
@@ -704,10 +705,6 @@ fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
     };
     let out = normalize_path(&rel.to_string_lossy());
     out.strip_prefix("./").unwrap_or(&out).to_string()
-}
-
-fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
 }
 
 fn hash_file(path: &Path) -> Result<String> {

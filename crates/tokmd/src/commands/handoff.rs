@@ -16,6 +16,7 @@ use anyhow::{Context, Result, bail};
 use blake3::Hasher;
 use tokmd_config as cli;
 use tokmd_model as model;
+use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CapabilityState, CapabilityStatus, ExportData, FileKind, FileRow,
@@ -1090,11 +1091,6 @@ fn hash_file(path: &Path) -> Result<String> {
         hasher.update(&buf[..n]);
     }
     Ok(hasher.finalize().to_hex().to_string())
-}
-
-/// Normalize path for consistent matching.
-fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
 }
 
 /// Round a float to N decimal places.

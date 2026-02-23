@@ -17,6 +17,7 @@ git = ["dep:tokmd-git"]
 
 [dependencies]
 tokmd-git = { workspace = true, optional = true }
+tokmd-path.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]

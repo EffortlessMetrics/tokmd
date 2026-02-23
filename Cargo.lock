@@ -2999,6 +2999,7 @@ dependencies = [
  "tokmd-gate",
  "tokmd-git",
  "tokmd-model",
+ "tokmd-path",
  "tokmd-progress",
  "tokmd-scan",
  "tokmd-sensor",
@@ -3295,6 +3296,7 @@ version = "1.7.0"
 dependencies = [
  "tempfile",
  "tokmd-git",
+ "tokmd-path",
  "tokmd-types",
 ]
 
@@ -3417,6 +3419,13 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-core",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-path"
+version = "1.7.0"
+dependencies = [
+ "proptest",
 ]
 
 [[package]]

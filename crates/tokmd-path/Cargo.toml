@@ -1,0 +1,15 @@
+[package]
+name = "tokmd-path"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility path normalization helpers for deterministic cross-platform matching."
+readme = "README.md"
+keywords = ["path", "normalization", "determinism", "cross-platform", "utilities"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-path"
+
+[dev-dependencies]
+proptest = "1.10.0"

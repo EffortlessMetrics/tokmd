@@ -19,8 +19,8 @@ tokmd follows a tiered microcrate architecture with strict dependency rules.
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
                        tokmd-envelope, tokmd-substrate
          ↓
-Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-redact, tokmd-tokeignore,
-                       tokmd-sensor
+Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-path, tokmd-redact,
+                       tokmd-tokeignore, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
                        tokmd-context-git, tokmd-badge, tokmd-progress
@@ -55,6 +55,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 |-------|---------|
 | `tokmd-scan` | Wraps tokei library for code scanning |
 | `tokmd-model` | Aggregation logic: tokei results → tokmd receipts |
+| `tokmd-path` | Cross-platform path normalization helpers (`\\` → `/`, relative path cleanup) |
 | `tokmd-redact` | BLAKE3-based path hashing and redaction |
 | `tokmd-tokeignore` | `.tokeignore` template generation |
 | `tokmd-sensor` | `EffortlessSensor` trait + `build_substrate()` builder |
