@@ -4,6 +4,7 @@ members = [
     "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
+    "crates/tokmd-analysis-imports",
     "crates/tokmd-analysis-explain",
     "crates/tokmd-analysis-html",
     "crates/tokmd-analysis-api-surface",
@@ -57,6 +58,7 @@ default-members = [
     "crates/tokmd-badge",
     "crates/tokmd",
     "crates/tokmd-analysis",
+    "crates/tokmd-analysis-imports",
     "crates/tokmd-analysis-explain",
     "crates/tokmd-analysis-html",
     "crates/tokmd-analysis-api-surface",
@@ -121,6 +123,7 @@ name = "tokmd-workspace"
 tokmd = { path = "crates/tokmd", version = "1.7.0" }
 tokmd-badge = { path = "crates/tokmd-badge", version = "1.7.0" }
 tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.7.0" }
+tokmd-analysis-imports = { path = "crates/tokmd-analysis-imports", version = "1.7.0" }
 tokmd-analysis-explain = { path = "crates/tokmd-analysis-explain", version = "1.7.0" }
 tokmd-analysis-html = { path = "crates/tokmd-analysis-html", version = "1.7.0" }
 tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.7.0" }

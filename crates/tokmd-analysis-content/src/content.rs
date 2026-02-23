@@ -247,7 +247,7 @@ pub fn build_import_report(
             Some(r) => *r,
             None => continue,
         };
-        if !is_import_lang(&row.lang) {
+        if !tokmd_analysis_imports::supports_language(&row.lang) {
             continue;
         }
         let path = root.join(rel);
@@ -256,7 +256,7 @@ pub fn build_import_report(
             Err(_) => continue,
         };
         total_bytes += lines.iter().map(|l| l.len() as u64).sum::<u64>();
-        let imports = parse_imports(&row.lang, &lines);
+        let imports = tokmd_analysis_imports::parse_imports(&row.lang, &lines);
         if imports.is_empty() {
             continue;
         }
@@ -265,7 +265,7 @@ pub fn build_import_report(
             ImportGranularity::File => row.path.clone(),
         };
         for import in imports {
-            let target = normalize_import_target(&import);
+            let target = tokmd_analysis_imports::normalize_import_target(&import);
             let key = (source.clone(), target);
             *edges.entry(key).or_insert(0) += 1;
         }
@@ -299,139 +299,4 @@ fn hash_file_full(path: &Path) -> Result<String> {
         hasher.update(&buf[..read]);
     }
     Ok(hasher.finalize().to_hex().to_string())
-}
-
-fn is_import_lang(lang: &str) -> bool {
-    matches!(
-        lang.to_lowercase().as_str(),
-        "rust" | "javascript" | "typescript" | "python" | "go"
-    )
-}
-
-fn parse_imports(lang: &str, lines: &[String]) -> Vec<String> {
-    match lang.to_lowercase().as_str() {
-        "rust" => parse_rust_imports(lines),
-        "javascript" | "typescript" => parse_js_imports(lines),
-        "python" => parse_py_imports(lines),
-        "go" => parse_go_imports(lines),
-        _ => vec![],
-    }
-}
-
-fn parse_rust_imports(lines: &[String]) -> Vec<String> {
-    let mut imports = Vec::new();
-    for line in lines {
-        let trimmed = line.trim();
-        if trimmed.starts_with("use ")
-            && let Some(rest) = trimmed.strip_prefix("use ")
-        {
-            let rest = rest.trim_end_matches(';').trim();
-            let target = rest.split("::").next().unwrap_or(rest).to_string();
-            imports.push(target);
-        } else if trimmed.starts_with("mod ")
-            && let Some(rest) = trimmed.strip_prefix("mod ")
-        {
-            let target = rest.trim_end_matches(';').trim().to_string();
-            imports.push(target);
-        }
-    }
-    imports
-}
-
-fn parse_js_imports(lines: &[String]) -> Vec<String> {
-    let mut imports = Vec::new();
-    for line in lines {
-        let trimmed = line.trim();
-        if trimmed.starts_with("import ")
-            && let Some(target) = extract_quoted(trimmed)
-        {
-            imports.push(target);
-        }
-        if let Some(idx) = trimmed.find("require(")
-            && let Some(target) = extract_quoted(&trimmed[idx..])
-        {
-            imports.push(target);
-        }
-    }
-    imports
-}
-
-fn parse_py_imports(lines: &[String]) -> Vec<String> {
-    let mut imports = Vec::new();
-    for line in lines {
-        let trimmed = line.trim();
-        if trimmed.starts_with("import ")
-            && let Some(rest) = trimmed.strip_prefix("import ")
-        {
-            let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
-            imports.push(target);
-        } else if trimmed.starts_with("from ")
-            && let Some(rest) = trimmed.strip_prefix("from ")
-        {
-            let target = rest.split_whitespace().next().unwrap_or(rest).to_string();
-            imports.push(target);
-        }
-    }
-    imports
-}
-
-fn parse_go_imports(lines: &[String]) -> Vec<String> {
-    let mut imports = Vec::new();
-    let mut in_block = false;
-    for line in lines {
-        let trimmed = line.trim();
-        if trimmed.starts_with("import (") {
-            in_block = true;
-            continue;
-        }
-        if in_block {
-            if trimmed.starts_with(')') {
-                in_block = false;
-                continue;
-            }
-            if let Some(target) = extract_quoted(trimmed) {
-                imports.push(target);
-            }
-            continue;
-        }
-        if trimmed.starts_with("import ")
-            && let Some(target) = extract_quoted(trimmed)
-        {
-            imports.push(target);
-        }
-    }
-    imports
-}
-
-fn extract_quoted(text: &str) -> Option<String> {
-    let mut chars = text.chars();
-    let mut quote = None;
-    for c in chars.by_ref() {
-        if c == '"' || c == '\'' {
-            quote = Some(c);
-            break;
-        }
-    }
-    let quote = quote?;
-    let mut out = String::new();
-    for c in chars {
-        if c == quote {
-            break;
-        }
-        out.push(c);
-    }
-    if out.is_empty() { None } else { Some(out) }
-}
-
-fn normalize_import_target(target: &str) -> String {
-    let trimmed = target.trim();
-    if trimmed.starts_with('.') {
-        return "local".to_string();
-    }
-    let trimmed = trimmed.trim_matches('"').trim_matches('\'');
-    trimmed
-        .split(['/', ':', '.'])
-        .next()
-        .unwrap_or(trimmed)
-        .to_string()
 }

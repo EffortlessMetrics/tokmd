@@ -3092,6 +3092,8 @@ version = "1.7.0"
 dependencies = [
  "anyhow",
  "blake3",
+ "tempfile",
+ "tokmd-analysis-imports",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
@@ -3192,6 +3194,13 @@ dependencies = [
  "time",
  "tokmd-analysis-types",
  "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-imports"
+version = "1.7.0"
+dependencies = [
+ "proptest",
 ]
 
 [[package]]
@@ -3374,6 +3383,7 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "serde_json",
+ "tokmd-analysis-imports",
  "tokmd-config",
  "tokmd-content",
  "tokmd-gate",

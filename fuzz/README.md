@@ -28,6 +28,7 @@ cargo +nightly fuzz run fuzz_entropy --features content
 cargo +nightly fuzz run fuzz_json_types --features types
 cargo +nightly fuzz run fuzz_policy_evaluate --features gate
 cargo +nightly fuzz run fuzz_scan_args --features scan_args
+cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
 ```
 
 Limit input size with libfuzzer flags:
@@ -49,6 +50,7 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_policy_evaluate` | `gate` | Composite (see below) | Tests policy evaluation logic |
 | `fuzz_redact` | `redact` | Path string | Tests path redaction |
 | `fuzz_scan_args` | `scan_args` | Composite (flags + sections) | Tests deterministic `ScanArgs` shaping |
+| `fuzz_import_parser` | `analysis_imports` | Composite (`lang\nsource`) | Tests import parsing + normalization |
 
 ### Composite Input Formats
 

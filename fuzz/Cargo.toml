@@ -46,6 +46,7 @@ tokmd-content = { workspace = true, optional = true }
 tokmd-redact = { workspace = true, optional = true }
 tokmd-scan-args = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
+tokmd-analysis-imports = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -90,6 +91,10 @@ scan_args = [
     "dep:tokmd-settings",
     "dep:tokmd-types",
 ]
+
+# Import statement extraction helpers (tokmd-analysis-imports)
+# Targets: fuzz_import_parser
+analysis_imports = ["dep:tokmd-analysis-imports"]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -201,3 +206,15 @@ path = "fuzz_targets/fuzz_scan_args.rs"
 test = false
 doc = false
 required-features = ["scan_args"]
+
+# ============================================================================
+# Fuzz Targets - Import Parsing
+# ============================================================================
+# Tests language-aware import parsing and target normalization.
+
+[[bin]]
+name = "fuzz_import_parser"
+path = "fuzz_targets/fuzz_import_parser.rs"
+test = false
+doc = false
+required-features = ["analysis_imports"]
