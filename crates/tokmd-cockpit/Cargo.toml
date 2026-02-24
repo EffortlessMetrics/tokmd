@@ -16,7 +16,7 @@ default = ["git"]
 git = ["dep:tokmd-git"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 blake3.workspace = true
 ignore = "0.4.23"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -30,4 +30,4 @@ tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.26.0"

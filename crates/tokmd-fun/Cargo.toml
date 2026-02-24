@@ -12,7 +12,7 @@ categories = ["development-tools", "visualization"]
 documentation = "https://docs.rs/tokmd-fun"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 midly = "0.5.3"
 
 [dev-dependencies]

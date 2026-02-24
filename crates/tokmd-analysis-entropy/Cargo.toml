@@ -12,11 +12,11 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-entropy"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-content.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.26.0"
