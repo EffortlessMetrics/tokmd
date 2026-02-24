@@ -107,8 +107,8 @@ pub struct PublishArgs {
     #[arg(long, default_value = "v{version}")]
     pub tag_format: String,
 
-    /// Maximum total seconds to wait for rate limit cooldowns (default 600)
-    #[arg(long, default_value = "600")]
+    /// Maximum total seconds to wait for rate limit cooldowns (default 7200)
+    #[arg(long, default_value = "7200")]
     pub rate_limit_timeout: u64,
 
     /// Skip confirmation prompt (required for non-dry-run without TTY)

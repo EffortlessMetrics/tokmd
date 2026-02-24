@@ -398,7 +398,7 @@ fn reconstruct_publish_command(args: &PublishArgs) -> String {
     if args.retry_delay != 30 {
         parts.push(format!("--retry-delay {}", args.retry_delay));
     }
-    if args.rate_limit_timeout != 600 {
+    if args.rate_limit_timeout != 7200 {
         parts.push(format!("--rate-limit-timeout {}", args.rate_limit_timeout));
     }
 
@@ -659,7 +659,21 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
     }
 
     // Rate limit (429) - retryable after cooldown
-    if lower.contains("429") || lower.contains("too many") {
+    //
+    // Be strict to avoid false positives (e.g. "too many open files").
+    let has_status_429 = lower.contains("status 429");
+    let has_429_tmr = lower.contains("429 too many requests");
+    let has_tmr = lower.contains("too many requests");
+    let has_crates_io_ctx = lower.contains("crates.io") || lower.contains("registry at https://crates.io");
+    let has_publish_limit_phrase = lower.contains("you have published too many new crates");
+    let has_try_again = lower.contains("try again after");
+    let has_help = lower.contains("help@crates.io");
+
+    if has_status_429
+        || has_429_tmr
+        || (has_tmr && has_crates_io_ctx)
+        || (has_publish_limit_phrase && (has_try_again || has_help))
+    {
         return PublishErrorKind::RateLimited;
     }
 
@@ -1124,18 +1138,25 @@ mod tests {
             PublishErrorKind::RateLimited
         ));
 
-        // "too many" without explicit 429
+        // crates.io publish-limit phrasing (should match only when it looks like the real message)
         assert!(matches!(
             classify_publish_error(
-                "You have published too many new crates in a short period of time"
+                "You have published too many new crates in a short period of time. \
+                 Please try again after Tue, 24 Feb 2026 16:57:08 GMT or email help@crates.io"
             ),
             PublishErrorKind::RateLimited
         ));
 
-        // Just the 429 status
+        // 429 + Too Many Requests without extra context
         assert!(matches!(
-            classify_publish_error("error: 429 rate limit exceeded"),
+            classify_publish_error("error: 429 Too Many Requests"),
             PublishErrorKind::RateLimited
+        ));
+
+        // unrelated "too many" should not match rate limiting
+        assert!(matches!(
+            classify_publish_error("open files: too many open files"),
+            PublishErrorKind::Unknown
         ));
     }
 
