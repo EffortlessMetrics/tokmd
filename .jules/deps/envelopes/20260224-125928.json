@@ -1,0 +1,11 @@
+{
+  "id": "20260224-125928",
+  "start_time": "2026-02-24T12:59:28Z",
+  "target": "dev-dependencies",
+  "lane": "B",
+  "decision": "Remove redundant `serde_json` and `tokmd-model` entries from `[dev-dependencies]` where they are already present in `[dependencies]`.",
+  "receipts": [
+    "cargo check --workspace: passed",
+    "cargo test --workspace --exclude tokmd-python: passed (tokmd-python tests failed due to environment issues unrelated to changes)"
+  ]
+}
