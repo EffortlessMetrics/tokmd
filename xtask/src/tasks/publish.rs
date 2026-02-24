@@ -664,7 +664,8 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
     let has_status_429 = lower.contains("status 429");
     let has_429_tmr = lower.contains("429 too many requests");
     let has_tmr = lower.contains("too many requests");
-    let has_crates_io_ctx = lower.contains("crates.io") || lower.contains("registry at https://crates.io");
+    let has_crates_io_ctx =
+        lower.contains("crates.io") || lower.contains("registry at https://crates.io");
     let has_publish_limit_phrase = lower.contains("you have published too many new crates");
     let has_try_again = lower.contains("try again after");
     let has_help = lower.contains("help@crates.io");
