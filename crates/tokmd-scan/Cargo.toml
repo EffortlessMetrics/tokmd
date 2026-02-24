@@ -12,12 +12,12 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-scan"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 tokei = { version = "14.0.0", default-features = false }
 tokmd-settings.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.10.0"
-tempfile = "3.25.0"
+tempfile = "3.26.0"
 
