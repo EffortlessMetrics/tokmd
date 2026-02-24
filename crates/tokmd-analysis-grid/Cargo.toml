@@ -1,0 +1,23 @@
+[package]
+name = "tokmd-analysis-grid"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Analysis preset and feature-gate metadata for tokmd analysis orchestration."
+readme = "README.md"
+keywords = ["analysis", "feature-flags", "presets", "inventory", "metadata"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-grid"
+
+[features]
+default = []
+git = []
+walk = []
+content = []
+halstead = ["content", "walk"]
+fun = []
+topics = []
+archetype = []
+

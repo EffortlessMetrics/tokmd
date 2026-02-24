@@ -6,6 +6,8 @@ Formatting and rendering for tokmd analysis receipts.
 
 This is a **Tier 3** crate that renders analysis results in multiple formats. It transforms `AnalysisReceipt` structures into human-readable or machine-processable outputs.
 
+The HTML output path is delegated to `tokmd-analysis-html` to keep rendering concerns single-purpose.
+
 ## Installation
 
 ```toml
@@ -22,7 +24,7 @@ features = ["fun"]
 
 ```rust
 use tokmd_analysis_format::{render, RenderedOutput};
-use tokmd_config::AnalysisFormat;
+use tokmd_types::AnalysisFormat;
 
 let output = render(&receipt, AnalysisFormat::Md)?;
 

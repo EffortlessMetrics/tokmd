@@ -19,7 +19,10 @@ analysis = [
     "tokmd-analysis/git",
     "tokmd-analysis/walk",
     "tokmd-analysis/content",
+    "tokmd-analysis/fun",
+    "tokmd-analysis/archetype",
     "tokmd-analysis/halstead",
+    "tokmd-analysis/topics",
 ]
 cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
 
@@ -32,6 +35,7 @@ tokmd-config.workspace = true
 tokmd-format.workspace = true
 tokmd-settings.workspace = true
 tokmd-model.workspace = true
+tokmd-scan-args.workspace = true
 tokmd-scan.workspace = true
 tokmd-types.workspace = true
 

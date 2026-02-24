@@ -39,11 +39,20 @@ toml = { version = "0.8", optional = true }
 
 # Microcrate dependencies - each target enables only what it needs
 tokmd-model = { workspace = true, optional = true }
+tokmd-module-key = { workspace = true, optional = true }
+tokmd-math = { workspace = true, optional = true }
+tokmd-exclude = { workspace = true, optional = true }
+tokmd-context-policy = { workspace = true, optional = true }
 tokmd-config = { workspace = true, optional = true }
 tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
 tokmd-redact = { workspace = true, optional = true }
+tokmd-scan-args = { workspace = true, optional = true }
+tokmd-settings = { workspace = true, optional = true }
+tokmd-analysis-imports = { workspace = true, optional = true }
+tokmd-ffi-envelope = { workspace = true, optional = true }
+tokmd-export-tree = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -54,9 +63,25 @@ tokmd-redact = { workspace = true, optional = true }
 [features]
 default = []
 
-# Path/module aggregation functions (tokmd-model)
-# Targets: fuzz_module_key, fuzz_normalize_path
+# Path normalization function (tokmd-model)
+# Targets: fuzz_normalize_path
 model = ["dep:tokmd-model"]
+
+# Module key derivation function (tokmd-module-key)
+# Targets: fuzz_module_key
+module_key = ["dep:tokmd-module-key"]
+
+# Numeric/statistical helpers (tokmd-math)
+# Targets: fuzz_math_stats
+math_stats = ["dep:tokmd-math"]
+
+# Exclude-pattern normalization helpers (tokmd-exclude)
+# Targets: fuzz_exclude_pattern
+exclude = ["dep:tokmd-exclude"]
+
+# Context/handoff policy helpers (tokmd-context-policy)
+# Targets: fuzz_context_policy
+context_policy = ["dep:tokmd-context-policy", "dep:tokmd-types"]
 
 # Configuration file parsing (tokmd-config)
 # Targets: fuzz_toml_config
@@ -81,6 +106,26 @@ content = ["dep:tokmd-content"]
 # Targets: fuzz_redact
 redact = ["dep:tokmd-redact"]
 
+# Scan metadata argument shaping (tokmd-scan-args)
+# Targets: fuzz_scan_args
+scan_args = [
+    "dep:tokmd-scan-args",
+    "dep:tokmd-settings",
+    "dep:tokmd-types",
+]
+
+# Import statement extraction helpers (tokmd-analysis-imports)
+# Targets: fuzz_import_parser
+analysis_imports = ["dep:tokmd-analysis-imports"]
+
+# FFI response-envelope parsing/extraction helpers (tokmd-ffi-envelope)
+# Targets: fuzz_ffi_envelope
+ffi_envelope = ["dep:tokmd-ffi-envelope", "dep:serde_json"]
+
+# ExportData tree rendering helpers (tokmd-export-tree)
+# Targets: fuzz_export_tree
+export_tree = ["dep:tokmd-export-tree", "dep:tokmd-types"]
+
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
 # ============================================================================
@@ -92,7 +137,14 @@ name = "fuzz_module_key"
 path = "fuzz_targets/fuzz_module_key.rs"
 test = false
 doc = false
-required-features = ["model"]
+required-features = ["module_key"]
+
+[[bin]]
+name = "fuzz_math_stats"
+path = "fuzz_targets/fuzz_math_stats.rs"
+test = false
+doc = false
+required-features = ["math_stats"]
 
 [[bin]]
 name = "fuzz_normalize_path"
@@ -100,6 +152,27 @@ path = "fuzz_targets/fuzz_normalize_path.rs"
 test = false
 doc = false
 required-features = ["model"]
+
+[[bin]]
+name = "fuzz_exclude_pattern"
+path = "fuzz_targets/fuzz_exclude_pattern.rs"
+test = false
+doc = false
+required-features = ["exclude"]
+
+[[bin]]
+name = "fuzz_context_policy"
+path = "fuzz_targets/fuzz_context_policy.rs"
+test = false
+doc = false
+required-features = ["context_policy"]
+
+[[bin]]
+name = "fuzz_export_tree"
+path = "fuzz_targets/fuzz_export_tree.rs"
+test = false
+doc = false
+required-features = ["export_tree"]
 
 # ============================================================================
 # Fuzz Targets - Configuration Parsing
@@ -179,3 +252,40 @@ path = "fuzz_targets/fuzz_redact.rs"
 test = false
 doc = false
 required-features = ["redact"]
+
+# ============================================================================
+# Fuzz Targets - Scan Args
+# ============================================================================
+# Tests ScanArgs shaping invariants and redaction mode behavior.
+
+[[bin]]
+name = "fuzz_scan_args"
+path = "fuzz_targets/fuzz_scan_args.rs"
+test = false
+doc = false
+required-features = ["scan_args"]
+
+# ============================================================================
+# Fuzz Targets - FFI Envelope Parsing
+# ============================================================================
+# Tests parser/extractor totality and deterministic behavior for
+# `{"ok": bool, "data": ..., "error": ...}` JSON envelopes.
+
+[[bin]]
+name = "fuzz_ffi_envelope"
+path = "fuzz_targets/fuzz_ffi_envelope.rs"
+test = false
+doc = false
+required-features = ["ffi_envelope"]
+
+# ============================================================================
+# Fuzz Targets - Import Parsing
+# ============================================================================
+# Tests language-aware import parsing and target normalization.
+
+[[bin]]
+name = "fuzz_import_parser"
+path = "fuzz_targets/fuzz_import_parser.rs"
+test = false
+doc = false
+required-features = ["analysis_imports"]

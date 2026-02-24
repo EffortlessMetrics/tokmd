@@ -22,6 +22,7 @@ use std::fs;
 use std::path::Path;
 
 use tokei::{LanguageType, Languages};
+use tokmd_module_key::module_key_from_normalized;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
     ModuleReport, ModuleRow, Totals,
@@ -553,61 +554,14 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     }
 }
 
-/// Compute a "module key" from a normalized path.
+/// Compute a "module key" from an input path.
 ///
 /// Rules:
 /// - Root-level files become "(root)".
 /// - If the first directory segment is in `module_roots`, join `module_depth` *directory* segments.
 /// - Otherwise, module key is the top-level directory.
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    // Normalization here makes the function usable on both raw and already-normalized paths.
-    let mut p = path.replace('\\', "/");
-    if let Some(stripped) = p.strip_prefix("./") {
-        p = stripped.to_string();
-    }
-    p = p.trim_start_matches('/').to_string();
-
-    module_key_from_normalized(&p, module_roots, module_depth)
-}
-
-/// Compute a "module key" from a path that has already been normalized.
-///
-/// This is an optimization for hot paths where `normalize_path` has already been called.
-/// The path should have forward slashes, no leading `./`, and no leading `/`.
-fn module_key_from_normalized(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    // Split off the directory part first (exclude filename) to avoid including
-    // the filename in the module key when depth exceeds available directories.
-    let Some((dir_part, _file_part)) = path.rsplit_once('/') else {
-        // No slash => root-level file
-        return "(root)".to_string();
-    };
-
-    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty());
-    let first = match dirs.next() {
-        Some(s) => s,
-        None => return "(root)".to_string(),
-    };
-
-    // Check if the first directory matches a module root.
-    if !module_roots.iter().any(|r| r == first) {
-        return first.to_string();
-    }
-
-    // It IS a root module. Build the key by taking up to `module_depth` directory segments.
-    let depth_needed = module_depth.max(1);
-    let mut key = String::with_capacity(dir_part.len());
-    key.push_str(first);
-
-    for _ in 1..depth_needed {
-        if let Some(seg) = dirs.next() {
-            key.push('/');
-            key.push_str(seg);
-        } else {
-            break;
-        }
-    }
-
-    key
+    tokmd_module_key::module_key(path, module_roots, module_depth)
 }
 
 #[cfg(test)]

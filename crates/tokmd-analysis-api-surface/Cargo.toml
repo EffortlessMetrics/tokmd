@@ -1,0 +1,19 @@
+[package]
+name = "tokmd-analysis-api-surface"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "API surface analysis for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "api", "surface", "reporting", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-api-surface"
+
+[dependencies]
+anyhow = "1.0.101"
+tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-content.workspace = true
+tokmd-types.workspace = true

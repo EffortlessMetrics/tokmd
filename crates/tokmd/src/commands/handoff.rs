@@ -15,7 +15,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
 use tokmd_config as cli;
+use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_model as model;
+use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CapabilityState, CapabilityStatus, ExportData, FileKind, FileRow,
@@ -24,7 +26,6 @@ use tokmd_types::{
 };
 
 use crate::context_pack;
-use crate::git_scoring;
 use tokmd_progress::Progress;
 
 const DEFAULT_TREE_DEPTH: usize = 4;
@@ -85,7 +86,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     // Compute git scores if needed
     progress.set_message("Computing git scores...");
     let git_scores = if should_compute_git(&capabilities) {
-        git_scoring::compute_git_scores(
+        tokmd_context_git::compute_git_scores(
             &root,
             &export.rows,
             args.max_commits,
@@ -390,12 +391,15 @@ fn build_intelligence(
     export: &ExportData,
     args: &cli::HandoffArgs,
     capabilities: &[CapabilityStatus],
-    git_scores: Option<&git_scoring::GitScores>,
+    git_scores: Option<&tokmd_context_git::GitScores>,
 ) -> HandoffIntelligence {
     let mut warnings = Vec::new();
 
     // Build tree (always included)
-    let tree = Some(build_tree(export, DEFAULT_TREE_DEPTH));
+    let tree = Some(tokmd_export_tree::render_handoff_tree(
+        export,
+        DEFAULT_TREE_DEPTH,
+    ));
     let tree_depth = tree.as_ref().map(|_| DEFAULT_TREE_DEPTH);
 
     // Build hotspots (Risk/Deep presets)
@@ -494,77 +498,6 @@ fn build_intelligence(
         derived,
         warnings,
     }
-}
-
-/// Build a simple directory tree from export data.
-fn build_tree(export: &ExportData, max_depth: usize) -> String {
-    #[derive(Default)]
-    struct Node {
-        children: BTreeMap<String, Node>,
-        files: usize,
-        lines: usize,
-        tokens: usize,
-    }
-
-    fn insert(node: &mut Node, parts: &[&str], lines: usize, tokens: usize) {
-        node.files += 1;
-        node.lines += lines;
-        node.tokens += tokens;
-        if let Some((head, tail)) = parts.split_first()
-            && !tail.is_empty()
-        {
-            let child = node.children.entry(head.to_string()).or_default();
-            insert(child, tail, lines, tokens);
-        }
-    }
-
-    fn render(
-        node: &Node,
-        name: &str,
-        indent: &str,
-        depth: usize,
-        max_depth: usize,
-        out: &mut String,
-    ) {
-        let display = if name.is_empty() {
-            "".to_string()
-        } else if name == "(root)" {
-            name.to_string()
-        } else {
-            format!("{}/", name)
-        };
-        if !display.is_empty() {
-            out.push_str(&format!(
-                "{}{} (files: {}, lines: {}, tokens: {})\n",
-                indent, display, node.files, node.lines, node.tokens
-            ));
-        }
-        if depth >= max_depth {
-            return;
-        }
-        let next_indent = format!("{}  ", indent);
-        for (child_name, child) in &node.children {
-            render(child, child_name, &next_indent, depth + 1, max_depth, out);
-        }
-    }
-
-    let mut root = Node::default();
-    let parents: Vec<&FileRow> = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .collect();
-    if parents.is_empty() {
-        return String::new();
-    }
-    for row in parents {
-        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
-        insert(&mut root, &parts, row.lines, row.tokens);
-    }
-
-    let mut out = String::new();
-    render(&root, "(root)", "", 0, max_depth, &mut out);
-    out
 }
 
 /// Maximum number of files to analyze for complexity.
@@ -1050,28 +983,13 @@ fn exclude_output_dir(
     scan_args: &mut cli::GlobalArgs,
 ) -> Vec<HandoffExcludedPath> {
     let pattern = normalize_exclude_pattern(root, out_dir);
-    if !pattern.is_empty()
-        && !scan_args
-            .excluded
-            .iter()
-            .any(|p| normalize_path(p) == pattern)
-    {
-        scan_args.excluded.push(pattern.clone());
+    if !pattern.is_empty() {
+        let _ = add_exclude_pattern(&mut scan_args.excluded, pattern.clone());
     }
     vec![HandoffExcludedPath {
         path: pattern,
         reason: "output_dir".to_string(),
     }]
-}
-
-fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
-    let rel = if path.is_absolute() {
-        path.strip_prefix(root).unwrap_or(path)
-    } else {
-        path
-    };
-    let out = normalize_path(&rel.to_string_lossy());
-    out.strip_prefix("./").unwrap_or(&out).to_string()
 }
 
 fn hash_bytes(bytes: &[u8]) -> String {
@@ -1091,11 +1009,6 @@ fn hash_file(path: &Path) -> Result<String> {
         hasher.update(&buf[..n]);
     }
     Ok(hasher.finalize().to_hex().to_string())
-}
-
-/// Normalize path for consistent matching.
-fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
 }
 
 /// Round a float to N decimal places.
@@ -1131,7 +1044,7 @@ mod tests {
             module_depth: 2,
             children: cli::ChildIncludeMode::ParentsOnly,
         };
-        let tree = build_tree(&export, DEFAULT_TREE_DEPTH);
+        let tree = tokmd_export_tree::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
         assert!(tree.is_empty());
     }
 
@@ -1154,7 +1067,7 @@ mod tests {
             module_depth: 2,
             children: cli::ChildIncludeMode::ParentsOnly,
         };
-        let tree = build_tree(&export, 1);
+        let tree = tokmd_export_tree::render_handoff_tree(&export, 1);
         assert!(tree.contains("a/"));
         assert!(!tree.contains("b/"));
         assert!(!tree.contains("file.rs"));

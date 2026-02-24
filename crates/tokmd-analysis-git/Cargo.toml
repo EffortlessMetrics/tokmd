@@ -1,0 +1,24 @@
+[package]
+name = "tokmd-analysis-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Git and churn enrichment microcrate for tokmd analysis presets."
+readme = "README.md"
+keywords = ["analysis", "git", "enrichment", "churn", "coupling"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-git"
+
+[dependencies]
+anyhow = "1.0.101"
+tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-math.workspace = true
+tokmd-git.workspace = true
+tokmd-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"
+tempfile = "3.25.0"

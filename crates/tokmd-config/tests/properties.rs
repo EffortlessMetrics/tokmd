@@ -37,7 +37,7 @@ const CHILD_INCLUDE_MODES: [ChildIncludeMode; 2] =
 
 const REDACT_MODES: [RedactMode; 3] = [RedactMode::None, RedactMode::Paths, RedactMode::All];
 
-const ANALYSIS_FORMATS: [AnalysisFormat; 9] = [
+const ANALYSIS_FORMATS: [AnalysisFormat; 10] = [
     AnalysisFormat::Md,
     AnalysisFormat::Json,
     AnalysisFormat::Jsonld,
@@ -47,6 +47,7 @@ const ANALYSIS_FORMATS: [AnalysisFormat; 9] = [
     AnalysisFormat::Obj,
     AnalysisFormat::Midi,
     AnalysisFormat::Tree,
+    AnalysisFormat::Html,
 ];
 
 const ANALYSIS_PRESETS: [AnalysisPreset; 11] = [

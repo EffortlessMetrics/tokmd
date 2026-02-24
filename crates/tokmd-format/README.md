@@ -54,7 +54,7 @@ let normalized = normalize_scan_input(&path);
 - `write_export_jsonl_to_file()` - Export receipt
 
 ### ScanArgs Construction
-- `scan_args()` - Single source of truth for building ScanArgs with redaction
+- `scan_args()` - Re-export from `tokmd-scan-args` for compatibility
 
 ## Redaction Modes
 

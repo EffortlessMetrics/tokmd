@@ -23,7 +23,8 @@ use tokmd_types::{ScanStatus, ToolInfo};
 
 /// Schema version for analysis receipts.
 /// v7: Added coupling normalization (Jaccard/Lift), commit intent classification, near-duplicate detection.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 7;
+/// v8: Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -651,6 +652,32 @@ pub struct NearDupParams {
     pub scope: NearDupScope,
     pub threshold: f64,
     pub max_files: usize,
+    /// Maximum pairs to emit (truncation guardrail).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_pairs: Option<usize>,
+    /// Effective per-file byte limit used for eligibility filtering.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_file_bytes: Option<u64>,
+    /// How files were selected for analysis.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection_method: Option<String>,
+    /// Algorithm constants used for fingerprinting.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub algorithm: Option<NearDupAlgorithm>,
+    /// Glob patterns used to exclude files from near-dup analysis.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub exclude_patterns: Vec<String>,
+}
+
+/// Algorithm constants for near-duplicate fingerprinting.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NearDupAlgorithm {
+    /// Number of tokens per k-gram shingle.
+    pub k_gram_size: usize,
+    /// Winnowing window size.
+    pub window_size: usize,
+    /// Skip fingerprints appearing in more than this many files.
+    pub max_postings: usize,
 }
 
 /// Report of near-duplicate file pairs.
@@ -660,6 +687,46 @@ pub struct NearDuplicateReport {
     pub pairs: Vec<NearDupPairRow>,
     pub files_analyzed: usize,
     pub files_skipped: usize,
+    /// Number of files eligible before the max_files cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eligible_files: Option<usize>,
+    /// Connected-component clusters derived from pairs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clusters: Option<Vec<NearDupCluster>>,
+    /// Whether the pairs list was truncated by `max_pairs`.
+    /// Clusters are built from the complete pair set before truncation.
+    #[serde(default)]
+    pub truncated: bool,
+    /// Number of files excluded by glob patterns.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub excluded_by_pattern: Option<usize>,
+    /// Runtime performance statistics.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stats: Option<NearDupStats>,
+}
+
+/// A connected component of near-duplicate files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NearDupCluster {
+    /// Files in this cluster, sorted alphabetically.
+    pub files: Vec<String>,
+    /// Maximum pairwise similarity in the cluster.
+    pub max_similarity: f64,
+    /// Most-connected file (tie-break alphabetical).
+    pub representative: String,
+    /// Number of pairs within this cluster.
+    pub pair_count: usize,
+}
+
+/// Runtime statistics for near-duplicate detection.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NearDupStats {
+    /// Time spent computing fingerprints (milliseconds).
+    pub fingerprinting_ms: u64,
+    /// Time spent computing pair similarities (milliseconds).
+    pub pairing_ms: u64,
+    /// Total bytes of source files processed.
+    pub bytes_processed: u64,
 }
 
 /// A pair of near-duplicate files with similarity score.

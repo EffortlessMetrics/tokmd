@@ -7,8 +7,7 @@ use tokmd_analysis::{
     NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-use tokmd_config::ChildIncludeMode;
-use tokmd_types::{ExportData, FileKind, FileRow};
+use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // =============================================================================
 // Helper functions
@@ -56,6 +55,8 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
         near_dup_threshold: 0.80,
         near_dup_max_files: 2000,
         near_dup_scope: NearDupScope::Module,
+        near_dup_max_pairs: None,
+        near_dup_exclude: Vec::new(),
     }
 }
 
@@ -653,154 +654,159 @@ fn lang_purity_calculates_dominant_pct() {
 // Fun report / Eco-label tests
 // =============================================================================
 
-#[test]
-fn eco_label_grade_a_for_small_codebase() {
-    // Mutant: eco label thresholds (<=1MB gets A)
-    let export = export_with_rows(vec![FileRow {
-        path: "a.rs".to_string(),
-        module: "src".to_string(),
-        lang: "Rust".to_string(),
-        kind: FileKind::Parent,
-        code: 100,
-        comments: 0,
-        blanks: 0,
-        lines: 100,
-        bytes: 500_000, // 500KB - should be grade A
-        tokens: 200,
-    }]);
+#[cfg(feature = "fun")]
+mod fun_preset_tests {
+    use super::*;
 
-    let ctx = make_context(export);
-    let req = make_request(AnalysisPreset::Fun);
-    let receipt = analyze(ctx, req).unwrap();
+    #[test]
+    fn eco_label_grade_a_for_small_codebase() {
+        // Mutant: eco label thresholds (<=1MB gets A)
+        let export = export_with_rows(vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 0,
+            blanks: 0,
+            lines: 100,
+            bytes: 500_000, // 500KB - should be grade A
+            tokens: 200,
+        }]);
 
-    let fun = receipt.fun.expect("Fun report should be present");
-    let eco = fun.eco_label.expect("Eco label should be present");
+        let ctx = make_context(export);
+        let req = make_request(AnalysisPreset::Fun);
+        let receipt = analyze(ctx, req).unwrap();
 
-    assert_eq!(eco.label, "A", "500KB should be grade A");
-    assert!(
-        (eco.score - 95.0).abs() < 0.01,
-        "Grade A score should be 95"
-    );
-}
+        let fun = receipt.fun.expect("Fun report should be present");
+        let eco = fun.eco_label.expect("Eco label should be present");
 
-#[test]
-fn eco_label_grade_b_for_medium_codebase() {
-    // Mutant: eco label threshold (1-10MB gets B)
-    let export = export_with_rows(vec![FileRow {
-        path: "a.rs".to_string(),
-        module: "src".to_string(),
-        lang: "Rust".to_string(),
-        kind: FileKind::Parent,
-        code: 100,
-        comments: 0,
-        blanks: 0,
-        lines: 100,
-        bytes: 5_000_000, // 5MB - should be grade B
-        tokens: 200,
-    }]);
+        assert_eq!(eco.label, "A", "500KB should be grade A");
+        assert!(
+            (eco.score - 95.0).abs() < 0.01,
+            "Grade A score should be 95"
+        );
+    }
 
-    let ctx = make_context(export);
-    let req = make_request(AnalysisPreset::Fun);
-    let receipt = analyze(ctx, req).unwrap();
+    #[test]
+    fn eco_label_grade_b_for_medium_codebase() {
+        // Mutant: eco label threshold (1-10MB gets B)
+        let export = export_with_rows(vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 0,
+            blanks: 0,
+            lines: 100,
+            bytes: 5_000_000, // 5MB - should be grade B
+            tokens: 200,
+        }]);
 
-    let fun = receipt.fun.expect("Fun report should be present");
-    let eco = fun.eco_label.expect("Eco label should be present");
+        let ctx = make_context(export);
+        let req = make_request(AnalysisPreset::Fun);
+        let receipt = analyze(ctx, req).unwrap();
 
-    assert_eq!(eco.label, "B", "5MB should be grade B");
-    assert!(
-        (eco.score - 80.0).abs() < 0.01,
-        "Grade B score should be 80"
-    );
-}
+        let fun = receipt.fun.expect("Fun report should be present");
+        let eco = fun.eco_label.expect("Eco label should be present");
 
-#[test]
-fn eco_label_grade_c_for_larger_codebase() {
-    // Mutant: eco label threshold (10-50MB gets C)
-    let export = export_with_rows(vec![FileRow {
-        path: "a.rs".to_string(),
-        module: "src".to_string(),
-        lang: "Rust".to_string(),
-        kind: FileKind::Parent,
-        code: 100,
-        comments: 0,
-        blanks: 0,
-        lines: 100,
-        bytes: 30_000_000, // 30MB - should be grade C
-        tokens: 200,
-    }]);
+        assert_eq!(eco.label, "B", "5MB should be grade B");
+        assert!(
+            (eco.score - 80.0).abs() < 0.01,
+            "Grade B score should be 80"
+        );
+    }
 
-    let ctx = make_context(export);
-    let req = make_request(AnalysisPreset::Fun);
-    let receipt = analyze(ctx, req).unwrap();
+    #[test]
+    fn eco_label_grade_c_for_larger_codebase() {
+        // Mutant: eco label threshold (10-50MB gets C)
+        let export = export_with_rows(vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 0,
+            blanks: 0,
+            lines: 100,
+            bytes: 30_000_000, // 30MB - should be grade C
+            tokens: 200,
+        }]);
 
-    let fun = receipt.fun.expect("Fun report should be present");
-    let eco = fun.eco_label.expect("Eco label should be present");
+        let ctx = make_context(export);
+        let req = make_request(AnalysisPreset::Fun);
+        let receipt = analyze(ctx, req).unwrap();
 
-    assert_eq!(eco.label, "C", "30MB should be grade C");
-    assert!(
-        (eco.score - 65.0).abs() < 0.01,
-        "Grade C score should be 65"
-    );
-}
+        let fun = receipt.fun.expect("Fun report should be present");
+        let eco = fun.eco_label.expect("Eco label should be present");
 
-#[test]
-fn eco_label_grade_d_for_large_codebase() {
-    // Mutant: eco label threshold (50-200MB gets D)
-    let export = export_with_rows(vec![FileRow {
-        path: "a.rs".to_string(),
-        module: "src".to_string(),
-        lang: "Rust".to_string(),
-        kind: FileKind::Parent,
-        code: 100,
-        comments: 0,
-        blanks: 0,
-        lines: 100,
-        bytes: 100_000_000, // 100MB - should be grade D
-        tokens: 200,
-    }]);
+        assert_eq!(eco.label, "C", "30MB should be grade C");
+        assert!(
+            (eco.score - 65.0).abs() < 0.01,
+            "Grade C score should be 65"
+        );
+    }
 
-    let ctx = make_context(export);
-    let req = make_request(AnalysisPreset::Fun);
-    let receipt = analyze(ctx, req).unwrap();
+    #[test]
+    fn eco_label_grade_d_for_large_codebase() {
+        // Mutant: eco label threshold (50-200MB gets D)
+        let export = export_with_rows(vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 0,
+            blanks: 0,
+            lines: 100,
+            bytes: 100_000_000, // 100MB - should be grade D
+            tokens: 200,
+        }]);
 
-    let fun = receipt.fun.expect("Fun report should be present");
-    let eco = fun.eco_label.expect("Eco label should be present");
+        let ctx = make_context(export);
+        let req = make_request(AnalysisPreset::Fun);
+        let receipt = analyze(ctx, req).unwrap();
 
-    assert_eq!(eco.label, "D", "100MB should be grade D");
-    assert!(
-        (eco.score - 45.0).abs() < 0.01,
-        "Grade D score should be 45"
-    );
-}
+        let fun = receipt.fun.expect("Fun report should be present");
+        let eco = fun.eco_label.expect("Eco label should be present");
 
-#[test]
-fn eco_label_grade_e_for_huge_codebase() {
-    // Mutant: eco label threshold (>200MB gets E)
-    let export = export_with_rows(vec![FileRow {
-        path: "a.rs".to_string(),
-        module: "src".to_string(),
-        lang: "Rust".to_string(),
-        kind: FileKind::Parent,
-        code: 100,
-        comments: 0,
-        blanks: 0,
-        lines: 100,
-        bytes: 300_000_000, // 300MB - should be grade E
-        tokens: 200,
-    }]);
+        assert_eq!(eco.label, "D", "100MB should be grade D");
+        assert!(
+            (eco.score - 45.0).abs() < 0.01,
+            "Grade D score should be 45"
+        );
+    }
 
-    let ctx = make_context(export);
-    let req = make_request(AnalysisPreset::Fun);
-    let receipt = analyze(ctx, req).unwrap();
+    #[test]
+    fn eco_label_grade_e_for_huge_codebase() {
+        // Mutant: eco label threshold (>200MB gets E)
+        let export = export_with_rows(vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 0,
+            blanks: 0,
+            lines: 100,
+            bytes: 300_000_000, // 300MB - should be grade E
+            tokens: 200,
+        }]);
 
-    let fun = receipt.fun.expect("Fun report should be present");
-    let eco = fun.eco_label.expect("Eco label should be present");
+        let ctx = make_context(export);
+        let req = make_request(AnalysisPreset::Fun);
+        let receipt = analyze(ctx, req).unwrap();
 
-    assert_eq!(eco.label, "E", "300MB should be grade E");
-    assert!(
-        (eco.score - 30.0).abs() < 0.01,
-        "Grade E score should be 30"
-    );
+        let fun = receipt.fun.expect("Fun report should be present");
+        let eco = fun.eco_label.expect("Eco label should be present");
+
+        assert_eq!(eco.label, "E", "300MB should be grade E");
+        assert!(
+            (eco.score - 30.0).abs() < 0.01,
+            "Grade E score should be 30"
+        );
+    }
 }
 
 // =============================================================================

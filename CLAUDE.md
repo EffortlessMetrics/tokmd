@@ -34,6 +34,8 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
 | 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
 | 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
+| 1 | `tokmd-context-policy` | Context/handoff selection policy helpers (smart excludes, classifications, inclusion policy) |
+| 1 | `tokmd-scan-args` | Deterministic `ScanArgs` metadata construction + redaction wiring |
 | 1 | `tokmd-sensor` | `EffortlessSensor` trait + substrate builder |
 | 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
 | 2 | `tokmd-walk` | File system traversal for assets |
@@ -42,10 +44,26 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 2 | `tokmd-badge` | SVG badge rendering helpers |
 | 2 | `tokmd-progress` | Progress spinner and progress-bar abstractions |
 | 3 | `tokmd-analysis` | Analysis orchestration and enrichers |
+| 3 | `tokmd-analysis-api-surface` | API surface analysis |
+| 3 | `tokmd-analysis-archetype` | Archetype inference adapter |
+| 3 | `tokmd-analysis-assets` | Asset and dependency reports |
+| 3 | `tokmd-analysis-complexity` | Cyclomatic/cognitive complexity |
+| 3 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
+| 3 | `tokmd-analysis-derived` | Core derived metrics (density, COCOMO) |
+| 3 | `tokmd-analysis-entropy` | High-entropy file detection |
+| 3 | `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | 3 | `tokmd-analysis-format` | Analysis output rendering |
+| 3 | `tokmd-analysis-git` | Git history analysis adapters |
+| 3 | `tokmd-analysis-grid` | Preset/feature matrix metadata |
+| 3 | `tokmd-analysis-halstead` | Halstead metrics |
+| 3 | `tokmd-analysis-license` | License radar scanning |
+| 3 | `tokmd-analysis-near-dup` | Near-duplicate detection |
+| 3 | `tokmd-analysis-topics` | Topic-cloud extraction adapter |
+| 3 | `tokmd-analysis-util` | Shared analysis utilities |
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
 | 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 | 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
+| 4 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
 | 4 | `tokmd-core` | Library facade with FFI layer |
 | 5 | `tokmd` | CLI binary |
 | 5 | `tokmd-python` | PyO3 bindings for PyPI |
@@ -134,7 +152,7 @@ The `tokmd-core` crate provides a clap-free library facade for embedding:
 - Update `docs/schema.json` (formal JSON Schema) when structures change
 - **Schema versions are separate for each receipt family**:
   - Core receipts (`lang`, `module`, `export`, `diff`, `run`): `SCHEMA_VERSION = 2` (in `tokmd-types`)
-  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 7` (in `tokmd-analysis-types`)
+  - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 8` (in `tokmd-analysis-types`)
   - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3` (in `tokmd-types`)
   - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5` (in `tokmd-types`)
   - Context receipts: `CONTEXT_SCHEMA_VERSION = 4` (in `tokmd-types`)

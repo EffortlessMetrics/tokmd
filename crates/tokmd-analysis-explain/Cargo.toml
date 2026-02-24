@@ -1,0 +1,14 @@
+[package]
+name = "tokmd-analysis-explain"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Metric and finding explanation catalog for tokmd analysis."
+readme = "README.md"
+keywords = ["analysis", "metrics", "catalog", "cli", "explain"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-explain"
+
+[dependencies]

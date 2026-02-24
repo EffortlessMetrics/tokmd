@@ -18,17 +18,14 @@
 //!
 //! This crate should contain minimal business logic.
 
-mod analysis_explain;
 mod analysis_utils;
 mod commands;
 mod config;
 mod context_pack;
 mod error_hints;
 mod export_bundle;
-mod git_scoring;
 #[cfg(feature = "ui")]
 mod interactive;
-mod tools_schema;
 
 use anyhow::Result;
 use clap::Parser;

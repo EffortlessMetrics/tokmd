@@ -1,0 +1,20 @@
+[package]
+name = "tokmd-analysis-near-dup"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Near-duplicate detection enrichment for tokmd analysis."
+readme = "README.md"
+keywords = ["analysis", "near-duplicate", "winnowing", "dedup", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-near-dup"
+
+[dependencies]
+anyhow = "1.0.101"
+globset = "0.4.18"
+rustc-hash = "2"
+tokmd-analysis-types.workspace = true
+tokmd-types.workspace = true
+

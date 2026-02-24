@@ -9,7 +9,7 @@
 //! * Analysis orchestration and module coordination
 //! * Derived metric computation
 //! * Preset-based feature inclusion
-//! * Enricher implementations (archetype, topics, git metrics, etc.)
+//! * Enricher orchestration and adapters (delegated to microcrates)
 //!
 //! ## What does NOT belong here
 //! * Output formatting (use tokmd-analysis-format)
@@ -17,36 +17,16 @@
 //! * File modification
 
 mod analysis;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod api_surface;
-mod archetype;
-#[cfg(feature = "walk")]
-mod assets;
 #[cfg(feature = "git")]
 mod churn;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod complexity;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod entropy;
-#[cfg(feature = "git")]
-mod fingerprint;
-mod fun;
 #[cfg(feature = "git")]
 mod git;
-#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-mod halstead;
-#[cfg(all(feature = "content", feature = "walk"))]
-mod license;
-#[cfg(feature = "content")]
-mod near_dup;
-mod topics;
 mod util;
 
-pub use analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
-};
+pub use analysis::{AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze};
 pub use tokmd_analysis_types::NearDupScope;
+pub use tokmd_analysis_util::AnalysisLimits;
 pub use util::normalize_root;

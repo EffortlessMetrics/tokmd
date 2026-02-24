@@ -1,9 +1,9 @@
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
+use tokmd_analysis_explain as analysis_explain;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
-use crate::analysis_explain;
 use crate::analysis_utils;
 use crate::export_bundle;
 use tokmd_progress::Progress;
@@ -92,6 +92,8 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         near_dup_threshold: args.near_dup_threshold,
         near_dup_max_files: args.near_dup_max_files,
         near_dup_scope,
+        near_dup_max_pairs: Some(args.near_dup_max_pairs),
+        near_dup_exclude: args.near_dup_exclude.clone(),
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,

@@ -16,7 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust (MSRV)
-        uses: dtolnay/rust-toolchain@1.89
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.92
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
 
@@ -40,6 +42,26 @@ jobs:
       run: cargo test --verbose
       env:
         CI: true
+
+  feature-boundaries:
+    name: Feature Boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: tokmd-analysis with all features
+        run: cargo test -p tokmd-analysis --all-features --verbose
+        env:
+          CI: true
+
+      - name: tokmd-analysis with no default features
+        run: cargo test -p tokmd-analysis --no-default-features --verbose
+        env:
+          CI: true
+
+      - name: Guard analysis microcrate boundaries
+        run: cargo xtask boundaries-check
 
   fmt:
     name: Rustfmt
@@ -235,6 +257,7 @@ jobs:
       - docs-check
       - nix
       - mutation
+      - feature-boundaries
     steps:
       - name: Check overall status
         run: |

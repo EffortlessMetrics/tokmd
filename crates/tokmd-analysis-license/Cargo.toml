@@ -1,0 +1,23 @@
+[package]
+name = "tokmd-analysis-license"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "License discovery for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "license", "compliance", "reporting", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-license"
+
+[dependencies]
+anyhow = "1.0.101"
+serde_json.workspace = true
+tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-content.workspace = true
+tokmd-walk.workspace = true
+
+[dev-dependencies]
+tempfile = "3.25.0"

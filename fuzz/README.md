@@ -27,6 +27,11 @@ Examples:
 cargo +nightly fuzz run fuzz_entropy --features content
 cargo +nightly fuzz run fuzz_json_types --features types
 cargo +nightly fuzz run fuzz_policy_evaluate --features gate
+cargo +nightly fuzz run fuzz_scan_args --features scan_args
+cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
+cargo +nightly fuzz run fuzz_export_tree --features export_tree
+cargo +nightly fuzz run fuzz_exclude_pattern --features exclude
+cargo +nightly fuzz run fuzz_context_policy --features context_policy
 ```
 
 Limit input size with libfuzzer flags:
@@ -41,12 +46,17 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_entropy` | `content` | Raw bytes | Tests entropy calculation |
 | `fuzz_json_types` | `types` | JSON string | Tests JSON deserialization of receipt types |
 | `fuzz_normalize_path` | `model` | Path string | Tests path normalization |
-| `fuzz_module_key` | `model` | Path string | Tests module key computation |
+| `fuzz_module_key` | `module_key` | Path string | Tests module key computation |
 | `fuzz_toml_config` | `config` | TOML string | Tests `tokmd.toml` config parsing |
 | `fuzz_policy_toml` | `gate` | TOML string | Tests policy TOML parsing |
 | `fuzz_json_pointer` | `gate` | Composite (see below) | Tests RFC 6901 JSON pointer resolution |
 | `fuzz_policy_evaluate` | `gate` | Composite (see below) | Tests policy evaluation logic |
 | `fuzz_redact` | `redact` | Path string | Tests path redaction |
+| `fuzz_scan_args` | `scan_args` | Composite (flags + sections) | Tests deterministic `ScanArgs` shaping |
+| `fuzz_import_parser` | `analysis_imports` | Composite (`lang\nsource`) | Tests import parsing + normalization |
+| `fuzz_export_tree` | `export_tree` | Path-list text | Tests deterministic analysis/handoff tree rendering |
+| `fuzz_exclude_pattern` | `exclude` | Composite (`root\x1fpath`) | Tests exclude-pattern normalization + dedupe invariants |
+| `fuzz_context_policy` | `context_policy` | Composite (`path\x1ftokens\x1flines\x1fbudget`) | Tests context policy classification, cap, and inclusion invariants |
 
 ### Composite Input Formats
 
@@ -84,7 +94,7 @@ Dictionary files in `fuzz/dict/` improve fuzzing efficiency for structured input
 | `json.dict` | `fuzz_json_types`, `fuzz_json_pointer`, `fuzz_policy_evaluate` |
 | `toml.dict` | `fuzz_toml_config` |
 | `policy.dict` | `fuzz_policy_toml`, `fuzz_policy_evaluate` |
-| `path.dict` | `fuzz_normalize_path`, `fuzz_module_key`, `fuzz_redact` |
+| `path.dict` | `fuzz_normalize_path`, `fuzz_module_key`, `fuzz_redact`, `fuzz_exclude_pattern` |
 | `entropy.dict` | `fuzz_entropy` |
 
 Use a dictionary with:

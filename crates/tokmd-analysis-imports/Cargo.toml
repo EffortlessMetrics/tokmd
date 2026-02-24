@@ -1,0 +1,15 @@
+[package]
+name = "tokmd-analysis-imports"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Language-aware import extraction and target normalization for tokmd analysis."
+readme = "README.md"
+keywords = ["analysis", "imports", "parser", "microcrate", "deterministic"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-imports"
+
+[dev-dependencies]
+proptest = "1.10.0"

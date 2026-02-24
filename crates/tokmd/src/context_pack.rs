@@ -6,74 +6,26 @@ use std::io::Write;
 use std::path::Path;
 
 use tokmd_config::{ContextStrategy, ValueMetric};
+use tokmd_context_git::GitScores;
+use tokmd_context_policy::{
+    assign_policy as assign_context_policy, classify_file as classify_context_file,
+    compute_file_cap as compute_context_file_cap, is_spine_file as matches_spine_file,
+    smart_exclude_reason,
+};
+use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_types::{
     ContextFileRow, FileClassification, FileKind, FileRow, InclusionPolicy, PolicyExcludedFile,
     SmartExcludedFile,
 };
 
-use crate::git_scoring::GitScores;
-
-// ---------------------------------------------------------------------------
-// Smart-exclude patterns: filtered at the packing layer, not the scan layer.
-// Lockfiles stay in the horizon (map.jsonl) but are excluded from the payload
-// (code.txt) by default.
-// ---------------------------------------------------------------------------
-
-const SMART_EXCLUDE_PATTERNS: &[(&str, &str)] = &[
-    // Lockfiles
-    ("Cargo.lock", "lockfile"),
-    ("package-lock.json", "lockfile"),
-    ("pnpm-lock.yaml", "lockfile"),
-    ("yarn.lock", "lockfile"),
-    ("poetry.lock", "lockfile"),
-    ("Pipfile.lock", "lockfile"),
-    ("go.sum", "lockfile"),
-    ("composer.lock", "lockfile"),
-    ("Gemfile.lock", "lockfile"),
-    // Minified / maps
-    (".min.js", "minified"),
-    (".min.css", "minified"),
-    (".js.map", "sourcemap"),
-    (".css.map", "sourcemap"),
-];
-
 /// Check if a path should be smart-excluded. Returns the reason if excluded.
 pub fn is_smart_excluded(path: &str) -> Option<&'static str> {
-    let basename = path.rsplit('/').next().unwrap_or(path);
-    for &(pattern, reason) in SMART_EXCLUDE_PATTERNS {
-        // Exact basename match for lockfiles
-        if basename == pattern {
-            return Some(reason);
-        }
-        // Suffix match for minified/sourcemap patterns
-        if pattern.starts_with('.') && basename.ends_with(pattern) {
-            return Some(reason);
-        }
-    }
-    None
+    smart_exclude_reason(path)
 }
 
 // ---------------------------------------------------------------------------
 // Spine reservation: must-include files get a reserved budget fraction.
 // ---------------------------------------------------------------------------
-
-const SPINE_PATTERNS: &[&str] = &[
-    "README.md",
-    "README",
-    "README.rst",
-    "README.txt",
-    "ROADMAP.md",
-    "docs/ROADMAP.md",
-    "CONTRIBUTING.md",
-    "Cargo.toml",
-    "package.json",
-    "pyproject.toml",
-    "go.mod",
-    "docs/architecture.md",
-    "docs/design.md",
-    "tokmd.toml",
-    "cockpit.toml",
-];
 
 /// Fraction of total budget reserved for spine files.
 const SPINE_BUDGET_FRACTION: f64 = 0.05;
@@ -81,22 +33,7 @@ const SPINE_BUDGET_FRACTION: f64 = 0.05;
 const SPINE_BUDGET_CAP: usize = 5000;
 
 fn is_spine_file(path: &str) -> bool {
-    let normalized = path.replace('\\', "/");
-    let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
-    for &pattern in SPINE_PATTERNS {
-        if pattern.contains('/') {
-            // Full path pattern
-            if normalized == pattern || normalized.ends_with(&format!("/{}", pattern)) {
-                return true;
-            }
-        } else {
-            // Basename pattern
-            if basename == pattern {
-                return true;
-            }
-        }
-    }
-    false
+    matches_spine_file(path)
 }
 
 /// Options for file selection with smart excludes and spine reservation.
@@ -200,37 +137,9 @@ fn get_value(row: &FileRow, metric: ValueMetric, git_scores: Option<&GitScores>)
     }
 }
 
-fn normalize_path(path: &str) -> String {
-    path.replace('\\', "/")
-}
-
 // ---------------------------------------------------------------------------
 // File classification
 // ---------------------------------------------------------------------------
-
-/// Generated file patterns (basename or path-component matches).
-const GENERATED_PATTERNS: &[&str] = &[
-    "node-types.json",
-    "grammar.json",
-    ".generated.",
-    ".pb.go",
-    ".pb.rs",
-    "_pb2.py",
-    ".g.dart",
-    ".freezed.dart",
-];
-
-/// Vendored directory segments.
-const VENDORED_DIRS: &[&str] = &["vendor/", "third_party/", "third-party/", "node_modules/"];
-
-/// Fixture directory segments.
-const FIXTURE_DIRS: &[&str] = &[
-    "fixtures/",
-    "testdata/",
-    "test_data/",
-    "__snapshots__/",
-    "golden/",
-];
 
 /// Classify a file based on its path and density heuristic.
 pub fn classify_file(
@@ -239,70 +148,7 @@ pub fn classify_file(
     lines: usize,
     dense_threshold: f64,
 ) -> Vec<FileClassification> {
-    let mut classes = Vec::new();
-    let normalized = normalize_path(path);
-    let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
-
-    // Lockfile (exact basename match from smart-exclude patterns)
-    let lockfiles = [
-        "Cargo.lock",
-        "package-lock.json",
-        "pnpm-lock.yaml",
-        "yarn.lock",
-        "poetry.lock",
-        "Pipfile.lock",
-        "go.sum",
-        "composer.lock",
-        "Gemfile.lock",
-    ];
-    if lockfiles.contains(&basename) {
-        classes.push(FileClassification::Lockfile);
-    }
-
-    // Minified
-    if basename.ends_with(".min.js") || basename.ends_with(".min.css") {
-        classes.push(FileClassification::Minified);
-    }
-
-    // Sourcemap
-    if basename.ends_with(".js.map") || basename.ends_with(".css.map") {
-        classes.push(FileClassification::Sourcemap);
-    }
-
-    // Generated
-    if GENERATED_PATTERNS
-        .iter()
-        .any(|pat| basename == *pat || basename.contains(pat))
-    {
-        classes.push(FileClassification::Generated);
-    }
-
-    // Vendored
-    if VENDORED_DIRS
-        .iter()
-        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
-    {
-        classes.push(FileClassification::Vendored);
-    }
-
-    // Fixture
-    if FIXTURE_DIRS
-        .iter()
-        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
-    {
-        classes.push(FileClassification::Fixture);
-    }
-
-    // DataBlob: high tokens-per-line
-    let effective_lines = lines.max(1);
-    let tpl = tokens as f64 / effective_lines as f64;
-    if tpl > dense_threshold {
-        classes.push(FileClassification::DataBlob);
-    }
-
-    classes.sort();
-    classes.dedup();
-    classes
+    classify_context_file(path, tokens, lines, dense_threshold)
 }
 
 // ---------------------------------------------------------------------------
@@ -343,12 +189,7 @@ pub fn resolve_metric(requested: ValueMetric, git_scores: Option<&GitScores>) ->
 
 /// Compute the maximum tokens a single file may consume.
 pub fn compute_file_cap(budget: usize, options: &SelectOptions) -> usize {
-    if budget == usize::MAX {
-        return usize::MAX;
-    }
-    let pct_cap = (budget as f64 * options.max_file_pct) as usize;
-    let hard_cap = options.max_file_tokens.unwrap_or(16_000);
-    pct_cap.min(hard_cap)
+    compute_context_file_cap(budget, options.max_file_pct, options.max_file_tokens)
 }
 
 /// Assign an inclusion policy to a file based on its size and classifications.
@@ -357,48 +198,7 @@ pub fn assign_policy(
     file_cap: usize,
     classifications: &[FileClassification],
 ) -> (InclusionPolicy, Option<String>) {
-    if tokens <= file_cap {
-        return (InclusionPolicy::Full, None);
-    }
-
-    // Generated, DataBlob, or Vendored files over cap → Skip
-    let skip_classes = [
-        FileClassification::Generated,
-        FileClassification::DataBlob,
-        FileClassification::Vendored,
-    ];
-    if classifications.iter().any(|c| skip_classes.contains(c)) {
-        let class_names: Vec<&str> = classifications
-            .iter()
-            .map(|c| match c {
-                FileClassification::Generated => "generated",
-                FileClassification::Fixture => "fixture",
-                FileClassification::Vendored => "vendored",
-                FileClassification::Lockfile => "lockfile",
-                FileClassification::Minified => "minified",
-                FileClassification::DataBlob => "data_blob",
-                FileClassification::Sourcemap => "sourcemap",
-            })
-            .collect();
-        return (
-            InclusionPolicy::Skip,
-            Some(format!(
-                "{} file exceeds cap ({} > {} tokens)",
-                class_names.join("+"),
-                tokens,
-                file_cap
-            )),
-        );
-    }
-
-    // Over cap → HeadTail
-    (
-        InclusionPolicy::HeadTail,
-        Some(format!(
-            "file exceeds cap ({} > {} tokens); head+tail included",
-            tokens, file_cap
-        )),
-    )
+    assign_context_policy(tokens, file_cap, classifications)
 }
 
 // ---------------------------------------------------------------------------

@@ -12,30 +12,71 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis"
 
 [features]
-default = []
-git = ["dep:tokmd-git"]
-walk = ["dep:tokmd-walk"]
-content = ["dep:tokmd-content", "dep:rustc-hash"]
-halstead = ["content", "walk"]
+default = ["fun", "topics", "archetype"]
+git = [
+    "dep:tokmd-git",
+    "dep:tokmd-analysis-fingerprint",
+    "dep:tokmd-analysis-git",
+    "tokmd-analysis-grid/git",
+]
+walk = [
+    "dep:tokmd-walk",
+    "dep:tokmd-analysis-assets",
+    "dep:tokmd-analysis-license",
+    "tokmd-analysis-grid/walk",
+]
+content = [
+    "dep:tokmd-content",
+    "dep:tokmd-analysis-content",
+    "dep:tokmd-analysis-complexity",
+    "dep:tokmd-analysis-entropy",
+    "dep:tokmd-analysis-api-surface",
+    "dep:tokmd-analysis-near-dup",
+    "tokmd-analysis-grid/content",
+]
+halstead = [
+    "content",
+    "walk",
+    "dep:tokmd-analysis-halstead",
+    "dep:tokmd-analysis-maintainability",
+    "tokmd-analysis-grid/halstead",
+]
+fun = ["dep:tokmd-analysis-fun", "tokmd-analysis-grid/fun"]
+topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
+archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
 
 [dependencies]
 anyhow = "1.0.101"
 blake3.workspace = true
-rustc-hash = { version = "2", optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 
 # Core contracts
+tokmd-analysis-derived.workspace = true
 tokmd-analysis-types.workspace = true
+tokmd-analysis-util.workspace = true
 tokmd-types.workspace = true
 
 # Optional adapters
 tokmd-git = { workspace = true, optional = true }
-tokmd-walk = { workspace = true, optional = true }
+tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
+tokmd-analysis-content = { workspace = true, optional = true }
+tokmd-walk = { workspace = true, optional = true }
+tokmd-analysis-assets = { workspace = true, optional = true }
+tokmd-analysis-fun = { workspace = true, optional = true }
+tokmd-analysis-grid.workspace = true
+tokmd-analysis-archetype = { workspace = true, optional = true }
+tokmd-analysis-topics = { workspace = true, optional = true }
+tokmd-analysis-fingerprint = { workspace = true, optional = true }
+tokmd-analysis-near-dup = { workspace = true, optional = true }
+tokmd-analysis-api-surface = { workspace = true, optional = true }
+tokmd-analysis-complexity = { workspace = true, optional = true }
+tokmd-analysis-entropy = { workspace = true, optional = true }
+tokmd-analysis-license = { workspace = true, optional = true }
+tokmd-analysis-halstead = { workspace = true, optional = true }
+tokmd-analysis-maintainability = { workspace = true, optional = true }
 
 [dev-dependencies]
-tokmd-config.workspace = true
 tempfile = "3.25.0"
 proptest = "1.10.0"
-

@@ -19,6 +19,7 @@ serde_json = "1.0.149"
 time = { version = "0.3.47", features = ["formatting"] }
 uuid = { version = "1.16", features = ["v4"] }
 tokmd-redact.workspace = true
+tokmd-scan-args.workspace = true
 tokmd-settings.workspace = true
 tokmd-types.workspace = true
 
@@ -26,4 +27,3 @@ tokmd-types.workspace = true
 proptest = "1.10.0"
 insta = { workspace = true }
 tempfile = "3.25.0"
-

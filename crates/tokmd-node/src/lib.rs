@@ -57,9 +57,13 @@ fn encode_args<T: Serialize>(args: &T) -> Result<String> {
     serde_json::to_string(args).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
 }
 
+fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> Error {
+    Error::from_reason(err.to_string())
+}
+
+#[cfg(test)]
 fn parse_envelope(result_json: &str) -> Result<serde_json::Value> {
-    serde_json::from_str(result_json)
-        .map_err(|e| Error::from_reason(format!("JSON parse error: {}", e)))
+    tokmd_ffi_envelope::parse_envelope(result_json).map_err(map_envelope_error)
 }
 
 async fn run_blocking<F>(f: F) -> Result<String>
@@ -79,8 +83,7 @@ pub async fn run_json(mode: String, args_json: String) -> Result<String> {
 
 fn parse_and_extract(result_json: Result<String>) -> Result<serde_json::Value> {
     let result_json = result_json?;
-    let envelope = parse_envelope(&result_json)?;
-    extract_envelope(envelope)
+    tokmd_ffi_envelope::extract_data_from_json(&result_json).map_err(map_envelope_error)
 }
 
 async fn run_with_args_json(mode: String, args_json: Result<String>) -> Result<serde_json::Value> {
@@ -93,39 +96,9 @@ fn options_or_empty(options: Option<serde_json::Value>) -> serde_json::Value {
     options.unwrap_or_else(|| serde_json::json!({}))
 }
 
+#[cfg(test)]
 fn extract_envelope(envelope: serde_json::Value) -> Result<serde_json::Value> {
-    // Handle the response envelope: {"ok": bool, "data": ..., "error": ...}
-    let ok = envelope
-        .get("ok")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(false);
-
-    if ok {
-        // Return the "data" field
-        if let Some(data) = envelope.get("data") {
-            return Ok(data.clone());
-        }
-        // Fallback: return the whole envelope if "data" is missing
-        return Ok(envelope);
-    }
-
-    // Extract error details
-    let error_obj = envelope.get("error");
-    let message = if let Some(err) = error_obj {
-        let code = err
-            .get("code")
-            .and_then(|c| c.as_str())
-            .unwrap_or("unknown");
-        let msg = err
-            .get("message")
-            .and_then(|m| m.as_str())
-            .unwrap_or("Unknown error");
-        format!("[{}] {}", code, msg)
-    } else {
-        "Unknown error".to_string()
-    };
-
-    Err(Error::from_reason(message))
+    tokmd_ffi_envelope::extract_data(envelope).map_err(map_envelope_error)
 }
 
 /// Run a tokmd operation and return the result as a JavaScript object.

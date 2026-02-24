@@ -11,11 +11,11 @@ This document describes the testing infrastructure and strategy for tokmd.
                     └──────────────┘
                ┌────────────────────────┐
                │    Fuzz Testing        │  libfuzzer
-               │    (crash detection)   │  9 targets
+               │    (crash detection)   │  15 targets
                └────────────────────────┘
           ┌──────────────────────────────────┐
           │    Property-Based Testing        │  proptest
-          │    (invariant verification)      │  14 crates
+          │    (invariant verification)      │  17 crates
           └──────────────────────────────────┘
      ┌────────────────────────────────────────────┐
      │    Integration Tests (CLI contract)        │  assert_cmd
@@ -118,15 +118,18 @@ Snapshot files: `<crate>/tests/snapshots/*.snap`
 
 ## Property-Based Tests
 
-Using `proptest` (1.9.0) across 14 crates:
+Using `proptest` (1.9.0) across 17 crates:
 
 | Crate | Properties Tested |
 |-------|-------------------|
 | `tokmd-redact` | Hash determinism, collision resistance, path normalization |
+| `tokmd-math` | Numeric and statistical invariants |
 | `tokmd-config` | Enum roundtrip serialization |
-| `tokmd-model` | Path normalization, module key computation |
+| `tokmd-model` | Path normalization, aggregation invariants |
+| `tokmd-module-key` | Module key computation invariants |
 | `tokmd-types` | DTO serialization roundtrips |
 | `tokmd-analysis-types` | Analysis receipt types |
+| `tokmd-analysis-imports` | Import parsing and normalization invariants |
 | `tokmd-format` | Table formatting determinism |
 | `tokmd-gate` | Policy evaluation invariants |
 | `tokmd-git` | Git history collection |
@@ -162,19 +165,25 @@ Stored in `<crate>/tests/properties.proptest-regressions` for reproducing failur
 
 Using `cargo-fuzz` with `libfuzzer-sys`:
 
-### 9 Fuzz Targets
+### 15 Fuzz Targets
 
 | Target | Feature | Purpose |
 |--------|---------|---------|
 | `fuzz_entropy` | `content` | Shannon entropy, text detection, hashing |
+| `fuzz_exclude_pattern` | `exclude` | Exclude pattern normalization invariants |
+| `fuzz_export_tree` | `export_tree` | Tree rendering stability and totality |
+| `fuzz_ffi_envelope` | `ffi_envelope` | FFI JSON envelope parser/extractor totality |
 | `fuzz_json_types` | `types` | Receipt deserialization |
+| `fuzz_math_stats` | `math_stats` | Numeric helper determinism and bounds |
 | `fuzz_normalize_path` | `model` | Path normalization |
-| `fuzz_module_key` | `model` | Module key computation |
+| `fuzz_module_key` | `module_key` | Module key computation |
 | `fuzz_toml_config` | `config` | Config file parsing |
 | `fuzz_policy_toml` | `gate` | Policy configuration parsing |
 | `fuzz_json_pointer` | `gate` | RFC 6901 JSON Pointer resolution |
 | `fuzz_policy_evaluate` | `gate` | Policy evaluation workflow |
 | `fuzz_redact` | `redact` | Path redaction determinism |
+| `fuzz_scan_args` | `scan_args` | Scan metadata shaping invariants |
+| `fuzz_import_parser` | `analysis_imports` | Import parsing + target normalization |
 
 ### Running Fuzz Tests
 

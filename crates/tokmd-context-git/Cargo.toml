@@ -1,0 +1,24 @@
+[package]
+name = "tokmd-context-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Git-derived hotspot and churn scoring for context ranking."
+documentation = "https://docs.rs/tokmd-context-git"
+readme = "README.md"
+keywords = ["git", "context", "hotspot", "churn", "ranking"]
+categories = ["development-tools"]
+
+[features]
+default = []
+git = ["dep:tokmd-git"]
+
+[dependencies]
+tokmd-git = { workspace = true, optional = true }
+tokmd-path.workspace = true
+tokmd-types.workspace = true
+
+[dev-dependencies]
+tempfile = "3.25.0"

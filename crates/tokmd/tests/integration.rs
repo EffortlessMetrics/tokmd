@@ -1593,6 +1593,25 @@ fn test_context_bundle_dir() -> Result<()> {
         "manifest should have artifacts list"
     );
 
+    // The bundle output directory should be normalized and excluded from scans.
+    let excluded_patterns = manifest
+        .get("excluded_patterns")
+        .and_then(serde_json::Value::as_array)
+        .expect("excluded_patterns should be an array");
+    assert!(
+        excluded_patterns.iter().any(|v| {
+            v.as_str()
+                .is_some_and(|p| p == "ctx-bundle" || p.ends_with("/ctx-bundle"))
+        }),
+        "excluded_patterns should include bundle dir exclusion"
+    );
+    assert!(
+        !excluded_patterns
+            .iter()
+            .any(|v| v.as_str() == Some("./ctx-bundle")),
+        "excluded_patterns should not include ./-prefixed duplicate"
+    );
+
     Ok(())
 }
 

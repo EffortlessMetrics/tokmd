@@ -1,60 +1,56 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+use tokmd_analysis_grid::{PresetKind, PresetPlan, preset_plan_for};
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
     ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
     FunReport, GitReport, ImportReport, LicenseReport, NearDupScope, PredictiveChurnReport,
     TopicClouds,
 };
+use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
-use crate::archetype::detect_archetype;
-#[cfg(feature = "walk")]
-use crate::assets::{build_assets_report, build_dependency_report};
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
 #[cfg(feature = "content")]
 use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
 use crate::derived::{build_tree, derive_report};
 #[cfg(feature = "git")]
-use crate::fingerprint::build_corporate_fingerprint;
-use crate::fun::build_fun_report;
-#[cfg(feature = "git")]
 use crate::git::build_git_report;
-#[cfg(all(feature = "content", feature = "walk"))]
-use crate::license::build_license_report;
-use crate::topics::build_topic_clouds;
 use crate::util::now_ms;
+#[cfg(all(feature = "content", feature = "walk"))]
+use tokmd_analysis_api_surface::build_api_surface_report;
+#[cfg(feature = "archetype")]
+use tokmd_analysis_archetype::detect_archetype;
+#[cfg(feature = "walk")]
+use tokmd_analysis_assets::{build_assets_report, build_dependency_report};
+#[cfg(all(feature = "content", feature = "walk"))]
+use tokmd_analysis_complexity::build_complexity_report;
+#[cfg(all(feature = "content", feature = "walk"))]
+use tokmd_analysis_entropy::build_entropy_report;
+#[cfg(feature = "git")]
+use tokmd_analysis_fingerprint::build_corporate_fingerprint;
+#[cfg(feature = "fun")]
+use tokmd_analysis_fun::build_fun_report;
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+use tokmd_analysis_halstead::build_halstead_report;
+#[cfg(all(feature = "content", feature = "walk"))]
+use tokmd_analysis_license::build_license_report;
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+use tokmd_analysis_maintainability::attach_halstead_metrics;
+#[cfg(feature = "content")]
+use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
+#[cfg(feature = "topics")]
+use tokmd_analysis_topics::build_topic_clouds;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AnalysisPreset {
-    Receipt,
-    Health,
-    Risk,
-    Supply,
-    Architecture,
-    Topics,
-    Security,
-    Identity,
-    Git,
-    Deep,
-    Fun,
-}
+/// Canonical preset enum for analysis orchestration.
+pub type AnalysisPreset = PresetKind;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ImportGranularity {
     Module,
     File,
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct AnalysisLimits {
-    pub max_files: Option<usize>,
-    pub max_bytes: Option<u64>,
-    pub max_file_bytes: Option<u64>,
-    pub max_commits: Option<usize>,
-    pub max_commit_files: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -81,288 +77,14 @@ pub struct AnalysisRequest {
     pub near_dup_max_files: usize,
     /// Near-duplicate comparison scope.
     pub near_dup_scope: NearDupScope,
+    /// Maximum near-duplicate pairs to emit (truncation guardrail).
+    pub near_dup_max_pairs: Option<usize>,
+    /// Glob patterns to exclude from near-duplicate analysis.
+    pub near_dup_exclude: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct AnalysisPlan {
-    assets: bool,
-    deps: bool,
-    todo: bool,
-    dup: bool,
-    imports: bool,
-    git: bool,
-    fun: bool,
-    archetype: bool,
-    topics: bool,
-    entropy: bool,
-    license: bool,
-    complexity: bool,
-    api_surface: bool,
-    #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-    halstead: bool,
-    #[cfg(feature = "git")]
-    churn: bool,
-    #[cfg(feature = "git")]
-    fingerprint: bool,
-}
-
-impl AnalysisPlan {
-    #[cfg_attr(
-        not(all(feature = "halstead", feature = "content", feature = "walk")),
-        allow(unused_mut)
-    )]
-    fn needs_files(&self) -> bool {
-        let mut needs = self.assets
-            || self.deps
-            || self.todo
-            || self.dup
-            || self.imports
-            || self.entropy
-            || self.license
-            || self.complexity
-            || self.api_surface;
-        #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-        {
-            needs = needs || self.halstead;
-        }
-        needs
-    }
-}
-
-fn plan_for(preset: AnalysisPreset) -> AnalysisPlan {
-    match preset {
-        AnalysisPreset::Receipt => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Health => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: true,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: true,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: true,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Risk => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: true,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: true,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: true,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Supply => AnalysisPlan {
-            assets: true,
-            deps: true,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Architecture => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: true,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: true,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Topics => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: true,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Security => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: true,
-            license: true,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Identity => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: true,
-            fun: false,
-            archetype: true,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: true,
-        },
-        AnalysisPreset::Git => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: true,
-            fun: false,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: true,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-        AnalysisPreset::Deep => AnalysisPlan {
-            assets: true,
-            deps: true,
-            todo: true,
-            dup: true,
-            imports: true,
-            git: true,
-            fun: false,
-            archetype: true,
-            topics: true,
-            entropy: true,
-            license: true,
-            complexity: true,
-            api_surface: true,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: true,
-            #[cfg(feature = "git")]
-            churn: true,
-            #[cfg(feature = "git")]
-            fingerprint: true,
-        },
-        AnalysisPreset::Fun => AnalysisPlan {
-            assets: false,
-            deps: false,
-            todo: false,
-            dup: false,
-            imports: false,
-            git: false,
-            fun: true,
-            archetype: false,
-            topics: false,
-            entropy: false,
-            license: false,
-            complexity: false,
-            api_surface: false,
-            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-            halstead: false,
-            #[cfg(feature = "git")]
-            churn: false,
-            #[cfg(feature = "git")]
-            fingerprint: false,
-        },
-    }
+fn preset_plan(preset: AnalysisPreset) -> PresetPlan {
+    preset_plan_for(preset)
 }
 
 pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisReceipt> {
@@ -378,7 +100,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         source.base_signature = Some(derived.integrity.hash.clone());
     }
 
-    let plan = plan_for(req.preset);
+    let plan = preset_plan(req.preset);
     let include_git = match req.git {
         Some(flag) => flag,
         None => plan.git,
@@ -439,10 +161,16 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     #[cfg(not(all(feature = "content", feature = "walk")))]
     let api_surface: Option<ApiSurfaceReport> = None;
 
+    #[cfg(feature = "archetype")]
     let mut archetype: Option<Archetype> = None;
+    #[cfg(not(feature = "archetype"))]
+    let archetype: Option<Archetype> = None;
+    #[cfg(feature = "topics")]
     let mut topics: Option<TopicClouds> = None;
+    #[cfg(not(feature = "topics"))]
+    let topics: Option<TopicClouds> = None;
 
-    let mut fun: Option<FunReport> = None;
+    let fun: Option<FunReport>;
 
     #[cfg(any(feature = "walk", feature = "content"))]
     let mut files: Option<Vec<PathBuf>> = None;
@@ -457,7 +185,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "walk"))]
         {
-            warnings.push("walk feature disabled; skipping file inventory".to_string());
+            warnings.push(
+                tokmd_analysis_grid::DisabledFeature::FileInventory
+                    .warning()
+                    .to_string(),
+            );
         }
     }
 
@@ -496,7 +228,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "content"))]
-        warnings.push("content feature disabled; skipping TODO scan".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::TodoScan
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.dup {
@@ -510,20 +246,30 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "content"))]
-        warnings.push("content feature disabled; skipping duplication scan".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::DuplicationScan
+                .warning()
+                .to_string(),
+        );
     }
 
     // Near-duplicate detection (opt-in via --near-dup)
     if req.near_dup {
         #[cfg(feature = "content")]
         {
-            match crate::near_dup::build_near_dup_report(
+            let near_dup_limits = NearDupLimits {
+                max_bytes: req.limits.max_bytes,
+                max_file_bytes: req.limits.max_file_bytes,
+            };
+            match build_near_dup_report(
                 &ctx.root,
                 &ctx.export,
                 req.near_dup_scope,
                 req.near_dup_threshold,
                 req.near_dup_max_files,
-                &req.limits,
+                req.near_dup_max_pairs,
+                &near_dup_limits,
+                &req.near_dup_exclude,
             ) {
                 Ok(report) => {
                     // Attach to existing dup report or create a minimal one
@@ -543,7 +289,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "content"))]
-        warnings.push("content feature disabled; skipping near-dup scan".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::NearDuplicateScan
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.imports {
@@ -563,7 +313,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "content"))]
-        warnings.push("content feature disabled; skipping import scan".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::ImportScan
+                .warning()
+                .to_string(),
+        );
     }
 
     if include_git {
@@ -605,34 +359,59 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "git"))]
-        warnings.push("git feature disabled; skipping git metrics".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::GitMetrics
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.archetype {
-        archetype = detect_archetype(&ctx.export);
+        #[cfg(feature = "archetype")]
+        {
+            archetype = detect_archetype(&ctx.export);
+        }
+        #[cfg(not(feature = "archetype"))]
+        {
+            warnings.push(
+                tokmd_analysis_grid::DisabledFeature::Archetype
+                    .warning()
+                    .to_string(),
+            );
+        }
     }
 
     if plan.topics {
-        topics = Some(build_topic_clouds(&ctx.export));
+        #[cfg(feature = "topics")]
+        {
+            topics = Some(build_topic_clouds(&ctx.export));
+        }
+        #[cfg(not(feature = "topics"))]
+        {
+            warnings.push(
+                tokmd_analysis_grid::DisabledFeature::Topics
+                    .warning()
+                    .to_string(),
+            );
+        }
     }
 
     if plan.entropy {
         #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
-                match crate::entropy::build_entropy_report(
-                    &ctx.root,
-                    list,
-                    &ctx.export,
-                    &req.limits,
-                ) {
+                match build_entropy_report(&ctx.root, list, &ctx.export, &req.limits) {
                     Ok(report) => entropy = Some(report),
                     Err(err) => warnings.push(format!("entropy scan failed: {}", err)),
                 }
             }
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
-        warnings.push("content/walk feature disabled; skipping entropy profiling".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::EntropyProfiling
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.license {
@@ -646,14 +425,18 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
-        warnings.push("content/walk feature disabled; skipping license radar".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::LicenseRadar
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.complexity {
         #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
-                match crate::complexity::build_complexity_report(
+                match build_complexity_report(
                     &ctx.root,
                     list,
                     &ctx.export,
@@ -666,26 +449,29 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
-        warnings.push("content/walk feature disabled; skipping complexity analysis".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::ComplexityAnalysis
+                .warning()
+                .to_string(),
+        );
     }
 
     if plan.api_surface {
         #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
-                match crate::api_surface::build_api_surface_report(
-                    &ctx.root,
-                    list,
-                    &ctx.export,
-                    &req.limits,
-                ) {
+                match build_api_surface_report(&ctx.root, list, &ctx.export, &req.limits) {
                     Ok(report) => api_surface = Some(report),
                     Err(err) => warnings.push(format!("api surface scan failed: {}", err)),
                 }
             }
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
-        warnings.push("content/walk feature disabled; skipping API surface analysis".to_string());
+        warnings.push(
+            tokmd_analysis_grid::DisabledFeature::ApiSurfaceAnalysis
+                .warning()
+                .to_string(),
+        );
     }
 
     // Halstead metrics (feature-gated)
@@ -693,33 +479,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     if plan.halstead
         && let Some(list) = files.as_deref()
     {
-        match crate::halstead::build_halstead_report(&ctx.root, list, &ctx.export, &req.limits) {
+        match build_halstead_report(&ctx.root, list, &ctx.export, &req.limits) {
             Ok(halstead_report) => {
                 // Wire Halstead into complexity report if available
                 if let Some(ref mut cx) = complexity {
-                    // Update maintainability index with Halstead volume
-                    if let Some(ref mut mi) = cx.maintainability_index {
-                        let vol = halstead_report.volume;
-                        if vol > 0.0 {
-                            mi.avg_halstead_volume = Some(vol);
-                            // Recompute with full SEI formula
-                            let score = (171.0
-                                - 5.2 * vol.ln()
-                                - 0.23 * mi.avg_cyclomatic
-                                - 16.2 * mi.avg_loc.ln())
-                            .max(0.0);
-                            let factor = 100.0;
-                            mi.score = (score * factor).round() / factor;
-                            mi.grade = if mi.score >= 85.0 {
-                                "A".to_string()
-                            } else if mi.score >= 65.0 {
-                                "B".to_string()
-                            } else {
-                                "C".to_string()
-                            };
-                        }
-                    }
-                    cx.halstead = Some(halstead_report);
+                    attach_halstead_metrics(cx, halstead_report);
                 }
             }
             Err(err) => warnings.push(format!("halstead scan failed: {}", err)),
@@ -727,7 +491,21 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     }
 
     if plan.fun {
-        fun = Some(build_fun_report(&derived));
+        #[cfg(feature = "fun")]
+        {
+            fun = Some(build_fun_report(&derived));
+        }
+        #[cfg(not(feature = "fun"))]
+        {
+            warnings.push(
+                tokmd_analysis_grid::DisabledFeature::Fun
+                    .warning()
+                    .to_string(),
+            );
+            fun = None;
+        }
+    } else {
+        fun = None;
     }
 
     let status = if warnings.is_empty() {
@@ -763,16 +541,4 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     };
 
     Ok(receipt)
-}
-
-// Optional enrichers are implemented in later stages.
-#[allow(dead_code)]
-fn _unused_sections(
-    _assets: Option<AssetReport>,
-    _deps: Option<DependencyReport>,
-    _git: Option<GitReport>,
-    _imports: Option<ImportReport>,
-    _dup: Option<DuplicateReport>,
-    _fun: Option<FunReport>,
-) {
 }

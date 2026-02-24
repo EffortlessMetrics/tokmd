@@ -23,8 +23,10 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+pub use tokmd_tool_schema::ToolSchemaFormat;
 pub use tokmd_types::{
-    ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode, TableFormat,
+    AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode,
+    TableFormat,
 };
 
 /// `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`.
@@ -452,6 +454,14 @@ pub struct CliAnalyzeArgs {
     #[arg(long, value_enum)]
     pub near_dup_scope: Option<NearDupScope>,
 
+    /// Maximum near-duplicate pairs to emit (truncation guardrail) [default: 10000].
+    #[arg(long, default_value = "10000")]
+    pub near_dup_max_pairs: usize,
+
+    /// Exclude files matching this glob pattern from near-duplicate analysis. Repeatable.
+    #[arg(long, value_name = "GLOB")]
+    pub near_dup_exclude: Vec<String>,
+
     /// Explain a metric or finding key and exit.
     #[arg(long, value_name = "KEY")]
     pub explain: Option<String>,
@@ -513,21 +523,6 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum AnalysisFormat {
-    Md,
-    Json,
-    Jsonld,
-    Xml,
-    Svg,
-    Mermaid,
-    Obj,
-    Midi,
-    Tree,
-    Html,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -719,20 +714,6 @@ pub struct ToolsArgs {
     /// Pretty-print JSON output.
     #[arg(long)]
     pub pretty: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum ToolSchemaFormat {
-    /// OpenAI function calling format.
-    Openai,
-    /// Anthropic tool use format.
-    Anthropic,
-    /// JSON Schema Draft 7 format.
-    #[default]
-    Jsonschema,
-    /// Raw clap structure dump.
-    Clap,
 }
 
 #[derive(Args, Debug, Clone)]

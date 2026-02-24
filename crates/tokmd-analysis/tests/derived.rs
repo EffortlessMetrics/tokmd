@@ -3,7 +3,7 @@ use tokmd_analysis::{
     NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-use tokmd_types::{ExportData, FileKind, FileRow};
+use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 fn sample_export() -> ExportData {
     let rows = vec![
@@ -61,7 +61,7 @@ fn sample_export() -> ExportData {
         rows,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
         module_depth: 2,
-        children: tokmd_config::ChildIncludeMode::Separate,
+        children: ChildIncludeMode::Separate,
     }
 }
 
@@ -106,6 +106,8 @@ fn derived_metrics_basic() {
         near_dup_threshold: 0.80,
         near_dup_max_files: 2000,
         near_dup_scope: NearDupScope::Module,
+        near_dup_max_pairs: None,
+        near_dup_exclude: Vec::new(),
     };
 
     let receipt = analyze(ctx, request).expect("analysis");

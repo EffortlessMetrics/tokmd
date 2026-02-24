@@ -1,0 +1,17 @@
+[package]
+name = "tokmd-math"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Deterministic numeric and statistical helpers for tokmd microcrates."
+readme = "README.md"
+keywords = ["math", "stats", "determinism", "analysis", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-math"
+
+[dependencies]
+
+[dev-dependencies]
+proptest = "1.10.0"

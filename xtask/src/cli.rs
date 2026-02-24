@@ -18,6 +18,8 @@ pub enum Commands {
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
     Docs(DocsArgs),
+    /// Verify dependency boundaries for analysis microcrates
+    BoundariesCheck(BoundariesCheckArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -130,6 +132,9 @@ pub struct BumpArgs {
     #[arg(long, value_delimiter = ',')]
     pub schema: Option<Vec<String>>,
 }
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BoundariesCheckArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct CockpitArgs {

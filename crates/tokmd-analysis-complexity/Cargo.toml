@@ -1,0 +1,20 @@
+[package]
+name = "tokmd-analysis-complexity"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Complexity analysis for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "complexity", "metrics", "reporting", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-complexity"
+
+[dependencies]
+anyhow = "1.0.101"
+tokmd-analysis-types.workspace = true
+tokmd-analysis-maintainability.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-content.workspace = true
+tokmd-types.workspace = true

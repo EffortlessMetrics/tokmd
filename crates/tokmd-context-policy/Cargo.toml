@@ -1,0 +1,19 @@
+[package]
+name = "tokmd-context-policy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Single-responsibility context selection policy helpers (smart excludes, classifications, inclusion policy)."
+readme = "README.md"
+keywords = ["context", "policy", "classification", "determinism", "llm"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-context-policy"
+
+[dependencies]
+tokmd-path.workspace = true
+tokmd-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

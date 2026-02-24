@@ -1,0 +1,18 @@
+[package]
+name = "tokmd-analysis-fun"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Fun novelty enrichments for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "novelty", "eco", "reporting", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-analysis-fun"
+
+[dependencies]
+tokmd-analysis-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

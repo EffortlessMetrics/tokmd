@@ -26,11 +26,20 @@ exclude = [
 ]
 
 [features]
-default = ["git", "walk", "content", "ui"]
+default = ["git", "walk", "content", "ui", "fun", "topics", "archetype"]
 alias-tok = []
-git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git"]
+git = [
+    "tokmd-analysis/git",
+    "dep:tokmd-git",
+    "dep:tokmd-cockpit",
+    "tokmd-cockpit/git",
+    "tokmd-context-git/git",
+]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
+fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
+topics = ["tokmd-analysis/topics"]
+archetype = ["tokmd-analysis/archetype"]
 ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
 
 [[bin]]
@@ -46,12 +55,19 @@ required-features = ["alias-tok"]
 anyhow = "1.0.101"
 clap = { version = "4.5.58", features = ["derive"] }
 tokmd-analysis = { workspace = true }
-tokmd-analysis-format = { workspace = true, features = ["fun"] }
+tokmd-analysis-explain.workspace = true
+tokmd-analysis-format = { workspace = true }
 tokmd-analysis-types.workspace = true
+tokmd-analysis-grid.workspace = true
 tokmd-badge.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true
+tokmd-exclude.workspace = true
+tokmd-path.workspace = true
+tokmd-context-git.workspace = true
+tokmd-context-policy.workspace = true
 tokmd-envelope.workspace = true
+tokmd-export-tree.workspace = true
 tokmd-progress.workspace = true
 tokmd-scan.workspace = true
 tokmd-sensor.workspace = true
@@ -59,6 +75,7 @@ tokmd-settings.workspace = true
 tokmd-substrate.workspace = true
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
+tokmd-tool-schema.workspace = true
 tokmd-types.workspace = true
 tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }

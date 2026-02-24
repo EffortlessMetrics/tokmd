@@ -3,6 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 use tokmd_analysis as analysis;
 use tokmd_analysis_format as analysis_format;
+use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
 
@@ -14,19 +15,10 @@ pub(crate) fn child_include_to_string(mode: cli::ChildIncludeMode) -> String {
 }
 
 pub(crate) fn preset_to_string(preset: cli::AnalysisPreset) -> String {
-    match preset {
-        cli::AnalysisPreset::Receipt => "receipt".to_string(),
-        cli::AnalysisPreset::Health => "health".to_string(),
-        cli::AnalysisPreset::Risk => "risk".to_string(),
-        cli::AnalysisPreset::Supply => "supply".to_string(),
-        cli::AnalysisPreset::Architecture => "architecture".to_string(),
-        cli::AnalysisPreset::Topics => "topics".to_string(),
-        cli::AnalysisPreset::Security => "security".to_string(),
-        cli::AnalysisPreset::Identity => "identity".to_string(),
-        cli::AnalysisPreset::Git => "git".to_string(),
-        cli::AnalysisPreset::Deep => "deep".to_string(),
-        cli::AnalysisPreset::Fun => "fun".to_string(),
-    }
+    let key = format!("{:?}", preset).to_lowercase();
+    PresetKind::from_str(&key)
+        .map(|preset| preset.as_str().to_string())
+        .unwrap_or(key)
 }
 
 pub(crate) fn format_to_string(format: cli::AnalysisFormat) -> String {
@@ -52,19 +44,7 @@ pub(crate) fn granularity_to_string(granularity: cli::ImportGranularity) -> Stri
 }
 
 pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPreset {
-    match preset {
-        cli::AnalysisPreset::Receipt => analysis::AnalysisPreset::Receipt,
-        cli::AnalysisPreset::Health => analysis::AnalysisPreset::Health,
-        cli::AnalysisPreset::Risk => analysis::AnalysisPreset::Risk,
-        cli::AnalysisPreset::Supply => analysis::AnalysisPreset::Supply,
-        cli::AnalysisPreset::Architecture => analysis::AnalysisPreset::Architecture,
-        cli::AnalysisPreset::Topics => analysis::AnalysisPreset::Topics,
-        cli::AnalysisPreset::Security => analysis::AnalysisPreset::Security,
-        cli::AnalysisPreset::Identity => analysis::AnalysisPreset::Identity,
-        cli::AnalysisPreset::Git => analysis::AnalysisPreset::Git,
-        cli::AnalysisPreset::Deep => analysis::AnalysisPreset::Deep,
-        cli::AnalysisPreset::Fun => analysis::AnalysisPreset::Fun,
-    }
+    PresetKind::from_str(&format!("{:?}", preset).to_lowercase()).expect("unknown analysis preset")
 }
 
 pub(crate) fn map_granularity(granularity: cli::ImportGranularity) -> analysis::ImportGranularity {
