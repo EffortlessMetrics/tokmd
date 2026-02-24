@@ -1,0 +1,14 @@
+{
+  "run_id": "2026-02-28-gatekeeper-module-key",
+  "goal": "Improve module key generation robustness and determinism",
+  "lane": "scout",
+  "decision": "Option B (Tighten invariants with targeted tests)",
+  "changes": [
+    "crates/tokmd-module-key/tests/edge_cases.rs",
+    "crates/tokmd-module-key/src/lib.rs"
+  ],
+  "verification": {
+    "test": "cargo test -p tokmd-module-key",
+    "workspace": "cargo test -p tokmd-model"
+  }
+}
