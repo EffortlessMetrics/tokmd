@@ -1,20 +1,15 @@
 [
   {
-    "timestamp_utc": "2025-02-18T00:15:00Z",
+    "timestamp": "2024-10-14T00:00:00Z",
     "lane": "scout",
-    "target": "integration tests cleanup",
-    "pr_link": "tbd",
-    "gates_run": ["test", "clippy"],
-    "status": "PASS",
-    "friction_ids_created": []
-  },
-  {
-    "timestamp_utc": "2026-01-30T13:08:54Z",
-    "lane": "scout",
-    "target": "crates/tokmd-content/src/lib.rs",
-    "pr_link": "tbd",
-    "gates_run": ["test"],
-    "status": "PASS",
-    "friction_ids_created": []
+    "target": "crates/tokmd-format/src/lib.rs",
+    "pr_link": null,
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids": []
   }
 ]
