@@ -119,7 +119,7 @@ default-members = [
 # xtask is a workspace member but excluded from default-members
 
 [workspace.package]
-version = "1.7.1"
+version = "1.7.2"
 edition = "2024"
 rust-version = "1.92"
 license = "MIT OR Apache-2.0"
@@ -132,60 +132,60 @@ name = "tokmd-workspace"
 
 [workspace.dependencies]
 # Internal crates - centralized for "bump once" version management
-tokmd = { path = "crates/tokmd", version = "1.7.1" }
-tokmd-badge = { path = "crates/tokmd-badge", version = "1.7.1" }
-tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.7.1" }
-tokmd-analysis-imports = { path = "crates/tokmd-analysis-imports", version = "1.7.1" }
-tokmd-analysis-explain = { path = "crates/tokmd-analysis-explain", version = "1.7.1" }
-tokmd-analysis-html = { path = "crates/tokmd-analysis-html", version = "1.7.1" }
-tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.7.1" }
-tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.7.1" }
-tokmd-analysis-api-surface = { path = "crates/tokmd-analysis-api-surface", version = "1.7.1" }
-tokmd-analysis-complexity = { path = "crates/tokmd-analysis-complexity", version = "1.7.1" }
-tokmd-analysis-entropy = { path = "crates/tokmd-analysis-entropy", version = "1.7.1" }
-tokmd-analysis-license = { path = "crates/tokmd-analysis-license", version = "1.7.1" }
-tokmd-analysis-halstead = { path = "crates/tokmd-analysis-halstead", version = "1.7.1" }
-tokmd-analysis-maintainability = { path = "crates/tokmd-analysis-maintainability", version = "1.7.1" }
-tokmd-analysis-assets = { path = "crates/tokmd-analysis-assets", version = "1.7.1" }
-tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.7.1" }
-tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.7.1" }
-tokmd-config = { path = "crates/tokmd-config", version = "1.7.1" }
-tokmd-content = { path = "crates/tokmd-content", version = "1.7.1" }
-tokmd-context-git = { path = "crates/tokmd-context-git", version = "1.7.1" }
-tokmd-context-policy = { path = "crates/tokmd-context-policy", version = "1.7.1" }
-tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.7.1" }
-tokmd-export-tree = { path = "crates/tokmd-export-tree", version = "1.7.1" }
-tokmd-ffi-envelope = { path = "crates/tokmd-ffi-envelope", version = "1.7.1" }
-tokmd-core = { path = "crates/tokmd-core", version = "1.7.1" }
-tokmd-format = { path = "crates/tokmd-format", version = "1.7.1" }
-tokmd-fun = { path = "crates/tokmd-fun", version = "1.7.1" }
-tokmd-analysis-derived = { path = "crates/tokmd-analysis-derived", version = "1.7.1" }
-tokmd-analysis-git = { path = "crates/tokmd-analysis-git", version = "1.7.1" }
-tokmd-analysis-util = { path = "crates/tokmd-analysis-util", version = "1.7.1" }
-tokmd-analysis-fun = { path = "crates/tokmd-analysis-fun", version = "1.7.1" }
-tokmd-analysis-grid = { path = "crates/tokmd-analysis-grid", version = "1.7.1" }
-tokmd-analysis-archetype = { path = "crates/tokmd-analysis-archetype", version = "1.7.1" }
-tokmd-analysis-topics = { path = "crates/tokmd-analysis-topics", version = "1.7.1" }
-tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", version = "1.7.1" }
-tokmd-git = { path = "crates/tokmd-git", version = "1.7.1" }
-tokmd-model = { path = "crates/tokmd-model", version = "1.7.1" }
-tokmd-module-key = { path = "crates/tokmd-module-key", version = "1.7.1" }
-tokmd-math = { path = "crates/tokmd-math", version = "1.7.1" }
-tokmd-exclude = { path = "crates/tokmd-exclude", version = "1.7.1" }
-tokmd-path = { path = "crates/tokmd-path", version = "1.7.1" }
-tokmd-progress = { path = "crates/tokmd-progress", version = "1.7.1" }
-tokmd-redact = { path = "crates/tokmd-redact", version = "1.7.1" }
-tokmd-scan = { path = "crates/tokmd-scan", version = "1.7.1" }
-tokmd-scan-args = { path = "crates/tokmd-scan-args", version = "1.7.1" }
-tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.7.1" }
-tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.7.1" }
-tokmd-settings = { path = "crates/tokmd-settings", version = "1.7.1" }
-tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.7.1" }
-tokmd-tool-schema = { path = "crates/tokmd-tool-schema", version = "1.7.1" }
-tokmd-types = { path = "crates/tokmd-types", version = "1.7.1" }
-tokmd-walk = { path = "crates/tokmd-walk", version = "1.7.1" }
-tokmd-gate = { path = "crates/tokmd-gate", version = "1.7.1" }
-tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.7.1" }
+tokmd = { path = "crates/tokmd", version = "1.7.2" }
+tokmd-badge = { path = "crates/tokmd-badge", version = "1.7.2" }
+tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.7.2" }
+tokmd-analysis-imports = { path = "crates/tokmd-analysis-imports", version = "1.7.2" }
+tokmd-analysis-explain = { path = "crates/tokmd-analysis-explain", version = "1.7.2" }
+tokmd-analysis-html = { path = "crates/tokmd-analysis-html", version = "1.7.2" }
+tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.7.2" }
+tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.7.2" }
+tokmd-analysis-api-surface = { path = "crates/tokmd-analysis-api-surface", version = "1.7.2" }
+tokmd-analysis-complexity = { path = "crates/tokmd-analysis-complexity", version = "1.7.2" }
+tokmd-analysis-entropy = { path = "crates/tokmd-analysis-entropy", version = "1.7.2" }
+tokmd-analysis-license = { path = "crates/tokmd-analysis-license", version = "1.7.2" }
+tokmd-analysis-halstead = { path = "crates/tokmd-analysis-halstead", version = "1.7.2" }
+tokmd-analysis-maintainability = { path = "crates/tokmd-analysis-maintainability", version = "1.7.2" }
+tokmd-analysis-assets = { path = "crates/tokmd-analysis-assets", version = "1.7.2" }
+tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.7.2" }
+tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.7.2" }
+tokmd-config = { path = "crates/tokmd-config", version = "1.7.2" }
+tokmd-content = { path = "crates/tokmd-content", version = "1.7.2" }
+tokmd-context-git = { path = "crates/tokmd-context-git", version = "1.7.2" }
+tokmd-context-policy = { path = "crates/tokmd-context-policy", version = "1.7.2" }
+tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.7.2" }
+tokmd-export-tree = { path = "crates/tokmd-export-tree", version = "1.7.2" }
+tokmd-ffi-envelope = { path = "crates/tokmd-ffi-envelope", version = "1.7.2" }
+tokmd-core = { path = "crates/tokmd-core", version = "1.7.2" }
+tokmd-format = { path = "crates/tokmd-format", version = "1.7.2" }
+tokmd-fun = { path = "crates/tokmd-fun", version = "1.7.2" }
+tokmd-analysis-derived = { path = "crates/tokmd-analysis-derived", version = "1.7.2" }
+tokmd-analysis-git = { path = "crates/tokmd-analysis-git", version = "1.7.2" }
+tokmd-analysis-util = { path = "crates/tokmd-analysis-util", version = "1.7.2" }
+tokmd-analysis-fun = { path = "crates/tokmd-analysis-fun", version = "1.7.2" }
+tokmd-analysis-grid = { path = "crates/tokmd-analysis-grid", version = "1.7.2" }
+tokmd-analysis-archetype = { path = "crates/tokmd-analysis-archetype", version = "1.7.2" }
+tokmd-analysis-topics = { path = "crates/tokmd-analysis-topics", version = "1.7.2" }
+tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", version = "1.7.2" }
+tokmd-git = { path = "crates/tokmd-git", version = "1.7.2" }
+tokmd-model = { path = "crates/tokmd-model", version = "1.7.2" }
+tokmd-module-key = { path = "crates/tokmd-module-key", version = "1.7.2" }
+tokmd-math = { path = "crates/tokmd-math", version = "1.7.2" }
+tokmd-exclude = { path = "crates/tokmd-exclude", version = "1.7.2" }
+tokmd-path = { path = "crates/tokmd-path", version = "1.7.2" }
+tokmd-progress = { path = "crates/tokmd-progress", version = "1.7.2" }
+tokmd-redact = { path = "crates/tokmd-redact", version = "1.7.2" }
+tokmd-scan = { path = "crates/tokmd-scan", version = "1.7.2" }
+tokmd-scan-args = { path = "crates/tokmd-scan-args", version = "1.7.2" }
+tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.7.2" }
+tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.7.2" }
+tokmd-settings = { path = "crates/tokmd-settings", version = "1.7.2" }
+tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.7.2" }
+tokmd-tool-schema = { path = "crates/tokmd-tool-schema", version = "1.7.2" }
+tokmd-types = { path = "crates/tokmd-types", version = "1.7.2" }
+tokmd-walk = { path = "crates/tokmd-walk", version = "1.7.2" }
+tokmd-gate = { path = "crates/tokmd-gate", version = "1.7.2" }
+tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.7.2" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"

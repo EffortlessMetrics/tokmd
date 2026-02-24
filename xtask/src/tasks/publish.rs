@@ -15,6 +15,7 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow, bail};
 use cargo_metadata::{DependencyKind, Metadata, MetadataCommand, Package, PackageId};
+use chrono::{DateTime, FixedOffset, Utc};
 use petgraph::algo::toposort;
 use petgraph::graph::DiGraph;
 
@@ -397,6 +398,9 @@ fn reconstruct_publish_command(args: &PublishArgs) -> String {
     if args.retry_delay != 30 {
         parts.push(format!("--retry-delay {}", args.retry_delay));
     }
+    if args.rate_limit_timeout != 600 {
+        parts.push(format!("--rate-limit-timeout {}", args.rate_limit_timeout));
+    }
 
     // Always add --yes for non-dry-run (the whole point of this reconstruction)
     if !args.dry_run {
@@ -637,6 +641,8 @@ enum PublishErrorKind {
     ManifestError,
     /// Network error - potentially retryable
     NetworkError,
+    /// Rate limited by crates.io (HTTP 429) - retryable after cooldown
+    RateLimited,
     /// Unknown error - fail
     Unknown,
 }
@@ -650,6 +656,11 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
         || (lower.contains("crate version") && lower.contains("already exists"))
     {
         return PublishErrorKind::AlreadyPublished;
+    }
+
+    // Rate limit (429) - retryable after cooldown
+    if lower.contains("429") || lower.contains("too many") {
+        return PublishErrorKind::RateLimited;
     }
 
     // Auth errors - fail fast, no retry
@@ -695,10 +706,36 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
     PublishErrorKind::Unknown
 }
 
+/// Parse the rate limit retry-after timestamp from crates.io error output.
+///
+/// Looks for "try again after <RFC2822 timestamp>" in the stderr text.
+/// Returns the parsed timestamp, or `None` if not found/parseable.
+fn parse_rate_limit_timestamp(stderr: &str) -> Option<DateTime<FixedOffset>> {
+    // Look for "try again after " (case-insensitive) followed by an RFC2822 timestamp.
+    // Example: "Please try again after Tue, 24 Feb 2026 16:57:08 GMT"
+    let lower = stderr.to_lowercase();
+    let marker = "try again after ";
+    let pos = lower.find(marker)?;
+    let after = &stderr[pos + marker.len()..];
+
+    // The timestamp ends at " or ", a quote, or a newline
+    let end = after
+        .find(" or ")
+        .or_else(|| after.find(|c: char| c == '"' || c == '\n' || c == '\r'))
+        .unwrap_or(after.len());
+    let timestamp_str = after[..end].trim();
+
+    DateTime::parse_from_rfc2822(timestamp_str).ok()
+}
+
 /// Publish a single crate with retry logic for propagation delays.
 fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<PublishResult> {
     const MAX_RETRIES: u32 = 5;
+    const MAX_RATE_LIMIT_WAITS: u32 = 6;
+    const RATE_LIMIT_FALLBACK_SECS: u64 = 300;
+
     let retry_delay = Duration::from_secs(args.retry_delay);
+    let rate_limit_timeout = Duration::from_secs(args.rate_limit_timeout);
 
     // Dry-run mode: validate packaging locally.
     //
@@ -730,8 +767,15 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
         )));
     }
 
-    // Actual publish with retries
-    for attempt in 1..=MAX_RETRIES {
+    // Actual publish with retries.
+    // Rate limit waits are tracked separately and don't count against MAX_RETRIES.
+    let mut attempt: u32 = 0;
+    let mut rate_limit_waits: u32 = 0;
+    let mut total_rate_limit_wait = Duration::ZERO;
+
+    loop {
+        attempt += 1;
+
         let output = Command::new("cargo")
             .args(["publish", "-p", crate_name, "--locked"])
             .output()
@@ -759,6 +803,63 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
                     "Manifest or packaging error:\n{}",
                     stderr
                 )));
+            }
+            PublishErrorKind::RateLimited => {
+                rate_limit_waits += 1;
+                if rate_limit_waits > MAX_RATE_LIMIT_WAITS {
+                    return Ok(PublishResult::Failed(anyhow!(
+                        "Rate limited {} times for {}, giving up:\n{}",
+                        rate_limit_waits,
+                        crate_name,
+                        stderr
+                    )));
+                }
+
+                // Parse the retry-after timestamp, fall back to default
+                let wait_secs =
+                    if let Some(retry_after) = parse_rate_limit_timestamp(&stderr) {
+                        let now = Utc::now();
+                        let until = retry_after.with_timezone(&Utc);
+                        let delta = until.signed_duration_since(now);
+                        if delta.num_seconds() > 0 {
+                            println!(
+                                "  Rate limited by crates.io. Waiting until {} ({}s)...",
+                                retry_after,
+                                delta.num_seconds()
+                            );
+                            delta.num_seconds() as u64
+                        } else {
+                            // Timestamp is in the past, wait a small amount
+                            println!(
+                                "  Rate limited by crates.io (retry-after already passed). Waiting 10s..."
+                            );
+                            10
+                        }
+                    } else {
+                        println!(
+                            "  Rate limited by crates.io (could not parse retry-after). Waiting {}s...",
+                            RATE_LIMIT_FALLBACK_SECS
+                        );
+                        RATE_LIMIT_FALLBACK_SECS
+                    };
+
+                let wait_duration = Duration::from_secs(wait_secs);
+
+                // Check against total rate limit timeout budget
+                if total_rate_limit_wait + wait_duration > rate_limit_timeout {
+                    return Ok(PublishResult::Failed(anyhow!(
+                        "Rate limit wait would exceed --rate-limit-timeout ({}s) for {}:\n{}",
+                        rate_limit_timeout.as_secs(),
+                        crate_name,
+                        stderr
+                    )));
+                }
+
+                total_rate_limit_wait += wait_duration;
+                sleep(wait_duration);
+                // Don't increment attempt - rate limit waits are tracked separately
+                attempt -= 1;
+                continue;
             }
             PublishErrorKind::PropagationDelay | PublishErrorKind::NetworkError => {
                 if attempt < MAX_RETRIES {
@@ -793,11 +894,6 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
             stderr
         )));
     }
-
-    Ok(PublishResult::Failed(anyhow!(
-        "Max retries exceeded for {}",
-        crate_name
-    )))
 }
 
 /// Run pre-publish checks.
@@ -965,6 +1061,7 @@ fn create_git_tag(args: &PublishArgs, version: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Datelike;
 
     #[test]
     fn test_classify_already_published() {
@@ -1015,5 +1112,51 @@ mod tests {
         assert!(is_publish_dependency(&DependencyKind::Normal));
         assert!(is_publish_dependency(&DependencyKind::Build));
         assert!(is_publish_dependency(&DependencyKind::Development));
+    }
+
+    #[test]
+    fn test_classify_rate_limit() {
+        // HTTP 429 status code in error message
+        assert!(matches!(
+            classify_publish_error(
+                "the remote server responded with an error (status 429 Too Many Requests): \
+                 You have published too many new crates"
+            ),
+            PublishErrorKind::RateLimited
+        ));
+
+        // "too many" without explicit 429
+        assert!(matches!(
+            classify_publish_error(
+                "You have published too many new crates in a short period of time"
+            ),
+            PublishErrorKind::RateLimited
+        ));
+
+        // Just the 429 status
+        assert!(matches!(
+            classify_publish_error("error: 429 rate limit exceeded"),
+            PublishErrorKind::RateLimited
+        ));
+    }
+
+    #[test]
+    fn test_parse_rate_limit_timestamp() {
+        // Full crates.io error message
+        let stderr = "the remote server responded with an error (status 429 Too Many Requests): \
+                       You have published too many new crates in a short period of time. \
+                       Please try again after Tue, 24 Feb 2026 16:57:08 GMT or email help@crates.io";
+        let ts = parse_rate_limit_timestamp(stderr);
+        assert!(ts.is_some(), "should parse RFC2822 timestamp");
+        let ts = ts.unwrap();
+        assert_eq!(ts.year(), 2026);
+        assert_eq!(ts.month(), 2);
+        assert_eq!(ts.day(), 24);
+
+        // No timestamp present
+        assert!(parse_rate_limit_timestamp("some random error").is_none());
+
+        // Marker present but invalid timestamp
+        assert!(parse_rate_limit_timestamp("try again after not-a-real-timestamp").is_none());
     }
 }
