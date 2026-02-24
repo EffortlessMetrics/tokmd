@@ -1,0 +1,21 @@
+{
+  "run_id": "20260224-041314",
+  "persona": "Librarian",
+  "goal": "Fix incorrect 'tokmd context' CLI examples in documentation",
+  "lane": "B",
+  "decision": "Option A (recommended)",
+  "receipts": [
+    {
+      "command": "cargo run -- context --budget 1k --mode bundle --output context.txt test_context",
+      "result": "Success: Wrote context.txt (verified content)"
+    },
+    {
+      "command": "cargo run -- context --budget 1k --mode list --output list.txt test_context",
+      "result": "Success: Wrote list.txt (verified content)"
+    },
+    {
+      "command": "cargo check --workspace",
+      "result": "Success: All checks passed (except unrelated Python binding link errors in test mode)"
+    }
+  ]
+}
