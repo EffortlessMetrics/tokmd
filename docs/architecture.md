@@ -45,7 +45,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
 
 **Schema Versions** (separate per family):
-- Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, context, run)
+- Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, run)
+- Context receipts: `CONTEXT_SCHEMA_VERSION = 4`
+- Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
 - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 8`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
 

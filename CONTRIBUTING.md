@@ -28,35 +28,76 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
     cargo build
     ```
 
+### Local Hooks
+
+Enable the project's pre-commit hook to catch formatting and typo issues before they reach CI:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This is a one-time setup. The hook runs `cargo fmt --check` and `typos --diff` (if installed) on every commit. You can bypass it with `git commit --no-verify` in emergencies.
+
 ## Project Structure
 
 The codebase uses a tiered microcrate architecture:
 
 ```
 crates/
-├── tokmd-types/           # Tier 0: Core data structures
-├── tokmd-analysis-types/  # Tier 0: Analysis receipt types
-├── tokmd-settings/        # Tier 0: Clap-free settings types
-├── tokmd-envelope/        # Tier 0: Cross-fleet sensor report contract
-├── tokmd-substrate/       # Tier 0: Shared repo context
-├── tokmd-scan/            # Tier 1: tokei wrapper
-├── tokmd-model/           # Tier 1: Aggregation logic
-├── tokmd-tokeignore/      # Tier 1: Template generation
-├── tokmd-redact/          # Tier 1: BLAKE3-based path redaction
-├── tokmd-sensor/          # Tier 1: Sensor trait + substrate builder
-├── tokmd-format/          # Tier 2: Output rendering
-├── tokmd-walk/            # Tier 2: File system traversal
-├── tokmd-content/         # Tier 2: Content scanning
-├── tokmd-git/             # Tier 2: Git analysis
-├── tokmd-analysis/        # Tier 3: Analysis orchestration
-├── tokmd-analysis-format/ # Tier 3: Analysis output
-├── tokmd-fun/             # Tier 3: Novelty outputs
-├── tokmd-gate/            # Tier 3: Policy evaluation
-├── tokmd-config/          # Tier 4: Configuration
-├── tokmd-core/            # Tier 4: Library facade + FFI
-├── tokmd/                 # Tier 5: CLI binary
-├── tokmd-python/          # Tier 5: Python bindings (PyO3)
-└── tokmd-node/            # Tier 5: Node.js bindings (napi-rs)
+├── tokmd-types/                     # Tier 0: Core data structures
+├── tokmd-analysis-types/            # Tier 0: Analysis receipt types
+├── tokmd-settings/                  # Tier 0: Clap-free settings types
+├── tokmd-envelope/                  # Tier 0: Cross-fleet sensor report contract
+├── tokmd-substrate/                 # Tier 0: Shared repo context
+├── tokmd-scan/                      # Tier 1: tokei wrapper
+├── tokmd-model/                     # Tier 1: Aggregation logic
+├── tokmd-tokeignore/                # Tier 1: Template generation
+├── tokmd-redact/                    # Tier 1: BLAKE3-based path redaction
+├── tokmd-sensor/                    # Tier 1: Sensor trait + substrate builder
+├── tokmd-context-policy/            # Tier 1: Context/handoff policy helpers
+├── tokmd-scan-args/                 # Tier 1: Deterministic ScanArgs construction
+├── tokmd-math/                      # Tier 1: Deterministic numeric/statistical helpers
+├── tokmd-exclude/                   # Tier 1: Exclude-pattern normalization
+├── tokmd-path/                      # Tier 1: Cross-platform path normalization
+├── tokmd-module-key/                # Tier 1: Module-key derivation
+├── tokmd-format/                    # Tier 2: Output rendering
+├── tokmd-walk/                      # Tier 2: File system traversal
+├── tokmd-content/                   # Tier 2: Content scanning
+├── tokmd-git/                       # Tier 2: Git analysis
+├── tokmd-badge/                     # Tier 2: SVG badge rendering
+├── tokmd-progress/                  # Tier 2: Progress spinner/bar abstractions
+├── tokmd-context-git/               # Tier 2: Git-derived context ranking
+├── tokmd-export-tree/               # Tier 2: Tree renderers for exports
+├── tokmd-analysis/                  # Tier 3: Analysis orchestration
+├── tokmd-analysis-format/           # Tier 3: Analysis output rendering
+├── tokmd-analysis-api-surface/      # Tier 3: API surface analysis
+├── tokmd-analysis-archetype/        # Tier 3: Archetype inference
+├── tokmd-analysis-assets/           # Tier 3: Asset and dependency reports
+├── tokmd-analysis-complexity/       # Tier 3: Cyclomatic/cognitive complexity
+├── tokmd-analysis-content/          # Tier 3: Content scanning adapters
+├── tokmd-analysis-derived/          # Tier 3: Core derived metrics
+├── tokmd-analysis-entropy/          # Tier 3: High-entropy file detection
+├── tokmd-analysis-explain/          # Tier 3: Metric explanation catalog
+├── tokmd-analysis-fingerprint/      # Tier 3: Corporate fingerprint
+├── tokmd-analysis-git/              # Tier 3: Git history adapters
+├── tokmd-analysis-grid/             # Tier 3: Preset/feature matrix
+├── tokmd-analysis-halstead/         # Tier 3: Halstead metrics
+├── tokmd-analysis-html/             # Tier 3: HTML renderer for analysis
+├── tokmd-analysis-imports/          # Tier 3: Import parsing + normalization
+├── tokmd-analysis-license/          # Tier 3: License radar scanning
+├── tokmd-analysis-maintainability/  # Tier 3: Maintainability index scoring
+├── tokmd-analysis-near-dup/         # Tier 3: Near-duplicate detection
+├── tokmd-analysis-topics/           # Tier 3: Topic-cloud extraction
+├── tokmd-analysis-util/             # Tier 3: Shared analysis utilities
+├── tokmd-fun/                       # Tier 3: Novelty outputs
+├── tokmd-gate/                      # Tier 3: Policy evaluation
+├── tokmd-config/                    # Tier 4: Configuration
+├── tokmd-core/                      # Tier 4: Library facade + FFI
+├── tokmd-tool-schema/               # Tier 4: AI tool-schema generation
+├── tokmd-ffi-envelope/              # Tier 4: FFI envelope parser
+├── tokmd/                           # Tier 5: CLI binary
+├── tokmd-python/                    # Tier 5: Python bindings (PyO3)
+└── tokmd-node/                      # Tier 5: Node.js bindings (napi-rs)
 ```
 
 ## Testing Strategy
@@ -248,9 +289,11 @@ exclude_re = ["impl.*Display", "fn main\\("]
 
 ### Adding a New Enricher
 
-1. Create a new module in `crates/tokmd-analysis/src/` (e.g., `my_enricher.rs`)
+Enrichers are implemented as their own microcrates:
+
+1. Create a new crate under `crates/` (e.g., `tokmd-analysis-my-enricher/`)
 2. Add the data structures to `crates/tokmd-analysis-types/src/lib.rs`
-3. Wire it into `AnalysisReceipt` and the preset system in `analysis.rs`
+3. Wire it into the preset system in `crates/tokmd-analysis/src/analysis.rs`
 4. Add formatting support in `crates/tokmd-analysis-format/`
 5. Add tests and update documentation
 

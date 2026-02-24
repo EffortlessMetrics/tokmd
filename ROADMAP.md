@@ -27,10 +27,13 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.5.0** | ✅ Complete | Baseline system, ratchet gates, ecosystem envelope, LLM handoff. |
 | **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
 | **v1.6.3** | ✅ Complete | UX polish: colored diff, progress indicators, --explain flag.    |
+| **v1.7.0** | ✅ Complete | Near-duplicate detection, commit intent, token estimation renames. |
+| **v1.7.1** | ✅ Complete | Focused microcrate extraction (40+ crates), AnalysisFormat to Tier 0. |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
+| **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
 
 ---
 
@@ -101,7 +104,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: Focused crates for modularity (16 crates)
+- [x] **Microcrate Architecture**: Focused crates for modularity (16 initial crates; grown to 40+ by v1.7.1)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
@@ -264,7 +267,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | Maintainability Index     | ✅ Complete | SEI formula (simplified without Halstead, full with)      |
 | Technical debt ratio      | ✅ Complete | Complexity-to-size ratio as a heuristic debt signal       |
 | Duplication density       | ✅ Complete | Extend duplicate detection into a per-module density metric |
-| API surface area          | 📋 Planned  | Public export ratio (requires language-specific heuristics) |
+| API surface area          | ✅ Complete | Public export ratio (language-specific heuristics) via `tokmd-analysis-api-surface` |
 | Code age distribution     | ✅ Complete | Extend git freshness into age buckets with trend tracking |
 
 ### Cockpit & CLI Improvements
@@ -328,6 +331,79 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Added side-by-side summary comparison rows for diff totals (LOC, lines, files, bytes, tokens)
 - [x] Added baseline-aware summary comparison tables to cockpit markdown output
 - [x] Added integration tests to lock dynamic completion values for `--preset` and `--format`
+
+---
+
+## Completed: v1.7.0 — Near-Duplicate Detection & Commit Intent
+
+**Goal**: Near-duplicate detection, commit intent classification, and token estimation improvements.
+
+### Near-Duplicate Detection
+
+| Feature                    | Status      | Description                                                  |
+| :------------------------- | :---------- | :----------------------------------------------------------- |
+| Near-dup enricher          | ✅ Complete | Content-similarity detection via `tokmd-analysis-near-dup`   |
+| `--near-dup` flag          | ✅ Complete | Enable near-duplicate detection in analysis                  |
+| `--near-dup-threshold`     | ✅ Complete | Configurable similarity threshold (default 0.8)              |
+| `--near-dup-scope`         | ✅ Complete | Scope filter for near-dup scanning                           |
+| `--near-dup-max-files`     | ✅ Complete | Max file guardrail for performance                           |
+
+### Git Enrichments
+
+| Feature                    | Status      | Description                                                  |
+| :------------------------- | :---------- | :----------------------------------------------------------- |
+| Commit intent classification | ✅ Complete | Automatic classification of commit purpose (feat/fix/refactor/etc.) |
+| Coupling metrics           | ✅ Complete | Jaccard similarity and Lift in coupling reports              |
+| Commit SHA field           | ✅ Complete | `hash` field on `GitCommit` for identification               |
+
+### Token Estimation
+
+| Feature                    | Status      | Description                                                  |
+| :------------------------- | :---------- | :----------------------------------------------------------- |
+| Field renames              | ✅ Complete | `tokens_low`/`tokens_high` → `tokens_min`/`tokens_max`      |
+| Backward compatibility     | ✅ Complete | Serde aliases preserve deserialization of old field names     |
+| Divisor fields             | ✅ Complete | Explicit `bytes_per_token_low`/`bytes_per_token_high` fields |
+
+### Schema Changes
+
+- **Analysis schema version**: 6 → 7
+- **New types**: `NearDuplicateReport`, `NearDupCluster`, `NearDupPair`, `CommitIntentKind`
+- **New fields**: `coupling.jaccard`, `coupling.lift`, `git_commit.hash`
+- **Renamed fields**: `tokens_low` → `tokens_min`, `tokens_high` → `tokens_max` (with serde aliases)
+
+---
+
+## Completed: v1.7.1 — Focused Microcrate Extraction
+
+**Goal**: Extract focused microcrates from monolithic modules for better separation of concerns.
+
+### New Microcrates
+
+| Crate                          | Tier | Purpose                                                |
+| :----------------------------- | :--- | :----------------------------------------------------- |
+| `tokmd-context-policy`         | 1    | Context/handoff policy helpers (smart excludes, classification) |
+| `tokmd-scan-args`              | 1    | Deterministic `ScanArgs` metadata construction         |
+| `tokmd-math`                   | 1    | Deterministic numeric/statistical helpers              |
+| `tokmd-exclude`                | 1    | Exclude-pattern normalization + dedup                  |
+| `tokmd-path`                   | 1    | Cross-platform path normalization                      |
+| `tokmd-module-key`             | 1    | Deterministic module-key derivation                    |
+| `tokmd-context-git`            | 2    | Git-derived hotspot/churn scoring for context ranking  |
+| `tokmd-export-tree`            | 2    | Deterministic tree renderers for analysis/handoff exports |
+| `tokmd-analysis-explain`       | 3    | Metric/finding explanation catalog and alias lookup    |
+| `tokmd-analysis-imports`       | 3    | Language-aware import parsing + normalization          |
+| `tokmd-analysis-maintainability` | 3  | Maintainability index scoring + Halstead merge         |
+| `tokmd-analysis-html`          | 3    | Single-responsibility HTML renderer for analysis       |
+| `tokmd-tool-schema`            | 4    | AI tool-schema generation from clap command trees      |
+| `tokmd-ffi-envelope`           | 4    | Shared FFI envelope parser for Python/Node bindings    |
+
+### Architectural Changes
+
+- [x] Moved `AnalysisFormat` to `tokmd-types` (Tier 0) for broader reuse
+- [x] Extracted 15 focused microcrates from monolithic modules
+- [x] Analysis schema version: 7 → 8
+- [x] Total crate count: 40+ (up from 16 initial crates in v1.2.0)
+- [x] Fixed clippy/lint across all new crates for strict `--all-targets` check coverage
+- [x] Updated CI/tooling for release and publish readiness
 
 ---
 

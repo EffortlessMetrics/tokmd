@@ -65,7 +65,7 @@ As part of this phase, three additional Tier 0 crates were created:
 - [x] Update tokmd-core to use tokmd-settings
 - [x] Update tokmd-config to re-export or wrap
 - [x] Implement TOML parsing in tokmd-settings (moved from tokmd-config)
-- [ ] Update bindings to use new settings directly
+- [x] Update bindings to use new settings directly
 
 ---
 
@@ -203,6 +203,54 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - Integration tests: Output modes (color, compact, explain)
 - Golden tests: Compact table format snapshots
 - Unit tests: Sparkline rendering edge cases
+
+---
+
+## Phase 4c: Near-Duplicate Detection & Microcrate Extraction (v1.7.0-v1.7.1) ✅ Complete
+
+**Goal**: Near-duplicate detection, commit intent classification, and focused microcrate extraction.
+
+### Near-Duplicate Detection (v1.7.0)
+
+1. **Enricher**: `tokmd-analysis-near-dup` crate for content-similarity detection
+2. **CLI flags**: `--near-dup`, `--near-dup-threshold`, `--near-dup-scope`, `--near-dup-max-files`
+3. **Types**: `NearDuplicateReport`, `NearDupCluster`, `NearDupPair`
+
+### Commit Intent & Coupling (v1.7.0)
+
+1. **Commit intent**: Automatic classification of commit purpose (`CommitIntentKind`)
+2. **Coupling metrics**: Jaccard similarity and Lift in coupling reports
+3. **Token estimation**: Renamed `tokens_low`/`tokens_high` → `tokens_min`/`tokens_max` with backward-compatible serde aliases
+
+### Microcrate Extraction (v1.7.1)
+
+1. **Tier 1 microcrates**: `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-exclude`, `tokmd-path`, `tokmd-module-key`
+2. **Tier 2 microcrates**: `tokmd-context-git`, `tokmd-export-tree`
+3. **Tier 3 microcrates**: `tokmd-analysis-explain`, `tokmd-analysis-imports`, `tokmd-analysis-maintainability`, `tokmd-analysis-html`
+4. **Tier 4 microcrates**: `tokmd-tool-schema`, `tokmd-ffi-envelope`
+5. **Architectural**: Moved `AnalysisFormat` to `tokmd-types` (Tier 0)
+
+### Schema Changes
+
+- **Analysis schema version**: 6 → 7 (v1.7.0) → 8 (v1.7.1)
+
+### Work Items
+
+- [x] Implement near-duplicate detection enricher with configurable threshold
+- [x] Add commit intent classification to git reports
+- [x] Add Jaccard similarity and Lift to coupling metrics
+- [x] Rename token estimation fields with backward-compatible aliases
+- [x] Extract 15 focused microcrates from monolithic modules
+- [x] Move `AnalysisFormat` to `tokmd-types` (Tier 0)
+- [x] Update CI/tooling for 40+ crate workspace
+- [x] Fix clippy/lint across all new crates
+
+### Tests
+
+- [x] Near-dup detection integration tests
+- [x] Serde alias backward compatibility tests for token field renames
+- [x] E2E `ContextReceipt` backward compatibility test
+- [x] Boundary checks for microcrate extraction
 
 ---
 

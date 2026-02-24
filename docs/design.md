@@ -69,7 +69,7 @@ Every JSON receipt includes:
 {
   "schema_version": 2,
   "tool": "tokmd",
-  "tool_version": "1.6.0",
+  "tool_version": "1.7.1",
   "generated_at_ms": 1706886000000,
   "mode": "lang",
   "scan": { ... },
@@ -144,11 +144,16 @@ Presets bundle enrichers for common use cases:
 | Preset | Enrichers |
 |--------|-----------|
 | `receipt` | derived |
-| `health` | derived + content (TODOs) |
-| `risk` | derived + git (hotspots, coupling) |
+| `health` | derived + content (TODOs) + complexity + Halstead |
+| `risk` | derived + git (hotspots, coupling, freshness) + complexity + Halstead |
 | `supply` | derived + walk (assets) + content (deps) |
 | `architecture` | derived + content (imports) |
-| `deep` | all enrichers |
+| `topics` | semantic topic clouds (TF-IDF) |
+| `security` | license radar + entropy profiling |
+| `identity` | archetype detection + corporate fingerprint |
+| `git` | predictive churn + advanced git metrics |
+| `deep` | all enrichers (except fun) |
+| `fun` | eco-label, novelty outputs |
 
 ### Feature-Gated Enrichers
 
