@@ -8,13 +8,13 @@ The authoritative index is `manifest.json`, validated by `docs/handoff.schema.js
 - `schema_version` is a single integer for the manifest.
 - **Additive changes** (new optional fields) are allowed within a version.
 - **Breaking changes** (removed/renamed fields, changed meanings) bump `schema_version`.
-- Current manifest version: **3**.
+- Current manifest version: **5**.
 
-## Required Fields (v3)
+## Required Fields (v5)
 
 The following fields are required in `manifest.json`:
 
-- `schema_version` (const `3`)
+- `schema_version` (const `5`)
 - `generated_at_ms`
 - `tool` (`name`, `version`)
 - `mode` (const `handoff`)
@@ -26,8 +26,17 @@ The following fields are required in `manifest.json`:
 - `artifacts`
 - `included_files`
 - `excluded_paths`, `excluded_patterns`
+- `smart_excluded_files`
 - `total_files`, `bundled_files`
 - `intelligence_preset`
+
+## Optional Fields (v5)
+
+- `rank_by_effective` — effective ranking metric if fallback occurred
+- `fallback_reason` — reason for fallback if rank_by_effective differs from rank_by
+- `excluded_by_policy` — files excluded by per-file cap / classification policy
+- `token_estimation` — token estimation envelope with uncertainty bounds
+- `code_audit` — post-bundle audit comparing actual code bundle bytes to estimates
 
 ## Excluded Path Reason Codes
 

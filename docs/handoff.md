@@ -23,7 +23,7 @@ tokmd handoff --no-git
 
 ```
 <out-dir>/
-├── manifest.json      # authoritative index (schema v3)
+├── manifest.json      # authoritative index (schema v5)
 ├── map.jsonl          # full file inventory (JSONL)
 ├── intelligence.json  # summary signals (payload-only)
 └── code.txt           # token-budgeted code bundle

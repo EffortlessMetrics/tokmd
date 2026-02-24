@@ -78,7 +78,6 @@ The cockpit command's evidence gates are tested in `crates/tokmd/tests/cockpit_i
 
 Envelope format is validated through:
 
-- JSON Schema validation against `docs/envelope.schema.json`
 - Property tests for serialization roundtrips
 - Integration tests for `tokmd sensor cockpit` command
 
