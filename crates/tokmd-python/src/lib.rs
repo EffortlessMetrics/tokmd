@@ -68,6 +68,7 @@ fn extract_data_json(result_json: &str) -> PyResult<String> {
     tokmd_ffi_envelope::extract_data_json(result_json).map_err(map_envelope_error)
 }
 
+#[cfg(test)]
 fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<PyObject> {
     let json_module = py.import("json")?;
     let envelope_json: String = json_module.call_method1("dumps", (envelope,))?.extract()?;

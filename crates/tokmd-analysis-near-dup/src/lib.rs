@@ -697,7 +697,7 @@ mod tests {
 
     #[test]
     fn pair_sort_deterministic_with_right_tiebreak() {
-        let mut pairs = vec![
+        let mut pairs = [
             NearDupPairRow {
                 left: "a.rs".to_string(),
                 right: "c.rs".to_string(),
@@ -731,7 +731,7 @@ mod tests {
     fn self_pair_guard_skips_same_index() {
         // If a posting list has the same local_idx twice (shouldn't happen
         // with deduped fingerprints, but belt-and-suspenders), the guard skips it.
-        let posting_list = vec![0usize, 0, 1];
+        let posting_list = [0usize, 0, 1];
         let mut pair_count = 0;
         for i in 0..posting_list.len() {
             for j in (i + 1)..posting_list.len() {

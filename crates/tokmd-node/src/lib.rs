@@ -61,6 +61,7 @@ fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> Error {
     Error::from_reason(err.to_string())
 }
 
+#[cfg(test)]
 fn parse_envelope(result_json: &str) -> Result<serde_json::Value> {
     tokmd_ffi_envelope::parse_envelope(result_json).map_err(map_envelope_error)
 }
@@ -95,6 +96,7 @@ fn options_or_empty(options: Option<serde_json::Value>) -> serde_json::Value {
     options.unwrap_or_else(|| serde_json::json!({}))
 }
 
+#[cfg(test)]
 fn extract_envelope(envelope: serde_json::Value) -> Result<serde_json::Value> {
     tokmd_ffi_envelope::extract_data(envelope).map_err(map_envelope_error)
 }

@@ -54,8 +54,11 @@ mod tests {
 
     #[test]
     fn round_f64_rounds_expected_precision() {
-        assert_eq!(round_f64(3.14159, 2), 3.14);
-        assert_eq!(round_f64(3.14159, 4), 3.1416);
+        // Avoid PI-like literals: Nix clippy denies clippy::approx_constant and
+        // lints test targets.
+        let value = 12.34567;
+        assert_eq!(round_f64(value, 2), 12.35);
+        assert_eq!(round_f64(value, 4), 12.3457);
     }
 
     #[test]
