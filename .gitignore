@@ -31,5 +31,8 @@ mutants.out.old/
 
 .tokmd/cache/
 
+# Claude Code (local overrides)
+.claude/settings.local.json
+
 # Windows artifacts
 nul

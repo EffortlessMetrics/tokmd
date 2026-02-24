@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+echo "pre-commit: checking formatting..."
+cargo fmt --check
+
+if command -v typos &>/dev/null; then
+  echo "pre-commit: checking typos..."
+  typos --diff
+fi

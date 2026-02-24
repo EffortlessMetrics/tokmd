@@ -28,6 +28,16 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
     cargo build
     ```
 
+### Local Hooks
+
+Enable the project's pre-commit hook to catch formatting and typo issues before they reach CI:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This is a one-time setup. The hook runs `cargo fmt --check` and `typos --diff` (if installed) on every commit. You can bypass it with `git commit --no-verify` in emergencies.
+
 ## Project Structure
 
 The codebase uses a tiered microcrate architecture:
