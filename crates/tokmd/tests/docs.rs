@@ -143,6 +143,7 @@ fn recipe_sensor_json() {
     assert!(report_path.exists());
 }
 
+#[cfg(feature = "content")]
 #[test]
 fn recipe_gate_with_baseline() {
     // "tokmd gate --baseline baseline.json"

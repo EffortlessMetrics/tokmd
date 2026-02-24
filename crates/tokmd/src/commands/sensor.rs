@@ -7,11 +7,16 @@
 //! 2. **extras/cockpit_receipt.json** — Full cockpit receipt sidecar
 //! 3. **comment.md** — Markdown summary for PR comments
 
+#[cfg(feature = "git")]
 use std::io::Write;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
 use tokmd_config as cli;
+#[cfg(feature = "git")]
 use tokmd_envelope::findings;
+#[cfg(feature = "git")]
 use tokmd_envelope::{
     Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
 };
@@ -402,6 +407,7 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
     }
 }
 
+#[cfg(feature = "git")]
 fn render_sensor_md(report: &SensorReport) -> String {
     use std::fmt::Write;
     let mut s = String::new();
@@ -446,6 +452,7 @@ fn now_iso8601() -> String {
 }
 
 #[cfg(test)]
+#[cfg(feature = "git")]
 mod tests {
     use super::*;
 

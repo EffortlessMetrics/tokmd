@@ -3,13 +3,18 @@
 //! This is a thin CLI handler that delegates to `tokmd-cockpit` for computation
 //! and rendering. Types are re-exported from `tokmd_types::cockpit`.
 
+#[cfg(feature = "git")]
 use std::io::Write;
+#[cfg(feature = "git")]
 use std::path::PathBuf;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
 use tokmd_config as cli;
 
 // Re-export all cockpit types for backwards compatibility with sensor.rs
+#[cfg(feature = "git")]
 pub use tokmd_types::cockpit::*;
 
 // Re-export computation functions used by sensor.rs
@@ -109,6 +114,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 }
 
 #[cfg(test)]
+#[cfg(feature = "git")]
 mod tests {
     #[cfg(feature = "git")]
     use anyhow::Result;

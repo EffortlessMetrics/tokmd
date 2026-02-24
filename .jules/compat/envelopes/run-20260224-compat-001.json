@@ -1,0 +1,21 @@
+{
+  "run_id": "run-20260224-compat-001",
+  "lane": "scout",
+  "target": "tokmd",
+  "proof_method": "structural",
+  "decision": "Option A (fix gating)",
+  "changes": [
+    "crates/tokmd/src/commands/baseline.rs",
+    "crates/tokmd/src/commands/cockpit.rs",
+    "crates/tokmd/src/commands/sensor.rs",
+    "crates/tokmd/tests/baseline_integration.rs",
+    "crates/tokmd/tests/cockpit_integration.rs",
+    "crates/tokmd/tests/sensor_integration.rs",
+    "crates/tokmd/tests/docs.rs"
+  ],
+  "verification": {
+    "no-default-features": "passed",
+    "all-features": "passed",
+    "tests": "passed (including no-default-features)"
+  }
+}
