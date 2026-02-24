@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "20260224-105905",
+    "date": "2026-02-24",
+    "persona": "Librarian",
+    "description": "Added doctests to `module_workflow` and `export_workflow` in `tokmd-core`"
   }
 ]

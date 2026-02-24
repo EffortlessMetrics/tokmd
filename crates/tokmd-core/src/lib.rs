@@ -137,6 +137,24 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
 /// # Returns
 ///
 /// A `ModuleReceipt` containing the module breakdown.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use tokmd_core::{module_workflow, settings::{ScanSettings, ModuleSettings}};
+///
+/// // Configure scan
+/// let scan = ScanSettings::current_dir();
+/// let module = ModuleSettings {
+///     module_roots: vec!["crates".to_string()],
+///     module_depth: 1,
+///     ..Default::default()
+/// };
+///
+/// // Run pipeline
+/// let receipt = module_workflow(&scan, &module).expect("Scan failed");
+/// println!("Scanned {} modules", receipt.report.rows.len());
+/// ```
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
@@ -185,6 +203,24 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
 /// # Returns
 ///
 /// An `ExportReceipt` containing file-level data.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use tokmd_core::{export_workflow, settings::{ScanSettings, ExportSettings}};
+///
+/// // Configure scan
+/// let scan = ScanSettings::current_dir();
+/// let export = ExportSettings {
+///     min_code: 10,
+///     max_rows: 50,
+///     ..Default::default()
+/// };
+///
+/// // Run pipeline
+/// let receipt = export_workflow(&scan, &export).expect("Export failed");
+/// println!("Exported {} file rows", receipt.data.rows.len());
+/// ```
 pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
