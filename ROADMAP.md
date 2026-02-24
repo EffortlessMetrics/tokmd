@@ -31,6 +31,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
+| **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
 
 ---
 
