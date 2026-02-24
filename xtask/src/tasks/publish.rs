@@ -816,32 +816,31 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
                 }
 
                 // Parse the retry-after timestamp, fall back to default
-                let wait_secs =
-                    if let Some(retry_after) = parse_rate_limit_timestamp(&stderr) {
-                        let now = Utc::now();
-                        let until = retry_after.with_timezone(&Utc);
-                        let delta = until.signed_duration_since(now);
-                        if delta.num_seconds() > 0 {
-                            println!(
-                                "  Rate limited by crates.io. Waiting until {} ({}s)...",
-                                retry_after,
-                                delta.num_seconds()
-                            );
-                            delta.num_seconds() as u64
-                        } else {
-                            // Timestamp is in the past, wait a small amount
-                            println!(
-                                "  Rate limited by crates.io (retry-after already passed). Waiting 10s..."
-                            );
-                            10
-                        }
-                    } else {
+                let wait_secs = if let Some(retry_after) = parse_rate_limit_timestamp(&stderr) {
+                    let now = Utc::now();
+                    let until = retry_after.with_timezone(&Utc);
+                    let delta = until.signed_duration_since(now);
+                    if delta.num_seconds() > 0 {
                         println!(
-                            "  Rate limited by crates.io (could not parse retry-after). Waiting {}s...",
-                            RATE_LIMIT_FALLBACK_SECS
+                            "  Rate limited by crates.io. Waiting until {} ({}s)...",
+                            retry_after,
+                            delta.num_seconds()
                         );
+                        delta.num_seconds() as u64
+                    } else {
+                        // Timestamp is in the past, wait a small amount
+                        println!(
+                            "  Rate limited by crates.io (retry-after already passed). Waiting 10s..."
+                        );
+                        10
+                    }
+                } else {
+                    println!(
+                        "  Rate limited by crates.io (could not parse retry-after). Waiting {}s...",
                         RATE_LIMIT_FALLBACK_SECS
-                    };
+                    );
+                    RATE_LIMIT_FALLBACK_SECS
+                };
 
                 let wait_duration = Duration::from_secs(wait_secs);
 
