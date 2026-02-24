@@ -11,5 +11,18 @@
       "clippy": "PASS"
     },
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-24T13:22:00Z",
+    "lane": "scout",
+    "target": "tokmd context budget packing logic",
+    "pr_link": "PR_GLASS_COCKPIT",
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids": []
   }
 ]

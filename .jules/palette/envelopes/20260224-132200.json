@@ -1,0 +1,43 @@
+{
+  "run_id": "20260224-132200",
+  "timestamp_utc": "2026-02-24T13:22:00Z",
+  "lane": "scout",
+  "target": "tokmd context budget packing logic",
+  "commands": [
+    {
+      "cmd": "tokmd context large_file.rs --budget 100 --mode bundle",
+      "exit_code": 0,
+      "summary": "FAIL: 2818 bytes (expected truncation)",
+      "details": "Included full file despite 100 token budget (15 token cap)."
+    },
+    {
+      "cmd": "tokmd context large_file.rs --budget 100 --mode bundle",
+      "exit_code": 0,
+      "summary": "PASS: 139 bytes",
+      "details": "Correctly truncated file to head/tail to fit budget."
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "summary": "PASS",
+      "details": "104 tests passed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "summary": "PASS",
+      "details": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS",
+      "details": ""
+    }
+  ],
+  "results": {
+    "before_bytes": 2818,
+    "after_bytes": 139,
+    "tests_passed": true
+  }
+}
