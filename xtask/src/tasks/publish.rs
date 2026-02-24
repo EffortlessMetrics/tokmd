@@ -398,7 +398,7 @@ fn reconstruct_publish_command(args: &PublishArgs) -> String {
     if args.retry_delay != 30 {
         parts.push(format!("--retry-delay {}", args.retry_delay));
     }
-    if args.rate_limit_timeout != 600 {
+    if args.rate_limit_timeout != 7200 {
         parts.push(format!("--rate-limit-timeout {}", args.rate_limit_timeout));
     }
 
@@ -659,7 +659,11 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
     }
 
     // Rate limit (429) - retryable after cooldown
-    if lower.contains("429") || lower.contains("too many") {
+    if lower.contains("status 429")
+        || lower.contains("429 too many requests")
+        || lower.contains("too many requests")
+        || lower.contains("rate limit")
+    {
         return PublishErrorKind::RateLimited;
     }
 
@@ -1127,7 +1131,7 @@ mod tests {
         // "too many" without explicit 429
         assert!(matches!(
             classify_publish_error(
-                "You have published too many new crates in a short period of time"
+                "You have published too many requests in a short period of time"
             ),
             PublishErrorKind::RateLimited
         ));
@@ -1136,6 +1140,12 @@ mod tests {
         assert!(matches!(
             classify_publish_error("error: 429 rate limit exceeded"),
             PublishErrorKind::RateLimited
+        ));
+
+        // unrelated "too many" should not match rate limiting
+        assert!(matches!(
+            classify_publish_error("open files: too many open files"),
+            PublishErrorKind::Unknown
         ));
     }
 
