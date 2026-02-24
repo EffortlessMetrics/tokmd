@@ -383,8 +383,12 @@ pub fn collect_file_rows(
     children: ChildIncludeMode,
     strip_prefix: Option<&Path>,
 ) -> Vec<FileRow> {
-    #[derive(Default, Clone, Copy)]
-    struct Agg {
+    // Intermediate struct to hold data before aggregation
+    struct IntermediateRow {
+        path: String,
+        module: String,
+        lang: String,
+        kind: FileKind,
         code: usize,
         comments: usize,
         blanks: usize,
@@ -392,15 +396,7 @@ pub fn collect_file_rows(
         tokens: usize,
     }
 
-    // Deterministic map: key ordering is stable.
-    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-    struct Key {
-        path: String,
-        lang: String,
-        kind: FileKind,
-    }
-
-    let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
+    let mut rows: Vec<IntermediateRow> = Vec::new();
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
@@ -410,17 +406,17 @@ pub fn collect_file_rows(
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
 
-            let key = Key {
-                path: path.clone(),
+            rows.push(IntermediateRow {
+                path, // Move string (no clone)
+                module,
                 lang: lang_type.name().to_string(),
                 kind: FileKind::Parent,
-            };
-            let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-            entry.1.code += st.code;
-            entry.1.comments += st.comments;
-            entry.1.blanks += st.blanks;
-            entry.1.bytes += bytes;
-            entry.1.tokens += tokens;
+                code: st.code,
+                comments: st.comments,
+                blanks: st.blanks,
+                bytes,
+                tokens,
+            });
         }
     }
 
@@ -433,39 +429,82 @@ pub fn collect_file_rows(
                     let st = report.stats.summarise();
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
-                    let key = Key {
-                        path: path.clone(),
+                    rows.push(IntermediateRow {
+                        path, // Move string (no clone)
+                        module,
                         lang: child_type.name().to_string(),
                         kind: FileKind::Child,
-                    };
-                    let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-                    entry.1.code += st.code;
-                    entry.1.comments += st.comments;
-                    entry.1.blanks += st.blanks;
-                    // entry.1.bytes += 0;
-                    // entry.1.tokens += 0;
+                        code: st.code,
+                        comments: st.comments,
+                        blanks: st.blanks,
+                        bytes: 0,
+                        tokens: 0,
+                    });
                 }
             }
         }
     }
 
-    map.into_iter()
-        .map(|(key, (module, agg))| {
-            let lines = agg.code + agg.comments + agg.blanks;
-            FileRow {
-                path: key.path,
-                module,
-                lang: key.lang,
-                kind: key.kind,
-                code: agg.code,
-                comments: agg.comments,
-                blanks: agg.blanks,
-                lines,
-                bytes: agg.bytes,
-                tokens: agg.tokens,
+    // Sort by (path, lang, kind) to group identical items for aggregation
+    rows.sort_unstable_by(|a, b| {
+        a.path
+            .cmp(&b.path)
+            .then_with(|| a.lang.cmp(&b.lang))
+            .then_with(|| a.kind.cmp(&b.kind))
+    });
+
+    if rows.is_empty() {
+        return Vec::new();
+    }
+
+    // Coalesce adjacent identical rows
+    let mut result = Vec::with_capacity(rows.len());
+    let mut current = rows.into_iter();
+
+    if let Some(mut acc) = current.next() {
+        for row in current {
+            if acc.path == row.path && acc.lang == row.lang && acc.kind == row.kind {
+                // Aggregate
+                acc.code += row.code;
+                acc.comments += row.comments;
+                acc.blanks += row.blanks;
+                acc.bytes += row.bytes;
+                acc.tokens += row.tokens;
+            } else {
+                // Emit accumulator
+                let lines = acc.code + acc.comments + acc.blanks;
+                result.push(FileRow {
+                    path: acc.path,
+                    module: acc.module,
+                    lang: acc.lang,
+                    kind: acc.kind,
+                    code: acc.code,
+                    comments: acc.comments,
+                    blanks: acc.blanks,
+                    lines,
+                    bytes: acc.bytes,
+                    tokens: acc.tokens,
+                });
+                acc = row;
             }
-        })
-        .collect()
+        }
+        // Emit final accumulator
+        let lines = acc.code + acc.comments + acc.blanks;
+        result.push(FileRow {
+            path: acc.path,
+            module: acc.module,
+            lang: acc.lang,
+            kind: acc.kind,
+            code: acc.code,
+            comments: acc.comments,
+            blanks: acc.blanks,
+            lines,
+            bytes: acc.bytes,
+            tokens: acc.tokens,
+        });
+    }
+
+    result
 }
 
 pub fn unique_parent_file_count(languages: &Languages) -> usize {

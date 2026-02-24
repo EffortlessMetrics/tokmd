@@ -1,0 +1,15 @@
+{
+  "run_id": "20241014-120000",
+  "timestamp_utc": "2024-10-14T12:00:00Z",
+  "lane": "Scout",
+  "target": "collect_file_rows",
+  "proof_method": "Benchmark test (bench_perf.rs)",
+  "commands": [
+    {
+      "cmd": "cargo test --release --test bench_perf",
+      "status": "PASS",
+      "result": "Time per iteration: 2.454555ms"
+    }
+  ],
+  "results_summary": "Baseline established at 2.45ms/iter."
+}
