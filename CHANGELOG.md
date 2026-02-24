@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-02-24
+
+### Added
+
+- Added context-aware scanning and policy microcrates: `tokmd-context-git`, `tokmd-context-policy`.
+- Added deterministic utility microcrates: `tokmd-exclude`, `tokmd-module-key`, `tokmd-path`, `tokmd-scan-args`, `tokmd-export-tree`, `tokmd-ffi-envelope`, `tokmd-math`.
+- Added explainability, schema, and import analysis components: `tokmd-analysis-explain`, `tokmd-analysis-imports`, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, `tokmd-analysis-html`.
+
+### Changed
+
+- Refactored analysis and scan-related boundaries into focused microcrates and moved boundary-check logic.
+- Updated CI/tooling around release and publish readiness (toolchain updates, boundary checks, deterministic ordering).
+
+### Fixed
+
+- Fixed clippy and lint failures to keep strict `--all-targets` check coverage clean.
+- Generalized dependency and publishability checks in `cargo xtask publish`.
+
 ## [1.7.0] - 2026-02-21
 
 ### Added
