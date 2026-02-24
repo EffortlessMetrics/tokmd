@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-24",
+    "lane": "scout",
+    "target": "crates/tokmd-cockpit/src/determinism.rs",
+    "proof_method": "structural",
+    "pr_link": "TODO",
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

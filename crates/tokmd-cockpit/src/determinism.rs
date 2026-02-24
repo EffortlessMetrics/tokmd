@@ -34,12 +34,16 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
         }
 
         // Skip files that no longer exist (e.g., deleted between scan and baseline)
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
+        let mut file = match std::fs::File::open(&full) {
+            Ok(f) => f,
+            Err(_) => continue,
+        };
+        let len = match file.metadata() {
+            Ok(m) => m.len(),
             Err(_) => continue,
         };
 
-        feed_file(&mut hasher, &normalized, &content);
+        feed_file(&mut hasher, &normalized, len, &mut file)?;
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -88,12 +92,16 @@ pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String>
 
     for rel_path in &paths {
         let full = root.join(rel_path);
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
+        let mut file = match std::fs::File::open(&full) {
+            Ok(f) => f,
+            Err(_) => continue,
+        };
+        let len = match file.metadata() {
+            Ok(m) => m.len(),
             Err(_) => continue,
         };
 
-        feed_file(&mut hasher, rel_path, &content);
+        feed_file(&mut hasher, rel_path, len, &mut file)?;
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -118,10 +126,16 @@ pub fn hash_cargo_lock(root: &Path) -> Result<Option<String>> {
 /// Feed a single file into the incremental hasher.
 ///
 /// Protocol: `hasher.update(path_bytes); hasher.update(len_le_bytes); hasher.update(content)`.
-fn feed_file(hasher: &mut blake3::Hasher, normalized_path: &str, content: &[u8]) {
+fn feed_file<R: std::io::Read>(
+    hasher: &mut blake3::Hasher,
+    normalized_path: &str,
+    len: u64,
+    reader: &mut R,
+) -> Result<()> {
     hasher.update(normalized_path.as_bytes());
-    hasher.update(&(content.len() as u64).to_le_bytes());
-    hasher.update(content);
+    hasher.update(&len.to_le_bytes());
+    std::io::copy(reader, hasher)?;
+    Ok(())
 }
 
 /// Normalize a relative path to use forward slashes.
