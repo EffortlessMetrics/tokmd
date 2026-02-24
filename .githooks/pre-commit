@@ -1,10 +1,15 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
 
-echo "pre-commit: checking formatting..."
-cargo fmt --check
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -E '\.rs$|(^|/)Cargo\.toml$|^Cargo\.lock$' >/dev/null; then
+  exit 0
+fi
+
+echo "pre-commit: cargo fmt --check"
+cargo fmt --all -- --check
 
 if command -v typos &>/dev/null; then
-  echo "pre-commit: checking typos..."
+  echo "pre-commit: typos --diff"
   typos --diff
 fi

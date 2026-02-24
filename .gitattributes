@@ -43,6 +43,10 @@ crates/tokmd-analysis-format/tests/snapshots/** text eol=lf
 .gitignore text eol=lf
 .gitmodules text eol=lf
 
+# Hook scripts (Windows/Git Bash compatibility)
+.githooks/* text eol=lf
+.claude/hooks/*.sh text eol=lf
+
 # GitHub
 .github/** text eol=lf
 
