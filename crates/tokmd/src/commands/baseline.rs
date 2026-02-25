@@ -6,9 +6,9 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
 #[cfg(feature = "git")]
 use tokmd_analysis_types::DeterminismBaseline;
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
