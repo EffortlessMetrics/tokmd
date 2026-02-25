@@ -1,0 +1,8 @@
+{
+  "run_id": "run-20240525-compat-004",
+  "status": "active",
+  "target": "tokmd",
+  "lane": "scout",
+  "decision": "Option A: Fix baseline.rs imports",
+  "verification": "pending"
+}
