@@ -41,3 +41,16 @@ fn given_windows_style_path_when_module_key_computed_then_result_is_forward_slas
     assert_eq!(win_key, unix_key);
     assert_eq!(win_key, "crates/tokmd");
 }
+
+#[test]
+fn given_path_with_dot_segments_when_module_key_computed_then_dots_are_filtered() {
+    // Given: a path with dot segments
+    let roots = vec!["crates".to_string()];
+    let path = "crates/./tokmd-model/src/lib.rs";
+
+    // When: module key is computed
+    let key = module_key(path, &roots, 2);
+
+    // Then: key ignores the dot segments
+    assert_eq!(key, "crates/tokmd-model");
+}

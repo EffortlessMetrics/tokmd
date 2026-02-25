@@ -34,7 +34,7 @@ pub fn module_key_from_normalized(
         return "(root)".to_string();
     };
 
-    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty());
+    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty() && *s != ".");
     let first = match dirs.next() {
         Some(s) => s,
         None => return "(root)".to_string(),
