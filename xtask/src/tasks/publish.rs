@@ -663,6 +663,8 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
     // Be strict to avoid false positives (e.g. "too many open files").
     let has_status_429 = lower.contains("status 429");
     let has_429_tmr = lower.contains("429 too many requests");
+    let has_429 = lower.contains("429");
+    let has_rate_limit = lower.contains("rate limit");
     let has_tmr = lower.contains("too many requests");
     let has_crates_io_ctx =
         lower.contains("crates.io") || lower.contains("registry at https://crates.io");
@@ -672,6 +674,7 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
 
     if has_status_429
         || has_429_tmr
+        || (has_429 && has_rate_limit)
         || (has_tmr && has_crates_io_ctx)
         || (has_publish_limit_phrase && (has_try_again || has_help))
     {
@@ -1151,6 +1154,11 @@ mod tests {
         // 429 + Too Many Requests without extra context
         assert!(matches!(
             classify_publish_error("error: 429 Too Many Requests"),
+            PublishErrorKind::RateLimited
+        ));
+
+        assert!(matches!(
+            classify_publish_error("error: 429 rate limit exceeded"),
             PublishErrorKind::RateLimited
         ));
 
