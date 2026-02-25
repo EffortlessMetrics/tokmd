@@ -1,0 +1,12 @@
+{
+  "id": "20260225-125847",
+  "start_time": "2026-02-25T12:58:47Z",
+  "target": "tokmd",
+  "lane": "B",
+  "decision": "Remove redundant dev-dependencies in tokmd crate",
+  "receipts": [
+    "cargo check: passed",
+    "cargo test -p tokmd: passed",
+    "cargo clippy -- -D warnings: passed"
+  ]
+}
