@@ -424,7 +424,7 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
 | `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
 | `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
-| `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
+| `--mode <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
 | `--compress` | Strip blank lines from bundle output. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
@@ -442,16 +442,16 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 tokmd context --budget 128k
 
 # Create a bundle ready to paste into Claude
-tokmd context --budget 128k --output bundle --output context.txt
+tokmd context --budget 128k --mode bundle --output context.txt
 
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
 
 # Compressed bundle (no blank lines)
-tokmd context --budget 100k --output bundle --compress --output bundle.txt
+tokmd context --budget 100k --mode bundle --compress --output bundle.txt
 
 # JSON receipt for programmatic use
-tokmd context --budget 128k --output json --output selection.json
+tokmd context --budget 128k --mode json --output selection.json
 
 # Bundle to directory for large outputs
 tokmd context --budget 200k --bundle-dir ./ctx-bundle
