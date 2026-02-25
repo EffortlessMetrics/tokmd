@@ -523,6 +523,10 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
+
+    /// Write a default `tokmd.toml` configuration file.
+    #[arg(long)]
+    pub write_config: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -569,6 +573,61 @@ pub enum InitProfile {
     Python,
     Go,
     Cpp,
+}
+
+impl InitProfile {
+    /// Get the default configuration for this profile.
+    pub fn default_config(&self) -> TomlConfig {
+        TomlConfig {
+            module: ModuleConfig {
+                roots: Some(self.default_module_roots()),
+                depth: Some(self.default_module_depth()),
+                ..Default::default()
+            },
+            export: ExportConfig {
+                format: Some("jsonl".to_string()),
+                min_code: Some(10),
+                ..Default::default()
+            },
+            context: ContextConfig {
+                budget: Some("128k".to_string()),
+                strategy: Some("greedy".to_string()),
+                ..Default::default()
+            },
+            analyze: AnalyzeConfig {
+                preset: Some("receipt".to_string()),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    fn default_module_roots(&self) -> Vec<String> {
+        match self {
+            Self::Rust => vec!["crates".to_string(), "src".to_string()],
+            Self::Node => vec![
+                "packages".to_string(),
+                "apps".to_string(),
+                "src".to_string(),
+            ],
+            Self::Python => vec!["src".to_string(), "lib".to_string()],
+            Self::Go => vec!["cmd".to_string(), "pkg".to_string(), "internal".to_string()],
+            Self::Cpp => vec!["src".to_string(), "include".to_string(), "lib".to_string()],
+            Self::Mono => vec![
+                "packages".to_string(),
+                "apps".to_string(),
+                "libs".to_string(),
+            ],
+            Self::Default => vec!["src".to_string()],
+        }
+    }
+
+    fn default_module_depth(&self) -> usize {
+        match self {
+            Self::Go => 5, // Go projects often have deeper structures
+            _ => 2,
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone)]
@@ -1004,5 +1063,27 @@ impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
 impl From<GlobalArgs> for tokmd_settings::ScanOptions {
     fn from(g: GlobalArgs) -> Self {
         Self::from(&g)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_profile_rust_defaults() {
+        let config = InitProfile::Rust.default_config();
+        let roots = config.module.roots.unwrap();
+        assert!(roots.contains(&"crates".to_string()));
+        assert!(roots.contains(&"src".to_string()));
+        assert_eq!(config.module.depth, Some(2));
+    }
+
+    #[test]
+    fn test_init_profile_go_defaults() {
+        let config = InitProfile::Go.default_config();
+        let roots = config.module.roots.unwrap();
+        assert!(roots.contains(&"cmd".to_string()));
+        assert_eq!(config.module.depth, Some(5));
     }
 }

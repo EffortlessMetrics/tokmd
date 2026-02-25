@@ -55,23 +55,12 @@ impl ProjectType {
 
     /// Get the default module roots for this project type.
     pub fn default_module_roots(&self) -> Vec<String> {
-        match self {
-            ProjectType::Rust => vec!["crates".to_string(), "src".to_string()],
-            ProjectType::Node => vec![
-                "packages".to_string(),
-                "apps".to_string(),
-                "src".to_string(),
-            ],
-            ProjectType::Python => vec!["src".to_string(), "lib".to_string()],
-            ProjectType::Go => vec!["cmd".to_string(), "pkg".to_string(), "internal".to_string()],
-            ProjectType::Cpp => vec!["src".to_string(), "include".to_string(), "lib".to_string()],
-            ProjectType::Mono => vec![
-                "packages".to_string(),
-                "apps".to_string(),
-                "libs".to_string(),
-            ],
-            ProjectType::Other => vec!["src".to_string()],
-        }
+        let profile = project_type_to_profile(*self);
+        profile
+            .default_config()
+            .module
+            .roots
+            .unwrap_or_else(|| vec!["src".to_string()])
     }
 }
 
@@ -253,8 +242,9 @@ pub fn generate_toml_config(result: &WizardResult) -> Result<String> {
         ..Default::default()
     };
 
-    let toml_content =
-        toml::to_string_pretty(&config).context("Failed to serialize configuration to TOML")?;
+    let toml_content = config
+        .to_toml_string()
+        .context("Failed to serialize configuration to TOML")?;
 
     Ok(format!(
         "# tokmd configuration\n\
