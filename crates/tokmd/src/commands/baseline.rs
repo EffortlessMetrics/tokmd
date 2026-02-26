@@ -6,11 +6,9 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
-use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisSource, ComplexityBaseline,
-};
 #[cfg(feature = "git")]
 use tokmd_analysis_types::DeterminismBaseline;
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
@@ -113,7 +111,9 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
         }
         #[cfg(not(feature = "git"))]
         {
-            eprintln!("Warning: --determinism requires the 'git' feature (rebuild with --features git)");
+            eprintln!(
+                "Warning: --determinism requires the 'git' feature (rebuild with --features git)"
+            );
         }
     }
 
