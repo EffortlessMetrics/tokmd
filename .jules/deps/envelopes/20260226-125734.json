@@ -1,0 +1,10 @@
+{
+  "id": "20260226-125734",
+  "start_time": "2026-02-26T12:57:34Z",
+  "target": "tokmd",
+  "lane": "B",
+  "decision": "Remove redundant dev-dependencies",
+  "receipts": [
+    "cargo audit: not available"
+  ]
+}
