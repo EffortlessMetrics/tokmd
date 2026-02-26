@@ -400,7 +400,7 @@ pub fn collect_file_rows(
         kind: FileKind,
     }
 
-    let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
+    let mut entries: Vec<(Key, String /*module*/, Agg)> = Vec::new();
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
@@ -411,16 +411,20 @@ pub fn collect_file_rows(
             let (bytes, tokens) = get_file_metrics(&report.name);
 
             let key = Key {
-                path: path.clone(),
+                path,
                 lang: lang_type.name().to_string(),
                 kind: FileKind::Parent,
             };
-            let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-            entry.1.code += st.code;
-            entry.1.comments += st.comments;
-            entry.1.blanks += st.blanks;
-            entry.1.bytes += bytes;
-            entry.1.tokens += tokens;
+
+            let agg = Agg {
+                code: st.code,
+                comments: st.comments,
+                blanks: st.blanks,
+                bytes,
+                tokens,
+            };
+
+            entries.push((key, module, agg));
         }
     }
 
@@ -434,38 +438,82 @@ pub fn collect_file_rows(
                     // Embedded children do not have bytes/tokens (they are inside the parent)
 
                     let key = Key {
-                        path: path.clone(),
+                        path,
                         lang: child_type.name().to_string(),
                         kind: FileKind::Child,
                     };
-                    let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-                    entry.1.code += st.code;
-                    entry.1.comments += st.comments;
-                    entry.1.blanks += st.blanks;
-                    // entry.1.bytes += 0;
-                    // entry.1.tokens += 0;
+
+                    let agg = Agg {
+                        code: st.code,
+                        comments: st.comments,
+                        blanks: st.blanks,
+                        bytes: 0,
+                        tokens: 0,
+                    };
+
+                    entries.push((key, module, agg));
                 }
             }
         }
     }
 
-    map.into_iter()
-        .map(|(key, (module, agg))| {
-            let lines = agg.code + agg.comments + agg.blanks;
-            FileRow {
-                path: key.path,
-                module,
-                lang: key.lang,
-                kind: key.kind,
-                code: agg.code,
-                comments: agg.comments,
-                blanks: agg.blanks,
+    if entries.is_empty() {
+        return Vec::new();
+    }
+
+    // Sort to bring duplicates together
+    entries.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+
+    let mut result: Vec<FileRow> = Vec::with_capacity(entries.len());
+    let mut iter = entries.into_iter();
+    let (mut current_key, mut current_module, mut current_agg) = iter.next().unwrap();
+
+    for (key, module, agg) in iter {
+        if key == current_key {
+            // Coalesce
+            current_agg.code += agg.code;
+            current_agg.comments += agg.comments;
+            current_agg.blanks += agg.blanks;
+            current_agg.bytes += agg.bytes;
+            current_agg.tokens += agg.tokens;
+        } else {
+            // Push previous
+            let lines = current_agg.code + current_agg.comments + current_agg.blanks;
+            result.push(FileRow {
+                path: current_key.path,
+                module: current_module,
+                lang: current_key.lang,
+                kind: current_key.kind,
+                code: current_agg.code,
+                comments: current_agg.comments,
+                blanks: current_agg.blanks,
                 lines,
-                bytes: agg.bytes,
-                tokens: agg.tokens,
-            }
-        })
-        .collect()
+                bytes: current_agg.bytes,
+                tokens: current_agg.tokens,
+            });
+
+            current_key = key;
+            current_module = module;
+            current_agg = agg;
+        }
+    }
+
+    // Push last one
+    let lines = current_agg.code + current_agg.comments + current_agg.blanks;
+    result.push(FileRow {
+        path: current_key.path,
+        module: current_module,
+        lang: current_key.lang,
+        kind: current_key.kind,
+        code: current_agg.code,
+        comments: current_agg.comments,
+        blanks: current_agg.blanks,
+        lines,
+        bytes: current_agg.bytes,
+        tokens: current_agg.tokens,
+    });
+
+    result
 }
 
 pub fn unique_parent_file_count(languages: &Languages) -> usize {

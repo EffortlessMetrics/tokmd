@@ -1,22 +1,12 @@
 [
   {
-    "date": "2026-01-29",
+    "run_id": "20260226-132945",
+    "timestamp_utc": "2026-02-26T13:29:45Z",
     "lane": "scout",
-    "target": "crates/tokmd-format/src/lib.rs:redact_rows",
-    "proof_method": "structural",
+    "target": "crates/tokmd-model/src/lib.rs:collect_file_rows",
+    "proof_method": "reproduction_benchmark",
     "pr_link": "TODO",
-    "gates": ["build", "test", "fmt", "clippy"],
-    "status": "PASS",
-    "friction_ids": []
-  },
-  {
-    "date": "2026-01-30",
-    "lane": "scout",
-    "target": "crates/tokmd-model/src/lib.rs:normalize_path",
-    "proof_method": "cargo run --release --example bench_normalize",
-    "pr_link": "TODO",
-    "gates": ["build", "test", "fmt", "clippy"],
-    "status": "PASS",
-    "friction_ids": []
+    "gates_status": "passed",
+    "friction_ids_created": []
   }
 ]

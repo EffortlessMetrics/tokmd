@@ -1,0 +1,13 @@
+{
+  "run_id": "20260226-132945",
+  "timestamp_utc": "2026-02-26T13:29:45Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs:collect_file_rows",
+  "proof_method": "reproduction_benchmark",
+  "commands": [
+    "cargo run --release -p tokmd-model --example bench_aggregation (baseline)",
+    "cargo run --release -p tokmd-model --example bench_aggregation (optimized)",
+    "cargo test -p tokmd-model"
+  ],
+  "results_summary": "Replaced BTreeMap with Vec+Sort in collect_file_rows. Improved aggregation time by ~5% (39.8ms -> 37.7ms) for 10k files. Verified correctness with existing tests."
+}

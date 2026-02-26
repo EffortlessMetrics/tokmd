@@ -20,3 +20,5 @@ tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.10.0"
+tokmd-types.workspace = true
+tokei = { version = "14.0.0", default-features = false }
