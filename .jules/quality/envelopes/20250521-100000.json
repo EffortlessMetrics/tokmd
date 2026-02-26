@@ -1,0 +1,16 @@
+{
+  "id": "20250521-100000",
+  "agent": "Gatekeeper",
+  "target": "crates/tokmd-settings",
+  "goal": "Enforce deterministic ordering in TomlConfig view serialization",
+  "decision": "Replace HashMap with BTreeMap in TomlConfig",
+  "files_changed": [
+    "crates/tokmd-settings/src/lib.rs",
+    "crates/tokmd-settings/tests/determinism.rs"
+  ],
+  "verification": {
+    "new_test": "crates/tokmd-settings/tests/determinism.rs",
+    "status": "passed",
+    "receipt": "cargo test -p tokmd-settings"
+  }
+}
