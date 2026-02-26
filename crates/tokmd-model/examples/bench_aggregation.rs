@@ -1,5 +1,4 @@
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::time::Instant;
 use tokei::{Config, Languages};
 use tokmd_model::collect_file_rows;
