@@ -10,13 +10,13 @@ When you need to feed actual code to an LLM (not just metadata), use the `contex
 
 ```bash
 # Pack files into 128k tokens (Claude's context window)
-tokmd context --budget 128k --output bundle --output context.txt
+tokmd context --budget 128k --mode bundle --output context.txt
 
 # Spread coverage across modules instead of just largest files
-tokmd context --budget 128k --strategy spread --output bundle --output context.txt
+tokmd context --budget 128k --strategy spread --mode bundle --output context.txt
 
 # Strip blank lines for maximum density
-tokmd context --budget 128k --output bundle --compress --output context.txt
+tokmd context --budget 128k --mode bundle --compress --output context.txt
 
 # Use module roots for better organization
 tokmd context --budget 128k --module-roots crates,src --strategy spread --output context.txt

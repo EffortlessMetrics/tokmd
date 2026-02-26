@@ -1,0 +1,29 @@
+{
+  "run_id": "20260226-105348",
+  "persona": "Librarian",
+  "lane": "B",
+  "target": "docs",
+  "summary": "Fix incorrect flag --output to --mode for tokmd context in documentation",
+  "receipts": [
+    {
+      "command": "sed -i 's/--output bundle/--mode bundle/g' README.md docs/reference-cli.md docs/recipes.md docs/tutorial.md docs/troubleshooting.md crates/tokmd/README.md",
+      "result": "success"
+    },
+    {
+      "command": "sed -i 's/--output list/--mode list/g' README.md docs/reference-cli.md docs/recipes.md docs/tutorial.md docs/troubleshooting.md crates/tokmd/README.md",
+      "result": "success"
+    },
+    {
+      "command": "sed -i 's/--output json/--mode json/g' docs/reference-cli.md",
+      "result": "success"
+    },
+    {
+      "command": "sed -i 's/| --output <MODE> |/| --mode <MODE> |/g' docs/reference-cli.md",
+      "result": "success"
+    },
+    {
+      "command": "sed -i 's/--mode bundle.txt/--output bundle.txt/g' docs/reference-cli.md",
+      "result": "success"
+    }
+  ]
+}

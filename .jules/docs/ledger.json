@@ -10,5 +10,11 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
+  },
+  {
+    "run_id": "20260226-105348",
+    "date": "2026-02-26",
+    "persona": "Librarian",
+    "description": "Fix incorrect flag --output to --mode for tokmd context in documentation"
   }
 ]

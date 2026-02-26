@@ -133,7 +133,7 @@ Files with different encodings may report different sizes.
 **Check what's selected**:
 ```bash
 # List mode shows what would be packed
-tokmd context --budget 128k --output list
+tokmd context --budget 128k --mode list
 ```
 
 **Check token estimates**:
@@ -150,7 +150,7 @@ tokmd export --format csv | head -20
 **Workaround**: Use a smaller budget than your actual context window:
 ```bash
 # For 128k context, use 100k budget
-tokmd context --budget 100k --output bundle
+tokmd context --budget 100k --mode bundle
 ```
 
 **2. Wrong files selected with greedy strategy**
@@ -164,7 +164,7 @@ tokmd context --budget 128k --strategy spread
 
 Strip them for maximum density:
 ```bash
-tokmd context --budget 128k --output bundle --compress
+tokmd context --budget 128k --mode bundle --compress
 ```
 
 ---
