@@ -3,13 +3,18 @@
 //! This is a thin CLI handler that delegates to `tokmd-cockpit` for computation
 //! and rendering. Types are re-exported from `tokmd_types::cockpit`.
 
+#[cfg(feature = "git")]
 use std::io::Write;
+#[cfg(feature = "git")]
 use std::path::PathBuf;
 
-use anyhow::{Context, Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
+use anyhow::{Result, bail};
 use tokmd_config as cli;
 
 // Re-export all cockpit types for backwards compatibility with sensor.rs
+#[cfg(feature = "git")]
 pub use tokmd_types::cockpit::*;
 
 // Re-export computation functions used by sensor.rs
@@ -118,8 +123,10 @@ mod tests {
     use tempfile::tempdir;
     #[cfg(feature = "git")]
     use tokmd_cockpit::compute_determinism_gate;
+    #[cfg(feature = "git")]
     use tokmd_cockpit::{TrendDirection, format_signed_f64, sparkline, trend_direction_label};
 
+    #[cfg(feature = "git")]
     #[test]
     fn sparkline_rises() {
         let s = sparkline(&[10.0, 20.0, 30.0]);
@@ -127,17 +134,20 @@ mod tests {
         assert!(s.ends_with('\u{2588}'));
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn sparkline_flat() {
         let s = sparkline(&[5.0, 5.0, 5.0]);
         assert_eq!(s, "\u{2584}\u{2584}\u{2584}");
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn sparkline_empty() {
         assert!(sparkline(&[]).is_empty());
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn signed_float_formatting() {
         assert_eq!(format_signed_f64(1.25), "+1.25");
@@ -145,6 +155,7 @@ mod tests {
         assert_eq!(format_signed_f64(-1.25), "-1.25");
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn trend_direction_labels_are_stable() {
         assert_eq!(

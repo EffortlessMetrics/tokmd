@@ -24,6 +24,7 @@ fn baseline_generates_output_file() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn baseline_with_determinism_flag() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempfile::tempdir()?;

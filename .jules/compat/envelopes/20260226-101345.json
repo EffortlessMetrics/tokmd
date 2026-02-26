@@ -1,0 +1,19 @@
+{
+  "run_id": "20260226-101345",
+  "persona": "compat",
+  "status": "success",
+  "lane": "scout",
+  "target": "no-default-features build",
+  "receipts": [
+    {
+      "command": "cargo check --workspace --no-default-features",
+      "result": "success",
+      "output_snippet": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.66s"
+    },
+    {
+      "command": "cargo check --workspace --all-features",
+      "result": "success",
+      "output_snippet": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.38s"
+    }
+  ]
+}
