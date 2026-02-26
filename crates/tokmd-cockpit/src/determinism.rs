@@ -4,6 +4,7 @@
 //! `cockpit` command (to verify them). Both paths use the same incremental
 //! BLAKE3 protocol so that identical source trees produce identical hashes.
 
+use std::io;
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -36,7 +37,8 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
         // Skip files that no longer exist (e.g., deleted between scan and baseline)
         let content = match std::fs::read(&full) {
             Ok(c) => c,
-            Err(_) => continue,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(e).with_context(|| format!("failed to read {}", full.display())),
         };
 
         feed_file(&mut hasher, &normalized, &content);
@@ -90,7 +92,8 @@ pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String>
         let full = root.join(rel_path);
         let content = match std::fs::read(&full) {
             Ok(c) => c,
-            Err(_) => continue,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(e).with_context(|| format!("failed to read {}", full.display())),
         };
 
         feed_file(&mut hasher, rel_path, &content);
@@ -135,131 +138,139 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn test_hash_files_deterministic() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
-        fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
+    fn test_hash_files_deterministic() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
+        fs::write(dir.path().join("b.rs"), "fn test() {}")?;
 
         let paths = vec!["a.rs", "b.rs"];
-        let h1 = hash_files_from_paths(dir.path(), &paths).unwrap();
-        let h2 = hash_files_from_paths(dir.path(), &paths).unwrap();
+        let h1 = hash_files_from_paths(dir.path(), &paths)?;
+        let h2 = hash_files_from_paths(dir.path(), &paths)?;
 
         assert_eq!(h1, h2);
         assert_eq!(h1.len(), 64); // BLAKE3 hex digest
+        Ok(())
     }
 
     #[test]
-    fn test_hash_files_order_independent() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
-        fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
+    fn test_hash_files_order_independent() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
+        fs::write(dir.path().join("b.rs"), "fn test() {}")?;
 
-        let h1 = hash_files_from_paths(dir.path(), &["a.rs", "b.rs"]).unwrap();
-        let h2 = hash_files_from_paths(dir.path(), &["b.rs", "a.rs"]).unwrap();
+        let h1 = hash_files_from_paths(dir.path(), &["a.rs", "b.rs"])?;
+        let h2 = hash_files_from_paths(dir.path(), &["b.rs", "a.rs"])?;
 
         assert_eq!(h1, h2, "hash should be order-independent");
+        Ok(())
     }
 
     #[test]
-    fn test_hash_files_changes_on_modification() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
+    fn test_hash_files_changes_on_modification() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
 
-        let h1 = hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
+        let h1 = hash_files_from_paths(dir.path(), &["a.rs"])?;
 
-        fs::write(dir.path().join("a.rs"), "fn main() { panic!(); }").unwrap();
+        fs::write(dir.path().join("a.rs"), "fn main() { panic!(); }")?;
 
-        let h2 = hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
+        let h2 = hash_files_from_paths(dir.path(), &["a.rs"])?;
 
         assert_ne!(h1, h2, "hash should change when file content changes");
+        Ok(())
     }
 
     #[test]
-    fn test_hash_cargo_lock_present() {
-        let dir = tempfile::tempdir().unwrap();
+    fn test_hash_cargo_lock_present() -> Result<()> {
+        let dir = tempfile::tempdir()?;
         fs::write(
             dir.path().join("Cargo.lock"),
             "[[package]]\nname = \"test\"",
-        )
-        .unwrap();
+        )?;
 
-        let result = hash_cargo_lock(dir.path()).unwrap();
+        let result = hash_cargo_lock(dir.path())?;
         assert!(result.is_some());
         assert_eq!(result.unwrap().len(), 64);
+        Ok(())
     }
 
     #[test]
-    fn test_hash_cargo_lock_absent() {
-        let dir = tempfile::tempdir().unwrap();
+    fn test_hash_cargo_lock_absent() -> Result<()> {
+        let dir = tempfile::tempdir()?;
 
-        let result = hash_cargo_lock(dir.path()).unwrap();
+        let result = hash_cargo_lock(dir.path())?;
         assert!(result.is_none());
+        Ok(())
     }
 
     #[test]
-    fn test_hash_files_from_walk_deterministic() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
-        fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
+    fn test_hash_files_from_walk_deterministic() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
+        fs::write(dir.path().join("b.rs"), "fn test() {}")?;
 
-        let h1 = hash_files_from_walk(dir.path(), &[]).unwrap();
-        let h2 = hash_files_from_walk(dir.path(), &[]).unwrap();
+        let h1 = hash_files_from_walk(dir.path(), &[])?;
+        let h2 = hash_files_from_walk(dir.path(), &[])?;
 
         assert_eq!(h1, h2);
         assert_eq!(h1.len(), 64);
+        Ok(())
     }
 
     #[test]
-    fn test_walk_and_paths_produce_same_hash() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
-        fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
+    fn test_walk_and_paths_produce_same_hash() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
+        fs::write(dir.path().join("b.rs"), "fn test() {}")?;
         // Create .git marker so ignore crate works properly
-        fs::create_dir_all(dir.path().join(".git")).unwrap();
+        fs::create_dir_all(dir.path().join(".git"))?;
 
-        let from_paths = hash_files_from_paths(dir.path(), &["a.rs", "b.rs"]).unwrap();
-        let from_walk = hash_files_from_walk(dir.path(), &[]).unwrap();
+        let from_paths = hash_files_from_paths(dir.path(), &["a.rs", "b.rs"])?;
+        let from_walk = hash_files_from_walk(dir.path(), &[])?;
 
         assert_eq!(
             from_paths, from_walk,
             "walk and explicit paths should produce same hash for same files"
         );
+        Ok(())
     }
 
     #[test]
-    fn test_walk_excludes_specified_paths() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
-        fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
+    fn test_walk_excludes_specified_paths() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
+        fs::write(dir.path().join("b.rs"), "fn test() {}")?;
         // Create .git marker so ignore crate works properly
-        fs::create_dir_all(dir.path().join(".git")).unwrap();
+        fs::create_dir_all(dir.path().join(".git"))?;
 
         // Walk excluding b.rs should match paths-only hash of just a.rs
-        let walk_excluded = hash_files_from_walk(dir.path(), &["b.rs"]).unwrap();
-        let paths_only = hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
+        let walk_excluded = hash_files_from_walk(dir.path(), &["b.rs"])?;
+        let paths_only = hash_files_from_paths(dir.path(), &["a.rs"])?;
 
         assert_eq!(
             walk_excluded, paths_only,
             "excluding b.rs from walk should match paths-only a.rs"
         );
+        Ok(())
     }
 
     #[test]
-    fn test_walk_excludes_tokmd_directory() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
+    fn test_walk_excludes_tokmd_directory() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("a.rs"), "fn main() {}")?;
         // Create .git marker so ignore crate works properly
-        fs::create_dir_all(dir.path().join(".git")).unwrap();
+        fs::create_dir_all(dir.path().join(".git"))?;
         // Create .tokmd directory with a baseline file -- should be auto-excluded
-        fs::create_dir_all(dir.path().join(".tokmd")).unwrap();
-        fs::write(dir.path().join(".tokmd/baseline.json"), "{}").unwrap();
+        fs::create_dir_all(dir.path().join(".tokmd"))?;
+        fs::write(dir.path().join(".tokmd/baseline.json"), "{}")?;
 
-        let with_tokmd = hash_files_from_walk(dir.path(), &[]).unwrap();
-        let paths_only = hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
+        let with_tokmd = hash_files_from_walk(dir.path(), &[])?;
+        let paths_only = hash_files_from_paths(dir.path(), &["a.rs"])?;
 
         assert_eq!(
             with_tokmd, paths_only,
             ".tokmd/ directory should be auto-excluded from walk hash"
         );
+        Ok(())
     }
 }

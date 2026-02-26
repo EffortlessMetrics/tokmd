@@ -1,0 +1,32 @@
+{
+  "run_id": "20250521-120000",
+  "timestamp_utc": "2025-05-21T12:00:00Z",
+  "lane": "scout",
+  "target": "determinism/strict-io",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "results_summary": [
+    "Fixed file read error suppression in tokmd-cockpit/src/determinism.rs",
+    "Refactored tokmd-cockpit/src/determinism.rs tests to use Result<()>"
+  ]
+}
