@@ -11,5 +11,18 @@
       "clippy": "PASS"
     },
     "friction_ids": []
+  },
+  {
+    "date": "2025-05-21T10:00:00Z",
+    "lane": "scout",
+    "target": "Implement `tokmd init --write-config`",
+    "pr_link": null,
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids": []
   }
 ]

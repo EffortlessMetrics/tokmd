@@ -687,6 +687,11 @@ impl TomlConfig {
         toml::from_str(&content)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     }
+
+    /// Serialize configuration to a TOML string.
+    pub fn to_toml_string(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
+    }
 }
 
 /// Result type alias for TOML parsing errors.
@@ -872,5 +877,22 @@ roots = ["src", "tests"]
             config.module.roots,
             Some(vec!["src".to_string(), "tests".to_string()])
         );
+    }
+
+    #[test]
+    fn to_toml_string_serialization() {
+        let config = TomlConfig {
+            module: ModuleConfig {
+                roots: Some(vec!["crates".to_string()]),
+                depth: Some(2),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let toml_string = config.to_toml_string().expect("serialize config");
+        assert!(toml_string.contains("[module]"));
+        assert!(toml_string.contains("roots = [\"crates\"]"));
+        assert!(toml_string.contains("depth = 2"));
     }
 }

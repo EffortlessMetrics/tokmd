@@ -1,0 +1,34 @@
+{
+  "run_id": "20250521-100000",
+  "timestamp_utc": "2025-05-21T10:00:00Z",
+  "lane": "Scout Discovery",
+  "target": "Implement `tokmd init --write-config`",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_code": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo test --verbose",
+      "exit_code": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_code": 1,
+      "summary": "FAIL (Fixed)"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS"
+    }
+  ],
+  "results_summary": [
+    "Implemented `TomlConfig::to_toml_string` in `tokmd-settings`.",
+    "Added `InitArgs::write_config` and `InitProfile::default_config` in `tokmd-config`.",
+    "Updated `tokmd init` to support `--write-config`.",
+    "Verified `tokmd init --write-config` generates expected `tokmd.toml`."
+  ]
+}

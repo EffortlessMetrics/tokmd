@@ -523,6 +523,10 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
+
+    /// Generate a default `tokmd.toml` configuration file.
+    #[arg(long)]
+    pub write_config: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -569,6 +573,64 @@ pub enum InitProfile {
     Python,
     Go,
     Cpp,
+}
+
+impl InitProfile {
+    /// Generate a default configuration for this profile.
+    pub fn default_config(&self) -> TomlConfig {
+        let (module_roots, depth) = match self {
+            Self::Rust => (vec!["crates".to_string(), "src".to_string()], 2),
+            Self::Node => (
+                vec![
+                    "packages".to_string(),
+                    "apps".to_string(),
+                    "src".to_string(),
+                ],
+                2,
+            ),
+            Self::Python => (vec!["src".to_string(), "lib".to_string()], 2),
+            Self::Go => (
+                vec!["cmd".to_string(), "pkg".to_string(), "internal".to_string()],
+                2,
+            ),
+            Self::Cpp => (
+                vec!["src".to_string(), "include".to_string(), "lib".to_string()],
+                2,
+            ),
+            Self::Mono => (
+                vec![
+                    "packages".to_string(),
+                    "apps".to_string(),
+                    "libs".to_string(),
+                ],
+                2,
+            ),
+            Self::Default => (vec!["src".to_string()], 2),
+        };
+
+        TomlConfig {
+            module: ModuleConfig {
+                roots: Some(module_roots),
+                depth: Some(depth),
+                ..Default::default()
+            },
+            export: ExportConfig {
+                format: Some("jsonl".to_string()),
+                min_code: Some(10),
+                ..Default::default()
+            },
+            context: ContextConfig {
+                budget: Some("128k".to_string()),
+                strategy: Some("greedy".to_string()),
+                ..Default::default()
+            },
+            analyze: AnalyzeConfig {
+                preset: Some("receipt".to_string()),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone)]
@@ -1004,5 +1066,26 @@ impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
 impl From<GlobalArgs> for tokmd_settings::ScanOptions {
     fn from(g: GlobalArgs) -> Self {
         Self::from(&g)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_profile_default_config() {
+        let config = InitProfile::Rust.default_config();
+        let roots = config.module.roots.unwrap();
+        assert!(roots.contains(&"crates".to_string()));
+        assert!(roots.contains(&"src".to_string()));
+        assert_eq!(config.module.depth, Some(2));
+    }
+
+    #[test]
+    fn test_init_profile_node_config() {
+        let config = InitProfile::Node.default_config();
+        let roots = config.module.roots.unwrap();
+        assert!(roots.contains(&"packages".to_string()));
     }
 }
