@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-25",
+    "lane": "scout",
+    "target": "tokmd-model file metrics",
+    "proof_method": "repro_bench.sh",
+    "pr_link": "TODO",
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": ["FRIC-20260225-001"]
   }
 ]
