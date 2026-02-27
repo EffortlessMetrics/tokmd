@@ -30,4 +30,4 @@ tokmd-analysis-types.workspace = true
 napi-build = "2"
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.26.0"

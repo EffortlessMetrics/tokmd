@@ -46,7 +46,7 @@ topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
 archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 blake3.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
@@ -78,5 +78,5 @@ tokmd-analysis-halstead = { workspace = true, optional = true }
 tokmd-analysis-maintainability = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.26.0"
 proptest = "1.10.0"
