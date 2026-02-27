@@ -1,17 +1,13 @@
----
-# Friction item
+# Friction Item
 
-id: FRIC-YYYYMMDD-###
-tags: [palette, dx]
+## 🛑 Pain
+What is hurting? Be specific.
 
-## Pain
-What hurts, in one paragraph.
+## 🔎 Evidence
+Links to code, logs, or behavior.
 
-## Evidence
-- file paths
-- commands / outputs
-- screenshots (if relevant)
+## ✅ Done When
+Criteria for closing this item.
 
-## Done when
-- [ ] acceptance criteria
----
+## 🏷️ Tags
+security, quality, determinism, etc.

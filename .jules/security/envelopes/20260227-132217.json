@@ -1,0 +1,21 @@
+{
+  "run_id": "20260227-132217",
+  "timestamp_utc": "2026-02-27T13:22:17Z",
+  "lane": "scout",
+  "target": "crates/tokmd-scan/src/lib.rs, crates/tokmd-core/src/ffi.rs",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd-scan",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "key_lines": "test result: ok. 10 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo test -p tokmd-core",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "key_lines": "test result: ok. 42 passed; 0 failed"
+    }
+  ],
+  "results_summary": "Refactored tests to remove unwrap(). All tests passed."
+}
