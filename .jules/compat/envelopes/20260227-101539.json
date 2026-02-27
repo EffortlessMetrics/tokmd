@@ -5,16 +5,20 @@
   "target_lane": "B",
   "receipts": [
     {
-        "command": "cargo build -p tokmd --no-default-features",
-        "result": "pass"
+      "command": "cargo build -p tokmd --no-default-features",
+      "result": "pass"
     },
     {
-        "command": "cargo build -p tokmd",
-        "result": "pass"
+      "command": "cargo build -p tokmd",
+      "result": "pass"
     },
     {
-        "command": "cargo test -p tokmd --no-default-features",
-        "result": "pass"
+      "command": "cargo test -p tokmd --no-default-features",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --all",
+      "result": "pass"
     }
   ]
 }
