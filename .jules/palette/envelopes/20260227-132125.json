@@ -1,0 +1,24 @@
+{
+  "run_id": "20260227-132125",
+  "timestamp_utc": "2026-02-27T13:21:25Z",
+  "lane": "scout",
+  "target": "tokmd init UX",
+  "commands": [
+    {
+      "cmd": "tokmd init --force",
+      "exit_status": 0,
+      "output": "Initialized ./.tokeignore using 'default' template.\nHint: Use --template <NAME> for specific defaults (rust, node, python...).\nReady! Run 'tokmd' to scan your code."
+    },
+    {
+      "cmd": "tokmd init --template rust --force",
+      "exit_status": 0,
+      "output": "Initialized ./.tokeignore using 'rust' template.\nReady! Run 'tokmd' to scan your code."
+    },
+    {
+      "cmd": "tokmd init --print",
+      "exit_status": 0,
+      "output": "# .tokeignore (starts with content...)"
+    }
+  ],
+  "results_summary": "Verified interactive-like feedback in non-interactive mode."
+}

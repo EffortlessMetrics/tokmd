@@ -18,7 +18,24 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
         !args.print && !args.non_interactive && interactive::tty::should_be_interactive();
 
     if !use_wizard {
-        return tokeignore::init_tokeignore(&args).map(|_| ());
+        if let Some(path) = tokeignore::init_tokeignore(&args)? {
+            // Friendly success message
+            let template_name = format!("{:?}", args.template).to_lowercase();
+            eprintln!(
+                "Initialized {} using '{}' template.",
+                path.display(),
+                template_name
+            );
+
+            if matches!(args.template, cli::InitProfile::Default) {
+                eprintln!(
+                    "Hint: Use --template <NAME> for specific defaults (rust, node, python...)."
+                );
+            }
+
+            eprintln!("Ready! Run 'tokmd' to scan your code.");
+        }
+        return Ok(());
     }
 
     // Run interactive wizard (only available with ui feature)

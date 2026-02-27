@@ -219,7 +219,7 @@ out/
 **/.runs/
 "#;
 
-pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
+pub fn init_tokeignore(args: &InitArgs) -> Result<Option<PathBuf>> {
     let template = match args.template {
         InitProfile::Default => TEMPLATE_DEFAULT,
         InitProfile::Rust => TEMPLATE_RUST,
@@ -232,7 +232,7 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
 
     if args.print {
         print!("{template}");
-        return Ok(());
+        return Ok(None);
     }
 
     let dir: PathBuf = args.dir.clone();
@@ -249,6 +249,5 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<()> {
     }
 
     fs::write(&path, template)?;
-    eprintln!("Wrote {}", path.display());
-    Ok(())
+    Ok(Some(path))
 }
