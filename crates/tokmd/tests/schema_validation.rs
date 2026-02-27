@@ -457,10 +457,13 @@ fn test_sensor_report_example_pass_validates() -> Result<()> {
     let validator = jsonschema::validator_for(&schema)
         .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
 
-    // Read the pass example from tests/data (copied from contracts for reliable access)
+    // Read the pass example from contracts
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data")
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("contracts")
         .join("sensor.report.v1")
         .join("examples")
         .join("pass.json");
@@ -488,10 +491,13 @@ fn test_sensor_report_example_fail_validates() -> Result<()> {
     let validator = jsonschema::validator_for(&schema)
         .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
 
-    // Read the fail example from tests/data (copied from contracts for reliable access)
+    // Read the fail example from contracts
     let example_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data")
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("contracts")
         .join("sensor.report.v1")
         .join("examples")
         .join("fail.json");
