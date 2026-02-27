@@ -1,0 +1,20 @@
+{
+  "run_id": "20260227-101539",
+  "start_time": "2026-02-27T10:15:39Z",
+  "persona": "compat",
+  "target_lane": "B",
+  "receipts": [
+    {
+        "command": "cargo build -p tokmd --no-default-features",
+        "result": "pass"
+    },
+    {
+        "command": "cargo build -p tokmd",
+        "result": "pass"
+    },
+    {
+        "command": "cargo test -p tokmd --no-default-features",
+        "result": "pass"
+    }
+  ]
+}
