@@ -30,10 +30,10 @@ tokmd --version
 
 ## Step 0.5: Quick Setup with Interactive Wizard (Optional)
 
-For first-time setup, run the interactive wizard to configure tokmd for your project (runs by default in interactive mode):
+For first-time setup, run the interactive wizard to configure tokmd for your project:
 
 ```bash
-tokmd init
+tokmd init --interactive
 ```
 
 The wizard will:
