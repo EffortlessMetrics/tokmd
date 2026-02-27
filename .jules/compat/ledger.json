@@ -16,6 +16,6 @@
     "run_id": "run-20240525-compat-004",
     "date": "2024-05-25",
     "target": "tokmd",
-    "improvement": "fixed no-default-features build for baseline/cockpit/sensor commands"
+    "improvement": "superseded by PR #203"
   }
 ]
