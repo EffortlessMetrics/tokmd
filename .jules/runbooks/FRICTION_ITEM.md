@@ -1,17 +1,16 @@
----
-# Friction item
+# Friction Item
 
-id: FRIC-YYYYMMDD-###
-tags: [palette, dx]
+## 🛑 Pain Point
+What hurts?
 
-## Pain
-What hurts, in one paragraph.
+## 🔎 Evidence
+Where is it?
 
-## Evidence
-- file paths
-- commands / outputs
-- screenshots (if relevant)
+## ✅ Done When
+What defines success?
 
-## Done when
-- [ ] acceptance criteria
----
+## 🏷️ Tags
+- [ ] security
+- [ ] quality
+- [ ] performance
+- [ ] ux
