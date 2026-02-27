@@ -1,7 +1,7 @@
 {
   "id": "run-20240525-compat-004",
   "persona": "compat",
-  "status": "completed",
+  "status": "integrated-via-cherry-pick",
   "gates": {
     "build": "pass",
     "test": "pass",
@@ -34,6 +34,10 @@
     {
       "step": "fix-fmt",
       "status": "pass"
+    },
+    {
+      "step": "pr-closed",
+      "status": "cherry-picked"
     }
   ],
   "receipts": []
