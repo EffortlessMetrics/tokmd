@@ -44,6 +44,7 @@ Ready! Run 'tokmd' to scan your code.
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-tokeignore/src/lib.rs`: Changed `init_tokeignore` to return `Result<Option<PathBuf>>` and removed internal printing.
 - `crates/tokmd/src/commands/init.rs`: Updated to handle the result, print the success message, and conditionally show hints.
+- `docs/reference-cli.md`: Updated via `cargo xtask docs --update` to reflect CLI drift.
 
 ## 🧪 Verification receipts
 Copied from run envelope:
@@ -74,6 +75,7 @@ Copied from run envelope:
     - `cargo test`: PASS
     - `cargo fmt`: PASS
     - `cargo clippy`: PASS
+    - `cargo xtask docs --check`: PASS (after update)
 
 ## 🗂️ .jules updates
 - Updated `palette/ledger.json` with run details.
