@@ -682,17 +682,112 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
 }
 
 fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
-    let mut entries: Vec<String> = rows
-        .iter()
-        .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
-        .collect();
-    entries.sort();
-    let joined = entries.join("\n");
-    let hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
+    let mut sorted_rows = rows.to_vec();
+    sorted_rows.sort_unstable_by(|a, b| compare_integrity_rows(*a, *b));
+
+    let mut hasher = blake3::Hasher::new();
+    let mut first = true;
+    for row in sorted_rows {
+        if !first {
+            hasher.update(b"\n");
+        }
+        first = false;
+        hasher.update(row.path.as_bytes());
+        hasher.update(b":");
+        hasher.update(row.bytes.to_string().as_bytes());
+        hasher.update(b":");
+        hasher.update(row.lines.to_string().as_bytes());
+    }
 
     IntegrityReport {
         algo: "blake3".to_string(),
-        hash,
-        entries: entries.len(),
+        hash: hasher.finalize().to_hex().to_string(),
+        entries: rows.len(),
+    }
+}
+
+fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
+    let a_bytes = a.path.as_bytes();
+    let b_bytes = b.path.as_bytes();
+    let min_len = a_bytes.len().min(b_bytes.len());
+
+    // Fast slice compare for common prefix
+    let ord = a_bytes[..min_len].cmp(&b_bytes[..min_len]);
+    if ord != std::cmp::Ordering::Equal {
+        return ord;
+    }
+
+    // Paths are identical or one is prefix of other
+    if a_bytes.len() == b_bytes.len() {
+        // Identical paths. Compare numbers.
+        // We must emulate string sort of "bytes:lines".
+        // Format them to ensure correct string sort order.
+        let a_str = format!("{}:{}", a.bytes, a.lines);
+        let b_str = format!("{}:{}", b.bytes, b.lines);
+        return a_str.cmp(&b_str);
+    }
+
+    // One is shorter.
+    // The separator is ':'.
+    if a_bytes.len() < b_bytes.len() {
+        // a is prefix of b.
+        // Effective string a: "path:..."
+        // Effective string b: "path..."
+        // Compare ':' vs b[min_len]
+        return b':'.cmp(&b_bytes[min_len]);
+    } else {
+        // b is prefix of a.
+        // Effective string a: "path..."
+        // Effective string b: "path:..."
+        // Compare a[min_len] vs ':'
+        return a_bytes[min_len].cmp(&b':');
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokmd_types::{FileKind, FileRow};
+
+    fn make_row(path: &str, bytes: usize, lines: usize) -> FileRow {
+        FileRow {
+            path: path.to_string(),
+            module: "mod".to_string(),
+            lang: "rust".to_string(),
+            kind: FileKind::Parent,
+            code: 0,
+            comments: 0,
+            blanks: 0,
+            lines,
+            bytes,
+            tokens: 0,
+        }
+    }
+
+    #[test]
+    fn test_compare_integrity_rows_matches_string_sort() {
+        let cases = vec![
+            ("a", 10, 10, "b", 10, 10),
+            ("a", 10, 10, "a", 10, 10),
+            ("a", 10, 10, "a", 20, 10),
+            ("a", 100, 10, "a", 20, 10), // "100" < "20" as string? No, '1' < '2'. So "100" < "20".
+            ("a", 10, 10, "a.b", 10, 10),
+            ("a.b", 10, 10, "a", 10, 10),
+            ("foo", 10, 10, "foo.bar", 10, 10),
+            ("foo.bar", 10, 10, "foo", 10, 10),
+            ("foo", 10, 10, "foo_bar", 10, 10),
+        ];
+
+        for (p1, b1, l1, p2, b2, l2) in cases {
+            let r1 = make_row(p1, b1, l1);
+            let r2 = make_row(p2, b2, l2);
+
+            let s1 = format!("{}:{}:{}", p1, b1, l1);
+            let s2 = format!("{}:{}:{}", p2, b2, l2);
+            let expected = s1.cmp(&s2);
+            let actual = compare_integrity_rows(&r1, &r2);
+
+            assert_eq!(actual, expected, "Failed for {} vs {}", s1, s2);
+        }
     }
 }
