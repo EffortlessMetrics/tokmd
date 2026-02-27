@@ -442,16 +442,16 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 tokmd context --budget 128k
 
 # Create a bundle ready to paste into Claude
-tokmd context --budget 128k --output bundle --output context.txt
+tokmd context --budget 128k --mode bundle --output context.txt
 
 # Spread coverage across modules instead of taking largest files
 tokmd context --budget 200k --strategy spread
 
 # Compressed bundle (no blank lines)
-tokmd context --budget 100k --output bundle --compress --output bundle.txt
+tokmd context --budget 100k --mode bundle --compress --output bundle.txt
 
 # JSON receipt for programmatic use
-tokmd context --budget 128k --output json --output selection.json
+tokmd context --budget 128k --mode json --output selection.json
 
 # Bundle to directory for large outputs
 tokmd context --budget 200k --bundle-dir ./ctx-bundle

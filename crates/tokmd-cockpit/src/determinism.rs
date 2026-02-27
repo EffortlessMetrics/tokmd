@@ -4,6 +4,7 @@
 //! `cockpit` command (to verify them). Both paths use the same incremental
 //! BLAKE3 protocol so that identical source trees produce identical hashes.
 
+use std::io;
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -33,10 +34,14 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
             continue;
         }
 
-        // Skip files that no longer exist (e.g., deleted between scan and baseline)
+        // Skip files that no longer exist (e.g., deleted between scan and baseline).
+        // Propagate other errors (permissions, I/O) to avoid silent hash corruption.
         match feed_file_streaming(&mut hasher, &normalized, &full) {
             Ok(()) => {}
-            Err(_) => continue,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => continue,
+            Err(e) => {
+                return Err(e).with_context(|| format!("failed to hash {}", full.display()));
+            }
         }
     }
 
@@ -86,9 +91,13 @@ pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String>
 
     for rel_path in &paths {
         let full = root.join(rel_path);
+        // Only skip NotFound (race with deletion); propagate other I/O errors.
         match feed_file_streaming(&mut hasher, rel_path, &full) {
             Ok(()) => {}
-            Err(_) => continue,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => continue,
+            Err(e) => {
+                return Err(e).with_context(|| format!("failed to hash {}", full.display()));
+            }
         }
     }
 
