@@ -631,6 +631,68 @@ mod tests {
         assert_eq!(got, "C:/Code/Repo/src/main.rs");
     }
 
+    mod normalize_properties {
+        use super::*;
+        use proptest::prelude::*;
+
+        fn arb_path_component() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9_.-]+"
+        }
+
+        fn arb_path(max_depth: usize) -> impl Strategy<Value = String> {
+            prop::collection::vec(arb_path_component(), 1..=max_depth)
+                .prop_map(|comps| comps.join("/"))
+        }
+
+        proptest! {
+            #[test]
+            fn normalize_path_is_idempotent(path in arb_path(5)) {
+                let p = PathBuf::from(&path);
+                let norm1 = normalize_path(&p, None);
+                let p2 = PathBuf::from(&norm1);
+                let norm2 = normalize_path(&p2, None);
+                prop_assert_eq!(norm1, norm2);
+            }
+
+            #[test]
+            fn normalize_path_handles_windows_separators(path in arb_path(5)) {
+                let win_path = path.replace('/', "\\");
+                let p_win = PathBuf::from(&win_path);
+                let p_unix = PathBuf::from(&path);
+
+                let norm_win = normalize_path(&p_win, None);
+                let norm_unix = normalize_path(&p_unix, None);
+
+                prop_assert_eq!(norm_win, norm_unix);
+            }
+
+            #[test]
+            fn normalize_path_no_leading_slash(path in arb_path(5)) {
+                let p = PathBuf::from(&path);
+                let norm = normalize_path(&p, None);
+                prop_assert!(!norm.starts_with('/'));
+            }
+
+            #[test]
+            fn normalize_path_no_leading_dot_slash(path in arb_path(5)) {
+                let p = PathBuf::from(&path);
+                let norm = normalize_path(&p, None);
+                prop_assert!(!norm.starts_with("./"));
+            }
+
+            #[test]
+            fn module_key_deterministic(
+                path in arb_path(5),
+                roots in prop::collection::vec(arb_path_component(), 1..3),
+                depth in 1usize..5
+            ) {
+                let k1 = module_key(&path, &roots, depth);
+                let k2 = module_key(&path, &roots, depth);
+                prop_assert_eq!(k1, k2);
+            }
+        }
+    }
+
     // Property-based tests for fold_other_* functions
     mod fold_properties {
         use super::*;
