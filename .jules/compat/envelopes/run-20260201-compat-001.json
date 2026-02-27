@@ -1,8 +1,0 @@
-{
-  "run_id": "run-20260201-compat-001",
-  "status": "completed",
-  "target": "tokmd",
-  "lane": "scout",
-  "decision": "Option A: Gate unused items behind feature flag",
-  "verification": "cargo check --no-default-features passes"
-}
