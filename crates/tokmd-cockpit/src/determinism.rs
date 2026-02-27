@@ -34,12 +34,10 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
         }
 
         // Skip files that no longer exist (e.g., deleted between scan and baseline)
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
+        match feed_file_streaming(&mut hasher, &normalized, &full) {
+            Ok(()) => {}
             Err(_) => continue,
-        };
-
-        feed_file(&mut hasher, &normalized, &content);
+        }
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -88,12 +86,10 @@ pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String>
 
     for rel_path in &paths {
         let full = root.join(rel_path);
-        let content = match std::fs::read(&full) {
-            Ok(c) => c,
+        match feed_file_streaming(&mut hasher, rel_path, &full) {
+            Ok(()) => {}
             Err(_) => continue,
-        };
-
-        feed_file(&mut hasher, rel_path, &content);
+        }
     }
 
     Ok(hasher.finalize().to_hex().to_string())
@@ -115,13 +111,22 @@ pub fn hash_cargo_lock(root: &Path) -> Result<Option<String>> {
     Ok(Some(hash.to_hex().to_string()))
 }
 
-/// Feed a single file into the incremental hasher.
+/// Feed a single file into the incremental hasher using streaming I/O (O(1) memory).
 ///
 /// Protocol: `hasher.update(path_bytes); hasher.update(len_le_bytes); hasher.update(content)`.
-fn feed_file(hasher: &mut blake3::Hasher, normalized_path: &str, content: &[u8]) {
+fn feed_file_streaming(
+    hasher: &mut blake3::Hasher,
+    normalized_path: &str,
+    full_path: &Path,
+) -> std::io::Result<()> {
+    let metadata = std::fs::metadata(full_path)?;
+    let len = metadata.len();
     hasher.update(normalized_path.as_bytes());
-    hasher.update(&(content.len() as u64).to_le_bytes());
-    hasher.update(content);
+    hasher.update(&len.to_le_bytes());
+    let file = std::fs::File::open(full_path)?;
+    let mut reader = std::io::BufReader::new(file);
+    std::io::copy(&mut reader, hasher)?;
+    Ok(())
 }
 
 /// Normalize a relative path to use forward slashes.
