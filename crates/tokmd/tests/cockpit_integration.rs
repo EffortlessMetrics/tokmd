@@ -452,7 +452,7 @@ fn test_cockpit_file_classification() {
 #[test]
 fn test_evidence_gates_pass_all() {
     // Given: A repository with adequate code, tests, and documentation
-    // When: User runs `tokmd cockpit --base main --head feature --format json`
+    // When: User runs `tokmd cockpit --base HEAD --head HEAD --format json`
     // Then: Output should show all evidence gates passing
     if !common::git_available() {
         eprintln!("Skipping: git not available");
@@ -495,8 +495,9 @@ fn test_evidence_gates_pass_all() {
     let output = cmd
         .current_dir(dir.path())
         .arg("cockpit")
+        // Use explicit HEAD to avoid runtime failures in CI environments lacking main branch
         .arg("--base")
-        .arg("main")
+        .arg("HEAD")
         .arg("--head")
         .arg("HEAD")
         .arg("--format")
