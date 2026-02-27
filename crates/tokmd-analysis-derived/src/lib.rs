@@ -683,7 +683,7 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
 
 fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
     let mut sorted_rows = rows.to_vec();
-    sorted_rows.sort_unstable_by(|a, b| compare_integrity_rows(*a, *b));
+    sorted_rows.sort_unstable_by(|&a, &b| compare_integrity_rows(a, b));
 
     let mut hasher = blake3::Hasher::new();
     let mut first = true;
@@ -734,13 +734,13 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
         // Effective string a: "path:..."
         // Effective string b: "path..."
         // Compare ':' vs b[min_len]
-        return b':'.cmp(&b_bytes[min_len]);
+        b':'.cmp(&b_bytes[min_len])
     } else {
         // b is prefix of a.
         // Effective string a: "path..."
         // Effective string b: "path:..."
         // Compare a[min_len] vs ':'
-        return a_bytes[min_len].cmp(&b':');
+        a_bytes[min_len].cmp(&b':')
     }
 }
 
