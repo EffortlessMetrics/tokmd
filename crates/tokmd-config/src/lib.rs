@@ -358,9 +358,9 @@ pub struct CliAnalyzeArgs {
     #[arg(long, value_enum)]
     pub format: Option<AnalysisFormat>,
 
-    /// Context window size (tokens) for utilization bars with optional k/m suffix (e.g., "128k", "1m").
+    /// Context window size (tokens) for utilization bars.
     #[arg(long)]
-    pub window: Option<String>,
+    pub window: Option<usize>,
 
     /// Force-enable git-based metrics.
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "no_git")]

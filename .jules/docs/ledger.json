@@ -10,11 +10,5 @@
     "date": "2026-01-30",
     "persona": "Librarian",
     "description": "Documented configuration files and profiles in README, removed misleading scan config from reference"
-  },
-  {
-    "run_id": "run_lib_scout_01",
-    "date": "2026-02-05",
-    "persona": "Librarian",
-    "description": "Implemented k/m suffix support for analyze --window to match context --budget ergonomics"
   }
 ]
