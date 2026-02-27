@@ -19,6 +19,10 @@
     {
       "command": "cargo fmt --all",
       "result": "pass"
+    },
+    {
+      "command": "cargo xtask docs --update",
+      "result": "pass"
     }
   ]
 }
