@@ -456,6 +456,8 @@ pub fn select_files_with_options(
     let mut classification_map: BTreeMap<String, Vec<FileClassification>> = BTreeMap::new();
     let mut policy_map: BTreeMap<String, (InclusionPolicy, Option<String>)> = BTreeMap::new();
     let mut excluded_by_policy: Vec<PolicyExcludedFile> = Vec::new();
+    // Track original tokens because candidate_rows will be modified (capped) for budget accounting
+    let mut original_tokens: BTreeMap<String, usize> = BTreeMap::new();
 
     for row in candidate_rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let path = normalize_path(&row.path);
@@ -464,6 +466,7 @@ pub fn select_files_with_options(
 
         classification_map.insert(path.clone(), classes.clone());
         policy_map.insert(path.clone(), (policy, reason.clone()));
+        original_tokens.insert(path.clone(), row.tokens);
 
         // Skip/Summary → move to excluded_by_policy
         if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
@@ -586,6 +589,10 @@ pub fn select_files_with_options(
             if *policy == InclusionPolicy::HeadTail {
                 // effective_tokens is the capped value (file.tokens was already capped)
                 file.effective_tokens = Some(file.tokens);
+                // Restore original tokens so density calculation (tokens/line) is correct
+                if let Some(original) = original_tokens.get(&path) {
+                    file.tokens = *original;
+                }
             }
         }
     }

@@ -34,7 +34,7 @@ pub fn module_key_from_normalized(
         return "(root)".to_string();
     };
 
-    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty());
+    let mut dirs = dir_part.split('/').filter(|s| !s.is_empty() && *s != ".");
     let first = match dirs.next() {
         Some(s) => s,
         None => return "(root)".to_string(),
@@ -105,5 +105,20 @@ mod tests {
             module_key_from_normalized("crates//foo/src/lib.rs", &roots, 2),
             "crates/foo"
         );
+    }
+
+    #[test]
+    fn module_key_from_normalized_ignores_dot_segments() {
+        let roots = vec!["crates".into()];
+        assert_eq!(
+            module_key_from_normalized("crates/./foo/src/lib.rs", &roots, 2),
+            "crates/foo"
+        );
+    }
+
+    #[test]
+    fn module_key_dot_only_dir_becomes_root() {
+        let roots = vec!["crates".into()];
+        assert_eq!(module_key_from_normalized("./lib.rs", &roots, 2), "(root)");
     }
 }
