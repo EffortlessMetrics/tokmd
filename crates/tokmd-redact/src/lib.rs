@@ -16,13 +16,36 @@
 
 use std::path::Path;
 
+/// Clean a path by normalizing separators and resolving `.` and `./` segments.
+///
+/// This ensures that logically identical paths produce the same hash.
+/// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
+fn clean_path(s: &str) -> String {
+    let mut normalized = s.replace('\\', "/");
+    // Strip leading ./
+    while let Some(stripped) = normalized.strip_prefix("./") {
+        normalized = stripped.to_string();
+    }
+    // Remove interior /./
+    while normalized.contains("/./") {
+        normalized = normalized.replace("/./", "/");
+    }
+    // Remove trailing /.
+    if normalized.ends_with("/.") {
+        normalized.truncate(normalized.len() - 2);
+    }
+    normalized
+}
+
 /// Compute a short (16-character) BLAKE3 hash of a string.
 ///
 /// This is used for redacting sensitive strings like excluded patterns
 /// or module names in receipts.
 ///
 /// Path separators are normalized to forward slashes before hashing
-/// to ensure consistent hashes across operating systems.
+/// to ensure consistent hashes across operating systems. Redundant `.`
+/// segments are also resolved so that logically identical paths hash
+/// identically.
 ///
 /// # Example
 ///
@@ -36,8 +59,8 @@ use std::path::Path;
 /// assert_eq!(short_hash("src\\lib"), short_hash("src/lib"));
 /// ```
 pub fn short_hash(s: &str) -> String {
-    let normalized = s.replace('\\', "/");
-    let mut hex = blake3::hash(normalized.as_bytes()).to_hex().to_string();
+    let cleaned = clean_path(s);
+    let mut hex = blake3::hash(cleaned.as_bytes()).to_hex().to_string();
     hex.truncate(16);
     hex
 }
@@ -63,12 +86,12 @@ pub fn short_hash(s: &str) -> String {
 /// assert_eq!(redact_path("src\\main.rs"), redact_path("src/main.rs"));
 /// ```
 pub fn redact_path(path: &str) -> String {
-    let normalized = path.replace('\\', "/");
-    let ext = Path::new(&normalized)
+    let cleaned = clean_path(path);
+    let ext = Path::new(&cleaned)
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let mut out = short_hash(&normalized);
+    let mut out = short_hash(&cleaned);
     if !ext.is_empty() {
         out.push('.');
         out.push_str(ext);
@@ -157,5 +180,23 @@ mod tests {
         let r2 = redact_path("crates\\tokmd\\src\\commands\\run.rs");
         assert_eq!(r1, r2);
         assert!(r1.ends_with(".rs"));
+    }
+
+    #[test]
+    fn test_short_hash_normalizes_dot_prefix() {
+        assert_eq!(short_hash("src/lib.rs"), short_hash("./src/lib.rs"));
+    }
+
+    #[test]
+    fn test_short_hash_normalizes_interior_dot_segments() {
+        assert_eq!(
+            short_hash("crates/foo/./src/lib.rs"),
+            short_hash("crates/foo/src/lib.rs")
+        );
+    }
+
+    #[test]
+    fn test_redact_path_normalizes_dot_prefix() {
+        assert_eq!(redact_path("src/main.rs"), redact_path("./src/main.rs"));
     }
 }

@@ -16,7 +16,7 @@
 //! * I/O operations
 //! * Business logic
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -393,7 +393,7 @@ pub struct TomlConfig {
 
     /// Named view profiles (e.g., [view.llm], [view.ci]).
     #[serde(default)]
-    pub view: HashMap<String, ViewProfile>,
+    pub view: BTreeMap<String, ViewProfile>,
 }
 
 /// Scan settings shared by all commands.
