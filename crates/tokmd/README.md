@@ -29,7 +29,7 @@ tokmd
 tokmd module --module-roots crates,packages
 
 # Pack for LLM context
-tokmd context --budget 128k --output bundle > context.txt
+tokmd context --budget 128k --mode bundle > context.txt
 
 # Analysis report
 tokmd analyze --preset risk --format md
