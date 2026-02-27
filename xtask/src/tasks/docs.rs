@@ -18,7 +18,7 @@ pub fn run(args: DocsArgs) -> Result<()> {
     // and replace the content with the output of `tokmd <command> --help`
 
     let markers = [
-        ("", "lang"), // Default is lang
+        ("lang", "lang"), // Explicitly use lang subcommand help
         ("module", "module"),
         ("export", "export"),
         ("run", "run"),

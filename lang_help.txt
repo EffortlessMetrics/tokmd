@@ -1,0 +1,47 @@
+Language summary (default)
+
+Usage: tokmd lang [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format [default: md]
+
+          Possible values:
+          - md:   Markdown table (great for pasting into ChatGPT)
+          - tsv:  Tab-separated values (good for piping to other tools)
+          - json: JSON (compact)
+
+      --top <TOP>
+          Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows
+
+      --files
+          Include file counts and average lines per file
+
+      --children <CHILDREN>
+          How to handle embedded languages (tokei "children" / blobs) [default: collapse]
+
+          Possible values:
+          - collapse: Merge embedded content into the parent language totals
+          - separate: Show embedded languages as separate "(embedded)" rows
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
