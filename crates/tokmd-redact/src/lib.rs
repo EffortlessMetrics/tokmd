@@ -16,49 +16,13 @@
 
 use std::path::Path;
 
-/// Lexically clean a path (resolve `.` and `..`) and normalize separators.
-///
-/// This ensures consistent hashes for equivalent paths like:
-/// - `src/lib.rs`
-/// - `./src/lib.rs`
-/// - `foo/../src/lib.rs`
-fn clean_path(path: &str) -> String {
-    let normalized = path.replace('\\', "/");
-    let is_absolute = normalized.starts_with('/');
-
-    let mut components = Vec::new();
-    for component in normalized.split('/') {
-        match component {
-            "" | "." => continue,
-            ".." => {
-                if !components.is_empty() && components.last() != Some(&"..") {
-                    components.pop();
-                } else if !is_absolute {
-                    components.push("..");
-                }
-            }
-            c => components.push(c),
-        }
-    }
-
-    let result = components.join("/");
-    if is_absolute {
-        format!("/{}", result)
-    } else if result.is_empty() {
-        ".".to_string()
-    } else {
-        result
-    }
-}
-
 /// Compute a short (16-character) BLAKE3 hash of a string.
 ///
 /// This is used for redacting sensitive strings like excluded patterns
 /// or module names in receipts.
 ///
-/// Paths are lexically cleaned (resolving `.` and `..`) and normalized
-/// to forward slashes before hashing to ensure consistent hashes across
-/// operating systems and invocation styles.
+/// Path separators are normalized to forward slashes before hashing
+/// to ensure consistent hashes across operating systems.
 ///
 /// # Example
 ///
@@ -70,12 +34,9 @@ fn clean_path(path: &str) -> String {
 ///
 /// // Cross-platform consistency: same hash regardless of separator
 /// assert_eq!(short_hash("src\\lib"), short_hash("src/lib"));
-///
-/// // Path cleaning: same hash regardless of relative indirection
-/// assert_eq!(short_hash("./src/lib"), short_hash("src/lib"));
 /// ```
 pub fn short_hash(s: &str) -> String {
-    let normalized = clean_path(s);
+    let normalized = s.replace('\\', "/");
     let mut hex = blake3::hash(normalized.as_bytes()).to_hex().to_string();
     hex.truncate(16);
     hex
@@ -86,8 +47,8 @@ pub fn short_hash(s: &str) -> String {
 /// This allows redacted paths to still be recognizable by file type
 /// while hiding the actual path structure.
 ///
-/// Paths are lexically cleaned (resolving `.` and `..`) and normalized
-/// to forward slashes before hashing to ensure consistent hashes.
+/// Path separators are normalized to forward slashes before hashing
+/// to ensure consistent hashes across operating systems.
 ///
 /// # Example
 ///
@@ -98,14 +59,11 @@ pub fn short_hash(s: &str) -> String {
 /// assert!(redacted.ends_with(".json"));
 /// assert_eq!(redacted.len(), 16 + 1 + 4); // hash + dot + "json"
 ///
-/// // Cross-platform consistency
+/// // Cross-platform consistency: same hash regardless of separator
 /// assert_eq!(redact_path("src\\main.rs"), redact_path("src/main.rs"));
-///
-/// // Path cleaning
-/// assert_eq!(redact_path("./src/main.rs"), redact_path("src/main.rs"));
 /// ```
 pub fn redact_path(path: &str) -> String {
-    let normalized = clean_path(path);
+    let normalized = path.replace('\\', "/");
     let ext = Path::new(&normalized)
         .extension()
         .and_then(|e| e.to_str())
@@ -199,42 +157,5 @@ mod tests {
         let r2 = redact_path("crates\\tokmd\\src\\commands\\run.rs");
         assert_eq!(r1, r2);
         assert!(r1.ends_with(".rs"));
-    }
-
-    #[test]
-    fn test_clean_path_dots() {
-        assert_eq!(clean_path("./src/lib.rs"), "src/lib.rs");
-        assert_eq!(clean_path("src/./lib.rs"), "src/lib.rs");
-        assert_eq!(clean_path("src/lib.rs/."), "src/lib.rs");
-    }
-
-    #[test]
-    fn test_clean_path_parent() {
-        assert_eq!(clean_path("src/../lib.rs"), "lib.rs");
-        assert_eq!(clean_path("a/b/../c"), "a/c");
-        assert_eq!(clean_path("a/../../b"), "../b");
-    }
-
-    #[test]
-    fn test_clean_path_absolute() {
-        assert_eq!(clean_path("/src/lib.rs"), "/src/lib.rs");
-        assert_eq!(clean_path("/src/../lib.rs"), "/lib.rs");
-        assert_eq!(clean_path("/../lib.rs"), "/lib.rs"); // Root bounds check
-    }
-
-    #[test]
-    fn test_clean_path_empty() {
-        assert_eq!(clean_path(""), ".");
-        assert_eq!(clean_path("."), ".");
-        assert_eq!(clean_path("./."), ".");
-    }
-
-    #[test]
-    fn test_redact_path_cleans_input() {
-        let r1 = redact_path("src/lib.rs");
-        let r2 = redact_path("./src/lib.rs");
-        let r3 = redact_path("foo/../src/lib.rs");
-        assert_eq!(r1, r2);
-        assert_eq!(r1, r3);
     }
 }
