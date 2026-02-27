@@ -18,7 +18,7 @@
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -951,7 +951,7 @@ pub struct TomlConfig {
 
     /// Named view profiles (e.g., [view.llm], [view.ci]).
     #[serde(default)]
-    pub view: BTreeMap<String, ViewProfile>,
+    pub view: HashMap<String, ViewProfile>,
 }
 
 /// Scan settings shared by all commands.
