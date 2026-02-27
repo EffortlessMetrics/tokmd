@@ -2045,17 +2045,21 @@ mod tests {
 
         // node-types.json should be excluded by policy
         assert_eq!(result.excluded_by_policy.len(), 1);
-        assert!(result.excluded_by_policy[0]
-            .path
-            .contains("node-types.json"));
+        assert!(
+            result.excluded_by_policy[0]
+                .path
+                .contains("node-types.json")
+        );
         assert_eq!(result.excluded_by_policy[0].policy, InclusionPolicy::Skip);
 
         // main.rs should be selected
         assert!(result.selected.iter().any(|f| f.path == "src/main.rs"));
         // node-types.json should NOT be in selected
-        assert!(!result
-            .selected
-            .iter()
-            .any(|f| f.path.contains("node-types.json")));
+        assert!(
+            !result
+                .selected
+                .iter()
+                .any(|f| f.path.contains("node-types.json"))
+        );
     }
 }
