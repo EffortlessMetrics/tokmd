@@ -2063,3 +2063,64 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod benchmark_tests {
+    use super::*;
+    use std::time::Instant;
+
+    #[test]
+    fn test_benchmark_large_exclusions() {
+        let n = 10_000;
+        let mut rows = Vec::with_capacity(n);
+        for i in 0..n {
+            // High tokens/line ratio to trigger DataBlob classification -> Skip policy
+            rows.push(FileRow {
+                path: format!("src/blob_{}.json", i),
+                module: "src".to_string(),
+                lang: "JSON".to_string(),
+                kind: FileKind::Parent,
+                code: 10,
+                comments: 0,
+                blanks: 0,
+                lines: 10,
+                bytes: 10000,
+                tokens: 5000, // 500 tokens/line -> DataBlob
+            });
+        }
+
+        // Add some normal files to be selected
+        for i in 0..100 {
+             rows.push(FileRow {
+                path: format!("src/normal_{}.rs", i),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 10,
+                lines: 120,
+                bytes: 1000,
+                tokens: 500,
+            });
+        }
+
+        let start = Instant::now();
+        let result = select_files_with_options(
+            &rows,
+            1_000_000,
+            ContextStrategy::Greedy,
+            ValueMetric::Code,
+            None,
+            &SelectOptions {
+                no_smart_exclude: true,
+                ..Default::default()
+            },
+        );
+        let duration = start.elapsed();
+
+        println!("Benchmark: select_files_with_options took {:?}", duration);
+        println!("Excluded by policy count: {}", result.excluded_by_policy.len());
+        println!("Selected count: {}", result.selected.len());
+    }
+}

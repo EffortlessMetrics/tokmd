@@ -1,0 +1,16 @@
+--- crates/tokmd/src/context_pack.rs
++++ crates/tokmd/src/context_pack.rs
+@@ -2060,2 +2060,2 @@
+-            !result
+-                .selected
+-                .iter()
+-                .any(|f| f.path.contains("node-types.json"))
+-        );
++        assert!(
++            !result
++                .selected
++                .iter()
++                .any(|f| f.path.contains("node-types.json"))
++        );
+     }
+ }
