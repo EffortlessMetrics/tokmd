@@ -13,6 +13,7 @@ use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
 use crate::export_bundle;
+#[cfg(feature = "git")]
 use tokmd_cockpit::determinism;
 use tokmd_progress::Progress;
 
@@ -100,6 +101,7 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     baseline.commit = capture_git_commit(&args.path);
 
     // Compute determinism baseline if requested
+    #[cfg(feature = "git")]
     if args.determinism {
         progress.set_message("Computing determinism hashes...");
         baseline.determinism = Some(compute_determinism_baseline(&scan_root, &file_paths)?);
@@ -153,6 +155,7 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
 ///
 /// Hashes all source files and optionally `Cargo.lock` to create a
 /// reproducibility fingerprint.
+#[cfg(feature = "git")]
 fn compute_determinism_baseline(root: &Path, file_paths: &[String]) -> Result<DeterminismBaseline> {
     let path_refs: Vec<&str> = file_paths.iter().map(|s| s.as_str()).collect();
     let source_hash = determinism::hash_files_from_paths(root, &path_refs)?;

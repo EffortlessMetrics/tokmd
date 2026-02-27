@@ -33,7 +33,7 @@ pub use tokmd_types::{
 ///
 /// Default mode (no subcommand) prints a language summary.
 #[derive(Parser, Debug)]
-#[command(name = "tokmd", version, about, long_about = None)]
+#[command(name = "tokmd", version, long_about = None)]
 pub struct Cli {
     #[command(flatten)]
     pub global: GlobalArgs,

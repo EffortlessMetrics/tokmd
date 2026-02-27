@@ -29,8 +29,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use serde::Serialize;
-use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
