@@ -787,7 +787,7 @@ pub fn write_export_jsonl_to_file(
 // Diff output
 // -----------------
 
-use tokmd_types::{DiffReceipt, DiffRow, DiffTotals, LangRow};
+use tokmd_types::{DiffReceipt, DiffRow, DiffTotals};
 
 /// Compute diff rows from two lang reports.
 pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Vec<DiffRow> {
