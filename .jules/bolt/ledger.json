@@ -18,15 +18,5 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
-  },
-  {
-    "date": "2026-02-03",
-    "lane": "scout",
-    "target": "crates/tokmd-model/src/lib.rs:normalize_path",
-    "proof_method": "cargo run --release --example bench_normalize",
-    "pr_link": "TODO",
-    "gates": ["build", "test", "fmt", "clippy"],
-    "status": "PASS",
-    "friction_ids": []
   }
 ]

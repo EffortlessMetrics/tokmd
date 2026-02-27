@@ -400,13 +400,11 @@ pub fn collect_file_rows(
     }
 
     let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
-    let prefix_str = strip_prefix.map(normalize_prefix);
-    let prefix_opt = prefix_str.as_deref();
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
         for report in &lang.reports {
-            let path = normalize_path_str(&report.name, prefix_opt);
+            let path = normalize_path(&report.name, strip_prefix);
             let module = module_key_from_normalized(&path, module_roots, module_depth);
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
@@ -429,7 +427,7 @@ pub fn collect_file_rows(
         for (_lang_type, lang) in languages.iter() {
             for (child_type, reports) in &lang.children {
                 for report in reports {
-                    let path = normalize_path_str(&report.name, prefix_opt);
+                    let path = normalize_path(&report.name, strip_prefix);
                     let module = module_key_from_normalized(&path, module_roots, module_depth);
                     let st = report.stats.summarise();
                     // Embedded children do not have bytes/tokens (they are inside the parent)
@@ -494,38 +492,6 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
-    let prefix_str = strip_prefix.map(normalize_prefix);
-    normalize_path_str(path, prefix_str.as_deref())
-}
-
-/// Helper to normalize a prefix path into a string suitable for stripping.
-/// - Converts backslashes to forward slashes.
-/// - Strips leading `./`.
-/// - Ensures trailing `/`.
-fn normalize_prefix(prefix: &Path) -> String {
-    let p_cow = prefix.to_string_lossy();
-    // Strip leading ./ from prefix so it can match normalized paths
-    let p_cow_stripped: Cow<str> = if let Some(stripped) = p_cow.strip_prefix("./") {
-        Cow::Borrowed(stripped)
-    } else {
-        p_cow
-    };
-
-    let mut pfx = if p_cow_stripped.contains('\\') {
-        p_cow_stripped.replace('\\', "/")
-    } else {
-        p_cow_stripped.into_owned()
-    };
-
-    if !pfx.ends_with('/') {
-        pfx.push('/');
-    }
-    pfx
-}
-
-/// Optimized version of `normalize_path` that takes a pre-normalized prefix string.
-/// The `strip_prefix` should be normalized (forward slashes, trailing slash if directory).
-pub fn normalize_path_str(path: &Path, strip_prefix: Option<&str>) -> String {
     let s_cow = path.to_string_lossy();
     let s: Cow<str> = if s_cow.contains('\\') {
         Cow::Owned(s_cow.replace('\\', "/"))
@@ -540,8 +506,37 @@ pub fn normalize_path_str(path: &Path, strip_prefix: Option<&str>) -> String {
         slice = stripped;
     }
 
-    if let Some(stripped) = strip_prefix.and_then(|prefix| slice.strip_prefix(prefix)) {
-        slice = stripped;
+    if let Some(prefix) = strip_prefix {
+        let p_cow = prefix.to_string_lossy();
+        // Strip leading ./ from prefix so it can match normalized paths
+        let p_cow_stripped: Cow<str> = if let Some(stripped) = p_cow.strip_prefix("./") {
+            Cow::Borrowed(stripped)
+        } else {
+            p_cow
+        };
+
+        let needs_replace = p_cow_stripped.contains('\\');
+        let needs_slash = !p_cow_stripped.ends_with('/');
+
+        if !needs_replace && !needs_slash {
+            // Fast path: prefix is already clean and ends with slash
+            if slice.starts_with(p_cow_stripped.as_ref()) {
+                slice = &slice[p_cow_stripped.len()..];
+            }
+        } else {
+            // Slow path: normalize prefix
+            let mut pfx = if needs_replace {
+                p_cow_stripped.replace('\\', "/")
+            } else {
+                p_cow_stripped.into_owned()
+            };
+            if needs_slash {
+                pfx.push('/');
+            }
+            if slice.starts_with(&pfx) {
+                slice = &slice[pfx.len()..];
+            }
+        }
     }
 
     slice = slice.trim_start_matches('/');

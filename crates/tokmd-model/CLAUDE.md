@@ -25,7 +25,6 @@ pub fn collect_file_rows(languages, module_roots, module_depth, children, strip_
 ### Path Utilities
 ```rust
 pub fn normalize_path(path: &str, strip_prefix: Option<&str>) -> String
-pub fn normalize_path_str(path: &str, strip_prefix: Option<&str>) -> String
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String
 ```
 
