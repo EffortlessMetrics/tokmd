@@ -48,7 +48,8 @@ use crate::{export_workflow, lang_workflow, module_workflow};
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```rust
+/// use tokmd_core::ffi::run_json;
 /// let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
 /// // Returns: {"ok": true, "data": {"mode": "lang", "rows": [...], ...}}
 /// ```

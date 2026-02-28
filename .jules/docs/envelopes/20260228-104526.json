@@ -1,0 +1,10 @@
+{
+  "id": "20260228-104526",
+  "persona": "Librarian",
+  "status": "completed",
+  "receipts": [
+    {"cmd": "cargo test --doc -p tokmd-core", "exit_code": 0},
+    {"cmd": "cargo fmt && cargo clippy -- -D warnings", "exit_code": 0},
+    {"cmd": "cargo test --workspace --exclude tokmd-python --exclude tokmd-node", "exit_code": 0}
+  ]
+}
