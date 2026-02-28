@@ -1,0 +1,39 @@
+{
+  "run_id": "20260228-130959",
+  "timestamp_utc": "2026-02-28T13:09:59Z",
+  "lane": null,
+  "target": null,
+  "proof_method": null,
+  "commands": [],
+  "results_summary": ""
+}
+{
+  "cmd": "cargo clippy --workspace --all-targets --all-features -- -D warnings",
+  "status": "FAIL",
+  "result": "xtask failed with clippy warning"
+}
+{
+  "cmd": "cargo clippy --workspace --all-targets --all-features -- -D warnings",
+  "status": "PASS",
+  "result": "Clean clippy run with XT̖ask manual char comparison fixed"
+}
+{
+  "cmd": "cargo test -p tokmd-analysis-derived",
+  "status": "PASS",
+  "result": "Tests in tokmd-analysis-derived pass successfully including old hash verification test."
+}
+{
+  "cmd": "CI=true cargo test --workspace --exclude tokmd-python --exclude tokmd-node",
+  "status": "PASS",
+  "result": "Tests pass correctly workspace-wide"
+}
+{
+  "cmd": "cargo fmt -- --check",
+  "status": "PASS",
+  "result": "Formatting successful after auto-fmt"
+}
+{
+  "cmd": "cargo bench --workspace --exclude tokmd-python --exclude tokmd-node",
+  "status": "PASS",
+  "result": "Bench runs clean, performance optimized."
+}

@@ -18,3 +18,4 @@ tokmd-analysis-util.workspace = true
 tokmd-math.workspace = true
 tokmd-export-tree.workspace = true
 tokmd-types.workspace = true
+itoa = "1.0.17"

@@ -3111,6 +3111,7 @@ name = "tokmd-analysis-derived"
 version = "1.7.2"
 dependencies = [
  "blake3",
+ "itoa",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-export-tree",

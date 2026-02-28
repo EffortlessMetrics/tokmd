@@ -681,18 +681,157 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
     }
 }
 
+fn compare_integrity_rows(&a: &&FileRow, &b: &&FileRow) -> std::cmp::Ordering {
+    // Emulates a string sort of "{path}:{bytes}:{lines}" without allocating.
+    // We compare path first. If paths differ, but one is a prefix of the other,
+    // the old string logic would compare the next char against `':'`.
+    // E.g., "test" vs "test.rs":
+    // "test:..." vs "test.rs:..." -> ':' (58) vs '.' (46) -> ':' > '.' -> "test" > "test.rs"
+    let path_cmp = a.path.as_bytes().cmp(b.path.as_bytes());
+    if path_cmp != std::cmp::Ordering::Equal {
+        // Find first difference
+        let mut i = 0;
+        let a_bytes = a.path.as_bytes();
+        let b_bytes = b.path.as_bytes();
+        while i < a_bytes.len() && i < b_bytes.len() && a_bytes[i] == b_bytes[i] {
+            i += 1;
+        }
+
+        let a_char = if i < a_bytes.len() { a_bytes[i] } else { b':' };
+        let b_char = if i < b_bytes.len() { b_bytes[i] } else { b':' };
+
+        return a_char.cmp(&b_char);
+    }
+
+    // Path equal. Compare bytes as string.
+    let mut a_buf = itoa::Buffer::new();
+    let mut b_buf = itoa::Buffer::new();
+    let a_bytes_str = a_buf.format(a.bytes);
+    let b_bytes_str = b_buf.format(b.bytes);
+
+    a_bytes_str.cmp(b_bytes_str).then_with(|| {
+        let mut a_lines_buf = itoa::Buffer::new();
+        let mut b_lines_buf = itoa::Buffer::new();
+        let a_lines_str = a_lines_buf.format(a.lines);
+        let b_lines_str = b_lines_buf.format(b.lines);
+        a_lines_str.cmp(b_lines_str)
+    })
+}
+
 fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
-    let mut entries: Vec<String> = rows
-        .iter()
-        .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
-        .collect();
-    entries.sort();
-    let joined = entries.join("\n");
-    let hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
+    let mut sorted_rows: Vec<&FileRow> = rows.to_vec();
+    sorted_rows.sort_unstable_by(compare_integrity_rows);
+
+    let mut hasher = blake3::Hasher::new();
+    let mut first = true;
+    for row in sorted_rows {
+        if !first {
+            hasher.update(b"\n");
+        }
+        hasher.update(row.path.as_bytes());
+        hasher.update(b":");
+        let mut buf = itoa::Buffer::new();
+        hasher.update(buf.format(row.bytes).as_bytes());
+        hasher.update(b":");
+        hasher.update(buf.format(row.lines).as_bytes());
+        first = false;
+    }
+
+    let hash = hasher.finalize().to_hex().to_string();
 
     IntegrityReport {
         algo: "blake3".to_string(),
         hash,
-        entries: entries.len(),
+        entries: rows.len(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokmd_types::{FileKind, FileRow};
+
+    #[test]
+    fn test_integrity_hash_matches_old_logic() {
+        let r1 = FileRow {
+            kind: FileKind::Parent,
+            path: "foo.rs".to_string(),
+            lang: "Rust".to_string(),
+            module: "foo".to_string(),
+            bytes: 100,
+            lines: 10,
+            code: 10,
+            comments: 0,
+            blanks: 0,
+            tokens: 10,
+        };
+        let r2 = FileRow {
+            kind: FileKind::Parent,
+            path: "bar.rs".to_string(),
+            lang: "Rust".to_string(),
+            module: "bar".to_string(),
+            bytes: 200,
+            lines: 20,
+            code: 20,
+            comments: 0,
+            blanks: 0,
+            tokens: 20,
+        };
+        let rows = vec![&r1, &r2];
+
+        // Old logic
+        let mut entries: Vec<String> = rows
+            .iter()
+            .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
+            .collect();
+        entries.sort();
+        let joined = entries.join("\n");
+        let expected_hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
+
+        let report = build_integrity_report(&rows);
+        assert_eq!(report.hash, expected_hash);
+    }
+}
+
+    #[test]
+    fn test_integrity_hash_prefix_matches_old_logic() {
+        // "test" vs "test.rs" - old string logic would sort "test.rs" BEFORE "test"
+        // because "test:..." vs "test.rs:..." -> ':' (58) > '.' (46)
+        let r1 = FileRow {
+            kind: FileKind::Parent,
+            path: "test".to_string(),
+            lang: "Rust".to_string(),
+            module: "foo".to_string(),
+            bytes: 100,
+            lines: 10,
+            code: 10,
+            comments: 0,
+            blanks: 0,
+            tokens: 10,
+        };
+        let r2 = FileRow {
+            kind: FileKind::Parent,
+            path: "test.rs".to_string(),
+            lang: "Rust".to_string(),
+            module: "bar".to_string(),
+            bytes: 200,
+            lines: 20,
+            code: 20,
+            comments: 0,
+            blanks: 0,
+            tokens: 20,
+        };
+        let rows = vec![&r1, &r2];
+
+        // Old logic
+        let mut entries: Vec<String> = rows
+            .iter()
+            .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
+            .collect();
+        entries.sort();
+        let joined = entries.join("\n");
+        let expected_hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
+
+        let report = build_integrity_report(&rows);
+        assert_eq!(report.hash, expected_hash);
+    }
