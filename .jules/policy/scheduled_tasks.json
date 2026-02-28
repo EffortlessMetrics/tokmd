@@ -1,6 +1,1 @@
-{
-  "version": 1,
-  "selection_strategy": "random",
-  "default_gates": ["build", "test", "fmt", "clippy"],
-  "notes_write_threshold": "only_when_reusable_pattern_discovered"
-}
+{"version": 1, "selection_strategy": "random", "default_gates": ["build", "test", "fmt", "clippy"], "notes_write_threshold": "only_when_reusable_pattern_discovered"}

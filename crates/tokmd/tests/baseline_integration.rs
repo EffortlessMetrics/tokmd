@@ -1,3 +1,5 @@
+#![cfg(feature = "git")]
+
 mod common;
 
 use assert_cmd::Command;

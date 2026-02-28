@@ -144,6 +144,7 @@ fn recipe_sensor_json() {
 }
 
 #[test]
+#[cfg(feature = "git")]
 fn recipe_gate_with_baseline() {
     // "tokmd gate --baseline baseline.json"
     let tmp = tempfile::tempdir().unwrap();

@@ -1,0 +1,26 @@
+{
+  "run_id": "20260228-132736",
+  "timestamp_utc": "2026-02-28T13:27:36Z",
+  "lane": "scout",
+  "target": "Clarify error message for missing gate rules",
+  "commands": [
+    {
+      "cmd": "cargo test --no-default-features -p tokmd",
+      "exit_status": "PASS",
+      "summary": "Verified all tests continue passing with the updated error message"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_status": "PASS",
+      "summary": "Verified no clippy warnings introduced."
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_status": "PASS",
+      "summary": "Verified formatting."
+    }
+  ],
+  "results": [
+    "Replaced the long unformatted error string with an easier-to-read layout using numbered list and better whitespace."
+  ]
+}

@@ -109,14 +109,13 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 }
 
 #[cfg(test)]
+#[cfg(feature = "git")]
 mod tests {
-    #[cfg(feature = "git")]
     use anyhow::Result;
     #[cfg(feature = "git")]
     use std::fs;
     #[cfg(feature = "git")]
     use tempfile::tempdir;
-    #[cfg(feature = "git")]
     use tokmd_cockpit::compute_determinism_gate;
     use tokmd_cockpit::{TrendDirection, format_signed_f64, sparkline, trend_direction_label};
 

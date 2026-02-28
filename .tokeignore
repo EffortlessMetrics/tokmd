@@ -1,0 +1,57 @@
+# .tokeignore
+# Patterns here use gitignore syntax.
+#
+# Goal: keep LOC summaries focused on *your* code, not build artifacts or vendored blobs.
+# Tune aggressively for your repos.
+
+# --- Rust / Cargo ---
+target/
+**/target/
+
+# --- Node / JS tooling ---
+node_modules/
+**/node_modules/
+dist/
+out/
+build/
+**/build/
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+.venv/
+**/.venv/
+venv/
+**/venv/
+.tox/
+**/.tox/
+
+# --- Common vendored / third-party dirs ---
+vendor/
+**/vendor/
+third_party/
+**/third_party/
+external/
+**/external/
+
+# --- Generated code ---
+generated/
+**/generated/
+*.generated.*
+*.gen.*
+
+# --- Coverage / reports ---
+coverage/
+**/coverage/
+.coverage
+lcov.info
+
+# --- tokmd outputs ---
+.runs/
+**/.runs/
+
+# --- Tree-sitter (common "big files" when vendored) ---
+# Adjust to match your vendor layout.
+**/tree-sitter*/src/parser.c
+**/tree-sitter*/src/scanner.c
+**/tree-sitter*/src/*_scanner.c

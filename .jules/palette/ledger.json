@@ -1,15 +1,1 @@
-[
-  {
-    "date": "2026-01-30T13:18:35Z",
-    "lane": "scout",
-    "target": "cli-help-defaults",
-    "pr_link": null,
-    "gates": {
-      "build": "PASS",
-      "test": "PASS",
-      "fmt": "PASS",
-      "clippy": "PASS"
-    },
-    "friction_ids": []
-  }
-]
+[{"date": "2026-02-28T13:26:21+0000", "lane": "scout", "target": "Clarify error message for missing gate rules", "pr_link": "", "gates_run": ["cargo test"], "friction_ids": []}]

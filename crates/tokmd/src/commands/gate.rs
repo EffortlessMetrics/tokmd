@@ -58,29 +58,24 @@ pub(crate) fn handle(
     // Ensure we have at least policy or ratchet rules
     if policy.is_none() && ratchet_config.is_none() {
         bail!(
-            "No policy or ratchet rules specified.\n\
-             \n\
-             Use --policy <path> for policy rules, or\n\
-             --baseline <path> with --ratchet-config <path> for ratchet rules, or\n\
-             add rules to [gate] in tokmd.toml.\n\
-             \n\
-             Example tokmd.toml with policy rules:\n\
-             \n\
-             [[gate.rules]]\n\
-             name = \"max_tokens\"\n\
-             pointer = \"/derived/totals/tokens\"\n\
-             op = \"lte\"\n\
-             value = 500000\n\
-             \n\
-             Example tokmd.toml with ratchet rules:\n\
-             \n\
-             [gate]\n\
-             baseline = \".tokmd/baseline.json\"\n\
-             \n\
-             [[gate.ratchet]]\n\
-             pointer = \"/complexity/avg_cyclomatic\"\n\
-             max_increase_pct = 10.0\n\
-             description = \"Avg cyclomatic complexity\""
+            "No policy or ratchet rules specified.\n\n\
+             How to fix this:\n\
+             1. Provide a policy file: `tokmd gate --policy rules.toml`\n\
+             2. Or provide a ratchet baseline: `tokmd gate --baseline old.json --ratchet-config limits.toml`\n\
+             3. Or configure rules in your `tokmd.toml`\n\n\
+             Example `tokmd.toml` policy:\n\
+               [[gate.rules]]\n\
+               name = \"max_tokens\"\n\
+               pointer = \"/derived/totals/tokens\"\n\
+               op = \"lte\"\n\
+               value = 500000\n\n\
+             Example `tokmd.toml` ratchet:\n\
+               [gate]\n\
+               baseline = \".tokmd/baseline.json\"\n\n\
+               [[gate.ratchet]]\n\
+               pointer = \"/complexity/avg_cyclomatic\"\n\
+               max_increase_pct = 10.0\n\
+               description = \"Avg cyclomatic complexity\""
         );
     }
 
