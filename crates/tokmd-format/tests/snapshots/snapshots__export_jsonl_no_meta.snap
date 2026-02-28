@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+expression: output
+---
+{"type":"row","path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":100,"comments":20,"blanks":10,"lines":130,"bytes":1000,"tokens":250}
+{"type":"row","path":"src/util.rs","module":"src","lang":"Rust","kind":"parent","code":60,"comments":5,"blanks":5,"lines":70,"bytes":600,"tokens":150}
+{"type":"row","path":"tests/smoke.rs","module":"tests","lang":"Rust","kind":"parent","code":40,"comments":2,"blanks":3,"lines":45,"bytes":400,"tokens":100}

@@ -22,4 +22,5 @@ tokmd-types.workspace = true
 blake3.workspace = true
 
 [dev-dependencies]
+proptest = "1.10.0"
 tempfile = "3.23.0"

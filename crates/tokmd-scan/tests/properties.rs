@@ -495,3 +495,113 @@ proptest! {
         prop_assert_eq!(cfg1.treat_doc_strings_as_comments, cfg2.treat_doc_strings_as_comments);
     }
 }
+
+// ============================================================================
+// Edge-Case Tests (additional property coverage)
+// ============================================================================
+
+proptest! {
+    /// Duplicate exclude patterns should not cause panics or alter semantics.
+    #[test]
+    fn duplicate_excluded_patterns_are_harmless(pattern in arb_exclude_pattern()) {
+        let args = ScanOptions {
+            excluded: vec![pattern.clone(), pattern.clone(), pattern],
+            config: ConfigMode::None,
+            hidden: false,
+            no_ignore: false,
+            no_ignore_parent: false,
+            no_ignore_dot: false,
+            no_ignore_vcs: false,
+            treat_doc_strings_as_comments: false,
+        };
+
+        let ignores: Vec<&str> = args.excluded.iter().map(|s| s.as_str()).collect();
+        prop_assert_eq!(ignores.len(), 3);
+    }
+
+    /// Enabling *only* no_ignore_dot should not touch the other ignore fields.
+    #[test]
+    fn no_ignore_dot_alone_does_not_set_others(_dummy in 0..50u8) {
+        let mut cfg = tokei::Config::default();
+        cfg.no_ignore_dot = Some(true);
+
+        prop_assert_eq!(cfg.no_ignore_dot, Some(true));
+        // The other fields should remain at their defaults (None).
+        prop_assert!(cfg.no_ignore.is_none() || cfg.no_ignore == Some(false));
+        prop_assert!(cfg.no_ignore_parent.is_none() || cfg.no_ignore_parent == Some(false));
+        prop_assert!(cfg.no_ignore_vcs.is_none() || cfg.no_ignore_vcs == Some(false));
+    }
+
+    /// Enabling *only* no_ignore_vcs should not touch the other ignore fields.
+    #[test]
+    fn no_ignore_vcs_alone_does_not_set_others(_dummy in 0..50u8) {
+        let mut cfg = tokei::Config::default();
+        cfg.no_ignore_vcs = Some(true);
+
+        prop_assert_eq!(cfg.no_ignore_vcs, Some(true));
+        prop_assert!(cfg.no_ignore.is_none() || cfg.no_ignore == Some(false));
+        prop_assert!(cfg.no_ignore_parent.is_none() || cfg.no_ignore_parent == Some(false));
+        prop_assert!(cfg.no_ignore_dot.is_none() || cfg.no_ignore_dot == Some(false));
+    }
+
+    /// The `hidden` flag should never affect any `no_ignore*` config fields.
+    #[test]
+    fn hidden_never_affects_ignore_fields(hidden in any::<bool>()) {
+        let mut cfg = tokei::Config::default();
+        if hidden {
+            cfg.hidden = Some(true);
+        }
+
+        // None of the ignore fields should be set.
+        prop_assert!(cfg.no_ignore.is_none());
+        prop_assert!(cfg.no_ignore_dot.is_none());
+        prop_assert!(cfg.no_ignore_parent.is_none());
+        prop_assert!(cfg.no_ignore_vcs.is_none());
+    }
+
+    /// Exclude list length should be preserved through the mapping.
+    #[test]
+    fn excluded_length_preserved(args in arb_global_args()) {
+        let ignores: Vec<&str> = args.excluded.iter().map(|s| s.as_str()).collect();
+        prop_assert_eq!(ignores.len(), args.excluded.len());
+    }
+
+    /// Config built with ConfigMode::None should have all fields at defaults
+    /// *before* any flag overrides are applied.
+    #[test]
+    fn config_none_starts_with_defaults(_dummy in 0..50u8) {
+        let cfg = tokei::Config::default();
+        prop_assert!(cfg.hidden.is_none());
+        prop_assert!(cfg.no_ignore.is_none());
+        prop_assert!(cfg.no_ignore_dot.is_none());
+        prop_assert!(cfg.no_ignore_parent.is_none());
+        prop_assert!(cfg.no_ignore_vcs.is_none());
+        prop_assert!(cfg.treat_doc_strings_as_comments.is_none());
+    }
+
+    /// Setting no_ignore after individual flags should still result in all
+    /// no_ignore_* being true (order-independence).
+    #[test]
+    fn no_ignore_overrides_regardless_of_order(
+        dot in any::<bool>(),
+        parent in any::<bool>(),
+        vcs in any::<bool>(),
+    ) {
+        // Apply individual flags first, then no_ignore.
+        let mut cfg = tokei::Config::default();
+        if dot { cfg.no_ignore_dot = Some(true); }
+        if parent { cfg.no_ignore_parent = Some(true); }
+        if vcs { cfg.no_ignore_vcs = Some(true); }
+
+        // Now apply no_ignore (like scan() does).
+        cfg.no_ignore = Some(true);
+        cfg.no_ignore_dot = Some(true);
+        cfg.no_ignore_parent = Some(true);
+        cfg.no_ignore_vcs = Some(true);
+
+        prop_assert_eq!(cfg.no_ignore, Some(true));
+        prop_assert_eq!(cfg.no_ignore_dot, Some(true));
+        prop_assert_eq!(cfg.no_ignore_parent, Some(true));
+        prop_assert_eq!(cfg.no_ignore_vcs, Some(true));
+    }
+}

@@ -3102,6 +3102,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "blake3",
+ "proptest",
  "tempfile",
  "tokmd-analysis-imports",
  "tokmd-analysis-types",
@@ -3370,6 +3371,7 @@ name = "tokmd-core"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "serde",
  "serde_json",
  "tokmd-analysis",
@@ -3507,8 +3509,10 @@ name = "tokmd-model"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "insta",
  "proptest",
  "serde",
+ "serde_json",
  "tokei",
  "tokmd-module-key",
  "tokmd-types",

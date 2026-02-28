@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-model/tests/snapshots.rs
+expression: redacted
+---
+[
+  {
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
+    "lines_eq_sum": true,
+    "module": "C:",
+    "path": "C:/Code/Rust/tokmd/crates/tokmd-model/src/lib.rs"
+  },
+  {
+    "code_gt_zero": true,
+    "kind": "Parent",
+    "lang": "Rust",
+    "lines_eq_sum": true,
+    "module": "C:",
+    "path": "C:/Code/Rust/tokmd/crates/tokmd-model/src/lib.rs"
+  }
+]

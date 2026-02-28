@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+expression: md
+---
+## Diff: v1.0.0 → v2.0.0
+
+### Summary
+
+|Metric|Value|
+|---|---:|
+|From LOC|700|
+|To LOC|750|
+|Delta LOC|+50|
+|LOC Change|+7.1%|
+|Delta Lines|+60|
+|Delta Files|+2|
+|Delta Bytes|+4500|
+|Delta Tokens|+125|
+|Languages changed|3|
+|Languages added|1|
+|Languages removed|1|
+|Languages modified|1|
