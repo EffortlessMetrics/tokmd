@@ -3054,6 +3054,8 @@ name = "tokmd-analysis-api-surface"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
+ "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
@@ -3064,6 +3066,7 @@ dependencies = [
 name = "tokmd-analysis-archetype"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
@@ -3073,7 +3076,9 @@ name = "tokmd-analysis-assets"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "serde_json",
+ "tempfile",
  "tokmd-analysis-types",
  "tokmd-walk",
 ]
@@ -3083,6 +3088,7 @@ name = "tokmd-analysis-complexity"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "tokmd-analysis-maintainability",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3122,6 +3128,7 @@ name = "tokmd-analysis-entropy"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3132,11 +3139,15 @@ dependencies = [
 [[package]]
 name = "tokmd-analysis-explain"
 version = "1.7.2"
+dependencies = [
+ "insta",
+]
 
 [[package]]
 name = "tokmd-analysis-fingerprint"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tokmd-analysis-types",
  "tokmd-git",
 ]
@@ -3182,12 +3193,17 @@ dependencies = [
 [[package]]
 name = "tokmd-analysis-grid"
 version = "1.7.2"
+dependencies = [
+ "proptest",
+]
 
 [[package]]
 name = "tokmd-analysis-halstead"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
+ "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
@@ -3198,6 +3214,8 @@ dependencies = [
 name = "tokmd-analysis-html"
 version = "1.7.2"
 dependencies = [
+ "insta",
+ "proptest",
  "serde_json",
  "time",
  "tokmd-analysis-types",
@@ -3216,6 +3234,7 @@ name = "tokmd-analysis-license"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
@@ -3228,6 +3247,7 @@ dependencies = [
 name = "tokmd-analysis-maintainability"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tokmd-analysis-types",
 ]
 
@@ -3237,7 +3257,9 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "globset",
+ "proptest",
  "rustc-hash",
+ "tempfile",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
@@ -3246,6 +3268,7 @@ dependencies = [
 name = "tokmd-analysis-topics"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
@@ -3274,6 +3297,10 @@ dependencies = [
 [[package]]
 name = "tokmd-badge"
 version = "1.7.2"
+dependencies = [
+ "insta",
+ "proptest",
+]
 
 [[package]]
 name = "tokmd-cockpit"
@@ -3282,6 +3309,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "ignore",
+ "proptest",
  "serde",
  "serde_json",
  "tempfile",
@@ -3321,6 +3349,7 @@ dependencies = [
 name = "tokmd-context-git"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tempfile",
  "tokmd-git",
  "tokmd-path",
@@ -3521,6 +3550,7 @@ name = "tokmd-progress"
 version = "1.7.2"
 dependencies = [
  "indicatif",
+ "proptest",
 ]
 
 [[package]]
@@ -3573,6 +3603,7 @@ name = "tokmd-sensor"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "proptest",
  "serde",
  "serde_json",
  "tempfile",
@@ -3622,6 +3653,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "clap",
+ "insta",
  "serde",
  "serde_json",
 ]
@@ -3631,6 +3663,7 @@ name = "tokmd-types"
 version = "1.7.2"
 dependencies = [
  "clap",
+ "insta",
  "proptest",
  "serde",
  "serde_json",

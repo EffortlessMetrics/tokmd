@@ -1,0 +1,18 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: all
+---
+[
+  "feat",
+  "fix",
+  "refactor",
+  "docs",
+  "test",
+  "chore",
+  "ci",
+  "build",
+  "perf",
+  "style",
+  "revert",
+  "other"
+]

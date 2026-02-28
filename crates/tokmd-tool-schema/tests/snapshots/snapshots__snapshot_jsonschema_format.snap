@@ -1,0 +1,86 @@
+---
+source: crates/tokmd-tool-schema/tests/snapshots.rs
+assertion_line: 96
+expression: rendered
+---
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "description": "Example CLI for snapshot testing",
+  "name": "example",
+  "schema_version": 1,
+  "tools": [
+    {
+      "description": "Example CLI for snapshot testing",
+      "name": "example",
+      "parameters": {
+        "properties": {},
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "description": "Run analysis on input",
+      "name": "analyze",
+      "parameters": {
+        "properties": {
+          "dry-run": {
+            "description": "Run without side effects",
+            "type": "boolean"
+          },
+          "input": {
+            "description": "Path to the input file",
+            "type": "string"
+          },
+          "preset": {
+            "default": "quick",
+            "description": "Analysis preset",
+            "enum": [
+              "quick",
+              "deep",
+              "full"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags to attach",
+            "type": "array"
+          },
+          "verbosity": {
+            "description": "Increase verbosity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "description": "Export results",
+      "name": "export",
+      "parameters": {
+        "properties": {
+          "format": {
+            "default": "json",
+            "description": "Export format",
+            "enum": [
+              "json",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "output": {
+            "description": "Output path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "output"
+        ],
+        "type": "object"
+      }
+    }
+  ],
+  "version": "3.5.0"
+}

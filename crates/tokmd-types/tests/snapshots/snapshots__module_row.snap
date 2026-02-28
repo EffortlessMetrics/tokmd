@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: row
+---
+{
+  "module": "crates/tokmd-types",
+  "code": 1200,
+  "lines": 1800,
+  "files": 8,
+  "bytes": 48000,
+  "tokens": 12000,
+  "avg_lines": 225
+}

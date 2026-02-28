@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"whitespace_ratio\").unwrap()"
+---
+whitespace_ratio: Ratio of blank lines to code+comment lines.

@@ -18,4 +18,6 @@ time = { version = "0.3.47", features = ["formatting", "macros"] }
 tokmd-analysis-types.workspace = true
 
 [dev-dependencies]
+insta = "1"
+proptest = "1"
 tokmd-types.workspace = true

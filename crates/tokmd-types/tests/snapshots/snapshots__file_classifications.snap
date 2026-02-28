@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: all
+---
+[
+  "generated",
+  "fixture",
+  "vendored",
+  "lockfile",
+  "minified",
+  "data_blob",
+  "sourcemap"
+]

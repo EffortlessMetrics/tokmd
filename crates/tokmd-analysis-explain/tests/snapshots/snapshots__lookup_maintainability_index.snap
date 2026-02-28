@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"maintainability_index\").unwrap()"
+---
+maintainability_index: SEI-style maintainability score from complexity and size inputs.

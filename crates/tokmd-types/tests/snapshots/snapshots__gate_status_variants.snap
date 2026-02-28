@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: all
+---
+[
+  "pass",
+  "warn",
+  "fail",
+  "skipped",
+  "pending"
+]

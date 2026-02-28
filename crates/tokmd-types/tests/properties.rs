@@ -4,8 +4,14 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    CONTEXT_SCHEMA_VERSION, ContextReceipt, FileKind, FileRow, LangRow, ModuleRow, TokenAudit,
-    TokenEstimationMeta, ToolInfo, Totals,
+    CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
+    ContextReceipt, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, FileRow,
+    InclusionPolicy, LangRow, ModuleRow, RedactMode, TableFormat, TokenAudit, TokenEstimationMeta,
+    ToolInfo, Totals,
+    cockpit::{
+        CommitMatch, ComplexityIndicator, EvidenceSource, GateStatus, RiskLevel, TrendDirection,
+        WarningType,
+    },
 };
 
 // Arbitrary implementations for generating test data
@@ -324,6 +330,293 @@ proptest! {
         let json = serde_json::to_string(&row).expect("serialize");
         let parsed: LangRow = serde_json::from_str(&json).expect("deserialize");
         prop_assert_eq!(row, parsed);
+    }
+
+    // ========================
+    // DiffRow Round-trip
+    // ========================
+
+    #[test]
+    fn diff_row_roundtrip(
+        lang in "[a-zA-Z]+",
+        old_code in 0usize..100000,
+        new_code in 0usize..100000,
+        old_lines in 0usize..200000,
+        new_lines in 0usize..200000,
+        old_files in 0usize..10000,
+        new_files in 0usize..10000,
+        old_bytes in 0usize..10000000,
+        new_bytes in 0usize..10000000,
+        old_tokens in 0usize..1000000,
+        new_tokens in 0usize..1000000,
+    ) {
+        let row = DiffRow {
+            lang,
+            old_code,
+            new_code,
+            delta_code: new_code as i64 - old_code as i64,
+            old_lines,
+            new_lines,
+            delta_lines: new_lines as i64 - old_lines as i64,
+            old_files,
+            new_files,
+            delta_files: new_files as i64 - old_files as i64,
+            old_bytes,
+            new_bytes,
+            delta_bytes: new_bytes as i64 - old_bytes as i64,
+            old_tokens,
+            new_tokens,
+            delta_tokens: new_tokens as i64 - old_tokens as i64,
+        };
+        let json = serde_json::to_string(&row).expect("serialize");
+        let parsed: DiffRow = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(row, parsed);
+    }
+
+    // ========================
+    // DiffTotals Round-trip
+    // ========================
+
+    #[test]
+    fn diff_totals_roundtrip(
+        old_code in 0usize..100000,
+        new_code in 0usize..100000,
+        old_lines in 0usize..200000,
+        new_lines in 0usize..200000,
+        old_files in 0usize..10000,
+        new_files in 0usize..10000,
+        old_bytes in 0usize..10000000,
+        new_bytes in 0usize..10000000,
+        old_tokens in 0usize..1000000,
+        new_tokens in 0usize..1000000,
+    ) {
+        let totals = DiffTotals {
+            old_code,
+            new_code,
+            delta_code: new_code as i64 - old_code as i64,
+            old_lines,
+            new_lines,
+            delta_lines: new_lines as i64 - old_lines as i64,
+            old_files,
+            new_files,
+            delta_files: new_files as i64 - old_files as i64,
+            old_bytes,
+            new_bytes,
+            delta_bytes: new_bytes as i64 - old_bytes as i64,
+            old_tokens,
+            new_tokens,
+            delta_tokens: new_tokens as i64 - old_tokens as i64,
+        };
+        let json = serde_json::to_string(&totals).expect("serialize");
+        let parsed: DiffTotals = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(totals, parsed);
+    }
+
+    // ========================
+    // TokenEstimationMeta invariant: min <= est <= max
+    // ========================
+
+    #[test]
+    fn token_estimation_invariant(bytes in 0usize..10_000_000) {
+        let meta = TokenEstimationMeta::from_bytes(bytes, TokenEstimationMeta::DEFAULT_BPT_EST);
+        prop_assert!(meta.tokens_min <= meta.tokens_est,
+            "tokens_min ({}) > tokens_est ({}) for bytes={}",
+            meta.tokens_min, meta.tokens_est, bytes);
+        prop_assert!(meta.tokens_est <= meta.tokens_max,
+            "tokens_est ({}) > tokens_max ({}) for bytes={}",
+            meta.tokens_est, meta.tokens_max, bytes);
+        prop_assert_eq!(meta.source_bytes, bytes);
+    }
+
+    #[test]
+    fn token_estimation_custom_bounds_invariant(
+        bytes in 0usize..10_000_000,
+        bpt_est in 2.0f64..10.0,
+    ) {
+        let bpt_low = (bpt_est * 0.5).max(0.1);
+        let bpt_high = bpt_est * 2.0;
+        let meta = TokenEstimationMeta::from_bytes_with_bounds(bytes, bpt_est, bpt_low, bpt_high);
+        prop_assert!(meta.tokens_min <= meta.tokens_est,
+            "tokens_min ({}) > tokens_est ({}) for bytes={}, bpt_est={}",
+            meta.tokens_min, meta.tokens_est, bytes, bpt_est);
+        prop_assert!(meta.tokens_est <= meta.tokens_max,
+            "tokens_est ({}) > tokens_max ({}) for bytes={}, bpt_est={}",
+            meta.tokens_est, meta.tokens_max, bytes, bpt_est);
+    }
+
+    // ========================
+    // TokenAudit invariants
+    // ========================
+
+    #[test]
+    fn token_audit_invariant(
+        output_bytes in 0u64..10_000_000,
+        content_bytes in 0u64..10_000_000,
+    ) {
+        let audit = TokenAudit::from_output(output_bytes, content_bytes);
+        prop_assert_eq!(audit.output_bytes, output_bytes);
+        // overhead is always <= output
+        prop_assert!(audit.overhead_bytes <= output_bytes);
+        // overhead_pct in [0.0, 1.0]
+        prop_assert!(audit.overhead_pct >= 0.0);
+        prop_assert!(audit.overhead_pct <= 1.0);
+        // token ordering: min <= est <= max
+        prop_assert!(audit.tokens_min <= audit.tokens_est);
+        prop_assert!(audit.tokens_est <= audit.tokens_max);
+    }
+
+    // ========================
+    // Enum round-trips
+    // ========================
+
+    #[test]
+    fn children_mode_roundtrip(idx in 0usize..2) {
+        let mode = [ChildrenMode::Collapse, ChildrenMode::Separate][idx];
+        let json = serde_json::to_string(&mode).expect("serialize");
+        let parsed: ChildrenMode = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(mode, parsed);
+    }
+
+    #[test]
+    fn child_include_mode_roundtrip(idx in 0usize..2) {
+        let mode = [ChildIncludeMode::Separate, ChildIncludeMode::ParentsOnly][idx];
+        let json = serde_json::to_string(&mode).expect("serialize");
+        let parsed: ChildIncludeMode = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(mode, parsed);
+    }
+
+    #[test]
+    fn table_format_roundtrip(idx in 0usize..3) {
+        let fmt = [TableFormat::Md, TableFormat::Tsv, TableFormat::Json][idx];
+        let json = serde_json::to_string(&fmt).expect("serialize");
+        let parsed: TableFormat = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(fmt, parsed);
+    }
+
+    #[test]
+    fn export_format_roundtrip(idx in 0usize..4) {
+        let fmt = [ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json, ExportFormat::Cyclonedx][idx];
+        let json = serde_json::to_string(&fmt).expect("serialize");
+        let parsed: ExportFormat = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(fmt, parsed);
+    }
+
+    #[test]
+    fn config_mode_roundtrip(idx in 0usize..2) {
+        let mode = [ConfigMode::Auto, ConfigMode::None][idx];
+        let json = serde_json::to_string(&mode).expect("serialize");
+        let parsed: ConfigMode = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(mode, parsed);
+    }
+
+    #[test]
+    fn redact_mode_roundtrip(idx in 0usize..3) {
+        let mode = [RedactMode::None, RedactMode::Paths, RedactMode::All][idx];
+        let json = serde_json::to_string(&mode).expect("serialize");
+        let parsed: RedactMode = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(mode, parsed);
+    }
+
+    #[test]
+    fn inclusion_policy_roundtrip(idx in 0usize..4) {
+        let policy = [InclusionPolicy::Full, InclusionPolicy::HeadTail,
+                      InclusionPolicy::Summary, InclusionPolicy::Skip][idx];
+        let json = serde_json::to_string(&policy).expect("serialize");
+        let parsed: InclusionPolicy = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(policy, parsed);
+    }
+
+    #[test]
+    fn file_classification_roundtrip(idx in 0usize..7) {
+        let cls = [
+            FileClassification::Generated, FileClassification::Fixture,
+            FileClassification::Vendored, FileClassification::Lockfile,
+            FileClassification::Minified, FileClassification::DataBlob,
+            FileClassification::Sourcemap,
+        ][idx];
+        let json = serde_json::to_string(&cls).expect("serialize");
+        let parsed: FileClassification = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(cls, parsed);
+    }
+
+    #[test]
+    fn commit_intent_kind_roundtrip(idx in 0usize..12) {
+        let kind = [
+            CommitIntentKind::Feat, CommitIntentKind::Fix, CommitIntentKind::Refactor,
+            CommitIntentKind::Docs, CommitIntentKind::Test, CommitIntentKind::Chore,
+            CommitIntentKind::Ci, CommitIntentKind::Build, CommitIntentKind::Perf,
+            CommitIntentKind::Style, CommitIntentKind::Revert, CommitIntentKind::Other,
+        ][idx];
+        let json = serde_json::to_string(&kind).expect("serialize");
+        let parsed: CommitIntentKind = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(kind, parsed);
+    }
+
+    // ========================
+    // Cockpit enum round-trips
+    // ========================
+
+    #[test]
+    fn gate_status_roundtrip(idx in 0usize..5) {
+        let s = [GateStatus::Pass, GateStatus::Warn, GateStatus::Fail,
+                 GateStatus::Skipped, GateStatus::Pending][idx];
+        let json = serde_json::to_string(&s).expect("serialize");
+        let parsed: GateStatus = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(s, parsed);
+    }
+
+    #[test]
+    fn risk_level_roundtrip(idx in 0usize..4) {
+        let r = [RiskLevel::Low, RiskLevel::Medium, RiskLevel::High, RiskLevel::Critical][idx];
+        let json = serde_json::to_string(&r).expect("serialize");
+        let parsed: RiskLevel = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(r, parsed);
+    }
+
+    #[test]
+    fn complexity_indicator_roundtrip(idx in 0usize..4) {
+        let c = [ComplexityIndicator::Low, ComplexityIndicator::Medium,
+                 ComplexityIndicator::High, ComplexityIndicator::Critical][idx];
+        let json = serde_json::to_string(&c).expect("serialize");
+        let parsed: ComplexityIndicator = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(c, parsed);
+    }
+
+    #[test]
+    fn warning_type_roundtrip(idx in 0usize..5) {
+        let w = [WarningType::LargeFile, WarningType::HighChurn,
+                 WarningType::LowTestCoverage, WarningType::ComplexChange,
+                 WarningType::BusFactor][idx];
+        let json = serde_json::to_string(&w).expect("serialize");
+        let parsed: WarningType = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(w, parsed);
+    }
+
+    #[test]
+    fn trend_direction_roundtrip(idx in 0usize..3) {
+        let d = [TrendDirection::Improving, TrendDirection::Stable,
+                 TrendDirection::Degrading][idx];
+        let json = serde_json::to_string(&d).expect("serialize");
+        let parsed: TrendDirection = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(d, parsed);
+    }
+
+    #[test]
+    fn evidence_source_roundtrip(idx in 0usize..3) {
+        let s = [EvidenceSource::CiArtifact, EvidenceSource::Cached,
+                 EvidenceSource::RanLocal][idx];
+        let json = serde_json::to_string(&s).expect("serialize");
+        let parsed: EvidenceSource = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(s, parsed);
+    }
+
+    #[test]
+    fn commit_match_roundtrip(idx in 0usize..4) {
+        let m = [CommitMatch::Exact, CommitMatch::Partial,
+                 CommitMatch::Stale, CommitMatch::Unknown][idx];
+        let json = serde_json::to_string(&m).expect("serialize");
+        let parsed: CommitMatch = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(m, parsed);
     }
 }
 

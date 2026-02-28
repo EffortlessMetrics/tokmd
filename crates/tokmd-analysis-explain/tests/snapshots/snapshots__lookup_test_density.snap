@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"test_density\").unwrap()"
+---
+test_density: Share of code lines in test files vs production files.

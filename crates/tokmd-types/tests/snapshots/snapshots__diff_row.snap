@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: row
+---
+{
+  "lang": "Rust",
+  "old_code": 1000,
+  "new_code": 1200,
+  "delta_code": 200,
+  "old_lines": 1500,
+  "new_lines": 1800,
+  "delta_lines": 300,
+  "old_files": 10,
+  "new_files": 12,
+  "delta_files": 2,
+  "old_bytes": 40000,
+  "new_bytes": 48000,
+  "delta_bytes": 8000,
+  "old_tokens": 10000,
+  "new_tokens": 12000,
+  "delta_tokens": 2000
+}

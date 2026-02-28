@@ -1,0 +1,14 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: f
+---
+{
+  "path": "vendor/jquery.min.js",
+  "original_tokens": 80000,
+  "policy": "skip",
+  "reason": "vendored minified file",
+  "classifications": [
+    "vendored",
+    "minified"
+  ]
+}

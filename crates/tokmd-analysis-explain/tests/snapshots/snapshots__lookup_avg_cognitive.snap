@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"avg_cognitive\").unwrap()"
+---
+avg_cognitive: Average cognitive complexity (human understandability cost).

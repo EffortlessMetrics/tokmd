@@ -17,3 +17,7 @@ tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-content.workspace = true
 tokmd-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"
+tempfile = "3.25.0"

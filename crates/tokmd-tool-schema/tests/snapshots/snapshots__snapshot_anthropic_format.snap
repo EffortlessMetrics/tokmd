@@ -1,0 +1,79 @@
+---
+source: crates/tokmd-tool-schema/tests/snapshots.rs
+assertion_line: 87
+expression: rendered
+---
+{
+  "tools": [
+    {
+      "description": "Example CLI for snapshot testing",
+      "input_schema": {
+        "properties": {},
+        "required": [],
+        "type": "object"
+      },
+      "name": "example"
+    },
+    {
+      "description": "Run analysis on input",
+      "input_schema": {
+        "properties": {
+          "dry-run": {
+            "description": "Run without side effects",
+            "type": "boolean"
+          },
+          "input": {
+            "description": "Path to the input file",
+            "type": "string"
+          },
+          "preset": {
+            "description": "Analysis preset",
+            "enum": [
+              "quick",
+              "deep",
+              "full"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags to attach",
+            "type": "array"
+          },
+          "verbosity": {
+            "description": "Increase verbosity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      },
+      "name": "analyze"
+    },
+    {
+      "description": "Export results",
+      "input_schema": {
+        "properties": {
+          "format": {
+            "description": "Export format",
+            "enum": [
+              "json",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "output": {
+            "description": "Output path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "output"
+        ],
+        "type": "object"
+      },
+      "name": "export"
+    }
+  ]
+}

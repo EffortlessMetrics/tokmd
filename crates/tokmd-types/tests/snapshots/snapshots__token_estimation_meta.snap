@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: meta
+---
+{
+  "bytes_per_token_est": 4.0,
+  "bytes_per_token_low": 3.0,
+  "bytes_per_token_high": 5.0,
+  "tokens_min": 2000,
+  "tokens_est": 2500,
+  "tokens_max": 3334,
+  "source_bytes": 10000
+}

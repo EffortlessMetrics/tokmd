@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"freshness\").unwrap()"
+---
+freshness: Recency of file changes; stale files exceed threshold days.

@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"predictive_churn\").unwrap()"
+---
+predictive_churn: Trend model of module change velocity over recent commits.
