@@ -14,11 +14,10 @@ High-level API facade and recommended entry point for library usage. This is a *
 ## Public API
 
 ```rust
-pub fn scan_workflow(
-    global: &GlobalArgs,
-    lang: &LangArgs,
-    redact: Option<RedactMode>,
-) -> Result<LangReceipt>
+pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt>
+pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt>
+pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt>
+pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt>
 ```
 
 ### Re-exports
@@ -31,19 +30,21 @@ pub use tokmd_types as types;
 
 ### Workflow
 
-The `scan_workflow` function chains:
+Each workflow function chains:
 1. **Scan** (tokmd-scan) - Execute tokei
 2. **Model** (tokmd-model) - Aggregate results
 3. **Receipt** - Construct with envelope metadata
 
 ```rust
-let global = GlobalArgs::default();
-let lang = LangArgs {
-    paths: vec![],
-    format: TableFormat::Json,
-    // ...
+use tokmd_core::{lang_workflow, settings::{ScanSettings, LangSettings}};
+
+let scan = ScanSettings::current_dir();
+let lang = LangSettings {
+    top: 10,
+    files: true,
+    ..Default::default()
 };
-let receipt = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
+let receipt = lang_workflow(&scan, &lang)?;
 ```
 
 ### Redaction Support

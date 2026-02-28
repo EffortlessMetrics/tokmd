@@ -14,8 +14,11 @@ Template generation for `.tokeignore` files. This is a **Tier 1** utility crate 
 ## Public API
 
 ```rust
-pub fn init_tokeignore(args: &InitArgs) -> Result<()>
+pub fn init_tokeignore(args: &InitArgs) -> Result<Option<PathBuf>>
 ```
+
+- `Ok(None)` — print mode (template printed to stdout)
+- `Ok(Some(path))` — file was written to disk
 
 ## Implementation Details
 

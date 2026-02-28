@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored `no_run`/`ignore` annotations on `tokmd-core` doctests that scanned
+  current directory, preventing non-deterministic failures in varied environments.
+
+### Changed
+
+- **tokmd-tokeignore**: `init_tokeignore` now returns `Result<Option<PathBuf>>`
+  instead of `Result<()>`, providing the path of the written file or `None` in
+  print mode. (Introduced in prior commit, documented here for next release.)
+
 ## [1.7.2] - 2026-02-24
 
 ### Added

@@ -28,7 +28,8 @@ let args = InitArgs {
     non_interactive: true,
 };
 
-init_tokeignore(&args)?;
+let path = init_tokeignore(&args)?;
+// path is Some(PathBuf) if file was written, None if --print mode
 ```
 
 ## Available Profiles
