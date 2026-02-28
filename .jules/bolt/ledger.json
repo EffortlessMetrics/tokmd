@@ -18,5 +18,15 @@
     "gates": ["build", "test", "fmt", "clippy"],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-02-27",
+    "lane": "scout",
+    "target": "normalize_path allocations",
+    "proof_method": "cargo run --release --example bench_normalize",
+    "pr_link": null,
+    "gates": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids": ["FRIC-20260227-001"]
   }
 ]

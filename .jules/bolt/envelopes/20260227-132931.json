@@ -1,0 +1,19 @@
+{
+  "run_id": "20260227-132931",
+  "timestamp_utc": "2026-02-27T13:29:31Z",
+  "lane": "scout",
+  "target": "normalize_path",
+  "proof_method": "cargo run --release --example bench_normalize",
+  "commands": [
+    {
+      "cmd": "cargo run --release --example bench_normalize --package tokmd-model",
+      "exit_code": 0,
+      "result_summary": "PASS",
+      "key_lines": "Average time per call: 61ns"
+    }
+  ],
+  "results_summary": [
+    "Tests passed",
+    "Benchmark passed: 61ns (was 65ns, ~6% faster)"
+  ]
+}
