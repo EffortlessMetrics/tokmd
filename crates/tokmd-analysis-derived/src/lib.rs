@@ -793,45 +793,45 @@ mod tests {
     }
 }
 
-    #[test]
-    fn test_integrity_hash_prefix_matches_old_logic() {
-        // "test" vs "test.rs" - old string logic would sort "test.rs" BEFORE "test"
-        // because "test:..." vs "test.rs:..." -> ':' (58) > '.' (46)
-        let r1 = FileRow {
-            kind: FileKind::Parent,
-            path: "test".to_string(),
-            lang: "Rust".to_string(),
-            module: "foo".to_string(),
-            bytes: 100,
-            lines: 10,
-            code: 10,
-            comments: 0,
-            blanks: 0,
-            tokens: 10,
-        };
-        let r2 = FileRow {
-            kind: FileKind::Parent,
-            path: "test.rs".to_string(),
-            lang: "Rust".to_string(),
-            module: "bar".to_string(),
-            bytes: 200,
-            lines: 20,
-            code: 20,
-            comments: 0,
-            blanks: 0,
-            tokens: 20,
-        };
-        let rows = vec![&r1, &r2];
+#[test]
+fn test_integrity_hash_prefix_matches_old_logic() {
+    // "test" vs "test.rs" - old string logic would sort "test.rs" BEFORE "test"
+    // because "test:..." vs "test.rs:..." -> ':' (58) > '.' (46)
+    let r1 = FileRow {
+        kind: FileKind::Parent,
+        path: "test".to_string(),
+        lang: "Rust".to_string(),
+        module: "foo".to_string(),
+        bytes: 100,
+        lines: 10,
+        code: 10,
+        comments: 0,
+        blanks: 0,
+        tokens: 10,
+    };
+    let r2 = FileRow {
+        kind: FileKind::Parent,
+        path: "test.rs".to_string(),
+        lang: "Rust".to_string(),
+        module: "bar".to_string(),
+        bytes: 200,
+        lines: 20,
+        code: 20,
+        comments: 0,
+        blanks: 0,
+        tokens: 20,
+    };
+    let rows = vec![&r1, &r2];
 
-        // Old logic
-        let mut entries: Vec<String> = rows
-            .iter()
-            .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
-            .collect();
-        entries.sort();
-        let joined = entries.join("\n");
-        let expected_hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
+    // Old logic
+    let mut entries: Vec<String> = rows
+        .iter()
+        .map(|r| format!("{}:{}:{}", r.path, r.bytes, r.lines))
+        .collect();
+    entries.sort();
+    let joined = entries.join("\n");
+    let expected_hash = blake3::hash(joined.as_bytes()).to_hex().to_string();
 
-        let report = build_integrity_report(&rows);
-        assert_eq!(report.hash, expected_hash);
-    }
+    let report = build_integrity_report(&rows);
+    assert_eq!(report.hash, expected_hash);
+}
