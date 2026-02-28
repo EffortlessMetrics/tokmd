@@ -1,15 +1,9 @@
 [
   {
-    "run_id": "run-20240523-compat-001",
-    "date": "2024-05-23",
-    "target": "tokmd",
-    "improvement": "exposed features for lightweight build"
-  },
-  {"run_id": "run-20240523-compat-002", "date": "2024-05-23", "target": "tokmd", "improvement": "fixed rustfmt violations"},
-  {
-    "run_id": "run-20240524-compat-003",
-    "date": "2024-05-24",
-    "target": "tokmd-analysis",
-    "improvement": "fixed unused fields warning in no-default-features build"
+    "timestamp": "2026-02-28T10:19:51Z",
+    "run_id": "20260228-100237",
+    "target": "crates/tokmd/src/commands",
+    "action": "fix no-default-features build",
+    "note": "Wrapped git-specific imports and logic in #[cfg(feature = \"git\")] to fix --no-default-features build failures in baseline, cockpit, and sensor commands."
   }
 ]

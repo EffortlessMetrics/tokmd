@@ -1,7 +1,9 @@
 mod common;
 
+#[cfg(feature = "git")]
 use assert_cmd::Command;
 
+#[cfg(feature = "git")]
 #[test]
 fn baseline_generates_output_file() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempfile::tempdir()?;
@@ -24,6 +26,7 @@ fn baseline_generates_output_file() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn baseline_with_determinism_flag() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempfile::tempdir()?;
@@ -64,6 +67,7 @@ fn baseline_with_determinism_flag() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn baseline_without_determinism_flag_has_no_determinism() -> Result<(), Box<dyn std::error::Error>>
 {

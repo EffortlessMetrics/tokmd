@@ -6,12 +6,16 @@
 //! 1. **report.json** — Thin envelope with findings, gates, summary metrics
 //! 2. **extras/cockpit_receipt.json** — Full cockpit receipt sidecar
 //! 3. **comment.md** — Markdown summary for PR comments
-
+#[cfg(feature = "git")]
 use std::io::Write;
 
-use anyhow::{Context, Result, bail};
+#[cfg(feature = "git")]
+use anyhow::Context;
+use anyhow::{Result, bail};
 use tokmd_config as cli;
+#[cfg(feature = "git")]
 use tokmd_envelope::findings;
+#[cfg(feature = "git")]
 use tokmd_envelope::{
     Artifact, Finding, FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
 };
@@ -402,7 +406,8 @@ fn emit_gate_findings(report: &mut SensorReport, evidence: &super::cockpit::Evid
     }
 }
 
-fn render_sensor_md(report: &SensorReport) -> String {
+#[cfg(feature = "git")]
+fn render_sensor_md(report: &tokmd_envelope::SensorReport) -> String {
     use std::fmt::Write;
     let mut s = String::new();
     let _ = writeln!(s, "## Sensor Report: {}", report.tool.name);
@@ -438,7 +443,7 @@ fn render_sensor_md(report: &SensorReport) -> String {
 
     s
 }
-
+#[cfg(feature = "git")]
 fn now_iso8601() -> String {
     time::OffsetDateTime::now_utc()
         .format(&time::format_description::well_known::Rfc3339)
@@ -447,6 +452,7 @@ fn now_iso8601() -> String {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "git")]
     use super::*;
 
     #[cfg(feature = "git")]
@@ -455,7 +461,7 @@ mod tests {
         EvidenceSource, GateMeta, GateStatus, HighComplexityFile, MutationGate, MutationSurvivor,
         Risk, RiskLevel, ScopeCoverage, SupplyChainGate, UncoveredHunk,
     };
-
+    #[cfg(feature = "git")]
     #[test]
     fn render_sensor_md_includes_findings_and_gates() {
         let mut report = SensorReport::new(
@@ -490,7 +496,6 @@ mod tests {
         assert!(md.contains("### Gates (warn)"));
         assert!(md.contains("mutation"));
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn map_verdict_covers_all_gate_statuses() {
@@ -553,7 +558,6 @@ mod tests {
             complexity: None,
         }
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn build_summary_formats_expected_fields() {
@@ -611,7 +615,6 @@ mod tests {
         assert!(summary.contains("risk high"));
         assert!(summary.contains("main..HEAD"));
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn map_gates_includes_optional_items_and_reasons() {
@@ -687,7 +690,6 @@ mod tests {
             Some("2 sub-gate(s) failed")
         );
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn emit_risk_findings_emits_hotspots_and_bus_factor() {
@@ -721,7 +723,6 @@ mod tests {
             .expect("bus factor finding");
         assert!(bus_factor.location.is_some());
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn emit_contract_findings_emits_all_flags() {
@@ -751,7 +752,6 @@ mod tests {
             assert!(codes.contains(code), "missing contract finding {code}");
         }
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn emit_complexity_findings_is_capped() {
@@ -784,7 +784,6 @@ mod tests {
         emit_complexity_findings(&mut report, &evidence);
         assert_eq!(report.findings.len(), MAX_FINDINGS_PER_CATEGORY);
     }
-
     #[cfg(feature = "git")]
     #[test]
     fn emit_gate_findings_emits_failures() {
