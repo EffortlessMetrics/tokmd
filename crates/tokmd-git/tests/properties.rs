@@ -7,7 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use proptest::prelude::*;
-use tokmd_git::{GitCommit, git_available, repo_root};
+use tokmd_git::{GitCommit, GitRangeMode, classify_intent, git_available, repo_root};
+use tokmd_types::CommitIntentKind;
 
 // ============================================================================
 // Strategies for generating test data
@@ -679,5 +680,252 @@ proptest! {
         let r1 = parse_diff_output(&diff);
         let r2 = parse_diff_output(&diff);
         prop_assert_eq!(r1, r2, "Parsing should be deterministic");
+    }
+}
+
+// ============================================================================
+// classify_intent property tests
+// ============================================================================
+
+/// Strategy for conventional commit subjects.
+fn arb_conventional_subject() -> impl Strategy<Value = String> {
+    let types = prop_oneof![
+        Just("feat"),
+        Just("fix"),
+        Just("refactor"),
+        Just("docs"),
+        Just("test"),
+        Just("chore"),
+        Just("ci"),
+        Just("build"),
+        Just("perf"),
+        Just("style"),
+        Just("revert"),
+        Just("bugfix"),
+        Just("hotfix"),
+        Just("feature"),
+        Just("doc"),
+        Just("tests"),
+    ];
+    let scope = prop_oneof![Just("".to_string()), "[a-z]{1,8}".prop_map(|s| format!("({})", s)),];
+    let bang = prop_oneof![Just(""), Just("!")];
+    let desc = "[a-zA-Z0-9 ]{1,40}";
+    (types, scope, bang, desc).prop_map(|(t, s, b, d)| format!("{}{}{}: {}", t, s, b, d))
+}
+
+/// Strategy for freeform commit subjects (keyword heuristic territory).
+fn arb_freeform_subject() -> impl Strategy<Value = String> {
+    prop_oneof![
+        "[a-zA-Z ]{1,60}".prop_map(|s| s),
+        Just("Fix crash on startup".to_string()),
+        Just("Add user authentication".to_string()),
+        Just("Update readme".to_string()),
+        Just("WIP".to_string()),
+        Just("v1.0.0".to_string()),
+        Just("".to_string()),
+        Just("   ".to_string()),
+    ]
+}
+
+proptest! {
+    // ========================================================================
+    // classify_intent never panics
+    // ========================================================================
+
+    /// classify_intent never panics on arbitrary input.
+    #[test]
+    fn classify_intent_never_panics(subject in ".*") {
+        let _ = classify_intent(&subject);
+    }
+
+    /// classify_intent always returns a valid CommitIntentKind variant.
+    #[test]
+    fn classify_intent_returns_valid_variant(subject in arb_freeform_subject()) {
+        let kind = classify_intent(&subject);
+        // Verify it's one of the known variants by matching
+        match kind {
+            CommitIntentKind::Feat
+            | CommitIntentKind::Fix
+            | CommitIntentKind::Refactor
+            | CommitIntentKind::Docs
+            | CommitIntentKind::Test
+            | CommitIntentKind::Chore
+            | CommitIntentKind::Ci
+            | CommitIntentKind::Build
+            | CommitIntentKind::Perf
+            | CommitIntentKind::Style
+            | CommitIntentKind::Revert
+            | CommitIntentKind::Other => {} // all good
+        }
+    }
+
+    /// classify_intent is deterministic.
+    #[test]
+    fn classify_intent_is_deterministic(subject in ".*") {
+        let a = classify_intent(&subject);
+        let b = classify_intent(&subject);
+        prop_assert_eq!(a, b, "classify_intent should be deterministic");
+    }
+
+    /// Conventional commits always classify to a non-Other kind.
+    #[test]
+    fn conventional_commits_never_classify_as_other(subject in arb_conventional_subject()) {
+        let kind = classify_intent(&subject);
+        prop_assert_ne!(
+            kind,
+            CommitIntentKind::Other,
+            "Conventional commit '{}' should not classify as Other",
+            subject
+        );
+    }
+
+    /// Empty or whitespace-only subjects always classify as Other.
+    #[test]
+    fn blank_subjects_are_other(spaces in "[ \t\n\r]{0,20}") {
+        let kind = classify_intent(&spaces);
+        prop_assert_eq!(
+            kind,
+            CommitIntentKind::Other,
+            "Blank input '{}' should be Other",
+            spaces
+        );
+    }
+
+    // ========================================================================
+    // GitRangeMode property tests
+    // ========================================================================
+
+    /// GitRangeMode::format always contains both base and head.
+    #[test]
+    fn range_format_contains_base_and_head(
+        base in "[a-zA-Z0-9/_.-]{1,30}",
+        head in "[a-zA-Z0-9/_.-]{1,30}",
+        mode in prop_oneof![Just(GitRangeMode::TwoDot), Just(GitRangeMode::ThreeDot)]
+    ) {
+        let formatted = mode.format(&base, &head);
+        prop_assert!(
+            formatted.contains(&base),
+            "Formatted range '{}' should contain base '{}'",
+            formatted, base
+        );
+        prop_assert!(
+            formatted.contains(&head),
+            "Formatted range '{}' should contain head '{}'",
+            formatted, head
+        );
+    }
+
+    /// TwoDot format always contains exactly ".." and never "...".
+    #[test]
+    fn two_dot_format_has_double_dot(
+        base in "[a-z]{1,10}",
+        head in "[a-z]{1,10}"
+    ) {
+        let formatted = GitRangeMode::TwoDot.format(&base, &head);
+        prop_assert!(formatted.contains(".."), "Should contain ..");
+        // Count dots: should have exactly 2 consecutive dots (not 3)
+        let without_range = formatted.replacen("..", "", 1);
+        prop_assert!(
+            !without_range.contains(".."),
+            "Should not contain extra double-dots after removing the range separator"
+        );
+    }
+
+    /// ThreeDot format always contains "...".
+    #[test]
+    fn three_dot_format_has_triple_dot(
+        base in "[a-z]{1,10}",
+        head in "[a-z]{1,10}"
+    ) {
+        let formatted = GitRangeMode::ThreeDot.format(&base, &head);
+        prop_assert!(formatted.contains("..."), "Should contain ...");
+    }
+
+    /// GitRangeMode::format is deterministic.
+    #[test]
+    fn range_format_is_deterministic(
+        base in "[a-z]{1,10}",
+        head in "[a-z]{1,10}",
+        mode in prop_oneof![Just(GitRangeMode::TwoDot), Just(GitRangeMode::ThreeDot)]
+    ) {
+        let a = mode.format(&base, &head);
+        let b = mode.format(&base, &head);
+        prop_assert_eq!(a, b, "format should be deterministic");
+    }
+
+    // ========================================================================
+    // Hunk parsing: multiple hunks in same file accumulate lines
+    // ========================================================================
+
+    /// Two disjoint hunks in the same file produce the union of their line sets.
+    #[test]
+    fn two_hunks_same_file_accumulate(
+        file in arb_file_path(),
+        start1 in 1usize..500,
+        count1 in 1usize..50,
+        gap in 50usize..200,
+        count2 in 1usize..50,
+    ) {
+        let start2 = start1 + count1 + gap;
+        let diff = format!(
+            "+++ b/{f}\n@@ -1,1 +{s1},{c1} @@\n@@ -{s2},1 +{s2},{c2} @@\n",
+            f = file, s1 = start1, c1 = count1, s2 = start2, c2 = count2
+        );
+        let result = parse_diff_output(&diff);
+        let key = PathBuf::from(&file);
+        let lines = result.get(&key).expect("file should be present");
+
+        let expected_count = count1 + count2;
+        prop_assert_eq!(
+            lines.len(), expected_count,
+            "Two disjoint hunks should produce {} lines, got {}",
+            expected_count, lines.len()
+        );
+
+        // Verify ranges are correct
+        for i in 0..count1 {
+            prop_assert!(lines.contains(&(start1 + i)));
+        }
+        for i in 0..count2 {
+            prop_assert!(lines.contains(&(start2 + i)));
+        }
+    }
+
+    /// Multiple files in a single diff are all captured.
+    #[test]
+    fn multiple_files_in_diff(
+        file1 in "[a-z]{1,8}\\.rs",
+        file2 in "[a-z]{1,8}\\.txt",
+        start1 in 1usize..100,
+        start2 in 1usize..100,
+    ) {
+        // Ensure distinct file names
+        prop_assume!(file1 != file2);
+        let diff = format!(
+            "+++ b/{f1}\n@@ -1,1 +{s1},1 @@\n+++ b/{f2}\n@@ -1,1 +{s2},1 @@\n",
+            f1 = file1, s1 = start1, f2 = file2, s2 = start2
+        );
+        let result = parse_diff_output(&diff);
+        prop_assert_eq!(result.len(), 2, "Should have 2 files");
+        prop_assert!(result.contains_key(&PathBuf::from(&file1)));
+        prop_assert!(result.contains_key(&PathBuf::from(&file2)));
+    }
+
+    /// Hunk with start=0 produces no lines (invalid line number).
+    #[test]
+    fn hunk_start_zero_produces_no_lines(
+        file in arb_file_path(),
+        count in 1usize..50,
+    ) {
+        let diff = format!(
+            "+++ b/{}\n@@ -1,1 +0,{} @@\n",
+            file, count
+        );
+        let result = parse_diff_output(&diff);
+        prop_assert!(
+            result.is_empty(),
+            "start=0 should produce no lines, got: {:?}",
+            result
+        );
     }
 }

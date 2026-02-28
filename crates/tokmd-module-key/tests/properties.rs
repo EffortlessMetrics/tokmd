@@ -94,4 +94,87 @@ proptest! {
         let key = module_key(&path, roots, depth);
         prop_assert!(!key.contains('\\'));
     }
+
+    #[test]
+    fn module_key_never_ends_with_slash(
+        path in "[a-zA-Z0-9_/]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 0usize..6
+    ) {
+        let key = module_key(&path, roots, depth);
+        prop_assert!(!key.ends_with('/'));
+    }
+
+    #[test]
+    fn module_key_never_empty(
+        path in "[a-zA-Z0-9_./\\\\]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 0usize..6
+    ) {
+        let key = module_key(&path, roots, depth);
+        prop_assert!(!key.is_empty());
+    }
+
+    #[test]
+    fn module_key_segments_are_subset_of_path_dirs(
+        dirs in prop::collection::vec("[a-zA-Z0-9_]+", 1..5),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        depth in 1usize..5
+    ) {
+        let path = format!("{}/{}", dirs.join("/"), filename);
+        let roots = vec![dirs[0].clone()];
+        let key = module_key(&path, &roots, depth);
+
+        // Every segment of the key must appear in the original dir segments
+        for seg in key.split('/') {
+            prop_assert!(dirs.contains(&seg.to_string()),
+                "key segment {:?} not in path dirs {:?}", seg, dirs);
+        }
+    }
+
+    #[test]
+    fn module_key_depth_zero_equals_depth_one(
+        root in "[a-zA-Z0-9_]+",
+        subdirs in prop::collection::vec("[a-zA-Z0-9_]+", 1..4),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+"
+    ) {
+        let path = format!("{}/{}/{}", root, subdirs.join("/"), filename);
+        let roots = vec![root.clone()];
+        let k0 = module_key(&path, &roots, 0);
+        let k1 = module_key(&path, &roots, 1);
+        prop_assert_eq!(k0, k1);
+    }
+
+    #[test]
+    fn module_key_dot_slash_prefix_is_idempotent(
+        dirs in prop::collection::vec("[a-zA-Z0-9_]+", 1..4),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 1usize..4
+    ) {
+        let plain = format!("{}/{}", dirs.join("/"), filename);
+        let dotslash = format!("./{}/{}", dirs.join("/"), filename);
+        let k_plain = module_key(&plain, roots, depth);
+        let k_dot = module_key(&dotslash, roots, depth);
+        prop_assert_eq!(k_plain, k_dot);
+    }
+
+    #[test]
+    fn module_key_increasing_depth_grows_monotonically(
+        root in "[a-zA-Z0-9_]+",
+        subdirs in prop::collection::vec("[a-zA-Z0-9_]+", 3..6),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+"
+    ) {
+        let path = format!("{}/{}/{}", root, subdirs.join("/"), filename);
+        let roots = vec![root.clone()];
+        let mut prev_len = 0;
+        for d in 1..=5 {
+            let key = module_key(&path, &roots, d);
+            let cur_len = key.split('/').count();
+            prop_assert!(cur_len >= prev_len,
+                "depth {} produced fewer segments ({}) than depth {} ({})",
+                d, cur_len, d - 1, prev_len);
+            prev_len = cur_len;
+        }
+    }
 }

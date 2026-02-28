@@ -21,7 +21,7 @@
 //!
 //! ## Example
 //!
-//! ```rust,no_run
+//! ```rust
 //! use tokmd_core::{lang_workflow, settings::{ScanSettings, LangSettings}};
 //!
 //! // Configure scan
@@ -34,16 +34,17 @@
 //!
 //! // Run pipeline
 //! let receipt = lang_workflow(&scan, &lang).expect("Scan failed");
-//! println!("Scanned {} languages", receipt.report.rows.len());
+//! assert!(receipt.report.rows.len() > 0);
 //! ```
 //!
 //! ## JSON API (for bindings)
 //!
-//! ```rust,no_run
+//! ```rust
 //! use tokmd_core::ffi::run_json;
 //!
 //! let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
-//! println!("{}", result);
+//! let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+//! assert_eq!(parsed["ok"], true);
 //! ```
 
 use std::path::PathBuf;

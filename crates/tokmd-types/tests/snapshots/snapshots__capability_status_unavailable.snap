@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: status
+---
+{
+  "name": "content",
+  "status": "unavailable",
+  "reason": "feature not enabled"
+}

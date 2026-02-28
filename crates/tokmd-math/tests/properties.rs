@@ -73,4 +73,68 @@ proptest! {
         let f = value as f64;
         prop_assert_eq!(round_f64(f, decimals), f);
     }
+
+    // --- additional property tests ---
+
+    #[test]
+    fn safe_ratio_is_non_negative(numer in 0usize..10000, denom in 0usize..10000) {
+        prop_assert!(safe_ratio(numer, denom) >= 0.0);
+    }
+
+    #[test]
+    fn safe_ratio_at_most_one_when_numer_leq_denom(
+        numer in 0usize..10000,
+        denom in 1usize..10000,
+    ) {
+        if numer <= denom {
+            prop_assert!(safe_ratio(numer, denom) <= 1.0);
+        }
+    }
+
+    #[test]
+    fn percentile_0_equals_min(mut values in prop::collection::vec(0usize..10000, 1..100)) {
+        values.sort();
+        let got = percentile(&values, 0.0);
+        prop_assert_eq!(got, *values.first().unwrap() as f64);
+    }
+
+    #[test]
+    fn percentile_1_equals_max(mut values in prop::collection::vec(0usize..10000, 1..100)) {
+        values.sort();
+        let got = percentile(&values, 1.0);
+        prop_assert_eq!(got, *values.last().unwrap() as f64);
+    }
+
+    #[test]
+    fn percentile_single_element_always_returns_that_element(
+        value in 0usize..10000,
+        pct in 0.0f64..=1.0,
+    ) {
+        prop_assert_eq!(percentile(&[value], pct), value as f64);
+    }
+
+    #[test]
+    fn gini_single_element_is_zero(value in 0usize..10000) {
+        prop_assert!((gini_coefficient(&[value])).abs() < 1e-10);
+    }
+
+    #[test]
+    fn round_f64_with_zero_decimals_returns_integer(value in -1000.0f64..1000.0) {
+        let got = round_f64(value, 0);
+        prop_assert_eq!(got, got.round());
+    }
+
+    #[test]
+    fn gini_is_deterministic(values in prop::collection::vec(0usize..1000, 1..50)) {
+        let mut sorted = values;
+        sorted.sort();
+        let g1 = gini_coefficient(&sorted);
+        let g2 = gini_coefficient(&sorted);
+        prop_assert_eq!(g1, g2);
+    }
+
+    #[test]
+    fn safe_ratio_self_is_one(value in 1usize..100000) {
+        prop_assert_eq!(safe_ratio(value, value), 1.0);
+    }
 }

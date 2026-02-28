@@ -10,7 +10,7 @@ use tokmd_analysis_util::{AnalysisLimits, normalize_path};
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 
 /// Languages that support Halstead analysis.
-fn is_halstead_lang(lang: &str) -> bool {
+pub fn is_halstead_lang(lang: &str) -> bool {
     matches!(
         lang.to_lowercase().as_str(),
         "rust"
@@ -28,7 +28,7 @@ fn is_halstead_lang(lang: &str) -> bool {
 }
 
 /// Operators for a given language.
-fn operators_for_lang(lang: &str) -> &'static [&'static str] {
+pub fn operators_for_lang(lang: &str) -> &'static [&'static str] {
     match lang.to_lowercase().as_str() {
         "rust" => &[
             "fn", "let", "mut", "if", "else", "match", "while", "for", "loop", "return", "break",
@@ -339,15 +339,15 @@ fn operators_for_lang(lang: &str) -> &'static [&'static str] {
 }
 
 /// Per-file Halstead token counts.
-struct FileTokenCounts {
-    operators: BTreeMap<String, usize>,
-    operands: BTreeSet<String>,
-    total_operators: usize,
-    total_operands: usize,
+pub struct FileTokenCounts {
+    pub operators: BTreeMap<String, usize>,
+    pub operands: BTreeSet<String>,
+    pub total_operators: usize,
+    pub total_operands: usize,
 }
 
 /// Tokenize source code into operators and operands for Halstead analysis.
-fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
+pub fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
     let ops = operators_for_lang(lang);
     let op_set: BTreeSet<&str> = ops.iter().copied().collect();
 
@@ -540,7 +540,8 @@ pub fn build_halstead_report(
     })
 }
 
-fn round_f64(val: f64, decimals: u32) -> f64 {
+/// Round an f64 to a given number of decimal places.
+pub fn round_f64(val: f64, decimals: u32) -> f64 {
     let factor = 10f64.powi(decimals as i32);
     (val * factor).round() / factor
 }

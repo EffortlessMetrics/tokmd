@@ -380,3 +380,149 @@ proptest! {
         prop_assert_eq!(h2, h3);
     }
 }
+
+// ============================================================================
+// Lexical normalisation before hashing
+// ============================================================================
+
+proptest! {
+    /// Leading "./" is stripped before hashing, so "./X" == "X".
+    #[test]
+    fn short_hash_strips_leading_dot_slash(path in arb_path()) {
+        let bare = short_hash(&path);
+        let dotted = short_hash(&format!("./{}", path));
+        prop_assert_eq!(bare, dotted, "./ prefix must be transparent: {}", path);
+    }
+
+    /// Multiple leading "./" segments are all stripped.
+    #[test]
+    fn short_hash_strips_multiple_leading_dot_slash(path in arb_path()) {
+        let bare = short_hash(&path);
+        let double = short_hash(&format!("././{}", path));
+        prop_assert_eq!(bare, double, "././ prefix must be transparent: {}", path);
+    }
+
+    /// Interior "/./\" segments are collapsed so "a/./b" == "a/b".
+    #[test]
+    fn short_hash_collapses_interior_dot_segments(
+        left in "[a-z]{2,6}",
+        right in "[a-z]{2,6}"
+    ) {
+        let clean = format!("{}/{}", left, right);
+        let dotted = format!("{}/{}", left, format!("./{}", right));
+        prop_assert_eq!(
+            short_hash(&clean),
+            short_hash(&dotted),
+            "Interior /. must collapse: {} vs {}", clean, dotted
+        );
+    }
+
+    /// Trailing "/." is removed, so "dir/." == "dir".
+    #[test]
+    fn short_hash_strips_trailing_dot(dir in "[a-z]{2,10}") {
+        let bare = short_hash(&dir);
+        let trailing = short_hash(&format!("{}/.", dir));
+        prop_assert_eq!(bare, trailing, "Trailing /. must be stripped: {}", dir);
+    }
+
+    /// Leading ".\" (Windows dot-backslash) normalises the same as "./".
+    #[test]
+    fn short_hash_strips_leading_dot_backslash(path in arb_path()) {
+        let dotslash = short_hash(&format!("./{}", path));
+        let dotback = short_hash(&format!(".\\{}", path));
+        prop_assert_eq!(dotslash, dotback, ".\\ must equal ./: {}", path);
+    }
+}
+
+// ============================================================================
+// Idempotency
+// ============================================================================
+
+proptest! {
+    /// Calling short_hash N times on the same input always returns the same value.
+    #[test]
+    fn short_hash_triple_call_idempotent(input in ".*") {
+        let h1 = short_hash(&input);
+        let h2 = short_hash(&input);
+        let h3 = short_hash(&input);
+        prop_assert_eq!(&h1, &h2);
+        prop_assert_eq!(&h2, &h3);
+    }
+
+    /// Calling redact_path N times on the same input always returns the same value.
+    #[test]
+    fn redact_path_triple_call_idempotent(path in arb_path_with_extension()) {
+        let r1 = redact_path(&path);
+        let r2 = redact_path(&path);
+        let r3 = redact_path(&path);
+        prop_assert_eq!(&r1, &r2);
+        prop_assert_eq!(&r2, &r3);
+    }
+}
+
+// ============================================================================
+// Determinism across equivalent representations
+// ============================================================================
+
+proptest! {
+    /// All four representations of a path (unix, win, ./-prefixed, mixed)
+    /// produce the same short_hash.
+    #[test]
+    fn short_hash_four_way_equivalence(parts in prop::collection::vec("[a-z]{2,5}", 2..=5)) {
+        let unix = parts.join("/");
+        let win = parts.join("\\");
+        let dot_unix = format!("./{}", unix);
+        let dot_win = format!(".\\{}", win);
+
+        let h_unix = short_hash(&unix);
+        let h_win = short_hash(&win);
+        let h_dot_unix = short_hash(&dot_unix);
+        let h_dot_win = short_hash(&dot_win);
+
+        prop_assert_eq!(&h_unix, &h_win, "unix != win");
+        prop_assert_eq!(&h_unix, &h_dot_unix, "unix != ./unix");
+        prop_assert_eq!(&h_unix, &h_dot_win, "unix != .\\ win");
+    }
+
+    /// All four representations of a path with extension produce the same redact_path.
+    #[test]
+    fn redact_path_four_way_equivalence(
+        parts in prop::collection::vec("[a-z]{2,5}", 2..=5),
+        ext in arb_extension()
+    ) {
+        let base_unix = parts.join("/");
+        let base_win = parts.join("\\");
+        let unix = format!("{}.{}", base_unix, ext);
+        let win = format!("{}.{}", base_win, ext);
+        let dot_unix = format!("./{}", unix);
+        let dot_win = format!(".\\{}", win);
+
+        let r_unix = redact_path(&unix);
+        let r_win = redact_path(&win);
+        let r_dot_unix = redact_path(&dot_unix);
+        let r_dot_win = redact_path(&dot_win);
+
+        prop_assert_eq!(&r_unix, &r_win, "unix != win");
+        prop_assert_eq!(&r_unix, &r_dot_unix, "unix != ./unix");
+        prop_assert_eq!(&r_unix, &r_dot_win, "unix != .\\ win");
+    }
+
+    /// The hash portion of redact_path equals short_hash of the same input,
+    /// regardless of whether the path has a dot-slash prefix.
+    #[test]
+    fn redact_hash_equals_short_hash_with_normalization(
+        parts in prop::collection::vec("[a-z]{2,5}", 1..=4),
+        ext in arb_extension()
+    ) {
+        let path = format!("{}.{}", parts.join("/"), ext);
+        let dotted = format!("./{}", path);
+
+        let redacted = redact_path(&path);
+        let redacted_dotted = redact_path(&dotted);
+
+        // Both should start with the same 16-char hash
+        prop_assert_eq!(&redacted[..16], &redacted_dotted[..16]);
+        // And that hash equals short_hash of the path
+        prop_assert_eq!(&redacted[..16], short_hash(&path));
+    }
+}

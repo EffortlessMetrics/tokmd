@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: f
+---
+{
+  "path": "Cargo.lock",
+  "reason": "lockfile",
+  "tokens": 120000
+}

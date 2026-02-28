@@ -34,11 +34,18 @@ pub use tokmd_types::cockpit::*;
 pub const COMPLEXITY_THRESHOLD: u32 = 15;
 
 /// File stat from git diff --numstat.
+/// File stat from git diff --numstat.
 #[derive(Debug, Clone)]
 pub struct FileStat {
     pub path: String,
     pub insertions: usize,
     pub deletions: usize,
+}
+
+impl AsRef<str> for FileStat {
+    fn as_ref(&self) -> &str {
+        &self.path
+    }
 }
 
 // =============================================================================
@@ -61,16 +68,15 @@ pub fn compute_cockpit(
 
     // Get changed files with their stats
     let file_stats = get_file_stats(repo_root, base, head, range_mode)?;
-    let changed_files: Vec<String> = file_stats.iter().map(|f| f.path.clone()).collect();
 
     // Get change surface from git
     let change_surface = compute_change_surface(repo_root, base, head, &file_stats, range_mode)?;
 
     // Compute composition with test ratio
-    let composition = compute_composition(&changed_files);
+    let composition = compute_composition(&file_stats);
 
     // Detect contract changes
-    let contracts = detect_contracts(&changed_files);
+    let contracts = detect_contracts(&file_stats);
 
     // Compute code health
     let code_health = compute_code_health(&file_stats, &contracts);
@@ -83,7 +89,7 @@ pub fn compute_cockpit(
         repo_root,
         base,
         head,
-        &changed_files,
+        &file_stats,
         &contracts,
         range_mode,
         baseline_path,
@@ -261,7 +267,7 @@ fn compute_evidence(
     repo_root: &PathBuf,
     base: &str,
     head: &str,
-    changed_files: &[String],
+    changed_files: &[FileStat],
     contracts_info: &Contracts,
     range_mode: tokmd_git::GitRangeMode,
     baseline_path: Option<&Path>,
@@ -554,7 +560,7 @@ fn compute_contract_gate(
     repo_root: &Path,
     base: &str,
     head: &str,
-    changed_files: &[String],
+    changed_files: &[FileStat],
     contracts_info: &Contracts,
 ) -> Result<Option<ContractDiffGate>> {
     // Only compute if any contract-relevant files changed
@@ -579,9 +585,10 @@ fn compute_contract_gate(
         let cli_files: Vec<&str> = changed_files
             .iter()
             .filter(|f| {
-                f.contains("crates/tokmd/src/commands/") || f.contains("crates/tokmd-config/")
+                f.path.contains("crates/tokmd/src/commands/")
+                    || f.path.contains("crates/tokmd-config/")
             })
-            .map(|s| s.as_str())
+            .map(|s| s.path.as_str())
             .collect();
 
         let diff_summary = if cli_files.is_empty() {
@@ -667,13 +674,13 @@ fn compute_contract_gate(
     let relevant: Vec<String> = changed_files
         .iter()
         .filter(|f| {
-            f.ends_with("/src/lib.rs")
-                || f.ends_with("/mod.rs")
-                || f.contains("crates/tokmd/src/commands/")
-                || f.contains("crates/tokmd-config/")
-                || *f == "docs/schema.json"
+            f.path.ends_with("/src/lib.rs")
+                || f.path.ends_with("/mod.rs")
+                || f.path.contains("crates/tokmd/src/commands/")
+                || f.path.contains("crates/tokmd-config/")
+                || f.path == "docs/schema.json"
         })
-        .cloned()
+        .map(|f| f.path.clone())
         .collect();
 
     Ok(Some(ContractDiffGate {
@@ -880,10 +887,10 @@ fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
 #[cfg(feature = "git")]
 fn compute_supply_chain_gate(
     repo_root: &Path,
-    changed_files: &[String],
+    changed_files: &[FileStat],
 ) -> Result<Option<SupplyChainGate>> {
     // Only compute if Cargo.lock changed
-    let lock_changed = changed_files.iter().any(|f| f.ends_with("Cargo.lock"));
+    let lock_changed = changed_files.iter().any(|f| f.path.ends_with("Cargo.lock"));
     if !lock_changed {
         return Ok(None);
     }
@@ -1196,13 +1203,13 @@ pub fn compute_determinism_gate(
 #[cfg(feature = "git")]
 fn compute_complexity_gate(
     repo_root: &Path,
-    changed_files: &[String],
+    changed_files: &[FileStat],
 ) -> Result<Option<ComplexityGate>> {
     // Filter to relevant Rust source files
     let relevant_files: Vec<String> = changed_files
         .iter()
-        .filter(|f| is_relevant_rust_source(f))
-        .cloned()
+        .filter(|f| is_relevant_rust_source(&f.path))
+        .map(|f| f.path.clone())
         .collect();
 
     // If no relevant files, skip
@@ -1542,14 +1549,14 @@ fn compute_mutation_gate(
     repo_root: &PathBuf,
     _base: &str,
     _head: &str,
-    changed_files: &[String],
+    changed_files: &[FileStat],
     _range_mode: tokmd_git::GitRangeMode,
 ) -> Result<MutationGate> {
     // Filter to relevant Rust source files
     let relevant_files: Vec<String> = changed_files
         .iter()
-        .filter(|f| is_relevant_rust_source(f))
-        .cloned()
+        .filter(|f| is_relevant_rust_source(&f.path))
+        .map(|f| f.path.clone())
         .collect();
 
     // If no relevant files, skip
@@ -1843,14 +1850,14 @@ fn compute_change_surface(
 // =============================================================================
 
 /// Compute composition metrics.
-pub fn compute_composition(files: &[String]) -> Composition {
+pub fn compute_composition<S: AsRef<str>>(files: &[S]) -> Composition {
     let mut code = 0;
     let mut test = 0;
     let mut docs = 0;
     let mut config = 0;
 
-    for file in files {
-        let path = file.to_lowercase();
+    for file in files.iter() {
+        let path = file.as_ref().to_lowercase();
         if path.ends_with(".rs")
             || path.ends_with(".js")
             || path.ends_with(".ts")
@@ -1902,20 +1909,22 @@ pub fn compute_composition(files: &[String]) -> Composition {
 }
 
 /// Detect contract changes.
-pub fn detect_contracts(files: &[String]) -> Contracts {
+pub fn detect_contracts<S: AsRef<str>>(files: &[S]) -> Contracts {
     let mut api_changed = false;
     let mut cli_changed = false;
     let mut schema_changed = false;
     let mut breaking_indicators = 0;
 
-    for file in files {
-        if file.ends_with("lib.rs") || file.ends_with("mod.rs") {
+    for file in files.iter() {
+        if file.as_ref().ends_with("lib.rs") || file.as_ref().ends_with("mod.rs") {
             api_changed = true;
         }
-        if file.contains("crates/tokmd/src/commands/") || file.contains("crates/tokmd-config/") {
+        if file.as_ref().contains("crates/tokmd/src/commands/")
+            || file.as_ref().contains("crates/tokmd-config/")
+        {
             cli_changed = true;
         }
-        if file == "docs/schema.json" || file == "docs/SCHEMA.md" {
+        if file.as_ref() == "docs/schema.json" || file.as_ref() == "docs/SCHEMA.md" {
             schema_changed = true;
         }
     }

@@ -6,9 +6,9 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
-use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisSource, ComplexityBaseline, DeterminismBaseline,
-};
+#[cfg(feature = "git")]
+use tokmd_analysis_types::DeterminismBaseline;
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
 use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
@@ -34,7 +34,9 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     let bundle = export_bundle::load_export_from_inputs(&inputs, global)?;
 
     // Save file paths and root before the bundle is consumed by analysis
+    #[cfg(feature = "git")]
     let scan_root = bundle.root.clone();
+    #[cfg(feature = "git")]
     let file_paths: Vec<String> = if args.determinism {
         bundle.export.rows.iter().map(|r| r.path.clone()).collect()
     } else {
@@ -105,6 +107,10 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     if args.determinism {
         progress.set_message("Computing determinism hashes...");
         baseline.determinism = Some(compute_determinism_baseline(&scan_root, &file_paths)?);
+    }
+    #[cfg(not(feature = "git"))]
+    if args.determinism {
+        anyhow::bail!("Determinism checks require the 'git' feature. Rebuild with --features git");
     }
 
     // Create output directory if needed

@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"gini\").unwrap()"
+---
+gini: Inequality of file sizes; higher means concentration in fewer files.

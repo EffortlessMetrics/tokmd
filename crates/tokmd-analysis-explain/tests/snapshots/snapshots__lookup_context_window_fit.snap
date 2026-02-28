@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"context_window_fit\").unwrap()"
+---
+context_window_fit: Estimated token fit against a target model context window.

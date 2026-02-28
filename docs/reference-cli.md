@@ -31,29 +31,9 @@ Generates a summary of code statistics grouped by **Language**.
 
 <!-- HELP: lang -->
 ```text
-Configuration schemas and defaults for tokmd.
+Language summary (default)
 
-Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
-
-Commands:
-  lang          Language summary (default)
-  module        Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
-  export        Export a file-level dataset (CSV / JSONL / JSON)
-  analyze       Analyze receipts or paths to produce derived metrics
-  badge         Render a simple SVG badge for a metric
-  init          Write a `.tokeignore` template to the target directory
-  completions   Generate shell completions
-  run           Run a full scan and save receipts to a state directory
-  diff          Compare two receipts or runs
-  context       Pack files into an LLM context window within a token budget
-  check-ignore  Check why a file is being ignored (for troubleshooting)
-  tools         Output CLI schema as JSON for AI agents
-  gate          Evaluate policy rules against analysis receipts
-  cockpit       Generate PR cockpit metrics for code review
-  baseline      Generate a complexity baseline for trend tracking
-  handoff       Bundle codebase for LLM handoff
-  sensor        Run as a conforming sensor, producing a SensorReport
-  help          Print this message or the help of the given subcommand(s)
+Usage: tokmd lang [OPTIONS] [PATH]...
 
 Arguments:
   [PATH]...
@@ -66,43 +46,6 @@ Options:
           Examples: --exclude target --exclude "**/*.min.js"
           
           [aliases: --ignore]
-
-      --config <CONFIG>
-          Whether to load `tokei.toml` / `.tokeirc`
-
-          Possible values:
-          - auto: Read `tokei.toml` / `.tokeirc` if present
-          - none: Ignore config files
-          
-          [default: auto]
-
-      --hidden
-          Count hidden files and directories
-
-      --no-ignore
-          Don't respect ignore files (.gitignore, .ignore, etc.).
-          
-          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
-
-      --no-ignore-parent
-          Don't respect ignore files in parent directories
-
-      --no-ignore-dot
-          Don't respect .ignore and .tokeignore files (including in parent directories)
-
-      --no-ignore-vcs
-          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
-          
-          [aliases: --no-ignore-git]
-
-      --treat-doc-strings-as-comments
-          Treat doc strings as comments (language-dependent)
-
-  -v, --verbose...
-          Verbose output (repeat for more detail)
-
-      --no-progress
-          Disable progress spinners
 
       --format <FORMAT>
           Output format [default: md]
@@ -125,6 +68,9 @@ Options:
           - collapse: Merge embedded content into the parent language totals
           - separate: Show embedded languages as separate "(embedded)" rows
 
+      --no-progress
+          Disable progress spinners
+
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
           
@@ -132,9 +78,6 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
-
-  -V, --version
-          Print version
 ```
 <!-- /HELP: lang -->
 

@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"avg_cyclomatic\").unwrap()"
+---
+avg_cyclomatic: Average branching complexity across analyzed files.

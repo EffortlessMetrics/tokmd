@@ -1,5 +1,6 @@
 //! Integration tests for the `tokmd sensor` command.
 
+#![cfg(feature = "git")]
 mod common;
 
 use assert_cmd::Command;

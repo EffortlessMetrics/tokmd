@@ -1,0 +1,42 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+expression: pretty
+---
+[
+  {
+    "blanks": 10,
+    "bytes": 1000,
+    "code": 100,
+    "comments": 20,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 130,
+    "module": "src",
+    "path": "src/lib.rs",
+    "tokens": 250
+  },
+  {
+    "blanks": 5,
+    "bytes": 600,
+    "code": 60,
+    "comments": 5,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 70,
+    "module": "src",
+    "path": "src/util.rs",
+    "tokens": 150
+  },
+  {
+    "blanks": 3,
+    "bytes": 400,
+    "code": 40,
+    "comments": 2,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 45,
+    "module": "tests",
+    "path": "tests/smoke.rs",
+    "tokens": 100
+  }
+]

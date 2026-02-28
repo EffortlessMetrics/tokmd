@@ -1,0 +1,14 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: entry
+---
+{
+  "name": "code.txt",
+  "path": "bundle/code.txt",
+  "description": "Source code bundle",
+  "bytes": 50000,
+  "hash": {
+    "algo": "blake3",
+    "hash": "a1b2c3d4e5f6"
+  }
+}

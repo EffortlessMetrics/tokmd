@@ -91,25 +91,32 @@ mod tests {
     // ========================
 
     #[test]
-    fn scan_finds_rust_files() {
+    fn scan_finds_rust_files() -> Result<()> {
         let args = default_scan_options();
         let paths = vec![test_path()];
-        let result = scan(&paths, &args).unwrap();
+        let result = scan(&paths, &args)?;
         // Should find at least this lib.rs file
         assert!(!result.is_empty());
         assert!(result.get(&tokei::LanguageType::Rust).is_some());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_nonexistent_path_returns_error() {
+    fn scan_with_nonexistent_path_returns_error() -> Result<()> {
         let args = default_scan_options();
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir()?;
         let nonexistent = dir.path().join("definitely-not-created");
         let paths = vec![nonexistent];
         let result = scan(&paths, &args);
         // Should return an error for nonexistent paths
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Path not found"));
+        assert!(
+            result
+                .expect_err("should have failed")
+                .to_string()
+                .contains("Path not found")
+        );
+        Ok(())
     }
 
     // ========================
@@ -117,26 +124,28 @@ mod tests {
     // ========================
 
     #[test]
-    fn scan_with_hidden_flag() {
+    fn scan_with_hidden_flag() -> Result<()> {
         let mut args = default_scan_options();
         args.hidden = true;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_no_ignore_flag() {
+    fn scan_with_no_ignore_flag() -> Result<()> {
         let mut args = default_scan_options();
         args.no_ignore = true;
         let paths = vec![test_path()];
         // no_ignore should imply all other no_ignore_* flags
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_individual_no_ignore_flags() {
+    fn scan_with_individual_no_ignore_flags() -> Result<()> {
         let mut args = default_scan_options();
         args.no_ignore_parent = true;
         args.no_ignore_dot = true;
@@ -144,37 +153,41 @@ mod tests {
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_treat_doc_strings_as_comments() {
+    fn scan_with_treat_doc_strings_as_comments() -> Result<()> {
         let mut args = default_scan_options();
         args.treat_doc_strings_as_comments = true;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_config_mode_none() {
+    fn scan_with_config_mode_none() -> Result<()> {
         let mut args = default_scan_options();
         args.config = ConfigMode::None;
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_excluded_patterns() {
+    fn scan_with_excluded_patterns() -> Result<()> {
         let mut args = default_scan_options();
         args.excluded = vec!["target".to_string(), "*.min.js".to_string()];
         let paths = vec![test_path()];
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_with_all_flags_combined() {
+    fn scan_with_all_flags_combined() -> Result<()> {
         let args = ScanOptions {
             excluded: vec!["node_modules".to_string()],
             config: ConfigMode::None,
@@ -189,17 +202,21 @@ mod tests {
         // Should handle all flags without panicking
         let result = scan(&paths, &args);
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
-    fn scan_returns_code_stats() {
+    fn scan_returns_code_stats() -> Result<()> {
         let args = default_scan_options();
         let paths = vec![test_path()];
-        let result = scan(&paths, &args).unwrap();
+        let result = scan(&paths, &args)?;
 
-        let rust = result.get(&tokei::LanguageType::Rust).unwrap();
+        let rust = result
+            .get(&tokei::LanguageType::Rust)
+            .expect("should find rust in src/lib.rs");
         // The lib.rs file should have some code
         assert!(rust.code > 0);
         assert!(rust.lines() > 0);
+        Ok(())
     }
 }

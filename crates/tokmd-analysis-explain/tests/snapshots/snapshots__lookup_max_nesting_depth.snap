@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"max_nesting_depth\").unwrap()"
+---
+max_nesting_depth: Deepest observed nesting level in analyzed code.

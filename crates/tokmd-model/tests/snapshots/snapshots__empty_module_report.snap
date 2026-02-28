@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-model/tests/snapshots.rs
+expression: "serde_json::json!({\n    \"rows\": report.rows.len(), \"total_code\": report.total.code, \"total_files\":\n    report.total.files,\n})"
+---
+{
+  "rows": 0,
+  "total_code": 0,
+  "total_files": 0
+}

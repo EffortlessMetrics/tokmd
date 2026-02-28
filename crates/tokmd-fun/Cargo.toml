@@ -16,5 +16,6 @@ anyhow = "1.0.101"
 midly = "0.5.3"
 
 [dev-dependencies]
+insta = { workspace = true }
 proptest = "1.10.0"
 

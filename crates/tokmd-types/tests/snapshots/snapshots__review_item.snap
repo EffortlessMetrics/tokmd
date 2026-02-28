@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-types/tests/snapshots.rs
+expression: item
+---
+{
+  "path": "src/critical.rs",
+  "reason": "hotspot + high complexity",
+  "priority": 1,
+  "complexity": 4,
+  "lines_changed": 150
+}

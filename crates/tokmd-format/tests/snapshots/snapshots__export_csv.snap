@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/lib.rs,src,Rust,parent,100,20,10,130,1000,250
+src/util.rs,src,Rust,parent,60,5,5,70,600,150
+tests/smoke.rs,tests,Rust,parent,40,2,3,45,400,100

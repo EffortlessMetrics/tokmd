@@ -481,8 +481,8 @@ pub fn select_files_with_options(
     }
 
     // Step 3: Build pack candidates (excluding policy-skipped files, adjusting tokens for HeadTail)
-    let excluded_paths: std::collections::HashSet<String> =
-        excluded_by_policy.iter().map(|e| e.path.clone()).collect();
+    let excluded_paths: std::collections::HashSet<&str> =
+        excluded_by_policy.iter().map(|e| e.path.as_str()).collect();
 
     let pack_rows: Vec<FileRow> = candidate_rows
         .iter()
@@ -491,7 +491,7 @@ pub fn select_files_with_options(
                 return true; // Children pass through (filtered by pack fns)
             }
             let path = normalize_path(&r.path);
-            !excluded_paths.contains(&path)
+            !excluded_paths.contains(path.as_str())
         })
         .map(|r| {
             let path = normalize_path(&r.path);

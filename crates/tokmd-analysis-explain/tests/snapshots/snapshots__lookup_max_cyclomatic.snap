@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"max_cyclomatic\").unwrap()"
+---
+max_cyclomatic: Highest cyclomatic complexity found in a single file.

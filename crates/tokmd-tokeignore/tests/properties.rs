@@ -452,6 +452,220 @@ fn language_profiles_contain_expected_patterns() {
 // Cross-Profile Exclusivity
 // ============================================================================
 
+// ============================================================================
+// Template Size Properties
+// ============================================================================
+
+proptest! {
+    /// All templates have a reasonable number of pattern lines (between 2 and 50).
+    #[test]
+    fn template_pattern_count_in_range(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        let count = content
+            .lines()
+            .filter(|l| {
+                let t = l.trim();
+                !t.is_empty() && !t.starts_with('#')
+            })
+            .count();
+        prop_assert!(
+            count >= 2 && count <= 50,
+            "Template {:?} has {} patterns, expected 2..50",
+            profile,
+            count
+        );
+    }
+
+    /// All templates are less than 2 KB in size (they're short config files).
+    #[test]
+    fn template_size_under_limit(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        prop_assert!(
+            content.len() < 2048,
+            "Template {:?} is {} bytes, expected < 2048",
+            profile,
+            content.len()
+        );
+    }
+}
+
+// ============================================================================
+// Line Ending and Encoding Properties
+// ============================================================================
+
+proptest! {
+    /// Templates use only LF line endings (no CRLF).
+    #[test]
+    fn template_uses_lf_only(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        prop_assert!(
+            !content.contains("\r\n"),
+            "Template {:?} should use LF, not CRLF",
+            profile
+        );
+        prop_assert!(
+            !content.contains('\r'),
+            "Template {:?} should not contain CR",
+            profile
+        );
+    }
+
+    /// Templates end with a newline character.
+    #[test]
+    fn template_ends_with_newline(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        prop_assert!(
+            content.ends_with('\n'),
+            "Template {:?} should end with newline",
+            profile
+        );
+    }
+
+    /// No trailing whitespace on any line.
+    #[test]
+    fn template_no_trailing_whitespace(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        for (i, line) in content.lines().enumerate() {
+            prop_assert!(
+                line == line.trim_end(),
+                "Template {:?}, line {}: trailing whitespace",
+                profile,
+                i + 1
+            );
+        }
+    }
+}
+
+// ============================================================================
+// Directory Pattern Invariant Properties
+// ============================================================================
+
+proptest! {
+    /// Every bare directory pattern "foo/" has a corresponding "**/foo/" variant.
+    #[test]
+    fn dir_patterns_have_doublestar_variant(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        let patterns: Vec<&str> = content
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+
+        for p in &patterns {
+            if p.ends_with('/') && !p.starts_with("**/") && !p.contains('/') {
+                // Simple dir pattern like "target/" should have "**/target/"
+                // (but not "cmake-build-*/" which has a glob)
+                if !p.contains('*') {
+                    let expected = format!("**/{p}");
+                    prop_assert!(
+                        patterns.contains(&expected.as_str()),
+                        "Template {:?}: {} should have **/ variant",
+                        profile,
+                        p
+                    );
+                }
+            }
+        }
+    }
+
+    /// No pattern contains duplicate slashes (//).
+    #[test]
+    fn no_double_slashes_in_patterns(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        for line in content.lines() {
+            let t = line.trim();
+            if t.is_empty() || t.starts_with('#') {
+                continue;
+            }
+            prop_assert!(
+                !t.contains("//"),
+                "Template {:?}: pattern has double slash: {}",
+                profile,
+                t
+            );
+        }
+    }
+}
+
+// ============================================================================
+// No Duplicate Patterns Property
+// ============================================================================
+
+proptest! {
+    /// Templates contain no duplicate patterns.
+    #[test]
+    fn no_duplicate_patterns(profile in arb_profile()) {
+        let content = get_template_content(profile);
+        let patterns: Vec<&str> = content
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+        let unique: HashSet<&str> = patterns.iter().copied().collect();
+        prop_assert_eq!(
+            patterns.len(),
+            unique.len(),
+            "Template {:?} has duplicate patterns",
+            profile
+        );
+    }
+}
+
+// ============================================================================
+// Error Path Properties
+// ============================================================================
+
+proptest! {
+    /// Nonexistent directory always fails, regardless of profile or force flag.
+    #[test]
+    fn nonexistent_dir_always_fails(profile in arb_profile(), force in proptest::bool::ANY) {
+        let args = make_args(
+            PathBuf::from("__nonexistent_proptest_dir__"),
+            profile,
+            force,
+            false,
+        );
+        let result = init_tokeignore(&args);
+        prop_assert!(result.is_err(), "Should fail for nonexistent dir");
+    }
+
+    /// Existing file without force always fails, regardless of profile.
+    #[test]
+    fn existing_file_no_force_always_fails(profile in arb_profile()) {
+        let temp = TempDir::new().expect("temp dir");
+        std::fs::write(temp.path().join(".tokeignore"), "old").expect("write");
+        let args = make_args(temp.path().to_path_buf(), profile, false, false);
+        let result = init_tokeignore(&args);
+        prop_assert!(result.is_err(), "Should fail without --force when file exists");
+    }
+}
+
+// ============================================================================
+// Return Value Properties
+// ============================================================================
+
+proptest! {
+    /// Write mode returns Some(path) pointing to the written file.
+    #[test]
+    fn write_mode_returns_correct_path(profile in arb_profile()) {
+        let temp = TempDir::new().expect("temp dir");
+        let args = make_args(temp.path().to_path_buf(), profile, false, false);
+        let result = init_tokeignore(&args).expect("init should succeed");
+        let path = result.expect("should return Some");
+        prop_assert!(path.exists(), "Returned path should exist on disk");
+        prop_assert_eq!(path, temp.path().join(".tokeignore"));
+    }
+
+    /// Print mode returns None regardless of profile.
+    #[test]
+    fn print_mode_returns_none(profile in arb_profile()) {
+        let temp = TempDir::new().expect("temp dir");
+        let args = make_args(temp.path().to_path_buf(), profile, false, true);
+        let result = init_tokeignore(&args).expect("print should succeed");
+        prop_assert!(result.is_none(), "Print mode should return None");
+    }
+}
+
 /// Test that language-specific profiles don't include unrelated patterns.
 #[test]
 fn language_profiles_are_focused() {

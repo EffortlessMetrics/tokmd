@@ -13,3 +13,6 @@ documentation = "https://docs.rs/tokmd-analysis-maintainability"
 
 [dependencies]
 tokmd-analysis-types.workspace = true
+
+[dev-dependencies]
+proptest = "1.10.0"

@@ -12,3 +12,6 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-explain"
 
 [dependencies]
+
+[dev-dependencies]
+insta.workspace = true

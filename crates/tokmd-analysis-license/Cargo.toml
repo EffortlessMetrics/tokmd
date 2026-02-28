@@ -20,4 +20,5 @@ tokmd-content.workspace = true
 tokmd-walk.workspace = true
 
 [dev-dependencies]
+proptest = "1.10.0"
 tempfile = "3.25.0"

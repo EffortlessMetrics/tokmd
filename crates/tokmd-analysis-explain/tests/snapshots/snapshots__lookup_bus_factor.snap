@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"bus_factor\").unwrap()"
+---
+bus_factor: Approximate author concentration by module from git history.

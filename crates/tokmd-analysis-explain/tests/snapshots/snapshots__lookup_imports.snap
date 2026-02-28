@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-explain/tests/snapshots.rs
+expression: "lookup(\"imports\").unwrap()"
+---
+imports: Observed dependency edges across files/modules from import statements.
