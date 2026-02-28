@@ -12,3 +12,7 @@ keywords = ["badge", "svg", "metrics", "tokmd"]
 categories = ["command-line-utilities"]
 
 [dependencies]
+
+[dev-dependencies]
+insta = { workspace = true }
+proptest = "1.10.0"
