@@ -53,6 +53,7 @@ pub fn hash_files_from_paths(root: &Path, paths: &[&str]) -> Result<String> {
 /// Uses the `ignore` crate to respect `.gitignore` rules, then sorts
 /// the discovered paths and hashes them with the same protocol as
 /// [`hash_files_from_paths`].
+#[cfg(feature = "git")]
 pub fn hash_files_from_walk(root: &Path, exclude_rel: &[&str]) -> Result<String> {
     let mut paths: Vec<String> = Vec::new();
 
@@ -210,6 +211,7 @@ mod tests {
         assert!(result.is_none());
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_hash_files_from_walk_deterministic() {
         let dir = tempfile::tempdir().unwrap();
@@ -223,6 +225,7 @@ mod tests {
         assert_eq!(h1.len(), 64);
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_walk_and_paths_produce_same_hash() {
         let dir = tempfile::tempdir().unwrap();
@@ -240,6 +243,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_walk_excludes_specified_paths() {
         let dir = tempfile::tempdir().unwrap();
@@ -258,6 +262,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn test_walk_excludes_tokmd_directory() {
         let dir = tempfile::tempdir().unwrap();
