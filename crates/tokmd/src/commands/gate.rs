@@ -364,7 +364,7 @@ fn compute_receipt(
     };
 
     let request = analysis::AnalysisRequest {
-        preset: analysis_utils::map_preset(preset),
+        preset: analysis_utils::map_preset(preset)?,
         args: args_meta,
         limits: analysis::AnalysisLimits::default(),
         window_tokens: None,

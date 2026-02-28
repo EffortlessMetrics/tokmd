@@ -75,7 +75,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         Some(cli::NearDupScope::Global) => analysis::NearDupScope::Global,
     };
     let request = analysis::AnalysisRequest {
-        preset: analysis_utils::map_preset(preset),
+        preset: analysis_utils::map_preset(preset)?,
         args: args_meta,
         limits: analysis::AnalysisLimits {
             max_files: args.max_files,

@@ -154,7 +154,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
             import_granularity: "module".to_string(),
         };
         let request = analysis::AnalysisRequest {
-            preset: analysis_utils::map_preset(preset),
+            preset: analysis_utils::map_preset(preset)?,
             args: args_meta,
             limits: analysis::AnalysisLimits::default(),
             window_tokens: None,

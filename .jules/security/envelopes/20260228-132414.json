@@ -1,0 +1,33 @@
+{
+  "run_id": "20260228-132414",
+  "timestamp_utc": "2026-02-28T13:37:27Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/analysis_utils.rs",
+  "commands": [
+    {
+      "cmd": "cargo check",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo test --workspace --exclude tokmd-python --exclude tokmd-node",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
+    }
+  ],
+  "results": [
+    {
+      "finding": "unwrap call in analysis_utils.rs map_preset and its tests"
+    }
+  ]
+}

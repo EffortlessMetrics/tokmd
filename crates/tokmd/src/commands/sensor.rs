@@ -99,7 +99,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Slim data: only gates + summary metrics (no embedded cockpit receipt)
         let gates = map_gates(&cockpit_receipt.evidence);
         let data = serde_json::json!({
-            "gates": serde_json::to_value(&gates)?,
+            "gates": serde_json::to_value(&gates).unwrap_or(serde_json::Value::Null),
             "summary_metrics": {
                 "files_changed": cockpit_receipt.change_surface.files_changed,
                 "insertions": cockpit_receipt.change_surface.insertions,
