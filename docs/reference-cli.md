@@ -31,7 +31,7 @@ Generates a summary of code statistics grouped by **Language**.
 
 <!-- HELP: lang -->
 ```text
-Configuration schemas and defaults for tokmd.
+`tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`
 
 Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
 
