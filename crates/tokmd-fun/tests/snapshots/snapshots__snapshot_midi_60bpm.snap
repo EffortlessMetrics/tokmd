@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-fun/tests/snapshots.rs
+expression: "midi_hex(&notes, 60)"
+---
+4d 54 68 64 00 00 00 06 00 00 00 01 01 e0 4d 54 72 6b 00 00 00 14 00 ff 51 03 0f 42 40 00 91 30 7f 87 40 81 30 00 00 ff 2f 00

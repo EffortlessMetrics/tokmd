@@ -30,4 +30,5 @@ tokmd-fun = { workspace = true, optional = true }
 [dev-dependencies]
 insta = { workspace = true }
 midly = "0.5.3"
+proptest = "1.10.0"
 tokmd-analysis.workspace = true

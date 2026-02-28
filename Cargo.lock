@@ -3117,6 +3117,7 @@ name = "tokmd-analysis-derived"
 version = "1.7.2"
 dependencies = [
  "blake3",
+ "proptest",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-export-tree",
@@ -3160,6 +3161,7 @@ dependencies = [
  "anyhow",
  "insta",
  "midly",
+ "proptest",
  "serde",
  "serde_json",
  "tokmd-analysis",
@@ -3447,6 +3449,7 @@ name = "tokmd-fun"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "insta",
  "midly",
  "proptest",
 ]
