@@ -6,7 +6,10 @@
 use std::path::PathBuf;
 
 use proptest::prelude::*;
-use tokmd_analysis_content::{ContentLimits, ImportGranularity, build_duplicate_report, build_import_report, build_todo_report};
+use tokmd_analysis_content::{
+    ContentLimits, ImportGranularity, build_duplicate_report, build_import_report,
+    build_todo_report,
+};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── helpers ──────────────────────────────────────────────────────────

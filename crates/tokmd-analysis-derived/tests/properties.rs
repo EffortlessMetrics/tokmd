@@ -49,10 +49,7 @@ fn arb_file_rows() -> impl Strategy<Value = Vec<FileRow>> {
 }
 
 fn arb_window_tokens() -> impl Strategy<Value = Option<usize>> {
-    prop_oneof![
-        Just(None),
-        (1..=500_000usize).prop_map(Some),
-    ]
+    prop_oneof![Just(None), (1..=500_000usize).prop_map(Some),]
 }
 
 // ── Properties ──────────────────────────────────────────────────

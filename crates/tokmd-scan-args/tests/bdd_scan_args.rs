@@ -222,7 +222,10 @@ fn given_many_exclusions_when_redacted_then_all_are_hashed() {
 
     assert_eq!(args.excluded.len(), 4);
     assert!(args.excluded_redacted);
-    for (i, original) in ["node_modules", "target", ".git", "dist"].iter().enumerate() {
+    for (i, original) in ["node_modules", "target", ".git", "dist"]
+        .iter()
+        .enumerate()
+    {
         assert_ne!(&args.excluded[i], original);
     }
 }
@@ -248,8 +251,16 @@ fn given_same_inputs_when_redacted_twice_then_hashes_are_identical() {
 fn given_different_paths_when_redacted_then_hashes_differ() {
     let global = ScanOptions::default();
 
-    let a = scan_args(&[PathBuf::from("project_a/src")], &global, Some(RedactMode::Paths));
-    let b = scan_args(&[PathBuf::from("project_b/src")], &global, Some(RedactMode::Paths));
+    let a = scan_args(
+        &[PathBuf::from("project_a/src")],
+        &global,
+        Some(RedactMode::Paths),
+    );
+    let b = scan_args(
+        &[PathBuf::from("project_b/src")],
+        &global,
+        Some(RedactMode::Paths),
+    );
 
     assert_ne!(a.paths[0], b.paths[0]);
 }

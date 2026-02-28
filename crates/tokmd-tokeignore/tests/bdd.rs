@@ -341,7 +341,12 @@ mod return_value {
     #[test]
     fn given_write_mode_then_returns_some_path() {
         let temp = TempDir::new().unwrap();
-        let args = make_args(temp.path().to_path_buf(), InitProfile::Default, false, false);
+        let args = make_args(
+            temp.path().to_path_buf(),
+            InitProfile::Default,
+            false,
+            false,
+        );
         let result = init_tokeignore(&args).unwrap();
         assert!(result.is_some());
         assert_eq!(result.unwrap(), temp.path().join(".tokeignore"));
@@ -472,12 +477,7 @@ mod errors {
             InitProfile::Go,
             InitProfile::Cpp,
         ] {
-            let args = make_args(
-                PathBuf::from("__nonexistent_dir__"),
-                profile,
-                false,
-                false,
-            );
+            let args = make_args(PathBuf::from("__nonexistent_dir__"), profile, false, false);
             assert!(
                 init_tokeignore(&args).is_err(),
                 "Profile {:?} should fail for nonexistent dir",
@@ -511,8 +511,11 @@ mod force_overwrite {
     #[test]
     fn given_force_then_old_content_replaced() {
         let temp = TempDir::new().unwrap();
-        std::fs::write(temp.path().join(".tokeignore"), "# old custom content\nmy_pattern/\n")
-            .unwrap();
+        std::fs::write(
+            temp.path().join(".tokeignore"),
+            "# old custom content\nmy_pattern/\n",
+        )
+        .unwrap();
         let args = make_args(temp.path().to_path_buf(), InitProfile::Default, true, false);
         init_tokeignore(&args).unwrap();
         let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
@@ -601,7 +604,10 @@ mod print_mode {
         init_tokeignore(&args).unwrap();
 
         let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
-        assert_eq!(content, original, "Print mode should not modify existing file");
+        assert_eq!(
+            content, original,
+            "Print mode should not modify existing file"
+        );
     }
 
     #[test]
@@ -838,14 +844,8 @@ mod superset_relationships {
         let default_patterns = pattern_set(&write_and_read(InitProfile::Default));
         let mono_patterns = pattern_set(&write_and_read(InitProfile::Mono));
         for p in ["vendor/", "**/vendor/", "third_party/", "**/third_party/"] {
-            assert!(
-                default_patterns.contains(p),
-                "Default missing {p}"
-            );
-            assert!(
-                mono_patterns.contains(p),
-                "Mono missing {p}"
-            );
+            assert!(default_patterns.contains(p), "Default missing {p}");
+            assert!(mono_patterns.contains(p), "Mono missing {p}");
         }
     }
 }

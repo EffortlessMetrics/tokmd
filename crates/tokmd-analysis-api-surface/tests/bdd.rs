@@ -65,8 +65,7 @@ fn write_temp_files(files: &[(&str, &str)]) -> (tempfile::TempDir, Vec<PathBuf>)
 fn given_no_files_report_is_empty() {
     let dir = tempfile::tempdir().unwrap();
     let export = make_export(vec![]);
-    let report =
-        build_api_surface_report(dir.path(), &[], &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &[], &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
     assert_eq!(report.public_items, 0);
@@ -83,8 +82,7 @@ fn given_no_matching_rows_report_is_empty() {
     let (dir, paths) = write_temp_files(&[("src/lib.rs", "pub fn hello() {}\n")]);
     // Export data has no rows matching the file
     let export = make_export(vec![]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
 }
@@ -98,8 +96,7 @@ fn given_rust_file_with_pub_fn_detects_public_item() {
     let code = "pub fn greet() {}\nfn helper() {}\n";
     let (dir, paths) = write_temp_files(&[("src/lib.rs", code)]);
     let export = make_export(vec![make_row("src/lib.rs", "src", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 2);
     assert_eq!(report.public_items, 1);
@@ -112,8 +109,7 @@ fn given_rust_file_all_public_ratio_is_one() {
     let code = "pub fn a() {}\npub fn b() {}\npub struct C;\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 3);
     assert_eq!(report.public_ratio, 1.0);
@@ -124,8 +120,7 @@ fn given_rust_file_all_internal_ratio_is_zero() {
     let code = "fn a() {}\nfn b() {}\nstruct C;\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 0);
     assert_eq!(report.internal_items, 3);
@@ -141,8 +136,7 @@ fn given_documented_public_items_ratio_is_correct() {
     let code = "/// Documented\npub fn doc_fn() {}\npub fn undoc_fn() {}\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 2);
     assert_eq!(report.documented_ratio, 0.5);
@@ -153,8 +147,7 @@ fn given_no_public_items_documented_ratio_is_zero() {
     let code = "fn internal() {}\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.documented_ratio, 0.0);
 }
@@ -172,8 +165,7 @@ fn given_multiple_languages_by_language_tracks_each() {
         make_row("lib.rs", ".", "Rust"),
         make_row("main.py", ".", "Python"),
     ]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.by_language.len(), 2);
 
@@ -194,14 +186,12 @@ fn given_multiple_languages_by_language_tracks_each() {
 fn given_files_in_different_modules_by_module_tracks_each() {
     let code_a = "pub fn a() {}\n";
     let code_b = "pub fn b() {}\npub fn c() {}\n";
-    let (dir, paths) =
-        write_temp_files(&[("src/a.rs", code_a), ("src/b.rs", code_b)]);
+    let (dir, paths) = write_temp_files(&[("src/a.rs", code_a), ("src/b.rs", code_b)]);
     let export = make_export(vec![
         make_row("src/a.rs", "mod_a", "Rust"),
         make_row("src/b.rs", "mod_b", "Rust"),
     ]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.by_module.len(), 2);
     // Sorted by total_items descending → mod_b first (2 items) then mod_a (1 item)
@@ -219,14 +209,12 @@ fn given_files_in_different_modules_by_module_tracks_each() {
 fn given_files_with_public_items_top_exporters_sorted() {
     let code_few = "pub fn a() {}\n";
     let code_many = "pub fn x() {}\npub fn y() {}\npub fn z() {}\n";
-    let (dir, paths) =
-        write_temp_files(&[("few.rs", code_few), ("many.rs", code_many)]);
+    let (dir, paths) = write_temp_files(&[("few.rs", code_few), ("many.rs", code_many)]);
     let export = make_export(vec![
         make_row("few.rs", ".", "Rust"),
         make_row("many.rs", ".", "Rust"),
     ]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.top_exporters.len(), 2);
     // Sorted by public_items desc → many.rs first
@@ -241,8 +229,7 @@ fn given_file_with_no_public_items_not_in_top_exporters() {
     let code = "fn internal_only() {}\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert!(report.top_exporters.is_empty());
 }
@@ -256,8 +243,7 @@ fn given_unsupported_language_file_is_skipped() {
     let code = "# This is Markdown\n## Heading\n";
     let (dir, paths) = write_temp_files(&[("README.md", code)]);
     let export = make_export(vec![make_row("README.md", ".", "Markdown")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
 }
@@ -273,8 +259,7 @@ fn given_child_kind_rows_they_are_excluded() {
     let mut row = make_row("lib.rs", ".", "Rust");
     row.kind = FileKind::Child;
     let export = make_export(vec![row]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
 }
@@ -288,8 +273,7 @@ fn given_js_file_detects_exports() {
     let code = "export function greet() {}\nfunction helper() {}\n";
     let (dir, paths) = write_temp_files(&[("index.js", code)]);
     let export = make_export(vec![make_row("index.js", ".", "JavaScript")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 1);
     assert_eq!(report.internal_items, 1);
@@ -300,8 +284,7 @@ fn given_ts_file_detects_interface_and_type_exports() {
     let code = "export interface IUser {}\nexport type Id = string;\ninterface Internal {}\n";
     let (dir, paths) = write_temp_files(&[("types.ts", code)]);
     let export = make_export(vec![make_row("types.ts", ".", "TypeScript")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 2);
     assert_eq!(report.internal_items, 1);
@@ -316,8 +299,7 @@ fn given_go_file_uppercase_is_public() {
     let code = "func PublicFunc() {}\nfunc privateFunc() {}\ntype MyStruct struct {}\n";
     let (dir, paths) = write_temp_files(&[("main.go", code)]);
     let export = make_export(vec![make_row("main.go", ".", "Go")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 2);
     assert_eq!(report.internal_items, 1);
@@ -332,8 +314,7 @@ fn given_java_file_detects_public_class() {
     let code = "public class App {\n}\nclass Internal {\n}\n";
     let (dir, paths) = write_temp_files(&[("App.java", code)]);
     let export = make_export(vec![make_row("App.java", ".", "Java")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 1);
     assert_eq!(report.internal_items, 1);
@@ -358,8 +339,7 @@ def _private():\n\
     pass\n";
     let (dir, paths) = write_temp_files(&[("mod.py", code)]);
     let export = make_export(vec![make_row("mod.py", ".", "Python")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     // 2 public (documented, undocumented), 1 private (_private)
     assert_eq!(report.public_items, 2);
@@ -386,8 +366,7 @@ fn given_max_bytes_limit_scanning_stops_early() {
         max_bytes: Some(code_a.len() as u64),
         ..Default::default()
     };
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &limits).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &limits).unwrap();
 
     // Only first file should be scanned (budget reached after reading it)
     assert!(
@@ -412,8 +391,7 @@ fn given_multiple_files_totals_equal_sum_of_parts() {
         make_row("main.py", "py", "Python"),
         make_row("main.go", "go", "Go"),
     ]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     // Sum across by_language should equal top-level totals
     let lang_total: usize = report.by_language.values().map(|l| l.total_items).sum();
@@ -438,8 +416,7 @@ fn given_rust_pub_super_treated_as_public() {
     let code = "pub(super) fn sup() {}\npub(in crate::foo) fn scoped() {}\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 2);
 }
@@ -450,12 +427,10 @@ fn given_rust_pub_super_treated_as_public() {
 
 #[test]
 fn given_rust_async_and_unsafe_pub_detected() {
-    let code =
-        "pub async fn async_fn() {}\npub unsafe fn unsafe_fn() {}\npub unsafe trait UnsafeTrait {}\n";
+    let code = "pub async fn async_fn() {}\npub unsafe fn unsafe_fn() {}\npub unsafe trait UnsafeTrait {}\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 3);
 }
@@ -469,8 +444,7 @@ fn given_go_method_receiver_detects_visibility_by_name() {
     let code = "func (s *Srv) Handle() {}\nfunc (s *Srv) handle() {}\n";
     let (dir, paths) = write_temp_files(&[("srv.go", code)]);
     let export = make_export(vec![make_row("srv.go", ".", "Go")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 1);
     assert_eq!(report.internal_items, 1);
@@ -484,8 +458,7 @@ fn given_go_method_receiver_detects_visibility_by_name() {
 fn given_empty_source_file_report_is_empty() {
     let (dir, paths) = write_temp_files(&[("lib.rs", "")]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
 }
@@ -499,8 +472,7 @@ fn given_file_with_only_comments_no_symbols() {
     let code = "// This is a comment\n// Another comment\n/* block */\n";
     let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
     let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
-    let report =
-        build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
 }

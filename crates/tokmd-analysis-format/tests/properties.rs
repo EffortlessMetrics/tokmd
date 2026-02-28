@@ -19,21 +19,34 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn arb_file_stat_row() -> impl Strategy<Value = FileStatRow> {
     (
-        "[a-z/]{1,30}",           // path
-        "[a-z]{1,10}",            // module
+        "[a-z/]{1,30}",                                      // path
+        "[a-z]{1,10}",                                       // module
         prop_oneof!["Rust", "Python", "TOML", "JavaScript"], // lang
-        1usize..10_000,           // code
-        0usize..5_000,            // comments
-        0usize..2_000,            // blanks
-        1usize..20_000,           // lines
-        1usize..500_000,          // bytes
-        1usize..50_000,           // tokens
-        proptest::option::of(0.0f64..1.0), // doc_pct
-        proptest::option::of(1.0f64..100.0), // bytes_per_line
-        0usize..20,               // depth
+        1usize..10_000,                                      // code
+        0usize..5_000,                                       // comments
+        0usize..2_000,                                       // blanks
+        1usize..20_000,                                      // lines
+        1usize..500_000,                                     // bytes
+        1usize..50_000,                                      // tokens
+        proptest::option::of(0.0f64..1.0),                   // doc_pct
+        proptest::option::of(1.0f64..100.0),                 // bytes_per_line
+        0usize..20,                                          // depth
     )
         .prop_map(
-            |(path, module, lang, code, comments, blanks, lines, bytes, tokens, doc_pct, bpl, depth)| {
+            |(
+                path,
+                module,
+                lang,
+                code,
+                comments,
+                blanks,
+                lines,
+                bytes,
+                tokens,
+                doc_pct,
+                bpl,
+                depth,
+            )| {
                 FileStatRow {
                     path,
                     module,
@@ -54,7 +67,7 @@ fn arb_file_stat_row() -> impl Strategy<Value = FileStatRow> {
 
 fn arb_derived() -> impl Strategy<Value = DerivedReport> {
     (
-        1usize..100,    // files
+        1usize..100,     // files
         1usize..100_000, // code
         0usize..50_000,  // comments
         0usize..20_000,  // blanks

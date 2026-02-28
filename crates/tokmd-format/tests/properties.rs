@@ -125,11 +125,7 @@ fn arb_file_row() -> impl Strategy<Value = FileRow> {
     )
         .prop_map(|(path, code, comments, blanks)| FileRow {
             path: path.to_string(),
-            module: path
-                .split('/')
-                .next()
-                .unwrap_or("root")
-                .to_string(),
+            module: path.split('/').next().unwrap_or("root").to_string(),
             lang: "Rust".into(),
             kind: FileKind::Parent,
             code,

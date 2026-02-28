@@ -189,10 +189,7 @@ mod hashing {
         let tmp = tempfile::tempdir().unwrap();
         let path = tmp.path().join("hashtest.bin");
         let content = b"file hash consistency check";
-        File::create(&path)
-            .unwrap()
-            .write_all(content)
-            .unwrap();
+        File::create(&path).unwrap().write_all(content).unwrap();
 
         // When we hash the file and hash bytes directly
         let file_hash = hash_file(&path, 10000).unwrap();
@@ -427,10 +424,7 @@ mod file_reading {
         // Given any file
         let tmp = tempfile::tempdir().unwrap();
         let path = tmp.path().join("zero.txt");
-        File::create(&path)
-            .unwrap()
-            .write_all(b"content")
-            .unwrap();
+        File::create(&path).unwrap().write_all(b"content").unwrap();
         // When we request 0 bytes
         let bytes = read_head_tail(&path, 0).unwrap();
         // Then we get empty
@@ -442,10 +436,7 @@ mod file_reading {
         // Given a 5-byte file
         let tmp = tempfile::tempdir().unwrap();
         let path = tmp.path().join("small.txt");
-        File::create(&path)
-            .unwrap()
-            .write_all(b"hello")
-            .unwrap();
+        File::create(&path).unwrap().write_all(b"hello").unwrap();
         // When we request 100 bytes
         let bytes = read_head_tail(&path, 100).unwrap();
         // Then we get entire file
@@ -580,7 +571,11 @@ mod complexity_scenarios {
         let result = estimate_cyclomatic_complexity(code, "rust");
         // Then CC > 1 (has at least one decision point)
         assert_eq!(result.function_count, 1);
-        assert!(result.max_cc >= 2, "expected CC >= 2, got {}", result.max_cc);
+        assert!(
+            result.max_cc >= 2,
+            "expected CC >= 2, got {}",
+            result.max_cc
+        );
     }
 
     #[test]

@@ -86,7 +86,10 @@ fn given_python_nested_package_import_when_parsing_then_full_dotted_name_is_retu
 
 #[test]
 fn given_python_from_import_star_when_parsing_then_module_is_extracted() {
-    let lines = vec!["from typing import *", "from collections import OrderedDict, defaultdict"];
+    let lines = vec![
+        "from typing import *",
+        "from collections import OrderedDict, defaultdict",
+    ];
     let imports = parse_imports("python", &lines);
     assert_eq!(imports, vec!["typing", "collections"]);
 }
@@ -332,16 +335,19 @@ fn given_empty_lines_when_parsing_any_language_then_no_imports_are_returned() {
 fn given_only_blank_lines_when_parsing_then_no_imports_are_returned() {
     let blanks = vec!["", "   ", "\t"];
     for lang in &["rust", "python", "javascript", "typescript", "go"] {
-        assert!(
-            parse_imports(lang, &blanks).is_empty(),
-            "failed for {lang}"
-        );
+        assert!(parse_imports(lang, &blanks).is_empty(), "failed for {lang}");
     }
 }
 
 #[test]
 fn given_all_languages_share_case_insensitive_dispatch() {
     let lines = vec!["import os"];
-    assert_eq!(parse_imports("Python", &lines), parse_imports("python", &lines));
-    assert_eq!(parse_imports("PYTHON", &lines), parse_imports("python", &lines));
+    assert_eq!(
+        parse_imports("Python", &lines),
+        parse_imports("python", &lines)
+    );
+    assert_eq!(
+        parse_imports("PYTHON", &lines),
+        parse_imports("python", &lines)
+    );
 }
