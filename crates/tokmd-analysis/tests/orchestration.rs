@@ -164,12 +164,18 @@ fn receipt_preset_with_no_warnings_is_complete() {
 #[test]
 fn git_request_without_repo_produces_partial_status() {
     // Given: request with git explicitly enabled
-    // When: the root is not a git repo
+    // When: the root is not a git repo (use a temp dir that's definitely not under git)
     // Then: status is Partial and warning is emitted (feature-gated)
+    let tmp = tempfile::tempdir().unwrap();
     let mut req = make_req(AnalysisPreset::Risk);
     req.git = Some(true);
 
-    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
+    let ctx = AnalysisContext {
+        export: sample_export(),
+        root: tmp.path().to_path_buf(),
+        source: make_source(),
+    };
+    let receipt = analyze(ctx, req).unwrap();
     // Without git feature, a warning about missing feature gate is emitted;
     // with git feature, a warning about not being a git repo is emitted.
     // Either way: warnings should exist → Partial.
