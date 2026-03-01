@@ -3475,7 +3475,7 @@ dependencies = [
  "tokmd-scan-args",
  "tokmd-settings",
  "tokmd-types",
- "toml 0.8.23",
+ "toml 0.9.12+spec-1.1.0",
 ]
 
 [[package]]
@@ -3632,7 +3632,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-types",
- "toml 0.8.23",
+ "toml 0.9.12+spec-1.1.0",
 ]
 
 [[package]]
