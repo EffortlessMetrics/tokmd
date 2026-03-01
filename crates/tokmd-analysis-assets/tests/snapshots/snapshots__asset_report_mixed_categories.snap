@@ -1,0 +1,104 @@
+---
+source: crates/tokmd-analysis-assets/tests/snapshots.rs
+assertion_line: 38
+expression: report
+---
+{
+  "total_files": 7,
+  "total_bytes": 4128,
+  "categories": [
+    {
+      "category": "video",
+      "files": 1,
+      "bytes": 2048,
+      "extensions": [
+        "mp4"
+      ]
+    },
+    {
+      "category": "archive",
+      "files": 1,
+      "bytes": 1024,
+      "extensions": [
+        "zip"
+      ]
+    },
+    {
+      "category": "audio",
+      "files": 1,
+      "bytes": 512,
+      "extensions": [
+        "mp3"
+      ]
+    },
+    {
+      "category": "binary",
+      "files": 1,
+      "bytes": 256,
+      "extensions": [
+        "exe"
+      ]
+    },
+    {
+      "category": "image",
+      "files": 2,
+      "bytes": 192,
+      "extensions": [
+        "png",
+        "svg"
+      ]
+    },
+    {
+      "category": "font",
+      "files": 1,
+      "bytes": 96,
+      "extensions": [
+        "woff2"
+      ]
+    }
+  ],
+  "top_files": [
+    {
+      "path": "intro.mp4",
+      "bytes": 2048,
+      "category": "video",
+      "extension": "mp4"
+    },
+    {
+      "path": "bundle.zip",
+      "bytes": 1024,
+      "category": "archive",
+      "extension": "zip"
+    },
+    {
+      "path": "theme.mp3",
+      "bytes": 512,
+      "category": "audio",
+      "extension": "mp3"
+    },
+    {
+      "path": "app.exe",
+      "bytes": 256,
+      "category": "binary",
+      "extension": "exe"
+    },
+    {
+      "path": "logo.png",
+      "bytes": 128,
+      "category": "image",
+      "extension": "png"
+    },
+    {
+      "path": "body.woff2",
+      "bytes": 96,
+      "category": "font",
+      "extension": "woff2"
+    },
+    {
+      "path": "icon.svg",
+      "bytes": 64,
+      "category": "image",
+      "extension": "svg"
+    }
+  ]
+}

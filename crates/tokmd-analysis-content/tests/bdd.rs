@@ -11,6 +11,15 @@ use tokmd_analysis_content::{
 };
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
+// ── serde round-trip helper ──────────────────────────────────────────
+
+fn assert_json_round_trip<T: serde::Serialize + serde::de::DeserializeOwned>(val: &T) {
+    let json1 = serde_json::to_string_pretty(val).expect("serialize");
+    let back: T = serde_json::from_str(&json1).expect("deserialize");
+    let json2 = serde_json::to_string_pretty(&back).expect("re-serialize");
+    assert_eq!(json1, json2, "round-trip JSON mismatch");
+}
+
 // ── helpers ──────────────────────────────────────────────────────────
 
 fn file_row(path: &str, module: &str, lang: &str, bytes: usize) -> FileRow {
@@ -612,4 +621,372 @@ fn given_duplicates_when_building_duplicate_report_then_density_has_correct_coun
     assert_eq!(density.duplicate_files, 2);
     assert_eq!(density.wasted_bytes, content.len() as u64);
     assert!(density.wasted_pct_of_codebase > 0.0);
+}
+
+// ── TODO density: non-zero vs zero ──────────────────────────────────
+
+#[test]
+fn given_code_with_todos_when_building_todo_report_then_density_is_nonzero() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("app.rs"),
+        "// TODO: feature\n// FIXME: bug\nfn main() {}\n",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("app.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 2000).unwrap();
+
+    assert!(report.total > 0);
+    assert!(
+        report.density_per_kloc > 0.0,
+        "density should be non-zero when TODOs exist: got {}",
+        report.density_per_kloc
+    );
+}
+
+#[test]
+fn given_code_without_todos_when_building_todo_report_then_density_is_zero() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("clean.rs"),
+        "fn main() {\n    println!(\"hello\");\n}\n",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("clean.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 5000).unwrap();
+
+    assert_eq!(report.total, 0);
+    assert_eq!(
+        report.density_per_kloc, 0.0,
+        "density should be zero when no TODOs exist"
+    );
+}
+
+// ── Import graph: known Rust use patterns ────────────────────────────
+
+#[test]
+fn given_rust_use_statements_when_building_import_report_then_edges_reflect_imports() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("lib.rs"),
+        "use std::collections::HashMap;\nuse serde::Serialize;\nuse serde::Deserialize;\n",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("lib.rs")];
+    let export = ExportData {
+        rows: vec![file_row("lib.rs", "root", "Rust", 100)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let report = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+
+    assert!(
+        !report.edges.is_empty(),
+        "Rust use statements should produce import edges"
+    );
+    let targets: Vec<&str> = report.edges.iter().map(|e| e.to.as_str()).collect();
+    assert!(
+        targets
+            .iter()
+            .any(|t| t.contains("serde") || t.contains("std")),
+        "expected serde or std in import targets, got: {:?}",
+        targets
+    );
+}
+
+// ── Round-trip serialization ─────────────────────────────────────────
+
+#[test]
+fn given_todo_report_when_serialized_and_deserialized_then_round_trips() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("rt.rs"),
+        "// TODO: a\n// FIXME: b\n// HACK: c\nfn f() {}\n",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("rt.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 3000).unwrap();
+
+    assert_json_round_trip(&report);
+}
+
+#[test]
+fn given_duplicate_report_when_serialized_and_deserialized_then_round_trips() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    let content = "round-trip duplicate content\n";
+    std::fs::write(root.join("d1.rs"), content).unwrap();
+    std::fs::write(root.join("d2.rs"), content).unwrap();
+
+    let files = vec![PathBuf::from("d1.rs"), PathBuf::from("d2.rs")];
+    let export = ExportData {
+        rows: vec![
+            file_row("d1.rs", "root", "Rust", content.len()),
+            file_row("d2.rs", "root", "Rust", content.len()),
+        ],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+
+    assert_json_round_trip(&report);
+}
+
+#[test]
+fn given_import_report_when_serialized_and_deserialized_then_round_trips() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("imp.py"), "import os\nimport sys\n").unwrap();
+
+    let files = vec![PathBuf::from("imp.py")];
+    let export = ExportData {
+        rows: vec![file_row("imp.py", "root", "Python", 30)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let report = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+
+    assert_json_round_trip(&report);
+}
+
+// ── Deterministic output ─────────────────────────────────────────────
+
+#[test]
+fn given_same_input_when_building_todo_report_twice_then_output_is_identical() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("det.rs"),
+        "// TODO: x\n// FIXME: y\nfn det() {}\n",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("det.rs")];
+    let r1 = build_todo_report(root, &files, &ContentLimits::default(), 4000).unwrap();
+    let r2 = build_todo_report(root, &files, &ContentLimits::default(), 4000).unwrap();
+
+    let j1 = serde_json::to_string(&r1).unwrap();
+    let j2 = serde_json::to_string(&r2).unwrap();
+    assert_eq!(j1, j2, "todo reports must be deterministic");
+}
+
+#[test]
+fn given_same_input_when_building_duplicate_report_twice_then_output_is_identical() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    let content = "determinism check content\n";
+    std::fs::write(root.join("dc1.rs"), content).unwrap();
+    std::fs::write(root.join("dc2.rs"), content).unwrap();
+    std::fs::write(root.join("dc3.rs"), "unique content\n").unwrap();
+
+    let files = vec![
+        PathBuf::from("dc1.rs"),
+        PathBuf::from("dc2.rs"),
+        PathBuf::from("dc3.rs"),
+    ];
+    let export = ExportData {
+        rows: vec![
+            file_row("dc1.rs", "root", "Rust", content.len()),
+            file_row("dc2.rs", "root", "Rust", content.len()),
+            file_row("dc3.rs", "root", "Rust", 15),
+        ],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let r1 = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let r2 = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+
+    let j1 = serde_json::to_string(&r1).unwrap();
+    let j2 = serde_json::to_string(&r2).unwrap();
+    assert_eq!(j1, j2, "duplicate reports must be deterministic");
+}
+
+#[test]
+fn given_same_input_when_building_import_report_twice_then_output_is_identical() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("det.py"), "import os\nimport sys\n").unwrap();
+
+    let files = vec![PathBuf::from("det.py")];
+    let export = ExportData {
+        rows: vec![file_row("det.py", "root", "Python", 30)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let r1 = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+    let r2 = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+
+    let j1 = serde_json::to_string(&r1).unwrap();
+    let j2 = serde_json::to_string(&r2).unwrap();
+    assert_eq!(j1, j2, "import reports must be deterministic");
+}
+
+// ── Edge cases: empty files, single-line files ───────────────────────
+
+#[test]
+fn given_empty_file_when_building_todo_report_then_zero_total() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("empty.rs"), "").unwrap();
+
+    let files = vec![PathBuf::from("empty.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 500).unwrap();
+
+    assert_eq!(report.total, 0);
+    assert_eq!(report.density_per_kloc, 0.0);
+}
+
+#[test]
+fn given_single_line_file_with_todo_when_building_todo_report_then_counted() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("one.rs"), "// TODO: single line").unwrap();
+
+    let files = vec![PathBuf::from("one.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 1000).unwrap();
+
+    assert_eq!(report.total, 1);
+}
+
+#[test]
+fn given_single_line_file_without_todo_when_building_todo_report_then_zero() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("one.rs"), "fn main() {}").unwrap();
+
+    let files = vec![PathBuf::from("one.rs")];
+    let report = build_todo_report(root, &files, &ContentLimits::default(), 1000).unwrap();
+
+    assert_eq!(report.total, 0);
+}
+
+#[test]
+fn given_single_line_identical_files_when_building_duplicate_report_then_detected() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    let content = "single line content";
+    std::fs::write(root.join("sl1.txt"), content).unwrap();
+    std::fs::write(root.join("sl2.txt"), content).unwrap();
+
+    let files = vec![PathBuf::from("sl1.txt"), PathBuf::from("sl2.txt")];
+    let export = empty_export();
+
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+
+    assert_eq!(report.groups.len(), 1);
+    assert_eq!(report.groups[0].files.len(), 2);
+}
+
+#[test]
+fn given_empty_files_when_building_import_report_then_no_edges() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("empty.py"), "").unwrap();
+
+    let files = vec![PathBuf::from("empty.py")];
+    let export = ExportData {
+        rows: vec![file_row("empty.py", "root", "Python", 0)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let report = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+
+    assert!(report.edges.is_empty());
+}
+
+#[test]
+fn given_single_line_import_when_building_import_report_then_edge_found() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(root.join("single.py"), "import json").unwrap();
+
+    let files = vec![PathBuf::from("single.py")];
+    let export = ExportData {
+        rows: vec![file_row("single.py", "root", "Python", 11)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let report = build_import_report(
+        root,
+        &files,
+        &export,
+        ImportGranularity::Module,
+        &ContentLimits::default(),
+    )
+    .unwrap();
+
+    assert_eq!(report.edges.len(), 1);
+    assert_eq!(report.edges[0].to, "json");
 }

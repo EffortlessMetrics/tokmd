@@ -185,6 +185,113 @@ fn edge_case_rapid_spinner_create_drop() {
     }
 }
 
+// ── Spinner creation ────────────────────────────────────────────────────────
+
+#[test]
+fn spinner_creation_disabled_succeeds() {
+    let spinner = Progress::new(false);
+    spinner.set_message("alive");
+    spinner.finish_and_clear();
+}
+
+#[test]
+fn spinner_creation_enabled_succeeds() {
+    // In non-TTY (CI) this degrades to noop, but must not panic
+    let spinner = Progress::new(true);
+    spinner.set_message("alive");
+    spinner.finish_and_clear();
+}
+
+// ── N increments reaches N ──────────────────────────────────────────────────
+
+#[test]
+fn bar_n_increments_reaches_total() {
+    for n in [0, 1, 10, 100, 500] {
+        let bar = ProgressBarWithEta::new(false, n, "count");
+        for _ in 0..n {
+            bar.inc();
+        }
+        bar.finish_and_clear();
+    }
+}
+
+#[test]
+fn bar_inc_by_matches_total() {
+    let bar = ProgressBarWithEta::new(false, 100, "batch");
+    bar.inc_by(50);
+    bar.inc_by(50);
+    bar.finish_with_message("complete");
+}
+
+// ── Message formatting ──────────────────────────────────────────────────────
+
+#[test]
+fn bar_message_formatting_empty_string() {
+    let bar = ProgressBarWithEta::new(false, 5, "");
+    bar.set_message("");
+    bar.finish_with_message("");
+}
+
+#[test]
+fn bar_message_formatting_special_chars() {
+    let bar = ProgressBarWithEta::new(false, 3, "init {0/3}");
+    bar.set_message("[1/3] scanning…");
+    bar.inc();
+    bar.set_message("[2/3] {modeling}");
+    bar.inc();
+    bar.set_message("[3/3] <done>");
+    bar.inc();
+    bar.finish_with_message("✅ complete");
+}
+
+#[test]
+fn spinner_message_formatting_works() {
+    let spinner = Progress::new(false);
+    spinner.set_message("phase 1 of 3");
+    spinner.set_message("");
+    spinner.set_message("🔍 scanning");
+    spinner.set_message(String::from("owned message"));
+    spinner.finish_and_clear();
+}
+
+// ── Edge-case: overflow and zero ────────────────────────────────────────────
+
+#[test]
+fn bar_no_panic_on_overflow_inc() {
+    let bar = ProgressBarWithEta::new(false, 10, "overflow");
+    bar.inc_by(u64::MAX);
+    bar.inc();
+    bar.finish_and_clear();
+}
+
+#[test]
+fn bar_no_panic_on_zero_total_with_many_increments() {
+    let bar = ProgressBarWithEta::new(false, 0, "zero");
+    for _ in 0..100 {
+        bar.inc();
+    }
+    bar.set_position(0);
+    bar.set_length(0);
+    bar.finish_and_clear();
+}
+
+#[test]
+fn bar_no_panic_set_position_then_inc() {
+    let bar = ProgressBarWithEta::new(false, 100, "jump");
+    bar.set_position(u64::MAX);
+    bar.inc();
+    bar.finish_and_clear();
+}
+
+#[test]
+fn bar_double_finish_is_safe() {
+    let bar = ProgressBarWithEta::new(false, 10, "double");
+    bar.inc_by(10);
+    bar.finish_with_message("first");
+    bar.finish_with_message("second");
+    bar.finish_and_clear();
+}
+
 // ── Property-based tests ────────────────────────────────────────────────────
 
 mod properties {

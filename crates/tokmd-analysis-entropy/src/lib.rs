@@ -125,6 +125,52 @@ mod tests {
     }
 
     #[test]
+    fn classify_entropy_boundaries() {
+        assert_eq!(classify_entropy(7.6), EntropyClass::High);
+        assert_eq!(classify_entropy(7.5), EntropyClass::Suspicious);
+        assert_eq!(classify_entropy(6.5), EntropyClass::Suspicious);
+        assert_eq!(classify_entropy(6.4), EntropyClass::Normal);
+        assert_eq!(classify_entropy(4.0), EntropyClass::Normal);
+        assert_eq!(classify_entropy(2.0), EntropyClass::Normal);
+        assert_eq!(classify_entropy(1.99), EntropyClass::Low);
+        assert_eq!(classify_entropy(0.0), EntropyClass::Low);
+    }
+
+    #[test]
+    fn normal_files_are_not_suspects() {
+        let dir = tempdir().unwrap();
+        let normal = dir.path().join("normal.txt");
+        // Typical ASCII text has entropy ~4-5 bits/byte
+        fs::write(
+            &normal,
+            "The quick brown fox jumps over the lazy dog.\n".repeat(30),
+        )
+        .unwrap();
+
+        let export = export_for_paths(&["normal.txt"]);
+        let files = vec![PathBuf::from("normal.txt")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        assert!(
+            !report.suspects.iter().any(|f| f.path == "normal.txt"),
+            "normal text should not appear as suspect"
+        );
+    }
+
+    #[test]
+    fn empty_file_not_suspect() {
+        let dir = tempdir().unwrap();
+        let empty = dir.path().join("empty.txt");
+        fs::write(&empty, "").unwrap();
+
+        let export = export_for_paths(&["empty.txt"]);
+        let files = vec![PathBuf::from("empty.txt")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        assert!(report.suspects.is_empty());
+    }
+
+    #[test]
     fn detects_low_and_high_entropy() {
         let dir = tempdir().unwrap();
         let low = dir.path().join("low.txt");

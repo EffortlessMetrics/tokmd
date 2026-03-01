@@ -549,3 +549,568 @@ fn integration_write_artifacts_nested_dir() {
     assert!(deep.join("report.json").exists());
     assert!(deep.join("comment.md").exists());
 }
+
+// ===========================================================================
+// Integration: Empty diff produces valid minimal receipt with correct defaults
+// ===========================================================================
+
+#[test]
+fn integration_empty_diff_valid_minimal_receipt() {
+    let stats: Vec<FileStat> = Vec::new();
+    let receipt = make_receipt(&stats);
+
+    // Change surface zeroed
+    assert_eq!(receipt.change_surface.files_changed, 0);
+    assert_eq!(receipt.change_surface.insertions, 0);
+    assert_eq!(receipt.change_surface.deletions, 0);
+    assert_eq!(receipt.change_surface.net_lines, 0);
+
+    // Composition zeroed
+    assert_eq!(receipt.composition.code_pct, 0.0);
+    assert_eq!(receipt.composition.test_pct, 0.0);
+    assert_eq!(receipt.composition.docs_pct, 0.0);
+    assert_eq!(receipt.composition.config_pct, 0.0);
+    assert_eq!(receipt.composition.test_ratio, 0.0);
+
+    // Health at maximum
+    assert_eq!(receipt.code_health.score, 100);
+    assert_eq!(receipt.code_health.grade, "A");
+    assert_eq!(receipt.code_health.large_files_touched, 0);
+    assert_eq!(receipt.code_health.avg_file_size, 0);
+    assert_eq!(
+        receipt.code_health.complexity_indicator,
+        ComplexityIndicator::Low
+    );
+    assert!(receipt.code_health.warnings.is_empty());
+
+    // Risk at minimum
+    assert_eq!(receipt.risk.score, 0);
+    assert_eq!(receipt.risk.level, RiskLevel::Low);
+    assert!(receipt.risk.hotspots_touched.is_empty());
+    assert!(receipt.risk.bus_factor_warnings.is_empty());
+
+    // No contract changes
+    assert!(!receipt.contracts.api_changed);
+    assert!(!receipt.contracts.cli_changed);
+    assert!(!receipt.contracts.schema_changed);
+    assert_eq!(receipt.contracts.breaking_indicators, 0);
+
+    // Review plan empty
+    assert!(receipt.review_plan.is_empty());
+
+    // Schema version correct
+    assert_eq!(receipt.schema_version, COCKPIT_SCHEMA_VERSION);
+    assert_eq!(receipt.mode, "cockpit");
+
+    // JSON serialization succeeds
+    let json = tokmd_cockpit::render::render_json(&receipt).unwrap();
+    assert!(!json.is_empty());
+    let _: CockpitReceipt = serde_json::from_str(&json).unwrap();
+}
+
+// ===========================================================================
+// Integration: Known changes produce expected exact metrics
+// ===========================================================================
+
+#[test]
+fn integration_known_changes_exact_metrics() {
+    // 2 code, 1 test, 1 doc, 1 config = 5 files
+    let stats = vec![
+        make_file_stat("src/main.rs", 80, 20),       // code, 100 lines
+        make_file_stat("src/utils.rs", 30, 10),      // code, 40 lines
+        make_file_stat("tests/test_main.rs", 25, 5), // test, 30 lines
+        make_file_stat("README.md", 15, 5),          // docs, 20 lines
+        make_file_stat("Cargo.toml", 5, 2),          // config, 7 lines
+    ];
+    let receipt = make_receipt(&stats);
+
+    // Change surface
+    assert_eq!(receipt.change_surface.files_changed, 5);
+    assert_eq!(receipt.change_surface.insertions, 155);
+    assert_eq!(receipt.change_surface.deletions, 42);
+    assert_eq!(receipt.change_surface.net_lines, 113);
+
+    // Composition: 2 code, 1 test, 1 docs, 1 config = 5 total
+    assert!((receipt.composition.code_pct - 0.4).abs() < 0.01);
+    assert!((receipt.composition.test_pct - 0.2).abs() < 0.01);
+    assert!((receipt.composition.docs_pct - 0.2).abs() < 0.01);
+    assert!((receipt.composition.config_pct - 0.2).abs() < 0.01);
+    // test_ratio = 1 test / 2 code = 0.5
+    assert!((receipt.composition.test_ratio - 0.5).abs() < 0.01);
+
+    // No large files → health=100, grade A
+    assert_eq!(receipt.code_health.score, 100);
+    assert_eq!(receipt.code_health.grade, "A");
+    assert_eq!(receipt.code_health.large_files_touched, 0);
+
+    // No file > 300 lines → no hotspots
+    assert!(receipt.risk.hotspots_touched.is_empty());
+    assert_eq!(receipt.risk.level, RiskLevel::Low);
+
+    // Review plan has 5 items, sorted by priority
+    assert_eq!(receipt.review_plan.len(), 5);
+    for w in receipt.review_plan.windows(2) {
+        assert!(w[0].priority <= w[1].priority);
+    }
+}
+
+// ===========================================================================
+// Integration: Evidence gate — overall Fail when any sub-gate fails
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_any_fail_yields_overall_fail() {
+    let mut receipt = make_receipt(&[]);
+
+    // Set mutation gate to Fail
+    receipt.evidence.mutation.meta.status = GateStatus::Fail;
+    receipt.evidence.mutation.survivors = vec![MutationSurvivor {
+        file: "src/lib.rs".to_string(),
+        line: 10,
+        mutation: "replace == with !=".to_string(),
+    }];
+
+    // Set complexity gate to Pass
+    receipt.evidence.complexity = Some(ComplexityGate {
+        meta: GateMeta {
+            status: GateStatus::Pass,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: Vec::new(),
+                tested: Vec::new(),
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        files_analyzed: 1,
+        high_complexity_files: Vec::new(),
+        avg_cyclomatic: 2.0,
+        max_cyclomatic: 5,
+        threshold_exceeded: false,
+    });
+
+    // Recompute overall: any Fail → overall Fail
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(receipt.evidence.overall_status, GateStatus::Fail);
+}
+
+// ===========================================================================
+// Integration: Evidence gate — overall Pass when all sub-gates pass
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_all_pass_yields_overall_pass() {
+    let mut receipt = make_receipt(&[]);
+
+    receipt.evidence.mutation.meta.status = GateStatus::Pass;
+    receipt.evidence.diff_coverage = Some(DiffCoverageGate {
+        meta: GateMeta {
+            status: GateStatus::Pass,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: vec!["src/lib.rs".into()],
+                tested: vec!["src/lib.rs".into()],
+                ratio: 0.95,
+                lines_relevant: Some(100),
+                lines_tested: Some(95),
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        lines_added: 100,
+        lines_covered: 95,
+        coverage_pct: 0.95,
+        uncovered_hunks: Vec::new(),
+    });
+
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(receipt.evidence.overall_status, GateStatus::Pass);
+}
+
+// ===========================================================================
+// Integration: Evidence gate — Warn propagates when no Fail present
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_warn_propagates() {
+    let mut receipt = make_receipt(&[]);
+
+    receipt.evidence.mutation.meta.status = GateStatus::Pass;
+    receipt.evidence.complexity = Some(ComplexityGate {
+        meta: GateMeta {
+            status: GateStatus::Warn,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: Vec::new(),
+                tested: Vec::new(),
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        files_analyzed: 2,
+        high_complexity_files: Vec::new(),
+        avg_cyclomatic: 12.0,
+        max_cyclomatic: 14,
+        threshold_exceeded: false,
+    });
+
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(receipt.evidence.overall_status, GateStatus::Warn);
+}
+
+// ===========================================================================
+// Integration: Evidence gate — Pending propagates when no Fail present
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_pending_propagates() {
+    let mut receipt = make_receipt(&[]);
+
+    receipt.evidence.mutation.meta.status = GateStatus::Pass;
+    receipt.evidence.supply_chain = Some(SupplyChainGate {
+        meta: GateMeta {
+            status: GateStatus::Pending,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: vec!["Cargo.lock".into()],
+                tested: Vec::new(),
+                ratio: 0.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        vulnerabilities: Vec::new(),
+        denied: Vec::new(),
+        advisory_db_version: None,
+    });
+
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(receipt.evidence.overall_status, GateStatus::Pending);
+}
+
+// ===========================================================================
+// Integration: Evidence gate — all Skipped yields Skipped
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_all_skipped_yields_skipped() {
+    let mut receipt = make_receipt(&[]);
+    receipt.evidence.mutation.meta.status = GateStatus::Skipped;
+    // No other gates set
+
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(receipt.evidence.overall_status, GateStatus::Skipped);
+}
+
+// ===========================================================================
+// Integration: Rich round-trip serialization with all fields populated
+// ===========================================================================
+
+#[test]
+fn integration_rich_round_trip_serialization() {
+    let stats = vec![
+        make_file_stat("src/lib.rs", 100, 30),
+        make_file_stat("tests/test_it.rs", 50, 10),
+    ];
+    let mut receipt = make_receipt(&stats);
+
+    // Populate evidence gates
+    receipt.evidence.mutation.meta.status = GateStatus::Warn;
+    receipt.evidence.mutation.killed = 5;
+    receipt.evidence.mutation.survivors = vec![MutationSurvivor {
+        file: "src/lib.rs".to_string(),
+        line: 42,
+        mutation: "replace + with -".to_string(),
+    }];
+
+    receipt.evidence.diff_coverage = Some(DiffCoverageGate {
+        meta: GateMeta {
+            status: GateStatus::Pass,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: vec!["src/lib.rs".into()],
+                tested: vec!["src/lib.rs".into()],
+                ratio: 0.85,
+                lines_relevant: Some(100),
+                lines_tested: Some(85),
+            },
+            evidence_commit: Some("abc123".to_string()),
+            evidence_generated_at_ms: Some(999),
+        },
+        lines_added: 100,
+        lines_covered: 85,
+        coverage_pct: 0.85,
+        uncovered_hunks: vec![UncoveredHunk {
+            file: "src/lib.rs".to_string(),
+            start_line: 50,
+            end_line: 55,
+        }],
+    });
+
+    receipt.evidence.complexity = Some(ComplexityGate {
+        meta: GateMeta {
+            status: GateStatus::Pass,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: vec!["src/lib.rs".into()],
+                tested: vec!["src/lib.rs".into()],
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        files_analyzed: 1,
+        high_complexity_files: vec![HighComplexityFile {
+            path: "src/lib.rs".into(),
+            cyclomatic: 12,
+            function_count: 3,
+            max_function_length: 80,
+        }],
+        avg_cyclomatic: 12.0,
+        max_cyclomatic: 12,
+        threshold_exceeded: false,
+    });
+
+    // Populate trend
+    receipt.trend = Some(TrendComparison {
+        baseline_available: true,
+        baseline_path: Some("/baseline.json".to_string()),
+        baseline_generated_at_ms: Some(500),
+        health: Some(TrendMetric {
+            current: 95.0,
+            previous: 80.0,
+            delta: 15.0,
+            delta_pct: 18.75,
+            direction: TrendDirection::Improving,
+        }),
+        risk: Some(TrendMetric {
+            current: 10.0,
+            previous: 30.0,
+            delta: -20.0,
+            delta_pct: -66.67,
+            direction: TrendDirection::Improving,
+        }),
+        complexity: Some(TrendIndicator {
+            direction: TrendDirection::Stable,
+            summary: "Complexity stable".to_string(),
+            files_increased: 0,
+            files_decreased: 0,
+            avg_cyclomatic_delta: Some(0.0),
+            avg_cognitive_delta: None,
+        }),
+    });
+
+    // Serialize
+    let json = tokmd_cockpit::render::render_json(&receipt).unwrap();
+
+    // Deserialize
+    let roundtrip: CockpitReceipt = serde_json::from_str(&json).unwrap();
+
+    // Verify all top-level fields survive
+    assert_eq!(roundtrip.schema_version, receipt.schema_version);
+    assert_eq!(roundtrip.mode, receipt.mode);
+    assert_eq!(roundtrip.base_ref, receipt.base_ref);
+    assert_eq!(roundtrip.head_ref, receipt.head_ref);
+
+    // Change surface
+    assert_eq!(
+        roundtrip.change_surface.files_changed,
+        receipt.change_surface.files_changed
+    );
+    assert_eq!(
+        roundtrip.change_surface.insertions,
+        receipt.change_surface.insertions
+    );
+
+    // Evidence
+    assert_eq!(
+        roundtrip.evidence.mutation.killed,
+        receipt.evidence.mutation.killed
+    );
+    assert_eq!(roundtrip.evidence.mutation.survivors.len(), 1);
+    assert!(roundtrip.evidence.diff_coverage.is_some());
+    let dc = roundtrip.evidence.diff_coverage.unwrap();
+    assert_eq!(dc.lines_added, 100);
+    assert_eq!(dc.coverage_pct, 0.85);
+    assert_eq!(dc.uncovered_hunks.len(), 1);
+
+    assert!(roundtrip.evidence.complexity.is_some());
+    let cx = roundtrip.evidence.complexity.unwrap();
+    assert_eq!(cx.high_complexity_files.len(), 1);
+    assert_eq!(cx.avg_cyclomatic, 12.0);
+
+    // Trend
+    let trend = roundtrip.trend.unwrap();
+    assert!(trend.baseline_available);
+    assert_eq!(trend.health.unwrap().direction, TrendDirection::Improving);
+    assert_eq!(trend.risk.unwrap().direction, TrendDirection::Improving);
+    assert_eq!(trend.complexity.unwrap().direction, TrendDirection::Stable);
+}
+
+// ===========================================================================
+// Integration: Determinism — same inputs always produce identical receipt
+// ===========================================================================
+
+#[test]
+fn integration_determinism_identical_inputs_identical_receipt() {
+    let stats = vec![
+        make_file_stat("src/main.rs", 50, 10),
+        make_file_stat("tests/test_a.rs", 30, 5),
+        make_file_stat("README.md", 10, 2),
+        make_file_stat("Cargo.toml", 3, 1),
+    ];
+
+    let receipt_a = make_receipt(&stats);
+    let receipt_b = make_receipt(&stats);
+
+    // Serialize both
+    let json_a = serde_json::to_string(&receipt_a).unwrap();
+    let json_b = serde_json::to_string(&receipt_b).unwrap();
+
+    // Byte-for-byte identical
+    assert_eq!(
+        json_a, json_b,
+        "identical inputs must produce identical JSON"
+    );
+
+    // Also verify individual computed sections match
+    assert_eq!(
+        receipt_a.composition.code_pct,
+        receipt_b.composition.code_pct
+    );
+    assert_eq!(
+        receipt_a.composition.test_ratio,
+        receipt_b.composition.test_ratio
+    );
+    assert_eq!(receipt_a.code_health.score, receipt_b.code_health.score);
+    assert_eq!(receipt_a.code_health.grade, receipt_b.code_health.grade);
+    assert_eq!(receipt_a.risk.score, receipt_b.risk.score);
+    assert_eq!(receipt_a.risk.level, receipt_b.risk.level);
+    assert_eq!(receipt_a.review_plan.len(), receipt_b.review_plan.len());
+    for (a, b) in receipt_a
+        .review_plan
+        .iter()
+        .zip(receipt_b.review_plan.iter())
+    {
+        assert_eq!(a.path, b.path);
+        assert_eq!(a.priority, b.priority);
+    }
+}
+
+// ===========================================================================
+// Integration: Schema version constant equals expected value
+// ===========================================================================
+
+#[test]
+fn integration_schema_version_constant_is_correct() {
+    assert_eq!(
+        COCKPIT_SCHEMA_VERSION, 3,
+        "COCKPIT_SCHEMA_VERSION must be 3"
+    );
+
+    // Also verify it appears in serialized receipt
+    let receipt = make_receipt(&[]);
+    let json = tokmd_cockpit::render::render_json(&receipt).unwrap();
+    let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(
+        value["schema_version"].as_u64().unwrap(),
+        3,
+        "JSON schema_version must be 3"
+    );
+}
+
+// ===========================================================================
+// Integration: Determinism — reordered file stats produce same metrics
+// ===========================================================================
+
+#[test]
+fn integration_determinism_reordered_inputs() {
+    let stats_a = vec![
+        make_file_stat("src/main.rs", 50, 10),
+        make_file_stat("src/lib.rs", 30, 5),
+        make_file_stat("tests/test_a.rs", 20, 5),
+    ];
+    let stats_b = vec![
+        make_file_stat("tests/test_a.rs", 20, 5),
+        make_file_stat("src/lib.rs", 30, 5),
+        make_file_stat("src/main.rs", 50, 10),
+    ];
+
+    let receipt_a = make_receipt(&stats_a);
+    let receipt_b = make_receipt(&stats_b);
+
+    // Composition depends only on file set, not order
+    assert_eq!(
+        receipt_a.composition.code_pct,
+        receipt_b.composition.code_pct
+    );
+    assert_eq!(
+        receipt_a.composition.test_pct,
+        receipt_b.composition.test_pct
+    );
+    assert_eq!(
+        receipt_a.composition.test_ratio,
+        receipt_b.composition.test_ratio
+    );
+
+    // Health and risk depend on same aggregated data
+    assert_eq!(receipt_a.code_health.score, receipt_b.code_health.score);
+    assert_eq!(receipt_a.risk.score, receipt_b.risk.score);
+}
+
+// ===========================================================================
+// Integration: Evidence gate — Fail overrides Warn
+// ===========================================================================
+
+#[test]
+fn integration_evidence_gate_fail_overrides_warn() {
+    let mut receipt = make_receipt(&[]);
+
+    // Mutation = Fail
+    receipt.evidence.mutation.meta.status = GateStatus::Fail;
+    // Complexity = Warn
+    receipt.evidence.complexity = Some(ComplexityGate {
+        meta: GateMeta {
+            status: GateStatus::Warn,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: Vec::new(),
+                tested: Vec::new(),
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        files_analyzed: 1,
+        high_complexity_files: Vec::new(),
+        avg_cyclomatic: 12.0,
+        max_cyclomatic: 14,
+        threshold_exceeded: false,
+    });
+
+    receipt.evidence.overall_status = compute_overall_gate_status(&receipt.evidence);
+    assert_eq!(
+        receipt.evidence.overall_status,
+        GateStatus::Fail,
+        "Fail must override Warn"
+    );
+}

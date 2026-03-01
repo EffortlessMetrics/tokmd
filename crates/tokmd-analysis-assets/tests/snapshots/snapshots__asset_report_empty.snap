@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-analysis-assets/tests/snapshots.rs
+assertion_line: 45
+expression: report
+---
+{
+  "total_files": 0,
+  "total_bytes": 0,
+  "categories": [],
+  "top_files": []
+}

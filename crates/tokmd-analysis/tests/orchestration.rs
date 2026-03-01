@@ -889,3 +889,439 @@ proptest! {
         prop_assert!((0.0..=1.0).contains(&ratio), "doc_density={} out of [0,1]", ratio);
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Receipt preset produces expected enricher results
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn receipt_preset_derived_has_all_core_sections() {
+    let export = ExportData {
+        rows: vec![
+            row("src/main.rs", "src", "Rust", 500),
+            row("src/utils.rs", "src", "Rust", 200),
+            row("tests/test.rs", "tests", "Rust", 100),
+            row("Cargo.toml", "(root)", "TOML", 30),
+        ],
+        module_roots: vec!["crates".to_string()],
+        module_depth: 2,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
+    let derived = receipt.derived.expect("derived must be present");
+
+    // Core sections that Receipt always produces
+    assert!(
+        derived.cocomo.is_some(),
+        "COCOMO should be present for non-zero code"
+    );
+    assert!(derived.totals.files > 0);
+    assert!(derived.polyglot.lang_count > 0);
+    assert!(derived.distribution.count > 0);
+    assert!(!derived.histogram.is_empty());
+    assert!(derived.integrity.entries > 0);
+    assert!(!derived.integrity.hash.is_empty());
+    assert!(derived.reading_time.minutes > 0.0);
+    assert!(!derived.lang_purity.rows.is_empty());
+    assert!(!derived.top.largest_lines.is_empty());
+    assert!(derived.max_file.overall.lines > 0);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Health preset includes TODO density
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn health_preset_attempts_todo_density() {
+    // Health preset has plan.todo = true, so it should either:
+    // - produce a TODO density report (with content feature), or
+    // - emit a warning about the missing content feature
+    let mut req = make_req(AnalysisPreset::Health);
+    req.git = Some(false);
+
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
+
+    #[cfg(feature = "content")]
+    {
+        // With content feature and file walk, todo scanning is attempted.
+        // Since we use "." as root, files may or may not exist, but
+        // the attempt should have been made (either result or warning).
+        let derived = receipt.derived.as_ref().unwrap();
+        let has_todo = derived.todo.is_some();
+        let has_todo_warning = receipt.warnings.iter().any(|w| w.contains("todo"));
+        assert!(
+            has_todo || has_todo_warning,
+            "Health preset should attempt TODO scanning"
+        );
+    }
+
+    #[cfg(not(feature = "content"))]
+    {
+        // Without content feature, a warning about disabled TODO scanning is emitted
+        assert!(
+            receipt
+                .warnings
+                .iter()
+                .any(|w| w.contains("todo") || w.contains("TODO")),
+            "Health preset without content feature should warn about TODO scanning"
+        );
+    }
+}
+
+#[test]
+fn health_preset_enables_complexity_when_available() {
+    // Health preset sets plan.complexity = true
+    let mut req = make_req(AnalysisPreset::Health);
+    req.git = Some(false);
+
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
+
+    // Complexity requires content+walk features; without them it should
+    // either produce a report or a warning
+    #[cfg(not(all(feature = "content", feature = "walk")))]
+    {
+        // Without required features, complexity is silently skipped
+        // (no warning because the grid feature gate handles it)
+        assert!(receipt.complexity.is_none());
+    }
+
+    #[cfg(all(feature = "content", feature = "walk"))]
+    {
+        let has_complexity = receipt.complexity.is_some();
+        let has_warning = receipt.warnings.iter().any(|w| w.contains("complexity"));
+        assert!(
+            has_complexity || has_warning,
+            "Health preset should attempt complexity analysis"
+        );
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Round-trip serialization of full analysis receipt
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn receipt_round_trip_serialization() {
+    let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
+
+    let json = serde_json::to_string_pretty(&receipt).expect("serialize to JSON");
+    let deserialized: tokmd_analysis_types::AnalysisReceipt =
+        serde_json::from_str(&json).expect("deserialize from JSON");
+
+    assert_eq!(receipt.schema_version, deserialized.schema_version);
+    assert_eq!(receipt.mode, deserialized.mode);
+    assert_eq!(format!("{:?}", receipt.status), format!("{:?}", deserialized.status));
+    assert_eq!(receipt.warnings, deserialized.warnings);
+    assert_eq!(receipt.args.preset, deserialized.args.preset);
+    assert_eq!(receipt.source.inputs, deserialized.source.inputs);
+
+    let d1 = receipt.derived.as_ref().unwrap();
+    let d2 = deserialized.derived.as_ref().unwrap();
+    assert_eq!(d1.totals.files, d2.totals.files);
+    assert_eq!(d1.totals.code, d2.totals.code);
+    assert_eq!(d1.integrity.hash, d2.integrity.hash);
+}
+
+#[cfg(feature = "fun")]
+#[test]
+fn fun_receipt_round_trip_serialization() {
+    let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Fun)).unwrap();
+
+    let json = serde_json::to_string(&receipt).expect("serialize");
+    let deserialized: tokmd_analysis_types::AnalysisReceipt =
+        serde_json::from_str(&json).expect("deserialize");
+
+    assert!(receipt.fun.is_some());
+    assert!(deserialized.fun.is_some());
+    assert_eq!(
+        receipt
+            .fun
+            .as_ref()
+            .unwrap()
+            .eco_label
+            .as_ref()
+            .unwrap()
+            .label,
+        deserialized
+            .fun
+            .as_ref()
+            .unwrap()
+            .eco_label
+            .as_ref()
+            .unwrap()
+            .label,
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Deterministic output for same input scan
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn deterministic_json_output_excluding_timestamps() {
+    let export = sample_export();
+
+    let receipt1 = analyze(make_ctx(export.clone()), make_req(AnalysisPreset::Receipt)).unwrap();
+    let receipt2 = analyze(make_ctx(export.clone()), make_req(AnalysisPreset::Receipt)).unwrap();
+
+    // Compare derived sections (timestamp-free)
+    let json1 = serde_json::to_string_pretty(&receipt1.derived).unwrap();
+    let json2 = serde_json::to_string_pretty(&receipt2.derived).unwrap();
+    assert_eq!(json1, json2, "derived section should be deterministic");
+
+    // Compare source sections
+    let src1 = serde_json::to_string(&receipt1.source).unwrap();
+    let src2 = serde_json::to_string(&receipt2.source).unwrap();
+    assert_eq!(src1, src2, "source section should be deterministic");
+
+    // Compare args
+    let args1 = serde_json::to_string(&receipt1.args).unwrap();
+    let args2 = serde_json::to_string(&receipt2.args).unwrap();
+    assert_eq!(args1, args2, "args section should be deterministic");
+
+    // Compare warnings
+    assert_eq!(receipt1.warnings, receipt2.warnings);
+}
+
+#[test]
+fn deterministic_across_all_default_presets() {
+    let presets = [
+        AnalysisPreset::Receipt,
+        AnalysisPreset::Health,
+        AnalysisPreset::Supply,
+        AnalysisPreset::Architecture,
+    ];
+
+    for preset in &presets {
+        let export = sample_export();
+        let mut req1 = make_req(*preset);
+        req1.git = Some(false);
+        let mut req2 = make_req(*preset);
+        req2.git = Some(false);
+
+        let r1 = analyze(make_ctx(export.clone()), req1).unwrap();
+        let r2 = analyze(make_ctx(export), req2).unwrap();
+
+        let d1 = serde_json::to_string(&r1.derived).unwrap();
+        let d2 = serde_json::to_string(&r2.derived).unwrap();
+        assert_eq!(
+            d1, d2,
+            "preset {:?} derived should be deterministic",
+            preset
+        );
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Empty scan produces valid but minimal analysis
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn empty_scan_produces_valid_envelope() {
+    let export = ExportData {
+        rows: vec![],
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
+
+    assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
+    assert_eq!(receipt.mode, "analysis");
+    assert!(receipt.generated_at_ms > 0);
+    assert!(matches!(receipt.status, ScanStatus::Complete));
+    assert!(receipt.warnings.is_empty());
+
+    let derived = receipt.derived.unwrap();
+    assert_eq!(derived.totals.files, 0);
+    assert_eq!(derived.totals.code, 0);
+    assert_eq!(derived.totals.comments, 0);
+    assert_eq!(derived.totals.blanks, 0);
+    assert_eq!(derived.totals.lines, 0);
+    assert_eq!(derived.totals.bytes, 0);
+    assert_eq!(derived.totals.tokens, 0);
+    assert_eq!(derived.polyglot.lang_count, 0);
+    assert!(derived.cocomo.is_none());
+    assert_eq!(derived.integrity.entries, 0);
+    assert!(
+        !derived.integrity.hash.is_empty(),
+        "hash should still be computed"
+    );
+    assert_eq!(derived.distribution.count, 0);
+    assert!(derived.histogram.is_empty() || derived.histogram.iter().all(|b| b.files == 0));
+    assert_eq!(derived.nesting.max, 0);
+    assert!(derived.tree.is_none());
+    assert!(derived.todo.is_none());
+}
+
+#[test]
+fn empty_scan_serializes_to_valid_json() {
+    let export = ExportData {
+        rows: vec![],
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
+    let json = serde_json::to_string(&receipt).expect("empty receipt must serialize");
+    let value: serde_json::Value = serde_json::from_str(&json).expect("must be valid JSON");
+
+    assert!(value.is_object());
+    assert_eq!(value["schema_version"], ANALYSIS_SCHEMA_VERSION);
+    assert_eq!(value["mode"], "analysis");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: Schema version matches constant across all presets
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn schema_version_constant_in_all_presets() {
+    let presets = [
+        AnalysisPreset::Receipt,
+        AnalysisPreset::Health,
+        AnalysisPreset::Risk,
+        AnalysisPreset::Supply,
+        AnalysisPreset::Architecture,
+        AnalysisPreset::Topics,
+        AnalysisPreset::Security,
+        AnalysisPreset::Identity,
+        AnalysisPreset::Git,
+        AnalysisPreset::Deep,
+        AnalysisPreset::Fun,
+    ];
+
+    for preset in &presets {
+        let mut req = make_req(*preset);
+        req.git = Some(false);
+
+        let receipt = analyze(make_ctx(sample_export()), req).unwrap();
+
+        assert_eq!(
+            receipt.schema_version, ANALYSIS_SCHEMA_VERSION,
+            "preset {:?} schema_version mismatch",
+            preset
+        );
+
+        // Also verify via JSON to catch serialization issues
+        let json = serde_json::to_string(&receipt).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(
+            value["schema_version"].as_u64().unwrap(),
+            ANALYSIS_SCHEMA_VERSION as u64,
+            "preset {:?} JSON schema_version mismatch",
+            preset
+        );
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scenario: All presets produce valid JSON output
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn all_presets_produce_valid_json() {
+    let presets = [
+        AnalysisPreset::Receipt,
+        AnalysisPreset::Health,
+        AnalysisPreset::Risk,
+        AnalysisPreset::Supply,
+        AnalysisPreset::Architecture,
+        AnalysisPreset::Topics,
+        AnalysisPreset::Security,
+        AnalysisPreset::Identity,
+        AnalysisPreset::Git,
+        AnalysisPreset::Deep,
+        AnalysisPreset::Fun,
+    ];
+
+    for preset in &presets {
+        let mut req = make_req(*preset);
+        req.git = Some(false);
+
+        let receipt = analyze(make_ctx(sample_export()), req)
+            .unwrap_or_else(|e| panic!("preset {:?} failed: {}", preset, e));
+
+        // Serialize to JSON string
+        let json = serde_json::to_string_pretty(&receipt)
+            .unwrap_or_else(|e| panic!("preset {:?} failed to serialize: {}", preset, e));
+
+        // Parse back as generic Value to verify it's valid JSON
+        let value: serde_json::Value = serde_json::from_str(&json)
+            .unwrap_or_else(|e| panic!("preset {:?} produced invalid JSON: {}", preset, e));
+
+        // Structural checks on the JSON envelope
+        assert!(
+            value.is_object(),
+            "preset {:?} root should be object",
+            preset
+        );
+        assert!(
+            value.get("schema_version").is_some(),
+            "preset {:?} missing schema_version",
+            preset
+        );
+        assert!(
+            value.get("mode").is_some(),
+            "preset {:?} missing mode",
+            preset
+        );
+        assert!(
+            value.get("status").is_some(),
+            "preset {:?} missing status",
+            preset
+        );
+        assert!(
+            value.get("derived").is_some(),
+            "preset {:?} missing derived",
+            preset
+        );
+        assert!(
+            value.get("warnings").is_some(),
+            "preset {:?} missing warnings",
+            preset
+        );
+
+        // Deserialize back to typed struct to verify round-trip
+        let _: tokmd_analysis_types::AnalysisReceipt =
+            serde_json::from_str(&json).unwrap_or_else(|e| {
+                panic!(
+                    "preset {:?} JSON failed round-trip deserialization: {}",
+                    preset, e
+                )
+            });
+    }
+}
+
+#[test]
+fn all_presets_json_contains_tool_info() {
+    let presets = [
+        AnalysisPreset::Receipt,
+        AnalysisPreset::Health,
+        AnalysisPreset::Fun,
+    ];
+
+    for preset in &presets {
+        let mut req = make_req(*preset);
+        req.git = Some(false);
+
+        let receipt = analyze(make_ctx(sample_export()), req).unwrap();
+        let json = serde_json::to_string(&receipt).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        let tool = value.get("tool").expect("tool field must exist");
+        assert!(
+            tool.get("name").is_some(),
+            "preset {:?} tool must have name",
+            preset
+        );
+        assert!(
+            tool.get("version").is_some(),
+            "preset {:?} tool must have version",
+            preset
+        );
+    }
+}

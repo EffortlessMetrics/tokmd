@@ -225,6 +225,154 @@ fn force_works_when_file_does_not_exist() {
 }
 
 // ========================
+// Determinism
+// ========================
+
+#[test]
+fn template_is_deterministic_across_writes() {
+    for profile in [
+        InitProfile::Default,
+        InitProfile::Rust,
+        InitProfile::Node,
+        InitProfile::Mono,
+        InitProfile::Python,
+        InitProfile::Go,
+        InitProfile::Cpp,
+    ] {
+        let temp1 = TempDir::new().unwrap();
+        let temp2 = TempDir::new().unwrap();
+        let args1 = make_args(temp1.path().to_path_buf(), profile, false, false);
+        let args2 = make_args(temp2.path().to_path_buf(), profile, false, false);
+        init_tokeignore(&args1).unwrap();
+        init_tokeignore(&args2).unwrap();
+        let c1 = std::fs::read_to_string(temp1.path().join(".tokeignore")).unwrap();
+        let c2 = std::fs::read_to_string(temp2.path().join(".tokeignore")).unwrap();
+        assert_eq!(c1, c2, "Template for {:?} must be deterministic", profile);
+    }
+}
+
+// ========================
+// Round-trip
+// ========================
+
+#[test]
+fn round_trip_write_and_reread_is_identical() {
+    for profile in [
+        InitProfile::Default,
+        InitProfile::Rust,
+        InitProfile::Node,
+        InitProfile::Mono,
+        InitProfile::Python,
+        InitProfile::Go,
+        InitProfile::Cpp,
+    ] {
+        let temp = TempDir::new().unwrap();
+        let args = make_args(temp.path().to_path_buf(), profile, false, false);
+        init_tokeignore(&args).unwrap();
+
+        let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+
+        // Write a second time with force and confirm byte-for-byte match
+        let args2 = make_args(temp.path().to_path_buf(), profile, true, false);
+        init_tokeignore(&args2).unwrap();
+        let content2 = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+
+        assert_eq!(
+            content, content2,
+            "Round-trip for {:?} must be identical",
+            profile
+        );
+    }
+}
+
+// ========================
+// Custom pattern appending
+// ========================
+
+#[test]
+fn custom_patterns_can_be_appended_after_generation() {
+    let temp = TempDir::new().unwrap();
+    let args = make_args(
+        temp.path().to_path_buf(),
+        InitProfile::Default,
+        false,
+        false,
+    );
+    init_tokeignore(&args).unwrap();
+
+    let path = temp.path().join(".tokeignore");
+    let mut content = std::fs::read_to_string(&path).unwrap();
+
+    // Append custom patterns
+    content.push_str("\n# Custom\nmy_custom_dir/\n*.log\n");
+    std::fs::write(&path, &content).unwrap();
+
+    let final_content = std::fs::read_to_string(&path).unwrap();
+    // Original patterns still present
+    assert!(final_content.contains("target/"));
+    assert!(final_content.contains("node_modules/"));
+    // Custom patterns present
+    assert!(final_content.contains("my_custom_dir/"));
+    assert!(final_content.contains("*.log"));
+}
+
+// ========================
+// Common pattern coverage
+// ========================
+
+#[test]
+fn default_template_covers_common_build_artifact_dirs() {
+    let temp = TempDir::new().unwrap();
+    let args = make_args(
+        temp.path().to_path_buf(),
+        InitProfile::Default,
+        false,
+        false,
+    );
+    init_tokeignore(&args).unwrap();
+    let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+
+    // Common patterns that should appear in the default template
+    assert!(content.contains("target/"), "missing target/");
+    assert!(content.contains("node_modules/"), "missing node_modules/");
+    assert!(content.contains("build/"), "missing build/");
+    assert!(content.contains("dist/"), "missing dist/");
+    assert!(content.contains("__pycache__/"), "missing __pycache__/");
+    assert!(content.contains("vendor/"), "missing vendor/");
+    assert!(content.contains("coverage/"), "missing coverage/");
+    assert!(content.contains(".runs/"), "missing .runs/");
+
+    // .git should NOT be in the template (handled natively by git/tokei)
+    assert!(
+        !content.contains(".git/"),
+        ".git/ should not be in the template"
+    );
+}
+
+#[test]
+fn all_templates_contain_runs_output_dir() {
+    for profile in [
+        InitProfile::Default,
+        InitProfile::Rust,
+        InitProfile::Node,
+        InitProfile::Mono,
+        InitProfile::Python,
+        InitProfile::Go,
+        InitProfile::Cpp,
+    ] {
+        let temp = TempDir::new().unwrap();
+        let args = make_args(temp.path().to_path_buf(), profile, true, false);
+        init_tokeignore(&args).unwrap();
+        let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+        assert!(
+            content.contains(".runs/"),
+            "Profile {:?} must contain .runs/",
+            profile
+        );
+    }
+}
+
+// ========================
 // Edge Cases
 // ========================
 

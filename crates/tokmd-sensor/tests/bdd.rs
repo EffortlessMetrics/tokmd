@@ -556,3 +556,280 @@ fn scenario_diff_aware_sensor_with_no_diff_context() {
     assert!(report.findings.is_empty());
     assert!(report.summary.contains("0 files in diff"));
 }
+
+// ---------------------------------------------------------------------------
+// Scenario: Sensor with zero-code substrate
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_sensor_passes_on_zero_code_substrate() {
+    // Given a substrate with files that all have 0 code lines
+    let substrate = RepoSubstrate {
+        repo_root: ".".to_string(),
+        files: vec![SubstrateFile {
+            path: "empty.rs".to_string(),
+            lang: "Rust".to_string(),
+            code: 0,
+            lines: 5,
+            bytes: 20,
+            tokens: 0,
+            module: "root".to_string(),
+            in_diff: false,
+        }],
+        lang_summary: BTreeMap::from([(
+            "Rust".to_string(),
+            LangSummary {
+                files: 1,
+                code: 0,
+                lines: 5,
+                bytes: 20,
+                tokens: 0,
+            },
+        )]),
+        diff_range: None,
+        total_tokens: 0,
+        total_bytes: 20,
+        total_code_lines: 0,
+    };
+    let sensor = LocThresholdSensor;
+    let settings = LocThresholdSettings {
+        warn_threshold: 100,
+        fail_threshold: 500,
+    };
+
+    // When the sensor runs
+    let report = sensor.run(&settings, &substrate).unwrap();
+
+    // Then the verdict is Pass (0 < threshold)
+    assert_eq!(report.verdict, Verdict::Pass);
+    assert!(report.summary.contains("0"));
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: All files marked in diff
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_diff_aware_sensor_all_files_in_diff() {
+    // Given a substrate where every file is in the diff
+    let substrate = RepoSubstrate {
+        repo_root: ".".to_string(),
+        files: vec![
+            SubstrateFile {
+                path: "src/a.rs".to_string(),
+                lang: "Rust".to_string(),
+                code: 300,
+                lines: 350,
+                bytes: 9000,
+                tokens: 2000,
+                module: "src".to_string(),
+                in_diff: true,
+            },
+            SubstrateFile {
+                path: "src/b.rs".to_string(),
+                lang: "Rust".to_string(),
+                code: 150,
+                lines: 180,
+                bytes: 4500,
+                tokens: 1000,
+                module: "src".to_string(),
+                in_diff: true,
+            },
+        ],
+        lang_summary: BTreeMap::from([(
+            "Rust".to_string(),
+            LangSummary {
+                files: 2,
+                code: 450,
+                lines: 530,
+                bytes: 13500,
+                tokens: 3000,
+            },
+        )]),
+        diff_range: Some(tokmd_substrate::DiffRange {
+            base: "main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["src/a.rs".to_string(), "src/b.rs".to_string()],
+            commit_count: 2,
+            insertions: 50,
+            deletions: 10,
+        }),
+        total_tokens: 3000,
+        total_bytes: 13500,
+        total_code_lines: 450,
+    };
+    let sensor = DiffAwareSensor;
+    let settings = DiffAwareSettings {
+        max_changed_lines: 100,
+    };
+
+    // When the sensor runs
+    let report = sensor.run(&settings, &substrate).unwrap();
+
+    // Then both files should be flagged
+    assert_eq!(report.verdict, Verdict::Warn);
+    assert_eq!(report.findings.len(), 2);
+    assert!(report.summary.contains("2 files in diff"));
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Multiple sensors yield different verdicts on same substrate
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_multiple_sensors_different_verdicts_on_same_substrate() {
+    // Given a substrate with 500 code lines
+    let substrate = single_file_substrate(500);
+
+    // When a LocThreshold sensor with high threshold runs
+    let lenient = LocThresholdSensor;
+    let lenient_settings = LocThresholdSettings {
+        warn_threshold: 1000,
+        fail_threshold: 2000,
+    };
+    let lenient_report = lenient.run(&lenient_settings, &substrate).unwrap();
+
+    // And a LocThreshold sensor with low threshold runs
+    let strict = LocThresholdSensor;
+    let strict_settings = LocThresholdSettings {
+        warn_threshold: 100,
+        fail_threshold: 300,
+    };
+    let strict_report = strict.run(&strict_settings, &substrate).unwrap();
+
+    // And a Skip sensor runs
+    let skip = SkipSensor;
+    let skip_report = skip.run(&EmptySettings, &substrate).unwrap();
+
+    // Then each sensor returns its own verdict
+    assert_eq!(lenient_report.verdict, Verdict::Pass);
+    assert_eq!(strict_report.verdict, Verdict::Fail);
+    assert_eq!(skip_report.verdict, Verdict::Skip);
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Sensor JSON output is deterministic
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_sensor_report_json_is_deterministic() {
+    // Given the same substrate and settings
+    let substrate = multi_lang_substrate();
+    let sensor = DiffAwareSensor;
+    let settings = DiffAwareSettings {
+        max_changed_lines: 100,
+    };
+
+    // When we run the sensor twice and serialize both reports
+    let report1 = sensor.run(&settings, &substrate).unwrap();
+    let report2 = sensor.run(&settings, &substrate).unwrap();
+    let json1 = serde_json::to_string_pretty(&report1).unwrap();
+    let json2 = serde_json::to_string_pretty(&report2).unwrap();
+
+    // Then the JSON outputs are byte-identical
+    assert_eq!(json1, json2);
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Settings survive serialize → deserialize roundtrip
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_loc_settings_roundtrip() {
+    let original = LocThresholdSettings {
+        warn_threshold: 42,
+        fail_threshold: 9999,
+    };
+    let json = serde_json::to_string(&original).unwrap();
+    let restored: LocThresholdSettings = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.warn_threshold, 42);
+    assert_eq!(restored.fail_threshold, 9999);
+}
+
+#[test]
+fn scenario_diff_aware_settings_roundtrip() {
+    let original = DiffAwareSettings {
+        max_changed_lines: 256,
+    };
+    let json = serde_json::to_string(&original).unwrap();
+    let restored: DiffAwareSettings = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.max_changed_lines, 256);
+}
+
+#[test]
+fn scenario_empty_settings_roundtrip() {
+    let json = serde_json::to_string(&EmptySettings).unwrap();
+    let _restored: EmptySettings = serde_json::from_str(&json).unwrap();
+    // EmptySettings has no fields — just verify it doesn't error
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Minimal substrate (1 file, 1 code line)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_sensor_handles_minimal_substrate() {
+    // Given a substrate with a single file having 1 code line
+    let substrate = single_file_substrate(1);
+    let sensor = LocThresholdSensor;
+    let settings = LocThresholdSettings {
+        warn_threshold: 2,
+        fail_threshold: 10,
+    };
+
+    // When the sensor runs
+    let report = sensor.run(&settings, &substrate).unwrap();
+
+    // Then it passes (1 < 2)
+    assert_eq!(report.verdict, Verdict::Pass);
+    assert!(report.summary.contains("1 code lines"));
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: SensorReport with no optional fields roundtrips cleanly
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_minimal_report_roundtrip() {
+    // Given a bare report with no artifacts, capabilities, or data
+    let report = SensorReport::new(
+        ToolMeta::new("bare", "0.0.1", "check"),
+        "2024-01-01T00:00:00Z".to_string(),
+        Verdict::Pass,
+        "nothing special".to_string(),
+    );
+
+    // When serialized and deserialized
+    let json = serde_json::to_string(&report).unwrap();
+    let restored: SensorReport = serde_json::from_str(&json).unwrap();
+
+    // Then all core fields survive, optional fields stay None
+    assert_eq!(restored.tool.name, "bare");
+    assert_eq!(restored.tool.version, "0.0.1");
+    assert_eq!(restored.tool.mode, "check");
+    assert_eq!(restored.verdict, Verdict::Pass);
+    assert_eq!(restored.summary, "nothing special");
+    assert!(restored.findings.is_empty());
+    assert!(restored.artifacts.is_none());
+    assert!(restored.capabilities.is_none());
+    assert!(restored.data.is_none());
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Verdict variants each serialize correctly
+// ---------------------------------------------------------------------------
+
+#[test]
+fn scenario_all_verdict_variants_serialize_roundtrip() {
+    for verdict in [
+        Verdict::Pass,
+        Verdict::Fail,
+        Verdict::Warn,
+        Verdict::Skip,
+        Verdict::Pending,
+    ] {
+        let json = serde_json::to_value(verdict).unwrap();
+        let restored: Verdict = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(restored, verdict, "roundtrip failed for {:?}", verdict);
+    }
+}

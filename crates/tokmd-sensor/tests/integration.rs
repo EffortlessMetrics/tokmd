@@ -10,8 +10,8 @@ use anyhow::Result;
 use proptest::prelude::*;
 use serde::{Deserialize, Serialize};
 use tokmd_envelope::{
-    CapabilityStatus, Finding, FindingSeverity, SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta,
-    Verdict,
+    Artifact, CapabilityStatus, Finding, FindingSeverity, SENSOR_REPORT_SCHEMA, SensorReport,
+    ToolMeta, Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
 use tokmd_sensor::substrate_builder::build_substrate;
@@ -744,4 +744,207 @@ fn lang_coverage_sensor_produces_per_language_findings() {
     );
     let codes: Vec<&str> = report.findings.iter().map(|f| f.code.as_str()).collect();
     assert!(codes.iter().all(|c| *c == "lang-stats"));
+}
+
+// ---------------------------------------------------------------------------
+// Substrate builder: deterministic output
+// ---------------------------------------------------------------------------
+
+#[test]
+fn build_substrate_is_deterministic() {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let opts = ScanOptions::default();
+    let s1 = build_substrate(&format!("{}/src", manifest_dir), &opts, &[], 2, None).unwrap();
+    let s2 = build_substrate(&format!("{}/src", manifest_dir), &opts, &[], 2, None).unwrap();
+
+    // File lists must be identical
+    assert_eq!(s1.files.len(), s2.files.len());
+    for (a, b) in s1.files.iter().zip(s2.files.iter()) {
+        assert_eq!(a.path, b.path);
+        assert_eq!(a.lang, b.lang);
+        assert_eq!(a.code, b.code);
+        assert_eq!(a.bytes, b.bytes);
+        assert_eq!(a.tokens, b.tokens);
+    }
+    // Totals must be identical
+    assert_eq!(s1.total_code_lines, s2.total_code_lines);
+    assert_eq!(s1.total_bytes, s2.total_bytes);
+    assert_eq!(s1.total_tokens, s2.total_tokens);
+    // Lang summary keys must be identical
+    assert_eq!(
+        s1.lang_summary.keys().collect::<Vec<_>>(),
+        s2.lang_summary.keys().collect::<Vec<_>>()
+    );
+    // JSON must be byte-identical
+    let j1 = serde_json::to_string(&s1).unwrap();
+    let j2 = serde_json::to_string(&s2).unwrap();
+    assert_eq!(j1, j2);
+}
+
+// ---------------------------------------------------------------------------
+// Substrate with DiffRange survives serde roundtrip
+// ---------------------------------------------------------------------------
+
+#[test]
+fn substrate_with_diff_range_serde_roundtrip() {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let diff = DiffRange {
+        base: "v1.0.0".to_string(),
+        head: "v2.0.0".to_string(),
+        changed_files: vec!["src/lib.rs".to_string()],
+        commit_count: 7,
+        insertions: 42,
+        deletions: 13,
+    };
+    let substrate =
+        build_substrate(manifest_dir, &ScanOptions::default(), &[], 2, Some(diff)).unwrap();
+
+    let json = serde_json::to_string_pretty(&substrate).unwrap();
+    let restored: RepoSubstrate = serde_json::from_str(&json).unwrap();
+
+    // Core fields
+    assert_eq!(restored.files.len(), substrate.files.len());
+    assert_eq!(restored.total_code_lines, substrate.total_code_lines);
+    // DiffRange preserved
+    let dr = restored
+        .diff_range
+        .as_ref()
+        .expect("diff_range should survive");
+    assert_eq!(dr.base, "v1.0.0");
+    assert_eq!(dr.head, "v2.0.0");
+    assert_eq!(dr.changed_files, vec!["src/lib.rs"]);
+    assert_eq!(dr.commit_count, 7);
+    assert_eq!(dr.insertions, 42);
+    assert_eq!(dr.deletions, 13);
+    // in_diff markers preserved
+    let orig_diff_count = substrate.files.iter().filter(|f| f.in_diff).count();
+    let rest_diff_count = restored.files.iter().filter(|f| f.in_diff).count();
+    assert_eq!(orig_diff_count, rest_diff_count);
+}
+
+// ---------------------------------------------------------------------------
+// Sensor report with findings + artifacts survives roundtrip
+// ---------------------------------------------------------------------------
+
+#[test]
+fn sensor_report_with_findings_survives_roundtrip() {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let substrate = build_substrate(
+        &format!("{}/src", manifest_dir),
+        &ScanOptions::default(),
+        &[],
+        2,
+        None,
+    )
+    .unwrap();
+
+    let sensor = LangCoverageSensor;
+    let mut report = sensor.run(&LangCoverageSettings, &substrate).unwrap();
+    report.add_capability("audit", CapabilityStatus::available());
+    report = report
+        .with_data(serde_json::json!({ "scanned": true, "depth": 2 }))
+        .with_artifacts(vec![
+            Artifact::receipt("out/report.json"),
+            Artifact::receipt("out/summary.md"),
+        ]);
+
+    let json = serde_json::to_string_pretty(&report).unwrap();
+    let restored: SensorReport = serde_json::from_str(&json).unwrap();
+
+    assert_eq!(restored.verdict, report.verdict);
+    assert_eq!(restored.summary, report.summary);
+    assert_eq!(restored.findings.len(), report.findings.len());
+    for (a, b) in restored.findings.iter().zip(report.findings.iter()) {
+        assert_eq!(a.check_id, b.check_id);
+        assert_eq!(a.code, b.code);
+        assert_eq!(a.severity, b.severity);
+    }
+    assert_eq!(restored.artifacts.as_ref().unwrap().len(), 2);
+    assert_eq!(restored.data.as_ref().unwrap()["scanned"], true);
+    assert_eq!(restored.data.as_ref().unwrap()["depth"], 2);
+    let caps = restored.capabilities.as_ref().unwrap();
+    assert!(caps.contains_key("audit"));
+}
+
+// ---------------------------------------------------------------------------
+// End-to-end: deterministic sensor JSON output
+// ---------------------------------------------------------------------------
+
+#[test]
+fn end_to_end_sensor_json_is_deterministic() {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let substrate = build_substrate(
+        &format!("{}/src", manifest_dir),
+        &ScanOptions::default(),
+        &[],
+        2,
+        None,
+    )
+    .unwrap();
+
+    let sensor = IntegrationSensor;
+    let settings = IntegrationSettings { min_languages: 1 };
+    let r1 = sensor.run(&settings, &substrate).unwrap();
+    let r2 = sensor.run(&settings, &substrate).unwrap();
+
+    let j1 = serde_json::to_string_pretty(&r1).unwrap();
+    let j2 = serde_json::to_string_pretty(&r2).unwrap();
+    assert_eq!(j1, j2, "sensor JSON output should be deterministic");
+}
+
+// ---------------------------------------------------------------------------
+// Substrate builder: module_depth parameter
+// ---------------------------------------------------------------------------
+
+#[test]
+fn build_substrate_different_module_depths() {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let s_depth1 = build_substrate(manifest_dir, &ScanOptions::default(), &[], 1, None).unwrap();
+    let s_depth3 = build_substrate(manifest_dir, &ScanOptions::default(), &[], 3, None).unwrap();
+
+    // Same files regardless of module depth
+    assert_eq!(s_depth1.files.len(), s_depth3.files.len());
+    assert_eq!(s_depth1.total_code_lines, s_depth3.total_code_lines);
+}
+
+// ---------------------------------------------------------------------------
+// Property: sensor report JSON roundtrip
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #[test]
+    fn prop_sensor_report_json_roundtrip(sub in arb_substrate()) {
+        let sensor = LocThresholdSensor;
+        let settings = LocThresholdSettings { warn_threshold: 500, fail_threshold: 1000 };
+        let report = sensor.run(&settings, &sub).unwrap();
+
+        let json = serde_json::to_string(&report).unwrap();
+        let restored: SensorReport = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(restored.verdict, report.verdict);
+        prop_assert_eq!(restored.summary, report.summary);
+        prop_assert_eq!(restored.tool.name, report.tool.name);
+        prop_assert_eq!(restored.schema, report.schema);
+        prop_assert_eq!(restored.findings.len(), report.findings.len());
+    }
+
+    /// Lang summary totals match file-level sums for every language.
+    #[test]
+    fn prop_lang_summary_matches_files(sub in arb_substrate()) {
+        for (lang, summary) in &sub.lang_summary {
+            let lang_files: Vec<_> = sub.files.iter().filter(|f| &f.lang == lang).collect();
+            prop_assert_eq!(summary.files, lang_files.len());
+            let code_sum: usize = lang_files.iter().map(|f| f.code).sum();
+            prop_assert_eq!(summary.code, code_sum);
+        }
+    }
+
+    /// Sensor JSON output is deterministic for a given substrate.
+    #[test]
+    fn prop_sensor_json_is_deterministic(sub in arb_substrate()) {
+        let sensor = LocThresholdSensor;
+        let settings = LocThresholdSettings { warn_threshold: 500, fail_threshold: 1000 };
+        let j1 = serde_json::to_string(&sensor.run(&settings, &sub).unwrap()).unwrap();
+        let j2 = serde_json::to_string(&sensor.run(&settings, &sub).unwrap()).unwrap();
+        prop_assert_eq!(j1, j2);
+    }
 }

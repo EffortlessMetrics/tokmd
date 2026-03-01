@@ -3104,6 +3104,8 @@ dependencies = [
  "anyhow",
  "blake3",
  "proptest",
+ "serde",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-imports",
  "tokmd-analysis-types",
@@ -3503,6 +3505,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-types",
 ]

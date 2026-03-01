@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-analysis-assets/tests/snapshots.rs
+assertion_line: 61
+expression: report
+---
+{
+  "total": 0,
+  "lockfiles": []
+}

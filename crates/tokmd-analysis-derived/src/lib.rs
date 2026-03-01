@@ -765,6 +765,95 @@ mod tests {
     }
 
     #[test]
+    fn cocomo_none_for_zero_code() {
+        let export = ExportData {
+            rows: vec![],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let report = derive_report(&export, None);
+        assert!(report.cocomo.is_none());
+    }
+
+    #[test]
+    fn cocomo_computed_for_nonzero_code() {
+        let row = FileRow {
+            path: "src/main.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 5000,
+            comments: 100,
+            blanks: 50,
+            lines: 5150,
+            bytes: 100_000,
+            tokens: 20_000,
+        };
+        let export = ExportData {
+            rows: vec![row],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let report = derive_report(&export, None);
+        let cocomo = report.cocomo.as_ref().unwrap();
+        assert_eq!(cocomo.mode, "organic");
+        assert!((cocomo.kloc - 5.0).abs() < f64::EPSILON);
+        assert!(cocomo.effort_pm > 0.0);
+        assert!(cocomo.duration_months > 0.0);
+        assert!(cocomo.staff > 0.0);
+    }
+
+    #[test]
+    fn context_window_fits_when_tokens_within_budget() {
+        let row = FileRow {
+            path: "a.rs".to_string(),
+            module: "mod".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 10,
+            comments: 0,
+            blanks: 0,
+            lines: 10,
+            bytes: 100,
+            tokens: 50,
+        };
+        let export = ExportData {
+            rows: vec![row],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let report = derive_report(&export, Some(1000));
+        let cw = report.context_window.unwrap();
+        assert!(cw.fits);
+        assert_eq!(cw.total_tokens, 50);
+        assert_eq!(cw.window_tokens, 1000);
+
+        // zero window edge case
+        let report2 = derive_report(&export, Some(0));
+        let cw2 = report2.context_window.unwrap();
+        assert!(!cw2.fits);
+        assert!((cw2.pct - 0.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn histogram_empty_input() {
+        let export = ExportData {
+            rows: vec![],
+            module_roots: vec![],
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let report = derive_report(&export, None);
+        for bucket in &report.histogram {
+            assert_eq!(bucket.files, 0);
+            assert!((bucket.pct - 0.0).abs() < f64::EPSILON);
+        }
+    }
+
+    #[test]
     fn test_compare_integrity_rows_matches_string_sort() {
         let cases = vec![
             ("a", 10, 10, "b", 10, 10),

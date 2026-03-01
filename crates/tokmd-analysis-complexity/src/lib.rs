@@ -1560,6 +1560,109 @@ int main(int argc, char** argv) {
     }
 
     #[test]
+    fn test_count_ruby_functions() {
+        let code = r#"
+def greet(name)
+  puts "hello #{name}"
+end
+
+def add(a, b)
+  a + b
+end
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let (count, max_len) = count_ruby_functions(&lines);
+        assert_eq!(count, 2);
+        assert!(max_len >= 3); // at least def + body + end
+    }
+
+    #[test]
+    fn test_count_go_functions() {
+        let code = r#"
+func main() {
+    fmt.Println("hello")
+}
+
+func add(a, b int) int {
+    return a + b
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        let (count, _max_len) = count_go_functions(&lines);
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn test_estimate_cyclomatic_empty() {
+        assert_eq!(estimate_cyclomatic("rust", ""), 1);
+        assert_eq!(estimate_cyclomatic("python", ""), 1);
+        assert_eq!(estimate_cyclomatic("unknown_lang", ""), 1);
+    }
+
+    #[test]
+    fn test_count_params_edge_cases() {
+        assert_eq!(count_params("fn foo()"), 0);
+        assert_eq!(count_params("fn foo(a: i32)"), 1);
+        assert_eq!(count_params("fn foo(a: i32, b: i32)"), 2);
+        assert_eq!(count_params("no parens here"), 0);
+    }
+
+    #[test]
+    fn test_generate_histogram_buckets() {
+        let files = vec![
+            FileComplexity {
+                path: "a.rs".to_string(),
+                module: "src".to_string(),
+                function_count: 1,
+                max_function_length: 5,
+                cyclomatic_complexity: 2, // bucket 0 (0-4)
+                cognitive_complexity: None,
+                max_nesting: None,
+                risk_level: ComplexityRisk::Low,
+                functions: None,
+            },
+            FileComplexity {
+                path: "b.rs".to_string(),
+                module: "src".to_string(),
+                function_count: 1,
+                max_function_length: 5,
+                cyclomatic_complexity: 7, // bucket 1 (5-9)
+                cognitive_complexity: None,
+                max_nesting: None,
+                risk_level: ComplexityRisk::Low,
+                functions: None,
+            },
+            FileComplexity {
+                path: "c.rs".to_string(),
+                module: "src".to_string(),
+                function_count: 1,
+                max_function_length: 5,
+                cyclomatic_complexity: 35, // bucket 6 (30+)
+                cognitive_complexity: None,
+                max_nesting: None,
+                risk_level: ComplexityRisk::High,
+                functions: None,
+            },
+        ];
+        let hist = generate_complexity_histogram(&files, 5);
+        assert_eq!(hist.total, 3);
+        assert_eq!(hist.counts[0], 1); // 0-4
+        assert_eq!(hist.counts[1], 1); // 5-9
+        assert_eq!(hist.counts[6], 1); // 30+
+        assert_eq!(hist.counts[2], 0); // 10-14 empty
+    }
+
+    #[test]
+    fn test_map_language_for_complexity() {
+        assert_eq!(map_language_for_complexity("Rust"), "rust");
+        assert_eq!(map_language_for_complexity("JSX"), "javascript");
+        assert_eq!(map_language_for_complexity("TSX"), "typescript");
+        assert_eq!(map_language_for_complexity("C++"), "c++");
+        assert_eq!(map_language_for_complexity("CSharp"), "c#");
+        assert_eq!(map_language_for_complexity("Haskell"), "Haskell"); // passthrough
+    }
+
+    #[test]
     fn test_detect_fn_python_decorators_extended() {
         let code = r#"
 @app.route("/")

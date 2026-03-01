@@ -275,6 +275,59 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
+    fn match_license_text_mit() {
+        let text = r#"Permission is hereby granted, free of charge, to any person obtaining a copy.
+The software is provided "as is", without warranty of any kind."#;
+        let (spdx, confidence) = match_license_text(text).unwrap();
+        assert_eq!(spdx, "MIT");
+        assert!(confidence > 0.8);
+    }
+
+    #[test]
+    fn match_license_text_apache() {
+        let text = r#"Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+limitations under the license"#;
+        let (spdx, _confidence) = match_license_text(text).unwrap();
+        assert_eq!(spdx, "Apache-2.0");
+    }
+
+    #[test]
+    fn match_license_text_no_match() {
+        let result = match_license_text("This is just some random text with no license info.");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn extract_quoted_edge_cases() {
+        assert_eq!(extract_quoted(r#""MIT""#), Some("MIT".to_string()));
+        assert_eq!(
+            extract_quoted("'Apache-2.0'"),
+            Some("Apache-2.0".to_string())
+        );
+        assert_eq!(extract_quoted(r#""""#), None); // empty string
+        assert_eq!(extract_quoted("no quotes"), None);
+    }
+
+    #[test]
+    fn parse_toml_key_finds_value() {
+        let toml = r#"[package]
+name = "demo"
+license = "MIT"
+
+[dependencies]
+serde = "1"
+"#;
+        assert_eq!(
+            parse_toml_key(toml, "package", "license"),
+            Some("MIT".to_string())
+        );
+        assert_eq!(parse_toml_key(toml, "package", "version"), None);
+        assert_eq!(parse_toml_key(toml, "dependencies", "license"), None);
+    }
+
+    #[test]
     fn detects_metadata_license() {
         let dir = tempdir().unwrap();
         let cargo = dir.path().join("Cargo.toml");

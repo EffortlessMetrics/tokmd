@@ -1,0 +1,15 @@
+---
+source: crates/tokmd-analysis-assets/tests/snapshots.rs
+assertion_line: 54
+expression: report
+---
+{
+  "total": 2,
+  "lockfiles": [
+    {
+      "path": "Cargo.lock",
+      "kind": "cargo",
+      "dependencies": 2
+    }
+  ]
+}

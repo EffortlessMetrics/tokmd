@@ -86,6 +86,42 @@ mod tests {
     use super::*;
 
     #[test]
+    fn extract_domain_valid() {
+        assert_eq!(
+            extract_domain("alice@example.com"),
+            Some("example.com".to_string())
+        );
+        assert_eq!(extract_domain("bob@ACME.COM"), Some("ACME.COM".to_string()));
+    }
+
+    #[test]
+    fn extract_domain_invalid() {
+        assert_eq!(extract_domain("no-at-sign"), None);
+        assert_eq!(extract_domain("too@many@ats"), None);
+        assert_eq!(extract_domain(""), None);
+    }
+
+    #[test]
+    fn ignored_domains_filtered() {
+        assert!(is_ignored_domain("localhost"));
+        assert!(is_ignored_domain("example.com"));
+        assert!(is_ignored_domain("12345+user@users.noreply.github.com"));
+        assert!(!is_ignored_domain("acme.com"));
+    }
+
+    #[test]
+    fn empty_commits_produces_empty_fingerprint() {
+        let report = build_corporate_fingerprint(&[]);
+        assert!(report.domains.is_empty());
+    }
+
+    #[test]
+    fn normalize_domain_trims_and_lowercases() {
+        assert_eq!(normalize_domain("  ACME.COM  "), "acme.com");
+        assert_eq!(normalize_domain("GitHub.Com"), "github.com");
+    }
+
+    #[test]
     fn buckets_public_domains() {
         let commits = vec![
             tokmd_git::GitCommit {

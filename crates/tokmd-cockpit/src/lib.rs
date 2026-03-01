@@ -300,6 +300,18 @@ fn compute_evidence(
     })
 }
 
+/// Compute the overall gate status from an [`Evidence`] struct.
+pub fn compute_overall_gate_status(evidence: &Evidence) -> GateStatus {
+    compute_overall_status(
+        &evidence.mutation,
+        &evidence.diff_coverage,
+        &evidence.contracts,
+        &evidence.supply_chain,
+        &evidence.determinism,
+        &evidence.complexity,
+    )
+}
+
 /// Compute overall status from all gates.
 fn compute_overall_status(
     mutation: &MutationGate,

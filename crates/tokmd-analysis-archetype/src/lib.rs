@@ -478,6 +478,92 @@ mod tests {
     }
 
     #[test]
+    fn backslash_paths_normalized() {
+        // Windows-style backslash paths should still detect archetypes
+        let rows = vec![
+            FileRow {
+                path: "Cargo.toml".to_string(),
+                module: "(root)".to_string(),
+                lang: "TOML".to_string(),
+                kind: FileKind::Parent,
+                code: 1,
+                comments: 0,
+                blanks: 0,
+                lines: 1,
+                bytes: 10,
+                tokens: 2,
+            },
+            FileRow {
+                path: r"crates\core\src\lib.rs".to_string(),
+                module: "crates/core".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Parent,
+                code: 1,
+                comments: 0,
+                blanks: 0,
+                lines: 1,
+                bytes: 10,
+                tokens: 2,
+            },
+        ];
+        let export = ExportData {
+            rows,
+            module_roots: vec![],
+            module_depth: 2,
+            children: ChildIncludeMode::Separate,
+        };
+        let archetype = detect_archetype(&export).unwrap();
+        assert!(archetype.kind.contains("Rust workspace"));
+    }
+
+    #[test]
+    fn child_rows_ignored_in_detection() {
+        // Only Parent rows should be considered
+        let rows = vec![
+            FileRow {
+                path: "Cargo.toml".to_string(),
+                module: "(root)".to_string(),
+                lang: "TOML".to_string(),
+                kind: FileKind::Child,
+                code: 1,
+                comments: 0,
+                blanks: 0,
+                lines: 1,
+                bytes: 10,
+                tokens: 2,
+            },
+            FileRow {
+                path: "crates/foo/src/lib.rs".to_string(),
+                module: "crates/foo".to_string(),
+                lang: "Rust".to_string(),
+                kind: FileKind::Child,
+                code: 1,
+                comments: 0,
+                blanks: 0,
+                lines: 1,
+                bytes: 10,
+                tokens: 2,
+            },
+        ];
+        let export = ExportData {
+            rows,
+            module_roots: vec![],
+            module_depth: 2,
+            children: ChildIncludeMode::Separate,
+        };
+        // All rows are Child, so no archetype should be detected
+        assert!(detect_archetype(&export).is_none());
+    }
+
+    #[test]
+    fn iac_takes_priority_over_python() {
+        // Has both .tf files and pyproject.toml
+        let export = export_with_paths(&["main.tf", "pyproject.toml"]);
+        let archetype = detect_archetype(&export).unwrap();
+        assert_eq!(archetype.kind, "Infrastructure as code");
+    }
+
+    #[test]
     fn no_archetype_for_generic_files() {
         let export = export_with_paths(&["README.md", "src/lib.rs"]);
         assert!(detect_archetype(&export).is_none());
