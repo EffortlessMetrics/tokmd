@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 770
+expression: comp
+---
+{
+  "code_pct": 70.0,
+  "test_pct": 20.0,
+  "docs_pct": 5.0,
+  "config_pct": 5.0,
+  "test_ratio": 0.29
+}

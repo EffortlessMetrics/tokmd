@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 477
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "lang_file": "lang.json",
+  "module_file": "module.json",
+  "export_file": "export.jsonl"
+}

@@ -1,0 +1,32 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 190
+expression: report
+---
+{
+  "rows": [
+    {
+      "module": "src",
+      "code": 1000,
+      "lines": 1300,
+      "files": 10,
+      "bytes": 50000,
+      "tokens": 12500,
+      "avg_lines": 130
+    }
+  ],
+  "total": {
+    "code": 1000,
+    "lines": 1300,
+    "files": 10,
+    "bytes": 50000,
+    "tokens": 2500,
+    "avg_lines": 130
+  },
+  "module_roots": [
+    "src"
+  ],
+  "module_depth": 1,
+  "children": "parents-only",
+  "top": 0
+}

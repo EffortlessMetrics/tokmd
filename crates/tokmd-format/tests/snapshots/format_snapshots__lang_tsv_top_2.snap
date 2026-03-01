@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 182
+expression: "String::from_utf8(buf).unwrap()"
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	3000	3600	150000	7500
+Python	1500	1800	75000	3750
+Go	500	600	25000	1250
+TOML	100	120	5000	250
+Total	5100	6120	255000	12750

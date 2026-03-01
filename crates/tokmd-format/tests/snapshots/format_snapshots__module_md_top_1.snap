@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 212
+expression: "String::from_utf8(buf).unwrap()"
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|src/core|1200|1440|12|60000|3000|120|
+|src/api|600|720|6|30000|1500|120|
+|src/util|200|240|2|10000|500|120|
+|**Total**|2000|2400|20|100000|5000|120|

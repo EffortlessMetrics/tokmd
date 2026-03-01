@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 911
+expression: all
+---
+[
+  "improving",
+  "stable",
+  "degrading"
+]

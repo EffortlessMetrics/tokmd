@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 299
+expression: "String::from_utf8(buf).unwrap()"
+---
+{"type":"row","path":"src/a.rs","module":"src","lang":"Rust","kind":"parent","code":300,"comments":60,"blanks":30,"lines":390,"bytes":15000,"tokens":750}
+{"type":"row","path":"src/b.rs","module":"src","lang":"Rust","kind":"parent","code":200,"comments":40,"blanks":20,"lines":260,"bytes":10000,"tokens":500}
+{"type":"row","path":"src/c.rs","module":"src","lang":"Rust","kind":"parent","code":100,"comments":20,"blanks":10,"lines":130,"bytes":5000,"tokens":250}
+{"type":"row","path":"src/d.rs","module":"src","lang":"Rust","kind":"parent","code":50,"comments":10,"blanks":5,"lines":65,"bytes":2500,"tokens":125}

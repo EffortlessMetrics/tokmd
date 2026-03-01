@@ -1,0 +1,21 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 600
+expression: record
+---
+{
+  "schema_version": 4,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "budget_tokens": 100000,
+  "used_tokens": 50000,
+  "utilization_pct": 50.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "file_count": 25,
+  "total_bytes": 200000,
+  "output_destination": "stdout"
+}

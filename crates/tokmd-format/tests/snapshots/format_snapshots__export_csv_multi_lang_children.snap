@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 436
+expression: "String::from_utf8(buf).unwrap()"
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/app.rs,src,Rust,parent,400,80,40,520,20000,1000
+src/app.rs,src,Markdown (Rust),child,50,10,5,65,2500,125
+web/index.html,web,HTML,parent,120,24,12,156,6000,300
+web/index.html,web,JavaScript,child,80,16,8,104,4000,200
+web/index.html,web,CSS,child,30,6,3,39,1500,75

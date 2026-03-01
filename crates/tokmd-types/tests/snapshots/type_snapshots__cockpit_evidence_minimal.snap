@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 874
+expression: evidence
+---
+{
+  "overall_status": "skipped",
+  "mutation": {
+    "status": "skipped",
+    "source": "ran_local",
+    "commit_match": "unknown",
+    "scope": {
+      "relevant": [],
+      "tested": [],
+      "ratio": 0.0
+    },
+    "survivors": [],
+    "killed": 0,
+    "timeout": 0,
+    "unviable": 0
+  }
+}

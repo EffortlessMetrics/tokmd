@@ -1,0 +1,23 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 85
+expression: args
+---
+{
+  "paths": [
+    "src",
+    "tests"
+  ],
+  "excluded": [
+    "target",
+    "*.lock"
+  ],
+  "excluded_redacted": true,
+  "config": "none",
+  "hidden": true,
+  "no_ignore": true,
+  "no_ignore_parent": true,
+  "no_ignore_dot": false,
+  "no_ignore_vcs": false,
+  "treat_doc_strings_as_comments": true
+}

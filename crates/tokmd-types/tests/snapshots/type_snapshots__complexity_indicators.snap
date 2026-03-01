@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 901
+expression: all
+---
+[
+  "low",
+  "medium",
+  "high",
+  "critical"
+]

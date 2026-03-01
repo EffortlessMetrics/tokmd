@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 809
+expression: contracts
+---
+{
+  "api_changed": true,
+  "cli_changed": false,
+  "schema_changed": true,
+  "breaking_indicators": 2
+}

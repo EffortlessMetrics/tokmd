@@ -1,0 +1,72 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 348
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "module",
+  "status": "complete",
+  "warnings": [],
+  "scan": {
+    "paths": [
+      "."
+    ],
+    "excluded": [],
+    "config": "auto",
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_parent": false,
+    "no_ignore_dot": false,
+    "no_ignore_vcs": false,
+    "treat_doc_strings_as_comments": false
+  },
+  "args": {
+    "format": "md",
+    "module_roots": [
+      "crates"
+    ],
+    "module_depth": 2,
+    "children": "separate",
+    "top": 0
+  },
+  "rows": [
+    {
+      "module": "crates/alpha",
+      "code": 800,
+      "lines": 1000,
+      "files": 8,
+      "bytes": 40000,
+      "tokens": 10000,
+      "avg_lines": 125
+    },
+    {
+      "module": "crates/beta",
+      "code": 200,
+      "lines": 250,
+      "files": 3,
+      "bytes": 10000,
+      "tokens": 2500,
+      "avg_lines": 83
+    }
+  ],
+  "total": {
+    "code": 1000,
+    "lines": 1250,
+    "files": 11,
+    "bytes": 50000,
+    "tokens": 2500,
+    "avg_lines": 113
+  },
+  "module_roots": [
+    "crates"
+  ],
+  "module_depth": 2,
+  "children": "separate",
+  "top": 0
+}

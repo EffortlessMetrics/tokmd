@@ -1,0 +1,19 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 101
+expression: report
+---
+{
+  "rows": [],
+  "total": {
+    "code": 0,
+    "lines": 0,
+    "files": 0,
+    "bytes": 0,
+    "tokens": 0,
+    "avg_lines": 0
+  },
+  "with_files": false,
+  "children": "collapse",
+  "top": 0
+}

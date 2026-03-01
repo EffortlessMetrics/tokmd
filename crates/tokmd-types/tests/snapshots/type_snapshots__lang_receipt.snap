@@ -1,0 +1,57 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 269
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "lang",
+  "status": "complete",
+  "warnings": [],
+  "scan": {
+    "paths": [
+      "."
+    ],
+    "excluded": [],
+    "config": "auto",
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_parent": false,
+    "no_ignore_dot": false,
+    "no_ignore_vcs": false,
+    "treat_doc_strings_as_comments": false
+  },
+  "args": {
+    "format": "md",
+    "top": 0,
+    "with_files": false,
+    "children": "collapse"
+  },
+  "rows": [
+    {
+      "lang": "Rust",
+      "code": 1000,
+      "lines": 1200,
+      "files": 10,
+      "bytes": 50000,
+      "tokens": 12500,
+      "avg_lines": 120
+    }
+  ],
+  "total": {
+    "code": 1000,
+    "lines": 1200,
+    "files": 10,
+    "bytes": 50000,
+    "tokens": 2500,
+    "avg_lines": 120
+  },
+  "with_files": false,
+  "children": "collapse",
+  "top": 0
+}

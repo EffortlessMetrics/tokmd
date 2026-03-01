@@ -1,0 +1,80 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 578
+expression: receipt
+---
+{
+  "schema_version": 4,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "context",
+  "budget_tokens": 128000,
+  "used_tokens": 120000,
+  "utilization_pct": 93.75,
+  "strategy": "greedy",
+  "rank_by": "churn",
+  "file_count": 2,
+  "files": [
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 80000,
+      "code": 32000,
+      "lines": 48000,
+      "bytes": 320000,
+      "value": 100,
+      "rank_reason": "churn"
+    },
+    {
+      "path": "gen/proto.rs",
+      "module": "gen",
+      "lang": "Rust",
+      "tokens": 200000,
+      "code": 80000,
+      "lines": 100000,
+      "bytes": 800000,
+      "value": 5,
+      "rank_reason": "churn",
+      "policy": "head_tail",
+      "effective_tokens": 40000,
+      "policy_reason": "exceeds per-file cap",
+      "classifications": [
+        "generated"
+      ]
+    }
+  ],
+  "rank_by_effective": "code",
+  "fallback_reason": "churn data unavailable",
+  "excluded_by_policy": [
+    {
+      "path": "vendor/lib.js",
+      "original_tokens": 500000,
+      "policy": "skip",
+      "reason": "vendored file",
+      "classifications": [
+        "vendored"
+      ]
+    }
+  ],
+  "token_estimation": {
+    "bytes_per_token_est": 4.0,
+    "bytes_per_token_low": 3.0,
+    "bytes_per_token_high": 5.0,
+    "tokens_min": 224000,
+    "tokens_est": 280000,
+    "tokens_max": 373334,
+    "source_bytes": 1120000
+  },
+  "bundle_audit": {
+    "output_bytes": 500000,
+    "tokens_min": 100000,
+    "tokens_est": 125000,
+    "tokens_max": 166667,
+    "overhead_bytes": 20000,
+    "overhead_pct": 0.04
+  }
+}

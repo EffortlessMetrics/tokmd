@@ -1,0 +1,53 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 446
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "diff",
+  "from_source": "v1.0.0",
+  "to_source": "v2.0.0",
+  "diff_rows": [
+    {
+      "lang": "Rust",
+      "old_code": 1000,
+      "new_code": 1200,
+      "delta_code": 200,
+      "old_lines": 1500,
+      "new_lines": 1800,
+      "delta_lines": 300,
+      "old_files": 10,
+      "new_files": 12,
+      "delta_files": 2,
+      "old_bytes": 40000,
+      "new_bytes": 48000,
+      "delta_bytes": 8000,
+      "old_tokens": 10000,
+      "new_tokens": 12000,
+      "delta_tokens": 2000
+    }
+  ],
+  "totals": {
+    "old_code": 1000,
+    "new_code": 1200,
+    "delta_code": 200,
+    "old_lines": 1500,
+    "new_lines": 1800,
+    "delta_lines": 300,
+    "old_files": 10,
+    "new_files": 12,
+    "delta_files": 2,
+    "old_bytes": 40000,
+    "new_bytes": 48000,
+    "delta_bytes": 8000,
+    "old_tokens": 10000,
+    "new_tokens": 12000,
+    "delta_tokens": 2000
+  }
+}

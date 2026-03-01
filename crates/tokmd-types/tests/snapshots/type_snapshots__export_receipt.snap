@@ -1,0 +1,60 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 394
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "export",
+  "status": "complete",
+  "warnings": [],
+  "scan": {
+    "paths": [
+      "."
+    ],
+    "excluded": [],
+    "config": "auto",
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_parent": false,
+    "no_ignore_dot": false,
+    "no_ignore_vcs": false,
+    "treat_doc_strings_as_comments": false
+  },
+  "args": {
+    "format": "jsonl",
+    "module_roots": [
+      "src"
+    ],
+    "module_depth": 1,
+    "children": "separate",
+    "min_code": 0,
+    "max_rows": 0,
+    "redact": "none",
+    "strip_prefix": null
+  },
+  "rows": [
+    {
+      "path": "src/main.rs",
+      "module": "src",
+      "lang": "Rust",
+      "kind": "parent",
+      "code": 50,
+      "comments": 10,
+      "blanks": 5,
+      "lines": 65,
+      "bytes": 2500,
+      "tokens": 625
+    }
+  ],
+  "module_roots": [
+    "src"
+  ],
+  "module_depth": 1,
+  "children": "separate"
+}

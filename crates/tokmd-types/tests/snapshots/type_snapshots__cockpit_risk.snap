@@ -1,0 +1,15 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 798
+expression: risk
+---
+{
+  "hotspots_touched": [
+    "src/core.rs"
+  ],
+  "bus_factor_warnings": [
+    "only 1 contributor to src/core.rs"
+  ],
+  "level": "high",
+  "score": 75
+}

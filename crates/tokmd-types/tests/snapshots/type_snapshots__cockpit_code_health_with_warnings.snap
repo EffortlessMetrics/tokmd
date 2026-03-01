@@ -1,0 +1,19 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 787
+expression: health
+---
+{
+  "score": 65,
+  "grade": "C",
+  "large_files_touched": 2,
+  "avg_file_size": 350,
+  "complexity_indicator": "high",
+  "warnings": [
+    {
+      "path": "src/monster.rs",
+      "warning_type": "large_file",
+      "message": "file exceeds 500 lines"
+    }
+  ]
+}

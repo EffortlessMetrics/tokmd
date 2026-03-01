@@ -1,0 +1,29 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 121
+expression: report
+---
+{
+  "rows": [
+    {
+      "lang": "Rust",
+      "code": 5000,
+      "lines": 7000,
+      "files": 42,
+      "bytes": 250000,
+      "tokens": 62500,
+      "avg_lines": 166
+    }
+  ],
+  "total": {
+    "code": 5000,
+    "lines": 7000,
+    "files": 42,
+    "bytes": 250000,
+    "tokens": 12500,
+    "avg_lines": 166
+  },
+  "with_files": true,
+  "children": "collapse",
+  "top": 0
+}

@@ -1,0 +1,18 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 68
+expression: scan_args()
+---
+{
+  "paths": [
+    "."
+  ],
+  "excluded": [],
+  "config": "auto",
+  "hidden": false,
+  "no_ignore": false,
+  "no_ignore_parent": false,
+  "no_ignore_dot": false,
+  "no_ignore_vcs": false,
+  "treat_doc_strings_as_comments": false
+}

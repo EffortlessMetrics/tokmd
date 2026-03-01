@@ -1,0 +1,61 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 656
+expression: manifest
+---
+{
+  "schema_version": 5,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "handoff",
+  "inputs": [
+    "."
+  ],
+  "output_dir": "handoff-output",
+  "budget_tokens": 128000,
+  "used_tokens": 10000,
+  "utilization_pct": 7.8,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "capabilities": [
+    {
+      "name": "git",
+      "status": "available"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "code.txt",
+      "path": "handoff-output/code.txt",
+      "description": "Source code bundle",
+      "bytes": 10000,
+      "hash": {
+        "algo": "blake3",
+        "hash": "abc123"
+      }
+    }
+  ],
+  "included_files": [],
+  "excluded_paths": [
+    {
+      "path": "target",
+      "reason": "build output"
+    }
+  ],
+  "excluded_patterns": [
+    "*.lock"
+  ],
+  "smart_excluded_files": [
+    {
+      "path": "Cargo.lock",
+      "reason": "lockfile",
+      "tokens": 50000
+    }
+  ],
+  "total_files": 100,
+  "bundled_files": 80,
+  "intelligence_preset": "health"
+}

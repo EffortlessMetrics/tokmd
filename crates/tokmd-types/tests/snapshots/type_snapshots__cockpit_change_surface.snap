@@ -1,0 +1,14 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 758
+expression: cs
+---
+{
+  "commits": 5,
+  "files_changed": 12,
+  "insertions": 300,
+  "deletions": 100,
+  "net_lines": 200,
+  "churn_velocity": 80.0,
+  "change_concentration": 0.65
+}

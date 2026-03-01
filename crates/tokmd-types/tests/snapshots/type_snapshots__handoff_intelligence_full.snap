@@ -1,0 +1,37 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 740
+expression: intel
+---
+{
+  "tree": "src/\n  lib.rs\n  main.rs",
+  "tree_depth": 3,
+  "hotspots": [
+    {
+      "path": "src/lib.rs",
+      "commits": 42,
+      "lines": 500,
+      "score": 21000
+    }
+  ],
+  "complexity": {
+    "total_functions": 100,
+    "avg_function_length": 25.5,
+    "max_function_length": 200,
+    "avg_cyclomatic": 3.2,
+    "max_cyclomatic": 15,
+    "high_risk_files": 2
+  },
+  "derived": {
+    "total_files": 50,
+    "total_code": 10000,
+    "total_lines": 15000,
+    "total_tokens": 25000,
+    "lang_count": 3,
+    "dominant_lang": "Rust",
+    "dominant_pct": 85.0
+  },
+  "warnings": [
+    "git history truncated"
+  ]
+}

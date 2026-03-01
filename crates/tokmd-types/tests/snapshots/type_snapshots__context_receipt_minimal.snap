@@ -1,0 +1,33 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 518
+expression: receipt
+---
+{
+  "schema_version": 4,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "context",
+  "budget_tokens": 100000,
+  "used_tokens": 5000,
+  "utilization_pct": 5.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "file_count": 1,
+  "files": [
+    {
+      "path": "src/main.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 5000,
+      "code": 2000,
+      "lines": 3000,
+      "bytes": 20000,
+      "value": 2000,
+      "rank_reason": "code"
+    }
+  ]
+}

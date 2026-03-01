@@ -1,0 +1,31 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 841
+expression: trend
+---
+{
+  "baseline_available": true,
+  "baseline_path": "baseline.json",
+  "baseline_generated_at_ms": 0,
+  "health": {
+    "current": 85.0,
+    "previous": 80.0,
+    "delta": 5.0,
+    "delta_pct": 6.25,
+    "direction": "improving"
+  },
+  "risk": {
+    "current": 30.0,
+    "previous": 25.0,
+    "delta": 5.0,
+    "delta_pct": 20.0,
+    "direction": "degrading"
+  },
+  "complexity": {
+    "direction": "stable",
+    "summary": "complexity unchanged",
+    "files_increased": 1,
+    "files_decreased": 1,
+    "avg_cyclomatic_delta": 0.0
+  }
+}

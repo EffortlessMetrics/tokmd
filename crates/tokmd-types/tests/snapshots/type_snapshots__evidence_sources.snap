@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 921
+expression: all
+---
+[
+  "ci_artifact",
+  "cached",
+  "ran_local"
+]

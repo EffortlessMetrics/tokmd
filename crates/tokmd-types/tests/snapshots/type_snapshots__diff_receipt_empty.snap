@@ -1,0 +1,34 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 461
+expression: receipt
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "diff",
+  "from_source": "a",
+  "to_source": "b",
+  "diff_rows": [],
+  "totals": {
+    "old_code": 0,
+    "new_code": 0,
+    "delta_code": 0,
+    "old_lines": 0,
+    "new_lines": 0,
+    "delta_lines": 0,
+    "old_files": 0,
+    "new_files": 0,
+    "delta_files": 0,
+    "old_bytes": 0,
+    "new_bytes": 0,
+    "delta_bytes": 0,
+    "old_tokens": 0,
+    "new_tokens": 0,
+    "delta_tokens": 0
+  }
+}

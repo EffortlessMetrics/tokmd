@@ -1,0 +1,38 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 230
+expression: data
+---
+{
+  "rows": [
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Rust",
+      "kind": "parent",
+      "code": 300,
+      "comments": 50,
+      "blanks": 30,
+      "lines": 380,
+      "bytes": 15000,
+      "tokens": 3750
+    },
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Markdown (Rust)",
+      "kind": "child",
+      "code": 20,
+      "comments": 0,
+      "blanks": 5,
+      "lines": 25,
+      "bytes": 800,
+      "tokens": 200
+    }
+  ],
+  "module_roots": [
+    "src"
+  ],
+  "module_depth": 1,
+  "children": "separate"
+}

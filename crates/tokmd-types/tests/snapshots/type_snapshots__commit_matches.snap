@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 932
+expression: all
+---
+[
+  "exact",
+  "partial",
+  "stale",
+  "unknown"
+]

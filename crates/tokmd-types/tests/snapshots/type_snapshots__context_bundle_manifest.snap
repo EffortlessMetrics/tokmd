@@ -1,0 +1,30 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 690
+expression: manifest
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "context",
+  "budget_tokens": 64000,
+  "used_tokens": 32000,
+  "utilization_pct": 50.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "file_count": 10,
+  "bundle_bytes": 128000,
+  "artifacts": [],
+  "included_files": [],
+  "excluded_paths": [
+    {
+      "path": "node_modules",
+      "reason": "default exclude"
+    }
+  ],
+  "excluded_patterns": []
+}

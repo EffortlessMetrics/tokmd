@@ -1,0 +1,60 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 331
+expression: normalize_json(&raw)
+---
+{
+  "args": {
+    "children": "separate",
+    "format": "json",
+    "max_rows": 0,
+    "min_code": 0,
+    "module_depth": 1,
+    "module_roots": [
+      "src"
+    ],
+    "redact": "none",
+    "strip_prefix": null
+  },
+  "children": "separate",
+  "generated_at_ms": 0,
+  "mode": "export",
+  "module_depth": 1,
+  "module_roots": [
+    "src"
+  ],
+  "rows": [
+    {
+      "blanks": 20,
+      "bytes": 10000,
+      "code": 200,
+      "comments": 40,
+      "kind": "parent",
+      "lang": "Rust",
+      "lines": 260,
+      "module": "src",
+      "path": "src/lib.rs",
+      "tokens": 500
+    }
+  ],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "warnings": []
+}

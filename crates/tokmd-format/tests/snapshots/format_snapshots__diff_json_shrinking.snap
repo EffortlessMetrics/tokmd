@@ -1,0 +1,71 @@
+---
+source: crates/tokmd-format/tests/format_snapshots.rs
+assertion_line: 399
+expression: normalize_json(&raw)
+---
+{
+  "diff_rows": [
+    {
+      "delta_bytes": -40000,
+      "delta_code": -800,
+      "delta_files": -8,
+      "delta_lines": -960,
+      "delta_tokens": -2000,
+      "lang": "Go",
+      "new_bytes": 0,
+      "new_code": 0,
+      "new_files": 0,
+      "new_lines": 0,
+      "new_tokens": 0,
+      "old_bytes": 40000,
+      "old_code": 800,
+      "old_files": 8,
+      "old_lines": 960,
+      "old_tokens": 2000
+    },
+    {
+      "delta_bytes": -25000,
+      "delta_code": -500,
+      "delta_files": -5,
+      "delta_lines": -600,
+      "delta_tokens": -1250,
+      "lang": "Rust",
+      "new_bytes": 75000,
+      "new_code": 1500,
+      "new_files": 15,
+      "new_lines": 1800,
+      "new_tokens": 3750,
+      "old_bytes": 100000,
+      "old_code": 2000,
+      "old_files": 20,
+      "old_lines": 2400,
+      "old_tokens": 5000
+    }
+  ],
+  "from_source": "v1",
+  "generated_at_ms": 0,
+  "mode": "diff",
+  "schema_version": 2,
+  "to_source": "v2",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "totals": {
+    "delta_bytes": -65000,
+    "delta_code": -1300,
+    "delta_files": -13,
+    "delta_lines": -1560,
+    "delta_tokens": -3250,
+    "new_bytes": 75000,
+    "new_code": 1500,
+    "new_files": 15,
+    "new_lines": 1800,
+    "new_tokens": 3750,
+    "old_bytes": 140000,
+    "old_code": 2800,
+    "old_files": 28,
+    "old_lines": 3360,
+    "old_tokens": 7000
+  }
+}

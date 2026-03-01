@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-types/tests/type_snapshots.rs
+assertion_line: 890
+expression: all
+---
+[
+  "large_file",
+  "high_churn",
+  "low_test_coverage",
+  "complex_change",
+  "bus_factor"
+]
