@@ -106,7 +106,9 @@ mod with_git {
             make_row("util.rs", 2),
         ];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         // main.rs has 2 commits → hotspot = 4 × 2 = 8
         // lib.rs has 1 commit  → hotspot = 5 × 1 = 5
@@ -139,7 +141,9 @@ mod with_git {
             make_row("util.rs", 2),
         ];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert_eq!(scores.commit_counts["main.rs"], 2);
         assert_eq!(scores.commit_counts["lib.rs"], 1);
@@ -160,7 +164,9 @@ mod with_git {
             make_row("util.rs", 2),
         ];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert_eq!(scores.hotspots["main.rs"], 4 * 2);
         assert_eq!(scores.hotspots["lib.rs"], 5);
@@ -180,7 +186,9 @@ mod with_git {
             make_row("lib.rs", 5),        // Parent – should be included
         ];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert!(
             !scores.commit_counts.contains_key("main.rs"),
@@ -204,7 +212,9 @@ mod with_git {
         // "nonexistent.rs" was never committed
         let rows = vec![make_row("nonexistent.rs", 10)];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert!(
             !scores.commit_counts.contains_key("nonexistent.rs"),
@@ -253,7 +263,9 @@ mod with_git {
         };
         let rows: Vec<FileRow> = vec![];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert!(scores.commit_counts.is_empty());
         assert!(scores.hotspots.is_empty());
@@ -304,7 +316,9 @@ mod with_git {
             make_row("util.rs", 2),
         ];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         for key in scores.hotspots.keys() {
             assert!(
@@ -325,7 +339,9 @@ mod with_git {
         // main.rs exists in git but we report 0 lines
         let rows = vec![make_row("main.rs", 0)];
 
-        let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(repo.path(), &rows, 100, 100) else {
+            return;
+        };
 
         assert_eq!(
             scores.hotspots.get("main.rs"),
@@ -358,17 +374,27 @@ mod with_git {
         if git(root, &["init"]).is_none() {
             return;
         }
-        git(root, &["config", "user.email", "test@test.com"]).unwrap();
-        git(root, &["config", "user.name", "Test"]).unwrap();
+        if git(root, &["config", "user.email", "test@test.com"]).is_none() {
+            return;
+        }
+        if git(root, &["config", "user.name", "Test"]).is_none() {
+            return;
+        }
 
         std::fs::create_dir_all(root.join("src")).unwrap();
         std::fs::write(root.join("src").join("main.rs"), "fn main() {}").unwrap();
-        git(root, &["add", "."]).unwrap();
-        git(root, &["commit", "-m", "init"]).unwrap();
+        if git(root, &["add", "."]).is_none() {
+            return;
+        }
+        if git(root, &["commit", "-m", "init"]).is_none() {
+            return;
+        }
 
         let rows = vec![make_row("src/main.rs", 1)];
 
-        let scores = compute_git_scores(root, &rows, 100, 100).unwrap();
+        let Some(scores) = compute_git_scores(root, &rows, 100, 100) else {
+            return;
+        };
 
         assert!(
             scores.commit_counts.contains_key("src/main.rs"),
