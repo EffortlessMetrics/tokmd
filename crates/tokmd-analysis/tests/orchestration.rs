@@ -823,7 +823,7 @@ proptest! {
         };
         let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
         let gini = receipt.derived.unwrap().distribution.gini;
-        prop_assert!(gini >= 0.0 && gini <= 1.0, "gini={} out of [0,1]", gini);
+        prop_assert!((0.0..=1.0).contains(&gini), "gini={} out of [0,1]", gini);
     }
 
     #[test]
@@ -886,6 +886,6 @@ proptest! {
         };
         let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
         let ratio = receipt.derived.unwrap().doc_density.total.ratio;
-        prop_assert!(ratio >= 0.0 && ratio <= 1.0, "doc_density={} out of [0,1]", ratio);
+        prop_assert!((0.0..=1.0).contains(&ratio), "doc_density={} out of [0,1]", ratio);
     }
 }

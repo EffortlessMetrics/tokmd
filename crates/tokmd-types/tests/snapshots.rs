@@ -4,15 +4,11 @@
 //! Run `cargo insta review` to update snapshots after intentional changes.
 
 use tokmd_types::{
-    ArtifactEntry, ArtifactHash, CapabilityState, CapabilityStatus, ChildIncludeMode, ChildrenMode,
-    CommitIntentKind, ConfigMode, ContextFileRow, DiffRow, DiffTotals, ExportFormat,
-    FileClassification, FileKind, FileRow, InclusionPolicy, LangRow, ModuleRow, PolicyExcludedFile,
-    RedactMode, SmartExcludedFile, TableFormat, TokenAudit, TokenEstimationMeta, ToolInfo, Totals,
-    cockpit::{
-        COCKPIT_SCHEMA_VERSION, ChangeSurface, CodeHealth, CommitMatch, ComplexityIndicator,
-        Composition, Contracts, Evidence, EvidenceSource, GateMeta, GateStatus, HealthWarning,
-        MutationGate, MutationSurvivor, ReviewItem, Risk, RiskLevel, ScopeCoverage, WarningType,
-    },
+    ArtifactEntry, ArtifactHash, CapabilityState, CapabilityStatus, CommitIntentKind, ConfigMode,
+    ContextFileRow, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, FileRow,
+    InclusionPolicy, LangRow, ModuleRow, PolicyExcludedFile, RedactMode, SmartExcludedFile,
+    TableFormat, TokenAudit, TokenEstimationMeta, ToolInfo, Totals,
+    cockpit::{GateStatus, MutationSurvivor, ReviewItem, RiskLevel},
 };
 
 // =============================================================================

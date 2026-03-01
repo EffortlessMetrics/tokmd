@@ -424,7 +424,7 @@ fn integration_comment_md_contract_section() {
         make_file_stat("src/lib.rs", 10, 5),
         make_file_stat("docs/schema.json", 20, 10),
     ];
-    let mut receipt = make_receipt(&stats);
+    let receipt = make_receipt(&stats);
     // Ensure contracts are set correctly
     assert!(receipt.contracts.api_changed);
     assert!(receipt.contracts.schema_changed);

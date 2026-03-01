@@ -138,7 +138,7 @@ fn given_data_with_mixed_types_when_extracting_then_all_types_preserved() {
         "data": {
             "string": "hello",
             "number": 42,
-            "float": 3.14,
+            "float": 1.23,
             "bool": true,
             "null_val": null,
             "array": [1, "two", null, false],
@@ -150,7 +150,7 @@ fn given_data_with_mixed_types_when_extracting_then_all_types_preserved() {
 
     assert_eq!(data["string"], "hello");
     assert_eq!(data["number"], 42);
-    assert_eq!(data["float"], 3.14);
+    assert_eq!(data["float"], 1.23);
     assert_eq!(data["bool"], true);
     assert!(data["null_val"].is_null());
     assert_eq!(data["array"].as_array().unwrap().len(), 4);

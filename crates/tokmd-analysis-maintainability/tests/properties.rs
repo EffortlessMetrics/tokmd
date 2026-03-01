@@ -44,10 +44,10 @@ proptest! {
         loc in 0.01f64..1e5,
         vol in proptest::option::of(0.01f64..1e5),
     ) {
-        if let Some(mi) = compute_maintainability_index(cc, loc, vol) {
-            if mi.grade == "A" {
-                prop_assert!(mi.score >= 85.0);
-            }
+        if let Some(mi) = compute_maintainability_index(cc, loc, vol)
+            && mi.grade == "A"
+        {
+            prop_assert!(mi.score >= 85.0);
         }
     }
 
@@ -57,10 +57,10 @@ proptest! {
         loc in 0.01f64..1e5,
         vol in proptest::option::of(0.01f64..1e5),
     ) {
-        if let Some(mi) = compute_maintainability_index(cc, loc, vol) {
-            if mi.grade == "B" {
-                prop_assert!(mi.score >= 65.0 && mi.score < 85.0);
-            }
+        if let Some(mi) = compute_maintainability_index(cc, loc, vol)
+            && mi.grade == "B"
+        {
+            prop_assert!(mi.score >= 65.0 && mi.score < 85.0);
         }
     }
 
@@ -70,10 +70,10 @@ proptest! {
         loc in 0.01f64..1e5,
         vol in proptest::option::of(0.01f64..1e5),
     ) {
-        if let Some(mi) = compute_maintainability_index(cc, loc, vol) {
-            if mi.grade == "C" {
-                prop_assert!(mi.score < 65.0);
-            }
+        if let Some(mi) = compute_maintainability_index(cc, loc, vol)
+            && mi.grade == "C"
+        {
+            prop_assert!(mi.score < 65.0);
         }
     }
 

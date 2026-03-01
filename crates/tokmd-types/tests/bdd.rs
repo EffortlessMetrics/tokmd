@@ -11,10 +11,8 @@ use tokmd_types::{
     RedactMode, SCHEMA_VERSION, SmartExcludedFile, TableFormat, TokenAudit, TokenEstimationMeta,
     ToolInfo, Totals,
     cockpit::{
-        COCKPIT_SCHEMA_VERSION, ChangeSurface, CockpitReceipt, CodeHealth, CommitMatch,
-        ComplexityIndicator, Composition, Contracts, Evidence, EvidenceSource, GateMeta,
-        GateStatus, HealthWarning, MutationGate, Risk, RiskLevel, ScopeCoverage, TrendDirection,
-        WarningType,
+        COCKPIT_SCHEMA_VERSION, CommitMatch, ComplexityIndicator, EvidenceSource, GateStatus,
+        RiskLevel, TrendDirection, WarningType,
     },
 };
 

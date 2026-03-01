@@ -163,8 +163,8 @@ mod with_git {
         let scores = compute_git_scores(repo.path(), &rows, 100, 100).unwrap();
 
         assert_eq!(scores.hotspots["main.rs"], 4 * 2);
-        assert_eq!(scores.hotspots["lib.rs"], 5 * 1);
-        assert_eq!(scores.hotspots["util.rs"], 2 * 1);
+        assert_eq!(scores.hotspots["lib.rs"], 5);
+        assert_eq!(scores.hotspots["util.rs"], 2);
     }
 
     // ── scenario: child rows are excluded ───────────────────────────

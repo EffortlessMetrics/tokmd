@@ -263,19 +263,17 @@ fn given_single_building_when_rendered_then_lines_follow_header_obj_verts_faces_
     assert!(lines[0].starts_with('#'), "line 0 should be header comment");
     assert!(lines[1].starts_with("o "), "line 1 should be object name");
     // Next 8 lines are vertices
-    for i in 2..10 {
+    for (i, line) in lines.iter().enumerate().take(10).skip(2) {
         assert!(
-            lines[i].starts_with("v "),
-            "line {i} should be vertex, got: {}",
-            lines[i]
+            line.starts_with("v "),
+            "line {i} should be vertex, got: {line}",
         );
     }
     // Next 6 lines are faces
-    for i in 10..16 {
+    for (i, line) in lines.iter().enumerate().take(16).skip(10) {
         assert!(
-            lines[i].starts_with("f "),
-            "line {i} should be face, got: {}",
-            lines[i]
+            line.starts_with("f "),
+            "line {i} should be face, got: {line}",
         );
     }
 }

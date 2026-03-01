@@ -7,6 +7,7 @@ use tokmd_cockpit::*;
 // Helpers
 // ---------------------------------------------------------------------------
 
+#[allow(dead_code)]
 fn make_file_stat(path: &str, insertions: usize, deletions: usize) -> FileStat {
     FileStat {
         path: path.to_string(),
