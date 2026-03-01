@@ -153,3 +153,131 @@ pub fn render_midi(notes: &[MidiNote], tempo_bpm: u16) -> Result<Vec<u8>> {
     smf.write_std(&mut out)?;
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_obj_empty_input() {
+        let out = render_obj(&[]);
+        assert_eq!(out, "# tokmd code city\n");
+    }
+
+    #[test]
+    fn render_obj_single_building() {
+        let b = ObjBuilding {
+            name: "src/main.rs".into(),
+            x: 0.0,
+            y: 0.0,
+            w: 1.0,
+            d: 1.0,
+            h: 2.0,
+        };
+        let out = render_obj(&[b]);
+        assert!(out.starts_with("# tokmd code city\n"));
+        // Non-alphanumeric chars in name are replaced with underscores
+        assert!(out.contains("o src_main_rs\n"));
+        // 8 vertices per building
+        assert_eq!(out.matches("\nv ").count(), 8);
+        // 6 faces per building
+        assert_eq!(out.matches("\nf ").count(), 6);
+    }
+
+    #[test]
+    fn render_obj_deterministic() {
+        let buildings = vec![
+            ObjBuilding {
+                name: "a".into(),
+                x: 0.0,
+                y: 0.0,
+                w: 1.0,
+                d: 1.0,
+                h: 3.0,
+            },
+            ObjBuilding {
+                name: "b".into(),
+                x: 2.0,
+                y: 0.0,
+                w: 1.0,
+                d: 1.0,
+                h: 5.0,
+            },
+        ];
+        let a = render_obj(&buildings);
+        let b = render_obj(&buildings);
+        assert_eq!(a, b, "render_obj must be deterministic");
+    }
+
+    #[test]
+    fn render_obj_vertex_indices_advance() {
+        let buildings = vec![
+            ObjBuilding {
+                name: "a".into(),
+                x: 0.0,
+                y: 0.0,
+                w: 1.0,
+                d: 1.0,
+                h: 1.0,
+            },
+            ObjBuilding {
+                name: "b".into(),
+                x: 2.0,
+                y: 0.0,
+                w: 1.0,
+                d: 1.0,
+                h: 1.0,
+            },
+        ];
+        let out = render_obj(&buildings);
+        // Second building faces should reference vertices 9-16
+        assert!(out.contains("f 9 10 11 12\n"));
+    }
+
+    #[test]
+    fn render_midi_empty_notes() {
+        let bytes = render_midi(&[], 120).unwrap();
+        // Valid MIDI starts with "MThd"
+        assert!(bytes.len() >= 4);
+        assert_eq!(&bytes[..4], b"MThd");
+    }
+
+    #[test]
+    fn render_midi_single_note() {
+        let note = MidiNote {
+            key: 60,
+            velocity: 80,
+            start: 0,
+            duration: 480,
+            channel: 0,
+        };
+        let bytes = render_midi(&[note], 120).unwrap();
+        assert_eq!(&bytes[..4], b"MThd");
+        // Must contain track chunk "MTrk"
+        let has_mtrk = bytes.windows(4).any(|w| w == b"MTrk");
+        assert!(has_mtrk, "MIDI output must contain MTrk chunk");
+    }
+
+    #[test]
+    fn render_midi_deterministic() {
+        let notes = vec![
+            MidiNote {
+                key: 60,
+                velocity: 80,
+                start: 0,
+                duration: 480,
+                channel: 0,
+            },
+            MidiNote {
+                key: 64,
+                velocity: 70,
+                start: 480,
+                duration: 480,
+                channel: 0,
+            },
+        ];
+        let a = render_midi(&notes, 120).unwrap();
+        let b = render_midi(&notes, 120).unwrap();
+        assert_eq!(a, b, "render_midi must be deterministic");
+    }
+}
