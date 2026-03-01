@@ -139,3 +139,128 @@ pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
         std::fs::metadata(&path).with_context(|| format!("Failed to stat {}", path.display()))?;
     Ok(meta.len())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    // ---- license_candidates tests ----
+
+    #[test]
+    fn test_license_candidates_detects_license_files() {
+        let files = vec![
+            PathBuf::from("LICENSE"),
+            PathBuf::from("LICENSE.md"),
+            PathBuf::from("LICENSE-MIT"),
+            PathBuf::from("COPYING"),
+            PathBuf::from("NOTICE"),
+            PathBuf::from("src/main.rs"),
+        ];
+        let result = license_candidates(&files);
+        assert_eq!(result.license_files.len(), 5);
+        assert!(result.metadata_files.is_empty());
+    }
+
+    #[test]
+    fn test_license_candidates_detects_metadata_files() {
+        let files = vec![
+            PathBuf::from("Cargo.toml"),
+            PathBuf::from("package.json"),
+            PathBuf::from("pyproject.toml"),
+            PathBuf::from("src/lib.rs"),
+        ];
+        let result = license_candidates(&files);
+        assert!(result.license_files.is_empty());
+        assert_eq!(result.metadata_files.len(), 3);
+    }
+
+    #[test]
+    fn test_license_candidates_mixed() {
+        let files = vec![
+            PathBuf::from("LICENSE"),
+            PathBuf::from("Cargo.toml"),
+            PathBuf::from("src/main.rs"),
+        ];
+        let result = license_candidates(&files);
+        assert_eq!(result.license_files.len(), 1);
+        assert_eq!(result.metadata_files.len(), 1);
+    }
+
+    #[test]
+    fn test_license_candidates_empty_input() {
+        let result = license_candidates(&[]);
+        assert!(result.license_files.is_empty());
+        assert!(result.metadata_files.is_empty());
+    }
+
+    #[test]
+    fn test_license_candidates_case_insensitive() {
+        let files = vec![PathBuf::from("license"), PathBuf::from("License.txt")];
+        let result = license_candidates(&files);
+        assert_eq!(result.license_files.len(), 2);
+    }
+
+    #[test]
+    fn test_license_candidates_sorted_output() {
+        let files = vec![
+            PathBuf::from("z/Cargo.toml"),
+            PathBuf::from("a/Cargo.toml"),
+            PathBuf::from("z/LICENSE"),
+            PathBuf::from("a/LICENSE"),
+        ];
+        let result = license_candidates(&files);
+        assert_eq!(result.license_files[0], PathBuf::from("a/LICENSE"));
+        assert_eq!(result.license_files[1], PathBuf::from("z/LICENSE"));
+        assert_eq!(result.metadata_files[0], PathBuf::from("a/Cargo.toml"));
+        assert_eq!(result.metadata_files[1], PathBuf::from("z/Cargo.toml"));
+    }
+
+    // ---- file_size tests ----
+
+    #[test]
+    fn test_file_size_returns_correct_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let content = "hello world";
+        fs::write(dir.path().join("test.txt"), content).unwrap();
+        let size = file_size(dir.path(), Path::new("test.txt")).unwrap();
+        assert_eq!(size, content.len() as u64);
+    }
+
+    #[test]
+    fn test_file_size_missing_file_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = file_size(dir.path(), Path::new("nonexistent.txt"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_file_size_empty_file() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("empty.txt"), "").unwrap();
+        let size = file_size(dir.path(), Path::new("empty.txt")).unwrap();
+        assert_eq!(size, 0);
+    }
+
+    // ---- list_files tests ----
+
+    #[test]
+    fn test_list_files_max_zero_returns_empty() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("a.rs"), "content").unwrap();
+        let files = list_files(dir.path(), Some(0)).unwrap();
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn test_list_files_respects_max_limit() {
+        let dir = tempfile::tempdir().unwrap();
+        // Create .git dir so git_ls_files returns Some
+        fs::create_dir_all(dir.path().join(".git")).unwrap();
+        for i in 0..10 {
+            fs::write(dir.path().join(format!("file{i}.txt")), "x").unwrap();
+        }
+        let files = list_files(dir.path(), Some(3)).unwrap();
+        assert!(files.len() <= 3);
+    }
+}
