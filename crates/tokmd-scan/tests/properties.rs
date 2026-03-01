@@ -47,8 +47,8 @@ fn arb_exclude_pattern() -> impl Strategy<Value = String> {
         Just("**/tests/**".to_string()),
         Just("**/fixtures/**".to_string()),
         // Generated patterns with special chars
-        string_regex("[a-zA-Z0-9_-]{1,20}").unwrap(),
-        string_regex("[a-zA-Z0-9_-]{1,10}/[a-zA-Z0-9_-]{1,10}").unwrap(),
+        string_regex("[a-zA-Z0-9_-]{1,20}").expect("valid regex pattern"),
+        string_regex("[a-zA-Z0-9_-]{1,10}/[a-zA-Z0-9_-]{1,10}").expect("valid regex pattern"),
         // Patterns with brackets, question marks
         Just("src/[test]/**".to_string()),
         Just("*.?".to_string()),

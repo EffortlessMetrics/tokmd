@@ -465,7 +465,7 @@ mod tests {
         let err = TokmdError::git_not_available();
         assert_eq!(err.code, ErrorCode::GitNotAvailable);
         assert!(err.suggestions.is_some());
-        let suggestions = err.suggestions.unwrap();
+        let suggestions = err.suggestions.expect("should have suggestions");
         assert!(!suggestions.is_empty());
     }
 

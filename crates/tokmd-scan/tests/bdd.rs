@@ -39,9 +39,9 @@ fn crate_src() -> PathBuf {
 fn write_file(dir: &TempDir, rel: &str, content: &str) {
     let path = dir.path().join(rel);
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
+        fs::create_dir_all(parent).expect("create parent directories");
     }
-    fs::write(&path, content).unwrap();
+    fs::write(&path, content).expect("write test file");
 }
 
 // ===========================================================================
@@ -62,7 +62,9 @@ fn given_rust_source_when_scanned_then_rust_language_detected() -> Result<()> {
 #[test]
 fn given_rust_source_when_scanned_then_code_lines_positive() -> Result<()> {
     let langs = scan(&[crate_src()], &default_opts())?;
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
 
     assert!(rust.code > 0, "expected positive code-line count");
     assert!(rust.lines() > 0, "expected positive total-line count");
@@ -86,7 +88,9 @@ fn given_temp_rust_file_when_scanned_then_detected() -> Result<()> {
     let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
 
     assert!(langs.get(&tokei::LanguageType::Rust).is_some());
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
     assert!(rust.code > 0);
     Ok(())
 }
@@ -107,7 +111,9 @@ fn given_two_temp_dirs_when_scanned_then_results_merged() -> Result<()> {
         &default_opts(),
     )?;
 
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
     // Two source files ⇒ at least 2 code lines (one from each dir).
     assert!(rust.code >= 2);
     Ok(())
@@ -119,7 +125,7 @@ fn given_two_temp_dirs_when_scanned_then_results_merged() -> Result<()> {
 
 #[test]
 fn given_nonexistent_path_when_scanned_then_error_returned() {
-    let tmp = TempDir::new().unwrap();
+    let tmp = TempDir::new().expect("create temp dir");
     let bad = tmp.path().join("nope");
 
     let err = scan(&[bad], &default_opts()).unwrap_err();
@@ -186,7 +192,9 @@ fn given_subdirectory_exclusion_when_scanned_then_subdir_skipped() -> Result<()>
     opts.excluded = vec!["vendor".to_string()];
 
     let langs = scan(&[tmp.path().to_path_buf()], &opts)?;
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
 
     // Only root.rs should be counted (1 code line).
     assert_eq!(rust.code, 1, "vendor/ should have been excluded");
@@ -232,7 +240,9 @@ fn given_hidden_flag_when_scanned_then_hidden_files_included() -> Result<()> {
     opts.no_ignore = true; // ensure ignores don't interfere
 
     let langs = scan(&[tmp.path().to_path_buf()], &opts)?;
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
 
     // Both hidden and visible files should be counted.
     assert!(rust.code >= 2, "hidden file should be counted");
@@ -250,13 +260,17 @@ fn documented() {}
 
     // Scan without the flag.
     let without = scan(&[tmp.path().to_path_buf()], &default_opts())?;
-    let rust_without = without.get(&tokei::LanguageType::Rust).unwrap();
+    let rust_without = without
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust without doc-strings flag");
 
     // Scan with the flag.
     let mut opts = default_opts();
     opts.treat_doc_strings_as_comments = true;
     let with = scan(&[tmp.path().to_path_buf()], &opts)?;
-    let rust_with = with.get(&tokei::LanguageType::Rust).unwrap();
+    let rust_with = with
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust with doc-strings flag");
 
     // With the flag, the doc comment line should move from "code" (or doc)
     // to "comments", so the comment count should be >= without-flag count.
@@ -279,8 +293,12 @@ fn given_same_input_when_scanned_twice_then_results_identical() -> Result<()> {
     let r1 = scan(&paths, &opts)?;
     let r2 = scan(&paths, &opts)?;
 
-    let rust1 = r1.get(&tokei::LanguageType::Rust).unwrap();
-    let rust2 = r2.get(&tokei::LanguageType::Rust).unwrap();
+    let rust1 = r1
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust in first scan");
+    let rust2 = r2
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust in second scan");
 
     assert_eq!(rust1.code, rust2.code, "code lines must be identical");
     assert_eq!(
@@ -326,7 +344,9 @@ fn given_nested_structure_when_scanned_then_all_files_found() -> Result<()> {
     write_file(&tmp, "top.rs", "fn top() {}\n");
 
     let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
-    let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
 
     // Both files should be counted.
     assert!(rust.code >= 2);
