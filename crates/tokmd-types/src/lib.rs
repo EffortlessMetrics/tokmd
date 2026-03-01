@@ -164,6 +164,17 @@ pub struct ToolInfo {
 }
 
 impl ToolInfo {
+    /// Return a `ToolInfo` populated with the current crate name and version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_types::ToolInfo;
+    ///
+    /// let info = ToolInfo::current();
+    /// assert_eq!(info.name, "tokmd");
+    /// assert!(!info.version.is_empty());
+    /// ```
     pub fn current() -> Self {
         Self {
             name: "tokmd".to_string(),
@@ -567,6 +578,17 @@ impl TokenEstimationMeta {
     pub const DEFAULT_BPT_HIGH: f64 = 5.0;
 
     /// Create estimation from source byte count using default divisors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_types::TokenEstimationMeta;
+    ///
+    /// let meta = TokenEstimationMeta::from_bytes(400, 4.0);
+    /// assert_eq!(meta.tokens_est, 100);
+    /// assert!(meta.tokens_min <= meta.tokens_est);
+    /// assert!(meta.tokens_est <= meta.tokens_max);
+    /// ```
     pub fn from_bytes(bytes: usize, bpt: f64) -> Self {
         Self::from_bytes_with_bounds(bytes, bpt, Self::DEFAULT_BPT_LOW, Self::DEFAULT_BPT_HIGH)
     }
@@ -606,6 +628,17 @@ pub struct TokenAudit {
 
 impl TokenAudit {
     /// Create an audit from output bytes and content bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_types::TokenAudit;
+    ///
+    /// let audit = TokenAudit::from_output(1000, 900);
+    /// assert_eq!(audit.output_bytes, 1000);
+    /// assert_eq!(audit.overhead_bytes, 100);
+    /// assert!(audit.overhead_pct > 0.0);
+    /// ```
     pub fn from_output(output_bytes: u64, content_bytes: u64) -> Self {
         Self::from_output_with_divisors(
             output_bytes,
