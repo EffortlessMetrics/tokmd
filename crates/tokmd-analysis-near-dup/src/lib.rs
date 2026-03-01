@@ -8,7 +8,7 @@
 //! 5. Compute Jaccard similarity for candidate pairs
 //! 6. Emit pairs exceeding the similarity threshold
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::io::Read;
 use std::path::Path;
 
@@ -147,7 +147,7 @@ pub fn build_near_dup_report(
         }
 
         // Build inverted index: fingerprint -> list of (local_idx) into file_fingerprints
-        let mut inverted: HashMap<u64, Vec<usize>> = HashMap::new();
+        let mut inverted: BTreeMap<u64, Vec<usize>> = BTreeMap::new();
         for (local_idx, (_, fps)) in file_fingerprints.iter().enumerate() {
             for &fp in fps {
                 inverted.entry(fp).or_default().push(local_idx);
@@ -310,7 +310,7 @@ fn build_clusters(pairs: &[NearDupPairRow]) -> Vec<NearDupCluster> {
     let mut ds = DisjointSets::new(names.len());
 
     // Track per-file connection counts for representative selection
-    let mut connection_count: HashMap<usize, usize> = HashMap::new();
+    let mut connection_count: BTreeMap<usize, usize> = BTreeMap::new();
 
     for pair in pairs {
         let a = name_to_idx[pair.left.as_str()];
@@ -328,8 +328,8 @@ fn build_clusters(pairs: &[NearDupPairRow]) -> Vec<NearDupCluster> {
     }
 
     // Track max similarity and pair count per component
-    let mut comp_max_sim: HashMap<usize, f64> = HashMap::new();
-    let mut comp_pair_count: HashMap<usize, usize> = HashMap::new();
+    let mut comp_max_sim: BTreeMap<usize, f64> = BTreeMap::new();
+    let mut comp_pair_count: BTreeMap<usize, usize> = BTreeMap::new();
     for pair in pairs {
         let a = name_to_idx[pair.left.as_str()];
         let root = ds.find(a);
