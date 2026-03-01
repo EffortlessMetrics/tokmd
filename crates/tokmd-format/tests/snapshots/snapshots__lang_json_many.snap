@@ -1,0 +1,120 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 917
+expression: pretty
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": false
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 120,
+      "bytes": 250000,
+      "code": 5000,
+      "files": 50,
+      "lang": "Rust",
+      "lines": 6000,
+      "tokens": 12500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 150000,
+      "code": 3000,
+      "files": 30,
+      "lang": "Python",
+      "lines": 3600,
+      "tokens": 7500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 100000,
+      "code": 2000,
+      "files": 20,
+      "lang": "JavaScript",
+      "lines": 2400,
+      "tokens": 5000
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 75000,
+      "code": 1500,
+      "files": 15,
+      "lang": "TypeScript",
+      "lines": 1800,
+      "tokens": 3750
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 50000,
+      "code": 1000,
+      "files": 10,
+      "lang": "Go",
+      "lines": 1200,
+      "tokens": 2500
+    },
+    {
+      "avg_lines": 30,
+      "bytes": 10000,
+      "code": 200,
+      "files": 8,
+      "lang": "TOML",
+      "lines": 240,
+      "tokens": 500
+    },
+    {
+      "avg_lines": 36,
+      "bytes": 7500,
+      "code": 150,
+      "files": 5,
+      "lang": "YAML",
+      "lines": 180,
+      "tokens": 375
+    },
+    {
+      "avg_lines": 30,
+      "bytes": 5000,
+      "code": 100,
+      "files": 4,
+      "lang": "Markdown",
+      "lines": 120,
+      "tokens": 250
+    }
+  ],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 109,
+    "bytes": 647500,
+    "code": 12950,
+    "files": 142,
+    "lines": 15540,
+    "tokens": 32375
+  },
+  "warnings": [],
+  "with_files": false
+}

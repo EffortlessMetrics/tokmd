@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 694
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens

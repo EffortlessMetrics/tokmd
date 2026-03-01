@@ -1,0 +1,49 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 667
+expression: pretty
+---
+{
+  "args": {
+    "children": "separate",
+    "format": "json",
+    "module_depth": 1,
+    "module_roots": [],
+    "top": 0
+  },
+  "children": "separate",
+  "generated_at_ms": 0,
+  "mode": "module",
+  "module_depth": 1,
+  "module_roots": [],
+  "rows": [],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 0,
+    "bytes": 0,
+    "code": 0,
+    "files": 0,
+    "lines": 0,
+    "tokens": 0
+  },
+  "warnings": []
+}

@@ -1,0 +1,16 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 883
+expression: output
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|5000|6000|250000|12500|
+|Python|3000|3600|150000|7500|
+|JavaScript|2000|2400|100000|5000|
+|TypeScript|1500|1800|75000|3750|
+|Go|1000|1200|50000|2500|
+|TOML|200|240|10000|500|
+|YAML|150|180|7500|375|
+|Markdown|100|120|5000|250|
+|**Total**|12950|15540|647500|32375|

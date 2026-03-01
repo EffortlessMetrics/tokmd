@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 738
+expression: output
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|500|600|25000|1250|
+|**Total**|500|600|25000|1250|

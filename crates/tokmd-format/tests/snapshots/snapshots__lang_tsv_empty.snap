@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 596
+expression: output
+---
+Lang	Code	Lines	Bytes	Tokens
+Total	0	0	0	0
