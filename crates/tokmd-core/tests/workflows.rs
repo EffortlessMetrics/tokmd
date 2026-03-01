@@ -286,7 +286,8 @@ fn export_workflow_with_min_code_filter() {
         min_code: 9999,
         ..Default::default()
     };
-    let receipt_filtered = export_workflow(&scan, &export_filtered).expect("export_workflow should succeed");
+    let receipt_filtered =
+        export_workflow(&scan, &export_filtered).expect("export_workflow should succeed");
 
     assert!(
         receipt_filtered.data.rows.len() <= receipt_all.data.rows.len(),

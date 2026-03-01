@@ -56,7 +56,9 @@ fn version_data_contains_semver() {
     let result = run_json("version", "{}");
     let parsed = assert_ok(&result);
 
-    let ver = parsed["data"]["version"].as_str().expect("version should be a string");
+    let ver = parsed["data"]["version"]
+        .as_str()
+        .expect("version should be a string");
     let parts: Vec<&str> = ver.split('.').collect();
     assert!(parts.len() >= 2, "version should be semver-like: {ver}");
 }
@@ -66,7 +68,9 @@ fn version_schema_version_is_positive() {
     let result = run_json("version", "{}");
     let parsed = assert_ok(&result);
 
-    let sv = parsed["data"]["schema_version"].as_u64().expect("schema_version should be a number");
+    let sv = parsed["data"]["schema_version"]
+        .as_u64()
+        .expect("schema_version should be a number");
     assert!(sv > 0, "schema_version should be > 0");
 }
 
@@ -110,7 +114,9 @@ fn lang_mode_generated_at_ms_is_recent() {
     let result = run_json("lang", r#"{"paths": ["src"]}"#);
     let parsed = assert_ok(&result);
 
-    let ts = parsed["data"]["generated_at_ms"].as_u64().expect("generated_at_ms should be a number");
+    let ts = parsed["data"]["generated_at_ms"]
+        .as_u64()
+        .expect("generated_at_ms should be a number");
     // Should be a reasonable Unix timestamp in ms (after 2020-01-01)
     assert!(ts > 1_577_836_800_000, "timestamp looks too small: {ts}");
 }
@@ -120,7 +126,9 @@ fn lang_mode_finds_rust() {
     let result = run_json("lang", r#"{"paths": ["src"]}"#);
     let parsed = assert_ok(&result);
 
-    let rows = parsed["data"]["rows"].as_array().expect("rows should be an array");
+    let rows = parsed["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array");
     let has_rust = rows.iter().any(|r| r["lang"].as_str() == Some("Rust"));
     assert!(has_rust, "should find Rust in this crate's src/");
 }
@@ -130,7 +138,9 @@ fn lang_mode_with_top_limits_rows() {
     let result = run_json("lang", r#"{"paths": ["src"], "top": 1}"#);
     let parsed = assert_ok(&result);
 
-    let rows = parsed["data"]["rows"].as_array().expect("rows should be an array");
+    let rows = parsed["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array");
     // top=1 means at most 1 real row + optional "Other"
     assert!(
         rows.len() <= 2,
@@ -156,7 +166,9 @@ fn lang_mode_default_paths_uses_dot() {
 
     let scan = &parsed["data"]["scan"];
     // scan.paths should contain "."
-    let paths = scan["paths"].as_array().expect("scan.paths should be an array");
+    let paths = scan["paths"]
+        .as_array()
+        .expect("scan.paths should be an array");
     assert!(paths.iter().any(|p| p.as_str() == Some(".")));
 }
 
@@ -221,7 +233,9 @@ fn module_mode_with_custom_roots() {
     let parsed = assert_ok(&result);
 
     let args = &parsed["data"]["args"];
-    let roots = args["module_roots"].as_array().expect("module_roots should be an array");
+    let roots = args["module_roots"]
+        .as_array()
+        .expect("module_roots should be an array");
     assert!(roots.iter().any(|r| r.as_str() == Some("src")));
     assert!(roots.iter().any(|r| r.as_str() == Some("tests")));
 }
@@ -257,7 +271,9 @@ fn export_mode_has_file_rows() {
     let result = run_json("export", r#"{"paths": ["src"]}"#);
     let parsed = assert_ok(&result);
 
-    let rows = parsed["data"]["rows"].as_array().expect("rows should be an array");
+    let rows = parsed["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array");
     assert!(!rows.is_empty(), "export should find files");
 
     // Each row should have path and lang
@@ -270,11 +286,17 @@ fn export_mode_has_file_rows() {
 fn export_mode_with_min_code_filter() {
     let result_all = run_json("export", r#"{"paths": ["src"], "min_code": 0}"#);
     let parsed_all = assert_ok(&result_all);
-    let rows_all = parsed_all["data"]["rows"].as_array().expect("rows should be an array").len();
+    let rows_all = parsed_all["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array")
+        .len();
 
     let result_filtered = run_json("export", r#"{"paths": ["src"], "min_code": 9999}"#);
     let parsed_filtered = assert_ok(&result_filtered);
-    let rows_filtered = parsed_filtered["data"]["rows"].as_array().expect("rows should be an array").len();
+    let rows_filtered = parsed_filtered["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array")
+        .len();
 
     assert!(
         rows_filtered <= rows_all,
@@ -287,7 +309,9 @@ fn export_mode_with_max_rows_limit() {
     let result = run_json("export", r#"{"paths": ["src"], "max_rows": 1}"#);
     let parsed = assert_ok(&result);
 
-    let rows = parsed["data"]["rows"].as_array().expect("rows should be an array");
+    let rows = parsed["data"]["rows"]
+        .as_array()
+        .expect("rows should be an array");
     assert!(
         rows.len() <= 1,
         "max_rows=1 should limit to at most 1 row, got {}",
@@ -350,7 +374,12 @@ fn diff_mode_missing_to_returns_error() {
     let result = run_json("diff", r#"{"from": "."}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"].as_str().expect("error message should be a string").contains("to"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .expect("error message should be a string")
+            .contains("to")
+    );
 }
 
 #[test]
@@ -385,7 +414,12 @@ fn diff_mode_non_string_to_returns_error() {
     let result = run_json("diff", r#"{"from": ".", "to": false}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"].as_str().expect("error message should be a string").contains("to"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .expect("error message should be a string")
+            .contains("to")
+    );
 }
 
 #[test]
@@ -539,7 +573,12 @@ fn run_json_top_as_string_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"].as_str().expect("error message should be a string").contains("top"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .expect("error message should be a string")
+            .contains("top")
+    );
 }
 
 #[test]
