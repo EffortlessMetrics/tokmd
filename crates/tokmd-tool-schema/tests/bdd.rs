@@ -302,7 +302,7 @@ fn openai_output_wraps_tools_in_functions_array() {
     let v: Value = serde_json::from_str(&json_str).unwrap();
 
     assert!(v["functions"].is_array());
-    assert!(v["functions"].as_array().unwrap().len() > 0);
+    assert!(!v["functions"].as_array().unwrap().is_empty());
 }
 
 #[test]

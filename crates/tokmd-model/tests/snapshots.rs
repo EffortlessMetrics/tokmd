@@ -23,6 +23,17 @@ fn crate_src() -> String {
 
 // ─── Helpers to produce redacted (line-count-stable) snapshots ───
 
+/// Strip OS-specific path prefixes to produce identical snapshots on
+/// Windows, Linux, and macOS. Finds the `crates/` marker and returns
+/// everything from that point onward.
+fn portable(val: &str) -> String {
+    if let Some(pos) = val.find("crates/") {
+        val[pos..].to_string()
+    } else {
+        "<root>".to_string()
+    }
+}
+
 /// Strip volatile values (bytes, tokens, absolute counts) and keep only
 /// the structural shape (field names, ordering, relative ranking).
 fn redact_lang_rows(report: &tokmd_types::LangReport) -> Vec<serde_json::Value> {
@@ -46,7 +57,7 @@ fn redact_module_rows(report: &tokmd_types::ModuleReport) -> Vec<serde_json::Val
         .iter()
         .map(|r| {
             serde_json::json!({
-                "module": r.module,
+                "module": portable(&r.module),
                 "code_gt_zero": r.code > 0,
                 "lines_gte_code": r.lines >= r.code,
                 "files_gt_zero": r.files > 0,
@@ -59,8 +70,8 @@ fn redact_file_rows(rows: &[tokmd_types::FileRow]) -> Vec<serde_json::Value> {
     rows.iter()
         .map(|r| {
             serde_json::json!({
-                "path": r.path,
-                "module": r.module,
+                "path": portable(&r.path),
+                "module": portable(&r.module),
                 "lang": r.lang,
                 "kind": format!("{:?}", r.kind),
                 "code_gt_zero": r.code > 0,

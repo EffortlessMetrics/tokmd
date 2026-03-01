@@ -8,7 +8,7 @@ expression: redacted
     "kind": "Parent",
     "lang": "Rust",
     "lines_eq_sum": true,
-    "module": "C:",
-    "path": "C:/Code/Rust/tokmd/crates/tokmd-model/src/lib.rs"
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/lib.rs"
   }
 ]
