@@ -34,12 +34,7 @@ fn analysis_tree_empty_input_returns_empty_string() {
 
 #[test]
 fn analysis_tree_single_root_file() {
-    let out = render_analysis_tree(&export(vec![row(
-        "main.rs",
-        FileKind::Parent,
-        50,
-        100,
-    )]));
+    let out = render_analysis_tree(&export(vec![row("main.rs", FileKind::Parent, 50, 100)]));
     assert!(out.contains("main.rs"));
     assert!(out.contains("lines: 50"));
     assert!(out.contains("tokens: 100"));
@@ -47,12 +42,7 @@ fn analysis_tree_single_root_file() {
 
 #[test]
 fn analysis_tree_single_nested_file() {
-    let out = render_analysis_tree(&export(vec![row(
-        "src/lib.rs",
-        FileKind::Parent,
-        30,
-        60,
-    )]));
+    let out = render_analysis_tree(&export(vec![row("src/lib.rs", FileKind::Parent, 30, 60)]));
     assert!(out.contains("src"));
     assert!(out.contains("lib.rs"));
     assert!(out.contains("lines: 30"));
@@ -74,12 +64,7 @@ fn analysis_tree_aggregates_parent_directory_totals() {
 
 #[test]
 fn analysis_tree_deep_nesting_accumulates() {
-    let out = render_analysis_tree(&export(vec![row(
-        "a/b/c/d.rs",
-        FileKind::Parent,
-        5,
-        10,
-    )]));
+    let out = render_analysis_tree(&export(vec![row("a/b/c/d.rs", FileKind::Parent, 5, 10)]));
     assert!(out.contains("a (lines: 5, tokens: 10)"));
     assert!(out.contains("b (lines: 5, tokens: 10)"));
     assert!(out.contains("c (lines: 5, tokens: 10)"));

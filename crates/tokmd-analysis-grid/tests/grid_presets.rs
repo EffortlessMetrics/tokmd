@@ -372,18 +372,34 @@ fn every_preset_needs_files_classification() {
 fn disabled_feature_warnings_contain_relevant_keywords() {
     assert!(DisabledFeature::FileInventory.warning().contains("walk"));
     assert!(DisabledFeature::TodoScan.warning().contains("content"));
-    assert!(DisabledFeature::DuplicationScan.warning().contains("content"));
-    assert!(DisabledFeature::NearDuplicateScan.warning().contains("near-dup"));
+    assert!(
+        DisabledFeature::DuplicationScan
+            .warning()
+            .contains("content")
+    );
+    assert!(
+        DisabledFeature::NearDuplicateScan
+            .warning()
+            .contains("near-dup")
+    );
     assert!(DisabledFeature::ImportScan.warning().contains("import"));
     assert!(DisabledFeature::GitMetrics.warning().contains("git"));
-    assert!(DisabledFeature::EntropyProfiling.warning().contains("entropy"));
+    assert!(
+        DisabledFeature::EntropyProfiling
+            .warning()
+            .contains("entropy")
+    );
     assert!(DisabledFeature::LicenseRadar.warning().contains("license"));
     assert!(
         DisabledFeature::ComplexityAnalysis
             .warning()
             .contains("complexity")
     );
-    assert!(DisabledFeature::ApiSurfaceAnalysis.warning().contains("API"));
+    assert!(
+        DisabledFeature::ApiSurfaceAnalysis
+            .warning()
+            .contains("API")
+    );
     assert!(DisabledFeature::Archetype.warning().contains("archetype"));
     assert!(DisabledFeature::Topics.warning().contains("topics"));
     assert!(DisabledFeature::Fun.warning().contains("eco-label"));
@@ -431,8 +447,17 @@ fn preset_names_are_valid_ascii_identifiers() {
 #[test]
 fn from_str_rejects_mixed_case_variants() {
     let mixed = [
-        "Receipt", "HEALTH", "rIsK", "Supply", "ARCHITECTURE", "Topics", "SECURITY", "Identity",
-        "GIT", "Deep", "FUN",
+        "Receipt",
+        "HEALTH",
+        "rIsK",
+        "Supply",
+        "ARCHITECTURE",
+        "Topics",
+        "SECURITY",
+        "Identity",
+        "GIT",
+        "Deep",
+        "FUN",
     ];
     for name in &mixed {
         assert!(

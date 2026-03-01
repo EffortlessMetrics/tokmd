@@ -39,7 +39,10 @@ fn workspace_root() -> PathBuf {
 #[test]
 fn scanning_workspace_produces_non_empty_results() -> Result<()> {
     let langs = scan(&[workspace_root()], &default_opts())?;
-    assert!(!langs.is_empty(), "workspace scan must find at least one language");
+    assert!(
+        !langs.is_empty(),
+        "workspace scan must find at least one language"
+    );
     Ok(())
 }
 
@@ -241,7 +244,11 @@ fn determinism_with_synthetic_files() -> Result<()> {
         let a = &run1[lang_type];
         let b = &run2[lang_type];
         assert_eq!(a.code, b.code, "{:?} code mismatch on synthetic", lang_type);
-        assert_eq!(a.blanks, b.blanks, "{:?} blanks mismatch on synthetic", lang_type);
+        assert_eq!(
+            a.blanks, b.blanks,
+            "{:?} blanks mismatch on synthetic",
+            lang_type
+        );
     }
     Ok(())
 }

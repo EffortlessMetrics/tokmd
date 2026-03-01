@@ -13,10 +13,8 @@ fn build_import_graph(modules: &[(&str, &str, Vec<&str>)]) -> ImportGraph {
     let mut graph = ImportGraph::new();
     for (module_name, lang, lines) in modules {
         let imports = parse_imports(lang, lines);
-        let targets: BTreeSet<String> = imports
-            .iter()
-            .map(|t| normalize_import_target(t))
-            .collect();
+        let targets: BTreeSet<String> =
+            imports.iter().map(|t| normalize_import_target(t)).collect();
         graph.insert(module_name.to_string(), targets);
     }
     graph
@@ -70,10 +68,7 @@ fn java_is_not_supported() {
 
 #[test]
 fn java_parsing_returns_empty() {
-    let lines = vec![
-        "import java.util.List;",
-        "import com.example.MyClass;",
-    ];
+    let lines = vec!["import java.util.List;", "import com.example.MyClass;"];
     assert!(parse_imports("java", &lines).is_empty());
 }
 
@@ -140,7 +135,11 @@ fn go_project_imports() {
 #[test]
 fn build_graph_from_rust_modules() {
     let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("app", "rust", vec!["use config::Settings;", "use db::Pool;"]),
+        (
+            "app",
+            "rust",
+            vec!["use config::Settings;", "use db::Pool;"],
+        ),
         ("config", "rust", vec!["use serde::Deserialize;"]),
         ("db", "rust", vec!["use config::Settings;"]),
     ];
@@ -156,7 +155,11 @@ fn build_graph_from_rust_modules() {
 #[test]
 fn build_graph_from_python_modules() {
     let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("app", "python", vec!["import models", "from views import render"]),
+        (
+            "app",
+            "python",
+            vec!["import models", "from views import render"],
+        ),
         ("models", "python", vec!["import db"]),
         ("views", "python", vec!["import models"]),
     ];
@@ -172,9 +175,24 @@ fn build_graph_from_python_modules() {
 #[test]
 fn build_graph_from_mixed_languages() {
     let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("backend", "rust", vec!["use serde::Serialize;", "use tokio::Runtime;"]),
-        ("frontend", "javascript", vec![r#"import React from "react";"#, r#"const axios = require("axios");"#]),
-        ("scripts", "python", vec!["import os", "from pathlib import Path"]),
+        (
+            "backend",
+            "rust",
+            vec!["use serde::Serialize;", "use tokio::Runtime;"],
+        ),
+        (
+            "frontend",
+            "javascript",
+            vec![
+                r#"import React from "react";"#,
+                r#"const axios = require("axios");"#,
+            ],
+        ),
+        (
+            "scripts",
+            "python",
+            vec!["import os", "from pathlib import Path"],
+        ),
         ("server", "go", vec![r#"import "net/http""#]),
     ];
     let graph = build_import_graph(&modules);
@@ -237,7 +255,11 @@ fn detect_transitive_cycle_in_python() {
 #[test]
 fn no_cycle_in_acyclic_graph() {
     let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("app", "rust", vec!["use config::Settings;", "use db::Pool;"]),
+        (
+            "app",
+            "rust",
+            vec!["use config::Settings;", "use db::Pool;"],
+        ),
         ("config", "rust", vec!["use serde::Deserialize;"]),
         ("db", "rust", vec!["use serde::Deserialize;"]),
     ];
@@ -261,9 +283,8 @@ fn no_cycle_in_star_topology() {
 #[test]
 fn self_import_detected_as_cycle() {
     // Module imports itself
-    let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("self_ref", "python", vec!["import self_ref"]),
-    ];
+    let modules: Vec<(&str, &str, Vec<&str>)> =
+        vec![("self_ref", "python", vec!["import self_ref"])];
     let graph = build_import_graph(&modules);
     assert!(has_cycle(&graph), "self-import is a cycle");
 }
@@ -288,13 +309,11 @@ fn graph_keys_are_sorted() {
 
 #[test]
 fn graph_edge_sets_are_sorted() {
-    let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("app", "rust", vec![
-            "use zebra::Z;",
-            "use alpha::A;",
-            "use middle::M;",
-        ]),
-    ];
+    let modules: Vec<(&str, &str, Vec<&str>)> = vec![(
+        "app",
+        "rust",
+        vec!["use zebra::Z;", "use alpha::A;", "use middle::M;"],
+    )];
     let graph = build_import_graph(&modules);
     let edges: Vec<&String> = graph["app"].iter().collect();
     assert_eq!(
@@ -307,8 +326,20 @@ fn graph_edge_sets_are_sorted() {
 #[test]
 fn graph_construction_is_deterministic() {
     let modules: Vec<(&str, &str, Vec<&str>)> = vec![
-        ("main", "rust", vec!["use serde::Serialize;", "use tokio::Runtime;", "mod config;"]),
-        ("config", "python", vec!["import os", "from pathlib import Path"]),
+        (
+            "main",
+            "rust",
+            vec![
+                "use serde::Serialize;",
+                "use tokio::Runtime;",
+                "mod config;",
+            ],
+        ),
+        (
+            "config",
+            "python",
+            vec!["import os", "from pathlib import Path"],
+        ),
         ("web", "javascript", vec![r#"import React from "react";"#]),
     ];
 
@@ -330,10 +361,7 @@ fn duplicate_imports_deduplicate_in_edge_set() {
     assert_eq!(imports, vec!["react", "react", "react"]);
 
     // When collected into BTreeSet, duplicates collapse
-    let unique: BTreeSet<String> = imports
-        .iter()
-        .map(|t| normalize_import_target(t))
-        .collect();
+    let unique: BTreeSet<String> = imports.iter().map(|t| normalize_import_target(t)).collect();
     assert_eq!(unique.len(), 1);
     assert!(unique.contains("react"));
 }
@@ -346,10 +374,7 @@ fn relative_imports_all_normalize_to_local() {
         r#"import "./styles.css";"#,
     ];
     let imports = parse_imports("javascript", &lines);
-    let normalized: BTreeSet<String> = imports
-        .iter()
-        .map(|t| normalize_import_target(t))
-        .collect();
+    let normalized: BTreeSet<String> = imports.iter().map(|t| normalize_import_target(t)).collect();
     assert_eq!(normalized.len(), 1);
     assert!(normalized.contains("local"));
 }
@@ -364,10 +389,7 @@ fn go_module_paths_normalize_to_domain_root() {
         ")",
     ];
     let imports = parse_imports("go", &lines);
-    let normalized: BTreeSet<String> = imports
-        .iter()
-        .map(|t| normalize_import_target(t))
-        .collect();
+    let normalized: BTreeSet<String> = imports.iter().map(|t| normalize_import_target(t)).collect();
 
     // All github.com imports collapse to "github", golang.org to "golang"
     assert!(normalized.contains("github"));

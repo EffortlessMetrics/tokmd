@@ -298,19 +298,17 @@ fn churn_with_decreasing_activity_has_falling_trend() {
     for w in 1..=5i64 {
         let count = (6 - w) as usize;
         for _ in 0..count {
-            commits.push(commit(
-                w * week,
-                "alice",
-                "feat: less",
-                &["src/lib.rs"],
-            ));
+            commits.push(commit(w * week, "alice", "feat: less", &["src/lib.rs"]));
         }
     }
 
     let report = build_predictive_churn_report(&exp, &commits, Path::new("."));
     let trend = report.per_module.get("src").expect("module present");
 
-    assert!(trend.slope < 0.0, "decreasing activity should have negative slope");
+    assert!(
+        trend.slope < 0.0,
+        "decreasing activity should have negative slope"
+    );
     assert_eq!(trend.classification, TrendClass::Falling);
 }
 
@@ -328,19 +326,9 @@ fn churn_tracks_modules_independently() {
     // api: steady (1 commit/week), db: increasing (1,2,3,4,5)
     let mut commits = Vec::new();
     for w in 1..=5i64 {
-        commits.push(commit(
-            w * week,
-            "alice",
-            "feat: api",
-            &["api/handler.rs"],
-        ));
+        commits.push(commit(w * week, "alice", "feat: api", &["api/handler.rs"]));
         for _ in 0..w {
-            commits.push(commit(
-                w * week,
-                "bob",
-                "feat: db",
-                &["db/query.rs"],
-            ));
+            commits.push(commit(w * week, "bob", "feat: db", &["db/query.rs"]));
         }
     }
 
@@ -367,8 +355,8 @@ fn churn_tracks_modules_independently() {
 #[test]
 fn hotspot_score_favors_large_file_with_many_commits() {
     let exp = export(vec![
-        file_row("src/big.rs", "src", 1000),   // large file
-        file_row("src/small.rs", "src", 10),    // small file
+        file_row("src/big.rs", "src", 1000), // large file
+        file_row("src/small.rs", "src", 10), // small file
     ]);
     // big.rs: 2 commits → score = 2000
     // small.rs: 5 commits → score = 50
@@ -468,7 +456,12 @@ fn module_freshness_p90_reflects_staleness() {
     let commits = vec![
         commit(now, "alice", "feat: fresh", &["src/fresh.rs"]),
         commit(now - 400 * DAY, "bob", "feat: stale1", &["src/stale1.rs"]),
-        commit(now - 410 * DAY, "charlie", "feat: stale2", &["src/stale2.rs"]),
+        commit(
+            now - 410 * DAY,
+            "charlie",
+            "feat: stale2",
+            &["src/stale2.rs"],
+        ),
         commit(now - 420 * DAY, "alice", "feat: stale3", &["src/stale3.rs"]),
     ];
 
@@ -495,9 +488,7 @@ fn module_freshness_p90_reflects_staleness() {
 #[test]
 fn churn_empty_export_with_commits_is_empty() {
     let exp = export(vec![]);
-    let commits = vec![
-        commit(DAY, "alice", "feat: ghost", &["unknown.rs"]),
-    ];
+    let commits = vec![commit(DAY, "alice", "feat: ghost", &["unknown.rs"])];
 
     let report = build_predictive_churn_report(&exp, &commits, Path::new("."));
     assert!(report.per_module.is_empty());

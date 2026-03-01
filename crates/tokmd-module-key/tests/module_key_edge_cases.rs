@@ -13,26 +13,17 @@ fn root_file_plain() {
 
 #[test]
 fn root_file_with_dot_slash_prefix() {
-    assert_eq!(
-        module_key("./Cargo.toml", &roots(&["crates"]), 2),
-        "(root)"
-    );
+    assert_eq!(module_key("./Cargo.toml", &roots(&["crates"]), 2), "(root)");
 }
 
 #[test]
 fn root_file_with_leading_slash() {
-    assert_eq!(
-        module_key("/README.md", &roots(&["crates"]), 2),
-        "(root)"
-    );
+    assert_eq!(module_key("/README.md", &roots(&["crates"]), 2), "(root)");
 }
 
 #[test]
 fn root_file_hidden_dotfile() {
-    assert_eq!(
-        module_key(".gitignore", &roots(&["crates"]), 2),
-        "(root)"
-    );
+    assert_eq!(module_key(".gitignore", &roots(&["crates"]), 2), "(root)");
 }
 
 // ── path normalization ─────────────────────────────────────────────
@@ -55,18 +46,12 @@ fn mixed_slashes_normalized() {
 
 #[test]
 fn leading_dot_slash_stripped() {
-    assert_eq!(
-        module_key("./src/lib.rs", &roots(&["crates"]), 2),
-        "src"
-    );
+    assert_eq!(module_key("./src/lib.rs", &roots(&["crates"]), 2), "src");
 }
 
 #[test]
 fn leading_slash_stripped() {
-    assert_eq!(
-        module_key("/src/lib.rs", &roots(&["crates"]), 2),
-        "src"
-    );
+    assert_eq!(module_key("/src/lib.rs", &roots(&["crates"]), 2), "src");
 }
 
 // ── depth parameter behavior ───────────────────────────────────────

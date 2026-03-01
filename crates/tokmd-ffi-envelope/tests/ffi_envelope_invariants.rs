@@ -197,7 +197,10 @@ fn format_error_message_none_returns_unknown() {
 
 #[test]
 fn format_error_message_non_object_returns_unknown() {
-    assert_eq!(format_error_message(Some(&json!("string"))), "Unknown error");
+    assert_eq!(
+        format_error_message(Some(&json!("string"))),
+        "Unknown error"
+    );
     assert_eq!(format_error_message(Some(&json!(42))), "Unknown error");
     assert_eq!(format_error_message(Some(&json!([1]))), "Unknown error");
 }

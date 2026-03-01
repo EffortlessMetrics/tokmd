@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 use tokmd_envelope::{
     Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
-    SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict,
 };
 
 // ---------------------------------------------------------------------------
@@ -104,7 +104,14 @@ fn required_fields_present_in_minimal_report() {
     let value: serde_json::Value = serde_json::to_value(&report).unwrap();
     let obj = value.as_object().unwrap();
 
-    for key in ["schema", "tool", "generated_at", "verdict", "summary", "findings"] {
+    for key in [
+        "schema",
+        "tool",
+        "generated_at",
+        "verdict",
+        "summary",
+        "findings",
+    ] {
         assert!(obj.contains_key(key), "Missing required field: {key}");
     }
 }
@@ -137,7 +144,10 @@ fn optional_fields_omitted_when_none() {
     let value: serde_json::Value = serde_json::to_value(&report).unwrap();
     let obj = value.as_object().unwrap();
 
-    assert!(!obj.contains_key("artifacts"), "artifacts should be omitted");
+    assert!(
+        !obj.contains_key("artifacts"),
+        "artifacts should be omitted"
+    );
     assert!(
         !obj.contains_key("capabilities"),
         "capabilities should be omitted"
@@ -224,17 +234,26 @@ fn large_payload_determinism() {
 
     let json1 = serde_json::to_string(&report).unwrap();
     let json2 = serde_json::to_string(&report).unwrap();
-    assert_eq!(json1, json2, "Large payload serialization must be deterministic");
+    assert_eq!(
+        json1, json2,
+        "Large payload serialization must be deterministic"
+    );
 }
 
 #[test]
 fn large_payload_with_mixed_optional_fields() {
     let mut report = minimal_report();
     for i in 0..100 {
-        let mut finding =
-            Finding::new("risk", format!("code_{i}"), FindingSeverity::Info, "title", "msg");
+        let mut finding = Finding::new(
+            "risk",
+            format!("code_{i}"),
+            FindingSeverity::Info,
+            "title",
+            "msg",
+        );
         if i % 2 == 0 {
-            finding = finding.with_location(FindingLocation::path_line(format!("f{i}.rs"), i as u32));
+            finding =
+                finding.with_location(FindingLocation::path_line(format!("f{i}.rs"), i as u32));
         }
         if i % 3 == 0 {
             finding = finding.with_evidence(serde_json::json!({"idx": i}));

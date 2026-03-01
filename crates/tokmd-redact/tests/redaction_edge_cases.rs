@@ -149,10 +149,7 @@ fn backslash_separators_are_normalized() {
 
 #[test]
 fn mixed_separators_with_dots_normalize_consistently() {
-    assert_eq!(
-        short_hash(".\\src\\.\\lib.rs"),
-        short_hash("src/lib.rs"),
-    );
+    assert_eq!(short_hash(".\\src\\.\\lib.rs"), short_hash("src/lib.rs"),);
 }
 
 // ========================
@@ -195,7 +192,11 @@ fn very_long_path_produces_fixed_length_hash() {
     let long_segment = "a".repeat(1000);
     let long_path = format!("{}/{}/{}.rs", long_segment, long_segment, long_segment);
     let h = short_hash(&long_path);
-    assert_eq!(h.len(), 16, "hash length must be 16 regardless of input length");
+    assert_eq!(
+        h.len(),
+        16,
+        "hash length must be 16 regardless of input length"
+    );
 }
 
 #[test]
@@ -261,7 +262,10 @@ fn sibling_files_in_same_directory_have_different_hashes() {
 fn same_filename_in_different_directories_have_different_hashes() {
     let a = redact_path("crate_a/src/lib.rs");
     let b = redact_path("crate_b/src/lib.rs");
-    assert_ne!(a, b, "same filename in different dirs must hash differently");
+    assert_ne!(
+        a, b,
+        "same filename in different dirs must hash differently"
+    );
 }
 
 // ========================

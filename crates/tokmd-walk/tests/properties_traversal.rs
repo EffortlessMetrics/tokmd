@@ -29,10 +29,7 @@ fn arb_content() -> impl Strategy<Value = Vec<u8>> {
 fn arb_dir_depth() -> impl Strategy<Value = Vec<String>> {
     prop::collection::vec(
         "[a-z]{1,6}".prop_filter("skip Windows reserved names", |s| {
-            !matches!(
-                s.as_str(),
-                "con" | "prn" | "aux" | "nul" | "com" | "lpt"
-            )
+            !matches!(s.as_str(), "con" | "prn" | "aux" | "nul" | "com" | "lpt")
         }),
         0..=4,
     )

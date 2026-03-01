@@ -171,10 +171,7 @@ fn no_duplicate_patterns_in_any_template() {
 
         let mut seen = std::collections::HashSet::new();
         for p in &patterns {
-            assert!(
-                seen.insert(*p),
-                "{profile:?}: duplicate pattern: {p}"
-            );
+            assert!(seen.insert(*p), "{profile:?}: duplicate pattern: {p}");
         }
     }
 }

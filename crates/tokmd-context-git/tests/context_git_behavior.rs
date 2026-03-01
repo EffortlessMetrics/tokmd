@@ -4,7 +4,7 @@
 #[cfg(feature = "git")]
 mod with_git {
     use std::process::Command;
-    use tokmd_context_git::{compute_git_scores, GitScores};
+    use tokmd_context_git::{GitScores, compute_git_scores};
     use tokmd_types::{FileKind, FileRow};
 
     fn make_row(path: &str, lines: usize) -> FileRow {
@@ -28,11 +28,7 @@ mod with_git {
             .current_dir(root)
             .output()
             .ok()?;
-        if out.status.success() {
-            Some(())
-        } else {
-            None
-        }
+        if out.status.success() { Some(()) } else { None }
     }
 
     /// Repo layout:
@@ -63,7 +59,11 @@ mod with_git {
         }
 
         // Commit 5: warm.rs second touch
-        std::fs::write(root.join("warm.rs"), "// updated\n".to_owned() + &"fn warm() {}\n".repeat(8)).ok()?;
+        std::fs::write(
+            root.join("warm.rs"),
+            "// updated\n".to_owned() + &"fn warm() {}\n".repeat(8),
+        )
+        .ok()?;
         git(root, &["add", "warm.rs"])?;
         git(root, &["commit", "-m", "warm-2"])?;
 
@@ -88,8 +88,14 @@ mod with_git {
         let hot = scores.commit_counts["hot.rs"];
         let warm = scores.commit_counts["warm.rs"];
         let cold = scores.commit_counts["cold.rs"];
-        assert!(hot > warm, "hot ({hot}) should have more commits than warm ({warm})");
-        assert!(warm > cold, "warm ({warm}) should have more commits than cold ({cold})");
+        assert!(
+            hot > warm,
+            "hot ({hot}) should have more commits than warm ({warm})"
+        );
+        assert!(
+            warm > cold,
+            "warm ({warm}) should have more commits than cold ({cold})"
+        );
     }
 
     #[test]
@@ -283,7 +289,11 @@ mod with_git {
         git(root, &["config", "user.name", "Test"]).unwrap();
 
         std::fs::create_dir_all(root.join("src").join("util")).unwrap();
-        std::fs::write(root.join("src").join("util").join("helpers.rs"), "fn help() {}").unwrap();
+        std::fs::write(
+            root.join("src").join("util").join("helpers.rs"),
+            "fn help() {}",
+        )
+        .unwrap();
         git(root, &["add", "."]).unwrap();
         git(root, &["commit", "-m", "nested"]).unwrap();
 

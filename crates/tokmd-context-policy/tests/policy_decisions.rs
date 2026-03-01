@@ -2,8 +2,8 @@
 //! smart-exclude patterns, classification accuracy, and determinism.
 
 use tokmd_context_policy::{
-    assign_policy, classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
-    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, DEFAULT_MAX_FILE_TOKENS,
+    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, DEFAULT_MAX_FILE_TOKENS, assign_policy,
+    classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
 };
 use tokmd_types::{FileClassification, InclusionPolicy};
 
@@ -110,7 +110,12 @@ fn classify_dense_blob_at_exact_threshold_boundary() {
 #[test]
 fn classify_multiple_classifications_on_single_file() {
     // A generated file in a vendored directory that is also dense
-    let classes = classify_file("vendor/proto/types.pb.go", 60_000, 10, DEFAULT_DENSE_THRESHOLD);
+    let classes = classify_file(
+        "vendor/proto/types.pb.go",
+        60_000,
+        10,
+        DEFAULT_DENSE_THRESHOLD,
+    );
     assert!(classes.contains(&FileClassification::Vendored));
     assert!(classes.contains(&FileClassification::Generated));
     assert!(classes.contains(&FileClassification::DataBlob));
@@ -199,10 +204,7 @@ fn policy_one_over_cap_with_generated_is_skip() {
 
 #[test]
 fn policy_skip_reason_includes_all_classification_names() {
-    let classes = vec![
-        FileClassification::DataBlob,
-        FileClassification::Vendored,
-    ];
+    let classes = vec![FileClassification::DataBlob, FileClassification::Vendored];
     let (policy, reason) = assign_policy(20_000, 10_000, &classes);
     assert_eq!(policy, InclusionPolicy::Skip);
     let reason_text = reason.unwrap();
@@ -214,7 +216,10 @@ fn policy_skip_reason_includes_all_classification_names() {
 fn policy_reason_includes_token_counts() {
     let (_, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
     let text = reason.unwrap();
-    assert!(text.contains("20000"), "reason should include actual tokens");
+    assert!(
+        text.contains("20000"),
+        "reason should include actual tokens"
+    );
     assert!(text.contains("16000"), "reason should include cap");
 }
 
@@ -316,5 +321,8 @@ fn classify_file_never_produces_duplicate_classifications() {
     let mut sorted = classes.clone();
     sorted.sort();
     sorted.dedup();
-    assert_eq!(classes, sorted, "classifications should be sorted and deduplicated");
+    assert_eq!(
+        classes, sorted,
+        "classifications should be sorted and deduplicated"
+    );
 }

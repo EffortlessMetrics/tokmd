@@ -40,10 +40,7 @@ fn normalize_plain_relative_path_unchanged() {
 fn normalize_absolute_under_root_strips_root_prefix() {
     let root = tmp_root();
     let abs = root.join("target").join("debug").join("app");
-    assert_eq!(
-        normalize_exclude_pattern(&root, &abs),
-        "target/debug/app"
-    );
+    assert_eq!(normalize_exclude_pattern(&root, &abs), "target/debug/app");
 }
 
 #[test]
@@ -72,10 +69,7 @@ fn normalize_single_filename_stays_single_filename() {
 fn normalize_deeply_nested_path() {
     let root = tmp_root();
     let deep = Path::new("a/b/c/d/e/f/g.rs");
-    assert_eq!(
-        normalize_exclude_pattern(&root, deep),
-        "a/b/c/d/e/f/g.rs"
-    );
+    assert_eq!(normalize_exclude_pattern(&root, deep), "a/b/c/d/e/f/g.rs");
 }
 
 #[test]

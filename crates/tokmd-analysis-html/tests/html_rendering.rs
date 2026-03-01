@@ -199,12 +199,7 @@ fn derived_with_files(files: Vec<FileStatRow>) -> DerivedReport {
 #[test]
 fn unicode_path_is_rendered_safely() {
     let mut receipt = minimal_receipt();
-    let files = vec![make_file_row(
-        "src/日本語/模块.rs",
-        "日本語",
-        "Rust",
-        100,
-    )];
+    let files = vec![make_file_row("src/日本語/模块.rs", "日本語", "Rust", 100)];
     receipt.derived = Some(derived_with_files(files));
 
     let html = render(&receipt);
@@ -291,7 +286,14 @@ fn zero_code_rendered_as_zero() {
 fn large_dataset_200_files_capped_at_100_rows() {
     let mut receipt = minimal_receipt();
     let files: Vec<FileStatRow> = (0..200)
-        .map(|i| make_file_row(&format!("src/mod_{i}/file.rs"), &format!("mod_{i}"), "Rust", 50 + i))
+        .map(|i| {
+            make_file_row(
+                &format!("src/mod_{i}/file.rs"),
+                &format!("mod_{i}"),
+                "Rust",
+                50 + i,
+            )
+        })
         .collect();
     receipt.derived = Some(derived_with_files(files));
 
@@ -482,10 +484,7 @@ fn quotes_in_lang_are_escaped() {
 
     let html = render(&receipt);
 
-    assert!(
-        html.contains("C&quot;++"),
-        "quote in lang must be escaped"
-    );
+    assert!(html.contains("C&quot;++"), "quote in lang must be escaped");
 }
 
 // ── Determinism for large datasets ──────────────────────────────────
@@ -532,5 +531,8 @@ fn single_file_with_very_large_code_count() {
 
     let html = render(&receipt);
 
-    assert!(html.contains("10.0M"), "10M code lines should show as 10.0M");
+    assert!(
+        html.contains("10.0M"),
+        "10M code lines should show as 10.0M"
+    );
 }

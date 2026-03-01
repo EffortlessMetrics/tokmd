@@ -41,10 +41,7 @@ fn unc_path_basic() {
 
 #[test]
 fn unc_path_no_trailing_file() {
-    assert_eq!(
-        normalize_slashes(r"\\server\share"),
-        "//server/share"
-    );
+    assert_eq!(normalize_slashes(r"\\server\share"), "//server/share");
 }
 
 #[test]
@@ -71,10 +68,7 @@ fn rel_path_unc_preserved() {
 #[test]
 fn dot_segments_preserved_by_normalize_slashes() {
     // normalize_slashes does NOT resolve `.` or `..`; it only fixes separators.
-    assert_eq!(
-        normalize_slashes(r".\foo\..\bar"),
-        "./foo/../bar"
-    );
+    assert_eq!(normalize_slashes(r".\foo\..\bar"), "./foo/../bar");
 }
 
 #[test]
@@ -84,10 +78,7 @@ fn dot_dot_path_preserved() {
 
 #[test]
 fn rel_path_strips_leading_dot_slash_but_keeps_inner_dots() {
-    assert_eq!(
-        normalize_rel_path("./foo/../bar/./baz"),
-        "foo/../bar/./baz"
-    );
+    assert_eq!(normalize_rel_path("./foo/../bar/./baz"), "foo/../bar/./baz");
 }
 
 #[test]
@@ -187,10 +178,7 @@ fn very_long_single_segment() {
 
 #[test]
 fn unicode_cjk_path() {
-    assert_eq!(
-        normalize_slashes(r"中文\路径\文件.rs"),
-        "中文/路径/文件.rs"
-    );
+    assert_eq!(normalize_slashes(r"中文\路径\文件.rs"), "中文/路径/文件.rs");
 }
 
 #[test]
@@ -203,18 +191,12 @@ fn unicode_accented_path() {
 
 #[test]
 fn unicode_cyrillic_path() {
-    assert_eq!(
-        normalize_slashes(r"путь\к\файлу.rs"),
-        "путь/к/файлу.rs"
-    );
+    assert_eq!(normalize_slashes(r"путь\к\файлу.rs"), "путь/к/файлу.rs");
 }
 
 #[test]
 fn unicode_emoji_path() {
-    assert_eq!(
-        normalize_slashes("📁\\📂\\📄.txt"),
-        "📁/📂/📄.txt"
-    );
+    assert_eq!(normalize_slashes("📁\\📂\\📄.txt"), "📁/📂/📄.txt");
 }
 
 #[test]

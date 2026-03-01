@@ -53,7 +53,11 @@ fn mixed_asset_types_all_detected_in_flat_directory() {
     assert_eq!(report.total_files, 6);
     assert_eq!(report.total_bytes, 1330);
 
-    let categories: Vec<&str> = report.categories.iter().map(|c| c.category.as_str()).collect();
+    let categories: Vec<&str> = report
+        .categories
+        .iter()
+        .map(|c| c.category.as_str())
+        .collect();
     assert!(categories.contains(&"image"));
     assert!(categories.contains(&"video"));
     assert!(categories.contains(&"audio"));
@@ -182,13 +186,17 @@ fn mixed_extensions_only_asset_types_counted() {
 fn categories_sorted_by_bytes_desc_then_name() {
     let tmp = TempDir::new().unwrap();
     let files = vec![
-        write_file(tmp.path(), "a.png", &[0u8; 100]),   // image: 100
-        write_file(tmp.path(), "b.mp4", &[0u8; 100]),   // video: 100 (same bytes, "video" > "image" alphabetically)
-        write_file(tmp.path(), "c.zip", &[0u8; 500]),   // archive: 500
+        write_file(tmp.path(), "a.png", &[0u8; 100]), // image: 100
+        write_file(tmp.path(), "b.mp4", &[0u8; 100]), // video: 100 (same bytes, "video" > "image" alphabetically)
+        write_file(tmp.path(), "c.zip", &[0u8; 500]), // archive: 500
     ];
     let report = build_assets_report(tmp.path(), &files).unwrap();
 
-    let order: Vec<&str> = report.categories.iter().map(|c| c.category.as_str()).collect();
+    let order: Vec<&str> = report
+        .categories
+        .iter()
+        .map(|c| c.category.as_str())
+        .collect();
     // archive (500) first, then image (100) before video (100)
     assert_eq!(order, vec!["archive", "image", "video"]);
 }
@@ -202,13 +210,13 @@ fn top_files_sorted_by_bytes_desc_then_path_asc() {
     let tmp = TempDir::new().unwrap();
     let files = vec![
         write_file(tmp.path(), "b.png", &[0u8; 100]),
-        write_file(tmp.path(), "a.png", &[0u8; 100]),   // same bytes, "a" < "b"
+        write_file(tmp.path(), "a.png", &[0u8; 100]), // same bytes, "a" < "b"
         write_file(tmp.path(), "c.png", &[0u8; 200]),
     ];
     let report = build_assets_report(tmp.path(), &files).unwrap();
 
-    assert_eq!(report.top_files[0].path, "c.png");      // 200 bytes first
-    assert_eq!(report.top_files[1].path, "a.png");       // 100 bytes, "a" before "b"
+    assert_eq!(report.top_files[0].path, "c.png"); // 200 bytes first
+    assert_eq!(report.top_files[1].path, "a.png"); // 100 bytes, "a" before "b"
     assert_eq!(report.top_files[2].path, "b.png");
 }
 
@@ -267,11 +275,7 @@ fn all_lockfile_types_detected_simultaneously() {
             "pnpm-lock.yaml",
             b"lockfileVersion: 5\npackages:\n  /pkg/1.0:\n    resolution: {}\n",
         ),
-        write_file(
-            tmp.path(),
-            "go.sum",
-            b"example.com/pkg v1.0.0 h1:abc=\n",
-        ),
+        write_file(tmp.path(), "go.sum", b"example.com/pkg v1.0.0 h1:abc=\n"),
         write_file(
             tmp.path(),
             "Gemfile.lock",
@@ -354,13 +358,11 @@ fn asset_report_is_deterministic() {
 #[test]
 fn dependency_report_is_deterministic() {
     let tmp = TempDir::new().unwrap();
-    let files = vec![
-        write_file(
-            tmp.path(),
-            "Cargo.lock",
-            b"[[package]]\nname=\"a\"\n[[package]]\nname=\"b\"\n",
-        ),
-    ];
+    let files = vec![write_file(
+        tmp.path(),
+        "Cargo.lock",
+        b"[[package]]\nname=\"a\"\n[[package]]\nname=\"b\"\n",
+    )];
 
     let r1 = build_dependency_report(tmp.path(), &files).unwrap();
     let r2 = build_dependency_report(tmp.path(), &files).unwrap();
@@ -401,7 +403,9 @@ fn large_cargo_lock_counts_all_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::new();
     for i in 0..100 {
-        content.push_str(&format!("[[package]]\nname = \"pkg-{i}\"\nversion = \"1.0.{i}\"\n\n"));
+        content.push_str(&format!(
+            "[[package]]\nname = \"pkg-{i}\"\nversion = \"1.0.{i}\"\n\n"
+        ));
     }
     let rel = write_file(tmp.path(), "Cargo.lock", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();

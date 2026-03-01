@@ -226,7 +226,11 @@ fn grade_c_boundary() {
 fn score_decreases_with_increasing_cc() {
     let scores: Vec<f64> = [1.0, 5.0, 20.0, 50.0, 100.0, 200.0]
         .iter()
-        .map(|&cc| compute_maintainability_index(cc, 100.0, None).unwrap().score)
+        .map(|&cc| {
+            compute_maintainability_index(cc, 100.0, None)
+                .unwrap()
+                .score
+        })
         .collect();
 
     for window in scores.windows(2) {
@@ -336,7 +340,11 @@ fn attach_halstead_recomputes_mi_to_lower_score() {
     let after = report.maintainability_index.as_ref().unwrap().score;
     assert!(after < before, "MI should decrease after adding Halstead");
     assert_eq!(
-        report.maintainability_index.as_ref().unwrap().avg_halstead_volume,
+        report
+            .maintainability_index
+            .as_ref()
+            .unwrap()
+            .avg_halstead_volume,
         Some(500.0)
     );
 }
