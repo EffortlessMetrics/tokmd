@@ -351,7 +351,7 @@ fn given_any_canonical_key_when_lookup_then_explanation_is_non_empty() {
         "context_window_fit",
     ];
     for key in canonical_keys {
-        let text = lookup(key).expect(&format!("'{key}' should resolve"));
+        let text = lookup(key).unwrap_or_else(|| panic!("'{key}' should resolve"));
         assert!(
             text.len() > 10,
             "explanation for '{key}' should be substantive, got: {text}"

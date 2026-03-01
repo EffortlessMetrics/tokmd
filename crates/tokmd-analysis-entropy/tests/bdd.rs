@@ -412,6 +412,7 @@ mod path_normalization {
     use super::*;
 
     #[test]
+    #[cfg(target_os = "windows")]
     fn given_backslash_paths_then_normalized_in_output() {
         let dir = tempdir().unwrap();
         let subdir = dir.path().join("sub");
