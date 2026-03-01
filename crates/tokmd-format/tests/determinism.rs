@@ -310,7 +310,7 @@ fn determinism_markdown_output_has_no_backslashes_in_paths() {
 // 4. Proptest: repeated rendering always produces identical output
 // ---------------------------------------------------------------------------
 
-fn arb_lang_row_strat() -> impl Strategy<Value = LangRow> {
+fn arb_lang_row_strategy() -> impl Strategy<Value = LangRow> {
     (
         prop::sample::select(vec![
             "Rust", "Python", "Go", "Java", "C", "TOML", "YAML", "JSON",
@@ -330,8 +330,8 @@ fn arb_lang_row_strat() -> impl Strategy<Value = LangRow> {
         })
 }
 
-fn arb_lang_report_strat() -> impl Strategy<Value = LangReport> {
-    prop::collection::vec(arb_lang_row_strat(), 1..6).prop_map(|rows| {
+fn arb_lang_report_strategy() -> impl Strategy<Value = LangReport> {
+    prop::collection::vec(arb_lang_row_strategy(), 1..6).prop_map(|rows| {
         let mut seen = std::collections::HashSet::new();
         let rows: Vec<LangRow> = rows
             .into_iter()
@@ -359,21 +359,21 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(32))]
 
     #[test]
-    fn determinism_proptest_lang_md_stable(report in arb_lang_report_strat()) {
+    fn determinism_proptest_lang_md_stable(report in arb_lang_report_strategy()) {
         let out1 = render_lang_md(&report);
         let out2 = render_lang_md(&report);
         prop_assert_eq!(out1, out2, "Markdown render must be byte-identical");
     }
 
     #[test]
-    fn determinism_proptest_lang_tsv_stable(report in arb_lang_report_strat()) {
+    fn determinism_proptest_lang_tsv_stable(report in arb_lang_report_strategy()) {
         let out1 = render_lang_tsv(&report);
         let out2 = render_lang_tsv(&report);
         prop_assert_eq!(out1, out2, "TSV render must be byte-identical");
     }
 
     #[test]
-    fn determinism_proptest_no_backslash_in_lang_output(report in arb_lang_report_strat()) {
+    fn determinism_proptest_no_backslash_in_lang_output(report in arb_lang_report_strategy()) {
         let md = render_lang_md(&report);
         let tsv = render_lang_tsv(&report);
         prop_assert!(!md.contains('\\'), "Markdown output must not contain backslashes");

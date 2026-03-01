@@ -242,7 +242,7 @@ fn determinism_children_separate_sort_idempotent() {
 // 4. Proptest: shuffled aggregation determinism
 // ---------------------------------------------------------------------------
 
-fn arb_lang_row_strat() -> impl Strategy<Value = LangRow> {
+fn arb_lang_row_strategy() -> impl Strategy<Value = LangRow> {
     (
         prop::sample::select(vec![
             "Rust",
@@ -275,7 +275,7 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(64))]
 
     #[test]
-    fn determinism_proptest_sort_is_idempotent(rows in prop::collection::vec(arb_lang_row_strat(), 1..10)) {
+    fn determinism_proptest_sort_is_idempotent(rows in prop::collection::vec(arb_lang_row_strategy(), 1..10)) {
         let mut sorted = rows.clone();
         sort_lang_rows(&mut sorted);
         let snapshot = sorted.clone();
@@ -285,7 +285,7 @@ proptest! {
 
     #[test]
     fn determinism_proptest_sort_order_independent(
-        mut rows in prop::collection::vec(arb_lang_row_strat(), 2..8)
+        mut rows in prop::collection::vec(arb_lang_row_strategy(), 2..8)
     ) {
         // Sort forward.
         let mut forward = rows.clone();
