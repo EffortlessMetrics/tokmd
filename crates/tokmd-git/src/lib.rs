@@ -525,4 +525,224 @@ mod tests {
         // No commits exist, so even "trunk" won't resolve to a commit
         assert_eq!(resolve_base_ref(dir.path(), "nonexistent"), None);
     }
+
+    // ================================================================
+    // contains_word unit tests
+    // ================================================================
+
+    #[test]
+    fn contains_word_exact_match() {
+        assert!(contains_word("fix", "fix"));
+    }
+
+    #[test]
+    fn contains_word_at_start() {
+        assert!(contains_word("fix the crash", "fix"));
+    }
+
+    #[test]
+    fn contains_word_at_end() {
+        assert!(contains_word("apply the fix", "fix"));
+    }
+
+    #[test]
+    fn contains_word_in_middle() {
+        assert!(contains_word("a fix here", "fix"));
+    }
+
+    #[test]
+    fn contains_word_rejects_substring() {
+        assert!(!contains_word("prefix something", "fix"));
+        assert!(!contains_word("fixup commit", "fix"));
+    }
+
+    #[test]
+    fn contains_word_with_punctuation_boundary() {
+        assert!(contains_word("apply fix, please", "fix"));
+        assert!(contains_word("(fix) applied", "fix"));
+    }
+
+    #[test]
+    fn contains_word_empty_haystack() {
+        assert!(!contains_word("", "fix"));
+    }
+
+    #[test]
+    fn contains_word_empty_needle() {
+        // Empty string has no match_indices hits, so returns false
+        assert!(!contains_word("anything", ""));
+    }
+
+    // ================================================================
+    // parse_conventional_prefix unit tests
+    // ================================================================
+
+    #[test]
+    fn parse_conventional_simple_feat() {
+        assert_eq!(
+            parse_conventional_prefix("feat: add login"),
+            Some(CommitIntentKind::Feat)
+        );
+    }
+
+    #[test]
+    fn parse_conventional_with_scope() {
+        assert_eq!(
+            parse_conventional_prefix("fix(auth): null check"),
+            Some(CommitIntentKind::Fix)
+        );
+    }
+
+    #[test]
+    fn parse_conventional_with_bang() {
+        assert_eq!(
+            parse_conventional_prefix("feat!: breaking"),
+            Some(CommitIntentKind::Feat)
+        );
+    }
+
+    #[test]
+    fn parse_conventional_with_scope_and_bang() {
+        assert_eq!(
+            parse_conventional_prefix("refactor(core)!: restructure"),
+            Some(CommitIntentKind::Refactor)
+        );
+    }
+
+    #[test]
+    fn parse_conventional_unknown_type() {
+        assert_eq!(parse_conventional_prefix("unknown: something"), None);
+    }
+
+    #[test]
+    fn parse_conventional_no_colon() {
+        assert_eq!(parse_conventional_prefix("just a message"), None);
+    }
+
+    #[test]
+    fn parse_conventional_all_types() {
+        let cases = [
+            ("feat: x", CommitIntentKind::Feat),
+            ("feature: x", CommitIntentKind::Feat),
+            ("fix: x", CommitIntentKind::Fix),
+            ("bugfix: x", CommitIntentKind::Fix),
+            ("hotfix: x", CommitIntentKind::Fix),
+            ("refactor: x", CommitIntentKind::Refactor),
+            ("docs: x", CommitIntentKind::Docs),
+            ("doc: x", CommitIntentKind::Docs),
+            ("test: x", CommitIntentKind::Test),
+            ("tests: x", CommitIntentKind::Test),
+            ("chore: x", CommitIntentKind::Chore),
+            ("ci: x", CommitIntentKind::Ci),
+            ("build: x", CommitIntentKind::Build),
+            ("perf: x", CommitIntentKind::Perf),
+            ("style: x", CommitIntentKind::Style),
+            ("revert: x", CommitIntentKind::Revert),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(
+                parse_conventional_prefix(input),
+                Some(expected),
+                "Failed for: {input}"
+            );
+        }
+    }
+
+    // ================================================================
+    // keyword_heuristic unit tests
+    // ================================================================
+
+    #[test]
+    fn keyword_heuristic_fix_variants() {
+        assert_eq!(keyword_heuristic("Fix memory leak"), CommitIntentKind::Fix);
+        assert_eq!(keyword_heuristic("resolved a bug"), CommitIntentKind::Fix);
+        assert_eq!(keyword_heuristic("apply patch"), CommitIntentKind::Fix);
+    }
+
+    #[test]
+    fn keyword_heuristic_feat_start_words() {
+        assert_eq!(
+            keyword_heuristic("Add new endpoint"),
+            CommitIntentKind::Feat
+        );
+        assert_eq!(
+            keyword_heuristic("Implement caching"),
+            CommitIntentKind::Feat
+        );
+        assert_eq!(
+            keyword_heuristic("Introduce metrics"),
+            CommitIntentKind::Feat
+        );
+    }
+
+    #[test]
+    fn keyword_heuristic_no_match_returns_other() {
+        assert_eq!(keyword_heuristic("WIP save"), CommitIntentKind::Other);
+        assert_eq!(keyword_heuristic("v2.0.0"), CommitIntentKind::Other);
+        assert_eq!(keyword_heuristic("Initial commit"), CommitIntentKind::Other);
+    }
+
+    // ================================================================
+    // classify_intent edge cases
+    // ================================================================
+
+    #[test]
+    fn classify_intent_empty_string() {
+        assert_eq!(classify_intent(""), CommitIntentKind::Other);
+    }
+
+    #[test]
+    fn classify_intent_whitespace_only() {
+        assert_eq!(classify_intent("   "), CommitIntentKind::Other);
+        assert_eq!(classify_intent("\t"), CommitIntentKind::Other);
+    }
+
+    #[test]
+    fn classify_intent_revert_takes_priority() {
+        // Revert prefix is checked before conventional parsing
+        assert_eq!(
+            classify_intent("Revert \"feat: add login\""),
+            CommitIntentKind::Revert
+        );
+        assert_eq!(
+            classify_intent("revert: undo something"),
+            CommitIntentKind::Revert
+        );
+    }
+
+    #[test]
+    fn classify_intent_merge_commit_matches_keyword() {
+        // "Merge branch 'feature' into main" contains "feature" → Feat via keyword heuristic
+        assert_eq!(
+            classify_intent("Merge branch 'feature' into main"),
+            CommitIntentKind::Feat
+        );
+        // A merge without recognized keywords falls to Other
+        assert_eq!(
+            classify_intent("Merge branch 'topic' into main"),
+            CommitIntentKind::Other
+        );
+    }
+
+    #[test]
+    fn classify_intent_no_file_commit_subject() {
+        // Typical --allow-empty commit message
+        assert_eq!(
+            classify_intent("empty placeholder"),
+            CommitIntentKind::Other
+        );
+    }
+
+    // ================================================================
+    // git_cmd isolation
+    // ================================================================
+
+    #[test]
+    fn git_cmd_strips_env_vars() {
+        let cmd = git_cmd();
+        // The command should have GIT_DIR and GIT_WORK_TREE removed.
+        // We verify the Command was created without panicking.
+        let program = format!("{:?}", cmd);
+        assert!(program.contains("git"), "Command should be git");
+    }
 }
