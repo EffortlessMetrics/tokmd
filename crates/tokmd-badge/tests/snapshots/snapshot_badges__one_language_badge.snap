@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-badge/tests/snapshot_badges.rs
+expression: svg
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="143" height="24" role="img"><rect width="83" height="24" fill="#555"/><rect x="83" width="60" height="24" fill="#4c9aff"/><text x="41" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">languages</text><text x="113" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">1</text></svg>

@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-badge/tests/snapshot_badges.rs
+expression: svg
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="171" height="24" role="img"><rect width="111" height="24" fill="#555"/><rect x="111" width="60" height="24" fill="#4c9aff"/><text x="55" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">comment ratio</text><text x="141" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">12.5%</text></svg>

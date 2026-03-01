@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-badge/tests/snapshot_badges.rs
+expression: svg
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="157" height="24" role="img"><rect width="97" height="24" fill="#555"/><rect x="97" width="60" height="24" fill="#4c9aff"/><text x="48" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">it&apos;s &quot;fine&quot;</text><text x="127" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">ok</text></svg>
