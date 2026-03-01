@@ -45,7 +45,7 @@ pub fn build_substrate(
                 .collect()
         })
         .unwrap_or_default();
-    let changed_set: std::collections::HashSet<&str> =
+    let changed_set: std::collections::BTreeSet<&str> =
         normalized_changed.iter().map(|s| s.as_str()).collect();
 
     // Convert file rows to substrate files
