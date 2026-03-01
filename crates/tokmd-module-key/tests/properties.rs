@@ -1,5 +1,5 @@
 use proptest::prelude::*;
-use tokmd_module_key::module_key;
+use tokmd_module_key::{module_key, module_key_from_normalized};
 
 proptest! {
     #[test]
@@ -176,5 +176,107 @@ proptest! {
                 d, cur_len, d - 1, prev_len);
             prev_len = cur_len;
         }
+    }
+
+    // ================================================================
+    // module_key_from_normalized: determinism
+    // ================================================================
+
+    #[test]
+    fn module_key_from_normalized_deterministic(
+        dirs in prop::collection::vec("[a-zA-Z0-9_]+", 1..5),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 1usize..5
+    ) {
+        let path = format!("{}/{}", dirs.join("/"), filename);
+        let k1 = module_key_from_normalized(&path, roots, depth);
+        let k2 = module_key_from_normalized(&path, roots, depth);
+        prop_assert_eq!(k1, k2);
+    }
+
+    // ================================================================
+    // module_key_from_normalized: output uses forward slashes only
+    // ================================================================
+
+    #[test]
+    fn module_key_from_normalized_no_backslash(
+        dirs in prop::collection::vec("[a-zA-Z0-9_]+", 1..5),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 1usize..5
+    ) {
+        let path = format!("{}/{}", dirs.join("/"), filename);
+        let key = module_key_from_normalized(&path, roots, depth);
+        prop_assert!(!key.contains('\\'));
+    }
+
+    // ================================================================
+    // module_key_from_normalized: never empty
+    // ================================================================
+
+    #[test]
+    fn module_key_from_normalized_never_empty(
+        dirs in prop::collection::vec("[a-zA-Z0-9_]+", 0..5),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 0usize..6
+    ) {
+        let path = if dirs.is_empty() {
+            filename.clone()
+        } else {
+            format!("{}/{}", dirs.join("/"), filename)
+        };
+        let key = module_key_from_normalized(&path, roots, depth);
+        prop_assert!(!key.is_empty());
+    }
+
+    // ================================================================
+    // module_key output never starts with /
+    // ================================================================
+
+    #[test]
+    fn module_key_output_never_starts_with_slash(
+        path in "[a-zA-Z0-9_./\\\\]+\\.[a-z]+",
+        ref roots in prop::collection::vec("[a-zA-Z0-9_]+".prop_map(String::from), 0..3),
+        depth in 0usize..6
+    ) {
+        let key = module_key(&path, roots, depth);
+        prop_assert!(!key.starts_with('/'), "key should not start with /: {:?}", key);
+    }
+
+    // ================================================================
+    // module_key: root files with varying prefix styles
+    // ================================================================
+
+    #[test]
+    fn module_key_root_file_variants(filename in "[a-zA-Z0-9_]+\\.[a-z]+") {
+        let roots: Vec<String> = vec!["crates".into()];
+        let k_plain = module_key(&filename, &roots, 2);
+        let k_dotslash = module_key(&format!("./{}", filename), &roots, 2);
+        let k_dotback = module_key(&format!(".\\{}", filename), &roots, 2);
+        prop_assert_eq!(&k_plain, "(root)");
+        prop_assert_eq!(&k_dotslash, "(root)");
+        prop_assert_eq!(&k_dotback, "(root)");
+    }
+
+    // ================================================================
+    // module_key: multiple roots only match first dir segment
+    // ================================================================
+
+    #[test]
+    fn module_key_first_root_match_wins(
+        root_a in "[a-zA-Z][a-zA-Z0-9_]{0,9}",
+        root_b in "[a-zA-Z][a-zA-Z0-9_]{0,9}",
+        subdir in "[a-zA-Z0-9_]+",
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+"
+    ) {
+        prop_assume!(root_a != root_b);
+        let path = format!("{}/{}/{}", root_a, subdir, filename);
+        let roots = vec![root_a.clone(), root_b.clone()];
+        let key = module_key(&path, &roots, 2);
+        // Key should start with root_a since it matches
+        prop_assert!(key.starts_with(&root_a),
+            "key {:?} should start with root {:?}", key, root_a);
     }
 }

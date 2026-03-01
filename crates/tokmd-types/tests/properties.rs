@@ -4,10 +4,11 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
-    ContextReceipt, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, FileRow,
-    InclusionPolicy, LangRow, ModuleRow, RedactMode, TableFormat, TokenAudit, TokenEstimationMeta,
-    ToolInfo, Totals,
+    AnalysisFormat, ArtifactEntry, ArtifactHash, CONTEXT_SCHEMA_VERSION, ChildIncludeMode,
+    ChildrenMode, CommitIntentKind, ConfigMode, ContextExcludedPath, ContextReceipt, DiffRow,
+    DiffTotals, ExportFormat, FileClassification, FileKind, FileRow, HandoffDerived,
+    HandoffHotspot, InclusionPolicy, LangRow, ModuleRow, PolicyExcludedFile, RedactMode,
+    ScanStatus, SmartExcludedFile, TableFormat, TokenAudit, TokenEstimationMeta, ToolInfo, Totals,
     cockpit::{
         CommitMatch, ComplexityIndicator, EvidenceSource, GateStatus, RiskLevel, TrendDirection,
         WarningType,
@@ -617,6 +618,246 @@ proptest! {
         let json = serde_json::to_string(&m).expect("serialize");
         let parsed: CommitMatch = serde_json::from_str(&json).expect("deserialize");
         prop_assert_eq!(m, parsed);
+    }
+
+    // ========================
+    // AnalysisFormat Round-trip
+    // ========================
+
+    #[test]
+    fn analysis_format_roundtrip(idx in 0usize..10) {
+        let fmt = [
+            AnalysisFormat::Md, AnalysisFormat::Json, AnalysisFormat::Jsonld,
+            AnalysisFormat::Xml, AnalysisFormat::Svg, AnalysisFormat::Mermaid,
+            AnalysisFormat::Obj, AnalysisFormat::Midi, AnalysisFormat::Tree,
+            AnalysisFormat::Html,
+        ][idx];
+        let json = serde_json::to_string(&fmt).expect("serialize");
+        let parsed: AnalysisFormat = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(fmt, parsed);
+    }
+
+    // ========================
+    // ScanStatus Round-trip
+    // ========================
+
+    #[test]
+    fn scan_status_roundtrip(idx in 0usize..2) {
+        let status = [ScanStatus::Complete, ScanStatus::Partial][idx].clone();
+        let json = serde_json::to_string(&status).expect("serialize");
+        let parsed: ScanStatus = serde_json::from_str(&json).expect("deserialize");
+        let json2 = serde_json::to_string(&parsed).expect("serialize again");
+        prop_assert_eq!(json, json2);
+    }
+
+    // ========================
+    // ToolInfo Round-trip
+    // ========================
+
+    #[test]
+    fn tool_info_roundtrip(
+        name in "[a-zA-Z][a-zA-Z0-9_-]*",
+        version in "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}",
+    ) {
+        let info = ToolInfo { name: name.clone(), version: version.clone() };
+        let json = serde_json::to_string(&info).expect("serialize");
+        let parsed: ToolInfo = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&info.name, &parsed.name);
+        prop_assert_eq!(&info.version, &parsed.version);
+    }
+
+    // ========================
+    // CapabilityState Round-trip (types version)
+    // ========================
+
+    #[test]
+    fn types_capability_state_roundtrip(idx in 0usize..3) {
+        let state = [
+            tokmd_types::CapabilityState::Available,
+            tokmd_types::CapabilityState::Skipped,
+            tokmd_types::CapabilityState::Unavailable,
+        ][idx];
+        let json = serde_json::to_string(&state).expect("serialize");
+        let parsed: tokmd_types::CapabilityState =
+            serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(state, parsed);
+    }
+
+    // ========================
+    // ArtifactEntry Round-trip
+    // ========================
+
+    #[test]
+    fn artifact_entry_roundtrip(
+        name in "[a-zA-Z0-9_-]{1,20}",
+        path in "[a-zA-Z0-9_/.-]{1,40}",
+        description in "[A-Za-z0-9 ]{1,60}",
+        bytes in 0u64..10_000_000,
+    ) {
+        let entry = ArtifactEntry {
+            name, path, description, bytes,
+            hash: Some(ArtifactHash {
+                algo: "blake3".to_string(),
+                hash: "abc123def456".to_string(),
+            }),
+        };
+        let json = serde_json::to_string(&entry).expect("serialize");
+        let parsed: ArtifactEntry = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&entry.name, &parsed.name);
+        prop_assert_eq!(&entry.path, &parsed.path);
+        prop_assert_eq!(&entry.description, &parsed.description);
+        prop_assert_eq!(entry.bytes, parsed.bytes);
+        prop_assert!(parsed.hash.is_some());
+    }
+
+    // ========================
+    // SmartExcludedFile Round-trip
+    // ========================
+
+    #[test]
+    fn smart_excluded_file_roundtrip(
+        path in "[a-zA-Z0-9_/.-]{1,40}",
+        reason in "[A-Za-z0-9 ]{1,40}",
+        tokens in 0usize..1_000_000,
+    ) {
+        let file = SmartExcludedFile { path, reason, tokens };
+        let json = serde_json::to_string(&file).expect("serialize");
+        let parsed: SmartExcludedFile = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&file.path, &parsed.path);
+        prop_assert_eq!(&file.reason, &parsed.reason);
+        prop_assert_eq!(file.tokens, parsed.tokens);
+    }
+
+    // ========================
+    // PolicyExcludedFile Round-trip
+    // ========================
+
+    #[test]
+    fn policy_excluded_file_roundtrip(
+        path in "[a-zA-Z0-9_/.-]{1,40}",
+        original_tokens in 0usize..1_000_000,
+        reason in "[A-Za-z0-9 ]{1,40}",
+    ) {
+        let file = PolicyExcludedFile {
+            path, original_tokens,
+            policy: InclusionPolicy::Skip,
+            reason,
+            classifications: vec![FileClassification::Minified],
+        };
+        let json = serde_json::to_string(&file).expect("serialize");
+        let parsed: PolicyExcludedFile = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&file.path, &parsed.path);
+        prop_assert_eq!(file.original_tokens, parsed.original_tokens);
+        prop_assert_eq!(file.classifications.len(), parsed.classifications.len());
+    }
+
+    // ========================
+    // HandoffHotspot Round-trip
+    // ========================
+
+    #[test]
+    fn handoff_hotspot_roundtrip(
+        path in "[a-zA-Z0-9_/.-]{1,40}",
+        commits in 0usize..10000,
+        lines in 0usize..100000,
+        score in 0usize..100000,
+    ) {
+        let hotspot = HandoffHotspot { path, commits, lines, score };
+        let json = serde_json::to_string(&hotspot).expect("serialize");
+        let parsed: HandoffHotspot = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&hotspot.path, &parsed.path);
+        prop_assert_eq!(hotspot.commits, parsed.commits);
+        prop_assert_eq!(hotspot.lines, parsed.lines);
+        prop_assert_eq!(hotspot.score, parsed.score);
+    }
+
+    // ========================
+    // HandoffDerived Round-trip
+    // ========================
+
+    #[test]
+    fn handoff_derived_roundtrip(
+        total_files in 0usize..100000,
+        total_code in 0usize..10_000_000,
+        total_lines in 0usize..20_000_000,
+        total_tokens in 0usize..100_000_000,
+        lang_count in 0usize..100,
+        dominant_pct in 0.0f64..100.0,
+    ) {
+        let derived = HandoffDerived {
+            total_files, total_code, total_lines, total_tokens, lang_count,
+            dominant_lang: "Rust".to_string(),
+            dominant_pct,
+        };
+        let json = serde_json::to_string(&derived).expect("serialize");
+        let parsed: HandoffDerived = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(derived.total_files, parsed.total_files);
+        prop_assert_eq!(derived.total_code, parsed.total_code);
+        prop_assert_eq!(derived.total_lines, parsed.total_lines);
+        prop_assert_eq!(derived.total_tokens, parsed.total_tokens);
+        prop_assert_eq!(derived.lang_count, parsed.lang_count);
+        prop_assert_eq!(&derived.dominant_lang, &parsed.dominant_lang);
+    }
+
+    // ========================
+    // ContextExcludedPath Round-trip
+    // ========================
+
+    #[test]
+    fn context_excluded_path_roundtrip(
+        path in "[a-zA-Z0-9_/.-]{1,40}",
+        reason in "[A-Za-z0-9 ]{1,40}",
+    ) {
+        let excl = ContextExcludedPath { path, reason };
+        let json = serde_json::to_string(&excl).expect("serialize");
+        let parsed: ContextExcludedPath = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(&excl.path, &parsed.path);
+        prop_assert_eq!(&excl.reason, &parsed.reason);
+    }
+
+    // ========================
+    // Serialization determinism
+    // ========================
+
+    #[test]
+    fn totals_serialization_deterministic(totals in arb_totals()) {
+        let json1 = serde_json::to_string(&totals).expect("serialize");
+        let json2 = serde_json::to_string(&totals).expect("serialize again");
+        prop_assert_eq!(json1, json2);
+    }
+
+    #[test]
+    fn token_estimation_from_bytes_deterministic(bytes in 0usize..10_000_000) {
+        let m1 = TokenEstimationMeta::from_bytes(bytes, TokenEstimationMeta::DEFAULT_BPT_EST);
+        let m2 = TokenEstimationMeta::from_bytes(bytes, TokenEstimationMeta::DEFAULT_BPT_EST);
+        prop_assert_eq!(m1.tokens_min, m2.tokens_min);
+        prop_assert_eq!(m1.tokens_est, m2.tokens_est);
+        prop_assert_eq!(m1.tokens_max, m2.tokens_max);
+        prop_assert_eq!(m1.source_bytes, m2.source_bytes);
+    }
+
+    // ========================
+    // DiffRow delta consistency
+    // ========================
+
+    #[test]
+    fn diff_row_delta_matches_old_new(
+        old_code in 0usize..100000,
+        new_code in 0usize..100000,
+    ) {
+        let expected_delta = new_code as i64 - old_code as i64;
+        let row = DiffRow {
+            lang: "Rust".to_string(),
+            old_code, new_code,
+            delta_code: expected_delta,
+            old_lines: 0, new_lines: 0, delta_lines: 0,
+            old_files: 0, new_files: 0, delta_files: 0,
+            old_bytes: 0, new_bytes: 0, delta_bytes: 0,
+            old_tokens: 0, new_tokens: 0, delta_tokens: 0,
+        };
+        let json = serde_json::to_string(&row).expect("serialize");
+        let parsed: DiffRow = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(parsed.delta_code, parsed.new_code as i64 - parsed.old_code as i64);
     }
 }
 
