@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-html/tests/snapshots.rs
+expression: title
+---
+<title>tokmd Analysis Report</title>

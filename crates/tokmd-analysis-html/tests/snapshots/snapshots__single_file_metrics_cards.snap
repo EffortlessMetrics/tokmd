@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-analysis-html/tests/snapshots.rs
+expression: summary
+---
+Files: 1
+Lines: 325
+Code: 250
+Tokens: 750
+Doc%: 20.0%

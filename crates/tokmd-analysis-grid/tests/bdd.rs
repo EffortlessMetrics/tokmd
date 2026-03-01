@@ -1,8 +1,8 @@
 //! BDD-style scenario tests for the analysis grid crate.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetGridRow, PresetKind, preset_plan_for,
-    preset_plan_for_name,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetGridRow, PresetKind, PresetPlan,
+    preset_plan_for, preset_plan_for_name,
 };
 
 // ── Scenario: PRESET_KINDS array completeness ──────────────────────────

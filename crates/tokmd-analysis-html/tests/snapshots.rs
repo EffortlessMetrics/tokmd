@@ -378,14 +378,26 @@ fn snapshot_single_file_metrics_cards() {
     let html = render(&receipt);
     let html = redact_timestamp(&html);
 
-    let metrics_start = html.find("metrics-grid").unwrap_or(0);
-    let metrics_end = html[metrics_start..]
-        .find("</div>")
-        .map(|i| metrics_start + i + 6)
-        .unwrap_or(metrics_start + 200);
-    let section = &html[metrics_start..metrics_end.min(html.len())];
+    // Extract metric cards by finding the actual card elements
+    let cards: Vec<&str> = html.split("class=\"metric-card\"").skip(1).collect();
 
-    insta::assert_snapshot!("single_file_metrics_cards", section);
+    let card_labels: Vec<String> = cards
+        .iter()
+        .filter_map(|c| {
+            let val_start = c.find("class=\"value\">")? + "class=\"value\">".len();
+            let val_end = c[val_start..].find("</span>")? + val_start;
+            let lbl_start = c.find("class=\"label\">")? + "class=\"label\">".len();
+            let lbl_end = c[lbl_start..].find("</span>")? + lbl_start;
+            Some(format!(
+                "{}: {}",
+                &c[lbl_start..lbl_end],
+                &c[val_start..val_end]
+            ))
+        })
+        .collect();
+
+    let summary = card_labels.join("\n");
+    insta::assert_snapshot!("single_file_metrics_cards", summary);
 }
 
 // ── Snapshot: Empty files derived data ──────────────────────────────

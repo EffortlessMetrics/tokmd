@@ -252,13 +252,17 @@ fn baseline_contains_complexity_metrics() {
 #[test]
 fn baseline_determinism_two_runs_same_result() {
     let tmp = tempfile::tempdir().unwrap();
-    write_sample_files(tmp.path());
+    let src_dir = tmp.path().join("src");
+    std::fs::create_dir(&src_dir).unwrap();
+    write_sample_files(&src_dir);
 
+    // Write outputs outside the scan directory to avoid contamination
     let output1 = tmp.path().join("baseline1.json");
     let output2 = tmp.path().join("baseline2.json");
 
     tokmd_at(tmp.path())
         .arg("baseline")
+        .arg(&src_dir)
         .arg("--output")
         .arg(&output1)
         .assert()
@@ -266,6 +270,7 @@ fn baseline_determinism_two_runs_same_result() {
 
     tokmd_at(tmp.path())
         .arg("baseline")
+        .arg(&src_dir)
         .arg("--output")
         .arg(&output2)
         .assert()

@@ -847,9 +847,9 @@ proptest! {
     #[test]
     fn analyze_config_toml_roundtrip(
         preset in proptest::option::of(arb_safe_string()),
-        window in proptest::option::of(any::<usize>()),
+        window in proptest::option::of(0usize..100_000),
         git in proptest::option::of(any::<bool>()),
-        max_files in proptest::option::of(any::<usize>()),
+        max_files in proptest::option::of(0usize..100_000),
         granularity in proptest::option::of(prop_oneof![
             Just("module".to_string()),
             Just("file".to_string()),

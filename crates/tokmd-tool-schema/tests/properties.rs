@@ -6,9 +6,7 @@
 use clap::{Arg, ArgAction, Command};
 use proptest::prelude::*;
 use serde_json::Value;
-use tokmd_tool_schema::{
-    ToolDefinition, ToolSchemaFormat, ToolSchemaOutput, build_tool_schema, render_output,
-};
+use tokmd_tool_schema::{ToolSchemaFormat, ToolSchemaOutput, build_tool_schema, render_output};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 
@@ -363,21 +361,18 @@ fn build_cmd_from_parts(
     name: &str,
     subcmds: &[(String, Vec<(String, ArgAction, bool)>)],
 ) -> Command {
-    let mut cmd = Command::new(name.to_string())
+    let mut cmd = Command::new(leak_str(name))
         .version("1.0.0")
         .about("Generated CLI");
     for (sc_name, args) in subcmds {
-        let mut sc = Command::new(sc_name.clone()).about("A subcommand");
-        // Deduplicate arg names within this subcommand
+        let mut sc = Command::new(leak_str(sc_name)).about("A subcommand");
         let mut seen = std::collections::BTreeSet::new();
         for (arg_name, action, required) in args {
             if !seen.insert(arg_name.clone()) {
                 continue;
             }
-            let mut arg = Arg::new(arg_name.clone())
-                .long(arg_name.clone())
-                .action(action.clone());
-            // Only Set/Append can be required; bool/count are flags
+            let leaked = leak_str(arg_name);
+            let mut arg = Arg::new(leaked).long(leaked).action(action.clone());
             if *required && matches!(action, ArgAction::Set | ArgAction::Append) {
                 arg = arg.required(true);
             }
@@ -386,6 +381,10 @@ fn build_cmd_from_parts(
         cmd = cmd.subcommand(sc);
     }
     cmd
+}
+
+fn leak_str(s: &str) -> &'static str {
+    Box::leak(s.to_string().into_boxed_str())
 }
 
 proptest! {

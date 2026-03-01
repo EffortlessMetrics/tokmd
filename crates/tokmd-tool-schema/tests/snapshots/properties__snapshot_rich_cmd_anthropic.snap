@@ -1,0 +1,70 @@
+---
+source: crates/tokmd-tool-schema/tests/properties.rs
+expression: rendered
+---
+{
+  "tools": [
+    {
+      "description": "A rich CLI",
+      "input_schema": {
+        "properties": {},
+        "required": [],
+        "type": "object"
+      },
+      "name": "rich"
+    },
+    {
+      "description": "Scan a directory",
+      "input_schema": {
+        "properties": {
+          "flag": {
+            "description": "A boolean flag",
+            "type": "boolean"
+          },
+          "format": {
+            "description": "Output format",
+            "enum": [
+              "json",
+              "csv",
+              "md"
+            ],
+            "type": "string"
+          },
+          "items": {
+            "description": "Repeatable item list",
+            "type": "array"
+          },
+          "path": {
+            "description": "Directory to scan",
+            "type": "string"
+          },
+          "verbose": {
+            "description": "Verbosity level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "scan"
+    },
+    {
+      "description": "Export results",
+      "input_schema": {
+        "properties": {
+          "output": {
+            "description": "Output file path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "output"
+        ],
+        "type": "object"
+      },
+      "name": "export"
+    }
+  ]
+}
