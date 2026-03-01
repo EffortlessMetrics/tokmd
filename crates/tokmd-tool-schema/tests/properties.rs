@@ -364,7 +364,11 @@ fn build_cmd_from_parts(
     let mut cmd = Command::new(leak_str(name))
         .version("1.0.0")
         .about("Generated CLI");
+    let mut seen_sc = std::collections::BTreeSet::new();
     for (sc_name, args) in subcmds {
+        if !seen_sc.insert(sc_name.as_str()) {
+            continue;
+        }
         let mut sc = Command::new(leak_str(sc_name)).about("A subcommand");
         let mut seen = std::collections::BTreeSet::new();
         for (arg_name, action, required) in args {
