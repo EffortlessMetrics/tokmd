@@ -4,7 +4,10 @@
     "lane": "scout",
     "target": "integration tests cleanup",
     "pr_link": "tbd",
-    "gates_run": ["test", "clippy"],
+    "gates_run": [
+      "test",
+      "clippy"
+    ],
     "status": "PASS",
     "friction_ids_created": []
   },
@@ -13,8 +16,23 @@
     "lane": "scout",
     "target": "crates/tokmd-content/src/lib.rs",
     "pr_link": "tbd",
-    "gates_run": ["test"],
+    "gates_run": [
+      "test"
+    ],
     "status": "PASS",
+    "friction_ids_created": []
+  },
+  {
+    "date": "2024-04-01T12:00:00Z",
+    "lane": "scout",
+    "target": "unwrap/expect/panic burndown in tokmd/src/analysis_utils.rs map_preset()",
+    "pr_link": "pending",
+    "gates_run": [
+      "build",
+      "clippy",
+      "test"
+    ],
+    "status": "success",
     "friction_ids_created": []
   }
 ]

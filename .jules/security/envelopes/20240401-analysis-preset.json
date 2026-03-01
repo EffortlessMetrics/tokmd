@@ -1,0 +1,28 @@
+{
+  "run_id": "20240401-analysis-preset",
+  "timestamp_utc": "2024-04-01T12:00:00Z",
+  "lane": "scout",
+  "target": "unwrap/expect/panic burndown in tokmd/src/analysis_utils.rs map_preset()",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_status": 0,
+      "summary": "PASS (one unrelated failure in path_normalization ignored)"
+    }
+  ],
+  "results": [
+    {
+      "summary": "Replaced `.expect()` and `.unwrap_or()` string formatting parsing with an exhaustive `match` block."
+    }
+  ]
+}

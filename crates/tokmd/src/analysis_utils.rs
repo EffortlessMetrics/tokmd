@@ -15,10 +15,7 @@ pub(crate) fn child_include_to_string(mode: cli::ChildIncludeMode) -> String {
 }
 
 pub(crate) fn preset_to_string(preset: cli::AnalysisPreset) -> String {
-    let key = format!("{:?}", preset).to_lowercase();
-    PresetKind::from_str(&key)
-        .map(|preset| preset.as_str().to_string())
-        .unwrap_or(key)
+    map_preset(preset).as_str().to_string()
 }
 
 pub(crate) fn format_to_string(format: cli::AnalysisFormat) -> String {
@@ -44,7 +41,19 @@ pub(crate) fn granularity_to_string(granularity: cli::ImportGranularity) -> Stri
 }
 
 pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPreset {
-    PresetKind::from_str(&format!("{:?}", preset).to_lowercase()).expect("unknown analysis preset")
+    match preset {
+        cli::AnalysisPreset::Receipt => PresetKind::Receipt,
+        cli::AnalysisPreset::Health => PresetKind::Health,
+        cli::AnalysisPreset::Risk => PresetKind::Risk,
+        cli::AnalysisPreset::Supply => PresetKind::Supply,
+        cli::AnalysisPreset::Architecture => PresetKind::Architecture,
+        cli::AnalysisPreset::Topics => PresetKind::Topics,
+        cli::AnalysisPreset::Security => PresetKind::Security,
+        cli::AnalysisPreset::Identity => PresetKind::Identity,
+        cli::AnalysisPreset::Git => PresetKind::Git,
+        cli::AnalysisPreset::Deep => PresetKind::Deep,
+        cli::AnalysisPreset::Fun => PresetKind::Fun,
+    }
 }
 
 pub(crate) fn map_granularity(granularity: cli::ImportGranularity) -> analysis::ImportGranularity {
