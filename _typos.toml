@@ -46,6 +46,7 @@ jsonl = "jsonl"
 # Common abbreviations
 loc = "loc"
 sloc = "sloc"
+strat = "strat"
 
 # Mathematical abbreviations (numerator/denominator)
 numer = "numer"
