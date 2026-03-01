@@ -24,6 +24,37 @@ use serde::{Deserialize, Serialize};
 // Re-export types from tokmd_types for convenience
 pub use tokmd_types::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
+/// Legacy JSON configuration used by early `tokmd` profile workflows.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UserConfig {
+    /// Named profile map.
+    pub profiles: BTreeMap<String, Profile>,
+    /// Repository-to-profile mapping (`owner/repo` -> `profile_name`).
+    pub repos: BTreeMap<String, String>,
+}
+
+/// Legacy per-profile settings consumed by `tokmd` profile resolution.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Profile {
+    // Shared
+    pub format: Option<String>, // "json", "md", "tsv", "csv", "jsonl"
+    pub top: Option<usize>,
+
+    // Lang
+    pub files: Option<bool>,
+
+    // Module / Export
+    pub module_roots: Option<Vec<String>>,
+    pub module_depth: Option<usize>,
+    pub min_code: Option<usize>,
+    pub max_rows: Option<usize>,
+    pub redact: Option<RedactMode>,
+    pub meta: Option<bool>,
+
+    // "children" can be ChildrenMode or ChildIncludeMode string
+    pub children: Option<String>,
+}
+
 /// Scan options shared by all commands that invoke the scanner.
 ///
 /// This mirrors the scan-relevant fields of `GlobalArgs` without any

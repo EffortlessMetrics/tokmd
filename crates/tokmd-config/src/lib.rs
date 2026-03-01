@@ -18,11 +18,11 @@
 //! ## Future Direction
 //! * Split into `tokmd-settings` (pure config) and `tokmd-cli` (Clap parsing)
 
-use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+pub use tokmd_settings::{Profile, UserConfig};
 pub use tokmd_tool_schema::ToolSchemaFormat;
 pub use tokmd_types::{
     AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode,
@@ -156,33 +156,6 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct UserConfig {
-    pub profiles: BTreeMap<String, Profile>,
-    pub repos: BTreeMap<String, String>, // "owner/repo" -> "profile_name"
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Profile {
-    // Shared
-    pub format: Option<String>, // "json", "md", "tsv", "csv", "jsonl"
-    pub top: Option<usize>,
-
-    // Lang
-    pub files: Option<bool>,
-
-    // Module / Export
-    pub module_roots: Option<Vec<String>>,
-    pub module_depth: Option<usize>,
-    pub min_code: Option<usize>,
-    pub max_rows: Option<usize>,
-    pub redact: Option<RedactMode>,
-    pub meta: Option<bool>,
-
-    // "children" can be ChildrenMode or ChildIncludeMode string
-    pub children: Option<String>,
 }
 
 #[derive(Args, Debug, Clone)]
