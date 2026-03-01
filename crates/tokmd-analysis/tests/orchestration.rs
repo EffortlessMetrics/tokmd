@@ -1011,7 +1011,10 @@ fn receipt_round_trip_serialization() {
 
     assert_eq!(receipt.schema_version, deserialized.schema_version);
     assert_eq!(receipt.mode, deserialized.mode);
-    assert_eq!(format!("{:?}", receipt.status), format!("{:?}", deserialized.status));
+    assert_eq!(
+        format!("{:?}", receipt.status),
+        format!("{:?}", deserialized.status)
+    );
     assert_eq!(receipt.warnings, deserialized.warnings);
     assert_eq!(receipt.args.preset, deserialized.args.preset);
     assert_eq!(receipt.source.inputs, deserialized.source.inputs);

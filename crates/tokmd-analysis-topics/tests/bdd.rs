@@ -78,7 +78,7 @@ fn given_single_file_then_overall_matches_module() {
     // Overall should contain the same terms (single module)
     for mt in module_terms {
         assert!(
-            clouds.overall.iter().any(|ov| ov.term == mt.term),
+            clouds.overall.iter().any(|ct| ct.term == mt.term),
             "overall missing term '{}'",
             mt.term
         );

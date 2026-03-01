@@ -307,8 +307,8 @@ fn analyze_json_contains_density_and_cocomo() {
     let cocomo = &json["derived"]["cocomo"];
     assert!(cocomo.is_object(), "cocomo should be present");
     assert!(
-        cocomo.get("effort_person_months").is_some(),
-        "cocomo should have effort_person_months"
+        cocomo.get("effort_pm").is_some(),
+        "cocomo should have effort_pm"
     );
 }
 
