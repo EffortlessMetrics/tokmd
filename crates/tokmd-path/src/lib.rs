@@ -1,6 +1,15 @@
 //! Single-responsibility path normalization for deterministic matching.
 
 /// Normalize path separators to `/`.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_path::normalize_slashes;
+///
+/// assert_eq!(normalize_slashes("src\\lib.rs"), "src/lib.rs");
+/// assert_eq!(normalize_slashes("already/forward"), "already/forward");
+/// ```
 #[must_use]
 pub fn normalize_slashes(path: &str) -> String {
     if path.contains('\\') {
@@ -13,6 +22,16 @@ pub fn normalize_slashes(path: &str) -> String {
 /// Normalize a relative path for matching:
 /// - converts `\` to `/`
 /// - strips one leading `./`
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_path::normalize_rel_path;
+///
+/// assert_eq!(normalize_rel_path("./src/main.rs"), "src/main.rs");
+/// assert_eq!(normalize_rel_path(".\\src\\main.rs"), "src/main.rs");
+/// assert_eq!(normalize_rel_path("../lib.rs"), "../lib.rs");
+/// ```
 #[must_use]
 pub fn normalize_rel_path(path: &str) -> String {
     let normalized = normalize_slashes(path);
