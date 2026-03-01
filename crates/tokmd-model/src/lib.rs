@@ -694,6 +694,93 @@ mod tests {
     }
 
     // Property-based tests for fold_other_* functions
+    // ========================
+    // avg() edge cases
+    // ========================
+
+    #[test]
+    fn avg_zero_files_returns_zero() {
+        assert_eq!(avg(100, 0), 0);
+        assert_eq!(avg(0, 0), 0);
+    }
+
+    #[test]
+    fn avg_rounds_to_nearest() {
+        // 10 / 3 = 3.33 → rounds to 3 (via (10+1)/3 = 3)
+        assert_eq!(avg(10, 3), 3);
+        // 11 / 3 = 3.67 → rounds to 4 (via (11+1)/3 = 4)
+        assert_eq!(avg(11, 3), 4);
+        // exact division
+        assert_eq!(avg(12, 3), 4);
+    }
+
+    #[test]
+    fn avg_single_file() {
+        assert_eq!(avg(42, 1), 42);
+    }
+
+    // ========================
+    // normalize_path edge cases
+    // ========================
+
+    #[test]
+    fn normalize_path_dot_slash_prefix() {
+        let p = PathBuf::from("./src/lib.rs");
+        assert_eq!(normalize_path(&p, None), "src/lib.rs");
+    }
+
+    #[test]
+    fn normalize_path_strip_prefix_with_backslash() {
+        let p = PathBuf::from("C:/Code/Repo/src/main.rs");
+        let prefix = PathBuf::from("C:\\Code\\Repo");
+        let got = normalize_path(&p, Some(&prefix));
+        assert_eq!(got, "src/main.rs");
+    }
+
+    #[test]
+    fn normalize_path_relative_only() {
+        let p = PathBuf::from("lib.rs");
+        assert_eq!(normalize_path(&p, None), "lib.rs");
+    }
+
+    // ========================
+    // fold_other_lang / fold_other_module determinism
+    // ========================
+
+    #[test]
+    fn fold_other_lang_single_row() {
+        let rows = vec![LangRow {
+            lang: "Rust".to_string(),
+            code: 100,
+            lines: 120,
+            files: 5,
+            bytes: 5000,
+            tokens: 1250,
+            avg_lines: 24,
+        }];
+        let folded = fold_other_lang(&rows);
+        assert_eq!(folded.lang, "Other");
+        assert_eq!(folded.code, 100);
+        assert_eq!(folded.bytes, 5000);
+    }
+
+    #[test]
+    fn fold_other_module_single_row() {
+        let rows = vec![ModuleRow {
+            module: "src".to_string(),
+            code: 200,
+            lines: 300,
+            files: 10,
+            bytes: 10000,
+            tokens: 2500,
+            avg_lines: 30,
+        }];
+        let folded = fold_other_module(&rows);
+        assert_eq!(folded.module, "Other");
+        assert_eq!(folded.code, 200);
+        assert_eq!(folded.files, 10);
+    }
+
     mod fold_properties {
         use super::*;
         use proptest::prelude::*;

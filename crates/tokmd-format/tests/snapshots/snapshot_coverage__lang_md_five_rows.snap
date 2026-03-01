@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 259
+expression: "render_lang_md(&report, ChildrenMode::Collapse)"
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|2000|2400|100000|5000|
+|Python|1500|1800|75000|3750|
+|JavaScript|800|960|40000|2000|
+|TOML|200|240|10000|500|
+|Markdown|100|120|5000|250|
+|**Total**|4600|5520|230000|11500|

@@ -50,6 +50,32 @@ fn snapshot_minimum_width_badge() {
     insta::assert_snapshot!("minimum_width_badge", svg);
 }
 
+// ── Snapshot tests for language count badges ────────────────────────
+
+#[test]
+fn snapshot_five_languages_badge() {
+    let svg = badge_svg("languages", "5");
+    insta::assert_snapshot!("five_languages_badge", svg);
+}
+
+#[test]
+fn snapshot_zero_languages_badge() {
+    let svg = badge_svg("languages", "0");
+    insta::assert_snapshot!("zero_languages_badge", svg);
+}
+
+#[test]
+fn snapshot_hundred_languages_badge() {
+    let svg = badge_svg("languages", "100");
+    insta::assert_snapshot!("hundred_languages_badge", svg);
+}
+
+#[test]
+fn snapshot_code_lines_count_badge() {
+    let svg = badge_svg("code lines", "48210");
+    insta::assert_snapshot!("code_lines_count_badge", svg);
+}
+
 // ── Property: badge always produces valid SVG structure ──────────────
 
 mod properties {
@@ -125,6 +151,24 @@ mod properties {
             if label.contains('<') {
                 prop_assert!(svg.contains("&lt;"));
             }
+        }
+
+        #[test]
+        fn any_non_negative_count_produces_valid_svg(count in 0u64..=1_000_000u64) {
+            let svg = badge_svg("languages", &count.to_string());
+            prop_assert!(svg.contains("<svg"), "must contain <svg");
+            prop_assert!(svg.contains("</svg>"), "must contain </svg>");
+            prop_assert!(svg.contains(&count.to_string()));
+        }
+
+        #[test]
+        fn badge_output_is_deterministic(
+            label in "\\PC{0,30}",
+            value in "\\PC{0,30}"
+        ) {
+            let first = badge_svg(&label, &value);
+            let second = badge_svg(&label, &value);
+            prop_assert_eq!(first, second, "same input must produce identical output");
         }
     }
 }

@@ -12,6 +12,17 @@ use tokmd_path::normalize_rel_path;
 /// - if `path` is absolute and under `root`, strip the `root` prefix
 /// - convert backslashes to `/`
 /// - strip one leading `./`
+///
+/// # Examples
+///
+/// ```
+/// use std::path::Path;
+/// use tokmd_exclude::normalize_exclude_pattern;
+///
+/// let root = Path::new("/project");
+/// let rel = Path::new("./out/bundle.js");
+/// assert_eq!(normalize_exclude_pattern(root, rel), "out/bundle.js");
+/// ```
 #[must_use]
 pub fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
     let rel = if path.is_absolute() {
@@ -23,6 +34,16 @@ pub fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
 }
 
 /// Return `true` when `existing` already contains `pattern` after normalization.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_exclude::has_exclude_pattern;
+///
+/// let patterns = vec!["out/bundle".to_string()];
+/// assert!(has_exclude_pattern(&patterns, "./out/bundle"));
+/// assert!(!has_exclude_pattern(&patterns, "dist/index"));
+/// ```
 #[must_use]
 pub fn has_exclude_pattern(existing: &[String], pattern: &str) -> bool {
     let normalized = normalize_rel_path(pattern);
@@ -34,6 +55,17 @@ pub fn has_exclude_pattern(existing: &[String], pattern: &str) -> bool {
 /// Add a pattern only when non-empty and not already present (after normalization).
 ///
 /// Returns `true` when the pattern was inserted.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_exclude::add_exclude_pattern;
+///
+/// let mut patterns = vec![];
+/// assert!(add_exclude_pattern(&mut patterns, "dist/out".to_string()));
+/// assert!(!add_exclude_pattern(&mut patterns, "dist/out".to_string())); // duplicate
+/// assert!(!add_exclude_pattern(&mut patterns, String::new())); // empty
+/// ```
 pub fn add_exclude_pattern(existing: &mut Vec<String>, pattern: String) -> bool {
     if pattern.is_empty() || has_exclude_pattern(existing, &pattern) {
         return false;

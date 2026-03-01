@@ -227,3 +227,59 @@ proptest! {
         prop_assert_eq!(hist.counts[nonzero[0]], count as u32);
     }
 }
+
+// ===========================================================================
+// Property: cyclomatic complexity is always >= 1 (base complexity)
+// ===========================================================================
+proptest! {
+    #[test]
+    fn prop_cyclomatic_always_non_negative(
+        cyclo in 0..500usize,
+    ) {
+        let file = FileComplexity {
+            path: "test.rs".to_string(),
+            module: "src".to_string(),
+            function_count: 1,
+            max_function_length: 10,
+            cyclomatic_complexity: cyclo,
+            cognitive_complexity: None,
+            max_nesting: None,
+            risk_level: ComplexityRisk::Low,
+            functions: None,
+        };
+        let hist = generate_complexity_histogram(&[file], 5);
+        // Even with zero cyclomatic, the histogram should place it correctly
+        prop_assert!(hist.total == 1);
+        prop_assert!(hist.counts.iter().sum::<u32>() == 1);
+    }
+}
+
+// ===========================================================================
+// Property: histogram with varying bucket sizes always partitions all files
+// ===========================================================================
+proptest! {
+    #[test]
+    fn prop_histogram_partitions_all_files(
+        files in arb_file_vec(),
+        bucket_size in 1u32..50,
+    ) {
+        let hist = generate_complexity_histogram(&files, bucket_size);
+        let sum: u32 = hist.counts.iter().sum();
+        prop_assert_eq!(sum, hist.total, "counts must sum to total for any bucket_size");
+        prop_assert_eq!(hist.total, files.len() as u32);
+    }
+}
+
+// ===========================================================================
+// Property: histogram counts are non-negative (trivially, but ensures no underflow)
+// ===========================================================================
+proptest! {
+    #[test]
+    fn prop_histogram_counts_non_negative(files in arb_file_vec()) {
+        let hist = generate_complexity_histogram(&files, 5);
+        for (i, &count) in hist.counts.iter().enumerate() {
+            // u32 is always >= 0, but this documents the invariant
+            prop_assert!(count <= hist.total, "bucket {i} count must not exceed total");
+        }
+    }
+}

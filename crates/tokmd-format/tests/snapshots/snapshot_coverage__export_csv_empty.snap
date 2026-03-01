@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 521
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens

@@ -201,3 +201,122 @@ proptest! {
         }
     }
 }
+
+// =========================================================================
+// Property tests for UserConfig round-trip
+// =========================================================================
+
+proptest! {
+    #[test]
+    fn user_config_json_roundtrip(
+        profile_name in "[a-z_]{1,10}",
+        format in prop::option::of(prop::sample::select(vec!["json", "md", "tsv", "csv", "jsonl"])),
+        top in prop::option::of(0..1000usize),
+        files in prop::option::of(proptest::bool::ANY),
+        min_code in prop::option::of(0..10000usize),
+        max_rows in prop::option::of(0..50000usize),
+        module_depth in prop::option::of(1..5usize),
+    ) {
+        use std::collections::BTreeMap;
+        use tokmd_config::{Profile, UserConfig};
+
+        let mut profiles = BTreeMap::new();
+        profiles.insert(profile_name.clone(), Profile {
+            format: format.map(|s| s.to_string()),
+            top,
+            files,
+            module_roots: None,
+            module_depth,
+            min_code,
+            max_rows,
+            redact: None,
+            meta: None,
+            children: None,
+        });
+        let config = UserConfig { profiles, repos: BTreeMap::new() };
+
+        let json = serde_json::to_string(&config).expect("serialize");
+        let back: UserConfig = serde_json::from_str(&json).expect("deserialize");
+
+        let orig = config.profiles.get(&profile_name).unwrap();
+        let roundtripped = back.profiles.get(&profile_name).unwrap();
+        prop_assert_eq!(&orig.format, &roundtripped.format);
+        prop_assert_eq!(orig.top, roundtripped.top);
+        prop_assert_eq!(orig.files, roundtripped.files);
+        prop_assert_eq!(orig.min_code, roundtripped.min_code);
+        prop_assert_eq!(orig.max_rows, roundtripped.max_rows);
+        prop_assert_eq!(orig.module_depth, roundtripped.module_depth);
+    }
+}
+
+// =========================================================================
+// Property tests for TomlConfig round-trip through TOML serialization
+// =========================================================================
+
+proptest! {
+    #[test]
+    fn toml_config_roundtrip(
+        hidden in prop::option::of(proptest::bool::ANY),
+        depth in prop::option::of(1..10usize),
+        min_code in prop::option::of(0..10000usize),
+        preset in prop::option::of(prop::sample::select(vec![
+            "receipt", "health", "risk", "supply", "architecture",
+            "topics", "security", "identity", "git", "deep", "fun",
+        ])),
+        budget in prop::option::of(prop::sample::select(vec!["64k", "128k", "256k", "1m"])),
+        fail_fast in prop::option::of(proptest::bool::ANY),
+    ) {
+        use tokmd_config::TomlConfig;
+
+        let mut config = TomlConfig::default();
+        config.scan.hidden = hidden;
+        config.module.depth = depth;
+        config.export.min_code = min_code;
+        config.analyze.preset = preset.map(|s| s.to_string());
+        config.context.budget = budget.map(|s| s.to_string());
+        config.gate.fail_fast = fail_fast;
+
+        let toml_str = toml::to_string(&config).expect("serialize to TOML");
+        let back = TomlConfig::parse(&toml_str).expect("re-parse TOML");
+
+        prop_assert_eq!(config.scan.hidden, back.scan.hidden);
+        prop_assert_eq!(config.module.depth, back.module.depth);
+        prop_assert_eq!(config.export.min_code, back.export.min_code);
+        prop_assert_eq!(config.analyze.preset, back.analyze.preset);
+        prop_assert_eq!(config.context.budget, back.context.budget);
+        prop_assert_eq!(config.gate.fail_fast, back.gate.fail_fast);
+    }
+}
+
+// =========================================================================
+// Property test: all enum variant counts match expectations
+// =========================================================================
+
+#[test]
+fn all_enum_variant_counts_are_exhaustive() {
+    // If a variant is added to any enum, these counts must be updated,
+    // and a corresponding round-trip entry added above.
+    assert_eq!(TABLE_FORMATS.len(), 3, "TableFormat variant count");
+    assert_eq!(
+        EXPORT_FORMATS.len(),
+        3,
+        "ExportFormat variant count (excl. cyclonedx)"
+    );
+    assert_eq!(CONFIG_MODES.len(), 2, "ConfigMode variant count");
+    assert_eq!(CHILDREN_MODES.len(), 2, "ChildrenMode variant count");
+    assert_eq!(
+        CHILD_INCLUDE_MODES.len(),
+        2,
+        "ChildIncludeMode variant count"
+    );
+    assert_eq!(REDACT_MODES.len(), 3, "RedactMode variant count");
+    assert_eq!(ANALYSIS_PRESETS.len(), 11, "AnalysisPreset variant count");
+    assert_eq!(
+        IMPORT_GRANULARITIES.len(),
+        2,
+        "ImportGranularity variant count"
+    );
+    assert_eq!(BADGE_METRICS.len(), 6, "BadgeMetric variant count");
+    assert_eq!(INIT_PROFILES.len(), 7, "InitProfile variant count");
+    assert_eq!(SHELLS.len(), 5, "Shell variant count");
+}

@@ -1,0 +1,126 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_analysis.rs
+assertion_line: 274
+expression: md
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|10|1200|200|100|1500|12000|3000|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|14.3%|
+|Whitespace ratio|6.7%|
+|Bytes per line|8.00|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|14.3%|150|900|
+|Python|14.3%|50|300|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+|Rust|8.18|9000|1100|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|10|20|390|150.00|120.00|300.00|390.00|0.3500|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|Small|0|100|4|40.0%|
+|Medium|101|500|6|60.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/main.rs|Rust|390|300|3000|600|15.0%|8.00|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|325|250|2500|500|15.0%|8.00|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+## Structure
+
+- Max depth: `5`
+- Avg depth: `2.50`
+
+## Test density
+
+- Test lines: `200`
+- Prod lines: `1000`
+- Test ratio: `20.0%`
+
+## Boilerplate ratio
+
+- Infra lines: `80`
+- Logic lines: `1420`
+- Infra ratio: `5.6%`
+
+## Polyglot
+
+- Languages: `2`
+- Dominant: `Rust` (75.0%)
+- Entropy: `0.6500`
+
+## Reading time
+
+- Minutes: `75.00` (20 lines/min)
+
+## COCOMO estimate
+
+- Mode: `organic`
+- KLOC: `1.2000`
+- Effort (PM): `3.14`
+- Duration (months): `2.50`
+- Staff: `1.26`
+
+## Integrity
+
+- Hash: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` (`blake3`)
+- Entries: `10`

@@ -780,6 +780,195 @@ fn scenario_load_trend_invalid_json() {
 }
 
 // ===========================================================================
+// Scenario: Zero diff stats → all evidence gates pass
+// ===========================================================================
+
+#[test]
+fn scenario_zero_diff_stats_all_gates_pass() {
+    // Given: a cockpit receipt with zero diff stats (no files changed)
+    let receipt = minimal_receipt();
+
+    // When: evaluating the evidence section
+    let evidence = &receipt.evidence;
+
+    // Then: overall status should be Pass (no failures),
+    //       mutation gate is Skipped (no files to mutate),
+    //       and optional gates are None (nothing to evaluate)
+    assert_eq!(evidence.overall_status, GateStatus::Pass);
+    assert_eq!(evidence.mutation.meta.status, GateStatus::Skipped);
+    assert!(evidence.diff_coverage.is_none());
+    assert!(evidence.contracts.is_none());
+    assert!(evidence.supply_chain.is_none());
+    assert!(evidence.determinism.is_none());
+    assert!(evidence.complexity.is_none());
+}
+
+// ===========================================================================
+// Scenario: High complexity receipt → complexity gate fails
+// ===========================================================================
+
+#[test]
+fn scenario_high_complexity_gate_fails() {
+    // Given: a receipt whose complexity gate reports >3 high-complexity files
+    let mut receipt = minimal_receipt();
+    receipt.evidence.complexity = Some(ComplexityGate {
+        meta: GateMeta {
+            status: GateStatus::Fail,
+            source: EvidenceSource::RanLocal,
+            commit_match: CommitMatch::Exact,
+            scope: ScopeCoverage {
+                relevant: vec![
+                    "src/a.rs".into(),
+                    "src/b.rs".into(),
+                    "src/c.rs".into(),
+                    "src/d.rs".into(),
+                ],
+                tested: vec![
+                    "src/a.rs".into(),
+                    "src/b.rs".into(),
+                    "src/c.rs".into(),
+                    "src/d.rs".into(),
+                ],
+                ratio: 1.0,
+                lines_relevant: None,
+                lines_tested: None,
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        files_analyzed: 4,
+        high_complexity_files: vec![
+            HighComplexityFile {
+                path: "src/a.rs".into(),
+                cyclomatic: 25,
+                function_count: 5,
+                max_function_length: 200,
+            },
+            HighComplexityFile {
+                path: "src/b.rs".into(),
+                cyclomatic: 20,
+                function_count: 3,
+                max_function_length: 150,
+            },
+            HighComplexityFile {
+                path: "src/c.rs".into(),
+                cyclomatic: 18,
+                function_count: 4,
+                max_function_length: 180,
+            },
+            HighComplexityFile {
+                path: "src/d.rs".into(),
+                cyclomatic: 16,
+                function_count: 2,
+                max_function_length: 120,
+            },
+        ],
+        avg_cyclomatic: 19.75,
+        max_cyclomatic: 25,
+        threshold_exceeded: true,
+    });
+
+    // When: evaluating the complexity gate
+    let complexity = receipt.evidence.complexity.as_ref().unwrap();
+
+    // Then: the gate status is Fail, threshold is exceeded,
+    //       and all four files are flagged as high-complexity
+    assert_eq!(complexity.meta.status, GateStatus::Fail);
+    assert!(complexity.threshold_exceeded);
+    assert_eq!(complexity.high_complexity_files.len(), 4);
+    assert!(complexity.max_cyclomatic > COMPLEXITY_THRESHOLD);
+}
+
+// ===========================================================================
+// Scenario: Determinism hash file comparison produces deterministic result
+// ===========================================================================
+
+#[test]
+fn scenario_determinism_hash_comparison() {
+    // Given: a temporary directory with source files and a determinism hash
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        dir.path().join("main.rs"),
+        "fn main() { println!(\"hello\"); }",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("lib.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }",
+    )
+    .unwrap();
+
+    let hash1 =
+        tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["main.rs", "lib.rs"])
+            .unwrap();
+
+    // When: comparing a freshly computed hash against the stored hash
+    let hash2 =
+        tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["main.rs", "lib.rs"])
+            .unwrap();
+
+    // Then: matching hashes produce a deterministic (equal) result
+    assert_eq!(hash1, hash2);
+    assert_eq!(hash1.len(), 64); // BLAKE3 hex digest length
+
+    // And: modifying a file causes the hashes to diverge
+    std::fs::write(
+        dir.path().join("main.rs"),
+        "fn main() { println!(\"changed\"); }",
+    )
+    .unwrap();
+    let hash3 =
+        tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["main.rs", "lib.rs"])
+            .unwrap();
+    assert_ne!(hash1, hash3);
+}
+
+// ===========================================================================
+// Scenario: Two receipts with different schemas → diff detected
+// ===========================================================================
+
+#[test]
+fn scenario_different_schema_versions_detected_in_diff() {
+    // Given: two cockpit receipts with different schema_version values
+    let mut receipt_a = minimal_receipt();
+    receipt_a.schema_version = 2;
+    receipt_a.code_health.score = 80;
+    receipt_a.risk.score = 30;
+
+    let mut receipt_b = minimal_receipt();
+    receipt_b.schema_version = 3;
+    receipt_b.code_health.score = 90;
+    receipt_b.risk.score = 10;
+
+    // When: serializing both and comparing their JSON representations
+    let json_a = serde_json::to_value(&receipt_a).unwrap();
+    let json_b = serde_json::to_value(&receipt_b).unwrap();
+
+    // Then: the schema_version field differs between the two
+    assert_ne!(
+        json_a["schema_version"], json_b["schema_version"],
+        "schema_version should differ between receipts"
+    );
+
+    // And: a trend comparison detects the metric differences
+    let dir = tempfile::tempdir().unwrap();
+    let baseline_path = dir.path().join("baseline.json");
+    std::fs::write(
+        &baseline_path,
+        serde_json::to_string_pretty(&receipt_a).unwrap(),
+    )
+    .unwrap();
+
+    let trend = load_and_compute_trend(&baseline_path, &receipt_b).unwrap();
+    assert!(trend.baseline_available);
+
+    let health = trend.health.unwrap();
+    assert_eq!(health.direction, TrendDirection::Improving);
+    assert_eq!(health.current, 90.0);
+    assert_eq!(health.previous, 80.0);
+}
+
+// ===========================================================================
 // Scenario: Load baseline trend with valid receipt
 // ===========================================================================
 

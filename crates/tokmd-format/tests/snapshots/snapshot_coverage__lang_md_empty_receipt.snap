@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 475
+expression: "render_lang_md(&report, ChildrenMode::Collapse)"
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|**Total**|0|0|0|0|

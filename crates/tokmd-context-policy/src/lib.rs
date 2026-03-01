@@ -261,4 +261,126 @@ mod tests {
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.unwrap_or_default().contains("generated"));
     }
+
+    // ========================
+    // compute_file_cap edge cases
+    // ========================
+
+    #[test]
+    fn compute_file_cap_returns_max_for_unlimited_budget() {
+        assert_eq!(compute_file_cap(usize::MAX, 0.15, None), usize::MAX);
+    }
+
+    #[test]
+    fn compute_file_cap_respects_pct_when_smaller() {
+        // budget=10_000, 15% = 1500, hard cap defaults to 16_000
+        // pct cap (1500) < hard cap (16_000), so pct wins
+        assert_eq!(compute_file_cap(10_000, 0.15, None), 1_500);
+    }
+
+    #[test]
+    fn compute_file_cap_respects_hard_cap_when_smaller() {
+        // budget=1_000_000, 15% = 150_000, hard cap = 500
+        assert_eq!(compute_file_cap(1_000_000, 0.15, Some(500)), 500);
+    }
+
+    // ========================
+    // classify_file additional cases
+    // ========================
+
+    #[test]
+    fn classify_file_detects_lockfile() {
+        let classes = classify_file("Cargo.lock", 100, 50, 50.0);
+        assert!(classes.contains(&FileClassification::Lockfile));
+    }
+
+    #[test]
+    fn classify_file_detects_minified_js() {
+        let classes = classify_file("dist/app.min.js", 100, 50, 50.0);
+        assert!(classes.contains(&FileClassification::Minified));
+    }
+
+    #[test]
+    fn classify_file_detects_vendored_dir() {
+        let classes = classify_file("vendor/lib/foo.go", 100, 50, 50.0);
+        assert!(classes.contains(&FileClassification::Vendored));
+    }
+
+    #[test]
+    fn classify_file_detects_fixture_dir() {
+        let classes = classify_file("testdata/sample.json", 100, 50, 50.0);
+        assert!(classes.contains(&FileClassification::Fixture));
+    }
+
+    #[test]
+    fn classify_file_normal_file_has_no_classifications() {
+        let classes = classify_file("src/main.rs", 100, 50, 50.0);
+        assert!(classes.is_empty());
+    }
+
+    // ========================
+    // assign_policy additional cases
+    // ========================
+
+    #[test]
+    fn assign_policy_full_when_under_cap() {
+        let (policy, reason) = assign_policy(100, 16_000, &[]);
+        assert_eq!(policy, InclusionPolicy::Full);
+        assert!(reason.is_none());
+    }
+
+    #[test]
+    fn assign_policy_head_tail_for_oversized_normal_file() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[]);
+        assert_eq!(policy, InclusionPolicy::HeadTail);
+        assert!(reason.unwrap_or_default().contains("head+tail"));
+    }
+
+    #[test]
+    fn assign_policy_skips_oversized_vendored() {
+        let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Vendored]);
+        assert_eq!(policy, InclusionPolicy::Skip);
+        assert!(reason.unwrap_or_default().contains("vendored"));
+    }
+
+    // ========================
+    // smart_exclude_reason additional cases
+    // ========================
+
+    #[test]
+    fn smart_exclude_reason_detects_minified_css() {
+        assert_eq!(smart_exclude_reason("styles.min.css"), Some("minified"));
+    }
+
+    #[test]
+    fn smart_exclude_reason_detects_nested_lockfile() {
+        assert_eq!(
+            smart_exclude_reason("some/deep/path/yarn.lock"),
+            Some("lockfile")
+        );
+    }
+
+    #[test]
+    fn smart_exclude_reason_returns_none_for_normal_file() {
+        assert_eq!(smart_exclude_reason("src/lib.rs"), None);
+    }
+
+    // ========================
+    // is_spine_file additional cases
+    // ========================
+
+    #[test]
+    fn is_spine_file_matches_cargo_toml() {
+        assert!(is_spine_file("Cargo.toml"));
+    }
+
+    #[test]
+    fn is_spine_file_matches_nested_readme() {
+        assert!(is_spine_file("subdir/README.md"));
+    }
+
+    #[test]
+    fn is_spine_file_does_not_match_source_file() {
+        assert!(!is_spine_file("src/main.rs"));
+    }
 }

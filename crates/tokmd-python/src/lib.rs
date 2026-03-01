@@ -152,13 +152,13 @@ fn lang(
     excluded: Option<Vec<String>>,
     hidden: bool,
 ) -> PyResult<PyObject> {
-    let args = build_args(py, paths, top, excluded, hidden);
-    args.set_item("files", files).expect("set files");
+    let args = build_args(py, paths, top, excluded, hidden)?;
+    args.set_item("files", files)?;
     if let Some(c) = children {
-        args.set_item("children", c).expect("set children");
+        args.set_item("children", c)?;
     }
     if let Some(r) = redact {
-        args.set_item("redact", r).expect("set redact");
+        args.set_item("redact", r)?;
     }
     run(py, "lang", &args)
 }
@@ -200,18 +200,16 @@ fn module(
     excluded: Option<Vec<String>>,
     hidden: bool,
 ) -> PyResult<PyObject> {
-    let args = build_args(py, paths, top, excluded, hidden);
-    args.set_item("module_depth", module_depth)
-        .expect("set module_depth");
+    let args = build_args(py, paths, top, excluded, hidden)?;
+    args.set_item("module_depth", module_depth)?;
     if let Some(roots) = module_roots {
-        args.set_item("module_roots", roots)
-            .expect("set module_roots");
+        args.set_item("module_roots", roots)?;
     }
     if let Some(c) = children {
-        args.set_item("children", c).expect("set children");
+        args.set_item("children", c)?;
     }
     if let Some(r) = redact {
-        args.set_item("redact", r).expect("set redact");
+        args.set_item("redact", r)?;
     }
     run(py, "module", &args)
 }
@@ -256,23 +254,21 @@ fn export(
     excluded: Option<Vec<String>>,
     hidden: bool,
 ) -> PyResult<PyObject> {
-    let args = build_args(py, paths, 0, excluded, hidden);
-    args.set_item("min_code", min_code).expect("set min_code");
-    args.set_item("max_rows", max_rows).expect("set max_rows");
-    args.set_item("module_depth", module_depth)
-        .expect("set module_depth");
+    let args = build_args(py, paths, 0, excluded, hidden)?;
+    args.set_item("min_code", min_code)?;
+    args.set_item("max_rows", max_rows)?;
+    args.set_item("module_depth", module_depth)?;
     if let Some(f) = format {
-        args.set_item("format", f).expect("set format");
+        args.set_item("format", f)?;
     }
     if let Some(roots) = module_roots {
-        args.set_item("module_roots", roots)
-            .expect("set module_roots");
+        args.set_item("module_roots", roots)?;
     }
     if let Some(c) = children {
-        args.set_item("children", c).expect("set children");
+        args.set_item("children", c)?;
     }
     if let Some(r) = redact {
-        args.set_item("redact", r).expect("set redact");
+        args.set_item("redact", r)?;
     }
     run(py, "export", &args)
 }
@@ -317,24 +313,24 @@ fn analyze(
     excluded: Option<Vec<String>>,
     hidden: bool,
 ) -> PyResult<PyObject> {
-    let args = build_args(py, paths, 0, excluded, hidden);
+    let args = build_args(py, paths, 0, excluded, hidden)?;
     if let Some(p) = preset {
-        args.set_item("preset", p).expect("set preset");
+        args.set_item("preset", p)?;
     }
     if let Some(w) = window {
-        args.set_item("window", w).expect("set window");
+        args.set_item("window", w)?;
     }
     if let Some(g) = git {
-        args.set_item("git", g).expect("set git");
+        args.set_item("git", g)?;
     }
     if let Some(mf) = max_files {
-        args.set_item("max_files", mf).expect("set max_files");
+        args.set_item("max_files", mf)?;
     }
     if let Some(mb) = max_bytes {
-        args.set_item("max_bytes", mb).expect("set max_bytes");
+        args.set_item("max_bytes", mb)?;
     }
     if let Some(mc) = max_commits {
-        args.set_item("max_commits", mc).expect("set max_commits");
+        args.set_item("max_commits", mc)?;
     }
     run(py, "analyze", &args)
 }
@@ -355,8 +351,8 @@ fn analyze(
 #[cfg_attr(not(test), pyfunction)]
 fn diff(py: Python<'_>, from_path: &str, to_path: &str) -> PyResult<PyObject> {
     let args = PyDict::new(py);
-    args.set_item("from", from_path).expect("set from");
-    args.set_item("to", to_path).expect("set to");
+    args.set_item("from", from_path)?;
+    args.set_item("to", to_path)?;
     run(py, "diff", &args)
 }
 
@@ -390,16 +386,16 @@ fn cockpit(
 ) -> PyResult<PyObject> {
     let args = PyDict::new(py);
     if let Some(b) = base {
-        args.set_item("base", b).expect("set base");
+        args.set_item("base", b)?;
     }
     if let Some(h) = head {
-        args.set_item("head", h).expect("set head");
+        args.set_item("head", h)?;
     }
     if let Some(rm) = range_mode {
-        args.set_item("range_mode", rm).expect("set range_mode");
+        args.set_item("range_mode", rm)?;
     }
     if let Some(bl) = baseline {
-        args.set_item("baseline", bl).expect("set baseline");
+        args.set_item("baseline", bl)?;
     }
     run(py, "cockpit", &args)
 }
@@ -411,30 +407,30 @@ fn build_args<'py>(
     top: usize,
     excluded: Option<Vec<String>>,
     hidden: bool,
-) -> Bound<'py, PyDict> {
+) -> PyResult<Bound<'py, PyDict>> {
     let args = PyDict::new(py);
 
     if let Some(p) = paths {
-        args.set_item("paths", p).expect("set paths");
+        args.set_item("paths", p)?;
     } else {
-        args.set_item("paths", vec!["."]).expect("set paths");
+        args.set_item("paths", vec!["."])?;
     }
 
     if top > 0 {
-        args.set_item("top", top).expect("set top");
+        args.set_item("top", top)?;
     }
 
     if let Some(ex) = excluded
         && !ex.is_empty()
     {
-        args.set_item("excluded", ex).expect("set excluded");
+        args.set_item("excluded", ex)?;
     }
 
     if hidden {
-        args.set_item("hidden", hidden).expect("set hidden");
+        args.set_item("hidden", hidden)?;
     }
 
-    args
+    Ok(args)
 }
 
 /// The tokmd Python module.
@@ -626,7 +622,7 @@ mod tests {
     #[test]
     fn build_args_sets_defaults_and_options() {
         with_py(|py| {
-            let args = build_args(py, None, 0, None, false);
+            let args = build_args(py, None, 0, None, false).unwrap();
             let paths: Vec<String> = args.get_item("paths").unwrap().unwrap().extract().unwrap();
             assert_eq!(paths, vec!["."]);
             assert!(args.get_item("top").unwrap().is_none());
@@ -639,13 +635,15 @@ mod tests {
                 3,
                 Some(vec!["target".to_string()]),
                 true,
-            );
+            )
+            .unwrap();
             let top: i64 = args.get_item("top").unwrap().unwrap().extract().unwrap();
             assert_eq!(top, 3);
             assert!(args.get_item("excluded").unwrap().is_some());
             assert!(args.get_item("hidden").unwrap().is_some());
 
-            let args = build_args(py, Some(vec!["src".to_string()]), 0, Some(vec![]), false);
+            let args =
+                build_args(py, Some(vec!["src".to_string()]), 0, Some(vec![]), false).unwrap();
             assert!(args.get_item("excluded").unwrap().is_none());
         });
     }

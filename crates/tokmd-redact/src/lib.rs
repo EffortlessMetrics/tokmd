@@ -199,4 +199,71 @@ mod tests {
     fn test_redact_path_normalizes_dot_prefix() {
         assert_eq!(redact_path("src/main.rs"), redact_path("./src/main.rs"));
     }
+
+    // ========================
+    // clean_path edge cases
+    // ========================
+
+    #[test]
+    fn clean_path_empty_string() {
+        assert_eq!(clean_path(""), "");
+    }
+
+    #[test]
+    fn clean_path_multiple_dot_slash_prefix() {
+        // Stripping repeated ./././
+        assert_eq!(clean_path("./././src/lib.rs"), "src/lib.rs");
+    }
+
+    #[test]
+    fn clean_path_interior_dot_segments() {
+        assert_eq!(clean_path("a/./b/./c"), "a/b/c");
+    }
+
+    #[test]
+    fn clean_path_trailing_dot() {
+        assert_eq!(clean_path("src/."), "src");
+    }
+
+    #[test]
+    fn clean_path_backslash_and_dot() {
+        assert_eq!(clean_path(".\\src\\.\\lib.rs"), "src/lib.rs");
+    }
+
+    // ========================
+    // Hash output invariants
+    // ========================
+
+    #[test]
+    fn short_hash_is_hex_only() {
+        let h = short_hash("anything");
+        assert!(
+            h.chars().all(|c| c.is_ascii_hexdigit()),
+            "hash should only contain hex chars: {}",
+            h
+        );
+    }
+
+    #[test]
+    fn short_hash_empty_input() {
+        let h = short_hash("");
+        assert_eq!(h.len(), 16);
+        // Deterministic: empty string always produces the same hash
+        assert_eq!(h, short_hash(""));
+    }
+
+    #[test]
+    fn redact_path_hidden_dotfile() {
+        let r = redact_path(".gitignore");
+        // Rust's Path::extension() returns None for dotfiles like .gitignore
+        assert_eq!(r.len(), 16);
+        assert!(!r.contains('.'));
+    }
+
+    #[test]
+    fn redact_path_deeply_nested() {
+        let r = redact_path("a/b/c/d/e/f/g.txt");
+        assert!(r.ends_with(".txt"));
+        assert_eq!(r.len(), 16 + 4); // hash + ".txt"
+    }
 }

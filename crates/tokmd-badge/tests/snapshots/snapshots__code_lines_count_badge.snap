@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-badge/tests/snapshots.rs
+assertion_line: 76
+expression: svg
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="24" role="img"><rect width="90" height="24" fill="#555"/><rect x="90" width="60" height="24" fill="#4c9aff"/><text x="45" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">code lines</text><text x="120" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">48210</text></svg>

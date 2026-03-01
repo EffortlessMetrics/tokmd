@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 639
+expression: "render_lang_tsv(&report, ChildrenMode::Separate)"
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	1000	1200	50000	2500
+HTML (embedded)	200	240	10000	500
+Total	1200	1440	60000	3000

@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 554
+expression: "render_lang_md(&report, ChildrenMode::Collapse)"
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Visual Basic .NET (Extremely Long Name)|300|360|15000|750|
+|Jupyter Notebook (Python Embedded)|200|240|10000|500|
+|C++ Header (Template Metaprogramming)|100|120|5000|250|
+|**Total**|600|720|30000|1500|

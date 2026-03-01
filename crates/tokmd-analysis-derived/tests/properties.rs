@@ -250,4 +250,125 @@ proptest! {
             report.nesting.max, report.nesting.avg
         );
     }
+
+    #[test]
+    fn cocomo_values_are_non_negative(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        if let Some(cocomo) = &report.cocomo {
+            prop_assert!(cocomo.kloc >= 0.0, "kloc must be non-negative, got {}", cocomo.kloc);
+            prop_assert!(cocomo.effort_pm >= 0.0, "effort_pm must be non-negative, got {}", cocomo.effort_pm);
+            prop_assert!(cocomo.duration_months >= 0.0, "duration_months must be non-negative, got {}", cocomo.duration_months);
+            prop_assert!(cocomo.staff >= 0.0, "staff must be non-negative, got {}", cocomo.staff);
+        }
+    }
+
+    #[test]
+    fn doc_density_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        let ratio = report.doc_density.total.ratio;
+        prop_assert!(
+            ratio >= 0.0 && ratio <= 1.0,
+            "doc_density total ratio must be in [0, 1], got {}",
+            ratio
+        );
+        // by_lang ratios use comments/code (not comments/(code+comments)),
+        // so they can exceed 1.0 — just verify non-negative
+        for row in &report.doc_density.by_lang {
+            prop_assert!(
+                row.ratio >= 0.0,
+                "by_lang ratio for {} must be non-negative, got {}",
+                row.key, row.ratio
+            );
+        }
+    }
+
+    #[test]
+    fn test_density_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.test_density.ratio >= 0.0 && report.test_density.ratio <= 1.0,
+            "test_density ratio must be in [0, 1], got {}",
+            report.test_density.ratio
+        );
+    }
+
+    #[test]
+    fn boilerplate_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.boilerplate.ratio >= 0.0 && report.boilerplate.ratio <= 1.0,
+            "boilerplate ratio must be in [0, 1], got {}",
+            report.boilerplate.ratio
+        );
+    }
+
+    #[test]
+    fn polyglot_dominant_pct_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.polyglot.dominant_pct >= 0.0 && report.polyglot.dominant_pct <= 1.0,
+            "dominant_pct must be in [0, 1], got {}",
+            report.polyglot.dominant_pct
+        );
+    }
+
+    #[test]
+    fn reading_time_non_negative(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.reading_time.minutes >= 0.0,
+            "reading_time.minutes must be non-negative, got {}",
+            report.reading_time.minutes
+        );
+    }
+
+    #[test]
+    fn derived_report_round_trip_serialization(rows in arb_file_rows(), window in arb_window_tokens()) {
+        let report = derive_report(&export(rows), window);
+        let json = serde_json::to_string(&report).expect("serialize must succeed");
+        let deserialized: tokmd_analysis_types::DerivedReport =
+            serde_json::from_str(&json).expect("deserialize must succeed");
+        let json2 = serde_json::to_string(&deserialized).expect("re-serialize must succeed");
+        prop_assert_eq!(json, json2, "round-trip serialization must be stable");
+    }
+
+    #[test]
+    fn cocomo_more_code_means_more_effort(
+        code_a in 1..2500usize,
+        code_b in 2501..5000usize,
+    ) {
+        let rows_a = vec![FileRow {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: code_a,
+            comments: 0,
+            blanks: 0,
+            lines: code_a,
+            bytes: code_a * 40,
+            tokens: code_a * 8,
+        }];
+        let rows_b = vec![FileRow {
+            path: "b.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: code_b,
+            comments: 0,
+            blanks: 0,
+            lines: code_b,
+            bytes: code_b * 40,
+            tokens: code_b * 8,
+        }];
+        let report_a = derive_report(&export(rows_a), None);
+        let report_b = derive_report(&export(rows_b), None);
+        let effort_a = report_a.cocomo.as_ref().unwrap().effort_pm;
+        let effort_b = report_b.cocomo.as_ref().unwrap().effort_pm;
+        prop_assert!(
+            effort_b > effort_a,
+            "more code ({}) should mean more effort ({} vs {})",
+            code_b, effort_b, effort_a
+        );
+    }
 }

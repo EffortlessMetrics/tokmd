@@ -276,3 +276,152 @@ fn test_context_bundle_dir_creates_artifacts() {
     assert!(parsed["used_tokens"].is_number());
     assert!(parsed["included_files"].is_array());
 }
+
+// ---------------------------------------------------------------------------
+// Zero budget edge case
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_zero_budget() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .arg("--budget")
+        .arg("0")
+        .output()
+        .expect("failed to run tokmd context --budget 0");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    assert_eq!(parsed["budget_tokens"].as_u64().unwrap(), 0);
+    assert_eq!(parsed["used_tokens"].as_u64().unwrap(), 0);
+    assert_eq!(parsed["file_count"].as_u64().unwrap(), 0);
+    assert!(parsed["files"].as_array().unwrap().is_empty());
+}
+
+// ---------------------------------------------------------------------------
+// Budget with k/m suffix
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_budget_k_suffix() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .arg("--budget")
+        .arg("2k")
+        .output()
+        .expect("failed to run tokmd context --budget 2k");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    assert_eq!(parsed["budget_tokens"].as_u64().unwrap(), 2000);
+}
+
+// ---------------------------------------------------------------------------
+// Subdirectory scanning
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_subdirectory() {
+    let subdir = common::fixture_root().join("src");
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(&subdir);
+
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .output()
+        .expect("failed to run tokmd context in subdirectory");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    assert!(parsed["file_count"].as_u64().unwrap() >= 1);
+}
+
+// ---------------------------------------------------------------------------
+// List mode contains table headers
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_list_contains_table_headers() {
+    let mut cmd = tokmd_cmd();
+    cmd.arg("context")
+        .arg("--mode")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("# Context Pack"))
+        .stdout(predicate::str::contains("|Path|Module|Lang|Tokens|Code|"))
+        .stdout(predicate::str::contains("|---|---|---|---:|---:|"));
+}
+
+// ---------------------------------------------------------------------------
+// List mode with small budget
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_list_with_small_budget() {
+    let mut cmd = tokmd_cmd();
+    cmd.arg("context")
+        .arg("--mode")
+        .arg("list")
+        .arg("--budget")
+        .arg("500")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Budget: 500 tokens"));
+}
+
+// ---------------------------------------------------------------------------
+// Bundle mode includes file markers
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_bundle_includes_file_markers() {
+    let mut cmd = tokmd_cmd();
+    cmd.arg("context")
+        .arg("--mode")
+        .arg("bundle")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("// ==="));
+}
+
+// ---------------------------------------------------------------------------
+// JSON receipt includes token_estimation
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_json_has_token_estimation() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .output()
+        .expect("failed to run tokmd context --mode json");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    let te = &parsed["token_estimation"];
+    assert!(te.is_object(), "should have token_estimation object");
+    assert!(te.get("total_bytes").is_some());
+}

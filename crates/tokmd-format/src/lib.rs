@@ -2075,4 +2075,74 @@ mod tests {
         assert_eq!(receipt.report.rows.len(), 2);
         assert_eq!(receipt.report.total.code, 1000);
     }
+
+    // ========================
+    // Internal helper edge cases
+    // ========================
+
+    #[test]
+    fn test_format_delta_large_values() {
+        assert_eq!(format_delta(999_999), "+999999");
+        assert_eq!(format_delta(-999_999), "-999999");
+    }
+
+    #[test]
+    fn test_format_delta_colored_positive_ansi() {
+        let s = format_delta_colored(5, DiffColorMode::Ansi);
+        assert!(s.contains("\x1b[32m"), "positive should be green");
+        assert!(s.contains("+5"));
+    }
+
+    #[test]
+    fn test_format_delta_colored_negative_ansi() {
+        let s = format_delta_colored(-3, DiffColorMode::Ansi);
+        assert!(s.contains("\x1b[31m"), "negative should be red");
+        assert!(s.contains("-3"));
+    }
+
+    #[test]
+    fn test_format_delta_colored_zero_ansi() {
+        let s = format_delta_colored(0, DiffColorMode::Ansi);
+        assert!(s.contains("\x1b[33m"), "zero should be yellow");
+        assert!(s.contains("0"));
+    }
+
+    #[test]
+    fn test_format_delta_colored_off_mode() {
+        assert_eq!(format_delta_colored(5, DiffColorMode::Off), "+5");
+        assert_eq!(format_delta_colored(-3, DiffColorMode::Off), "-3");
+        assert_eq!(format_delta_colored(0, DiffColorMode::Off), "0");
+    }
+
+    #[test]
+    fn test_percent_change_zero_to_zero() {
+        assert_eq!(percent_change(0, 0), 0.0);
+    }
+
+    #[test]
+    fn test_percent_change_zero_to_nonzero() {
+        assert_eq!(percent_change(0, 50), 100.0);
+    }
+
+    #[test]
+    fn test_percent_change_nonzero_to_zero() {
+        let pct = percent_change(100, 0);
+        assert!((pct - (-100.0)).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_percent_change_doubled() {
+        let pct = percent_change(50, 100);
+        assert!((pct - 100.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_compute_diff_totals_empty_rows() {
+        let totals = compute_diff_totals(&[]);
+        assert_eq!(totals.delta_code, 0);
+        assert_eq!(totals.delta_lines, 0);
+        assert_eq!(totals.delta_files, 0);
+        assert_eq!(totals.delta_bytes, 0);
+        assert_eq!(totals.delta_tokens, 0);
+    }
 }

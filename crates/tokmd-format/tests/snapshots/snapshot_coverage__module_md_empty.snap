@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 500
+expression: "render_module_md(&report, ChildIncludeMode::Separate)"
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|**Total**|0|0|0|0|0|0|

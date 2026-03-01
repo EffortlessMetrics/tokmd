@@ -630,6 +630,499 @@ proptest! {
 }
 
 // ============================================================================
+// Round-trip: PolicyRule serializes and deserializes to the same value
+// ============================================================================
+
+/// Strategy for generating a complete PolicyRule.
+fn arb_policy_rule() -> impl Strategy<Value = PolicyRule> {
+    (
+        "[a-z_]{1,10}",         // name
+        arb_pointer_token(),    // pointer key
+        arb_numeric_operator(), // op (numeric only for simpler value generation)
+        -1000i64..1000i64,      // value
+        any::<bool>(),          // negate
+        arb_level(),            // level
+    )
+        .prop_map(|(name, key, op, val, negate, level)| PolicyRule {
+            name,
+            pointer: format!("/{}", key),
+            op,
+            value: Some(json!(val)),
+            values: None,
+            negate,
+            level,
+            message: None,
+        })
+}
+
+/// Strategy for numeric operators only (excludes In, Contains, Exists).
+fn arb_numeric_operator() -> impl Strategy<Value = RuleOperator> {
+    prop_oneof![
+        Just(RuleOperator::Gt),
+        Just(RuleOperator::Gte),
+        Just(RuleOperator::Lt),
+        Just(RuleOperator::Lte),
+        Just(RuleOperator::Eq),
+        Just(RuleOperator::Ne),
+    ]
+}
+
+proptest! {
+    /// Any gate rule round-trips through JSON serialization.
+    #[test]
+    fn policy_rule_json_roundtrip(rule in arb_policy_rule()) {
+        let json_str = serde_json::to_string(&rule).expect("serialize rule");
+        let parsed: PolicyRule = serde_json::from_str(&json_str).expect("deserialize rule");
+
+        prop_assert_eq!(&rule.name, &parsed.name);
+        prop_assert_eq!(&rule.pointer, &parsed.pointer);
+        prop_assert_eq!(rule.op, parsed.op);
+        prop_assert_eq!(rule.value, parsed.value);
+        prop_assert_eq!(rule.negate, parsed.negate);
+        prop_assert_eq!(rule.level, parsed.level);
+    }
+
+    /// A full PolicyConfig round-trips through JSON.
+    #[test]
+    fn policy_config_json_roundtrip(
+        fail_fast in any::<bool>(),
+        allow_missing in any::<bool>(),
+        rules in prop::collection::vec(arb_policy_rule(), 0..5)
+    ) {
+        let config = PolicyConfig {
+            rules,
+            fail_fast,
+            allow_missing,
+        };
+
+        let json_str = serde_json::to_string(&config).expect("serialize config");
+        let parsed: PolicyConfig = serde_json::from_str(&json_str).expect("deserialize config");
+
+        prop_assert_eq!(config.fail_fast, parsed.fail_fast);
+        prop_assert_eq!(config.allow_missing, parsed.allow_missing);
+        prop_assert_eq!(config.rules.len(), parsed.rules.len());
+
+        for (orig, rt) in config.rules.iter().zip(parsed.rules.iter()) {
+            prop_assert_eq!(&orig.name, &rt.name);
+            prop_assert_eq!(&orig.pointer, &rt.pointer);
+            prop_assert_eq!(orig.op, rt.op);
+            prop_assert_eq!(&orig.value, &rt.value);
+            prop_assert_eq!(orig.negate, rt.negate);
+            prop_assert_eq!(orig.level, rt.level);
+        }
+    }
+}
+
+// ============================================================================
+// Evaluation determinism: same receipt + same rules = same result
+// ============================================================================
+
+proptest! {
+    /// Evaluating the same receipt with the same policy twice yields identical results.
+    #[test]
+    fn evaluation_is_deterministic(
+        n in -1000i64..1000,
+        threshold in -1000i64..1000,
+        op in arb_numeric_operator()
+    ) {
+        let receipt = json!({"val": n});
+        let rule = make_rule("det", "/val", op, json!(threshold));
+        let policy = PolicyConfig {
+            rules: vec![rule],
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let r1 = evaluate_policy(&receipt, &policy);
+        let r2 = evaluate_policy(&receipt, &policy);
+
+        prop_assert_eq!(r1.passed, r2.passed);
+        prop_assert_eq!(r1.errors, r2.errors);
+        prop_assert_eq!(r1.warnings, r2.warnings);
+        prop_assert_eq!(r1.rule_results.len(), r2.rule_results.len());
+        for (a, b) in r1.rule_results.iter().zip(r2.rule_results.iter()) {
+            prop_assert_eq!(a.passed, b.passed);
+            prop_assert_eq!(&a.name, &b.name);
+            prop_assert_eq!(&a.actual, &b.actual);
+        }
+    }
+}
+
+// ============================================================================
+// Empty rules: empty rule set always passes
+// ============================================================================
+
+proptest! {
+    /// An empty policy always passes regardless of receipt content.
+    #[test]
+    fn empty_rules_always_pass(value in arb_json_value()) {
+        let receipt = json!({"data": value});
+        let policy = PolicyConfig {
+            rules: vec![],
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let result = evaluate_policy(&receipt, &policy);
+        prop_assert!(result.passed, "empty rule set must always pass");
+        prop_assert_eq!(result.errors, 0);
+        prop_assert_eq!(result.warnings, 0);
+        prop_assert!(result.rule_results.is_empty());
+    }
+
+    /// An empty policy with any combination of flags still passes.
+    #[test]
+    fn empty_rules_pass_with_any_flags(
+        fail_fast in any::<bool>(),
+        allow_missing in any::<bool>()
+    ) {
+        let receipt = json!({"x": 42});
+        let policy = PolicyConfig {
+            rules: vec![],
+            fail_fast,
+            allow_missing,
+        };
+
+        let result = evaluate_policy(&receipt, &policy);
+        prop_assert!(result.passed);
+        prop_assert!(result.rule_results.is_empty());
+    }
+}
+
+// ============================================================================
+// Single rule evaluation: known paths produce predictable pass/fail
+// ============================================================================
+
+proptest! {
+    /// A Lte rule passes when actual <= threshold and fails otherwise.
+    #[test]
+    fn lte_rule_predictable(actual in -500i64..500, threshold in -500i64..500) {
+        let receipt = json!({"n": actual});
+        let rule = make_rule("lte_check", "/n", RuleOperator::Lte, json!(threshold));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert_eq!(result.passed, actual <= threshold,
+            "Lte: {} <= {} should be {}", actual, threshold, actual <= threshold);
+    }
+
+    /// A Gte rule passes when actual >= threshold and fails otherwise.
+    #[test]
+    fn gte_rule_predictable(actual in -500i64..500, threshold in -500i64..500) {
+        let receipt = json!({"n": actual});
+        let rule = make_rule("gte_check", "/n", RuleOperator::Gte, json!(threshold));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert_eq!(result.passed, actual >= threshold,
+            "Gte: {} >= {} should be {}", actual, threshold, actual >= threshold);
+    }
+
+    /// A Gt rule passes when actual > threshold and fails otherwise.
+    #[test]
+    fn gt_rule_predictable(actual in -500i64..500, threshold in -500i64..500) {
+        let receipt = json!({"n": actual});
+        let rule = make_rule("gt_check", "/n", RuleOperator::Gt, json!(threshold));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert_eq!(result.passed, actual > threshold,
+            "Gt: {} > {} should be {}", actual, threshold, actual > threshold);
+    }
+
+    /// A Lt rule passes when actual < threshold and fails otherwise.
+    #[test]
+    fn lt_rule_predictable(actual in -500i64..500, threshold in -500i64..500) {
+        let receipt = json!({"n": actual});
+        let rule = make_rule("lt_check", "/n", RuleOperator::Lt, json!(threshold));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert_eq!(result.passed, actual < threshold,
+            "Lt: {} < {} should be {}", actual, threshold, actual < threshold);
+    }
+}
+
+// ============================================================================
+// Rule composition: all must pass for gate to pass (AND semantics)
+// ============================================================================
+
+proptest! {
+    /// Gate passes iff every error-level rule passes (AND semantics).
+    #[test]
+    fn and_semantics_all_pass(values in prop::collection::vec(-500i64..500, 1..=5)) {
+        let mut obj = serde_json::Map::new();
+        let mut rules = Vec::new();
+
+        for (i, &v) in values.iter().enumerate() {
+            let key = format!("k{}", i);
+            obj.insert(key.clone(), json!(v));
+            // Each rule: value <= 999 — always true for our range
+            rules.push(make_rule(
+                &format!("rule_{}", i),
+                &format!("/{}", key),
+                RuleOperator::Lte,
+                json!(999),
+            ));
+        }
+
+        let receipt = Value::Object(obj);
+        let policy = PolicyConfig { rules, fail_fast: false, allow_missing: false };
+        let result = evaluate_policy(&receipt, &policy);
+
+        prop_assert!(result.passed, "all rules pass → gate must pass");
+        prop_assert_eq!(result.errors, 0);
+    }
+
+    /// Gate fails if any single error-level rule fails (AND semantics).
+    #[test]
+    fn and_semantics_one_fails(
+        passing_count in 0usize..4,
+        fail_val in 500i64..999
+    ) {
+        let mut obj = serde_json::Map::new();
+        let mut rules = Vec::new();
+
+        // Add passing rules
+        for i in 0..passing_count {
+            let key = format!("p{}", i);
+            obj.insert(key.clone(), json!(10));
+            rules.push(make_rule(
+                &format!("pass_{}", i),
+                &format!("/{}", key),
+                RuleOperator::Lte,
+                json!(999),
+            ));
+        }
+
+        // Add one failing rule: value > 100 where threshold is 100
+        obj.insert("fail_key".to_string(), json!(fail_val));
+        rules.push(make_rule("failing", "/fail_key", RuleOperator::Lte, json!(100)));
+
+        let receipt = Value::Object(obj);
+        let policy = PolicyConfig { rules, fail_fast: false, allow_missing: false };
+        let result = evaluate_policy(&receipt, &policy);
+
+        prop_assert!(!result.passed, "one failing error rule → gate must fail");
+        prop_assert_eq!(result.errors, 1);
+    }
+
+    /// Warn-only failures don't block the gate (only errors block).
+    #[test]
+    fn warn_failures_dont_block(
+        n_warn_fail in 1usize..5,
+        n_pass in 0usize..3
+    ) {
+        let mut obj = serde_json::Map::new();
+        let mut rules = Vec::new();
+
+        for i in 0..n_pass {
+            let key = format!("pass_{}", i);
+            obj.insert(key.clone(), json!(5));
+            rules.push(make_rule(
+                &format!("pass_{}", i),
+                &format!("/{}", key),
+                RuleOperator::Lte,
+                json!(999),
+            ));
+        }
+
+        for i in 0..n_warn_fail {
+            let key = format!("warn_{}", i);
+            obj.insert(key.clone(), json!(500));
+            rules.push(PolicyRule {
+                level: RuleLevel::Warn,
+                ..make_rule(
+                    &format!("warn_{}", i),
+                    &format!("/{}", key),
+                    RuleOperator::Lte,
+                    json!(10),
+                )
+            });
+        }
+
+        let receipt = Value::Object(obj);
+        let policy = PolicyConfig { rules, fail_fast: false, allow_missing: false };
+        let result = evaluate_policy(&receipt, &policy);
+
+        prop_assert!(result.passed, "warn-only failures must not fail the gate");
+        prop_assert_eq!(result.errors, 0);
+        prop_assert_eq!(result.warnings, n_warn_fail);
+    }
+}
+
+// ============================================================================
+// Edge cases: invalid JSON pointers fail gracefully
+// ============================================================================
+
+proptest! {
+    /// A pointer without leading slash causes the rule to fail (not panic).
+    #[test]
+    fn invalid_pointer_no_leading_slash(key in "[a-z]{2,8}") {
+        let receipt = json!({&key: 42});
+        // No leading slash — invalid RFC 6901 pointer
+        let rule = make_rule("bad_ptr", &key, RuleOperator::Eq, json!(42));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert!(!result.passed, "invalid pointer must fail, not panic");
+    }
+
+    /// A pointer targeting a non-existent deep path fails gracefully.
+    #[test]
+    fn missing_deep_path_fails(
+        depth in 1usize..5,
+        key in "[a-z]{2,6}"
+    ) {
+        let receipt = json!({"root": 1});
+        let pointer = format!("/{}", (0..depth).map(|_| key.as_str()).collect::<Vec<_>>().join("/"));
+        let rule = make_rule("deep_miss", &pointer, RuleOperator::Eq, json!(1));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert!(!result.passed, "deep missing path must fail");
+    }
+
+    /// A pointer targeting a non-existent path with allow_missing passes.
+    #[test]
+    fn missing_path_allow_missing_passes(key in "[a-z]{2,8}") {
+        let receipt = json!({"other": 1});
+        prop_assume!(key != "other");
+
+        let rule = make_rule("missing", &format!("/{}", key), RuleOperator::Eq, json!(1));
+        let policy = PolicyConfig {
+            rules: vec![rule],
+            fail_fast: false,
+            allow_missing: true,
+        };
+
+        let result = evaluate_policy(&receipt, &policy);
+        prop_assert!(result.passed, "missing path with allow_missing must pass");
+    }
+
+    /// Numeric comparison on non-numeric value fails gracefully.
+    #[test]
+    fn numeric_op_on_string_non_numeric(s in "[a-z]{3,10}") {
+        // Filter out strings that happen to parse as f64 (e.g. "inf", "nan").
+        prop_assume!(s.parse::<f64>().is_err());
+
+        let receipt = json!({"val": &s});
+        let rule = make_rule("num_on_str", "/val", RuleOperator::Gt, json!(0));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        // Non-numeric string → compare_numeric returns Err → passed = false
+        prop_assert!(!result.passed, "numeric op on non-numeric string must fail");
+    }
+
+    /// Contains on a non-container type (number) fails gracefully.
+    #[test]
+    fn contains_on_number_fails(n in -1000i64..1000) {
+        let receipt = json!({"val": n});
+        let rule = make_rule("contains_num", "/val", RuleOperator::Contains, json!("x"));
+
+        let result = evaluate_single_rule(&receipt, &rule);
+        prop_assert!(!result.passed, "contains on a number must fail");
+    }
+}
+
+// ============================================================================
+// Ordering: gate results deterministic regardless of rule ordering
+// ============================================================================
+
+proptest! {
+    /// Shuffling the rule order does not change the overall pass/fail or counts.
+    #[test]
+    fn rule_order_does_not_affect_outcome(seed in any::<u64>()) {
+        // Build a receipt with known values and several rules (mix of pass/fail)
+        let receipt = json!({
+            "a": 10,
+            "b": 200,
+            "c": 50,
+            "d": 5
+        });
+
+        let rules_original = vec![
+            make_rule("r_a", "/a", RuleOperator::Lte, json!(100)),  // pass
+            make_rule("r_b", "/b", RuleOperator::Lte, json!(100)),  // fail
+            make_rule("r_c", "/c", RuleOperator::Gte, json!(25)),   // pass
+            make_rule("r_d", "/d", RuleOperator::Gt, json!(10)),    // fail
+        ];
+
+        // Deterministic shuffle based on seed
+        let mut rules_shuffled = rules_original.clone();
+        let n = rules_shuffled.len();
+        let mut s = seed;
+        for i in (1..n).rev() {
+            s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            let j = (s as usize) % (i + 1);
+            rules_shuffled.swap(i, j);
+        }
+
+        let policy_orig = PolicyConfig {
+            rules: rules_original,
+            fail_fast: false,
+            allow_missing: false,
+        };
+        let policy_shuf = PolicyConfig {
+            rules: rules_shuffled,
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let r1 = evaluate_policy(&receipt, &policy_orig);
+        let r2 = evaluate_policy(&receipt, &policy_shuf);
+
+        prop_assert_eq!(r1.passed, r2.passed, "pass/fail must be order-independent");
+        prop_assert_eq!(r1.errors, r2.errors, "error count must be order-independent");
+        prop_assert_eq!(r1.warnings, r2.warnings, "warning count must be order-independent");
+
+        // Individual rule results should match when collected by name
+        let mut map1: std::collections::BTreeMap<String, bool> = std::collections::BTreeMap::new();
+        let mut map2: std::collections::BTreeMap<String, bool> = std::collections::BTreeMap::new();
+        for r in &r1.rule_results { map1.insert(r.name.clone(), r.passed); }
+        for r in &r2.rule_results { map2.insert(r.name.clone(), r.passed); }
+        prop_assert_eq!(map1, map2, "per-rule pass/fail must be order-independent");
+    }
+
+    /// Reversing rule order yields same outcome.
+    #[test]
+    fn reversed_rules_same_outcome(
+        vals in prop::collection::vec(-500i64..500, 2..=6)
+    ) {
+        let mut obj = serde_json::Map::new();
+        let mut rules = Vec::new();
+
+        for (i, &v) in vals.iter().enumerate() {
+            let key = format!("v{}", i);
+            obj.insert(key.clone(), json!(v));
+            rules.push(make_rule(
+                &format!("r{}", i),
+                &format!("/{}", key),
+                RuleOperator::Gte,
+                json!(0),
+            ));
+        }
+
+        let receipt = Value::Object(obj);
+
+        let policy_fwd = PolicyConfig {
+            rules: rules.clone(),
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let mut rules_rev = rules;
+        rules_rev.reverse();
+        let policy_rev = PolicyConfig {
+            rules: rules_rev,
+            fail_fast: false,
+            allow_missing: false,
+        };
+
+        let r_fwd = evaluate_policy(&receipt, &policy_fwd);
+        let r_rev = evaluate_policy(&receipt, &policy_rev);
+
+        prop_assert_eq!(r_fwd.passed, r_rev.passed);
+        prop_assert_eq!(r_fwd.errors, r_rev.errors);
+        prop_assert_eq!(r_fwd.warnings, r_rev.warnings);
+    }
+}
+
+// ============================================================================
 // Helper functions
 // ============================================================================
 

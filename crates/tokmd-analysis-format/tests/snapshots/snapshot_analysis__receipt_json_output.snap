@@ -1,0 +1,247 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_analysis.rs
+assertion_line: 290
+expression: json
+---
+{
+  "schema_version": 8,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "md",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": {
+    "kind": "cli-tool",
+    "evidence": [
+      "Cargo.toml",
+      "src/main.rs"
+    ]
+  },
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": {
+    "totals": {
+      "files": 10,
+      "code": 1200,
+      "comments": 200,
+      "blanks": 100,
+      "lines": 1500,
+      "bytes": 12000,
+      "tokens": 3000
+    },
+    "doc_density": {
+      "total": {
+        "key": "total",
+        "numerator": 200,
+        "denominator": 1400,
+        "ratio": 0.1429
+      },
+      "by_lang": [
+        {
+          "key": "Rust",
+          "numerator": 150,
+          "denominator": 1050,
+          "ratio": 0.1429
+        },
+        {
+          "key": "Python",
+          "numerator": 50,
+          "denominator": 350,
+          "ratio": 0.1429
+        }
+      ],
+      "by_module": []
+    },
+    "whitespace": {
+      "total": {
+        "key": "total",
+        "numerator": 100,
+        "denominator": 1500,
+        "ratio": 0.0667
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "verbosity": {
+      "total": {
+        "key": "total",
+        "numerator": 12000,
+        "denominator": 1500,
+        "rate": 8.0
+      },
+      "by_lang": [
+        {
+          "key": "Rust",
+          "numerator": 9000,
+          "denominator": 1100,
+          "rate": 8.18
+        }
+      ],
+      "by_module": []
+    },
+    "max_file": {
+      "overall": {
+        "path": "src/main.rs",
+        "module": "src",
+        "lang": "Rust",
+        "code": 300,
+        "comments": 60,
+        "blanks": 30,
+        "lines": 390,
+        "bytes": 3000,
+        "tokens": 600,
+        "doc_pct": 0.15,
+        "bytes_per_line": 8.0,
+        "depth": 1
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "lang_purity": {
+      "rows": []
+    },
+    "nesting": {
+      "max": 5,
+      "avg": 2.5,
+      "by_module": []
+    },
+    "test_density": {
+      "test_lines": 200,
+      "prod_lines": 1000,
+      "test_files": 3,
+      "prod_files": 7,
+      "ratio": 0.2
+    },
+    "boilerplate": {
+      "infra_lines": 80,
+      "logic_lines": 1420,
+      "ratio": 0.0563,
+      "infra_langs": [
+        "TOML"
+      ]
+    },
+    "polyglot": {
+      "lang_count": 2,
+      "entropy": 0.65,
+      "dominant_lang": "Rust",
+      "dominant_lines": 900,
+      "dominant_pct": 0.75
+    },
+    "distribution": {
+      "count": 10,
+      "min": 20,
+      "max": 390,
+      "mean": 150.0,
+      "median": 120.0,
+      "p90": 300.0,
+      "p99": 390.0,
+      "gini": 0.35
+    },
+    "histogram": [
+      {
+        "label": "Small",
+        "min": 0,
+        "max": 100,
+        "files": 4,
+        "pct": 0.4
+      },
+      {
+        "label": "Medium",
+        "min": 101,
+        "max": 500,
+        "files": 6,
+        "pct": 0.6
+      }
+    ],
+    "top": {
+      "largest_lines": [
+        {
+          "path": "src/main.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 300,
+          "comments": 60,
+          "blanks": 30,
+          "lines": 390,
+          "bytes": 3000,
+          "tokens": 600,
+          "doc_pct": 0.15,
+          "bytes_per_line": 8.0,
+          "depth": 1
+        }
+      ],
+      "largest_tokens": [
+        {
+          "path": "src/lib.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 250,
+          "comments": 50,
+          "blanks": 25,
+          "lines": 325,
+          "bytes": 2500,
+          "tokens": 500,
+          "doc_pct": 0.15,
+          "bytes_per_line": 8.0,
+          "depth": 1
+        }
+      ],
+      "largest_bytes": [],
+      "least_documented": [],
+      "most_dense": []
+    },
+    "tree": null,
+    "reading_time": {
+      "minutes": 75.0,
+      "lines_per_minute": 20,
+      "basis_lines": 1500
+    },
+    "context_window": null,
+    "cocomo": null,
+    "todo": null,
+    "integrity": {
+      "algo": "blake3",
+      "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "entries": 10
+    }
+  },
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": null,
+  "complexity": null,
+  "api_surface": null,
+  "fun": null
+}

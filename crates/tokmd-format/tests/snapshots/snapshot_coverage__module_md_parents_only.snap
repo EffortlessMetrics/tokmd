@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 682
+expression: "render_module_md(&report, ChildIncludeMode::ParentsOnly)"
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|src/core|800|960|8|40000|2000|120|
+|src/api|400|480|4|20000|1000|120|
+|**Total**|1200|1440|12|60000|3000|120|

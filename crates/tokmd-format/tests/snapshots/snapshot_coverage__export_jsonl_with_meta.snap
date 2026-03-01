@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 751
+expression: normalised
+---
+{"args":{"children":"separate","format":"jsonl","max_rows":0,"min_code":0,"module_depth":1,"module_roots":["src"],"redact":"none","strip_prefix":null},"generated_at_ms":0,"mode":"export","scan":{"config":"auto","excluded":[],"hidden":false,"no_ignore":false,"no_ignore_dot":false,"no_ignore_parent":false,"no_ignore_vcs":false,"paths":["."],"treat_doc_strings_as_comments":false},"schema_version":2,"status":"complete","tool":{"name":"tokmd","version":"0.0.0"},"type":"meta","warnings":[]}
+{"type":"row","path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":200,"comments":40,"blanks":20,"lines":260,"bytes":10000,"tokens":500}
+{"type":"row","path":"src/util.rs","module":"src","lang":"Rust","kind":"parent","code":100,"comments":20,"blanks":10,"lines":130,"bytes":5000,"tokens":250}

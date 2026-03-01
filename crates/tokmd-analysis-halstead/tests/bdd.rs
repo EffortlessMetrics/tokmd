@@ -595,3 +595,178 @@ fn scenario_build_report_mixed_languages() {
     assert!(metrics.distinct_operators > 0);
     assert!(metrics.distinct_operands > 0);
 }
+
+// ── Scenario: empty input produces zero metrics ─────────────────────
+
+#[test]
+fn scenario_empty_string_all_languages_zero() {
+    let langs = [
+        "rust",
+        "javascript",
+        "typescript",
+        "python",
+        "go",
+        "c",
+        "c++",
+        "java",
+        "c#",
+        "php",
+        "ruby",
+    ];
+    for lang in &langs {
+        let counts = tokenize_for_halstead("", lang);
+        assert_eq!(
+            counts.total_operators, 0,
+            "{lang}: empty input should have 0 operators"
+        );
+        assert_eq!(
+            counts.total_operands, 0,
+            "{lang}: empty input should have 0 operands"
+        );
+        assert!(
+            counts.operators.is_empty(),
+            "{lang}: empty input should have no operator keys"
+        );
+        assert!(
+            counts.operands.is_empty(),
+            "{lang}: empty input should have no operand keys"
+        );
+    }
+}
+
+// ── Scenario: Halstead volume, difficulty, effort are non-negative ───
+
+#[test]
+fn scenario_all_metrics_non_negative_from_real_code() {
+    let samples = vec![
+        ("fn main() { let x = 1 + 2; }", "rust"),
+        ("def add(a, b):\n    return a + b", "python"),
+        ("const add = (a, b) => a + b;", "javascript"),
+        ("func main() { x := 1 + 2 }", "go"),
+        ("int add(int a, int b) { return a + b; }", "c"),
+        ("def add(a, b)\n  a + b\nend", "ruby"),
+    ];
+
+    for (code, lang) in samples {
+        let counts = tokenize_for_halstead(code, lang);
+        let n1 = counts.operators.len();
+        let n2 = counts.operands.len();
+        let vocabulary = n1 + n2;
+        let length = counts.total_operators + counts.total_operands;
+
+        let volume = if vocabulary > 0 {
+            length as f64 * (vocabulary as f64).log2()
+        } else {
+            0.0
+        };
+        let difficulty = if n2 > 0 {
+            (n1 as f64 / 2.0) * (counts.total_operands as f64 / n2 as f64)
+        } else {
+            0.0
+        };
+        let effort = difficulty * volume;
+        let time_seconds = effort / 18.0;
+        let estimated_bugs = volume / 3000.0;
+
+        assert!(volume >= 0.0, "{lang}: volume must be non-negative");
+        assert!(difficulty >= 0.0, "{lang}: difficulty must be non-negative");
+        assert!(effort >= 0.0, "{lang}: effort must be non-negative");
+        assert!(
+            time_seconds >= 0.0,
+            "{lang}: time_seconds must be non-negative"
+        );
+        assert!(
+            estimated_bugs >= 0.0,
+            "{lang}: estimated_bugs must be non-negative"
+        );
+    }
+}
+
+// ── Scenario: relative ordering — more complex code has higher volume ─
+
+#[test]
+fn scenario_relative_ordering_by_complexity() {
+    let simple_code = "let x = 1;";
+    let complex_code = r#"
+fn process(items: Vec<i32>) -> Vec<i32> {
+    let mut result = Vec::new();
+    for item in items {
+        if item > 0 {
+            let doubled = item * 2;
+            if doubled < 100 {
+                result.push(doubled);
+            } else {
+                result.push(item);
+            }
+        }
+    }
+    return result;
+}
+"#;
+
+    let simple = tokenize_for_halstead(simple_code, "rust");
+    let complex = tokenize_for_halstead(complex_code, "rust");
+
+    let simple_len = simple.total_operators + simple.total_operands;
+    let complex_len = complex.total_operators + complex.total_operands;
+
+    // More code should produce more total tokens
+    assert!(
+        complex_len > simple_len,
+        "complex code ({complex_len}) should have more tokens than simple code ({simple_len})"
+    );
+
+    // More distinct operators/operands in complex code
+    assert!(
+        complex.operators.len() >= simple.operators.len(),
+        "complex code should have more distinct operators"
+    );
+}
+
+// ── Scenario: build_halstead_report metrics are non-negative ────────
+
+#[test]
+fn scenario_build_report_all_metrics_non_negative() {
+    let dir = tempfile::tempdir().unwrap();
+    let code = r#"
+fn fibonacci(n: u64) -> u64 {
+    if n <= 1 {
+        return n;
+    }
+    let mut a = 0u64;
+    let mut b = 1u64;
+    for _ in 2..=n {
+        let temp = a + b;
+        a = b;
+        b = temp;
+    }
+    b
+}
+"#;
+    std::fs::write(dir.path().join("fib.rs"), code).unwrap();
+
+    let export = make_export(vec![make_row("fib.rs", "Rust")]);
+    let files = vec![PathBuf::from("fib.rs")];
+
+    let metrics = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+
+    assert!(metrics.volume >= 0.0, "volume must be non-negative");
+    assert!(metrics.difficulty >= 0.0, "difficulty must be non-negative");
+    assert!(metrics.effort >= 0.0, "effort must be non-negative");
+    assert!(
+        metrics.time_seconds >= 0.0,
+        "time_seconds must be non-negative"
+    );
+    assert!(
+        metrics.estimated_bugs >= 0.0,
+        "estimated_bugs must be non-negative"
+    );
+    assert_eq!(
+        metrics.vocabulary,
+        metrics.distinct_operators + metrics.distinct_operands
+    );
+    assert_eq!(
+        metrics.length,
+        metrics.total_operators + metrics.total_operands
+    );
+}

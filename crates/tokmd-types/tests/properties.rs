@@ -4,13 +4,17 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
-    ContextReceipt, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, FileRow,
-    InclusionPolicy, LangRow, ModuleRow, RedactMode, TableFormat, TokenAudit, TokenEstimationMeta,
-    ToolInfo, Totals,
+    AnalysisFormat, ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION,
+    CONTEXT_SCHEMA_VERSION, CapabilityState, CapabilityStatus, ChildIncludeMode, ChildrenMode,
+    CommitIntentKind, ConfigMode, ContextExcludedPath, ContextFileRow, ContextReceipt, DiffRow,
+    DiffTotals, ExportFormat, FileClassification, FileKind, FileRow, HANDOFF_SCHEMA_VERSION,
+    HandoffComplexity, HandoffDerived, HandoffExcludedPath, HandoffHotspot, InclusionPolicy,
+    LangRow, ModuleRow, PolicyExcludedFile, RedactMode, SCHEMA_VERSION, ScanStatus,
+    SmartExcludedFile, TableFormat, TokenAudit, TokenEstimationMeta, ToolInfo, Totals,
     cockpit::{
-        CommitMatch, ComplexityIndicator, EvidenceSource, GateStatus, RiskLevel, TrendDirection,
-        WarningType,
+        COCKPIT_SCHEMA_VERSION, ChangeSurface, CommitMatch, ComplexityIndicator, Composition,
+        Contracts, EvidenceSource, GateStatus, HealthWarning, ReviewItem, RiskLevel,
+        TrendComparison, TrendDirection, WarningType,
     },
 };
 
@@ -858,4 +862,691 @@ fn context_receipt_token_rename_backward_compat() {
     assert_eq!(parsed_audit.tokens_est, audit.tokens_est);
     assert_eq!(parsed_audit.tokens_max, audit.tokens_max);
     assert_eq!(parsed_audit.output_bytes, audit.output_bytes);
+}
+
+// =============================================================================
+// Additional strategies for composite and cockpit types
+// =============================================================================
+
+fn arb_inclusion_policy() -> impl Strategy<Value = InclusionPolicy> {
+    prop_oneof![
+        Just(InclusionPolicy::Full),
+        Just(InclusionPolicy::HeadTail),
+        Just(InclusionPolicy::Summary),
+        Just(InclusionPolicy::Skip),
+    ]
+}
+
+fn arb_file_classification() -> impl Strategy<Value = FileClassification> {
+    prop_oneof![
+        Just(FileClassification::Generated),
+        Just(FileClassification::Fixture),
+        Just(FileClassification::Vendored),
+        Just(FileClassification::Lockfile),
+        Just(FileClassification::Minified),
+        Just(FileClassification::DataBlob),
+        Just(FileClassification::Sourcemap),
+    ]
+}
+
+fn arb_capability_state() -> impl Strategy<Value = CapabilityState> {
+    prop_oneof![
+        Just(CapabilityState::Available),
+        Just(CapabilityState::Skipped),
+        Just(CapabilityState::Unavailable),
+    ]
+}
+
+fn arb_scan_status() -> impl Strategy<Value = ScanStatus> {
+    prop_oneof![Just(ScanStatus::Complete), Just(ScanStatus::Partial),]
+}
+
+fn arb_analysis_format() -> impl Strategy<Value = AnalysisFormat> {
+    prop_oneof![
+        Just(AnalysisFormat::Md),
+        Just(AnalysisFormat::Json),
+        Just(AnalysisFormat::Jsonld),
+        Just(AnalysisFormat::Xml),
+        Just(AnalysisFormat::Svg),
+        Just(AnalysisFormat::Mermaid),
+        Just(AnalysisFormat::Obj),
+        Just(AnalysisFormat::Midi),
+        Just(AnalysisFormat::Tree),
+        Just(AnalysisFormat::Html),
+    ]
+}
+
+fn arb_risk_level() -> impl Strategy<Value = RiskLevel> {
+    prop_oneof![
+        Just(RiskLevel::Low),
+        Just(RiskLevel::Medium),
+        Just(RiskLevel::High),
+        Just(RiskLevel::Critical),
+    ]
+}
+
+fn arb_warning_type() -> impl Strategy<Value = WarningType> {
+    prop_oneof![
+        Just(WarningType::LargeFile),
+        Just(WarningType::HighChurn),
+        Just(WarningType::LowTestCoverage),
+        Just(WarningType::ComplexChange),
+        Just(WarningType::BusFactor),
+    ]
+}
+
+fn arb_smart_excluded_file() -> impl Strategy<Value = SmartExcludedFile> {
+    ("[a-z0-9_/]+\\.[a-z]+", "[a-z ]+", 0usize..1_000_000).prop_map(|(path, reason, tokens)| {
+        SmartExcludedFile {
+            path,
+            reason,
+            tokens,
+        }
+    })
+}
+
+fn arb_artifact_hash() -> impl Strategy<Value = ArtifactHash> {
+    ("[a-z0-9]+", "[a-f0-9]{16,64}").prop_map(|(algo, hash)| ArtifactHash { algo, hash })
+}
+
+fn arb_artifact_entry() -> impl Strategy<Value = ArtifactEntry> {
+    (
+        "[a-z0-9_]+\\.[a-z]+",
+        "[a-z0-9_/]+\\.[a-z]+",
+        "[a-zA-Z ]+",
+        0u64..1_000_000,
+        prop::option::of(arb_artifact_hash()),
+    )
+        .prop_map(|(name, path, description, bytes, hash)| ArtifactEntry {
+            name,
+            path,
+            description,
+            bytes,
+            hash,
+        })
+}
+
+fn arb_capability_status() -> impl Strategy<Value = CapabilityStatus> {
+    (
+        "[a-z]+",
+        arb_capability_state(),
+        prop::option::of("[a-z ]+"),
+    )
+        .prop_map(|(name, status, reason)| CapabilityStatus {
+            name,
+            status,
+            reason,
+        })
+}
+
+fn arb_context_excluded_path() -> impl Strategy<Value = ContextExcludedPath> {
+    ("[a-z0-9_/]+\\.[a-z]+", "[a-z ]+")
+        .prop_map(|(path, reason)| ContextExcludedPath { path, reason })
+}
+
+fn arb_handoff_excluded_path() -> impl Strategy<Value = HandoffExcludedPath> {
+    ("[a-z0-9_/]+\\.[a-z]+", "[a-z ]+")
+        .prop_map(|(path, reason)| HandoffExcludedPath { path, reason })
+}
+
+fn arb_handoff_hotspot() -> impl Strategy<Value = HandoffHotspot> {
+    (
+        "[a-z0-9_/]+\\.[a-z]+",
+        0usize..10_000,
+        0usize..100_000,
+        0usize..10_000,
+    )
+        .prop_map(|(path, commits, lines, score)| HandoffHotspot {
+            path,
+            commits,
+            lines,
+            score,
+        })
+}
+
+fn arb_handoff_complexity() -> impl Strategy<Value = HandoffComplexity> {
+    (
+        0usize..10_000,
+        0u32..100_000,
+        0usize..10_000,
+        0u32..10_000,
+        0usize..1000,
+        0usize..1000,
+    )
+        .prop_map(
+            |(
+                total_functions,
+                avg_fn_len_100,
+                max_function_length,
+                avg_cyc_100,
+                max_cyclomatic,
+                high_risk_files,
+            )| HandoffComplexity {
+                total_functions,
+                avg_function_length: avg_fn_len_100 as f64 / 100.0,
+                max_function_length,
+                avg_cyclomatic: avg_cyc_100 as f64 / 100.0,
+                max_cyclomatic,
+                high_risk_files,
+            },
+        )
+}
+
+fn arb_handoff_derived() -> impl Strategy<Value = HandoffDerived> {
+    (
+        0usize..100_000,
+        0usize..10_000_000,
+        0usize..20_000_000,
+        0usize..5_000_000,
+        1usize..50,
+        "[A-Za-z]+",
+        0u32..10_000,
+    )
+        .prop_map(
+            |(
+                total_files,
+                total_code,
+                total_lines,
+                total_tokens,
+                lang_count,
+                dominant_lang,
+                dominant_pct_100,
+            )| {
+                HandoffDerived {
+                    total_files,
+                    total_code,
+                    total_lines,
+                    total_tokens,
+                    lang_count,
+                    dominant_lang,
+                    dominant_pct: dominant_pct_100 as f64 / 100.0,
+                }
+            },
+        )
+}
+
+fn arb_change_surface() -> impl Strategy<Value = ChangeSurface> {
+    (
+        0usize..10_000,
+        0usize..10_000,
+        0usize..1_000_000,
+        0usize..1_000_000,
+        -1_000_000i64..1_000_000,
+        0u32..1_000_000,
+        0u32..100,
+    )
+        .prop_map(
+            |(
+                commits,
+                files_changed,
+                insertions,
+                deletions,
+                net_lines,
+                churn_vel_100,
+                change_conc_100,
+            )| {
+                ChangeSurface {
+                    commits,
+                    files_changed,
+                    insertions,
+                    deletions,
+                    net_lines,
+                    churn_velocity: churn_vel_100 as f64 / 100.0,
+                    change_concentration: change_conc_100 as f64 / 100.0,
+                }
+            },
+        )
+}
+
+fn arb_composition() -> impl Strategy<Value = Composition> {
+    (
+        0u32..10_000,
+        0u32..10_000,
+        0u32..10_000,
+        0u32..10_000,
+        0u32..1_000,
+    )
+        .prop_map(
+            |(code_100, test_100, docs_100, config_100, ratio_100)| Composition {
+                code_pct: code_100 as f64 / 100.0,
+                test_pct: test_100 as f64 / 100.0,
+                docs_pct: docs_100 as f64 / 100.0,
+                config_pct: config_100 as f64 / 100.0,
+                test_ratio: ratio_100 as f64 / 100.0,
+            },
+        )
+}
+
+fn arb_contracts() -> impl Strategy<Value = Contracts> {
+    (any::<bool>(), any::<bool>(), any::<bool>(), 0usize..100).prop_map(
+        |(api_changed, cli_changed, schema_changed, breaking_indicators)| Contracts {
+            api_changed,
+            cli_changed,
+            schema_changed,
+            breaking_indicators,
+        },
+    )
+}
+
+fn arb_health_warning() -> impl Strategy<Value = HealthWarning> {
+    ("[a-z0-9_/]+\\.[a-z]+", arb_warning_type(), "[a-zA-Z ]+").prop_map(
+        |(path, warning_type, message)| HealthWarning {
+            path,
+            warning_type,
+            message,
+        },
+    )
+}
+
+fn arb_review_item() -> impl Strategy<Value = ReviewItem> {
+    (
+        "[a-z0-9_/]+\\.[a-z]+",
+        "[a-zA-Z ]+",
+        0u32..100,
+        prop::option::of(1u8..5),
+        prop::option::of(0usize..10_000),
+    )
+        .prop_map(
+            |(path, reason, priority, complexity, lines_changed)| ReviewItem {
+                path,
+                reason,
+                priority,
+                complexity,
+                lines_changed,
+            },
+        )
+}
+
+fn arb_policy_excluded_file() -> impl Strategy<Value = PolicyExcludedFile> {
+    (
+        "[a-z0-9_/]+\\.[a-z]+",
+        0usize..1_000_000,
+        arb_inclusion_policy(),
+        "[a-z ]+",
+        prop::collection::vec(arb_file_classification(), 0..4),
+    )
+        .prop_map(|(path, original_tokens, policy, reason, classifications)| {
+            PolicyExcludedFile {
+                path,
+                original_tokens,
+                policy,
+                reason,
+                classifications,
+            }
+        })
+}
+
+fn arb_context_file_row() -> impl Strategy<Value = ContextFileRow> {
+    (
+        "[a-z0-9_/]+\\.[a-z]+",
+        "[a-z0-9_/]+",
+        "[A-Za-z]+",
+        0usize..1_000_000,
+        0usize..500_000,
+        0usize..1_000_000,
+        0usize..10_000_000,
+        0usize..1000,
+        arb_inclusion_policy(),
+        prop::option::of(0usize..1_000_000),
+    )
+        .prop_map(
+            |(path, module, lang, tokens, code, lines, bytes, value, policy, effective_tokens)| {
+                ContextFileRow {
+                    path,
+                    module,
+                    lang,
+                    tokens,
+                    code,
+                    lines,
+                    bytes,
+                    value,
+                    rank_reason: String::new(),
+                    policy,
+                    effective_tokens,
+                    policy_reason: None,
+                    classifications: vec![],
+                }
+            },
+        )
+}
+
+/// Richer variant with optional fields populated.
+fn arb_context_file_row_full() -> impl Strategy<Value = ContextFileRow> {
+    (
+        arb_context_file_row(),
+        "[a-z ]*",
+        prop::option::of("[a-z ]+"),
+        prop::collection::vec(arb_file_classification(), 0..3),
+    )
+        .prop_map(|(mut row, rank_reason, policy_reason, classifications)| {
+            row.rank_reason = rank_reason;
+            row.policy_reason = policy_reason;
+            row.classifications = classifications;
+            row
+        })
+}
+
+/// Verify JSON round-trip for types without PartialEq.
+/// Serializes, deserializes, re-serializes and asserts the two JSON strings match.
+fn assert_json_roundtrip<T: serde::Serialize + serde::de::DeserializeOwned>(val: &T) {
+    let json1 = serde_json::to_string(val).expect("serialize");
+    let parsed: T = serde_json::from_str(&json1).expect("deserialize");
+    let json2 = serde_json::to_string(&parsed).expect("re-serialize");
+    assert_eq!(json1, json2, "JSON round-trip mismatch");
+}
+
+// =============================================================================
+// Property tests: composite type round-trips, ordering, defaults
+// =============================================================================
+
+proptest! {
+    // ========================
+    // Composite type round-trips (double-serialize for types without PartialEq)
+    // ========================
+
+    #[test]
+    fn smart_excluded_file_roundtrip(f in arb_smart_excluded_file()) {
+        assert_json_roundtrip(&f);
+    }
+
+    #[test]
+    fn artifact_entry_roundtrip(e in arb_artifact_entry()) {
+        assert_json_roundtrip(&e);
+    }
+
+    #[test]
+    fn capability_status_roundtrip(s in arb_capability_status()) {
+        assert_json_roundtrip(&s);
+    }
+
+    #[test]
+    fn context_excluded_path_roundtrip(p in arb_context_excluded_path()) {
+        assert_json_roundtrip(&p);
+    }
+
+    #[test]
+    fn handoff_excluded_path_roundtrip(p in arb_handoff_excluded_path()) {
+        assert_json_roundtrip(&p);
+    }
+
+    #[test]
+    fn handoff_hotspot_roundtrip(h in arb_handoff_hotspot()) {
+        assert_json_roundtrip(&h);
+    }
+
+    #[test]
+    fn handoff_complexity_roundtrip(c in arb_handoff_complexity()) {
+        assert_json_roundtrip(&c);
+    }
+
+    #[test]
+    fn handoff_derived_roundtrip(d in arb_handoff_derived()) {
+        assert_json_roundtrip(&d);
+    }
+
+    #[test]
+    fn policy_excluded_file_roundtrip(f in arb_policy_excluded_file()) {
+        assert_json_roundtrip(&f);
+    }
+
+    #[test]
+    fn context_file_row_roundtrip(r in arb_context_file_row()) {
+        assert_json_roundtrip(&r);
+    }
+
+    #[test]
+    fn context_file_row_full_roundtrip(r in arb_context_file_row_full()) {
+        assert_json_roundtrip(&r);
+    }
+
+    // ========================
+    // Cockpit metric type round-trips
+    // ========================
+
+    #[test]
+    fn change_surface_roundtrip(cs in arb_change_surface()) {
+        assert_json_roundtrip(&cs);
+    }
+
+    #[test]
+    fn composition_roundtrip(c in arb_composition()) {
+        assert_json_roundtrip(&c);
+    }
+
+    #[test]
+    fn contracts_roundtrip(c in arb_contracts()) {
+        assert_json_roundtrip(&c);
+    }
+
+    #[test]
+    fn health_warning_roundtrip(w in arb_health_warning()) {
+        assert_json_roundtrip(&w);
+    }
+
+    #[test]
+    fn review_item_roundtrip(r in arb_review_item()) {
+        assert_json_roundtrip(&r);
+    }
+
+    #[test]
+    fn scan_status_roundtrip(s in arb_scan_status()) {
+        assert_json_roundtrip(&s);
+    }
+
+    #[test]
+    fn analysis_format_roundtrip(f in arb_analysis_format()) {
+        let json = serde_json::to_string(&f).expect("serialize");
+        let parsed: AnalysisFormat = serde_json::from_str(&json).expect("deserialize");
+        prop_assert_eq!(f, parsed);
+    }
+
+    // ========================
+    // Vector round-trips for composite types
+    // ========================
+
+    #[test]
+    fn smart_excluded_files_vec_roundtrip(
+        files in prop::collection::vec(arb_smart_excluded_file(), 0..5)
+    ) {
+        let json = serde_json::to_string(&files).expect("serialize");
+        let parsed: Vec<SmartExcludedFile> = serde_json::from_str(&json).expect("deserialize");
+        let json2 = serde_json::to_string(&parsed).expect("re-serialize");
+        prop_assert_eq!(json, json2);
+    }
+
+    #[test]
+    fn review_items_vec_roundtrip(
+        items in prop::collection::vec(arb_review_item(), 0..5)
+    ) {
+        let json = serde_json::to_string(&items).expect("serialize");
+        let parsed: Vec<ReviewItem> = serde_json::from_str(&json).expect("deserialize");
+        let json2 = serde_json::to_string(&parsed).expect("re-serialize");
+        prop_assert_eq!(json, json2);
+    }
+
+    #[test]
+    fn health_warnings_vec_roundtrip(
+        warnings in prop::collection::vec(arb_health_warning(), 0..5)
+    ) {
+        let json = serde_json::to_string(&warnings).expect("serialize");
+        let parsed: Vec<HealthWarning> = serde_json::from_str(&json).expect("deserialize");
+        let json2 = serde_json::to_string(&parsed).expect("re-serialize");
+        prop_assert_eq!(json, json2);
+    }
+
+    #[test]
+    fn policy_excluded_files_vec_roundtrip(
+        files in prop::collection::vec(arb_policy_excluded_file(), 0..5)
+    ) {
+        let json = serde_json::to_string(&files).expect("serialize");
+        let parsed: Vec<PolicyExcludedFile> = serde_json::from_str(&json).expect("deserialize");
+        let json2 = serde_json::to_string(&parsed).expect("re-serialize");
+        prop_assert_eq!(json, json2);
+    }
+
+    // ========================
+    // Ordering invariants: transitivity and antisymmetry for Ord types
+    // ========================
+
+    #[test]
+    fn file_kind_ord_transitivity(
+        a in arb_file_kind(),
+        b in arb_file_kind(),
+        c in arb_file_kind()
+    ) {
+        if a <= b && b <= c {
+            prop_assert!(a <= c, "FileKind Ord transitivity violated: {:?} <= {:?} <= {:?}", a, b, c);
+        }
+        if a <= b && b <= a {
+            prop_assert_eq!(a, b, "FileKind Ord antisymmetry violated");
+        }
+    }
+
+    #[test]
+    fn file_classification_ord_transitivity(
+        a in arb_file_classification(),
+        b in arb_file_classification(),
+        c in arb_file_classification()
+    ) {
+        if a <= b && b <= c {
+            prop_assert!(a <= c, "FileClassification Ord transitivity violated");
+        }
+        if a <= b && b <= a {
+            prop_assert_eq!(a, b, "FileClassification Ord antisymmetry violated");
+        }
+    }
+
+    #[test]
+    fn inclusion_policy_ord_transitivity(
+        a in arb_inclusion_policy(),
+        b in arb_inclusion_policy(),
+        c in arb_inclusion_policy()
+    ) {
+        if a <= b && b <= c {
+            prop_assert!(a <= c, "InclusionPolicy Ord transitivity violated");
+        }
+        if a <= b && b <= a {
+            prop_assert_eq!(a, b, "InclusionPolicy Ord antisymmetry violated");
+        }
+    }
+
+    // ========================
+    // Ord / PartialOrd consistency
+    // ========================
+
+    #[test]
+    fn file_kind_ord_partial_ord_consistent(a in arb_file_kind(), b in arb_file_kind()) {
+        prop_assert_eq!(
+            a.partial_cmp(&b), Some(a.cmp(&b)),
+            "FileKind: Ord and PartialOrd must agree"
+        );
+    }
+
+    #[test]
+    fn file_classification_ord_partial_ord_consistent(
+        a in arb_file_classification(),
+        b in arb_file_classification()
+    ) {
+        prop_assert_eq!(
+            a.partial_cmp(&b), Some(a.cmp(&b)),
+            "FileClassification: Ord and PartialOrd must agree"
+        );
+    }
+
+    #[test]
+    fn inclusion_policy_ord_partial_ord_consistent(
+        a in arb_inclusion_policy(),
+        b in arb_inclusion_policy()
+    ) {
+        prop_assert_eq!(
+            a.partial_cmp(&b), Some(a.cmp(&b)),
+            "InclusionPolicy: Ord and PartialOrd must agree"
+        );
+    }
+
+    // ========================
+    // RiskLevel Display matches serde (property-based)
+    // ========================
+
+    #[test]
+    fn risk_level_display_matches_serde_prop(level in arb_risk_level()) {
+        let display = level.to_string();
+        let json = serde_json::to_string(&level).expect("serialize");
+        prop_assert_eq!(json, format!("\"{}\"", display),
+            "RiskLevel Display and serde must agree");
+    }
+}
+
+// =============================================================================
+// Schema version constants are positive
+// =============================================================================
+
+#[test]
+fn schema_version_constants_are_positive() {
+    assert!(SCHEMA_VERSION > 0, "SCHEMA_VERSION must be positive");
+    assert!(
+        COCKPIT_SCHEMA_VERSION > 0,
+        "COCKPIT_SCHEMA_VERSION must be positive"
+    );
+    assert!(
+        HANDOFF_SCHEMA_VERSION > 0,
+        "HANDOFF_SCHEMA_VERSION must be positive"
+    );
+    assert!(
+        CONTEXT_SCHEMA_VERSION > 0,
+        "CONTEXT_SCHEMA_VERSION must be positive"
+    );
+    assert!(
+        CONTEXT_BUNDLE_SCHEMA_VERSION > 0,
+        "CONTEXT_BUNDLE_SCHEMA_VERSION must be positive"
+    );
+}
+
+// =============================================================================
+// Default implementations produce valid JSON round-trips
+// =============================================================================
+
+#[test]
+fn diff_totals_default_produces_valid_json() {
+    let d = DiffTotals::default();
+    let json = serde_json::to_string(&d).expect("DiffTotals::default() should serialize");
+    let parsed: DiffTotals = serde_json::from_str(&json).expect("should deserialize");
+    assert_eq!(d, parsed);
+}
+
+#[test]
+fn config_mode_default_produces_valid_json() {
+    let m = ConfigMode::default();
+    let json = serde_json::to_string(&m).expect("ConfigMode::default() should serialize");
+    let parsed: ConfigMode = serde_json::from_str(&json).expect("should deserialize");
+    assert_eq!(m, parsed);
+    assert_eq!(m, ConfigMode::Auto);
+}
+
+#[test]
+fn inclusion_policy_default_produces_valid_json() {
+    let p = InclusionPolicy::default();
+    let json = serde_json::to_string(&p).expect("InclusionPolicy::default() should serialize");
+    let parsed: InclusionPolicy = serde_json::from_str(&json).expect("should deserialize");
+    assert_eq!(p, parsed);
+    assert_eq!(p, InclusionPolicy::Full);
+}
+
+#[test]
+fn tool_info_default_produces_valid_json() {
+    let t = ToolInfo::default();
+    let json = serde_json::to_string(&t).expect("ToolInfo::default() should serialize");
+    let parsed: serde_json::Value = serde_json::from_str(&json).expect("should deserialize");
+    assert!(parsed["name"].is_string());
+    assert!(parsed["version"].is_string());
+}
+
+#[test]
+fn trend_comparison_default_produces_valid_json() {
+    let t = TrendComparison::default();
+    let json = serde_json::to_string(&t).expect("TrendComparison::default() should serialize");
+    assert_json_roundtrip(&t);
+    // Default should have baseline_available = false
+    let parsed: serde_json::Value = serde_json::from_str(&json).expect("should parse");
+    assert_eq!(parsed["baseline_available"], false);
 }

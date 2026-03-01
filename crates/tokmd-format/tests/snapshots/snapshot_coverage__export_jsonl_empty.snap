@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 530
+expression: output
+---
+

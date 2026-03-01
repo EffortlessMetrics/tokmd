@@ -7,6 +7,23 @@
 /// - If the first directory segment is in `module_roots`, include up to
 ///   `module_depth` directory segments.
 /// - Otherwise, the module key is the first directory segment.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_module_key::module_key;
+///
+/// let roots = vec!["crates".into()];
+///
+/// // Root-level files map to "(root)"
+/// assert_eq!(module_key("Cargo.toml", &roots, 2), "(root)");
+///
+/// // Module roots expand to the configured depth
+/// assert_eq!(module_key("crates/foo/src/lib.rs", &roots, 2), "crates/foo");
+///
+/// // Non-root directories use only the first segment
+/// assert_eq!(module_key("src/lib.rs", &roots, 2), "src");
+/// ```
 #[must_use]
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
     let mut p = path.replace('\\', "/");
@@ -24,6 +41,23 @@ pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> S
 /// - forward slashes only
 /// - no leading `./`
 /// - no leading `/`
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_module_key::module_key_from_normalized;
+///
+/// let roots = vec!["crates".into()];
+///
+/// assert_eq!(
+///     module_key_from_normalized("crates/foo/src/lib.rs", &roots, 2),
+///     "crates/foo"
+/// );
+/// assert_eq!(
+///     module_key_from_normalized("README.md", &roots, 2),
+///     "(root)"
+/// );
+/// ```
 #[must_use]
 pub fn module_key_from_normalized(
     path: &str,

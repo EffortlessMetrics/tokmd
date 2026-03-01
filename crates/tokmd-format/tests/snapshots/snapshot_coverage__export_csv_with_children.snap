@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 391
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/lib.rs,src,Rust,parent,200,40,20,260,10000,500
+src/lib.rs,src,Markdown (Rust),child,30,6,3,39,1500,75
+src/util.rs,src,Rust,parent,100,20,10,130,5000,250

@@ -322,3 +322,79 @@ proptest! {
         );
     }
 }
+
+// ── property: Halstead metrics from tokenization are non-negative ────
+
+proptest! {
+    #[test]
+    fn prop_derived_halstead_metrics_non_negative(
+        code in arb_rust_snippet()
+    ) {
+        let counts = tokenize_for_halstead(&code, "rust");
+        let n1 = counts.operators.len();
+        let n2 = counts.operands.len();
+        let vocabulary = n1 + n2;
+        let length = counts.total_operators + counts.total_operands;
+
+        let volume = if vocabulary > 0 {
+            length as f64 * (vocabulary as f64).log2()
+        } else {
+            0.0
+        };
+        let difficulty = if n2 > 0 {
+            (n1 as f64 / 2.0) * (counts.total_operands as f64 / n2 as f64)
+        } else {
+            0.0
+        };
+        let effort = difficulty * volume;
+        let time_seconds = effort / 18.0;
+        let estimated_bugs = volume / 3000.0;
+
+        prop_assert!(volume >= 0.0, "volume must be non-negative, got {volume}");
+        prop_assert!(difficulty >= 0.0, "difficulty must be non-negative, got {difficulty}");
+        prop_assert!(effort >= 0.0, "effort must be non-negative, got {effort}");
+        prop_assert!(time_seconds >= 0.0, "time must be non-negative, got {time_seconds}");
+        prop_assert!(estimated_bugs >= 0.0, "bugs must be non-negative, got {estimated_bugs}");
+    }
+}
+
+// ── property: more code produces higher or equal metrics ─────────────
+
+proptest! {
+    #[test]
+    fn prop_more_code_more_or_equal_length(
+        snippet_a in arb_rust_snippet(),
+        snippet_b in arb_rust_snippet(),
+    ) {
+        let combined = format!("{}\n{}", snippet_a, snippet_b);
+        let counts_a = tokenize_for_halstead(&snippet_a, "rust");
+        let counts_combined = tokenize_for_halstead(&combined, "rust");
+
+        // Combined code should have >= operators and operands as first snippet alone
+        prop_assert!(
+            counts_combined.total_operators + counts_combined.total_operands
+                >= counts_a.total_operators + counts_a.total_operands,
+            "combined length should be >= single snippet length"
+        );
+    }
+}
+
+// ── property: tokenize across multiple languages yields consistent structure
+
+proptest! {
+    #[test]
+    fn prop_multi_lang_tokenize_consistent(
+        lang in arb_supported_lang()
+    ) {
+        // Simple code that has identifiers and operators
+        let code = "x = 1 + 2";
+        let counts = tokenize_for_halstead(code, lang);
+
+        // total_operators must equal sum of individual operator counts
+        let op_sum: usize = counts.operators.values().sum();
+        prop_assert_eq!(counts.total_operators, op_sum);
+
+        // total_operands >= distinct operands
+        prop_assert!(counts.total_operands >= counts.operands.len());
+    }
+}

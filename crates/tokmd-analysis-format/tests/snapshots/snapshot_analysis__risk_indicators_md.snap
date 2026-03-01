@@ -1,0 +1,65 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_analysis.rs
+assertion_line: 402
+expression: md
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Entropy profiling
+
+|Path|Module|Entropy|Sample bytes|Class|
+|---|---|---:|---:|---|
+|secrets/api_key.env|secrets|7.20|256|High|
+
+## Git metrics
+
+- Commits scanned: `500`
+- Files seen: `80`
+
+### Hotspots
+
+|File|Commits|Lines|Score|
+|---|---:|---:|---:|
+|src/parser.rs|45|800|36000|
+
+### Bus factor
+
+|Module|Authors|
+|---|---:|
+|src|1|
+
+### Freshness
+
+- Stale threshold (days): `90`
+- Stale files: `12` / `80` (15.0%)
+
+|Module|Avg days|P90 days|Stale%|
+|---|---:|---:|---:|
+|src|45.50|120.00|10.0%|
+
+## Complexity
+
+|Metric|Value|
+|---|---:|
+|Total functions|42|
+|Avg function length|18.5|
+|Max function length|120|
+|Avg cyclomatic|4.30|
+|Max cyclomatic|25|
+|Avg cognitive|6.10|
+|Max cognitive|32|
+|Avg nesting depth|2.80|
+|Max nesting depth|7|
+|High risk files|3|
+
+### Top complex files
+
+|Path|CC|Functions|Max fn length|
+|---|---:|---:|---:|
+|src/parser.rs|25|12|120|

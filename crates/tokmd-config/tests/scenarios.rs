@@ -7,7 +7,9 @@
 //! - Clap parsing edge cases
 
 use std::collections::BTreeMap;
-use tokmd_config::{CliLangArgs, GlobalArgs, Profile, TomlConfig, UserConfig, ViewProfile};
+use tokmd_config::{
+    CliLangArgs, GlobalArgs, Profile, RedactMode, TomlConfig, UserConfig, ViewProfile,
+};
 
 // =========================================================================
 // Scenario: GlobalArgs → ScanOptions conversion
@@ -608,6 +610,265 @@ mod cli_parsing {
     fn config_mode_none_flag() {
         let cli = Cli::try_parse_from(["tokmd", "--config", "none"]).expect("parse");
         assert_eq!(cli.global.config, tokmd_config::ConfigMode::None);
+    }
+}
+
+// =========================================================================
+// Scenario: Profile merging with all ViewProfile fields
+// =========================================================================
+
+mod profile_merging_comprehensive {
+    use super::*;
+
+    /// Simulates a full merge of ViewProfile onto defaults for context command.
+    fn merge_context_settings(defaults: &ViewProfile, profile: &ViewProfile) -> ViewProfile {
+        ViewProfile {
+            format: profile.format.clone().or_else(|| defaults.format.clone()),
+            top: profile.top.or(defaults.top),
+            files: profile.files.or(defaults.files),
+            module_roots: profile
+                .module_roots
+                .clone()
+                .or_else(|| defaults.module_roots.clone()),
+            module_depth: profile.module_depth.or(defaults.module_depth),
+            min_code: profile.min_code.or(defaults.min_code),
+            max_rows: profile.max_rows.or(defaults.max_rows),
+            redact: profile.redact.clone().or_else(|| defaults.redact.clone()),
+            meta: profile.meta.or(defaults.meta),
+            children: profile
+                .children
+                .clone()
+                .or_else(|| defaults.children.clone()),
+            preset: profile.preset.clone().or_else(|| defaults.preset.clone()),
+            window: profile.window.or(defaults.window),
+            budget: profile.budget.clone().or_else(|| defaults.budget.clone()),
+            strategy: profile
+                .strategy
+                .clone()
+                .or_else(|| defaults.strategy.clone()),
+            rank_by: profile.rank_by.clone().or_else(|| defaults.rank_by.clone()),
+            output: profile.output.clone().or_else(|| defaults.output.clone()),
+            compress: profile.compress.or(defaults.compress),
+            metric: profile.metric.clone().or_else(|| defaults.metric.clone()),
+        }
+    }
+
+    #[test]
+    fn full_profile_overrides_all_defaults() {
+        let defaults = ViewProfile {
+            format: Some("md".into()),
+            top: Some(10),
+            budget: Some("128k".into()),
+            strategy: Some("greedy".into()),
+            rank_by: Some("code".into()),
+            ..Default::default()
+        };
+        let profile = ViewProfile {
+            format: Some("json".into()),
+            top: Some(50),
+            budget: Some("1m".into()),
+            strategy: Some("spread".into()),
+            rank_by: Some("hotspot".into()),
+            compress: Some(true),
+            ..Default::default()
+        };
+
+        let merged = merge_context_settings(&defaults, &profile);
+        assert_eq!(merged.format, Some("json".into()));
+        assert_eq!(merged.top, Some(50));
+        assert_eq!(merged.budget, Some("1m".into()));
+        assert_eq!(merged.strategy, Some("spread".into()));
+        assert_eq!(merged.rank_by, Some("hotspot".into()));
+        assert_eq!(merged.compress, Some(true));
+    }
+
+    #[test]
+    fn empty_profile_preserves_all_defaults() {
+        let defaults = ViewProfile {
+            format: Some("md".into()),
+            top: Some(10),
+            files: Some(true),
+            module_roots: Some(vec!["crates".into()]),
+            module_depth: Some(2),
+            min_code: Some(5),
+            max_rows: Some(100),
+            redact: Some("paths".into()),
+            meta: Some(true),
+            children: Some("collapse".into()),
+            preset: Some("health".into()),
+            window: Some(128_000),
+            budget: Some("128k".into()),
+            strategy: Some("greedy".into()),
+            rank_by: Some("code".into()),
+            output: Some("list".into()),
+            compress: Some(false),
+            metric: Some("lines".into()),
+        };
+        let profile = ViewProfile::default();
+
+        let merged = merge_context_settings(&defaults, &profile);
+        assert_eq!(merged.format, Some("md".into()));
+        assert_eq!(merged.top, Some(10));
+        assert_eq!(merged.files, Some(true));
+        assert_eq!(merged.module_roots, Some(vec!["crates".into()]));
+        assert_eq!(merged.module_depth, Some(2));
+        assert_eq!(merged.min_code, Some(5));
+        assert_eq!(merged.max_rows, Some(100));
+        assert_eq!(merged.redact, Some("paths".into()));
+        assert_eq!(merged.meta, Some(true));
+        assert_eq!(merged.children, Some("collapse".into()));
+        assert_eq!(merged.preset, Some("health".into()));
+        assert_eq!(merged.window, Some(128_000));
+        assert_eq!(merged.budget, Some("128k".into()));
+        assert_eq!(merged.strategy, Some("greedy".into()));
+        assert_eq!(merged.rank_by, Some("code".into()));
+        assert_eq!(merged.output, Some("list".into()));
+        assert_eq!(merged.compress, Some(false));
+        assert_eq!(merged.metric, Some("lines".into()));
+    }
+
+    #[test]
+    fn profile_from_toml_overrides_programmatic_defaults() {
+        let toml_str = r#"
+[view.llm_safe]
+format = "json"
+redact = "all"
+top = 25
+compress = true
+"#;
+        let config = TomlConfig::parse(toml_str).expect("valid");
+        let profile = config.view.get("llm_safe").unwrap();
+
+        let defaults = ViewProfile {
+            format: Some("md".into()),
+            top: Some(10),
+            redact: Some("none".into()),
+            compress: Some(false),
+            ..Default::default()
+        };
+
+        let merged = merge_context_settings(&defaults, profile);
+        assert_eq!(merged.format, Some("json".into()));
+        assert_eq!(merged.top, Some(25));
+        assert_eq!(merged.redact, Some("all".into()));
+        assert_eq!(merged.compress, Some(true));
+    }
+
+    #[test]
+    fn chained_profile_merging() {
+        // Simulate: base defaults → org profile → user profile
+        let base = ViewProfile {
+            format: Some("md".into()),
+            top: Some(0),
+            ..Default::default()
+        };
+        let org_profile = ViewProfile {
+            format: Some("json".into()),
+            min_code: Some(5),
+            ..Default::default()
+        };
+        let user_profile = ViewProfile {
+            top: Some(20),
+            compress: Some(true),
+            ..Default::default()
+        };
+
+        let after_org = merge_context_settings(&base, &org_profile);
+        let final_result = merge_context_settings(&after_org, &user_profile);
+
+        assert_eq!(final_result.format, Some("json".into())); // from org
+        assert_eq!(final_result.top, Some(20)); // from user
+        assert_eq!(final_result.min_code, Some(5)); // from org
+        assert_eq!(final_result.compress, Some(true)); // from user
+    }
+}
+
+// =========================================================================
+// Scenario: UserConfig with Profile containing redact mode
+// =========================================================================
+
+mod profile_with_redact {
+    use super::*;
+
+    #[test]
+    fn profile_redact_mode_roundtrips_through_json() {
+        let mut profiles = BTreeMap::new();
+        profiles.insert(
+            "safe".to_string(),
+            Profile {
+                redact: Some(RedactMode::All),
+                ..Default::default()
+            },
+        );
+        profiles.insert(
+            "paths_only".to_string(),
+            Profile {
+                redact: Some(RedactMode::Paths),
+                ..Default::default()
+            },
+        );
+        profiles.insert(
+            "open".to_string(),
+            Profile {
+                redact: Some(RedactMode::None),
+                ..Default::default()
+            },
+        );
+
+        let config = UserConfig {
+            profiles,
+            repos: BTreeMap::new(),
+        };
+        let json = serde_json::to_string(&config).expect("serialize");
+        let back: UserConfig = serde_json::from_str(&json).expect("deserialize");
+
+        assert_eq!(
+            back.profiles.get("safe").unwrap().redact,
+            Some(RedactMode::All)
+        );
+        assert_eq!(
+            back.profiles.get("paths_only").unwrap().redact,
+            Some(RedactMode::Paths)
+        );
+        assert_eq!(
+            back.profiles.get("open").unwrap().redact,
+            Some(RedactMode::None)
+        );
+    }
+
+    #[test]
+    fn profile_children_string_roundtrips() {
+        let mut profiles = BTreeMap::new();
+        profiles.insert(
+            "col".to_string(),
+            Profile {
+                children: Some("collapse".to_string()),
+                ..Default::default()
+            },
+        );
+        profiles.insert(
+            "sep".to_string(),
+            Profile {
+                children: Some("separate".to_string()),
+                ..Default::default()
+            },
+        );
+
+        let config = UserConfig {
+            profiles,
+            repos: BTreeMap::new(),
+        };
+        let json = serde_json::to_string(&config).expect("serialize");
+        let back: UserConfig = serde_json::from_str(&json).expect("deserialize");
+
+        assert_eq!(
+            back.profiles.get("col").unwrap().children,
+            Some("collapse".to_string())
+        );
+        assert_eq!(
+            back.profiles.get("sep").unwrap().children,
+            Some("separate".to_string())
+        );
     }
 }
 

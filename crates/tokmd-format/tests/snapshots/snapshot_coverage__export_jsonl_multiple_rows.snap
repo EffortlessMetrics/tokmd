@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 405
+expression: output
+---
+{"type":"row","path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":200,"comments":40,"blanks":20,"lines":260,"bytes":10000,"tokens":500}
+{"type":"row","path":"src/main.rs","module":"src","lang":"Rust","kind":"parent","code":150,"comments":30,"blanks":15,"lines":195,"bytes":7500,"tokens":375}
+{"type":"row","path":"tests/test.rs","module":"tests","lang":"Rust","kind":"parent","code":80,"comments":16,"blanks":8,"lines":104,"bytes":4000,"tokens":200}

@@ -1,0 +1,66 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 423
+expression: json
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": false
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 120,
+      "bytes": 50000,
+      "code": 1000,
+      "files": 10,
+      "lang": "Rust",
+      "lines": 1200,
+      "tokens": 2500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 20000,
+      "code": 400,
+      "files": 4,
+      "lang": "Python",
+      "lines": 480,
+      "tokens": 1000
+    }
+  ],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 120,
+    "bytes": 70000,
+    "code": 1400,
+    "files": 14,
+    "lines": 1680,
+    "tokens": 3500
+  },
+  "warnings": [],
+  "with_files": false
+}

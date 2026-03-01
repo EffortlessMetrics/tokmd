@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 509
+expression: "render_module_tsv(&report, ChildIncludeMode::Separate)"
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+Total	0	0	0	0	0	0

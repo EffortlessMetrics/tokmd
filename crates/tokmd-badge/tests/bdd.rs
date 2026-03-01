@@ -203,6 +203,59 @@ fn given_any_badge_when_rendered_then_text_y_is_16() {
     assert_eq!(y16_count, 2, "both text elements should have y=16");
 }
 
+// ── Given a language count, badge renders valid SVG with count ───────
+
+#[test]
+fn given_language_count_when_badge_rendered_then_svg_is_valid_and_contains_count() {
+    let svg = badge_svg("languages", "5");
+    assert!(svg.starts_with("<svg"));
+    assert!(svg.ends_with("</svg>"));
+    assert!(svg.contains("xmlns=\"http://www.w3.org/2000/svg\""));
+    assert!(svg.contains("languages"));
+    assert!(svg.contains("5"));
+}
+
+// ── Given zero languages, badge shows "0" ───────────────────────────
+
+#[test]
+fn given_zero_languages_when_badge_rendered_then_badge_shows_zero() {
+    let svg = badge_svg("languages", "0");
+    assert!(svg.starts_with("<svg"));
+    assert!(svg.ends_with("</svg>"));
+    assert!(svg.contains("languages"));
+    assert!(svg.contains(">0<"));
+}
+
+// ── Given very large count, badge still produces valid SVG ──────────
+
+#[test]
+fn given_very_large_language_count_when_badge_rendered_then_svg_is_valid() {
+    let svg = badge_svg("languages", "9999999");
+    assert!(svg.starts_with("<svg"));
+    assert!(svg.ends_with("</svg>"));
+    assert!(svg.contains("9999999"));
+    assert_eq!(svg.matches("<rect").count(), 2);
+    assert_eq!(svg.matches("<text").count(), 2);
+}
+
+// ── Given a custom label, badge contains the label text ─────────────
+
+#[test]
+fn given_custom_label_when_badge_rendered_then_badge_contains_label() {
+    let svg = badge_svg("my custom metric", "excellent");
+    assert!(svg.starts_with("<svg"));
+    assert!(svg.ends_with("</svg>"));
+    assert!(svg.contains("my custom metric"));
+    assert!(svg.contains("excellent"));
+}
+
+#[test]
+fn given_another_custom_label_when_badge_rendered_then_badge_contains_label() {
+    let svg = badge_svg("code quality", "A+");
+    assert!(svg.contains("code quality"));
+    assert!(svg.contains("A+"));
+}
+
 // ── helpers ─────────────────────────────────────────────────────────
 
 fn extract_width(svg: &str) -> i32 {

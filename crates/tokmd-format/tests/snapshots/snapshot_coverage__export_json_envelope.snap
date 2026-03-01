@@ -1,0 +1,31 @@
+---
+source: crates/tokmd-format/tests/snapshot_coverage.rs
+assertion_line: 465
+expression: pretty
+---
+[
+  {
+    "blanks": 20,
+    "bytes": 10000,
+    "code": 200,
+    "comments": 40,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 260,
+    "module": "src",
+    "path": "src/lib.rs",
+    "tokens": 500
+  },
+  {
+    "blanks": 10,
+    "bytes": 5000,
+    "code": 100,
+    "comments": 20,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 130,
+    "module": "src",
+    "path": "src/util.rs",
+    "tokens": 250
+  }
+]

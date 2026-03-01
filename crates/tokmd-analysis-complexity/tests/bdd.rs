@@ -280,3 +280,82 @@ fn scenario_histogram_risk_levels_independent() {
     // Both have cyclomatic 3 → bucket 0
     assert_eq!(hist.counts[0], 2);
 }
+
+// ===========================================================================
+// Scenario: Empty file has zero complexity (cyclomatic 0)
+// ===========================================================================
+#[test]
+fn scenario_empty_file_zero_complexity() {
+    // Given: a file with zero cyclomatic complexity
+    let file = file_with_cyclomatic("empty.rs", 0);
+
+    // When: we check its properties
+    // Then: cyclomatic complexity is 0 and it lands in first bucket
+    assert_eq!(file.cyclomatic_complexity, 0);
+    let hist = generate_complexity_histogram(&[file], 5);
+    assert_eq!(hist.counts[0], 1);
+    assert_eq!(hist.total, 1);
+}
+
+// ===========================================================================
+// Scenario: Known branching patterns increase complexity
+// ===========================================================================
+#[test]
+fn scenario_branching_increases_complexity() {
+    // Given: files with increasing complexity
+    let simple = file_with_cyclomatic("simple.rs", 1);
+    let branchy = file_with_cyclomatic("branchy.rs", 15);
+    let complex = file_with_cyclomatic("complex.rs", 40);
+
+    // Then: more complex files land in higher buckets
+    let hist = generate_complexity_histogram(&[simple, branchy, complex], 5);
+    // simple (1) → bucket 0 (0-4)
+    assert_eq!(hist.counts[0], 1);
+    // branchy (15) → bucket 3 (15-19)
+    assert_eq!(hist.counts[3], 1);
+    // complex (40) → bucket 6 (30+)
+    assert_eq!(hist.counts[6], 1);
+}
+
+// ===========================================================================
+// Scenario: Multiple languages produce valid histogram results
+// ===========================================================================
+#[test]
+fn scenario_multi_language_files_valid_histogram() {
+    // Given: files from different languages with varying complexity
+    let mut rust_file = file_with_cyclomatic("lib.rs", 5);
+    rust_file.module = "rust_mod".to_string();
+
+    let mut py_file = file_with_cyclomatic("app.py", 12);
+    py_file.module = "python_mod".to_string();
+
+    let mut js_file = file_with_cyclomatic("index.js", 25);
+    js_file.module = "js_mod".to_string();
+
+    let files = vec![rust_file, py_file, js_file];
+    let hist = generate_complexity_histogram(&files, 5);
+
+    // Then: all files are accounted for
+    assert_eq!(hist.total, 3);
+    assert_eq!(hist.counts.iter().sum::<u32>(), 3);
+    // rust (5) → bucket 1, py (12) → bucket 2, js (25) → bucket 5
+    assert_eq!(hist.counts[1], 1);
+    assert_eq!(hist.counts[2], 1);
+    assert_eq!(hist.counts[5], 1);
+}
+
+// ===========================================================================
+// Scenario: Complexity histogram is always non-negative
+// ===========================================================================
+#[test]
+fn scenario_all_histogram_counts_non_negative() {
+    let files: Vec<FileComplexity> = (0..100)
+        .map(|i| file_with_cyclomatic(&format!("f{i}.rs"), i % 40))
+        .collect();
+    let hist = generate_complexity_histogram(&files, 5);
+
+    for (i, &count) in hist.counts.iter().enumerate() {
+        assert!(count <= hist.total, "bucket {i} count exceeds total");
+    }
+    assert_eq!(hist.counts.iter().sum::<u32>(), 100);
+}
