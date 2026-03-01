@@ -240,9 +240,19 @@ fn scenario_coupling_modules_changed_together() {
         file_row("db/query.rs", "db", 80),
     ]);
     let commits = vec![
-        commit(1000, "alice", "feat: both", &["api/handler.rs", "db/query.rs"]),
+        commit(
+            1000,
+            "alice",
+            "feat: both",
+            &["api/handler.rs", "db/query.rs"],
+        ),
         commit(2000, "bob", "fix: both", &["api/handler.rs", "db/query.rs"]),
-        commit(3000, "alice", "refactor: both", &["api/handler.rs", "db/query.rs"]),
+        commit(
+            3000,
+            "alice",
+            "refactor: both",
+            &["api/handler.rs", "db/query.rs"],
+        ),
     ];
 
     // When
@@ -510,7 +520,10 @@ fn scenario_churn_rising_trend() {
 
     // Then: positive slope → rising
     let trend = report.per_module.get("src").expect("module present");
-    assert!(trend.slope > 0.0, "increasing activity should have positive slope");
+    assert!(
+        trend.slope > 0.0,
+        "increasing activity should have positive slope"
+    );
     assert_eq!(trend.classification, TrendClass::Rising);
 }
 
@@ -568,7 +581,12 @@ fn scenario_intent_by_module() {
     let commits = vec![
         commit(1000, "alice", "feat: api feature", &["api/handler.rs"]),
         commit(2000, "bob", "fix: db bug", &["db/query.rs"]),
-        commit(3000, "charlie", "feat: both", &["api/handler.rs", "db/query.rs"]),
+        commit(
+            3000,
+            "charlie",
+            "feat: both",
+            &["api/handler.rs", "db/query.rs"],
+        ),
     ];
 
     // When
@@ -597,8 +615,18 @@ fn scenario_coupling_metrics_computed() {
         file_row("db/query.rs", "db", 80),
     ]);
     let commits = vec![
-        commit(1000, "alice", "feat: both1", &["api/handler.rs", "db/query.rs"]),
-        commit(2000, "bob", "feat: both2", &["api/handler.rs", "db/query.rs"]),
+        commit(
+            1000,
+            "alice",
+            "feat: both1",
+            &["api/handler.rs", "db/query.rs"],
+        ),
+        commit(
+            2000,
+            "bob",
+            "feat: both2",
+            &["api/handler.rs", "db/query.rs"],
+        ),
         commit(3000, "alice", "fix: api only", &["api/handler.rs"]),
         commit(4000, "bob", "fix: db only", &["db/query.rs"]),
     ];
@@ -616,7 +644,10 @@ fn scenario_coupling_metrics_computed() {
     assert_eq!(c.jaccard, Some(0.5));
     // Lift: (2*4) / (3*3) = 8/9 ≈ 0.8889
     let lift = c.lift.unwrap();
-    assert!((lift - 0.8889).abs() < 0.001, "lift should be ~0.889, got {lift}");
+    assert!(
+        (lift - 0.8889).abs() < 0.001,
+        "lift should be ~0.889, got {lift}"
+    );
 }
 
 // ===========================================================================

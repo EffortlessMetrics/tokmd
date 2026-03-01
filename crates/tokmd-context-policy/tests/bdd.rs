@@ -85,10 +85,7 @@ fn given_all_lockfile_variants_when_checking_smart_exclude_then_lockfile_reason_
 
 #[test]
 fn given_deeply_nested_lockfile_when_checking_smart_exclude_then_lockfile_reason_is_returned() {
-    assert_eq!(
-        smart_exclude_reason("a/b/c/d/e/go.sum"),
-        Some("lockfile")
-    );
+    assert_eq!(smart_exclude_reason("a/b/c/d/e/go.sum"), Some("lockfile"));
 }
 
 #[test]

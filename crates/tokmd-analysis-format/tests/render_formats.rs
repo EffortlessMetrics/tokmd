@@ -117,14 +117,12 @@ fn sample_derived() -> DerivedReport {
                 denominator: 620,
                 rate: 8.06,
             },
-            by_lang: vec![
-                RateRow {
-                    key: "Rust".into(),
-                    numerator: 4500,
-                    denominator: 550,
-                    rate: 8.18,
-                },
-            ],
+            by_lang: vec![RateRow {
+                key: "Rust".into(),
+                numerator: 4500,
+                denominator: 550,
+                rate: 8.18,
+            }],
             by_module: vec![],
         },
         max_file: MaxFileReport {
@@ -568,9 +566,7 @@ fn md_renders_entropy_section_with_suspects() {
 #[test]
 fn md_renders_entropy_section_no_suspects() {
     let mut receipt = minimal_receipt();
-    receipt.entropy = Some(EntropyReport {
-        suspects: vec![],
-    });
+    receipt.entropy = Some(EntropyReport { suspects: vec![] });
     let output = render(&receipt, AnalysisFormat::Md).unwrap();
     let text = match output {
         RenderedOutput::Text(s) => s,
@@ -1128,9 +1124,16 @@ fn all_text_formats_succeed_on_minimal_receipt() {
         AnalysisFormat::Html,
     ] {
         let result = render(&receipt, fmt);
-        assert!(result.is_ok(), "format {:?} failed: {:?}", fmt, result.err());
+        assert!(
+            result.is_ok(),
+            "format {:?} failed: {:?}",
+            fmt,
+            result.err()
+        );
         match result.unwrap() {
-            RenderedOutput::Text(s) => assert!(!s.is_empty(), "format {:?} produced empty output", fmt),
+            RenderedOutput::Text(s) => {
+                assert!(!s.is_empty(), "format {:?} produced empty output", fmt)
+            }
             RenderedOutput::Binary(_) => panic!("format {:?} should produce text", fmt),
         }
     }
