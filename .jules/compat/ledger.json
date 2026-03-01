@@ -11,5 +11,20 @@
     "date": "2024-05-24",
     "target": "tokmd-analysis",
     "improvement": "fixed unused fields warning in no-default-features build"
+  },
+  {
+    "run_id": "20260301-100608",
+    "persona": "Compat",
+    "action": "fix path normalization test failure in tokmd-analysis-entropy",
+    "files_changed": [
+      "crates/tokmd-analysis-entropy/src/lib.rs",
+      "crates/tokmd-model/tests/snapshots/snapshots__file_rows_parents_only.snap",
+      "crates/tokmd-model/tests/snapshots/snapshots__file_rows_separate.snap",
+      "crates/tokmd-model/tests/snapshots/snapshots__module_shape.snap"
+    ],
+    "gates_run": [
+      "cargo test --workspace --no-default-features --exclude tokmd-python --exclude tokmd-node",
+      "cargo test --workspace --all-features --exclude tokmd-python --exclude tokmd-node"
+    ]
   }
 ]

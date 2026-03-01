@@ -36,7 +36,7 @@ pub fn build_entropy_report(
             .map(|r| r.module.clone())
             .unwrap_or_else(|| "(unknown)".to_string());
 
-        let path = root.join(rel);
+        let path = root.join(&rel_str);
         let bytes = tokmd_content::read_head_tail(&path, per_file_limit)?;
         total_bytes += bytes.len() as u64;
         if bytes.is_empty() {
