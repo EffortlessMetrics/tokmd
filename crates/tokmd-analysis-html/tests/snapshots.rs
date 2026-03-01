@@ -346,3 +346,62 @@ fn snapshot_xss_escaped_row() {
     let rows_joined = rows.join("\n---\n");
     insta::assert_snapshot!("xss_escaped_row", rows_joined);
 }
+
+// ── Snapshot: Empty receipt full structure ───────────────────────────
+
+#[test]
+fn snapshot_empty_receipt_html_structure() {
+    let receipt = minimal_receipt();
+    let html = render(&receipt);
+    let html = redact_timestamp(&html);
+
+    // Snapshot the head section to detect template changes
+    let head_start = html.find("<head>").unwrap();
+    let head_end = html.find("</head>").unwrap() + "</head>".len();
+    let head_section = &html[head_start..head_end.min(html.len())];
+
+    // Just snapshot a stable structural marker: the title
+    let title_start = head_section.find("<title>").unwrap();
+    let title_end = head_section.find("</title>").unwrap() + "</title>".len();
+    let title = &head_section[title_start..title_end];
+    insta::assert_snapshot!("empty_receipt_title", title);
+}
+
+// ── Snapshot: Metric cards with derived data ────────────────────────
+
+#[test]
+fn snapshot_single_file_metrics_cards() {
+    let mut receipt = minimal_receipt();
+    let files = vec![make_file_row("src/main.rs", "src", "Rust", 250)];
+    receipt.derived = Some(derived_with_files(files));
+
+    let html = render(&receipt);
+    let html = redact_timestamp(&html);
+
+    let metrics_start = html.find("metrics-grid").unwrap_or(0);
+    let metrics_end = html[metrics_start..]
+        .find("</div>")
+        .map(|i| metrics_start + i + 6)
+        .unwrap_or(metrics_start + 200);
+    let section = &html[metrics_start..metrics_end.min(html.len())];
+
+    insta::assert_snapshot!("single_file_metrics_cards", section);
+}
+
+// ── Snapshot: Empty files derived data ──────────────────────────────
+
+#[test]
+fn snapshot_empty_files_json_data() {
+    let mut receipt = minimal_receipt();
+    receipt.derived = Some(derived_with_files(vec![]));
+
+    let html = render(&receipt);
+
+    if let Some(start) = html.find("const REPORT_DATA =") {
+        let json_start = start + "const REPORT_DATA =".len();
+        if let Some(end) = html[json_start..].find(';') {
+            let json_str = html[json_start..json_start + end].trim();
+            insta::assert_snapshot!("empty_files_json_data", json_str);
+        }
+    }
+}

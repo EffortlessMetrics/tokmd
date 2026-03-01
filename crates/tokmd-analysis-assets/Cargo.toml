@@ -18,6 +18,8 @@ tokmd-analysis-types.workspace = true
 tokmd-walk.workspace = true
 
 [dev-dependencies]
+insta = { workspace = true }
 proptest = "1.10.0"
+serde_json = { workspace = true }
 tempfile = "3.25.0"
 

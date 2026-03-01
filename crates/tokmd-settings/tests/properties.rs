@@ -512,3 +512,363 @@ proptest! {
         }
     }
 }
+
+// =============================================================================
+// Property: Deterministic serialization (same input → identical JSON bytes)
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn scan_options_serialization_is_deterministic(
+        excluded in arb_string_vec(),
+        config in arb_config_mode(),
+        hidden in any::<bool>(),
+        no_ignore in any::<bool>(),
+    ) {
+        let opts = ScanOptions {
+            excluded,
+            config,
+            hidden,
+            no_ignore,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&opts).unwrap();
+        let json2 = serde_json::to_string(&opts).unwrap();
+        prop_assert_eq!(&json1, &json2);
+    }
+
+    #[test]
+    fn lang_settings_serialization_is_deterministic(
+        top in any::<usize>(),
+        files in any::<bool>(),
+        children in arb_children_mode(),
+    ) {
+        let s = LangSettings { top, files, children, redact: None };
+        let json1 = serde_json::to_string(&s).unwrap();
+        let json2 = serde_json::to_string(&s).unwrap();
+        prop_assert_eq!(&json1, &json2);
+    }
+
+    #[test]
+    fn export_settings_serialization_is_deterministic(
+        format in arb_export_format(),
+        min_code in any::<usize>(),
+        max_rows in any::<usize>(),
+        meta in any::<bool>(),
+    ) {
+        let s = ExportSettings {
+            format, min_code, max_rows, meta,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&s).unwrap();
+        let json2 = serde_json::to_string(&s).unwrap();
+        prop_assert_eq!(&json1, &json2);
+    }
+
+    #[test]
+    fn analyze_settings_serialization_is_deterministic(
+        preset in arb_safe_string(),
+        window in proptest::option::of(any::<usize>()),
+        git in proptest::option::of(any::<bool>()),
+    ) {
+        let s = AnalyzeSettings {
+            preset,
+            window,
+            git,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&s).unwrap();
+        let json2 = serde_json::to_string(&s).unwrap();
+        prop_assert_eq!(&json1, &json2);
+    }
+}
+
+// =============================================================================
+// Property: TomlConfig full round-trip through TOML serialization
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn toml_config_full_roundtrip(
+        hidden in proptest::option::of(any::<bool>()),
+        no_ignore in proptest::option::of(any::<bool>()),
+        module_depth in proptest::option::of(0usize..100),
+        preset in proptest::option::of(arb_safe_string()),
+        min_code in proptest::option::of(0usize..10000),
+    ) {
+        let cfg = TomlConfig {
+            scan: ScanConfig {
+                hidden,
+                no_ignore,
+                ..Default::default()
+            },
+            module: ModuleConfig {
+                depth: module_depth,
+                ..Default::default()
+            },
+            analyze: AnalyzeConfig {
+                preset: preset.clone(),
+                ..Default::default()
+            },
+            export: ExportConfig {
+                min_code,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let toml_str = toml::to_string(&cfg).unwrap();
+        let back: TomlConfig = toml::from_str(&toml_str).unwrap();
+        prop_assert_eq!(back.scan.hidden, hidden);
+        prop_assert_eq!(back.scan.no_ignore, no_ignore);
+        prop_assert_eq!(back.module.depth, module_depth);
+        prop_assert_eq!(&back.analyze.preset, &preset);
+        prop_assert_eq!(back.export.min_code, min_code);
+    }
+}
+
+// =============================================================================
+// Property: ViewProfile JSON round-trip
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn view_profile_json_roundtrip(
+        top in proptest::option::of(0usize..1000),
+        files in proptest::option::of(any::<bool>()),
+        min_code in proptest::option::of(0usize..10000),
+        max_rows in proptest::option::of(0usize..10000),
+        compress in proptest::option::of(any::<bool>()),
+        preset in proptest::option::of(arb_safe_string()),
+        budget in proptest::option::of(arb_safe_string()),
+    ) {
+        let vp = ViewProfile {
+            top,
+            files,
+            min_code,
+            max_rows,
+            compress,
+            preset: preset.clone(),
+            budget: budget.clone(),
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&vp).unwrap();
+        let back: ViewProfile = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(back.top, top);
+        prop_assert_eq!(back.files, files);
+        prop_assert_eq!(back.min_code, min_code);
+        prop_assert_eq!(back.max_rows, max_rows);
+        prop_assert_eq!(back.compress, compress);
+        prop_assert_eq!(&back.preset, &preset);
+        prop_assert_eq!(&back.budget, &budget);
+    }
+}
+
+// =============================================================================
+// Property: All default settings produce deterministic JSON
+// =============================================================================
+
+#[test]
+fn all_defaults_produce_deterministic_json() {
+    macro_rules! check_deterministic {
+        ($ty:ty) => {{
+            let a = serde_json::to_string(&<$ty>::default()).unwrap();
+            let b = serde_json::to_string(&<$ty>::default()).unwrap();
+            assert_eq!(a, b, "non-deterministic JSON for {}", stringify!($ty));
+        }};
+    }
+    check_deterministic!(ScanOptions);
+    check_deterministic!(ScanSettings);
+    check_deterministic!(LangSettings);
+    check_deterministic!(ModuleSettings);
+    check_deterministic!(ExportSettings);
+    check_deterministic!(AnalyzeSettings);
+    check_deterministic!(CockpitSettings);
+    check_deterministic!(DiffSettings);
+}
+
+#[test]
+fn all_defaults_produce_deterministic_toml() {
+    macro_rules! check_deterministic_toml {
+        ($ty:ty) => {{
+            let a = toml::to_string(&<$ty>::default()).unwrap();
+            let b = toml::to_string(&<$ty>::default()).unwrap();
+            assert_eq!(a, b, "non-deterministic TOML for {}", stringify!($ty));
+        }};
+    }
+    check_deterministic_toml!(TomlConfig);
+    check_deterministic_toml!(ScanConfig);
+    check_deterministic_toml!(ModuleConfig);
+    check_deterministic_toml!(ExportConfig);
+    check_deterministic_toml!(AnalyzeConfig);
+    check_deterministic_toml!(ContextConfig);
+    check_deterministic_toml!(BadgeConfig);
+    check_deterministic_toml!(GateConfig);
+    check_deterministic_toml!(ViewProfile);
+}
+
+// =============================================================================
+// Property: Default values are sensible (within expected ranges)
+// =============================================================================
+
+#[test]
+fn default_lang_settings_has_sensible_values() {
+    let s = LangSettings::default();
+    assert_eq!(s.top, 0, "top=0 means show all rows");
+    assert!(!s.files, "files off by default");
+    assert!(matches!(s.children, ChildrenMode::Collapse));
+    assert!(s.redact.is_none());
+}
+
+#[test]
+fn default_module_settings_has_sensible_values() {
+    let s = ModuleSettings::default();
+    assert_eq!(s.top, 0);
+    assert!(s.module_depth >= 1, "module_depth should be at least 1");
+    assert!(
+        !s.module_roots.is_empty(),
+        "should have default module roots"
+    );
+    assert!(matches!(s.children, ChildIncludeMode::Separate));
+    assert!(s.redact.is_none());
+}
+
+#[test]
+fn default_export_settings_has_sensible_values() {
+    let s = ExportSettings::default();
+    assert!(matches!(s.format, ExportFormat::Jsonl));
+    assert_eq!(s.min_code, 0);
+    assert_eq!(s.max_rows, 0, "max_rows=0 means unlimited");
+    assert!(matches!(s.redact, RedactMode::None));
+    assert!(s.meta, "meta enabled by default");
+    assert!(s.strip_prefix.is_none());
+}
+
+#[test]
+fn default_analyze_settings_has_sensible_values() {
+    let s = AnalyzeSettings::default();
+    assert_eq!(s.preset, "receipt");
+    assert_eq!(s.granularity, "module");
+    assert!(s.window.is_none());
+    assert!(s.git.is_none());
+    assert!(s.max_files.is_none());
+}
+
+#[test]
+fn default_cockpit_settings_has_sensible_values() {
+    let s = CockpitSettings::default();
+    assert_eq!(s.base, "main");
+    assert_eq!(s.head, "HEAD");
+    assert_eq!(s.range_mode, "two-dot");
+    assert!(s.baseline.is_none());
+}
+
+// =============================================================================
+// Property: GateConfig TOML round-trip with inline rules
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn gate_config_toml_roundtrip(
+        fail_fast in proptest::option::of(any::<bool>()),
+        allow_missing in proptest::option::of(any::<bool>()),
+        policy in proptest::option::of(arb_safe_string()),
+    ) {
+        let cfg = GateConfig {
+            policy: policy.clone(),
+            fail_fast,
+            allow_missing_baseline: allow_missing,
+            ..Default::default()
+        };
+        let toml_str = toml::to_string(&cfg).unwrap();
+        let back: GateConfig = toml::from_str(&toml_str).unwrap();
+        prop_assert_eq!(&back.policy, &policy);
+        prop_assert_eq!(back.fail_fast, fail_fast);
+        prop_assert_eq!(back.allow_missing_baseline, allow_missing);
+    }
+}
+
+// =============================================================================
+// Property: BadgeConfig TOML round-trip
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn badge_config_toml_roundtrip(
+        metric in proptest::option::of(arb_safe_string()),
+    ) {
+        let cfg = BadgeConfig { metric: metric.clone() };
+        let toml_str = toml::to_string(&cfg).unwrap();
+        let back: BadgeConfig = toml::from_str(&toml_str).unwrap();
+        prop_assert_eq!(&back.metric, &metric);
+    }
+}
+
+// =============================================================================
+// Property: ExportConfig TOML round-trip
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn export_config_toml_roundtrip(
+        min_code in proptest::option::of(0usize..10000),
+        max_rows in proptest::option::of(0usize..10000),
+        redact in proptest::option::of(prop_oneof![
+            Just("none".to_string()),
+            Just("paths".to_string()),
+            Just("all".to_string()),
+        ]),
+        format in proptest::option::of(prop_oneof![
+            Just("jsonl".to_string()),
+            Just("csv".to_string()),
+            Just("json".to_string()),
+        ]),
+    ) {
+        let cfg = ExportConfig {
+            min_code,
+            max_rows,
+            redact: redact.clone(),
+            format: format.clone(),
+            ..Default::default()
+        };
+        let toml_str = toml::to_string(&cfg).unwrap();
+        let back: ExportConfig = toml::from_str(&toml_str).unwrap();
+        prop_assert_eq!(back.min_code, min_code);
+        prop_assert_eq!(back.max_rows, max_rows);
+        prop_assert_eq!(&back.redact, &redact);
+        prop_assert_eq!(&back.format, &format);
+    }
+}
+
+// =============================================================================
+// Property: AnalyzeConfig TOML round-trip
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn analyze_config_toml_roundtrip(
+        preset in proptest::option::of(arb_safe_string()),
+        window in proptest::option::of(any::<usize>()),
+        git in proptest::option::of(any::<bool>()),
+        max_files in proptest::option::of(any::<usize>()),
+        granularity in proptest::option::of(prop_oneof![
+            Just("module".to_string()),
+            Just("file".to_string()),
+        ]),
+    ) {
+        let cfg = AnalyzeConfig {
+            preset: preset.clone(),
+            window,
+            git,
+            max_files,
+            granularity: granularity.clone(),
+            ..Default::default()
+        };
+        let toml_str = toml::to_string(&cfg).unwrap();
+        let back: AnalyzeConfig = toml::from_str(&toml_str).unwrap();
+        prop_assert_eq!(&back.preset, &preset);
+        prop_assert_eq!(back.window, window);
+        prop_assert_eq!(back.git, git);
+        prop_assert_eq!(back.max_files, max_files);
+        prop_assert_eq!(&back.granularity, &granularity);
+    }
+}

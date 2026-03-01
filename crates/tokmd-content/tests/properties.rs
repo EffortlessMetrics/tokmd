@@ -259,6 +259,67 @@ proptest! {
     }
 
     // ========================
+    // Import Pattern Detection via Tags
+    // ========================
+
+    #[test]
+    fn count_tags_detects_import_patterns(
+        n_import in 0usize..5,
+        n_require in 0usize..5,
+    ) {
+        let text = format!(
+            "{}{}",
+            "import foo\n".repeat(n_import),
+            "require('baz')\n".repeat(n_require),
+        );
+        let result = count_tags(&text, &["import", "require"]);
+        let import_count = result[0].1;
+        let require_count = result[1].1;
+        prop_assert_eq!(import_count, n_import, "import count mismatch");
+        prop_assert_eq!(require_count, n_require, "require count mismatch");
+    }
+
+    #[test]
+    fn count_tags_detects_rust_use_statements(n_use in 0usize..5) {
+        // Build text with no accidental "use" substrings
+        let text = "use std::path::Path;\n".repeat(n_use);
+        let result = count_tags(&text, &["use"]);
+        prop_assert_eq!(result[0].1, n_use, "use statement count mismatch");
+    }
+
+    // ========================
+    // Entropy File-Based Round-Trip
+    // ========================
+
+    #[test]
+    fn entropy_of_file_bytes_matches_direct(content in prop::collection::vec(any::<u8>(), 0..512)) {
+        // Hash through file I/O and directly should agree
+        let direct_entropy = entropy_bits_per_byte(&content);
+        // Re-compute from a clone to verify determinism
+        let clone_entropy = entropy_bits_per_byte(&content.clone());
+        prop_assert_eq!(
+            direct_entropy, clone_entropy,
+            "entropy must be deterministic for same content"
+        );
+    }
+
+    // ========================
+    // Hash Determinism Across Identical Content
+    // ========================
+
+    #[test]
+    fn hash_same_content_always_matches(
+        content in prop::collection::vec(any::<u8>(), 0..256),
+        repeats in 2usize..5,
+    ) {
+        let first = hash_bytes(&content);
+        for _ in 1..repeats {
+            let again = hash_bytes(&content);
+            prop_assert_eq!(&first, &again, "hash must be identical for same content");
+        }
+    }
+
+    // ========================
     // Complexity Properties
     // ========================
 

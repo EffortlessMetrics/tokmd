@@ -452,3 +452,319 @@ fn all_preset_names_are_lowercase_ascii() {
         );
     }
 }
+
+// ── Scenario: Grid is deterministic ────────────────────────────────────
+
+#[test]
+fn preset_grid_is_deterministic_across_calls() {
+    let plans_a: Vec<PresetPlan> = PresetKind::all()
+        .iter()
+        .map(|k| preset_plan_for(*k))
+        .collect();
+    let plans_b: Vec<PresetPlan> = PresetKind::all()
+        .iter()
+        .map(|k| preset_plan_for(*k))
+        .collect();
+    assert_eq!(plans_a, plans_b, "grid must be deterministic");
+}
+
+#[test]
+fn preset_grid_order_is_stable() {
+    let names_a: Vec<&str> = PRESET_GRID.iter().map(|r| r.preset.as_str()).collect();
+    let names_b: Vec<&str> = PRESET_GRID.iter().map(|r| r.preset.as_str()).collect();
+    assert_eq!(names_a, names_b, "grid order must be stable");
+}
+
+// ── Scenario: All presets have complete feature matrix entries ──────────
+
+#[test]
+fn every_preset_plan_has_all_base_fields_accessible() {
+    for row in &PRESET_GRID {
+        // Access every field to ensure the matrix is fully populated.
+        let plan = row.plan;
+        let _ = (
+            plan.assets,
+            plan.deps,
+            plan.todo,
+            plan.dup,
+            plan.imports,
+            plan.git,
+            plan.fun,
+            plan.archetype,
+            plan.topics,
+            plan.entropy,
+            plan.license,
+            plan.complexity,
+            plan.api_surface,
+        );
+        // needs_files is consistent with the flags
+        let expected_needs = plan.assets
+            || plan.deps
+            || plan.todo
+            || plan.dup
+            || plan.imports
+            || plan.entropy
+            || plan.license
+            || plan.complexity
+            || plan.api_surface;
+        assert_eq!(
+            plan.needs_files(),
+            expected_needs,
+            "needs_files mismatch for {:?}",
+            row.preset
+        );
+    }
+}
+
+// ── Scenario: Each preset maps to the correct enrichers ────────────────
+
+#[test]
+fn health_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Health);
+    assert!(plan.todo, "health must enable todo");
+    assert!(plan.complexity, "health must enable complexity");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn risk_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Risk);
+    assert!(plan.git, "risk must enable git");
+    assert!(plan.complexity, "risk must enable complexity");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn supply_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Supply);
+    assert!(plan.assets, "supply must enable assets");
+    assert!(plan.deps, "supply must enable deps");
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn architecture_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Architecture);
+    assert!(plan.imports, "architecture must enable imports");
+    assert!(plan.api_surface, "architecture must enable api_surface");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+}
+
+#[test]
+fn topics_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Topics);
+    assert!(plan.topics, "topics must enable topics");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn security_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Security);
+    assert!(plan.entropy, "security must enable entropy");
+    assert!(plan.license, "security must enable license");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn identity_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Identity);
+    assert!(plan.git, "identity must enable git");
+    assert!(plan.archetype, "identity must enable archetype");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.fun);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn git_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Git);
+    assert!(plan.git, "git must enable git");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn deep_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Deep);
+    assert!(plan.assets);
+    assert!(plan.deps);
+    assert!(plan.todo);
+    assert!(plan.dup);
+    assert!(plan.imports);
+    assert!(plan.git);
+    assert!(plan.archetype);
+    assert!(plan.topics);
+    assert!(plan.entropy);
+    assert!(plan.license);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
+    assert!(!plan.fun, "deep must NOT enable fun");
+}
+
+#[test]
+fn fun_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Fun);
+    assert!(plan.fun, "fun must enable fun");
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+#[test]
+fn receipt_preset_enrichers_exactly() {
+    let plan = preset_plan_for(PresetKind::Receipt);
+    assert!(!plan.assets);
+    assert!(!plan.deps);
+    assert!(!plan.todo);
+    assert!(!plan.dup);
+    assert!(!plan.imports);
+    assert!(!plan.git);
+    assert!(!plan.fun);
+    assert!(!plan.archetype);
+    assert!(!plan.topics);
+    assert!(!plan.entropy);
+    assert!(!plan.license);
+    assert!(!plan.complexity);
+    assert!(!plan.api_surface);
+}
+
+// ── Scenario: Enricher flag counts per preset ──────────────────────────
+
+#[test]
+fn receipt_enables_zero_base_enrichers() {
+    let plan = preset_plan_for(PresetKind::Receipt);
+    let count = count_base_flags(&plan);
+    assert_eq!(count, 0);
+}
+
+#[test]
+fn fun_enables_exactly_one_base_enricher() {
+    let plan = preset_plan_for(PresetKind::Fun);
+    let count = count_base_flags(&plan);
+    assert_eq!(count, 1);
+}
+
+#[test]
+fn deep_enables_maximum_base_enrichers() {
+    let deep_count = count_base_flags(&preset_plan_for(PresetKind::Deep));
+    for kind in PresetKind::all() {
+        if *kind == PresetKind::Fun {
+            continue; // fun has unique flag not in deep
+        }
+        let count = count_base_flags(&preset_plan_for(*kind));
+        assert!(
+            count <= deep_count,
+            "{:?} has more flags ({count}) than Deep ({deep_count})",
+            kind
+        );
+    }
+}
+
+fn count_base_flags(plan: &PresetPlan) -> usize {
+    [
+        plan.assets,
+        plan.deps,
+        plan.todo,
+        plan.dup,
+        plan.imports,
+        plan.git,
+        plan.fun,
+        plan.archetype,
+        plan.topics,
+        plan.entropy,
+        plan.license,
+        plan.complexity,
+        plan.api_surface,
+    ]
+    .iter()
+    .filter(|&&v| v)
+    .count()
+}

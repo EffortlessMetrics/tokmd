@@ -278,6 +278,84 @@ proptest! {
 // ============================================================================
 
 proptest! {
+    /// Walking an empty directory returns empty results.
+    #[test]
+    fn list_files_empty_dir_returns_empty(_dummy in 0..5u8) {
+        let tmp = TempDir::new().unwrap();
+        // No files created — directory is empty
+        let files = list_files(tmp.path(), None).unwrap();
+        prop_assert!(
+            files.is_empty(),
+            "empty dir should yield empty results, got {} files",
+            files.len()
+        );
+    }
+
+    /// Walking a directory with N files returns exactly N entries.
+    #[test]
+    fn list_files_count_matches_created_files(
+        filenames in arb_filenames(1, 20),
+    ) {
+        let tmp = TempDir::new().unwrap();
+        for name in &filenames {
+            std::fs::write(tmp.path().join(name), "x").unwrap();
+        }
+        let files = list_files(tmp.path(), None).unwrap();
+        prop_assert_eq!(
+            files.len(),
+            filenames.len(),
+            "expected {} files, got {}",
+            filenames.len(),
+            files.len()
+        );
+    }
+
+    /// All returned paths exist on disk when joined with root.
+    #[test]
+    fn list_files_all_paths_exist_on_disk(
+        filenames in arb_filenames(1, 10),
+    ) {
+        let tmp = TempDir::new().unwrap();
+        for name in &filenames {
+            std::fs::write(tmp.path().join(name), "x").unwrap();
+        }
+        let files = list_files(tmp.path(), None).unwrap();
+        for f in &files {
+            let full = tmp.path().join(f);
+            prop_assert!(
+                full.exists(),
+                "returned path should exist on disk: {}",
+                full.display()
+            );
+        }
+    }
+
+    /// Walk results are deterministically sorted (string comparison).
+    #[test]
+    fn list_files_sorted_deterministically(
+        filenames in arb_filenames(2, 15),
+    ) {
+        let tmp = TempDir::new().unwrap();
+        for name in &filenames {
+            std::fs::write(tmp.path().join(name), "x").unwrap();
+        }
+
+        let files = list_files(tmp.path(), None).unwrap();
+        let strs: Vec<String> = files
+            .iter()
+            .map(|p| p.to_string_lossy().to_string())
+            .collect();
+
+        for window in strs.windows(2) {
+            prop_assert!(
+                window[0] <= window[1],
+                "results not sorted: '{}' > '{}'",
+                window[0],
+                window[1]
+            );
+        }
+    }
+
     /// Files matching a .gitignore glob never appear in list_files output.
     #[test]
     fn gitignored_files_never_listed(

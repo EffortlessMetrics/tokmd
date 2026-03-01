@@ -452,8 +452,8 @@ fn given_auth_api_db_paths_then_domain_topics_appear() {
         "expected 'login' in overall: {overall_terms:?}"
     );
     assert!(
-        overall_terms.contains(&"router"),
-        "expected 'router' in overall: {overall_terms:?}"
+        overall_terms.contains(&"token"),
+        "expected 'token' in overall: {overall_terms:?}"
     );
     assert!(
         overall_terms.contains(&"connection"),

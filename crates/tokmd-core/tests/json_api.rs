@@ -738,6 +738,139 @@ fn run_json_always_returns_valid_json_for_known_edge_cases() {
 }
 
 // ============================================================================
+// FFI determinism
+// ============================================================================
+
+/// Strip `generated_at_ms` from a JSON value for determinism comparison.
+fn strip_timestamp(val: &mut serde_json::Value) {
+    if let Some(obj) = val.as_object_mut() {
+        obj.remove("generated_at_ms");
+        if let Some(data) = obj.get_mut("data") {
+            if let Some(data_obj) = data.as_object_mut() {
+                data_obj.remove("generated_at_ms");
+            }
+        }
+    }
+}
+
+#[test]
+fn ffi_lang_is_deterministic() {
+    let r1 = run_json("lang", r#"{"paths": ["src"]}"#);
+    let r2 = run_json("lang", r#"{"paths": ["src"]}"#);
+
+    let mut j1: serde_json::Value = serde_json::from_str(&r1).unwrap();
+    let mut j2: serde_json::Value = serde_json::from_str(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "FFI lang mode should be deterministic");
+}
+
+#[test]
+fn ffi_module_is_deterministic() {
+    let r1 = run_json("module", r#"{"paths": ["src"]}"#);
+    let r2 = run_json("module", r#"{"paths": ["src"]}"#);
+
+    let mut j1: serde_json::Value = serde_json::from_str(&r1).unwrap();
+    let mut j2: serde_json::Value = serde_json::from_str(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "FFI module mode should be deterministic");
+}
+
+#[test]
+fn ffi_export_is_deterministic() {
+    let r1 = run_json("export", r#"{"paths": ["src"]}"#);
+    let r2 = run_json("export", r#"{"paths": ["src"]}"#);
+
+    let mut j1: serde_json::Value = serde_json::from_str(&r1).unwrap();
+    let mut j2: serde_json::Value = serde_json::from_str(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "FFI export mode should be deterministic");
+}
+
+// ============================================================================
+// FFI schema version in receipts
+// ============================================================================
+
+#[test]
+fn ffi_lang_receipt_has_correct_schema_version() {
+    let result = run_json("lang", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    assert_eq!(
+        parsed["data"]["schema_version"].as_u64().unwrap(),
+        tokmd_types::SCHEMA_VERSION as u64,
+    );
+}
+
+#[test]
+fn ffi_module_receipt_has_correct_schema_version() {
+    let result = run_json("module", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    assert_eq!(
+        parsed["data"]["schema_version"].as_u64().unwrap(),
+        tokmd_types::SCHEMA_VERSION as u64,
+    );
+}
+
+#[test]
+fn ffi_export_receipt_has_correct_schema_version() {
+    let result = run_json("export", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    assert_eq!(
+        parsed["data"]["schema_version"].as_u64().unwrap(),
+        tokmd_types::SCHEMA_VERSION as u64,
+    );
+}
+
+#[test]
+fn ffi_version_schema_matches_types_constant() {
+    let result = run_json("version", "{}");
+    let parsed = assert_ok(&result);
+    assert_eq!(
+        parsed["data"]["schema_version"].as_u64().unwrap(),
+        tokmd_types::SCHEMA_VERSION as u64,
+    );
+}
+
+// ============================================================================
+// FFI round-trip: data is valid receipt JSON
+// ============================================================================
+
+#[test]
+fn ffi_lang_data_deserializes_as_lang_receipt() {
+    let result = run_json("lang", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    let data_str = serde_json::to_string(&parsed["data"]).unwrap();
+    let receipt: tokmd_types::LangReceipt = serde_json::from_str(&data_str).unwrap();
+    assert_eq!(receipt.mode, "lang");
+    assert!(!receipt.report.rows.is_empty());
+}
+
+#[test]
+fn ffi_module_data_deserializes_as_module_receipt() {
+    let result = run_json("module", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    let data_str = serde_json::to_string(&parsed["data"]).unwrap();
+    let receipt: tokmd_types::ModuleReceipt = serde_json::from_str(&data_str).unwrap();
+    assert_eq!(receipt.mode, "module");
+    assert!(!receipt.report.rows.is_empty());
+}
+
+#[test]
+fn ffi_export_data_deserializes_as_export_receipt() {
+    let result = run_json("export", r#"{"paths": ["src"]}"#);
+    let parsed = assert_ok(&result);
+    let data_str = serde_json::to_string(&parsed["data"]).unwrap();
+    let receipt: tokmd_types::ExportReceipt = serde_json::from_str(&data_str).unwrap();
+    assert_eq!(receipt.mode, "export");
+    assert!(!receipt.data.rows.is_empty());
+}
+
+// ============================================================================
 // Envelope shape invariants
 // ============================================================================
 

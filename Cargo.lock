@@ -3076,6 +3076,7 @@ name = "tokmd-analysis-assets"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "insta",
  "proptest",
  "serde_json",
  "tempfile",
@@ -3176,7 +3177,9 @@ dependencies = [
 name = "tokmd-analysis-fun"
 version = "1.7.2"
 dependencies = [
+ "insta",
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
 ]
 
@@ -3415,6 +3418,7 @@ name = "tokmd-export-tree"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-types",
 ]
 
@@ -3602,6 +3606,7 @@ name = "tokmd-scan-args"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-path",
  "tokmd-redact",
  "tokmd-settings",
@@ -3664,6 +3669,7 @@ dependencies = [
  "anyhow",
  "clap",
  "insta",
+ "proptest",
  "serde",
  "serde_json",
 ]

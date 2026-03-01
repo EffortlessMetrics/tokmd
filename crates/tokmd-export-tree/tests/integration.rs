@@ -1,6 +1,8 @@
 use tokmd_export_tree::{render_analysis_tree, render_handoff_tree};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
+// ── Tree construction preserves hierarchy ──
+
 fn row(path: &str, module: &str, lines: usize, tokens: usize) -> FileRow {
     FileRow {
         path: path.to_string(),
@@ -157,4 +159,224 @@ fn zero_line_zero_token_files_are_rendered() {
 
     let handoff = render_handoff_tree(&export, 3);
     assert!(handoff.contains("(root) (files: 2, lines: 10, tokens: 20)"));
+}
+
+// ── Tree construction from file rows preserves hierarchy ──
+
+#[test]
+fn analysis_tree_preserves_directory_hierarchy() {
+    let export = export(vec![
+        row(
+            "crates/tokmd-model/src/lib.rs",
+            "crates/tokmd-model",
+            100,
+            200,
+        ),
+        row(
+            "crates/tokmd-model/src/utils.rs",
+            "crates/tokmd-model",
+            50,
+            100,
+        ),
+        row("crates/tokmd-scan/src/lib.rs", "crates/tokmd-scan", 30, 60),
+    ]);
+
+    let tree = render_analysis_tree(&export);
+    let lines: Vec<&str> = tree.lines().collect();
+
+    // Top-level: crates
+    assert!(lines[0].starts_with("crates "));
+    // Second level: tokmd-model, tokmd-scan (sorted)
+    assert!(lines[1].starts_with("  tokmd-model "));
+    assert!(lines[2].starts_with("    src "));
+    // File leaves under src
+    assert!(lines[3].starts_with("      lib.rs "));
+    assert!(lines[4].starts_with("      utils.rs "));
+    // tokmd-scan after tokmd-model
+    assert!(lines[5].starts_with("  tokmd-scan "));
+}
+
+#[test]
+fn handoff_tree_preserves_directory_hierarchy() {
+    let export = export(vec![
+        row("crates/a/src/lib.rs", "crates/a", 10, 20),
+        row("crates/b/src/lib.rs", "crates/b", 5, 10),
+    ]);
+
+    let tree = render_handoff_tree(&export, 5);
+    let lines: Vec<&str> = tree.lines().collect();
+
+    assert!(lines[0].starts_with("(root)"));
+    assert!(lines[1].starts_with("  crates/"));
+    assert!(lines[2].starts_with("    a/"));
+    assert!(lines[3].starts_with("      src/"));
+    assert!(lines[4].starts_with("    b/"));
+    assert!(lines[5].starts_with("      src/"));
+}
+
+// ── Empty input produces empty tree ──
+
+#[test]
+fn empty_rows_produce_empty_analysis_tree() {
+    let export = export(vec![]);
+    let tree = render_analysis_tree(&export);
+    assert!(
+        tree.is_empty(),
+        "analysis tree from empty rows should be empty"
+    );
+}
+
+#[test]
+fn empty_rows_produce_empty_handoff_tree() {
+    let export = export(vec![]);
+    let tree = render_handoff_tree(&export, 10);
+    assert!(
+        tree.is_empty(),
+        "handoff tree from empty rows should be empty"
+    );
+}
+
+// ── Tree is deterministic ──
+
+#[test]
+fn analysis_tree_is_deterministic_across_calls() {
+    let export = export(vec![
+        row("src/b.rs", "src", 20, 40),
+        row("src/a.rs", "src", 10, 20),
+        row("lib/c.rs", "lib", 5, 10),
+    ]);
+
+    let tree1 = render_analysis_tree(&export);
+    let tree2 = render_analysis_tree(&export);
+    assert_eq!(tree1, tree2, "analysis tree must be deterministic");
+}
+
+#[test]
+fn handoff_tree_is_deterministic_across_calls() {
+    let export = export(vec![
+        row("src/b.rs", "src", 20, 40),
+        row("src/a.rs", "src", 10, 20),
+        row("lib/c.rs", "lib", 5, 10),
+    ]);
+
+    let tree1 = render_handoff_tree(&export, 5);
+    let tree2 = render_handoff_tree(&export, 5);
+    assert_eq!(tree1, tree2, "handoff tree must be deterministic");
+}
+
+#[test]
+fn trees_are_deterministic_regardless_of_row_order() {
+    let rows_forward = vec![
+        row("src/a.rs", "src", 10, 20),
+        row("src/b.rs", "src", 30, 60),
+        row("lib/c.rs", "lib", 5, 10),
+    ];
+    let mut rows_reversed = rows_forward.clone();
+    rows_reversed.reverse();
+
+    let forward_analysis = render_analysis_tree(&export(rows_forward.clone()));
+    let reversed_analysis = render_analysis_tree(&export(rows_reversed.clone()));
+    assert_eq!(forward_analysis, reversed_analysis);
+
+    let forward_handoff = render_handoff_tree(&export(rows_forward), 5);
+    let reversed_handoff = render_handoff_tree(&export(rows_reversed), 5);
+    assert_eq!(forward_handoff, reversed_handoff);
+}
+
+// ── Round-trip serialization ──
+
+#[test]
+fn round_trip_serialization_produces_identical_analysis_tree() {
+    let original = export(vec![
+        row("crates/a/src/lib.rs", "crates/a", 100, 200),
+        row("crates/b/src/lib.rs", "crates/b", 50, 100),
+        row("README.md", "(root)", 10, 20),
+    ]);
+
+    let tree_before = render_analysis_tree(&original);
+
+    let json = serde_json::to_string(&original).expect("serialize ExportData");
+    let deserialized: ExportData = serde_json::from_str(&json).expect("deserialize ExportData");
+
+    let tree_after = render_analysis_tree(&deserialized);
+    assert_eq!(
+        tree_before, tree_after,
+        "analysis tree must survive JSON round-trip"
+    );
+}
+
+#[test]
+fn round_trip_serialization_produces_identical_handoff_tree() {
+    let original = export(vec![
+        row("crates/a/src/lib.rs", "crates/a", 100, 200),
+        row("crates/b/src/lib.rs", "crates/b", 50, 100),
+        row("README.md", "(root)", 10, 20),
+    ]);
+
+    let tree_before = render_handoff_tree(&original, 5);
+
+    let json = serde_json::to_string(&original).expect("serialize ExportData");
+    let deserialized: ExportData = serde_json::from_str(&json).expect("deserialize ExportData");
+
+    let tree_after = render_handoff_tree(&deserialized, 5);
+    assert_eq!(
+        tree_before, tree_after,
+        "handoff tree must survive JSON round-trip"
+    );
+}
+
+// ── Deep nesting works correctly ──
+
+#[test]
+fn analysis_tree_handles_deeply_nested_paths() {
+    let export = export(vec![row("a/b/c/d/e/f/g/h/i/j/leaf.rs", "a", 42, 84)]);
+
+    let tree = render_analysis_tree(&export);
+
+    // All 10 directory segments plus the file leaf must appear
+    for seg in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "leaf.rs"] {
+        assert!(tree.contains(seg), "missing segment: {seg}");
+    }
+    // Leaf has correct stats
+    assert!(tree.contains("leaf.rs (lines: 42, tokens: 84)"));
+    // Each level increases indentation by 2 spaces
+    let lines: Vec<&str> = tree.lines().collect();
+    assert_eq!(lines.len(), 11, "10 dirs + 1 file = 11 lines");
+    for (i, line) in lines.iter().enumerate() {
+        let expected_indent = "  ".repeat(i);
+        assert!(
+            line.starts_with(&expected_indent),
+            "line {i} should start with {}-space indent",
+            i * 2
+        );
+    }
+}
+
+#[test]
+fn handoff_tree_handles_deeply_nested_paths_with_large_depth() {
+    let export = export(vec![row("a/b/c/d/e/f/g/h/i/j/leaf.rs", "a", 42, 84)]);
+
+    let tree = render_handoff_tree(&export, 20);
+
+    // Handoff tree shows directories but not file leaves
+    for seg in ["a/", "b/", "c/", "d/", "e/", "f/", "g/", "h/", "i/", "j/"] {
+        assert!(tree.contains(seg), "missing dir: {seg}");
+    }
+    assert!(
+        !tree.contains("leaf.rs"),
+        "file leaf should not appear in handoff tree"
+    );
+}
+
+#[test]
+fn handoff_tree_deep_nesting_respects_depth_limit() {
+    let export = export(vec![row("a/b/c/d/e/f/g/h/leaf.rs", "a", 10, 20)]);
+
+    let tree_depth3 = render_handoff_tree(&export, 3);
+    // depth=3 means root + 3 levels of children: root, a/, b/, c/
+    assert!(tree_depth3.contains("(root)"));
+    assert!(tree_depth3.contains("a/"));
+    assert!(tree_depth3.contains("b/"));
+    assert!(tree_depth3.contains("c/"));
+    assert!(!tree_depth3.contains("d/"), "d/ should be beyond depth 3");
 }

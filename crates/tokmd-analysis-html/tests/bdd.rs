@@ -567,3 +567,187 @@ fn given_over_100_files_when_rendered_then_table_has_at_most_100_rows() {
         "table should have at most 100 rows, got {row_count}"
     );
 }
+
+// ── Scenario: HTML output is well-formed ────────────────────────────
+
+#[test]
+fn given_receipt_with_derived_when_rendered_then_html_is_well_formed() {
+    let mut receipt = minimal_receipt();
+    let files = vec![make_file_row("src/main.rs", "src", "Rust", 200)];
+    receipt.derived = Some(derived_with_files(files));
+
+    let html = render(&receipt);
+
+    assert!(html.starts_with("<!DOCTYPE html>"));
+    assert!(html.contains("<html"), "must contain opening <html> tag");
+    assert!(html.contains("</html>"), "must contain closing </html> tag");
+    assert!(html.contains("<head>"));
+    assert!(html.contains("</head>"));
+    assert!(html.contains("<body>"));
+    assert!(html.contains("</body>"));
+    assert!(html.contains("<title>"), "must have a <title> tag");
+    assert!(html.contains("</title>"));
+}
+
+#[test]
+fn given_empty_receipt_when_rendered_then_html_is_well_formed() {
+    let receipt = minimal_receipt();
+    let html = render(&receipt);
+
+    assert!(html.starts_with("<!DOCTYPE html>"));
+    assert!(html.contains("<html"));
+    assert!(html.contains("</html>"));
+    assert!(html.contains("<head>"));
+    assert!(html.contains("</head>"));
+    assert!(html.contains("<body>"));
+    assert!(html.contains("</body>"));
+}
+
+// ── Scenario: Known metrics appear in HTML output ───────────────────
+
+#[test]
+fn given_derived_data_when_rendered_then_known_metric_labels_appear() {
+    let mut receipt = minimal_receipt();
+    let files = vec![make_file_row("src/main.rs", "src", "Rust", 500)];
+    receipt.derived = Some(derived_with_files(files));
+
+    let html = render(&receipt);
+
+    assert!(html.contains("Files"), "must show Files metric");
+    assert!(html.contains("Lines"), "must show Lines metric");
+    assert!(html.contains("Code"), "must show Code metric");
+    assert!(html.contains("Tokens"), "must show Tokens metric");
+    assert!(html.contains("Doc%"), "must show Doc% metric");
+}
+
+#[test]
+fn given_derived_with_context_window_then_all_six_metric_cards_appear() {
+    let mut receipt = minimal_receipt();
+    let mut derived = derived_with_files(vec![make_file_row("a.rs", ".", "Rust", 100)]);
+    derived.context_window = Some(ContextWindowReport {
+        window_tokens: 128_000,
+        total_tokens: 300,
+        pct: 0.0023,
+        fits: true,
+    });
+    receipt.derived = Some(derived);
+
+    let html = render(&receipt);
+
+    let card_count = html.matches("class=\"metric-card\"").count();
+    assert_eq!(
+        card_count, 6,
+        "expect 6 metric cards (5 base + Context Fit)"
+    );
+}
+
+#[test]
+fn given_derived_without_context_window_then_five_metric_cards_appear() {
+    let mut receipt = minimal_receipt();
+    let mut derived = derived_with_files(vec![make_file_row("a.rs", ".", "Rust", 100)]);
+    derived.context_window = None;
+    receipt.derived = Some(derived);
+
+    let html = render(&receipt);
+
+    let card_count = html.matches("class=\"metric-card\"").count();
+    assert_eq!(
+        card_count, 5,
+        "expect 5 metric cards when no context window"
+    );
+}
+
+// ── Scenario: HTML output is deterministic ──────────────────────────
+
+#[test]
+fn given_same_receipt_when_rendered_twice_then_output_is_identical_modulo_timestamp() {
+    let mut receipt = minimal_receipt();
+    let files = vec![
+        make_file_row("src/main.rs", "src", "Rust", 500),
+        make_file_row("src/utils.py", "src", "Python", 200),
+    ];
+    receipt.derived = Some(derived_with_files(files));
+
+    let html_a = render(&receipt);
+    let html_b = render(&receipt);
+
+    // Strip timestamps to compare determinism of the rest.
+    let strip_ts = |html: &str| -> String {
+        let mut result = html.to_string();
+        while let Some(pos) = result.find(" UTC") {
+            if pos >= 19 {
+                let candidate = &result[pos - 19..pos + 4];
+                if candidate.len() == 23
+                    && candidate.as_bytes()[4] == b'-'
+                    && candidate.as_bytes()[7] == b'-'
+                    && candidate.as_bytes()[10] == b' '
+                {
+                    result.replace_range(pos - 19..pos + 4, "[TS]");
+                    continue;
+                }
+            }
+            break;
+        }
+        result
+    };
+
+    assert_eq!(
+        strip_ts(&html_a),
+        strip_ts(&html_b),
+        "render must be deterministic"
+    );
+}
+
+#[test]
+fn given_empty_receipt_when_rendered_twice_then_output_is_identical_modulo_timestamp() {
+    let receipt = minimal_receipt();
+
+    let html_a = render(&receipt);
+    let html_b = render(&receipt);
+
+    let strip = |h: &str| h.replace(char::is_numeric, "X");
+    assert_eq!(strip(&html_a), strip(&html_b));
+}
+
+// ── Scenario: Empty analysis produces valid HTML ────────────────────
+
+#[test]
+fn given_no_derived_data_then_no_metric_cards() {
+    let receipt = minimal_receipt();
+    let html = render(&receipt);
+    assert!(
+        !html.contains("class=\"metric-card\""),
+        "no metric cards without derived data"
+    );
+}
+
+#[test]
+fn given_no_derived_data_then_no_table_data_rows() {
+    let receipt = minimal_receipt();
+    let html = render(&receipt);
+    assert_eq!(
+        html.matches("<tr><td").count(),
+        0,
+        "no table data rows without derived data"
+    );
+}
+
+#[test]
+fn given_derived_with_empty_files_when_rendered_then_valid_html() {
+    let mut receipt = minimal_receipt();
+    receipt.derived = Some(derived_with_files(vec![]));
+
+    let html = render(&receipt);
+
+    assert!(html.contains("<html"));
+    assert!(html.contains("</html>"));
+    assert!(
+        html.contains("metric-card"),
+        "still has metric cards for totals"
+    );
+    assert_eq!(
+        html.matches("<tr><td").count(),
+        0,
+        "no table rows for empty files"
+    );
+}

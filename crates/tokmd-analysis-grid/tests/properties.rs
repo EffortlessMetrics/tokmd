@@ -72,6 +72,31 @@ proptest! {
         }
     }
 
+    /// Grid lookup is deterministic: same kind always yields same plan.
+    #[test]
+    fn grid_lookup_is_deterministic(kind in preset_kind_strategy()) {
+        let plan_a = preset_plan_for(kind);
+        let plan_b = preset_plan_for(kind);
+        prop_assert_eq!(plan_a, plan_b);
+    }
+
+    /// Round-trip serialization via as_str/from_str is stable for all presets.
+    #[test]
+    fn string_roundtrip_serialization(kind in preset_kind_strategy()) {
+        let s = kind.as_str();
+        let roundtripped = PresetKind::from_str(s).unwrap();
+        prop_assert_eq!(roundtripped, kind);
+        prop_assert_eq!(roundtripped.as_str(), s);
+    }
+
+    /// Round-trip through preset_plan_for_name matches preset_plan_for.
+    #[test]
+    fn plan_roundtrip_via_name(kind in preset_kind_strategy()) {
+        let via_name = preset_plan_for_name(kind.as_str()).unwrap();
+        let direct = preset_plan_for(kind);
+        prop_assert_eq!(via_name, direct);
+    }
+
     /// For any PresetKind, the Deep preset plan has at least as many enabled flags
     /// as any other preset (except fun which Deep disables).
     #[test]

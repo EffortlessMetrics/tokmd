@@ -526,3 +526,137 @@ fn given_error_envelope_with_data_field_when_extracting_then_error_takes_precede
 
     assert_eq!(err, EnvelopeExtractError::Upstream("[e] fail".to_string()));
 }
+
+// ── Success envelope shape ──
+
+#[test]
+fn success_envelope_has_ok_true_and_data_present_and_error_null() {
+    let envelope = json!({
+        "ok": true,
+        "data": { "mode": "lang", "rows": [1, 2, 3] },
+        "error": null
+    });
+
+    let parsed = parse_envelope(&envelope.to_string()).unwrap();
+    assert_eq!(parsed["ok"], true);
+    assert!(!parsed["data"].is_null());
+    assert!(parsed["error"].is_null());
+
+    let data = extract_data(envelope).expect("extract success envelope");
+    assert_eq!(data["mode"], "lang");
+    assert_eq!(data["rows"].as_array().unwrap().len(), 3);
+}
+
+// ── Error envelope shape ──
+
+#[test]
+fn error_envelope_has_ok_false_and_error_present_and_data_null() {
+    let envelope = json!({
+        "ok": false,
+        "data": null,
+        "error": { "code": "scan_failed", "message": "No files found" }
+    });
+
+    let parsed = parse_envelope(&envelope.to_string()).unwrap();
+    assert_eq!(parsed["ok"], false);
+    assert!(parsed["data"].is_null());
+    assert!(!parsed["error"].is_null());
+
+    let err = extract_data(envelope).unwrap_err();
+    assert_eq!(
+        err,
+        EnvelopeExtractError::Upstream("[scan_failed] No files found".to_string())
+    );
+}
+
+// ── Round-trip serialization of success and error envelopes ──
+
+#[test]
+fn round_trip_success_envelope_through_json_string() {
+    let original = json!({
+        "ok": true,
+        "data": { "version": "1.0.0", "schema_version": 2, "nested": { "a": [1, 2] } }
+    });
+    let json_str = serde_json::to_string(&original).unwrap();
+    let reparsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let data_original = extract_data(original).unwrap();
+    let data_reparsed = extract_data(reparsed).unwrap();
+    assert_eq!(data_original, data_reparsed);
+}
+
+#[test]
+fn round_trip_error_envelope_through_json_string() {
+    let original = json!({
+        "ok": false,
+        "error": { "code": "invalid_args", "message": "Missing required field" }
+    });
+    let json_str = serde_json::to_string(&original).unwrap();
+    let reparsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let err_original = extract_data(original).unwrap_err();
+    let err_reparsed = extract_data(reparsed).unwrap_err();
+    assert_eq!(err_original, err_reparsed);
+}
+
+#[test]
+fn round_trip_via_extract_data_json_preserves_payload() {
+    let envelope = json!({
+        "ok": true,
+        "data": { "key": "value", "count": 42, "items": ["a", "b", "c"] }
+    });
+    let envelope_str = serde_json::to_string(&envelope).unwrap();
+
+    let data_json = extract_data_json(&envelope_str).expect("extract json string");
+    let data: serde_json::Value = serde_json::from_str(&data_json).expect("reparse");
+
+    assert_eq!(data["key"], "value");
+    assert_eq!(data["count"], 42);
+    assert_eq!(data["items"].as_array().unwrap().len(), 3);
+}
+
+// ── Envelope JSON structure matches expected shape ──
+
+#[test]
+fn success_envelope_json_structure_has_expected_keys() {
+    let envelope_str = r#"{"ok": true, "data": {"mode": "export"}, "error": null}"#;
+    let parsed = parse_envelope(envelope_str).unwrap();
+    let obj = parsed.as_object().expect("envelope is object");
+
+    assert!(obj.contains_key("ok"), "missing 'ok' key");
+    assert!(obj.contains_key("data"), "missing 'data' key");
+    assert!(obj.contains_key("error"), "missing 'error' key");
+    assert_eq!(obj["ok"], true);
+    assert!(obj["data"].is_object());
+    assert!(obj["error"].is_null());
+}
+
+#[test]
+fn error_envelope_json_structure_has_expected_keys() {
+    let envelope_str = r#"{"ok": false, "data": null, "error": {"code": "e", "message": "m"}}"#;
+    let parsed = parse_envelope(envelope_str).unwrap();
+    let obj = parsed.as_object().expect("envelope is object");
+
+    assert!(obj.contains_key("ok"), "missing 'ok' key");
+    assert!(obj.contains_key("data"), "missing 'data' key");
+    assert!(obj.contains_key("error"), "missing 'error' key");
+    assert_eq!(obj["ok"], false);
+    assert!(obj["data"].is_null());
+
+    let error_obj = obj["error"].as_object().expect("error is object");
+    assert!(error_obj.contains_key("code"), "error missing 'code'");
+    assert!(error_obj.contains_key("message"), "error missing 'message'");
+}
+
+#[test]
+fn envelope_without_error_key_still_extracts_data() {
+    let envelope = json!({
+        "ok": true,
+        "data": { "mode": "version" }
+    });
+    let obj = envelope.as_object().unwrap();
+    assert!(!obj.contains_key("error"), "this envelope has no error key");
+
+    let data = extract_data(envelope).expect("should still extract data");
+    assert_eq!(data["mode"], "version");
+}

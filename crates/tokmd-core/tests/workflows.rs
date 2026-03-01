@@ -434,6 +434,175 @@ fn analyze_workflow_runs_with_receipt_preset() {
 }
 
 // ============================================================================
+// Determinism tests
+// ============================================================================
+
+/// Strip the `generated_at_ms` field so we can compare receipts for determinism.
+fn strip_timestamp(val: &mut serde_json::Value) {
+    if let Some(obj) = val.as_object_mut() {
+        obj.remove("generated_at_ms");
+    }
+}
+
+#[test]
+fn lang_workflow_is_deterministic() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let lang = LangSettings::default();
+
+    let r1 = lang_workflow(&scan, &lang).unwrap();
+    let r2 = lang_workflow(&scan, &lang).unwrap();
+
+    let mut j1 = serde_json::to_value(&r1).unwrap();
+    let mut j2 = serde_json::to_value(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "lang_workflow should be deterministic");
+}
+
+#[test]
+fn module_workflow_is_deterministic() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let module = ModuleSettings::default();
+
+    let r1 = module_workflow(&scan, &module).unwrap();
+    let r2 = module_workflow(&scan, &module).unwrap();
+
+    let mut j1 = serde_json::to_value(&r1).unwrap();
+    let mut j2 = serde_json::to_value(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "module_workflow should be deterministic");
+}
+
+#[test]
+fn export_workflow_is_deterministic() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let export = ExportSettings::default();
+
+    let r1 = export_workflow(&scan, &export).unwrap();
+    let r2 = export_workflow(&scan, &export).unwrap();
+
+    let mut j1 = serde_json::to_value(&r1).unwrap();
+    let mut j2 = serde_json::to_value(&r2).unwrap();
+    strip_timestamp(&mut j1);
+    strip_timestamp(&mut j2);
+
+    assert_eq!(j1, j2, "export_workflow should be deterministic");
+}
+
+// ============================================================================
+// Schema version tests
+// ============================================================================
+
+#[test]
+fn lang_receipt_schema_version_matches_types_constant() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = lang_workflow(&scan, &LangSettings::default()).unwrap();
+    assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
+    assert_eq!(receipt.schema_version, tokmd_core::CORE_SCHEMA_VERSION);
+}
+
+#[test]
+fn module_receipt_schema_version_matches_types_constant() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = module_workflow(&scan, &ModuleSettings::default()).unwrap();
+    assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
+}
+
+#[test]
+fn export_receipt_schema_version_matches_types_constant() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = export_workflow(&scan, &ExportSettings::default()).unwrap();
+    assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
+}
+
+#[test]
+fn lang_receipt_schema_version_survives_json_roundtrip() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = lang_workflow(&scan, &LangSettings::default()).unwrap();
+    let json = serde_json::to_string(&receipt).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(
+        parsed["schema_version"].as_u64().unwrap(),
+        tokmd_types::SCHEMA_VERSION as u64
+    );
+}
+
+// ============================================================================
+// Module workflow structural checks
+// ============================================================================
+
+#[test]
+fn module_workflow_receipt_has_valid_timestamp() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = module_workflow(&scan, &ModuleSettings::default()).unwrap();
+    assert!(receipt.generated_at_ms > 1_577_836_800_000);
+}
+
+#[test]
+fn module_workflow_receipt_has_tool_info() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = module_workflow(&scan, &ModuleSettings::default()).unwrap();
+    assert!(!receipt.tool.name.is_empty());
+    assert!(!receipt.tool.version.is_empty());
+}
+
+#[test]
+fn module_workflow_receipt_has_scan_args() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = module_workflow(&scan, &ModuleSettings::default()).unwrap();
+    assert!(!receipt.scan.paths.is_empty());
+}
+
+#[test]
+fn module_workflow_receipt_is_json_roundtrippable() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = module_workflow(&scan, &ModuleSettings::default()).unwrap();
+    let json = serde_json::to_string(&receipt).unwrap();
+    let deserialized: tokmd_types::ModuleReceipt = serde_json::from_str(&json).unwrap();
+    assert_eq!(deserialized.mode, "module");
+    assert_eq!(deserialized.schema_version, receipt.schema_version);
+}
+
+// ============================================================================
+// Export workflow structural checks
+// ============================================================================
+
+#[test]
+fn export_workflow_receipt_has_valid_timestamp() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = export_workflow(&scan, &ExportSettings::default()).unwrap();
+    assert!(receipt.generated_at_ms > 1_577_836_800_000);
+}
+
+#[test]
+fn export_workflow_receipt_has_tool_info() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = export_workflow(&scan, &ExportSettings::default()).unwrap();
+    assert!(!receipt.tool.name.is_empty());
+    assert!(!receipt.tool.version.is_empty());
+}
+
+#[test]
+fn export_workflow_receipt_has_scan_args() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = export_workflow(&scan, &ExportSettings::default()).unwrap();
+    assert!(!receipt.scan.paths.is_empty());
+}
+
+#[test]
+fn export_workflow_receipt_is_json_roundtrippable() {
+    let scan = ScanSettings::for_paths(vec!["src".to_string()]);
+    let receipt = export_workflow(&scan, &ExportSettings::default()).unwrap();
+    let json = serde_json::to_string(&receipt).unwrap();
+    let deserialized: tokmd_types::ExportReceipt = serde_json::from_str(&json).unwrap();
+    assert_eq!(deserialized.mode, "export");
+    assert_eq!(deserialized.schema_version, receipt.schema_version);
+}
+
+// ============================================================================
 // Property tests
 // ============================================================================
 
