@@ -639,4 +639,143 @@ mod tests {
         let settings = ScanSettings::for_paths(vec!["src".to_string(), "lib".to_string()]);
         assert_eq!(settings.paths, vec!["src", "lib"]);
     }
+
+    #[test]
+    fn core_schema_version_is_positive() {
+        assert!(CORE_SCHEMA_VERSION > 0);
+    }
+
+    #[test]
+    fn core_schema_version_equals_types_schema_version() {
+        assert_eq!(CORE_SCHEMA_VERSION, SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn version_is_semver_format() {
+        let v = version();
+        let parts: Vec<&str> = v.split('.').collect();
+        assert_eq!(parts.len(), 3, "version should be major.minor.patch: {v}");
+        for part in &parts {
+            assert!(
+                part.parse::<u32>().is_ok(),
+                "version component should be numeric: {part}"
+            );
+        }
+    }
+
+    #[test]
+    fn now_ms_produces_reasonable_timestamp() {
+        let ts = now_ms();
+        assert!(ts > 1_577_836_800_000);
+        assert!(ts < 32_503_680_000_000);
+    }
+
+    #[test]
+    fn redact_export_data_none_is_identity() {
+        let data = ExportData {
+            rows: vec![tokmd_types::FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: tokmd_types::FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 3000,
+                tokens: 500,
+            }],
+            module_roots: vec![],
+            module_depth: 2,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+
+        let result = redact_export_data(data.clone(), RedactMode::None);
+        assert_eq!(result.rows.len(), 1);
+        assert_eq!(result.rows[0].path, "src/lib.rs");
+        assert_eq!(result.rows[0].module, "src");
+    }
+
+    #[test]
+    fn redact_export_data_paths_changes_path() {
+        let data = ExportData {
+            rows: vec![tokmd_types::FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: tokmd_types::FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 3000,
+                tokens: 500,
+            }],
+            module_roots: vec![],
+            module_depth: 2,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+
+        let result = redact_export_data(data, RedactMode::Paths);
+        assert_eq!(result.rows.len(), 1);
+        assert_ne!(result.rows[0].path, "src/lib.rs", "path should be redacted");
+        assert_eq!(result.rows[0].module, "src");
+    }
+
+    #[test]
+    fn redact_export_data_all_changes_path_and_module() {
+        let data = ExportData {
+            rows: vec![tokmd_types::FileRow {
+                path: "src/lib.rs".to_string(),
+                module: "src".to_string(),
+                lang: "Rust".to_string(),
+                kind: tokmd_types::FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 3000,
+                tokens: 500,
+            }],
+            module_roots: vec![],
+            module_depth: 2,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+
+        let result = redact_export_data(data, RedactMode::All);
+        assert_eq!(result.rows.len(), 1);
+        assert_ne!(result.rows[0].path, "src/lib.rs", "path should be redacted");
+        assert_ne!(result.rows[0].module, "src", "module should be redacted");
+        assert_eq!(result.rows[0].code, 100);
+        assert_eq!(result.rows[0].lines, 115);
+    }
+
+    #[test]
+    fn default_lang_settings_are_sensible() {
+        let lang = LangSettings::default();
+        assert_eq!(lang.top, 0, "default top should be 0 (no limit)");
+        assert!(!lang.files, "default files should be false");
+        assert!(lang.redact.is_none(), "default redact should be None");
+    }
+
+    #[test]
+    fn default_module_settings_are_sensible() {
+        let module = ModuleSettings::default();
+        assert_eq!(module.top, 0);
+        assert_eq!(module.module_depth, 2);
+        assert!(!module.module_roots.is_empty());
+        assert!(module.redact.is_none());
+    }
+
+    #[test]
+    fn default_export_settings_are_sensible() {
+        let export = ExportSettings::default();
+        assert_eq!(export.min_code, 0);
+        assert_eq!(
+            export.max_rows, 0,
+            "default max_rows should be 0 (no limit)"
+        );
+        assert_eq!(export.redact, RedactMode::None);
+        assert_eq!(export.module_depth, 2);
+    }
 }

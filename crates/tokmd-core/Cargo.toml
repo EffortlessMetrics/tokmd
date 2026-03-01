@@ -48,3 +48,5 @@ tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = "1.10.0"
+serde_json = "1.0.149"
+tokmd-types = { workspace = true }
