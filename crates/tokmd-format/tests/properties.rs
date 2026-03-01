@@ -457,3 +457,163 @@ proptest! {
         prop_assert_eq!(totals.delta_files, sum_delta_files);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Structural invariants: Markdown starts with `|`, TSV column count, JSON valid
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(32))]
+
+    /// Every non-empty line in Markdown lang output starts with `|`.
+    #[test]
+    fn lang_md_lines_start_with_pipe(report in arb_lang_report()) {
+        let args = LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Md,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        };
+        let mut buf = Vec::new();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        for line in output.lines() {
+            prop_assert!(line.starts_with('|'),
+                "Markdown line must start with '|', got: {}", line);
+        }
+    }
+
+    /// Every non-empty line in Markdown module output starts with `|`.
+    #[test]
+    fn module_md_lines_start_with_pipe(report in arb_module_report()) {
+        let args = ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Md,
+            top: 0,
+            module_roots: vec!["crates".into()],
+            module_depth: 2,
+            children: ChildIncludeMode::Separate,
+        };
+        let mut buf = Vec::new();
+        write_module_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        for line in output.lines() {
+            prop_assert!(line.starts_with('|'),
+                "Markdown line must start with '|', got: {}", line);
+        }
+    }
+
+    /// TSV output has a consistent number of tab-separated columns per row.
+    #[test]
+    fn lang_tsv_consistent_columns(report in arb_lang_report()) {
+        let args = LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Tsv,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        };
+        let mut buf = Vec::new();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let lines: Vec<&str> = output.lines().collect();
+        if let Some(first) = lines.first() {
+            let expected_cols = first.split('\t').count();
+            for (i, line) in lines.iter().enumerate() {
+                let cols = line.split('\t').count();
+                prop_assert_eq!(cols, expected_cols,
+                    "TSV row {} has {} columns, expected {}", i, cols, expected_cols);
+            }
+        }
+    }
+
+    /// TSV module output has a consistent number of tab-separated columns per row.
+    #[test]
+    fn module_tsv_consistent_columns(report in arb_module_report()) {
+        let args = ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Tsv,
+            top: 0,
+            module_roots: vec!["crates".into()],
+            module_depth: 2,
+            children: ChildIncludeMode::Separate,
+        };
+        let mut buf = Vec::new();
+        write_module_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let lines: Vec<&str> = output.lines().collect();
+        if let Some(first) = lines.first() {
+            let expected_cols = first.split('\t').count();
+            for (i, line) in lines.iter().enumerate() {
+                let cols = line.split('\t').count();
+                prop_assert_eq!(cols, expected_cols,
+                    "TSV row {} has {} columns, expected {}", i, cols, expected_cols);
+            }
+        }
+    }
+
+    /// JSON lang output is always valid JSON.
+    #[test]
+    fn lang_json_is_valid(report in arb_lang_report()) {
+        let args = LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Json,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        };
+        let mut buf = Vec::new();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
+        prop_assert!(parsed.is_ok(), "JSON output must be valid JSON, got error: {:?}", parsed.err());
+    }
+
+    /// JSON module output is always valid JSON.
+    #[test]
+    fn module_json_is_valid(report in arb_module_report()) {
+        let args = ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Json,
+            top: 0,
+            module_roots: vec!["crates".into()],
+            module_depth: 2,
+            children: ChildIncludeMode::Separate,
+        };
+        let mut buf = Vec::new();
+        write_module_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
+        prop_assert!(parsed.is_ok(), "JSON output must be valid JSON, got error: {:?}", parsed.err());
+    }
+
+    /// JSON export output is always valid JSON.
+    #[test]
+    fn export_json_is_valid(rows in prop::collection::vec(arb_file_row(), 1..6)) {
+        let data = ExportData {
+            rows,
+            module_roots: vec!["src".into()],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+        };
+        let args = ExportArgs {
+            paths: vec![PathBuf::from(".")],
+            format: ExportFormat::Json,
+            output: None,
+            module_roots: vec!["src".into()],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+            min_code: 0,
+            max_rows: 0,
+            redact: RedactMode::None,
+            meta: false,
+            strip_prefix: None,
+        };
+        let mut buf = Vec::new();
+        write_export_json_to(&mut buf, &data, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
+        prop_assert!(parsed.is_ok(), "JSON output must be valid JSON, got error: {:?}", parsed.err());
+    }
+}

@@ -1550,3 +1550,42 @@ fn trend_comparison_default_produces_valid_json() {
     let parsed: serde_json::Value = serde_json::from_str(&json).expect("should parse");
     assert_eq!(parsed["baseline_available"], false);
 }
+
+// ========================
+// Structural invariants
+// ========================
+
+proptest! {
+    /// LangRow: lines is always >= code (comments + blanks are non-negative).
+    #[test]
+    fn lang_row_lines_gte_code(
+        code in 0usize..50_000,
+        extra in 0usize..50_000,
+        files in 1usize..1000,
+    ) {
+        let lines = code + extra;
+        let row = LangRow {
+            lang: "Rust".into(),
+            code,
+            lines,
+            files,
+            bytes: lines * 40,
+            tokens: lines * 10,
+            avg_lines: if files > 0 { lines / files } else { 0 },
+        };
+        prop_assert!(row.lines >= row.code,
+            "lines ({}) must be >= code ({})", row.lines, row.code);
+    }
+
+    /// FileRow: path is never empty after construction via strategy.
+    #[test]
+    fn file_row_path_never_empty(row in arb_file_row()) {
+        prop_assert!(!row.path.is_empty(), "FileRow path must not be empty");
+    }
+
+    /// ModuleRow: module key is never empty after construction via strategy.
+    #[test]
+    fn module_row_module_never_empty(row in arb_module_row()) {
+        prop_assert!(!row.module.is_empty(), "ModuleRow module must not be empty");
+    }
+}

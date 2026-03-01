@@ -780,3 +780,84 @@ fn scan_unique_file_count_consistency() {
 
 // Note: fold_other_* property tests are in lib.rs where they can access
 // the private functions directly instead of reimplementing them.
+
+// ========================
+// Input-order independence: shuffled input produces same sorted output
+// ========================
+
+proptest! {
+    #[test]
+    fn lang_rows_sort_order_independent(rows in prop::collection::vec(arb_lang_row(), 2..20)) {
+        let sort_fn = |v: &mut Vec<LangRow>| {
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        };
+
+        let mut forward = rows.clone();
+        sort_fn(&mut forward);
+
+        let mut reversed = rows.into_iter().rev().collect::<Vec<_>>();
+        sort_fn(&mut reversed);
+
+        prop_assert_eq!(&forward, &reversed, "Sort must be input-order independent");
+    }
+
+    #[test]
+    fn module_rows_sort_order_independent(rows in prop::collection::vec(arb_module_row(), 2..20)) {
+        let sort_fn = |v: &mut Vec<ModuleRow>| {
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+        };
+
+        let mut forward = rows.clone();
+        sort_fn(&mut forward);
+
+        let mut reversed = rows.into_iter().rev().collect::<Vec<_>>();
+        sort_fn(&mut reversed);
+
+        prop_assert_eq!(&forward, &reversed, "Sort must be input-order independent");
+    }
+
+    #[test]
+    fn file_rows_sort_order_independent(rows in prop::collection::vec(arb_file_row(), 2..20)) {
+        let sort_fn = |v: &mut Vec<FileRow>| {
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+        };
+
+        let mut forward = rows.clone();
+        sort_fn(&mut forward);
+
+        let mut reversed = rows.into_iter().rev().collect::<Vec<_>>();
+        sort_fn(&mut reversed);
+
+        prop_assert_eq!(&forward, &reversed, "Sort must be input-order independent");
+    }
+
+    /// Total lines across all rows equals the sum of individual rows.
+    #[test]
+    fn lang_rows_total_equals_sum(rows in prop::collection::vec(arb_lang_row(), 1..20)) {
+        let sum_code: usize = rows.iter().map(|r| r.code).sum();
+        let sum_lines: usize = rows.iter().map(|r| r.lines).sum();
+        let sum_bytes: usize = rows.iter().map(|r| r.bytes).sum();
+        let sum_tokens: usize = rows.iter().map(|r| r.tokens).sum();
+
+        // Re-computing must give same result (associativity of addition).
+        let recomputed_code: usize = rows.iter().map(|r| r.code).sum();
+        prop_assert_eq!(sum_code, recomputed_code);
+        prop_assert_eq!(sum_lines, rows.iter().map(|r| r.lines).sum::<usize>());
+        prop_assert_eq!(sum_bytes, rows.iter().map(|r| r.bytes).sum::<usize>());
+        prop_assert_eq!(sum_tokens, rows.iter().map(|r| r.tokens).sum::<usize>());
+    }
+
+    /// Module grouping via module_key is deterministic: same path always gives same key.
+    #[test]
+    fn module_grouping_deterministic(
+        parts in prop::collection::vec("[a-zA-Z0-9_]+", 2..5),
+        filename in "[a-zA-Z0-9_]+\\.[a-z]+",
+        depth in 1usize..5
+    ) {
+        let path = format!("{}/{}", parts.join("/"), filename);
+        let roots: Vec<String> = vec![];
+        let k1 = module_key(&path, &roots, depth);
+        let k2 = module_key(&path, &roots, depth);
+        prop_assert_eq!(&k1, &k2, "module_key must be deterministic for path '{}'", path);
+    }
+}

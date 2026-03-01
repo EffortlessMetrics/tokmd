@@ -1148,3 +1148,50 @@ fn evaluate_single_rule(receipt: &Value, rule: &PolicyRule) -> tokmd_gate::RuleR
     let result = evaluate_policy(receipt, &policy);
     result.rule_results.into_iter().next().unwrap()
 }
+
+// ============================================================================
+// Totality: all numeric operators never panic on any i64 input
+// ============================================================================
+
+proptest! {
+    /// Every numeric operator evaluates without panic on arbitrary i64 values.
+    #[test]
+    fn all_numeric_operators_total(
+        actual in prop::num::i64::ANY,
+        threshold in prop::num::i64::ANY,
+        op in arb_numeric_operator(),
+    ) {
+        let receipt = json!({"val": actual});
+        let rule = make_rule("totality", "/val", op, json!(threshold));
+        // Must not panic — result is pass or fail.
+        let _result = evaluate_single_rule(&receipt, &rule);
+    }
+
+    /// Every numeric operator evaluates without panic on f64 values including
+    /// boundary values (NaN is excluded because JSON cannot represent it).
+    #[test]
+    fn all_numeric_operators_total_f64(
+        actual in prop::num::f64::ANY.prop_filter("finite", |v| v.is_finite()),
+        threshold in prop::num::f64::ANY.prop_filter("finite", |v| v.is_finite()),
+        op in arb_numeric_operator(),
+    ) {
+        let receipt = json!({"val": actual});
+        let rule = make_rule("totality_f64", "/val", op, json!(threshold));
+        let _result = evaluate_single_rule(&receipt, &rule);
+    }
+
+    /// Gate evaluation is deterministic: same inputs always produce the same result.
+    #[test]
+    fn gate_evaluation_deterministic_extended(
+        actual in -10_000i64..10_000,
+        threshold in -10_000i64..10_000,
+        op in arb_numeric_operator(),
+    ) {
+        let receipt = json!({"val": actual});
+        let rule = make_rule("det", "/val", op, json!(threshold));
+        let r1 = evaluate_single_rule(&receipt, &rule);
+        let r2 = evaluate_single_rule(&receipt, &rule);
+        prop_assert_eq!(r1.passed, r2.passed,
+            "Determinism violation: op={:?} actual={} threshold={}", op, actual, threshold);
+    }
+}
