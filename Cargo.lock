@@ -3151,6 +3151,7 @@ name = "tokmd-analysis-fingerprint"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
  "tokmd-git",
 ]
