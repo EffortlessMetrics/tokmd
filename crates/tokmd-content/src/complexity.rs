@@ -90,17 +90,21 @@ static RUST_FN: LazyLock<Regex> = LazyLock::new(|| {
 static PYTHON_DEF: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\s*(async\s+)?def\s+\w+").expect("valid regex literal"));
 
-static JS_FUNCTION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\s*(export\s+)?(async\s+)?function\s+\w+").expect("valid regex literal"));
-
-static JS_ARROW: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*(export\s+)?(const|let|var)\s+\w+\s*=\s*(async\s+)?\([^)]*\)\s*=>").expect("valid regex literal")
+static JS_FUNCTION: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(export\s+)?(async\s+)?function\s+\w+").expect("valid regex literal")
 });
 
-static JS_METHOD: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\s*(async\s+)?\w+\s*\([^)]*\)\s*\{").expect("valid regex literal"));
+static JS_ARROW: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(export\s+)?(const|let|var)\s+\w+\s*=\s*(async\s+)?\([^)]*\)\s*=>")
+        .expect("valid regex literal")
+});
 
-static GO_FUNC: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*func\s+\w+").expect("valid regex literal"));
+static JS_METHOD: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(async\s+)?\w+\s*\([^)]*\)\s*\{").expect("valid regex literal")
+});
+
+static GO_FUNC: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\s*func\s+\w+").expect("valid regex literal"));
 
 /// Analyze functions in source code content.
 ///
