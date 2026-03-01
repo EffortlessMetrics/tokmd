@@ -6,7 +6,7 @@
 
 use serde_json::Value;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ANALYSIS_SCHEMA_VERSION, BASELINE_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, BASELINE_VERSION,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 
