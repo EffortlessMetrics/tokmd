@@ -3067,6 +3067,7 @@ name = "tokmd-analysis-archetype"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
