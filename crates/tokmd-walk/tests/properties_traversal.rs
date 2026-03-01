@@ -25,39 +25,16 @@ fn arb_content() -> impl Strategy<Value = Vec<u8>> {
 }
 
 /// Strategy for subdirectory depth (0 = root, up to 4 levels).
-/// Filters out Windows reserved device names (CON, PRN, AUX, NUL, COM1–9, LPT1–9).
+/// Filters out Windows reserved device names (nul, con, prn, aux, com1-9, lpt1-9).
 fn arb_dir_depth() -> impl Strategy<Value = Vec<String>> {
-    prop::collection::vec("[a-z]{1,6}", 0..=4).prop_filter(
-        "no Windows reserved device names",
-        |parts| {
-            !parts.iter().any(|p| {
-                matches!(
-                    p.to_uppercase().as_str(),
-                    "CON"
-                        | "PRN"
-                        | "AUX"
-                        | "NUL"
-                        | "COM1"
-                        | "COM2"
-                        | "COM3"
-                        | "COM4"
-                        | "COM5"
-                        | "COM6"
-                        | "COM7"
-                        | "COM8"
-                        | "COM9"
-                        | "LPT1"
-                        | "LPT2"
-                        | "LPT3"
-                        | "LPT4"
-                        | "LPT5"
-                        | "LPT6"
-                        | "LPT7"
-                        | "LPT8"
-                        | "LPT9"
-                )
-            })
-        },
+    prop::collection::vec(
+        "[a-z]{1,6}".prop_filter("skip Windows reserved names", |s| {
+            !matches!(
+                s.as_str(),
+                "con" | "prn" | "aux" | "nul" | "com" | "lpt"
+            )
+        }),
+        0..=4,
     )
 }
 
