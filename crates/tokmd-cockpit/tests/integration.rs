@@ -35,7 +35,10 @@ fn make_receipt(stats: &[FileStat]) -> CockpitReceipt {
             files_changed: stats.len(),
             insertions: stats.iter().map(|s| s.insertions).sum(),
             deletions: stats.iter().map(|s| s.deletions).sum(),
-            net_lines: stats.iter().map(|s| s.insertions as i64 - s.deletions as i64).sum(),
+            net_lines: stats
+                .iter()
+                .map(|s| s.insertions as i64 - s.deletions as i64)
+                .sum(),
             churn_velocity: 0.0,
             change_concentration: 0.0,
         },
@@ -262,9 +265,7 @@ fn integration_trend_comparison_e2e() {
     let dir = tempfile::tempdir().unwrap();
 
     // Create baseline receipt
-    let baseline_stats = vec![
-        make_file_stat("src/lib.rs", 100, 50),
-    ];
+    let baseline_stats = vec![make_file_stat("src/lib.rs", 100, 50)];
     let mut baseline = make_receipt(&baseline_stats);
     baseline.code_health.score = 75;
     baseline.risk.score = 40;
@@ -275,9 +276,7 @@ fn integration_trend_comparison_e2e() {
     std::fs::write(&baseline_path, &baseline_json).unwrap();
 
     // Create current receipt with better metrics
-    let current_stats = vec![
-        make_file_stat("src/lib.rs", 20, 5),
-    ];
+    let current_stats = vec![make_file_stat("src/lib.rs", 20, 5)];
     let mut current = make_receipt(&current_stats);
     current.code_health.score = 95;
     current.risk.score = 10;
@@ -311,28 +310,37 @@ fn integration_determinism_hashing_workflow() {
     let dir = tempfile::tempdir().unwrap();
 
     // Create a mini project
-    std::fs::write(dir.path().join("main.rs"), "fn main() { println!(\"hello\"); }").unwrap();
-    std::fs::write(dir.path().join("lib.rs"), "pub fn add(a: i32, b: i32) -> i32 { a + b }").unwrap();
-    std::fs::write(dir.path().join("Cargo.lock"), "[[package]]\nname = \"test\"\nversion = \"0.1.0\"").unwrap();
+    std::fs::write(
+        dir.path().join("main.rs"),
+        "fn main() { println!(\"hello\"); }",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("lib.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("Cargo.lock"),
+        "[[package]]\nname = \"test\"\nversion = \"0.1.0\"",
+    )
+    .unwrap();
 
     // Hash using explicit paths
-    let h1 = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["main.rs", "lib.rs"],
-    ).unwrap();
+    let h1 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["main.rs", "lib.rs"])
+        .unwrap();
 
     // Same files, different order -> same hash
-    let h2 = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["lib.rs", "main.rs"],
-    ).unwrap();
+    let h2 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["lib.rs", "main.rs"])
+        .unwrap();
     assert_eq!(h1, h2);
 
     // Duplicate entries -> same hash (dedup)
     let h3 = tokmd_cockpit::determinism::hash_files_from_paths(
         dir.path(),
         &["main.rs", "lib.rs", "main.rs"],
-    ).unwrap();
+    )
+    .unwrap();
     assert_eq!(h1, h3);
 
     // Cargo.lock hash
@@ -340,11 +348,13 @@ fn integration_determinism_hashing_workflow() {
     assert!(lock_hash.is_some());
 
     // Modify a file -> hash changes
-    std::fs::write(dir.path().join("main.rs"), "fn main() { println!(\"world\"); }").unwrap();
-    let h4 = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["main.rs", "lib.rs"],
-    ).unwrap();
+    std::fs::write(
+        dir.path().join("main.rs"),
+        "fn main() { println!(\"world\"); }",
+    )
+    .unwrap();
+    let h4 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["main.rs", "lib.rs"])
+        .unwrap();
     assert_ne!(h1, h4);
 }
 
@@ -358,17 +368,12 @@ fn integration_determinism_not_found_is_skipped() {
     std::fs::write(dir.path().join("a.rs"), "fn a() {}").unwrap();
 
     // NotFound files are silently skipped
-    let result = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["a.rs", "missing.rs"],
-    );
+    let result =
+        tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["a.rs", "missing.rs"]);
     assert!(result.is_ok());
 
     // Hash should equal hash of just a.rs
-    let just_a = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["a.rs"],
-    ).unwrap();
+    let just_a = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
     assert_eq!(result.unwrap(), just_a);
 }
 
@@ -419,7 +424,7 @@ fn integration_comment_md_contract_section() {
         make_file_stat("src/lib.rs", 10, 5),
         make_file_stat("docs/schema.json", 20, 10),
     ];
-    let mut receipt = make_receipt(&stats);
+    let receipt = make_receipt(&stats);
     // Ensure contracts are set correctly
     assert!(receipt.contracts.api_changed);
     assert!(receipt.contracts.schema_changed);

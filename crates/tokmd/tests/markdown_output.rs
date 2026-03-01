@@ -37,10 +37,13 @@ fn lang_markdown_has_separator_line() {
     let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
 
     // Markdown table separators use |---|
-    let has_separator = stdout.lines().any(|line| {
-        line.contains("|---") || line.contains("|:--")
-    });
-    assert!(has_separator, "expected Markdown table separator line in output:\n{stdout}");
+    let has_separator = stdout
+        .lines()
+        .any(|line| line.contains("|---") || line.contains("|:--"));
+    assert!(
+        has_separator,
+        "expected Markdown table separator line in output:\n{stdout}"
+    );
 }
 
 #[test]
@@ -90,10 +93,13 @@ fn module_markdown_has_separator_line() {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
 
-    let has_separator = stdout.lines().any(|line| {
-        line.contains("|---") || line.contains("|:--")
-    });
-    assert!(has_separator, "expected Markdown table separator line in module output:\n{stdout}");
+    let has_separator = stdout
+        .lines()
+        .any(|line| line.contains("|---") || line.contains("|:--"));
+    assert!(
+        has_separator,
+        "expected Markdown table separator line in module output:\n{stdout}"
+    );
 }
 
 #[test]
@@ -147,10 +153,13 @@ fn analyze_receipt_markdown_has_derived_metrics() {
     let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
 
     // Receipt preset produces derived metrics section with density/distribution
-    let has_table = stdout.lines().any(|line| {
-        line.contains("|---") || line.contains("|:--")
-    });
-    assert!(has_table, "expected at least one Markdown table in analyze output:\n{stdout}");
+    let has_table = stdout
+        .lines()
+        .any(|line| line.contains("|---") || line.contains("|:--"));
+    assert!(
+        has_table,
+        "expected at least one Markdown table in analyze output:\n{stdout}"
+    );
 }
 
 // ---------------------------------------------------------------------------

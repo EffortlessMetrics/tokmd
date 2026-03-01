@@ -3,8 +3,7 @@
 use std::path::PathBuf;
 
 use tokmd_analysis_halstead::{
-    build_halstead_report, is_halstead_lang, operators_for_lang, round_f64,
-    tokenize_for_halstead,
+    build_halstead_report, is_halstead_lang, operators_for_lang, round_f64, tokenize_for_halstead,
 };
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
@@ -423,10 +422,11 @@ fn scenario_zero_distinct_operands_yields_zero_difficulty() {
 // ── Scenario: round_f64 ─────────────────────────────────────────────
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn scenario_round_f64_basic() {
-    assert_eq!(round_f64(3.14159, 2), 3.14);
-    assert_eq!(round_f64(3.14159, 4), 3.1416);
-    assert_eq!(round_f64(3.14159, 0), 3.0);
+    assert_eq!(round_f64(std::f64::consts::PI, 2), 3.14);
+    assert_eq!(round_f64(std::f64::consts::PI, 4), 3.1416);
+    assert_eq!(round_f64(std::f64::consts::PI, 0), 3.0);
 }
 
 #[test]
@@ -530,7 +530,7 @@ fn scenario_build_report_respects_max_bytes_limit() {
     let metrics = build_halstead_report(dir.path(), &files, &export, &limits).unwrap();
     // Should still produce *some* metrics from partial scan
     // (first file is read, second may be skipped)
-    assert!(metrics.length > 0 || metrics.length == 0); // doesn't panic
+    let _ = metrics.length; // doesn't panic
 }
 
 #[test]

@@ -231,7 +231,7 @@ mod edge_cases {
     fn given_single_byte_file_then_classified_low() {
         let dir = tempdir().unwrap();
         let f = dir.path().join("one.bin");
-        fs::write(&f, &[0x42]).unwrap();
+        fs::write(f, [0x42]).unwrap();
 
         let export = export_for_paths(&["one.bin"]);
         let files = vec![PathBuf::from("one.bin")];
@@ -407,6 +407,7 @@ mod suspicious_class {
 
 // ── Path normalization ──────────────────────────────────────────
 
+#[cfg(target_os = "windows")]
 mod path_normalization {
     use super::*;
 

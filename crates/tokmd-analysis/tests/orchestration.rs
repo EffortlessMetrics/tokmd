@@ -18,7 +18,7 @@ use tokmd_analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
     NearDupScope, analyze,
 };
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
+use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -297,8 +297,14 @@ fn child_rows_excluded_from_file_count_and_totals() {
     let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
     let derived = receipt.derived.unwrap();
 
-    assert_eq!(derived.totals.files, 1, "child rows should not count as files");
-    assert_eq!(derived.totals.code, 100, "child code should not inflate totals");
+    assert_eq!(
+        derived.totals.files, 1,
+        "child rows should not count as files"
+    );
+    assert_eq!(
+        derived.totals.code, 100,
+        "child code should not inflate totals"
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -399,7 +405,10 @@ fn all_presets_produce_valid_receipt() {
 fn fun_preset_produces_fun_report_and_derived() {
     let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Fun)).unwrap();
     assert!(receipt.derived.is_some());
-    assert!(receipt.fun.is_some(), "fun preset should produce fun report");
+    assert!(
+        receipt.fun.is_some(),
+        "fun preset should produce fun report"
+    );
 }
 
 #[cfg(feature = "fun")]
@@ -814,7 +823,7 @@ proptest! {
         };
         let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
         let gini = receipt.derived.unwrap().distribution.gini;
-        prop_assert!(gini >= 0.0 && gini <= 1.0, "gini={} out of [0,1]", gini);
+        prop_assert!((0.0..=1.0).contains(&gini), "gini={} out of [0,1]", gini);
     }
 
     #[test]
@@ -877,6 +886,6 @@ proptest! {
         };
         let receipt = analyze(make_ctx(export), make_req(AnalysisPreset::Receipt)).unwrap();
         let ratio = receipt.derived.unwrap().doc_density.total.ratio;
-        prop_assert!(ratio >= 0.0 && ratio <= 1.0, "doc_density={} out of [0,1]", ratio);
+        prop_assert!((0.0..=1.0).contains(&ratio), "doc_density={} out of [0,1]", ratio);
     }
 }

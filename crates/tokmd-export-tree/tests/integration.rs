@@ -106,12 +106,7 @@ fn handoff_tree_depth_two_shows_intermediate_dirs() {
 
 #[test]
 fn analysis_tree_indentation_increases_with_depth() {
-    let export = export(vec![row(
-        "a/b/c.rs",
-        "a",
-        10,
-        20,
-    )]);
+    let export = export(vec![row("a/b/c.rs", "a", 10, 20)]);
 
     let tree = render_analysis_tree(&export);
     let lines: Vec<&str> = tree.lines().collect();
@@ -124,12 +119,7 @@ fn analysis_tree_indentation_increases_with_depth() {
 
 #[test]
 fn handoff_tree_indentation_increases_with_depth() {
-    let export = export(vec![row(
-        "a/b/c/d.rs",
-        "a",
-        10,
-        20,
-    )]);
+    let export = export(vec![row("a/b/c/d.rs", "a", 10, 20)]);
 
     let tree = render_handoff_tree(&export, 5);
     let lines: Vec<&str> = tree.lines().collect();

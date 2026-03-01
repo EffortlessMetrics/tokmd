@@ -144,7 +144,7 @@ proptest! {
             "scss", "less", "makefile", "dockerfile"
         ])
     ) {
-        prop_assert!(is_infra_lang(&lang));
+        prop_assert!(is_infra_lang(lang));
         prop_assert!(is_infra_lang(&lang.to_uppercase()));
         // Mixed case
         let mixed: String = lang
@@ -162,7 +162,7 @@ proptest! {
             "c", "cpp", "ruby", "swift", "kotlin", "scala", "haskell"
         ])
     ) {
-        prop_assert!(!is_infra_lang(&lang));
+        prop_assert!(!is_infra_lang(lang));
     }
 }
 
@@ -254,7 +254,7 @@ proptest! {
     ) {
         values.sort();
         let g = gini_coefficient(&values);
-        prop_assert!(g >= 0.0 && g <= 1.0,
+        prop_assert!((0.0..=1.0).contains(&g),
             "Gini coefficient should be in [0, 1], got {}", g);
     }
 }

@@ -3,9 +3,9 @@
 //! Each test reads as a Given/When/Then scenario covering policy rules,
 //! JSON pointer matching, threshold evaluation, and ratchet rules.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_gate::{
-    evaluate_policy, resolve_pointer, PolicyConfig, PolicyRule, RuleLevel, RuleOperator,
+    PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy, resolve_pointer,
 };
 
 // ============================================================================
@@ -90,10 +90,7 @@ fn given_mixed_array_and_object_when_pointer_navigates_then_resolves() {
 #[test]
 fn given_boolean_value_when_pointer_resolves_then_returns_bool() {
     let receipt = json!({"flags": {"ci": true, "draft": false}});
-    assert_eq!(
-        resolve_pointer(&receipt, "/flags/ci"),
-        Some(&json!(true))
-    );
+    assert_eq!(resolve_pointer(&receipt, "/flags/ci"), Some(&json!(true)));
     assert_eq!(
         resolve_pointer(&receipt, "/flags/draft"),
         Some(&json!(false))
@@ -194,16 +191,20 @@ fn given_float_metric_when_gt_boundary_tested_then_strict_comparison() {
 #[test]
 fn given_negative_values_when_compared_then_ordering_is_correct() {
     let receipt = json!({"delta": -5});
-    assert!(eval(
-        &receipt,
-        vec![rule("lt_zero", "/delta", RuleOperator::Lt, json!(0))]
-    )
-    .passed);
-    assert!(!eval(
-        &receipt,
-        vec![rule("gt_zero", "/delta", RuleOperator::Gt, json!(0))]
-    )
-    .passed);
+    assert!(
+        eval(
+            &receipt,
+            vec![rule("lt_zero", "/delta", RuleOperator::Lt, json!(0))]
+        )
+        .passed
+    );
+    assert!(
+        !eval(
+            &receipt,
+            vec![rule("gt_zero", "/delta", RuleOperator::Gt, json!(0))]
+        )
+        .passed
+    );
 }
 
 // ============================================================================
@@ -245,12 +246,7 @@ fn given_string_value_when_ne_matches_same_then_fails() {
     let receipt = json!({"license": "MIT"});
     let result = eval(
         &receipt,
-        vec![rule(
-            "not_mit",
-            "/license",
-            RuleOperator::Ne,
-            json!("MIT"),
-        )],
+        vec![rule("not_mit", "/license", RuleOperator::Ne, json!("MIT"))],
     );
     assert!(!result.passed);
 }
@@ -293,7 +289,11 @@ fn given_license_in_approved_list_when_in_rule_evaluated_then_passes() {
         pointer: "/license".into(),
         op: RuleOperator::In,
         value: None,
-        values: Some(vec![json!("MIT"), json!("Apache-2.0"), json!("BSD-3-Clause")]),
+        values: Some(vec![
+            json!("MIT"),
+            json!("Apache-2.0"),
+            json!("BSD-3-Clause"),
+        ]),
         negate: false,
         level: RuleLevel::Error,
         message: Some("License not in approved list".into()),
@@ -486,7 +486,12 @@ fn given_negate_with_contains_when_element_absent_then_passes() {
     let receipt = json!({"tags": ["rust", "cli"]});
     let r = PolicyRule {
         negate: true,
-        ..rule("no_python", "/tags", RuleOperator::Contains, json!("python"))
+        ..rule(
+            "no_python",
+            "/tags",
+            RuleOperator::Contains,
+            json!("python"),
+        )
     };
     let result = eval(&receipt, vec![r]);
     assert!(result.passed); // "python" not in tags → false, negated = true
@@ -502,7 +507,12 @@ fn given_failing_warn_rule_when_evaluated_then_gate_still_passes() {
     let r = PolicyRule {
         level: RuleLevel::Warn,
         message: Some("Complexity is high".into()),
-        ..rule("warn_complexity", "/complexity", RuleOperator::Lte, json!(10.0))
+        ..rule(
+            "warn_complexity",
+            "/complexity",
+            RuleOperator::Lte,
+            json!(10.0),
+        )
     };
     let result = eval(&receipt, vec![r]);
     assert!(result.passed); // Warnings don't fail the gate
@@ -515,7 +525,12 @@ fn given_failing_error_rule_when_evaluated_then_gate_fails() {
     let receipt = json!({"complexity": 15.0});
     let r = PolicyRule {
         level: RuleLevel::Error,
-        ..rule("err_complexity", "/complexity", RuleOperator::Lte, json!(10.0))
+        ..rule(
+            "err_complexity",
+            "/complexity",
+            RuleOperator::Lte,
+            json!(10.0),
+        )
     };
     let result = eval(&receipt, vec![r]);
     assert!(!result.passed);
@@ -529,7 +544,12 @@ fn given_mixed_warn_and_error_when_only_warn_fails_then_gate_passes() {
         rule("max_tokens", "/tokens", RuleOperator::Lte, json!(500_000)), // passes
         PolicyRule {
             level: RuleLevel::Warn,
-            ..rule("warn_complexity", "/complexity", RuleOperator::Lte, json!(10.0))
+            ..rule(
+                "warn_complexity",
+                "/complexity",
+                RuleOperator::Lte,
+                json!(10.0),
+            )
         }, // fails as warning
     ];
     let result = eval(&receipt, rules);
@@ -554,11 +574,13 @@ fn given_missing_pointer_when_allow_missing_false_then_fails() {
         },
     );
     assert!(!result.passed);
-    assert!(result.rule_results[0]
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("not found"));
+    assert!(
+        result.rule_results[0]
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("not found")
+    );
 }
 
 #[test]
@@ -586,8 +608,8 @@ fn given_fail_fast_when_first_error_rule_fails_then_stops_early() {
         &receipt,
         &PolicyConfig {
             rules: vec![
-                rule("a_check", "/a", RuleOperator::Lt, json!(50)),  // fails
-                rule("b_check", "/b", RuleOperator::Lt, json!(50)),  // would fail
+                rule("a_check", "/a", RuleOperator::Lt, json!(50)), // fails
+                rule("b_check", "/b", RuleOperator::Lt, json!(50)), // would fail
                 rule("c_check", "/c", RuleOperator::Lt, json!(1000)), // would pass
             ],
             fail_fast: true,
@@ -845,9 +867,11 @@ fn given_metric_exceeds_max_value_when_ratchet_evaluated_then_fails() {
     };
     let result = tokmd_gate::evaluate_ratchet_policy(&config, &baseline, &current);
     assert!(!result.passed);
-    assert!(result.ratchet_results[0]
-        .message
-        .contains("exceeds maximum"));
+    assert!(
+        result.ratchet_results[0]
+            .message
+            .contains("exceeds maximum")
+    );
 }
 
 #[test]

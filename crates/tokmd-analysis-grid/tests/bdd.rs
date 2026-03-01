@@ -1,8 +1,8 @@
 //! BDD-style scenario tests for the analysis grid crate.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetGridRow, PresetKind,
-    preset_plan_for, preset_plan_for_name,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetGridRow, PresetKind, preset_plan_for,
+    preset_plan_for_name,
 };
 
 // ── Scenario: PRESET_KINDS array completeness ──────────────────────────
@@ -403,6 +403,7 @@ fn preset_kind_debug_is_non_empty() {
 }
 
 #[test]
+#[allow(clippy::clone_on_copy)]
 fn preset_kind_clone_and_copy() {
     let a = PresetKind::Receipt;
     let b = a;
@@ -412,6 +413,7 @@ fn preset_kind_clone_and_copy() {
 }
 
 #[test]
+#[allow(clippy::clone_on_copy)]
 fn preset_plan_clone_and_copy() {
     let plan = preset_plan_for(PresetKind::Deep);
     let cloned = plan.clone();
@@ -421,6 +423,7 @@ fn preset_plan_clone_and_copy() {
 }
 
 #[test]
+#[allow(clippy::clone_on_copy)]
 fn disabled_feature_clone_and_copy() {
     let a = DisabledFeature::GitMetrics;
     let b = a;

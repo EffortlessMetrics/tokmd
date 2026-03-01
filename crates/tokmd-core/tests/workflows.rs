@@ -54,7 +54,7 @@ fn lang_workflow_with_files_enabled() {
     };
 
     let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
-    assert_eq!(receipt.args.with_files, true);
+    assert!(receipt.args.with_files);
 }
 
 #[test]
@@ -93,7 +93,10 @@ fn lang_workflow_receipt_has_scan_args() {
     let lang = LangSettings::default();
 
     let receipt = lang_workflow(&scan, &lang).unwrap();
-    assert!(!receipt.scan.paths.is_empty(), "scan.paths should not be empty");
+    assert!(
+        !receipt.scan.paths.is_empty(),
+        "scan.paths should not be empty"
+    );
 }
 
 #[test]
@@ -120,7 +123,11 @@ fn lang_workflow_receipt_rows_have_code_lines() {
     let receipt = lang_workflow(&scan, &lang).unwrap();
     // Every row should have non-negative code count
     for row in &receipt.report.rows {
-        assert!(row.code > 0 || row.lang == "Other", "row should have code lines: {:?}", row.lang);
+        assert!(
+            row.code > 0 || row.lang == "Other",
+            "row should have code lines: {:?}",
+            row.lang
+        );
     }
 }
 
@@ -136,7 +143,10 @@ fn lang_workflow_receipt_is_serializable() {
     // Should round-trip
     let json_str = json.unwrap();
     let deserialized: Result<tokmd_types::LangReceipt, _> = serde_json::from_str(&json_str);
-    assert!(deserialized.is_ok(), "receipt should round-trip through JSON");
+    assert!(
+        deserialized.is_ok(),
+        "receipt should round-trip through JSON"
+    );
 }
 
 // ============================================================================
@@ -363,10 +373,7 @@ fn version_not_empty() {
 
 #[test]
 fn core_schema_version_matches() {
-    assert_eq!(
-        tokmd_core::CORE_SCHEMA_VERSION,
-        tokmd_types::SCHEMA_VERSION
-    );
+    assert_eq!(tokmd_core::CORE_SCHEMA_VERSION, tokmd_types::SCHEMA_VERSION);
 }
 
 // ============================================================================

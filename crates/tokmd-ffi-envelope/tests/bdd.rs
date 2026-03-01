@@ -125,7 +125,10 @@ fn given_deeply_nested_data_when_extracting_then_full_tree_is_returned() {
 
     let data = extract_data(envelope).expect("extract nested data");
 
-    assert_eq!(data["level1"]["level2"]["level3"]["level4"][2]["level5"], true);
+    assert_eq!(
+        data["level1"]["level2"]["level3"]["level4"][2]["level5"],
+        true
+    );
 }
 
 #[test]
@@ -135,7 +138,7 @@ fn given_data_with_mixed_types_when_extracting_then_all_types_preserved() {
         "data": {
             "string": "hello",
             "number": 42,
-            "float": 3.14,
+            "float": 1.23,
             "bool": true,
             "null_val": null,
             "array": [1, "two", null, false],
@@ -147,7 +150,7 @@ fn given_data_with_mixed_types_when_extracting_then_all_types_preserved() {
 
     assert_eq!(data["string"], "hello");
     assert_eq!(data["number"], 42);
-    assert_eq!(data["float"], 3.14);
+    assert_eq!(data["float"], 1.23);
     assert_eq!(data["bool"], true);
     assert!(data["null_val"].is_null());
     assert_eq!(data["array"].as_array().unwrap().len(), 4);
@@ -418,9 +421,7 @@ fn given_large_payload_when_extracting_then_data_is_intact() {
 
 #[test]
 fn given_large_json_string_when_using_extract_data_json_then_round_trips() {
-    let large_array: Vec<serde_json::Value> = (0..1_000)
-        .map(|i| json!({ "idx": i }))
-        .collect();
+    let large_array: Vec<serde_json::Value> = (0..1_000).map(|i| json!({ "idx": i })).collect();
     let envelope = json!({
         "ok": true,
         "data": large_array
@@ -523,8 +524,5 @@ fn given_error_envelope_with_data_field_when_extracting_then_error_takes_precede
 
     let err = extract_data(envelope).unwrap_err();
 
-    assert_eq!(
-        err,
-        EnvelopeExtractError::Upstream("[e] fail".to_string())
-    );
+    assert_eq!(err, EnvelopeExtractError::Upstream("[e] fail".to_string()));
 }

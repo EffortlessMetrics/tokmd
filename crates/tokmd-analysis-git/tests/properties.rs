@@ -21,8 +21,8 @@ const WEEK: i64 = 7 * DAY;
 fn arb_file_row() -> impl Strategy<Value = FileRow> {
     (
         "[a-z]{1,4}/[a-z]{1,6}\\.rs", // path
-        "[a-z]{1,4}",                  // module
-        1..500usize,                   // lines
+        "[a-z]{1,4}",                 // module
+        1..500usize,                  // lines
     )
         .prop_map(|(path, module, lines)| FileRow {
             path,
@@ -54,8 +54,8 @@ fn arb_export() -> impl Strategy<Value = (ExportData, Vec<String>)> {
 fn arb_commit(paths: Vec<String>) -> impl Strategy<Value = GitCommit> {
     let n = paths.len();
     (
-        1..200i64,                                            // timestamp (in weeks)
-        "[a-z]{3,6}@test\\.com",                              // author
+        1..200i64,               // timestamp (in weeks)
+        "[a-z]{3,6}@test\\.com", // author
         prop_oneof![
             Just("feat: feature".to_string()),
             Just("fix: bugfix".to_string()),
@@ -63,7 +63,7 @@ fn arb_commit(paths: Vec<String>) -> impl Strategy<Value = GitCommit> {
             Just("docs: update".to_string()),
             Just("chore: maintenance".to_string()),
         ],
-        proptest::collection::vec(0..n, 1..=n.min(4).max(1)), // file indices
+        proptest::collection::vec(0..n, 1..=n.clamp(1, 4)), // file indices
     )
         .prop_map(move |(ts_weeks, author, subject, indices)| {
             let files: Vec<String> = indices
@@ -382,10 +382,10 @@ proptest! {
         (export, commits) in arb_scenario()
     ) {
         let report = build_git_report(Path::new("."), &export, &commits).unwrap();
-        if let Some(intent) = &report.intent {
-            if let Some(ratio) = intent.corrective_ratio {
-                prop_assert!(ratio >= 0.0 && ratio <= 1.0, "corrective_ratio {} out of [0,1]", ratio);
-            }
+        if let Some(intent) = &report.intent
+            && let Some(ratio) = intent.corrective_ratio
+        {
+            prop_assert!((0.0..=1.0).contains(&ratio), "corrective_ratio {} out of [0,1]", ratio);
         }
     }
 }

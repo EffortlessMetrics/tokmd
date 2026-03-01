@@ -157,7 +157,7 @@ fn given_exclusion_matching_all_files_when_scanned_then_result_empty() -> Result
         langs.get(&tokei::LanguageType::Rust).is_none()
             || langs
                 .get(&tokei::LanguageType::Rust)
-                .map_or(true, |r| r.code == 0),
+                .is_none_or(|r| r.code == 0),
         "excluded .rs files should not appear"
     );
     Ok(())
@@ -287,10 +287,7 @@ fn given_same_input_when_scanned_twice_then_results_identical() -> Result<()> {
         rust1.comments, rust2.comments,
         "comment lines must be identical"
     );
-    assert_eq!(
-        rust1.blanks, rust2.blanks,
-        "blank lines must be identical"
-    );
+    assert_eq!(rust1.blanks, rust2.blanks, "blank lines must be identical");
     Ok(())
 }
 

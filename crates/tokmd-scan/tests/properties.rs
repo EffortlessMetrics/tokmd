@@ -522,8 +522,12 @@ proptest! {
     /// Enabling *only* no_ignore_dot should not touch the other ignore fields.
     #[test]
     fn no_ignore_dot_alone_does_not_set_others(_dummy in 0..50u8) {
-        let mut cfg = tokei::Config::default();
-        cfg.no_ignore_dot = Some(true);
+        #[allow(clippy::field_reassign_with_default)]
+        let cfg = {
+            let mut cfg = tokei::Config::default();
+            cfg.no_ignore_dot = Some(true);
+            cfg
+        };
 
         prop_assert_eq!(cfg.no_ignore_dot, Some(true));
         // The other fields should remain at their defaults (None).
@@ -535,8 +539,12 @@ proptest! {
     /// Enabling *only* no_ignore_vcs should not touch the other ignore fields.
     #[test]
     fn no_ignore_vcs_alone_does_not_set_others(_dummy in 0..50u8) {
-        let mut cfg = tokei::Config::default();
-        cfg.no_ignore_vcs = Some(true);
+        #[allow(clippy::field_reassign_with_default)]
+        let cfg = {
+            let mut cfg = tokei::Config::default();
+            cfg.no_ignore_vcs = Some(true);
+            cfg
+        };
 
         prop_assert_eq!(cfg.no_ignore_vcs, Some(true));
         prop_assert!(cfg.no_ignore.is_none() || cfg.no_ignore == Some(false));

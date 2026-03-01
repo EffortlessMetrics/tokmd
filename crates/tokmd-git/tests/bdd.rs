@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use tokmd_git::{
-    classify_intent, collect_history, git_available, repo_root, GitCommit, GitRangeMode,
+    GitCommit, GitRangeMode, classify_intent, collect_history, git_available, repo_root,
 };
 use tokmd_types::CommitIntentKind;
 
@@ -301,10 +301,7 @@ fn scenario_classify_feat_conventional() {
 
 #[test]
 fn scenario_classify_fix_conventional() {
-    assert_eq!(
-        classify_intent("fix: null pointer"),
-        CommitIntentKind::Fix
-    );
+    assert_eq!(classify_intent("fix: null pointer"), CommitIntentKind::Fix);
     assert_eq!(
         classify_intent("bugfix: crash on start"),
         CommitIntentKind::Fix
@@ -337,10 +334,7 @@ fn scenario_classify_docs_conventional() {
         classify_intent("docs: update readme"),
         CommitIntentKind::Docs
     );
-    assert_eq!(
-        classify_intent("doc: add example"),
-        CommitIntentKind::Docs
-    );
+    assert_eq!(classify_intent("doc: add example"), CommitIntentKind::Docs);
 }
 
 #[test]
@@ -357,14 +351,8 @@ fn scenario_classify_test_conventional() {
 
 #[test]
 fn scenario_classify_chore_ci_build_perf_style() {
-    assert_eq!(
-        classify_intent("chore: bump deps"),
-        CommitIntentKind::Chore
-    );
-    assert_eq!(
-        classify_intent("ci: fix pipeline"),
-        CommitIntentKind::Ci
-    );
+    assert_eq!(classify_intent("chore: bump deps"), CommitIntentKind::Chore);
+    assert_eq!(classify_intent("ci: fix pipeline"), CommitIntentKind::Ci);
     assert_eq!(
         classify_intent("build: update makefile"),
         CommitIntentKind::Build
@@ -508,10 +496,7 @@ fn scenario_classify_keyword_chore() {
 
 #[test]
 fn scenario_classify_other_for_unrecognised() {
-    assert_eq!(
-        classify_intent("Initial commit"),
-        CommitIntentKind::Other
-    );
+    assert_eq!(classify_intent("Initial commit"), CommitIntentKind::Other);
     assert_eq!(
         classify_intent("WIP save progress"),
         CommitIntentKind::Other

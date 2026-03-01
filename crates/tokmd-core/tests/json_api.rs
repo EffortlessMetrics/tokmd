@@ -23,19 +23,13 @@ fn parse_envelope(result: &str) -> serde_json::Value {
 
 fn assert_ok(result: &str) -> serde_json::Value {
     let parsed = parse_envelope(result);
-    assert_eq!(
-        parsed["ok"], true,
-        "expected ok:true, got: {result}"
-    );
+    assert_eq!(parsed["ok"], true, "expected ok:true, got: {result}");
     parsed
 }
 
 fn assert_err(result: &str) -> serde_json::Value {
     let parsed = parse_envelope(result);
-    assert_eq!(
-        parsed["ok"], false,
-        "expected ok:false, got: {result}"
-    );
+    assert_eq!(parsed["ok"], false, "expected ok:false, got: {result}");
     assert!(
         parsed.get("error").is_some(),
         "error envelope must have 'error' field"
@@ -64,10 +58,7 @@ fn version_data_contains_semver() {
 
     let ver = parsed["data"]["version"].as_str().unwrap();
     let parts: Vec<&str> = ver.split('.').collect();
-    assert!(
-        parts.len() >= 2,
-        "version should be semver-like: {ver}"
-    );
+    assert!(parts.len() >= 2, "version should be semver-like: {ver}");
 }
 
 #[test]
@@ -108,7 +99,10 @@ fn lang_mode_receipt_has_tool_info() {
 
     let tool = &parsed["data"]["tool"];
     assert!(tool.get("name").is_some(), "receipt should have tool.name");
-    assert!(tool.get("version").is_some(), "receipt should have tool.version");
+    assert!(
+        tool.get("version").is_some(),
+        "receipt should have tool.version"
+    );
 }
 
 #[test]
@@ -138,7 +132,11 @@ fn lang_mode_with_top_limits_rows() {
 
     let rows = parsed["data"]["rows"].as_array().unwrap();
     // top=1 means at most 1 real row + optional "Other"
-    assert!(rows.len() <= 2, "top=1 should yield at most 2 rows, got {}", rows.len());
+    assert!(
+        rows.len() <= 2,
+        "top=1 should yield at most 2 rows, got {}",
+        rows.len()
+    );
 }
 
 #[test]
@@ -248,7 +246,10 @@ fn export_mode_success() {
 
     assert_eq!(parsed["data"]["mode"].as_str(), Some("export"));
     // ExportData is flattened, so rows is at data.rows
-    assert!(parsed["data"]["rows"].is_array(), "export should have data.rows");
+    assert!(
+        parsed["data"]["rows"].is_array(),
+        "export should have data.rows"
+    );
 }
 
 #[test]
@@ -273,10 +274,7 @@ fn export_mode_with_min_code_filter() {
 
     let result_filtered = run_json("export", r#"{"paths": ["src"], "min_code": 9999}"#);
     let parsed_filtered = assert_ok(&result_filtered);
-    let rows_filtered = parsed_filtered["data"]["rows"]
-        .as_array()
-        .unwrap()
-        .len();
+    let rows_filtered = parsed_filtered["data"]["rows"].as_array().unwrap().len();
 
     assert!(
         rows_filtered <= rows_all,
@@ -339,10 +337,12 @@ fn diff_mode_missing_from_returns_error() {
     let result = run_json("diff", r#"{"to": "."}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("from"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("from")
+    );
 }
 
 #[test]
@@ -350,10 +350,7 @@ fn diff_mode_missing_to_returns_error() {
     let result = run_json("diff", r#"{"from": "."}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("to"));
+    assert!(parsed["error"]["message"].as_str().unwrap().contains("to"));
 }
 
 #[test]
@@ -362,10 +359,12 @@ fn diff_mode_both_missing_returns_error() {
     let parsed = assert_err(&result);
 
     // Should fail on the first missing field ("from")
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("from"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("from")
+    );
 }
 
 #[test]
@@ -373,10 +372,12 @@ fn diff_mode_non_string_from_returns_error() {
     let result = run_json("diff", r#"{"from": 123, "to": "."}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("from"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("from")
+    );
 }
 
 #[test]
@@ -384,10 +385,7 @@ fn diff_mode_non_string_to_returns_error() {
     let result = run_json("diff", r#"{"from": ".", "to": false}"#);
     let parsed = assert_err(&result);
 
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("to"));
+    assert!(parsed["error"]["message"].as_str().unwrap().contains("to"));
 }
 
 #[test]
@@ -431,14 +429,13 @@ fn run_json_unknown_mode_returns_error() {
     let result = run_json("unknown_mode", "{}");
     let parsed = assert_err(&result);
 
-    assert_eq!(
-        parsed["error"]["code"].as_str(),
-        Some("unknown_mode")
+    assert_eq!(parsed["error"]["code"].as_str(), Some("unknown_mode"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("unknown_mode")
     );
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("unknown_mode"));
 }
 
 #[test]
@@ -473,10 +470,7 @@ fn run_json_invalid_json_returns_error() {
     let result = run_json("lang", "not valid json");
     let parsed = assert_err(&result);
 
-    assert_eq!(
-        parsed["error"]["code"].as_str(),
-        Some("invalid_json")
-    );
+    assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_json"));
 }
 
 #[test]
@@ -517,10 +511,12 @@ fn run_json_invalid_children_mode_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("children"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("children")
+    );
 }
 
 #[test]
@@ -529,10 +525,12 @@ fn run_json_invalid_format_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("format"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("format")
+    );
 }
 
 #[test]
@@ -541,10 +539,7 @@ fn run_json_top_as_string_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("top"));
+    assert!(parsed["error"]["message"].as_str().unwrap().contains("top"));
 }
 
 #[test]
@@ -561,10 +556,12 @@ fn run_json_hidden_as_string_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("hidden"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("hidden")
+    );
 }
 
 #[test]
@@ -573,10 +570,12 @@ fn run_json_paths_as_string_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("paths"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("paths")
+    );
 }
 
 #[test]
@@ -586,10 +585,12 @@ fn run_json_paths_with_non_string_element_returns_error() {
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
     // Should include index in message
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("paths[1]"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("paths[1]")
+    );
 }
 
 #[test]
@@ -598,10 +599,12 @@ fn run_json_invalid_redact_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("redact"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("redact")
+    );
 }
 
 #[test]
@@ -610,10 +613,12 @@ fn run_json_invalid_config_mode_returns_error() {
     let parsed = assert_err(&result);
 
     assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("config"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("config")
+    );
 }
 
 // ============================================================================
@@ -622,10 +627,7 @@ fn run_json_invalid_config_mode_returns_error() {
 
 #[test]
 fn nested_scan_object_works() {
-    let result = run_json(
-        "lang",
-        r#"{"scan": {"paths": ["src"], "hidden": true}}"#,
-    );
+    let result = run_json("lang", r#"{"scan": {"paths": ["src"], "hidden": true}}"#);
     assert_ok(&result);
 }
 
@@ -656,10 +658,7 @@ fn nested_scan_invalid_returns_error() {
 
 #[test]
 fn null_values_use_defaults() {
-    let result = run_json(
-        "lang",
-        r#"{"paths": null, "top": null, "files": null}"#,
-    );
+    let result = run_json("lang", r#"{"paths": null, "top": null, "files": null}"#);
     let parsed = assert_ok(&result);
 
     let args = &parsed["data"]["args"];
@@ -729,9 +728,7 @@ fn run_json_always_returns_valid_json_for_known_edge_cases() {
     for (mode, args) in &cases {
         let result = run_json(mode, args);
         let parsed: serde_json::Value = serde_json::from_str(&result).unwrap_or_else(|e| {
-            panic!(
-                "Invalid JSON for mode={mode:?} args={args:?}: {e}\nraw: {result}"
-            )
+            panic!("Invalid JSON for mode={mode:?} args={args:?}: {e}\nraw: {result}")
         });
         assert!(
             parsed.get("ok").is_some(),
