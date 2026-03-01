@@ -9,13 +9,22 @@
 /// - Otherwise, the module key is the first directory segment.
 #[must_use]
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    let mut p = path.replace('\\', "/");
-    if let Some(stripped) = p.strip_prefix("./") {
-        p = stripped.to_string();
-    }
-    p = p.trim_start_matches('/').to_string();
+    let mut p = path;
 
-    module_key_from_normalized(&p, module_roots, module_depth)
+    // We can avoid allocation for replacement by creating a new string only if we have \
+    let p_owned;
+    if p.contains('\\') {
+        p_owned = p.replace('\\', "/");
+        p = &p_owned;
+    }
+
+    if let Some(stripped) = p.strip_prefix("./") {
+        p = stripped;
+    }
+
+    p = p.trim_start_matches('/');
+
+    module_key_from_normalized(p, module_roots, module_depth)
 }
 
 /// Compute a module key from a normalized path.
@@ -40,7 +49,9 @@ pub fn module_key_from_normalized(
         None => return "(root)".to_string(),
     };
 
-    if !module_roots.iter().any(|r| r == first) {
+    let is_root = module_roots.iter().any(|r| r == first);
+
+    if !is_root {
         return first.to_string();
     }
 

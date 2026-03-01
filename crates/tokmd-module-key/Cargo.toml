@@ -13,3 +13,8 @@ documentation = "https://docs.rs/tokmd-module-key"
 
 [dev-dependencies]
 proptest = "1.10.0"
+criterion = "0.5"
+
+[[bench]]
+name = "module_key_bench"
+harness = false

@@ -1,0 +1,46 @@
+{
+  "run_id": "20260301131624",
+  "timestamp_utc": "2026-03-01T13:16:24Z",
+  "lane": null,
+  "target": null,
+  "proof_method": null,
+  "commands": [],
+  "results_summary": []
+}
+{
+  "run_id": "${RUN_ID}",
+  "timestamp_utc": "${TIMESTAMP}",
+  "lane": "scout",
+  "target": "module_key_string_allocations",
+  "proof_method": "benchmark output (cargo bench / criterion / existing harness)",
+  "commands": [],
+  "results_summary": []
+}
+{
+  "commands": [
+    {
+      "cmd": "cargo bench -p tokmd-module-key",
+      "exit": 0,
+      "result": "PASS",
+      "proof": "time: [661.04 ns 665.84 ns 671.54 ns], change: [-25.891% -25.533% -25.108%] (p = 0.00 < 0.05). Performance has improved."
+    },
+    {
+      "cmd": "cargo test -p tokmd-module-key",
+      "exit": 0,
+      "result": "PASS",
+      "proof": "test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-module-key -- -D warnings",
+      "exit": 0,
+      "result": "PASS",
+      "proof": "Finished dev profile [unoptimized + debuginfo] target(s) in 0.71s"
+    },
+    {
+      "cmd": "cargo build -p tokmd-module-key",
+      "exit": 0,
+      "result": "PASS",
+      "proof": "Finished dev profile [unoptimized + debuginfo] target(s)"
+    }
+  ]
+}
