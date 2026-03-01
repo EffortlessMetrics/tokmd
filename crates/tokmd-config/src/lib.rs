@@ -1006,3 +1006,228 @@ impl From<GlobalArgs> for tokmd_settings::ScanOptions {
         Self::from(&g)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── Default impls ─────────────────────────────────────────────────
+    #[test]
+    fn user_config_default_is_empty() {
+        let c = UserConfig::default();
+        assert!(c.profiles.is_empty());
+        assert!(c.repos.is_empty());
+    }
+
+    #[test]
+    fn profile_default_all_none() {
+        let p = Profile::default();
+        assert!(p.format.is_none());
+        assert!(p.top.is_none());
+        assert!(p.files.is_none());
+        assert!(p.module_roots.is_none());
+        assert!(p.module_depth.is_none());
+        assert!(p.min_code.is_none());
+        assert!(p.max_rows.is_none());
+        assert!(p.redact.is_none());
+        assert!(p.meta.is_none());
+        assert!(p.children.is_none());
+    }
+
+    #[test]
+    fn global_args_default() {
+        let g = GlobalArgs::default();
+        assert!(g.excluded.is_empty());
+        assert_eq!(g.config, ConfigMode::Auto);
+        assert!(!g.hidden);
+        assert!(!g.no_ignore);
+        assert_eq!(g.verbose, 0);
+    }
+
+    #[test]
+    fn cli_lang_args_default() {
+        let a = CliLangArgs::default();
+        assert!(a.paths.is_none());
+        assert!(a.format.is_none());
+        assert!(a.top.is_none());
+        assert!(!a.files);
+        assert!(a.children.is_none());
+    }
+
+    // ── Enum serde roundtrips ─────────────────────────────────────────
+    #[test]
+    fn analysis_preset_serde_roundtrip() {
+        for variant in [
+            AnalysisPreset::Receipt,
+            AnalysisPreset::Health,
+            AnalysisPreset::Risk,
+            AnalysisPreset::Supply,
+            AnalysisPreset::Architecture,
+            AnalysisPreset::Topics,
+            AnalysisPreset::Security,
+            AnalysisPreset::Identity,
+            AnalysisPreset::Git,
+            AnalysisPreset::Deep,
+            AnalysisPreset::Fun,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: AnalysisPreset = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn diff_format_default_is_md() {
+        assert_eq!(DiffFormat::default(), DiffFormat::Md);
+    }
+
+    #[test]
+    fn diff_format_serde_roundtrip() {
+        for variant in [DiffFormat::Md, DiffFormat::Json] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: DiffFormat = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn color_mode_default_is_auto() {
+        assert_eq!(ColorMode::default(), ColorMode::Auto);
+    }
+
+    #[test]
+    fn context_strategy_default_is_greedy() {
+        assert_eq!(ContextStrategy::default(), ContextStrategy::Greedy);
+    }
+
+    #[test]
+    fn value_metric_default_is_code() {
+        assert_eq!(ValueMetric::default(), ValueMetric::Code);
+    }
+
+    #[test]
+    fn context_output_default_is_list() {
+        assert_eq!(ContextOutput::default(), ContextOutput::List);
+    }
+
+    #[test]
+    fn gate_format_default_is_text() {
+        assert_eq!(GateFormat::default(), GateFormat::Text);
+    }
+
+    #[test]
+    fn cockpit_format_default_is_json() {
+        assert_eq!(CockpitFormat::default(), CockpitFormat::Json);
+    }
+
+    #[test]
+    fn handoff_preset_default_is_risk() {
+        assert_eq!(HandoffPreset::default(), HandoffPreset::Risk);
+    }
+
+    #[test]
+    fn sensor_format_default_is_json() {
+        assert_eq!(SensorFormat::default(), SensorFormat::Json);
+    }
+
+    #[test]
+    fn near_dup_scope_default_is_module() {
+        assert_eq!(NearDupScope::default(), NearDupScope::Module);
+    }
+
+    #[test]
+    fn diff_range_mode_default_is_two_dot() {
+        assert_eq!(DiffRangeMode::default(), DiffRangeMode::TwoDot);
+    }
+
+    // ── Serde naming ──────────────────────────────────────────────────
+    #[test]
+    fn analysis_preset_uses_kebab_case() {
+        assert_eq!(
+            serde_json::to_string(&AnalysisPreset::Receipt).unwrap(),
+            "\"receipt\""
+        );
+        assert_eq!(
+            serde_json::to_string(&AnalysisPreset::Deep).unwrap(),
+            "\"deep\""
+        );
+    }
+
+    #[test]
+    fn context_strategy_uses_kebab_case() {
+        assert_eq!(
+            serde_json::to_string(&ContextStrategy::Greedy).unwrap(),
+            "\"greedy\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ContextStrategy::Spread).unwrap(),
+            "\"spread\""
+        );
+    }
+
+    #[test]
+    fn value_metric_uses_kebab_case() {
+        assert_eq!(
+            serde_json::to_string(&ValueMetric::Hotspot).unwrap(),
+            "\"hotspot\""
+        );
+    }
+
+    // ── UserConfig serde roundtrip ────────────────────────────────────
+    #[test]
+    fn user_config_serde_roundtrip() {
+        let mut c = UserConfig::default();
+        c.profiles.insert(
+            "llm_safe".into(),
+            Profile {
+                format: Some("json".into()),
+                top: Some(10),
+                redact: Some(RedactMode::All),
+                ..Profile::default()
+            },
+        );
+        c.repos.insert("owner/repo".into(), "llm_safe".into());
+
+        let json = serde_json::to_string(&c).unwrap();
+        let back: UserConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.profiles.len(), 1);
+        assert_eq!(back.repos.len(), 1);
+        assert_eq!(back.profiles["llm_safe"].top, Some(10));
+    }
+
+    // ── GlobalArgs → ScanOptions conversion ───────────────────────────
+    #[test]
+    fn global_args_to_scan_options() {
+        let g = GlobalArgs {
+            excluded: vec!["target".into()],
+            config: ConfigMode::None,
+            hidden: true,
+            no_ignore: true,
+            no_ignore_parent: false,
+            no_ignore_dot: false,
+            no_ignore_vcs: false,
+            treat_doc_strings_as_comments: true,
+            verbose: 0,
+            no_progress: false,
+        };
+        let opts: tokmd_settings::ScanOptions = (&g).into();
+        assert_eq!(opts.excluded, vec!["target"]);
+        assert_eq!(opts.config, ConfigMode::None);
+        assert!(opts.hidden);
+        assert!(opts.no_ignore);
+        assert!(opts.treat_doc_strings_as_comments);
+    }
+
+    #[test]
+    fn global_args_owned_to_scan_options() {
+        let g = GlobalArgs {
+            excluded: vec!["vendor".into()],
+            config: ConfigMode::Auto,
+            hidden: false,
+            ..GlobalArgs::default()
+        };
+        let opts: tokmd_settings::ScanOptions = g.into();
+        assert_eq!(opts.excluded, vec!["vendor"]);
+        assert!(!opts.hidden);
+    }
+}
