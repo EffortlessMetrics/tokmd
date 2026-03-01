@@ -1,0 +1,31 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+assertion_line: 930
+expression: md
+---
+## Diff: v1.0.0 → v1.0.0
+
+### Summary
+
+|Metric|From|To|Delta|Change|
+|---|---:|---:|---:|---:|
+|LOC|0|0|0|+0.0%|
+|Lines|0|0|0|+0.0%|
+|Files|0|0|0|+0.0%|
+|Bytes|0|0|0|+0.0%|
+|Tokens|0|0|0|+0.0%|
+
+### Language Movement
+
+|Type|Count|
+|---|---:|
+|Changed|0|
+|Added|0|
+|Removed|0|
+|Modified|0|
+
+### Language Breakdown
+
+|Language|Old LOC|New LOC|Delta|
+|---|---:|---:|---:|
+|**Total**|0|0|0|
