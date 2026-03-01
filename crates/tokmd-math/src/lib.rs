@@ -3,6 +3,16 @@
 #![forbid(unsafe_code)]
 
 /// Round a floating point value to `decimals` decimal places.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_math::round_f64;
+///
+/// assert_eq!(round_f64(12.34567, 2), 12.35);
+/// assert_eq!(round_f64(12.34567, 4), 12.3457);
+/// assert_eq!(round_f64(1.5, 0), 2.0);
+/// ```
 #[must_use]
 pub fn round_f64(value: f64, decimals: u32) -> f64 {
     let factor = 10f64.powi(decimals as i32);
@@ -10,6 +20,15 @@ pub fn round_f64(value: f64, decimals: u32) -> f64 {
 }
 
 /// Return a 4-decimal ratio and guard division by zero.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_math::safe_ratio;
+///
+/// assert_eq!(safe_ratio(1, 4), 0.25);
+/// assert_eq!(safe_ratio(5, 0), 0.0); // division by zero returns 0
+/// ```
 #[must_use]
 pub fn safe_ratio(numer: usize, denom: usize) -> f64 {
     if denom == 0 {
@@ -20,6 +39,17 @@ pub fn safe_ratio(numer: usize, denom: usize) -> f64 {
 }
 
 /// Return the `pct` percentile from an ascending-sorted integer slice.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_math::percentile;
+///
+/// let values = [10, 20, 30, 40, 50];
+/// assert_eq!(percentile(&values, 0.0), 10.0);
+/// assert_eq!(percentile(&values, 0.9), 50.0);
+/// assert_eq!(percentile(&[], 0.5), 0.0); // empty slice returns 0
+/// ```
 #[must_use]
 pub fn percentile(sorted: &[usize], pct: f64) -> f64 {
     if sorted.is_empty() {
@@ -30,6 +60,21 @@ pub fn percentile(sorted: &[usize], pct: f64) -> f64 {
 }
 
 /// Return the Gini coefficient for an ascending-sorted integer slice.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_math::gini_coefficient;
+///
+/// // Perfectly equal distribution has a Gini of 0
+/// assert!((gini_coefficient(&[5, 5, 5, 5]) - 0.0).abs() < 1e-10);
+///
+/// // Empty slice returns 0
+/// assert_eq!(gini_coefficient(&[]), 0.0);
+///
+/// // Unequal distribution produces a positive Gini
+/// assert!(gini_coefficient(&[1, 1, 1, 100]) > 0.0);
+/// ```
 #[must_use]
 pub fn gini_coefficient(sorted: &[usize]) -> f64 {
     if sorted.is_empty() {
