@@ -2149,3 +2149,490 @@ pub fn now_iso8601() -> String {
 pub fn round_pct(val: f64) -> f64 {
     (val * 100.0).round() / 100.0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ---- round_pct ----
+
+    #[test]
+    fn test_round_pct_basic() {
+        assert_eq!(round_pct(0.123456), 0.12);
+        assert_eq!(round_pct(0.999), 1.0);
+        assert_eq!(round_pct(0.0), 0.0);
+    }
+
+    #[test]
+    fn test_round_pct_rounding_up() {
+        assert_eq!(round_pct(0.125), 0.13);
+    }
+
+    #[test]
+    fn test_round_pct_negative() {
+        assert_eq!(round_pct(-0.567), -0.57);
+    }
+
+    // ---- format_signed_f64 ----
+
+    #[test]
+    fn test_format_signed_positive() {
+        assert_eq!(format_signed_f64(5.0), "+5.00");
+        assert_eq!(format_signed_f64(0.5), "+0.50");
+    }
+
+    #[test]
+    fn test_format_signed_negative() {
+        assert_eq!(format_signed_f64(-3.14), "-3.14");
+    }
+
+    #[test]
+    fn test_format_signed_zero() {
+        assert_eq!(format_signed_f64(0.0), "0.00");
+    }
+
+    // ---- trend_direction_label ----
+
+    #[test]
+    fn test_trend_direction_labels() {
+        assert_eq!(
+            trend_direction_label(TrendDirection::Improving),
+            "improving"
+        );
+        assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
+        assert_eq!(
+            trend_direction_label(TrendDirection::Degrading),
+            "degrading"
+        );
+    }
+
+    // ---- sparkline ----
+
+    #[test]
+    fn test_sparkline_empty() {
+        assert_eq!(sparkline(&[]), "");
+    }
+
+    #[test]
+    fn test_sparkline_single_value() {
+        let result = sparkline(&[5.0]);
+        assert_eq!(result.chars().count(), 1);
+    }
+
+    #[test]
+    fn test_sparkline_ascending() {
+        let result = sparkline(&[0.0, 25.0, 50.0, 75.0, 100.0]);
+        assert_eq!(result.chars().count(), 5);
+        let chars: Vec<char> = result.chars().collect();
+        // First should be lowest bar, last should be highest
+        assert_eq!(chars[0], '\u{2581}');
+        assert_eq!(chars[4], '\u{2588}');
+    }
+
+    #[test]
+    fn test_sparkline_constant_values() {
+        let result = sparkline(&[42.0, 42.0, 42.0]);
+        assert_eq!(result.chars().count(), 3);
+        let chars: Vec<char> = result.chars().collect();
+        // All should be same middle bar
+        assert_eq!(chars[0], chars[1]);
+        assert_eq!(chars[1], chars[2]);
+    }
+
+    // ---- compute_metric_trend ----
+
+    #[test]
+    fn test_metric_trend_improving_higher_is_better() {
+        let trend = compute_metric_trend(90.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Improving);
+        assert_eq!(trend.delta, 10.0);
+        assert!(trend.delta_pct > 0.0);
+    }
+
+    #[test]
+    fn test_metric_trend_degrading_higher_is_better() {
+        let trend = compute_metric_trend(70.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Degrading);
+        assert_eq!(trend.delta, -10.0);
+    }
+
+    #[test]
+    fn test_metric_trend_stable() {
+        let trend = compute_metric_trend(80.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Stable);
+    }
+
+    #[test]
+    fn test_metric_trend_improving_lower_is_better() {
+        // Risk: lower is better
+        let trend = compute_metric_trend(30.0, 50.0, false);
+        assert_eq!(trend.direction, TrendDirection::Improving);
+    }
+
+    #[test]
+    fn test_metric_trend_degrading_lower_is_better() {
+        let trend = compute_metric_trend(50.0, 30.0, false);
+        assert_eq!(trend.direction, TrendDirection::Degrading);
+    }
+
+    #[test]
+    fn test_metric_trend_from_zero() {
+        let trend = compute_metric_trend(10.0, 0.0, true);
+        assert_eq!(trend.delta_pct, 100.0);
+    }
+
+    #[test]
+    fn test_metric_trend_both_zero() {
+        let trend = compute_metric_trend(0.0, 0.0, true);
+        assert_eq!(trend.delta_pct, 0.0);
+        assert_eq!(trend.direction, TrendDirection::Stable);
+    }
+
+    // ---- compute_composition ----
+
+    #[test]
+    fn test_composition_mixed_files() {
+        let files = vec![
+            "src/main.rs",
+            "src/lib.rs",
+            "tests/test_main.rs",
+            "README.md",
+            "Cargo.toml",
+        ];
+        let comp = compute_composition(&files);
+        assert!(comp.code_pct > 0.0);
+        assert!(comp.test_pct > 0.0);
+        assert!(comp.docs_pct > 0.0);
+        assert!(comp.config_pct > 0.0);
+    }
+
+    #[test]
+    fn test_composition_empty_input() {
+        let files: Vec<&str> = vec![];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 0.0);
+        assert_eq!(comp.test_pct, 0.0);
+        assert_eq!(comp.test_ratio, 0.0);
+    }
+
+    #[test]
+    fn test_composition_only_code() {
+        let files = vec!["src/main.rs", "src/lib.rs"];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 1.0);
+        assert_eq!(comp.test_pct, 0.0);
+        assert_eq!(comp.test_ratio, 0.0);
+    }
+
+    #[test]
+    fn test_composition_test_ratio() {
+        let files = vec![
+            "src/main.rs",
+            "src/lib.rs",
+            "tests/test_main.rs",
+            "tests/test_lib.rs",
+        ];
+        let comp = compute_composition(&files);
+        // 2 code files, 2 test files → ratio = 1.0
+        assert_eq!(comp.test_ratio, 1.0);
+    }
+
+    #[test]
+    fn test_composition_only_tests() {
+        let files = vec!["tests/test_main.rs", "tests/test_lib.rs"];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 0.0);
+        assert_eq!(comp.test_pct, 1.0);
+        // No code files, but tests exist → test_ratio = 1.0
+        assert_eq!(comp.test_ratio, 1.0);
+    }
+
+    // ---- detect_contracts ----
+
+    #[test]
+    fn test_detect_contracts_api() {
+        let files = vec!["crates/tokmd-types/src/lib.rs"];
+        let contracts = detect_contracts(&files);
+        assert!(contracts.api_changed);
+        assert!(!contracts.cli_changed);
+        assert!(!contracts.schema_changed);
+        assert_eq!(contracts.breaking_indicators, 1);
+    }
+
+    #[test]
+    fn test_detect_contracts_cli() {
+        let files = vec!["crates/tokmd/src/commands/lang.rs"];
+        let contracts = detect_contracts(&files);
+        assert!(!contracts.api_changed);
+        assert!(contracts.cli_changed);
+    }
+
+    #[test]
+    fn test_detect_contracts_schema() {
+        let files = vec!["docs/schema.json"];
+        let contracts = detect_contracts(&files);
+        assert!(contracts.schema_changed);
+        assert_eq!(contracts.breaking_indicators, 1);
+    }
+
+    #[test]
+    fn test_detect_contracts_none() {
+        let files = vec!["README.md", "src/utils.rs"];
+        let contracts = detect_contracts(&files);
+        assert!(!contracts.api_changed);
+        assert!(!contracts.cli_changed);
+        assert!(!contracts.schema_changed);
+        assert_eq!(contracts.breaking_indicators, 0);
+    }
+
+    #[test]
+    fn test_detect_contracts_all() {
+        let files = vec![
+            "crates/tokmd-types/src/lib.rs",
+            "crates/tokmd/src/commands/lang.rs",
+            "docs/schema.json",
+        ];
+        let contracts = detect_contracts(&files);
+        assert!(contracts.api_changed);
+        assert!(contracts.cli_changed);
+        assert!(contracts.schema_changed);
+        assert_eq!(contracts.breaking_indicators, 2); // api + schema
+    }
+
+    // ---- compute_code_health ----
+
+    fn make_stat(path: &str, insertions: usize, deletions: usize) -> FileStat {
+        FileStat {
+            path: path.to_string(),
+            insertions,
+            deletions,
+        }
+    }
+
+    #[test]
+    fn test_code_health_perfect_score() {
+        let stats = vec![make_stat("src/main.rs", 10, 5)];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        assert_eq!(health.score, 100);
+        assert_eq!(health.grade, "A");
+        assert_eq!(health.large_files_touched, 0);
+    }
+
+    #[test]
+    fn test_code_health_large_file_penalty() {
+        let stats = vec![make_stat("src/huge.rs", 400, 200)]; // >500 lines
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        assert!(health.score < 100);
+        assert_eq!(health.large_files_touched, 1);
+        assert!(!health.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_code_health_breaking_changes_penalty() {
+        let stats = vec![make_stat("src/lib.rs", 10, 5)];
+        let contracts = Contracts {
+            api_changed: true,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 1,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        assert_eq!(health.score, 80); // 100 - 20 for breaking
+    }
+
+    #[test]
+    fn test_code_health_empty_stats() {
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&[], &contracts);
+        assert_eq!(health.score, 100);
+        assert_eq!(health.avg_file_size, 0);
+    }
+
+    #[test]
+    fn test_code_health_complexity_indicators() {
+        // 0 large files = Low
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&[], &contracts);
+        assert_eq!(health.complexity_indicator, ComplexityIndicator::Low);
+
+        // 1 large file = Medium
+        let stats = vec![make_stat("big.rs", 300, 300)];
+        let health = compute_code_health(&stats, &contracts);
+        assert_eq!(health.complexity_indicator, ComplexityIndicator::Medium);
+    }
+
+    // ---- compute_risk ----
+
+    #[test]
+    fn test_risk_no_hotspots() {
+        let stats = vec![make_stat("src/main.rs", 10, 5)];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        let risk = compute_risk(&stats, &contracts, &health);
+        assert_eq!(risk.level, RiskLevel::Low);
+        assert!(risk.hotspots_touched.is_empty());
+    }
+
+    #[test]
+    fn test_risk_with_hotspots() {
+        let stats = vec![
+            make_stat("src/huge.rs", 200, 200), // >300 lines total
+            make_stat("src/big.rs", 200, 200),  // >300 lines total
+        ];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        let risk = compute_risk(&stats, &contracts, &health);
+        assert!(!risk.hotspots_touched.is_empty());
+        assert!(risk.score > 0);
+    }
+
+    // ---- generate_review_plan ----
+
+    #[test]
+    fn test_review_plan_sorted_by_priority() {
+        let stats = vec![
+            make_stat("small.rs", 10, 5),    // priority 3
+            make_stat("medium.rs", 40, 30),  // priority 2
+            make_stat("large.rs", 150, 100), // priority 1
+        ];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let plan = generate_review_plan(&stats, &contracts);
+        assert_eq!(plan.len(), 3);
+        assert_eq!(plan[0].priority, 1);
+        assert_eq!(plan[1].priority, 2);
+        assert_eq!(plan[2].priority, 3);
+    }
+
+    #[test]
+    fn test_review_plan_empty() {
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let plan = generate_review_plan(&[], &contracts);
+        assert!(plan.is_empty());
+    }
+
+    #[test]
+    fn test_review_plan_complexity_scores() {
+        let stats = vec![
+            make_stat("huge.rs", 200, 200), // >300 lines: complexity 5
+            make_stat("med.rs", 60, 60),    // >100 lines: complexity 3
+            make_stat("small.rs", 5, 5),    // <=100 lines: complexity 1
+        ];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let plan = generate_review_plan(&stats, &contracts);
+        // Find each item by path
+        let huge = plan.iter().find(|i| i.path == "huge.rs").unwrap();
+        let med = plan.iter().find(|i| i.path == "med.rs").unwrap();
+        let small = plan.iter().find(|i| i.path == "small.rs").unwrap();
+        assert_eq!(huge.complexity, Some(5));
+        assert_eq!(med.complexity, Some(3));
+        assert_eq!(small.complexity, Some(1));
+    }
+
+    // ---- flush_uncovered_hunks ----
+
+    #[test]
+    fn test_flush_uncovered_hunks_consecutive() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("test.rs", &[1, 2, 3, 5, 6, 10], &mut hunks);
+        assert_eq!(hunks.len(), 3);
+        assert_eq!(hunks[0].start_line, 1);
+        assert_eq!(hunks[0].end_line, 3);
+        assert_eq!(hunks[1].start_line, 5);
+        assert_eq!(hunks[1].end_line, 6);
+        assert_eq!(hunks[2].start_line, 10);
+        assert_eq!(hunks[2].end_line, 10);
+    }
+
+    #[test]
+    fn test_flush_uncovered_hunks_empty() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("test.rs", &[], &mut hunks);
+        assert!(hunks.is_empty());
+    }
+
+    #[test]
+    fn test_flush_uncovered_hunks_empty_file() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("", &[1, 2], &mut hunks);
+        assert!(hunks.is_empty());
+    }
+
+    #[test]
+    fn test_flush_uncovered_hunks_single_line() {
+        let mut hunks = Vec::new();
+        flush_uncovered_hunks("test.rs", &[42], &mut hunks);
+        assert_eq!(hunks.len(), 1);
+        assert_eq!(hunks[0].start_line, 42);
+        assert_eq!(hunks[0].end_line, 42);
+    }
+
+    // ---- now_iso8601 ----
+
+    #[test]
+    fn test_now_iso8601_format() {
+        let ts = now_iso8601();
+        assert!(ts.ends_with('Z'));
+        assert!(ts.contains('T'));
+        assert_eq!(ts.len(), 20);
+    }
+
+    // ---- FileStat AsRef ----
+
+    #[test]
+    fn test_filestat_as_ref() {
+        let stat = FileStat {
+            path: "src/main.rs".to_string(),
+            insertions: 10,
+            deletions: 5,
+        };
+        let s: &str = stat.as_ref();
+        assert_eq!(s, "src/main.rs");
+    }
+}

@@ -145,3 +145,220 @@ fn extract_quoted(text: &str) -> Option<String> {
     }
     if out.is_empty() { None } else { Some(out) }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ---- supports_language ----
+
+    #[test]
+    fn test_supports_known_languages() {
+        assert!(supports_language("Rust"));
+        assert!(supports_language("rust"));
+        assert!(supports_language("JavaScript"));
+        assert!(supports_language("TypeScript"));
+        assert!(supports_language("Python"));
+        assert!(supports_language("Go"));
+    }
+
+    #[test]
+    fn test_unsupported_languages() {
+        assert!(!supports_language("Java"));
+        assert!(!supports_language("C"));
+        assert!(!supports_language("C++"));
+        assert!(!supports_language("Ruby"));
+        assert!(!supports_language(""));
+    }
+
+    // ---- normalize_import_target ----
+
+    #[test]
+    fn test_normalize_relative_to_local() {
+        assert_eq!(normalize_import_target("./utils"), "local");
+        assert_eq!(normalize_import_target("../lib"), "local");
+        assert_eq!(normalize_import_target("."), "local");
+    }
+
+    #[test]
+    fn test_normalize_npm_scoped_package() {
+        assert_eq!(normalize_import_target("react/dom"), "react");
+        assert_eq!(normalize_import_target("lodash/fp"), "lodash");
+    }
+
+    #[test]
+    fn test_normalize_rust_crate() {
+        assert_eq!(normalize_import_target("std::collections"), "std");
+        assert_eq!(normalize_import_target("serde::Deserialize"), "serde");
+    }
+
+    #[test]
+    fn test_normalize_python_dotted() {
+        assert_eq!(normalize_import_target("os.path"), "os");
+        assert_eq!(normalize_import_target("collections.abc"), "collections");
+    }
+
+    #[test]
+    fn test_normalize_strips_quotes() {
+        assert_eq!(normalize_import_target("\"react\""), "react");
+        assert_eq!(normalize_import_target("'lodash'"), "lodash");
+    }
+
+    #[test]
+    fn test_normalize_trims_whitespace() {
+        assert_eq!(normalize_import_target("  react  "), "react");
+    }
+
+    // ---- parse_imports: Rust ----
+
+    #[test]
+    fn test_parse_rust_use_statement() {
+        let lines = ["use std::collections::HashMap;", "use serde::Deserialize;"];
+        let imports = parse_imports("Rust", &lines);
+        assert_eq!(imports, vec!["std", "serde"]);
+    }
+
+    #[test]
+    fn test_parse_rust_mod_statement() {
+        let lines = ["mod utils;", "mod tests;"];
+        let imports = parse_imports("Rust", &lines);
+        assert_eq!(imports, vec!["utils", "tests"]);
+    }
+
+    #[test]
+    fn test_parse_rust_mixed() {
+        let lines = [
+            "use anyhow::Result;",
+            "mod config;",
+            "fn main() {}",
+            "use tokei::Languages;",
+        ];
+        let imports = parse_imports("rust", &lines);
+        assert_eq!(imports, vec!["anyhow", "config", "tokei"]);
+    }
+
+    #[test]
+    fn test_parse_rust_ignores_non_import_lines() {
+        let lines = ["fn main() {}", "let x = 42;", "// use fake;"];
+        let imports = parse_imports("Rust", &lines);
+        assert!(imports.is_empty());
+    }
+
+    // ---- parse_imports: JavaScript/TypeScript ----
+
+    #[test]
+    fn test_parse_js_import_from() {
+        let lines = [
+            "import React from 'react';",
+            "import { useState } from \"react\";",
+        ];
+        let imports = parse_imports("JavaScript", &lines);
+        assert_eq!(imports, vec!["react", "react"]);
+    }
+
+    #[test]
+    fn test_parse_js_require() {
+        let lines = [
+            "const fs = require('fs');",
+            "const path = require(\"path\");",
+        ];
+        let imports = parse_imports("JavaScript", &lines);
+        assert_eq!(imports, vec!["fs", "path"]);
+    }
+
+    #[test]
+    fn test_parse_ts_imports() {
+        let lines = ["import type { Foo } from 'bar';"];
+        let imports = parse_imports("TypeScript", &lines);
+        assert_eq!(imports, vec!["bar"]);
+    }
+
+    // ---- parse_imports: Python ----
+
+    #[test]
+    fn test_parse_python_import() {
+        let lines = ["import os", "import sys"];
+        let imports = parse_imports("Python", &lines);
+        assert_eq!(imports, vec!["os", "sys"]);
+    }
+
+    #[test]
+    fn test_parse_python_from_import() {
+        let lines = [
+            "from pathlib import Path",
+            "from collections import defaultdict",
+        ];
+        let imports = parse_imports("Python", &lines);
+        assert_eq!(imports, vec!["pathlib", "collections"]);
+    }
+
+    #[test]
+    fn test_parse_python_ignores_comments() {
+        let lines = ["# import fake", "import os"];
+        let imports = parse_imports("Python", &lines);
+        assert_eq!(imports, vec!["os"]);
+    }
+
+    // ---- parse_imports: Go ----
+
+    #[test]
+    fn test_parse_go_single_import() {
+        let lines = ["import \"fmt\""];
+        let imports = parse_imports("Go", &lines);
+        assert_eq!(imports, vec!["fmt"]);
+    }
+
+    #[test]
+    fn test_parse_go_block_import() {
+        let lines = ["import (", "\t\"fmt\"", "\t\"os\"", ")"];
+        let imports = parse_imports("Go", &lines);
+        assert_eq!(imports, vec!["fmt", "os"]);
+    }
+
+    #[test]
+    fn test_parse_go_std_and_external() {
+        let lines = ["import (", "\t\"fmt\"", "\t\"github.com/pkg/errors\"", ")"];
+        let imports = parse_imports("Go", &lines);
+        assert_eq!(imports, vec!["fmt", "github.com/pkg/errors"]);
+    }
+
+    // ---- parse_imports: unsupported language ----
+
+    #[test]
+    fn test_parse_unsupported_language_returns_empty() {
+        let lines = ["#include <stdio.h>"];
+        let imports = parse_imports("C", &lines);
+        assert!(imports.is_empty());
+    }
+
+    // ---- parse_imports: empty input ----
+
+    #[test]
+    fn test_parse_empty_input() {
+        let lines: Vec<&str> = vec![];
+        let imports = parse_imports("Rust", &lines);
+        assert!(imports.is_empty());
+    }
+
+    // ---- extract_quoted ----
+
+    #[test]
+    fn test_extract_quoted_double() {
+        assert_eq!(extract_quoted("from \"hello\""), Some("hello".to_string()));
+    }
+
+    #[test]
+    fn test_extract_quoted_single() {
+        assert_eq!(extract_quoted("from 'world'"), Some("world".to_string()));
+    }
+
+    #[test]
+    fn test_extract_quoted_empty_string() {
+        assert_eq!(extract_quoted("\"\""), None);
+    }
+
+    #[test]
+    fn test_extract_quoted_no_quotes() {
+        assert_eq!(extract_quoted("no quotes here"), None);
+    }
+}

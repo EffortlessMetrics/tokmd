@@ -392,3 +392,53 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod tests_no_git {
+    use super::*;
+
+    #[test]
+    fn test_git_scores_struct_default() {
+        let scores = GitScores {
+            hotspots: BTreeMap::new(),
+            commit_counts: BTreeMap::new(),
+        };
+        assert!(scores.hotspots.is_empty());
+        assert!(scores.commit_counts.is_empty());
+    }
+
+    #[test]
+    fn test_git_scores_struct_with_data() {
+        let mut hotspots = BTreeMap::new();
+        hotspots.insert("src/main.rs".to_string(), 100);
+        hotspots.insert("src/lib.rs".to_string(), 50);
+        let mut commit_counts = BTreeMap::new();
+        commit_counts.insert("src/main.rs".to_string(), 10);
+        commit_counts.insert("src/lib.rs".to_string(), 5);
+
+        let scores = GitScores {
+            hotspots,
+            commit_counts,
+        };
+
+        assert_eq!(scores.hotspots.len(), 2);
+        assert_eq!(scores.commit_counts.get("src/main.rs"), Some(&10));
+        assert_eq!(scores.hotspots.get("src/lib.rs"), Some(&50));
+    }
+
+    #[test]
+    fn test_git_scores_btreemap_ordering() {
+        let mut hotspots = BTreeMap::new();
+        hotspots.insert("z.rs".to_string(), 1);
+        hotspots.insert("a.rs".to_string(), 2);
+        hotspots.insert("m.rs".to_string(), 3);
+
+        let scores = GitScores {
+            hotspots,
+            commit_counts: BTreeMap::new(),
+        };
+
+        let keys: Vec<&String> = scores.hotspots.keys().collect();
+        assert_eq!(keys, vec!["a.rs", "m.rs", "z.rs"]);
+    }
+}

@@ -251,3 +251,166 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<Option<PathBuf>> {
     fs::write(&path, template)?;
     Ok(Some(path))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_args(profile: InitProfile, print: bool, force: bool, dir: PathBuf) -> InitArgs {
+        InitArgs {
+            dir,
+            force,
+            print,
+            template: profile,
+            non_interactive: true,
+        }
+    }
+
+    #[test]
+    fn test_default_template_contains_expected_sections() {
+        assert!(TEMPLATE_DEFAULT.contains("# .tokeignore"));
+        assert!(TEMPLATE_DEFAULT.contains("target/"));
+        assert!(TEMPLATE_DEFAULT.contains("node_modules/"));
+        assert!(TEMPLATE_DEFAULT.contains("__pycache__/"));
+        assert!(TEMPLATE_DEFAULT.contains(".runs/"));
+    }
+
+    #[test]
+    fn test_rust_template_is_rust_specific() {
+        assert!(TEMPLATE_RUST.contains("(Rust)"));
+        assert!(TEMPLATE_RUST.contains("target/"));
+        assert!(!TEMPLATE_RUST.contains("node_modules/"));
+    }
+
+    #[test]
+    fn test_node_template_is_node_specific() {
+        assert!(TEMPLATE_NODE.contains("(Node)"));
+        assert!(TEMPLATE_NODE.contains("node_modules/"));
+        assert!(!TEMPLATE_NODE.contains("__pycache__/"));
+    }
+
+    #[test]
+    fn test_python_template_is_python_specific() {
+        assert!(TEMPLATE_PYTHON.contains("(Python)"));
+        assert!(TEMPLATE_PYTHON.contains("__pycache__/"));
+        assert!(TEMPLATE_PYTHON.contains(".venv/"));
+    }
+
+    #[test]
+    fn test_go_template_is_go_specific() {
+        assert!(TEMPLATE_GO.contains("(Go)"));
+        assert!(TEMPLATE_GO.contains("vendor/"));
+    }
+
+    #[test]
+    fn test_cpp_template_is_cpp_specific() {
+        assert!(TEMPLATE_CPP.contains("(C++)"));
+        assert!(TEMPLATE_CPP.contains("cmake-build-*/"));
+    }
+
+    #[test]
+    fn test_mono_template_covers_multiple_ecosystems() {
+        assert!(TEMPLATE_MONO.contains("(Monorepo)"));
+        assert!(TEMPLATE_MONO.contains("target/"));
+        assert!(TEMPLATE_MONO.contains("node_modules/"));
+        assert!(TEMPLATE_MONO.contains("__pycache__/"));
+        assert!(TEMPLATE_MONO.contains("vendor/"));
+    }
+
+    #[test]
+    fn test_all_templates_end_with_newline() {
+        for template in [
+            TEMPLATE_DEFAULT,
+            TEMPLATE_RUST,
+            TEMPLATE_NODE,
+            TEMPLATE_MONO,
+            TEMPLATE_PYTHON,
+            TEMPLATE_GO,
+            TEMPLATE_CPP,
+        ] {
+            assert!(template.ends_with('\n'), "template should end with newline");
+        }
+    }
+
+    #[test]
+    fn test_all_templates_contain_runs_dir() {
+        for template in [
+            TEMPLATE_DEFAULT,
+            TEMPLATE_RUST,
+            TEMPLATE_NODE,
+            TEMPLATE_MONO,
+            TEMPLATE_PYTHON,
+            TEMPLATE_GO,
+            TEMPLATE_CPP,
+        ] {
+            assert!(
+                template.contains(".runs/"),
+                "every template should exclude .runs/"
+            );
+        }
+    }
+
+    #[test]
+    fn test_init_writes_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let args = make_args(InitProfile::Default, false, false, dir.path().to_path_buf());
+        let result = init_tokeignore(&args).unwrap();
+        assert!(result.is_some());
+        let path = result.unwrap();
+        assert!(path.exists());
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains("# .tokeignore"));
+    }
+
+    #[test]
+    fn test_init_rust_profile_writes_rust_template() {
+        let dir = tempfile::tempdir().unwrap();
+        let args = make_args(InitProfile::Rust, false, false, dir.path().to_path_buf());
+        let result = init_tokeignore(&args).unwrap();
+        let path = result.unwrap();
+        let content = fs::read_to_string(path).unwrap();
+        assert!(content.contains("(Rust)"));
+    }
+
+    #[test]
+    fn test_init_refuses_overwrite_without_force() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join(".tokeignore"), "existing").unwrap();
+        let args = make_args(InitProfile::Default, false, false, dir.path().to_path_buf());
+        let result = init_tokeignore(&args);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("already exists"));
+    }
+
+    #[test]
+    fn test_init_overwrites_with_force() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join(".tokeignore"), "old content").unwrap();
+        let args = make_args(InitProfile::Default, false, true, dir.path().to_path_buf());
+        let result = init_tokeignore(&args).unwrap();
+        assert!(result.is_some());
+        let content = fs::read_to_string(dir.path().join(".tokeignore")).unwrap();
+        assert!(content.contains("# .tokeignore"));
+    }
+
+    #[test]
+    fn test_init_print_returns_none() {
+        let dir = tempfile::tempdir().unwrap();
+        let args = make_args(InitProfile::Default, true, false, dir.path().to_path_buf());
+        let result = init_tokeignore(&args).unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_init_nonexistent_dir_errors() {
+        let args = make_args(
+            InitProfile::Default,
+            false,
+            false,
+            PathBuf::from("/nonexistent/dir/that/does/not/exist"),
+        );
+        let result = init_tokeignore(&args);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("does not exist"));
+    }
+}
