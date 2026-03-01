@@ -21,8 +21,8 @@ const WEEK: i64 = 7 * DAY;
 fn arb_file_row() -> impl Strategy<Value = FileRow> {
     (
         "[a-z]{1,4}/[a-z]{1,6}\\.rs", // path
-        "[a-z]{1,4}",                  // module
-        1..500usize,                   // lines
+        "[a-z]{1,4}",                 // module
+        1..500usize,                  // lines
     )
         .prop_map(|(path, module, lines)| FileRow {
             path,
@@ -54,8 +54,8 @@ fn arb_export() -> impl Strategy<Value = (ExportData, Vec<String>)> {
 fn arb_commit(paths: Vec<String>) -> impl Strategy<Value = GitCommit> {
     let n = paths.len();
     (
-        1..200i64,                                            // timestamp (in weeks)
-        "[a-z]{3,6}@test\\.com",                              // author
+        1..200i64,               // timestamp (in weeks)
+        "[a-z]{3,6}@test\\.com", // author
         prop_oneof![
             Just("feat: feature".to_string()),
             Just("fix: bugfix".to_string()),

@@ -25,9 +25,7 @@ fn crate_src() -> String {
 
 /// Strip volatile values (bytes, tokens, absolute counts) and keep only
 /// the structural shape (field names, ordering, relative ranking).
-fn redact_lang_rows(
-    report: &tokmd_types::LangReport,
-) -> Vec<serde_json::Value> {
+fn redact_lang_rows(report: &tokmd_types::LangReport) -> Vec<serde_json::Value> {
     report
         .rows
         .iter()
@@ -42,9 +40,7 @@ fn redact_lang_rows(
         .collect()
 }
 
-fn redact_module_rows(
-    report: &tokmd_types::ModuleReport,
-) -> Vec<serde_json::Value> {
+fn redact_module_rows(report: &tokmd_types::ModuleReport) -> Vec<serde_json::Value> {
     report
         .rows
         .iter()
@@ -59,9 +55,7 @@ fn redact_module_rows(
         .collect()
 }
 
-fn redact_file_rows(
-    rows: &[tokmd_types::FileRow],
-) -> Vec<serde_json::Value> {
+fn redact_file_rows(rows: &[tokmd_types::FileRow]) -> Vec<serde_json::Value> {
     rows.iter()
         .map(|r| {
             serde_json::json!({
@@ -136,32 +130,41 @@ fn snapshot_file_rows_separate() {
 fn snapshot_empty_lang_report() {
     let langs = Languages::new();
     let report = create_lang_report(&langs, 0, false, ChildrenMode::Collapse);
-    insta::assert_json_snapshot!("empty_lang_report", serde_json::json!({
-        "rows": report.rows.len(),
-        "total_code": report.total.code,
-        "total_lines": report.total.lines,
-        "total_bytes": report.total.bytes,
-        "total_tokens": report.total.tokens,
-        "total_files": report.total.files,
-    }));
+    insta::assert_json_snapshot!(
+        "empty_lang_report",
+        serde_json::json!({
+            "rows": report.rows.len(),
+            "total_code": report.total.code,
+            "total_lines": report.total.lines,
+            "total_bytes": report.total.bytes,
+            "total_tokens": report.total.tokens,
+            "total_files": report.total.files,
+        })
+    );
 }
 
 #[test]
 fn snapshot_empty_module_report() {
     let langs = Languages::new();
     let report = create_module_report(&langs, &[], 2, ChildIncludeMode::ParentsOnly, 0);
-    insta::assert_json_snapshot!("empty_module_report", serde_json::json!({
-        "rows": report.rows.len(),
-        "total_code": report.total.code,
-        "total_files": report.total.files,
-    }));
+    insta::assert_json_snapshot!(
+        "empty_module_report",
+        serde_json::json!({
+            "rows": report.rows.len(),
+            "total_code": report.total.code,
+            "total_files": report.total.files,
+        })
+    );
 }
 
 #[test]
 fn snapshot_empty_export() {
     let langs = Languages::new();
     let data = create_export_data(&langs, &[], 2, ChildIncludeMode::ParentsOnly, None, 0, 0);
-    insta::assert_json_snapshot!("empty_export", serde_json::json!({
-        "rows": data.rows.len(),
-    }));
+    insta::assert_json_snapshot!(
+        "empty_export",
+        serde_json::json!({
+            "rows": data.rows.len(),
+        })
+    );
 }

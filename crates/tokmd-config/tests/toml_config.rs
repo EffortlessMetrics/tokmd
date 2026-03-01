@@ -313,8 +313,7 @@ exclude = ["target", "node_modules", "**/*.min.js"]
 
 #[test]
 fn test_parse_scan_doc_comments() {
-    let config =
-        TomlConfig::parse("[scan]\ndoc_comments = true").expect("valid");
+    let config = TomlConfig::parse("[scan]\ndoc_comments = true").expect("valid");
     assert_eq!(config.scan.doc_comments, Some(true));
 }
 
@@ -489,7 +488,10 @@ message = "Fortran detected — please migrate"
     // Second rule: negate
     assert_eq!(rules[1].name, "not-fortran");
     assert!(rules[1].negate);
-    assert_eq!(rules[1].message, Some("Fortran detected — please migrate".to_string()));
+    assert_eq!(
+        rules[1].message,
+        Some("Fortran detected — please migrate".to_string())
+    );
 }
 
 #[test]
@@ -609,7 +611,10 @@ fn test_parse_unknown_top_level_key_is_silently_ignored() {
 totally_unknown_key = "value"
 "#;
     let result = TomlConfig::parse(toml_str);
-    assert!(result.is_ok(), "Unknown top-level keys should be silently ignored");
+    assert!(
+        result.is_ok(),
+        "Unknown top-level keys should be silently ignored"
+    );
 }
 
 // =========================================================================

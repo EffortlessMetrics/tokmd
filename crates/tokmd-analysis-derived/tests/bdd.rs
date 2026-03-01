@@ -103,7 +103,16 @@ mod density {
 
     #[test]
     fn given_no_comments_when_derived_then_doc_density_is_zero() {
-        let rows = vec![make_row("src/main.rs", "src", "Rust", 100, 0, 5, 5000, 1000)];
+        let rows = vec![make_row(
+            "src/main.rs",
+            "src",
+            "Rust",
+            100,
+            0,
+            5,
+            5000,
+            1000,
+        )];
         let report = derive_report(&export(rows), None);
         assert_eq!(report.doc_density.total.ratio, 0.0);
     }
@@ -148,7 +157,16 @@ mod whitespace {
 
     #[test]
     fn given_many_blanks_when_derived_then_whitespace_ratio_is_high() {
-        let rows = vec![make_row("src/main.rs", "src", "Rust", 20, 10, 70, 2000, 400)];
+        let rows = vec![make_row(
+            "src/main.rs",
+            "src",
+            "Rust",
+            20,
+            10,
+            70,
+            2000,
+            400,
+        )];
         let report = derive_report(&export(rows), None);
         // blanks=70, code+comments=30 → 70/30 ≈ 2.3333
         assert!(report.whitespace.total.ratio > 2.0);
@@ -156,7 +174,16 @@ mod whitespace {
 
     #[test]
     fn given_no_blanks_when_derived_then_whitespace_ratio_is_zero() {
-        let rows = vec![make_row("src/dense.rs", "src", "Rust", 100, 50, 0, 5000, 1000)];
+        let rows = vec![make_row(
+            "src/dense.rs",
+            "src",
+            "Rust",
+            100,
+            50,
+            0,
+            5000,
+            1000,
+        )];
         let report = derive_report(&export(rows), None);
         assert_eq!(report.whitespace.total.ratio, 0.0);
     }
@@ -169,7 +196,16 @@ mod distribution {
 
     #[test]
     fn given_single_file_when_derived_then_min_equals_max_equals_median() {
-        let rows = vec![make_row("src/only.rs", "src", "Rust", 100, 20, 10, 5000, 1000)];
+        let rows = vec![make_row(
+            "src/only.rs",
+            "src",
+            "Rust",
+            100,
+            20,
+            10,
+            5000,
+            1000,
+        )];
         let report = derive_report(&export(rows), None);
         let d = &report.distribution;
         assert_eq!(d.count, 1);
@@ -218,7 +254,18 @@ mod distribution {
     #[test]
     fn given_files_when_derived_then_p90_gte_median() {
         let rows: Vec<FileRow> = (0..20)
-            .map(|i| make_row(&format!("f{i}.rs"), "src", "Rust", (i + 1) * 10, 0, 0, 400, 80))
+            .map(|i| {
+                make_row(
+                    &format!("f{i}.rs"),
+                    "src",
+                    "Rust",
+                    (i + 1) * 10,
+                    0,
+                    0,
+                    400,
+                    80,
+                )
+            })
             .collect();
         let report = derive_report(&export(rows), None);
         assert!(report.distribution.p90 >= report.distribution.median);
@@ -240,7 +287,9 @@ mod cocomo {
 
     #[test]
     fn given_code_when_derived_then_cocomo_uses_organic_mode() {
-        let rows = vec![make_row("lib.rs", "src", "Rust", 1000, 200, 50, 40000, 8000)];
+        let rows = vec![make_row(
+            "lib.rs", "src", "Rust", 1000, 200, 50, 40000, 8000,
+        )];
         let report = derive_report(&export(rows), None);
         let cocomo = report.cocomo.as_ref().unwrap();
         assert_eq!(cocomo.mode, "organic");
@@ -267,7 +316,9 @@ mod cocomo {
 
     #[test]
     fn given_code_when_derived_then_effort_and_duration_are_positive() {
-        let rows = vec![make_row("lib.rs", "src", "Rust", 10000, 0, 0, 400000, 80000)];
+        let rows = vec![make_row(
+            "lib.rs", "src", "Rust", 10000, 0, 0, 400000, 80000,
+        )];
         let report = derive_report(&export(rows), None);
         let cocomo = report.cocomo.as_ref().unwrap();
         assert!(cocomo.effort_pm > 0.0);
@@ -282,8 +333,7 @@ mod cocomo {
         let r_small = derive_report(&export(small), None);
         let r_large = derive_report(&export(large), None);
         assert!(
-            r_large.cocomo.as_ref().unwrap().effort_pm
-                > r_small.cocomo.as_ref().unwrap().effort_pm
+            r_large.cocomo.as_ref().unwrap().effort_pm > r_small.cocomo.as_ref().unwrap().effort_pm
         );
     }
 }
@@ -513,7 +563,16 @@ mod test_density {
 
     #[test]
     fn given_no_tests_when_derived_then_test_ratio_is_zero() {
-        let rows = vec![make_row("src/main.rs", "src", "Rust", 300, 0, 0, 12000, 2400)];
+        let rows = vec![make_row(
+            "src/main.rs",
+            "src",
+            "Rust",
+            300,
+            0,
+            0,
+            12000,
+            2400,
+        )];
         let report = derive_report(&export(rows), None);
         assert_eq!(report.test_density.ratio, 0.0);
         assert_eq!(report.test_density.test_files, 0);

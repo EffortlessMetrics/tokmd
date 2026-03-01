@@ -31,11 +31,7 @@ fn arb_dir_depth() -> impl Strategy<Value = Vec<String>> {
 
 /// Strategy for max_files parameter.
 fn arb_max_files() -> impl Strategy<Value = Option<usize>> {
-    prop_oneof![
-        Just(None),
-        Just(Some(0)),
-        (1..=20usize).prop_map(Some),
-    ]
+    prop_oneof![Just(None), Just(Some(0)), (1..=20usize).prop_map(Some),]
 }
 
 // ============================================================================

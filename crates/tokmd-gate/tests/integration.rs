@@ -4,8 +4,8 @@
 
 use serde_json::json;
 use tokmd_gate::{
-    evaluate_policy, evaluate_ratchet_policy, PolicyConfig, PolicyRule, RatchetConfig, RatchetRule,
-    RuleLevel, RuleOperator,
+    PolicyConfig, PolicyRule, RatchetConfig, RatchetRule, RuleLevel, RuleOperator, evaluate_policy,
+    evaluate_ratchet_policy,
 };
 
 // ============================================================================
@@ -235,7 +235,7 @@ fn workflow_standard_ci_gate_some_fail() {
 
     let result = evaluate_policy(&receipt, &policy);
     assert!(!result.passed);
-    assert_eq!(result.errors, 2);   // tokens + code
+    assert_eq!(result.errors, 2); // tokens + code
     assert_eq!(result.warnings, 1); // readme
     assert_eq!(result.rule_results.len(), 3);
 }
@@ -392,7 +392,7 @@ fn workflow_ratchet_all_metrics_within_bounds() {
             RatchetRule {
                 pointer: "/complexity/avg_cyclomatic".into(),
                 max_increase_pct: Some(15.0), // Allow up to 15% increase
-                max_value: Some(10.0),         // Hard ceiling
+                max_value: Some(10.0),        // Hard ceiling
                 level: RuleLevel::Error,
                 description: Some("Cyclomatic complexity".into()),
             },
@@ -609,8 +609,10 @@ description = "Token budget warning"
     assert_eq!(config.rules.len(), 2);
 
     // Use the parsed config
-    let baseline = json!({"complexity": {"avg_cyclomatic": 5.0}, "derived": {"totals": {"tokens": 200000}}});
-    let current = json!({"complexity": {"avg_cyclomatic": 5.2}, "derived": {"totals": {"tokens": 250000}}});
+    let baseline =
+        json!({"complexity": {"avg_cyclomatic": 5.0}, "derived": {"totals": {"tokens": 200000}}});
+    let current =
+        json!({"complexity": {"avg_cyclomatic": 5.2}, "derived": {"totals": {"tokens": 250000}}});
 
     let result = evaluate_ratchet_policy(&config, &baseline, &current);
     assert!(result.passed);

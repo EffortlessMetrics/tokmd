@@ -287,10 +287,7 @@ fn given_same_input_when_scanned_twice_then_results_identical() -> Result<()> {
         rust1.comments, rust2.comments,
         "comment lines must be identical"
     );
-    assert_eq!(
-        rust1.blanks, rust2.blanks,
-        "blank lines must be identical"
-    );
+    assert_eq!(rust1.blanks, rust2.blanks, "blank lines must be identical");
     Ok(())
 }
 

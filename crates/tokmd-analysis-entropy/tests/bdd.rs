@@ -415,7 +415,7 @@ mod path_normalization {
         let dir = tempdir().unwrap();
         let subdir = dir.path().join("sub");
         fs::create_dir_all(&subdir).unwrap();
-        let f = subdir.join("data.bin");
+        let f = dir.path().join("sub\\data.bin");
         write_repeated(&f, 0x00, 512);
 
         let export = export_for_paths(&["sub/data.bin"]);
