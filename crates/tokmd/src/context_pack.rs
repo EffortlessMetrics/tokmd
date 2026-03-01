@@ -481,7 +481,7 @@ pub fn select_files_with_options(
     }
 
     // Step 3: Build pack candidates (excluding policy-skipped files, adjusting tokens for HeadTail)
-    let excluded_paths: std::collections::HashSet<&str> =
+    let excluded_paths: std::collections::BTreeSet<&str> =
         excluded_by_policy.iter().map(|e| e.path.as_str()).collect();
 
     let pack_rows: Vec<FileRow> = candidate_rows
@@ -521,7 +521,7 @@ pub fn select_files_with_options(
 
     let mut spine_files: Vec<ContextFileRow> = Vec::new();
     let mut spine_used = 0;
-    let mut spine_paths: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut spine_paths: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
     let mut spine_candidates: Vec<&FileRow> = parents
         .iter()
