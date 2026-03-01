@@ -512,3 +512,230 @@ proptest! {
         }
     }
 }
+
+// =============================================================================
+// Property: Default impls are consistent with serde defaults
+// =============================================================================
+
+/// Deserializing an empty JSON object must yield the same result as Default::default()
+/// for every settings type that uses `#[serde(default)]`.
+#[test]
+fn default_consistency_scan_options() {
+    let from_default = serde_json::to_value(&ScanOptions::default()).unwrap();
+    let from_empty: ScanOptions = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_scan_settings() {
+    let from_default = serde_json::to_value(&ScanSettings::default()).unwrap();
+    let from_empty: ScanSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_lang_settings() {
+    let from_default = serde_json::to_value(&LangSettings::default()).unwrap();
+    let from_empty: LangSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_module_settings() {
+    let from_default = serde_json::to_value(&ModuleSettings::default()).unwrap();
+    let from_empty: ModuleSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_export_settings() {
+    let from_default = serde_json::to_value(&ExportSettings::default()).unwrap();
+    let from_empty: ExportSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_analyze_settings() {
+    let from_default = serde_json::to_value(&AnalyzeSettings::default()).unwrap();
+    let from_empty: AnalyzeSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_cockpit_settings() {
+    let from_default = serde_json::to_value(&CockpitSettings::default()).unwrap();
+    let from_empty: CockpitSettings = serde_json::from_str("{}").unwrap();
+    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_val);
+}
+
+#[test]
+fn default_consistency_toml_config() {
+    let from_default = toml::to_string(&TomlConfig::default()).unwrap();
+    let from_empty: TomlConfig = toml::from_str("").unwrap();
+    let from_empty_str = toml::to_string(&from_empty).unwrap();
+    assert_eq!(from_default, from_empty_str);
+}
+
+// =============================================================================
+// Property: ScanSettings helper methods preserve defaults
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn scan_settings_for_paths_preserves_default_options(
+        paths in prop::collection::vec(arb_safe_string(), 1..5),
+    ) {
+        let s = ScanSettings::for_paths(paths.clone());
+        let default_opts = ScanOptions::default();
+        prop_assert_eq!(&s.paths, &paths);
+        prop_assert_eq!(s.options.hidden, default_opts.hidden);
+        prop_assert_eq!(s.options.no_ignore, default_opts.no_ignore);
+        prop_assert_eq!(s.options.no_ignore_parent, default_opts.no_ignore_parent);
+        prop_assert_eq!(s.options.no_ignore_dot, default_opts.no_ignore_dot);
+        prop_assert_eq!(s.options.no_ignore_vcs, default_opts.no_ignore_vcs);
+        prop_assert_eq!(
+            s.options.treat_doc_strings_as_comments,
+            default_opts.treat_doc_strings_as_comments
+        );
+    }
+}
+
+#[test]
+fn scan_settings_current_dir_has_dot_path() {
+    let s = ScanSettings::current_dir();
+    assert_eq!(s.paths, vec!["."]);
+    // options must be default
+    let d = ScanOptions::default();
+    assert_eq!(s.options.hidden, d.hidden);
+}
+
+// =============================================================================
+// Property: JSON ↔ JSON value stability (double serialization)
+// =============================================================================
+
+proptest! {
+    /// Serializing, deserializing, then re-serializing must produce identical JSON.
+    #[test]
+    fn scan_options_double_roundtrip(
+        excluded in arb_string_vec(),
+        config in arb_config_mode(),
+        hidden in any::<bool>(),
+        no_ignore in any::<bool>(),
+    ) {
+        let opts = ScanOptions {
+            excluded, config, hidden, no_ignore,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&opts).unwrap();
+        let mid: ScanOptions = serde_json::from_str(&json1).unwrap();
+        let json2 = serde_json::to_string(&mid).unwrap();
+        prop_assert_eq!(json1, json2, "double roundtrip must be stable");
+    }
+
+    /// ExportSettings double roundtrip stability.
+    #[test]
+    fn export_settings_double_roundtrip(
+        min_code in any::<usize>(),
+        max_rows in any::<usize>(),
+        meta in any::<bool>(),
+        redact in arb_redact_mode(),
+    ) {
+        let s = ExportSettings {
+            min_code, max_rows, meta, redact,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&s).unwrap();
+        let mid: ExportSettings = serde_json::from_str(&json1).unwrap();
+        let json2 = serde_json::to_string(&mid).unwrap();
+        prop_assert_eq!(json1, json2, "double roundtrip must be stable");
+    }
+
+    /// AnalyzeSettings double roundtrip stability.
+    #[test]
+    fn analyze_settings_double_roundtrip(
+        preset in arb_safe_string(),
+        granularity in arb_safe_string(),
+        window in proptest::option::of(any::<usize>()),
+    ) {
+        let s = AnalyzeSettings {
+            preset, granularity, window,
+            ..Default::default()
+        };
+        let json1 = serde_json::to_string(&s).unwrap();
+        let mid: AnalyzeSettings = serde_json::from_str(&json1).unwrap();
+        let json2 = serde_json::to_string(&mid).unwrap();
+        prop_assert_eq!(json1, json2, "double roundtrip must be stable");
+    }
+}
+
+// =============================================================================
+// Property: TomlConfig with arbitrary view profiles round-trips
+// =============================================================================
+
+proptest! {
+    #[test]
+    fn toml_config_with_profiles_roundtrip(
+        profile_name in "[a-z]{1,10}",
+        top in proptest::option::of(0usize..500),
+        files in proptest::option::of(any::<bool>()),
+        preset in proptest::option::of(arb_safe_string()),
+    ) {
+        let mut config = TomlConfig::default();
+        config.view.insert(profile_name.clone(), ViewProfile {
+            top,
+            files,
+            preset: preset.clone(),
+            ..Default::default()
+        });
+        let toml_str = toml::to_string(&config).unwrap();
+        let back: TomlConfig = toml::from_str(&toml_str).unwrap();
+        let profile = back.view.get(&profile_name).expect("profile must survive roundtrip");
+        prop_assert_eq!(profile.top, top);
+        prop_assert_eq!(profile.files, files);
+        prop_assert_eq!(&profile.preset, &preset);
+    }
+}
+
+// =============================================================================
+// Property: ModuleSettings default depth is non-zero
+// =============================================================================
+
+#[test]
+fn module_settings_default_depth_nonzero() {
+    let s = ModuleSettings::default();
+    assert!(s.module_depth > 0, "default module_depth must be > 0");
+}
+
+#[test]
+fn module_settings_default_roots_nonempty() {
+    let s = ModuleSettings::default();
+    assert!(
+        !s.module_roots.is_empty(),
+        "default module_roots must be non-empty"
+    );
+}
+
+#[test]
+fn analyze_settings_default_preset_is_receipt() {
+    let s = AnalyzeSettings::default();
+    assert_eq!(s.preset, "receipt");
+}
+
+#[test]
+fn cockpit_settings_default_range_mode_is_two_dot() {
+    let s = CockpitSettings::default();
+    assert_eq!(s.range_mode, "two-dot");
+}
+
+#[test]
+fn export_settings_default_meta_is_true() {
+    let s = ExportSettings::default();
+    assert!(s.meta);
+}
