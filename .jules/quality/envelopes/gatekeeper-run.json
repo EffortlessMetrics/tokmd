@@ -1,0 +1,10 @@
+{
+  "run_id": "gatekeeper-run",
+  "persona": "Gatekeeper",
+  "goal": "quality/determinism",
+  "receipts": [
+    "grep -rn \"HashMap\" crates/",
+    "cargo test -p tokmd-analysis-near-dup",
+    "cargo test -p tokmd-analysis-near-dup --no-default-features"
+  ]
+}

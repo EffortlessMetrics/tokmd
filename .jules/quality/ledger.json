@@ -8,5 +8,10 @@
     "run_id": "2026-01-30-gatekeeper-analysis-determinism",
     "timestamp": "2026-01-30T11:00:00Z",
     "summary": "Added determinism regression test for analysis reports."
+  },
+  {
+    "run_id": "gatekeeper-run",
+    "timestamp": "2026-03-01T11:00:53Z",
+    "summary": "Switched HashMap to BTreeMap in tokmd-analysis-near-dup for deterministic cluster ordering."
   }
 ]
