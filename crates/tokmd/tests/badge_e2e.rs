@@ -183,3 +183,65 @@ fn badge_with_explicit_path() {
 fn badge_missing_metric_fails() {
     tokmd_cmd().arg("badge").assert().failure();
 }
+
+// ---------------------------------------------------------------------------
+// different metrics produce different badges
+// ---------------------------------------------------------------------------
+
+#[test]
+fn badge_different_metrics_produce_different_output() {
+    let svg_lines = tokmd_cmd()
+        .arg("badge")
+        .arg("--metric")
+        .arg("lines")
+        .output()
+        .unwrap();
+    let svg_tokens = tokmd_cmd()
+        .arg("badge")
+        .arg("--metric")
+        .arg("tokens")
+        .output()
+        .unwrap();
+
+    assert!(svg_lines.status.success());
+    assert!(svg_tokens.status.success());
+
+    let out_lines = String::from_utf8(svg_lines.stdout).unwrap();
+    let out_tokens = String::from_utf8(svg_tokens.stdout).unwrap();
+
+    assert_ne!(
+        out_lines, out_tokens,
+        "lines and tokens badges should differ"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// non-existent path fails gracefully
+// ---------------------------------------------------------------------------
+
+#[test]
+fn badge_nonexistent_path_fails_gracefully() {
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.arg("badge")
+        .arg("--metric")
+        .arg("lines")
+        .arg("/this/path/definitely/does/not/exist")
+        .assert()
+        .failure();
+}
+
+// ---------------------------------------------------------------------------
+// hotspot metric produces SVG
+// ---------------------------------------------------------------------------
+
+#[test]
+fn badge_hotspot_metric_produces_svg() {
+    tokmd_cmd()
+        .arg("badge")
+        .arg("--metric")
+        .arg("hotspot")
+        .arg("--no-git")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("<svg"));
+}

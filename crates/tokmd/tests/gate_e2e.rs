@@ -413,3 +413,150 @@ fn gate_invalid_policy_path_fails() {
         .failure()
         .stderr(predicate::str::contains("No policy or ratchet rules"));
 }
+
+// ── 13. Non-existent scan path fails gracefully ──────────────────────
+
+#[test]
+fn gate_nonexistent_scan_path_fails() {
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(
+        &policy_path,
+        r#"
+[[rules]]
+name = "anything"
+pointer = "/derived/totals/code"
+op = "gte"
+value = 0
+"#,
+    )
+    .unwrap();
+
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
+    cmd.arg("gate")
+        .arg("/this/path/does/not/exist")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .failure();
+}
+
+// ── 14. All rules pass → total_errors is 0 and total_warnings is 0 ──
+
+#[test]
+fn gate_all_pass_zero_errors_and_warnings() {
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(
+        &policy_path,
+        r#"
+[[rules]]
+name = "lenient_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 999999999
+
+[[rules]]
+name = "lenient_code"
+pointer = "/derived/totals/code"
+op = "lte"
+value = 999999999
+"#,
+    )
+    .unwrap();
+
+    let output = tokmd()
+        .arg("gate")
+        .arg("--policy")
+        .arg(&policy_path)
+        .arg("--format")
+        .arg("json")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(json["passed"], true);
+    assert_eq!(json["total_errors"], 0);
+    assert_eq!(json["total_warnings"], 0);
+    let results = json["policy"]["rule_results"].as_array().unwrap();
+    assert_eq!(results.len(), 2);
+    assert!(results.iter().all(|r| r["passed"] == true));
+}
+
+// ── 15. Comparison operators: lt, gt, eq ─────────────────────────────
+
+#[test]
+fn gate_lt_operator() {
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(
+        &policy_path,
+        r#"
+[[rules]]
+name = "lt_check"
+pointer = "/derived/totals/code"
+op = "lt"
+value = 999999999
+"#,
+    )
+    .unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Gate PASSED"));
+}
+
+#[test]
+fn gate_gt_operator() {
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(
+        &policy_path,
+        r#"
+[[rules]]
+name = "gt_check"
+pointer = "/derived/totals/code"
+op = "gt"
+value = 0
+"#,
+    )
+    .unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Gate PASSED"));
+}
+
+#[test]
+fn gate_eq_operator_fails_on_mismatch() {
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(
+        &policy_path,
+        r#"
+[[rules]]
+name = "eq_check"
+pointer = "/derived/totals/code"
+op = "eq"
+value = 99999999
+"#,
+    )
+    .unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("Gate FAILED"));
+}

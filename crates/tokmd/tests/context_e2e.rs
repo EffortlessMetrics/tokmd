@@ -432,3 +432,75 @@ fn test_context_json_has_token_estimation() {
     assert!(te.is_object(), "should have token_estimation object");
     assert!(te.get("source_bytes").is_some());
 }
+
+// ---------------------------------------------------------------------------
+// Non-existent path fails gracefully
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_nonexistent_path_fails() {
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.arg("context")
+        .arg("/this/path/definitely/does/not/exist")
+        .assert()
+        .failure();
+}
+
+// ---------------------------------------------------------------------------
+// Budget in JSON receipt does not exceed requested value
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_json_used_never_exceeds_budget() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .arg("--budget")
+        .arg("500")
+        .output()
+        .expect("failed to run tokmd context --budget 500");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    let budget = parsed["budget_tokens"].as_u64().unwrap();
+    let used = parsed["used_tokens"].as_u64().unwrap();
+    let util = parsed["utilization_pct"].as_f64().unwrap();
+
+    assert_eq!(budget, 500);
+    assert!(used <= budget);
+    assert!(util <= 100.0, "utilization_pct should not exceed 100%");
+}
+
+// ---------------------------------------------------------------------------
+// Large budget includes all fixture files
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_context_large_budget_includes_all_files() {
+    let mut cmd = tokmd_cmd();
+    let output = cmd
+        .arg("context")
+        .arg("--mode")
+        .arg("json")
+        .arg("--budget")
+        .arg("1000000")
+        .output()
+        .expect("failed to run tokmd context with large budget");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+
+    let used = parsed["used_tokens"].as_u64().unwrap();
+    let budget = parsed["budget_tokens"].as_u64().unwrap();
+    let file_count = parsed["file_count"].as_u64().unwrap();
+
+    assert!(file_count >= 1, "large budget should include files");
+    assert!(used <= budget, "used should not exceed budget");
+}
