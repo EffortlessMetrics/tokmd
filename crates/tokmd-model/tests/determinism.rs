@@ -76,7 +76,10 @@ fn determinism_lang_sort_shuffled_input_identical() {
     sort_lang_rows(&mut rows_b);
     sort_lang_rows(&mut rows_c);
 
-    assert_eq!(rows_a, rows_b, "Different insertion order must yield same sorted result");
+    assert_eq!(
+        rows_a, rows_b,
+        "Different insertion order must yield same sorted result"
+    );
     assert_eq!(rows_b, rows_c, "All permutations must sort identically");
 }
 

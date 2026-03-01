@@ -9,7 +9,7 @@ use proptest::prelude::*;
 use serde_json::Value;
 
 use tokmd_types::{
-    ChildrenMode, FileKind, FileRow, LangReport, LangRow, ModuleRow, Totals, SCHEMA_VERSION,
+    ChildrenMode, FileKind, FileRow, LangReport, LangRow, ModuleRow, SCHEMA_VERSION, Totals,
 };
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,12 @@ fn determinism_btreemap_key_ordering_stable() {
 
     // Verify alphabetical ordering (BTreeMap guarantee).
     let parsed: Value = serde_json::from_str(&json1).unwrap();
-    let keys: Vec<&str> = parsed.as_object().unwrap().keys().map(|k| k.as_str()).collect();
+    let keys: Vec<&str> = parsed
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|k| k.as_str())
+        .collect();
     assert_eq!(keys, vec!["Go", "Python", "Rust", "TOML"]);
 }
 
@@ -128,7 +133,10 @@ fn determinism_btreemap_insertion_order_irrelevant() {
 
     let ja = serde_json::to_string(&map_a).unwrap();
     let jb = serde_json::to_string(&map_b).unwrap();
-    assert_eq!(ja, jb, "BTreeMap must produce identical JSON regardless of insertion order");
+    assert_eq!(
+        ja, jb,
+        "BTreeMap must produce identical JSON regardless of insertion order"
+    );
 }
 
 #[test]
@@ -155,7 +163,12 @@ fn determinism_lang_report_json_field_order() {
 
     // Verify top-level keys appear in struct-declaration order.
     let parsed: Value = serde_json::from_str(&j1).unwrap();
-    let keys: Vec<&str> = parsed.as_object().unwrap().keys().map(|k| k.as_str()).collect();
+    let keys: Vec<&str> = parsed
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|k| k.as_str())
+        .collect();
     assert!(keys.contains(&"rows"), "Must contain 'rows' key");
     assert!(keys.contains(&"total"), "Must contain 'total' key");
 }
@@ -272,12 +285,7 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
 
 fn arb_file_row() -> impl Strategy<Value = FileRow> {
     (
-        prop::sample::select(vec![
-            "src/lib.rs",
-            "src/main.rs",
-            "tests/it.rs",
-            "build.rs",
-        ]),
+        prop::sample::select(vec!["src/lib.rs", "src/main.rs", "tests/it.rs", "build.rs"]),
         prop::sample::select(vec!["Rust", "Python", "Go"]),
         1usize..20_000,
     )

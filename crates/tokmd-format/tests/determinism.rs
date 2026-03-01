@@ -123,8 +123,14 @@ fn determinism_lang_md_repeated_render_identical() {
     let out1 = render_lang_md(&report);
     let out2 = render_lang_md(&report);
     let out3 = render_lang_md(&report);
-    assert_eq!(out1, out2, "Repeated Markdown render must be identical (1 vs 2)");
-    assert_eq!(out2, out3, "Repeated Markdown render must be identical (2 vs 3)");
+    assert_eq!(
+        out1, out2,
+        "Repeated Markdown render must be identical (1 vs 2)"
+    );
+    assert_eq!(
+        out2, out3,
+        "Repeated Markdown render must be identical (2 vs 3)"
+    );
 }
 
 #[test]
@@ -180,9 +186,18 @@ fn determinism_tsv_ordering_desc_by_code() {
     let tsv = render_lang_tsv(&report);
     let lines: Vec<&str> = tsv.lines().collect();
     // lines[0] = header, lines[1..3] = data rows, lines[3] = total
-    assert!(lines[1].starts_with("Rust"), "First data row should be Rust (highest code)");
-    assert!(lines[2].starts_with("Python"), "Second data row should be Python");
-    assert!(lines[3].starts_with("Go"), "Third data row should be Go (lowest code)");
+    assert!(
+        lines[1].starts_with("Rust"),
+        "First data row should be Rust (highest code)"
+    );
+    assert!(
+        lines[2].starts_with("Python"),
+        "Second data row should be Python"
+    );
+    assert!(
+        lines[3].starts_with("Go"),
+        "Third data row should be Go (lowest code)"
+    );
 }
 
 #[test]
@@ -212,7 +227,10 @@ fn determinism_tsv_repeated_render() {
 
     let tsv1 = render_lang_tsv(&report);
     let tsv2 = render_lang_tsv(&report);
-    assert_eq!(tsv1, tsv2, "TSV output must be byte-identical on repeated render");
+    assert_eq!(
+        tsv1, tsv2,
+        "TSV output must be byte-identical on repeated render"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -236,8 +254,14 @@ fn determinism_path_normalization_in_file_rows() {
     };
 
     let json = serde_json::to_string(&row).unwrap();
-    assert!(!json.contains('\\'), "Serialized path must not contain backslashes");
-    assert!(json.contains("src/main.rs"), "Path must use forward slashes");
+    assert!(
+        !json.contains('\\'),
+        "Serialized path must not contain backslashes"
+    );
+    assert!(
+        json.contains("src/main.rs"),
+        "Path must use forward slashes"
+    );
 }
 
 #[test]
@@ -245,7 +269,10 @@ fn determinism_module_key_uses_forward_slashes() {
     // Module keys must always use forward slashes, even from Windows-style input.
     let row = make_module_row("crates/tokmd-types", 500);
     let json = serde_json::to_string(&row).unwrap();
-    assert!(!json.contains('\\'), "Module key must not contain backslashes");
+    assert!(
+        !json.contains('\\'),
+        "Module key must not contain backslashes"
+    );
 }
 
 #[test]
@@ -273,7 +300,10 @@ fn determinism_markdown_output_has_no_backslashes_in_paths() {
     };
 
     let md = render_module_md(&report);
-    assert!(!md.contains('\\'), "Module Markdown must use forward slashes only");
+    assert!(
+        !md.contains('\\'),
+        "Module Markdown must use forward slashes only"
+    );
 }
 
 // ---------------------------------------------------------------------------

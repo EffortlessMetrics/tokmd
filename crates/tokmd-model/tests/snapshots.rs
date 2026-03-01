@@ -23,14 +23,14 @@ fn crate_src() -> String {
 
 // ─── Helpers to produce redacted (line-count-stable) snapshots ───
 
-/// Strip OS-specific path prefixes to produce identical snapshots on
-/// Windows, Linux, and macOS. Finds the `crates/` marker and returns
-/// everything from that point onward.
-fn portable(val: &str) -> String {
-    if let Some(pos) = val.find("crates/") {
-        val[pos..].to_string()
-    } else {
-        "<root>".to_string()
+/// Make a path or module value portable across operating systems.
+/// Strips everything before the `crates/` marker so that snapshots
+/// are identical on Windows, Linux and macOS.
+fn portable(value: &str) -> String {
+    let norm = value.replace('\\', "/");
+    match norm.find("crates/") {
+        Some(idx) => norm[idx..].to_string(),
+        None => "<root>".to_string(),
     }
 }
 
