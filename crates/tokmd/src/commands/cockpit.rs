@@ -13,14 +13,6 @@ use anyhow::Context;
 use anyhow::{Result, bail};
 use tokmd_config as cli;
 
-// Re-export all cockpit types for backwards compatibility with sensor.rs
-#[cfg(feature = "git")]
-pub use tokmd_types::cockpit::*;
-
-// Re-export computation functions used by sensor.rs
-#[cfg(feature = "git")]
-pub use tokmd_cockpit::compute_cockpit;
-
 /// Handle the cockpit command.
 pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
