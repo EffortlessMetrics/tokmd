@@ -269,4 +269,181 @@ proptest! {
             prop_assert_eq!(&val.reason, &back_val.reason);
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Invariant: schema field is always SENSOR_REPORT_SCHEMA
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_sensor_report_schema_always_set(
+        meta in arb_tool_meta(),
+        verdict in arb_verdict(),
+        summary in "[A-Za-z0-9 ]{1,80}",
+    ) {
+        let report = SensorReport::new(
+            meta,
+            "2025-01-01T00:00:00Z".into(),
+            verdict,
+            summary,
+        );
+        prop_assert_eq!(report.schema.as_str(), SENSOR_REPORT_SCHEMA);
+
+        let json = serde_json::to_string(&report).unwrap();
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(back.schema.as_str(), SENSOR_REPORT_SCHEMA);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Invariant: findings count preserved through roundtrip
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_findings_count_preserved(
+        meta in arb_tool_meta(),
+        findings in proptest::collection::vec(arb_finding(), 0..10),
+    ) {
+        let mut report = SensorReport::new(
+            meta,
+            "2025-01-01T00:00:00Z".into(),
+            Verdict::Warn,
+            "test".into(),
+        );
+        for f in &findings {
+            report.add_finding(f.clone());
+        }
+        prop_assert_eq!(report.findings.len(), findings.len());
+
+        let json = serde_json::to_string(&report).unwrap();
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(back.findings.len(), findings.len());
+    }
+
+    // ---------------------------------------------------------------------------
+    // Invariant: serialization is deterministic
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_sensor_report_serialization_deterministic(
+        meta in arb_tool_meta(),
+        verdict in arb_verdict(),
+        summary in "[A-Za-z0-9 ]{1,80}",
+    ) {
+        let report = SensorReport::new(
+            meta,
+            "2025-01-01T00:00:00Z".into(),
+            verdict,
+            summary,
+        );
+        let json1 = serde_json::to_string(&report).unwrap();
+        let json2 = serde_json::to_string(&report).unwrap();
+        prop_assert_eq!(json1, json2);
+    }
+
+    // ---------------------------------------------------------------------------
+    // GateItem with optional fields roundtrip
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_gate_item_with_threshold_roundtrip(
+        id in "[a-z_]{1,20}",
+        status in arb_verdict(),
+        threshold in 0.0f64..100.0,
+        actual in 0.0f64..100.0,
+        reason in "[A-Za-z0-9 ]{1,40}",
+    ) {
+        let gate = GateItem::new(id, status)
+            .with_threshold(threshold, actual)
+            .with_reason(reason);
+        let json = serde_json::to_string(&gate).unwrap();
+        let back: GateItem = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(&gate.id, &back.id);
+        prop_assert_eq!(gate.status, back.status);
+        prop_assert!(back.threshold.is_some());
+        prop_assert!(back.actual.is_some());
+        prop_assert!(back.reason.is_some());
+    }
+
+    // ---------------------------------------------------------------------------
+    // Artifact with all optional fields roundtrip
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_artifact_with_all_fields_roundtrip(
+        atype in "[a-z_]{1,15}",
+        path in "[a-z/._]{1,40}",
+        id in "[a-z_]{1,15}",
+        mime in "[a-z/]{3,20}",
+    ) {
+        let artifact = Artifact::new(atype, path)
+            .with_id(id.clone())
+            .with_mime(mime.clone());
+        let json = serde_json::to_string(&artifact).unwrap();
+        let back: Artifact = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(&artifact.artifact_type, &back.artifact_type);
+        prop_assert_eq!(&artifact.path, &back.path);
+        prop_assert_eq!(back.id.as_deref(), Some(id.as_str()));
+        prop_assert_eq!(back.mime.as_deref(), Some(mime.as_str()));
+    }
+
+    // ---------------------------------------------------------------------------
+    // finding_id determinism and format
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_finding_id_deterministic(
+        tool in "[a-z]{1,10}",
+        check_id in "[a-z]{1,10}",
+        code in "[a-z]{1,10}",
+    ) {
+        let id1 = tokmd_envelope::findings::finding_id(&tool, &check_id, &code);
+        let id2 = tokmd_envelope::findings::finding_id(&tool, &check_id, &code);
+        prop_assert_eq!(&id1, &id2);
+    }
+
+    #[test]
+    fn prop_finding_id_has_two_dots(
+        tool in "[a-z]{1,10}",
+        check_id in "[a-z]{1,10}",
+        code in "[a-z]{1,10}",
+    ) {
+        let id = tokmd_envelope::findings::finding_id(&tool, &check_id, &code);
+        let dot_count = id.chars().filter(|c| *c == '.').count();
+        prop_assert_eq!(dot_count, 2, "finding_id should have exactly 2 dots: {}", id);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Fingerprint: different (check_id, code) pairs produce different fingerprints
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_fingerprint_differs_for_different_codes(
+        tool in "[a-z]{1,10}",
+        check_id in "[a-z]{1,10}",
+        code_a in "[a-z]{1,10}",
+        code_b in "[a-z]{1,10}",
+    ) {
+        prop_assume!(code_a != code_b);
+        let fa = Finding::new(&check_id, &code_a, FindingSeverity::Info, "T", "M");
+        let fb = Finding::new(&check_id, &code_b, FindingSeverity::Info, "T", "M");
+        prop_assert_ne!(fa.compute_fingerprint(&tool), fb.compute_fingerprint(&tool));
+    }
+
+    // ---------------------------------------------------------------------------
+    // Finding with location roundtrip
+    // ---------------------------------------------------------------------------
+
+    #[test]
+    fn prop_finding_with_location_roundtrip(
+        f in arb_finding(),
+        loc in arb_finding_location(),
+    ) {
+        let finding = f.with_location(loc);
+        let json = serde_json::to_string(&finding).unwrap();
+        let back: Finding = serde_json::from_str(&json).unwrap();
+        prop_assert!(back.location.is_some());
+        let back_loc = back.location.unwrap();
+        prop_assert_eq!(&finding.location.as_ref().unwrap().path, &back_loc.path);
+        prop_assert_eq!(finding.location.as_ref().unwrap().line, back_loc.line);
+        prop_assert_eq!(finding.location.as_ref().unwrap().column, back_loc.column);
+    }
 }

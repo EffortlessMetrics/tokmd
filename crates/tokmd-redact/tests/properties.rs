@@ -526,3 +526,94 @@ proptest! {
         prop_assert_eq!(&redacted[..16], short_hash(&path));
     }
 }
+
+// ============================================================================
+// Additional edge cases
+// ============================================================================
+
+proptest! {
+    /// Redacted output never contains path separators (/ or \).
+    #[test]
+    fn redact_path_output_never_contains_separators(path in arb_path_with_extension()) {
+        let redacted = redact_path(&path);
+        prop_assert!(
+            !redacted.contains('/'),
+            "Redacted output should not contain /: {}",
+            redacted
+        );
+        prop_assert!(
+            !redacted.contains('\\'),
+            "Redacted output should not contain \\: {}",
+            redacted
+        );
+    }
+
+    /// Single-character filenames produce valid hashes.
+    #[test]
+    fn short_hash_single_char(c in "[a-zA-Z0-9]") {
+        let hash = short_hash(&c);
+        prop_assert_eq!(hash.len(), 16);
+        prop_assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    /// Paths with numeric segments are handled correctly.
+    #[test]
+    fn short_hash_numeric_segments(
+        parts in prop::collection::vec("[0-9]{1,5}", 1..=4)
+    ) {
+        let path = parts.join("/");
+        let hash = short_hash(&path);
+        prop_assert_eq!(hash.len(), 16);
+        prop_assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    /// Paths with trailing slash are valid (but differ from non-trailing).
+    #[test]
+    fn short_hash_trailing_slash_valid(path in arb_path()) {
+        let with_trailing = format!("{}/", path);
+        let h = short_hash(&with_trailing);
+        prop_assert_eq!(h.len(), 16);
+        prop_assert!(h.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    /// Hash of a hash is itself a valid hash (recursive application).
+    #[test]
+    fn short_hash_of_hash_is_valid(input in ".*") {
+        let h1 = short_hash(&input);
+        let h2 = short_hash(&h1);
+        prop_assert_eq!(h2.len(), 16);
+        prop_assert!(h2.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    /// Windows drive-letter prefixed paths produce valid hashes.
+    #[test]
+    fn short_hash_windows_drive_prefix(
+        drive in "[A-Z]",
+        parts in prop::collection::vec("[a-z]{2,6}", 1..=4)
+    ) {
+        let path = format!("{}:\\{}", drive, parts.join("\\"));
+        let hash = short_hash(&path);
+        prop_assert_eq!(hash.len(), 16);
+        prop_assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    /// Paths with only extensions (like ".gitignore") produce valid redaction.
+    #[test]
+    fn redact_path_extensionless_dotfile_is_hash_only(name in "[a-z]{2,12}") {
+        let dotfile = format!(".{}", name);
+        let redacted = redact_path(&dotfile);
+        // Dotfiles have no extension per Path::extension()
+        prop_assert_eq!(redacted.len(), 16);
+        prop_assert!(!redacted.contains('.'));
+    }
+
+    /// redact_path with empty extension segment: "file." ends with empty ext.
+    #[test]
+    fn redact_path_trailing_dot(base in "[a-z]{2,10}") {
+        let path = format!("{}.", base);
+        let redacted = redact_path(&path);
+        // std::path::Path considers "file." to have empty extension ""
+        // so no extension is appended
+        prop_assert_eq!(redacted.len(), 16);
+    }
+}
