@@ -707,7 +707,10 @@ fn arb_conventional_subject() -> impl Strategy<Value = String> {
         Just("doc"),
         Just("tests"),
     ];
-    let scope = prop_oneof![Just("".to_string()), "[a-z]{1,8}".prop_map(|s| format!("({})", s)),];
+    let scope = prop_oneof![
+        Just("".to_string()),
+        "[a-z]{1,8}".prop_map(|s| format!("({})", s)),
+    ];
     let bang = prop_oneof![Just(""), Just("!")];
     let desc = "[a-zA-Z0-9 ]{1,40}";
     (types, scope, bang, desc).prop_map(|(t, s, b, d)| format!("{}{}{}: {}", t, s, b, d))

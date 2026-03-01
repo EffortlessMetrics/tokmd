@@ -236,10 +236,7 @@ fn json_output_export_json_has_rows() {
 
     let first = &rows[0];
     assert!(first["path"].is_string(), "file row should have path");
-    assert!(
-        first["lang"].is_string(),
-        "file row should have lang"
-    );
+    assert!(first["lang"].is_string(), "file row should have lang");
     assert!(first["code"].is_number(), "file row should have code count");
 }
 
@@ -273,7 +270,10 @@ fn json_output_export_jsonl_lines_are_valid() {
 
     // First line is the meta record
     let meta: Value = serde_json::from_str(lines[0]).unwrap();
-    assert_eq!(meta["mode"], "export", "meta record should have mode=export");
+    assert_eq!(
+        meta["mode"], "export",
+        "meta record should have mode=export"
+    );
     assert!(
         meta["schema_version"].is_number(),
         "meta should have schema_version"
@@ -295,10 +295,7 @@ fn json_output_export_jsonl_data_rows_have_path() {
     // Data rows (skip meta)
     for line in lines.iter().skip(1) {
         let row: Value = serde_json::from_str(line).unwrap();
-        assert!(
-            row["path"].is_string(),
-            "data row should have a path field"
-        );
+        assert!(row["path"].is_string(), "data row should have a path field");
     }
 }
 

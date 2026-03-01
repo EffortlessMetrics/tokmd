@@ -35,7 +35,10 @@ fn git_tempdir() -> TempDir {
 
 /// Sorted file name strings from `list_files` output.
 fn file_names(files: &[PathBuf]) -> Vec<String> {
-    files.iter().map(|p| p.to_string_lossy().to_string()).collect()
+    files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect()
 }
 
 // ============================================================================
@@ -56,10 +59,19 @@ fn gitignore_excludes_matching_files() {
     let names = file_names(&files);
 
     // Then .log files are excluded and .rs file is present
-    assert!(names.iter().any(|n| n.contains("app.rs")), "app.rs should be listed");
-    assert!(!names.iter().any(|n| n.ends_with(".log")), "*.log files should be excluded by .gitignore");
+    assert!(
+        names.iter().any(|n| n.contains("app.rs")),
+        "app.rs should be listed"
+    );
+    assert!(
+        !names.iter().any(|n| n.ends_with(".log")),
+        "*.log files should be excluded by .gitignore"
+    );
     // .gitignore itself is present (it's a regular file, not ignored)
-    assert!(names.iter().any(|n| n.contains(".gitignore")), ".gitignore should be listed");
+    assert!(
+        names.iter().any(|n| n.contains(".gitignore")),
+        ".gitignore should be listed"
+    );
 }
 
 #[test]
@@ -77,7 +89,10 @@ fn gitignore_excludes_directories() {
 
     // Then the build directory contents are excluded
     assert!(names.iter().any(|n| n.contains("src.rs")));
-    assert!(!names.iter().any(|n| n.contains("build")), "build/ dir should be excluded by .gitignore");
+    assert!(
+        !names.iter().any(|n| n.contains("build")),
+        "build/ dir should be excluded by .gitignore"
+    );
 }
 
 #[test]
@@ -94,8 +109,14 @@ fn gitignore_negation_re_includes_file() {
     let names = file_names(&files);
 
     // Then important.log is re-included while debug.log stays excluded
-    assert!(!names.iter().any(|n| n.contains("debug.log")), "debug.log should be excluded");
-    assert!(names.iter().any(|n| n.contains("important.log")), "important.log should be re-included via negation");
+    assert!(
+        !names.iter().any(|n| n.contains("debug.log")),
+        "debug.log should be excluded"
+    );
+    assert!(
+        names.iter().any(|n| n.contains("important.log")),
+        "important.log should be re-included via negation"
+    );
     assert!(names.iter().any(|n| n.contains("app.rs")));
 }
 
@@ -116,8 +137,14 @@ fn nested_gitignore_applies_to_subdirectory() {
 
     // Then sub/scratch.tmp is excluded, but root.tmp is not
     assert!(names.iter().any(|n| n.contains("code.rs")));
-    assert!(!names.iter().any(|n| n.contains("scratch.tmp")), "sub/.gitignore should exclude scratch.tmp");
-    assert!(names.iter().any(|n| n.contains("root.tmp")), "root.tmp should not be affected by sub/.gitignore");
+    assert!(
+        !names.iter().any(|n| n.contains("scratch.tmp")),
+        "sub/.gitignore should exclude scratch.tmp"
+    );
+    assert!(
+        names.iter().any(|n| n.contains("root.tmp")),
+        "root.tmp should not be affected by sub/.gitignore"
+    );
 }
 
 // ============================================================================
@@ -142,7 +169,10 @@ fn symlinks_are_not_followed() {
 
     // Then the symlinked directory contents are not traversed
     assert!(names.iter().any(|n| n.contains("local.txt")));
-    assert!(!names.iter().any(|n| n.contains("outside.txt")), "symlinked dir contents should not be followed");
+    assert!(
+        !names.iter().any(|n| n.contains("outside.txt")),
+        "symlinked dir contents should not be followed"
+    );
 }
 
 #[cfg(unix)]
@@ -163,7 +193,10 @@ fn file_symlinks_are_excluded() {
     // means symlink entries have file_type() returning symlink, not file)
     assert!(names.iter().any(|n| n.contains("real.txt")));
     // symlinks are not regular files, so they should be excluded
-    assert!(!names.iter().any(|n| n.contains("link.txt")), "file symlinks should be excluded");
+    assert!(
+        !names.iter().any(|n| n.contains("link.txt")),
+        "file symlinks should be excluded"
+    );
 }
 
 // On Windows, symlink creation requires special privileges, so we test conditionally
@@ -187,7 +220,10 @@ fn symlinks_not_followed_windows() {
     let names = file_names(&files);
 
     assert!(names.iter().any(|n| n.contains("local.txt")));
-    assert!(!names.iter().any(|n| n.contains("outside.txt")), "symlinked dir should not be followed");
+    assert!(
+        !names.iter().any(|n| n.contains("outside.txt")),
+        "symlinked dir should not be followed"
+    );
 }
 
 // ============================================================================
@@ -208,8 +244,14 @@ fn hidden_files_are_included() {
 
     // Then hidden files ARE included (hidden(false) means "don't skip hidden")
     assert!(names.iter().any(|n| n.contains("visible.txt")));
-    assert!(names.iter().any(|n| n.contains(".hidden")), "hidden files should be included");
-    assert!(names.iter().any(|n| n.contains(".dotfile.cfg")), "dotfiles should be included");
+    assert!(
+        names.iter().any(|n| n.contains(".hidden")),
+        "hidden files should be included"
+    );
+    assert!(
+        names.iter().any(|n| n.contains(".dotfile.cfg")),
+        "dotfiles should be included"
+    );
 }
 
 #[test]
@@ -226,7 +268,10 @@ fn hidden_directories_are_traversed() {
 
     // Then files inside hidden directories are also included
     assert!(names.iter().any(|n| n.contains("main.rs")));
-    assert!(names.iter().any(|n| n.contains("settings.json")), "files in hidden dirs should be included");
+    assert!(
+        names.iter().any(|n| n.contains("settings.json")),
+        "files in hidden dirs should be included"
+    );
 }
 
 #[test]
@@ -242,10 +287,16 @@ fn hidden_files_excluded_by_gitignore_are_omitted() {
     let names = file_names(&files);
 
     // Then .secret is excluded (by gitignore) but .visible_hidden remains
-    assert!(!names.iter().any(|n| n.contains(".secret") && !n.contains("visible")),
-        ".secret should be excluded by .gitignore");
-    assert!(names.iter().any(|n| n.contains(".visible_hidden")),
-        ".visible_hidden should be included");
+    assert!(
+        !names
+            .iter()
+            .any(|n| n.contains(".secret") && !n.contains("visible")),
+        ".secret should be excluded by .gitignore"
+    );
+    assert!(
+        names.iter().any(|n| n.contains(".visible_hidden")),
+        ".visible_hidden should be included"
+    );
 }
 
 // ============================================================================
@@ -306,11 +357,20 @@ fn gitignore_with_hidden_and_empty_dirs() {
 
     // app.rs and .hidden_dir/config.yml and .gitignore should be listed
     assert!(names.iter().any(|n| n.contains("app.rs")));
-    assert!(names.iter().any(|n| n.contains("config.yml")), "hidden dir contents should be visible");
+    assert!(
+        names.iter().any(|n| n.contains("config.yml")),
+        "hidden dir contents should be visible"
+    );
     assert!(names.iter().any(|n| n.contains(".gitignore")));
     // build/ contents and *.tmp should be excluded
-    assert!(!names.iter().any(|n| n.contains("out.bin")), "build/ should be excluded");
-    assert!(!names.iter().any(|n| n.contains("scratch.tmp")), "*.tmp should be excluded");
+    assert!(
+        !names.iter().any(|n| n.contains("out.bin")),
+        "build/ should be excluded"
+    );
+    assert!(
+        !names.iter().any(|n| n.contains("scratch.tmp")),
+        "*.tmp should be excluded"
+    );
 }
 
 #[test]

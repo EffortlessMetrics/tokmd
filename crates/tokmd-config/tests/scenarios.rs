@@ -7,9 +7,7 @@
 //! - Clap parsing edge cases
 
 use std::collections::BTreeMap;
-use tokmd_config::{
-    CliLangArgs, GlobalArgs, Profile, TomlConfig, UserConfig, ViewProfile,
-};
+use tokmd_config::{CliLangArgs, GlobalArgs, Profile, TomlConfig, UserConfig, ViewProfile};
 
 // =========================================================================
 // Scenario: GlobalArgs → ScanOptions conversion
@@ -297,11 +295,7 @@ mod profile_merging {
             ..Default::default()
         };
 
-        let (fmt, mc) = merge_view_into_export(
-            Some("md".to_string()),
-            Some(0),
-            &profile,
-        );
+        let (fmt, mc) = merge_view_into_export(Some("md".to_string()), Some(0), &profile);
 
         assert_eq!(fmt, Some("json".to_string()));
         assert_eq!(mc, Some(42));
@@ -311,11 +305,7 @@ mod profile_merging {
     fn profile_none_preserves_base() {
         let profile = ViewProfile::default(); // all None
 
-        let (fmt, mc) = merge_view_into_export(
-            Some("tsv".to_string()),
-            Some(10),
-            &profile,
-        );
+        let (fmt, mc) = merge_view_into_export(Some("tsv".to_string()), Some(10), &profile);
 
         assert_eq!(fmt, Some("tsv".to_string()));
         assert_eq!(mc, Some(10));
@@ -329,11 +319,7 @@ mod profile_merging {
             ..Default::default()
         };
 
-        let (fmt, mc) = merge_view_into_export(
-            Some("md".to_string()),
-            Some(5),
-            &profile,
-        );
+        let (fmt, mc) = merge_view_into_export(Some("md".to_string()), Some(5), &profile);
 
         assert_eq!(fmt, Some("csv".to_string()));
         assert_eq!(mc, Some(5)); // base preserved
@@ -428,7 +414,12 @@ mod cli_parsing {
     #[test]
     fn module_subcommand_with_roots_and_depth() {
         let cli = Cli::try_parse_from([
-            "tokmd", "module", "--module-roots", "src,lib", "--module-depth", "3",
+            "tokmd",
+            "module",
+            "--module-roots",
+            "src,lib",
+            "--module-depth",
+            "3",
         ])
         .expect("parse");
         match cli.command {
@@ -446,8 +437,16 @@ mod cli_parsing {
     #[test]
     fn export_subcommand_with_all_options() {
         let cli = Cli::try_parse_from([
-            "tokmd", "export", "--format", "csv", "--min-code", "5",
-            "--max-rows", "100", "--redact", "paths",
+            "tokmd",
+            "export",
+            "--format",
+            "csv",
+            "--min-code",
+            "5",
+            "--max-rows",
+            "100",
+            "--redact",
+            "paths",
         ])
         .expect("parse");
         match cli.command {
@@ -463,10 +462,8 @@ mod cli_parsing {
 
     #[test]
     fn global_exclude_flag_is_repeatable() {
-        let cli = Cli::try_parse_from([
-            "tokmd", "--exclude", "target", "--exclude", "*.min.js",
-        ])
-        .expect("parse");
+        let cli = Cli::try_parse_from(["tokmd", "--exclude", "target", "--exclude", "*.min.js"])
+            .expect("parse");
         assert_eq!(
             cli.global.excluded,
             vec!["target".to_string(), "*.min.js".to_string()]
@@ -503,16 +500,12 @@ mod cli_parsing {
 
     #[test]
     fn analyze_subcommand_with_preset_and_window() {
-        let cli = Cli::try_parse_from([
-            "tokmd", "analyze", "--preset", "risk", "--window", "200000",
-        ])
-        .expect("parse");
+        let cli =
+            Cli::try_parse_from(["tokmd", "analyze", "--preset", "risk", "--window", "200000"])
+                .expect("parse");
         match cli.command {
             Some(tokmd_config::Commands::Analyze(args)) => {
-                assert_eq!(
-                    args.preset,
-                    Some(tokmd_config::AnalysisPreset::Risk)
-                );
+                assert_eq!(args.preset, Some(tokmd_config::AnalysisPreset::Risk));
                 assert_eq!(args.window, Some(200_000));
             }
             other => panic!("expected Analyze, got {:?}", other),
@@ -535,10 +528,7 @@ mod cli_parsing {
 
     #[test]
     fn diff_subcommand_with_refs() {
-        let cli = Cli::try_parse_from([
-            "tokmd", "diff", "v1.0", "v2.0",
-        ])
-        .expect("parse");
+        let cli = Cli::try_parse_from(["tokmd", "diff", "v1.0", "v2.0"]).expect("parse");
         match cli.command {
             Some(tokmd_config::Commands::Diff(args)) => {
                 assert_eq!(args.refs, vec!["v1.0".to_string(), "v2.0".to_string()]);

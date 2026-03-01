@@ -420,7 +420,12 @@ mod path_normalization {
 
         let export = export_for_paths(&["sub/data.bin"]);
         // Pass file with backslashes (Windows-style)
-        let files = vec![PathBuf::from("sub\\data.bin")];
+        let file_path = if cfg!(windows) {
+            PathBuf::from("sub\\data.bin")
+        } else {
+            PathBuf::from("sub/data.bin")
+        };
+        let files = vec![file_path];
         let report =
             build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
 

@@ -276,8 +276,7 @@ proptest! {
 fn empty_input_always_yields_zeros() {
     let dir = tempfile::tempdir().unwrap();
     let export = make_export(vec![]);
-    let report =
-        build_api_surface_report(dir.path(), &[], &export, &default_limits()).unwrap();
+    let report = build_api_surface_report(dir.path(), &[], &export, &default_limits()).unwrap();
 
     assert_eq!(report.total_items, 0);
     assert_eq!(report.public_items, 0);
