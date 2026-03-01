@@ -63,7 +63,11 @@ fn scenario_separate_mode_labels_embedded_rows() {
                 "Embedded row '{}' must have 0 bytes to avoid double-counting",
                 row.lang
             );
-            assert_eq!(row.tokens, 0, "Embedded row '{}' must have 0 tokens", row.lang);
+            assert_eq!(
+                row.tokens, 0,
+                "Embedded row '{}' must have 0 tokens",
+                row.lang
+            );
         }
     }
 }

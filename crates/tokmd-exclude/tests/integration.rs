@@ -107,7 +107,10 @@ fn has_exclude_pattern_agrees_with_add_exclude_pattern_rejection() {
     assert!(has_exclude_pattern(&patterns, r"dist\app.js"));
     assert!(has_exclude_pattern(&patterns, "./dist/app.js"));
 
-    assert!(!add_exclude_pattern(&mut patterns, "dist/app.js".to_string()));
+    assert!(!add_exclude_pattern(
+        &mut patterns,
+        "dist/app.js".to_string()
+    ));
     assert!(!add_exclude_pattern(
         &mut patterns,
         r"dist\app.js".to_string()

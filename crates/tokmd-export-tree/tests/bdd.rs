@@ -67,12 +67,7 @@ fn given_unsorted_paths_when_rendering_analysis_tree_then_output_order_is_determ
 
 #[test]
 fn given_deeply_nested_path_when_rendering_analysis_tree_then_all_segments_appear() {
-    let export = export(vec![row(
-        "a/b/c/d/e/f.rs",
-        FileKind::Parent,
-        5,
-        10,
-    )]);
+    let export = export(vec![row("a/b/c/d/e/f.rs", FileKind::Parent, 5, 10)]);
 
     let tree = render_analysis_tree(&export);
 
@@ -84,12 +79,7 @@ fn given_deeply_nested_path_when_rendering_analysis_tree_then_all_segments_appea
 
 #[test]
 fn given_deeply_nested_path_when_rendering_handoff_tree_with_large_depth_then_all_dirs_appear() {
-    let export = export(vec![row(
-        "a/b/c/d/e/f.rs",
-        FileKind::Parent,
-        5,
-        10,
-    )]);
+    let export = export(vec![row("a/b/c/d/e/f.rs", FileKind::Parent, 5, 10)]);
 
     let tree = render_handoff_tree(&export, 10);
 

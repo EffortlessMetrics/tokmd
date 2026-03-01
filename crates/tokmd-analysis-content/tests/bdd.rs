@@ -5,7 +5,10 @@
 
 use std::path::PathBuf;
 
-use tokmd_analysis_content::{ContentLimits, ImportGranularity, build_duplicate_report, build_import_report, build_todo_report};
+use tokmd_analysis_content::{
+    ContentLimits, ImportGranularity, build_duplicate_report, build_import_report,
+    build_todo_report,
+};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── helpers ──────────────────────────────────────────────────────────
@@ -190,8 +193,7 @@ fn given_two_identical_files_when_building_duplicate_report_then_one_group_found
         children: ChildIncludeMode::Separate,
     };
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     assert_eq!(report.groups.len(), 1);
     assert_eq!(report.groups[0].files.len(), 2);
@@ -218,8 +220,7 @@ fn given_no_duplicates_when_building_duplicate_report_then_empty_groups() {
         children: ChildIncludeMode::Separate,
     };
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     assert!(report.groups.is_empty());
     assert_eq!(report.wasted_bytes, 0);
@@ -251,8 +252,7 @@ fn given_three_identical_files_when_building_duplicate_report_then_wasted_is_2x_
         children: ChildIncludeMode::Separate,
     };
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     assert_eq!(report.groups.len(), 1);
     assert_eq!(report.groups[0].files.len(), 3);
@@ -271,8 +271,7 @@ fn given_empty_files_when_building_duplicate_report_then_zero_byte_files_ignored
     let files = vec![PathBuf::from("empty1.txt"), PathBuf::from("empty2.txt")];
     let export = empty_export();
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     // Zero-byte files should not form duplicate groups
     assert!(report.groups.is_empty());
@@ -291,10 +290,7 @@ fn given_duplicates_in_different_modules_when_building_duplicate_report_then_den
     std::fs::write(root.join("mod_a/dup.rs"), content).unwrap();
     std::fs::write(root.join("mod_b/dup.rs"), content).unwrap();
 
-    let files = vec![
-        PathBuf::from("mod_a/dup.rs"),
-        PathBuf::from("mod_b/dup.rs"),
-    ];
+    let files = vec![PathBuf::from("mod_a/dup.rs"), PathBuf::from("mod_b/dup.rs")];
     let export = ExportData {
         rows: vec![
             file_row("mod_a/dup.rs", "mod_a", "Rust", content.len()),
@@ -305,8 +301,7 @@ fn given_duplicates_in_different_modules_when_building_duplicate_report_then_den
         children: ChildIncludeMode::Separate,
     };
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     assert_eq!(report.groups.len(), 1);
     let density = report.density.as_ref().expect("density report present");
@@ -355,8 +350,7 @@ fn given_duplicate_groups_when_building_duplicate_report_then_sorted_by_bytes_de
     ];
     let export = empty_export();
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     assert_eq!(report.groups.len(), 2);
     // Larger group should appear first
@@ -611,8 +605,7 @@ fn given_duplicates_when_building_duplicate_report_then_density_has_correct_coun
         children: ChildIncludeMode::Separate,
     };
 
-    let report =
-        build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
+    let report = build_duplicate_report(root, &files, &export, &ContentLimits::default()).unwrap();
 
     let density = report.density.as_ref().expect("density present");
     assert_eq!(density.duplicate_groups, 1);
