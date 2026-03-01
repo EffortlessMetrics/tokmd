@@ -383,6 +383,113 @@ proptest! {
         }
     }
 
+    /// No self-pairs: left and right paths are always different.
+    #[test]
+    fn no_self_pairs(n_tokens in arb_token_count()) {
+        let dir = TempDir::new().unwrap();
+        let content = source_text(n_tokens, 0);
+        for name in &["a.rs", "b.rs", "c.rs"] {
+            write_file(&dir, name, &content);
+        }
+
+        let rows: Vec<FileRow> = ["a.rs", "b.rs", "c.rs"]
+            .iter()
+            .map(|name| make_file_row(name, n_tokens, content.len()))
+            .collect();
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        ).unwrap();
+
+        for pair in &report.pairs {
+            prop_assert_ne!(
+                &pair.left, &pair.right,
+                "self-pair detected: {} == {}",
+                pair.left, pair.right
+            );
+        }
+    }
+
+    /// Cluster representative is always a member of its file list.
+    #[test]
+    fn cluster_representative_in_files(n_tokens in arb_token_count()) {
+        let dir = TempDir::new().unwrap();
+        let content = source_text(n_tokens, 0);
+        for name in &["a.rs", "b.rs", "c.rs"] {
+            write_file(&dir, name, &content);
+        }
+
+        let rows: Vec<FileRow> = ["a.rs", "b.rs", "c.rs"]
+            .iter()
+            .map(|name| make_file_row(name, n_tokens, content.len()))
+            .collect();
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        ).unwrap();
+
+        if let Some(clusters) = &report.clusters {
+            for cluster in clusters {
+                prop_assert!(
+                    cluster.files.contains(&cluster.representative),
+                    "representative '{}' not in files {:?}",
+                    cluster.representative,
+                    cluster.files
+                );
+            }
+        }
+    }
+
+    /// Cluster max_similarity matches the highest pair similarity in the cluster.
+    #[test]
+    fn cluster_max_similarity_is_valid(n_tokens in arb_token_count()) {
+        let dir = TempDir::new().unwrap();
+        let content = source_text(n_tokens, 0);
+        for name in &["a.rs", "b.rs", "c.rs"] {
+            write_file(&dir, name, &content);
+        }
+
+        let rows: Vec<FileRow> = ["a.rs", "b.rs", "c.rs"]
+            .iter()
+            .map(|name| make_file_row(name, n_tokens, content.len()))
+            .collect();
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        ).unwrap();
+
+        if let Some(clusters) = &report.clusters {
+            for cluster in clusters {
+                prop_assert!(
+                    cluster.max_similarity >= 0.0 && cluster.max_similarity <= 1.0,
+                    "cluster max_similarity out of range: {}",
+                    cluster.max_similarity
+                );
+            }
+        }
+    }
+
     /// Idempotent: running the same report twice produces identical results.
     #[test]
     fn idempotent_report(n_tokens in arb_token_count()) {

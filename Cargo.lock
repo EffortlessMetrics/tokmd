@@ -3252,6 +3252,7 @@ name = "tokmd-analysis-maintainability"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
 ]
 

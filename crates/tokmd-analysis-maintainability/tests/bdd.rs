@@ -1,7 +1,7 @@
 use tokmd_analysis_maintainability::{attach_halstead_metrics, compute_maintainability_index};
 use tokmd_analysis_types::{
-    ComplexityReport, ComplexityRisk, FileComplexity, HalsteadMetrics, TechnicalDebtLevel,
-    TechnicalDebtRatio,
+    ComplexityReport, ComplexityRisk, FileComplexity, HalsteadMetrics, MaintainabilityIndex,
+    TechnicalDebtLevel, TechnicalDebtRatio,
 };
 
 // ---------------------------------------------------------------------------
@@ -272,4 +272,182 @@ fn given_halstead_attached_when_checking_fields_then_all_fields_present() {
     assert_eq!(halstead.volume, 300.0);
     assert_eq!(halstead.distinct_operators, 10);
     assert_eq!(halstead.distinct_operands, 20);
+}
+
+// ---------------------------------------------------------------------------
+// Maintainability index valid range
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_any_valid_input_when_computing_mi_then_score_is_between_0_and_171() {
+    let cases: Vec<(f64, f64, Option<f64>)> = vec![
+        (1.0, 1.0, None),
+        (50.0, 500.0, None),
+        (100.0, 10000.0, Some(5000.0)),
+        (0.0, 1.0, Some(1.0)),
+        (500.0, 100000.0, Some(1000000.0)),
+    ];
+    for (cc, loc, vol) in cases {
+        let mi = compute_maintainability_index(cc, loc, vol).expect("should produce MI");
+        assert!(
+            mi.score >= 0.0 && mi.score <= 171.0,
+            "score {} out of range for cc={cc}, loc={loc}, vol={vol:?}",
+            mi.score
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Higher complexity → lower maintainability
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_increasing_cyclomatic_when_computing_mi_then_score_decreases_monotonically() {
+    let complexities = [1.0, 10.0, 50.0, 100.0, 500.0];
+    let mut prev_score = f64::MAX;
+    for cc in complexities {
+        let mi = compute_maintainability_index(cc, 100.0, None).expect("mi");
+        assert!(
+            mi.score <= prev_score,
+            "score should decrease: cc={cc}, score={}, prev={}",
+            mi.score,
+            prev_score
+        );
+        prev_score = mi.score;
+    }
+}
+
+#[test]
+fn given_increasing_loc_when_computing_mi_then_score_decreases_monotonically() {
+    let locs = [10.0, 100.0, 1000.0, 10000.0, 100000.0];
+    let mut prev_score = f64::MAX;
+    for loc in locs {
+        let mi = compute_maintainability_index(5.0, loc, None).expect("mi");
+        assert!(
+            mi.score <= prev_score,
+            "score should decrease: loc={loc}, score={}, prev={}",
+            mi.score,
+            prev_score
+        );
+        prev_score = mi.score;
+    }
+}
+
+#[test]
+fn given_increasing_halstead_volume_when_computing_mi_then_score_decreases_monotonically() {
+    let volumes = [1.0, 10.0, 100.0, 1000.0, 10000.0];
+    let mut prev_score = f64::MAX;
+    for vol in volumes {
+        let mi = compute_maintainability_index(5.0, 100.0, Some(vol)).expect("mi");
+        assert!(
+            mi.score <= prev_score,
+            "score should decrease: vol={vol}, score={}, prev={}",
+            mi.score,
+            prev_score
+        );
+        prev_score = mi.score;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Empty/trivial code has high maintainability
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_trivial_code_when_computing_mi_then_grade_is_a() {
+    // Minimal complexity and small size → highest maintainability
+    let mi = compute_maintainability_index(1.0, 1.0, None).expect("mi");
+    assert_eq!(mi.grade, "A");
+    assert!(mi.score > 150.0, "trivial code should have very high MI");
+}
+
+#[test]
+fn given_minimal_complexity_and_small_loc_when_computing_mi_then_high_score() {
+    let mi = compute_maintainability_index(0.0, 1.0, None).expect("mi");
+    assert_eq!(mi.score, 171.0, "zero CC + 1 LOC → max MI");
+    assert_eq!(mi.grade, "A");
+}
+
+// ---------------------------------------------------------------------------
+// Round-trip serialization of MaintainabilityIndex
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_simplified_mi_when_serialized_then_round_trips_correctly() {
+    let mi = compute_maintainability_index(10.0, 100.0, None).expect("mi");
+    let json = serde_json::to_string(&mi).expect("serialize");
+    let deserialized: MaintainabilityIndex = serde_json::from_str(&json).expect("deserialize");
+    assert_eq!(mi.score, deserialized.score);
+    assert_eq!(mi.grade, deserialized.grade);
+    assert_eq!(mi.avg_cyclomatic, deserialized.avg_cyclomatic);
+    assert_eq!(mi.avg_loc, deserialized.avg_loc);
+    assert_eq!(mi.avg_halstead_volume, deserialized.avg_halstead_volume);
+}
+
+#[test]
+fn given_full_mi_when_serialized_then_round_trips_correctly() {
+    let mi = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("mi");
+    let json = serde_json::to_string(&mi).expect("serialize");
+    let deserialized: MaintainabilityIndex = serde_json::from_str(&json).expect("deserialize");
+    assert_eq!(mi.score, deserialized.score);
+    assert_eq!(mi.grade, deserialized.grade);
+    assert_eq!(mi.avg_halstead_volume, deserialized.avg_halstead_volume);
+}
+
+#[test]
+fn given_simplified_mi_when_serialized_then_halstead_volume_is_absent() {
+    let mi = compute_maintainability_index(10.0, 100.0, None).expect("mi");
+    let json = serde_json::to_string(&mi).expect("serialize");
+    assert!(
+        !json.contains("avg_halstead_volume"),
+        "simplified MI JSON should omit avg_halstead_volume via skip_serializing_if"
+    );
+}
+
+#[test]
+fn given_full_mi_when_serialized_then_halstead_volume_is_present() {
+    let mi = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("mi");
+    let json = serde_json::to_string(&mi).expect("serialize");
+    assert!(
+        json.contains("avg_halstead_volume"),
+        "full MI JSON should include avg_halstead_volume"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic output
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_same_inputs_when_computing_mi_twice_then_results_are_identical() {
+    let inputs: Vec<(f64, f64, Option<f64>)> = vec![
+        (10.0, 100.0, None),
+        (10.0, 100.0, Some(200.0)),
+        (0.0, 1.0, None),
+        (100.0, 10000.0, Some(50000.0)),
+    ];
+    for (cc, loc, vol) in inputs {
+        let a = compute_maintainability_index(cc, loc, vol);
+        let b = compute_maintainability_index(cc, loc, vol);
+        match (a, b) {
+            (Some(a), Some(b)) => {
+                assert_eq!(a.score, b.score, "score mismatch for cc={cc} loc={loc}");
+                assert_eq!(a.grade, b.grade, "grade mismatch for cc={cc} loc={loc}");
+                assert_eq!(a.avg_loc, b.avg_loc);
+                assert_eq!(a.avg_cyclomatic, b.avg_cyclomatic);
+                assert_eq!(a.avg_halstead_volume, b.avg_halstead_volume);
+            }
+            (None, None) => {}
+            _ => panic!("determinism violated for cc={cc} loc={loc} vol={vol:?}"),
+        }
+    }
+}
+
+#[test]
+fn given_same_inputs_when_serializing_mi_twice_then_json_is_identical() {
+    let mi1 = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("mi1");
+    let mi2 = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("mi2");
+    let json1 = serde_json::to_string(&mi1).expect("json1");
+    let json2 = serde_json::to_string(&mi2).expect("json2");
+    assert_eq!(json1, json2, "serialized JSON should be identical");
 }

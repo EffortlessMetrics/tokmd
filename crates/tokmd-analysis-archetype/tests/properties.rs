@@ -221,4 +221,58 @@ proptest! {
             }
         }
     }
+
+    /// Exactly one archetype is returned (Option type guarantees 0 or 1,
+    /// but we verify the detected kind is always from the known set).
+    #[test]
+    fn at_most_one_archetype(paths in file_paths()) {
+        let export = export_from_paths(paths);
+        // detect_archetype returns Option, so 0 or 1 by construction.
+        // Verify returned kind is always recognized.
+        if let Some(a) = detect_archetype(&export) {
+            prop_assert!(
+                KNOWN_KINDS.contains(&a.kind.as_str()),
+                "unexpected kind: {}", a.kind
+            );
+        }
+    }
+
+    /// Adding a pyproject.toml to any layout that currently detects a
+    /// higher-priority archetype must not switch to Python package.
+    #[test]
+    fn pyproject_does_not_override_higher_priority(
+        base in prop::sample::subsequence(
+            vec![
+                "Cargo.toml".to_string(),
+                "crates/x/src/lib.rs".to_string(),
+                "package.json".to_string(),
+                "next.config.js".to_string(),
+                "Dockerfile".to_string(),
+                "k8s/deploy.yaml".to_string(),
+                "main.tf".to_string(),
+            ],
+            2..=5,
+        ),
+    ) {
+        let base_export = export_from_paths(base.clone());
+        let base_result = detect_archetype(&base_export);
+
+        let mut with_pyproject = base;
+        with_pyproject.push("pyproject.toml".to_string());
+        with_pyproject.sort();
+        with_pyproject.dedup();
+        let ext_export = export_from_paths(with_pyproject);
+        let ext_result = detect_archetype(&ext_export);
+
+        if let Some(base_a) = &base_result {
+            if base_a.kind != "Python package" && base_a.kind != "Node package" {
+                // Higher-priority archetype should still win
+                if let Some(ext_a) = &ext_result {
+                    prop_assert_eq!(&base_a.kind, &ext_a.kind,
+                        "adding pyproject.toml changed archetype from {:?} to {:?}",
+                        base_a.kind, ext_a.kind);
+                }
+            }
+        }
+    }
 }

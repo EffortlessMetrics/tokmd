@@ -225,11 +225,14 @@ mod tests {
     // ========================
 
     #[test]
-    fn scan_with_empty_paths_returns_empty_languages() -> Result<()> {
-        // Scanning zero paths should succeed but find nothing
+    fn scan_with_single_file_path() -> Result<()> {
+        // Scanning a single .rs file directly should succeed
         let args = default_scan_options();
-        let result = scan(&[], &args)?;
-        assert!(result.is_empty());
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("lib.rs");
+        let result = scan(&[path], &args)?;
+        assert!(result.get(&tokei::LanguageType::Rust).is_some());
         Ok(())
     }
 

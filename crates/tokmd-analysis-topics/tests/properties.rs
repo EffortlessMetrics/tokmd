@@ -207,4 +207,49 @@ proptest! {
             prop_assert!((ta.score - tb.score).abs() < f64::EPSILON);
         }
     }
+
+    #[test]
+    fn overall_terms_are_non_empty(export in arb_export()) {
+        let clouds = build_topic_clouds(&export);
+        for term in &clouds.overall {
+            prop_assert!(!term.term.is_empty(), "empty term in overall");
+        }
+        for terms in clouds.per_module.values() {
+            for term in terms {
+                prop_assert!(!term.term.is_empty(), "empty term in per_module");
+            }
+        }
+    }
+
+    #[test]
+    fn per_module_keys_correspond_to_input_modules(export in arb_export()) {
+        let clouds = build_topic_clouds(&export);
+        let input_modules: std::collections::BTreeSet<&str> = export.rows.iter()
+            .filter(|r| r.kind == FileKind::Parent)
+            .map(|r| r.module.as_str())
+            .collect();
+        for key in clouds.per_module.keys() {
+            prop_assert!(
+                input_modules.contains(key.as_str()),
+                "per_module key '{}' not found in input modules {:?}",
+                key,
+                input_modules
+            );
+        }
+    }
+
+    #[test]
+    fn no_stopword_extensions_in_terms(export in arb_export()) {
+        let extensions = ["rs", "js", "ts", "py", "go", "java", "toml", "json", "yaml"];
+        let clouds = build_topic_clouds(&export);
+        for term in &clouds.overall {
+            for ext in &extensions {
+                prop_assert_ne!(
+                    &term.term, ext,
+                    "file extension '{}' should be filtered as stopword",
+                    ext
+                );
+            }
+        }
+    }
 }

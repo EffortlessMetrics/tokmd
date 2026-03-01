@@ -138,10 +138,7 @@ fn check_ignore_with_nonexistent_path() {
 #[test]
 fn check_ignore_with_path_explains_status() {
     // Exit code 0 = ignored, 1 = not ignored; both are acceptable
-    let assert = tokmd_cmd()
-        .arg("check-ignore")
-        .arg("src/main.rs")
-        .assert();
+    let assert = tokmd_cmd().arg("check-ignore").arg("src/main.rs").assert();
 
     // Should produce output explaining the ignore status
     let stdout = String::from_utf8_lossy(&assert.get_output().stdout);

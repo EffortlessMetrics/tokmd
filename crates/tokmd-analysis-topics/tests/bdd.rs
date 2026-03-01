@@ -432,3 +432,137 @@ fn given_term_repeated_in_same_module_then_df_counts_files() {
     assert!(widget.is_some());
     assert_eq!(widget.unwrap().df, 2, "df counts files containing the term");
 }
+
+// ── Scenario: known domain file patterns ─────────────────────────────
+
+#[test]
+fn given_auth_api_db_paths_then_domain_topics_appear() {
+    let rows = vec![
+        make_row("services/auth/login_handler.rs", "services/auth", 50, 250),
+        make_row("services/auth/token_refresh.rs", "services/auth", 40, 200),
+        make_row("services/api/router.rs", "services/api", 30, 150),
+        make_row("services/db/connection_pool.rs", "services/db", 60, 300),
+    ];
+    let export = make_export(rows, vec!["services"]);
+    let clouds = build_topic_clouds(&export);
+
+    let overall_terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
+    assert!(
+        overall_terms.contains(&"login"),
+        "expected 'login' in overall: {overall_terms:?}"
+    );
+    assert!(
+        overall_terms.contains(&"router"),
+        "expected 'router' in overall: {overall_terms:?}"
+    );
+    assert!(
+        overall_terms.contains(&"connection"),
+        "expected 'connection' in overall: {overall_terms:?}"
+    );
+
+    let auth_terms: Vec<&str> = clouds
+        .per_module
+        .get("services/auth")
+        .unwrap()
+        .iter()
+        .map(|t| t.term.as_str())
+        .collect();
+    assert!(
+        auth_terms.contains(&"login"),
+        "expected 'login' in auth module"
+    );
+    assert!(
+        auth_terms.contains(&"token"),
+        "expected 'token' in auth module"
+    );
+}
+
+// ── Scenario: multiple files aggregate topics across modules ─────────
+
+#[test]
+fn given_many_modules_then_overall_aggregates_from_all() {
+    let rows = vec![
+        make_row(
+            "frontend/components/button.rs",
+            "frontend/components",
+            20,
+            100,
+        ),
+        make_row(
+            "frontend/components/modal.rs",
+            "frontend/components",
+            20,
+            100,
+        ),
+        make_row("backend/handlers/user.rs", "backend/handlers", 30, 150),
+        make_row("backend/handlers/order.rs", "backend/handlers", 30, 150),
+        make_row("shared/utils/crypto.rs", "shared/utils", 40, 200),
+    ];
+    let export = make_export(rows, vec![]);
+    let clouds = build_topic_clouds(&export);
+
+    assert_eq!(clouds.per_module.len(), 3, "expected 3 modules");
+
+    // Overall should contain terms from different modules
+    let overall_terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
+    // At least some terms from different modules should appear in overall
+    let has_frontend = overall_terms
+        .iter()
+        .any(|t| *t == "button" || *t == "modal");
+    let has_backend = overall_terms.iter().any(|t| *t == "user" || *t == "order");
+    let has_shared = overall_terms.contains(&"crypto");
+    assert!(
+        has_frontend || has_backend || has_shared,
+        "overall should aggregate terms from multiple modules: {overall_terms:?}"
+    );
+}
+
+// ── Scenario: empty path segments ────────────────────────────────────
+
+#[test]
+fn given_path_with_leading_slash_then_no_panic() {
+    let rows = vec![make_row("/leading/slash/file.rs", "leading", 10, 50)];
+    let export = make_export(rows, vec![]);
+    let clouds = build_topic_clouds(&export);
+
+    // Should not panic and should produce topics
+    let terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
+    assert!(terms.contains(&"leading") || terms.contains(&"slash") || terms.contains(&"file"));
+}
+
+// ── Scenario: determinism with varied input ──────────────────────────
+
+#[test]
+fn given_complex_input_then_deterministic_across_ten_runs() {
+    let make = || {
+        let rows = vec![
+            make_row("crates/auth/src/login.rs", "crates/auth", 100, 500),
+            make_row("crates/auth/src/token.rs", "crates/auth", 80, 400),
+            make_row(
+                "crates/payments/src/stripe_api.rs",
+                "crates/payments",
+                60,
+                300,
+            ),
+            make_row("crates/payments/src/refund.rs", "crates/payments", 40, 200),
+            make_row("crates/shared/src/utils.rs", "crates/shared", 20, 100),
+        ];
+        make_export(rows, vec!["crates"])
+    };
+
+    let reference = build_topic_clouds(&make());
+    for _ in 0..10 {
+        let result = build_topic_clouds(&make());
+        assert_eq!(reference.overall.len(), result.overall.len());
+        for (a, b) in reference.overall.iter().zip(result.overall.iter()) {
+            assert_eq!(a.term, b.term);
+            assert_eq!(a.tf, b.tf);
+            assert_eq!(a.df, b.df);
+            assert!((a.score - b.score).abs() < f64::EPSILON);
+        }
+        assert_eq!(
+            reference.per_module.keys().collect::<Vec<_>>(),
+            result.per_module.keys().collect::<Vec<_>>()
+        );
+    }
+}

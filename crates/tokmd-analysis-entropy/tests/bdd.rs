@@ -435,3 +435,261 @@ mod path_normalization {
         }
     }
 }
+
+// ── Text file moderate entropy ──────────────────────────────────
+
+mod moderate_entropy {
+    use super::*;
+
+    #[test]
+    fn given_text_file_when_computing_entropy_then_entropy_is_moderate() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("prose.txt");
+        let text = "The quick brown fox jumps over the lazy dog. \
+                     Pack my box with five dozen liquor jugs. \
+                     How vexingly quick daft zebras jump.\n"
+            .repeat(30);
+        fs::write(&f, text).unwrap();
+
+        let export = export_for_paths(&["prose.txt"]);
+        let files = vec![PathBuf::from("prose.txt")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        // English text has ~2.0-5.0 bits/byte entropy → Normal class → not in suspects
+        assert!(
+            report.suspects.is_empty(),
+            "text with moderate entropy should not appear in suspects"
+        );
+    }
+
+    #[test]
+    fn given_csv_data_then_entropy_is_moderate() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("data.csv");
+        let csv = "id,name,value\n1,alpha,100\n2,beta,200\n3,gamma,300\n".repeat(40);
+        fs::write(&f, csv).unwrap();
+
+        let export = export_for_paths(&["data.csv"]);
+        let files = vec![PathBuf::from("data.csv")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert!(
+            report.suspects.is_empty(),
+            "CSV data should have moderate entropy and not be flagged"
+        );
+    }
+}
+
+// ── Binary / high-entropy flagging ──────────────────────────────
+
+mod high_entropy_flagging {
+    use super::*;
+
+    #[test]
+    fn given_binary_file_when_computing_entropy_then_entropy_is_high() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("crypto.bin");
+        write_pseudorandom(&f, 4096);
+
+        let export = export_for_paths(&["crypto.bin"]);
+        let files = vec![PathBuf::from("crypto.bin")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert_eq!(report.suspects.len(), 1);
+        assert_eq!(report.suspects[0].class, EntropyClass::High);
+        assert!(
+            report.suspects[0].entropy_bits_per_byte > 7.5,
+            "binary data should have entropy > 7.5, got {}",
+            report.suspects[0].entropy_bits_per_byte
+        );
+    }
+
+    #[test]
+    fn given_multiple_high_entropy_files_then_all_flagged() {
+        let dir = tempdir().unwrap();
+        let a = dir.path().join("key1.bin");
+        let b = dir.path().join("key2.bin");
+        let c = dir.path().join("key3.bin");
+        write_pseudorandom(&a, 2048);
+        write_pseudorandom(&b, 2048);
+        // Different seed for variety
+        let mut data = Vec::with_capacity(2048);
+        let mut x = 0xDEADBEEFu32;
+        for _ in 0..2048 {
+            x = x.wrapping_mul(1664525).wrapping_add(1013904223);
+            data.push((x & 0xFF) as u8);
+        }
+        fs::write(&c, data).unwrap();
+
+        let export = export_for_paths(&["key1.bin", "key2.bin", "key3.bin"]);
+        let files = vec![
+            PathBuf::from("key1.bin"),
+            PathBuf::from("key2.bin"),
+            PathBuf::from("key3.bin"),
+        ];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert_eq!(
+            report.suspects.len(),
+            3,
+            "all three high-entropy files should be flagged"
+        );
+        for suspect in &report.suspects {
+            assert!(
+                suspect.class == EntropyClass::High || suspect.class == EntropyClass::Suspicious,
+                "each should be High or Suspicious, got {:?}",
+                suspect.class
+            );
+        }
+    }
+
+    #[test]
+    fn high_entropy_files_are_flagged_as_suspicious_or_high() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("secret.key");
+        write_pseudorandom(&f, 1024);
+
+        let export = export_for_paths(&["secret.key"]);
+        let files = vec![PathBuf::from("secret.key")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert!(
+            !report.suspects.is_empty(),
+            "high-entropy file should be flagged"
+        );
+        assert!(
+            report.suspects[0].class == EntropyClass::High
+                || report.suspects[0].class == EntropyClass::Suspicious,
+            "should be flagged as High or Suspicious"
+        );
+    }
+}
+
+// ── Zero / near-zero entropy ────────────────────────────────────
+
+mod zero_entropy {
+    use super::*;
+
+    #[test]
+    fn given_empty_file_when_computing_entropy_then_entropy_is_zero() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("empty.dat");
+        fs::write(&f, b"").unwrap();
+
+        let export = export_for_paths(&["empty.dat"]);
+        let files = vec![PathBuf::from("empty.dat")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        // Empty files are skipped entirely (0 bytes read)
+        assert!(
+            report.suspects.is_empty(),
+            "empty file should not produce any findings"
+        );
+    }
+
+    #[test]
+    fn given_file_with_all_same_byte_when_computing_entropy_then_entropy_is_zero() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("zeros.bin");
+        write_repeated(&f, 0x00, 2048);
+
+        let export = export_for_paths(&["zeros.bin"]);
+        let files = vec![PathBuf::from("zeros.bin")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert_eq!(report.suspects.len(), 1);
+        assert_eq!(report.suspects[0].class, EntropyClass::Low);
+        assert!(
+            report.suspects[0].entropy_bits_per_byte < 0.01,
+            "single repeated byte should have ~0 entropy, got {}",
+            report.suspects[0].entropy_bits_per_byte
+        );
+    }
+
+    #[test]
+    fn given_file_with_all_ff_bytes_then_entropy_is_zero() {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("ones.bin");
+        write_repeated(&f, 0xFF, 1024);
+
+        let export = export_for_paths(&["ones.bin"]);
+        let files = vec![PathBuf::from("ones.bin")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        assert_eq!(report.suspects.len(), 1);
+        assert_eq!(report.suspects[0].class, EntropyClass::Low);
+        assert!(
+            report.suspects[0].entropy_bits_per_byte < 0.01,
+            "all-0xFF file should have ~0 entropy, got {}",
+            report.suspects[0].entropy_bits_per_byte
+        );
+    }
+}
+
+// ── Mixed scenarios ─────────────────────────────────────────────
+
+mod mixed_scenarios {
+    use super::*;
+
+    #[test]
+    fn given_mix_of_normal_and_high_entropy_then_only_anomalies_flagged() {
+        let dir = tempdir().unwrap();
+        // Normal entropy: source code
+        let src = dir.path().join("app.py");
+        let code = "def main():\n    print('hello world')\n    x = 42\n".repeat(20);
+        fs::write(&src, code).unwrap();
+
+        // High entropy: random data
+        let key = dir.path().join("secret.bin");
+        write_pseudorandom(&key, 2048);
+
+        let export = export_for_paths(&["app.py", "secret.bin"]);
+        let files = vec![PathBuf::from("app.py"), PathBuf::from("secret.bin")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        // Only the high-entropy file should be in suspects
+        assert!(
+            report.suspects.iter().any(|f| f.path == "secret.bin"),
+            "high-entropy file should be flagged"
+        );
+        assert!(
+            !report.suspects.iter().any(|f| f.path == "app.py"),
+            "normal source code should not be flagged"
+        );
+    }
+
+    #[test]
+    fn given_low_and_high_entropy_files_then_both_flagged_with_correct_class() {
+        let dir = tempdir().unwrap();
+        let low = dir.path().join("padding.bin");
+        write_repeated(&low, 0x00, 1024);
+
+        let high = dir.path().join("noise.bin");
+        write_pseudorandom(&high, 2048);
+
+        let export = export_for_paths(&["padding.bin", "noise.bin"]);
+        let files = vec![PathBuf::from("padding.bin"), PathBuf::from("noise.bin")];
+        let report =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        let low_finding = report.suspects.iter().find(|f| f.path == "padding.bin");
+        let high_finding = report.suspects.iter().find(|f| f.path == "noise.bin");
+
+        assert!(low_finding.is_some(), "low-entropy file should be flagged");
+        assert!(
+            high_finding.is_some(),
+            "high-entropy file should be flagged"
+        );
+        assert_eq!(low_finding.unwrap().class, EntropyClass::Low);
+        assert_eq!(high_finding.unwrap().class, EntropyClass::High);
+    }
+}

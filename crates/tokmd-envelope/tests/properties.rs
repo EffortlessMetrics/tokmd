@@ -269,4 +269,248 @@ proptest! {
             prop_assert_eq!(&val.reason, &back_val.reason);
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Full SensorReport round-trip (all optional sections populated)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_sensor_report_full_roundtrip(
+        meta in arb_tool_meta(),
+        verdict in arb_verdict(),
+        summary in "[A-Za-z0-9 ]{1,80}",
+        findings in proptest::collection::vec(arb_finding(), 0..5),
+        artifacts in proptest::collection::vec(arb_artifact(), 0..4),
+        caps in proptest::collection::btree_map("[a-z]{1,10}", arb_capability_status(), 0..4),
+        data_key in "[a-z]{1,10}",
+        data_val in 0u32..1000u32,
+    ) {
+        let report = SensorReport {
+            schema: SENSOR_REPORT_SCHEMA.to_string(),
+            tool: meta.clone(),
+            generated_at: "2025-01-01T00:00:00Z".into(),
+            verdict,
+            summary: summary.clone(),
+            findings: findings.clone(),
+            artifacts: Some(artifacts.clone()),
+            capabilities: Some(caps.clone()),
+            data: Some(serde_json::json!({ data_key.clone(): data_val })),
+        };
+
+        let json = serde_json::to_string(&report).unwrap();
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+
+        prop_assert_eq!(SENSOR_REPORT_SCHEMA, back.schema.as_str());
+        prop_assert_eq!(meta.name, back.tool.name);
+        prop_assert_eq!(meta.version, back.tool.version);
+        prop_assert_eq!(meta.mode, back.tool.mode);
+        prop_assert_eq!(verdict, back.verdict);
+        prop_assert_eq!(&summary, &back.summary);
+        prop_assert_eq!(findings.len(), back.findings.len());
+        for (orig, rt) in findings.iter().zip(back.findings.iter()) {
+            prop_assert_eq!(&orig.check_id, &rt.check_id);
+            prop_assert_eq!(&orig.code, &rt.code);
+            prop_assert_eq!(orig.severity, rt.severity);
+            prop_assert_eq!(&orig.title, &rt.title);
+            prop_assert_eq!(&orig.message, &rt.message);
+        }
+        let back_arts = back.artifacts.unwrap();
+        prop_assert_eq!(artifacts.len(), back_arts.len());
+        for (orig, rt) in artifacts.iter().zip(back_arts.iter()) {
+            prop_assert_eq!(&orig.artifact_type, &rt.artifact_type);
+            prop_assert_eq!(&orig.path, &rt.path);
+        }
+        let back_caps = back.capabilities.unwrap();
+        prop_assert_eq!(caps.len(), back_caps.len());
+        let back_data = back.data.unwrap();
+        prop_assert_eq!(back_data[&data_key].as_u64().unwrap(), data_val as u64);
+    }
+
+    // -----------------------------------------------------------------------
+    // ToolMeta (SensorMeta) preserves all fields through JSON
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_tool_meta_json_preserves_all_fields(
+        name in "[a-z_-]{1,30}",
+        version in "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}(-[a-z0-9]+)?",
+        mode in "[a-z_]{1,20}",
+    ) {
+        let meta = ToolMeta::new(&name, &version, &mode);
+        let value: serde_json::Value = serde_json::to_value(&meta).unwrap();
+        let obj = value.as_object().unwrap();
+
+        // Exactly 3 keys in JSON
+        prop_assert_eq!(obj.len(), 3);
+        prop_assert_eq!(obj["name"].as_str().unwrap(), name.as_str());
+        prop_assert_eq!(obj["version"].as_str().unwrap(), version.as_str());
+        prop_assert_eq!(obj["mode"].as_str().unwrap(), mode.as_str());
+
+        // Round-trip via JSON string
+        let json = serde_json::to_string(&meta).unwrap();
+        let back: ToolMeta = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(&name, &back.name);
+        prop_assert_eq!(&version, &back.version);
+        prop_assert_eq!(&mode, &back.mode);
+    }
+
+    // -----------------------------------------------------------------------
+    // Envelope integrity: data sections maintain structure through serde
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_envelope_data_integrity(
+        meta in arb_tool_meta(),
+        verdict in arb_verdict(),
+        gate_status in arb_verdict(),
+        gate_items in proptest::collection::vec(arb_gate_item(), 0..4),
+        extra_int in 0i64..10000i64,
+        extra_str in "[a-z]{1,30}",
+    ) {
+        let gates = GateResults::new(gate_status, gate_items.clone());
+        let data = serde_json::json!({
+            "gates": serde_json::to_value(&gates).unwrap(),
+            "metrics": { "value": extra_int },
+            "label": extra_str.clone(),
+        });
+
+        let report = SensorReport::new(
+            meta,
+            "2025-01-01T00:00:00Z".into(),
+            verdict,
+            "data integrity test".into(),
+        )
+        .with_data(data);
+
+        let json = serde_json::to_string(&report).unwrap();
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+        let back_data = back.data.unwrap();
+
+        // Gates sub-structure round-trips
+        let back_gates: GateResults =
+            serde_json::from_value(back_data["gates"].clone()).unwrap();
+        prop_assert_eq!(gate_status, back_gates.status);
+        prop_assert_eq!(gate_items.len(), back_gates.items.len());
+        for (orig, rt) in gate_items.iter().zip(back_gates.items.iter()) {
+            prop_assert_eq!(&orig.id, &rt.id);
+            prop_assert_eq!(orig.status, rt.status);
+        }
+
+        // Scalar values survive
+        prop_assert_eq!(back_data["metrics"]["value"].as_i64().unwrap(), extra_int);
+        prop_assert_eq!(back_data["label"].as_str().unwrap(), extra_str.as_str());
+    }
+
+    // -----------------------------------------------------------------------
+    // Default SensorReport produces valid JSON
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_default_report_is_valid_json(
+        summary in "[A-Za-z0-9 ]{0,50}",
+        mode in "[a-z]{1,10}",
+    ) {
+        let report = SensorReport::new(
+            ToolMeta::tokmd(env!("CARGO_PKG_VERSION"), &mode),
+            String::new(),
+            Verdict::default(),
+            summary.clone(),
+        );
+
+        // Serializes without error
+        let json = serde_json::to_string(&report).unwrap();
+        // Parses as valid JSON Value
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        prop_assert!(value.is_object());
+        let obj = value.as_object().unwrap();
+        // Required keys present
+        prop_assert!(obj.contains_key("schema"));
+        prop_assert!(obj.contains_key("tool"));
+        prop_assert!(obj.contains_key("generated_at"));
+        prop_assert!(obj.contains_key("verdict"));
+        prop_assert!(obj.contains_key("summary"));
+        prop_assert!(obj.contains_key("findings"));
+        // Default verdict is "pass"
+        prop_assert_eq!(obj["verdict"].as_str().unwrap(), "pass");
+        // Findings is an empty array
+        prop_assert!(obj["findings"].as_array().unwrap().is_empty());
+        // Optional keys absent
+        prop_assert!(!obj.contains_key("artifacts"));
+        prop_assert!(!obj.contains_key("capabilities"));
+        prop_assert!(!obj.contains_key("data"));
+        // Deserializes back
+        let back: SensorReport = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(&summary, &back.summary);
+        prop_assert_eq!(Verdict::Pass, back.verdict);
+    }
+
+    // -----------------------------------------------------------------------
+    // Vec<SensorReport> round-trips correctly (multi-sensor aggregation)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_multiple_sensor_reports_roundtrip(
+        metas in proptest::collection::vec(arb_tool_meta(), 1..6),
+        verdicts in proptest::collection::vec(arb_verdict(), 1..6),
+        summaries in proptest::collection::vec("[A-Za-z0-9 ]{1,40}", 1..6),
+    ) {
+        let count = metas.len().min(verdicts.len()).min(summaries.len());
+        let reports: Vec<SensorReport> = (0..count)
+            .map(|i| {
+                SensorReport::new(
+                    metas[i].clone(),
+                    format!("2025-01-01T{:02}:00:00Z", i % 24),
+                    verdicts[i],
+                    summaries[i].clone(),
+                )
+            })
+            .collect();
+
+        let json = serde_json::to_string(&reports).unwrap();
+        let back: Vec<SensorReport> = serde_json::from_str(&json).unwrap();
+
+        prop_assert_eq!(reports.len(), back.len());
+        for (orig, rt) in reports.iter().zip(back.iter()) {
+            prop_assert_eq!(&orig.schema, &rt.schema);
+            prop_assert_eq!(&orig.tool.name, &rt.tool.name);
+            prop_assert_eq!(&orig.tool.version, &rt.tool.version);
+            prop_assert_eq!(&orig.tool.mode, &rt.tool.mode);
+            prop_assert_eq!(orig.verdict, rt.verdict);
+            prop_assert_eq!(&orig.summary, &rt.summary);
+            prop_assert_eq!(&orig.generated_at, &rt.generated_at);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Vec<SensorReport> with data payloads round-trips
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn prop_multiple_sensor_reports_with_data_roundtrip(
+        metas in proptest::collection::vec(arb_tool_meta(), 1..4),
+        verdicts in proptest::collection::vec(arb_verdict(), 1..4),
+        data_vals in proptest::collection::vec(0u32..1000u32, 1..4),
+    ) {
+        let count = metas.len().min(verdicts.len()).min(data_vals.len());
+        let reports: Vec<SensorReport> = (0..count)
+            .map(|i| {
+                SensorReport::new(
+                    metas[i].clone(),
+                    "2025-01-01T00:00:00Z".into(),
+                    verdicts[i],
+                    format!("report {}", i),
+                )
+                .with_data(serde_json::json!({ "score": data_vals[i] }))
+            })
+            .collect();
+
+        let json = serde_json::to_string(&reports).unwrap();
+        let back: Vec<SensorReport> = serde_json::from_str(&json).unwrap();
+
+        prop_assert_eq!(reports.len(), back.len());
+        for (i, rt) in back.iter().enumerate() {
+            let rt_data = rt.data.as_ref().unwrap();
+            prop_assert_eq!(rt_data["score"].as_u64().unwrap(), data_vals[i] as u64);
+        }
+    }
 }

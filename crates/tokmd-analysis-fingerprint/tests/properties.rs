@@ -130,4 +130,40 @@ proptest! {
         prop_assert_eq!(fp.domains[0].commits, n as u32);
         prop_assert!((fp.domains[0].pct - 1.0).abs() < f32::EPSILON);
     }
+
+    /// Fingerprint is deterministic: same input always produces identical output.
+    #[test]
+    fn deterministic(commits in commits_strategy(50)) {
+        let fp1 = build_corporate_fingerprint(&commits);
+        let fp2 = build_corporate_fingerprint(&commits);
+        prop_assert_eq!(fp1.domains.len(), fp2.domains.len());
+        for (a, b) in fp1.domains.iter().zip(fp2.domains.iter()) {
+            prop_assert_eq!(&a.domain, &b.domain);
+            prop_assert_eq!(a.commits, b.commits);
+            prop_assert!((a.pct - b.pct).abs() < f32::EPSILON,
+                "pct mismatch for {}: {} vs {}", a.domain, a.pct, b.pct);
+        }
+    }
+
+    /// Reordering commits must produce the same domain list (order-insensitive aggregation).
+    #[test]
+    fn order_independent(commits in commits_strategy(30)) {
+        let mut reversed = commits.clone();
+        reversed.reverse();
+        let fp_orig = build_corporate_fingerprint(&commits);
+        let fp_rev = build_corporate_fingerprint(&reversed);
+        prop_assert_eq!(fp_orig.domains.len(), fp_rev.domains.len());
+        for (a, b) in fp_orig.domains.iter().zip(fp_rev.domains.iter()) {
+            prop_assert_eq!(&a.domain, &b.domain);
+            prop_assert_eq!(a.commits, b.commits);
+        }
+    }
+
+    /// Number of domain buckets never exceeds the number of commits.
+    #[test]
+    fn bucket_count_bounded(commits in commits_strategy(50)) {
+        let fp = build_corporate_fingerprint(&commits);
+        prop_assert!(fp.domains.len() <= commits.len(),
+            "more buckets ({}) than commits ({})", fp.domains.len(), commits.len());
+    }
 }

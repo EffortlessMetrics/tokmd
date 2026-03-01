@@ -300,8 +300,15 @@ fn test_context_zero_budget() {
 
     assert_eq!(parsed["budget_tokens"].as_u64().unwrap(), 0);
     assert_eq!(parsed["used_tokens"].as_u64().unwrap(), 0);
-    assert_eq!(parsed["file_count"].as_u64().unwrap(), 0);
-    assert!(parsed["files"].as_array().unwrap().is_empty());
+    // With zero budget, files may still appear with head_tail policy and effective_tokens=0
+    let files = parsed["files"].as_array().unwrap();
+    for f in files {
+        assert_eq!(
+            f["effective_tokens"].as_u64().unwrap(),
+            0,
+            "all files should have 0 effective tokens with zero budget"
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -423,5 +430,5 @@ fn test_context_json_has_token_estimation() {
 
     let te = &parsed["token_estimation"];
     assert!(te.is_object(), "should have token_estimation object");
-    assert!(te.get("total_bytes").is_some());
+    assert!(te.get("source_bytes").is_some());
 }

@@ -539,3 +539,209 @@ fn confidence_in_valid_range() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// Scenario: Multiple files with different licenses → all detected
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_multiple_files_with_different_licenses_then_all_listed() {
+    let dir = tempdir().unwrap();
+    // MIT in Cargo.toml metadata
+    fs::write(
+        dir.path().join("Cargo.toml"),
+        "[package]\nname = \"x\"\nlicense = \"MIT\"\n",
+    )
+    .unwrap();
+    // Apache-2.0 in LICENSE text
+    fs::write(
+        dir.path().join("LICENSE"),
+        "Apache License\nVersion 2.0, January 2004\n\
+         http://www.apache.org/licenses/\n\
+         Subject to the terms and limitations under the License.",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("Cargo.toml"), PathBuf::from("LICENSE")];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert!(
+        report.findings.len() >= 2,
+        "should find at least two licenses"
+    );
+    assert!(
+        report.findings.iter().any(|f| f.spdx == "MIT"),
+        "MIT should be detected"
+    );
+    assert!(
+        report.findings.iter().any(|f| f.spdx == "Apache-2.0"),
+        "Apache-2.0 should be detected"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: LICENSE file is discovered among non-license source files
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_license_file_among_source_files_then_license_is_found() {
+    let dir = tempdir().unwrap();
+    fs::write(dir.path().join("main.rs"), "fn main() {}").unwrap();
+    fs::write(dir.path().join("lib.rs"), "pub fn hello() {}").unwrap();
+    fs::write(
+        dir.path().join("LICENSE"),
+        "Permission is hereby granted, free of charge.\n\
+         The software is provided \"as is\".",
+    )
+    .unwrap();
+
+    let files = vec![
+        PathBuf::from("main.rs"),
+        PathBuf::from("lib.rs"),
+        PathBuf::from("LICENSE"),
+    ];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert!(!report.findings.is_empty(), "LICENSE file should be found");
+    assert_eq!(report.findings[0].spdx, "MIT");
+    assert_eq!(report.findings[0].source_path, "LICENSE");
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: LICENSE-MIT and LICENSE-APACHE both detected
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_separate_license_mit_and_license_apache_then_both_detected() {
+    let dir = tempdir().unwrap();
+    fs::write(
+        dir.path().join("LICENSE-MIT"),
+        "Permission is hereby granted, free of charge.\n\
+         The software is provided \"as is\".",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("LICENSE-APACHE"),
+        "Apache License\nVersion 2.0, January 2004\n\
+         http://www.apache.org/licenses/\n\
+         Subject to the terms and limitations under the License.",
+    )
+    .unwrap();
+
+    let files = vec![
+        PathBuf::from("LICENSE-MIT"),
+        PathBuf::from("LICENSE-APACHE"),
+    ];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert!(
+        report.findings.iter().any(|f| f.spdx == "MIT"),
+        "MIT should be detected from LICENSE-MIT"
+    );
+    assert!(
+        report.findings.iter().any(|f| f.spdx == "Apache-2.0"),
+        "Apache-2.0 should be detected from LICENSE-APACHE"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Full MIT text yields high confidence
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_full_mit_text_then_high_confidence() {
+    let dir = tempdir().unwrap();
+    fs::write(
+        dir.path().join("LICENSE"),
+        "Permission is hereby granted, free of charge, to any person obtaining a copy \
+         of this software and associated documentation files (the \"Software\"), to deal \
+         in the Software without restriction.\n\n\
+         THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND.",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("LICENSE")];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert_eq!(report.findings.len(), 1);
+    assert_eq!(report.findings[0].spdx, "MIT");
+    // Both MIT phrases match → confidence = 0.6 + 0.4 * (2/2) = 1.0
+    assert!(
+        report.findings[0].confidence > 0.9,
+        "full MIT text should yield high confidence, got {}",
+        report.findings[0].confidence
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Partial MIT text yields lower confidence
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_partial_mit_text_then_lower_confidence() {
+    let dir = tempdir().unwrap();
+    // Only one of the two MIT phrases
+    fs::write(
+        dir.path().join("LICENSE"),
+        "Permission is hereby granted, free of charge, to any person.",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("LICENSE")];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert_eq!(report.findings.len(), 1);
+    assert_eq!(report.findings[0].spdx, "MIT");
+    // One of two phrases → confidence = 0.6 + 0.4 * (1/2) = 0.8
+    assert!(
+        report.findings[0].confidence <= 0.9,
+        "partial MIT text should yield lower confidence, got {}",
+        report.findings[0].confidence
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: BSD-2-Clause detection from text
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_bsd2_license_text_then_finds_bsd2() {
+    let dir = tempdir().unwrap();
+    fs::write(
+        dir.path().join("LICENSE"),
+        "Redistribution and use in source and binary forms, with or without modification.\n\
+         This software is provided by the copyright holders and contributors \"as is\".",
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("LICENSE")];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.spdx == "BSD-2-Clause" || f.spdx == "BSD-3-Clause"),
+        "BSD variant should be detected"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: package.json without license field → no findings
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_package_json_without_license_then_no_findings() {
+    let dir = tempdir().unwrap();
+    fs::write(
+        dir.path().join("package.json"),
+        r#"{"name": "x", "version": "1.0.0"}"#,
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("package.json")];
+    let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
+
+    assert!(report.findings.is_empty());
+    assert!(report.effective.is_none());
+}

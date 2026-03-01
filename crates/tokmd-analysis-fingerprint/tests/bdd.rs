@@ -278,3 +278,121 @@ fn handles_large_commit_set() {
     let total: u32 = fp.domains.iter().map(|d| d.commits).sum();
     assert_eq!(total, 1000);
 }
+
+// ── Known corporate patterns ────────────────────────────────────
+
+#[test]
+fn known_corporate_domains_are_detected() {
+    // Given: commits from well-known corporate domains
+    let commits = vec![
+        commit("dev@microsoft.com"),
+        commit("eng@google.com"),
+        commit("oss@github.com"),
+    ];
+    // When: we build a fingerprint
+    let fp = build_corporate_fingerprint(&commits);
+    // Then: each corporate domain appears individually
+    assert_eq!(fp.domains.len(), 3);
+    let names: Vec<&str> = fp.domains.iter().map(|d| d.domain.as_str()).collect();
+    assert!(names.contains(&"microsoft.com"));
+    assert!(names.contains(&"google.com"));
+    assert!(names.contains(&"github.com"));
+}
+
+#[test]
+fn subdomain_corporate_email_kept_as_full_domain() {
+    // Given: a commit from a subdomain corporate email
+    let commits = vec![commit("dev@eng.bigcorp.com")];
+    // When: we build a fingerprint
+    let fp = build_corporate_fingerprint(&commits);
+    // Then: full subdomain is preserved
+    assert_eq!(fp.domains.len(), 1);
+    assert_eq!(fp.domains[0].domain, "eng.bigcorp.com");
+}
+
+// ── Determinism ─────────────────────────────────────────────────
+
+#[test]
+fn fingerprint_is_deterministic() {
+    // Given: the same set of commits
+    let commits = vec![
+        commit("a@acme.com"),
+        commit("b@gmail.com"),
+        commit("c@startup.io"),
+        commit("d@acme.com"),
+        commit("e@yahoo.com"),
+    ];
+    // When: we build the fingerprint twice
+    let fp1 = build_corporate_fingerprint(&commits);
+    let fp2 = build_corporate_fingerprint(&commits);
+    // Then: both results are identical
+    assert_eq!(fp1.domains.len(), fp2.domains.len());
+    for (a, b) in fp1.domains.iter().zip(fp2.domains.iter()) {
+        assert_eq!(a.domain, b.domain);
+        assert_eq!(a.commits, b.commits);
+        assert!((a.pct - b.pct).abs() < f32::EPSILON);
+    }
+}
+
+// ── Multiple patterns aggregate correctly ────────────────────────
+
+#[test]
+fn many_domains_aggregate_with_correct_counts() {
+    // Given: commits from 5 corporate domains + public, with varying counts
+    let commits = vec![
+        commit("a1@alpha.com"),
+        commit("a2@alpha.com"),
+        commit("a3@alpha.com"),
+        commit("a4@alpha.com"),
+        commit("a5@alpha.com"), // 5
+        commit("b1@beta.com"),
+        commit("b2@beta.com"),
+        commit("b3@beta.com"), // 3
+        commit("g1@gamma.org"),
+        commit("g2@gamma.org"), // 2
+        commit("d@delta.io"),   // 1
+        commit("u@gmail.com"),  // public bucket
+    ];
+    // When: we build a fingerprint
+    let fp = build_corporate_fingerprint(&commits);
+    // Then: 5 buckets (alpha, beta, gamma, delta, public-email), sorted by count desc
+    assert_eq!(fp.domains.len(), 5);
+    assert_eq!(fp.domains[0].domain, "alpha.com");
+    assert_eq!(fp.domains[0].commits, 5);
+    assert_eq!(fp.domains[1].domain, "beta.com");
+    assert_eq!(fp.domains[1].commits, 3);
+    assert_eq!(fp.domains[2].domain, "gamma.org");
+    assert_eq!(fp.domains[2].commits, 2);
+    // delta and public-email both have 1 commit; tie-broken alphabetically
+    assert_eq!(fp.domains[3].domain, "delta.io");
+    assert_eq!(fp.domains[3].commits, 1);
+    assert_eq!(fp.domains[4].domain, "public-email");
+    assert_eq!(fp.domains[4].commits, 1);
+    // Verify total
+    let total: u32 = fp.domains.iter().map(|d| d.commits).sum();
+    assert_eq!(total, 12);
+}
+
+#[test]
+fn mixed_ignored_public_corporate_aggregation() {
+    // Given: a mix of ignored, public, and corporate authors
+    let commits = vec![
+        commit("bot@users.noreply.github.com"),
+        commit("test@example.com"),
+        commit("root@localhost"),
+        commit("dev@gmail.com"),
+        commit("dev@yahoo.com"),
+        commit("eng@corp.io"),
+        commit("pm@corp.io"),
+    ];
+    // When: we build a fingerprint
+    let fp = build_corporate_fingerprint(&commits);
+    // Then: ignored are excluded; public collapses; corporate is separate
+    assert_eq!(fp.domains.len(), 2);
+    assert_eq!(fp.domains[0].domain, "corp.io");
+    assert_eq!(fp.domains[0].commits, 2);
+    assert_eq!(fp.domains[1].domain, "public-email");
+    assert_eq!(fp.domains[1].commits, 2);
+    let total: u32 = fp.domains.iter().map(|d| d.commits).sum();
+    assert_eq!(total, 4);
+}

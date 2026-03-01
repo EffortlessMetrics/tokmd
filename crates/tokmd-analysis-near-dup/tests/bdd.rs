@@ -871,3 +871,184 @@ mod pair_ordering {
         }
     }
 }
+
+// ── Empty file content ───────────────────────────────────────────
+
+mod empty_file_content {
+    use super::*;
+
+    #[test]
+    fn given_empty_files_on_disk_then_no_pairs() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "empty_a.rs", "");
+        write_file(&dir, "empty_b.rs", "");
+
+        let rows = vec![
+            make_file_row("empty_a.rs", "root", "Rust", 0, 0),
+            make_file_row("empty_b.rs", "root", "Rust", 0, 0),
+        ];
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        )
+        .unwrap();
+
+        assert!(
+            report.pairs.is_empty(),
+            "empty files produce no fingerprints and should yield no pairs"
+        );
+    }
+
+    #[test]
+    fn given_one_empty_one_nonempty_then_no_pairs() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "empty.rs", "");
+        let content = source_text(100, 0);
+        write_file(&dir, "full.rs", &content);
+
+        let rows = vec![
+            make_file_row("empty.rs", "root", "Rust", 0, 0),
+            make_file_row("full.rs", "root", "Rust", 100, content.len()),
+        ];
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        )
+        .unwrap();
+
+        assert!(
+            report.pairs.is_empty(),
+            "empty file cannot match a non-empty file"
+        );
+    }
+}
+
+// ── Single token change near-dup ─────────────────────────────────
+
+mod single_token_change {
+    use super::*;
+
+    #[test]
+    fn given_files_differing_by_one_token_then_high_similarity() {
+        let dir = TempDir::new().unwrap();
+        let mut tokens: Vec<String> = (0..100).map(|i| format!("common_{}", i)).collect();
+        let content_a = tokens.join(" + ");
+        // Replace one token in the middle
+        tokens[50] = "changed_token".to_string();
+        let content_b = tokens.join(" + ");
+
+        write_file(&dir, "orig.rs", &content_a);
+        write_file(&dir, "tweaked.rs", &content_b);
+
+        let rows = vec![
+            make_file_row("orig.rs", "root", "Rust", 100, content_a.len()),
+            make_file_row("tweaked.rs", "root", "Rust", 100, content_b.len()),
+        ];
+
+        let report = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.3,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        )
+        .unwrap();
+
+        assert_eq!(
+            report.pairs.len(),
+            1,
+            "single-token change should be detected"
+        );
+        assert!(
+            report.pairs[0].similarity > 0.3,
+            "single-token change should yield meaningful similarity, got {}",
+            report.pairs[0].similarity
+        );
+    }
+}
+
+// ── Determinism ──────────────────────────────────────────────────
+
+mod determinism {
+    use super::*;
+
+    #[test]
+    fn given_same_files_then_report_is_identical_across_runs() {
+        let dir = TempDir::new().unwrap();
+        let content_a = source_text(100, 0);
+        let shared: Vec<String> = (0..80).map(|i| format!("shared_{}", i)).collect();
+        let suffix: Vec<String> = (0..20).map(|i| format!("uniq_{}", i)).collect();
+        let content_b = [shared, suffix].concat().join(" + ");
+
+        write_file(&dir, "a.rs", &content_a);
+        write_file(&dir, "b.rs", &content_b);
+
+        let rows = vec![
+            make_file_row("a.rs", "root", "Rust", 100, content_a.len()),
+            make_file_row("b.rs", "root", "Rust", 100, content_b.len()),
+        ];
+
+        let r1 = build_near_dup_report(
+            dir.path(),
+            &make_export(rows.clone()),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        )
+        .unwrap();
+
+        let r2 = build_near_dup_report(
+            dir.path(),
+            &make_export(rows),
+            NearDupScope::Global,
+            0.0,
+            1000,
+            None,
+            &NearDupLimits::default(),
+            &[],
+        )
+        .unwrap();
+
+        assert_eq!(r1.pairs.len(), r2.pairs.len());
+        assert_eq!(r1.files_analyzed, r2.files_analyzed);
+        assert_eq!(r1.files_skipped, r2.files_skipped);
+        for (p1, p2) in r1.pairs.iter().zip(r2.pairs.iter()) {
+            assert_eq!(p1.left, p2.left);
+            assert_eq!(p1.right, p2.right);
+            assert!(
+                (p1.similarity - p2.similarity).abs() < 1e-10,
+                "similarity differs: {} vs {}",
+                p1.similarity,
+                p2.similarity
+            );
+            assert_eq!(p1.shared_fingerprints, p2.shared_fingerprints);
+            assert_eq!(p1.left_fingerprints, p2.left_fingerprints);
+            assert_eq!(p1.right_fingerprints, p2.right_fingerprints);
+        }
+        // Clusters should also match
+        assert_eq!(
+            r1.clusters.as_ref().map(|c| c.len()),
+            r2.clusters.as_ref().map(|c| c.len())
+        );
+    }
+}

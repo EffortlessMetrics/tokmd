@@ -476,3 +476,97 @@ fn given_file_with_only_comments_no_symbols() {
 
     assert_eq!(report.total_items, 0);
 }
+
+// ---------------------------------------------------------------------------
+// Scenario: Deterministic output
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_same_input_report_is_deterministic() {
+    let rust = "pub fn a() {}\nfn b() {}\npub struct C;\n";
+    let py = "def public_func():\n    pass\ndef _private():\n    pass\n";
+    let (dir, paths) = write_temp_files(&[("lib.rs", rust), ("mod.py", py)]);
+    let export = make_export(vec![
+        make_row("lib.rs", "src", "Rust"),
+        make_row("mod.py", "py", "Python"),
+    ]);
+
+    let r1 = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let r2 = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(r1.total_items, r2.total_items);
+    assert_eq!(r1.public_items, r2.public_items);
+    assert_eq!(r1.internal_items, r2.internal_items);
+    assert_eq!(r1.public_ratio, r2.public_ratio);
+    assert_eq!(r1.documented_ratio, r2.documented_ratio);
+    assert_eq!(r1.by_language.len(), r2.by_language.len());
+    assert_eq!(r1.by_module.len(), r2.by_module.len());
+    assert_eq!(r1.top_exporters.len(), r2.top_exporters.len());
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: All six supported languages in a single report
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_all_six_supported_languages_report_has_six_entries() {
+    let rust = "pub fn r() {}\n";
+    let js = "export function j() {}\n";
+    let ts = "export interface I {}\n";
+    let py = "def p():\n    pass\n";
+    let go = "func G() {}\n";
+    let java = "public class J {}\n";
+
+    let (dir, paths) = write_temp_files(&[
+        ("lib.rs", rust),
+        ("index.js", js),
+        ("types.ts", ts),
+        ("mod.py", py),
+        ("main.go", go),
+        ("App.java", java),
+    ]);
+    let export = make_export(vec![
+        make_row("lib.rs", "rust_mod", "Rust"),
+        make_row("index.js", "js_mod", "JavaScript"),
+        make_row("types.ts", "ts_mod", "TypeScript"),
+        make_row("mod.py", "py_mod", "Python"),
+        make_row("main.go", "go_mod", "Go"),
+        make_row("App.java", "java_mod", "Java"),
+    ]);
+
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.by_language.len(), 6, "expected all 6 languages");
+    assert!(
+        report.total_items >= 6,
+        "each language should contribute at least one item"
+    );
+    for lang_surface in report.by_language.values() {
+        assert!(
+            lang_surface.total_items > 0,
+            "every language should have at least one item"
+        );
+        assert!(lang_surface.public_ratio >= 0.0);
+        assert!(lang_surface.public_ratio <= 1.0);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Mixed documented/undocumented across multiple languages
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_mixed_doc_across_languages_documented_ratio_reflects_all() {
+    let rust = "/// Documented\npub fn doc_fn() {}\npub fn undoc_fn() {}\n";
+    let py = "def documented():\n    \"\"\"Has docstring.\"\"\"\n    pass\ndef undocumented():\n    pass\n";
+    let (dir, paths) = write_temp_files(&[("lib.rs", rust), ("mod.py", py)]);
+    let export = make_export(vec![
+        make_row("lib.rs", ".", "Rust"),
+        make_row("mod.py", ".", "Python"),
+    ]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    // 4 public items total (2 Rust pub, 2 Python public), 2 documented → 0.5
+    assert_eq!(report.public_items, 4);
+    assert_eq!(report.documented_ratio, 0.5);
+}

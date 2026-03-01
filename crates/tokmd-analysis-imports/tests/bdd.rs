@@ -351,3 +351,97 @@ fn given_all_languages_share_case_insensitive_dispatch() {
         parse_imports("python", &lines)
     );
 }
+
+// ── Rust additional edge cases ─────────────────────────────────────────
+
+#[test]
+fn given_rust_glob_use_when_parsing_then_root_is_extracted() {
+    let lines = vec!["use std::collections::*;"];
+    let imports = parse_imports("rust", &lines);
+    assert_eq!(imports, vec!["std"]);
+}
+
+#[test]
+fn given_rust_non_import_lines_when_parsing_then_they_are_skipped() {
+    let lines = vec![
+        "fn main() {}",
+        "let x = 5;",
+        "pub struct Foo;",
+        "// use fake_import;",
+    ];
+    let imports = parse_imports("rust", &lines);
+    assert!(imports.is_empty());
+}
+
+#[test]
+fn given_rust_multiple_use_statements_when_parsing_then_all_are_extracted() {
+    let lines = vec![
+        "use std::io;",
+        "use serde::Serialize;",
+        "use anyhow::Result;",
+    ];
+    let imports = parse_imports("rust", &lines);
+    assert_eq!(imports, vec!["std", "serde", "anyhow"]);
+}
+
+// ── Go additional edge cases ───────────────────────────────────────────
+
+#[test]
+fn given_go_block_with_blank_lines_when_parsing_then_blanks_are_skipped() {
+    let lines = vec!["import (", "", r#""fmt""#, "", r#""os""#, ")"];
+    let imports = parse_imports("go", &lines);
+    assert_eq!(imports, vec!["fmt", "os"]);
+}
+
+// ── Python additional edge cases ───────────────────────────────────────
+
+#[test]
+fn given_python_only_comments_when_parsing_then_no_imports() {
+    let lines = vec!["# import os", "# from sys import argv"];
+    let imports = parse_imports("python", &lines);
+    assert!(imports.is_empty());
+}
+
+// ── Determinism explicit test ──────────────────────────────────────────
+
+#[test]
+fn given_any_language_parsing_is_deterministic() {
+    let rust_lines = vec!["use std::io;", "use serde::Serialize;", "mod internal;"];
+    let py_lines = vec![
+        "import os",
+        "from collections import OrderedDict",
+        "import json",
+    ];
+    let js_lines: Vec<&str> = vec![
+        r#"import React from "react";"#,
+        r#"const fs = require("fs");"#,
+    ];
+    let go_lines = vec!["import (", r#""fmt""#, r#""os""#, ")"];
+
+    for _ in 0..3 {
+        assert_eq!(
+            parse_imports("rust", &rust_lines),
+            vec!["std", "serde", "internal"]
+        );
+        assert_eq!(
+            parse_imports("python", &py_lines),
+            vec!["os", "collections", "json"]
+        );
+        assert_eq!(parse_imports("javascript", &js_lines), vec!["react", "fs"]);
+        assert_eq!(parse_imports("go", &go_lines), vec!["fmt", "os"]);
+    }
+}
+
+// ── Normalization additional cases ─────────────────────────────────────
+
+#[test]
+fn given_empty_string_when_normalizing_then_result_is_empty() {
+    assert_eq!(normalize_import_target(""), "");
+}
+
+#[test]
+fn given_only_dots_when_normalizing_then_local_is_returned() {
+    assert_eq!(normalize_import_target("."), "local");
+    assert_eq!(normalize_import_target(".."), "local");
+    assert_eq!(normalize_import_target("..."), "local");
+}

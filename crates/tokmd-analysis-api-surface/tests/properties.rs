@@ -284,3 +284,118 @@ fn empty_input_always_yields_zeros() {
     assert_eq!(report.public_ratio, 0.0);
     assert_eq!(report.documented_ratio, 0.0);
 }
+
+// ---------------------------------------------------------------------------
+// Property: report is deterministic (identical inputs → identical outputs)
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #[test]
+    fn report_is_deterministic(
+        lines in prop::collection::vec(rust_item_line(), 0..30)
+    ) {
+        let code = lines.join("\n") + "\n";
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("lib.rs"), &code).unwrap();
+
+        let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
+        let paths = vec![PathBuf::from("lib.rs")];
+
+        let r1 = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+        let r2 = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        prop_assert_eq!(r1.total_items, r2.total_items);
+        prop_assert_eq!(r1.public_items, r2.public_items);
+        prop_assert_eq!(r1.internal_items, r2.internal_items);
+        prop_assert_eq!(r1.public_ratio, r2.public_ratio);
+        prop_assert_eq!(r1.documented_ratio, r2.documented_ratio);
+        prop_assert_eq!(r1.by_language.len(), r2.by_language.len());
+        prop_assert_eq!(r1.by_module.len(), r2.by_module.len());
+        prop_assert_eq!(r1.top_exporters.len(), r2.top_exporters.len());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Property: multi-language totals are consistent
+// ---------------------------------------------------------------------------
+
+/// Strategy to produce random Python source lines (def/class items).
+fn python_item_line() -> impl Strategy<Value = String> {
+    prop_oneof![
+        Just("def public_func():\n    pass".to_string()),
+        Just("def _private_func():\n    pass".to_string()),
+        Just("class PublicClass:\n    pass".to_string()),
+        Just("class _PrivateClass:\n    pass".to_string()),
+        Just("# comment".to_string()),
+        Just(String::new()),
+    ]
+}
+
+proptest! {
+    #[test]
+    fn multi_language_totals_equal_sum_of_by_language(
+        rust_lines in prop::collection::vec(rust_item_line(), 0..20),
+        py_lines in prop::collection::vec(python_item_line(), 0..20),
+    ) {
+        let rust_code = rust_lines.join("\n") + "\n";
+        let py_code = py_lines.join("\n") + "\n";
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("src")).unwrap();
+        fs::write(dir.path().join("src/lib.rs"), &rust_code).unwrap();
+        fs::write(dir.path().join("mod.py"), &py_code).unwrap();
+
+        let export = make_export(vec![
+            make_row("src/lib.rs", "src", "Rust"),
+            make_row("mod.py", "py", "Python"),
+        ]);
+        let paths = vec![
+            PathBuf::from("src/lib.rs"),
+            PathBuf::from("mod.py"),
+        ];
+        let report = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        let lang_total: usize = report.by_language.values().map(|l| l.total_items).sum();
+        let lang_pub: usize = report.by_language.values().map(|l| l.public_items).sum();
+        let lang_int: usize = report.by_language.values().map(|l| l.internal_items).sum();
+
+        prop_assert_eq!(report.total_items, lang_total);
+        prop_assert_eq!(report.public_items, lang_pub);
+        prop_assert_eq!(report.internal_items, lang_int);
+        prop_assert_eq!(
+            report.total_items,
+            report.public_items + report.internal_items
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Property: per-language public_ratio is in [0.0, 1.0]
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #[test]
+    fn per_language_ratios_in_unit_range(
+        lines in prop::collection::vec(rust_item_line(), 1..30)
+    ) {
+        let code = lines.join("\n") + "\n";
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("lib.rs"), &code).unwrap();
+
+        let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
+        let paths = vec![PathBuf::from("lib.rs")];
+        let report = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        for (_, lang_surface) in &report.by_language {
+            prop_assert!(lang_surface.public_ratio >= 0.0, "lang ratio must be >= 0");
+            prop_assert!(lang_surface.public_ratio <= 1.0, "lang ratio must be <= 1");
+        }
+    }
+}

@@ -149,4 +149,48 @@ proptest! {
         let ts = parse_imports("typescript", &lines);
         prop_assert_eq!(js, ts);
     }
+
+    #[test]
+    fn rust_mod_lines_always_produce_one_import(
+        name in "[a-z][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("mod {};", name);
+        let imports = parse_imports("rust", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &name);
+    }
+
+    #[test]
+    fn go_block_each_quoted_line_produces_one_import(
+        pkg in "[a-z]{1,12}"
+    ) {
+        let lines = vec![
+            "import (".to_string(),
+            format!(r#""{}""#, pkg),
+            ")".to_string(),
+        ];
+        let imports = parse_imports("go", &lines);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &pkg);
+    }
+
+    #[test]
+    fn empty_lines_never_produce_imports(
+        lang in arb_supported_lang(),
+        count in 0usize..32
+    ) {
+        let lines: Vec<String> = vec![String::new(); count];
+        let imports = parse_imports(lang, &lines);
+        prop_assert!(imports.is_empty());
+    }
+
+    #[test]
+    fn python_nested_package_normalizes_to_first_segment(
+        root in "[a-z]{1,8}",
+        child in "[a-z]{1,8}"
+    ) {
+        let target = format!("{}.{}", root, child);
+        let normalized = normalize_import_target(&target);
+        prop_assert_eq!(normalized, root);
+    }
 }
