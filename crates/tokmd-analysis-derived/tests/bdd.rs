@@ -5,6 +5,7 @@ use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 fn make_row(
     path: &str,
     module: &str,

@@ -153,7 +153,7 @@ mod user_config_profiles {
     #[test]
     fn lookup_missing_profile_returns_none() {
         let config = UserConfig::default();
-        assert!(config.profiles.get("nonexistent").is_none());
+        assert!(!config.profiles.contains_key("nonexistent"));
     }
 
     #[test]
@@ -381,7 +381,7 @@ compress = true
     #[test]
     fn missing_profile_name_yields_none() {
         let config = TomlConfig::parse("").expect("valid");
-        assert!(config.view.get("nonexistent").is_none());
+        assert!(!config.view.contains_key("nonexistent"));
     }
 }
 

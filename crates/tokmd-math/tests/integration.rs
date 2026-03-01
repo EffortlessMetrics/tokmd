@@ -99,6 +99,6 @@ fn large_values_do_not_overflow_safe_ratio() {
 #[test]
 fn gini_and_percentile_agree_on_equality_for_uniform_input() {
     let values = [50usize, 50, 50, 50, 50];
-    assert_eq!(gini_coefficient(&values).abs() < 1e-10, true);
+    assert!(gini_coefficient(&values).abs() < 1e-10);
     assert_eq!(percentile(&values, 0.0), percentile(&values, 1.0));
 }

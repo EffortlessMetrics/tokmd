@@ -469,7 +469,7 @@ proptest! {
             })
             .count();
         prop_assert!(
-            count >= 2 && count <= 50,
+            (2..=50).contains(&count),
             "Template {:?} has {} patterns, expected 2..50",
             profile,
             count

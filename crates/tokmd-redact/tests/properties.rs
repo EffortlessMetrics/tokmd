@@ -409,7 +409,7 @@ proptest! {
         right in "[a-z]{2,6}"
     ) {
         let clean = format!("{}/{}", left, right);
-        let dotted = format!("{}/{}", left, format!("./{}", right));
+        let dotted = format!("{}/./{}", left, right);
         prop_assert_eq!(
             short_hash(&clean),
             short_hash(&dotted),

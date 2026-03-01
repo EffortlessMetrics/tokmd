@@ -406,7 +406,7 @@ fn preset_kind_debug_is_non_empty() {
 fn preset_kind_clone_and_copy() {
     let a = PresetKind::Receipt;
     let b = a;
-    let c = a.clone();
+    let c = a;
     assert_eq!(a, b);
     assert_eq!(a, c);
 }
@@ -414,7 +414,7 @@ fn preset_kind_clone_and_copy() {
 #[test]
 fn preset_plan_clone_and_copy() {
     let plan = preset_plan_for(PresetKind::Deep);
-    let cloned = plan.clone();
+    let cloned = plan;
     let copied = plan;
     assert_eq!(plan, cloned);
     assert_eq!(plan, copied);
@@ -424,7 +424,7 @@ fn preset_plan_clone_and_copy() {
 fn disabled_feature_clone_and_copy() {
     let a = DisabledFeature::GitMetrics;
     let b = a;
-    let c = a.clone();
+    let c = a;
     assert_eq!(a, b);
     assert_eq!(a, c);
 }

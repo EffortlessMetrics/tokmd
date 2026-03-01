@@ -70,7 +70,8 @@ proptest! {
 proptest! {
     #[test]
     fn zero_lines_always_produces_zero_hotspot(commits in 0..100usize) {
-        let hotspot = 0usize * commits;
+        let _ = commits; // ignore warning
+        let hotspot = 0usize;
         prop_assert_eq!(hotspot, 0);
     }
 }
@@ -127,7 +128,7 @@ proptest! {
 proptest! {
     #[test]
     fn single_commit_hotspot_equals_lines(lines in 0..10_000usize) {
-        prop_assert_eq!(lines * 1, lines);
+        prop_assert_eq!(lines, lines);
     }
 }
 
@@ -136,6 +137,7 @@ proptest! {
 proptest! {
     #[test]
     fn zero_commits_always_produces_zero_hotspot(lines in 0..10_000usize) {
-        prop_assert_eq!(lines * 0, 0);
+        let _ = lines; // ignore warning
+        prop_assert_eq!(0usize, 0);
     }
 }

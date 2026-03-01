@@ -54,7 +54,7 @@ fn lang_workflow_with_files_enabled() {
     };
 
     let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
-    assert_eq!(receipt.args.with_files, true);
+    assert!(receipt.args.with_files);
 }
 
 #[test]
