@@ -28,6 +28,5 @@ tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
-proptest = "1.10.0"
 tempfile = "3.25.0"
 

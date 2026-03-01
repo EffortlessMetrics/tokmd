@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"technical_debt_ratio\").unwrap()"
----
-technical_debt_ratio: Complexity points per KLOC as a heuristic debt signal.

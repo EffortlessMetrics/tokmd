@@ -739,7 +739,7 @@ fn parse_rate_limit_timestamp(stderr: &str) -> Option<DateTime<FixedOffset>> {
     // The timestamp ends at " or ", a quote, or a newline
     let end = after
         .find(" or ")
-        .or_else(|| after.find(['"', '\n', '\r']))
+        .or_else(|| after.find(|c: char| c == '"' || c == '\n' || c == '\r'))
         .unwrap_or(after.len());
     let timestamp_str = after[..end].trim();
 

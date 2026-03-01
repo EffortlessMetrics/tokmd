@@ -11,9 +11,6 @@ keywords = ["analysis", "feature-flags", "presets", "inventory", "metadata"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-grid"
 
-[dev-dependencies]
-proptest = "1.10.0"
-
 [features]
 default = []
 git = []

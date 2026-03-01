@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"doc_density\").unwrap()"
----
-doc_density: Ratio of comment lines to total code+comment lines.

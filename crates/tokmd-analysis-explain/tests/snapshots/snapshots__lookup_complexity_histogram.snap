@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"complexity_histogram\").unwrap()"
----
-complexity_histogram: Bucketed distribution of cyclomatic complexity values.

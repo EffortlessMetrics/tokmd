@@ -19,6 +19,4 @@ tokmd-module-key.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-insta = { workspace = true }
 proptest = "1.10.0"
-serde_json = "1.0"

@@ -17,6 +17,3 @@ ui = ["dep:indicatif"]
 
 [dependencies]
 indicatif = { version = "0.18.4", optional = true }
-
-[dev-dependencies]
-proptest = "1"

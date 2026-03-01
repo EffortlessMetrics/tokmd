@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"hotspots\").unwrap()"
----
-hotspots: Files with high change frequency and high size-based impact.

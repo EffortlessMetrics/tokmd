@@ -25,7 +25,6 @@ fn baseline_generates_output_file() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn baseline_with_determinism_flag() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempfile::tempdir()?;
     let out_file = dir.path().join("baseline.json");

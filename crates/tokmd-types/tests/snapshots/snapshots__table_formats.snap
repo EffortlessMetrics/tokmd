@@ -1,9 +1,0 @@
----
-source: crates/tokmd-types/tests/snapshots.rs
-expression: all
----
-[
-  "md",
-  "tsv",
-  "json"
-]

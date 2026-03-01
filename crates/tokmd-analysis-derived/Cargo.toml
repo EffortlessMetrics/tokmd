@@ -18,6 +18,3 @@ tokmd-analysis-util.workspace = true
 tokmd-math.workspace = true
 tokmd-export-tree.workspace = true
 tokmd-types.workspace = true
-
-[dev-dependencies]
-proptest = "1.10.0"

@@ -17,7 +17,3 @@ serde_json.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-walk.workspace = true
 
-[dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.25.0"
-

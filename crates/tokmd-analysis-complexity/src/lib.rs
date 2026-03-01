@@ -934,21 +934,13 @@ fn detect_fn_spans_python(lines: &[&str]) -> Vec<(usize, usize, String)> {
             {
                 let mut k = i;
                 while k > 0 {
-                    let prev_line = lines[k - 1];
-                    let prev_trimmed = prev_line.trim();
-
-                    if prev_trimmed.is_empty() {
+                    let prev = lines[k - 1].trim();
+                    if prev.is_empty() {
                         k -= 1;
                         continue;
                     }
-
-                    if prev_trimmed.starts_with('#') {
-                        k -= 1;
-                        continue;
-                    }
-
-                    let prev_indent = prev_line.len() - prev_line.trim_start().len();
-                    if prev_indent == base_indent && prev_trimmed.starts_with('@') {
+                    let prev_indent = lines[k - 1].len() - lines[k - 1].trim_start().len();
+                    if prev_indent == base_indent && prev.starts_with('@') {
                         start = k - 1;
                         k -= 1;
                     } else {
@@ -1557,38 +1549,5 @@ int main(int argc, char** argv) {
         }];
 
         assert!(compute_technical_debt_ratio(&export, &files).is_none());
-    }
-
-    #[test]
-    fn test_detect_fn_python_decorators_extended() {
-        let code = r#"
-@app.route("/")
-# This is a comment between decorators
-@login_required
-
-# Another comment
-def index():
-    return "hello"
-
-@nested_decorator
-# Indented comment
-def nested():
-    pass
-"#;
-        let lines: Vec<&str> = code.lines().collect();
-        let spans = detect_fn_spans_python(&lines);
-        assert_eq!(spans.len(), 2);
-
-        // First function: index
-        let (start, _end, ref name) = spans[0];
-        assert_eq!(name, "index");
-        // Should start at @app.route
-        assert!(lines[start].trim().starts_with("@app.route"));
-
-        // Second function: nested
-        let (start2, _end2, ref name2) = spans[1];
-        assert_eq!(name2, "nested");
-        // Should start at @nested_decorator
-        assert!(lines[start2].trim().starts_with("@nested_decorator"));
     }
 }

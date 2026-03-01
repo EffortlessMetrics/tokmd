@@ -1,7 +1,0 @@
----
-source: crates/tokmd-model/tests/snapshots.rs
-expression: "serde_json::json!({ \"rows\": data.rows.len(), })"
----
-{
-  "rows": 0
-}

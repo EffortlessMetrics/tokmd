@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"coupling\").unwrap()"
----
-coupling: Modules frequently changed together in commits.

@@ -1,9 +1,0 @@
----
-source: crates/tokmd-types/tests/snapshots.rs
-expression: survivor
----
-{
-  "file": "src/calc.rs",
-  "line": 42,
-  "mutation": "replaced + with -"
-}

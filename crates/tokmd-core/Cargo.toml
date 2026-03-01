@@ -45,6 +45,3 @@ tokmd-analysis-types = { workspace = true, optional = true }
 # Optional cockpit support
 tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }
-
-[dev-dependencies]
-proptest = "1.10.0"

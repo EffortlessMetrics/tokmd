@@ -4,7 +4,6 @@ use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
 use std::fs;
-#[cfg(feature = "git")]
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 

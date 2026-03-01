@@ -14,6 +14,3 @@ documentation = "https://docs.rs/tokmd-analysis-fingerprint"
 [dependencies]
 tokmd-analysis-types.workspace = true
 tokmd-git.workspace = true
-
-[dev-dependencies]
-proptest = "1.10.0"

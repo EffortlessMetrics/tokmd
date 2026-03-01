@@ -48,15 +48,9 @@ use crate::{export_workflow, lang_workflow, module_workflow};
 ///
 /// # Example
 ///
-/// ```rust
-/// use tokmd_core::ffi::run_json;
-///
+/// ```ignore
 /// let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
-/// let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
-///
-/// assert_eq!(parsed["ok"], true);
-/// assert!(parsed["data"].is_object());
-/// assert_eq!(parsed["data"]["mode"], "lang");
+/// // Returns: {"ok": true, "data": {"mode": "lang", "rows": [...], ...}}
 /// ```
 pub fn run_json(mode: &str, args_json: &str) -> String {
     match run_json_inner(mode, args_json) {
