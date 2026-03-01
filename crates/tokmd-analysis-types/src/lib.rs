@@ -1409,3 +1409,233 @@ pub use tokmd_envelope::Verdict;
 pub use tokmd_envelope::GateResults;
 pub use tokmd_envelope::SensorReport;
 pub use tokmd_envelope::ToolMeta;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── Schema version constant ───────────────────────────────────────
+    #[test]
+    fn analysis_schema_version_constant() {
+        assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    }
+
+    #[test]
+    fn baseline_version_constant() {
+        assert_eq!(BASELINE_VERSION, 1);
+    }
+
+    // ── Default impls ─────────────────────────────────────────────────
+    #[test]
+    fn complexity_baseline_default() {
+        let b = ComplexityBaseline::default();
+        assert_eq!(b.baseline_version, BASELINE_VERSION);
+        assert!(b.generated_at.is_empty());
+        assert!(b.commit.is_none());
+        assert!(b.files.is_empty());
+        assert!(b.complexity.is_none());
+        assert!(b.determinism.is_none());
+    }
+
+    #[test]
+    fn complexity_baseline_new_equals_default() {
+        let a = ComplexityBaseline::new();
+        let b = ComplexityBaseline::default();
+        assert_eq!(a.baseline_version, b.baseline_version);
+        assert_eq!(a.generated_at, b.generated_at);
+        assert_eq!(a.files.len(), b.files.len());
+    }
+
+    #[test]
+    fn baseline_metrics_default_is_zeroed() {
+        let m = BaselineMetrics::default();
+        assert_eq!(m.total_code_lines, 0);
+        assert_eq!(m.total_files, 0);
+        assert_eq!(m.avg_cyclomatic, 0.0);
+        assert_eq!(m.max_cyclomatic, 0);
+        assert_eq!(m.avg_cognitive, 0.0);
+        assert_eq!(m.function_count, 0);
+    }
+
+    // ── Enum serde roundtrips ─────────────────────────────────────────
+    #[test]
+    fn entropy_class_serde_roundtrip() {
+        for variant in [
+            EntropyClass::Low,
+            EntropyClass::Normal,
+            EntropyClass::Suspicious,
+            EntropyClass::High,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: EntropyClass = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn trend_class_serde_roundtrip() {
+        for variant in [TrendClass::Rising, TrendClass::Flat, TrendClass::Falling] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: TrendClass = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn license_source_kind_serde_roundtrip() {
+        for variant in [LicenseSourceKind::Metadata, LicenseSourceKind::Text] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: LicenseSourceKind = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn complexity_risk_serde_roundtrip() {
+        for variant in [
+            ComplexityRisk::Low,
+            ComplexityRisk::Moderate,
+            ComplexityRisk::High,
+            ComplexityRisk::Critical,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: ComplexityRisk = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn technical_debt_level_serde_roundtrip() {
+        for variant in [
+            TechnicalDebtLevel::Low,
+            TechnicalDebtLevel::Moderate,
+            TechnicalDebtLevel::High,
+            TechnicalDebtLevel::Critical,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: TechnicalDebtLevel = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    // ── Enum naming conventions ───────────────────────────────────────
+    #[test]
+    fn entropy_class_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&EntropyClass::Suspicious).unwrap(),
+            "\"suspicious\""
+        );
+    }
+
+    #[test]
+    fn trend_class_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&TrendClass::Rising).unwrap(),
+            "\"rising\""
+        );
+    }
+
+    #[test]
+    fn complexity_risk_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&ComplexityRisk::Moderate).unwrap(),
+            "\"moderate\""
+        );
+    }
+
+    // ── Struct serde roundtrips ───────────────────────────────────────
+    #[test]
+    fn eco_label_serde_roundtrip() {
+        let label = EcoLabel {
+            score: 85.0,
+            label: "A".into(),
+            bytes: 1000,
+            notes: "Good".into(),
+        };
+        let json = serde_json::to_string(&label).unwrap();
+        let back: EcoLabel = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.label, "A");
+        assert_eq!(back.bytes, 1000);
+    }
+
+    #[test]
+    fn topic_term_serde_roundtrip() {
+        let term = TopicTerm {
+            term: "async".into(),
+            score: 0.95,
+            tf: 10,
+            df: 3,
+        };
+        let json = serde_json::to_string(&term).unwrap();
+        let back: TopicTerm = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.term, "async");
+        assert_eq!(back.tf, 10);
+    }
+
+    #[test]
+    fn complexity_baseline_serde_roundtrip() {
+        let b = ComplexityBaseline {
+            baseline_version: BASELINE_VERSION,
+            generated_at: "2025-01-01T00:00:00.000Z".into(),
+            commit: Some("abc123".into()),
+            metrics: BaselineMetrics::default(),
+            files: vec![FileBaselineEntry {
+                path: "src/lib.rs".into(),
+                code_lines: 100,
+                cyclomatic: 5,
+                cognitive: 3,
+                max_nesting: 2,
+                function_count: 10,
+                content_hash: Some("deadbeef".into()),
+            }],
+            complexity: None,
+            determinism: None,
+        };
+        let json = serde_json::to_string(&b).unwrap();
+        let back: ComplexityBaseline = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.baseline_version, BASELINE_VERSION);
+        assert_eq!(back.commit.as_deref(), Some("abc123"));
+        assert_eq!(back.files.len(), 1);
+        assert_eq!(back.files[0].path, "src/lib.rs");
+    }
+
+    // ── ComplexityHistogram ───────────────────────────────────────────
+    #[test]
+    fn complexity_histogram_to_ascii_basic() {
+        let h = ComplexityHistogram {
+            buckets: vec![0, 5, 10],
+            counts: vec![10, 5, 2],
+            total: 17,
+        };
+        let ascii = h.to_ascii(20);
+        assert!(!ascii.is_empty());
+        // Should have 3 lines (one per bucket)
+        assert_eq!(ascii.lines().count(), 3);
+    }
+
+    #[test]
+    fn complexity_histogram_to_ascii_empty_counts() {
+        let h = ComplexityHistogram {
+            buckets: vec![0, 5],
+            counts: vec![0, 0],
+            total: 0,
+        };
+        let ascii = h.to_ascii(20);
+        assert!(!ascii.is_empty());
+    }
+
+    // ── chrono_timestamp_iso8601 ──────────────────────────────────────
+    #[test]
+    fn timestamp_epoch() {
+        let result = chrono_timestamp_iso8601(0);
+        assert_eq!(result, "1970-01-01T00:00:00.000Z");
+    }
+
+    #[test]
+    fn timestamp_with_millis() {
+        // 2025-01-01T00:00:00.500Z = 1735689600500 ms
+        let result = chrono_timestamp_iso8601(1735689600500);
+        assert!(result.ends_with(".500Z"));
+        assert!(result.starts_with("2025-01-01"));
+    }
+}
