@@ -24,6 +24,9 @@ fuzz/target/
 mutants.out/
 mutants.out.old/
 
+# Proptest regression files
+*.proptest-regressions
+
 # Snapshots
 *.snap.new
 
