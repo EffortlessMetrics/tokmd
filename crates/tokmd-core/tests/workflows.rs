@@ -62,7 +62,7 @@ fn lang_workflow_receipt_has_complete_status() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     // ScanStatus doesn't implement PartialEq; compare via Debug
     assert_eq!(format!("{:?}", receipt.status), "Complete");
 }
@@ -72,7 +72,7 @@ fn lang_workflow_receipt_has_tool_info() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     assert!(!receipt.tool.name.is_empty());
     assert!(!receipt.tool.version.is_empty());
 }
@@ -82,7 +82,7 @@ fn lang_workflow_receipt_has_valid_timestamp() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     // generated_at_ms should be a timestamp after 2020-01-01
     assert!(receipt.generated_at_ms > 1_577_836_800_000);
 }
@@ -92,7 +92,7 @@ fn lang_workflow_receipt_has_scan_args() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     assert!(
         !receipt.scan.paths.is_empty(),
         "scan.paths should not be empty"
@@ -107,7 +107,7 @@ fn lang_workflow_top_zero_returns_all_languages() {
         ..Default::default()
     };
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     // top=0 means no limit; all languages should be present
     assert!(
         !receipt.report.rows.is_empty(),
@@ -120,7 +120,7 @@ fn lang_workflow_receipt_rows_have_code_lines() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     // Every row should have non-negative code count
     for row in &receipt.report.rows {
         assert!(
@@ -136,12 +136,12 @@ fn lang_workflow_receipt_is_serializable() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let lang = LangSettings::default();
 
-    let receipt = lang_workflow(&scan, &lang).unwrap();
+    let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
     let json = serde_json::to_string(&receipt);
     assert!(json.is_ok(), "receipt should be JSON-serializable");
 
     // Should round-trip
-    let json_str = json.unwrap();
+    let json_str = json.expect("receipt should serialize to JSON");
     let deserialized: Result<tokmd_types::LangReceipt, _> = serde_json::from_str(&json_str);
     assert!(
         deserialized.is_ok(),
@@ -173,7 +173,7 @@ fn module_workflow_with_custom_depth() {
         ..Default::default()
     };
 
-    let receipt = module_workflow(&scan, &module).unwrap();
+    let receipt = module_workflow(&scan, &module).expect("module_workflow should succeed");
     assert_eq!(receipt.args.module_depth, 1);
 }
 
@@ -185,7 +185,7 @@ fn module_workflow_with_custom_roots() {
         ..Default::default()
     };
 
-    let receipt = module_workflow(&scan, &module).unwrap();
+    let receipt = module_workflow(&scan, &module).expect("module_workflow should succeed");
     assert!(receipt.args.module_roots.contains(&"src".to_string()));
 }
 
@@ -194,7 +194,7 @@ fn module_workflow_receipt_has_complete_status() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let module = ModuleSettings::default();
 
-    let receipt = module_workflow(&scan, &module).unwrap();
+    let receipt = module_workflow(&scan, &module).expect("module_workflow should succeed");
     assert_eq!(format!("{:?}", receipt.status), "Complete");
 }
 
@@ -203,7 +203,7 @@ fn module_workflow_receipt_is_serializable() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let module = ModuleSettings::default();
 
-    let receipt = module_workflow(&scan, &module).unwrap();
+    let receipt = module_workflow(&scan, &module).expect("module_workflow should succeed");
     let json = serde_json::to_string(&receipt);
     assert!(json.is_ok(), "module receipt should be JSON-serializable");
 }
@@ -216,7 +216,7 @@ fn module_workflow_with_top_setting() {
         ..Default::default()
     };
 
-    let receipt = module_workflow(&scan, &module).unwrap();
+    let receipt = module_workflow(&scan, &module).expect("module_workflow should succeed");
     assert_eq!(receipt.args.top, 1);
 }
 
@@ -241,7 +241,7 @@ fn export_workflow_finds_rust_files() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let export = ExportSettings::default();
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     let has_rust = receipt.data.rows.iter().any(|r| r.lang == "Rust");
     assert!(has_rust, "should find Rust files in src/");
 }
@@ -251,7 +251,7 @@ fn export_workflow_file_rows_have_paths() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let export = ExportSettings::default();
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     for row in &receipt.data.rows {
         assert!(!row.path.is_empty(), "each file row should have a path");
     }
@@ -262,7 +262,7 @@ fn export_workflow_paths_use_forward_slashes() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let export = ExportSettings::default();
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     for row in &receipt.data.rows {
         assert!(
             !row.path.contains('\\'),
@@ -280,13 +280,13 @@ fn export_workflow_with_min_code_filter() {
         min_code: 0,
         ..Default::default()
     };
-    let receipt_all = export_workflow(&scan, &export_all).unwrap();
+    let receipt_all = export_workflow(&scan, &export_all).expect("export_workflow should succeed");
 
     let export_filtered = ExportSettings {
         min_code: 9999,
         ..Default::default()
     };
-    let receipt_filtered = export_workflow(&scan, &export_filtered).unwrap();
+    let receipt_filtered = export_workflow(&scan, &export_filtered).expect("export_workflow should succeed");
 
     assert!(
         receipt_filtered.data.rows.len() <= receipt_all.data.rows.len(),
@@ -302,7 +302,7 @@ fn export_workflow_with_max_rows() {
         ..Default::default()
     };
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     assert!(
         receipt.data.rows.len() <= 1,
         "max_rows=1 should limit output, got {}",
@@ -315,7 +315,7 @@ fn export_workflow_receipt_is_serializable() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let export = ExportSettings::default();
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     let json = serde_json::to_string(&receipt);
     assert!(json.is_ok(), "export receipt should be JSON-serializable");
 }
@@ -325,7 +325,7 @@ fn export_workflow_receipt_has_complete_status() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
     let export = ExportSettings::default();
 
-    let receipt = export_workflow(&scan, &export).unwrap();
+    let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
     assert_eq!(format!("{:?}", receipt.status), "Complete");
 }
 
@@ -409,7 +409,7 @@ fn diff_workflow_receipt_has_totals() {
         to: "src".to_string(),
     };
 
-    let receipt = tokmd_core::diff_workflow(&settings).unwrap();
+    let receipt = tokmd_core::diff_workflow(&settings).expect("diff_workflow should succeed");
     // Totals should exist
     assert_eq!(receipt.totals.delta_code, 0);
 }
@@ -450,7 +450,7 @@ mod properties {
                 ..Default::default()
             };
 
-            let receipt = lang_workflow(&scan, &lang).unwrap();
+            let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
             // rows should be at most top + 1 (for possible "Other" row)
             prop_assert!(
                 receipt.report.rows.len() <= top + 1,
@@ -468,7 +468,7 @@ mod properties {
                 ..Default::default()
             };
 
-            let receipt = export_workflow(&scan, &export).unwrap();
+            let receipt = export_workflow(&scan, &export).expect("export_workflow should succeed");
             prop_assert!(
                 receipt.data.rows.len() <= max_rows,
                 "max_rows={} but got {} rows",
@@ -489,7 +489,7 @@ mod properties {
                 ..Default::default()
             };
 
-            let receipt = lang_workflow(&scan, &lang).unwrap();
+            let receipt = lang_workflow(&scan, &lang).expect("lang_workflow should succeed");
             prop_assert_eq!(format!("{:?}", receipt.status), "Complete");
             prop_assert_eq!(receipt.mode.as_str(), "lang");
             prop_assert_eq!(receipt.schema_version, tokmd_types::SCHEMA_VERSION);
