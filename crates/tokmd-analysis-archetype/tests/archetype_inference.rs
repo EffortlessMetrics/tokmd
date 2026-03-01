@@ -112,7 +112,11 @@ fn library_rust_workspace_no_binary() {
 
 #[test]
 fn data_pipeline_terraform() {
-    let e = export(&["terraform/main.tf", "terraform/variables.tf", "terraform/outputs.tf"]);
+    let e = export(&[
+        "terraform/main.tf",
+        "terraform/variables.tf",
+        "terraform/outputs.tf",
+    ]);
     let a = detect_archetype(&e).unwrap();
     assert_eq!(a.kind, "Infrastructure as code");
 }

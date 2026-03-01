@@ -98,7 +98,10 @@ fn determinism_per_module_btreemap_keys_sorted() {
     let keys: Vec<&String> = clouds.per_module.keys().collect();
     let mut sorted_keys = keys.clone();
     sorted_keys.sort();
-    assert_eq!(keys, sorted_keys, "per_module keys should be BTreeMap-sorted");
+    assert_eq!(
+        keys, sorted_keys,
+        "per_module keys should be BTreeMap-sorted"
+    );
 }
 
 // ===========================================================================
@@ -134,8 +137,14 @@ fn database_domain_topics() {
 
     let db = clouds.per_module.get("db").unwrap();
     let terms: Vec<&str> = db.iter().map(|t| t.term.as_str()).collect();
-    assert!(terms.contains(&"connection"), "missing 'connection' in {terms:?}");
-    assert!(terms.contains(&"migration"), "missing 'migration' in {terms:?}");
+    assert!(
+        terms.contains(&"connection"),
+        "missing 'connection' in {terms:?}"
+    );
+    assert!(
+        terms.contains(&"migration"),
+        "missing 'migration' in {terms:?}"
+    );
     assert!(terms.contains(&"query"), "missing 'query' in {terms:?}");
 }
 
@@ -168,7 +177,10 @@ fn module_roots_become_stopwords() {
     let export = make_export(rows, vec!["crates"]);
     let clouds = build_topic_clouds(&export);
     let terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
-    assert!(!terms.contains(&"crates"), "'crates' should be a module root stopword");
+    assert!(
+        !terms.contains(&"crates"),
+        "'crates' should be a module root stopword"
+    );
 }
 
 // ===========================================================================
@@ -367,7 +379,10 @@ fn backslash_paths_produce_correct_tokens() {
     let export = make_export(rows, vec!["crates"]);
     let clouds = build_topic_clouds(&export);
     let terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
-    assert!(terms.contains(&"handler"), "backslash paths should split correctly");
+    assert!(
+        terms.contains(&"handler"),
+        "backslash paths should split correctly"
+    );
 }
 
 // ===========================================================================

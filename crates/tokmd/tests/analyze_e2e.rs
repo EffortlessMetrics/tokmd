@@ -731,4 +731,3 @@ fn analyze_health_preset_has_todo_density() {
         "health preset derived should include todo density report"
     );
 }
-

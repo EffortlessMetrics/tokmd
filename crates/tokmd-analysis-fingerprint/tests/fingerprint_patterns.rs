@@ -219,11 +219,11 @@ fn domains_sorted_by_count_desc_then_name_asc() {
     let commits = vec![
         commit("a@zebra.io"),
         commit("b@zebra.io"),
-        commit("c@zebra.io"),   // 3
+        commit("c@zebra.io"), // 3
         commit("d@alpha.com"),
-        commit("e@alpha.com"),  // 2
-        commit("f@beta.org"),   // 1
-        commit("g@delta.net"),  // 1
+        commit("e@alpha.com"), // 2
+        commit("f@beta.org"),  // 1
+        commit("g@delta.net"), // 1
     ];
     let fp = build_corporate_fingerprint(&commits);
     assert_eq!(fp.domains[0].domain, "zebra.io");
