@@ -34,5 +34,8 @@ mutants.out.old/
 # Claude Code (local overrides)
 .claude/settings.local.json
 
+# Jules agent metadata (stale run logs, envelopes)
+.jules/
+
 # Windows artifacts
 nul
