@@ -879,6 +879,17 @@ mod tests {
         assert!(syms.is_empty());
     }
 
+    #[test]
+    fn empty_input_returns_empty() {
+        for lang in &["rust", "javascript", "typescript", "python", "go", "java"] {
+            let syms = extract_symbols(lang, "");
+            assert!(
+                syms.is_empty(),
+                "empty input for {lang} should yield no symbols"
+            );
+        }
+    }
+
     // -------
     // is_api_surface_lang
     // -------
@@ -894,10 +905,125 @@ mod tests {
     }
 
     #[test]
+    fn supported_langs_case_insensitive() {
+        assert!(is_api_surface_lang("RUST"));
+        assert!(is_api_surface_lang("javascript"));
+        assert!(is_api_surface_lang("gO"));
+    }
+
+    #[test]
     fn unsupported_langs() {
         assert!(!is_api_surface_lang("Markdown"));
         assert!(!is_api_surface_lang("JSON"));
         assert!(!is_api_surface_lang("CSS"));
+    }
+
+    // -------
+    // has_doc_comment edge cases
+    // -------
+
+    #[test]
+    fn has_doc_comment_at_index_zero_is_false() {
+        let lines = vec!["pub fn foo() {}"];
+        assert!(!has_doc_comment(&lines, 0));
+    }
+
+    #[test]
+    fn has_doc_comment_with_doc_attribute() {
+        let lines = vec!["#[doc = \"documented\"]", "pub fn foo() {}"];
+        assert!(has_doc_comment(&lines, 1));
+    }
+
+    // -------
+    // Go var/const
+    // -------
+
+    #[test]
+    fn go_var_public() {
+        let code = "var PublicVar int = 42\n";
+        let syms = extract_symbols("go", code);
+        assert_eq!(syms.len(), 1);
+        assert!(syms[0].is_public);
+    }
+
+    #[test]
+    fn go_const_private() {
+        let code = "const maxBuffer = 1024\n";
+        let syms = extract_symbols("go", code);
+        assert_eq!(syms.len(), 1);
+        assert!(!syms[0].is_public);
+    }
+
+    // -------
+    // Python async def
+    // -------
+
+    #[test]
+    fn python_async_def() {
+        let code = "async def fetch():\n    pass\n";
+        let syms = extract_symbols("python", code);
+        assert_eq!(syms.len(), 1);
+        assert!(syms[0].is_public);
+    }
+
+    #[test]
+    fn python_async_def_private() {
+        let code = "async def _fetch():\n    pass\n";
+        let syms = extract_symbols("python", code);
+        assert_eq!(syms.len(), 1);
+        assert!(!syms[0].is_public);
+    }
+
+    // -------
+    // Java additional forms
+    // -------
+
+    #[test]
+    fn java_public_record() {
+        let code = "public record Point(int x, int y) {}\n";
+        let syms = extract_symbols("java", code);
+        assert_eq!(syms.len(), 1);
+        assert!(syms[0].is_public);
+    }
+
+    #[test]
+    fn java_protected_member() {
+        let code = "protected void helper() {}\n";
+        let syms = extract_symbols("java", code);
+        assert_eq!(syms.len(), 1);
+        assert!(!syms[0].is_public);
+    }
+
+    // -------
+    // JS/TS export enum
+    // -------
+
+    #[test]
+    fn ts_export_enum() {
+        let code = "export enum Direction { Up, Down }\n";
+        let syms = extract_symbols("typescript", code);
+        assert_eq!(syms.len(), 1);
+        assert!(syms[0].is_public);
+    }
+
+    #[test]
+    fn js_async_function_internal() {
+        let code = "async function doWork() {}\n";
+        let syms = extract_symbols("javascript", code);
+        assert_eq!(syms.len(), 1);
+        assert!(!syms[0].is_public);
+    }
+
+    // -------
+    // Rust pub with unmatched paren
+    // -------
+
+    #[test]
+    fn rust_pub_unmatched_paren_no_panic() {
+        let code = "pub(broken fn foo() {}\n";
+        let syms = extract_symbols("rust", code);
+        // Unmatched paren should not match as pub item
+        assert!(syms.is_empty() || !syms[0].is_public);
     }
 
     // -------
@@ -909,5 +1035,16 @@ mod tests {
         assert_eq!(round_f64(0.12345, 4), 0.1235);
         assert_eq!(round_f64(0.5, 0), 1.0);
         assert_eq!(round_f64(1.0, 4), 1.0);
+    }
+
+    #[test]
+    fn test_round_zero() {
+        assert_eq!(round_f64(0.0, 4), 0.0);
+    }
+
+    #[test]
+    fn test_round_small_fraction() {
+        assert_eq!(round_f64(0.3333, 2), 0.33);
+        assert_eq!(round_f64(0.6667, 2), 0.67);
     }
 }
