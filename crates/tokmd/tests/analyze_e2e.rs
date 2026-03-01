@@ -401,3 +401,334 @@ fn analyze_output_dir_writes_file() {
     let json: Value = serde_json::from_str(&content).expect("file should be valid JSON");
     assert_eq!(json["mode"], "analysis");
 }
+
+// ===========================================================================
+// Deep E2E tests – presets, formats, determinism, errors
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// 14. --preset health --format json: valid JSON with schema_version
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_health_preset_json_has_schema_version() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("health")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+
+    assert_eq!(json["mode"], "analysis");
+    let sv = json["schema_version"]
+        .as_u64()
+        .expect("schema_version should be a number");
+    assert!(sv >= 8, "analysis schema_version should be >= 8, got {sv}");
+    assert!(
+        json["derived"].is_object(),
+        "health preset should include derived section"
+    );
+    // Health preset includes complexity metrics
+    assert!(
+        json["complexity"].is_object(),
+        "health preset should include complexity section"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 15. --preset risk --format json: valid JSON with git section
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_risk_preset_json_has_git_section() {
+    // Risk preset requires real git history for git metrics
+    let project = create_sample_project();
+    let dir = project.path();
+
+    if !common::init_git_repo(dir) || !common::git_add_commit(dir, "initial") {
+        eprintln!("skipping: git not available");
+        return;
+    }
+
+    // Add a second commit so git log has history
+    fs::write(dir.join("src").join("extra.rs"), "fn extra() {}\n").unwrap();
+    if !common::git_add_commit(dir, "add extra") {
+        eprintln!("skipping: git commit failed");
+        return;
+    }
+
+    let output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("risk")
+        .arg("--format")
+        .arg("json")
+        .current_dir(dir)
+        .output()
+        .expect("failed to execute");
+
+    assert!(
+        output.status.success(),
+        "risk preset should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+
+    assert_eq!(json["mode"], "analysis");
+    let sv = json["schema_version"]
+        .as_u64()
+        .expect("schema_version should be a number");
+    assert!(sv >= 8, "analysis schema_version should be >= 8, got {sv}");
+    assert!(
+        json["derived"].is_object(),
+        "risk preset should include derived section"
+    );
+    // Risk includes git metrics when history is available
+    assert!(
+        json["git"].is_object(),
+        "risk preset should include git section, got keys: {:?}",
+        json.as_object().map(|o| o.keys().collect::<Vec<_>>())
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 16. --preset supply --format json: valid JSON with deps/assets sections
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_supply_preset_json_has_deps_and_assets() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("supply")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute");
+
+    assert!(
+        output.status.success(),
+        "supply preset should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+
+    assert_eq!(json["mode"], "analysis");
+    let sv = json["schema_version"]
+        .as_u64()
+        .expect("schema_version should be a number");
+    assert!(sv >= 8, "analysis schema_version should be >= 8, got {sv}");
+    // Supply preset includes assets and dependency lockfile reports
+    assert!(
+        json["assets"].is_object(),
+        "supply preset should include assets section"
+    );
+    assert!(
+        json["deps"].is_object(),
+        "supply preset should include deps section"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 17. --format tree: produces tree-like output (text format)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_tree_format_produces_output() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("tree")
+        .output()
+        .expect("failed to execute");
+
+    assert!(
+        output.status.success(),
+        "tree format should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    assert!(!stdout.is_empty(), "tree format should produce output");
+}
+
+// ---------------------------------------------------------------------------
+// 18. Determinism: two identical runs produce same JSON (timestamps excluded)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_determinism_two_runs_match() {
+    let run = || {
+        let output = tokmd_cmd()
+            .arg("analyze")
+            .arg(".")
+            .arg("--preset")
+            .arg("receipt")
+            .arg("--format")
+            .arg("json")
+            .output()
+            .expect("failed to execute");
+        assert!(output.status.success());
+        let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+        let mut json: Value = serde_json::from_str(&stdout).expect("invalid JSON");
+        // Normalize volatile fields
+        json["generated_at_ms"] = Value::Null;
+        if let Some(integrity) = json.pointer_mut("/derived/integrity/scan_fingerprint") {
+            *integrity = Value::Null;
+        }
+        if let Some(ts) = json.pointer_mut("/tool/built_at") {
+            *ts = Value::Null;
+        }
+        json
+    };
+
+    let run1 = run();
+    let run2 = run();
+    assert_eq!(
+        run1, run2,
+        "two identical analyze runs should produce deterministic output"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 19. Verify args.preset field reflects requested preset
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_json_args_preset_matches_requested() {
+    for preset in &["receipt", "health", "supply"] {
+        let output = tokmd_cmd()
+            .arg("analyze")
+            .arg(".")
+            .arg("--preset")
+            .arg(preset)
+            .arg("--format")
+            .arg("json")
+            .output()
+            .expect("failed to execute");
+
+        assert!(output.status.success());
+
+        let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+        let json: Value = serde_json::from_str(&stdout).expect("invalid JSON");
+
+        assert_eq!(
+            json["args"]["preset"].as_str().unwrap(),
+            *preset,
+            "args.preset should reflect the requested preset '{preset}'"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 20. JSON status field is "complete"
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_json_status_is_complete() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("invalid JSON");
+
+    assert_eq!(
+        json["status"].as_str().unwrap(),
+        "complete",
+        "status should be 'complete' for a valid scan"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 21. JSON warnings is an array
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_json_warnings_is_array() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("invalid JSON");
+
+    assert!(json["warnings"].is_array(), "warnings should be an array");
+}
+
+// ---------------------------------------------------------------------------
+// 22. Non-existent path returns failure
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_nonexistent_path_fails() {
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .arg("analyze")
+        .arg("this_path_does_not_exist_xyz")
+        .assert()
+        .failure();
+}
+
+// ---------------------------------------------------------------------------
+// 23. Health preset produces todo density in derived section
+// ---------------------------------------------------------------------------
+
+#[test]
+fn analyze_health_preset_has_todo_density() {
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("health")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute");
+
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("invalid JSON");
+
+    let derived = json["derived"]
+        .as_object()
+        .expect("derived should be an object");
+    assert!(
+        derived.contains_key("todo"),
+        "health preset derived should include todo density report"
+    );
+}
+
