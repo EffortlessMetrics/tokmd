@@ -166,11 +166,11 @@ fn sample_diff_receipt() -> DiffReceipt {
 
 #[test]
 fn schema_version_constants_match_expected_values() {
-    assert_eq!(SCHEMA_VERSION, 2);
-    assert_eq!(COCKPIT_SCHEMA_VERSION, 3);
-    assert_eq!(HANDOFF_SCHEMA_VERSION, 5);
-    assert_eq!(CONTEXT_SCHEMA_VERSION, 4);
-    assert_eq!(CONTEXT_BUNDLE_SCHEMA_VERSION, 2);
+    assert_eq!(SCHEMA_VERSION, 2, "SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json");
+    assert_eq!(COCKPIT_SCHEMA_VERSION, 3, "COCKPIT_SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json");
+    assert_eq!(HANDOFF_SCHEMA_VERSION, 5, "HANDOFF_SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json");
+    assert_eq!(CONTEXT_SCHEMA_VERSION, 4, "CONTEXT_SCHEMA_VERSION changed — update docs/SCHEMA.md");
+    assert_eq!(CONTEXT_BUNDLE_SCHEMA_VERSION, 2, "CONTEXT_BUNDLE_SCHEMA_VERSION changed — update docs/SCHEMA.md");
 }
 
 // =============================================================================
