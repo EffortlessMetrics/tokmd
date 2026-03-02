@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshots.rs
+expression: normalised
+---
+{"args":{"children":"separate","format":"jsonl","max_rows":0,"min_code":0,"module_depth":1,"module_roots":["src","tests"],"redact":"none","strip_prefix":null},"generated_at_ms":0,"mode":"export","scan":{"config":"auto","excluded":[],"hidden":false,"no_ignore":false,"no_ignore_dot":false,"no_ignore_parent":false,"no_ignore_vcs":false,"paths":["."],"treat_doc_strings_as_comments":false},"schema_version":2,"status":"complete","tool":{"name":"tokmd","version":"0.0.0"},"type":"meta","warnings":[]}
+{"blanks":10,"bytes":1000,"code":100,"comments":20,"kind":"parent","lang":"Rust","lines":130,"module":"src","path":"src/lib.rs","tokens":250,"type":"row"}
+{"blanks":5,"bytes":600,"code":60,"comments":5,"kind":"parent","lang":"Rust","lines":70,"module":"src","path":"src/util.rs","tokens":150,"type":"row"}
+{"blanks":3,"bytes":400,"code":40,"comments":2,"kind":"parent","lang":"Rust","lines":45,"module":"tests","path":"tests/smoke.rs","tokens":100,"type":"row"}

@@ -1,0 +1,19 @@
+---
+source: crates/tokmd-tokeignore/tests/snapshots.rs
+expression: content
+---
+# .tokeignore (Rust)
+# Focus: ignore build outputs and generated artifacts.
+
+target/
+**/target/
+
+**/*.rs.bk
+
+# Coverage
+coverage/
+**/coverage/
+
+# tokmd outputs
+.runs/
+**/.runs/

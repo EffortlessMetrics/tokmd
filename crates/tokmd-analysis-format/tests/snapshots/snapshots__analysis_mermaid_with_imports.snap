@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshots.rs
+expression: rendered
+---
+graph TD
+  mod_a -->|5| mod_b
+  mod_b -->|2| mod_c

@@ -16,6 +16,7 @@ anyhow = "1.0.101"
 tokmd-config.workspace = true
 
 [dev-dependencies]
+insta = { workspace = true }
 proptest = "1.10.0"
 tempfile = "3.25.0"
 
