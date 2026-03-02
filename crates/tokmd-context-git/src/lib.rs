@@ -71,6 +71,35 @@ pub fn compute_git_scores(
     None
 }
 
+#[cfg(test)]
+mod tests_no_feature {
+    use super::*;
+
+    #[test]
+    fn git_scores_can_be_constructed() {
+        let scores = GitScores {
+            hotspots: BTreeMap::new(),
+            commit_counts: BTreeMap::new(),
+        };
+        assert!(scores.hotspots.is_empty());
+        assert!(scores.commit_counts.is_empty());
+    }
+
+    #[test]
+    fn git_scores_btreemap_is_sorted() {
+        let mut hotspots = BTreeMap::new();
+        hotspots.insert("z/file.rs".to_string(), 100);
+        hotspots.insert("a/file.rs".to_string(), 50);
+        let scores = GitScores {
+            hotspots,
+            commit_counts: BTreeMap::new(),
+        };
+        let keys: Vec<&String> = scores.hotspots.keys().collect();
+        assert_eq!(keys[0], "a/file.rs");
+        assert_eq!(keys[1], "z/file.rs");
+    }
+}
+
 #[cfg(all(test, feature = "git"))]
 mod tests {
     use super::*;
