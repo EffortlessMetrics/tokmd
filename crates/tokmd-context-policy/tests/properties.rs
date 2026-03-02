@@ -195,4 +195,68 @@ proptest! {
             prop_assert!(classes.contains(&FileClassification::Lockfile));
         }
     }
+
+    // ── Selection bound invariants ───────────────────────────────────
+
+    #[test]
+    fn compute_file_cap_at_most_budget_for_valid_pct(
+        budget in 0usize..10_000_000,
+        pct in 0.0f64..1.0,
+        hard_cap in prop::option::of(1usize..1_000_000),
+    ) {
+        let cap = compute_file_cap(budget, pct, hard_cap);
+        // For pct in [0, 1), cap should never exceed budget
+        if budget < usize::MAX {
+            prop_assert!(cap <= budget, "cap {} > budget {}", cap, budget);
+        }
+    }
+
+    #[test]
+    fn smart_exclude_always_catches_known_lockfiles(
+        basename in prop::sample::select(vec![
+            "Cargo.lock", "package-lock.json", "yarn.lock",
+            "poetry.lock", "Pipfile.lock", "go.sum",
+            "composer.lock", "Gemfile.lock",
+        ]),
+        prefix in prop::option::of("[a-z]+(/[a-z]+){0,3}")
+    ) {
+        let path = match prefix {
+            Some(p) => format!("{}/{}", p, basename),
+            None => basename.to_string(),
+        };
+        let reason = smart_exclude_reason(&path);
+        prop_assert_eq!(reason, Some("lockfile"), "Expected lockfile for {}", path);
+    }
+
+    #[test]
+    fn smart_exclude_always_catches_known_minified(
+        stem in "[a-z][a-z0-9]{0,20}",
+        ext in prop::sample::select(vec!["js", "css"]),
+        prefix in prop::option::of("[a-z]+(/[a-z]+){0,2}")
+    ) {
+        let filename = format!("{}.min.{}", stem, ext);
+        let path = match prefix {
+            Some(p) => format!("{}/{}", p, filename),
+            None => filename,
+        };
+        let reason = smart_exclude_reason(&path);
+        prop_assert_eq!(reason, Some("minified"), "Expected minified for {}", path);
+    }
+
+    #[test]
+    fn assign_policy_never_returns_full_above_cap_with_skip_class(
+        tokens in 1usize..200_000,
+        cap in 0usize..200_000,
+        class in prop::sample::select(vec![
+            FileClassification::Generated,
+            FileClassification::DataBlob,
+            FileClassification::Vendored,
+        ]),
+    ) {
+        let (policy, _) = assign_policy(tokens, cap, &[class]);
+        if tokens > cap {
+            prop_assert_ne!(policy, InclusionPolicy::Full,
+                "tokens={}, cap={}: should not be Full", tokens, cap);
+        }
+    }
 }
