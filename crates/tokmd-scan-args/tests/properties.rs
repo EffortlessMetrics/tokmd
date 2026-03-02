@@ -250,4 +250,45 @@ proptest! {
         prop_assert_eq!(&args_none.excluded, &excluded);
         prop_assert_eq!(&args_opt_none.excluded, &excluded);
     }
+
+    // NEW property tests
+
+    #[test]
+    fn normalize_idempotent(path in pathish_string()) {
+        let once = normalize_scan_input(Path::new(&path));
+        let twice = normalize_scan_input(Path::new(&once));
+        prop_assert_eq!(once, twice);
+    }
+
+    #[test]
+    fn normalize_no_backslash(path in pathish_string()) {
+        let normed = normalize_scan_input(Path::new(&path));
+        prop_assert!(!normed.contains('\'));
+    }
+
+    #[test]
+    fn scan_args_deterministic(path in pathish_string(), mode in redact_mode_strategy()) {
+        let paths = vec![PathBuf::from(&path)];
+        let opts = ScanOptions::default();
+        let a = scan_args(&paths, &opts, mode);
+        let b = scan_args(&paths, &opts, mode);
+        prop_assert_eq!(a.paths, b.paths);
+    }
+
+    #[test]
+    fn scan_args_paths_vec(paths_raw in prop::collection::vec(pathish_string(), 1..5)) {
+        let paths: Vec<PathBuf> = paths_raw.iter().map(PathBuf::from).collect();
+        let opts = ScanOptions::default();
+        let args = scan_args(&paths, &opts, None);
+        prop_assert_eq!(args.paths.len(), paths.len());
+    }
+
+    #[test]
+    fn normalize_leading_dot_slash(segment in "[a-zA-Z][a-zA-Z0-9_]{0,20}") {
+        let with_dot = format!("./{}", segment);
+        let a = normalize_scan_input(Path::new(&with_dot));
+        let b = normalize_scan_input(Path::new(&segment));
+        prop_assert_eq!(a, b, "dot-slash should be stripped");
+    }
+
 }
