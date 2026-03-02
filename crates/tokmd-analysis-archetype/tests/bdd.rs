@@ -457,3 +457,134 @@ fn kind_is_always_a_known_archetype() {
         }
     }
 }
+
+// ===========================================================================
+// Scenario: Deterministic — calling twice yields same result
+// ===========================================================================
+
+#[test]
+fn given_same_input_when_detect_called_twice_then_same_result() {
+    let export = export_with_paths(&["Cargo.toml", "crates/core/src/lib.rs", "src/main.rs"]);
+    let a1 = detect_archetype(&export);
+    let a2 = detect_archetype(&export);
+    assert_eq!(a1.as_ref().map(|a| &a.kind), a2.as_ref().map(|a| &a.kind));
+    assert_eq!(
+        a1.as_ref().map(|a| &a.evidence),
+        a2.as_ref().map(|a| &a.evidence)
+    );
+}
+
+// ===========================================================================
+// Scenario: Single marker file without companion
+// ===========================================================================
+
+#[test]
+fn given_only_dockerfile_then_no_archetype() {
+    let export = export_with_paths(&["Dockerfile"]);
+    assert!(
+        detect_archetype(&export).is_none(),
+        "Dockerfile alone should not match any archetype"
+    );
+}
+
+#[test]
+fn given_single_tf_file_then_iac_detected() {
+    let export = export_with_paths(&["deploy.tf"]);
+    let a = detect_archetype(&export).unwrap();
+    assert_eq!(a.kind, "Infrastructure as code");
+}
+
+// ===========================================================================
+// Scenario: Rust workspace with both main.rs and bin dir
+// ===========================================================================
+
+#[test]
+fn given_rust_workspace_with_both_main_rs_and_bin_dir_then_cli_variant() {
+    let export = export_with_paths(&[
+        "Cargo.toml",
+        "crates/foo/src/lib.rs",
+        "src/main.rs",
+        "crates/foo/src/bin/tool.rs",
+    ]);
+    let a = detect_archetype(&export).unwrap();
+    assert_eq!(a.kind, "Rust workspace (CLI)");
+}
+
+// ===========================================================================
+// Scenario: Evidence paths never contain backslashes
+// ===========================================================================
+
+#[test]
+fn given_any_archetype_evidence_paths_have_no_backslashes() {
+    let cases: Vec<Vec<&str>> = vec![
+        vec!["Cargo.toml", "crates/a/src/lib.rs"],
+        vec!["package.json", "next.config.js"],
+        vec!["Dockerfile", "k8s/pod.yaml"],
+        vec!["main.tf"],
+        vec!["pyproject.toml"],
+        vec!["package.json"],
+    ];
+    for paths in &cases {
+        let export = export_with_paths(paths);
+        if let Some(a) = detect_archetype(&export) {
+            for ev in &a.evidence {
+                assert!(
+                    !ev.contains('\\'),
+                    "evidence path should not contain backslashes: {:?} for kind={:?}",
+                    ev,
+                    a.kind
+                );
+            }
+        }
+    }
+}
+
+// ===========================================================================
+// Scenario: Archetype kind is never empty string
+// ===========================================================================
+
+#[test]
+fn given_detected_archetype_kind_is_non_empty() {
+    let cases: Vec<Vec<&str>> = vec![
+        vec!["Cargo.toml", "crates/a/src/lib.rs"],
+        vec!["package.json", "next.config.mjs"],
+        vec!["Dockerfile", "kubernetes/deploy.yaml"],
+        vec!["terraform/main.tf"],
+        vec!["pyproject.toml"],
+        vec!["package.json", "src/index.js"],
+    ];
+    for paths in &cases {
+        let export = export_with_paths(paths);
+        if let Some(a) = detect_archetype(&export) {
+            assert!(
+                !a.kind.is_empty(),
+                "kind must not be empty for paths={:?}",
+                paths
+            );
+        }
+    }
+}
+
+// ===========================================================================
+// Scenario: Multiple overlapping markers — highest priority wins
+// ===========================================================================
+
+#[test]
+fn given_all_markers_present_then_rust_workspace_wins() {
+    let export = export_with_paths(&[
+        "Cargo.toml",
+        "crates/core/src/lib.rs",
+        "package.json",
+        "next.config.js",
+        "Dockerfile",
+        "k8s/pod.yaml",
+        "main.tf",
+        "pyproject.toml",
+    ]);
+    let a = detect_archetype(&export).unwrap();
+    assert!(
+        a.kind.starts_with("Rust workspace"),
+        "Rust workspace should win over all others, got: {}",
+        a.kind
+    );
+}
