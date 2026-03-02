@@ -39,6 +39,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 | Version | Changes |
 |---------|---------|
+| **8** | Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats |
 | **7** | Coupling normalization (Jaccard similarity, Lift), commit intent classification, near-duplicate detection report |
 | **6** | Added API surface enricher (`api_surface` report with public export ratios per language) |
 | **5** | Added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution enrichers |

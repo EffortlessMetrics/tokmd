@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 7.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 8.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
