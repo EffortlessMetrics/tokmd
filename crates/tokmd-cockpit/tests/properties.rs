@@ -74,10 +74,10 @@ proptest! {
         // Sum should be <= 1.0 (some files may be uncategorized)
         prop_assert!(sum <= 1.001, "sum was {}", sum);
         // Each percentage should be [0, 1]
-        prop_assert!(comp.code_pct >= 0.0 && comp.code_pct <= 1.0);
-        prop_assert!(comp.test_pct >= 0.0 && comp.test_pct <= 1.0);
-        prop_assert!(comp.docs_pct >= 0.0 && comp.docs_pct <= 1.0);
-        prop_assert!(comp.config_pct >= 0.0 && comp.config_pct <= 1.0);
+        prop_assert!((0.0..=1.0).contains(&comp.code_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.test_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.docs_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.config_pct));
     }
 }
 
@@ -441,7 +441,7 @@ proptest! {
     #[test]
     fn round_pct_bounded(val in 0.0f64..100.0) {
         let r = round_pct(val);
-        prop_assert!(r >= 0.0 && r <= 100.0);
+        prop_assert!((0.0..=100.0).contains(&r));
     }
 
     #[test]
@@ -459,10 +459,10 @@ proptest! {
     #[test]
     fn composition_percentages(files in prop::collection::vec(file_path_strategy(), 1..20)) {
         let comp = compute_composition(&files);
-        prop_assert!(comp.code_pct >= 0.0 && comp.code_pct <= 100.0);
-        prop_assert!(comp.test_pct >= 0.0 && comp.test_pct <= 100.0);
-        prop_assert!(comp.docs_pct >= 0.0 && comp.docs_pct <= 100.0);
-        prop_assert!(comp.config_pct >= 0.0 && comp.config_pct <= 100.0);
+        prop_assert!((0.0..=100.0).contains(&comp.code_pct));
+        prop_assert!((0.0..=100.0).contains(&comp.test_pct));
+        prop_assert!((0.0..=100.0).contains(&comp.docs_pct));
+        prop_assert!((0.0..=100.0).contains(&comp.config_pct));
     }
 
     #[test]
