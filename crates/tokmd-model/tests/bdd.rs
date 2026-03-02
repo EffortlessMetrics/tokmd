@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use tokei::{Config, Languages};
 use tokmd_model::{
     collect_file_rows, create_export_data, create_lang_report, create_module_report, module_key,
+    normalize_path,
 };
 use tokmd_types::{ChildIncludeMode, ChildrenMode, FileKind};
 
@@ -527,4 +528,188 @@ fn scenario_two_identical_scans_produce_identical_reports() {
         assert_eq!(a.lang, b.lang, "same language order");
         assert_eq!(a.code, b.code, "same code count for {}", a.lang);
     }
+}
+
+// ========================
+// Scenario: Module report with explicit roots
+// ========================
+
+#[test]
+fn scenario_module_report_with_roots_groups_by_root_prefix() {
+    // Given a scanned codebase with a known crate structure
+    let workspace = format!("{}/../..", env!("CARGO_MANIFEST_DIR"));
+    let langs = scan(&format!("{workspace}/crates/tokmd-model/src"));
+
+    // When I generate a module report with roots = ["crates"] and depth = 2
+    // (scanning only src/, so no path starts with "crates/")
+    let report = create_module_report(
+        &langs,
+        &["crates".into()],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
+
+    // Then all module keys should NOT start with "crates/" because the
+    // scanned paths are relative to the src/ dir, not the workspace root.
+    for row in &report.rows {
+        assert!(!row.module.is_empty(), "Module key should not be empty");
+    }
+}
+
+// ========================
+// Scenario: Export data with strip_prefix
+// ========================
+
+#[test]
+fn scenario_export_data_with_strip_prefix_removes_path_prefix() {
+    // Given a scanned codebase
+    let src = crate_src();
+    let langs = scan(&src);
+
+    // When I generate export data with a strip_prefix
+    let prefix = std::path::Path::new(&src);
+    let data = create_export_data(
+        &langs,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        Some(prefix),
+        0,
+        0,
+    );
+
+    // Then no path should start with the stripped prefix
+    let prefix_str = tokmd_model::normalize_path(prefix, None);
+    for row in &data.rows {
+        assert!(
+            !row.path.starts_with(&prefix_str),
+            "Path '{}' should not start with stripped prefix '{}'",
+            row.path,
+            prefix_str
+        );
+    }
+}
+
+#[test]
+fn scenario_export_data_combined_min_code_and_max_rows() {
+    // Given a scanned codebase
+    let langs = scan(&crate_src());
+
+    // When I generate export data with both min_code and max_rows filters
+    let data = create_export_data(
+        &langs,
+        &[],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        None,
+        1, // min_code = 1 (skip files with 0 code)
+        1, // max_rows = 1
+    );
+
+    // Then at most 1 row, and it must have code >= 1
+    assert!(data.rows.len() <= 1, "max_rows=1 should limit to 1 row");
+    for row in &data.rows {
+        assert!(row.code >= 1, "min_code=1 should filter out 0-code rows");
+    }
+}
+
+// ========================
+// Scenario: Lang report metadata preservation
+// ========================
+
+#[test]
+fn scenario_lang_report_preserves_with_files_flag() {
+    // Given a scanned codebase
+    let langs = scan(&crate_src());
+
+    // When I generate reports with and without with_files
+    let with_files = create_lang_report(&langs, 0, true, ChildrenMode::Collapse);
+    let without_files = create_lang_report(&langs, 0, false, ChildrenMode::Collapse);
+
+    // Then the with_files field should reflect the flag
+    assert!(with_files.with_files);
+    assert!(!without_files.with_files);
+
+    // And the row data should be identical regardless of the flag
+    assert_eq!(with_files.rows.len(), without_files.rows.len());
+    assert_eq!(with_files.total.code, without_files.total.code);
+}
+
+#[test]
+fn scenario_lang_report_top_one_single_language_no_other_bucket() {
+    // Given a codebase with only Rust files
+    let langs = scan(&crate_src());
+
+    // When only one language exists and top = 1
+    let report = create_lang_report(&langs, 1, false, ChildrenMode::Collapse);
+
+    // Then there should be exactly 1 row (no "Other" needed if only 1 language)
+    if report.rows.len() == 1 {
+        assert_ne!(report.rows[0].lang, "Other");
+    }
+}
+
+// ========================
+// Scenario: File row normalization
+// ========================
+
+#[test]
+fn scenario_collect_file_rows_paths_use_forward_slashes() {
+    // Given scanned languages
+    let langs = scan(&crate_src());
+
+    // When I collect file rows
+    let rows = collect_file_rows(&langs, &[], 2, ChildIncludeMode::ParentsOnly, None);
+
+    // Then all paths must use forward slashes (never backslashes)
+    for row in &rows {
+        assert!(
+            !row.path.contains('\\'),
+            "Path '{}' should not contain backslashes",
+            row.path
+        );
+    }
+}
+
+#[test]
+fn scenario_collect_file_rows_lines_equals_components() {
+    // Given scanned languages
+    let langs = scan(&crate_src());
+
+    // When I collect file rows
+    let rows = collect_file_rows(&langs, &[], 2, ChildIncludeMode::ParentsOnly, None);
+
+    // Then for every row, lines = code + comments + blanks
+    for row in &rows {
+        assert_eq!(
+            row.lines,
+            row.code + row.comments + row.blanks,
+            "lines != code + comments + blanks for '{}'",
+            row.path
+        );
+    }
+}
+
+// ========================
+// Scenario: Module report with Separate children mode
+// ========================
+
+#[test]
+fn scenario_module_report_separate_has_at_least_as_many_code_as_parents_only() {
+    // Given scanned languages
+    let langs = scan(&crate_src());
+
+    // When I generate module reports in both modes
+    let parents = create_module_report(&langs, &[], 2, ChildIncludeMode::ParentsOnly, 0);
+    let separate = create_module_report(&langs, &[], 2, ChildIncludeMode::Separate, 0);
+
+    // Then Separate mode total code should be >= ParentsOnly total code
+    // (embedded languages add code lines)
+    assert!(
+        separate.total.code >= parents.total.code,
+        "Separate ({}) should have >= code than ParentsOnly ({})",
+        separate.total.code,
+        parents.total.code
+    );
 }

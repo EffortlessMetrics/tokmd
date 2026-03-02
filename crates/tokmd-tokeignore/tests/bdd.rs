@@ -849,3 +849,187 @@ mod superset_relationships {
         }
     }
 }
+
+// ============================================================================
+// Scenario: Force overwrite edge cases
+// ============================================================================
+
+mod force_edge_cases {
+    use super::*;
+
+    #[test]
+    fn given_force_on_zero_byte_file_then_succeeds() {
+        let temp = TempDir::new().unwrap();
+        std::fs::write(temp.path().join(".tokeignore"), "").unwrap();
+        let args = make_args(temp.path().to_path_buf(), InitProfile::Default, true, false);
+        let result = init_tokeignore(&args).unwrap();
+        assert!(result.is_some());
+        let content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+        assert!(
+            content.contains("# .tokeignore"),
+            "Should overwrite empty file with template"
+        );
+    }
+
+    #[test]
+    fn given_sequential_profile_switch_then_last_profile_wins() {
+        let temp = TempDir::new().unwrap();
+
+        // Write Rust first
+        let args = make_args(temp.path().to_path_buf(), InitProfile::Rust, false, false);
+        init_tokeignore(&args).unwrap();
+        let rust_content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+        assert!(rust_content.contains("(Rust)"));
+
+        // Overwrite with Python
+        let args = make_args(temp.path().to_path_buf(), InitProfile::Python, true, false);
+        init_tokeignore(&args).unwrap();
+        let python_content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+        assert!(python_content.contains("(Python)"));
+        assert!(!python_content.contains("(Rust)"));
+
+        // Overwrite with Go
+        let args = make_args(temp.path().to_path_buf(), InitProfile::Go, true, false);
+        init_tokeignore(&args).unwrap();
+        let go_content = std::fs::read_to_string(temp.path().join(".tokeignore")).unwrap();
+        assert!(go_content.contains("(Go)"));
+        assert!(!go_content.contains("(Python)"));
+    }
+}
+
+// ============================================================================
+// Scenario: Template profile identification
+// ============================================================================
+
+mod profile_identification {
+    use super::*;
+
+    #[test]
+    fn given_each_profile_header_identifies_profile_name() {
+        let cases: &[(InitProfile, &str)] = &[
+            (InitProfile::Rust, "Rust"),
+            (InitProfile::Node, "Node"),
+            (InitProfile::Mono, "Monorepo"),
+            (InitProfile::Python, "Python"),
+            (InitProfile::Go, "Go"),
+            (InitProfile::Cpp, "C++"),
+        ];
+        for &(profile, expected_name) in cases {
+            let content = write_and_read(profile);
+            let header = content
+                .lines()
+                .next()
+                .expect("template should have a header");
+            assert!(
+                header.contains(expected_name),
+                "Header for {:?} should contain '{}', got: '{}'",
+                profile,
+                expected_name,
+                header
+            );
+        }
+    }
+
+    #[test]
+    fn given_default_profile_header_is_generic() {
+        let content = write_and_read(InitProfile::Default);
+        let header = content.lines().next().unwrap();
+        // Default header should NOT contain a parenthesized qualifier
+        assert_eq!(header, "# .tokeignore");
+    }
+}
+
+// ============================================================================
+// Scenario: Profile minimality ordering
+// ============================================================================
+
+mod profile_size {
+    use super::*;
+
+    fn pattern_count(profile: InitProfile) -> usize {
+        let content = write_and_read(profile);
+        content
+            .lines()
+            .filter(|l| {
+                let t = l.trim();
+                !t.is_empty() && !t.starts_with('#')
+            })
+            .count()
+    }
+
+    #[test]
+    fn given_go_template_is_most_minimal_specific_profile() {
+        let go_count = pattern_count(InitProfile::Go);
+        for profile in [
+            InitProfile::Rust,
+            InitProfile::Node,
+            InitProfile::Python,
+            InitProfile::Cpp,
+        ] {
+            let count = pattern_count(profile);
+            assert!(
+                go_count <= count,
+                "Go ({} patterns) should be <= {:?} ({} patterns)",
+                go_count,
+                profile,
+                count,
+            );
+        }
+    }
+
+    #[test]
+    fn given_mono_has_most_patterns_among_all_profiles() {
+        let mono_count = pattern_count(InitProfile::Mono);
+        for profile in [
+            InitProfile::Rust,
+            InitProfile::Node,
+            InitProfile::Python,
+            InitProfile::Go,
+            InitProfile::Cpp,
+        ] {
+            let count = pattern_count(profile);
+            assert!(
+                mono_count >= count,
+                "Mono ({} patterns) should be >= {:?} ({} patterns)",
+                mono_count,
+                profile,
+                count,
+            );
+        }
+    }
+}
+
+// ============================================================================
+// Scenario: All templates contain .runs/ with double-star variant
+// ============================================================================
+
+mod runs_pattern {
+    use super::*;
+
+    const ALL_PROFILES: [InitProfile; 7] = [
+        InitProfile::Default,
+        InitProfile::Rust,
+        InitProfile::Node,
+        InitProfile::Mono,
+        InitProfile::Python,
+        InitProfile::Go,
+        InitProfile::Cpp,
+    ];
+
+    #[test]
+    fn given_all_templates_have_both_runs_and_double_star_runs() {
+        for profile in ALL_PROFILES {
+            let content = write_and_read(profile);
+            assert!(
+                content.contains(".runs/"),
+                "Template {:?} should contain .runs/",
+                profile
+            );
+            assert!(
+                content.contains("**/.runs/"),
+                "Template {:?} should contain **/.runs/",
+                profile
+            );
+        }
+    }
+}

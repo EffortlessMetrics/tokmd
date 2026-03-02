@@ -405,6 +405,25 @@ fn given_only_blank_lines_file_when_scanned_then_zero_code_lines() -> Result<()>
 }
 
 // ===========================================================================
+// Scenario group: empty / minimal file handling
+// ===========================================================================
+
+#[test]
+fn given_empty_rust_file_when_scanned_then_detected_with_zero_code() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "empty.rs", "");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+
+    // tokei should detect the file but report 0 code lines.
+    // It's acceptable for tokei to either skip empty files entirely or report 0 code.
+    if let Some(rust) = langs.get(&tokei::LanguageType::Rust) {
+        assert_eq!(rust.code, 0, "empty file should have 0 code lines");
+    }
+    Ok(())
+}
+
+// ===========================================================================
 // Scenario group: multiple exclusion patterns
 // ===========================================================================
 
@@ -471,6 +490,28 @@ fn main() {
     Ok(())
 }
 
+#[test]
+fn given_only_comments_when_scanned_then_code_is_zero() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(
+        &tmp,
+        "comments_only.rs",
+        "// This is a comment\n// Another comment\n// Yet another\n",
+    );
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert_eq!(rust.code, 0, "file with only comments should have 0 code");
+    assert!(
+        rust.comments > 0,
+        "file with only comments should have positive comment count"
+    );
+    Ok(())
+}
+
 // ===========================================================================
 // Scenario group: single-line file
 // ===========================================================================
@@ -486,6 +527,22 @@ fn given_single_line_file_when_scanned_then_one_code_line() -> Result<()> {
         .expect("should find Rust");
 
     assert_eq!(rust.code, 1, "single function file = 1 code line");
+    Ok(())
+}
+
+#[test]
+fn given_blanks_and_comments_only_when_scanned_then_code_is_zero() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "blanks.rs", "\n\n// comment\n\n// another\n\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert_eq!(rust.code, 0, "no code lines expected");
+    assert!(rust.blanks > 0, "blanks should be counted");
+    assert!(rust.comments > 0, "comments should be counted");
     Ok(())
 }
 
@@ -521,5 +578,85 @@ fn given_no_ignore_vcs_flag_when_scanned_then_gitignored_files_included() -> Res
         rust.code >= 2,
         "no_ignore_vcs should include gitignored files"
     );
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: file count accuracy
+// ===========================================================================
+
+#[test]
+fn given_known_file_count_when_scanned_then_report_count_matches() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "a.rs", "fn a() {}\n");
+    write_file(&tmp, "b.rs", "fn b() {}\n");
+    write_file(&tmp, "c.rs", "fn c() {}\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert_eq!(rust.reports.len(), 3, "should report exactly 3 Rust files");
+    Ok(())
+}
+
+#[test]
+fn given_files_in_subdirs_when_scanned_then_all_files_counted() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "root.rs", "fn root() {}\n");
+    write_file(&tmp, "a/nested.rs", "fn nested() {}\n");
+    write_file(&tmp, "a/b/deep.rs", "fn deep() {}\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert_eq!(
+        rust.reports.len(),
+        3,
+        "should find files at all nesting levels"
+    );
+    assert_eq!(rust.code, 3, "each file has 1 code line");
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: per-language determinism
+// ===========================================================================
+
+#[test]
+fn given_multi_lang_dir_when_scanned_twice_then_all_stats_identical() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "app.rs", "fn main() {}\n");
+    write_file(&tmp, "util.py", "def util():\n    pass\n");
+    write_file(&tmp, "lib.js", "function f() { return 1; }\n");
+
+    let opts = default_opts();
+    let r1 = scan(&[tmp.path().to_path_buf()], &opts)?;
+    let r2 = scan(&[tmp.path().to_path_buf()], &opts)?;
+
+    for lang_type in [
+        tokei::LanguageType::Rust,
+        tokei::LanguageType::Python,
+        tokei::LanguageType::JavaScript,
+    ] {
+        let l1 = r1.get(&lang_type).expect("lang present in first scan");
+        let l2 = r2.get(&lang_type).expect("lang present in second scan");
+        assert_eq!(l1.code, l2.code, "{:?} code mismatch", lang_type);
+        assert_eq!(
+            l1.comments, l2.comments,
+            "{:?} comments mismatch",
+            lang_type
+        );
+        assert_eq!(l1.blanks, l2.blanks, "{:?} blanks mismatch", lang_type);
+        assert_eq!(
+            l1.reports.len(),
+            l2.reports.len(),
+            "{:?} file count mismatch",
+            lang_type
+        );
+    }
     Ok(())
 }

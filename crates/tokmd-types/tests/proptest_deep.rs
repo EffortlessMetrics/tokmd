@@ -6,10 +6,10 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    cockpit::COCKPIT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
-    DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, InclusionPolicy, RedactMode,
-    TableFormat, TokenEstimationMeta, Totals, CONTEXT_BUNDLE_SCHEMA_VERSION,
-    CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION, SCHEMA_VERSION,
+    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode,
+    CommitIntentKind, ConfigMode, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind,
+    HANDOFF_SCHEMA_VERSION, InclusionPolicy, RedactMode, SCHEMA_VERSION, TableFormat,
+    TokenEstimationMeta, Totals, cockpit::COCKPIT_SCHEMA_VERSION,
 };
 
 // =========================================================================
