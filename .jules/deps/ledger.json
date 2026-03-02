@@ -1,0 +1,8 @@
+[
+  {
+    "date": "2026-03-02",
+    "persona": "Auditor",
+    "action": "Removed unused tokmd-sensor and tokmd-substrate from tokmd crate dependencies.",
+    "run_id": "run-123"
+  }
+]
