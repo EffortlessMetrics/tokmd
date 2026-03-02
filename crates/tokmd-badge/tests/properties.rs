@@ -37,7 +37,7 @@ proptest! {
         value in "[0-9]{1,5}",
     ) {
         let svg = badge_svg(&label, &value);
-        prop_assert!(svg.contains("height=\"20\""));
+        prop_assert!(svg.contains("height=\"24\""));
     }
 
     #[test]
