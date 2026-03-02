@@ -210,3 +210,101 @@ fn extract_width(svg: &str) -> i32 {
     let end = svg[start..].find('"').expect("width close") + start;
     svg[start..end].parse().expect("numeric width")
 }
+
+// ── Given numeric label, badge renders correctly ────────────────────
+
+#[test]
+fn given_numeric_label_when_badge_rendered_then_both_numbers_appear() {
+    let svg = badge_svg("42", "99");
+    assert!(svg.contains(">42<"));
+    assert!(svg.contains(">99<"));
+}
+
+// ── Given identical label and value, badge still valid ──────────────
+
+#[test]
+fn given_identical_label_and_value_when_badge_rendered_then_both_text_elements_present() {
+    let svg = badge_svg("same", "same");
+    let text_count = svg.matches("<text").count();
+    assert_eq!(text_count, 2, "even with identical text, two text elements");
+    assert!(svg.contains(">same<"));
+}
+
+// ── Given very long text, width grows accordingly ───────────────────
+
+#[test]
+fn given_100_char_label_when_badge_rendered_then_width_exceeds_minimum_greatly() {
+    let long_label = "a".repeat(100);
+    let svg = badge_svg(&long_label, "x");
+    let width = extract_width(&svg);
+    assert!(width > 500, "100 char label should produce a wide badge: got {width}");
+}
+
+// ── Given all XML special chars combined, all escaped ───────────────
+
+#[test]
+fn given_all_xml_special_chars_when_badge_rendered_then_all_escaped() {
+    let svg = badge_svg("<&>\"'", "<&>\"'");
+    // No raw special chars in text content
+    assert!(!svg.contains(">&<"));
+    assert!(svg.contains("&lt;"));
+    assert!(svg.contains("&amp;"));
+    assert!(svg.contains("&gt;"));
+    assert!(svg.contains("&quot;"));
+    assert!(svg.contains("&apos;"));
+}
+
+// ── Given newlines in text, badge still valid SVG ───────────────────
+
+#[test]
+fn given_newline_in_label_when_badge_rendered_then_svg_is_valid() {
+    let svg = badge_svg("line\none", "val");
+    assert!(svg.starts_with("<svg"));
+    assert!(svg.ends_with("</svg>"));
+}
+
+// ── Given spaces in text, badge renders correctly ───────────────────
+
+#[test]
+fn given_spaces_in_label_when_badge_rendered_then_text_preserved() {
+    let svg = badge_svg("code lines", "1 234");
+    assert!(svg.contains("code lines"));
+    assert!(svg.contains("1 234"));
+}
+
+// ── Given width calculation, label and value segments sum to total ──
+
+#[test]
+fn given_any_badge_when_rendered_then_total_width_equals_sum_of_segments() {
+    let svg = badge_svg("test", "value");
+    // Extract total width
+    let total_width = extract_width(&svg);
+
+    // Extract individual rect widths (label rect width="X" and value rect width="Y")
+    let rects: Vec<i32> = svg
+        .match_indices("width=\"")
+        .skip(1) // skip the SVG element width
+        .take(2) // take the two rect widths
+        .map(|(pos, _)| {
+            let start = pos + 7;
+            let end = svg[start..].find('"').unwrap() + start;
+            svg[start..end].parse::<i32>().unwrap()
+        })
+        .collect();
+
+    assert_eq!(rects.len(), 2, "should find two rect width attributes");
+    assert_eq!(
+        rects[0] + rects[1],
+        total_width,
+        "segment widths should sum to total"
+    );
+}
+
+// ── Given minimum width enforcement, both segments at least 60 ─────
+
+#[test]
+fn given_single_char_inputs_when_badge_rendered_then_each_segment_at_least_60() {
+    let svg = badge_svg("a", "b");
+    // Total width should be exactly 120 (60 + 60)
+    assert_eq!(extract_width(&svg), 120);
+}

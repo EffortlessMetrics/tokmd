@@ -384,3 +384,141 @@ fn scenario_top_zero_means_no_limit() {
         "top = 0 should not truncate"
     );
 }
+
+// ========================
+// Scenario: normalize_path edge cases
+// ========================
+
+#[test]
+fn scenario_normalize_path_strips_leading_dot_slash() {
+    use std::path::Path;
+    use tokmd_model::normalize_path;
+
+    let result = normalize_path(Path::new("./src/lib.rs"), None);
+    assert_eq!(result, "src/lib.rs");
+}
+
+#[test]
+fn scenario_normalize_path_converts_backslashes_to_forward_slashes() {
+    use std::path::Path;
+    use tokmd_model::normalize_path;
+
+    let result = normalize_path(Path::new("src\\main.rs"), None);
+    assert_eq!(result, "src/main.rs");
+}
+
+#[test]
+fn scenario_normalize_path_with_strip_prefix_removes_prefix() {
+    use std::path::Path;
+    use tokmd_model::normalize_path;
+
+    let result = normalize_path(Path::new("crates/foo/src/lib.rs"), Some(Path::new("crates/foo")));
+    assert_eq!(result, "src/lib.rs");
+}
+
+#[test]
+fn scenario_normalize_path_without_matching_prefix_keeps_path() {
+    use std::path::Path;
+    use tokmd_model::normalize_path;
+
+    let result =
+        normalize_path(Path::new("src/lib.rs"), Some(Path::new("nonexistent")));
+    assert_eq!(result, "src/lib.rs");
+}
+
+// ========================
+// Scenario: avg edge cases
+// ========================
+
+#[test]
+fn scenario_avg_with_zero_files_returns_zero() {
+    use tokmd_model::avg;
+
+    assert_eq!(avg(100, 0), 0, "division by zero should yield 0");
+}
+
+#[test]
+fn scenario_avg_rounds_to_nearest() {
+    use tokmd_model::avg;
+
+    // 10 lines / 3 files = 3.33 → should round to 3 (with half-up: (10+1)/3 = 3)
+    assert_eq!(avg(10, 3), 3);
+    // 11 lines / 2 files = 5.5 → should round to 6 (with half-up: (11+1)/2 = 6)
+    assert_eq!(avg(11, 2), 6);
+}
+
+#[test]
+fn scenario_avg_with_one_file_returns_lines() {
+    use tokmd_model::avg;
+
+    assert_eq!(avg(42, 1), 42);
+}
+
+// ========================
+// Scenario: module_key edge cases
+// ========================
+
+#[test]
+fn scenario_module_key_root_file_returns_root() {
+    use tokmd_model::module_key;
+
+    assert_eq!(module_key("Cargo.toml", &["crates".into()], 2), "(root)");
+}
+
+#[test]
+fn scenario_module_key_single_dir_returns_dir_name() {
+    use tokmd_model::module_key;
+
+    assert_eq!(module_key("docs/readme.md", &[], 2), "docs");
+}
+
+#[test]
+fn scenario_module_key_with_matching_root_joins_segments() {
+    use tokmd_model::module_key;
+
+    let result = module_key("crates/tokmd-scan/src/lib.rs", &["crates".into()], 2);
+    assert_eq!(result, "crates/tokmd-scan");
+}
+
+// ========================
+// Scenario: with_files flag
+// ========================
+
+#[test]
+fn scenario_with_files_true_populates_file_count_in_report() {
+    let langs = scan(&crate_src());
+    let report = create_lang_report(&langs, 0, true, ChildrenMode::Collapse);
+
+    for row in &report.rows {
+        assert!(row.files > 0, "with_files=true should populate file count for {}", row.lang);
+    }
+    assert!(report.total.files > 0, "total files should be positive");
+}
+
+#[test]
+fn scenario_with_files_false_still_populates_file_count() {
+    let langs = scan(&crate_src());
+    let report = create_lang_report(&langs, 0, false, ChildrenMode::Collapse);
+
+    // Even with_files=false, the report struct still has file counts (it controls display)
+    assert!(report.total.files > 0 || report.rows.is_empty());
+}
+
+// ========================
+// Scenario: deterministic ordering
+// ========================
+
+#[test]
+fn scenario_two_identical_scans_produce_identical_reports() {
+    let langs1 = scan(&crate_src());
+    let langs2 = scan(&crate_src());
+
+    let r1 = create_lang_report(&langs1, 0, false, ChildrenMode::Collapse);
+    let r2 = create_lang_report(&langs2, 0, false, ChildrenMode::Collapse);
+
+    assert_eq!(r1.rows.len(), r2.rows.len(), "same row count");
+    for (a, b) in r1.rows.iter().zip(r2.rows.iter()) {
+        assert_eq!(a.lang, b.lang, "same language order");
+        assert_eq!(a.code, b.code, "same code count for {}", a.lang);
+    }
+}
