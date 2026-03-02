@@ -4,9 +4,9 @@
 //! resolution, and serialization round-trips.
 
 use proptest::prelude::*;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use tokmd_gate::{
-    GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy, resolve_pointer,
+    evaluate_policy, resolve_pointer, GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator,
 };
 
 // ============================================================================
@@ -654,4 +654,55 @@ fn evaluate_single_rule(receipt: &Value, rule: &PolicyRule) -> tokmd_gate::RuleR
     };
     let result = evaluate_policy(receipt, &policy);
     result.rule_results.into_iter().next().unwrap()
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(200))]
+
+    #[test]
+    fn gate_result_from_empty(_dummy in 0..1u32) {
+        let result = GateResult::from_results(vec![]);
+        prop_assert!(result.passed);
+        prop_assert_eq!(result.rule_results.len(), 0);
+    }
+
+    #[test]
+    fn gate_all_pass(n in 1usize..10, val in 1i64..1000) {
+        let receipt = json!({"metric": val});
+        let rules: Vec<PolicyRule> = (0..n)
+            .map(|i| make_rule(&format!("rule_{}", i), "/metric", RuleOperator::Gte, json!(0)))
+            .collect();
+        let policy = PolicyConfig { rules, fail_fast: false, allow_missing: false };
+        let result = evaluate_policy(&receipt, &policy);
+        prop_assert!(result.passed);
+    }
+
+    #[test]
+    fn threshold_ge_operator(val in 0i64..1000, threshold in 0i64..1000) {
+        let receipt = json!({"m": val});
+        let rule = make_rule("ge_test", "/m", RuleOperator::Gte, json!(threshold));
+        let rr = evaluate_single_rule(&receipt, &rule);
+        if val >= threshold {
+            prop_assert!(rr.passed);
+        } else {
+            prop_assert!(!rr.passed);
+        }
+    }
+
+    #[test]
+    fn pointer_token_no_null(token in arb_pointer_token()) {
+        prop_assert!(!token.contains('\0'));
+    }
+
+    #[test]
+    fn gate_result_fail_if_any_fail(val in 0i64..100) {
+        let receipt = json!({"x": val});
+        let rules = vec![
+            make_rule("pass_rule", "/x", RuleOperator::Gte, json!(0)),
+            make_rule("fail_rule", "/x", RuleOperator::Gte, json!(101)),
+        ];
+        let policy = PolicyConfig { rules, fail_fast: false, allow_missing: false };
+        let result = evaluate_policy(&receipt, &policy);
+        prop_assert!(!result.passed);
+    }
 }
