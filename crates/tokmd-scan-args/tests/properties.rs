@@ -263,7 +263,7 @@ proptest! {
     #[test]
     fn normalize_no_backslash(path in pathish_string()) {
         let normed = normalize_scan_input(Path::new(&path));
-        prop_assert!(!normed.contains('\'));
+        prop_assert!(!normed.contains('\\'));
     }
 
     #[test]
