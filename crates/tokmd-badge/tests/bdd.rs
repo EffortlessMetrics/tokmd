@@ -237,7 +237,10 @@ fn given_100_char_label_when_badge_rendered_then_width_exceeds_minimum_greatly()
     let long_label = "a".repeat(100);
     let svg = badge_svg(&long_label, "x");
     let width = extract_width(&svg);
-    assert!(width > 500, "100 char label should produce a wide badge: got {width}");
+    assert!(
+        width > 500,
+        "100 char label should produce a wide badge: got {width}"
+    );
 }
 
 // ── Given all XML special chars combined, all escaped ───────────────

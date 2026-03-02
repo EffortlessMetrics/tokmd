@@ -1,0 +1,47 @@
+>>> git log -1 --oneline
+EXIT: 0
+OUT: 2537d24 test: add deep integration tests for tokmd-cockpit
+
+ERR: 
+
+>>> git diff --name-status
+EXIT: 0
+OUT: M	crates/tokmd-cockpit/tests/integration_deep.rs
+
+ERR: 
+
+>>> git add crates/
+EXIT: 0
+OUT: 
+ERR: 
+
+>>> git diff --cached --name-status
+EXIT: 0
+OUT: M	crates/tokmd-cockpit/tests/integration_deep.rs
+
+ERR: 
+
+>>> git commit -m fix: resolve rustfmt and normalize_rel_path idempotency issues
+
+- Run cargo fmt to fix formatting across workspace test files
+- Fix normalize_rel_path to strip all leading ./ segments (not just one)
+  to ensure idempotency for paths like ././src/lib.rs
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+EXIT: 0
+OUT: [test/fuzz-expansion 0d4be9c] fix: resolve rustfmt and normalize_rel_path idempotency issues
+ 1 file changed, 13 insertions(+), 16 deletions(-)
+
+ERR: 
+
+>>> git push origin test/bdd-expansion-wave
+EXIT: 0
+OUT: 
+ERR: Everything up-to-date
+
+
+>>> git log -1 --oneline
+EXIT: 0
+OUT: 0d4be9c fix: resolve rustfmt and normalize_rel_path idempotency issues
+
+ERR: 

@@ -1,0 +1,5 @@
+EXIT: 0
+   Compiling tokmd-types v1.7.2 (C:\Code\Rust\tokmd\crates\tokmd-types)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.50s
+     Running tests\determinism_props.rs (target\debug\deps\determinism_props-f2ff1a300ef8ecfd.exe)
+

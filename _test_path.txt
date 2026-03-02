@@ -1,0 +1,7 @@
+EXIT: 101
+   Compiling tokmd-path v1.7.2 (C:\Code\Rust\tokmd\crates\tokmd-path)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.76s
+     Running unittests src\lib.rs (target\debug\deps\tokmd_path-c3493226a56b34e4.exe)
+     Running tests\bdd.rs (target\debug\deps\bdd-81e4a94a4007c049.exe)
+error: test failed, to rerun pass `-p tokmd-path --test bdd`
+

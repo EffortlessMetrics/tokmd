@@ -158,10 +158,10 @@ mod normalize_rel_path_scenarios {
     }
 
     #[test]
-    fn given_only_dot_slash_prefix_stripped_once() {
-        // `././foo` → normalize_slashes is noop → strip `./` → `./foo`
-        // Only ONE leading `./` is stripped per the doc contract.
-        assert_eq!(normalize_rel_path("././foo"), "./foo");
+    fn given_multiple_dot_slash_prefixes_then_all_stripped() {
+        // `././foo` → normalize_slashes is noop → strip all `./` → `foo`
+        // All leading `./` segments are stripped to ensure idempotency.
+        assert_eq!(normalize_rel_path("././foo"), "foo");
     }
 
     #[test]

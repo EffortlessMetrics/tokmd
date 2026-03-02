@@ -412,7 +412,10 @@ fn scenario_normalize_path_with_strip_prefix_removes_prefix() {
     use std::path::Path;
     use tokmd_model::normalize_path;
 
-    let result = normalize_path(Path::new("crates/foo/src/lib.rs"), Some(Path::new("crates/foo")));
+    let result = normalize_path(
+        Path::new("crates/foo/src/lib.rs"),
+        Some(Path::new("crates/foo")),
+    );
     assert_eq!(result, "src/lib.rs");
 }
 
@@ -421,8 +424,7 @@ fn scenario_normalize_path_without_matching_prefix_keeps_path() {
     use std::path::Path;
     use tokmd_model::normalize_path;
 
-    let result =
-        normalize_path(Path::new("src/lib.rs"), Some(Path::new("nonexistent")));
+    let result = normalize_path(Path::new("src/lib.rs"), Some(Path::new("nonexistent")));
     assert_eq!(result, "src/lib.rs");
 }
 
@@ -490,7 +492,11 @@ fn scenario_with_files_true_populates_file_count_in_report() {
     let report = create_lang_report(&langs, 0, true, ChildrenMode::Collapse);
 
     for row in &report.rows {
-        assert!(row.files > 0, "with_files=true should populate file count for {}", row.lang);
+        assert!(
+            row.files > 0,
+            "with_files=true should populate file count for {}",
+            row.lang
+        );
     }
     assert!(report.total.files > 0, "total files should be positive");
 }

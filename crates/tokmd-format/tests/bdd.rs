@@ -235,7 +235,10 @@ mod given_lang_report_with_files {
         assert!(v.get("schema_version").is_some());
         assert_eq!(v["mode"], "lang");
         // report is #[serde(flatten)], so rows appear at top level
-        assert!(v.get("rows").is_some(), "JSON receipt should have rows field (flattened)");
+        assert!(
+            v.get("rows").is_some(),
+            "JSON receipt should have rows field (flattened)"
+        );
     }
 }
 
@@ -506,7 +509,10 @@ mod given_diff_rows {
         let totals = compute_diff_totals(&rows);
         let md = render_diff_md("v1", "v2", &rows, &totals);
 
-        assert!(md.contains("|Language|"), "diff table should have Language header");
+        assert!(
+            md.contains("|Language|"),
+            "diff table should have Language header"
+        );
         assert!(md.contains("Rust"));
         assert!(md.contains("v1"));
         assert!(md.contains("v2"));
@@ -528,7 +534,9 @@ mod given_export_data {
         write_export_csv_to(&mut buf, &export, &args).unwrap();
         let output = String::from_utf8(buf).unwrap();
 
-        assert!(output.starts_with("path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"));
+        assert!(
+            output.starts_with("path,module,lang,kind,code,comments,blanks,lines,bytes,tokens")
+        );
         assert!(output.contains("src/lib.rs"));
         assert!(output.contains("tests/test.rs"));
     }

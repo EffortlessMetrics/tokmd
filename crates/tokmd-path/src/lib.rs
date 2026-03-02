@@ -21,7 +21,7 @@ pub fn normalize_slashes(path: &str) -> String {
 
 /// Normalize a relative path for matching:
 /// - converts `\` to `/`
-/// - strips one leading `./`
+/// - strips all leading `./` segments
 ///
 /// # Examples
 ///
@@ -31,15 +31,16 @@ pub fn normalize_slashes(path: &str) -> String {
 /// assert_eq!(normalize_rel_path("./src/main.rs"), "src/main.rs");
 /// assert_eq!(normalize_rel_path(".\\src\\main.rs"), "src/main.rs");
 /// assert_eq!(normalize_rel_path("../lib.rs"), "../lib.rs");
+/// assert_eq!(normalize_rel_path("././src/lib.rs"), "src/lib.rs");
 /// ```
 #[must_use]
 pub fn normalize_rel_path(path: &str) -> String {
     let normalized = normalize_slashes(path);
-    if let Some(stripped) = normalized.strip_prefix("./") {
-        stripped.to_string()
-    } else {
-        normalized
+    let mut s = normalized.as_str();
+    while let Some(rest) = s.strip_prefix("./") {
+        s = rest;
     }
+    s.to_string()
 }
 
 #[cfg(test)]
