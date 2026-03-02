@@ -62,7 +62,7 @@ jobs:
           comment-tag: SECTION:COCKPIT
 
       - name: Upload cockpit receipt
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: cockpit-receipt
           path: cockpit-receipt.json
