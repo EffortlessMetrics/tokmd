@@ -180,7 +180,7 @@ fn schema_version_constants_match_expected_values() {
 #[test]
 fn lang_receipt_json_contains_required_envelope_fields() {
     let receipt = sample_lang_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -196,7 +196,7 @@ fn lang_receipt_json_contains_required_envelope_fields() {
 #[test]
 fn lang_receipt_json_contains_report_fields() {
     let receipt = sample_lang_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     // LangReport is flattened, so rows/total appear at top level
     assert!(json["rows"].is_array());
@@ -209,7 +209,7 @@ fn lang_receipt_json_contains_report_fields() {
 #[test]
 fn lang_receipt_scan_args_fields_present() {
     let receipt = sample_lang_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let scan = &json["scan"];
 
     assert!(scan["paths"].is_array());
@@ -241,7 +241,7 @@ fn lang_receipt_roundtrip() {
 #[test]
 fn lang_receipt_row_fields_complete() {
     let receipt = sample_lang_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let row = &json["rows"][0];
 
     assert_eq!(row["lang"], "Rust");
@@ -260,7 +260,7 @@ fn lang_receipt_row_fields_complete() {
 #[test]
 fn module_receipt_json_contains_required_envelope_fields() {
     let receipt = sample_module_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -275,7 +275,7 @@ fn module_receipt_json_contains_required_envelope_fields() {
 #[test]
 fn module_receipt_json_contains_report_fields() {
     let receipt = sample_module_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     // ModuleReport is flattened
     assert!(json["rows"].is_array());
@@ -302,7 +302,7 @@ fn module_receipt_roundtrip() {
 #[test]
 fn module_receipt_row_fields_complete() {
     let receipt = sample_module_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let row = &json["rows"][0];
 
     assert_eq!(row["module"], "src");
@@ -321,7 +321,7 @@ fn module_receipt_row_fields_complete() {
 #[test]
 fn export_receipt_json_contains_required_envelope_fields() {
     let receipt = sample_export_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -336,7 +336,7 @@ fn export_receipt_json_contains_required_envelope_fields() {
 #[test]
 fn export_receipt_json_contains_data_fields() {
     let receipt = sample_export_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     // ExportData is flattened
     assert!(json["rows"].is_array());
@@ -348,7 +348,7 @@ fn export_receipt_json_contains_data_fields() {
 #[test]
 fn export_receipt_args_fields_present() {
     let receipt = sample_export_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let args = &json["args"];
 
     assert!(args["format"].is_string());
@@ -379,7 +379,7 @@ fn export_receipt_roundtrip() {
 #[test]
 fn diff_receipt_json_contains_required_fields() {
     let receipt = sample_diff_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -407,7 +407,7 @@ fn diff_receipt_roundtrip() {
 #[test]
 fn diff_totals_default_is_all_zeros() {
     let totals = DiffTotals::default();
-    let json: Value = serde_json::to_value(&totals).unwrap();
+    let json: Value = serde_json::to_value(totals).unwrap();
 
     for key in [
         "old_code",
@@ -441,7 +441,7 @@ fn tool_info_current_produces_valid_metadata() {
     assert_eq!(info.name, "tokmd");
     assert!(!info.version.is_empty(), "version should not be empty");
 
-    let json: Value = serde_json::to_value(&info).unwrap();
+    let json: Value = serde_json::to_value(info).unwrap();
     assert_eq!(json["name"], "tokmd");
     assert!(json["version"].is_string());
 }
@@ -463,7 +463,7 @@ fn tool_info_roundtrip() {
 #[test]
 fn totals_json_has_all_fields() {
     let totals = sample_totals();
-    let json: Value = serde_json::to_value(&totals).unwrap();
+    let json: Value = serde_json::to_value(totals).unwrap();
 
     assert!(json["code"].is_number());
     assert!(json["lines"].is_number());
@@ -515,10 +515,10 @@ fn scan_status_roundtrip() {
 
 #[test]
 fn all_receipts_share_envelope_structure() {
-    let lang_json: Value = serde_json::to_value(&sample_lang_receipt()).unwrap();
-    let module_json: Value = serde_json::to_value(&sample_module_receipt()).unwrap();
-    let export_json: Value = serde_json::to_value(&sample_export_receipt()).unwrap();
-    let diff_json: Value = serde_json::to_value(&sample_diff_receipt()).unwrap();
+    let lang_json: Value = serde_json::to_value(sample_lang_receipt()).unwrap();
+    let module_json: Value = serde_json::to_value(sample_module_receipt()).unwrap();
+    let export_json: Value = serde_json::to_value(sample_export_receipt()).unwrap();
+    let diff_json: Value = serde_json::to_value(sample_diff_receipt()).unwrap();
 
     let envelope_fields = ["schema_version", "generated_at_ms", "tool", "mode"];
 
@@ -554,7 +554,7 @@ fn all_receipts_share_envelope_structure() {
 
 #[test]
 fn lang_receipt_json_has_no_null_required_fields() {
-    let json: Value = serde_json::to_value(&sample_lang_receipt()).unwrap();
+    let json: Value = serde_json::to_value(sample_lang_receipt()).unwrap();
     let obj = json.as_object().unwrap();
 
     for (key, value) in obj {
@@ -567,7 +567,7 @@ fn lang_receipt_json_has_no_null_required_fields() {
 
 #[test]
 fn module_receipt_json_has_no_null_required_fields() {
-    let json: Value = serde_json::to_value(&sample_module_receipt()).unwrap();
+    let json: Value = serde_json::to_value(sample_module_receipt()).unwrap();
     let obj = json.as_object().unwrap();
 
     for (key, value) in obj {
@@ -580,7 +580,7 @@ fn module_receipt_json_has_no_null_required_fields() {
 
 #[test]
 fn export_receipt_json_has_no_null_required_fields() {
-    let json: Value = serde_json::to_value(&sample_export_receipt()).unwrap();
+    let json: Value = serde_json::to_value(sample_export_receipt()).unwrap();
     let obj = json.as_object().unwrap();
 
     for (key, value) in obj {

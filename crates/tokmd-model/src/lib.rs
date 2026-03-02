@@ -552,6 +552,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     if let Some(stripped) = slice.strip_prefix("./") {
         slice = stripped;
     }
+    slice = slice.trim_start_matches('/');
 
     if slice.len() == s.len() {
         s.into_owned()
