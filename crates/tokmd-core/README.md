@@ -16,7 +16,8 @@ tokmd-types = "1.4"
 
 ## Usage
 
-```rust
+```rust,no_run
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_core::scan_workflow;
 use tokmd_core::config::GlobalArgs;
 use tokmd_core::types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
@@ -38,11 +39,13 @@ println!("Scanned {} languages", receipt.report.rows.len());
 
 // Run pipeline (with path redaction)
 let redacted = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
+# Ok(())
+# }
 ```
 
 ## Main Function
 
-```rust
+```rust,ignore
 pub fn scan_workflow(
     global: &GlobalArgs,
     lang: &LangArgs,
@@ -62,7 +65,7 @@ Chains: Scan -> Model -> Receipt
 
 ## Re-exports
 
-```rust
+```rust,no_run
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 ```
