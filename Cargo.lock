@@ -3179,7 +3179,9 @@ dependencies = [
 name = "tokmd-analysis-fun"
 version = "1.7.2"
 dependencies = [
+ "insta",
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
 ]
 

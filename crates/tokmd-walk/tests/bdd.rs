@@ -424,3 +424,135 @@ fn file_size_for_deeply_nested_file() {
     let size = file_size(tmp.path(), std::path::Path::new("a/b/c/d/deep.txt")).unwrap();
     assert_eq!(size, 13);
 }
+
+// ============================================================================
+// Scenario: license_candidates detection
+// ============================================================================
+
+#[test]
+fn given_license_variants_when_candidates_checked_then_all_detected() {
+    use tokmd_walk::license_candidates;
+
+    let files = vec![
+        PathBuf::from("LICENSE"),
+        PathBuf::from("LICENSE.md"),
+        PathBuf::from("LICENSE-MIT"),
+        PathBuf::from("LICENSE-APACHE"),
+        PathBuf::from("COPYING"),
+        PathBuf::from("NOTICE"),
+        PathBuf::from("license.txt"),
+    ];
+    let result = license_candidates(&files);
+    assert_eq!(
+        result.license_files.len(),
+        7,
+        "all license file variants should be detected"
+    );
+}
+
+#[test]
+fn given_metadata_files_when_candidates_checked_then_correctly_classified() {
+    use tokmd_walk::license_candidates;
+
+    let files = vec![
+        PathBuf::from("Cargo.toml"),
+        PathBuf::from("package.json"),
+        PathBuf::from("pyproject.toml"),
+        PathBuf::from("src/main.rs"),
+        PathBuf::from("README.md"),
+    ];
+    let result = license_candidates(&files);
+    assert_eq!(result.metadata_files.len(), 3);
+    assert!(result.license_files.is_empty());
+}
+
+#[test]
+fn given_empty_file_list_when_candidates_checked_then_empty_results() {
+    use tokmd_walk::license_candidates;
+
+    let result = license_candidates(&[]);
+    assert!(result.license_files.is_empty());
+    assert!(result.metadata_files.is_empty());
+}
+
+#[test]
+fn given_nested_license_files_when_candidates_checked_then_sorted_by_path() {
+    use tokmd_walk::license_candidates;
+
+    let files = vec![
+        PathBuf::from("z/LICENSE"),
+        PathBuf::from("a/LICENSE"),
+        PathBuf::from("m/LICENSE"),
+    ];
+    let result = license_candidates(&files);
+    assert_eq!(result.license_files[0], PathBuf::from("a/LICENSE"));
+    assert_eq!(result.license_files[1], PathBuf::from("m/LICENSE"));
+    assert_eq!(result.license_files[2], PathBuf::from("z/LICENSE"));
+}
+
+// ============================================================================
+// Scenario: list_files with max_files=0
+// ============================================================================
+
+#[test]
+fn given_max_files_zero_when_listing_then_returns_empty() {
+    let tmp = non_git_tempdir();
+    std::fs::write(tmp.path().join("file.txt"), "content").unwrap();
+
+    let files = list_files(tmp.path(), Some(0)).unwrap();
+    assert!(
+        files.is_empty(),
+        "max_files=0 should always return empty vec"
+    );
+}
+
+// ============================================================================
+// Scenario: list_files with single file
+// ============================================================================
+
+#[test]
+fn given_single_file_when_listed_then_exactly_one_returned() {
+    let tmp = non_git_tempdir();
+    std::fs::write(tmp.path().join("only.txt"), "data").unwrap();
+
+    let files = list_files(tmp.path(), None).unwrap();
+    assert_eq!(files.len(), 1);
+    assert!(files[0].to_string_lossy().contains("only.txt"));
+}
+
+// ============================================================================
+// Scenario: file_size for various contents
+// ============================================================================
+
+#[test]
+fn given_unicode_content_when_file_size_checked_then_bytes_not_chars() {
+    let tmp = non_git_tempdir();
+    // "こんにちは" is 15 bytes in UTF-8 (5 chars × 3 bytes each)
+    std::fs::write(tmp.path().join("unicode.txt"), "こんにちは").unwrap();
+
+    let size = file_size(tmp.path(), std::path::Path::new("unicode.txt")).unwrap();
+    assert_eq!(size, 15, "file_size should return bytes, not char count");
+}
+
+#[test]
+fn given_missing_file_when_file_size_checked_then_error_returned() {
+    let tmp = non_git_tempdir();
+    let result = file_size(tmp.path(), std::path::Path::new("nonexistent.txt"));
+    assert!(result.is_err(), "missing file should return error");
+}
+
+// ============================================================================
+// Scenario: deeply nested file listing
+// ============================================================================
+
+#[test]
+fn given_deeply_nested_files_when_listed_then_all_found() {
+    let tmp = non_git_tempdir();
+    std::fs::create_dir_all(tmp.path().join("a/b/c")).unwrap();
+    std::fs::write(tmp.path().join("a/b/c/deep.txt"), "deep").unwrap();
+    std::fs::write(tmp.path().join("a/shallow.txt"), "shallow").unwrap();
+    std::fs::write(tmp.path().join("root.txt"), "root").unwrap();
+
+    let files = list_files(tmp.path(), None).unwrap();
+    assert_eq!(files.len(), 3, "all three files should be found");
+}
