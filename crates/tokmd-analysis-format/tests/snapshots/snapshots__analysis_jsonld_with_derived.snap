@@ -1,0 +1,18 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshots.rs
+expression: rendered
+---
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "codeLines": 500,
+  "commentCount": 80,
+  "fileSize": 5000,
+  "interactionStatistic": {
+    "@type": "InteractionCounter",
+    "interactionType": "http://schema.org/ReadAction",
+    "userInteractionCount": 1200
+  },
+  "lineCount": 620,
+  "name": "."
+}

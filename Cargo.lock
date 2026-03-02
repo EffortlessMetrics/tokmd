@@ -3653,6 +3653,7 @@ name = "tokmd-tokeignore"
 version = "1.7.2"
 dependencies = [
  "anyhow",
+ "insta",
  "proptest",
  "tempfile",
  "tokmd-config",

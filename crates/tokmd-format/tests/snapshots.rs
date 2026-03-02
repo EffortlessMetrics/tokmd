@@ -971,3 +971,144 @@ fn snapshot_export_jsonl_single_file() {
     let output = String::from_utf8(buf).unwrap();
     insta::assert_snapshot!("export_jsonl_single_file", output);
 }
+
+// ---------------------------------------------------------------------------
+// Export — JSONL with meta
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_export_jsonl_with_meta() {
+    let mut buf = Vec::new();
+    let args = ExportArgs {
+        paths: vec![PathBuf::from(".")],
+        format: ExportFormat::Jsonl,
+        output: None,
+        module_roots: vec!["src".into()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        min_code: 0,
+        max_rows: 0,
+        redact: RedactMode::None,
+        meta: true,
+        strip_prefix: None,
+    };
+    write_export_jsonl_to(&mut buf, &export_data(), &global(), &args).unwrap();
+    let raw = String::from_utf8(buf).unwrap();
+    // Normalise non-deterministic meta fields
+    let normalised = raw
+        .lines()
+        .map(|line| {
+            if let Ok(mut v) = serde_json::from_str::<serde_json::Value>(line) {
+                if v.get("generated_at_ms").is_some() {
+                    v["generated_at_ms"] = serde_json::json!(0);
+                }
+                if v.pointer("/tool/version").is_some() {
+                    v["tool"]["version"] = serde_json::json!("0.0.0");
+                }
+                serde_json::to_string(&v).unwrap()
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    insta::assert_snapshot!("export_jsonl_with_meta", normalised);
+}
+
+// ---------------------------------------------------------------------------
+// Export — JSON with meta envelope
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_export_json_with_meta() {
+    let mut buf = Vec::new();
+    let args = ExportArgs {
+        paths: vec![PathBuf::from(".")],
+        format: ExportFormat::Json,
+        output: None,
+        module_roots: vec!["src".into()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        min_code: 0,
+        max_rows: 0,
+        redact: RedactMode::None,
+        meta: true,
+        strip_prefix: None,
+    };
+    write_export_json_to(&mut buf, &export_data(), &global(), &args).unwrap();
+    let raw = String::from_utf8(buf).unwrap();
+    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    if v.get("generated_at_ms").is_some() {
+        v["generated_at_ms"] = serde_json::json!(0);
+    }
+    if v.pointer("/tool/version").is_some() {
+        v["tool"]["version"] = serde_json::json!("0.0.0");
+    }
+    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    insta::assert_snapshot!("export_json_with_meta", pretty);
+}
+
+// ---------------------------------------------------------------------------
+// Module — single module row
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_module_md_single() {
+    let report = ModuleReport {
+        rows: vec![ModuleRow {
+            module: "src".into(),
+            code: 500,
+            lines: 600,
+            files: 5,
+            bytes: 25000,
+            tokens: 1250,
+            avg_lines: 120,
+        }],
+        total: Totals {
+            code: 500,
+            lines: 600,
+            files: 5,
+            bytes: 25000,
+            tokens: 1250,
+            avg_lines: 120,
+        },
+        module_roots: vec!["src".into()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        top: 0,
+    };
+    let mut buf = Vec::new();
+    let args = ModuleArgs {
+        paths: vec![PathBuf::from(".")],
+        format: TableFormat::Md,
+        top: 0,
+        module_roots: vec!["src".into()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+    write_module_report_to(&mut buf, &report, &global(), &args).unwrap();
+    let output = String::from_utf8(buf).unwrap();
+    insta::assert_snapshot!("module_md_single", output);
+}
+
+// ---------------------------------------------------------------------------
+// Diff — color mode ANSI
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_diff_md_ansi_color() {
+    let (from, to) = diff_reports();
+    let rows = compute_diff_rows(&from, &to);
+    let totals = compute_diff_totals(&rows);
+    let md = render_diff_md_with_options(
+        "v1.0.0",
+        "v2.0.0",
+        &rows,
+        &totals,
+        DiffRenderOptions {
+            compact: false,
+            color: DiffColorMode::Ansi,
+        },
+    );
+    insta::assert_snapshot!("diff_md_ansi_color", md);
+}

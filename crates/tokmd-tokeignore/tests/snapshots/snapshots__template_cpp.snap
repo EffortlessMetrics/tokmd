@@ -1,0 +1,17 @@
+---
+source: crates/tokmd-tokeignore/tests/snapshots.rs
+expression: content
+---
+# .tokeignore (C++)
+build/
+**/build/
+cmake-build-*/
+**/cmake-build-*/
+out/
+**/out/
+.cache/
+**/.cache/
+
+# tokmd outputs
+.runs/
+**/.runs/

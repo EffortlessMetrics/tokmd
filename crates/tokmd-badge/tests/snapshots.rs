@@ -50,6 +50,36 @@ fn snapshot_minimum_width_badge() {
     insta::assert_snapshot!("minimum_width_badge", svg);
 }
 
+#[test]
+fn snapshot_large_number_badge() {
+    let svg = badge_svg("total lines", "1,234,567");
+    insta::assert_snapshot!("large_number_badge", svg);
+}
+
+#[test]
+fn snapshot_emoji_badge() {
+    let svg = badge_svg("status", "✅ pass");
+    insta::assert_snapshot!("emoji_badge", svg);
+}
+
+#[test]
+fn snapshot_empty_value_badge() {
+    let svg = badge_svg("label", "");
+    insta::assert_snapshot!("empty_value_badge", svg);
+}
+
+#[test]
+fn snapshot_both_empty_badge() {
+    let svg = badge_svg("", "");
+    insta::assert_snapshot!("both_empty_badge", svg);
+}
+
+#[test]
+fn snapshot_numeric_label_badge() {
+    let svg = badge_svg("42", "100%");
+    insta::assert_snapshot!("numeric_label_badge", svg);
+}
+
 // ── Property: badge always produces valid SVG structure ──────────────
 
 mod properties {
