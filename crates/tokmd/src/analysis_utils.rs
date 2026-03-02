@@ -44,7 +44,19 @@ pub(crate) fn granularity_to_string(granularity: cli::ImportGranularity) -> Stri
 }
 
 pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPreset {
-    PresetKind::from_str(&format!("{:?}", preset).to_lowercase()).expect("unknown analysis preset")
+    match preset {
+        cli::AnalysisPreset::Receipt => analysis::AnalysisPreset::Receipt,
+        cli::AnalysisPreset::Health => analysis::AnalysisPreset::Health,
+        cli::AnalysisPreset::Risk => analysis::AnalysisPreset::Risk,
+        cli::AnalysisPreset::Supply => analysis::AnalysisPreset::Supply,
+        cli::AnalysisPreset::Architecture => analysis::AnalysisPreset::Architecture,
+        cli::AnalysisPreset::Topics => analysis::AnalysisPreset::Topics,
+        cli::AnalysisPreset::Security => analysis::AnalysisPreset::Security,
+        cli::AnalysisPreset::Identity => analysis::AnalysisPreset::Identity,
+        cli::AnalysisPreset::Git => analysis::AnalysisPreset::Git,
+        cli::AnalysisPreset::Deep => analysis::AnalysisPreset::Deep,
+        cli::AnalysisPreset::Fun => analysis::AnalysisPreset::Fun,
+    }
 }
 
 pub(crate) fn map_granularity(granularity: cli::ImportGranularity) -> analysis::ImportGranularity {

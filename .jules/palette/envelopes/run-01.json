@@ -1,0 +1,34 @@
+{
+  "run_id": "run-01",
+  "timestamp_utc": "2024-03-02T00:00:00Z",
+  "lane": "scout",
+  "target": "Remove expect() and format+parse string roundtrips in analysis_utils.rs map_preset()",
+  "commands": [
+    "cargo build --verbose",
+    "cargo test -p tokmd --test integration",
+    "cargo fmt -- --check",
+    "cargo clippy --workspace --all-targets --all-features --exclude tokmd-python --exclude tokmd-node -- -D warnings"
+  ],
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd --test integration",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy --workspace --all-targets --all-features --exclude tokmd-python --exclude tokmd-node -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
+    }
+  ]
+}
