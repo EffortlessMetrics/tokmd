@@ -501,7 +501,7 @@ fn schema_md_code_references_point_to_existing_files() {
                 .or_else(|| rest.find(" -"))
                 .unwrap_or(rest.len());
             let rel_path = &rest[..end].trim_end_matches('`');
-            let full = root.join(rel_path.replace('/', "\\"));
+            let full = root.join(rel_path);
             assert!(
                 full.exists(),
                 "SCHEMA.md Code References path does not exist: {rel_path}"
