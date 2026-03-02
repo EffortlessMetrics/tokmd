@@ -2183,7 +2183,7 @@ mod tests {
 
     #[test]
     fn test_format_signed_negative() {
-        assert_eq!(format_signed_f64(-3.14), "-3.14");
+        assert_eq!(format_signed_f64(-2.50), "-2.50");
     }
 
     #[test]

@@ -521,57 +521,57 @@ proptest! {
 /// for every settings type that uses `#[serde(default)]`.
 #[test]
 fn default_consistency_scan_options() {
-    let from_default = serde_json::to_value(&ScanOptions::default()).unwrap();
+    let from_default = serde_json::to_value(ScanOptions::default()).unwrap();
     let from_empty: ScanOptions = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_scan_settings() {
-    let from_default = serde_json::to_value(&ScanSettings::default()).unwrap();
+    let from_default = serde_json::to_value(ScanSettings::default()).unwrap();
     let from_empty: ScanSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_lang_settings() {
-    let from_default = serde_json::to_value(&LangSettings::default()).unwrap();
+    let from_default = serde_json::to_value(LangSettings::default()).unwrap();
     let from_empty: LangSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_module_settings() {
-    let from_default = serde_json::to_value(&ModuleSettings::default()).unwrap();
+    let from_default = serde_json::to_value(ModuleSettings::default()).unwrap();
     let from_empty: ModuleSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_export_settings() {
-    let from_default = serde_json::to_value(&ExportSettings::default()).unwrap();
+    let from_default = serde_json::to_value(ExportSettings::default()).unwrap();
     let from_empty: ExportSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_analyze_settings() {
-    let from_default = serde_json::to_value(&AnalyzeSettings::default()).unwrap();
+    let from_default = serde_json::to_value(AnalyzeSettings::default()).unwrap();
     let from_empty: AnalyzeSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
 #[test]
 fn default_consistency_cockpit_settings() {
-    let from_default = serde_json::to_value(&CockpitSettings::default()).unwrap();
+    let from_default = serde_json::to_value(CockpitSettings::default()).unwrap();
     let from_empty: CockpitSettings = serde_json::from_str("{}").unwrap();
-    let from_empty_val = serde_json::to_value(&from_empty).unwrap();
+    let from_empty_val = serde_json::to_value(from_empty).unwrap();
     assert_eq!(from_default, from_empty_val);
 }
 
