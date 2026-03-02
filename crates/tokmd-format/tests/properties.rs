@@ -456,4 +456,103 @@ proptest! {
         prop_assert_eq!(totals.delta_lines, sum_delta_lines);
         prop_assert_eq!(totals.delta_files, sum_delta_files);
     }
+
+    // NEW property tests
+
+    #[test]
+    fn lang_md_header(report in arb_lang_report()) {
+        let args = LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Md,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        };
+        let mut buf = Vec::new();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        prop_assert!(output.contains("---"));
+    }
+
+    #[test]
+    fn module_report_deterministic(report in arb_module_report()) {
+        let args = ModuleArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Md,
+            top: 0,
+            module_roots: vec![],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+        };
+        let mut buf1 = Vec::new();
+        let mut buf2 = Vec::new();
+        write_module_report_to(&mut buf1, &report, &default_global(), &args).unwrap();
+        write_module_report_to(&mut buf2, &report, &default_global(), &args).unwrap();
+        prop_assert_eq!(buf1, buf2);
+    }
+
+    #[test]
+    fn lang_json_valid(report in arb_lang_report()) {
+        let args = LangArgs {
+            paths: vec![PathBuf::from(".")],
+            format: TableFormat::Json,
+            top: 0,
+            files: false,
+            children: ChildrenMode::Collapse,
+        };
+        let mut buf = Vec::new();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
+        prop_assert!(parsed.is_ok(), "Lang JSON must be valid: {:?}", parsed.err());
+    }
+
+    #[test]
+    fn export_json_preserves_all_paths(
+        file_rows in prop::collection::vec(arb_file_row(), 1..6),
+    ) {
+        let mut seen = std::collections::HashSet::new();
+        let rows: Vec<FileRow> = file_rows
+            .into_iter()
+            .filter(|r| seen.insert(r.path.clone()))
+            .collect();
+        let export = ExportData {
+            rows: rows.clone(),
+            module_roots: vec![],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+        };
+        let args = ExportArgs {
+            paths: vec![PathBuf::from(".")],
+            format: ExportFormat::Json,
+            children: ChildIncludeMode::Separate,
+            output: None,
+            module_roots: vec![],
+            module_depth: 1,
+            min_code: 0,
+            max_rows: 10_000,
+            redact: RedactMode::None,
+            meta: false,
+            strip_prefix: None,
+        };
+        let mut buf = Vec::new();
+        write_export_json_to(&mut buf, &export, &default_global(), &args).unwrap();
+        let output = String::from_utf8(buf).unwrap();
+        for row in &rows {
+            prop_assert!(output.contains(&row.path), "missing path");
+        }
+    }
+
+    #[test]
+    fn diff_identical_zero_deltas(report in arb_lang_report()) {
+        let rows = compute_diff_rows(&report, &report);
+        for row in &rows {
+            prop_assert_eq!(row.delta_code, 0);
+            prop_assert_eq!(row.delta_lines, 0);
+            prop_assert_eq!(row.delta_files, 0);
+        }
+        let totals = compute_diff_totals(&rows);
+        prop_assert_eq!(totals.delta_code, 0);
+    }
+
 }

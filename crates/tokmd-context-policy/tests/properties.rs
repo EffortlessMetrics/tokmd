@@ -1,7 +1,7 @@
 use proptest::prelude::*;
 use tokmd_context_policy::{
-    DEFAULT_DENSE_THRESHOLD, assign_policy, classify_file, compute_file_cap, is_spine_file,
-    smart_exclude_reason,
+    assign_policy, classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
+    DEFAULT_DENSE_THRESHOLD,
 };
 use tokmd_types::{FileClassification, InclusionPolicy};
 
@@ -195,4 +195,52 @@ proptest! {
             prop_assert!(classes.contains(&FileClassification::Lockfile));
         }
     }
+
+    // NEW property tests
+
+    #[test]
+    fn file_cap_positive(
+        budget in 1usize..1_000_000,
+        pct in 0.01f64..1.0,
+        max_tokens in prop::option::of(1usize..100_000),
+    ) {
+        let cap = compute_file_cap(budget, pct, max_tokens);
+        prop_assert!(cap > 0);
+    }
+
+    #[test]
+    fn classify_lockfile(
+        name in prop::sample::select(vec![
+            "Cargo.lock", "package-lock.json", "yarn.lock", "poetry.lock",
+            "Gemfile.lock", "pnpm-lock.yaml", "composer.lock",
+        ])
+    ) {
+        let classes = classify_file(name, 100, 50, DEFAULT_DENSE_THRESHOLD);
+        prop_assert!(classes.contains(&FileClassification::Lockfile));
+    }
+
+    #[test]
+    fn assign_policy_under_cap(tokens in 1usize..100) {
+        let cap = 1000;
+        let (policy, _reason) = assign_policy(tokens, cap, &[]);
+        prop_assert_eq!(policy, InclusionPolicy::Full);
+    }
+
+    #[test]
+    fn compute_file_cap_bounded(budget in 1usize..1_000_000, pct in 0.01f64..1.0) {
+        let cap = compute_file_cap(budget, pct, None);
+        prop_assert!(cap <= budget);
+    }
+
+    #[test]
+    fn classify_generated(
+        name in prop::sample::select(vec![
+            "generated.rs", "auto_generated.py", "codegen_output.ts",
+            "src/generated/types.rs", "bindings_generated.h",
+        ])
+    ) {
+        let classes = classify_file(name, 100, 50, DEFAULT_DENSE_THRESHOLD);
+        prop_assert!(classes.contains(&FileClassification::Generated));
+    }
+
 }

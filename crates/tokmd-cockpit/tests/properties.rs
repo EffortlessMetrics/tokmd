@@ -429,4 +429,54 @@ proptest! {
         prop_assert!(health.warnings.is_empty());
         prop_assert!(risk.hotspots_touched.is_empty());
     }
+
+    // NEW property tests
+
+    #[test]
+    fn sparkline_length(values in prop::collection::vec(0.0f64..100.0, 1..20)) {
+        let s = sparkline(&values);
+        prop_assert_eq!(s.chars().count(), values.len());
+    }
+
+    #[test]
+    fn round_pct_bounded(val in 0.0f64..100.0) {
+        let r = round_pct(val);
+        prop_assert!(r >= 0.0 && r <= 100.0);
+    }
+
+    #[test]
+    fn sparkline_chars(values in prop::collection::vec(0.0f64..100.0, 1..20)) {
+        let s = sparkline(&values);
+        let blocks = [
+            '\u{2581}', '\u{2582}', '\u{2583}', '\u{2584}',
+            '\u{2585}', '\u{2586}', '\u{2587}', '\u{2588}',
+        ];
+        for ch in s.chars() {
+            prop_assert!(blocks.contains(&ch));
+        }
+    }
+
+    #[test]
+    fn composition_percentages(files in prop::collection::vec(file_path_strategy(), 1..20)) {
+        let comp = compute_composition(&files);
+        prop_assert!(comp.code_pct >= 0.0 && comp.code_pct <= 100.0);
+        prop_assert!(comp.test_pct >= 0.0 && comp.test_pct <= 100.0);
+        prop_assert!(comp.docs_pct >= 0.0 && comp.docs_pct <= 100.0);
+        prop_assert!(comp.config_pct >= 0.0 && comp.config_pct <= 100.0);
+    }
+
+    #[test]
+    fn change_surface_net_lines(ins in 0usize..10_000, del in 0usize..10_000) {
+        let surface = ChangeSurface {
+            commits: 1,
+            files_changed: 1,
+            insertions: ins,
+            deletions: del,
+            net_lines: ins as i64 - del as i64,
+            churn_velocity: 0.0,
+            change_concentration: 0.0,
+        };
+        prop_assert_eq!(surface.net_lines, surface.insertions as i64 - surface.deletions as i64);
+    }
+
 }
