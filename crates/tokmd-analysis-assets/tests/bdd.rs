@@ -640,3 +640,147 @@ fn given_empty_package_lock_when_dependency_report_built_then_zero_deps() {
 
     assert_eq!(report.lockfiles[0].dependencies, 0);
 }
+
+// ===========================================================================
+// build_assets_report – deterministic output
+// ===========================================================================
+
+#[test]
+fn given_same_input_when_assets_report_built_twice_then_identical() {
+    let tmp = TempDir::new().unwrap();
+    let files = vec![
+        write_file(tmp.path(), "a.png", &[0u8; 100]),
+        write_file(tmp.path(), "b.mp4", &[0u8; 200]),
+        write_file(tmp.path(), "c.woff2", &[0u8; 50]),
+    ];
+    let r1 = build_assets_report(tmp.path(), &files).unwrap();
+    let r2 = build_assets_report(tmp.path(), &files).unwrap();
+
+    assert_eq!(r1.total_files, r2.total_files);
+    assert_eq!(r1.total_bytes, r2.total_bytes);
+    assert_eq!(r1.categories.len(), r2.categories.len());
+    for (c1, c2) in r1.categories.iter().zip(r2.categories.iter()) {
+        assert_eq!(c1.category, c2.category);
+        assert_eq!(c1.files, c2.files);
+        assert_eq!(c1.bytes, c2.bytes);
+    }
+    assert_eq!(r1.top_files.len(), r2.top_files.len());
+}
+
+// ===========================================================================
+// build_assets_report – total_bytes equals sum of category bytes
+// ===========================================================================
+
+#[test]
+fn given_multi_category_report_total_bytes_equals_category_sum() {
+    let tmp = TempDir::new().unwrap();
+    let files = vec![
+        write_file(tmp.path(), "a.png", &[0u8; 100]),
+        write_file(tmp.path(), "b.mp4", &[0u8; 200]),
+        write_file(tmp.path(), "c.zip", &[0u8; 300]),
+        write_file(tmp.path(), "d.ttf", &[0u8; 50]),
+    ];
+    let report = build_assets_report(tmp.path(), &files).unwrap();
+
+    let cat_sum: u64 = report.categories.iter().map(|c| c.bytes).sum();
+    assert_eq!(
+        report.total_bytes, cat_sum,
+        "total_bytes should equal sum of category bytes"
+    );
+}
+
+// ===========================================================================
+// build_dependency_report – total equals sum of lockfile deps
+// ===========================================================================
+
+#[test]
+fn given_dependency_report_total_equals_sum_of_lockfile_deps() {
+    let tmp = TempDir::new().unwrap();
+    let cargo = write_file(
+        tmp.path(),
+        "Cargo.lock",
+        b"[[package]]\nname = \"x\"\n\n[[package]]\nname = \"y\"\n",
+    );
+    let go = write_file(tmp.path(), "go.sum", b"github.com/foo/bar v1.0.0 h1:abc=\n");
+    let report = build_dependency_report(tmp.path(), &[cargo, go]).unwrap();
+
+    let lockfile_sum: usize = report.lockfiles.iter().map(|l| l.dependencies).sum();
+    assert_eq!(
+        report.total, lockfile_sum,
+        "total should equal sum of lockfile dependencies"
+    );
+}
+
+// ===========================================================================
+// build_assets_report – zero-byte files still counted
+// ===========================================================================
+
+#[test]
+fn given_zero_byte_asset_when_report_built_then_counted_with_zero_bytes() {
+    let tmp = TempDir::new().unwrap();
+    let rel = write_file(tmp.path(), "empty.png", &[]);
+    let report = build_assets_report(tmp.path(), &[rel]).unwrap();
+
+    assert_eq!(report.total_files, 1);
+    assert_eq!(report.total_bytes, 0);
+    assert_eq!(report.categories[0].files, 1);
+    assert_eq!(report.categories[0].bytes, 0);
+}
+
+// ===========================================================================
+// build_assets_report – category tiebreak sorted by name
+// ===========================================================================
+
+#[test]
+fn given_categories_with_same_bytes_when_report_built_then_sorted_by_name() {
+    let tmp = TempDir::new().unwrap();
+    let files = vec![
+        write_file(tmp.path(), "track.mp3", &[0u8; 100]), // audio
+        write_file(tmp.path(), "archive.zip", &[0u8; 100]), // archive
+    ];
+    let report = build_assets_report(tmp.path(), &files).unwrap();
+
+    assert_eq!(report.categories.len(), 2);
+    // Same bytes → sorted by category name ascending
+    assert_eq!(report.categories[0].category, "archive");
+    assert_eq!(report.categories[1].category, "audio");
+}
+
+// ===========================================================================
+// build_dependency_report – go.sum deduplicates same module@version
+// ===========================================================================
+
+#[test]
+fn given_go_sum_with_duplicate_entries_when_report_built_then_deduplicated() {
+    let tmp = TempDir::new().unwrap();
+    let content = "\
+github.com/pkg/errors v0.9.1 h1:abc=\n\
+github.com/pkg/errors v0.9.1 h1:xyz=\n\
+github.com/pkg/errors v0.9.1/go.mod h1:def=\n";
+    let rel = write_file(tmp.path(), "go.sum", content.as_bytes());
+    let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
+
+    // Only one unique module@version (go.mod lines excluded, duplicate hash lines deduped)
+    assert_eq!(report.lockfiles[0].dependencies, 1);
+}
+
+// ===========================================================================
+// build_dependency_report – deterministic output
+// ===========================================================================
+
+#[test]
+fn given_same_lockfiles_when_dependency_report_built_twice_then_identical() {
+    let tmp = TempDir::new().unwrap();
+    let cargo = write_file(
+        tmp.path(),
+        "Cargo.lock",
+        b"[[package]]\nname = \"a\"\n\n[[package]]\nname = \"b\"\n",
+    );
+    let r1 = build_dependency_report(tmp.path(), &[cargo.clone()]).unwrap();
+    let r2 = build_dependency_report(tmp.path(), &[cargo]).unwrap();
+
+    assert_eq!(r1.total, r2.total);
+    assert_eq!(r1.lockfiles.len(), r2.lockfiles.len());
+    assert_eq!(r1.lockfiles[0].dependencies, r2.lockfiles[0].dependencies);
+    assert_eq!(r1.lockfiles[0].kind, r2.lockfiles[0].kind);
+}

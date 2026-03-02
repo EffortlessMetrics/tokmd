@@ -476,3 +476,138 @@ fn given_file_with_only_comments_no_symbols() {
 
     assert_eq!(report.total_items, 0);
 }
+
+// ---------------------------------------------------------------------------
+// Scenario: Deterministic output — same input yields identical report
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_same_input_when_built_twice_then_reports_are_identical() {
+    let code = "pub fn a() {}\nfn b() {}\npub struct C;\n";
+    let (dir, paths) = write_temp_files(&[("lib.rs", code)]);
+    let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
+    let r1 = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+    let r2 = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(r1.total_items, r2.total_items);
+    assert_eq!(r1.public_items, r2.public_items);
+    assert_eq!(r1.internal_items, r2.internal_items);
+    assert_eq!(r1.public_ratio, r2.public_ratio);
+    assert_eq!(r1.documented_ratio, r2.documented_ratio);
+    assert_eq!(r1.by_language.len(), r2.by_language.len());
+    assert_eq!(r1.by_module.len(), r2.by_module.len());
+    assert_eq!(r1.top_exporters.len(), r2.top_exporters.len());
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: JS/TS export async function and abstract class
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_ts_export_async_function_detected_as_public() {
+    let code = "export async function fetchData() {}\n";
+    let (dir, paths) = write_temp_files(&[("api.ts", code)]);
+    let export = make_export(vec![make_row("api.ts", ".", "TypeScript")]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.public_items, 1);
+}
+
+#[test]
+fn given_ts_export_abstract_class_detected_as_public() {
+    let code = "export abstract class Base {}\n";
+    let (dir, paths) = write_temp_files(&[("base.ts", code)]);
+    let export = make_export(vec![make_row("base.ts", ".", "TypeScript")]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.public_items, 1);
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Java documented with Javadoc
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_java_file_with_javadoc_documented_ratio_correct() {
+    let code = "/** Javadoc comment */\npublic class Documented {}\npublic class Undocumented {}\n";
+    let (dir, paths) = write_temp_files(&[("App.java", code)]);
+    let export = make_export(vec![make_row("App.java", ".", "Java")]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.public_items, 2);
+    assert_eq!(report.documented_ratio, 0.5);
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Multiple files in same module — counts aggregate
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_multiple_files_in_same_module_then_module_counts_aggregate() {
+    let code_a = "pub fn a1() {}\npub fn a2() {}\n";
+    let code_b = "pub fn b1() {}\n";
+    let (dir, paths) = write_temp_files(&[("src/a.rs", code_a), ("src/b.rs", code_b)]);
+    let export = make_export(vec![
+        make_row("src/a.rs", "shared_mod", "Rust"),
+        make_row("src/b.rs", "shared_mod", "Rust"),
+    ]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.by_module.len(), 1);
+    assert_eq!(report.by_module[0].module, "shared_mod");
+    assert_eq!(report.by_module[0].total_items, 3);
+    assert_eq!(report.by_module[0].public_items, 3);
+    assert_eq!(report.by_module[0].public_ratio, 1.0);
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Top exporters tiebreak by path
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_equal_public_items_top_exporters_sorted_by_path() {
+    let code_a = "pub fn x() {}\n";
+    let code_b = "pub fn y() {}\n";
+    let (dir, paths) = write_temp_files(&[("b.rs", code_b), ("a.rs", code_a)]);
+    let export = make_export(vec![
+        make_row("b.rs", ".", "Rust"),
+        make_row("a.rs", ".", "Rust"),
+    ]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.top_exporters.len(), 2);
+    // Same public_items → sorted ascending by path
+    assert_eq!(report.top_exporters[0].path, "a.rs");
+    assert_eq!(report.top_exporters[1].path, "b.rs");
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Go var/const detection end-to-end
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_go_file_with_var_and_const_detects_visibility() {
+    let code = "var PublicVar int = 42\nconst privateConst = 10\ntype Handler interface {}\n";
+    let (dir, paths) = write_temp_files(&[("types.go", code)]);
+    let export = make_export(vec![make_row("types.go", ".", "Go")]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.total_items, 3);
+    assert_eq!(report.public_items, 2); // PublicVar, Handler
+    assert_eq!(report.internal_items, 1); // privateConst
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: Python triple-quote docstring variant
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_python_file_with_single_quote_docstring_detected() {
+    let code = "def func():\n    '''Single-quote docstring.'''\n    pass\n";
+    let (dir, paths) = write_temp_files(&[("mod.py", code)]);
+    let export = make_export(vec![make_row("mod.py", ".", "Python")]);
+    let report = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+    assert_eq!(report.public_items, 1);
+    assert_eq!(report.documented_ratio, 1.0);
+}
