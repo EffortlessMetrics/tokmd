@@ -47,4 +47,5 @@ tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
+anyhow = "1.0.101"
 proptest = "1.10.0"
