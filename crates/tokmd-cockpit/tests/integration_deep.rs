@@ -123,12 +123,7 @@ fn composition_only_tests() {
 
 #[test]
 fn composition_mixed_types() {
-    let files = [
-        "src/main.rs",
-        "tests/test_it.rs",
-        "README.md",
-        "Cargo.toml",
-    ];
+    let files = ["src/main.rs", "tests/test_it.rs", "README.md", "Cargo.toml"];
     let comp = compute_composition(&files);
     assert_eq!(comp.code_pct, 0.25);
     assert_eq!(comp.test_pct, 0.25);
@@ -403,10 +398,12 @@ fn health_warnings_for_large_files() {
     ];
     let health = compute_code_health(&stats, &make_no_contract());
     assert_eq!(health.warnings.len(), 2);
-    assert!(health
-        .warnings
-        .iter()
-        .all(|w| w.warning_type == WarningType::LargeFile));
+    assert!(
+        health
+            .warnings
+            .iter()
+            .all(|w| w.warning_type == WarningType::LargeFile)
+    );
 }
 
 #[test]
@@ -808,11 +805,8 @@ fn hash_missing_file_skipped() {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(dir.path().join("a.rs"), "fn a() {}").unwrap();
     let h1 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
-    let h2 = tokmd_cockpit::determinism::hash_files_from_paths(
-        dir.path(),
-        &["a.rs", "missing.rs"],
-    )
-    .unwrap();
+    let h2 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["a.rs", "missing.rs"])
+        .unwrap();
     assert_eq!(h1, h2);
 }
 
@@ -1027,7 +1021,10 @@ fn format_signed_zero() {
 
 #[test]
 fn trend_label_improving() {
-    assert_eq!(trend_direction_label(TrendDirection::Improving), "improving");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Improving),
+        "improving"
+    );
 }
 
 #[test]
@@ -1114,7 +1111,7 @@ fn e2e_empty_pr() {
 fn e2e_large_mixed_pr() {
     let stats = vec![
         make_file_stat("src/lib.rs", 100, 30),
-        make_file_stat("src/commands/new.rs", 200, 50),
+        make_file_stat("crates/tokmd/src/commands/new.rs", 200, 50),
         make_file_stat("tests/integration_test.rs", 50, 10),
         make_file_stat("docs/schema.json", 20, 5),
         make_file_stat("README.md", 10, 2),
