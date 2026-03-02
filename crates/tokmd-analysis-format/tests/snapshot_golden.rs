@@ -4,8 +4,6 @@
 //! capturing full rendered output as insta snapshots, making regressions
 //! immediately visible as diffs.
 
-use std::collections::BTreeMap;
-
 use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::*;
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
