@@ -168,7 +168,7 @@ expression: out
 <body>
     <header>
         <h1>tokmd Analysis Report</h1>
-        <div class="timestamp">Generated: 2026-03-02 21:24:49 UTC</div>
+        <div class="timestamp">Generated: [TIMESTAMP]</div>
     </header>
 
     <div class="container">

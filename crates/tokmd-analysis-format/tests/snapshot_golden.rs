@@ -219,6 +219,26 @@ fn text(output: RenderedOutput) -> String {
     }
 }
 
+/// Replace dynamic UTC timestamps so HTML snapshots are deterministic.
+fn redact_timestamp(html: &str) -> String {
+    let mut result = html.to_string();
+    while let Some(pos) = result.find(" UTC") {
+        if pos >= 19 {
+            let candidate = &result[pos - 19..pos + 4];
+            if candidate.len() == 23
+                && candidate.as_bytes()[4] == b'-'
+                && candidate.as_bytes()[7] == b'-'
+                && candidate.as_bytes()[10] == b' '
+            {
+                result.replace_range(pos - 19..pos + 4, "[TIMESTAMP]");
+                continue;
+            }
+        }
+        break;
+    }
+    result
+}
+
 // ===========================================================================
 // JSON snapshots
 // ===========================================================================
@@ -376,7 +396,7 @@ fn snapshot_tree_minimal() {
 fn snapshot_html_with_derived() {
     let mut receipt = minimal_receipt();
     receipt.derived = Some(sample_derived());
-    let out = text(render(&receipt, AnalysisFormat::Html).unwrap());
+    let out = redact_timestamp(&text(render(&receipt, AnalysisFormat::Html).unwrap()));
     insta::assert_snapshot!("html_with_derived", out);
 }
 
