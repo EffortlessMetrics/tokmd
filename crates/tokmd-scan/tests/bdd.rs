@@ -352,3 +352,174 @@ fn given_nested_structure_when_scanned_then_all_files_found() -> Result<()> {
     assert!(rust.code >= 2);
     Ok(())
 }
+
+// ===========================================================================
+// Scenario group: large files and binary content
+// ===========================================================================
+
+#[test]
+fn given_large_rust_file_when_scanned_then_all_lines_counted() -> Result<()> {
+    let tmp = TempDir::new()?;
+    let mut content = String::new();
+    for i in 0..200 {
+        content.push_str(&format!("fn func_{i}() {{}}\n"));
+    }
+    write_file(&tmp, "big.rs", &content);
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
+
+    assert!(rust.code >= 200, "all 200 functions should be counted");
+    Ok(())
+}
+
+#[test]
+fn given_only_comments_file_when_scanned_then_zero_code_lines() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "comments.rs", "// line 1\n// line 2\n// line 3\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust language");
+
+    assert_eq!(rust.code, 0, "comment-only file should have 0 code lines");
+    assert!(rust.comments >= 3, "should count at least 3 comment lines");
+    Ok(())
+}
+
+#[test]
+fn given_only_blank_lines_file_when_scanned_then_zero_code_lines() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "blanks.rs", "\n\n\n\n\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    // Rust won't detect a file with only blank lines as having code
+    let rust = langs.get(&tokei::LanguageType::Rust);
+    if let Some(r) = rust {
+        assert_eq!(r.code, 0, "blank-only file should have 0 code lines");
+    }
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: multiple exclusion patterns
+// ===========================================================================
+
+#[test]
+fn given_multiple_exclusion_patterns_when_scanned_then_all_patterns_applied() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "keep.rs", "fn keep() {}\n");
+    write_file(&tmp, "remove.py", "def remove(): pass\n");
+    write_file(&tmp, "also_remove.js", "function f() {}\n");
+
+    let mut opts = default_opts();
+    opts.excluded = vec!["*.py".to_string(), "*.js".to_string()];
+
+    let langs = scan(&[tmp.path().to_path_buf()], &opts)?;
+
+    assert!(
+        langs.get(&tokei::LanguageType::Rust).is_some(),
+        "Rust should remain"
+    );
+    assert!(
+        langs.get(&tokei::LanguageType::Python).is_none()
+            || langs
+                .get(&tokei::LanguageType::Python)
+                .is_none_or(|r| r.code == 0),
+        "Python should be excluded"
+    );
+    assert!(
+        langs.get(&tokei::LanguageType::JavaScript).is_none()
+            || langs
+                .get(&tokei::LanguageType::JavaScript)
+                .is_none_or(|r| r.code == 0),
+        "JavaScript should be excluded"
+    );
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: comments and code mix
+// ===========================================================================
+
+#[test]
+fn given_mixed_code_and_comments_when_scanned_then_both_counted_separately() -> Result<()> {
+    let tmp = TempDir::new()?;
+    let src = "\
+// This is a comment
+fn main() {
+    // inline comment
+    println!(\"hello\");
+}
+";
+    write_file(&tmp, "mixed.rs", src);
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert!(rust.code > 0, "should have code lines");
+    assert!(rust.comments > 0, "should have comment lines");
+    assert!(
+        rust.code != rust.comments,
+        "code and comment counts should differ"
+    );
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: single-line file
+// ===========================================================================
+
+#[test]
+fn given_single_line_file_when_scanned_then_one_code_line() -> Result<()> {
+    let tmp = TempDir::new()?;
+    write_file(&tmp, "one.rs", "fn one() {}\n");
+
+    let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    assert_eq!(rust.code, 1, "single function file = 1 code line");
+    Ok(())
+}
+
+// ===========================================================================
+// Scenario group: no_ignore flags
+// ===========================================================================
+
+#[test]
+fn given_no_ignore_vcs_flag_when_scanned_then_gitignored_files_included() -> Result<()> {
+    let tmp = TempDir::new()?;
+    // Create a minimal git repo with a .gitignore
+    std::process::Command::new("git")
+        .args(["init"])
+        .current_dir(tmp.path())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .ok();
+    write_file(&tmp, ".gitignore", "ignored.rs\n");
+    write_file(&tmp, "kept.rs", "fn kept() {}\n");
+    write_file(&tmp, "ignored.rs", "fn ignored() {}\n");
+
+    let mut opts = default_opts();
+    opts.no_ignore_vcs = true;
+
+    let langs = scan(&[tmp.path().to_path_buf()], &opts)?;
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("should find Rust");
+
+    // Both files should be counted since we disable vcs ignore
+    assert!(
+        rust.code >= 2,
+        "no_ignore_vcs should include gitignored files"
+    );
+    Ok(())
+}
