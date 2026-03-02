@@ -1,0 +1,19 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_golden.rs
+assertion_line: 314
+expression: out
+---
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "codeLines": 500,
+  "commentCount": 80,
+  "fileSize": 5000,
+  "interactionStatistic": {
+    "@type": "InteractionCounter",
+    "interactionType": "http://schema.org/ReadAction",
+    "userInteractionCount": 1200
+  },
+  "lineCount": 620,
+  "name": "."
+}

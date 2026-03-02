@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_golden.rs
+assertion_line: 345
+expression: out
+---
+graph TD
+  mod_a -->|2| mod_b
+  mod_b -->|7| mod_c
+  mod_a -->|1| mod_c
