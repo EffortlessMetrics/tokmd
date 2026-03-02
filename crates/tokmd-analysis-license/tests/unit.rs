@@ -261,9 +261,11 @@ fn small_max_file_bytes_may_miss_license_phrases() {
     content.push_str("\nPermission is hereby granted, free of charge.");
     fs::write(dir.path().join("LICENSE"), &content).unwrap();
 
-    let mut limits = AnalysisLimits::default();
     // Set limit so small it won't read the license phrase
-    limits.max_file_bytes = Some(10);
+    let limits = AnalysisLimits {
+        max_file_bytes: Some(10),
+        ..Default::default()
+    };
 
     let files = vec![PathBuf::from("LICENSE")];
     let report = build_license_report(dir.path(), &files, &limits).unwrap();
