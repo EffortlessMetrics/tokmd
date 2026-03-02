@@ -1,7 +1,7 @@
 use proptest::prelude::*;
 use tokmd_context_policy::{
-    assign_policy, classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
-    DEFAULT_DENSE_THRESHOLD,
+    DEFAULT_DENSE_THRESHOLD, assign_policy, classify_file, compute_file_cap, is_spine_file,
+    smart_exclude_reason,
 };
 use tokmd_types::{FileClassification, InclusionPolicy};
 
