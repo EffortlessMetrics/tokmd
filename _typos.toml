@@ -50,5 +50,8 @@ sloc = "sloc"
 # Mathematical abbreviations (numerator/denominator)
 numer = "numer"
 
+# Test variable suffixes (ordering patterns: ab = a-then-b, ba = b-then-a)
+ba = "ba"
+
 [type.rust]
 # Rust-specific settings if needed
