@@ -433,7 +433,7 @@ The `total` object in language and module receipts contains aggregate metrics:
 
 Produced by `tokmd analyze --format json`.
 
-**Schema version**: 7
+**Schema version**: 8
 
 Analysis receipts contain derived metrics and optional enrichments. All sections except `source`, `args`, and `derived` are optional based on the preset used.
 
@@ -441,7 +441,7 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 
 ```json
 {
-  "schema_version": 7,
+  "schema_version": 8,
   "generated_at_ms": 1706350000000,
   "tool": { "name": "tokmd", "version": "1.6.0" },
   "mode": "analysis",
