@@ -1,0 +1,143 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+{
+  "args": {
+    "children": "separate",
+    "format": "json",
+    "module_depth": 2,
+    "module_roots": [
+      "crates"
+    ],
+    "top": 0
+  },
+  "children": "separate",
+  "generated_at_ms": 0,
+  "mode": "module",
+  "module_depth": 2,
+  "module_roots": [
+    "crates"
+  ],
+  "rows": [
+    {
+      "avg_lines": 120,
+      "bytes": 50000,
+      "code": 1000,
+      "files": 10,
+      "lines": 1200,
+      "module": "crates/mod_00",
+      "tokens": 2500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 45000,
+      "code": 900,
+      "files": 9,
+      "lines": 1080,
+      "module": "crates/mod_01",
+      "tokens": 2250
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 40000,
+      "code": 800,
+      "files": 8,
+      "lines": 960,
+      "module": "crates/mod_02",
+      "tokens": 2000
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 35000,
+      "code": 700,
+      "files": 7,
+      "lines": 840,
+      "module": "crates/mod_03",
+      "tokens": 1750
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 30000,
+      "code": 600,
+      "files": 6,
+      "lines": 720,
+      "module": "crates/mod_04",
+      "tokens": 1500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 25000,
+      "code": 500,
+      "files": 5,
+      "lines": 600,
+      "module": "crates/mod_05",
+      "tokens": 1250
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 20000,
+      "code": 400,
+      "files": 4,
+      "lines": 480,
+      "module": "crates/mod_06",
+      "tokens": 1000
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 15000,
+      "code": 300,
+      "files": 3,
+      "lines": 360,
+      "module": "crates/mod_07",
+      "tokens": 750
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 10000,
+      "code": 200,
+      "files": 2,
+      "lines": 240,
+      "module": "crates/mod_08",
+      "tokens": 500
+    },
+    {
+      "avg_lines": 120,
+      "bytes": 5000,
+      "code": 100,
+      "files": 1,
+      "lines": 120,
+      "module": "crates/mod_09",
+      "tokens": 250
+    }
+  ],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 120,
+    "bytes": 275000,
+    "code": 5500,
+    "files": 55,
+    "lines": 6600,
+    "tokens": 13750
+  },
+  "warnings": []
+}

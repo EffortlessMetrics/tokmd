@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+"src/my file, with commas.rs",src,Rust,parent,50,5,3,58,2500,125
+"src/has ""quotes"".rs",src,Rust,parent,30,2,1,33,1500,75

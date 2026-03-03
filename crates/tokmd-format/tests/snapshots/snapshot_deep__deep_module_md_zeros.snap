@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|empty_mod|0|0|0|0|0|0|
+|**Total**|0|0|0|0|0|0|
