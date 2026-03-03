@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|日本語|300|400|15000|750|
+|Ελληνικά|200|250|10000|500|
+|Ру́сский|100|120|5000|250|
+|**Total**|600|770|30000|1500|

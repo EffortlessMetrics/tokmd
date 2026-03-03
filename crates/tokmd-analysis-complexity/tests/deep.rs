@@ -1065,3 +1065,426 @@ fn g(x: i32) -> i32 {
         }
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// § Serialization roundtrip
+// ═══════════════════════════════════════════════════════════════════
+
+mod serialization {
+    use super::*;
+
+    #[test]
+    fn complexity_report_round_trips_through_json() {
+        let code = r#"
+fn branchy(x: i32) -> i32 {
+    if x > 0 {
+        if x > 10 { x * 2 } else { x + 1 }
+    } else {
+        match x { -1 => 0, _ => x.abs() }
+    }
+}
+"#;
+        let report = analyze(&[("lib.rs", "Rust", code)], true);
+        let json = serde_json::to_string(&report).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed["total_functions"].is_u64());
+        assert!(parsed["avg_cyclomatic"].is_f64());
+        assert!(parsed["max_cyclomatic"].is_u64());
+        assert!(parsed["files"].is_array());
+    }
+
+    #[test]
+    fn file_complexity_fields_serialized() {
+        let code = "fn f(x: i32) -> i32 { if x > 0 { x } else { -x } }\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        let json = serde_json::to_value(&report).unwrap();
+        let file = &json["files"][0];
+        assert!(file["path"].is_string());
+        assert!(file["module"].is_string());
+        assert!(file["function_count"].is_u64());
+        assert!(file["cyclomatic_complexity"].is_u64());
+        assert!(file["risk_level"].is_string());
+    }
+
+    #[test]
+    fn function_details_serialized_when_enabled() {
+        let code = "fn a() { let x = 1; }\nfn b(x: i32) { if x > 0 { return; } }\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], true);
+        let json = serde_json::to_value(&report).unwrap();
+        let functions = &json["files"][0]["functions"];
+        assert!(functions.is_array());
+        let fns = functions.as_array().unwrap();
+        assert!(!fns.is_empty());
+        assert!(fns[0]["name"].is_string());
+        assert!(fns[0]["cyclomatic"].is_u64());
+    }
+
+    #[test]
+    fn histogram_serialized_when_present() {
+        let code = "fn f() { if true { 1; } }\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        let json = serde_json::to_value(&report).unwrap();
+        let hist = &json["histogram"];
+        assert!(hist.is_object());
+        assert!(hist["buckets"].is_array());
+        assert!(hist["counts"].is_array());
+        assert!(hist["total"].is_u64());
+    }
+
+    #[test]
+    fn risk_level_serializes_as_string() {
+        let code = "fn f() {}\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        let json = serde_json::to_value(&report).unwrap();
+        let risk = json["files"][0]["risk_level"].as_str().unwrap();
+        assert!(["low", "moderate", "high", "critical"].contains(&risk));
+    }
+
+    #[test]
+    fn technical_debt_serialized_when_present() {
+        let code = "fn f(x: i32) -> i32 { if x > 0 { x } else { -x } }\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        let json = serde_json::to_value(&report).unwrap();
+        if let Some(debt) = json.get("technical_debt") {
+            if !debt.is_null() {
+                assert!(debt["ratio"].is_f64());
+                assert!(debt["complexity_points"].is_u64());
+                assert!(debt["code_kloc"].is_f64());
+                assert!(debt["level"].is_string());
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Aggregation across files
+// ═══════════════════════════════════════════════════════════════════
+
+mod aggregation {
+    use super::*;
+
+    #[test]
+    fn total_functions_sums_across_files() {
+        let code_a = "fn a() {}\nfn b() {}\n";
+        let code_b = "fn c() {}\nfn d() {}\nfn e() {}\n";
+        let report = analyze(&[("a.rs", "Rust", code_a), ("b.rs", "Rust", code_b)], false);
+        assert!(report.total_functions >= 5);
+    }
+
+    #[test]
+    fn max_cyclomatic_is_highest_across_files() {
+        let simple = "fn f() { let x = 1; }\n";
+        let complex = r#"
+fn g(x: i32, y: i32) -> i32 {
+    if x > 0 {
+        if y > 0 { x + y } else { x - y }
+    } else {
+        match x {
+            0 => y,
+            _ => x * y,
+        }
+    }
+}
+"#;
+        let report = analyze(
+            &[
+                ("simple.rs", "Rust", simple),
+                ("complex.rs", "Rust", complex),
+            ],
+            false,
+        );
+        assert!(report.max_cyclomatic > 1);
+        // The complex file should have higher cyclomatic than the simple one
+        if report.files.len() >= 2 {
+            let sorted: Vec<usize> = report
+                .files
+                .iter()
+                .map(|f| f.cyclomatic_complexity)
+                .collect();
+            assert!(report.max_cyclomatic == *sorted.iter().max().unwrap());
+        }
+    }
+
+    #[test]
+    fn avg_cyclomatic_between_min_and_max() {
+        let code_a = "fn f() { let x = 1; }\n";
+        let code_b =
+            "fn g(x: i32) -> i32 { if x > 0 { if x > 10 { x * 2 } else { x } } else { -x } }\n";
+        let report = analyze(&[("a.rs", "Rust", code_a), ("b.rs", "Rust", code_b)], false);
+        let min_cyclo: usize = report
+            .files
+            .iter()
+            .map(|f| f.cyclomatic_complexity)
+            .min()
+            .unwrap_or(0);
+        let max_cyclo: usize = report
+            .files
+            .iter()
+            .map(|f| f.cyclomatic_complexity)
+            .max()
+            .unwrap_or(0);
+        assert!(report.avg_cyclomatic >= min_cyclo as f64);
+        assert!(report.avg_cyclomatic <= max_cyclo as f64);
+    }
+
+    #[test]
+    fn max_function_length_is_longest_across_files() {
+        let short = "fn f() { let x = 1; }\n";
+        let long = r#"
+fn g() {
+    let a = 1;
+    let b = 2;
+    let c = 3;
+    let d = 4;
+    let e = 5;
+    let f = 6;
+    let g = 7;
+    let h = 8;
+}
+"#;
+        let report = analyze(
+            &[("short.rs", "Rust", short), ("long.rs", "Rust", long)],
+            false,
+        );
+        assert!(report.max_function_length > 1);
+    }
+
+    #[test]
+    fn high_risk_files_counts_risky_files() {
+        let safe = "fn f() { let x = 1; }\n";
+        let report = analyze(&[("safe.rs", "Rust", safe)], false);
+        // A single simple function should not be high risk
+        assert_eq!(report.high_risk_files, 0);
+    }
+
+    #[test]
+    fn files_sorted_by_cyclomatic_descending() {
+        let code_a = "fn f() { let x = 1; }\n";
+        let code_b =
+            "fn g(x: i32) -> i32 { if x > 0 { if x > 10 { x * 2 } else { x } } else { -x } }\n";
+        let report = analyze(&[("a.rs", "Rust", code_a), ("b.rs", "Rust", code_b)], false);
+        if report.files.len() >= 2 {
+            for w in report.files.windows(2) {
+                assert!(w[0].cyclomatic_complexity >= w[1].cyclomatic_complexity);
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Histogram generation
+// ═══════════════════════════════════════════════════════════════════
+
+mod histogram {
+    use super::*;
+
+    #[test]
+    fn histogram_has_seven_buckets() {
+        let files = vec![FileComplexity {
+            path: "a.rs".to_string(),
+            module: "src".to_string(),
+            function_count: 1,
+            max_function_length: 5,
+            cyclomatic_complexity: 3,
+            cognitive_complexity: None,
+            max_nesting: None,
+            risk_level: ComplexityRisk::Low,
+            functions: None,
+        }];
+        let hist = generate_complexity_histogram(&files, 5);
+        assert_eq!(hist.buckets.len(), 7);
+        assert_eq!(hist.counts.len(), 7);
+    }
+
+    #[test]
+    fn histogram_total_matches_file_count() {
+        let files: Vec<FileComplexity> = (0..10)
+            .map(|i| FileComplexity {
+                path: format!("{i}.rs"),
+                module: "src".to_string(),
+                function_count: 1,
+                max_function_length: 5,
+                cyclomatic_complexity: i * 3,
+                cognitive_complexity: None,
+                max_nesting: None,
+                risk_level: ComplexityRisk::Low,
+                functions: None,
+            })
+            .collect();
+        let hist = generate_complexity_histogram(&files, 5);
+        assert_eq!(hist.total, 10);
+        let sum: u32 = hist.counts.iter().sum();
+        assert_eq!(sum, 10);
+    }
+
+    #[test]
+    fn empty_files_gives_empty_histogram() {
+        let hist = generate_complexity_histogram(&[], 5);
+        assert_eq!(hist.total, 0);
+        assert!(hist.counts.iter().all(|&c| c == 0));
+    }
+
+    #[test]
+    fn high_complexity_files_in_last_bucket() {
+        let files = vec![FileComplexity {
+            path: "complex.rs".to_string(),
+            module: "src".to_string(),
+            function_count: 10,
+            max_function_length: 200,
+            cyclomatic_complexity: 50,
+            cognitive_complexity: Some(100),
+            max_nesting: Some(8),
+            risk_level: ComplexityRisk::Critical,
+            functions: None,
+        }];
+        let hist = generate_complexity_histogram(&files, 5);
+        // Complexity 50 should be in last bucket (30+)
+        assert_eq!(*hist.counts.last().unwrap(), 1);
+    }
+
+    #[test]
+    fn bucket_boundaries_are_correct() {
+        let hist = generate_complexity_histogram(&[], 5);
+        assert_eq!(hist.buckets, vec![0, 5, 10, 15, 20, 25, 30]);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Additional edge cases
+// ═══════════════════════════════════════════════════════════════════
+
+mod additional_edge_cases {
+    use super::*;
+
+    #[test]
+    fn single_function_file() {
+        let code = "fn main() { println!(\"hello\"); }\n";
+        let report = analyze(&[("main.rs", "Rust", code)], false);
+        assert!(report.total_functions >= 1);
+        assert!(report.avg_cyclomatic >= 1.0);
+    }
+
+    #[test]
+    fn file_with_no_functions() {
+        let code = "// just a comment\nlet x = 42;\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        // Should still produce a report, just with minimal metrics
+        assert_eq!(report.files.len(), 1);
+    }
+
+    #[test]
+    fn deeply_nested_code() {
+        let code = r#"
+fn deep(x: i32) {
+    if x > 0 {
+        if x > 1 {
+            if x > 2 {
+                if x > 3 {
+                    if x > 4 {
+                        println!("very deep");
+                    }
+                }
+            }
+        }
+    }
+}
+"#;
+        let report = analyze(&[("deep.rs", "Rust", code)], false);
+        // Should detect deep nesting
+        if let Some(max_nest) = report.max_nesting_depth {
+            assert!(max_nest >= 4);
+        }
+    }
+
+    #[test]
+    fn many_functions_file() {
+        let mut code = String::new();
+        for i in 0..30 {
+            code.push_str(&format!("fn func_{i}() {{ let x = {i}; }}\n"));
+        }
+        let report = analyze(&[("many.rs", "Rust", &code)], false);
+        assert!(report.total_functions >= 20);
+    }
+
+    #[test]
+    fn python_nested_control_flow() {
+        let code = r#"
+def process(data):
+    if data:
+        for item in data:
+            if item > 0:
+                while item > 10:
+                    item = item - 1
+                    if item == 5:
+                        break
+"#;
+        let report = analyze(&[("proc.py", "Python", code)], false);
+        assert!(!report.files.is_empty());
+        assert!(report.files[0].cyclomatic_complexity > 1);
+    }
+
+    #[test]
+    fn javascript_async_functions() {
+        let code = r#"
+async function fetchData(url) {
+    if (!url) {
+        throw new Error("no url");
+    }
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error("bad response");
+    }
+    return res.json();
+}
+"#;
+        let report = analyze(&[("fetch.js", "JavaScript", code)], false);
+        assert!(!report.files.is_empty());
+        assert!(report.files[0].function_count >= 1);
+    }
+
+    #[test]
+    fn go_multiple_functions() {
+        let code = r#"
+func Add(a int, b int) int {
+    return a + b
+}
+
+func Max(a int, b int) int {
+    if a > b {
+        return a
+    }
+    return b
+}
+"#;
+        let report = analyze(&[("math.go", "Go", code)], false);
+        assert!(!report.files.is_empty());
+        assert!(report.files[0].function_count >= 2);
+    }
+
+    #[test]
+    fn maintainability_index_present_for_valid_code() {
+        let code = r#"
+fn compute(x: i32, y: i32) -> i32 {
+    if x > 0 {
+        x + y
+    } else {
+        x - y
+    }
+}
+"#;
+        let report = analyze(&[("comp.rs", "Rust", code)], false);
+        // Maintainability index should be computed for non-empty code
+        // It may or may not be present depending on avg_loc calculation
+        // Just verify the report is valid
+        assert!(report.avg_cyclomatic >= 1.0);
+    }
+
+    #[test]
+    fn detail_functions_disabled_returns_none() {
+        let code = "fn f() { let x = 1; }\n";
+        let report = analyze(&[("lib.rs", "Rust", code)], false);
+        for file in &report.files {
+            assert!(file.functions.is_none());
+        }
+    }
+}

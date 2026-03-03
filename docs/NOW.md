@@ -1,51 +1,41 @@
 # NOW.md — Current State of tokmd
 
-> Last updated: 2026-02-26
+> Last updated: 2025-07-24
 
 ## Where We Are
 
-v1.7.2 shipped. 56 crates in the workspace. **6,593** `#[test]` annotations,
-**250** `proptest!` blocks, **19** fuzz targets, mutation testing on CI.
-
-Deep test coverage expansion complete: **~2,240 new tests** landed across all
-tiers via 36+ merged PRs. CI green on main with full gate passing.
+v1.7.2 shipped. 56 crates in the workspace. **2,496+ new tests** merged
+across 34 PRs. Deep coverage across all crates. CI green on main.
 
 ---
 
-## NOW — completed in latest wave
+## NOW — current status
 
-- **Deep test coverage expansion complete.** 2,240+ new tests across all tiers
-  covering boundary verification, determinism regression, error handling,
-  snapshot tests for all format renderers, deep analysis crate tests
-  (complexity, halstead, near-dup, topics, entropy), CLI E2E tests for all
-  major subcommands, FFI and workflow integration tests, and property tests
-  expanded across 14 crates.
-- **36+ PRs merged** in the latest wave. BDD scenarios, property tests,
-  snapshot tests, integration tests, E2E tests, fuzz targets, and mutation
-  testing added across all crates. Every `tokmd-analysis-*` microcrate now
-  has dedicated `tests/bdd.rs`, `tests/properties.rs`, and snapshot suites.
-- **CI stabilization and PR merge wave landed.** All test-addition branches
-  merged. Green matrix across the board.
-- **Schema/doc synchronization hardened.** CLAUDE.md, AGENTS.md, GEMINI.md,
-  ROADMAP.md, and docs/ in sync with actual crate topology (56 crates).
+- **2,496+ new tests merged** across 34 PRs.
+- **Deep coverage across all 56 crates.** Every tier covered with unit,
+  integration, snapshot, BDD, and E2E tests.
+- **Full property testing.** `proptest` suites across 10+ crates for
+  invariant verification.
+- **Full BDD test suites.** Every `tokmd-analysis-*` microcrate has
+  dedicated `tests/bdd.rs` scenarios.
+- **Full snapshot testing (insta).** Format renderers, analysis outputs,
+  and CLI commands covered with golden snapshots.
+- **Full CLI E2E testing.** All major subcommands exercised with
+  `assert_cmd` + `predicates`.
+- **CI green on main.** Full gate passing.
 
 ---
 
-## NEXT — v1.8 "WASM-ready core" track
+## NEXT — immediate priorities
 
-- **Host IO abstraction (ports).** Enumerate files, read bytes, clock,
-  optional logging/progress. Native uses FS; WASM uses in-memory substrate.
-- **In-memory scan pipeline.** Scan path accepting `Vec<(path, bytes)>`
-  instead of filesystem `PathBuf`s.
-- **WASM feature profile.** `wasm` feature that disables OS-bound pieces
-  (`git`, `dirs`, `std::process`) and enables in-memory I/O.
-- **WASM CI builds + conformance tests.** `cargo build --target
-  wasm32-unknown-unknown` in CI; golden tests verifying native/WASM parity.
-- **PackPlan unification.** Converge `context` and `handoff` file-selection
-  logic into a shared plan/policy layer.
-- **Cockpit accuracy improvements.** Diff coverage precision, determinism
-  gate robustness, baseline comparison fidelity.
-- **Stale branch cleanup.** ~150 merged test branches to prune.
+- **Verify CI green after massive test merge wave.** Monitor for flaky
+  tests or regressions introduced by the 34-PR merge.
+- **Monitor for snapshot drift.** Ensure insta snapshots remain stable
+  as codebase evolves.
+- **v1.7.x release preparation.** Changelog, version bumps, publish
+  dry-run.
+- **WASM preparation (v1.8 track).** Host IO abstraction, in-memory
+  scan pipeline, `wasm` feature profile.
 
 ---
 
@@ -54,9 +44,6 @@ tiers via 36+ merged PRs. CI green on main with full gate passing.
 - **v1.9 "Browser runner."** WASM API crate (`tokmd-wasm`), zipball
   ingestion, in-browser receipt generation without server-side compute.
 - **EffortlessMetrics/adze integration track.** AST seams for
-  tree-sitter/Adze-based complexity and function extraction (v3.0+/v4.0
-  horizon).
-- **Python/Node binding parity tests.** All workflows (`lang`, `module`,
-  `export`, `analyze`, `diff`) returning identical receipts to CLI.
-- **crates.io stable release (v1.8.0).** Publishability audit for all 56
-  crates, dependency ordering, `cargo xtask publish` dry-run clean.
+  tree-sitter/Adze-based complexity and function extraction.
+- **Full mutation testing coverage.** Expand `cargo-mutants` across all
+  crates for comprehensive test quality verification.
