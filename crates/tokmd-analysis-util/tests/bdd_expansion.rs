@@ -197,13 +197,19 @@ mod math_edge_cases {
     #[test]
     fn given_gini_with_single_nonzero_in_many_zeros_then_high_inequality() {
         let g = gini_coefficient(&[0, 0, 0, 0, 100]);
-        assert!(g > 0.7, "Expected high gini for extreme inequality, got {g}");
+        assert!(
+            g > 0.7,
+            "Expected high gini for extreme inequality, got {g}"
+        );
     }
 
     #[test]
     fn given_gini_with_two_equal_values_then_zero() {
         let g = gini_coefficient(&[50, 50]);
-        assert!(g.abs() < 1e-10, "Expected gini ~0 for equal values, got {g}");
+        assert!(
+            g.abs() < 1e-10,
+            "Expected gini ~0 for equal values, got {g}"
+        );
     }
 }
 
