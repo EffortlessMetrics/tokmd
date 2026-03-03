@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use tokmd_git::{
-    classify_intent, collect_history, git_available, repo_root, resolve_base_ref, rev_exists,
-    GitCommit, GitRangeMode,
+    GitCommit, GitRangeMode, classify_intent, collect_history, git_available, repo_root,
+    resolve_base_ref, rev_exists,
 };
 use tokmd_types::CommitIntentKind;
 
@@ -498,8 +498,7 @@ fn test_given_same_ref_when_get_added_lines_then_empty() {
     let repo = make_repo("same-ref").expect("repo");
     let sha = head_sha(&repo.path);
 
-    let result =
-        tokmd_git::get_added_lines(&repo.path, &sha, &sha, GitRangeMode::TwoDot).unwrap();
+    let result = tokmd_git::get_added_lines(&repo.path, &sha, &sha, GitRangeMode::TwoDot).unwrap();
     assert!(result.is_empty());
 }
 

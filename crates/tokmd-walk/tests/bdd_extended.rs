@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
-use tokmd_walk::{file_size, license_candidates, list_files, LicenseCandidates};
+use tokmd_walk::{LicenseCandidates, file_size, license_candidates, list_files};
 
 // ============================================================================
 // Helpers
