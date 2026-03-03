@@ -112,8 +112,7 @@ fn fingerprint_collision_resistance_different_check_ids() {
     let fingerprints: Vec<String> = check_ids
         .iter()
         .map(|cid| {
-            Finding::new(*cid, "code", FindingSeverity::Info, "T", "M")
-                .compute_fingerprint("tokmd")
+            Finding::new(*cid, "code", FindingSeverity::Info, "T", "M").compute_fingerprint("tokmd")
         })
         .collect();
     let unique: std::collections::HashSet<&String> = fingerprints.iter().collect();
