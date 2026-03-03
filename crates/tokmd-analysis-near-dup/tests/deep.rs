@@ -121,14 +121,8 @@ fn similarity_degrades_with_increasing_divergence() {
         .map(|p| p.similarity);
 
     if let (Some(ab), Some(ac), Some(ad)) = (sim_ab, sim_ac, sim_ad) {
-        assert!(
-            ab >= ac,
-            "a-b similarity ({ab}) should be >= a-c ({ac})"
-        );
-        assert!(
-            ac >= ad,
-            "a-c similarity ({ac}) should be >= a-d ({ad})"
-        );
+        assert!(ab >= ac, "a-b similarity ({ab}) should be >= a-c ({ac})");
+        assert!(ac >= ad, "a-c similarity ({ac}) should be >= a-d ({ad})");
     }
 }
 
@@ -525,7 +519,15 @@ fn ten_files_max_three_yields_seven_skipped() {
         write_file(&dir, &name, &content);
     }
     let rows: Vec<FileRow> = (0..10)
-        .map(|i| make_row(&format!("f{i:02}.rs"), "(root)", "Rust", (10 - i) * 10, 5000))
+        .map(|i| {
+            make_row(
+                &format!("f{i:02}.rs"),
+                "(root)",
+                "Rust",
+                (10 - i) * 10,
+                5000,
+            )
+        })
         .collect();
     let export = make_export(rows);
 
