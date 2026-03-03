@@ -1,0 +1,53 @@
+---
+source: crates/tokmd-types/tests/cockpit_tests.rs
+expression: evidence
+---
+{
+  "overall_status": "warn",
+  "mutation": {
+    "status": "warn",
+    "source": "ran_local",
+    "commit_match": "exact",
+    "scope": {
+      "relevant": [
+        "src/lib.rs"
+      ],
+      "tested": [
+        "src/lib.rs"
+      ],
+      "ratio": 1.0
+    },
+    "evidence_commit": "abc123",
+    "evidence_generated_at_ms": 1700000000000,
+    "survivors": [
+      {
+        "file": "src/calc.rs",
+        "line": 42,
+        "mutation": "replaced + with -"
+      }
+    ],
+    "killed": 49,
+    "timeout": 0,
+    "unviable": 1
+  },
+  "diff_coverage": {
+    "status": "pass",
+    "source": "ran_local",
+    "commit_match": "exact",
+    "scope": {
+      "relevant": [
+        "src/lib.rs"
+      ],
+      "tested": [
+        "src/lib.rs"
+      ],
+      "ratio": 1.0
+    },
+    "evidence_commit": "abc123",
+    "evidence_generated_at_ms": 1700000000000,
+    "lines_added": 100,
+    "lines_covered": 95,
+    "coverage_pct": 95.0,
+    "uncovered_hunks": []
+  }
+}
