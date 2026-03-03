@@ -757,6 +757,38 @@ pub fn write_export_jsonl_to_file(
 use tokmd_types::{DiffReceipt, DiffRow, DiffTotals, LangRow};
 
 /// Compute diff rows from two lang reports.
+/// Compute diff rows between two language reports.
+///
+/// Each row captures the delta between old and new values for a language.
+/// Languages with no change are omitted.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::{LangReport, LangRow, Totals, ChildrenMode};
+/// use tokmd_format::compute_diff_rows;
+///
+/// let from = LangReport {
+///     rows: vec![LangRow {
+///         lang: "Rust".into(), code: 100, lines: 150,
+///         files: 5, bytes: 4000, tokens: 1000, avg_lines: 30,
+///     }],
+///     total: Totals { code: 100, lines: 150, files: 5, bytes: 4000, tokens: 1000, avg_lines: 30 },
+///     with_files: true, children: ChildrenMode::Collapse, top: 0,
+/// };
+/// let to = LangReport {
+///     rows: vec![LangRow {
+///         lang: "Rust".into(), code: 200, lines: 300,
+///         files: 8, bytes: 8000, tokens: 2000, avg_lines: 38,
+///     }],
+///     total: Totals { code: 200, lines: 300, files: 8, bytes: 8000, tokens: 2000, avg_lines: 38 },
+///     with_files: true, children: ChildrenMode::Collapse, top: 0,
+/// };
+///
+/// let rows = compute_diff_rows(&from, &to);
+/// assert_eq!(rows.len(), 1);
+/// assert_eq!(rows[0].delta_code, 100);
+/// ```
 pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Vec<DiffRow> {
     // Collect all languages from both reports
     let mut all_langs: Vec<String> = from_report
@@ -826,6 +858,26 @@ pub fn compute_diff_rows(from_report: &LangReport, to_report: &LangReport) -> Ve
 }
 
 /// Compute totals from diff rows.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::DiffRow;
+/// use tokmd_format::compute_diff_totals;
+///
+/// let rows = vec![DiffRow {
+///     lang: "Rust".into(),
+///     old_code: 100, new_code: 200, delta_code: 100,
+///     old_lines: 150, new_lines: 300, delta_lines: 150,
+///     old_files: 5, new_files: 8, delta_files: 3,
+///     old_bytes: 4000, new_bytes: 8000, delta_bytes: 4000,
+///     old_tokens: 1000, new_tokens: 2000, delta_tokens: 1000,
+/// }];
+///
+/// let totals = compute_diff_totals(&rows);
+/// assert_eq!(totals.delta_code, 100);
+/// assert_eq!(totals.delta_tokens, 1000);
+/// ```
 pub fn compute_diff_totals(rows: &[DiffRow]) -> DiffTotals {
     let mut totals = DiffTotals {
         old_code: 0,
