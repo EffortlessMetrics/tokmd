@@ -52,6 +52,9 @@ numer = "numer"
 
 # Test variable suffixes (ordering patterns: ab = a-then-b, ba = b-then-a)
 ba = "ba"
+bck = "bck"
+# Test data (obfuscated text in deep.rs:138)
+caf = "caf"
 
 [type.rust]
 # Rust-specific settings if needed

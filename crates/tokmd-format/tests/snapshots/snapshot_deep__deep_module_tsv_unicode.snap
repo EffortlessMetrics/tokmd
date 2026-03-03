@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+src/コンポーネント	250	300	3	12500	625	100
+src/données	150	180	2	7500	375	90
+Total	400	480	5	20000	1000	96
