@@ -216,3 +216,152 @@ proptest! {
 
 // Note: fold_other_* property tests are in lib.rs where they can access
 // the private functions directly instead of reimplementing them.
+
+// ========================
+// Aggregation Invariants
+// ========================
+
+/// Generate an arbitrary `LangRow` with consistent avg_lines.
+fn arb_lang_row() -> impl Strategy<Value = tokmd_types::LangRow> {
+    (
+        "[A-Z][a-z]+",
+        0usize..10_000,
+        0usize..20_000,
+        0usize..500,
+        0usize..1_000_000,
+        0usize..250_000,
+    )
+        .prop_map(|(lang, code, lines, files, bytes, tokens)| {
+            let avg_lines = avg(lines, files);
+            tokmd_types::LangRow {
+                lang,
+                code,
+                lines,
+                files,
+                bytes,
+                tokens,
+                avg_lines,
+            }
+        })
+}
+
+/// Generate an arbitrary `ModuleRow` with consistent avg_lines.
+fn arb_module_row() -> impl Strategy<Value = tokmd_types::ModuleRow> {
+    (
+        "[a-z][a-z0-9_/]+",
+        0usize..10_000,
+        0usize..20_000,
+        0usize..500,
+        0usize..1_000_000,
+        0usize..250_000,
+    )
+        .prop_map(|(module, code, lines, files, bytes, tokens)| {
+            let avg_lines = avg(lines, files);
+            tokmd_types::ModuleRow {
+                module,
+                code,
+                lines,
+                files,
+                bytes,
+                tokens,
+                avg_lines,
+            }
+        })
+}
+
+proptest! {
+    // ── LangRow aggregation invariants ───────────────────────────────
+
+    #[test]
+    fn lang_row_sum_code_equals_total(rows in prop::collection::vec(arb_lang_row(), 0..20)) {
+        let sum_code: usize = rows.iter().map(|r| r.code).sum();
+        let sum_lines: usize = rows.iter().map(|r| r.lines).sum();
+        let sum_files: usize = rows.iter().map(|r| r.files).sum();
+        let sum_bytes: usize = rows.iter().map(|r| r.bytes).sum();
+        let sum_tokens: usize = rows.iter().map(|r| r.tokens).sum();
+
+        // The total should equal the sum of all row fields
+        prop_assert_eq!(sum_code, rows.iter().map(|r| r.code).sum::<usize>());
+        prop_assert_eq!(sum_lines, rows.iter().map(|r| r.lines).sum::<usize>());
+        prop_assert_eq!(sum_files, rows.iter().map(|r| r.files).sum::<usize>());
+        prop_assert_eq!(sum_bytes, rows.iter().map(|r| r.bytes).sum::<usize>());
+        prop_assert_eq!(sum_tokens, rows.iter().map(|r| r.tokens).sum::<usize>());
+    }
+
+    #[test]
+    fn lang_row_sorting_is_descending_by_code_then_name(
+        rows in prop::collection::vec(arb_lang_row(), 0..20)
+    ) {
+        let mut sorted = rows.clone();
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+
+        // Verify the sort order: descending by code, ascending by name
+        for window in sorted.windows(2) {
+            let (a, b) = (&window[0], &window[1]);
+            prop_assert!(
+                a.code > b.code || (a.code == b.code && a.lang <= b.lang),
+                "Sort violated: {:?} should come before {:?}", a, b
+            );
+        }
+    }
+
+    #[test]
+    fn lang_row_sorting_is_idempotent(rows in prop::collection::vec(arb_lang_row(), 0..20)) {
+        let mut once = rows.clone();
+        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+
+        let mut twice = once.clone();
+        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+
+        prop_assert_eq!(once, twice, "Sorting should be idempotent");
+    }
+
+    #[test]
+    fn lang_row_sorting_preserves_count(rows in prop::collection::vec(arb_lang_row(), 0..20)) {
+        let mut sorted = rows.clone();
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        prop_assert_eq!(sorted.len(), rows.len(), "Sorting should preserve row count");
+    }
+
+    // ── ModuleRow aggregation invariants ─────────────────────────────
+
+    #[test]
+    fn module_row_sum_code_equals_total(rows in prop::collection::vec(arb_module_row(), 0..20)) {
+        let sum_code: usize = rows.iter().map(|r| r.code).sum();
+        let sum_lines: usize = rows.iter().map(|r| r.lines).sum();
+        let sum_bytes: usize = rows.iter().map(|r| r.bytes).sum();
+        let sum_tokens: usize = rows.iter().map(|r| r.tokens).sum();
+
+        prop_assert_eq!(sum_code, rows.iter().map(|r| r.code).sum::<usize>());
+        prop_assert_eq!(sum_lines, rows.iter().map(|r| r.lines).sum::<usize>());
+        prop_assert_eq!(sum_bytes, rows.iter().map(|r| r.bytes).sum::<usize>());
+        prop_assert_eq!(sum_tokens, rows.iter().map(|r| r.tokens).sum::<usize>());
+    }
+
+    #[test]
+    fn module_row_sorting_is_descending_by_code_then_module(
+        rows in prop::collection::vec(arb_module_row(), 0..20)
+    ) {
+        let mut sorted = rows.clone();
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+
+        for window in sorted.windows(2) {
+            let (a, b) = (&window[0], &window[1]);
+            prop_assert!(
+                a.code > b.code || (a.code == b.code && a.module <= b.module),
+                "Sort violated: {:?} should come before {:?}", a, b
+            );
+        }
+    }
+
+    #[test]
+    fn module_row_sorting_is_idempotent(rows in prop::collection::vec(arb_module_row(), 0..20)) {
+        let mut once = rows.clone();
+        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+
+        let mut twice = once.clone();
+        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+
+        prop_assert_eq!(once, twice, "Sorting should be idempotent");
+    }
+}

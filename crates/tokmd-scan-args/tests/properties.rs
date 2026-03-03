@@ -250,4 +250,65 @@ proptest! {
         prop_assert_eq!(&args_none.excluded, &excluded);
         prop_assert_eq!(&args_opt_none.excluded, &excluded);
     }
+
+    // ── Redacted paths never contain original path segments ──────────
+
+    #[test]
+    fn scan_args_redacted_paths_do_not_contain_original_segments(
+        path_segments in prop::collection::vec("[a-z]{4,12}", 1..5),
+    ) {
+        let path_str = path_segments.join("/") + ".rs";
+        let paths = vec![PathBuf::from(&path_str)];
+        let scan_options = ScanOptions::default();
+
+        let args = scan_args(&paths, &scan_options, Some(RedactMode::Paths));
+        let redacted = &args.paths[0];
+
+        // Each original segment (≥4 chars) should not appear in the redacted output
+        for seg in &path_segments {
+            prop_assert!(
+                !redacted.contains(seg.as_str()),
+                "Redacted path '{}' still contains original segment '{}'",
+                redacted, seg
+            );
+        }
+    }
+
+    #[test]
+    fn scan_args_redacted_exclusions_do_not_contain_originals(
+        excluded_items in prop::collection::vec("[a-z]{4,12}", 1..5),
+    ) {
+        let paths = vec![PathBuf::from(".")];
+        let scan_options = ScanOptions {
+            excluded: excluded_items.clone(),
+            ..Default::default()
+        };
+
+        let args = scan_args(&paths, &scan_options, Some(RedactMode::Paths));
+
+        for (original, redacted) in excluded_items.iter().zip(args.excluded.iter()) {
+            prop_assert!(
+                !redacted.contains(original.as_str()),
+                "Redacted exclusion '{}' still contains original '{}'",
+                redacted, original
+            );
+        }
+    }
+
+    #[test]
+    fn scan_args_all_output_paths_use_forward_slashes(
+        path_segments in prop::collection::vec("[a-zA-Z0-9_]+", 1..5),
+        redact in redact_mode_strategy(),
+    ) {
+        // Build a path using OS separator
+        let path_str = path_segments.join("\\");
+        let paths = vec![PathBuf::from(&path_str)];
+        let scan_options = ScanOptions::default();
+
+        let args = scan_args(&paths, &scan_options, redact);
+        for p in &args.paths {
+            prop_assert!(!p.contains('\\'),
+                "Output path '{}' contains backslash", p);
+        }
+    }
 }
