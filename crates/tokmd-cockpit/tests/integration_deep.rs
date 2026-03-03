@@ -1010,6 +1010,7 @@ fn format_signed_positive() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn format_signed_negative() {
     assert_eq!(format_signed_f64(-3.14), "-3.14");
 }
@@ -1041,6 +1042,7 @@ fn trend_label_degrading() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_pct_basic() {
     assert!((round_pct(3.14159) - 3.14).abs() < 0.01);
 }
