@@ -308,16 +308,14 @@ mod policy_multi_classification {
     #[test]
     fn given_skip_class_but_under_cap_then_full() {
         // Even generated/vendored files are Full if under cap
-        let (policy, reason) =
-            assign_policy(100, 16_000, &[FileClassification::Generated]);
+        let (policy, reason) = assign_policy(100, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Full);
         assert!(reason.is_none());
     }
 
     #[test]
     fn given_data_blob_oversized_then_skip() {
-        let (policy, reason) =
-            assign_policy(20_000, 16_000, &[FileClassification::DataBlob]);
+        let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::DataBlob]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.unwrap().contains("data_blob"));
     }

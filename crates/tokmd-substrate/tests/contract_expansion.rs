@@ -104,8 +104,18 @@ fn given_substrate_with_no_files_in_diff_when_diff_files_called_then_empty() {
 #[test]
 fn given_substrate_with_many_langs_when_roundtripped_then_btreemap_order_preserved() {
     let langs = [
-        "C", "C++", "Go", "Haskell", "Java", "JavaScript", "Kotlin", "Python", "Ruby", "Rust",
-        "TypeScript", "Zig",
+        "C",
+        "C++",
+        "Go",
+        "Haskell",
+        "Java",
+        "JavaScript",
+        "Kotlin",
+        "Python",
+        "Ruby",
+        "Rust",
+        "TypeScript",
+        "Zig",
     ];
 
     let mut files = Vec::new();
@@ -193,9 +203,7 @@ fn given_diff_range_with_large_values_when_roundtripped_then_preserved() {
     let range = DiffRange {
         base: "v1.0.0".to_string(),
         head: "v2.0.0".to_string(),
-        changed_files: (0..100)
-            .map(|i| format!("src/file{i}.rs"))
-            .collect(),
+        changed_files: (0..100).map(|i| format!("src/file{i}.rs")).collect(),
         commit_count: 1000,
         insertions: 50_000,
         deletions: 30_000,

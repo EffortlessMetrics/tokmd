@@ -6,13 +6,12 @@
 
 use serde_json::Value;
 use tokmd_types::cockpit::{
-    BreakingChange, ChangeSurface, CliSubGate, CodeHealth, CockpitReceipt, CommitMatch,
-    ComplexityGate, ComplexityIndicator, Composition, ContractDiffGate, Contracts,
+    BreakingChange, COCKPIT_SCHEMA_VERSION, ChangeSurface, CliSubGate, CockpitReceipt, CodeHealth,
+    CommitMatch, ComplexityGate, ComplexityIndicator, Composition, ContractDiffGate, Contracts,
     DeterminismGate, DiffCoverageGate, Evidence, EvidenceSource, GateMeta, GateStatus,
-    HealthWarning, HighComplexityFile, MutationGate, MutationSurvivor, ReviewItem, Risk,
-    RiskLevel, SchemaSubGate, ScopeCoverage, SemverSubGate, SupplyChainGate, TrendComparison,
-    TrendDirection, TrendIndicator, TrendMetric, UncoveredHunk, Vulnerability, WarningType,
-    COCKPIT_SCHEMA_VERSION,
+    HealthWarning, HighComplexityFile, MutationGate, MutationSurvivor, ReviewItem, Risk, RiskLevel,
+    SchemaSubGate, ScopeCoverage, SemverSubGate, SupplyChainGate, TrendComparison, TrendDirection,
+    TrendIndicator, TrendMetric, UncoveredHunk, Vulnerability, WarningType,
 };
 
 // =============================================================================
@@ -221,7 +220,10 @@ fn given_cockpit_receipt_when_roundtripped_then_data_preserved() {
     assert_eq!(back.composition.test_ratio, receipt.composition.test_ratio);
     assert_eq!(back.code_health.grade, receipt.code_health.grade);
     assert_eq!(back.risk.score, receipt.risk.score);
-    assert_eq!(back.evidence.overall_status, receipt.evidence.overall_status);
+    assert_eq!(
+        back.evidence.overall_status,
+        receipt.evidence.overall_status
+    );
     assert_eq!(back.review_plan.len(), receipt.review_plan.len());
 }
 
@@ -457,10 +459,7 @@ fn given_contract_diff_gate_with_semver_break_then_failures_nonzero() {
 
     assert_eq!(gate.failures, 1);
     assert_eq!(gate.semver.as_ref().unwrap().status, GateStatus::Fail);
-    assert_eq!(
-        gate.semver.as_ref().unwrap().breaking_changes.len(),
-        1
-    );
+    assert_eq!(gate.semver.as_ref().unwrap().breaking_changes.len(), 1);
 }
 
 // =============================================================================

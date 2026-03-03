@@ -269,8 +269,10 @@ fn given_handoff_manifest_with_optional_fields_then_present_in_json() {
         reason: "generated code".to_string(),
         classifications: vec![FileClassification::Generated],
     }];
-    manifest.token_estimation =
-        Some(TokenEstimationMeta::from_bytes(340_000, TokenEstimationMeta::DEFAULT_BPT_EST));
+    manifest.token_estimation = Some(TokenEstimationMeta::from_bytes(
+        340_000,
+        TokenEstimationMeta::DEFAULT_BPT_EST,
+    ));
     manifest.code_audit = Some(TokenAudit::from_output(340_000, 320_000));
 
     let json: Value = serde_json::to_value(&manifest).unwrap();
@@ -395,10 +397,7 @@ fn given_standard_intelligence_then_tree_and_derived_present() {
     assert_eq!(intel.tree_depth, Some(3));
     assert_eq!(intel.hotspots.as_ref().unwrap().len(), 1);
     assert_eq!(intel.complexity.as_ref().unwrap().total_functions, 120);
-    assert_eq!(
-        intel.derived.as_ref().unwrap().dominant_lang,
-        "Rust"
-    );
+    assert_eq!(intel.derived.as_ref().unwrap().dominant_lang, "Rust");
     assert_eq!(intel.warnings.len(), 1);
 }
 
@@ -425,10 +424,7 @@ fn given_handoff_intelligence_when_roundtripped_then_data_preserved() {
     let back: HandoffIntelligence = serde_json::from_str(&json_str).unwrap();
     assert_eq!(back.tree, intel.tree);
     assert_eq!(back.tree_depth, intel.tree_depth);
-    assert_eq!(
-        back.derived.as_ref().unwrap().dominant_lang,
-        "Python"
-    );
+    assert_eq!(back.derived.as_ref().unwrap().dominant_lang, "Python");
 }
 
 // =============================================================================
@@ -772,10 +768,7 @@ fn snapshot_handoff_intelligence_standard() {
 fn given_all_receipt_types_then_schema_versions_are_independent() {
     // Each receipt family has its own schema version
     assert_ne!(HANDOFF_SCHEMA_VERSION as u32, CONTEXT_SCHEMA_VERSION);
-    assert_ne!(
-        CONTEXT_SCHEMA_VERSION as u32,
-        CONTEXT_BUNDLE_SCHEMA_VERSION
-    );
+    assert_ne!(CONTEXT_SCHEMA_VERSION as u32, CONTEXT_BUNDLE_SCHEMA_VERSION);
 
     let handoff = sample_handoff_manifest();
     let context = sample_context_receipt();
