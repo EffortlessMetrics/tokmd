@@ -3215,6 +3215,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3614,6 +3615,7 @@ name = "tokmd-scan-args"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-path",
  "tokmd-redact",
  "tokmd-settings",
