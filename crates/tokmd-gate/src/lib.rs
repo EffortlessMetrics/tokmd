@@ -11,12 +11,20 @@
 //! * Ratchet evaluation for trend tracking
 //!
 //! ## Example
-//! ```ignore
+//! ```
+//! use serde_json::json;
 //! use tokmd_gate::{PolicyConfig, evaluate_policy};
 //!
-//! let receipt = serde_json::from_str(json)?;
-//! let policy = PolicyConfig::from_file("policy.toml")?;
-//! let result = evaluate_policy(&receipt, &policy)?;
+//! let receipt = json!({"tokens": 42});
+//! let policy = PolicyConfig::from_toml(r#"
+//! [[rules]]
+//! name = "check"
+//! pointer = "/tokens"
+//! op = "lte"
+//! value = 1000
+//! "#).unwrap();
+//! let result = evaluate_policy(&receipt, &policy);
+//! assert!(result.passed);
 //! ```
 
 mod evaluate;
