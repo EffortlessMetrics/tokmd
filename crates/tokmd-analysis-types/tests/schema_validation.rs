@@ -84,12 +84,18 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
 
 #[test]
 fn analysis_schema_version_matches_expected() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8, "ANALYSIS_SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json");
+    assert_eq!(
+        ANALYSIS_SCHEMA_VERSION, 8,
+        "ANALYSIS_SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json"
+    );
 }
 
 #[test]
 fn baseline_version_matches_expected() {
-    assert_eq!(BASELINE_VERSION, 1, "BASELINE_VERSION changed — update docs/SCHEMA.md");
+    assert_eq!(
+        BASELINE_VERSION, 1,
+        "BASELINE_VERSION changed — update docs/SCHEMA.md"
+    );
 }
 
 // =============================================================================
