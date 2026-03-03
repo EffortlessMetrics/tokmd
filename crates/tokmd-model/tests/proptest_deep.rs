@@ -147,6 +147,58 @@ proptest! {
 // Totals: serde round-trip
 // =========================================================================
 
+use std::path::Path;
+use tokmd_model::{avg, module_key, normalize_path};
+
+// =========================================================================
+// avg: monotonicity and edge cases
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(200))]
+
+    #[test]
+    fn avg_monotonic_in_lines(
+        lines1 in 0usize..5000,
+        delta in 1usize..5000,
+        files in 1usize..100,
+    ) {
+        let lines2 = lines1 + delta;
+        prop_assert!(
+            avg(lines2, files) >= avg(lines1, files),
+            "avg({}, {}) < avg({}, {})", lines2, files, lines1, files
+        );
+    }
+
+    #[test]
+    fn avg_decreases_with_more_files(
+        lines in 1usize..10_000,
+        files1 in 1usize..100,
+        delta in 1usize..100,
+    ) {
+        let files2 = files1 + delta;
+        prop_assert!(
+            avg(lines, files2) <= avg(lines, files1),
+            "avg({}, {}) > avg({}, {})", lines, files2, lines, files1
+        );
+    }
+
+    #[test]
+    fn avg_one_file_equals_lines(lines in 0usize..100_000) {
+        prop_assert_eq!(avg(lines, 1), lines);
+    }
+
+    #[test]
+    fn avg_result_bounded_by_lines(lines in 0usize..100_000, files in 1usize..1000) {
+        let result = avg(lines, files);
+        prop_assert!(result <= lines, "avg({}, {}) = {} > lines", lines, files, result);
+    }
+}
+
+// =========================================================================
+// module_key: depth constraints
+// =========================================================================
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(100))]
 
@@ -189,7 +241,11 @@ proptest! {
 }
 
 // =========================================================================
-// LangRow: aggregation invariant — sum of parts
+// LangRow: aggregation invariant ΓÇö sum of parts
+// LangRow: aggregation invariant ╬ô├ç├╢ sum of parts
+// LangRow: aggregation invariant Γò¼├┤Γö£├ºΓö£Γòó sum of parts
+// LangRow: aggregation invariant ╬ô├▓┬╝Γö£Γöñ╬ô├╢┬úΓö£┬║╬ô├╢┬ú╬ô├▓├│ sum of parts
+// LangRow: aggregation invariant Γò¼├┤Γö£ΓûôΓö¼Γò¥╬ô├╢┬ú╬ô├╢├▒Γò¼├┤Γö£ΓòóΓö¼├║╬ô├╢┬úΓö¼ΓòæΓò¼├┤Γö£ΓòóΓö¼├║Γò¼├┤Γö£ΓûôΓö£Γöé sum of parts
 // =========================================================================
 
 proptest! {
@@ -224,95 +280,6 @@ proptest! {
         let json = serde_json::to_string(&mode).unwrap();
         let parsed: ChildrenMode = serde_json::from_str(&json).unwrap();
         prop_assert_eq!(mode, parsed);
-    }
-}
-
-// =========================================================================
-// LangRow: JSON round-trip preserves all fields
-// =========================================================================
-
-proptest! {
-    #![proptest_config(ProptestConfig::with_cases(100))]
-
-    #[test]
-    fn lang_row_roundtrip(row in arb_lang_row()) {
-        let json = serde_json::to_string(&row).unwrap();
-        let parsed: LangRow = serde_json::from_str(&json).unwrap();
-        prop_assert_eq!(row, parsed);
-    }
-
-    #[test]
-    fn module_row_roundtrip(row in arb_module_row()) {
-        let json = serde_json::to_string(&row).unwrap();
-        let parsed: ModuleRow = serde_json::from_str(&json).unwrap();
-        prop_assert_eq!(row, parsed);
-    }
-}
-
-// =========================================================================
-// Totals: zero construction
-// =========================================================================
-
-proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1))]
-
-    #[test]
-    fn totals_zero_construction(_dummy in 0..1u8) {
-        let t = Totals { code: 0, lines: 0, files: 0, bytes: 0, tokens: 0, avg_lines: 0 };
-        prop_assert_eq!(t.code, 0);
-        prop_assert_eq!(t.lines, 0);
-        prop_assert_eq!(t.files, 0);
-        prop_assert_eq!(t.bytes, 0);
-        prop_assert_eq!(t.tokens, 0);
-        prop_assert_eq!(t.avg_lines, 0);
-    }
-}
-
-// =========================================================================
-// avg: monotonicity and edge cases (from main)
-// =========================================================================
-
-use std::path::Path;
-use tokmd_model::{avg, module_key, normalize_path};
-
-proptest! {
-    #![proptest_config(ProptestConfig::with_cases(200))]
-
-    #[test]
-    fn avg_monotonic_in_lines(
-        lines1 in 0usize..5000,
-        delta in 1usize..5000,
-        files in 1usize..100,
-    ) {
-        let lines2 = lines1 + delta;
-        prop_assert!(
-            avg(lines2, files) >= avg(lines1, files),
-            "avg({}, {}) < avg({}, {})", lines2, files, lines1, files
-        );
-    }
-
-    #[test]
-    fn avg_decreases_with_more_files(
-        lines in 1usize..10_000,
-        files1 in 1usize..100,
-        delta in 1usize..100,
-    ) {
-        let files2 = files1 + delta;
-        prop_assert!(
-            avg(lines, files2) <= avg(lines, files1),
-            "avg({}, {}) > avg({}, {})", lines, files2, lines, files1
-        );
-    }
-
-    #[test]
-    fn avg_one_file_equals_lines(lines in 0usize..100_000) {
-        prop_assert_eq!(avg(lines, 1), lines);
-    }
-
-    #[test]
-    fn avg_result_bounded_by_lines(lines in 0usize..100_000, files in 1usize..1000) {
-        let result = avg(lines, files);
-        prop_assert!(result <= lines, "avg({}, {}) = {} > lines", lines, files, result);
     }
 }
 
@@ -366,6 +333,47 @@ proptest! {
     fn module_key_root_for_bare_filename(filename in "[a-z]{2,8}\\.[a-z]{1,3}") {
         let key = module_key(&filename, &[], 2);
         prop_assert_eq!(key, "(root)", "Bare filename '{}' should map to (root)", filename);
+    }
+}
+
+// =========================================================================
+// normalize_path: cross-platform equivalence
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
+    fn lang_row_roundtrip(row in arb_lang_row()) {
+        let json = serde_json::to_string(&row).unwrap();
+        let parsed: LangRow = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(row, parsed);
+    }
+
+    #[test]
+    fn module_row_roundtrip(row in arb_module_row()) {
+        let json = serde_json::to_string(&row).unwrap();
+        let parsed: ModuleRow = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(row, parsed);
+    }
+}
+
+// =========================================================================
+// Totals: zero construction
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1))]
+
+    #[test]
+    fn totals_zero_construction(_dummy in 0..1u8) {
+        let t = Totals { code: 0, lines: 0, files: 0, bytes: 0, tokens: 0, avg_lines: 0 };
+        prop_assert_eq!(t.code, 0);
+        prop_assert_eq!(t.lines, 0);
+        prop_assert_eq!(t.files, 0);
+        prop_assert_eq!(t.bytes, 0);
+        prop_assert_eq!(t.tokens, 0);
+        prop_assert_eq!(t.avg_lines, 0);
     }
 }
 
