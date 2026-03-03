@@ -1,0 +1,72 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_v2.rs
+expression: rendered
+---
+{
+  "schema_version": 8,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "md",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": null,
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": null,
+  "complexity": {
+    "total_functions": 10,
+    "avg_function_length": 25.0,
+    "max_function_length": 80,
+    "avg_cyclomatic": 5.0,
+    "max_cyclomatic": 12,
+    "high_risk_files": 1,
+    "files": [
+      {
+        "path": "src/main.rs",
+        "module": "src",
+        "function_count": 10,
+        "max_function_length": 80,
+        "cyclomatic_complexity": 12,
+        "risk_level": "moderate"
+      }
+    ]
+  },
+  "api_surface": null,
+  "fun": null
+}
