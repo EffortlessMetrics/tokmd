@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_w40.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Rust	5000	6200	42	180000	12500	148
+Python	1200	1500	8	36000	3000	188
+TOML	80	100	3	2400	200	33
+Total	6280	7800	53	218400	15700	147

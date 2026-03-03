@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_w40.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|crates/core|3000|3800|25|120000|7500|152|
+|crates/cli|2000|2400|15|60000|5000|160|
+|tests|1280|1600|13|38400|3200|123|
+|**Total**|6280|7800|53|218400|15700|147|
