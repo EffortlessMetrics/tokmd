@@ -356,7 +356,7 @@ fn forward_compat_extra_lang_summary_fields_ignored() {
 
 #[test]
 fn json_required_keys_present_in_populated_substrate() {
-    let value = serde_json::to_value(&populated_substrate()).unwrap();
+    let value = serde_json::to_value(populated_substrate()).unwrap();
     let obj = value.as_object().unwrap();
     for key in [
         "repo_root",
@@ -374,7 +374,7 @@ fn json_required_keys_present_in_populated_substrate() {
 
 #[test]
 fn json_file_has_all_required_keys() {
-    let value = serde_json::to_value(&populated_substrate()).unwrap();
+    let value = serde_json::to_value(populated_substrate()).unwrap();
     let file = value["files"][0].as_object().unwrap();
     for key in [
         "path", "lang", "code", "lines", "bytes", "tokens", "module", "in_diff",
@@ -385,7 +385,7 @@ fn json_file_has_all_required_keys() {
 
 #[test]
 fn json_lang_summary_has_all_required_keys() {
-    let value = serde_json::to_value(&populated_substrate()).unwrap();
+    let value = serde_json::to_value(populated_substrate()).unwrap();
     let rust = value["lang_summary"]["Rust"].as_object().unwrap();
     for key in ["files", "code", "lines", "bytes", "tokens"] {
         assert!(rust.contains_key(key), "lang_summary missing key: {key}");
@@ -394,7 +394,7 @@ fn json_lang_summary_has_all_required_keys() {
 
 #[test]
 fn json_diff_range_has_all_required_keys() {
-    let value = serde_json::to_value(&populated_substrate()).unwrap();
+    let value = serde_json::to_value(populated_substrate()).unwrap();
     let dr = value["diff_range"].as_object().unwrap();
     for key in [
         "base",
@@ -410,7 +410,7 @@ fn json_diff_range_has_all_required_keys() {
 
 #[test]
 fn json_lang_summary_keys_sorted() {
-    let value = serde_json::to_value(&populated_substrate()).unwrap();
+    let value = serde_json::to_value(populated_substrate()).unwrap();
     let summary = value["lang_summary"].as_object().unwrap();
     let keys: Vec<&String> = summary.keys().collect();
     let mut sorted = keys.clone();
