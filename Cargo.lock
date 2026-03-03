@@ -3091,6 +3091,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-maintainability",
  "tokmd-analysis-types",
@@ -3121,6 +3122,7 @@ version = "1.7.2"
 dependencies = [
  "blake3",
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-export-tree",
@@ -3212,6 +3214,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3341,6 +3344,7 @@ dependencies = [
  "tokmd-settings",
  "tokmd-tool-schema",
  "tokmd-types",
+ "toml 1.0.3+spec-1.1.0",
 ]
 
 [[package]]
