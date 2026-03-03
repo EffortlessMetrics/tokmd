@@ -30,6 +30,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.0** | ✅ Complete | Near-duplicate detection, commit intent, token estimation renames. |
 | **v1.7.1** | ✅ Complete | Focused microcrate extraction (40+ crates), AnalysisFormat to Tier 0. |
 | **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, CI fixes. |
+| **v1.7.x** | ✅ Complete | Deep test expansion: 2,240+ new tests, 36+ PRs, all tiers covered. |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
@@ -405,6 +406,46 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Total crate count: 56 (up from 16 initial crates in v1.2.0)
 - [x] Fixed clippy/lint across all new crates for strict `--all-targets` check coverage
 - [x] Updated CI/tooling for release and publish readiness
+
+---
+
+## Completed: v1.7.x — Deep Test Coverage Expansion
+
+**Goal**: Achieve comprehensive test coverage across all 56 crates with multiple testing strategies at every tier.
+
+### Test Numbers (before → after)
+
+| Metric             | Before  | After    | Delta     |
+| :----------------- | :------ | :------- | :-------- |
+| `#[test]` annotations | ~4,350 | **6,593** | **+2,243** |
+| `proptest!` blocks | 218     | **250**  | **+32**   |
+| Fuzz targets       | 16      | **19**   | **+3**    |
+| Crates with property tests | ~14 | **14+** | Maintained |
+
+### Coverage by Tier
+
+| Tier | Crates Covered | Test Types Added |
+| :--- | :------------- | :--------------- |
+| 0 | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate` | Determinism regression, contract expansion, boundary props |
+| 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
+| 2 | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
+| 3 | All `tokmd-analysis-*` microcrates, `tokmd-gate`, `tokmd-fun` | BDD scenarios, enricher contract verification, deep proptests |
+| 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-ffi-envelope` | FFI workflow integration, JSON API round-trip tests |
+| 5 | `tokmd` CLI | E2E tests for all major subcommands |
+
+### What Landed (36+ PRs)
+
+- [x] Boundary verification tests across core types
+- [x] Determinism regression tests for all receipt-producing paths
+- [x] Error handling coverage for edge cases and malformed inputs
+- [x] Snapshot tests (`insta`) for all format renderers (Markdown, TSV, JSON, HTML)
+- [x] Deep analysis crate tests: complexity, halstead, near-dup, topics, entropy, license, archetype, fingerprint, API surface
+- [x] CLI E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`
+- [x] FFI and workflow integration tests in `tokmd-core`
+- [x] Property tests expanded across 14+ crates with `proptest`
+- [x] 3 new fuzz targets (import parser, export tree, policy TOML)
+- [x] BDD-style scenario tests (`tests/bdd.rs`) in every `tokmd-analysis-*` crate
+- [x] CI green on main with full mutation testing gate passing
 
 ---
 
