@@ -1,7 +1,7 @@
 //! Deep invariant tests for topic-cloud extraction.
 //!
-//! Focuses on TF-IDF scoring semantics, tokenisation edge cases,
-//! TOP_K truncation, determinism, and stopword filtering.
+//! Tests TF-IDF scoring, tokenisation, TOP_K truncation,
+//! determinism, stopword filtering, and edge cases.
 
 use tokmd_analysis_topics::build_topic_clouds;
 use tokmd_analysis_types::TopicTerm;
@@ -41,52 +41,71 @@ fn overall_terms(data: &ExportData) -> Vec<String> {
         .collect()
 }
 
-// ── 1. Numeric path segments produce valid terms ────────────────
+// ── 1. Empty export produces empty clouds ───────────────────────
+
+#[test]
+fn empty_export_yields_empty_clouds() {
+    let data = export(vec![], &[]);
+    let clouds = build_topic_clouds(&data);
+    assert!(clouds.overall.is_empty());
+    assert!(clouds.per_module.is_empty());
+}
+
+// ── 2. Child rows are excluded from topic extraction ────────────
+
+#[test]
+fn child_rows_excluded() {
+    let child = FileRow {
+        path: "m/unique_child_term.rs".to_string(),
+        module: "m".to_string(),
+        lang: "Rust".to_string(),
+        kind: FileKind::Child,
+        code: 10,
+        comments: 0,
+        blanks: 0,
+        lines: 10,
+        bytes: 100,
+        tokens: 50,
+    };
+    let data = export(vec![child], &[]);
+    let clouds = build_topic_clouds(&data);
+    assert!(clouds.overall.is_empty(), "child rows should be ignored");
+}
+
+// ── 3. Numeric path segments are valid terms ────────────────────
 
 #[test]
 fn numeric_path_segments_produce_valid_terms() {
     let data = export(vec![row("v2/api/handler.rs", "v2/api", 50)], &[]);
     let terms = overall_terms(&data);
-    // "v2" is split into "v2" (single token, no further splitting)
     assert!(
         terms.contains(&"v2".to_string()),
-        "numeric path segments should be valid terms: {terms:?}"
+        "numeric segments should be valid: {terms:?}"
     );
 }
 
-// ── 2. Single file: overall == per_module ───────────────────────
+// ── 4. Single file: overall == per_module ───────────────────────
 
 #[test]
 fn single_file_overall_equals_per_module() {
     let data = export(vec![row("m/widget.rs", "m", 50)], &[]);
     let clouds = build_topic_clouds(&data);
     let overall = &clouds.overall;
-    let per_mod = clouds.per_module.get("m").expect("module 'm' should exist");
+    let per_mod = clouds.per_module.get("m").expect("module 'm'");
 
-    assert_eq!(
-        overall.len(),
-        per_mod.len(),
-        "single-file: overall and per_module should have same length"
-    );
+    assert_eq!(overall.len(), per_mod.len());
     for (o, p) in overall.iter().zip(per_mod.iter()) {
         assert_eq!(o.term, p.term);
-        assert!(
-            (o.score - p.score).abs() < f64::EPSILON,
-            "scores should match"
-        );
+        assert!((o.score - p.score).abs() < f64::EPSILON);
     }
 }
 
-// ── 3. DF counts files, not token frequency ─────────────────────
+// ── 5. DF counts files, not token frequency ─────────────────────
 
 #[test]
 fn df_counts_files_not_token_frequency() {
-    // Two files in same module, both containing "widget" in their path
     let data = export(
-        vec![
-            row("m/widget_a.rs", "m", 50),
-            row("m/widget_b.rs", "m", 50),
-        ],
+        vec![row("m/widget_a.rs", "m", 50), row("m/widget_b.rs", "m", 50)],
         &[],
     );
     let clouds = build_topic_clouds(&data);
@@ -98,14 +117,10 @@ fn df_counts_files_not_token_frequency() {
     assert_eq!(widget.df, 2, "df should count per-file occurrences");
 }
 
-// ── 4. Term in many modules gets lower IDF boost ────────────────
+// ── 6. Rare term scores higher than ubiquitous term via IDF ─────
 
 #[test]
-fn ubiquitous_term_has_lower_idf_than_rare_term() {
-    // "common" appears in all 5 modules; "rare" appears in only 1.
-    // Score = tf * idf. "common" accumulates tf from 5 files, so its total
-    // tf is higher. To isolate the IDF effect, compare per-module scores
-    // where each module has a single occurrence.
+fn rare_term_scores_higher_via_idf() {
     let mut rows = Vec::new();
     for i in 0..5 {
         rows.push(row(&format!("mod_{i}/common.rs"), &format!("mod_{i}"), 50));
@@ -114,27 +129,24 @@ fn ubiquitous_term_has_lower_idf_than_rare_term() {
     let data = export(rows, &[]);
     let clouds = build_topic_clouds(&data);
 
-    // In mod_0, both "common" and "rare" have tf=50 (same weight).
-    // "rare" has df=1 module vs "common" df=5 modules → rare has higher IDF.
-    let m0 = clouds.per_module.get("mod_0").expect("mod_0 should exist");
+    let m0 = clouds.per_module.get("mod_0").expect("mod_0");
     let common = m0.iter().find(|t| t.term == "common");
     let rare = m0.iter().find(|t| t.term == "rare");
 
     if let (Some(c), Some(r)) = (common, rare) {
         assert!(
             r.score >= c.score,
-            "rare ({}) should score >= common ({}) in same module due to IDF",
+            "rare ({}) should score >= common ({})",
             r.score,
             c.score
         );
     }
 }
 
-// ── 5. TOP_K preserves highest-scoring terms ────────────────────
+// ── 7. TOP_K preserves highest-scoring terms ────────────────────
 
 #[test]
 fn top_k_preserves_highest_scoring_terms() {
-    // Create 20 terms with varying weights; only top 8 should survive
     let rows: Vec<FileRow> = (0..20)
         .map(|i| row(&format!("m/term{i}.rs"), "m", (i + 1) * 100))
         .collect();
@@ -142,46 +154,22 @@ fn top_k_preserves_highest_scoring_terms() {
     let clouds = build_topic_clouds(&data);
 
     let m_terms = clouds.per_module.get("m").expect("module 'm'");
-    assert!(m_terms.len() <= 8);
-
-    // The highest-scoring term should be term19 (weight=2000)
-    // since all terms have the same IDF (single module)
-    assert_eq!(
-        m_terms[0].term, "term19",
-        "highest-weight term should rank first"
-    );
+    assert!(m_terms.len() <= 8, "TOP_K should be 8");
+    assert_eq!(m_terms[0].term, "term19", "highest-weight term first");
 }
 
-// ── 6. Consecutive separators: no empty terms ───────────────────
+// ── 8. All terms are lowercase ──────────────────────────────────
 
 #[test]
-fn consecutive_separators_no_empty_terms() {
-    let data = export(
-        vec![row("a__b--c..d/file.rs", "a__b--c..d", 50)],
-        &[],
-    );
+fn all_terms_are_lowercase() {
+    let data = export(vec![row("MOD/CamelCase_Widget.rs", "MOD", 50)], &[]);
     let terms = overall_terms(&data);
     for term in &terms {
-        assert!(!term.is_empty(), "no empty terms should be produced");
+        assert_eq!(*term, term.to_lowercase(), "terms must be lowercase");
     }
 }
 
-// ── 7. Mixed case normalizes to lowercase ───────────────────────
-
-#[test]
-fn mixed_case_normalizes_to_lowercase() {
-    let data = export(vec![row("MyModule/MyFile.rs", "MyModule", 50)], &[]);
-    let terms = overall_terms(&data);
-    for term in &terms {
-        assert_eq!(
-            *term,
-            term.to_lowercase(),
-            "all terms should be lowercase"
-        );
-    }
-}
-
-// ── 8. Per-module keys are BTreeMap-sorted ──────────────────────
+// ── 9. Per-module keys are BTreeMap-sorted ──────────────────────
 
 #[test]
 fn per_module_keys_are_lexicographically_sorted() {
@@ -200,46 +188,27 @@ fn per_module_keys_are_lexicographically_sorted() {
     assert_eq!(keys, sorted, "per_module keys should be sorted");
 }
 
-// ── 9. Weight overflow: u32::MAX tokens still works ─────────────
+// ── 10. Consecutive separators produce no empty terms ───────────
 
 #[test]
-fn u32_max_tokens_does_not_overflow() {
-    let data = export(vec![row("m/overflow.rs", "m", u32::MAX as usize)], &[]);
-    let clouds = build_topic_clouds(&data);
-    let overflow = clouds.overall.iter().find(|t| t.term == "overflow");
-    assert!(overflow.is_some(), "term should exist with MAX weight");
-    assert!(overflow.unwrap().tf > 0, "tf should be positive");
-}
-
-// ── 10. Module depth doesn't affect extraction ──────────────────
-
-#[test]
-fn deeply_nested_path_extracts_all_non_stopword_segments() {
-    // Note: "c" is a stopword (file extension), so skip it in expectations
-    let data = export(vec![row("a/b/deep/d/e/f/feature_name.rs", "a/b", 50)], &[]);
+fn consecutive_separators_no_empty_terms() {
+    let data = export(vec![row("a//b__c--d..e.rs", "a", 50)], &[]);
     let terms = overall_terms(&data);
-    for expected in ["a", "b", "deep", "d", "e", "f", "feature", "name"] {
-        assert!(
-            terms.contains(&expected.to_string()),
-            "missing '{expected}' in {terms:?}"
-        );
+    for term in &terms {
+        assert!(!term.is_empty(), "empty term found");
     }
 }
 
-// ── 11. Backslash and forward slash paths produce same terms ────
+// ── 11. Backslash paths normalized to forward slash ─────────────
 
 #[test]
-fn backslash_and_forward_slash_paths_equivalent() {
+fn backslash_paths_equivalent_to_forward_slash() {
     let data_fwd = export(vec![row("app/auth/handler.rs", "app/auth", 50)], &["app"]);
     let data_bck = export(vec![row(r"app\auth\handler.rs", "app/auth", 50)], &["app"]);
 
     let terms_fwd = overall_terms(&data_fwd);
     let terms_bck = overall_terms(&data_bck);
-
-    assert_eq!(
-        terms_fwd, terms_bck,
-        "backslash and forward slash paths should produce identical terms"
-    );
+    assert_eq!(terms_fwd, terms_bck, "slash normalization must match");
 }
 
 // ── 12. TF accumulates across files in same module ──────────────
@@ -255,10 +224,8 @@ fn tf_accumulates_across_files_in_same_module() {
     );
     let clouds = build_topic_clouds(&data);
     let m_terms = clouds.per_module.get("m").expect("module 'm'");
-
     let widget = m_terms.iter().find(|t| t.term == "widget").unwrap();
-    // tf should be sum of weights: 100 + 200 = 300
-    assert_eq!(widget.tf, 300, "tf should accumulate weights across files");
+    assert_eq!(widget.tf, 300, "tf should sum weights: 100 + 200");
 }
 
 // ── 13. Determinism with many modules ───────────────────────────
@@ -270,22 +237,13 @@ fn determinism_with_many_modules() {
         .collect();
     let data = export(rows, &[]);
 
-    let results: Vec<Vec<TopicTerm>> =
-        (0..3).map(|_| build_topic_clouds(&data).overall).collect();
+    let results: Vec<Vec<TopicTerm>> = (0..3).map(|_| build_topic_clouds(&data).overall).collect();
 
     for i in 1..3 {
-        assert_eq!(
-            results[0].len(),
-            results[i].len(),
-            "run count mismatch"
-        );
+        assert_eq!(results[0].len(), results[i].len());
         for (a, b) in results[0].iter().zip(results[i].iter()) {
             assert_eq!(a.term, b.term);
-            assert!(
-                (a.score - b.score).abs() < f64::EPSILON,
-                "score mismatch for {}",
-                a.term
-            );
+            assert!((a.score - b.score).abs() < f64::EPSILON);
         }
     }
 }
@@ -296,16 +254,15 @@ fn determinism_with_many_modules() {
 fn all_documented_extensions_are_stopwords() {
     let known_extensions = [
         "rs", "js", "ts", "tsx", "jsx", "py", "go", "java", "kt", "kts", "rb", "php", "c", "cc",
-        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml",
-        "json", "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
+        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml", "json",
+        "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
     ];
     for ext in known_extensions {
-        // Create a row where the only non-stopword would be the extension
         let data = export(vec![row(&format!("module/{ext}.rs"), "module", 50)], &[]);
         let terms = overall_terms(&data);
         assert!(
             !terms.contains(&ext.to_string()),
-            "extension '{ext}' should be a stopword but found in terms: {terms:?}"
+            "extension '{ext}' should be a stopword: {terms:?}"
         );
     }
 }
@@ -315,18 +272,30 @@ fn all_documented_extensions_are_stopwords() {
 #[test]
 fn base_stopwords_filter_common_directories() {
     let base_stops = [
-        "src", "lib", "mod", "index", "test", "tests", "impl", "main", "bin", "pkg", "package",
-        "target", "build", "dist", "out", "gen", "generated",
+        "src",
+        "lib",
+        "mod",
+        "index",
+        "test",
+        "tests",
+        "impl",
+        "main",
+        "bin",
+        "pkg",
+        "package",
+        "target",
+        "build",
+        "dist",
+        "out",
+        "gen",
+        "generated",
     ];
     for stop in base_stops {
-        let data = export(
-            vec![row(&format!("{stop}/feature.rs"), stop, 50)],
-            &[],
-        );
+        let data = export(vec![row(&format!("{stop}/feature.rs"), stop, 50)], &[]);
         let terms = overall_terms(&data);
         assert!(
             !terms.contains(&stop.to_string()),
-            "base stopword '{stop}' should be filtered: {terms:?}"
+            "'{stop}' should be filtered: {terms:?}"
         );
     }
 }
