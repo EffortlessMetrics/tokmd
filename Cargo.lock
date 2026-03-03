@@ -3107,6 +3107,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-imports",
  "tokmd-analysis-types",
@@ -3136,6 +3137,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3193,6 +3195,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3214,6 +3217,7 @@ version = "1.7.2"
 dependencies = [
  "anyhow",
  "proptest",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
@@ -3270,6 +3274,7 @@ dependencies = [
  "globset",
  "proptest",
  "rustc-hash",
+ "serde_json",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-types",
@@ -3280,6 +3285,7 @@ name = "tokmd-analysis-topics"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
@@ -3611,6 +3617,7 @@ name = "tokmd-scan-args"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-path",
  "tokmd-redact",
  "tokmd-settings",
