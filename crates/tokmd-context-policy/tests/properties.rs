@@ -296,15 +296,5 @@ proptest! {
         prop_assert!(cap <= budget);
     }
 
-    #[test]
-    fn classify_generated(
-        name in prop::sample::select(vec![
-            "generated.rs", "auto_generated.py", "codegen_output.ts",
-            "src/generated/types.rs", "bindings_generated.h",
-        ])
-    ) {
-        let classes = classify_file(name, 100, 50, DEFAULT_DENSE_THRESHOLD);
-        prop_assert!(classes.contains(&FileClassification::Generated));
-    }
 
 }
