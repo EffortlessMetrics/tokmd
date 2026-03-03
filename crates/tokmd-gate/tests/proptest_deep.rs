@@ -176,6 +176,12 @@ proptest! {
 
 // =========================================================================
 // Gt/Lt complementary: for a != b, exactly one of (a > b) or (a < b) is true
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
     fn gt_lte_are_complements(a in -500i64..500, b in -500i64..500) {
         let receipt = json!({"n": a});
         let gt_rule = make_test_rule("/n", RuleOperator::Gt, json!(b));
@@ -423,6 +429,8 @@ proptest! {
         let result = evaluate_single_rule(&receipt, &rule);
         prop_assert!(result.passed, "Value equal to threshold should pass gte");
     }
+
+    #[test]
     fn gate_result_counts_consistent(
         n_pass in 0usize..5,
         n_fail_error in 0usize..5,
