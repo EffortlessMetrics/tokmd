@@ -468,11 +468,7 @@ fn entropy_values_within_theoretical_bounds() {
     write_repeated(&dir.path().join("zeros.bin"), 0x00, 1024);
     write_repeated(&dir.path().join("ones.bin"), 0xFF, 1024);
     write_pseudorandom(&dir.path().join("random.bin"), 0x1234, 4096);
-    fs::write(
-        dir.path().join("text.txt"),
-        "hello world ".repeat(100),
-    )
-    .unwrap();
+    fs::write(dir.path().join("text.txt"), "hello world ".repeat(100)).unwrap();
 
     let export = export_for_paths(&names);
     let files: Vec<PathBuf> = names.iter().map(PathBuf::from).collect();
