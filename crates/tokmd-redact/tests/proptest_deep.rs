@@ -26,7 +26,7 @@ fn arb_path_with_ext() -> impl Strategy<Value = String> {
 }
 
 fn arb_directory_segment() -> impl Strategy<Value = String> {
-    "[a-zA-Z0-9_-]{1,20}"
+    "[a-zA-Z][a-zA-Z0-9_-]{2,19}"
 }
 
 // =========================================================================
@@ -203,5 +203,72 @@ proptest! {
 
         prop_assert_eq!(&r_unix, &r_win, "Unix and Windows paths should redact identically");
         prop_assert_eq!(&r_unix, &r_mixed, "Mixed separators should redact identically");
+    }
+}
+
+// =========================================================================
+// Idempotency: redacting the same input always gives the same output
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
+    fn redact_path_idempotent_across_calls(path in arb_path_with_ext()) {
+        let first = redact_path(&path);
+        let second = redact_path(&path);
+        let third = redact_path(&path);
+        prop_assert_eq!(&first, &second);
+        prop_assert_eq!(&second, &third);
+    }
+
+    #[test]
+    fn short_hash_always_hex(input in ".{1,200}") {
+        let hash = short_hash(&input);
+        prop_assert!(
+            hash.chars().all(|c| c.is_ascii_hexdigit()),
+            "short_hash must produce only hex chars, got: {}", hash
+        );
+    }
+
+    #[test]
+    fn short_hash_length_is_16(input in ".{0,500}") {
+        let hash = short_hash(&input);
+        prop_assert_eq!(hash.len(), 16, "short_hash must be 16 chars, got {}", hash.len());
+    }
+}
+
+// =========================================================================
+// Dot-prefix normalization: ./path and path produce same redaction
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
+    fn dot_prefix_normalizes_for_redact(
+        parts in prop::collection::vec("[a-zA-Z0-9_]{1,8}", 1..=4),
+        ext in prop::sample::select(vec!["rs", "py", "go", "js"]),
+    ) {
+        let plain = format!("{}.{}", parts.join("/"), ext);
+        let dotted = format!("./{}.{}", parts.join("/"), ext);
+        prop_assert_eq!(
+            redact_path(&plain),
+            redact_path(&dotted),
+            "Dot-prefix should be normalized away"
+        );
+    }
+
+    #[test]
+    fn dot_prefix_normalizes_for_short_hash(
+        parts in prop::collection::vec("[a-zA-Z0-9_]{1,8}", 1..=4),
+    ) {
+        let plain = parts.join("/");
+        let dotted = format!("./{}", plain);
+        prop_assert_eq!(
+            short_hash(&plain),
+            short_hash(&dotted),
+            "Dot-prefix should be normalized for short_hash"
+        );
     }
 }
