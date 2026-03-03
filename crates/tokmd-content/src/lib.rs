@@ -73,6 +73,9 @@ pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
 }
 
 pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec<String>> {
+    if max_lines == 0 || max_bytes == 0 {
+        return Ok(Vec::new());
+    }
     let file = File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let reader = BufReader::new(file);
     let mut lines = Vec::new();

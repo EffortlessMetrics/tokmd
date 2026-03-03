@@ -259,4 +259,42 @@ proptest! {
                 "tokens={}, cap={}: should not be Full", tokens, cap);
         }
     }
+
+    // NEW property tests
+
+    #[test]
+    fn file_cap_positive(
+        budget in 1usize..1_000_000,
+        pct in 0.01f64..1.0,
+        max_tokens in prop::option::of(1usize..100_000),
+    ) {
+        let cap = compute_file_cap(budget, pct, max_tokens);
+        prop_assert!(cap > 0);
+    }
+
+    #[test]
+    fn classify_lockfile(
+        name in prop::sample::select(vec![
+            "Cargo.lock", "package-lock.json", "yarn.lock", "poetry.lock",
+            "Gemfile.lock", "pnpm-lock.yaml", "composer.lock",
+        ])
+    ) {
+        let classes = classify_file(name, 100, 50, DEFAULT_DENSE_THRESHOLD);
+        prop_assert!(classes.contains(&FileClassification::Lockfile));
+    }
+
+    #[test]
+    fn assign_policy_under_cap(tokens in 1usize..100) {
+        let cap = 1000;
+        let (policy, _reason) = assign_policy(tokens, cap, &[]);
+        prop_assert_eq!(policy, InclusionPolicy::Full);
+    }
+
+    #[test]
+    fn compute_file_cap_bounded(budget in 1usize..1_000_000, pct in 0.01f64..1.0) {
+        let cap = compute_file_cap(budget, pct, None);
+        prop_assert!(cap <= budget);
+    }
+
+
 }
