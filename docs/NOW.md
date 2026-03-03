@@ -1,43 +1,51 @@
 # NOW.md — Current State of tokmd
 
-> Last updated: 2026-02-25
+> Last updated: 2026-02-26
 
 ## Where We Are
 
-v1.7.2 shipped. 56 crates in the workspace. ~4,350 `#[test]` annotations,
-218 `proptest!` blocks, 16 fuzz targets, mutation testing on CI.
+v1.7.2 shipped. 56 crates in the workspace. **6,593** `#[test]` annotations,
+**250** `proptest!` blocks, **19** fuzz targets, mutation testing on CI.
+
+Deep test coverage expansion complete: **~2,240 new tests** landed across all
+tiers via 36+ merged PRs. CI green on main with full gate passing.
 
 ---
 
-## NOW — actively in-flight
+## NOW — completed in latest wave
 
-- **Massive test coverage expansion.** BDD scenarios, property tests,
+- **Deep test coverage expansion complete.** 2,240+ new tests across all tiers
+  covering boundary verification, determinism regression, error handling,
+  snapshot tests for all format renderers, deep analysis crate tests
+  (complexity, halstead, near-dup, topics, entropy), CLI E2E tests for all
+  major subcommands, FFI and workflow integration tests, and property tests
+  expanded across 14 crates.
+- **36+ PRs merged** in the latest wave. BDD scenarios, property tests,
   snapshot tests, integration tests, E2E tests, fuzz targets, and mutation
-  testing being added across all crates. Most analysis-* crates now have
-  dedicated `tests/bdd.rs`, `tests/properties.rs`, and snapshot suites.
-- **CI stabilization and PR merge wave.** Multiple test-addition branches
-  open and landing. Green-lining the matrix before moving to new features.
-- **Schema/doc synchronization hardening.** CLAUDE.md, AGENTS.md, GEMINI.md,
-  ROADMAP.md, and docs/ kept in sync with actual crate topology (56 crates).
-- **Analysis crate test coverage.** Each `tokmd-analysis-*` microcrate
-  getting BDD, property, and snapshot tests. Enricher contract verification.
+  testing added across all crates. Every `tokmd-analysis-*` microcrate now
+  has dedicated `tests/bdd.rs`, `tests/properties.rs`, and snapshot suites.
+- **CI stabilization and PR merge wave landed.** All test-addition branches
+  merged. Green matrix across the board.
+- **Schema/doc synchronization hardened.** CLAUDE.md, AGENTS.md, GEMINI.md,
+  ROADMAP.md, and docs/ in sync with actual crate topology (56 crates).
 
 ---
 
-## NEXT — after current wave lands
+## NEXT — v1.8 "WASM-ready core" track
 
-- **v1.8 "WASM-ready core" preparation.** Host IO abstraction (ports),
-  in-memory scan path (`Vec<(path, bytes)>`), clap-free library hardening,
-  `wasm32-unknown-unknown` CI build target.
+- **Host IO abstraction (ports).** Enumerate files, read bytes, clock,
+  optional logging/progress. Native uses FS; WASM uses in-memory substrate.
+- **In-memory scan pipeline.** Scan path accepting `Vec<(path, bytes)>`
+  instead of filesystem `PathBuf`s.
+- **WASM feature profile.** `wasm` feature that disables OS-bound pieces
+  (`git`, `dirs`, `std::process`) and enables in-memory I/O.
+- **WASM CI builds + conformance tests.** `cargo build --target
+  wasm32-unknown-unknown` in CI; golden tests verifying native/WASM parity.
 - **PackPlan unification.** Converge `context` and `handoff` file-selection
   logic into a shared plan/policy layer.
 - **Cockpit accuracy improvements.** Diff coverage precision, determinism
   gate robustness, baseline comparison fidelity.
-- **Feature-gated enricher cleanup.** Ensure `halstead`, `content`, `git`,
-  `walk` feature flags compile cleanly in isolation.
-- **Bindings fidelity.** Python and Node.js parity — all workflows
-  (`lang`, `module`, `export`, `analyze`, `diff`) returning identical
-  receipts to CLI.
+- **Stale branch cleanup.** ~150 merged test branches to prune.
 
 ---
 
@@ -45,9 +53,10 @@ v1.7.2 shipped. 56 crates in the workspace. ~4,350 `#[test]` annotations,
 
 - **v1.9 "Browser runner."** WASM API crate (`tokmd-wasm`), zipball
   ingestion, in-browser receipt generation without server-side compute.
-- **Adze integration track.** AST seams for tree-sitter/Adze-based
-  complexity and function extraction (v3.0+/v4.0 horizon).
-- **Advanced analysis enrichers.** API surface coverage, architecture
-  graph visualization, semantic diff intelligence.
-- **crates.io publication readiness.** Publishability audit for all 56
+- **EffortlessMetrics/adze integration track.** AST seams for
+  tree-sitter/Adze-based complexity and function extraction (v3.0+/v4.0
+  horizon).
+- **Python/Node binding parity tests.** All workflows (`lang`, `module`,
+  `export`, `analyze`, `diff`) returning identical receipts to CLI.
+- **crates.io stable release (v1.8.0).** Publishability audit for all 56
   crates, dependency ordering, `cargo xtask publish` dry-run clean.
