@@ -223,6 +223,7 @@ proptest! {
 
 // =========================================================================
 // LangRow: aggregation invariant ΓÇö sum of parts
+// LangRow: aggregation invariant ╬ô├ç├╢ sum of parts
 // =========================================================================
 
 proptest! {
