@@ -30,7 +30,15 @@ fn arb_lang_row() -> impl Strategy<Value = LangRow> {
     )
         .prop_map(|(lang, code, lines, files, bytes, tokens)| {
             let avg_lines = if files > 0 { lines / files } else { 0 };
-            LangRow { lang, code, lines, files, bytes, tokens, avg_lines }
+            LangRow {
+                lang,
+                code,
+                lines,
+                files,
+                bytes,
+                tokens,
+                avg_lines,
+            }
         })
 }
 
@@ -43,15 +51,23 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
             "benches".to_string(),
             "examples".to_string(),
         ]),
-        1usize..50_000,     // code
-        1usize..100_000,    // lines
-        1usize..500,        // files
-        1usize..5_000_000,  // bytes
-        1usize..500_000,    // tokens
+        1usize..50_000,    // code
+        1usize..100_000,   // lines
+        1usize..500,       // files
+        1usize..5_000_000, // bytes
+        1usize..500_000,   // tokens
     )
         .prop_map(|(module, code, lines, files, bytes, tokens)| {
             let avg_lines = if files > 0 { lines / files } else { 0 };
-            ModuleRow { module, code, lines, files, bytes, tokens, avg_lines }
+            ModuleRow {
+                module,
+                code,
+                lines,
+                files,
+                bytes,
+                tokens,
+                avg_lines,
+            }
         })
 }
 
@@ -64,8 +80,13 @@ fn arb_totals() -> impl Strategy<Value = Totals> {
         0usize..10_000_000,
         0usize..5000,
     )
-        .prop_map(|(code, lines, files, bytes, tokens, avg_lines)| {
-            Totals { code, lines, files, bytes, tokens, avg_lines }
+        .prop_map(|(code, lines, files, bytes, tokens, avg_lines)| Totals {
+            code,
+            lines,
+            files,
+            bytes,
+            tokens,
+            avg_lines,
         })
 }
 
@@ -124,10 +145,8 @@ proptest! {
 
 // =========================================================================
 // Totals: serde round-trip
-//! Covers: avg monotonicity, module_key depth constraints,
-//! normalize_path cross-platform equivalence, and aggregation idempotency.
+// =========================================================================
 
-use proptest::prelude::*;
 use std::path::Path;
 use tokmd_model::{avg, module_key, normalize_path};
 
@@ -265,7 +284,13 @@ proptest! {
 }
 
 // =========================================================================
-// LangRow: JSON round-trip preserves all fields
+// module_key: depth constraints
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
     fn module_key_depth_1_max_one_segment(
         parts in prop::collection::vec("[a-z]{2,6}", 2..6),
         filename in "[a-z]{2,6}\\.[a-z]{1,3}",
@@ -349,6 +374,17 @@ proptest! {
         prop_assert_eq!(t.bytes, 0);
         prop_assert_eq!(t.tokens, 0);
         prop_assert_eq!(t.avg_lines, 0);
+    }
+}
+
+// =========================================================================
+// normalize_path: cross-platform equivalence
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+
+    #[test]
     fn normalize_path_forward_backslash_equivalent(
         parts in prop::collection::vec("[a-z]{2,6}", 2..5),
         filename in "[a-z]{2,6}\\.[a-z]{1,3}",
