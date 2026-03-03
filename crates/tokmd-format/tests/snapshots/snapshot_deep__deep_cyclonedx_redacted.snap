@@ -1,0 +1,57 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "group": "src/secret",
+      "name": "f88cd3392a49b4f0.rs",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "100"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "10"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "5"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "115"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "5000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "250"
+        }
+      ],
+      "type": "file"
+    }
+  ],
+  "metadata": {
+    "timestamp": "1970-01-01T00:00:00Z",
+    "tools": [
+      {
+        "name": "tokmd",
+        "vendor": "tokmd",
+        "version": "0.0.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "specVersion": "1.6",
+  "version": 1
+}

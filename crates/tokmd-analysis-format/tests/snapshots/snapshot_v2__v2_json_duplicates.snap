@@ -1,0 +1,77 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_v2.rs
+expression: rendered
+---
+{
+  "schema_version": 8,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "md",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": null,
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": {
+    "groups": [
+      {
+        "hash": "abc123",
+        "bytes": 512,
+        "files": [
+          "src/a.rs",
+          "src/b.rs"
+        ]
+      },
+      {
+        "hash": "def456",
+        "bytes": 1024,
+        "files": [
+          "lib/x.rs",
+          "lib/y.rs",
+          "lib/z.rs"
+        ]
+      }
+    ],
+    "wasted_bytes": 2560,
+    "strategy": "blake3"
+  },
+  "complexity": null,
+  "api_surface": null,
+  "fun": null
+}
