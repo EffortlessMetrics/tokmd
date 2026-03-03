@@ -1,0 +1,54 @@
+---
+source: crates/tokmd-types/tests/handoff_tests.rs
+expression: manifest
+---
+{
+  "schema_version": 2,
+  "generated_at_ms": 1700000000000,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "context-bundle",
+  "budget_tokens": 50000,
+  "used_tokens": 45000,
+  "utilization_pct": 90.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "file_count": 20,
+  "bundle_bytes": 180000,
+  "artifacts": [
+    {
+      "name": "bundle.txt",
+      "path": "context_bundle/bundle.txt",
+      "description": "Context bundle",
+      "bytes": 180000,
+      "hash": {
+        "algo": "blake3",
+        "hash": "fedcba9876543210"
+      }
+    }
+  ],
+  "included_files": [
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 5000,
+      "code": 2500,
+      "lines": 5000,
+      "bytes": 20000,
+      "value": 5000,
+      "rank_reason": "code"
+    }
+  ],
+  "excluded_paths": [
+    {
+      "path": "node_modules/",
+      "reason": "vendored dependencies"
+    }
+  ],
+  "excluded_patterns": [
+    "*.min.js"
+  ]
+}

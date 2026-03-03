@@ -12,6 +12,33 @@ use serde_json::Value;
 ///
 /// # Returns
 /// A `GateResult` with pass/fail status and individual rule results.
+///
+/// # Examples
+///
+/// ```
+/// use serde_json::json;
+/// use tokmd_gate::{evaluate_policy, PolicyConfig, PolicyRule, RuleOperator, RuleLevel};
+///
+/// let receipt = json!({"tokens": 500, "files": 10});
+/// let policy = PolicyConfig {
+///     rules: vec![PolicyRule {
+///         name: "max_tokens".into(),
+///         pointer: "/tokens".into(),
+///         op: RuleOperator::Lte,
+///         value: Some(json!(1000)),
+///         values: None,
+///         negate: false,
+///         level: RuleLevel::Error,
+///         message: None,
+///     }],
+///     fail_fast: false,
+///     allow_missing: false,
+/// };
+///
+/// let result = evaluate_policy(&receipt, &policy);
+/// assert!(result.passed);
+/// assert_eq!(result.errors, 0);
+/// ```
 pub fn evaluate_policy(receipt: &Value, policy: &PolicyConfig) -> GateResult {
     let mut rule_results = Vec::with_capacity(policy.rules.len());
 

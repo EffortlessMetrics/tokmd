@@ -44,6 +44,27 @@ pub struct PolicyConfig {
 
 impl PolicyConfig {
     /// Parse policy from TOML string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_gate::PolicyConfig;
+    ///
+    /// let toml = r#"
+    /// fail_fast = false
+    /// allow_missing = true
+    ///
+    /// [[rules]]
+    /// name = "max_tokens"
+    /// pointer = "/tokens"
+    /// op = "lte"
+    /// value = 100000
+    /// "#;
+    ///
+    /// let policy = PolicyConfig::from_toml(toml).unwrap();
+    /// assert_eq!(policy.rules.len(), 1);
+    /// assert!(policy.allow_missing);
+    /// ```
     pub fn from_toml(s: &str) -> Result<Self, GateError> {
         Ok(toml::from_str(s)?)
     }

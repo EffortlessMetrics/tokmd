@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-types/tests/cockpit_tests.rs
+expression: cs
+---
+{
+  "commits": 3,
+  "files_changed": 7,
+  "insertions": 250,
+  "deletions": 80,
+  "net_lines": 170,
+  "churn_velocity": 110.0,
+  "change_concentration": 0.65
+}

@@ -34,10 +34,32 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-/// The current schema version for all receipt types.
+/// The current schema version for core receipt types (`lang`, `module`, `export`, `diff`, `run`).
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(tokmd_types::SCHEMA_VERSION, 2);
+/// ```
 pub const SCHEMA_VERSION: u32 = 2;
 
 /// A small totals struct shared by summary outputs.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::Totals;
+///
+/// let totals = Totals {
+///     code: 1000,
+///     lines: 1500,
+///     files: 10,
+///     bytes: 40000,
+///     tokens: 10000,
+///     avg_lines: 150,
+/// };
+/// assert_eq!(totals.code, 1000);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Totals {
     pub code: usize,
@@ -521,12 +543,24 @@ pub struct ContextLogRecord {
 // -----------------------
 
 /// Schema version for handoff receipts.
+///
+/// ```
+/// assert_eq!(tokmd_types::HANDOFF_SCHEMA_VERSION, 5);
+/// ```
 pub const HANDOFF_SCHEMA_VERSION: u32 = 5;
 
 /// Schema version for context bundle manifests.
+///
+/// ```
+/// assert_eq!(tokmd_types::CONTEXT_BUNDLE_SCHEMA_VERSION, 2);
+/// ```
 pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;
 
 /// Schema version for context receipts (separate from SCHEMA_VERSION used by lang/module/export/diff).
+///
+/// ```
+/// assert_eq!(tokmd_types::CONTEXT_SCHEMA_VERSION, 4);
+/// ```
 pub const CONTEXT_SCHEMA_VERSION: u32 = 4;
 
 // -----------------------
@@ -567,6 +601,19 @@ impl TokenEstimationMeta {
     pub const DEFAULT_BPT_HIGH: f64 = 5.0;
 
     /// Create estimation from source byte count using default divisors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_types::TokenEstimationMeta;
+    ///
+    /// let est = TokenEstimationMeta::from_bytes(4000, 4.0);
+    /// assert_eq!(est.tokens_est, 1000);
+    /// assert_eq!(est.source_bytes, 4000);
+    /// // Invariant: tokens_min <= tokens_est <= tokens_max
+    /// assert!(est.tokens_min <= est.tokens_est);
+    /// assert!(est.tokens_est <= est.tokens_max);
+    /// ```
     pub fn from_bytes(bytes: usize, bpt: f64) -> Self {
         Self::from_bytes_with_bounds(bytes, bpt, Self::DEFAULT_BPT_LOW, Self::DEFAULT_BPT_HIGH)
     }
@@ -606,6 +653,17 @@ pub struct TokenAudit {
 
 impl TokenAudit {
     /// Create an audit from output bytes and content bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_types::TokenAudit;
+    ///
+    /// let audit = TokenAudit::from_output(5000, 4500);
+    /// assert_eq!(audit.output_bytes, 5000);
+    /// assert_eq!(audit.overhead_bytes, 500);
+    /// assert!(audit.overhead_pct > 0.0);
+    /// ```
     pub fn from_output(output_bytes: u64, content_bytes: u64) -> Self {
         Self::from_output_with_divisors(
             output_bytes,

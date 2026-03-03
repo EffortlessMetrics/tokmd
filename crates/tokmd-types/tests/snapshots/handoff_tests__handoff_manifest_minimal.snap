@@ -1,0 +1,94 @@
+---
+source: crates/tokmd-types/tests/handoff_tests.rs
+expression: manifest
+---
+{
+  "schema_version": 5,
+  "generated_at_ms": 1700000000000,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "handoff",
+  "inputs": [
+    "."
+  ],
+  "output_dir": "handoff_output",
+  "budget_tokens": 100000,
+  "used_tokens": 85000,
+  "utilization_pct": 85.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "capabilities": [
+    {
+      "name": "git",
+      "status": "available"
+    },
+    {
+      "name": "content",
+      "status": "unavailable",
+      "reason": "feature not enabled"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "code.txt",
+      "path": "handoff_output/code.txt",
+      "description": "Source code bundle",
+      "bytes": 340000,
+      "hash": {
+        "algo": "blake3",
+        "hash": "abcdef1234567890"
+      }
+    },
+    {
+      "name": "manifest.json",
+      "path": "handoff_output/manifest.json",
+      "description": "Bundle manifest",
+      "bytes": 2000
+    }
+  ],
+  "included_files": [
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 5000,
+      "code": 2500,
+      "lines": 5000,
+      "bytes": 20000,
+      "value": 5000,
+      "rank_reason": "code"
+    },
+    {
+      "path": "src/main.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 3000,
+      "code": 1500,
+      "lines": 3000,
+      "bytes": 12000,
+      "value": 3000,
+      "rank_reason": "code"
+    }
+  ],
+  "excluded_paths": [
+    {
+      "path": "target/",
+      "reason": "build output"
+    }
+  ],
+  "excluded_patterns": [
+    "*.lock"
+  ],
+  "smart_excluded_files": [
+    {
+      "path": "Cargo.lock",
+      "reason": "lockfile",
+      "tokens": 120000
+    }
+  ],
+  "total_files": 50,
+  "bundled_files": 30,
+  "intelligence_preset": "standard"
+}

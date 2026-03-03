@@ -1,0 +1,5 @@
+---
+source: crates/tokmd/tests/cli_snapshot_golden.rs
+expression: normalize(&stdout)
+---
+tokmd <VERSION>

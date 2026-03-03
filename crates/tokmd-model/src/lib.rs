@@ -485,6 +485,21 @@ pub fn unique_parent_file_count(languages: &Languages) -> usize {
     seen.len()
 }
 
+/// Compute the average of `lines` over `files`, rounding to nearest integer.
+///
+/// Returns 0 if `files` is zero.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_model::avg;
+///
+/// assert_eq!(avg(300, 3), 100);
+/// assert_eq!(avg(0, 5), 0);
+/// assert_eq!(avg(100, 0), 0);
+/// // Rounds to nearest: 7 / 2 = 3.5 → 4
+/// assert_eq!(avg(7, 2), 4);
+/// ```
 pub fn avg(lines: usize, files: usize) -> usize {
     if files == 0 {
         return 0;
@@ -498,6 +513,22 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Uses `/` separators
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
+///
+/// # Examples
+///
+/// ```
+/// use std::path::Path;
+/// use tokmd_model::normalize_path;
+///
+/// // Normalizes backslashes to forward slashes
+/// let p = Path::new("src\\main.rs");
+/// assert_eq!(normalize_path(p, None), "src/main.rs");
+///
+/// // Strips a prefix
+/// let p = Path::new("project/src/lib.rs");
+/// let prefix = Path::new("project");
+/// assert_eq!(normalize_path(&p, Some(&prefix)), "src/lib.rs");
+/// ```
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     let s_cow = path.to_string_lossy();
     let s: Cow<str> = if s_cow.contains('\\') {
@@ -567,6 +598,17 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// - Root-level files become "(root)".
 /// - If the first directory segment is in `module_roots`, join `module_depth` *directory* segments.
 /// - Otherwise, module key is the top-level directory.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_model::module_key;
+///
+/// let roots = vec!["crates".to_string()];
+/// assert_eq!(module_key("crates/foo/src/lib.rs", &roots, 2), "crates/foo");
+/// assert_eq!(module_key("src/lib.rs", &roots, 2), "src");
+/// assert_eq!(module_key("Cargo.toml", &roots, 2), "(root)");
+/// ```
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
     tokmd_module_key::module_key(path, module_roots, module_depth)
 }

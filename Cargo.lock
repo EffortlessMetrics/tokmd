@@ -3382,6 +3382,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "tempfile",
  "tokmd-analysis",
  "tokmd-analysis-types",
  "tokmd-cockpit",

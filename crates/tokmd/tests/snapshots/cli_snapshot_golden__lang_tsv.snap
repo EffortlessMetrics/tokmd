@@ -1,0 +1,10 @@
+---
+source: crates/tokmd/tests/cli_snapshot_golden.rs
+expression: stdout
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	13	15	229	57
+TOML	8	9	165	41
+Markdown	4	12	148	36
+JavaScript	1	1	30	7
+Total	26	37	572	141
