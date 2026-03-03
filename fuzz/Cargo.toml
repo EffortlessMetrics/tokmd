@@ -53,6 +53,8 @@ tokmd-settings = { workspace = true, optional = true }
 tokmd-analysis-imports = { workspace = true, optional = true }
 tokmd-ffi-envelope = { workspace = true, optional = true }
 tokmd-export-tree = { workspace = true, optional = true }
+tokmd-core = { workspace = true, optional = true }
+tokmd-badge = { workspace = true, optional = true }
 
 # ============================================================================
 # Features
@@ -125,6 +127,20 @@ ffi_envelope = ["dep:tokmd-ffi-envelope", "dep:serde_json"]
 # ExportData tree rendering helpers (tokmd-export-tree)
 # Targets: fuzz_export_tree
 export_tree = ["dep:tokmd-export-tree", "dep:tokmd-types"]
+
+# FFI run_json entrypoint (tokmd-core)
+# Targets: fuzz_run_json
+# Needs serde_json for envelope validation
+core = ["dep:tokmd-core", "dep:serde_json"]
+
+# Ratchet policy evaluation (tokmd-gate)
+# Targets: fuzz_gate_ratchet
+# Needs serde_json for JSON document handling
+gate_ratchet = ["dep:tokmd-gate", "dep:serde_json"]
+
+# SVG badge rendering (tokmd-badge)
+# Targets: fuzz_badge_svg
+badge = ["dep:tokmd-badge"]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -289,3 +305,42 @@ path = "fuzz_targets/fuzz_import_parser.rs"
 test = false
 doc = false
 required-features = ["analysis_imports"]
+
+# ============================================================================
+# Fuzz Targets - FFI run_json Entrypoint
+# ============================================================================
+# Tests the single-entrypoint FFI function with arbitrary mode/args pairs.
+# Validates no-panic behavior and JSON envelope well-formedness.
+
+[[bin]]
+name = "fuzz_run_json"
+path = "fuzz_targets/fuzz_run_json.rs"
+test = false
+doc = false
+required-features = ["core"]
+
+# ============================================================================
+# Fuzz Targets - Ratchet Gate Evaluation
+# ============================================================================
+# Tests evaluate_ratchet_policy() with arbitrary JSON docs and TOML configs.
+# Complements fuzz_policy_evaluate which targets evaluate_policy().
+
+[[bin]]
+name = "fuzz_gate_ratchet"
+path = "fuzz_targets/fuzz_gate_ratchet.rs"
+test = false
+doc = false
+required-features = ["gate_ratchet"]
+
+# ============================================================================
+# Fuzz Targets - SVG Badge Rendering
+# ============================================================================
+# Tests badge_svg() with arbitrary label/value strings for no-panic
+# behavior, determinism, and basic SVG well-formedness.
+
+[[bin]]
+name = "fuzz_badge_svg"
+path = "fuzz_targets/fuzz_badge_svg.rs"
+test = false
+doc = false
+required-features = ["badge"]
