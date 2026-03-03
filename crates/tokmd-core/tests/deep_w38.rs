@@ -187,10 +187,12 @@ fn ffi_unknown_mode_error() {
     let result = run_json("bogus_mode", "{}");
     let v: Value = serde_json::from_str(&result).unwrap();
     assert_eq!(v["ok"], false);
-    assert!(v["error"]["code"]
-        .as_str()
-        .unwrap()
-        .contains("unknown_mode"));
+    assert!(
+        v["error"]["code"]
+            .as_str()
+            .unwrap()
+            .contains("unknown_mode")
+    );
 }
 
 #[test]
@@ -198,10 +200,12 @@ fn ffi_invalid_json_error() {
     let result = run_json("lang", "not json at all");
     let v: Value = serde_json::from_str(&result).unwrap();
     assert_eq!(v["ok"], false);
-    assert!(v["error"]["code"]
-        .as_str()
-        .unwrap()
-        .contains("invalid_json"));
+    assert!(
+        v["error"]["code"]
+            .as_str()
+            .unwrap()
+            .contains("invalid_json")
+    );
 }
 
 // =============================================================================
@@ -245,10 +249,12 @@ fn response_envelope_error_roundtrip() {
     let v: Value = serde_json::from_str(&json).unwrap();
     assert_eq!(v["ok"], false);
     assert!(v.get("data").is_none());
-    assert!(v["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("test_mode"));
+    assert!(
+        v["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("test_mode")
+    );
 }
 
 // =============================================================================

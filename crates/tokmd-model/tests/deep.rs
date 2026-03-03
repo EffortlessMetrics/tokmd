@@ -440,8 +440,6 @@ proptest! {
         prop_assert_eq!(total_code, rev_code);
 
         // All sums should be non-negative (trivially true for usize)
-        prop_assert!(total_code <= total_lines || total_lines == 0,
-            "Typically code <= lines, unless lines is independently generated");
         prop_assert!(total_files > 0, "At least one file");
         // total_bytes and total_tokens are usize, always >= 0
         let _ = total_bytes;

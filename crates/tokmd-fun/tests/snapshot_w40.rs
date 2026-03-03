@@ -1,4 +1,4 @@
-use tokmd_fun::{render_midi, render_obj, MidiNote, ObjBuilding};
+use tokmd_fun::{MidiNote, ObjBuilding, render_midi, render_obj};
 
 // ── eco-label / code-city rendering ───────────────────────────────────
 

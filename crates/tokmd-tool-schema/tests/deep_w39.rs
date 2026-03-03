@@ -19,11 +19,7 @@ fn make_multi_cmd() -> Command {
         .subcommand(
             Command::new("scan")
                 .about("Scan files")
-                .arg(
-                    Arg::new("path")
-                        .required(true)
-                        .help("Path to scan"),
-                )
+                .arg(Arg::new("path").required(true).help("Path to scan"))
                 .arg(
                     Arg::new("format")
                         .long("format")
@@ -38,14 +34,12 @@ fn make_multi_cmd() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("export")
-                .about("Export data")
-                .arg(
-                    Arg::new("tags")
-                        .long("tags")
-                        .action(ArgAction::Append)
-                        .help("Tags to apply"),
-                ),
+            Command::new("export").about("Export data").arg(
+                Arg::new("tags")
+                    .long("tags")
+                    .action(ArgAction::Append)
+                    .help("Tags to apply"),
+            ),
         )
 }
 
@@ -89,7 +83,11 @@ fn boolean_param_detected_from_set_true() {
     let cmd = make_multi_cmd();
     let schema = build_tool_schema(&cmd);
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let recursive = scan.parameters.iter().find(|p| p.name == "recursive").unwrap();
+    let recursive = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "recursive")
+        .unwrap();
     assert_eq!(recursive.param_type, "boolean");
     assert!(!recursive.required);
 }
@@ -99,7 +97,11 @@ fn count_param_detected_as_integer() {
     let cmd = make_multi_cmd();
     let schema = build_tool_schema(&cmd);
     let root = schema.tools.iter().find(|t| t.name == "myapp").unwrap();
-    let verbose = root.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = root
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert_eq!(verbose.param_type, "integer");
 }
 

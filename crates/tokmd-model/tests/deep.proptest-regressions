@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 8ed5f15b28cb678e980246c6438e88280f66b9ecebf458f2927a53e3ca489ff0 # shrinks to rows = [LangRow { lang: "Aa", code: 5053, lines: 1, files: 1, bytes: 0, tokens: 0, avg_lines: 1 }]

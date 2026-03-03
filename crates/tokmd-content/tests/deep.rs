@@ -648,7 +648,7 @@ fn read_head_tail_max_bytes_zero() {
 
 #[test]
 fn read_lines_zero_max_lines_reads_one() {
-    // Implementation pushes before checking, so max_lines=0 still reads 1 line
+    // Implementation now returns early when max_lines=0
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("lines.txt");
     let mut f = File::create(&path).unwrap();
@@ -656,8 +656,7 @@ fn read_lines_zero_max_lines_reads_one() {
     writeln!(f, "line 2").unwrap();
 
     let lines = read_lines(&path, 0, 10_000).unwrap();
-    assert_eq!(lines.len(), 1);
-    assert_eq!(lines[0], "line 1");
+    assert_eq!(lines.len(), 0);
 }
 
 #[test]

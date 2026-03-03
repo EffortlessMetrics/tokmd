@@ -1,6 +1,6 @@
 //! Deep tests for tokmd-types: receipts, serde, token estimation, schema constants.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_types::cockpit::*;
 use tokmd_types::*;
 
