@@ -4,8 +4,9 @@
 
 use proptest::prelude::*;
 use tokmd_config::{
-    AnalysisFormat, AnalysisPreset, BadgeMetric, ChildIncludeMode, ChildrenMode, ConfigMode,
-    ExportFormat, ImportGranularity, InitProfile, RedactMode, Shell, TableFormat,
+    AnalysisFormat, AnalysisPreset, BadgeMetric, ChildIncludeMode, ChildrenMode, CockpitFormat,
+    ConfigMode, ExportFormat, HandoffPreset, ImportGranularity, InitProfile, RedactMode, Shell,
+    TableFormat,
 };
 
 /// Macro to generate round-trip tests for enums that implement Serialize + Deserialize + PartialEq
@@ -200,4 +201,60 @@ proptest! {
             prop_assert!(result.is_err(), "Unknown preset '{}' should fail to parse", unknown);
         }
     }
+
+    // NEW property tests
+
+    #[test]
+    fn cockpit_format_serde_rt(
+        variant in prop::sample::select(vec![
+            CockpitFormat::Json, CockpitFormat::Md, CockpitFormat::Sections,
+        ])
+    ) {
+        let json = serde_json::to_string(&variant).unwrap();
+        let back: CockpitFormat = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(variant, back);
+    }
+
+    #[test]
+    fn handoff_preset_serde_rt(
+        variant in prop::sample::select(vec![
+            HandoffPreset::Minimal, HandoffPreset::Standard,
+            HandoffPreset::Risk, HandoffPreset::Deep,
+        ])
+    ) {
+        let json = serde_json::to_string(&variant).unwrap();
+        let back: HandoffPreset = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(variant, back);
+    }
+
+    #[test]
+    fn config_mode_serde_roundtrip(
+        variant in prop::sample::select(vec![ConfigMode::Auto, ConfigMode::None])
+    ) {
+        let json = serde_json::to_string(&variant).unwrap();
+        let back: ConfigMode = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(variant, back);
+    }
+
+    #[test]
+    fn cockpit_format_display(
+        variant in prop::sample::select(vec![
+            CockpitFormat::Json, CockpitFormat::Md, CockpitFormat::Sections,
+        ])
+    ) {
+        let s = format!("{:?}", variant);
+        prop_assert!(!s.is_empty());
+    }
+
+    #[test]
+    fn handoff_preset_debug(
+        variant in prop::sample::select(vec![
+            HandoffPreset::Minimal, HandoffPreset::Standard,
+            HandoffPreset::Risk, HandoffPreset::Deep,
+        ])
+    ) {
+        let s = format!("{:?}", variant);
+        prop_assert!(!s.is_empty());
+    }
+
 }

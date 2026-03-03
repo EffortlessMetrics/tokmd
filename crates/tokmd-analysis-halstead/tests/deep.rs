@@ -7,7 +7,8 @@
 use std::path::PathBuf;
 
 use tokmd_analysis_halstead::{
-    build_halstead_report, is_halstead_lang, operators_for_lang, round_f64, tokenize_for_halstead,
+    FileTokenCounts, build_halstead_report, is_halstead_lang, operators_for_lang, round_f64,
+    tokenize_for_halstead,
 };
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
@@ -973,5 +974,337 @@ mod lang_support {
                 assert!(!op.is_empty(), "{lang} has an empty operator string");
             }
         }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Serialization roundtrip
+// ═══════════════════════════════════════════════════════════════════
+
+mod serialization {
+    use super::*;
+
+    #[test]
+    fn halstead_metrics_roundtrip_json() {
+        let m = build_report_for_code(
+            "fn compute(a: i32, b: i32) -> i32 { if a > b { a * 2 } else { b + 1 } }",
+            "Rust",
+            "f.rs",
+        );
+        let json = serde_json::to_string(&m).unwrap();
+        let deserialized: tokmd_analysis_types::HalsteadMetrics =
+            serde_json::from_str(&json).unwrap();
+
+        assert_eq!(deserialized.distinct_operators, m.distinct_operators);
+        assert_eq!(deserialized.distinct_operands, m.distinct_operands);
+        assert_eq!(deserialized.total_operators, m.total_operators);
+        assert_eq!(deserialized.total_operands, m.total_operands);
+        assert_eq!(deserialized.vocabulary, m.vocabulary);
+        assert_eq!(deserialized.length, m.length);
+        assert!((deserialized.volume - m.volume).abs() < f64::EPSILON);
+        assert!((deserialized.difficulty - m.difficulty).abs() < f64::EPSILON);
+        assert!((deserialized.effort - m.effort).abs() < f64::EPSILON);
+        assert!((deserialized.time_seconds - m.time_seconds).abs() < f64::EPSILON);
+        assert!((deserialized.estimated_bugs - m.estimated_bugs).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn zero_metrics_roundtrip_json() {
+        let m = build_report_for_code("", "Rust", "empty.rs");
+        let json = serde_json::to_string(&m).unwrap();
+        let deserialized: tokmd_analysis_types::HalsteadMetrics =
+            serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.vocabulary, 0);
+        assert_eq!(deserialized.length, 0);
+        assert_eq!(deserialized.volume, 0.0);
+    }
+
+    #[test]
+    fn json_contains_all_expected_fields() {
+        let m = build_report_for_code("let x = 1;", "Rust", "f.rs");
+        let json = serde_json::to_string(&m).unwrap();
+        for field in &[
+            "distinct_operators",
+            "distinct_operands",
+            "total_operators",
+            "total_operands",
+            "vocabulary",
+            "length",
+            "volume",
+            "difficulty",
+            "effort",
+            "time_seconds",
+            "estimated_bugs",
+        ] {
+            assert!(json.contains(field), "JSON should contain field '{field}'");
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § C-family language-specific tokenization
+// ═══════════════════════════════════════════════════════════════════
+
+mod c_family_counts {
+    use super::*;
+
+    #[test]
+    fn cpp_class_keywords() {
+        let code = "class Foo : public Base { virtual void run() override {} };";
+        let counts = tokenize_for_halstead(code, "c++");
+        assert!(counts.operators.contains_key("class"));
+        assert!(counts.operators.contains_key("public"));
+        assert!(counts.operators.contains_key("virtual"));
+        assert!(counts.operators.contains_key("void"));
+        assert!(counts.operators.contains_key("override"));
+    }
+
+    #[test]
+    fn c_sizeof_operator() {
+        let counts = tokenize_for_halstead("int n = sizeof(x);", "c");
+        assert!(counts.operators.contains_key("sizeof"));
+    }
+
+    #[test]
+    fn java_new_and_delete() {
+        let code = "Object obj = new Object(); delete ptr;";
+        let counts = tokenize_for_halstead(code, "java");
+        assert!(counts.operators.contains_key("new"));
+        assert!(counts.operators.contains_key("delete"));
+    }
+
+    #[test]
+    fn csharp_namespace_and_using() {
+        let code = "using System; namespace App {}";
+        let counts = tokenize_for_halstead(code, "c#");
+        assert!(counts.operators.contains_key("using"));
+        assert!(counts.operators.contains_key("namespace"));
+    }
+
+    #[test]
+    fn php_try_catch_finally() {
+        let code = "try { throw new Exception(); } catch (Exception $e) { } finally { }";
+        let counts = tokenize_for_halstead(code, "php");
+        assert!(counts.operators.contains_key("try"));
+        assert!(counts.operators.contains_key("throw"));
+        assert!(counts.operators.contains_key("new"));
+        assert!(counts.operators.contains_key("catch"));
+        assert!(counts.operators.contains_key("finally"));
+    }
+
+    #[test]
+    fn c_arrow_and_scope_operators() {
+        let counts = tokenize_for_halstead("ptr->field; Foo::bar();", "c++");
+        assert!(counts.operators.contains_key("->"));
+        assert!(counts.operators.contains_key("::"));
+    }
+
+    #[test]
+    fn c_increment_decrement() {
+        let counts = tokenize_for_halstead("i++ ; j-- ;", "c");
+        assert!(counts.operators.contains_key("++"));
+        assert!(counts.operators.contains_key("--"));
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Ruby-specific tokenization
+// ═══════════════════════════════════════════════════════════════════
+
+mod ruby_counts {
+    use super::*;
+
+    #[test]
+    fn ruby_spaceship_operator() {
+        let counts = tokenize_for_halstead("a <=> b", "ruby");
+        assert!(counts.operators.contains_key("<=>"));
+    }
+
+    #[test]
+    fn ruby_regex_match_operators() {
+        let counts = tokenize_for_halstead("x =~ /pat/\ny !~ /other/", "ruby");
+        assert!(counts.operators.contains_key("=~"));
+        assert!(counts.operators.contains_key("!~"));
+    }
+
+    #[test]
+    fn ruby_range_operators() {
+        let counts = tokenize_for_halstead("a = 1..10\nb = 1...10", "ruby");
+        assert!(counts.operators.contains_key(".."));
+        assert!(counts.operators.contains_key("..."));
+    }
+
+    #[test]
+    fn ruby_module_and_include() {
+        let code = "module MyModule\n  include Comparable\n  extend Enumerable\nend";
+        let counts = tokenize_for_halstead(code, "ruby");
+        assert!(counts.operators.contains_key("module"));
+        assert!(counts.operators.contains_key("include"));
+        assert!(counts.operators.contains_key("extend"));
+        assert!(counts.operators.contains_key("end"));
+    }
+
+    #[test]
+    fn ruby_rescue_ensure() {
+        let code = "begin\n  raise 'error'\nrescue\n  retry\nensure\n  cleanup\nend";
+        let counts = tokenize_for_halstead(code, "ruby");
+        assert!(counts.operators.contains_key("begin"));
+        assert!(counts.operators.contains_key("raise"));
+        assert!(counts.operators.contains_key("rescue"));
+        assert!(counts.operators.contains_key("ensure"));
+        assert!(counts.operators.contains_key("end"));
+    }
+
+    #[test]
+    fn ruby_attr_accessors() {
+        let code = "attr_reader :x\nattr_writer :y\nattr_accessor :z";
+        let counts = tokenize_for_halstead(code, "ruby");
+        assert!(counts.operators.contains_key("attr_reader"));
+        assert!(counts.operators.contains_key("attr_writer"));
+        assert!(counts.operators.contains_key("attr_accessor"));
+    }
+
+    #[test]
+    fn ruby_power_operator() {
+        let counts = tokenize_for_halstead("x = 2 ** 10\ny **= 3", "ruby");
+        assert!(counts.operators.contains_key("**"));
+        assert!(counts.operators.contains_key("**="));
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § Build report with non-Halstead languages and limits
+// ═══════════════════════════════════════════════════════════════════
+
+mod build_report_advanced {
+    use super::*;
+
+    #[test]
+    fn non_halstead_language_file_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("readme.md"), "# Title\nSome text").unwrap();
+        let export = make_export(vec![make_row("readme.md", "Markdown")]);
+        let files = vec![PathBuf::from("readme.md")];
+        let m = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+        assert_eq!(m.vocabulary, 0);
+        assert_eq!(m.length, 0);
+    }
+
+    #[test]
+    fn mixed_halstead_and_non_halstead_files() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("main.rs"), "fn main() { let x = 1; }").unwrap();
+        std::fs::write(dir.path().join("style.css"), "body { color: red; }").unwrap();
+        let export = make_export(vec![
+            make_row("main.rs", "Rust"),
+            make_row("style.css", "CSS"),
+        ]);
+        let files = vec![PathBuf::from("main.rs"), PathBuf::from("style.css")];
+        let m = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+        // Only Rust should be counted
+        assert!(m.total_operators > 0);
+        assert!(m.total_operands > 0);
+    }
+
+    #[test]
+    fn child_kind_rows_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("f.rs"), "fn main() { let x = 1; }").unwrap();
+        let mut row = make_row("f.rs", "Rust");
+        row.kind = FileKind::Child;
+        let export = make_export(vec![row]);
+        let files = vec![PathBuf::from("f.rs")];
+        let m = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+        assert_eq!(m.vocabulary, 0);
+    }
+
+    #[test]
+    fn max_bytes_budget_stops_scanning() {
+        let dir = tempfile::tempdir().unwrap();
+        let code_a = "fn a() { let x = 1 + 2; }";
+        let code_b = "fn b() { let y = 3 + 4 + 5 + 6 + 7; }";
+        std::fs::write(dir.path().join("a.rs"), code_a).unwrap();
+        std::fs::write(dir.path().join("b.rs"), code_b).unwrap();
+
+        let export = make_export(vec![make_row("a.rs", "Rust"), make_row("b.rs", "Rust")]);
+        let files = vec![PathBuf::from("a.rs"), PathBuf::from("b.rs")];
+
+        let tight = AnalysisLimits {
+            max_bytes: Some(code_a.len() as u64),
+            ..no_limits()
+        };
+        let m = build_halstead_report(dir.path(), &files, &export, &tight).unwrap();
+        // Only first file should be processed
+        let full = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+        assert!(m.total_operators <= full.total_operators);
+    }
+
+    #[test]
+    fn multi_language_aggregation() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("a.rs"), "fn f() { let x = 1; }").unwrap();
+        std::fs::write(dir.path().join("b.py"), "def g():\n    return 1 + 2\n").unwrap();
+        std::fs::write(dir.path().join("c.js"), "function h() { return 1; }").unwrap();
+
+        let export = make_export(vec![
+            make_row("a.rs", "Rust"),
+            make_row("b.py", "Python"),
+            make_row("c.js", "JavaScript"),
+        ]);
+        let files = vec![
+            PathBuf::from("a.rs"),
+            PathBuf::from("b.py"),
+            PathBuf::from("c.js"),
+        ];
+        let m = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+
+        // Should aggregate operators from all three languages
+        assert!(m.distinct_operators > 0);
+        assert!(m.distinct_operands > 0);
+        assert_eq!(m.vocabulary, m.distinct_operators + m.distinct_operands);
+        assert_eq!(m.length, m.total_operators + m.total_operands);
+    }
+
+    #[test]
+    fn file_not_in_export_data_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("orphan.rs"), "fn orphan() { let x = 1; }").unwrap();
+        let export = make_export(vec![]);
+        let files = vec![PathBuf::from("orphan.rs")];
+        let m = build_halstead_report(dir.path(), &files, &export, &no_limits()).unwrap();
+        assert_eq!(m.vocabulary, 0);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// § FileTokenCounts structure verification
+// ═══════════════════════════════════════════════════════════════════
+
+mod token_counts_structure {
+    use super::*;
+
+    #[test]
+    fn total_operators_equals_sum_of_counts() {
+        let code = "fn main() { let x = 1 + 2; let y = x * 3; if y > 5 { return y; } }";
+        let counts = tokenize_for_halstead(code, "rust");
+        let sum: usize = counts.operators.values().sum();
+        assert_eq!(counts.total_operators, sum);
+    }
+
+    #[test]
+    fn total_operands_gte_distinct() {
+        let code = "let x = x + x + x;";
+        let counts = tokenize_for_halstead(code, "rust");
+        assert!(counts.total_operands >= counts.operands.len());
+    }
+
+    #[test]
+    fn operators_btreemap_is_sorted() {
+        let code = "fn main() { if true { for i in 0..10 { let x = i + 1; } } }";
+        let counts = tokenize_for_halstead(code, "rust");
+        let keys: Vec<_> = counts.operators.keys().collect();
+        let mut sorted = keys.clone();
+        sorted.sort();
+        assert_eq!(keys, sorted, "operators BTreeMap should be sorted");
     }
 }

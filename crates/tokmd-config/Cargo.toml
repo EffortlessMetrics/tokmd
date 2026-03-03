@@ -23,4 +23,5 @@ tokmd-types = { workspace = true, features = ["clap"] }
 [dev-dependencies]
 proptest = "1.10.0"
 tempfile = "3.25.0"
+toml = "1.0"
 tokmd-settings.workspace = true

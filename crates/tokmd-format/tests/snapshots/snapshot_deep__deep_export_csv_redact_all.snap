@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+e3f85dfb5b619eeb.rs,bc9484ce4b0ea310,Rust,parent,200,40,20,260,10000,500
+e02c3cea2f99bd31.html,50edcf41b410e31b,HTML,parent,80,5,10,95,4000,200
+e02c3cea2f99bd31.html,50edcf41b410e31b,JavaScript,child,30,2,3,35,1500,75
+e02c3cea2f99bd31.html,50edcf41b410e31b,CSS,child,20,1,2,23,1000,50
