@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+[]

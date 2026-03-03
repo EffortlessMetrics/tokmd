@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|1000|1200|10|50000|2500|120|
+|Python|800|960|8|40000|2000|120|
+|Go|600|720|6|30000|1500|120|
+|Java|400|480|4|20000|1000|120|
+|TypeScript|200|240|2|10000|500|120|
+|**Total**|3000|3600|30|150000|7500|120|

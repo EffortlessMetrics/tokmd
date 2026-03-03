@@ -293,6 +293,7 @@ proptest! {
     fn token_estimation_custom_bounds_ordering(
         source_bytes in 1usize..10_000_000,
     ) {
+
         let meta = TokenEstimationMeta::from_bytes(source_bytes, TokenEstimationMeta::DEFAULT_BPT_EST);
         prop_assert!(meta.tokens_min <= meta.tokens_max);
     }
