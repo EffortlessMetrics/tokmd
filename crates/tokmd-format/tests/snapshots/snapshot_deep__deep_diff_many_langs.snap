@@ -1,0 +1,35 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: md
+---
+## Diff: v1.0 → v2.0
+
+### Summary
+
+|Metric|From|To|Delta|Change|
+|---|---:|---:|---:|---:|
+|LOC|1830|1740|-90|-4.9%|
+|Lines|2196|2088|-108|-4.9%|
+|Files|19|18|-1|-5.3%|
+|Bytes|91500|87000|-4500|-4.9%|
+|Tokens|4575|4350|-225|-4.9%|
+
+### Language Movement
+
+|Type|Count|
+|---|---:|
+|Changed|5|
+|Added|2|
+|Removed|2|
+|Modified|1|
+
+### Language Breakdown
+
+|Language|Old LOC|New LOC|Delta|
+|---|---:|---:|---:|
+|C|1000|1200|+200|
+|C++|800|0|-800|
+|CMake|0|40|+40|
+|Rust|0|500|+500|
+|Shell|30|0|-30|
+|**Total**|1830|1740|-90|
