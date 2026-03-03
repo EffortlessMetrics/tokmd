@@ -17,18 +17,6 @@ use tokmd_types::{
     ModuleArgs, ModuleReport, ModuleRow, RedactMode, TableFormat, Totals,
 };
 
-// ---------------------------------------------------------------------------
-// Strategies (copied from existing properties.rs to ensure consistency)
-// ---------------------------------------------------------------------------
-//! Covers: diff row symmetry, diff totals idempotency,
-//! output determinism across formats, and structural invariants.
-
-use proptest::prelude::*;
-
-use tokmd_format::{compute_diff_rows, compute_diff_totals};
-use tokmd_settings::ChildrenMode;
-use tokmd_types::{LangReport, LangRow, Totals};
-
 // =========================================================================
 // Strategies
 // =========================================================================
@@ -36,7 +24,14 @@ use tokmd_types::{LangReport, LangRow, Totals};
 fn arb_lang_row() -> impl Strategy<Value = LangRow> {
     (
         prop::sample::select(vec![
-            "Rust", "Python", "Go", "Java", "C", "TOML", "YAML", "JSON",
+            "Rust",
+            "Python",
+            "Go",
+            "Java",
+            "C",
+            "TOML",
+            "YAML",
+            "JSON",
             "Rust",
             "Python",
             "Go",
@@ -62,7 +57,6 @@ fn arb_lang_row() -> impl Strategy<Value = LangRow> {
 }
 
 fn arb_lang_report() -> impl Strategy<Value = LangReport> {
-    prop::collection::vec(arb_lang_row(), 1..6).prop_map(|rows| {
     prop::collection::vec(arb_lang_row(), 1..8).prop_map(|rows| {
         let mut seen = std::collections::HashSet::new();
         let rows: Vec<LangRow> = rows
@@ -343,8 +337,13 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
-// CSV: consistent column count
+// Diff: self-diff produces zero deltas
 // ---------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(32))]
+
+    #[test]
     fn self_diff_produces_zero_deltas(report in arb_lang_report()) {
         let rows = compute_diff_rows(&report, &report);
         for row in &rows {
@@ -461,8 +460,13 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
-// JSONL: each line is valid JSON
+// Diff: rows are deterministic
 // ---------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(32))]
+
+    #[test]
     fn diff_rows_are_deterministic(
         from in arb_lang_report(),
         to in arb_lang_report(),
@@ -522,8 +526,13 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
-// Diff: row sums equal totals (deep)
+// Diff: row count covers union of languages
 // ---------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(32))]
+
+    #[test]
     fn diff_row_count_is_union_of_languages(
         from in arb_lang_report(),
         to in arb_lang_report(),
@@ -569,6 +578,9 @@ proptest! {
 
         prop_assert_eq!(totals.old_code, totals.new_code);
         prop_assert_eq!(totals.delta_code, 0);
+    }
+
+    #[test]
     fn diff_each_row_delta_consistent(
         from in arb_lang_report(),
         to in arb_lang_report(),
