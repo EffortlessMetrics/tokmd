@@ -1,0 +1,54 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+[
+  {
+    "blanks": 20,
+    "bytes": 10000,
+    "code": 200,
+    "comments": 40,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 260,
+    "module": "src",
+    "path": "src/lib.rs",
+    "tokens": 500
+  },
+  {
+    "blanks": 10,
+    "bytes": 4000,
+    "code": 80,
+    "comments": 5,
+    "kind": "parent",
+    "lang": "HTML",
+    "lines": 95,
+    "module": "templates",
+    "path": "templates/index.html",
+    "tokens": 200
+  },
+  {
+    "blanks": 3,
+    "bytes": 1500,
+    "code": 30,
+    "comments": 2,
+    "kind": "child",
+    "lang": "JavaScript",
+    "lines": 35,
+    "module": "templates",
+    "path": "templates/index.html",
+    "tokens": 75
+  },
+  {
+    "blanks": 2,
+    "bytes": 1000,
+    "code": 20,
+    "comments": 1,
+    "kind": "child",
+    "lang": "CSS",
+    "lines": 23,
+    "module": "templates",
+    "path": "templates/index.html",
+    "tokens": 50
+  }
+]

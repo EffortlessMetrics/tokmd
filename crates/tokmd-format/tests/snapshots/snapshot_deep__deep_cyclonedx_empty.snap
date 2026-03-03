@@ -1,0 +1,21 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+{
+  "bomFormat": "CycloneDX",
+  "components": [],
+  "metadata": {
+    "timestamp": "1970-01-01T00:00:00Z",
+    "tools": [
+      {
+        "name": "tokmd",
+        "vendor": "tokmd",
+        "version": "0.0.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "specVersion": "1.6",
+  "version": 1
+}
