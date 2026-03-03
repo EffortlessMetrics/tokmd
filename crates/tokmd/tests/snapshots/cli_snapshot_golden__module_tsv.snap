@@ -1,0 +1,8 @@
+---
+source: crates/tokmd/tests/cli_snapshot_golden.rs
+expression: stdout
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+(root)	27	38	6	527	130	6
+src	3	3	1	45	11	3
+Total	30	41	7	572	141	6
