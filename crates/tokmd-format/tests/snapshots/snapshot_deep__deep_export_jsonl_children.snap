@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+{"type":"row","path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":200,"comments":40,"blanks":20,"lines":260,"bytes":10000,"tokens":500}
+{"type":"row","path":"templates/index.html","module":"templates","lang":"HTML","kind":"parent","code":80,"comments":5,"blanks":10,"lines":95,"bytes":4000,"tokens":200}
+{"type":"row","path":"templates/index.html","module":"templates","lang":"JavaScript","kind":"child","code":30,"comments":2,"blanks":3,"lines":35,"bytes":1500,"tokens":75}
+{"type":"row","path":"templates/index.html","module":"templates","lang":"CSS","kind":"child","code":20,"comments":1,"blanks":2,"lines":23,"bytes":1000,"tokens":50}
