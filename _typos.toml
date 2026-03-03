@@ -52,6 +52,7 @@ numer = "numer"
 
 # Test variable suffixes (ordering patterns: ab = a-then-b, ba = b-then-a)
 ba = "ba"
+bck = "bck"
 
 [type.rust]
 # Rust-specific settings if needed

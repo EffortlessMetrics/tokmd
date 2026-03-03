@@ -83,10 +83,7 @@ fn single_file_overall_equals_per_module() {
 fn df_counts_files_not_token_frequency() {
     // Two files in same module, both containing "widget" in their path
     let data = export(
-        vec![
-            row("m/widget_a.rs", "m", 50),
-            row("m/widget_b.rs", "m", 50),
-        ],
+        vec![row("m/widget_a.rs", "m", 50), row("m/widget_b.rs", "m", 50)],
         &[],
     );
     let clouds = build_topic_clouds(&data);
@@ -156,10 +153,7 @@ fn top_k_preserves_highest_scoring_terms() {
 
 #[test]
 fn consecutive_separators_no_empty_terms() {
-    let data = export(
-        vec![row("a__b--c..d/file.rs", "a__b--c..d", 50)],
-        &[],
-    );
+    let data = export(vec![row("a__b--c..d/file.rs", "a__b--c..d", 50)], &[]);
     let terms = overall_terms(&data);
     for term in &terms {
         assert!(!term.is_empty(), "no empty terms should be produced");
@@ -173,11 +167,7 @@ fn mixed_case_normalizes_to_lowercase() {
     let data = export(vec![row("MyModule/MyFile.rs", "MyModule", 50)], &[]);
     let terms = overall_terms(&data);
     for term in &terms {
-        assert_eq!(
-            *term,
-            term.to_lowercase(),
-            "all terms should be lowercase"
-        );
+        assert_eq!(*term, term.to_lowercase(), "all terms should be lowercase");
     }
 }
 
@@ -270,15 +260,10 @@ fn determinism_with_many_modules() {
         .collect();
     let data = export(rows, &[]);
 
-    let results: Vec<Vec<TopicTerm>> =
-        (0..3).map(|_| build_topic_clouds(&data).overall).collect();
+    let results: Vec<Vec<TopicTerm>> = (0..3).map(|_| build_topic_clouds(&data).overall).collect();
 
     for i in 1..3 {
-        assert_eq!(
-            results[0].len(),
-            results[i].len(),
-            "run count mismatch"
-        );
+        assert_eq!(results[0].len(), results[i].len(), "run count mismatch");
         for (a, b) in results[0].iter().zip(results[i].iter()) {
             assert_eq!(a.term, b.term);
             assert!(
@@ -296,8 +281,8 @@ fn determinism_with_many_modules() {
 fn all_documented_extensions_are_stopwords() {
     let known_extensions = [
         "rs", "js", "ts", "tsx", "jsx", "py", "go", "java", "kt", "kts", "rb", "php", "c", "cc",
-        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml",
-        "json", "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
+        "cpp", "h", "hpp", "cs", "swift", "m", "mm", "scala", "sql", "toml", "yaml", "yml", "json",
+        "md", "markdown", "txt", "lock", "cfg", "ini", "env", "nix", "zig", "dart",
     ];
     for ext in known_extensions {
         // Create a row where the only non-stopword would be the extension
@@ -315,14 +300,26 @@ fn all_documented_extensions_are_stopwords() {
 #[test]
 fn base_stopwords_filter_common_directories() {
     let base_stops = [
-        "src", "lib", "mod", "index", "test", "tests", "impl", "main", "bin", "pkg", "package",
-        "target", "build", "dist", "out", "gen", "generated",
+        "src",
+        "lib",
+        "mod",
+        "index",
+        "test",
+        "tests",
+        "impl",
+        "main",
+        "bin",
+        "pkg",
+        "package",
+        "target",
+        "build",
+        "dist",
+        "out",
+        "gen",
+        "generated",
     ];
     for stop in base_stops {
-        let data = export(
-            vec![row(&format!("{stop}/feature.rs"), stop, 50)],
-            &[],
-        );
+        let data = export(vec![row(&format!("{stop}/feature.rs"), stop, 50)], &[]);
         let terms = overall_terms(&data);
         assert!(
             !terms.contains(&stop.to_string()),
