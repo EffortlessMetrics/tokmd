@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+HTML	400	500	5	20000	1000	100
+JavaScript (embedded)	120	150	5	6000	300	30
+CSS (embedded)	80	100	3	4000	200	33
+Total	600	750	13	30000	1500	58

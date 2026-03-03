@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: output
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Rust	0	0	0	0	0	0
+Python	0	0	0	0	0	0
+Total	0	0	0	0	0	0
