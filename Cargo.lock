@@ -3612,6 +3612,7 @@ name = "tokmd-scan-args"
 version = "1.7.2"
 dependencies = [
  "proptest",
+ "serde_json",
  "tokmd-path",
  "tokmd-redact",
  "tokmd-settings",
