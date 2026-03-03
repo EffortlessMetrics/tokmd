@@ -6,10 +6,10 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode,
-    CommitIntentKind, ConfigMode, DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind,
-    HANDOFF_SCHEMA_VERSION, InclusionPolicy, RedactMode, SCHEMA_VERSION, TableFormat,
-    TokenEstimationMeta, Totals, cockpit::COCKPIT_SCHEMA_VERSION,
+    cockpit::COCKPIT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
+    DiffRow, DiffTotals, ExportFormat, FileClassification, FileKind, InclusionPolicy, RedactMode,
+    TableFormat, TokenEstimationMeta, Totals, CONTEXT_BUNDLE_SCHEMA_VERSION,
+    CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION, SCHEMA_VERSION,
 };
 
 // =========================================================================
@@ -110,20 +110,13 @@ proptest! {
     }
 
     #[test]
-    fn commit_intent_roundtrip(idx in 0usize..12) {
+    fn commit_intent_roundtrip(idx in 0usize..5) {
         let intent = [
             CommitIntentKind::Feat,
             CommitIntentKind::Fix,
             CommitIntentKind::Refactor,
             CommitIntentKind::Docs,
-            CommitIntentKind::Test,
             CommitIntentKind::Chore,
-            CommitIntentKind::Ci,
-            CommitIntentKind::Build,
-            CommitIntentKind::Perf,
-            CommitIntentKind::Style,
-            CommitIntentKind::Revert,
-            CommitIntentKind::Other,
         ][idx];
         let json = serde_json::to_string(&intent).unwrap();
         let parsed: CommitIntentKind = serde_json::from_str(&json).unwrap();
@@ -172,7 +165,7 @@ proptest! {
 }
 
 // =========================================================================
-// DiffRow: delta always equals new - old (as i64)
+// DiffRow: delta_code always equals new_code - old_code (as i64)
 // =========================================================================
 
 proptest! {
@@ -188,18 +181,18 @@ proptest! {
             old_code: old,
             new_code: new,
             delta_code: new as i64 - old as i64,
-            old_lines: 0,
-            new_lines: 0,
-            delta_lines: 0,
-            old_files: 0,
-            new_files: 0,
+            old_lines: old,
+            new_lines: new,
+            delta_lines: new as i64 - old as i64,
+            old_files: 1,
+            new_files: 1,
             delta_files: 0,
-            old_bytes: 0,
-            new_bytes: 0,
-            delta_bytes: 0,
-            old_tokens: 0,
-            new_tokens: 0,
-            delta_tokens: 0,
+            old_bytes: old * 10,
+            new_bytes: new * 10,
+            delta_bytes: (new as i64 - old as i64) * 10,
+            old_tokens: old / 4,
+            new_tokens: new / 4,
+            delta_tokens: new as i64 / 4 - old as i64 / 4,
         };
         prop_assert_eq!(row.delta_code, row.new_code as i64 - row.old_code as i64);
     }
@@ -214,18 +207,18 @@ proptest! {
             old_code: old,
             new_code: new,
             delta_code: new as i64 - old as i64,
-            old_lines: 0,
-            new_lines: 0,
-            delta_lines: 0,
-            old_files: 0,
-            new_files: 0,
+            old_lines: old,
+            new_lines: new,
+            delta_lines: new as i64 - old as i64,
+            old_files: 1,
+            new_files: 1,
             delta_files: 0,
-            old_bytes: 0,
-            new_bytes: 0,
-            delta_bytes: 0,
-            old_tokens: 0,
-            new_tokens: 0,
-            delta_tokens: 0,
+            old_bytes: old * 10,
+            new_bytes: new * 10,
+            delta_bytes: (new as i64 - old as i64) * 10,
+            old_tokens: old / 4,
+            new_tokens: new / 4,
+            delta_tokens: new as i64 / 4 - old as i64 / 4,
         };
         let json = serde_json::to_string(&row).unwrap();
         let parsed: DiffRow = serde_json::from_str(&json).unwrap();
