@@ -91,7 +91,7 @@ fn similarity_degrades_with_increasing_divergence() {
         NearDupScope::Global,
         0.0,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -154,7 +154,7 @@ fn four_identical_files_produce_six_pairs() {
         NearDupScope::Global,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -189,7 +189,7 @@ fn threshold_boundary_includes_equal_similarity() {
         NearDupScope::Global,
         1.0,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -223,7 +223,7 @@ fn fingerprint_counts_are_consistent_for_identical_files() {
         NearDupScope::Global,
         0.0,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -259,7 +259,7 @@ fn different_sized_files_have_different_fingerprint_counts() {
         NearDupScope::Global,
         0.0,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -284,7 +284,8 @@ fn different_sized_files_have_different_fingerprint_counts() {
 #[test]
 fn cluster_representative_with_asymmetric_star_topology() {
     let dir = TempDir::new().unwrap();
-    // hub.rs is identical to a.rs, b.rs, c.rs. Others differ from each other.
+    // All 4 identical files: every node has the same connections,
+    // so the representative is the alphabetically-first file.
     let hub_content = source_text(100, 0);
     write_file(&dir, "hub.rs", &hub_content);
     write_file(&dir, "a.rs", &hub_content);
@@ -305,7 +306,7 @@ fn cluster_representative_with_asymmetric_star_topology() {
         NearDupScope::Global,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -315,10 +316,10 @@ fn cluster_representative_with_asymmetric_star_topology() {
         && clusters.len() == 1
         && clusters[0].files.len() == 4
     {
-        // hub.rs should be the representative since it connects to all others
+        // All files are identical → same connection count → alphabetical tiebreak
         assert_eq!(
-            clusters[0].representative, "hub.rs",
-            "most-connected file should be representative"
+            clusters[0].representative, "a.rs",
+            "with equal connectivity, alphabetically-first file should be representative"
         );
     }
 }
@@ -347,7 +348,7 @@ fn global_scope_finds_cross_module_and_cross_lang_pairs() {
         NearDupScope::Global,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -383,7 +384,7 @@ fn module_scope_isolates_identical_files_in_different_modules() {
         NearDupScope::Module,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -414,10 +415,10 @@ fn lang_scope_isolates_identical_files_with_different_languages() {
     let report = build_near_dup_report(
         dir.path(),
         &export,
-        NearDupScope::Language,
+        NearDupScope::Lang,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -455,9 +456,9 @@ fn multiple_exclude_patterns_all_applied() {
         NearDupScope::Global,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
-        &["gen_", "vendor_"],
+        &["gen_*".to_string(), "vendor_*".to_string()],
     )
     .unwrap();
 
@@ -496,7 +497,7 @@ fn pair_paths_have_left_less_than_or_equal_to_right() {
         NearDupScope::Global,
         0.5,
         100,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
@@ -534,13 +535,13 @@ fn ten_files_max_three_yields_seven_skipped() {
         NearDupScope::Global,
         0.5,
         3,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
     .unwrap();
 
-    assert_eq!(report.skipped_files, 7, "10 files - 3 max = 7 skipped");
+    assert_eq!(report.files_skipped, 7, "10 files - 3 max = 7 skipped");
 }
 
 // ── 13. File selection prefers highest code lines ───────────────
@@ -568,13 +569,13 @@ fn file_selection_prefers_highest_code_lines() {
         NearDupScope::Global,
         0.0,
         2,
-        1000,
+        Some(1000),
         &NearDupLimits::default(),
         &[],
     )
     .unwrap();
 
-    assert_eq!(report.skipped_files, 1);
+    assert_eq!(report.files_skipped, 1);
     // The pair should be between big.rs and medium.rs
     if !report.pairs.is_empty() {
         let paths: Vec<&str> = report
