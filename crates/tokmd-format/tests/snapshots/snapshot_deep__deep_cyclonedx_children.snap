@@ -1,0 +1,170 @@
+---
+source: crates/tokmd-format/tests/snapshot_deep.rs
+expression: pretty
+---
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "group": "src",
+      "name": "src/lib.rs",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "200"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "40"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "20"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "260"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "10000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "500"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "group": "templates",
+      "name": "templates/index.html",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "HTML"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "80"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "5"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "10"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "95"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "4000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "200"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "group": "templates",
+      "name": "templates/index.html",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "JavaScript"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "30"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "2"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "3"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "35"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "1500"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "75"
+        },
+        {
+          "name": "tokmd:kind",
+          "value": "child"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "group": "templates",
+      "name": "templates/index.html",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "CSS"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "20"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "1"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "2"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "23"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "1000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "50"
+        },
+        {
+          "name": "tokmd:kind",
+          "value": "child"
+        }
+      ],
+      "type": "file"
+    }
+  ],
+  "metadata": {
+    "timestamp": "1970-01-01T00:00:00Z",
+    "tools": [
+      {
+        "name": "tokmd",
+        "vendor": "tokmd",
+        "version": "0.0.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "specVersion": "1.6",
+  "version": 1
+}
