@@ -1,0 +1,21 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_v2.rs
+expression: rendered
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## License radar
+
+- Effective: `Apache-2.0`
+- Heuristic detection; not legal advice.
+
+|SPDX|Confidence|Source|Kind|
+|---|---:|---|---|
+|Apache-2.0|0.98|LICENSE|Text|
+|MIT|0.85|Cargo.toml|Metadata|

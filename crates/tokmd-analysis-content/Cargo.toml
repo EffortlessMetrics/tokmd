@@ -23,4 +23,5 @@ blake3.workspace = true
 
 [dev-dependencies]
 proptest = "1.10.0"
+serde_json.workspace = true
 tempfile = "3.23.0"
