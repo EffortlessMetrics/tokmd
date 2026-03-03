@@ -40,8 +40,5 @@ fuzz_target!(|data: &[u8]| {
         "badge_svg must start with <svg, got: {}",
         &svg[..svg.len().min(40)]
     );
-    assert!(
-        svg.ends_with("</svg>"),
-        "badge_svg must end with </svg>"
-    );
+    assert!(svg.ends_with("</svg>"), "badge_svg must end with </svg>");
 });
