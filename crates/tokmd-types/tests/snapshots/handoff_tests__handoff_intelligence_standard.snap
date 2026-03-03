@@ -1,0 +1,34 @@
+---
+source: crates/tokmd-types/tests/handoff_tests.rs
+expression: intel
+---
+{
+  "tree": "├── src/\n│   └── lib.rs",
+  "tree_depth": 2,
+  "hotspots": [
+    {
+      "path": "src/lib.rs",
+      "commits": 30,
+      "lines": 500,
+      "score": 15000
+    }
+  ],
+  "complexity": {
+    "total_functions": 40,
+    "avg_function_length": 20.0,
+    "max_function_length": 80,
+    "avg_cyclomatic": 3.5,
+    "max_cyclomatic": 18,
+    "high_risk_files": 1
+  },
+  "derived": {
+    "total_files": 25,
+    "total_code": 8000,
+    "total_lines": 12000,
+    "total_tokens": 32000,
+    "lang_count": 2,
+    "dominant_lang": "Rust",
+    "dominant_pct": 90.0
+  },
+  "warnings": []
+}

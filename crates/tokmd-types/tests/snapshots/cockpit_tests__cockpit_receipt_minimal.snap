@@ -1,0 +1,81 @@
+---
+source: crates/tokmd-types/tests/cockpit_tests.rs
+expression: receipt
+---
+{
+  "schema_version": 3,
+  "mode": "cockpit",
+  "generated_at_ms": 1700000000000,
+  "base_ref": "main",
+  "head_ref": "feature/add-tests",
+  "change_surface": {
+    "commits": 5,
+    "files_changed": 12,
+    "insertions": 350,
+    "deletions": 120,
+    "net_lines": 230,
+    "churn_velocity": 94.0,
+    "change_concentration": 0.75
+  },
+  "composition": {
+    "code_pct": 65.0,
+    "test_pct": 25.0,
+    "docs_pct": 5.0,
+    "config_pct": 5.0,
+    "test_ratio": 0.38
+  },
+  "code_health": {
+    "score": 82,
+    "grade": "B",
+    "large_files_touched": 1,
+    "avg_file_size": 180,
+    "complexity_indicator": "medium",
+    "warnings": []
+  },
+  "risk": {
+    "hotspots_touched": [
+      "src/core.rs"
+    ],
+    "bus_factor_warnings": [],
+    "level": "medium",
+    "score": 45
+  },
+  "contracts": {
+    "api_changed": false,
+    "cli_changed": false,
+    "schema_changed": false,
+    "breaking_indicators": 0
+  },
+  "evidence": {
+    "overall_status": "pass",
+    "mutation": {
+      "status": "pass",
+      "source": "ran_local",
+      "commit_match": "exact",
+      "scope": {
+        "relevant": [
+          "src/lib.rs"
+        ],
+        "tested": [
+          "src/lib.rs"
+        ],
+        "ratio": 1.0
+      },
+      "evidence_commit": "abc123",
+      "evidence_generated_at_ms": 1700000000000,
+      "survivors": [],
+      "killed": 10,
+      "timeout": 1,
+      "unviable": 2
+    }
+  },
+  "review_plan": [
+    {
+      "path": "src/core.rs",
+      "reason": "hotspot + high churn",
+      "priority": 1,
+      "complexity": 3,
+      "lines_changed": 85
+    }
+  ]
+}

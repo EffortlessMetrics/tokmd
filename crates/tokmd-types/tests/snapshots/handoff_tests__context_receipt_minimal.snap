@@ -1,0 +1,43 @@
+---
+source: crates/tokmd-types/tests/handoff_tests.rs
+expression: receipt
+---
+{
+  "schema_version": 4,
+  "generated_at_ms": 1700000000000,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "context",
+  "budget_tokens": 50000,
+  "used_tokens": 42000,
+  "utilization_pct": 84.0,
+  "strategy": "greedy",
+  "rank_by": "code",
+  "file_count": 15,
+  "files": [
+    {
+      "path": "src/lib.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 5000,
+      "code": 2500,
+      "lines": 5000,
+      "bytes": 20000,
+      "value": 5000,
+      "rank_reason": "code"
+    },
+    {
+      "path": "src/main.rs",
+      "module": "src",
+      "lang": "Rust",
+      "tokens": 3000,
+      "code": 1500,
+      "lines": 3000,
+      "bytes": 12000,
+      "value": 3000,
+      "rank_reason": "code"
+    }
+  ]
+}
