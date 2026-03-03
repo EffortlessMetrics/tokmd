@@ -705,3 +705,208 @@ fn longer() {
         );
     }
 }
+
+// ============================================================================
+// Entropy Edge Cases
+// ============================================================================
+
+mod entropy_edge_cases {
+    use super::*;
+
+    #[test]
+    fn scenario_entropy_all_0xff_bytes_yields_zero() {
+        // Given a buffer of identical 0xFF bytes
+        let bytes = vec![0xFF; 500];
+        // When we compute entropy
+        let entropy = entropy_bits_per_byte(&bytes);
+        // Then entropy is zero (single symbol)
+        assert!(entropy.abs() < 1e-6, "got {entropy}");
+    }
+
+    #[test]
+    fn scenario_entropy_increases_with_byte_diversity() {
+        // Given buffers with increasing numbers of unique byte values
+        let e1 = entropy_bits_per_byte(&vec![0u8; 256]);
+        let e2 = {
+            let mut buf = Vec::new();
+            for _ in 0..128 {
+                buf.push(0u8);
+                buf.push(1u8);
+            }
+            entropy_bits_per_byte(&buf)
+        };
+        let e4 = {
+            let mut buf = Vec::new();
+            for _ in 0..64 {
+                for b in 0u8..4 {
+                    buf.push(b);
+                }
+            }
+            entropy_bits_per_byte(&buf)
+        };
+
+        // Then entropy increases: 1 value < 2 values < 4 values
+        assert!(
+            e1 < e2,
+            "1 value ({e1}) should have less entropy than 2 values ({e2})"
+        );
+        assert!(
+            e2 < e4,
+            "2 values ({e2}) should have less entropy than 4 values ({e4})"
+        );
+    }
+
+    #[test]
+    fn scenario_entropy_bounded_by_eight_bits() {
+        // Given any byte buffer
+        let bytes: Vec<u8> = (0..1000).map(|i| (i % 256) as u8).collect();
+        // When we compute entropy
+        let entropy = entropy_bits_per_byte(&bytes);
+        // Then it is at most 8.0 bits per byte
+        assert!(
+            entropy <= 8.0 + 1e-6,
+            "entropy should be <= 8.0, got {entropy}"
+        );
+    }
+}
+
+// ============================================================================
+// Tag Counting Edge Cases
+// ============================================================================
+
+mod tag_counting_edge_cases {
+    use super::*;
+
+    #[test]
+    fn scenario_count_tags_hack_note_xxx_detected() {
+        // Given code with HACK, NOTE, and XXX markers
+        let text = "// HACK: workaround\n// NOTE: important\n// XXX: review this\n// HACK again";
+        // When we count HACK, NOTE, XXX
+        let result = count_tags(text, &["HACK", "NOTE", "XXX"]);
+        // Then we find correct counts
+        assert_eq!(result[0], ("HACK".to_string(), 2));
+        assert_eq!(result[1], ("NOTE".to_string(), 1));
+        assert_eq!(result[2], ("XXX".to_string(), 1));
+    }
+
+    #[test]
+    fn scenario_count_tags_in_multiline_text() {
+        // Given a multi-line string with tags scattered across lines
+        let text = "line 1: TODO\nline 2: nothing\nline 3: TODO and FIXME\nline 4: FIXME";
+        // When we count TODO and FIXME
+        let result = count_tags(text, &["TODO", "FIXME"]);
+        // Then counts span all lines
+        assert_eq!(result[0], ("TODO".to_string(), 2));
+        assert_eq!(result[1], ("FIXME".to_string(), 2));
+    }
+
+    #[test]
+    fn scenario_count_tags_adjacent_occurrences() {
+        // Given text with adjacent tag occurrences
+        let text = "TODOTODOTODO";
+        // When we count TODO
+        let result = count_tags(text, &["TODO"]);
+        // Then all occurrences found
+        assert_eq!(result[0].1, 3);
+    }
+}
+
+// ============================================================================
+// File Reading Edge Cases
+// ============================================================================
+
+mod file_reading_edge_cases {
+    use super::*;
+
+    #[test]
+    fn scenario_read_lines_empty_file_returns_no_lines() {
+        // Given an empty file
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("empty.txt");
+        File::create(&path).unwrap();
+        // When we read lines
+        let lines = read_lines(&path, 100, usize::MAX).unwrap();
+        // Then we get an empty vec
+        assert!(lines.is_empty());
+    }
+
+    #[test]
+    fn scenario_read_head_missing_file_returns_error() {
+        // Given a path that does not exist
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("nonexistent.txt");
+        // When we try to read the head
+        let result = read_head(&path, 100);
+        // Then an error is returned
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn scenario_read_head_tail_single_byte_max() {
+        // Given a multi-byte file
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("data.txt");
+        File::create(&path).unwrap().write_all(b"ABCDEFGH").unwrap();
+        // When we request max_bytes=1
+        let bytes = read_head_tail(&path, 1).unwrap();
+        // Then we get exactly 1 byte (the head)
+        assert_eq!(bytes.len(), 1);
+        assert_eq!(bytes[0], b'A');
+    }
+}
+
+// ============================================================================
+// Hashing Edge Cases
+// ============================================================================
+
+mod hashing_edge_cases {
+    use super::*;
+
+    #[test]
+    fn scenario_hash_file_empty_file_matches_empty_bytes() {
+        // Given an empty file
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("empty.bin");
+        File::create(&path).unwrap();
+        // When we hash the empty file
+        let file_hash = hash_file(&path, 1000).unwrap();
+        let bytes_hash = hash_bytes(&[]);
+        // Then both match
+        assert_eq!(file_hash, bytes_hash);
+    }
+
+    #[test]
+    fn scenario_hash_bytes_single_byte_is_valid_hex() {
+        // Given a single byte
+        let hash = hash_bytes(&[42]);
+        // Then the hash is a valid 64-character hex string
+        assert_eq!(hash.len(), 64);
+        assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+}
+
+// ============================================================================
+// Text Detection Edge Cases
+// ============================================================================
+
+mod text_detection_edge_cases {
+    use super::*;
+
+    #[test]
+    fn scenario_high_bytes_without_null_detected_as_binary() {
+        // Given bytes that are all high values (invalid UTF-8) but no nulls
+        let bytes: Vec<u8> = vec![0x80, 0x81, 0x82, 0xFE, 0xFF];
+        // When we check if it's text-like
+        // Then it returns false (invalid UTF-8)
+        assert!(!is_text_like(&bytes));
+    }
+
+    #[test]
+    fn scenario_latin1_superset_without_null_not_text_like() {
+        // Given Latin-1 encoded text (not valid UTF-8)
+        let bytes: &[u8] = &[0xC0, 0xC1, 0xF5, 0xF6];
+        // When we check if it's text-like
+        // Then it returns false
+        assert!(!is_text_like(bytes));
+    }
+}

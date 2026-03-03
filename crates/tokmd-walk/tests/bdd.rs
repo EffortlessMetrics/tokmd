@@ -556,3 +556,151 @@ fn given_deeply_nested_files_when_listed_then_all_found() {
     let files = list_files(tmp.path(), None).unwrap();
     assert_eq!(files.len(), 3, "all three files should be found");
 }
+
+// ============================================================================
+// Scenario: Nested directory traversal
+// ============================================================================
+
+#[test]
+fn scenario_walk_nested_directories_returns_files_at_all_depths() {
+    // Given a directory tree with files at multiple levels
+    let tmp = non_git_tempdir();
+    std::fs::write(tmp.path().join("root.txt"), "root").unwrap();
+    std::fs::create_dir_all(tmp.path().join("a")).unwrap();
+    std::fs::write(tmp.path().join("a/level1.txt"), "l1").unwrap();
+    std::fs::create_dir_all(tmp.path().join("a/b")).unwrap();
+    std::fs::write(tmp.path().join("a/b/level2.txt"), "l2").unwrap();
+    std::fs::create_dir_all(tmp.path().join("a/b/c")).unwrap();
+    std::fs::write(tmp.path().join("a/b/c/level3.txt"), "l3").unwrap();
+
+    // When we list files
+    let files = list_files(tmp.path(), None).unwrap();
+    let names = file_names(&files);
+
+    // Then files at all depths are returned
+    assert_eq!(files.len(), 4, "should find files at all 4 levels");
+    assert!(names.iter().any(|n| n.contains("root.txt")));
+    assert!(names.iter().any(|n| n.contains("level1.txt")));
+    assert!(names.iter().any(|n| n.contains("level2.txt")));
+    assert!(names.iter().any(|n| n.contains("level3.txt")));
+}
+
+#[test]
+fn scenario_list_files_returns_relative_paths_not_absolute() {
+    // Given a directory with files
+    let tmp = non_git_tempdir();
+    std::fs::create_dir_all(tmp.path().join("src")).unwrap();
+    std::fs::write(tmp.path().join("src/main.rs"), "fn main() {}").unwrap();
+
+    // When we list files
+    let files = list_files(tmp.path(), None).unwrap();
+
+    // Then all paths are relative (do not start with the root prefix)
+    for f in &files {
+        let s = f.to_string_lossy();
+        assert!(
+            !s.starts_with(tmp.path().to_string_lossy().as_ref()),
+            "path should be relative, got absolute: {s}"
+        );
+    }
+}
+
+#[test]
+fn scenario_list_files_with_limit_one_returns_exactly_one() {
+    // Given a directory with multiple files
+    let tmp = non_git_tempdir();
+    for name in &["alpha.txt", "bravo.txt", "charlie.txt", "delta.txt"] {
+        std::fs::write(tmp.path().join(name), "data").unwrap();
+    }
+
+    // When we list files with max_files=1
+    let files = list_files(tmp.path(), Some(1)).unwrap();
+
+    // Then exactly one file is returned
+    assert_eq!(files.len(), 1, "max_files=1 should return exactly 1 file");
+}
+
+// ============================================================================
+// Scenario: license_candidates additional patterns
+// ============================================================================
+
+#[test]
+fn scenario_license_candidates_notice_with_extensions() {
+    // Given NOTICE files with various extensions
+    let files = vec![
+        PathBuf::from("NOTICE"),
+        PathBuf::from("NOTICE.md"),
+        PathBuf::from("NOTICE.txt"),
+    ];
+
+    // When we classify them
+    let result = tokmd_walk::license_candidates(&files);
+
+    // Then all NOTICE variants are detected as license files
+    assert_eq!(result.license_files.len(), 3);
+    assert!(result.metadata_files.is_empty());
+}
+
+#[test]
+fn scenario_license_candidates_ignores_readme_and_source() {
+    // Given files that are not license-related
+    let files = vec![
+        PathBuf::from("README.md"),
+        PathBuf::from("src/main.rs"),
+        PathBuf::from("tests/test.rs"),
+        PathBuf::from("Makefile"),
+        PathBuf::from(".gitignore"),
+    ];
+
+    // When we classify them
+    let result = tokmd_walk::license_candidates(&files);
+
+    // Then nothing is detected
+    assert!(result.license_files.is_empty());
+    assert!(result.metadata_files.is_empty());
+}
+
+// ============================================================================
+// Scenario: list_files output is sorted
+// ============================================================================
+
+#[test]
+fn scenario_list_files_output_is_sorted_alphabetically() {
+    // Given files created in reverse alphabetical order
+    let tmp = non_git_tempdir();
+    std::fs::write(tmp.path().join("zebra.rs"), "z").unwrap();
+    std::fs::write(tmp.path().join("apple.rs"), "a").unwrap();
+    std::fs::write(tmp.path().join("mango.rs"), "m").unwrap();
+
+    // When we list files
+    let files = list_files(tmp.path(), None).unwrap();
+    let names = file_names(&files);
+
+    // Then files are sorted alphabetically
+    assert_eq!(names[0], "apple.rs");
+    assert_eq!(names[1], "mango.rs");
+    assert_eq!(names[2], "zebra.rs");
+}
+
+// ============================================================================
+// Scenario: Binary and text files coexist
+// ============================================================================
+
+#[test]
+fn scenario_walk_lists_both_binary_and_text_files() {
+    // Given a directory with both binary and text files
+    let tmp = non_git_tempdir();
+    std::fs::write(tmp.path().join("readme.md"), "# Hello").unwrap();
+    std::fs::write(tmp.path().join("data.bin"), vec![0u8, 1, 2, 255, 254]).unwrap();
+    std::fs::write(tmp.path().join("image.png"), vec![0x89, 0x50, 0x4E, 0x47]).unwrap();
+
+    // When we list files
+    let files = list_files(tmp.path(), None).unwrap();
+    let names = file_names(&files);
+
+    // Then both binary and text files are included
+    assert_eq!(files.len(), 3);
+    assert!(names.iter().any(|n| n.contains("readme.md")));
+    assert!(names.iter().any(|n| n.contains("data.bin")));
+    assert!(names.iter().any(|n| n.contains("image.png")));
+}

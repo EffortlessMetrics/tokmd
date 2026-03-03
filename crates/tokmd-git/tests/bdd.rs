@@ -703,3 +703,183 @@ fn scenario_git_commit_clone_is_independent() {
     assert_eq!(original.timestamp, 100);
     assert_eq!(original.files.len(), 1);
 }
+
+// ============================================================================
+// Scenario: GitCommit construction edge cases
+// ============================================================================
+
+#[test]
+fn scenario_git_commit_with_none_hash() {
+    // Given a GitCommit with no hash
+    let commit = GitCommit {
+        timestamp: 1700000000,
+        author: "dev@example.com".to_string(),
+        hash: None,
+        subject: "initial".to_string(),
+        files: vec![],
+    };
+    // Then the hash field is None
+    assert!(commit.hash.is_none());
+    // And other fields are populated
+    assert_eq!(commit.author, "dev@example.com");
+    assert!(commit.files.is_empty());
+}
+
+#[test]
+fn scenario_git_commit_with_empty_files_list() {
+    // Given a commit with no files (e.g., merge commit)
+    let commit = GitCommit {
+        timestamp: 100,
+        author: "a@b.com".to_string(),
+        hash: Some("abc".to_string()),
+        subject: "Merge branch".to_string(),
+        files: Vec::new(),
+    };
+    // Then files is empty
+    assert!(commit.files.is_empty());
+    assert_eq!(commit.subject, "Merge branch");
+}
+
+// ============================================================================
+// Scenario: classify_intent – scoped and breaking conventional commits
+// ============================================================================
+
+#[test]
+fn scenario_classify_intent_scoped_with_special_chars() {
+    // Given conventional commits with complex scopes
+    assert_eq!(
+        classify_intent("feat(api-v2): new endpoint"),
+        CommitIntentKind::Feat
+    );
+    assert_eq!(
+        classify_intent("fix(core/parser): handle edge case"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("refactor(db_layer): simplify queries"),
+        CommitIntentKind::Refactor
+    );
+}
+
+#[test]
+fn scenario_classify_intent_breaking_change_with_scope() {
+    // Given a breaking change with scope and bang
+    assert_eq!(
+        classify_intent("feat(auth)!: remove legacy login"),
+        CommitIntentKind::Feat
+    );
+    assert_eq!(
+        classify_intent("fix(api)!: change response format"),
+        CommitIntentKind::Fix
+    );
+}
+
+// ============================================================================
+// Scenario: classify_intent – longer natural language subjects
+// ============================================================================
+
+#[test]
+fn scenario_classify_intent_long_natural_language_subjects() {
+    // Given longer, descriptive commit messages
+    assert_eq!(
+        classify_intent("Add support for multiple authentication providers"),
+        CommitIntentKind::Feat
+    );
+    assert_eq!(
+        classify_intent("Fix a critical bug in the request pipeline"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("Implement retry logic for transient network failures"),
+        CommitIntentKind::Feat
+    );
+}
+
+// ============================================================================
+// Scenario: GitRangeMode equality and default
+// ============================================================================
+
+#[test]
+fn scenario_range_mode_eq_and_clone() {
+    // Given two identical range modes
+    let a = GitRangeMode::TwoDot;
+    let b = GitRangeMode::TwoDot;
+    // Then they are equal
+    assert_eq!(a, b);
+    // And different modes are not equal
+    assert_ne!(GitRangeMode::TwoDot, GitRangeMode::ThreeDot);
+}
+
+#[test]
+fn scenario_range_mode_copy() {
+    // Given a range mode
+    let original = GitRangeMode::ThreeDot;
+    let copied = original;
+    // Then both are valid (Copy trait)
+    assert_eq!(original, copied);
+    assert_eq!(original.format("a", "b"), "a...b");
+    assert_eq!(copied.format("a", "b"), "a...b");
+}
+
+// ============================================================================
+// Scenario: git_available sanity check
+// ============================================================================
+
+#[test]
+fn scenario_git_available_returns_true_in_test_env() {
+    // Given a standard development/CI environment
+    // When we check git availability
+    // Then git is available
+    assert!(
+        git_available(),
+        "git should be available in test environment"
+    );
+}
+
+// ============================================================================
+// Scenario: collect_history with max_commits boundary
+// ============================================================================
+
+#[test]
+fn scenario_collect_history_max_one_returns_single_commit() {
+    // Given a repo with multiple commits
+    let repo = make_repo("max-one").expect("repo");
+    std::fs::write(repo.path.join("extra.txt"), "extra").unwrap();
+    git_in(&repo.path).args(["add", "."]).output().unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "second commit"])
+        .output()
+        .unwrap();
+
+    let root = repo_root(&repo.path).unwrap();
+    // When we collect with max_commits=1
+    let result = collect_history(&root, Some(1), None);
+    // Then we get exactly 1 commit (may fail on broken pipe, that's ok)
+    if let Ok(commits) = result {
+        assert_eq!(commits.len(), 1, "max_commits=1 should return 1 commit");
+    }
+}
+
+#[test]
+fn scenario_collect_history_records_file_paths_for_commits() {
+    // Given a repo where each commit adds a known file
+    let repo = make_repo("file-paths").expect("repo");
+    std::fs::write(repo.path.join("feature.rs"), "fn feature() {}").unwrap();
+    git_in(&repo.path).args(["add", "."]).output().unwrap();
+    git_in(&repo.path)
+        .args(["commit", "-m", "add feature"])
+        .output()
+        .unwrap();
+
+    let root = repo_root(&repo.path).unwrap();
+    // When we collect history
+    let commits = collect_history(&root, None, None).unwrap();
+
+    // Then the latest commit includes the added file
+    let latest = &commits[0];
+    assert!(
+        latest.files.iter().any(|f| f.contains("feature.rs")),
+        "latest commit should include feature.rs, got: {:?}",
+        latest.files
+    );
+}

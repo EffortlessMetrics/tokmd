@@ -5,13 +5,13 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    ChildIncludeMode, ChildrenMode, ConfigMode, ContextBundleManifest, ContextExcludedPath,
-    ContextFileRow, ContextReceipt, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt,
-    FileClassification, FileKind, FileRow, HandoffComplexity, HandoffDerived, HandoffExcludedPath,
-    HandoffHotspot, HandoffIntelligence, HandoffManifest, InclusionPolicy, LangArgsMeta,
-    LangReceipt, LangReport, LangRow, ModuleArgsMeta, ModuleReceipt, ModuleReport, ModuleRow,
-    RedactMode, RunReceipt, ScanArgs, ScanStatus, SmartExcludedFile, ToolInfo, Totals,
-    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION, SCHEMA_VERSION,
+    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode,
+    ConfigMode, ContextBundleManifest, ContextExcludedPath, ContextFileRow, ContextReceipt,
+    ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileClassification, FileKind, FileRow,
+    HANDOFF_SCHEMA_VERSION, HandoffComplexity, HandoffDerived, HandoffExcludedPath, HandoffHotspot,
+    HandoffIntelligence, HandoffManifest, InclusionPolicy, LangArgsMeta, LangReceipt, LangReport,
+    LangRow, ModuleArgsMeta, ModuleReceipt, ModuleReport, ModuleRow, RedactMode, RunReceipt,
+    SCHEMA_VERSION, ScanArgs, ScanStatus, SmartExcludedFile, ToolInfo, Totals,
 };
 
 // =============================================================================
@@ -246,10 +246,7 @@ fn given_export_receipt_with_file_rows_when_roundtripped_then_preserved() {
     assert_eq!(back.data.rows[0].kind, FileKind::Parent);
     assert_eq!(back.args.redact, RedactMode::Paths);
     assert_eq!(back.args.min_code, 10);
-    assert_eq!(
-        back.args.strip_prefix.as_deref(),
-        Some("/home/user")
-    );
+    assert_eq!(back.args.strip_prefix.as_deref(), Some("/home/user"));
 }
 
 // =============================================================================
@@ -561,10 +558,7 @@ fn given_context_file_row_with_multiple_classifications_when_roundtripped_then_p
         policy: InclusionPolicy::Skip,
         effective_tokens: Some(0),
         policy_reason: Some("minified vendored code".to_string()),
-        classifications: vec![
-            FileClassification::Minified,
-            FileClassification::Vendored,
-        ],
+        classifications: vec![FileClassification::Minified, FileClassification::Vendored],
     };
 
     let json = serde_json::to_string(&row).unwrap();
