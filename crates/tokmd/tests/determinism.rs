@@ -31,16 +31,18 @@ fn normalize_envelope(output: &str) -> String {
 
 #[test]
 fn lang_json_is_deterministic() {
-    let out = |_| {
+    let run = || {
         let o = tokmd_cmd()
             .args(["lang", "--format", "json"])
             .output()
             .expect("run");
         normalize_envelope(&String::from_utf8_lossy(&o.stdout))
     };
-    let a = out(0);
-    let b = out(1);
-    assert_eq!(a, b, "lang JSON must be byte-stable across runs");
+    let a = run();
+    let b = run();
+    let c = run();
+    assert_eq!(a, b, "lang JSON must be byte-stable across runs (1 vs 2)");
+    assert_eq!(b, c, "lang JSON must be byte-stable across runs (2 vs 3)");
 }
 
 #[test]
@@ -80,7 +82,11 @@ fn module_json_is_deterministic() {
             .expect("run");
         normalize_envelope(&String::from_utf8_lossy(&o.stdout))
     };
-    assert_eq!(run(), run(), "module JSON must be byte-stable across runs");
+    let a = run();
+    let b = run();
+    let c = run();
+    assert_eq!(a, b, "module JSON must be byte-stable across runs (1 vs 2)");
+    assert_eq!(b, c, "module JSON must be byte-stable across runs (2 vs 3)");
 }
 
 #[test]
@@ -530,4 +536,72 @@ fn lang_totals_match_row_sums() {
     assert_eq!(sum_code, total["code"].as_u64().unwrap(), "code total");
     assert_eq!(sum_lines, total["lines"].as_u64().unwrap(), "lines total");
     assert_eq!(sum_files, total["files"].as_u64().unwrap(), "files total");
+}
+
+// ---------------------------------------------------------------------------
+// 11. Path normalization: module keys use forward slashes
+// ---------------------------------------------------------------------------
+
+#[test]
+fn module_json_keys_use_forward_slashes() {
+    let o = tokmd_cmd()
+        .args(["module", "--format", "json"])
+        .output()
+        .expect("run");
+    let json: serde_json::Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
+    let rows = json
+        .get("rows")
+        .and_then(|v| v.as_array())
+        .expect("rows array");
+
+    for row in rows {
+        let module = row["module"].as_str().unwrap();
+        assert!(
+            !module.contains('\\'),
+            "module key contains backslash: {module}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 12. Export JSONL: every line is valid JSON
+// ---------------------------------------------------------------------------
+
+#[test]
+fn export_jsonl_all_lines_valid_json() {
+    let o = tokmd_cmd()
+        .args(["export", "--format", "jsonl"])
+        .output()
+        .expect("run");
+    let stdout = String::from_utf8_lossy(&o.stdout);
+    for (i, line) in stdout.lines().enumerate() {
+        assert!(
+            serde_json::from_str::<serde_json::Value>(line).is_ok(),
+            "JSONL line {i} is not valid JSON: {line}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 13. Export CSV: consistent column count across all rows
+// ---------------------------------------------------------------------------
+
+#[test]
+fn export_csv_consistent_column_count() {
+    let o = tokmd_cmd()
+        .args(["export", "--format", "csv"])
+        .output()
+        .expect("run");
+    let stdout = String::from_utf8_lossy(&o.stdout);
+    let lines: Vec<&str> = stdout.lines().collect();
+    assert!(!lines.is_empty(), "CSV output must not be empty");
+
+    let header_cols = lines[0].split(',').count();
+    for (i, line) in lines.iter().enumerate() {
+        let cols = line.split(',').count();
+        assert_eq!(
+            cols, header_cols,
+            "CSV row {i} has {cols} columns, expected {header_cols}"
+        );
+    }
 }
