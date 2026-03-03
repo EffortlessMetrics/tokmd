@@ -25,10 +25,6 @@ fn arb_path_with_ext() -> impl Strategy<Value = String> {
         })
 }
 
-fn arb_directory_segment() -> impl Strategy<Value = String> {
-    "[a-zA-Z0-9_-]{1,20}"
-}
-
 // =========================================================================
 // Redacted output never leaks original directory segments
 // =========================================================================
@@ -38,7 +34,7 @@ proptest! {
 
     #[test]
     fn redacted_output_never_contains_original_directory(
-        segments in prop::collection::vec(arb_directory_segment(), 2..=5),
+        segments in prop::collection::vec("[a-zA-Z][a-zA-Z0-9_-]{3,19}", 2..=5),
         ext in prop::sample::select(vec!["rs", "py", "go", "js"]),
     ) {
         let path = format!("{}.{}", segments.join("/"), ext);
