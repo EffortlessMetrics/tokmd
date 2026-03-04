@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_w45.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/lib.rs,src,Rust,parent,500,80,40,620,18600,1250
+src/utils.rs,src,Rust,parent,200,30,20,250,7500,500
+tests/integration.rs,tests,Rust,parent,150,10,15,175,5250,375

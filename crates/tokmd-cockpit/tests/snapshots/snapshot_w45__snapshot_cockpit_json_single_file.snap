@@ -1,0 +1,73 @@
+---
+source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+expression: v
+---
+{
+  "base_ref": "main",
+  "change_surface": {
+    "change_concentration": 0.0,
+    "churn_velocity": 0.0,
+    "commits": 3,
+    "deletions": 10,
+    "files_changed": 1,
+    "insertions": 50,
+    "net_lines": 40
+  },
+  "code_health": {
+    "avg_file_size": 60,
+    "complexity_indicator": "low",
+    "grade": "A",
+    "large_files_touched": 0,
+    "score": 100,
+    "warnings": []
+  },
+  "composition": {
+    "code_pct": 1.0,
+    "config_pct": 0.0,
+    "docs_pct": 0.0,
+    "test_pct": 0.0,
+    "test_ratio": 0.0
+  },
+  "contracts": {
+    "api_changed": false,
+    "breaking_indicators": 0,
+    "cli_changed": false,
+    "schema_changed": false
+  },
+  "evidence": {
+    "mutation": {
+      "commit_match": "unknown",
+      "killed": 0,
+      "scope": {
+        "ratio": 1.0,
+        "relevant": [],
+        "tested": []
+      },
+      "source": "ran_local",
+      "status": "skipped",
+      "survivors": [],
+      "timeout": 0,
+      "unviable": 0
+    },
+    "overall_status": "pass"
+  },
+  "generated_at_ms": 0,
+  "head_ref": "feature-branch",
+  "mode": "cockpit",
+  "review_plan": [
+    {
+      "complexity": 1,
+      "lines_changed": 60,
+      "path": "src/main.rs",
+      "priority": 2,
+      "reason": "60 lines changed"
+    }
+  ],
+  "risk": {
+    "bus_factor_warnings": [],
+    "hotspots_touched": [],
+    "level": "low",
+    "score": 0
+  },
+  "schema_version": 3
+}

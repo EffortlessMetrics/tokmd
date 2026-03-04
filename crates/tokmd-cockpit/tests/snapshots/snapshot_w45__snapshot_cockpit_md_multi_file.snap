@@ -1,0 +1,77 @@
+---
+source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+expression: md
+---
+## Glass Cockpit
+
+### Summary
+
+|Metric|Current|
+|---|---:|
+|Files Changed|4|
+|Insertions|175|
+|Deletions|47|
+|Net Lines|128|
+|Code Health Score|80/100|
+|Risk Score|20/100|
+|Test Ratio|1.00|
+
+### Change Surface
+
+- **Files changed**: 4
+- **Insertions**: 175
+- **Deletions**: 47
+- **Net lines**: 128
+- **Churn velocity**: 0.0
+
+### Composition
+
+- **Code**: 25.0%
+- **Test**: 25.0%
+- **Docs**: 25.0%
+- **Config**: 25.0%
+- **Test ratio**: 1.00
+
+### Contracts
+
+- **API changed**: Yes
+- **CLI changed**: No
+- **Schema changed**: No
+- **Breaking indicators**: 1
+
+### Code Health
+
+- **Score**: 80/100
+- **Grade**: B
+- **Large files touched**: 0
+- **Average file size**: 55
+- **Complexity indicator**: Low
+
+### Risk
+
+- **Level**: low
+- **Score**: 20/100
+
+### Evidence Gates
+
+- **Overall status**: Pass
+- **Mutation**: Skipped (killed: 0, survivors: 0)
+
+### Review Plan
+
+- **src/lib.rs** (priority: 2)
+  - Reason: 130 lines changed
+  - Complexity: 3
+  - Lines changed: 130
+- **tests/integration_test.rs** (priority: 2)
+  - Reason: 60 lines changed
+  - Complexity: 1
+  - Lines changed: 60
+- **README.md** (priority: 3)
+  - Reason: 25 lines changed
+  - Complexity: 1
+  - Lines changed: 25
+- **Cargo.toml** (priority: 3)
+  - Reason: 7 lines changed
+  - Complexity: 1
+  - Lines changed: 7

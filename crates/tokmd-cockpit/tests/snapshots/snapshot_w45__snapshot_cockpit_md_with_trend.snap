@@ -1,0 +1,82 @@
+---
+source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+expression: md
+---
+## Glass Cockpit
+
+### Summary
+
+|Metric|Current|
+|---|---:|
+|Files Changed|1|
+|Insertions|20|
+|Deletions|5|
+|Net Lines|15|
+|Code Health Score|100/100|
+|Risk Score|0/100|
+|Test Ratio|0.00|
+
+### Summary Comparison
+
+|Metric|Baseline|Current|Delta|Change|
+|---|---:|---:|---:|---|
+|Health Score|80.0|95.0|+15.00|improving|
+|Risk Score|30.0|10.0|-20.00|improving|
+|Avg Cyclomatic|n/a|n/a|0.00|stable|
+
+Baseline: `/path/to/baseline.json`
+
+### Change Surface
+
+- **Files changed**: 1
+- **Insertions**: 20
+- **Deletions**: 5
+- **Net lines**: 15
+- **Churn velocity**: 0.0
+
+### Composition
+
+- **Code**: 100.0%
+- **Test**: 0.0%
+- **Docs**: 0.0%
+- **Config**: 0.0%
+- **Test ratio**: 0.00
+
+### Contracts
+
+- **API changed**: No
+- **CLI changed**: No
+- **Schema changed**: No
+- **Breaking indicators**: 0
+
+### Code Health
+
+- **Score**: 100/100
+- **Grade**: A
+- **Large files touched**: 0
+- **Average file size**: 25
+- **Complexity indicator**: Low
+
+### Risk
+
+- **Level**: low
+- **Score**: 0/100
+
+### Evidence Gates
+
+- **Overall status**: Pass
+- **Mutation**: Skipped (killed: 0, survivors: 0)
+
+### Review Plan
+
+- **src/main.rs** (priority: 3)
+  - Reason: 25 lines changed
+  - Complexity: 1
+  - Lines changed: 25
+
+### Trend
+
+- **Baseline**: /path/to/baseline.json
+- **Health**: 80.0 -> 95.0 ▁█ (18.8%, Improving)
+- **Risk**: 30.0 -> 10.0 █▁ (-66.7%, Improving)
+- **Complexity**: Complexity stable (Stable)

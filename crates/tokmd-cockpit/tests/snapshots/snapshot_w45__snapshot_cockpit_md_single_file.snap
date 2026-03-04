@@ -1,0 +1,65 @@
+---
+source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+expression: md
+---
+## Glass Cockpit
+
+### Summary
+
+|Metric|Current|
+|---|---:|
+|Files Changed|1|
+|Insertions|50|
+|Deletions|10|
+|Net Lines|40|
+|Code Health Score|100/100|
+|Risk Score|0/100|
+|Test Ratio|0.00|
+
+### Change Surface
+
+- **Files changed**: 1
+- **Insertions**: 50
+- **Deletions**: 10
+- **Net lines**: 40
+- **Churn velocity**: 0.0
+
+### Composition
+
+- **Code**: 100.0%
+- **Test**: 0.0%
+- **Docs**: 0.0%
+- **Config**: 0.0%
+- **Test ratio**: 0.00
+
+### Contracts
+
+- **API changed**: No
+- **CLI changed**: No
+- **Schema changed**: No
+- **Breaking indicators**: 0
+
+### Code Health
+
+- **Score**: 100/100
+- **Grade**: A
+- **Large files touched**: 0
+- **Average file size**: 60
+- **Complexity indicator**: Low
+
+### Risk
+
+- **Level**: low
+- **Score**: 0/100
+
+### Evidence Gates
+
+- **Overall status**: Pass
+- **Mutation**: Skipped (killed: 0, survivors: 0)
+
+### Review Plan
+
+- **src/main.rs** (priority: 2)
+  - Reason: 60 lines changed
+  - Complexity: 1
+  - Lines changed: 60

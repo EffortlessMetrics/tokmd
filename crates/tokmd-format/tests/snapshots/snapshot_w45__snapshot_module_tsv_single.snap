@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_w45.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+src	800	1000	8	32000	2000	125
+Total	800	1000	8	32000	2000	125
