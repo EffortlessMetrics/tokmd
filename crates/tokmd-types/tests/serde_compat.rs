@@ -792,7 +792,7 @@ fn totals_json_field_values_match() {
         tokens: 200,
         avg_lines: 33,
     };
-    let v: Value = serde_json::to_value(&t).unwrap();
+    let v: Value = serde_json::to_value(t).unwrap();
     assert_eq!(v["code"], json!(42));
     assert_eq!(v["lines"], json!(100));
     assert_eq!(v["files"], json!(3));
@@ -821,7 +821,7 @@ fn diff_row_json_field_values_match() {
         new_tokens: 300,
         delta_tokens: 50,
     };
-    let v: Value = serde_json::to_value(&r).unwrap();
+    let v: Value = serde_json::to_value(r).unwrap();
     assert_eq!(v["lang"], json!("Rust"));
     assert_eq!(v["delta_code"], json!(20));
     assert_eq!(v["delta_tokens"], json!(50));

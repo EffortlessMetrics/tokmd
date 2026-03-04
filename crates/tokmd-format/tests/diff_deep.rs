@@ -294,7 +294,7 @@ fn diff_receipt_json_valid() {
 #[test]
 fn diff_receipt_json_has_all_required_keys() {
     let receipt = create_diff_receipt("a", "b", vec![], DiffTotals::default());
-    let val: Value = serde_json::to_value(&receipt).unwrap();
+    let val: Value = serde_json::to_value(receipt).unwrap();
     for key in &[
         "schema_version",
         "generated_at_ms",

@@ -75,7 +75,7 @@ fn lang_row_serialized_fields_match_expected() {
     };
 
     // When serialized to JSON
-    let value: serde_json::Value = serde_json::to_value(&row).unwrap();
+    let value: serde_json::Value = serde_json::to_value(row).unwrap();
 
     // Then fields match expected values
     assert_eq!(value["lang"], "Python");
@@ -227,7 +227,7 @@ fn export_row_json_field_order_is_stable() {
     };
 
     // When serialized
-    let value: serde_json::Value = serde_json::to_value(&row).unwrap();
+    let value: serde_json::Value = serde_json::to_value(row).unwrap();
 
     // Then all expected fields exist
     assert!(value.get("path").is_some());

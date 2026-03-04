@@ -376,7 +376,7 @@ fn handoff_schema_version_is_five() {
 #[test]
 fn handoff_manifest_carries_correct_schema_version() {
     let m = empty_handoff("receipt", 100_000, 50_000);
-    let json: Value = serde_json::to_value(&m).unwrap();
+    let json: Value = serde_json::to_value(m).unwrap();
     assert_eq!(json["schema_version"], 5);
 }
 
@@ -971,7 +971,7 @@ fn context_receipt_with_estimation_and_audit_roundtrip() {
     r.token_estimation = Some(TokenEstimationMeta::from_bytes(400_000, 4.0));
     r.bundle_audit = Some(TokenAudit::from_output(420_000, 400_000));
 
-    let json: Value = serde_json::to_value(&r).unwrap();
+    let json: Value = serde_json::to_value(r).unwrap();
     assert!(json["token_estimation"].is_object());
     assert!(json["bundle_audit"].is_object());
 
@@ -1080,7 +1080,7 @@ fn artifact_entry_hash_present_when_some() {
             hash: "abc123".into(),
         }),
     };
-    let json: Value = serde_json::to_value(&entry).unwrap();
+    let json: Value = serde_json::to_value(entry).unwrap();
     assert_eq!(json["hash"]["algo"], "blake3");
 }
 
@@ -1132,7 +1132,7 @@ fn token_audit_content_exceeds_output_saturates() {
 #[test]
 fn handoff_json_required_fields_never_null() {
     let m = empty_handoff("receipt", 100_000, 50_000);
-    let json: Value = serde_json::to_value(&m).unwrap();
+    let json: Value = serde_json::to_value(m).unwrap();
     let obj = json.as_object().unwrap();
     for (key, value) in obj {
         assert!(!value.is_null(), "field '{key}' must not be null");
@@ -1146,7 +1146,7 @@ fn handoff_json_required_fields_never_null() {
 #[test]
 fn context_json_required_fields_never_null() {
     let r = empty_context(100_000, 50_000);
-    let json: Value = serde_json::to_value(&r).unwrap();
+    let json: Value = serde_json::to_value(r).unwrap();
     let obj = json.as_object().unwrap();
     for (key, value) in obj {
         assert!(!value.is_null(), "field '{key}' must not be null");
@@ -1238,7 +1238,7 @@ fn context_receipt_fallback_fields_present_when_set() {
     r.rank_by_effective = Some("code".into());
     r.fallback_reason = Some("git not available".into());
 
-    let json: Value = serde_json::to_value(&r).unwrap();
+    let json: Value = serde_json::to_value(r).unwrap();
     assert_eq!(json["rank_by"], "churn");
     assert_eq!(json["rank_by_effective"], "code");
     assert_eq!(json["fallback_reason"], "git not available");

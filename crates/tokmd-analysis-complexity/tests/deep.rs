@@ -1097,7 +1097,7 @@ fn branchy(x: i32) -> i32 {
     fn file_complexity_fields_serialized() {
         let code = "fn f(x: i32) -> i32 { if x > 0 { x } else { -x } }\n";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let file = &json["files"][0];
         assert!(file["path"].is_string());
         assert!(file["module"].is_string());
@@ -1110,7 +1110,7 @@ fn branchy(x: i32) -> i32 {
     fn function_details_serialized_when_enabled() {
         let code = "fn a() { let x = 1; }\nfn b(x: i32) { if x > 0 { return; } }\n";
         let report = analyze(&[("lib.rs", "Rust", code)], true);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let functions = &json["files"][0]["functions"];
         assert!(functions.is_array());
         let fns = functions.as_array().unwrap();
@@ -1123,7 +1123,7 @@ fn branchy(x: i32) -> i32 {
     fn histogram_serialized_when_present() {
         let code = "fn f() { if true { 1; } }\n";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let hist = &json["histogram"];
         assert!(hist.is_object());
         assert!(hist["buckets"].is_array());
@@ -1144,7 +1144,7 @@ fn branchy(x: i32) -> i32 {
     fn technical_debt_serialized_when_present() {
         let code = "fn f(x: i32) -> i32 { if x > 0 { x } else { -x } }\n";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         if let Some(debt) = json.get("technical_debt") {
             if !debt.is_null() {
                 assert!(debt["ratio"].is_f64());

@@ -161,8 +161,8 @@ fn scan_model_format_should_be_deterministic() {
     let r2 = lang_workflow(&scan, &lang).expect("second call");
 
     // Compare everything except timestamps
-    let mut j1: serde_json::Value = serde_json::to_value(&r1).expect("serialize r1");
-    let mut j2: serde_json::Value = serde_json::to_value(&r2).expect("serialize r2");
+    let mut j1: serde_json::Value = serde_json::to_value(r1).expect("serialize r1");
+    let mut j2: serde_json::Value = serde_json::to_value(r2).expect("serialize r2");
 
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
@@ -210,8 +210,8 @@ fn module_pipeline_should_be_deterministic() {
     let r1 = module_workflow(&scan, &module).expect("first call");
     let r2 = module_workflow(&scan, &module).expect("second call");
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2, "module output should be deterministic");
@@ -273,8 +273,8 @@ fn analysis_pipeline_should_be_deterministic() {
     let r1 = tokmd_core::analyze_workflow(&scan, &analyze).expect("first call");
     let r2 = tokmd_core::analyze_workflow(&scan, &analyze).expect("second call");
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2, "analysis output should be deterministic");
@@ -411,8 +411,8 @@ fn export_should_be_deterministic() {
     let r1 = export_workflow(&scan, &export).expect("first call");
     let r2 = export_workflow(&scan, &export).expect("second call");
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2, "export output should be deterministic");
@@ -485,7 +485,7 @@ fn diff_receipt_should_have_correct_structure() {
     let receipt = diff_workflow(&settings).expect("diff_workflow should succeed");
 
     // Verify JSON serialization
-    let json = serde_json::to_value(&receipt).expect("should serialize");
+    let json = serde_json::to_value(receipt).expect("should serialize");
     assert!(json.get("schema_version").is_some());
     assert!(json.get("mode").is_some());
     assert!(json.get("diff_rows").is_some());
@@ -652,7 +652,7 @@ fn lang_receipt_json_should_contain_all_envelope_fields() {
     let lang = LangSettings::default();
 
     let receipt = lang_workflow(&scan, &lang).expect("lang_workflow");
-    let json = serde_json::to_value(&receipt).expect("should serialize");
+    let json = serde_json::to_value(receipt).expect("should serialize");
 
     let required_fields = [
         "schema_version",
@@ -679,7 +679,7 @@ fn export_receipt_json_should_have_correct_data_shape() {
     let export = ExportSettings::default();
 
     let receipt = export_workflow(&scan, &export).expect("export_workflow");
-    let json = serde_json::to_value(&receipt).expect("should serialize");
+    let json = serde_json::to_value(receipt).expect("should serialize");
 
     // ExportReceipt uses #[serde(flatten)] for data, so rows appear at top level
     assert!(json.get("rows").is_some(), "should have rows field");

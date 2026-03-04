@@ -150,7 +150,7 @@ fn cockpit_receipt_serialized_twice_is_deterministic() {
 #[test]
 fn cockpit_receipt_json_has_required_envelope_keys() {
     let r = build_receipt(&[make_file_stat("src/lib.rs", 10, 0)]);
-    let val: Value = serde_json::to_value(&r).unwrap();
+    let val: Value = serde_json::to_value(r).unwrap();
     for key in &[
         "schema_version",
         "mode",
@@ -439,7 +439,7 @@ fn evidence_all_optional_gates_serialized_when_present() {
             threshold_exceeded: false,
         }),
     };
-    let val: Value = serde_json::to_value(&evidence).unwrap();
+    let val: Value = serde_json::to_value(evidence).unwrap();
     assert!(val["diff_coverage"].is_object());
     assert!(val["contracts"].is_object());
     assert!(val["supply_chain"].is_object());

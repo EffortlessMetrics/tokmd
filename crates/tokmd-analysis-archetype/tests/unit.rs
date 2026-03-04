@@ -112,7 +112,7 @@ fn archetype_serde_json_shape() {
         kind: "Node package".to_string(),
         evidence: vec!["package.json".to_string()],
     };
-    let v: serde_json::Value = serde_json::to_value(&a).unwrap();
+    let v: serde_json::Value = serde_json::to_value(a).unwrap();
     assert!(v.is_object());
     assert_eq!(v["kind"], "Node package");
     assert!(v["evidence"].is_array());

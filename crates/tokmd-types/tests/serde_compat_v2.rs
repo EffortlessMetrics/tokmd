@@ -84,7 +84,7 @@ fn token_estimation_meta_reserializes_with_current_name() {
         "source_bytes": 4000
     });
     let meta: TokenEstimationMeta = serde_json::from_value(old_json).unwrap();
-    let reserialized: Value = serde_json::to_value(&meta).unwrap();
+    let reserialized: Value = serde_json::to_value(meta).unwrap();
     // After round-trip, the canonical names must be used
     assert!(
         reserialized.get("tokens_min").is_some(),
@@ -177,7 +177,7 @@ fn token_audit_reserializes_with_current_name() {
         "overhead_pct": 0.1
     });
     let audit: TokenAudit = serde_json::from_value(old_json).unwrap();
-    let reserialized: Value = serde_json::to_value(&audit).unwrap();
+    let reserialized: Value = serde_json::to_value(audit).unwrap();
     assert!(reserialized.get("tokens_min").is_some());
     assert!(reserialized.get("tokens_max").is_some());
     assert!(reserialized.get("tokens_high").is_none());

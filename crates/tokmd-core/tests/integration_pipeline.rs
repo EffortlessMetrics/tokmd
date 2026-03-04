@@ -326,7 +326,7 @@ fn analysis_json_has_schema_version_field() {
 
     let receipt = tokmd_core::analyze_workflow(&scan, &analyze).expect("analyze_workflow");
 
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
     assert_eq!(
         json["schema_version"].as_u64(),
         Some(u64::from(tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION)),
@@ -347,7 +347,7 @@ fn analysis_cocomo_fields_are_plausible() {
     let receipt = tokmd_core::analyze_workflow(&scan, &analyze).expect("analyze_workflow");
 
     let derived = receipt.derived.as_ref().expect("derived");
-    let cocomo_json = serde_json::to_value(&derived.cocomo).expect("serialize cocomo");
+    let cocomo_json = serde_json::to_value(derived.cocomo).expect("serialize cocomo");
     if let Some(cocomo) = cocomo_json.as_object() {
         // COCOMO should have positive effort and duration for non-empty code
         let kloc = cocomo.get("kloc").and_then(|v| v.as_f64()).unwrap_or(0.0);
@@ -365,7 +365,7 @@ fn analysis_distribution_stats_present() {
     let receipt = tokmd_core::analyze_workflow(&scan, &analyze).expect("analyze_workflow");
 
     let derived = receipt.derived.as_ref().expect("derived");
-    let dist_json = serde_json::to_value(&derived.distribution).expect("serialize distribution");
+    let dist_json = serde_json::to_value(derived.distribution).expect("serialize distribution");
     let dist = dist_json.as_object().expect("distribution is object");
 
     // Distribution should have statistical summary fields
@@ -467,7 +467,7 @@ fn lang_receipt_has_all_required_fields() {
     let lang = LangSettings::default();
 
     let receipt = lang_workflow(&scan, &lang).expect("lang_workflow");
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
 
     let required = [
         "schema_version",
@@ -496,7 +496,7 @@ fn module_receipt_has_all_required_fields() {
     let module = ModuleSettings::default();
 
     let receipt = module_workflow(&scan, &module).expect("module_workflow");
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
 
     let required = [
         "schema_version",
@@ -525,7 +525,7 @@ fn export_receipt_has_all_required_fields() {
     let export = ExportSettings::default();
 
     let receipt = export_workflow(&scan, &export).expect("export_workflow");
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
 
     let required = [
         "schema_version",
@@ -559,7 +559,7 @@ fn diff_receipt_has_all_required_fields() {
         to: path,
     };
     let receipt = diff_workflow(&settings).expect("diff_workflow");
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
 
     let required = [
         "schema_version",

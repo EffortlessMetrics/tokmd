@@ -235,7 +235,7 @@ fn concurrent_analyze_calls_produce_identical_results() {
             let ex = export.clone();
             thread::spawn(move || {
                 let receipt = run_preset(ex, AnalysisPreset::Receipt);
-                let mut val = serde_json::to_value(&receipt).unwrap();
+                let mut val = serde_json::to_value(receipt).unwrap();
                 // Strip volatile fields
                 if let Some(obj) = val.as_object_mut() {
                     obj.remove("generated_at_ms");
@@ -1015,8 +1015,8 @@ fn all_presets_json_roundtrip_is_lossless() {
         let deserialized: tokmd_analysis_types::AnalysisReceipt = serde_json::from_str(&json)
             .unwrap_or_else(|e| panic!("preset {:?} failed to deserialize: {}", preset, e));
         // Compare non-volatile fields
-        let mut v1 = serde_json::to_value(&receipt).unwrap();
-        let mut v2 = serde_json::to_value(&deserialized).unwrap();
+        let mut v1 = serde_json::to_value(receipt).unwrap();
+        let mut v2 = serde_json::to_value(deserialized).unwrap();
         for v in [&mut v1, &mut v2] {
             if let Some(obj) = v.as_object_mut() {
                 obj.remove("generated_at_ms");

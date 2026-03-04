@@ -105,7 +105,7 @@ fn baseline_version_matches_expected() {
 #[test]
 fn analysis_receipt_json_contains_required_envelope_fields() {
     let receipt = sample_analysis_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], ANALYSIS_SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -119,7 +119,7 @@ fn analysis_receipt_json_contains_required_envelope_fields() {
 #[test]
 fn analysis_receipt_json_contains_source_fields() {
     let receipt = sample_analysis_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let source = &json["source"];
 
     assert!(source["inputs"].is_array());
@@ -188,7 +188,7 @@ fn analysis_receipt_roundtrip_preserves_null_optional_fields() {
 #[test]
 fn analysis_receipt_optional_sections_serialize_as_null() {
     let receipt = sample_analysis_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     let optional_fields = [
         "archetype",
@@ -235,7 +235,7 @@ fn analysis_source_roundtrip() {
 #[test]
 fn analysis_source_optional_fields_absent_when_none() {
     let source = sample_analysis_source();
-    let json: Value = serde_json::to_value(&source).unwrap();
+    let json: Value = serde_json::to_value(source).unwrap();
 
     assert!(json["export_path"].is_null());
     assert!(json["base_receipt_path"].is_null());
@@ -262,7 +262,7 @@ fn analysis_args_meta_roundtrip() {
 #[test]
 fn analysis_args_meta_optional_fields_null_when_none() {
     let args = sample_analysis_args();
-    let json: Value = serde_json::to_value(&args).unwrap();
+    let json: Value = serde_json::to_value(args).unwrap();
 
     assert!(json["window_tokens"].is_null());
     assert!(json["git"].is_null());
@@ -280,7 +280,7 @@ fn analysis_args_meta_optional_fields_null_when_none() {
 #[test]
 fn analysis_receipt_top_level_keys_are_known() {
     let receipt = sample_analysis_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let obj = json.as_object().unwrap();
 
     let known_keys: Vec<&str> = vec![
@@ -347,7 +347,7 @@ fn analysis_receipt_schema_version_field_matches_constant() {
 
     assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
 
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     assert_eq!(
         json["schema_version"].as_u64().unwrap(),
         ANALYSIS_SCHEMA_VERSION as u64

@@ -135,7 +135,7 @@ fn higher_commit_count_sorted_first() {
 fn corporate_fingerprint_json_shape() {
     let commits = vec![commit("dev@corp.io"), commit("user@gmail.com")];
     let fp = build_corporate_fingerprint(&commits);
-    let v: serde_json::Value = serde_json::to_value(&fp).unwrap();
+    let v: serde_json::Value = serde_json::to_value(fp).unwrap();
 
     assert!(v.is_object());
     assert!(v.get("domains").is_some());

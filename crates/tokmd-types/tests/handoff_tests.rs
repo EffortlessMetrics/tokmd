@@ -221,7 +221,7 @@ fn given_handoff_manifest_then_all_required_fields_accessible() {
 #[test]
 fn given_handoff_manifest_when_serialized_then_json_has_required_fields() {
     let manifest = sample_handoff_manifest();
-    let json: Value = serde_json::to_value(&manifest).unwrap();
+    let json: Value = serde_json::to_value(manifest).unwrap();
 
     assert_eq!(json["schema_version"], HANDOFF_SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -275,7 +275,7 @@ fn given_handoff_manifest_with_optional_fields_then_present_in_json() {
     ));
     manifest.code_audit = Some(TokenAudit::from_output(340_000, 320_000));
 
-    let json: Value = serde_json::to_value(&manifest).unwrap();
+    let json: Value = serde_json::to_value(manifest).unwrap();
     assert_eq!(json["rank_by_effective"], "churn");
     assert_eq!(json["fallback_reason"], "git not available");
     assert!(json["excluded_by_policy"].is_array());
@@ -439,7 +439,7 @@ fn given_hotspot_when_serialized_then_all_fields_present() {
         lines: 1500,
         score: 150_000,
     };
-    let json: Value = serde_json::to_value(&hotspot).unwrap();
+    let json: Value = serde_json::to_value(hotspot).unwrap();
     assert_eq!(json["path"], "src/engine.rs");
     assert_eq!(json["commits"], 100);
     assert_eq!(json["lines"], 1500);
@@ -477,7 +477,7 @@ fn given_context_receipt_then_schema_version_matches_constant() {
 #[test]
 fn given_context_receipt_when_serialized_then_json_has_required_fields() {
     let receipt = sample_context_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], CONTEXT_SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -542,7 +542,7 @@ fn given_context_receipt_with_fallback_then_present_in_json() {
     receipt.rank_by_effective = Some("tokens".to_string());
     receipt.fallback_reason = Some("churn unavailable without git".to_string());
 
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     assert_eq!(json["rank_by_effective"], "tokens");
     assert_eq!(json["fallback_reason"], "churn unavailable without git");
 }
@@ -560,7 +560,7 @@ fn given_context_bundle_manifest_then_schema_version_matches_constant() {
 #[test]
 fn given_context_bundle_manifest_when_serialized_then_json_has_required_fields() {
     let manifest = sample_context_bundle_manifest();
-    let json: Value = serde_json::to_value(&manifest).unwrap();
+    let json: Value = serde_json::to_value(manifest).unwrap();
 
     assert_eq!(json["schema_version"], CONTEXT_BUNDLE_SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -694,7 +694,7 @@ fn given_context_file_row_with_head_tail_then_effective_tokens_less() {
 #[test]
 fn given_handoff_manifest_then_json_has_no_null_required_fields() {
     let manifest = sample_handoff_manifest();
-    let json: Value = serde_json::to_value(&manifest).unwrap();
+    let json: Value = serde_json::to_value(manifest).unwrap();
     let obj = json.as_object().unwrap();
 
     for (key, value) in obj {

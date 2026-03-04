@@ -316,7 +316,7 @@ fn forward_compat_extra_location_fields_ignored() {
 
 #[test]
 fn json_required_keys_all_present_in_full_report() {
-    let value = serde_json::to_value(&full_report()).unwrap();
+    let value = serde_json::to_value(full_report()).unwrap();
     let obj = value.as_object().unwrap();
 
     // Required top-level keys
@@ -338,7 +338,7 @@ fn json_required_keys_all_present_in_full_report() {
 
 #[test]
 fn json_tool_nested_keys() {
-    let value = serde_json::to_value(&full_report()).unwrap();
+    let value = serde_json::to_value(full_report()).unwrap();
     let tool = value["tool"].as_object().unwrap();
     for key in ["name", "version", "mode"] {
         assert!(tool.contains_key(key), "tool missing key: {key}");
@@ -347,7 +347,7 @@ fn json_tool_nested_keys() {
 
 #[test]
 fn json_finding_nested_keys() {
-    let value = serde_json::to_value(&full_report()).unwrap();
+    let value = serde_json::to_value(full_report()).unwrap();
     let finding = value["findings"][0].as_object().unwrap();
     for key in ["check_id", "code", "severity", "title", "message"] {
         assert!(finding.contains_key(key), "finding missing key: {key}");
@@ -371,7 +371,7 @@ fn json_finding_nested_keys() {
 
 #[test]
 fn json_artifact_type_rename() {
-    let value = serde_json::to_value(&full_report()).unwrap();
+    let value = serde_json::to_value(full_report()).unwrap();
     let art = value["artifacts"][0].as_object().unwrap();
     // Serde renames `artifact_type` → `type`
     assert!(art.contains_key("type"));
@@ -380,7 +380,7 @@ fn json_artifact_type_rename() {
 
 #[test]
 fn json_capabilities_btreemap_sorted() {
-    let value = serde_json::to_value(&full_report()).unwrap();
+    let value = serde_json::to_value(full_report()).unwrap();
     let caps = value["capabilities"].as_object().unwrap();
     let keys: Vec<&String> = caps.keys().collect();
     let mut sorted = keys.clone();
@@ -618,7 +618,7 @@ fn deserialize_all_capability_states() {
         let json = format!(r#"{{"status": "{state}"}}"#);
         let cs: CapabilityStatus = serde_json::from_str(&json)
             .unwrap_or_else(|e| panic!("capability state '{state}' failed: {e}"));
-        let back_json = serde_json::to_value(&cs.status).unwrap();
+        let back_json = serde_json::to_value(cs.status).unwrap();
         assert_eq!(back_json.as_str().unwrap(), state);
     }
 }

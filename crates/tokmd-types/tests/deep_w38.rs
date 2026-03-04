@@ -133,7 +133,7 @@ fn lang_receipt_json_has_flattened_report() {
         },
     };
 
-    let v: Value = serde_json::to_value(&receipt).unwrap();
+    let v: Value = serde_json::to_value(receipt).unwrap();
     // `rows` should be at top level due to #[serde(flatten)]
     assert!(
         v.get("rows").is_some(),

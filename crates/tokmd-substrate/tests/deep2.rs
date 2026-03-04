@@ -181,7 +181,7 @@ fn clone_mutation_independence() {
 #[test]
 fn json_numeric_fields_are_numbers() {
     let sub = single_file_substrate();
-    let value = serde_json::to_value(&sub).unwrap();
+    let value = serde_json::to_value(sub).unwrap();
 
     assert!(value["total_tokens"].is_number());
     assert!(value["total_bytes"].is_number());
@@ -205,7 +205,7 @@ fn json_numeric_fields_are_numbers() {
 #[test]
 fn lang_summary_json_value_types() {
     let ls = make_lang(5, 100);
-    let value = serde_json::to_value(&ls).unwrap();
+    let value = serde_json::to_value(ls).unwrap();
     assert!(value["files"].is_number());
     assert!(value["code"].is_number());
     assert!(value["lines"].is_number());

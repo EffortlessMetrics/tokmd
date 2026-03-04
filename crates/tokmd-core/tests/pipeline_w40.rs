@@ -191,7 +191,7 @@ fn pipeline_analysis_derived_serializes_to_json() {
     let analyze = tokmd_core::settings::AnalyzeSettings::default();
     let receipt = tokmd_core::analyze_workflow(&scan_for(&dir), &analyze).unwrap();
 
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
     assert!(json["derived"].is_object());
     assert!(json["schema_version"].is_number());
 }
@@ -205,8 +205,8 @@ fn pipeline_analysis_deterministic() {
     let r1 = tokmd_core::analyze_workflow(&scan_for(&dir), &analyze).unwrap();
     let r2 = tokmd_core::analyze_workflow(&scan_for(&dir), &analyze).unwrap();
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2, "analysis output should be deterministic");
@@ -220,7 +220,7 @@ fn pipeline_analysis_deterministic() {
 fn lang_receipt_has_all_envelope_fields() {
     let dir = fixture();
     let receipt = lang_workflow(&scan_for(&dir), &LangSettings::default()).unwrap();
-    let json = serde_json::to_value(&receipt).expect("serialize");
+    let json = serde_json::to_value(receipt).expect("serialize");
 
     for field in [
         "schema_version",
@@ -446,8 +446,8 @@ fn two_lang_runs_identical() {
     let r1 = lang_workflow(&scan, &settings).unwrap();
     let r2 = lang_workflow(&scan, &settings).unwrap();
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2);
