@@ -608,13 +608,13 @@ fn gate_rule_value_float() {
 name = "float-rule"
 pointer = "/x"
 op = "gt"
-value = 3.14
+value = 1.23
 "#,
     )
     .unwrap();
     let rules = cfg.gate.rules.unwrap();
     let v = rules[0].value.as_ref().unwrap();
-    assert!((v.as_f64().unwrap() - 3.14).abs() < 1e-9);
+    assert!((v.as_f64().unwrap() - 1.23).abs() < 1e-9);
 }
 
 #[test]

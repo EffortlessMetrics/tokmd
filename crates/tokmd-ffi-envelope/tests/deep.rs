@@ -537,7 +537,7 @@ fn extract_preserves_all_json_types() {
         "data": {
             "str": "hello",
             "int": 42,
-            "float": 3.14,
+            "float": 1.23,
             "bool_t": true,
             "bool_f": false,
             "nil": null,
