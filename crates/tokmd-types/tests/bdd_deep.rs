@@ -678,11 +678,11 @@ fn given_analysis_format_when_all_variants_roundtripped_then_preserved() {
 
 #[test]
 fn given_schema_versions_when_checked_then_all_positive_nonzero() {
-    assert!(SCHEMA_VERSION > 0);
-    assert!(COCKPIT_SCHEMA_VERSION > 0);
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    const { assert!(SCHEMA_VERSION > 0); }
+    const { assert!(COCKPIT_SCHEMA_VERSION > 0); }
+    const { assert!(HANDOFF_SCHEMA_VERSION > 0); }
+    const { assert!(CONTEXT_SCHEMA_VERSION > 0); }
+    const { assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0); }
 }
 
 #[test]

@@ -709,7 +709,7 @@ fn schema_version_constant_embedded_in_jsonschema_output() {
 
 #[test]
 fn schema_version_constant_is_positive() {
-    assert!(TOOL_SCHEMA_VERSION > 0);
+    const { assert!(TOOL_SCHEMA_VERSION > 0); }
 }
 
 // ── Edge cases ──────────────────────────────────────────────────────────

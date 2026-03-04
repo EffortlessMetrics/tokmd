@@ -360,27 +360,27 @@ fn trend_comparison_defaults() {
 
 #[test]
 fn schema_version_is_positive() {
-    assert!(SCHEMA_VERSION > 0);
+    const { assert!(SCHEMA_VERSION > 0); }
 }
 
 #[test]
 fn handoff_schema_version_is_positive() {
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
+    const { assert!(HANDOFF_SCHEMA_VERSION > 0); }
 }
 
 #[test]
 fn context_schema_version_is_positive() {
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
+    const { assert!(CONTEXT_SCHEMA_VERSION > 0); }
 }
 
 #[test]
 fn context_bundle_schema_version_is_positive() {
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    const { assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0); }
 }
 
 #[test]
 fn cockpit_schema_version_is_positive() {
-    assert!(COCKPIT_SCHEMA_VERSION > 0);
+    const { assert!(COCKPIT_SCHEMA_VERSION > 0); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
