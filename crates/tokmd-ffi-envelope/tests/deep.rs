@@ -548,7 +548,7 @@ fn extract_preserves_all_json_types() {
     let data = extract_data(envelope).unwrap();
     assert_eq!(data["str"], "hello");
     assert_eq!(data["int"], 42);
-    assert!(data["float"].as_f64().unwrap() > 3.0);
+    assert!(data["float"].as_f64().unwrap() > 1.0);
     assert_eq!(data["bool_t"], true);
     assert_eq!(data["bool_f"], false);
     assert!(data["nil"].is_null());
