@@ -131,7 +131,6 @@ fn hotspot_formula_is_multiplication() {
 
 #[cfg(feature = "git")]
 mod git_feature_tests {
-    use super::*;
     use std::process::Command;
     use tokmd_context_git::compute_git_scores;
     use tokmd_types::{FileKind, FileRow};

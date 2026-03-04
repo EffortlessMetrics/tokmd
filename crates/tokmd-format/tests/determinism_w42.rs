@@ -9,13 +9,13 @@ use std::path::PathBuf;
 
 use tokmd_format::{
     compute_diff_rows, compute_diff_totals, render_diff_md, write_export_csv_to,
-    write_export_jsonl_to, write_lang_report_to, write_module_report_to,
+    write_lang_report_to, write_module_report_to,
 };
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ChildIncludeMode, ChildrenMode, DiffRow, DiffTotals, ExportArgs, ExportData, ExportFormat,
-    FileKind, FileRow, LangArgs, LangReport, LangRow, ModuleArgs, ModuleReport, ModuleRow,
-    RedactMode, TableFormat, Totals,
+    ChildIncludeMode, ChildrenMode, DiffRow, ExportArgs, ExportData, ExportFormat, FileKind,
+    FileRow, LangArgs, LangReport, LangRow, ModuleArgs, ModuleReport, ModuleRow, RedactMode,
+    TableFormat, Totals,
 };
 
 // =========================================================================
