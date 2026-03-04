@@ -223,28 +223,19 @@ fn no_alias_resolves_to_different_canonical_keys() {
         ("verbosity", &["bytes_per_line"]),
         ("test_density", &["tests"]),
         ("todo_density", &["todo", "fixme"]),
-        (
-            "polyglot_entropy",
-            &["language_entropy", "polyglot"],
-        ),
+        ("polyglot_entropy", &["language_entropy", "polyglot"]),
         ("gini", &["distribution_gini"]),
         ("avg_cyclomatic", &["cyclomatic"]),
         ("avg_cognitive", &["cognitive"]),
         ("max_nesting_depth", &["nesting_depth"]),
         ("maintainability_index", &["mi"]),
-        (
-            "technical_debt_ratio",
-            &["debt_ratio", "technical_debt"],
-        ),
+        ("technical_debt_ratio", &["debt_ratio", "technical_debt"]),
         ("halstead", &["halstead_volume", "halstead_effort"]),
         ("complexity_histogram", &["histogram"]),
         ("hotspots", &["git_hotspots"]),
         ("bus_factor", &["ownership"]),
         ("freshness", &["staleness"]),
-        (
-            "code_age_distribution",
-            &["code_age", "age_buckets"],
-        ),
+        ("code_age_distribution", &["code_age", "age_buckets"]),
         ("coupling", &["module_coupling"]),
         ("predictive_churn", &["churn"]),
         ("duplicate_waste", &["dup", "duplication"]),
@@ -253,10 +244,7 @@ fn no_alias_resolves_to_different_canonical_keys() {
         ("entropy_suspects", &["entropy"]),
         ("license_radar", &["license"]),
         ("archetype", &["project_archetype"]),
-        (
-            "context_window_fit",
-            &["window_fit", "context_fit"],
-        ),
+        ("context_window_fit", &["window_fit", "context_fit"]),
     ];
 
     for &(canonical, aliases) in alias_groups {
