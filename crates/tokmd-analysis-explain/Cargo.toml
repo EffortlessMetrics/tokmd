@@ -15,3 +15,4 @@ documentation = "https://docs.rs/tokmd-analysis-explain"
 
 [dev-dependencies]
 insta.workspace = true
+proptest = "1.10.0"
