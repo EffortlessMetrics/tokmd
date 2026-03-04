@@ -190,7 +190,13 @@ fn reference_table_full() {
         (5.0, 50.0, 100.0, expected_full(5.0, 50.0, 100.0), "B"),
         (10.0, 100.0, 200.0, expected_full(10.0, 100.0, 200.0), "B"),
         (20.0, 500.0, 2000.0, expected_full(20.0, 500.0, 2000.0), "C"),
-        (50.0, 2000.0, 10000.0, expected_full(50.0, 2000.0, 10000.0), "C"),
+        (
+            50.0,
+            2000.0,
+            10000.0,
+            expected_full(50.0, 2000.0, 10000.0),
+            "C",
+        ),
     ];
 
     for (cc, loc, vol, expected_score, expected_grade) in cases {

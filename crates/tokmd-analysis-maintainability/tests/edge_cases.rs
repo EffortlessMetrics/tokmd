@@ -82,8 +82,7 @@ fn positive_infinity_halstead_volume_returns_score_zero() {
 fn negative_infinity_halstead_volume_falls_back_to_simplified() {
     // -inf > 0.0 is false → simplified formula
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
-    let with_neg_inf =
-        compute_maintainability_index(10.0, 100.0, Some(f64::NEG_INFINITY)).unwrap();
+    let with_neg_inf = compute_maintainability_index(10.0, 100.0, Some(f64::NEG_INFINITY)).unwrap();
     assert_eq!(simplified.score, with_neg_inf.score);
 }
 

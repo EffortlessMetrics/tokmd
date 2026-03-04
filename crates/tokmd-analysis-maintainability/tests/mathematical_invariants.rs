@@ -14,9 +14,15 @@ use tokmd_analysis_maintainability::compute_maintainability_index;
 fn cc_contribution_is_linear() {
     // Doubling CC should double its contribution (0.23 * CC)
     // Score(CC=10) - Score(CC=20) ≈ Score(CC=20) - Score(CC=30)
-    let s10 = compute_maintainability_index(10.0, 100.0, None).unwrap().score;
-    let s20 = compute_maintainability_index(20.0, 100.0, None).unwrap().score;
-    let s30 = compute_maintainability_index(30.0, 100.0, None).unwrap().score;
+    let s10 = compute_maintainability_index(10.0, 100.0, None)
+        .unwrap()
+        .score;
+    let s20 = compute_maintainability_index(20.0, 100.0, None)
+        .unwrap()
+        .score;
+    let s30 = compute_maintainability_index(30.0, 100.0, None)
+        .unwrap()
+        .score;
 
     let d1 = s10 - s20;
     let d2 = s20 - s30;
@@ -29,8 +35,12 @@ fn cc_contribution_is_linear() {
 #[test]
 fn cc_unit_step_equals_coefficient() {
     // Each unit increase in CC reduces score by exactly 0.23
-    let s1 = compute_maintainability_index(50.0, 200.0, None).unwrap().score;
-    let s2 = compute_maintainability_index(51.0, 200.0, None).unwrap().score;
+    let s1 = compute_maintainability_index(50.0, 200.0, None)
+        .unwrap()
+        .score;
+    let s2 = compute_maintainability_index(51.0, 200.0, None)
+        .unwrap()
+        .score;
     let diff = s1 - s2;
     assert!(
         (diff - 0.23).abs() < 0.01,
@@ -48,8 +58,12 @@ fn loc_doubling_has_constant_score_drop() {
     // So score drop for doubling LOC is 16.2 * ln(2) ≈ 11.23
     let expected_drop = 16.2 * 2.0_f64.ln();
 
-    let s100 = compute_maintainability_index(10.0, 100.0, None).unwrap().score;
-    let s200 = compute_maintainability_index(10.0, 200.0, None).unwrap().score;
+    let s100 = compute_maintainability_index(10.0, 100.0, None)
+        .unwrap()
+        .score;
+    let s200 = compute_maintainability_index(10.0, 200.0, None)
+        .unwrap()
+        .score;
     let diff = s100 - s200;
     assert!(
         (diff - expected_drop).abs() < 0.1,
@@ -63,8 +77,12 @@ fn loc_10x_increase_has_constant_score_drop() {
     // Score drop = 16.2 * ln(10) ≈ 37.30
     let expected_drop = 16.2 * 10.0_f64.ln();
 
-    let s10 = compute_maintainability_index(5.0, 10.0, None).unwrap().score;
-    let s100 = compute_maintainability_index(5.0, 100.0, None).unwrap().score;
+    let s10 = compute_maintainability_index(5.0, 10.0, None)
+        .unwrap()
+        .score;
+    let s100 = compute_maintainability_index(5.0, 100.0, None)
+        .unwrap()
+        .score;
     let diff = s10 - s100;
     assert!(
         (diff - expected_drop).abs() < 0.5,
@@ -82,8 +100,12 @@ fn volume_doubling_has_constant_score_drop() {
     // Score drop = 5.2 * ln(2) ≈ 3.60
     let expected_drop = 5.2 * 2.0_f64.ln();
 
-    let s1 = compute_maintainability_index(10.0, 100.0, Some(100.0)).unwrap().score;
-    let s2 = compute_maintainability_index(10.0, 100.0, Some(200.0)).unwrap().score;
+    let s1 = compute_maintainability_index(10.0, 100.0, Some(100.0))
+        .unwrap()
+        .score;
+    let s2 = compute_maintainability_index(10.0, 100.0, Some(200.0))
+        .unwrap()
+        .score;
     let diff = s1 - s2;
     assert!(
         (diff - expected_drop).abs() < 0.1,
@@ -99,10 +121,18 @@ fn volume_doubling_has_constant_score_drop() {
 fn terms_are_additive() {
     // Score(CC=a, LOC=L) - Score(CC=b, LOC=L)
     // should equal Score(CC=a, LOC=M) - Score(CC=b, LOC=M) for any L, M
-    let s_a_l = compute_maintainability_index(10.0, 100.0, None).unwrap().score;
-    let s_b_l = compute_maintainability_index(20.0, 100.0, None).unwrap().score;
-    let s_a_m = compute_maintainability_index(10.0, 500.0, None).unwrap().score;
-    let s_b_m = compute_maintainability_index(20.0, 500.0, None).unwrap().score;
+    let s_a_l = compute_maintainability_index(10.0, 100.0, None)
+        .unwrap()
+        .score;
+    let s_b_l = compute_maintainability_index(20.0, 100.0, None)
+        .unwrap()
+        .score;
+    let s_a_m = compute_maintainability_index(10.0, 500.0, None)
+        .unwrap()
+        .score;
+    let s_b_m = compute_maintainability_index(20.0, 500.0, None)
+        .unwrap()
+        .score;
 
     let diff_l = s_a_l - s_b_l;
     let diff_m = s_a_m - s_b_m;
@@ -115,10 +145,18 @@ fn terms_are_additive() {
 #[test]
 fn halstead_and_cc_terms_independent() {
     // Changing Halstead volume should produce the same delta regardless of CC
-    let s1_cc10 = compute_maintainability_index(10.0, 100.0, Some(100.0)).unwrap().score;
-    let s2_cc10 = compute_maintainability_index(10.0, 100.0, Some(200.0)).unwrap().score;
-    let s1_cc30 = compute_maintainability_index(30.0, 100.0, Some(100.0)).unwrap().score;
-    let s2_cc30 = compute_maintainability_index(30.0, 100.0, Some(200.0)).unwrap().score;
+    let s1_cc10 = compute_maintainability_index(10.0, 100.0, Some(100.0))
+        .unwrap()
+        .score;
+    let s2_cc10 = compute_maintainability_index(10.0, 100.0, Some(200.0))
+        .unwrap()
+        .score;
+    let s1_cc30 = compute_maintainability_index(30.0, 100.0, Some(100.0))
+        .unwrap()
+        .score;
+    let s2_cc30 = compute_maintainability_index(30.0, 100.0, Some(200.0))
+        .unwrap()
+        .score;
 
     let delta_cc10 = s1_cc10 - s2_cc10;
     let delta_cc30 = s1_cc30 - s2_cc30;
@@ -216,7 +254,10 @@ fn grade_never_improves_with_increasing_complexity() {
     for cc in (0..200).step_by(5) {
         let mi = compute_maintainability_index(cc as f64, 100.0, None).unwrap();
         let g = grade_ord(&mi.grade);
-        assert!(g <= prev_grade_ord, "grade should never improve as CC increases");
+        assert!(
+            g <= prev_grade_ord,
+            "grade should never improve as CC increases"
+        );
         prev_grade_ord = g;
     }
 }
