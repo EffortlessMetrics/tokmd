@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-analysis-fun/tests/deep_w45.rs
+expression: json
+---
+{
+  "eco_label": {
+    "score": 80.0,
+    "label": "B",
+    "bytes": 10485760,
+    "notes": "Size-based eco label (10 MB)"
+  }
+}
