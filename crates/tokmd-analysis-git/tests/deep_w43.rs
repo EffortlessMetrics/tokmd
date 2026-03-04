@@ -1,7 +1,6 @@
 //! Deep tests for tokmd-analysis-git: git report building, coupling,
 //! freshness, intent classification, and predictive churn.
 
-use std::collections::BTreeMap;
 use std::path::Path;
 
 use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};

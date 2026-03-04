@@ -1,7 +1,7 @@
 //! Deep tests for tokmd-git: git log parsing, hotspot detection, coupling,
 //! freshness, churn, intent classification, and edge cases.
 
-use tokmd_git::{classify_intent, GitCommit, GitRangeMode};
+use tokmd_git::{GitCommit, GitRangeMode, classify_intent};
 use tokmd_types::CommitIntentKind;
 
 // ===========================================================================
@@ -382,9 +382,8 @@ fn collect_history_empty_repo() {
     // Empty repo with no commits — git log returns nothing
     let result = tokmd_git::collect_history(dir.path(), None, None);
     // On some git versions this succeeds with 0 commits, on others it fails
-    match result {
-        Ok(commits) => assert!(commits.is_empty()),
-        Err(_) => {} // git log on empty repo may fail
+    if let Ok(commits) = result {
+        assert!(commits.is_empty());
     }
 }
 
@@ -442,9 +441,8 @@ fn collect_history_max_commits_limit() {
     }
 
     let result = tokmd_git::collect_history(dir.path(), Some(2), None);
-    match result {
-        Ok(commits) => assert!(commits.len() <= 2, "max_commits should limit to 2"),
-        Err(_) => {} // early break may cause pipe close on some platforms
+    if let Ok(commits) = result {
+        assert!(commits.len() <= 2, "max_commits should limit to 2");
     }
 }
 
