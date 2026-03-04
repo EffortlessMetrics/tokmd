@@ -951,4 +951,70 @@ mod tests {
             );
         });
     }
+
+    // ========================================================================
+    // Compile-check stubs: verify the core API surface that bindings depend on
+    // ========================================================================
+
+    /// Integration tests for cdylib crates cannot live in `tests/` because
+    /// Cargo does not produce an rlib for linking.  These inline stubs verify
+    /// that the underlying `tokmd_core` contract is stable.
+
+    #[test]
+    fn core_version_matches_binding_version() {
+        let core_ver = tokmd_core::ffi::version();
+        let binding_ver = version();
+        assert_eq!(core_ver, binding_ver, "binding must delegate to core");
+    }
+
+    #[test]
+    fn core_schema_version_matches_binding() {
+        let core_sv = tokmd_core::ffi::schema_version();
+        let binding_sv = schema_version();
+        assert_eq!(core_sv, binding_sv, "binding must delegate to core");
+    }
+
+    #[test]
+    fn core_run_json_returns_valid_json_for_all_modes() {
+        let modes = ["lang", "module", "export", "analyze", "diff", "version"];
+        for mode in modes {
+            let result = tokmd_core::ffi::run_json(mode, "{}");
+            let v: serde_json::Value =
+                serde_json::from_str(&result).expect("run_json must return valid JSON");
+            assert!(
+                v.get("ok").is_some(),
+                "envelope for mode '{mode}' missing 'ok'"
+            );
+        }
+    }
+
+    #[test]
+    fn core_run_json_unknown_mode_returns_error() {
+        let result = tokmd_core::ffi::run_json("bogus", "{}");
+        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(v["ok"], false);
+        assert_eq!(v["error"]["code"].as_str(), Some("unknown_mode"));
+    }
+
+    #[test]
+    fn extract_data_json_valid_success_envelope() {
+        let envelope = r#"{"ok":true,"data":{"mode":"lang"}}"#;
+        let data = extract_data_json(envelope).expect("should extract data");
+        let v: serde_json::Value = serde_json::from_str(&data).unwrap();
+        assert_eq!(v["mode"].as_str(), Some("lang"));
+    }
+
+    #[test]
+    fn extract_data_json_error_envelope_fails() {
+        let envelope = r#"{"ok":false,"error":{"code":"unknown_mode","message":"bad"}}"#;
+        let err = extract_data_json(envelope).unwrap_err();
+        assert!(!err.to_string().is_empty());
+    }
+
+    #[test]
+    fn map_envelope_error_preserves_message() {
+        let err = tokmd_ffi_envelope::EnvelopeExtractError::JsonParse("test error".to_string());
+        let py_err = map_envelope_error(err);
+        assert!(py_err.to_string().contains("test error"));
+    }
 }
