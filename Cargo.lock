@@ -3242,6 +3242,7 @@ dependencies = [
 name = "tokmd-analysis-imports"
 version = "1.7.2"
 dependencies = [
+ "insta",
  "proptest",
 ]
 
