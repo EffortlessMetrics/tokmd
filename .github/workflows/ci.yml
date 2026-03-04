@@ -27,7 +27,26 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Run tests
+      run: cargo test --verbose
+      env:
+        CI: true
+
+  build-macos:
+    name: Build & Test (macOS)
+    if: github.event_name == 'push'
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v6
@@ -143,10 +162,26 @@ jobs:
 
   nix:
     name: Nix Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Check flake
+        run: nix flake check
+
+      - name: Build package
+        run: nix build
+
+  nix-macos:
+    name: Nix Build (macOS)
+    if: github.event_name == 'push'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
 
@@ -248,6 +283,7 @@ jobs:
     needs:
       - msrv
       - build
+      - build-macos
       - fmt
       - clippy
       - deny
@@ -256,6 +292,7 @@ jobs:
       - publish-plan
       - docs-check
       - nix
+      - nix-macos
       - mutation
       - feature-boundaries
     steps:
