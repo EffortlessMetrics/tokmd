@@ -58,6 +58,21 @@ fn clean_path(s: &str) -> String {
 /// // Cross-platform consistency: same hash regardless of separator
 /// assert_eq!(short_hash("src\\lib"), short_hash("src/lib"));
 /// ```
+///
+/// Dot-prefix and interior-dot normalization:
+///
+/// ```
+/// use tokmd_redact::short_hash;
+///
+/// // Leading "./" is stripped before hashing
+/// assert_eq!(short_hash("./src/lib"), short_hash("src/lib"));
+///
+/// // Interior "/." segments are resolved
+/// assert_eq!(short_hash("crates/./foo"), short_hash("crates/foo"));
+///
+/// // Different inputs always produce different hashes
+/// assert_ne!(short_hash("alpha"), short_hash("beta"));
+/// ```
 pub fn short_hash(s: &str) -> String {
     let cleaned = clean_path(s);
     let mut hex = blake3::hash(cleaned.as_bytes()).to_hex().to_string();
@@ -84,6 +99,20 @@ pub fn short_hash(s: &str) -> String {
 ///
 /// // Cross-platform consistency: same hash regardless of separator
 /// assert_eq!(redact_path("src\\main.rs"), redact_path("src/main.rs"));
+/// ```
+///
+/// Files without an extension produce a bare 16-character hash:
+///
+/// ```
+/// use tokmd_redact::redact_path;
+///
+/// let bare = redact_path("Makefile");
+/// assert_eq!(bare.len(), 16);
+/// assert!(!bare.contains('.'));
+///
+/// // Double extensions: only the final extension is preserved
+/// let gz = redact_path("archive.tar.gz");
+/// assert!(gz.ends_with(".gz"));
 /// ```
 pub fn redact_path(path: &str) -> String {
     let cleaned = clean_path(path);

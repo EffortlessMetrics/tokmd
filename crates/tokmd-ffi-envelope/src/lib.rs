@@ -26,6 +26,19 @@ pub enum EnvelopeExtractError {
 }
 
 /// Parse a JSON envelope.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_ffi_envelope::parse_envelope;
+///
+/// let val = parse_envelope(r#"{"ok": true, "data": 42}"#).unwrap();
+/// assert_eq!(val["ok"], true);
+/// assert_eq!(val["data"], 42);
+///
+/// // Invalid JSON returns an error
+/// assert!(parse_envelope("{not json").is_err());
+/// ```
 pub fn parse_envelope(result_json: &str) -> Result<Value, EnvelopeExtractError> {
     serde_json::from_str(result_json)
         .map_err(|err| EnvelopeExtractError::JsonParse(err.to_string()))
@@ -35,6 +48,19 @@ pub fn parse_envelope(result_json: &str) -> Result<Value, EnvelopeExtractError> 
 ///
 /// Expected shape: `{"code": "...", "message": "..."}`.
 /// Falls back to `"Unknown error"` when missing or invalid.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_ffi_envelope::format_error_message;
+/// use serde_json::json;
+///
+/// let err = json!({"code": "scan_failed", "message": "Path not found"});
+/// assert_eq!(format_error_message(Some(&err)), "[scan_failed] Path not found");
+///
+/// // Missing fields fall back to defaults
+/// assert_eq!(format_error_message(None), "Unknown error");
+/// ```
 pub fn format_error_message(error_obj: Option<&Value>) -> String {
     let Some(error_obj) = error_obj else {
         return "Unknown error".to_string();
@@ -60,6 +86,21 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
 /// - If `ok` is true and `data` exists, return `data`.
 /// - If `ok` is true and `data` is missing, return the full envelope unchanged.
 /// - Otherwise return an `Upstream` error with a normalized message.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_ffi_envelope::extract_data;
+/// use serde_json::json;
+///
+/// let envelope = json!({"ok": true, "data": {"count": 5}});
+/// let data = extract_data(envelope).unwrap();
+/// assert_eq!(data["count"], 5);
+///
+/// // An error envelope returns Err
+/// let fail = json!({"ok": false, "error": {"code": "e", "message": "boom"}});
+/// assert!(extract_data(fail).is_err());
+/// ```
 pub fn extract_data(envelope: Value) -> Result<Value, EnvelopeExtractError> {
     let Some(obj) = envelope.as_object() else {
         return Err(EnvelopeExtractError::InvalidResponseFormat);
@@ -79,12 +120,33 @@ pub fn extract_data(envelope: Value) -> Result<Value, EnvelopeExtractError> {
 }
 
 /// Parse and extract from a JSON envelope string.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_ffi_envelope::extract_data_from_json;
+///
+/// let json_str = r#"{"ok": true, "data": {"mode": "lang"}}"#;
+/// let data = extract_data_from_json(json_str).unwrap();
+/// assert_eq!(data["mode"], "lang");
+/// ```
 pub fn extract_data_from_json(result_json: &str) -> Result<Value, EnvelopeExtractError> {
     let envelope = parse_envelope(result_json)?;
     extract_data(envelope)
 }
 
 /// Parse and extract, returning a JSON-encoded data payload.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_ffi_envelope::extract_data_json;
+///
+/// let input = r#"{"ok": true, "data": {"v": 1}}"#;
+/// let json_out = extract_data_json(input).unwrap();
+/// let parsed: serde_json::Value = serde_json::from_str(&json_out).unwrap();
+/// assert_eq!(parsed["v"], 1);
+/// ```
 pub fn extract_data_json(result_json: &str) -> Result<String, EnvelopeExtractError> {
     let data = extract_data_from_json(result_json)?;
     serde_json::to_string(&data).map_err(|err| EnvelopeExtractError::JsonSerialize(err.to_string()))

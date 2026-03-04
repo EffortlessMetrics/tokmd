@@ -13,6 +13,15 @@
 /// assert_eq!(round_f64(12.34567, 4), 12.3457);
 /// assert_eq!(round_f64(1.5, 0), 2.0);
 /// ```
+///
+/// Rounding at zero decimal places:
+///
+/// ```
+/// use tokmd_math::round_f64;
+///
+/// assert_eq!(round_f64(2.4, 0), 2.0);
+/// assert_eq!(round_f64(2.6, 0), 3.0);
+/// ```
 #[must_use]
 pub fn round_f64(value: f64, decimals: u32) -> f64 {
     let factor = 10f64.powi(decimals as i32);
@@ -28,6 +37,15 @@ pub fn round_f64(value: f64, decimals: u32) -> f64 {
 ///
 /// assert_eq!(safe_ratio(1, 4), 0.25);
 /// assert_eq!(safe_ratio(5, 0), 0.0); // division by zero returns 0
+/// ```
+///
+/// Fractional ratios are rounded to four decimal places:
+///
+/// ```
+/// use tokmd_math::safe_ratio;
+///
+/// assert_eq!(safe_ratio(1, 3), 0.3333);
+/// assert_eq!(safe_ratio(2, 3), 0.6667);
 /// ```
 #[must_use]
 pub fn safe_ratio(numer: usize, denom: usize) -> f64 {
@@ -49,6 +67,15 @@ pub fn safe_ratio(numer: usize, denom: usize) -> f64 {
 /// assert_eq!(percentile(&values, 0.0), 10.0);
 /// assert_eq!(percentile(&values, 0.9), 50.0);
 /// assert_eq!(percentile(&[], 0.5), 0.0); // empty slice returns 0
+/// ```
+///
+/// Computing the median:
+///
+/// ```
+/// use tokmd_math::percentile;
+///
+/// let data = [1, 2, 3, 4, 5];
+/// assert_eq!(percentile(&data, 0.5), 3.0);
 /// ```
 #[must_use]
 pub fn percentile(sorted: &[usize], pct: f64) -> f64 {
@@ -74,6 +101,18 @@ pub fn percentile(sorted: &[usize], pct: f64) -> f64 {
 ///
 /// // Unequal distribution produces a positive Gini
 /// assert!(gini_coefficient(&[1, 1, 1, 100]) > 0.0);
+/// ```
+///
+/// Single-element and all-zero slices:
+///
+/// ```
+/// use tokmd_math::gini_coefficient;
+///
+/// // A single element has zero inequality
+/// assert_eq!(gini_coefficient(&[42]), 0.0);
+///
+/// // All zeros also return 0 (no division by zero)
+/// assert_eq!(gini_coefficient(&[0, 0, 0]), 0.0);
 /// ```
 #[must_use]
 pub fn gini_coefficient(sorted: &[usize]) -> f64 {
