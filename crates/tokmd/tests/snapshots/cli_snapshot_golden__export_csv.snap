@@ -3,12 +3,12 @@ source: crates/tokmd/tests/cli_snapshot_golden.rs
 expression: stdout
 ---
 path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
-large.rs,(root),Rust,parent,9,2,0,11,172,43
+large.rs,(root),Rust,parent,9,2,0,11,182,45
 Cargo.toml,(root),TOML,parent,8,0,1,9,165,41
 mixed.md,(root),Markdown,parent,4,5,2,11,118,29
 mixed.md,(root),Rust,child,3,0,0,3,0,0
 src/main.rs,src,Rust,parent,3,0,0,3,45,11
 mixed.md,(root),JavaScript,child,1,0,0,1,0,0
 script.js,(root),JavaScript,parent,1,0,0,1,30,7
-space file.rs,(root),Rust,parent,1,0,0,1,12,3
+space file.rs,(root),Rust,parent,1,0,0,1,13,3
 README.md,(root),Markdown,parent,0,1,0,1,30,7
