@@ -60,10 +60,7 @@ fn test_given_empty_git_dir_when_listed_then_returns_empty_vec() {
     let files = list_files(tmp.path(), None).unwrap();
     // Then the result should contain no user files (only .git/ internals may appear
     // depending on git version and WalkBuilder behavior)
-    let user_files: Vec<_> = files
-        .iter()
-        .filter(|p| !p.starts_with(".git"))
-        .collect();
+    let user_files: Vec<_> = files.iter().filter(|p| !p.starts_with(".git")).collect();
     assert!(
         user_files.is_empty(),
         "empty git dir should yield no user files, got {:?}",
