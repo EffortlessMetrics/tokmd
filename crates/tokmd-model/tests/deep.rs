@@ -430,7 +430,7 @@ proptest! {
     #[test]
     fn proptest_lang_aggregation_sum_invariant(rows in prop::collection::vec(arb_lang_row(), 1..=15)) {
         let total_code: usize = rows.iter().map(|r| r.code).sum();
-        let total_lines: usize = rows.iter().map(|r| r.lines).sum();
+        let _total_lines: usize = rows.iter().map(|r| r.lines).sum();
         let total_files: usize = rows.iter().map(|r| r.files).sum();
         let total_bytes: usize = rows.iter().map(|r| r.bytes).sum();
         let total_tokens: usize = rows.iter().map(|r| r.tokens).sum();
@@ -439,9 +439,7 @@ proptest! {
         let rev_code: usize = rows.iter().rev().map(|r| r.code).sum();
         prop_assert_eq!(total_code, rev_code);
 
-        // All sums should be non-negative (trivially true for usize)
-        prop_assert!(total_code <= total_lines || total_lines == 0,
-            "Typically code <= lines, unless lines is independently generated");
+        // files ≥ 1 because each row generates files in 1..=500
         prop_assert!(total_files > 0, "At least one file");
         // total_bytes and total_tokens are usize, always >= 0
         let _ = total_bytes;
