@@ -101,7 +101,8 @@ pub fn print_lang_report(report: &LangReport, global: &ScanOptions, args: &LangA
 }
 
 fn render_lang_md(report: &LangReport) -> String {
-    let mut s = String::new();
+    // Heuristic: (rows + 3) * 80 chars per row
+    let mut s = String::with_capacity((report.rows.len() + 3) * 80);
 
     if report.with_files {
         s.push_str("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|\n");
@@ -144,7 +145,8 @@ fn render_lang_md(report: &LangReport) -> String {
 }
 
 fn render_lang_tsv(report: &LangReport) -> String {
-    let mut s = String::new();
+    // Heuristic: (rows + 2) * 64 chars per row
+    let mut s = String::with_capacity((report.rows.len() + 2) * 64);
 
     if report.with_files {
         s.push_str("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n");
@@ -242,7 +244,8 @@ pub fn print_module_report(
 }
 
 fn render_module_md(report: &ModuleReport) -> String {
-    let mut s = String::new();
+    // Heuristic: (rows + 3) * 80 chars per row
+    let mut s = String::with_capacity((report.rows.len() + 3) * 80);
     s.push_str("|Module|Code|Lines|Files|Bytes|Tokens|Avg|\n");
     s.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
     for r in &report.rows {
@@ -266,7 +269,8 @@ fn render_module_md(report: &ModuleReport) -> String {
 }
 
 fn render_module_tsv(report: &ModuleReport) -> String {
-    let mut s = String::new();
+    // Heuristic: (rows + 2) * 64 chars per row
+    let mut s = String::with_capacity((report.rows.len() + 2) * 64);
     s.push_str("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n");
     for r in &report.rows {
         let _ = writeln!(
@@ -993,7 +997,8 @@ pub fn render_diff_md_with_options(
     totals: &DiffTotals,
     options: DiffRenderOptions,
 ) -> String {
-    let mut s = String::new();
+    // Heuristic: (rows + 20) * 80 chars per row
+    let mut s = String::with_capacity((rows.len() + 20) * 80);
 
     let _ = writeln!(s, "## Diff: {} → {}", from_source, to_source);
     s.push('\n');
