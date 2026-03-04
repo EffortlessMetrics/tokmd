@@ -165,11 +165,11 @@ fn json_round_trip_preserves_eco_label() {
 fn json_round_trip_for_each_grade() {
     let sizes = [
         0usize,
-        500_000,                // A
-        5 * 1024 * 1024,        // B
-        25 * 1024 * 1024,       // C
-        100 * 1024 * 1024,      // D
-        300 * 1024 * 1024,      // E
+        500_000,           // A
+        5 * 1024 * 1024,   // B
+        25 * 1024 * 1024,  // C
+        100 * 1024 * 1024, // D
+        300 * 1024 * 1024, // E
     ];
     for &bytes in &sizes {
         let report = build_fun_report(&derived_with_bytes(bytes));
@@ -328,9 +328,7 @@ fn notes_format_sub_mb_shows_fractional() {
 #[test]
 fn notes_format_tiny_bytes_shows_near_zero() {
     // 1 byte → ~0.0000009... MB → rounds to 0.0
-    let eco = build_fun_report(&derived_with_bytes(1))
-        .eco_label
-        .unwrap();
+    let eco = build_fun_report(&derived_with_bytes(1)).eco_label.unwrap();
     assert!(
         eco.notes.contains("0 MB"),
         "expected '0 MB' in notes, got: {}",
@@ -423,7 +421,15 @@ fn score_label_pairs_are_consistent() {
 
 #[test]
 fn all_grade_labels_are_in_known_set() {
-    let samples = [0, 1, 1_000_000, 5_000_000, 30_000_000, 100_000_000, 500_000_000];
+    let samples = [
+        0,
+        1,
+        1_000_000,
+        5_000_000,
+        30_000_000,
+        100_000_000,
+        500_000_000,
+    ];
     let known = ["A", "B", "C", "D", "E"];
     for &bytes in &samples {
         let eco = build_fun_report(&derived_with_bytes(bytes))

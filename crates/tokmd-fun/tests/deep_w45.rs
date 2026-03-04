@@ -6,7 +6,7 @@
 //!
 //! Run with: `cargo test -p tokmd-fun --test deep_w45`
 
-use tokmd_fun::{MidiNote, ObjBuilding, render_midi, render_obj};
+use tokmd_fun::{render_midi, render_obj, MidiNote, ObjBuilding};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 
@@ -50,7 +50,10 @@ fn midi_end_of_track_is_always_last_event_empty() {
     let smf = midly::Smf::parse(&data).unwrap();
     let last = smf.tracks[0].last().unwrap();
     assert!(
-        matches!(last.kind, midly::TrackEventKind::Meta(midly::MetaMessage::EndOfTrack)),
+        matches!(
+            last.kind,
+            midly::TrackEventKind::Meta(midly::MetaMessage::EndOfTrack)
+        ),
         "last event must be EndOfTrack"
     );
 }
@@ -64,7 +67,10 @@ fn midi_end_of_track_is_always_last_event_many_notes() {
     let smf = midly::Smf::parse(&data).unwrap();
     let last = smf.tracks[0].last().unwrap();
     assert!(
-        matches!(last.kind, midly::TrackEventKind::Meta(midly::MetaMessage::EndOfTrack)),
+        matches!(
+            last.kind,
+            midly::TrackEventKind::Meta(midly::MetaMessage::EndOfTrack)
+        ),
         "last event must be EndOfTrack even with many notes"
     );
 }
@@ -122,7 +128,10 @@ fn midi_tempo_event_is_first() {
     let first = &smf.tracks[0][0];
     assert_eq!(first.delta.as_int(), 0, "tempo event delta must be 0");
     assert!(
-        matches!(first.kind, midly::TrackEventKind::Meta(midly::MetaMessage::Tempo(_))),
+        matches!(
+            first.kind,
+            midly::TrackEventKind::Meta(midly::MetaMessage::Tempo(_))
+        ),
         "first event must be a Tempo meta-event"
     );
 }
@@ -158,9 +167,7 @@ fn midi_tempo_value_60bpm() {
 #[test]
 fn midi_event_count_formula() {
     for n in [0u32, 1, 5, 20, 100] {
-        let notes: Vec<MidiNote> = (0..n)
-            .map(|i| mk_note(60, i * 480, 240, 0))
-            .collect();
+        let notes: Vec<MidiNote> = (0..n).map(|i| mk_note(60, i * 480, 240, 0)).collect();
         let data = render_midi(&notes, 120).unwrap();
         let smf = midly::Smf::parse(&data).unwrap();
         let expected = 1 + 2 * n as usize + 1; // tempo + NoteOn/NoteOff pairs + EndOfTrack
