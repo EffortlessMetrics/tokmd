@@ -552,7 +552,7 @@ fn nonexistent_path_returns_error() -> Result<()> {
 fn nonexistent_path_error_includes_path() -> Result<()> {
     let dir = tempfile::tempdir()?;
     let missing = dir.path().join("phantom_dir");
-    let result = scan(&[missing.clone()], &default_opts());
+    let result = scan(std::slice::from_ref(&missing), &default_opts());
     let msg = result.unwrap_err().to_string();
     assert!(
         msg.contains("phantom_dir"),

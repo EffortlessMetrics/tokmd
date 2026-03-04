@@ -410,7 +410,7 @@ fn midi_tempo_values_for_common_bpms() {
     ];
     let note = mk_note(60, 0, 480, 0);
     for (bpm, expected_tempo) in bpm_expected {
-        let bytes = render_midi(&[note.clone()], bpm).unwrap();
+        let bytes = render_midi(std::slice::from_ref(&note), bpm).unwrap();
         let smf = midly::Smf::parse(&bytes).unwrap();
         let tempo = smf.tracks[0]
             .iter()
