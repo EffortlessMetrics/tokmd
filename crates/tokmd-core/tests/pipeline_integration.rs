@@ -119,7 +119,8 @@ fn export_workflow_json_round_trips() {
         parsed["schema_version"].as_u64().unwrap() as u32,
         SCHEMA_VERSION
     );
-    assert!(parsed["data"]["rows"].is_array());
+    // ExportData is #[serde(flatten)]'d into ExportReceipt, so rows is at top level
+    assert!(parsed["rows"].is_array());
 }
 
 #[test]

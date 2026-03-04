@@ -66,7 +66,8 @@ fn lang_mode_returns_ok_with_receipt() {
     let result = run_json("lang", r#"{"paths": ["src"]}"#);
     let v = assert_ok(&result);
     assert_eq!(v["data"]["mode"], "lang");
-    assert!(v["data"]["report"]["rows"].is_array());
+    // LangReport is #[serde(flatten)]'d into LangReceipt, so rows is at top level
+    assert!(v["data"]["rows"].is_array());
 }
 
 #[test]
@@ -90,7 +91,8 @@ fn module_mode_returns_ok_with_receipt() {
     let result = run_json("module", r#"{"paths": ["src"]}"#);
     let v = assert_ok(&result);
     assert_eq!(v["data"]["mode"], "module");
-    assert!(v["data"]["report"]["rows"].is_array());
+    // ModuleReport is #[serde(flatten)]'d into ModuleReceipt, so rows is at top level
+    assert!(v["data"]["rows"].is_array());
 }
 
 // ============================================================================
@@ -102,7 +104,8 @@ fn export_mode_returns_ok_with_receipt() {
     let result = run_json("export", r#"{"paths": ["src"]}"#);
     let v = assert_ok(&result);
     assert_eq!(v["data"]["mode"], "export");
-    assert!(v["data"]["data"]["rows"].is_array());
+    // ExportData is #[serde(flatten)]'d into ExportReceipt, so rows is at top level
+    assert!(v["data"]["rows"].is_array());
 }
 
 // ============================================================================
