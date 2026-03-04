@@ -16,7 +16,7 @@ tokmd-types = "1.4"
 
 ## Usage
 
-```rust,no_run
+```rust
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_core::scan_workflow;
 use tokmd_core::config::GlobalArgs;
@@ -65,7 +65,7 @@ Chains: Scan -> Model -> Receipt
 
 ## Re-exports
 
-```rust,no_run
+```rust,ignore
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 ```
