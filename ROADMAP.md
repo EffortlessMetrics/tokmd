@@ -30,7 +30,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.0** | ✅ Complete | Near-duplicate detection, commit intent, token estimation renames. |
 | **v1.7.1** | ✅ Complete | Focused microcrate extraction (40+ crates), AnalysisFormat to Tier 0. |
 | **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, CI fixes. |
-| **v1.7.x** | ✅ Complete | Deep test expansion: 2,240+ new tests, 36+ PRs, all tiers covered. |
+| **v1.7.x** | ✅ Complete | Deep test expansion: 11,991+ total tests, 55/56 crates with tests/, CI stabilized. |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
@@ -413,14 +413,15 @@ UX work is explicitly **incremental and non-breaking**:
 
 **Goal**: Achieve comprehensive test coverage across all 56 crates with multiple testing strategies at every tier.
 
-### Test Numbers (before → after)
+### Test Numbers
 
-| Metric             | Before  | After    | Delta     |
-| :----------------- | :------ | :------- | :-------- |
-| `#[test]` annotations | ~4,350 | **6,593** | **+2,243** |
-| `proptest!` blocks | 218     | **250**  | **+32**   |
-| Fuzz targets       | 16      | **19**   | **+3**    |
-| Crates with property tests | ~14 | **14+** | Maintained |
+| Metric             | Value       |
+| :----------------- | :---------- |
+| Total tests        | **11,991+** |
+| Crates with `tests/` | **55/56** |
+| `proptest!` blocks | **250+**    |
+| Fuzz targets       | **19**      |
+| Crates with property tests | **14+** |
 
 ### Coverage by Tier
 
@@ -433,10 +434,11 @@ UX work is explicitly **incremental and non-breaking**:
 | 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-ffi-envelope` | FFI workflow integration, JSON API round-trip tests |
 | 5 | `tokmd` CLI | E2E tests for all major subcommands |
 
-### What Landed (36+ PRs)
+### What Landed (36+ PRs first wave, 16 PRs second wave)
 
 - [x] Boundary verification tests across core types
 - [x] Determinism regression tests for all receipt-producing paths
+- [x] Byte-stable output regression suite with ordering locks
 - [x] Error handling coverage for edge cases and malformed inputs
 - [x] Snapshot tests (`insta`) for all format renderers (Markdown, TSV, JSON, HTML)
 - [x] Deep analysis crate tests: complexity, halstead, near-dup, topics, entropy, license, archetype, fingerprint, API surface
@@ -445,7 +447,15 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Property tests expanded across 14+ crates with `proptest`
 - [x] 3 new fuzz targets (import parser, export tree, policy TOML)
 - [x] BDD-style scenario tests (`tests/bdd.rs`) in every `tokmd-analysis-*` crate
+- [x] Doctest coverage expanded across crates
+
+### CI & Performance
+
 - [x] CI green on main with full mutation testing gate passing
+- [x] macOS jobs gated to main-only pushes for CI cost control (#409)
+- [x] Nix CI fixes: resolved `cloned_ref_to_slice_refs` clippy lint for cargo 1.93 (#407)
+- [x] Fix-forward for typo, rustfmt, and content test failures (#390)
+- [x] Reduced allocations in token stream formatting (perf improvement)
 
 ---
 
