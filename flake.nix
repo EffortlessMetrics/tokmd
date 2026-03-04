@@ -53,8 +53,8 @@
           || (pkgs.lib.hasInfix "/docs/" p && pkgs.lib.hasSuffix ".md" baseName)
           # Keep docs directory (directory entry must pass filter for contents to be evaluated)
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
-          # Keep root markdown files (CHANGELOG.md used by schema_sync tests)
-          || (baseName == "CHANGELOG.md")
+          # Keep root markdown files (CHANGELOG.md, CLAUDE.md used by tests)
+          || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep contract fixtures validated by schema tests
