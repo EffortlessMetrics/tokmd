@@ -14,8 +14,10 @@ fn html_nasty_string() -> impl Strategy<Value = String> {
     prop::string::string_regex("[a-zA-Z0-9 _/\\-.<>&\"'\\\\]{0,80}")
         .unwrap()
         .prop_union(
-            prop::string::string_regex("<script>alert\\(1\\)</script>|<img src=x>|a&b|\"quoted\"|it's")
-                .unwrap(),
+            prop::string::string_regex(
+                "<script>alert\\(1\\)</script>|<img src=x>|a&b|\"quoted\"|it's",
+            )
+            .unwrap(),
         )
 }
 
@@ -141,23 +143,20 @@ fn derived_with_files(files: Vec<FileStatRow>) -> DerivedReport {
             by_module: vec![],
         },
         max_file: MaxFileReport {
-            overall: files
-                .first()
-                .cloned()
-                .unwrap_or_else(|| FileStatRow {
-                    path: "empty".into(),
-                    module: ".".into(),
-                    lang: "Text".into(),
-                    code: 0,
-                    comments: 0,
-                    blanks: 0,
-                    lines: 0,
-                    bytes: 0,
-                    tokens: 0,
-                    doc_pct: None,
-                    bytes_per_line: None,
-                    depth: 0,
-                }),
+            overall: files.first().cloned().unwrap_or_else(|| FileStatRow {
+                path: "empty".into(),
+                module: ".".into(),
+                lang: "Text".into(),
+                code: 0,
+                comments: 0,
+                blanks: 0,
+                lines: 0,
+                bytes: 0,
+                tokens: 0,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 0,
+            }),
             by_lang: vec![],
             by_module: vec![],
         },

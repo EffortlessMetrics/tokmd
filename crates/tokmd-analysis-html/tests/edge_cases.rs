@@ -226,7 +226,10 @@ fn given_derived_with_zero_files_when_rendered_then_no_data_rows() {
     receipt.derived = Some(derived_with_files(vec![]));
     let html = render(&receipt);
 
-    assert!(!html.contains("<tr><td"), "no data rows for empty file list");
+    assert!(
+        !html.contains("<tr><td"),
+        "no data rows for empty file list"
+    );
     assert!(
         html.contains("metric-card"),
         "metric cards should still render"
@@ -330,7 +333,10 @@ fn given_999_tokens_when_rendered_then_no_suffix() {
     let html = render(&receipt);
 
     // The tokens metric card should show "999"
-    assert!(html.contains(">999<"), "999 tokens should not have K suffix");
+    assert!(
+        html.contains(">999<"),
+        "999 tokens should not have K suffix"
+    );
 }
 
 #[test]
@@ -421,7 +427,10 @@ fn given_deeply_nested_path_when_rendered_then_full_path_in_table() {
     let deep_path = "src/a/b/c/d/e/f/g/h/i/j/k/lib.rs";
     let mut receipt = minimal_receipt();
     receipt.derived = Some(derived_with_files(vec![make_file_row(
-        deep_path, "src/a/b/c", "Rust", 100,
+        deep_path,
+        "src/a/b/c",
+        "Rust",
+        100,
     )]));
     let html = render(&receipt);
 
@@ -670,7 +679,11 @@ fn given_files_when_rendered_then_report_json_is_valid() {
         if let Some(end) = html[json_start..].find(';') {
             let json_str = html[json_start..json_start + end].trim();
             let parsed: Result<serde_json::Value, _> = serde_json::from_str(json_str);
-            assert!(parsed.is_ok(), "REPORT_DATA must be valid JSON: {:?}", parsed.err());
+            assert!(
+                parsed.is_ok(),
+                "REPORT_DATA must be valid JSON: {:?}",
+                parsed.err()
+            );
 
             let val = parsed.unwrap();
             assert!(val.get("files").is_some(), "JSON must have 'files' key");
