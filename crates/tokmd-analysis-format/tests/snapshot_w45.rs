@@ -5,11 +5,11 @@
 
 use tokmd_analysis_format::{render, RenderedOutput};
 use tokmd_analysis_types::{
-    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
-    DerivedReport, DerivedTotals, DistributionReport, FileStatRow, HistogramBucket, ImportEdge,
-    ImportReport, IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport,
-    RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
-    BoilerplateReport,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, BoilerplateReport, DerivedReport,
+    DerivedTotals, DistributionReport, FileStatRow, HistogramBucket, ImportEdge, ImportReport,
+    IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport,
+    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
+    ANALYSIS_SCHEMA_VERSION,
 };
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
