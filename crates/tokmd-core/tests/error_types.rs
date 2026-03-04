@@ -418,7 +418,9 @@ mod constants {
 
     #[test]
     fn core_schema_version_is_positive() {
-        const { assert!(CORE_SCHEMA_VERSION > 0); }
+        const {
+            assert!(CORE_SCHEMA_VERSION > 0);
+        }
     }
 
     #[test]

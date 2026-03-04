@@ -196,8 +196,7 @@ fn tier0_contracts_clap_only_behind_feature_flag() {
                     .and_then(|f| f.get("default"))
                     .and_then(|d| d.as_array())
             {
-                let default_strs: Vec<&str> =
-                    defaults.iter().filter_map(|v| v.as_str()).collect();
+                let default_strs: Vec<&str> = defaults.iter().filter_map(|v| v.as_str()).collect();
                 assert!(
                     !default_strs.contains(&"clap"),
                     "Tier 0 crate `{crate_name}` has `clap` in default features. \

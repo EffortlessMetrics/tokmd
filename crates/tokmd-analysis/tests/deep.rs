@@ -531,7 +531,9 @@ fn context_window_with_zero_tokens_fits_any_window() {
 
 #[test]
 fn schema_version_is_positive() {
-    const { assert!(ANALYSIS_SCHEMA_VERSION > 0); }
+    const {
+        assert!(ANALYSIS_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]

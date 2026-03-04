@@ -580,17 +580,27 @@ fn classify_output_no_duplicates() {
 
 #[test]
 fn default_dense_threshold_is_positive() {
-    const { assert!(DEFAULT_DENSE_THRESHOLD > 0.0); }
+    const {
+        assert!(DEFAULT_DENSE_THRESHOLD > 0.0);
+    }
 }
 
 #[test]
 fn default_max_file_pct_between_zero_and_one() {
-    const { assert!(DEFAULT_MAX_FILE_PCT > 0.0); }
-    const { assert!(DEFAULT_MAX_FILE_PCT < 1.0); }
+    const {
+        assert!(DEFAULT_MAX_FILE_PCT > 0.0);
+    }
+    const {
+        assert!(DEFAULT_MAX_FILE_PCT < 1.0);
+    }
 }
 
 #[test]
 fn default_max_file_tokens_reasonable() {
-    const { assert!(DEFAULT_MAX_FILE_TOKENS >= 1_000); }
-    const { assert!(DEFAULT_MAX_FILE_TOKENS <= 1_000_000); }
+    const {
+        assert!(DEFAULT_MAX_FILE_TOKENS >= 1_000);
+    }
+    const {
+        assert!(DEFAULT_MAX_FILE_TOKENS <= 1_000_000);
+    }
 }
