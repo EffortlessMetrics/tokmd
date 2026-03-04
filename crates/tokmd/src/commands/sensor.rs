@@ -104,7 +104,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Slim data: only gates + summary metrics (no embedded cockpit receipt)
         let gates = map_gates(&cockpit_receipt.evidence);
         let data = serde_json::json!({
-            "gates": serde_json::to_value(&gates)?,
+            "gates": serde_json::to_value(gates)?,
             "summary_metrics": {
                 "files_changed": cockpit_receipt.change_surface.files_changed,
                 "insertions": cockpit_receipt.change_surface.insertions,
@@ -488,7 +488,7 @@ mod tests {
             vec![GateItem::new("mutation", Verdict::Warn).with_source("computed")],
         );
         report = report.with_data(serde_json::json!({
-            "gates": serde_json::to_value(&gates).unwrap(),
+            "gates": serde_json::to_value(gates).unwrap(),
         }));
 
         let md = render_sensor_md(&report);
