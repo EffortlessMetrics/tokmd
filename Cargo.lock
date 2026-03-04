@@ -3150,6 +3150,7 @@ name = "tokmd-analysis-explain"
 version = "1.7.2"
 dependencies = [
  "insta",
+ "proptest",
 ]
 
 [[package]]
