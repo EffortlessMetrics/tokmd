@@ -55,6 +55,8 @@
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
           # Keep root markdown files (CHANGELOG.md, CLAUDE.md used by tests)
           || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
+          # Keep crate README.md files (include_str! in lib.rs #[doc] attributes)
+          || (baseName == "README.md" && pkgs.lib.hasInfix "/crates/" p)
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep contract fixtures validated by schema tests
