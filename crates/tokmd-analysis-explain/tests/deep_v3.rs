@@ -160,7 +160,7 @@ fn lookup_summaries_end_with_period() {
     ];
     for key in keys {
         let text = lookup(key).unwrap();
-        let summary = text.splitn(2, ": ").nth(1).unwrap();
+        let summary = text.split_once(": ").unwrap().1;
         assert!(
             summary.ends_with('.'),
             "summary for '{key}' should end with period, got: {summary}"
