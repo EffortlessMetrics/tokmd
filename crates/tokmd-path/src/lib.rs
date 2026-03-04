@@ -10,6 +10,16 @@
 /// assert_eq!(normalize_slashes("src\\lib.rs"), "src/lib.rs");
 /// assert_eq!(normalize_slashes("already/forward"), "already/forward");
 /// ```
+///
+/// Mixed separators are all converted:
+///
+/// ```
+/// use tokmd_path::normalize_slashes;
+///
+/// assert_eq!(normalize_slashes("a\\b/c\\d"), "a/b/c/d");
+/// // Already-normalized paths pass through unchanged
+/// assert_eq!(normalize_slashes("no/change"), "no/change");
+/// ```
 #[must_use]
 pub fn normalize_slashes(path: &str) -> String {
     if path.contains('\\') {
@@ -32,6 +42,17 @@ pub fn normalize_slashes(path: &str) -> String {
 /// assert_eq!(normalize_rel_path(".\\src\\main.rs"), "src/main.rs");
 /// assert_eq!(normalize_rel_path("../lib.rs"), "../lib.rs");
 /// assert_eq!(normalize_rel_path("././src/lib.rs"), "src/lib.rs");
+/// ```
+///
+/// Idempotency — normalizing twice gives the same result:
+///
+/// ```
+/// use tokmd_path::normalize_rel_path;
+///
+/// let once = normalize_rel_path(".\\src\\lib.rs");
+/// let twice = normalize_rel_path(&once);
+/// assert_eq!(once, twice);
+/// assert_eq!(once, "src/lib.rs");
 /// ```
 #[must_use]
 pub fn normalize_rel_path(path: &str) -> String {
