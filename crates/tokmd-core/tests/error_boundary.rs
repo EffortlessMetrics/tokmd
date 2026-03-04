@@ -91,10 +91,12 @@ fn ffi_unknown_mode_returns_error() {
     let result = run_json("nonexistent_mode", "{}");
     let parsed = assert_err(&result);
     assert_eq!(parsed["error"]["code"], "unknown_mode");
-    assert!(parsed["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("nonexistent_mode"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("nonexistent_mode")
+    );
 }
 
 #[test]

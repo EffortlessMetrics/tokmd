@@ -409,6 +409,7 @@ fn round_pct_negative() {
 // =============================================================================
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn format_signed_positive() {
     assert_eq!(format_signed_f64(3.14), "+3.14");
 }

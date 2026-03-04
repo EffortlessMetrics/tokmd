@@ -880,7 +880,7 @@ mod round_deep {
 
     #[test]
     fn round_idempotent() {
-        let val = 3.14159;
+        let val = 2.56789;
         let once = round_f64(val, 3);
         let twice = round_f64(once, 3);
         assert_eq!(once, twice, "round_f64 should be idempotent");

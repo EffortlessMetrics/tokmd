@@ -33,7 +33,10 @@ fn normalize(output: &str) -> String {
 
     // Normalize absolute paths that may leak into scan.paths
     let re_abs = regex::Regex::new(r#""paths":\["[^"]*"\]"#).unwrap();
-    re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string()
+    let s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
+
+    // Normalize binary name across platforms (tokmd.exe on Windows -> tokmd)
+    s.replace("tokmd.exe", "tokmd")
 }
 
 // ---------------------------------------------------------------------------

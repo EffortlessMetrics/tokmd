@@ -375,6 +375,7 @@ fn round_f64_preserves_exact_values() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_f64_high_precision() {
     let val = round_f64(std::f64::consts::PI, 10);
     assert!((val - 3.1415926536).abs() < 1e-10);

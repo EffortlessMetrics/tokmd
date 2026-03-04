@@ -41,10 +41,7 @@ depth = 3
 children = "collapse"
 "#;
     let cfg = TomlConfig::parse(toml_str).unwrap();
-    assert_eq!(
-        cfg.module.roots.as_ref().unwrap(),
-        &["crates", "packages"]
-    );
+    assert_eq!(cfg.module.roots.as_ref().unwrap(), &["crates", "packages"]);
     assert_eq!(cfg.module.depth, Some(3));
     assert_eq!(cfg.module.children.as_deref(), Some("collapse"));
 }

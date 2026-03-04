@@ -59,7 +59,7 @@ fn data_payload_preserves_all_json_types() {
     let data = serde_json::json!({
         "string": "hello",
         "number_int": 42,
-        "number_float": 3.14,
+        "number_float": 1.23,
         "boolean": true,
         "null_val": null,
         "array": [1, "two", null, false],

@@ -5,8 +5,8 @@
 
 use proptest::prelude::*;
 use tokmd_envelope::{
-    findings, Artifact, CapabilityStatus, Finding, FindingLocation, FindingSeverity, SensorReport,
-    ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityStatus, Finding, FindingLocation, FindingSeverity, SENSOR_REPORT_SCHEMA,
+    SensorReport, ToolMeta, Verdict, findings,
 };
 
 fn arb_verdict() -> impl Strategy<Value = Verdict> {

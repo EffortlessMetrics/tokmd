@@ -5,8 +5,8 @@
 
 use serde_json::json;
 use tokmd_gate::{
-    evaluate_policy, evaluate_ratchet_policy, resolve_pointer, PolicyConfig, PolicyRule,
-    RatchetConfig, RatchetRule, RuleLevel, RuleOperator,
+    PolicyConfig, PolicyRule, RatchetConfig, RatchetRule, RuleLevel, RuleOperator, evaluate_policy,
+    evaluate_ratchet_policy, resolve_pointer,
 };
 
 // ── Invalid JSON pointer syntax ──────────────────────────────────────
@@ -223,11 +223,13 @@ fn missing_pointer_without_allow_missing_fails() {
     };
     let result = evaluate_policy(&receipt, &policy);
     assert!(!result.passed);
-    assert!(result.rule_results[0]
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("not found"));
+    assert!(
+        result.rule_results[0]
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("not found")
+    );
 }
 
 // ── In operator without values ───────────────────────────────────────

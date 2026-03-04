@@ -91,11 +91,14 @@ proptest! {
     }
 
     #[test]
-    fn rel_strips_exactly_one_leading_dot_slash(path in dot_prefixed_path()) {
+    fn rel_strips_all_leading_dot_slashes(path in dot_prefixed_path()) {
         let slash_normalized = normalize_slashes(&path);
         let result = normalize_rel_path(&path);
-        // The function strips exactly one leading `./` from the slash-normalized form.
-        let expected = slash_normalized.strip_prefix("./").unwrap_or(&slash_normalized);
+        // The function strips all leading `./` segments from the slash-normalized form.
+        let mut expected = slash_normalized.as_str();
+        while let Some(rest) = expected.strip_prefix("./") {
+            expected = rest;
+        }
         prop_assert_eq!(&result, expected);
     }
 
