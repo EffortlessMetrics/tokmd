@@ -218,7 +218,7 @@ mod given_user_config {
     #[test]
     fn when_profile_missing_then_lookup_returns_none() {
         let config = UserConfig::default();
-        assert!(config.profiles.get("nonexistent").is_none());
+        assert!(!config.profiles.contains_key("nonexistent"));
     }
 
     #[test]

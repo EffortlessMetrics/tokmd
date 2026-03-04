@@ -66,7 +66,7 @@ fn full_cockpit_report_workflow() {
         ],
     );
     report = report.with_data(serde_json::json!({
-        "gates": serde_json::to_value(&gates).unwrap(),
+        "gates": serde_json::to_value(gates).unwrap(),
         "diff_stats": {"files_changed": 3, "insertions": 42, "deletions": 15},
     }));
 
@@ -306,7 +306,7 @@ fn gate_results_embedded_in_data_roundtrip() {
         "Gate failed".into(),
     )
     .with_data(serde_json::json!({
-        "gates": serde_json::to_value(&gates).unwrap(),
+        "gates": serde_json::to_value(gates).unwrap(),
     }));
 
     let json = serde_json::to_string(&report).unwrap();
@@ -341,7 +341,7 @@ fn json_structure_has_expected_top_level_keys() {
         Verdict::Pass,
         "test".into(),
     );
-    let value: serde_json::Value = serde_json::to_value(&report).unwrap();
+    let value: serde_json::Value = serde_json::to_value(report).unwrap();
     let obj = value.as_object().unwrap();
 
     // Required keys
@@ -361,7 +361,7 @@ fn json_structure_has_expected_top_level_keys() {
 #[test]
 fn json_structure_tool_has_expected_keys() {
     let meta = ToolMeta::new("my-tool", "2.0.0", "scan");
-    let value: serde_json::Value = serde_json::to_value(&meta).unwrap();
+    let value: serde_json::Value = serde_json::to_value(meta).unwrap();
     let obj = value.as_object().unwrap();
 
     assert_eq!(obj["name"], "my-tool");
@@ -376,7 +376,7 @@ fn json_structure_tool_has_expected_keys() {
 #[test]
 fn artifact_type_field_serializes_as_type() {
     let a = Artifact::new("receipt", "out/file.json");
-    let value: serde_json::Value = serde_json::to_value(&a).unwrap();
+    let value: serde_json::Value = serde_json::to_value(a).unwrap();
     let obj = value.as_object().unwrap();
 
     // Serde rename: `artifact_type` -> `type` in JSON

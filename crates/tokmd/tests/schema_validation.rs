@@ -644,7 +644,7 @@ fn test_envelope_struct_validates_against_sensor_report_v1() -> Result<()> {
     report.add_capability("mutation", CapabilityStatus::available());
 
     // Serialize to JSON
-    let json: Value = serde_json::to_value(&report)?;
+    let json: Value = serde_json::to_value(report)?;
 
     if !validator.is_valid(&json) {
         let error_messages: Vec<String> = validator

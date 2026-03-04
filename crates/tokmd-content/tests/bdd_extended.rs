@@ -243,7 +243,7 @@ fn test_given_entropy_always_bounded_0_to_8() {
         b"the quick brown fox jumps over the lazy dog".to_vec(),
     ] {
         let entropy = entropy_bits_per_byte(&pattern);
-        assert!(entropy >= 0.0 && entropy <= 8.0, "out of bounds: {entropy}");
+        assert!((0.0..=8.0).contains(&entropy), "out of bounds: {entropy}");
     }
 }
 
@@ -458,7 +458,7 @@ fn test_given_single_null_byte_when_checked_then_not_text_like() {
 
 #[test]
 fn test_given_single_printable_byte_when_checked_then_text_like() {
-    assert!(is_text_like(&[b'A']));
+    assert!(is_text_like(b"A"));
 }
 
 #[test]

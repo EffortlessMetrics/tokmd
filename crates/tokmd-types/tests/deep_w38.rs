@@ -133,7 +133,7 @@ fn lang_receipt_json_has_flattened_report() {
         },
     };
 
-    let v: Value = serde_json::to_value(&receipt).unwrap();
+    let v: Value = serde_json::to_value(receipt).unwrap();
     // `rows` should be at top level due to #[serde(flatten)]
     assert!(
         v.get("rows").is_some(),
@@ -752,7 +752,7 @@ fn cockpit_receipt_full_roundtrip_with_trend() {
 
 #[test]
 fn file_classification_ord_stable() {
-    let mut classes = vec![
+    let mut classes = [
         FileClassification::Vendored,
         FileClassification::Generated,
         FileClassification::Lockfile,

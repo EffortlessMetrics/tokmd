@@ -163,10 +163,10 @@ fn reference_cli_has_sections_for_all_subcommands() {
             {
                 break;
             }
-            if let Some(name) = trimmed.split_whitespace().next() {
-                if name != "help" {
-                    subcommands.push(name.to_string());
-                }
+            if let Some(name) = trimmed.split_whitespace().next()
+                && name != "help"
+            {
+                subcommands.push(name.to_string());
             }
         }
     }
@@ -193,10 +193,10 @@ fn reference_cli_help_blocks_reference_real_subcommands() {
     let mut help_blocks: Vec<String> = Vec::new();
     for line in content.lines() {
         let trimmed = line.trim();
-        if let Some(rest) = trimmed.strip_prefix("<!-- HELP:") {
-            if let Some(name) = rest.strip_suffix("-->") {
-                help_blocks.push(name.trim().to_string());
-            }
+        if let Some(rest) = trimmed.strip_prefix("<!-- HELP:")
+            && let Some(name) = rest.strip_suffix("-->")
+        {
+            help_blocks.push(name.trim().to_string());
         }
     }
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_tokmd"))

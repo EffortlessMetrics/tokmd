@@ -149,7 +149,7 @@ fn many_capabilities_sorted_in_json() {
         report.add_capability(name, CapabilityStatus::available());
     }
 
-    let value = serde_json::to_value(&report).unwrap();
+    let value = serde_json::to_value(report).unwrap();
     let caps = value["capabilities"].as_object().unwrap();
     let keys: Vec<&String> = caps.keys().collect();
     let mut sorted = keys.clone();

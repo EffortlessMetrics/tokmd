@@ -191,7 +191,7 @@ mod math_edge_cases {
         let vals = [10, 20];
         let med = percentile(&vals, 0.5);
         // Should be between 10 and 20
-        assert!(med >= 10.0 && med <= 20.0);
+        assert!((10.0..=20.0).contains(&med));
     }
 
     #[test]

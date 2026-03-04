@@ -4,8 +4,8 @@
 //! budget constraint boundaries, spine file edge cases, and policy interactions.
 
 use tokmd_context_policy::{
-    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, DEFAULT_MAX_FILE_TOKENS, assign_policy,
-    classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
+    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, assign_policy, classify_file, compute_file_cap,
+    is_spine_file, smart_exclude_reason,
 };
 use tokmd_types::{FileClassification, InclusionPolicy};
 

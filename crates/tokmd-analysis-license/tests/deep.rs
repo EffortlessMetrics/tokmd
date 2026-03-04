@@ -172,7 +172,7 @@ fn license_finding_json_shape() {
         source_path: "Cargo.toml".to_string(),
         source_kind: LicenseSourceKind::Metadata,
     };
-    let v: serde_json::Value = serde_json::to_value(&finding).unwrap();
+    let v: serde_json::Value = serde_json::to_value(finding).unwrap();
     assert!(v.is_object());
     assert_eq!(v["spdx"], "MIT");
     let conf = v["confidence"].as_f64().unwrap();
@@ -189,7 +189,7 @@ fn license_source_kind_text_serializes_as_snake_case() {
         source_path: "LICENSE".to_string(),
         source_kind: LicenseSourceKind::Text,
     };
-    let v: serde_json::Value = serde_json::to_value(&finding).unwrap();
+    let v: serde_json::Value = serde_json::to_value(finding).unwrap();
     assert_eq!(v["source_kind"], "text");
 }
 
@@ -502,7 +502,7 @@ fn license_report_json_shape() {
         findings: vec![],
         effective: None,
     };
-    let v: serde_json::Value = serde_json::to_value(&report).unwrap();
+    let v: serde_json::Value = serde_json::to_value(report).unwrap();
     assert!(v.is_object());
     assert!(v.get("findings").is_some());
     assert!(v.get("effective").is_some());
@@ -525,7 +525,7 @@ fn license_report_with_effective_serializes_correctly() {
         }],
         effective: Some("MIT".to_string()),
     };
-    let v: serde_json::Value = serde_json::to_value(&report).unwrap();
+    let v: serde_json::Value = serde_json::to_value(report).unwrap();
     assert_eq!(v["effective"], "MIT");
     assert_eq!(v["findings"].as_array().unwrap().len(), 1);
 }

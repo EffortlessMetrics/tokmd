@@ -388,7 +388,7 @@ fn compute_receipt(
     let receipt = analysis::analyze(ctx, request)?;
 
     // Convert to JSON Value for policy evaluation
-    serde_json::to_value(&receipt).context("Failed to serialize receipt to JSON")
+    serde_json::to_value(receipt).context("Failed to serialize receipt to JSON")
 }
 
 /// Print combined results in text format.

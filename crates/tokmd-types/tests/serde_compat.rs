@@ -360,27 +360,37 @@ fn trend_comparison_defaults() {
 
 #[test]
 fn schema_version_is_positive() {
-    assert!(SCHEMA_VERSION > 0);
+    const {
+        assert!(SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn handoff_schema_version_is_positive() {
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
+    const {
+        assert!(HANDOFF_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn context_schema_version_is_positive() {
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
+    const {
+        assert!(CONTEXT_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn context_bundle_schema_version_is_positive() {
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    const {
+        assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn cockpit_schema_version_is_positive() {
-    assert!(COCKPIT_SCHEMA_VERSION > 0);
+    const {
+        assert!(COCKPIT_SCHEMA_VERSION > 0);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -684,7 +694,7 @@ fn roundtrip_context_log_record() {
 
 #[test]
 fn jsonl_lang_rows_parse_line_by_line() {
-    let rows = vec![
+    let rows = [
         LangRow {
             lang: "Rust".into(),
             code: 100,
@@ -735,7 +745,7 @@ fn jsonl_lang_rows_parse_line_by_line() {
 
 #[test]
 fn jsonl_file_rows_parse_line_by_line() {
-    let rows = vec![
+    let rows = [
         FileRow {
             path: "src/main.rs".into(),
             module: "src".into(),
@@ -792,7 +802,7 @@ fn totals_json_field_values_match() {
         tokens: 200,
         avg_lines: 33,
     };
-    let v: Value = serde_json::to_value(&t).unwrap();
+    let v: Value = serde_json::to_value(t).unwrap();
     assert_eq!(v["code"], json!(42));
     assert_eq!(v["lines"], json!(100));
     assert_eq!(v["files"], json!(3));
@@ -821,7 +831,7 @@ fn diff_row_json_field_values_match() {
         new_tokens: 300,
         delta_tokens: 50,
     };
-    let v: Value = serde_json::to_value(&r).unwrap();
+    let v: Value = serde_json::to_value(r).unwrap();
     assert_eq!(v["lang"], json!("Rust"));
     assert_eq!(v["delta_code"], json!(20));
     assert_eq!(v["delta_tokens"], json!(50));

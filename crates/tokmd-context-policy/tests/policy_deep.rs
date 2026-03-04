@@ -240,8 +240,15 @@ fn file_cap_budget_one() {
 #[test]
 fn file_cap_default_constants_consistent() {
     // Verify DEFAULT_MAX_FILE_PCT and DEFAULT_MAX_FILE_TOKENS are sane
-    assert!(DEFAULT_MAX_FILE_PCT > 0.0 && DEFAULT_MAX_FILE_PCT < 1.0);
-    assert!(DEFAULT_MAX_FILE_TOKENS > 0);
+    const {
+        assert!(DEFAULT_MAX_FILE_PCT > 0.0);
+    }
+    const {
+        assert!(DEFAULT_MAX_FILE_PCT < 1.0);
+    }
+    const {
+        assert!(DEFAULT_MAX_FILE_TOKENS > 0);
+    }
 }
 
 // ===========================================================================

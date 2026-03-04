@@ -167,8 +167,8 @@ fn given_multi_language_tree_when_scanned_twice_then_language_keys_identical() -
     let r1 = scan(&[tmp.path().to_path_buf()], &default_opts())?;
     let r2 = scan(&[tmp.path().to_path_buf()], &default_opts())?;
 
-    let keys1: Vec<_> = r1.iter().map(|(k, _)| *k).collect();
-    let keys2: Vec<_> = r2.iter().map(|(k, _)| *k).collect();
+    let keys1: Vec<_> = r1.keys().copied().collect();
+    let keys2: Vec<_> = r2.keys().copied().collect();
 
     assert_eq!(keys1, keys2, "language key ordering must be deterministic");
     Ok(())
@@ -230,7 +230,7 @@ fn given_dir_with_only_unknown_extensions_when_scanned_then_no_known_languages()
 
     let langs = scan(&[tmp.path().to_path_buf()], &default_opts())?;
 
-    let total_code: usize = langs.iter().map(|(_, l)| l.code).sum();
+    let total_code: usize = langs.values().map(|l| l.code).sum();
     assert_eq!(
         total_code, 0,
         "unknown file extensions should produce 0 code lines"

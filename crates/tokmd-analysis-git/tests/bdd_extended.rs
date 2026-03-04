@@ -90,10 +90,10 @@ fn scenario_churn_multiple_modules_independent() {
         file_row("db/query.rs", "db", 80),
     ]);
     let commits = vec![
-        commit(1 * WEEK, "alice", "feat: api1", &["api/handler.rs"]),
+        commit(WEEK, "alice", "feat: api1", &["api/handler.rs"]),
         commit(2 * WEEK, "alice", "feat: api2", &["api/handler.rs"]),
         commit(3 * WEEK, "alice", "feat: api3", &["api/handler.rs"]),
-        commit(1 * WEEK, "bob", "feat: db", &["db/query.rs"]),
+        commit(WEEK, "bob", "feat: db", &["db/query.rs"]),
     ];
 
     // When

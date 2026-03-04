@@ -274,7 +274,7 @@ fn next_config_cjs_in_subdir_not_detected_by_ends_with() {
 fn archetype_json_has_kind_and_evidence_keys() {
     let export = export_with_paths(&["package.json"]);
     let a = detect_archetype(&export).unwrap();
-    let v: serde_json::Value = serde_json::to_value(&a).unwrap();
+    let v: serde_json::Value = serde_json::to_value(a).unwrap();
     assert!(v.is_object());
     assert!(v.get("kind").is_some());
     assert!(v.get("evidence").is_some());

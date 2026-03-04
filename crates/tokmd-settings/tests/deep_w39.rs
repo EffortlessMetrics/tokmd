@@ -21,7 +21,7 @@ fn scan_options_default_values() {
     assert!(!o.no_ignore_vcs);
     assert!(!o.treat_doc_strings_as_comments);
     // ConfigMode default
-    let json = serde_json::to_value(&o.config).unwrap();
+    let json = serde_json::to_value(o.config).unwrap();
     assert_eq!(json, serde_json::to_value(ConfigMode::default()).unwrap());
 }
 

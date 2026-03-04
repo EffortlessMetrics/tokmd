@@ -413,7 +413,7 @@ fn license_report_default_is_empty() {
     assert!(report.findings.is_empty());
     assert!(report.effective.is_none());
 
-    let json = serde_json::to_value(&report).unwrap();
+    let json = serde_json::to_value(report).unwrap();
     assert!(json["findings"].as_array().unwrap().is_empty());
     assert!(json["effective"].is_null());
 }

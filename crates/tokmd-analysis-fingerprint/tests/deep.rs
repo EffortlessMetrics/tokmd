@@ -59,7 +59,7 @@ fn domain_stat_json_shape() {
         commits: 10,
         pct: 0.5,
     };
-    let v: serde_json::Value = serde_json::to_value(&stat).unwrap();
+    let v: serde_json::Value = serde_json::to_value(stat).unwrap();
     assert!(v.is_object());
     assert_eq!(v["domain"], "example.org");
     assert_eq!(v["commits"], 10);

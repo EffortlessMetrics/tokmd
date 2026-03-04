@@ -155,7 +155,7 @@ fn given_cockpit_receipt_then_all_required_fields_accessible() {
 #[test]
 fn given_cockpit_receipt_when_serialized_then_json_has_required_envelope_fields() {
     let receipt = sample_cockpit_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
 
     assert_eq!(json["schema_version"], COCKPIT_SCHEMA_VERSION);
     assert!(json["generated_at_ms"].is_number());
@@ -196,7 +196,7 @@ fn given_cockpit_receipt_with_trend_then_trend_in_json() {
         complexity: None,
     });
 
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     assert!(json["trend"].is_object());
     assert_eq!(json["trend"]["baseline_available"], true);
     assert_eq!(json["trend"]["health"]["direction"], "improving");
@@ -282,7 +282,7 @@ fn given_change_surface_when_serialized_then_all_fields_present() {
         churn_velocity: 65.0,
         change_concentration: 0.5,
     };
-    let json: Value = serde_json::to_value(&cs).unwrap();
+    let json: Value = serde_json::to_value(cs).unwrap();
     assert!(json["commits"].is_number());
     assert!(json["files_changed"].is_number());
     assert!(json["insertions"].is_number());
@@ -332,7 +332,7 @@ fn given_mutation_gate_with_survivors_then_survivors_accessible() {
 #[test]
 fn given_mutation_gate_when_serialized_then_meta_fields_flattened() {
     let gate = sample_mutation_gate(GateStatus::Pass);
-    let json: Value = serde_json::to_value(&gate).unwrap();
+    let json: Value = serde_json::to_value(gate).unwrap();
 
     // GateMeta is flattened, so status/source/commit_match appear at top level
     assert_eq!(json["status"], "pass");
@@ -508,7 +508,7 @@ fn given_evidence_with_all_gates_when_serialized_then_all_present() {
         }),
     };
 
-    let json: Value = serde_json::to_value(&evidence).unwrap();
+    let json: Value = serde_json::to_value(evidence).unwrap();
     assert!(json["mutation"].is_object());
     assert!(json["diff_coverage"].is_object());
     assert!(json["contracts"].is_object());
@@ -607,7 +607,7 @@ fn given_composition_then_percentages_sum_to_100() {
 
 #[test]
 fn given_review_items_when_sorted_by_priority_then_lowest_first() {
-    let mut items = vec![
+    let mut items = [
         ReviewItem {
             path: "c.rs".to_string(),
             reason: "low".to_string(),
@@ -770,7 +770,7 @@ fn snapshot_change_surface() {
 #[test]
 fn given_cockpit_receipt_then_json_has_no_null_required_fields() {
     let receipt = sample_cockpit_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let obj = json.as_object().unwrap();
 
     for (key, value) in obj {
@@ -812,7 +812,7 @@ fn given_contracts_with_breaking_changes_then_indicators_nonzero() {
         schema_changed: false,
         breaking_indicators: 2,
     };
-    let json: Value = serde_json::to_value(&contracts).unwrap();
+    let json: Value = serde_json::to_value(contracts).unwrap();
     assert_eq!(json["api_changed"], true);
     assert_eq!(json["cli_changed"], true);
     assert_eq!(json["schema_changed"], false);

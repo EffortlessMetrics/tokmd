@@ -176,8 +176,8 @@ fn test_coupling_files_changed_together() {
 
     // Create coupled pair and an independent file
     for _ in 0..3 {
-        std::fs::write(repo.path.join("api.rs"), format!("{}", rand_content())).unwrap();
-        std::fs::write(repo.path.join("api_test.rs"), format!("{}", rand_content())).unwrap();
+        std::fs::write(repo.path.join("api.rs"), rand_content()).unwrap();
+        std::fs::write(repo.path.join("api_test.rs"), rand_content()).unwrap();
         commit(&repo.path, "coupled change");
     }
     std::fs::write(repo.path.join("readme.md"), "docs").unwrap();
@@ -451,7 +451,7 @@ fn test_merge_commit_in_history() {
     // Verify both branches' commits are reachable
     let subjects: Vec<&str> = commits.iter().map(|c| c.subject.as_str()).collect();
     assert!(
-        subjects.iter().any(|s| *s == "feature commit"),
+        subjects.contains(&"feature commit"),
         "Should contain feature commit: {:?}",
         subjects
     );

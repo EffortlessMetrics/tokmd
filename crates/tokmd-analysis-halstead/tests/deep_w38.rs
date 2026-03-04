@@ -246,7 +246,7 @@ fn halstead_metrics_serde_round_trip() {
 #[test]
 fn halstead_metrics_json_shape() {
     let m = build_report_for_code("let x = 1;", "Rust", "test.rs");
-    let v: serde_json::Value = serde_json::to_value(&m).unwrap();
+    let v: serde_json::Value = serde_json::to_value(m).unwrap();
 
     assert!(v.is_object());
     let expected_keys = [

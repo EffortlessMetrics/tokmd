@@ -393,7 +393,7 @@ fn list_files_includes_hidden_files() {
     fs::write(dir.path().join("visible.txt"), "y").unwrap();
     let files = list_files(dir.path(), None).unwrap();
     // hidden(false) in WalkBuilder means "do not skip hidden files", so we should see both
-    assert!(files.len() >= 1, "Should find at least visible file");
+    assert!(!files.is_empty(), "Should find at least visible file");
 }
 
 // ============================================================================

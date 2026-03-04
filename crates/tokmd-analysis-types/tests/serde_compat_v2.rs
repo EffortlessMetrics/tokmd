@@ -9,7 +9,7 @@
 use serde_json::{Value, json};
 use tokmd_analysis_types::*;
 use tokmd_envelope::{
-    Artifact, CapabilityState as EnvCapState, FindingSeverity, SensorReport, ToolMeta, Verdict,
+    Artifact, CapabilityState as EnvCapState, FindingSeverity, SensorReport, Verdict,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -152,7 +152,7 @@ fn entropy_finding_roundtrip() {
         sample_bytes: 1024,
         class: EntropyClass::High,
     };
-    let json = serde_json::to_value(&finding).unwrap();
+    let json = serde_json::to_value(finding).unwrap();
     assert_eq!(json["class"], "high");
     let back: EntropyFinding = serde_json::from_value(json).unwrap();
     assert_eq!(back.class, EntropyClass::High);
@@ -167,7 +167,7 @@ fn churn_trend_roundtrip_with_classification() {
         recent_change: 42,
         classification: TrendClass::Rising,
     };
-    let json = serde_json::to_value(&trend).unwrap();
+    let json = serde_json::to_value(trend).unwrap();
     assert_eq!(json["classification"], "rising");
     let back: ChurnTrend = serde_json::from_value(json).unwrap();
     assert_eq!(back.classification, TrendClass::Rising);
@@ -186,7 +186,7 @@ fn file_complexity_roundtrip_with_risk_level() {
         risk_level: ComplexityRisk::High,
         functions: None,
     };
-    let json = serde_json::to_value(&fc).unwrap();
+    let json = serde_json::to_value(fc).unwrap();
     assert_eq!(json["risk_level"], "high");
     let back: FileComplexity = serde_json::from_value(json).unwrap();
     assert_eq!(back.risk_level, ComplexityRisk::High);
@@ -201,7 +201,7 @@ fn technical_debt_ratio_roundtrip() {
         code_kloc: 20.0,
         level: TechnicalDebtLevel::Moderate,
     };
-    let json = serde_json::to_value(&td).unwrap();
+    let json = serde_json::to_value(td).unwrap();
     assert_eq!(json["level"], "moderate");
     let back: TechnicalDebtRatio = serde_json::from_value(json).unwrap();
     assert_eq!(back.level, TechnicalDebtLevel::Moderate);
@@ -223,7 +223,7 @@ fn near_dup_params_roundtrip_with_scope() {
         }),
         exclude_patterns: vec!["*.lock".into()],
     };
-    let json = serde_json::to_value(&params).unwrap();
+    let json = serde_json::to_value(params).unwrap();
     assert_eq!(json["scope"], "global");
     let back: NearDupParams = serde_json::from_value(json).unwrap();
     assert_eq!(back.scope, NearDupScope::Global);
@@ -244,7 +244,7 @@ fn code_age_distribution_uses_trend_class() {
         prior_refreshes: 3,
         refresh_trend: TrendClass::Falling,
     };
-    let json = serde_json::to_value(&dist).unwrap();
+    let json = serde_json::to_value(dist).unwrap();
     assert_eq!(json["refresh_trend"], "falling");
     let back: CodeAgeDistributionReport = serde_json::from_value(json).unwrap();
     assert_eq!(back.refresh_trend, TrendClass::Falling);
@@ -328,7 +328,7 @@ fn artifact_type_field_serializes_as_type() {
         path: "output/receipt.json".into(),
         mime: Some("application/json".into()),
     };
-    let json = serde_json::to_value(&artifact).unwrap();
+    let json = serde_json::to_value(artifact).unwrap();
     // Field must be serialized as "type", not "artifact_type"
     assert!(json.get("type").is_some(), "must serialize as 'type'");
     assert!(
@@ -359,7 +359,7 @@ fn artifact_roundtrip_preserves_type_rename() {
         path: "pr-comment.md".into(),
         mime: None,
     };
-    let json = serde_json::to_value(&original).unwrap();
+    let json = serde_json::to_value(original).unwrap();
     let back: Artifact = serde_json::from_value(json.clone()).unwrap();
     assert_eq!(back.artifact_type, "comment");
     // Verify the JSON key is "type"
@@ -402,7 +402,7 @@ fn sensor_report_roundtrip_with_verdict_and_severity() {
     assert_eq!(arts[0].artifact_type, "receipt");
 
     // Re-serialize and verify keys
-    let reserialized: Value = serde_json::to_value(&report).unwrap();
+    let reserialized: Value = serde_json::to_value(report).unwrap();
     assert_eq!(reserialized["verdict"], "warn");
     assert_eq!(reserialized["findings"][0]["severity"], "warn");
     // Artifact uses "type" not "artifact_type"
@@ -431,7 +431,7 @@ fn envelope_re_export_aliases_are_same_type() {
         capabilities: None,
         data: None,
     };
-    let json = serde_json::to_value(&report).unwrap();
+    let json = serde_json::to_value(report).unwrap();
     assert_eq!(json["verdict"], "pass");
     assert_eq!(json["schema"], "sensor.report.v1");
 

@@ -538,9 +538,8 @@ fn workflow_unicode_path() {
 
     let scan = ScanSettings::for_paths(vec![unicode_dir.display().to_string()]);
     let result = lang_workflow(&scan, &LangSettings::default());
-    match result {
-        Ok(receipt) => assert!(!receipt.report.rows.is_empty()),
-        Err(_) => {} // some platforms may not support this
+    if let Ok(receipt) = result {
+        assert!(!receipt.report.rows.is_empty());
     }
 }
 
@@ -666,8 +665,8 @@ fn many_files_deterministic() {
     let r1 = lang_workflow(&scan, &lang).unwrap();
     let r2 = lang_workflow(&scan, &lang).unwrap();
 
-    let mut j1 = serde_json::to_value(&r1).unwrap();
-    let mut j2 = serde_json::to_value(&r2).unwrap();
+    let mut j1 = serde_json::to_value(r1).unwrap();
+    let mut j2 = serde_json::to_value(r2).unwrap();
     strip_volatile(&mut j1);
     strip_volatile(&mut j2);
     assert_eq!(j1, j2, "many-files output should be deterministic");

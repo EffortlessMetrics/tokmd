@@ -290,18 +290,18 @@ fn lang_json_key_order_is_stable() {
     assert_eq!(keys, sorted, "JSON top-level keys must be sorted");
 
     // Row object keys must be sorted
-    if let Some(report_obj) = json.get("report") {
-        if let Some(rows) = report_obj.get("rows").and_then(|v| v.as_array()) {
-            for (i, row) in rows.iter().enumerate() {
-                if let Some(map) = row.as_object() {
-                    let row_keys: Vec<&String> = map.keys().collect();
-                    let mut row_sorted = row_keys.clone();
-                    row_sorted.sort();
-                    assert_eq!(
-                        row_keys, row_sorted,
-                        "row[{i}] keys must be alphabetically sorted"
-                    );
-                }
+    if let Some(report_obj) = json.get("report")
+        && let Some(rows) = report_obj.get("rows").and_then(|v| v.as_array())
+    {
+        for (i, row) in rows.iter().enumerate() {
+            if let Some(map) = row.as_object() {
+                let row_keys: Vec<&String> = map.keys().collect();
+                let mut row_sorted = row_keys.clone();
+                row_sorted.sort();
+                assert_eq!(
+                    row_keys, row_sorted,
+                    "row[{i}] keys must be alphabetically sorted"
+                );
             }
         }
     }

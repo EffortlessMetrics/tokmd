@@ -65,7 +65,7 @@ Chains: Scan -> Model -> Receipt
 
 ## Re-exports
 
-```rust,no_run
+```rust,ignore
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 ```

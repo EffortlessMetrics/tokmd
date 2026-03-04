@@ -141,7 +141,7 @@ fn scan_settings_flatten_in_json() {
             ..Default::default()
         },
     };
-    let value = serde_json::to_value(&s).unwrap();
+    let value = serde_json::to_value(s).unwrap();
 
     // Flattened: options fields appear at top level, not nested under "options"
     assert!(value.get("options").is_none());

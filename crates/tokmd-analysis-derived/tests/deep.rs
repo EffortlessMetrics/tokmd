@@ -656,7 +656,7 @@ mod serialization {
     fn cocomo_serializes_all_fields() {
         let rows = vec![make_simple_row("src/a.rs", "Rust", 10_000)];
         let report = derive_report(&export(rows), None);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let cocomo = &json["cocomo"];
         assert!(cocomo["mode"].is_string());
         assert!(cocomo["kloc"].is_f64());
@@ -671,7 +671,7 @@ mod serialization {
     fn distribution_serializes_all_fields() {
         let rows = vec![make_simple_row("src/a.rs", "Rust", 100)];
         let report = derive_report(&export(rows), None);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let dist = &json["distribution"];
         assert!(dist["count"].is_u64());
         assert!(dist["min"].is_u64());
@@ -687,7 +687,7 @@ mod serialization {
     fn context_window_absent_in_json_when_none() {
         let rows = vec![make_simple_row("src/a.rs", "Rust", 100)];
         let report = derive_report(&export(rows), None);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         assert!(json.get("context_window").is_some()); // field exists but may be null
     }
 
@@ -695,7 +695,7 @@ mod serialization {
     fn integrity_present_in_serialization() {
         let rows = vec![make_simple_row("src/a.rs", "Rust", 100)];
         let report = derive_report(&export(rows), None);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         assert!(json["integrity"]["algo"].is_string());
         assert!(json["integrity"]["hash"].is_string());
         assert!(json["integrity"]["entries"].is_u64());

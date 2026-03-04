@@ -199,8 +199,8 @@ fn scan_determinism_language_set() -> Result<()> {
     let r1 = scan(&paths, &opts)?;
     let r2 = scan(&paths, &opts)?;
 
-    let keys1: Vec<_> = r1.iter().map(|(k, _)| k).collect();
-    let keys2: Vec<_> = r2.iter().map(|(k, _)| k).collect();
+    let keys1: Vec<_> = r1.keys().collect();
+    let keys2: Vec<_> = r2.keys().collect();
     assert_eq!(keys1, keys2, "deterministic: language set must match");
     Ok(())
 }
@@ -552,7 +552,7 @@ fn nonexistent_path_returns_error() -> Result<()> {
 fn nonexistent_path_error_includes_path() -> Result<()> {
     let dir = tempfile::tempdir()?;
     let missing = dir.path().join("phantom_dir");
-    let result = scan(&[missing.clone()], &default_opts());
+    let result = scan(std::slice::from_ref(&missing), &default_opts());
     let msg = result.unwrap_err().to_string();
     assert!(
         msg.contains("phantom_dir"),
@@ -598,7 +598,7 @@ fn scan_overlapping_paths_finds_files() -> Result<()> {
         .get(&tokei::LanguageType::Rust)
         .expect("Rust not found");
     assert!(
-        rust.reports.len() >= 1,
+        !rust.reports.is_empty(),
         "overlapping paths should still find files"
     );
     Ok(())

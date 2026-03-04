@@ -3,8 +3,6 @@
 //! Additional coverage for HTML output, JSON with git section, markdown
 //! consistency, and format dispatch edge cases.
 
-use std::collections::BTreeMap;
-
 use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::*;
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};

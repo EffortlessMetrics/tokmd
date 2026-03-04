@@ -534,7 +534,7 @@ fn many_module_report() -> ModuleReport {
             module: format!("crates/mod_{:02}", i),
             code: (10 - i) * 100,
             lines: (10 - i) * 120,
-            files: (10 - i) as usize,
+            files: 10 - i,
             bytes: (10 - i) * 5000,
             tokens: (10 - i) * 250,
             avg_lines: 120,

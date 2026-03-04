@@ -597,7 +597,7 @@ mod tests {
             "Gate failed".to_string(),
         )
         .with_data(serde_json::json!({
-            "gates": serde_json::to_value(&gates).unwrap(),
+            "gates": serde_json::to_value(gates).unwrap(),
         }));
         let json = serde_json::to_string(&report).unwrap();
         let back: SensorReport = serde_json::from_str(&json).unwrap();

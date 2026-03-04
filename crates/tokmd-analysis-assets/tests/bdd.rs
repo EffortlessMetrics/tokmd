@@ -776,8 +776,8 @@ fn given_same_lockfiles_when_dependency_report_built_twice_then_identical() {
         "Cargo.lock",
         b"[[package]]\nname = \"a\"\n\n[[package]]\nname = \"b\"\n",
     );
-    let r1 = build_dependency_report(tmp.path(), &[cargo.clone()]).unwrap();
-    let r2 = build_dependency_report(tmp.path(), &[cargo]).unwrap();
+    let r1 = build_dependency_report(tmp.path(), std::slice::from_ref(&cargo)).unwrap();
+    let r2 = build_dependency_report(tmp.path(), std::slice::from_ref(&cargo)).unwrap();
 
     assert_eq!(r1.total, r2.total);
     assert_eq!(r1.lockfiles.len(), r2.lockfiles.len());

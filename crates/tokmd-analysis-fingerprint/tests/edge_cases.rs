@@ -138,7 +138,7 @@ fn given_mixed_valid_ignored_and_malformed_when_fingerprinted_then_only_valid_co
 fn given_fingerprint_when_serialized_then_contains_expected_fields() {
     let commits = vec![commit("a@foo.com"), commit("b@foo.com"), commit("c@bar.io")];
     let fp = build_corporate_fingerprint(&commits);
-    let json = serde_json::to_value(&fp).expect("should serialize");
+    let json = serde_json::to_value(fp).expect("should serialize");
 
     let domains = json["domains"].as_array().unwrap();
     assert_eq!(domains.len(), 2);

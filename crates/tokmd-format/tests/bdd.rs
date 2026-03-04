@@ -574,6 +574,6 @@ mod given_export_data {
 
         let v: serde_json::Value = serde_json::from_str(&output).unwrap();
         assert_eq!(v["bomFormat"], "CycloneDX");
-        assert!(v["components"].as_array().unwrap().len() > 0);
+        assert!(!v["components"].as_array().unwrap().is_empty());
     }
 }

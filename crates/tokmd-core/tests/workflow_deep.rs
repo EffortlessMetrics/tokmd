@@ -549,9 +549,8 @@ fn lang_nonexistent_dir_is_error() {
     let scan = ScanSettings::for_paths(vec!["/tmp/__tokmd_nonexistent_42__".to_string()]);
     let result = lang_workflow(&scan, &LangSettings::default());
     // Should either error or return empty results; either is acceptable
-    match result {
-        Ok(receipt) => assert!(receipt.report.rows.is_empty()),
-        Err(_) => {} // error is also acceptable
+    if let Ok(receipt) = result {
+        assert!(receipt.report.rows.is_empty());
     }
 }
 
@@ -559,9 +558,8 @@ fn lang_nonexistent_dir_is_error() {
 fn module_nonexistent_dir_is_error() {
     let scan = ScanSettings::for_paths(vec!["/tmp/__tokmd_nonexistent_42__".to_string()]);
     let result = module_workflow(&scan, &ModuleSettings::default());
-    match result {
-        Ok(receipt) => assert!(receipt.report.rows.is_empty()),
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(receipt.report.rows.is_empty());
     }
 }
 
@@ -569,9 +567,8 @@ fn module_nonexistent_dir_is_error() {
 fn export_nonexistent_dir_is_error() {
     let scan = ScanSettings::for_paths(vec!["/tmp/__tokmd_nonexistent_42__".to_string()]);
     let result = export_workflow(&scan, &ExportSettings::default());
-    match result {
-        Ok(receipt) => assert!(receipt.data.rows.is_empty()),
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(receipt.data.rows.is_empty());
     }
 }
 

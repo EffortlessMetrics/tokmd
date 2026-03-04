@@ -124,7 +124,7 @@ fn schema_present_in_serialised_json() {
         Verdict::Pass,
         "s".into(),
     );
-    let v: serde_json::Value = serde_json::to_value(&r).unwrap();
+    let v: serde_json::Value = serde_json::to_value(r).unwrap();
     assert_eq!(v["schema"], "sensor.report.v1");
 }
 

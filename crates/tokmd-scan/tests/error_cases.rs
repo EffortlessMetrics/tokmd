@@ -55,7 +55,7 @@ fn scan_empty_directory_returns_empty_languages() {
     assert!(result.is_ok());
     let langs = result.unwrap();
     // Empty dir should yield zero language stats
-    let total: usize = langs.iter().map(|(_, report)| report.code).sum();
+    let total: usize = langs.values().map(|report| report.code).sum();
     assert_eq!(total, 0);
 }
 
@@ -73,15 +73,15 @@ fn scan_directory_with_only_binary_files_yields_no_code() {
     let tmp = tempfile::tempdir().unwrap();
     // Write a binary file
     let bin_path = tmp.path().join("data.bin");
-    std::fs::write(&bin_path, &[0x00, 0xFF, 0xFE, 0x89, 0x50, 0x4E, 0x47]).unwrap();
+    std::fs::write(bin_path, [0x00, 0xFF, 0xFE, 0x89, 0x50, 0x4E, 0x47]).unwrap();
     // Write another binary file with known extension
     let img_path = tmp.path().join("image.png");
-    std::fs::write(&img_path, &[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]).unwrap();
+    std::fs::write(img_path, [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]).unwrap();
 
     let result = scan(&[tmp.path().to_path_buf()], &default_opts());
     assert!(result.is_ok());
     let langs = result.unwrap();
-    let total: usize = langs.iter().map(|(_, r)| r.code).sum();
+    let total: usize = langs.values().map(|r| r.code).sum();
     assert_eq!(total, 0);
 }
 
@@ -116,7 +116,7 @@ fn scan_exclude_all_yields_no_code() {
         ..default_opts()
     };
     let result = scan(&[tmp.path().to_path_buf()], &opts).unwrap();
-    let total: usize = result.iter().map(|(_, r)| r.code).sum();
+    let total: usize = result.values().map(|r| r.code).sum();
     assert_eq!(total, 0);
 }
 

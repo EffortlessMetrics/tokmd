@@ -76,24 +76,24 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         "lang" => {
             let settings = parse_lang_settings(&args)?;
             let receipt = lang_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "module" => {
             let settings = parse_module_settings(&args)?;
             let receipt = module_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "export" => {
             let settings = parse_export_settings(&args)?;
             let receipt = export_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "analyze" => {
             #[cfg(feature = "analysis")]
             {
                 let settings = parse_analyze_settings(&args)?;
                 let receipt = crate::analyze_workflow(&scan, &settings)?;
-                Ok(serde_json::to_value(&receipt)?)
+                Ok(serde_json::to_value(receipt)?)
             }
             #[cfg(not(feature = "analysis"))]
             {
@@ -107,7 +107,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
             {
                 let settings = parse_cockpit_settings(&args)?;
                 let receipt = crate::cockpit_workflow(&settings)?;
-                Ok(serde_json::to_value(&receipt)?)
+                Ok(serde_json::to_value(receipt)?)
             }
             #[cfg(not(feature = "cockpit"))]
             {
@@ -119,7 +119,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         "diff" => {
             let settings = parse_diff_settings(&args)?;
             let receipt = crate::diff_workflow(&settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "version" => {
             let version_info = serde_json::json!({
