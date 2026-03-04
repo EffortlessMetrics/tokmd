@@ -47,6 +47,7 @@ pub struct GlobalArgs {
     pub no_ignore_vcs: bool,
     pub treat_doc_strings_as_comments: bool,
     pub verbose: u8,
+    pub no_progress: bool,
 }
 ```
 
