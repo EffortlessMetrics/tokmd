@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "render_lang(&report, TableFormat::Md)"
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|42|50|1|1680|84|120|
+|**Total**|42|50|1|1680|84|50|

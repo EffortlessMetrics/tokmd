@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|300|360|12000|600|
+|TOML|50|60|1500|50|
+|**Total**|350|420|13500|650|

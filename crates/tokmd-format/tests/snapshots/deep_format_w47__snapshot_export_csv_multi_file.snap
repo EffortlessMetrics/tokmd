@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: render_export_csv(&data)
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/main.rs,src,Rust,parent,300,30,15,345,9000,600
+tests/test.rs,src,Rust,parent,100,10,5,115,3000,200

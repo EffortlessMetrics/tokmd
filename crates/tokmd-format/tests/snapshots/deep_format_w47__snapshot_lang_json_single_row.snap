@@ -1,0 +1,56 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: v
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": true
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 120,
+      "bytes": 10000,
+      "code": 250,
+      "files": 2,
+      "lang": "Rust",
+      "lines": 300,
+      "tokens": 500
+    }
+  ],
+  "scan": {
+    "config": "auto",
+    "excluded": [],
+    "hidden": false,
+    "no_ignore": false,
+    "no_ignore_dot": false,
+    "no_ignore_parent": false,
+    "no_ignore_vcs": false,
+    "paths": [
+      "."
+    ],
+    "treat_doc_strings_as_comments": false
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 300,
+    "bytes": 10000,
+    "code": 250,
+    "files": 2,
+    "lines": 300,
+    "tokens": 500
+  },
+  "warnings": [],
+  "with_files": true
+}

@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "render_module(&report, TableFormat::Md)"
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|src/core|800|960|8|32000|1600|100|
+|src/utils|300|360|3|12000|600|100|
+|tests|100|120|1|4000|200|100|
+|**Total**|1200|1440|12|48000|2400|0|

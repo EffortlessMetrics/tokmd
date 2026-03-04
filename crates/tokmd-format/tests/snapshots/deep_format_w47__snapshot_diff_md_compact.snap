@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "render_diff_md_with_options(\"old\", \"new\", &rows, &totals, opts)"
+---
+## Diff: old → new
+
+### Summary
+
+|Metric|Value|
+|---|---:|
+|From LOC|1000|
+|To LOC|1200|
+|Delta LOC|+200|
+|LOC Change|+20.0%|
+|Delta Lines|+240|
+|Delta Files|+2|
+|Delta Bytes|+8000|
+|Delta Tokens|+400|
+|Languages changed|1|
+|Languages added|0|
+|Languages removed|0|
+|Languages modified|1|

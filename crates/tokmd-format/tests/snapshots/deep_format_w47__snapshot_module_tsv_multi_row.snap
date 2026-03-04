@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "render_module(&report, TableFormat::Tsv)"
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+src/core	600	720	6	24000	1200	100
+src/utils	200	240	2	8000	400	100
+Total	800	960	8	32000	1600	0
