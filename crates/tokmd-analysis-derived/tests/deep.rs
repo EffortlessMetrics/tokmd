@@ -687,7 +687,7 @@ mod serialization {
     fn context_window_absent_in_json_when_none() {
         let rows = vec![make_simple_row("src/a.rs", "Rust", 100)];
         let report = derive_report(&export(rows), None);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         assert!(json.get("context_window").is_some()); // field exists but may be null
     }
 

@@ -1135,7 +1135,7 @@ fn branchy(x: i32) -> i32 {
     fn risk_level_serializes_as_string() {
         let code = "fn f() {}\n";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        let json = serde_json::to_value(&report).unwrap();
+        let json = serde_json::to_value(report).unwrap();
         let risk = json["files"][0]["risk_level"].as_str().unwrap();
         assert!(["low", "moderate", "high", "critical"].contains(&risk));
     }

@@ -611,7 +611,7 @@ fn given_context_log_record_when_serialized_then_all_fields_present() {
         output_destination: "stdout".to_string(),
     };
 
-    let json: Value = serde_json::to_value(&record).unwrap();
+    let json: Value = serde_json::to_value(record).unwrap();
     assert_eq!(json["schema_version"], CONTEXT_SCHEMA_VERSION);
     assert!(json["budget_tokens"].is_number());
     assert_eq!(json["output_destination"], "stdout");
@@ -822,7 +822,7 @@ fn given_artifact_with_hash_then_hash_present_in_json() {
             hash: "deadbeef".to_string(),
         }),
     };
-    let json: Value = serde_json::to_value(&entry).unwrap();
+    let json: Value = serde_json::to_value(entry).unwrap();
     assert!(json["hash"].is_object());
     assert_eq!(json["hash"]["algo"], "blake3");
 }

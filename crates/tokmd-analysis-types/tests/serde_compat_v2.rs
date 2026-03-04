@@ -431,7 +431,7 @@ fn envelope_re_export_aliases_are_same_type() {
         capabilities: None,
         data: None,
     };
-    let json = serde_json::to_value(&report).unwrap();
+    let json = serde_json::to_value(report).unwrap();
     assert_eq!(json["verdict"], "pass");
     assert_eq!(json["schema"], "sensor.report.v1");
 

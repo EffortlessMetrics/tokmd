@@ -76,17 +76,17 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         "lang" => {
             let settings = parse_lang_settings(&args)?;
             let receipt = lang_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "module" => {
             let settings = parse_module_settings(&args)?;
             let receipt = module_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "export" => {
             let settings = parse_export_settings(&args)?;
             let receipt = export_workflow(&scan, &settings)?;
-            Ok(serde_json::to_value(&receipt)?)
+            Ok(serde_json::to_value(receipt)?)
         }
         "analyze" => {
             #[cfg(feature = "analysis")]

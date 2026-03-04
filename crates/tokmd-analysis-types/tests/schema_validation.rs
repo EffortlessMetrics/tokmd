@@ -131,7 +131,7 @@ fn analysis_receipt_json_contains_source_fields() {
 #[test]
 fn analysis_receipt_json_contains_args_fields() {
     let receipt = sample_analysis_receipt();
-    let json: Value = serde_json::to_value(&receipt).unwrap();
+    let json: Value = serde_json::to_value(receipt).unwrap();
     let args = &json["args"];
 
     assert_eq!(args["preset"], "receipt");

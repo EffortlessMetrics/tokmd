@@ -259,7 +259,7 @@ fn analysis_pipeline_should_have_all_expected_sections() {
         .expect("should have derived section");
 
     // Derived should have code density and distribution info
-    let json = serde_json::to_value(&derived).expect("derived should serialize");
+    let json = serde_json::to_value(derived).expect("derived should serialize");
     assert!(json.is_object(), "derived should be a JSON object");
 }
 
