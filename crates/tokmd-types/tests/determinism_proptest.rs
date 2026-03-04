@@ -54,8 +54,8 @@ fn arb_lang_rows_with_ties() -> impl Strategy<Value = Vec<LangRow>> {
                 0usize..500_000,
                 0usize..500,
             )
-                .prop_map(
-                    |(lang, code, lines, files, bytes, tokens, avg_lines)| LangRow {
+                .prop_map(|(lang, code, lines, files, bytes, tokens, avg_lines)| {
+                    LangRow {
                         lang,
                         code,
                         lines,
@@ -63,8 +63,8 @@ fn arb_lang_rows_with_ties() -> impl Strategy<Value = Vec<LangRow>> {
                         bytes,
                         tokens,
                         avg_lines,
-                    },
-                ),
+                    }
+                }),
             3..30,
         )
     })

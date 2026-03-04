@@ -326,10 +326,7 @@ fn hardening_module_json_no_backslash_in_modules() {
 
     for row in rows {
         let module = row["module"].as_str().unwrap();
-        assert!(
-            !module.contains('\\'),
-            "backslash in module name: {module}"
-        );
+        assert!(!module.contains('\\'), "backslash in module name: {module}");
     }
 }
 
