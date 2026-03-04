@@ -149,4 +149,68 @@ proptest! {
         let ts = parse_imports("typescript", &lines);
         prop_assert_eq!(js, ts);
     }
+
+    // ── Graph-oriented property tests ──────────────────────────────
+
+    #[test]
+    fn normalized_targets_never_start_with_dot(
+        target in "[a-zA-Z][a-zA-Z0-9_/-]{0,30}"
+    ) {
+        let result = normalize_import_target(&target);
+        prop_assert!(!result.starts_with('.'), "non-relative target should not normalize to start with dot");
+    }
+
+    #[test]
+    fn parse_then_normalize_always_produces_same_count(
+        lang in arb_supported_lang(),
+        lines in prop::collection::vec("(use|import|from|mod) [a-z_]{1,12}(::| )[a-z_]{0,12};?", 1..8)
+    ) {
+        let imports = parse_imports(lang, &lines);
+        let normalized: Vec<String> = imports.iter().map(|t| normalize_import_target(t)).collect();
+        prop_assert_eq!(imports.len(), normalized.len());
+    }
+
+    #[test]
+    fn normalize_is_idempotent_for_simple_names(
+        name in "[a-z][a-z0-9_]{0,20}"
+    ) {
+        let first = normalize_import_target(&name);
+        let second = normalize_import_target(&first);
+        prop_assert_eq!(first, second, "normalize should be idempotent for simple names");
+    }
+
+    #[test]
+    fn rust_mod_lines_always_produce_one_import(
+        mod_name in "[a-z_][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("mod {};", mod_name);
+        let imports = parse_imports("rust", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &mod_name);
+    }
+
+    #[test]
+    fn go_block_import_count_matches_quoted_lines(
+        pkgs in prop::collection::vec("[a-z]{1,8}", 1..10)
+    ) {
+        let mut lines = vec!["import (".to_string()];
+        for pkg in &pkgs {
+            lines.push(format!(r#""{}""#, pkg));
+        }
+        lines.push(")".to_string());
+        let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+        let imports = parse_imports("go", &refs);
+        prop_assert_eq!(imports.len(), pkgs.len());
+    }
+
+    #[test]
+    fn all_relative_js_imports_normalize_to_local(
+        suffix in "[a-zA-Z0-9_/]{1,20}"
+    ) {
+        let line = format!(r#"import x from "./{}";"#, suffix);
+        let imports = parse_imports("javascript", &[line.as_str()]);
+        prop_assert!(!imports.is_empty());
+        let normalized = normalize_import_target(&imports[0]);
+        prop_assert_eq!(normalized, "local");
+    }
 }
