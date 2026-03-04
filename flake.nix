@@ -49,8 +49,12 @@
           || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep published schema (sync test compares against embedded copy)
           || (pkgs.lib.hasInfix "/docs/schema.json" p)
+          # Keep docs markdown files (include_str! in schema_sync tests)
+          || (pkgs.lib.hasInfix "/docs/" p && pkgs.lib.hasSuffix ".md" baseName)
           # Keep docs directory (directory entry must pass filter for contents to be evaluated)
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
+          # Keep root markdown files (CHANGELOG.md used by schema_sync tests)
+          || (baseName == "CHANGELOG.md")
           # Keep test directories and their contents
           || (pkgs.lib.hasInfix "/tests/" p)
           # Keep contract fixtures validated by schema tests
