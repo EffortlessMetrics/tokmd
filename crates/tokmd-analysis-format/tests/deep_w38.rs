@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use tokmd_analysis_format::{render, RenderedOutput};
+use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::*;
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 

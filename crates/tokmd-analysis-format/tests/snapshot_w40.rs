@@ -1,12 +1,12 @@
 use std::collections::BTreeMap;
 
-use tokmd_analysis_format::{render, RenderedOutput};
+use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, BoilerplateReport, DerivedReport,
-    DerivedTotals, DistributionReport, FileStatRow, HistogramBucket, IntegrityReport,
-    LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport, RateRow,
-    RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders, TopicClouds,
-    TopicTerm, ANALYSIS_SCHEMA_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
+    BoilerplateReport, DerivedReport, DerivedTotals, DistributionReport, FileStatRow,
+    HistogramBucket, IntegrityReport, LangPurityReport, MaxFileReport, NestingReport,
+    PolyglotReport, RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport,
+    TestDensityReport, TopOffenders, TopicClouds, TopicTerm,
 };
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 

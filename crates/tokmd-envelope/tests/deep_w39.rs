@@ -2,8 +2,8 @@
 
 use std::collections::BTreeMap;
 use tokmd_envelope::{
-    findings, Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation,
-    FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
+    GateItem, GateResults, SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict, findings,
 };
 
 // ---------------------------------------------------------------------------
@@ -322,11 +322,13 @@ fn artifact_constructors() {
 fn gate_results_roundtrip() {
     let g = GateResults::new(
         Verdict::Fail,
-        vec![GateItem::new("mutation", Verdict::Fail)
-            .with_threshold(80.0, 72.0)
-            .with_reason("below threshold")
-            .with_source("ci")
-            .with_artifact_path("mutants.json")],
+        vec![
+            GateItem::new("mutation", Verdict::Fail)
+                .with_threshold(80.0, 72.0)
+                .with_reason("below threshold")
+                .with_source("ci")
+                .with_artifact_path("mutants.json"),
+        ],
     );
     let json = serde_json::to_string(&g).unwrap();
     let back: GateResults = serde_json::from_str(&json).unwrap();

@@ -620,7 +620,7 @@ fn determinism_midi_complex_sequence() {
 
 #[test]
 fn obj_all_eight_vertices_are_distinct_for_nondegenerate_building() {
-    let b = mk_building("nd", 0.0, 0.0, 2.0, 3.0, 5.0);
+    let b = mk_building("b2", 0.0, 0.0, 2.0, 3.0, 5.0);
     let out = render_obj(&[b]);
     let verts = parse_vertices(&out);
     let unique: std::collections::HashSet<String> = verts
