@@ -7,5 +7,5 @@ fn main() {
     let a = 4;
     let b = 5;
     let c = 6;
-    println!("Total: {}", x+y+z+a+b+c);
+    println!("Total: {}", x + y + z + a + b + c);
 }
