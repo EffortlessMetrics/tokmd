@@ -347,7 +347,7 @@ fn analysis_cocomo_fields_are_plausible() {
     let receipt = tokmd_core::analyze_workflow(&scan, &analyze).expect("analyze_workflow");
 
     let derived = receipt.derived.as_ref().expect("derived");
-    let cocomo_json = serde_json::to_value(derived.cocomo).expect("serialize cocomo");
+    let cocomo_json = serde_json::to_value(&derived.cocomo).expect("serialize cocomo");
     if let Some(cocomo) = cocomo_json.as_object() {
         // COCOMO should have positive effort and duration for non-empty code
         let kloc = cocomo.get("kloc").and_then(|v| v.as_f64()).unwrap_or(0.0);
@@ -365,7 +365,7 @@ fn analysis_distribution_stats_present() {
     let receipt = tokmd_core::analyze_workflow(&scan, &analyze).expect("analyze_workflow");
 
     let derived = receipt.derived.as_ref().expect("derived");
-    let dist_json = serde_json::to_value(derived.distribution).expect("serialize distribution");
+    let dist_json = serde_json::to_value(&derived.distribution).expect("serialize distribution");
     let dist = dist_json.as_object().expect("distribution is object");
 
     // Distribution should have statistical summary fields

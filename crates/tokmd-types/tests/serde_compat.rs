@@ -684,7 +684,7 @@ fn roundtrip_context_log_record() {
 
 #[test]
 fn jsonl_lang_rows_parse_line_by_line() {
-    let rows = vec![
+    let rows = [
         LangRow {
             lang: "Rust".into(),
             code: 100,
@@ -735,7 +735,7 @@ fn jsonl_lang_rows_parse_line_by_line() {
 
 #[test]
 fn jsonl_file_rows_parse_line_by_line() {
-    let rows = vec![
+    let rows = [
         FileRow {
             path: "src/main.rs".into(),
             module: "src".into(),

@@ -1751,7 +1751,7 @@ fn given_inclusion_policies_when_ordered_then_full_is_smallest() {
 #[test]
 fn given_file_classification_when_ordered_then_deterministic() {
     // Just verify ordering doesn't panic and is consistent
-    let mut items = vec![
+    let mut items = [
         FileClassification::Sourcemap,
         FileClassification::Generated,
         FileClassification::Lockfile,

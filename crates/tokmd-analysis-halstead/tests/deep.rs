@@ -7,7 +7,7 @@
 use std::path::PathBuf;
 
 use tokmd_analysis_halstead::{
-    FileTokenCounts, build_halstead_report, is_halstead_lang, operators_for_lang, round_f64,
+    build_halstead_report, is_halstead_lang, operators_for_lang, round_f64,
     tokenize_for_halstead,
 };
 use tokmd_analysis_util::AnalysisLimits;

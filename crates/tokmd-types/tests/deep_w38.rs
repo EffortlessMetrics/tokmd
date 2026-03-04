@@ -752,7 +752,7 @@ fn cockpit_receipt_full_roundtrip_with_trend() {
 
 #[test]
 fn file_classification_ord_stable() {
-    let mut classes = vec![
+    let mut classes = [
         FileClassification::Vendored,
         FileClassification::Generated,
         FileClassification::Lockfile,

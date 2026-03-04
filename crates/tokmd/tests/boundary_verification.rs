@@ -179,31 +179,30 @@ fn tier0_contracts_clap_only_behind_feature_flag() {
     for crate_name in TIER0_CRATES {
         let toml_val = parse_crate_toml(crate_name);
         let all_deps = get_all_deps(&toml_val);
-        if all_deps.contains("clap") {
-            if let Some(deps_table) = toml_val.get("dependencies").and_then(|v| v.as_table()) {
-                assert!(
-                    is_optional_dep(deps_table, "clap"),
-                    "Tier 0 crate `{crate_name}` lists `clap` but it is not optional. \
-                     If clap is present it must be behind an optional feature flag.",
-                );
+        if all_deps.contains("clap")
+            && let Some(deps_table) = toml_val.get("dependencies").and_then(|v| v.as_table())
+        {
+            assert!(
+                is_optional_dep(deps_table, "clap"),
+                "Tier 0 crate `{crate_name}` lists `clap` but it is not optional. \
+                 If clap is present it must be behind an optional feature flag.",
+            );
 
-                // Verify clap is NOT in default features
-                let features = get_features(&toml_val);
-                if features.contains("default") {
-                    if let Some(defaults) = toml_val
-                        .get("features")
-                        .and_then(|f| f.get("default"))
-                        .and_then(|d| d.as_array())
-                    {
-                        let default_strs: Vec<&str> =
-                            defaults.iter().filter_map(|v| v.as_str()).collect();
-                        assert!(
-                            !default_strs.contains(&"clap"),
-                            "Tier 0 crate `{crate_name}` has `clap` in default features. \
-                             It must be opt-in only.",
-                        );
-                    }
-                }
+            // Verify clap is NOT in default features
+            let features = get_features(&toml_val);
+            if features.contains("default")
+                && let Some(defaults) = toml_val
+                    .get("features")
+                    .and_then(|f| f.get("default"))
+                    .and_then(|d| d.as_array())
+            {
+                let default_strs: Vec<&str> =
+                    defaults.iter().filter_map(|v| v.as_str()).collect();
+                assert!(
+                    !default_strs.contains(&"clap"),
+                    "Tier 0 crate `{crate_name}` has `clap` in default features. \
+                     It must be opt-in only.",
+                );
             }
         }
     }
@@ -237,12 +236,12 @@ fn no_upward_dependency_violations() {
         // Optional deps behind feature flags are an intentional design pattern.
         let required_deps = get_required_deps(&toml_val);
         for dep in &required_deps {
-            if let Some(dep_tier) = tier_for_crate(dep) {
-                if dep_tier > source_tier {
-                    violations.push(format!(
-                        "{crate_name} (tier {source_tier}) depends on {dep} (tier {dep_tier})"
-                    ));
-                }
+            if let Some(dep_tier) = tier_for_crate(dep)
+                && dep_tier > source_tier
+            {
+                violations.push(format!(
+                    "{crate_name} (tier {source_tier}) depends on {dep} (tier {dep_tier})"
+                ));
             }
         }
     }

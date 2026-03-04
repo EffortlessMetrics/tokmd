@@ -767,8 +767,8 @@ fn snapshot_handoff_intelligence_standard() {
 #[test]
 fn given_all_receipt_types_then_schema_versions_are_independent() {
     // Each receipt family has its own schema version
-    assert_ne!(HANDOFF_SCHEMA_VERSION as u32, CONTEXT_SCHEMA_VERSION);
-    assert_ne!(CONTEXT_SCHEMA_VERSION as u32, CONTEXT_BUNDLE_SCHEMA_VERSION);
+    assert_ne!(HANDOFF_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION);
+    assert_ne!(CONTEXT_SCHEMA_VERSION, CONTEXT_BUNDLE_SCHEMA_VERSION);
 
     let handoff = sample_handoff_manifest();
     let context = sample_context_receipt();

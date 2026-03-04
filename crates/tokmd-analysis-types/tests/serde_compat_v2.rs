@@ -9,7 +9,7 @@
 use serde_json::{Value, json};
 use tokmd_analysis_types::*;
 use tokmd_envelope::{
-    Artifact, CapabilityState as EnvCapState, FindingSeverity, SensorReport, ToolMeta, Verdict,
+    Artifact, CapabilityState as EnvCapState, FindingSeverity, SensorReport, Verdict,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

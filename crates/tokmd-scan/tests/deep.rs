@@ -199,8 +199,8 @@ fn scan_determinism_language_set() -> Result<()> {
     let r1 = scan(&paths, &opts)?;
     let r2 = scan(&paths, &opts)?;
 
-    let keys1: Vec<_> = r1.iter().map(|(k, _)| k).collect();
-    let keys2: Vec<_> = r2.iter().map(|(k, _)| k).collect();
+    let keys1: Vec<_> = r1.keys().collect();
+    let keys2: Vec<_> = r2.keys().collect();
     assert_eq!(keys1, keys2, "deterministic: language set must match");
     Ok(())
 }
@@ -598,7 +598,7 @@ fn scan_overlapping_paths_finds_files() -> Result<()> {
         .get(&tokei::LanguageType::Rust)
         .expect("Rust not found");
     assert!(
-        rust.reports.len() >= 1,
+        !rust.reports.is_empty(),
         "overlapping paths should still find files"
     );
     Ok(())

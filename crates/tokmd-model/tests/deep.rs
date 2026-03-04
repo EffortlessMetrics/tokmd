@@ -185,7 +185,7 @@ fn module_report_sorted_descending_by_code() {
 
 #[test]
 fn sorting_tiebreak_by_name_lang() {
-    let mut rows = vec![
+    let mut rows = [
         LangRow {
             lang: "Zebra".into(),
             code: 100,
@@ -224,7 +224,7 @@ fn sorting_tiebreak_by_name_lang() {
 
 #[test]
 fn sorting_tiebreak_by_name_module() {
-    let mut rows = vec![
+    let mut rows = [
         ModuleRow {
             module: "zzz".into(),
             code: 50,

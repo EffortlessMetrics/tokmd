@@ -1,6 +1,6 @@
 //! Deep tests for tokmd-analysis-content: TODO detection, duplicates, imports.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use tokmd_analysis_content::{
     ContentLimits, ImportGranularity, build_duplicate_report, build_import_report,

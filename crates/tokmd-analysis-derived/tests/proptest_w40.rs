@@ -48,7 +48,7 @@ proptest! {
         let export = make_export(vec![make_row(code, comments, blanks)]);
         let report = derive_report(&export, None);
         let ratio = report.doc_density.total.ratio;
-        prop_assert!(ratio >= 0.0 && ratio <= 1.0,
+        prop_assert!((0.0..=1.0).contains(&ratio),
             "doc_density ratio {} out of [0,1] for code={} comments={}", ratio, code, comments);
     }
 }
@@ -233,7 +233,7 @@ proptest! {
         let export = make_export(rows);
         let report = derive_report(&export, None);
         let gini = report.distribution.gini;
-        prop_assert!(gini >= 0.0 && gini <= 1.0,
+        prop_assert!((0.0..=1.0).contains(&gini),
             "Gini {} out of [0,1]", gini);
     }
 }

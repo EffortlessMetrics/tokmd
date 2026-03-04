@@ -70,10 +70,7 @@ fn core_schema_version_equals_types_schema_version() {
 
 #[test]
 fn core_schema_version_is_positive() {
-    assert!(
-        tokmd_core::CORE_SCHEMA_VERSION > 0,
-        "schema version should be > 0"
-    );
+    const _: () = assert!(tokmd_core::CORE_SCHEMA_VERSION > 0);
 }
 
 // ============================================================================

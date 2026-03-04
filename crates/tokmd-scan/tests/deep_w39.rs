@@ -180,7 +180,7 @@ fn directory_with_only_unknown_files_returns_empty() {
     write_file(&dir, "readme.xyz123", "unknown extension");
     let langs = scan(&[dir.path().to_path_buf()], &default_opts()).unwrap();
     // tokei should not recognize these extensions
-    let recognized: usize = langs.iter().map(|(_, l)| l.code as usize).sum();
+    let recognized: usize = langs.values().map(|l| l.code).sum();
     // Either empty or trivially zero
     assert!(recognized == 0 || langs.is_empty());
 }

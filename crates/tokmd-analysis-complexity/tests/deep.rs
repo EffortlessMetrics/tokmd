@@ -1145,13 +1145,13 @@ fn branchy(x: i32) -> i32 {
         let code = "fn f(x: i32) -> i32 { if x > 0 { x } else { -x } }\n";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
         let json = serde_json::to_value(report).unwrap();
-        if let Some(debt) = json.get("technical_debt") {
-            if !debt.is_null() {
-                assert!(debt["ratio"].is_f64());
-                assert!(debt["complexity_points"].is_u64());
-                assert!(debt["code_kloc"].is_f64());
-                assert!(debt["level"].is_string());
-            }
+        if let Some(debt) = json.get("technical_debt")
+            && !debt.is_null()
+        {
+            assert!(debt["ratio"].is_f64());
+            assert!(debt["complexity_points"].is_u64());
+            assert!(debt["code_kloc"].is_f64());
+            assert!(debt["level"].is_string());
         }
     }
 }

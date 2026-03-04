@@ -715,7 +715,7 @@ fn disjoint_identical_sets_produce_separate_clusters() {
         // Should have at least 2 clusters from disjoint sets
         // (unless the two sets happen to share fingerprints, which is unlikely)
         assert!(
-            clusters.len() >= 1,
+            !clusters.is_empty(),
             "should have at least one cluster from identical files"
         );
     }

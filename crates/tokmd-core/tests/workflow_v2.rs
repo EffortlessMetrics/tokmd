@@ -538,9 +538,8 @@ fn workflow_unicode_path() {
 
     let scan = ScanSettings::for_paths(vec![unicode_dir.display().to_string()]);
     let result = lang_workflow(&scan, &LangSettings::default());
-    match result {
-        Ok(receipt) => assert!(!receipt.report.rows.is_empty()),
-        Err(_) => {} // some platforms may not support this
+    if let Ok(receipt) = result {
+        assert!(!receipt.report.rows.is_empty());
     }
 }
 

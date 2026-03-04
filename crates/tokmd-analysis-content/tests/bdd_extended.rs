@@ -323,7 +323,7 @@ fn given_per_file_byte_limit_when_building_import_report_then_large_file_truncat
 
     // Even with truncation, imports at the top should still be parsed
     assert!(
-        report.edges.len() >= 1,
+        !report.edges.is_empty(),
         "imports near file top should still be found"
     );
 }

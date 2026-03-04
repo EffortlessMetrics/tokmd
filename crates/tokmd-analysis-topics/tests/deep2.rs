@@ -257,7 +257,7 @@ fn per_module_terms_sorted_by_score_descending() {
     let data = export(rows, &[]);
     let clouds = build_topic_clouds(&data);
 
-    for (_, terms) in &clouds.per_module {
+    for terms in clouds.per_module.values() {
         for window in terms.windows(2) {
             assert!(
                 window[0].score >= window[1].score
@@ -397,7 +397,7 @@ fn score_always_positive() {
             term.term
         );
     }
-    for (_, terms) in &clouds.per_module {
+    for terms in clouds.per_module.values() {
         for term in terms {
             assert!(
                 term.score > 0.0,

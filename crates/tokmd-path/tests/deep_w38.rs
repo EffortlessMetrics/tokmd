@@ -82,12 +82,10 @@ fn slashes_numeric_segments() {
 #[test]
 fn slashes_very_long_path() {
     let seg = "abcdefghij";
-    let input: String = std::iter::repeat(seg)
-        .take(100)
+    let input: String = std::iter::repeat_n(seg, 100)
         .collect::<Vec<_>>()
         .join("\\");
-    let expected: String = std::iter::repeat(seg)
-        .take(100)
+    let expected: String = std::iter::repeat_n(seg, 100)
         .collect::<Vec<_>>()
         .join("/");
     assert_eq!(normalize_slashes(&input), expected);

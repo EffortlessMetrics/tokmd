@@ -607,7 +607,7 @@ fn given_composition_then_percentages_sum_to_100() {
 
 #[test]
 fn given_review_items_when_sorted_by_priority_then_lowest_first() {
-    let mut items = vec![
+    let mut items = [
         ReviewItem {
             path: "c.rs".to_string(),
             reason: "low".to_string(),

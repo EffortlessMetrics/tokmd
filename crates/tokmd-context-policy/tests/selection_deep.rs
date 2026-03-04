@@ -28,7 +28,7 @@ fn pipeline(path: &str, tokens: usize, lines: usize, budget: usize) -> Inclusion
     policy
 }
 
-fn simulate_spine_priority_pack<'a>(files: &'a [SimFile], budget: usize) -> Vec<&'a str> {
+fn simulate_spine_priority_pack(files: &[SimFile], budget: usize) -> Vec<&str> {
     let cap = compute_file_cap(budget, DEFAULT_MAX_FILE_PCT, None);
     let mut candidates: Vec<(&SimFile, InclusionPolicy, bool)> = files
         .iter()
@@ -383,7 +383,7 @@ fn classify_returns_sorted_vec_for_complex_multi_classification() {
 #[test]
 fn pack_plan_utilization_near_100_pct_when_files_fill_budget() {
     // All files under per-file cap so they get Full policy and fill exactly.
-    let files = vec![
+    let files = [
         SimFile {
             path: "a.rs",
             tokens: 500,
