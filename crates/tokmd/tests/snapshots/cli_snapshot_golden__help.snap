@@ -4,7 +4,7 @@ expression: normalize(&stdout)
 ---
 `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`
 
-Usage: tokmd.exe [OPTIONS] [PATH]... [COMMAND]
+Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
 
 Commands:
   lang          Language summary (default)
