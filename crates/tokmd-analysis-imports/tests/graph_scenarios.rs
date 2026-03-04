@@ -148,14 +148,22 @@ fn scenario_hub_module_imports_many_spokes() {
 #[test]
 fn scenario_polyglot_monorepo_graph() {
     let files: Vec<(&str, &str, &[&str])> = vec![
-        ("api/main.go", "go", &[r#"import "fmt""#, r#"import "net/http""#]),
+        (
+            "api/main.go",
+            "go",
+            &[r#"import "fmt""#, r#"import "net/http""#],
+        ),
         (
             "web/app.js",
             "javascript",
             &[r#"import React from "react";"#],
         ),
         ("ml/train.py", "python", &["import numpy", "import pandas"]),
-        ("core/lib.rs", "rust", &["use serde::Serialize;", "mod config;"]),
+        (
+            "core/lib.rs",
+            "rust",
+            &["use serde::Serialize;", "mod config;"],
+        ),
     ];
 
     let graph = build_import_graph(&files);

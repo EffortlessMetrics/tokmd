@@ -41,7 +41,15 @@ fn python_deeply_relative_import() {
 #[test]
 fn completely_empty_input_for_all_languages() {
     let empty: Vec<&str> = vec![];
-    for lang in ["rust", "python", "javascript", "typescript", "go", "c", "java"] {
+    for lang in [
+        "rust",
+        "python",
+        "javascript",
+        "typescript",
+        "go",
+        "c",
+        "java",
+    ] {
         assert!(parse_imports(lang, &empty).is_empty());
     }
 }
@@ -90,7 +98,10 @@ fn python_deeply_nested_dotted_module() {
 fn go_deeply_nested_module_path() {
     let lines = [r#"import "github.com/org/repo/internal/pkg/sub/v2/client""#];
     let imports = parse_imports("go", &lines);
-    assert_eq!(imports, vec!["github.com/org/repo/internal/pkg/sub/v2/client"]);
+    assert_eq!(
+        imports,
+        vec!["github.com/org/repo/internal/pkg/sub/v2/client"]
+    );
     assert_eq!(normalize_import_target(&imports[0]), "github");
 }
 
@@ -131,15 +142,7 @@ fn python_import_with_trailing_comment() {
 
 #[test]
 fn go_import_block_with_blank_lines() {
-    let lines = [
-        "import (",
-        "",
-        r#"    "fmt""#,
-        "",
-        r#"    "os""#,
-        "",
-        ")",
-    ];
+    let lines = ["import (", "", r#"    "fmt""#, "", r#"    "os""#, "", ")"];
     let imports = parse_imports("go", &lines);
     assert_eq!(imports, vec!["fmt", "os"]);
 }
@@ -226,7 +229,10 @@ fn normalize_preserves_hyphens_in_package_names() {
 
 #[test]
 fn normalize_very_long_target() {
-    let long_path = (0..100).map(|i| format!("seg{i}")).collect::<Vec<_>>().join("/");
+    let long_path = (0..100)
+        .map(|i| format!("seg{i}"))
+        .collect::<Vec<_>>()
+        .join("/");
     let result = normalize_import_target(&long_path);
     assert_eq!(result, "seg0");
 }
