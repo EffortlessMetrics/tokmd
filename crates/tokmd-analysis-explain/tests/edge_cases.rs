@@ -199,10 +199,7 @@ fn catalog_line_format_is_consistent() {
     let text = catalog();
     for (i, line) in text.lines().enumerate() {
         if i == 0 {
-            assert!(
-                line.starts_with("Available"),
-                "first line should be header"
-            );
+            assert!(line.starts_with("Available"), "first line should be header");
         } else {
             assert!(
                 line.starts_with("- "),
