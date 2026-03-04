@@ -1,7 +1,7 @@
 //! Deep tests for tokmd-git: history analysis, hotspot detection,
 //! coupling patterns, bus factor, freshness, and determinism.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -121,7 +121,7 @@ fn test_hotspot_most_changed_file() {
     }
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let mut freq: HashMap<&str, usize> = HashMap::new();
+    let mut freq: BTreeMap<&str, usize> = BTreeMap::new();
     for c in &commits {
         for f in &c.files {
             *freq.entry(f.as_str()).or_default() += 1;
@@ -153,7 +153,7 @@ fn test_hotspot_change_frequency_order() {
     commit(&repo.path, "edit b");
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let mut freq: HashMap<&str, usize> = HashMap::new();
+    let mut freq: BTreeMap<&str, usize> = BTreeMap::new();
     for c in &commits {
         for f in &c.files {
             *freq.entry(f.as_str()).or_default() += 1;
@@ -184,7 +184,7 @@ fn test_coupling_files_changed_together() {
     commit(&repo.path, "add readme");
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let mut cooccur: HashMap<(String, String), usize> = HashMap::new();
+    let mut cooccur: BTreeMap<(String, String), usize> = BTreeMap::new();
     for c in &commits {
         let files: Vec<&String> = c.files.iter().collect();
         for i in 0..files.len() {
@@ -229,7 +229,7 @@ fn test_bus_factor_single_author() {
     commit(&repo.path, "add code");
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let authors: HashSet<&str> = commits.iter().map(|c| c.author.as_str()).collect();
+    let authors: BTreeSet<&str> = commits.iter().map(|c| c.author.as_str()).collect();
     assert_eq!(authors.len(), 1, "Single author → bus factor 1");
 }
 
@@ -247,7 +247,7 @@ fn test_bus_factor_multiple_authors() {
     commit_as(&repo.path, "carol commit", "carol@test.com", "Carol");
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let authors: HashSet<&str> = commits.iter().map(|c| c.author.as_str()).collect();
+    let authors: BTreeSet<&str> = commits.iter().map(|c| c.author.as_str()).collect();
     assert!(
         authors.len() >= 3,
         "Expected ≥3 distinct authors, got {:?}",
@@ -303,7 +303,7 @@ fn test_freshness_per_file() {
     commit(&repo.path, "add new");
 
     let commits = collect_history(&repo.path, None, None).expect("history");
-    let mut file_last_touch: HashMap<&str, i64> = HashMap::new();
+    let mut file_last_touch: BTreeMap<&str, i64> = BTreeMap::new();
     for c in &commits {
         for f in &c.files {
             file_last_touch
@@ -965,7 +965,7 @@ fn test_commit_hashes_unique() {
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     let hashes: Vec<&str> = commits.iter().filter_map(|c| c.hash.as_deref()).collect();
-    let unique: HashSet<&str> = hashes.iter().copied().collect();
+    let unique: BTreeSet<&str> = hashes.iter().copied().collect();
     assert_eq!(hashes.len(), unique.len(), "All hashes should be unique");
 }
 
