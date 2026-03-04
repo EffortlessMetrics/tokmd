@@ -1,0 +1,32 @@
+---
+source: crates/tokmd-format/tests/snapshot_w45.rs
+expression: md
+---
+## Diff: v1.0.0 → v2.0.0
+
+### Summary
+
+|Metric|From|To|Delta|Change|
+|---|---:|---:|---:|---:|
+|LOC|1000|1500|+500|+50.0%|
+|Lines|1200|1800|+600|+50.0%|
+|Files|10|15|+5|+50.0%|
+|Bytes|40000|58800|+18800|+47.0%|
+|Tokens|2500|3750|+1250|+50.0%|
+
+### Language Movement
+
+|Type|Count|
+|---|---:|
+|Changed|2|
+|Added|1|
+|Removed|0|
+|Modified|1|
+
+### Language Breakdown
+
+|Language|Old LOC|New LOC|Delta|
+|---|---:|---:|---:|
+|Python|0|300|+300|
+|Rust|1000|1200|+200|
+|**Total**|1000|1500|+500|

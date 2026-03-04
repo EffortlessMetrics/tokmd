@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w45.rs
+expression: text
+---
+graph TD
+  src_main_rs -->|1| src_lib_rs
+  src_lib_rs -->|2| src_utils_rs
+  src_main_rs -->|1| src_utils_rs

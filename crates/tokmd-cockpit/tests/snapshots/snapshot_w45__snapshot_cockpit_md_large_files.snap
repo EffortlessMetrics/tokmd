@@ -1,0 +1,79 @@
+---
+source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+expression: md
+---
+## Glass Cockpit
+
+### Summary
+
+|Metric|Current|
+|---|---:|
+|Files Changed|3|
+|Insertions|710|
+|Deletions|452|
+|Net Lines|258|
+|Code Health Score|80/100|
+|Risk Score|50/100|
+|Test Ratio|0.00|
+
+### Change Surface
+
+- **Files changed**: 3
+- **Insertions**: 710
+- **Deletions**: 452
+- **Net lines**: 258
+- **Churn velocity**: 0.0
+
+### Composition
+
+- **Code**: 100.0%
+- **Test**: 0.0%
+- **Docs**: 0.0%
+- **Config**: 0.0%
+- **Test ratio**: 0.00
+
+### Contracts
+
+- **API changed**: No
+- **CLI changed**: No
+- **Schema changed**: No
+- **Breaking indicators**: 0
+
+### Code Health
+
+- **Score**: 80/100
+- **Grade**: B
+- **Large files touched**: 2
+- **Average file size**: 387
+- **Complexity indicator**: Medium
+- **Warnings**:
+  - src/mega.rs: Large file touched
+  - src/another_big.rs: Large file touched
+
+### Risk
+
+- **Level**: medium
+- **Score**: 50/100
+- **Hotspots touched**:
+  - src/mega.rs
+  - src/another_big.rs
+
+### Evidence Gates
+
+- **Overall status**: Pass
+- **Mutation**: Skipped (killed: 0, survivors: 0)
+
+### Review Plan
+
+- **src/mega.rs** (priority: 1)
+  - Reason: 600 lines changed
+  - Complexity: 5
+  - Lines changed: 600
+- **src/another_big.rs** (priority: 1)
+  - Reason: 550 lines changed
+  - Complexity: 5
+  - Lines changed: 550
+- **src/small.rs** (priority: 3)
+  - Reason: 12 lines changed
+  - Complexity: 1
+  - Lines changed: 12

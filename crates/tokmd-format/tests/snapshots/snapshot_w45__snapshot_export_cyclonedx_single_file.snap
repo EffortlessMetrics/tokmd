@@ -1,0 +1,57 @@
+---
+source: crates/tokmd-format/tests/snapshot_w45.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "tokmd",
+        "name": "tokmd",
+        "version": "1.7.2"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "src/main.rs",
+      "group": "src",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "120"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "15"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "10"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "145"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "4350"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "300"
+        }
+      ]
+    }
+  ]
+}

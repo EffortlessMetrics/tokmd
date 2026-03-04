@@ -3326,6 +3326,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "ignore",
+ "insta",
  "proptest",
  "serde",
  "serde_json",
