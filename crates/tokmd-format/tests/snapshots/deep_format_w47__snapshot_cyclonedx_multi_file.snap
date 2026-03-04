@@ -1,0 +1,92 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "tokmd",
+        "name": "tokmd",
+        "version": "1.7.2"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "src/lib.rs",
+      "group": "src",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "500"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "50"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "25"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "575"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "15000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "1000"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.rs",
+      "group": "src",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "100"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "10"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "5"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "115"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "3000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "200"
+        }
+      ]
+    }
+  ]
+}

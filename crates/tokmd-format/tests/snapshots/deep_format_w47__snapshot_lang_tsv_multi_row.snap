@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/deep_format_w47.rs
+expression: "render_lang(&report, TableFormat::Tsv)"
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Rust	800	960	8	32000	1600	120
+Python	200	250	2	7200	400	100
+Total	1000	1210	10	39200	2000	605
