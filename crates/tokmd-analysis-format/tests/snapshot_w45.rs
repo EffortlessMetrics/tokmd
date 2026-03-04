@@ -3,13 +3,13 @@
 //! Covers format gaps: HTML minimal, SVG with derived, JSON-LD with enrichers,
 //! and Mermaid with import data.
 
-use tokmd_analysis_format::{render, RenderedOutput};
+use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, BoilerplateReport, DerivedReport,
-    DerivedTotals, DistributionReport, FileStatRow, HistogramBucket, ImportEdge, ImportReport,
-    IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport,
-    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
-    ANALYSIS_SCHEMA_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
+    BoilerplateReport, DerivedReport, DerivedTotals, DistributionReport, FileStatRow,
+    HistogramBucket, ImportEdge, ImportReport, IntegrityReport, LangPurityReport, MaxFileReport,
+    NestingReport, PolyglotReport, RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport,
+    TestDensityReport, TopOffenders,
 };
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
