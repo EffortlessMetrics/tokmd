@@ -6,8 +6,8 @@
 use proptest::prelude::*;
 use serde_json::{Map, Number, Value};
 use tokmd_ffi_envelope::{
-    extract_data, extract_data_from_json, extract_data_json, format_error_message, parse_envelope,
-    EnvelopeExtractError,
+    EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
+    format_error_message, parse_envelope,
 };
 
 // ── Strategies ──────────────────────────────────────────────────────────
