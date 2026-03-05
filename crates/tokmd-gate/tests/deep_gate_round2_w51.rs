@@ -12,7 +12,7 @@
 use serde_json::json;
 use tokmd_gate::{
     GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
-    RuleOperator, RuleResult, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
+    RuleOperator, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // =========================================================================

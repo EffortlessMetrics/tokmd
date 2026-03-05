@@ -270,7 +270,7 @@ fn lang_rows_sorted_descending_by_code() {
 
 #[test]
 fn lang_rows_tiebreak_ascending_by_name() {
-    let mut rows = vec![
+    let mut rows = [
         LangRow {
             lang: "Zebra".into(),
             code: 10,
@@ -323,7 +323,7 @@ fn module_rows_sorted_descending_by_code() {
 
 #[test]
 fn module_rows_tiebreak_ascending_by_name() {
-    let mut rows = vec![
+    let mut rows = [
         ModuleRow {
             module: "zzz".into(),
             code: 5,

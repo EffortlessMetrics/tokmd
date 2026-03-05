@@ -570,10 +570,10 @@ fn determinism_identical_json_across_runs() {
     let opts = default_scan_options();
     let path = fixture_path();
 
-    let langs1 = scan(&[path.clone()], &opts).unwrap();
+    let langs1 = scan(std::slice::from_ref(&path), &opts).unwrap();
     let report1 = create_lang_report(&langs1, 0, false, ChildrenMode::Collapse);
 
-    let langs2 = scan(&[path], &opts).unwrap();
+    let langs2 = scan(std::slice::from_ref(&path), &opts).unwrap();
     let report2 = create_lang_report(&langs2, 0, false, ChildrenMode::Collapse);
 
     let json1 = serde_json::to_string(&report1).unwrap();
@@ -586,7 +586,7 @@ fn determinism_export_identical_across_runs() {
     let opts = default_scan_options();
     let path = fixture_path();
 
-    let langs1 = scan(&[path.clone()], &opts).unwrap();
+    let langs1 = scan(std::slice::from_ref(&path), &opts).unwrap();
     let data1 = create_export_data(
         &langs1,
         &[],
@@ -597,7 +597,7 @@ fn determinism_export_identical_across_runs() {
         0,
     );
 
-    let langs2 = scan(&[path.clone()], &opts).unwrap();
+    let langs2 = scan(std::slice::from_ref(&path), &opts).unwrap();
     let data2 = create_export_data(
         &langs2,
         &[],

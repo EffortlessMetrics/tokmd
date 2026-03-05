@@ -109,7 +109,7 @@ fn given_mixed_language_project_when_top_2_then_at_most_3_rows() {
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     let rows = json["rows"].as_array().expect("rows should be array");
 
-    assert!(rows.len() >= 1, "should have at least 1 row");
+    assert!(!rows.is_empty(), "should have at least 1 row");
     assert!(
         rows.len() <= 3,
         "with --top 2, at most 3 rows expected (2 + Other), got {}",
