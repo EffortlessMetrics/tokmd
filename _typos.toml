@@ -55,6 +55,10 @@ ba = "ba"
 bck = "bck"
 # Test data (obfuscated text in deep.rs:138)
 caf = "caf"
+# Proptest strategy abbreviation in function names
+strat = "strat"
+# French word 'données' (data) in Unicode test fixtures
+donn = "donn"
 
 [type.rust]
 # Rust-specific settings if needed
