@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_lang(&report, TableFormat::Md)"
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|5000|6666|50|175000|45000|130|
+|Go|3000|4000|30|105000|27000|130|
+|Python|2000|2666|20|70000|18000|130|
+|TypeScript|1000|1333|10|35000|9000|130|
+|Shell|200|266|2|7000|1800|130|
+|**Total**|11200|14931|112|392000|100800|133|

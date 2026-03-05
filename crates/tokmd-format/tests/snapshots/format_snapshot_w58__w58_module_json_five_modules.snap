@@ -1,0 +1,85 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "separate",
+    "format": "json",
+    "module_depth": 2,
+    "module_roots": [
+      "crates"
+    ],
+    "top": 0
+  },
+  "children": "separate",
+  "generated_at_ms": 0,
+  "mode": "module",
+  "module_depth": 2,
+  "module_roots": [
+    "crates"
+  ],
+  "rows": [
+    {
+      "avg_lines": 266,
+      "bytes": 75000,
+      "code": 2500,
+      "files": 12,
+      "lines": 3200,
+      "module": "crates/tokmd-types",
+      "tokens": 20000
+    },
+    {
+      "avg_lines": 287,
+      "bytes": 54000,
+      "code": 1800,
+      "files": 8,
+      "lines": 2300,
+      "module": "crates/tokmd-scan",
+      "tokens": 14400
+    },
+    {
+      "avg_lines": 300,
+      "bytes": 36000,
+      "code": 1200,
+      "files": 5,
+      "lines": 1500,
+      "module": "crates/tokmd-format",
+      "tokens": 9600
+    },
+    {
+      "avg_lines": 130,
+      "bytes": 6000,
+      "code": 200,
+      "files": 2,
+      "lines": 260,
+      "module": "crates/tokmd-badge",
+      "tokens": 1600
+    },
+    {
+      "avg_lines": 187,
+      "bytes": 18000,
+      "code": 600,
+      "files": 4,
+      "lines": 750,
+      "module": "tests",
+      "tokens": 4800
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 258,
+    "bytes": 189000,
+    "code": 6300,
+    "files": 31,
+    "lines": 8010,
+    "tokens": 50400
+  },
+  "warnings": []
+}

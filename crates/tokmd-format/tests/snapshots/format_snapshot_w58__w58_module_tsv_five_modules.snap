@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_module(&deep_module_report(), TableFormat::Tsv)"
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+crates/tokmd-types	2500	3200	12	75000	20000	266
+crates/tokmd-scan	1800	2300	8	54000	14400	287
+crates/tokmd-format	1200	1500	5	36000	9600	300
+crates/tokmd-badge	200	260	2	6000	1600	130
+tests	600	750	4	18000	4800	187
+Total	6300	8010	31	189000	50400	258
