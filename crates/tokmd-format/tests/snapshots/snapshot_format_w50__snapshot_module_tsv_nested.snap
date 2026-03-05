@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_format_w50.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+src	3000	3600	20	120000	7500	180
+src/parser	1200	1440	8	48000	3000	180
+src/format	800	960	5	32000	2000	192
+tests	600	720	4	24000	1500	180
+Total	5600	6720	37	224000	14000	182

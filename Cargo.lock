@@ -2987,6 +2987,7 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-analysis",
+ "tokmd-analysis-derived",
  "tokmd-analysis-explain",
  "tokmd-analysis-format",
  "tokmd-analysis-grid",
