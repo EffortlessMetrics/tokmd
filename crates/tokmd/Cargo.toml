@@ -99,3 +99,4 @@ regex = "1.12.3"
 proptest = "1.10.0"
 jsonschema = "0.44.0"
 toml = "1.0.3"
+tokmd-analysis-derived.workspace = true

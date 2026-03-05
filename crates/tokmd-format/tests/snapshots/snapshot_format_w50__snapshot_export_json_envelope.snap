@@ -1,0 +1,54 @@
+---
+source: crates/tokmd-format/tests/snapshot_format_w50.rs
+expression: v
+---
+[
+  {
+    "blanks": 40,
+    "bytes": 18600,
+    "code": 500,
+    "comments": 80,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 620,
+    "module": "src",
+    "path": "src/lib.rs",
+    "tokens": 1250
+  },
+  {
+    "blanks": 30,
+    "bytes": 12900,
+    "code": 350,
+    "comments": 50,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 430,
+    "module": "src",
+    "path": "src/parser.rs",
+    "tokens": 875
+  },
+  {
+    "blanks": 20,
+    "bytes": 7500,
+    "code": 200,
+    "comments": 30,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 250,
+    "module": "src",
+    "path": "src/format.rs",
+    "tokens": 500
+  },
+  {
+    "blanks": 15,
+    "bytes": 5250,
+    "code": 150,
+    "comments": 10,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 175,
+    "module": "tests",
+    "path": "tests/integration.rs",
+    "tokens": 375
+  }
+]
