@@ -482,7 +482,7 @@ fn lang_top_1_limits_rows_plus_other() {
         "top 1 should yield at most 2 rows (1 + Other), got {}",
         rows.len()
     );
-    assert!(rows.len() >= 1, "top 1 should yield at least 1 row");
+    assert!(!rows.is_empty(), "top 1 should yield at least 1 row");
 }
 
 #[test]

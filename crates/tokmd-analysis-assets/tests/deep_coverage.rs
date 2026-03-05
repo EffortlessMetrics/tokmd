@@ -315,8 +315,8 @@ fn dependency_report_deterministic_output() {
     let tmp = TempDir::new().unwrap();
     let cargo = "[[package]]\nname = \"a\"\n\n[[package]]\nname = \"b\"\n";
     let rel = write_file(tmp.path(), "Cargo.lock", cargo.as_bytes());
-    let r1 = build_dependency_report(tmp.path(), &[rel.clone()]).unwrap();
-    let r2 = build_dependency_report(tmp.path(), &[rel]).unwrap();
+    let r1 = build_dependency_report(tmp.path(), std::slice::from_ref(&rel)).unwrap();
+    let r2 = build_dependency_report(tmp.path(), std::slice::from_ref(&rel)).unwrap();
     let j1 = serde_json::to_string(&r1).unwrap();
     let j2 = serde_json::to_string(&r2).unwrap();
     assert_eq!(j1, j2);

@@ -341,8 +341,8 @@ fn asset_like_files_detected_by_license_candidates() {
 #[test]
 fn walk_includes_binary_extension_files() {
     let dir = tempfile::tempdir().unwrap();
-    fs::write(dir.path().join("image.png"), &[0x89, 0x50, 0x4E, 0x47]).unwrap();
-    fs::write(dir.path().join("data.bin"), &[0u8; 100]).unwrap();
+    fs::write(dir.path().join("image.png"), [0x89, 0x50, 0x4E, 0x47]).unwrap();
+    fs::write(dir.path().join("data.bin"), [0u8; 100]).unwrap();
     fs::write(dir.path().join("code.rs"), "fn main() {}").unwrap();
     let files = list_files(dir.path(), None).unwrap();
     let names: Vec<String> = files

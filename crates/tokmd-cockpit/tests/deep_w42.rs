@@ -465,7 +465,7 @@ fn round_pct_precision() {
 
 #[test]
 fn format_signed_f64_positive_negative_zero() {
-    assert!(format_signed_f64(3.14).starts_with('+'));
+    assert!(format_signed_f64(3.15).starts_with('+'));
     assert!(format_signed_f64(-2.5).starts_with('-'));
     assert_eq!(format_signed_f64(0.0), "0.00");
 }
