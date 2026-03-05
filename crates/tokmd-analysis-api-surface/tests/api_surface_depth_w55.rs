@@ -399,8 +399,13 @@ fn deterministic_output() {
     let rows = vec![make_row("src/lib.rs", "src", "Rust", FileKind::Parent)];
     let export = make_export(rows);
 
-    let r1 =
-        build_api_surface_report(tmp.path(), std::slice::from_ref(&rel), &export, &default_limits()).unwrap();
+    let r1 = build_api_surface_report(
+        tmp.path(),
+        std::slice::from_ref(&rel),
+        &export,
+        &default_limits(),
+    )
+    .unwrap();
     let r2 = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
     assert_eq!(r1.total_items, r2.total_items);
