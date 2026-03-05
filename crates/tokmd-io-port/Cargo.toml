@@ -1,0 +1,17 @@
+[package]
+name = "tokmd-io-port"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "I/O port traits for host-abstracted file access, enabling WASM targets."
+readme = "README.md"
+keywords = ["io", "wasm", "abstraction", "filesystem", "microcrate"]
+categories = ["development-tools"]
+documentation = "https://docs.rs/tokmd-io-port"
+
+[dependencies]
+
+[dev-dependencies]
+tempfile = "3"
