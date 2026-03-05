@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens

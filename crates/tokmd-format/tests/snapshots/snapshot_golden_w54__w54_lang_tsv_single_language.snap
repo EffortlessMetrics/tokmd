@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Go	300	400	3	9000	3000	133
+Total	300	400	3	9000	3000	133

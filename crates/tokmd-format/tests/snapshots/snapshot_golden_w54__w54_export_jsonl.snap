@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+{"type":"row","path":"src/main.rs","module":"src","lang":"Rust","kind":"parent","code":250,"comments":40,"blanks":30,"lines":320,"bytes":8000,"tokens":2500}
+{"type":"row","path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":180,"comments":25,"blanks":20,"lines":225,"bytes":5400,"tokens":1800}
+{"type":"row","path":"tests/smoke.rs","module":"tests","lang":"Rust","kind":"parent","code":60,"comments":5,"blanks":8,"lines":73,"bytes":1800,"tokens":600}

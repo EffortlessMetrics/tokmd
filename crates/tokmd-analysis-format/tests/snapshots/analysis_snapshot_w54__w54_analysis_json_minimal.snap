@@ -1,0 +1,57 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_snapshot_w54.rs
+expression: v
+---
+{
+  "api_surface": null,
+  "archetype": null,
+  "args": {
+    "format": "md",
+    "git": null,
+    "import_granularity": "module",
+    "max_bytes": null,
+    "max_commit_files": null,
+    "max_commits": null,
+    "max_file_bytes": null,
+    "max_files": null,
+    "preset": "receipt",
+    "window_tokens": null
+  },
+  "assets": null,
+  "complexity": null,
+  "corporate_fingerprint": null,
+  "deps": null,
+  "derived": null,
+  "dup": null,
+  "entropy": null,
+  "fun": null,
+  "generated_at_ms": 0,
+  "git": null,
+  "imports": null,
+  "license": null,
+  "mode": "analyze",
+  "predictive_churn": null,
+  "schema_version": 8,
+  "source": {
+    "base_receipt_path": null,
+    "base_signature": null,
+    "children": "collapse",
+    "export_generated_at_ms": null,
+    "export_path": null,
+    "export_schema_version": null,
+    "inputs": [
+      "."
+    ],
+    "module_depth": 2,
+    "module_roots": [
+      "src"
+    ]
+  },
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "topics": null,
+  "warnings": []
+}

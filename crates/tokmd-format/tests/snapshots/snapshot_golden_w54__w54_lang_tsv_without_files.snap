@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	5000	6500	180000	45000
+Python	1200	1500	36000	12000
+Total	6200	8000	216000	57000
