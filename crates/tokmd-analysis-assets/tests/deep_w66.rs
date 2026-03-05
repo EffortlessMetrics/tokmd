@@ -237,9 +237,10 @@ mod edge_cases_w66 {
     #[test]
     fn lockfile_path_normalized_to_forward_slashes() {
         let tmp = TempDir::new().unwrap();
-        let f = write_file(tmp.path(), "sub\\Cargo.lock", b"[[package]]\nname=\"x\"\n");
+        let f = write_file(tmp.path(), "sub/Cargo.lock", b"[[package]]\nname=\"x\"\n");
         let r = build_dependency_report(tmp.path(), &[f]).unwrap();
-        assert!(!r.lockfiles[0].path.contains('\\'));
+        assert!(r.lockfiles[0].path.contains('/'), "path should use forward slashes: {}", r.lockfiles[0].path);
+        assert!(!r.lockfiles[0].path.contains('\\'), "path should not contain backslashes: {}", r.lockfiles[0].path);
     }
 }
 
