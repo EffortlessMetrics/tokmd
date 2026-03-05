@@ -16,3 +16,4 @@ tokmd-analysis-types.workspace = true
 
 [dev-dependencies]
 proptest = "1.10.0"
+serde_json.workspace = true

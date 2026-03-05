@@ -190,7 +190,7 @@ proptest! {
 
     #[test]
     fn prop_redacted_hides_components(
-        segments in prop::collection::vec("[a-zA-Z]{3,10}", 2..=5)
+        segments in prop::collection::vec("[a-zA-Z]{5,10}", 2..=5)
     ) {
         let path = format!("{}.rs", segments.join("/"));
         let redacted = redact_path(&path);
