@@ -1,4 +1,4 @@
-//! Comprehensive tests for tokmd-fun outputs – wave 54.
+//! Comprehensive tests for tokmd-fun outputs ΓÇô wave 54.
 //!
 //! Covers OBJ code city rendering and MIDI generation with edge cases,
 //! structural invariants, property tests, and determinism checks.
@@ -103,7 +103,7 @@ fn obj_large_coordinates_render_without_panic() {
 #[test]
 fn obj_unicode_name_is_sanitized() {
     let b = ObjBuilding {
-        name: "日本語テスト".into(),
+        name: "µùÑµ£¼Φ¬₧πâåπé╣πâê".into(),
         x: 0.0,
         y: 0.0,
         w: 1.0,
@@ -113,13 +113,13 @@ fn obj_unicode_name_is_sanitized() {
     let out = render_obj(&[b]);
     // All non-ASCII replaced with underscores
     assert!(out.contains("o ______"));
-    assert!(!out.contains("日本語"));
+    assert!(!out.contains("µùÑµ£¼Φ¬₧"));
 }
 
 #[test]
 fn obj_emoji_name_is_sanitized() {
     let b = ObjBuilding {
-        name: "🚀rocket".into(),
+        name: "≡ƒÜÇrocket".into(),
         x: 0.0,
         y: 0.0,
         w: 1.0,
@@ -129,7 +129,7 @@ fn obj_emoji_name_is_sanitized() {
     let out = render_obj(&[b]);
     assert!(out.contains("rocket"));
     // emoji should become underscores
-    assert!(!out.contains("🚀"));
+    assert!(!out.contains("≡ƒÜÇ"));
 }
 
 #[test]

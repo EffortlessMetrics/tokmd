@@ -165,7 +165,7 @@ fn overwrite_value() {
 }
 
 // ---------------------------------------------------------------------------
-// 4. compute_git_scores without "git" feature → always None
+// 4. compute_git_scores without "git" feature ΓåÆ always None
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -206,8 +206,8 @@ fn paths_with_special_chars() {
 #[test]
 fn unicode_paths() {
     let mut h = BTreeMap::new();
-    h.insert("src/日本語.rs".to_string(), 1);
-    h.insert("src/中文.rs".to_string(), 2);
+    h.insert("src/µùÑµ£¼Φ¬₧.rs".to_string(), 1);
+    h.insert("src/Σ╕¡µûç.rs".to_string(), 2);
     let s = GitScores {
         hotspots: h,
         commit_counts: BTreeMap::new(),

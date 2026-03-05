@@ -28,7 +28,7 @@ fn run_xtask(args: &[&str]) -> (String, String, bool) {
     (stdout, stderr, output.status.success())
 }
 
-// ΓöÇΓöÇ Boundaries check tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Boundaries check tests ─────────────────────────────────────────────
 
 #[test]
 fn boundaries_check_succeeds_on_clean_repo() {
@@ -173,7 +173,7 @@ fn boundaries_analysis_crates_have_package_name() {
     }
 }
 
-// ΓöÇΓöÇ Docs check tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Docs check tests ───────────────────────────────────────────────────
 
 #[test]
 fn docs_reference_cli_exists() {
@@ -188,21 +188,19 @@ fn docs_reference_cli_has_paired_help_markers() {
     // Verify that every open marker has a matching close marker
     let mut open_count = 0u32;
     for line in content.lines() {
-        let Some(start) = line.find("<!-- HELP: ") else {
-            continue;
-        };
-        if line.contains("<!-- /HELP:") {
-            continue;
-        }
-        let after = &line[start + 11..];
-        if let Some(end) = after.find(" -->") {
-            let cmd = &after[..end];
-            let close = format!("<!-- /HELP: {cmd} -->");
-            assert!(
-                content.contains(&close),
-                "reference-cli.md has open marker for {cmd} but no close marker"
-            );
-            open_count += 1;
+        if let Some(start) = line.find("<!-- HELP: ") {
+            if !line.contains("<!-- /HELP:") {
+                let after = &line[start + 11..];
+                if let Some(end) = after.find(" -->") {
+                    let cmd = &after[..end];
+                    let close = format!("<!-- /HELP: {cmd} -->");
+                    assert!(
+                        content.contains(&close),
+                        "reference-cli.md has open marker for {cmd} but no close marker"
+                    );
+                    open_count += 1;
+                }
+            }
         }
     }
     assert!(
@@ -240,7 +238,7 @@ fn docs_task_without_flags_reports_status() {
     );
 }
 
-// ΓöÇΓöÇ Publish plan tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Publish plan tests ─────────────────────────────────────────────────
 
 #[test]
 fn publish_plan_succeeds_and_shows_version() {
@@ -312,7 +310,7 @@ fn publish_plan_verbose_shows_exclusion_reasons() {
     );
 }
 
-// ΓöÇΓöÇ Schema bump tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Schema bump tests ──────────────────────────────────────────────────
 
 #[test]
 fn bump_dry_run_detects_schema_locations() {
