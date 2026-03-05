@@ -152,6 +152,7 @@ jobs:
   nix:
     name: Nix Build
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
@@ -171,6 +172,7 @@ jobs:
     name: Nix Build (macOS)
     if: github.event_name == 'push'
     runs-on: macos-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
