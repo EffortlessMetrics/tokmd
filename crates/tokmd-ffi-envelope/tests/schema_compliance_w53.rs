@@ -3,10 +3,10 @@
 //! These tests verify that the FFI response envelope correctly handles
 //! success/error responses and data extraction.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_ffi_envelope::{
-    extract_data, extract_data_from_json, extract_data_json, format_error_message, parse_envelope,
-    EnvelopeExtractError,
+    EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
+    format_error_message, parse_envelope,
 };
 
 // ---------------------------------------------------------------------------
@@ -127,9 +127,8 @@ fn extract_data_from_json_success() {
 
 #[test]
 fn extract_data_from_json_error() {
-    let err =
-        extract_data_from_json(r#"{"ok": false, "error": {"code": "e", "message": "fail"}}"#)
-            .unwrap_err();
+    let err = extract_data_from_json(r#"{"ok": false, "error": {"code": "e", "message": "fail"}}"#)
+        .unwrap_err();
     assert!(matches!(err, EnvelopeExtractError::Upstream(_)));
 }
 

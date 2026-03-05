@@ -5,8 +5,8 @@
 
 use serde_json::Value;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, ComplexityRisk, EntropyReport,
-    FunReport, TopicClouds, ANALYSIS_SCHEMA_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
+    ComplexityRisk, EntropyReport, FunReport, TopicClouds,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 

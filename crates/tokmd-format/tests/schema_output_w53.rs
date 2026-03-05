@@ -10,7 +10,7 @@ use tokmd_format::write_module_report_to;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, LangArgs, LangReport, LangRow, ModuleArgs, ModuleReport,
-    ModuleRow, TableFormat, Totals, SCHEMA_VERSION,
+    ModuleRow, SCHEMA_VERSION, TableFormat, Totals,
 };
 
 // ---------------------------------------------------------------------------
@@ -245,7 +245,13 @@ fn lang_all_formats_contain_same_totals() {
 
     // JSON
     let mut json_buf = Vec::new();
-    write_lang_report_to(&mut json_buf, &report, &global, &lang_args(TableFormat::Json)).unwrap();
+    write_lang_report_to(
+        &mut json_buf,
+        &report,
+        &global,
+        &lang_args(TableFormat::Json),
+    )
+    .unwrap();
     let json_str = String::from_utf8(json_buf).unwrap();
     let json_val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
     let json_total_code = json_val["total"]["code"].as_u64().unwrap();
@@ -320,7 +326,13 @@ fn json_and_tsv_have_same_row_count() {
 
     // JSON: count rows array
     let mut json_buf = Vec::new();
-    write_lang_report_to(&mut json_buf, &report, &global, &lang_args(TableFormat::Json)).unwrap();
+    write_lang_report_to(
+        &mut json_buf,
+        &report,
+        &global,
+        &lang_args(TableFormat::Json),
+    )
+    .unwrap();
     let json_str = String::from_utf8(json_buf).unwrap();
     let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
     let json_row_count = val["rows"].as_array().unwrap().len();

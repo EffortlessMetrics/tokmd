@@ -7,7 +7,7 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use tokmd_envelope::{
     Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
-    GateItem, GateResults, SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    GateItem, GateResults, SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict,
 };
 
 // ---------------------------------------------------------------------------
