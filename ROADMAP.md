@@ -30,7 +30,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.0** | ✅ Complete | Near-duplicate detection, commit intent, token estimation renames. |
 | **v1.7.1** | ✅ Complete | Focused microcrate extraction (40+ crates), AnalysisFormat to Tier 0. |
 | **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, CI fixes. |
-| **v1.7.x** | ✅ Complete | Deep test expansion: 11,991+ total tests, 55/56 crates with tests/, CI stabilized. |
+| **v1.7.x** | ✅ Complete | Deep test expansion: 21,884+ total tests, 56/56 crates with tests/, CI stabilized, Quality Gate fix, sensor determinism, io-port crate. |
 | **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
 | **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
