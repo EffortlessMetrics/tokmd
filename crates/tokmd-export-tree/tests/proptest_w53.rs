@@ -28,13 +28,8 @@ fn path_strategy() -> impl Strategy<Value = String> {
 }
 
 fn row_strategy(kind: FileKind) -> impl Strategy<Value = FileRow> {
-    (
-        path_strategy(),
-        0usize..4000,
-        0usize..4000,
-        0usize..4000,
-    )
-        .prop_map(move |(path, code, comments, tokens)| {
+    (path_strategy(), 0usize..4000, 0usize..4000, 0usize..4000).prop_map(
+        move |(path, code, comments, tokens)| {
             let module = path
                 .split('/')
                 .next()
@@ -53,7 +48,8 @@ fn row_strategy(kind: FileKind) -> impl Strategy<Value = FileRow> {
                 bytes: lines.saturating_mul(4),
                 tokens,
             }
-        })
+        },
+    )
 }
 
 fn parent_row_strategy() -> impl Strategy<Value = FileRow> {

@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use proptest::prelude::*;
 use tokmd_envelope::{
     Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
-    GateItem, GateResults, SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    GateItem, GateResults, SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict,
 };
 
 // ── Strategies ──────────────────────────────────────────────────────────
@@ -85,8 +85,7 @@ fn full_report(
     artifacts: Vec<Artifact>,
     caps: BTreeMap<String, CapabilityStatus>,
 ) -> SensorReport {
-    let mut report =
-        SensorReport::new(meta, "2025-01-01T00:00:00Z".into(), verdict, summary);
+    let mut report = SensorReport::new(meta, "2025-01-01T00:00:00Z".into(), verdict, summary);
     for f in findings {
         report.add_finding(f);
     }

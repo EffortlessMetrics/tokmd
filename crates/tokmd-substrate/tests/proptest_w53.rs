@@ -69,15 +69,13 @@ fn arb_diff_range() -> impl Strategy<Value = DiffRange> {
 fn arb_substrate(files: Vec<SubstrateFile>) -> RepoSubstrate {
     let mut lang_summary = BTreeMap::new();
     for f in &files {
-        let entry = lang_summary
-            .entry(f.lang.clone())
-            .or_insert(LangSummary {
-                files: 0,
-                code: 0,
-                lines: 0,
-                bytes: 0,
-                tokens: 0,
-            });
+        let entry = lang_summary.entry(f.lang.clone()).or_insert(LangSummary {
+            files: 0,
+            code: 0,
+            lines: 0,
+            bytes: 0,
+            tokens: 0,
+        });
         entry.files += 1;
         entry.code += f.code;
         entry.lines += f.lines;
