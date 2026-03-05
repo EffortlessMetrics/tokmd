@@ -3524,6 +3524,7 @@ dependencies = [
 name = "tokmd-io-port"
 version = "1.7.2"
 dependencies = [
+ "proptest",
  "tempfile",
 ]
 
