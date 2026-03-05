@@ -35,6 +35,22 @@ pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";
 /// - **Verdict-first**: Quick pass/fail/warn determination without parsing tool-specific data
 /// - **Findings are portable**: Common finding structure for cross-tool aggregation
 /// - **Self-describing**: Schema version and tool metadata enable forward compatibility
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::{SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA};
+///
+/// let report = SensorReport::new(
+///     ToolMeta::tokmd("1.5.0", "cockpit"),
+///     "2024-01-15T10:30:00Z".to_string(),
+///     Verdict::Pass,
+///     "All checks passed".to_string(),
+/// );
+/// assert_eq!(report.schema, SENSOR_REPORT_SCHEMA);
+/// assert_eq!(report.verdict, Verdict::Pass);
+/// assert!(report.findings.is_empty());
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SensorReport {
     /// Schema identifier (e.g., "sensor.report.v1").
@@ -64,6 +80,20 @@ pub struct SensorReport {
 }
 
 /// Tool identification for the sensor report.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::ToolMeta;
+///
+/// let meta = ToolMeta::new("my-sensor", "0.1.0", "analyze");
+/// assert_eq!(meta.name, "my-sensor");
+///
+/// // Shortcut for tokmd tools
+/// let tokmd = ToolMeta::tokmd("1.5.0", "cockpit");
+/// assert_eq!(tokmd.name, "tokmd");
+/// assert_eq!(tokmd.mode, "cockpit");
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolMeta {
     /// Tool name (e.g., "tokmd").
@@ -77,6 +107,16 @@ pub struct ToolMeta {
 /// Overall verdict for the sensor report.
 ///
 /// Directors aggregate verdicts: `fail` > `pending` > `warn` > `pass` > `skip`
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::Verdict;
+///
+/// let v = Verdict::default();
+/// assert_eq!(v, Verdict::Pass);
+/// assert_eq!(format!("{v}"), "pass");
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Verdict {
@@ -98,6 +138,23 @@ pub enum Verdict {
 /// Findings use a `(check_id, code)` tuple for identity. Combined with
 /// `tool.name` this forms the triple `(tool, check_id, code)` used for
 /// buildfix routing and cockpit policy (e.g., `("tokmd", "risk", "hotspot")`).
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::{Finding, FindingSeverity, FindingLocation};
+///
+/// let finding = Finding::new(
+///     "risk", "hotspot",
+///     FindingSeverity::Warn,
+///     "High-churn file",
+///     "src/lib.rs modified 42 times in 30 days",
+/// ).with_location(FindingLocation::path_line("src/lib.rs", 1));
+///
+/// assert_eq!(finding.check_id, "risk");
+/// assert_eq!(finding.code, "hotspot");
+/// assert!(finding.location.is_some());
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Finding {
     /// Check category (e.g., "risk", "contract", "gate").
@@ -138,6 +195,25 @@ pub enum FindingSeverity {
 }
 
 /// Source location for a finding.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::FindingLocation;
+///
+/// // Path only
+/// let loc = FindingLocation::path("src/main.rs");
+/// assert_eq!(loc.path, "src/main.rs");
+/// assert!(loc.line.is_none());
+///
+/// // Path + line
+/// let loc = FindingLocation::path_line("src/lib.rs", 42);
+/// assert_eq!(loc.line, Some(42));
+///
+/// // Path + line + column
+/// let loc = FindingLocation::path_line_column("src/lib.rs", 42, 10);
+/// assert_eq!(loc.column, Some(10));
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindingLocation {
     /// File path (normalized to forward slashes).
@@ -160,6 +236,18 @@ pub struct GateResults {
 }
 
 /// Individual gate item in the gates section.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::{GateItem, Verdict};
+///
+/// let gate = GateItem::new("coverage", Verdict::Pass)
+///     .with_threshold(80.0, 85.5)
+///     .with_source("ci_artifact");
+/// assert_eq!(gate.id, "coverage");
+/// assert_eq!(gate.actual, Some(85.5));
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GateItem {
     /// Gate identifier (e.g., "mutation", "diff_coverage").
@@ -184,6 +272,18 @@ pub struct GateItem {
 }
 
 /// Artifact reference in the sensor report.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_envelope::Artifact;
+///
+/// let art = Artifact::receipt("output/receipt.json")
+///     .with_id("analysis")
+///     .with_mime("application/json");
+/// assert_eq!(art.artifact_type, "receipt");
+/// assert_eq!(art.id.as_deref(), Some("analysis"));
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Artifact {
     /// Artifact identifier (e.g., "analysis", "handoff").
@@ -269,6 +369,26 @@ impl CapabilityStatus {
 
 impl SensorReport {
     /// Create a new sensor report with the current version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_envelope::{SensorReport, ToolMeta, Verdict, Finding, FindingSeverity};
+    ///
+    /// let mut report = SensorReport::new(
+    ///     ToolMeta::tokmd("1.5.0", "analyze"),
+    ///     "2024-06-01T12:00:00Z".to_string(),
+    ///     Verdict::Warn,
+    ///     "Risk hotspots detected".to_string(),
+    /// );
+    /// report.add_finding(Finding::new(
+    ///     "risk", "hotspot",
+    ///     FindingSeverity::Warn,
+    ///     "High-churn file",
+    ///     "src/lib.rs modified frequently",
+    /// ));
+    /// assert_eq!(report.findings.len(), 1);
+    /// ```
     pub fn new(tool: ToolMeta, generated_at: String, verdict: Verdict, summary: String) -> Self {
         Self {
             schema: SENSOR_REPORT_SCHEMA.to_string(),
@@ -376,6 +496,22 @@ impl Finding {
     /// Compute a stable fingerprint from `(tool_name, check_id, code, path)`.
     ///
     /// Returns first 16 bytes (32 hex chars) of a BLAKE3 hash for compactness.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd_envelope::{Finding, FindingSeverity, FindingLocation};
+    ///
+    /// let f = Finding::new("risk", "hotspot", FindingSeverity::Warn, "Churn", "high")
+    ///     .with_location(FindingLocation::path("src/lib.rs"));
+    /// let fp = f.compute_fingerprint("tokmd");
+    /// assert_eq!(fp.len(), 32);
+    ///
+    /// // Same inputs produce same fingerprint
+    /// let f2 = Finding::new("risk", "hotspot", FindingSeverity::Warn, "Churn", "high")
+    ///     .with_location(FindingLocation::path("src/lib.rs"));
+    /// assert_eq!(f2.compute_fingerprint("tokmd"), fp);
+    /// ```
     pub fn compute_fingerprint(&self, tool_name: &str) -> String {
         let path = self
             .location
