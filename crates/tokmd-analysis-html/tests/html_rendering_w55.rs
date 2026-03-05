@@ -613,10 +613,10 @@ fn render_deterministic_excluding_timestamp() {
 
     // Strip timestamps for comparison
     let strip_ts = |s: &str| -> String {
-        if let Some(start) = s.find("20") {
-            if let Some(end) = s.find(" UTC") {
-                return format!("{}{}", &s[..start], &s[end + 4..]);
-            }
+        if let Some(start) = s.find("20")
+            && let Some(end) = s.find(" UTC")
+        {
+            return format!("{}{}", &s[..start], &s[end + 4..]);
         }
         s.to_string()
     };

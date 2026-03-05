@@ -10,12 +10,12 @@ use tokmd_types::{ScanStatus, ToolInfo};
 
 #[test]
 fn analysis_schema_version_is_accessible() {
-    assert!(ANALYSIS_SCHEMA_VERSION >= 8);
+    const { assert!(ANALYSIS_SCHEMA_VERSION >= 8) };
 }
 
 #[test]
 fn baseline_version_is_accessible() {
-    assert!(BASELINE_VERSION >= 1);
+    const { assert!(BASELINE_VERSION >= 1) };
 }
 
 // ── Core type construction ────────────────────────────────────────────

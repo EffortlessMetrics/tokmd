@@ -188,18 +188,18 @@ fn docs_reference_cli_has_paired_help_markers() {
     // Verify that every open marker has a matching close marker
     let mut open_count = 0u32;
     for line in content.lines() {
-        if let Some(start) = line.find("<!-- HELP: ") {
-            if !line.contains("<!-- /HELP:") {
-                let after = &line[start + 11..];
-                if let Some(end) = after.find(" -->") {
-                    let cmd = &after[..end];
-                    let close = format!("<!-- /HELP: {cmd} -->");
-                    assert!(
-                        content.contains(&close),
-                        "reference-cli.md has open marker for {cmd} but no close marker"
-                    );
-                    open_count += 1;
-                }
+        if let Some(start) = line.find("<!-- HELP: ")
+            && !line.contains("<!-- /HELP:")
+        {
+            let after = &line[start + 11..];
+            if let Some(end) = after.find(" -->") {
+                let cmd = &after[..end];
+                let close = format!("<!-- /HELP: {cmd} -->");
+                assert!(
+                    content.contains(&close),
+                    "reference-cli.md has open marker for {cmd} but no close marker"
+                );
+                open_count += 1;
             }
         }
     }

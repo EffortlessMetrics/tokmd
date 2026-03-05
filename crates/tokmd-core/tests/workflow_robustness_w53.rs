@@ -237,10 +237,9 @@ fn lang_nonexistent_path_returns_error() {
     let result = lang_workflow(&scan, &lang);
     // Should succeed with empty results or fail gracefully
     // tokei may return empty results for non-existent paths
-    match result {
-        Ok(receipt) => assert!(receipt.report.rows.is_empty() || true),
-        Err(_) => {} // Error is also acceptable
-    }
+    if let Ok(receipt) = result {
+        assert!(receipt.report.rows.is_empty());
+    } // Error is also acceptable
 }
 
 #[test]
@@ -248,9 +247,8 @@ fn module_nonexistent_path_returns_error() {
     let scan = ScanSettings::for_paths(vec!["/nonexistent/path/abc123".to_string()]);
     let module = ModuleSettings::default();
     let result = module_workflow(&scan, &module);
-    match result {
-        Ok(receipt) => assert!(receipt.report.rows.is_empty() || true),
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(receipt.report.rows.is_empty());
     }
 }
 
@@ -259,9 +257,8 @@ fn export_nonexistent_path_returns_error() {
     let scan = ScanSettings::for_paths(vec!["/nonexistent/path/abc123".to_string()]);
     let export = ExportSettings::default();
     let result = export_workflow(&scan, &export);
-    match result {
-        Ok(receipt) => assert!(receipt.data.rows.is_empty() || true),
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(receipt.data.rows.is_empty());
     }
 }
 
