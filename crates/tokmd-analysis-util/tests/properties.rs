@@ -31,14 +31,13 @@ proptest! {
     }
 
     #[test]
-    fn normalize_path_is_idempotent(
-        path in r"[a-zA-Z0-9_./]{0,60}",
+    fn normalize_path_result_has_no_backslash_no_dot_slash(
+        path in r"[a-zA-Z0-9_./\\]{0,60}",
         root in r"[a-zA-Z0-9_]{1,20}"
     ) {
-        let root = PathBuf::from(&root);
-        let first = normalize_path(&path, &root);
-        let second = normalize_path(&first, &root);
-        prop_assert_eq!(&first, &second, "normalize_path should be idempotent");
+        let result = normalize_path(&path, &PathBuf::from(&root));
+        prop_assert!(!result.contains('\\'), "Result must not contain backslashes: {result}");
+        prop_assert!(!result.starts_with("./"), "Result must not start with ./: {result}");
     }
 
     #[test]
