@@ -94,10 +94,7 @@ fn w61_handoff_depth_0_only_root() {
 
 #[test]
 fn w61_handoff_depth_1_root_plus_first_level() {
-    let tree = render_handoff_tree(
-        &export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]),
-        1,
-    );
+    let tree = render_handoff_tree(&export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]), 1);
     assert!(tree.contains("(root)"));
     assert!(tree.contains("a/"));
     assert!(!tree.contains("b/"));
@@ -105,10 +102,7 @@ fn w61_handoff_depth_1_root_plus_first_level() {
 
 #[test]
 fn w61_handoff_depth_2_shows_two_levels() {
-    let tree = render_handoff_tree(
-        &export(vec![row("a/b/c/d.rs", FileKind::Parent, 1, 2)]),
-        2,
-    );
+    let tree = render_handoff_tree(&export(vec![row("a/b/c/d.rs", FileKind::Parent, 1, 2)]), 2);
     assert!(tree.contains("a/"));
     assert!(tree.contains("b/"));
     assert!(!tree.contains("c/"));
@@ -205,7 +199,14 @@ fn w61_handoff_sorting_dirs_lexicographic() {
 #[test]
 fn w61_analysis_many_child_rows_all_filtered() {
     let rows: Vec<FileRow> = (0..20)
-        .map(|i| row(&format!("src/file_{i}.rs::embedded"), FileKind::Child, 100, 200))
+        .map(|i| {
+            row(
+                &format!("src/file_{i}.rs::embedded"),
+                FileKind::Child,
+                100,
+                200,
+            )
+        })
         .collect();
     assert!(render_analysis_tree(&export(rows)).is_empty());
 }
@@ -239,12 +240,7 @@ fn w61_handoff_child_rows_not_counted_in_root() {
 
 #[test]
 fn w61_analysis_double_slash_in_path() {
-    let tree = render_analysis_tree(&export(vec![row(
-        "src//main.rs",
-        FileKind::Parent,
-        10,
-        20,
-    )]));
+    let tree = render_analysis_tree(&export(vec![row("src//main.rs", FileKind::Parent, 10, 20)]));
     // Empty segments filtered out, should still work
     assert!(tree.contains("src"));
     assert!(tree.contains("main.rs"));
@@ -280,10 +276,7 @@ fn w61_analysis_single_segment_path() {
 
 #[test]
 fn w61_handoff_single_segment_root_only() {
-    let tree = render_handoff_tree(
-        &export(vec![row("README.md", FileKind::Parent, 5, 10)]),
-        10,
-    );
+    let tree = render_handoff_tree(&export(vec![row("README.md", FileKind::Parent, 5, 10)]), 10);
     assert_eq!(tree.lines().count(), 1);
     assert!(tree.contains("(root) (files: 1, lines: 5, tokens: 10)"));
 }
@@ -439,10 +432,7 @@ fn w61_analysis_output_ends_with_newline() {
 
 #[test]
 fn w61_handoff_output_ends_with_newline() {
-    let tree = render_handoff_tree(
-        &export(vec![row("d/f.rs", FileKind::Parent, 1, 2)]),
-        3,
-    );
+    let tree = render_handoff_tree(&export(vec![row("d/f.rs", FileKind::Parent, 1, 2)]), 3);
     assert!(tree.ends_with('\n'));
 }
 
@@ -465,16 +455,16 @@ fn w61_handoff_dirs_have_trailing_slash() {
     );
     for line in tree.lines().skip(1) {
         let name = line.trim().split(" (").next().unwrap();
-        assert!(name.ends_with('/'), "dir should have trailing slash: {name}");
+        assert!(
+            name.ends_with('/'),
+            "dir should have trailing slash: {name}"
+        );
     }
 }
 
 #[test]
 fn w61_handoff_root_line_no_trailing_slash() {
-    let tree = render_handoff_tree(
-        &export(vec![row("d/f.rs", FileKind::Parent, 1, 2)]),
-        3,
-    );
+    let tree = render_handoff_tree(&export(vec![row("d/f.rs", FileKind::Parent, 1, 2)]), 3);
     let first = tree.lines().next().unwrap();
     assert!(first.starts_with("(root)"));
     assert!(!first.starts_with("(root)/"));

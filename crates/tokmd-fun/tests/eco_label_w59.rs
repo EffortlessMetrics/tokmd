@@ -28,9 +28,7 @@ fn face_lines(obj: &str) -> Vec<&str> {
 }
 
 fn object_names(obj: &str) -> Vec<&str> {
-    obj.lines()
-        .filter_map(|l| l.strip_prefix("o "))
-        .collect()
+    obj.lines().filter_map(|l| l.strip_prefix("o ")).collect()
 }
 
 // =========================================================================
@@ -205,7 +203,10 @@ fn obj_no_trailing_whitespace_on_face_lines() {
 
 #[test]
 fn obj_every_line_type_is_known() {
-    let buildings = vec![mk("a", 0.0, 0.0, 1.0, 1.0, 1.0), mk("b", 2.0, 0.0, 1.0, 1.0, 1.0)];
+    let buildings = vec![
+        mk("a", 0.0, 0.0, 1.0, 1.0, 1.0),
+        mk("b", 2.0, 0.0, 1.0, 1.0, 1.0),
+    ];
     let out = render_obj(&buildings);
     for line in out.lines() {
         assert!(
@@ -225,7 +226,11 @@ fn obj_faces_always_have_four_indices() {
         .collect();
     let out = render_obj(&buildings);
     for line in face_lines(&out) {
-        let indices: Vec<&str> = line.strip_prefix("f ").unwrap().split_whitespace().collect();
+        let indices: Vec<&str> = line
+            .strip_prefix("f ")
+            .unwrap()
+            .split_whitespace()
+            .collect();
         assert_eq!(indices.len(), 4, "face must be a quad: {line:?}");
     }
 }

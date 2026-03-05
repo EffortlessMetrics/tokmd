@@ -87,7 +87,10 @@ fn depth_0_treated_as_depth_1() {
 #[test]
 fn depth_affects_only_module_root_paths() {
     // Non-root dirs always return first segment regardless of depth
-    assert_eq!(module_key("src/deep/nested/lib.rs", &roots(&["crates"]), 5), "src");
+    assert_eq!(
+        module_key("src/deep/nested/lib.rs", &roots(&["crates"]), 5),
+        "src"
+    );
 }
 
 // ===========================================================================
@@ -103,18 +106,27 @@ fn multiple_roots_first_matched() {
 #[test]
 fn multiple_roots_second_matched() {
     let r = roots(&["crates", "packages"]);
-    assert_eq!(module_key("packages/bar/src/main.rs", &r, 2), "packages/bar");
+    assert_eq!(
+        module_key("packages/bar/src/main.rs", &r, 2),
+        "packages/bar"
+    );
 }
 
 #[test]
 fn non_root_first_segment_only() {
-    assert_eq!(module_key("tools/gen/main.rs", &roots(&["crates"]), 2), "tools");
+    assert_eq!(
+        module_key("tools/gen/main.rs", &roots(&["crates"]), 2),
+        "tools"
+    );
 }
 
 #[test]
 fn root_segment_must_match_exactly() {
     // "crate" is not "crates"
-    assert_eq!(module_key("crate/foo/lib.rs", &roots(&["crates"]), 2), "crate");
+    assert_eq!(
+        module_key("crate/foo/lib.rs", &roots(&["crates"]), 2),
+        "crate"
+    );
 }
 
 // ===========================================================================
@@ -195,18 +207,12 @@ fn leading_backslash_stripped() {
 
 #[test]
 fn leading_dot_backslash_stripped() {
-    assert_eq!(
-        module_key(".\\src\\lib.rs", &roots(&["src"]), 2),
-        "src"
-    );
+    assert_eq!(module_key(".\\src\\lib.rs", &roots(&["src"]), 2), "src");
 }
 
 #[test]
 fn leading_forward_slash_stripped() {
-    assert_eq!(
-        module_key("/src/lib.rs", &roots(&["src"]), 2),
-        "src"
-    );
+    assert_eq!(module_key("/src/lib.rs", &roots(&["src"]), 2), "src");
 }
 
 // ===========================================================================

@@ -40,7 +40,10 @@ fn temp_rust_file(code: &str) -> Result<TempDir> {
 /// Create a temp dir with multiple files of different languages.
 fn temp_multi_lang() -> Result<TempDir> {
     let dir = tempfile::tempdir()?;
-    fs::write(dir.path().join("main.rs"), "fn main() {\n    println!(\"hi\");\n}\n")?;
+    fs::write(
+        dir.path().join("main.rs"),
+        "fn main() {\n    println!(\"hi\");\n}\n",
+    )?;
     fs::write(
         dir.path().join("app.py"),
         "def main():\n    print('hi')\n\nif __name__ == '__main__':\n    main()\n",
@@ -57,7 +60,10 @@ fn temp_nested() -> Result<TempDir> {
     let dir = tempfile::tempdir()?;
     let src = dir.path().join("src");
     fs::create_dir_all(&src)?;
-    fs::write(src.join("lib.rs"), "pub fn add(a: i32, b: i32) -> i32 { a + b }\n")?;
+    fs::write(
+        src.join("lib.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }\n",
+    )?;
     fs::write(
         src.join("util.rs"),
         "pub fn double(x: i32) -> i32 { x * 2 }\n",
@@ -290,7 +296,11 @@ fn total_lines_equals_sum() -> Result<()> {
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
     let computed = rust.code + rust.comments + rust.blanks;
-    assert_eq!(rust.lines(), computed, "lines() == code + comments + blanks");
+    assert_eq!(
+        rust.lines(),
+        computed,
+        "lines() == code + comments + blanks"
+    );
     Ok(())
 }
 
@@ -441,8 +451,14 @@ fn multiple_exclude_patterns() -> Result<()> {
     let langs = scan(&[dir.path().to_path_buf()], &opts)?;
 
     assert!(langs.get(&tokei::LanguageType::Rust).is_some());
-    let py = langs.get(&tokei::LanguageType::Python).map(|l| l.code).unwrap_or(0);
-    let js = langs.get(&tokei::LanguageType::JavaScript).map(|l| l.code).unwrap_or(0);
+    let py = langs
+        .get(&tokei::LanguageType::Python)
+        .map(|l| l.code)
+        .unwrap_or(0);
+    let js = langs
+        .get(&tokei::LanguageType::JavaScript)
+        .map(|l| l.code)
+        .unwrap_or(0);
     assert_eq!(py, 0, "Python should be excluded");
     assert_eq!(js, 0, "JavaScript should be excluded");
     Ok(())

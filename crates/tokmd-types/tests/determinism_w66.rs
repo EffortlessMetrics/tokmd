@@ -87,7 +87,10 @@ fn lang_row_serialize_roundtrip_is_stable() {
     let json1 = serde_json::to_string(&row).unwrap();
     let deserialized: LangRow = serde_json::from_str(&json1).unwrap();
     let json2 = serde_json::to_string(&deserialized).unwrap();
-    assert_eq!(json1, json2, "serialize-deserialize-serialize must be identical");
+    assert_eq!(
+        json1, json2,
+        "serialize-deserialize-serialize must be identical"
+    );
 }
 
 #[test]
@@ -290,8 +293,14 @@ fn file_kind_serialization_is_stable() {
 
 #[test]
 fn scan_status_serialization_is_stable() {
-    assert_eq!(serde_json::to_string(&ScanStatus::Complete).unwrap(), "\"complete\"");
-    assert_eq!(serde_json::to_string(&ScanStatus::Partial).unwrap(), "\"partial\"");
+    assert_eq!(
+        serde_json::to_string(&ScanStatus::Complete).unwrap(),
+        "\"complete\""
+    );
+    assert_eq!(
+        serde_json::to_string(&ScanStatus::Partial).unwrap(),
+        "\"partial\""
+    );
 }
 
 // -- 12. Schema version constant stability --

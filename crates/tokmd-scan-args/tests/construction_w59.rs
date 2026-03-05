@@ -17,12 +17,18 @@ fn normalize_plain_relative_path() {
 
 #[test]
 fn normalize_strips_single_dot_slash() {
-    assert_eq!(normalize_scan_input(Path::new("./src/lib.rs")), "src/lib.rs");
+    assert_eq!(
+        normalize_scan_input(Path::new("./src/lib.rs")),
+        "src/lib.rs"
+    );
 }
 
 #[test]
 fn normalize_strips_repeated_dot_slash() {
-    assert_eq!(normalize_scan_input(Path::new("././src/lib.rs")), "src/lib.rs");
+    assert_eq!(
+        normalize_scan_input(Path::new("././src/lib.rs")),
+        "src/lib.rs"
+    );
 }
 
 #[test]
@@ -43,7 +49,10 @@ fn normalize_backslashes_to_forward() {
 
 #[test]
 fn normalize_preserves_non_dot_path() {
-    assert_eq!(normalize_scan_input(Path::new("crates/foo/src")), "crates/foo/src");
+    assert_eq!(
+        normalize_scan_input(Path::new("crates/foo/src")),
+        "crates/foo/src"
+    );
 }
 
 #[test]
@@ -181,7 +190,9 @@ fn scan_args_excluded_redacted_false_when_no_redact() {
 
 #[test]
 fn scan_args_path_count_preserved_under_redaction() {
-    let paths: Vec<PathBuf> = (0..5).map(|i| PathBuf::from(format!("dir{i}/file.rs"))).collect();
+    let paths: Vec<PathBuf> = (0..5)
+        .map(|i| PathBuf::from(format!("dir{i}/file.rs")))
+        .collect();
     let opts = ScanOptions::default();
     let args = scan_args(&paths, &opts, Some(RedactMode::Paths));
     assert_eq!(args.paths.len(), 5);
@@ -243,7 +254,10 @@ fn scan_args_deterministic_all_fields() {
     assert_eq!(a.no_ignore_parent, b.no_ignore_parent);
     assert_eq!(a.no_ignore_dot, b.no_ignore_dot);
     assert_eq!(a.no_ignore_vcs, b.no_ignore_vcs);
-    assert_eq!(a.treat_doc_strings_as_comments, b.treat_doc_strings_as_comments);
+    assert_eq!(
+        a.treat_doc_strings_as_comments,
+        b.treat_doc_strings_as_comments
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -317,7 +331,10 @@ fn scan_args_boolean_flags_independent_of_redaction() {
     assert_eq!(without.hidden, with_paths.hidden);
     assert_eq!(without.hidden, with_all.hidden);
     assert_eq!(without.no_ignore, with_paths.no_ignore);
-    assert_eq!(without.treat_doc_strings_as_comments, with_all.treat_doc_strings_as_comments);
+    assert_eq!(
+        without.treat_doc_strings_as_comments,
+        with_all.treat_doc_strings_as_comments
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════

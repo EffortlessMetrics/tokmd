@@ -149,7 +149,14 @@ fn sensor_report_envelope_has_required_fields() {
     let json = serde_json::to_string(&report).unwrap();
     let val: Value = serde_json::from_str(&json).unwrap();
     let obj = val.as_object().unwrap();
-    let expected_keys = ["schema", "tool", "generated_at", "verdict", "summary", "findings"];
+    let expected_keys = [
+        "schema",
+        "tool",
+        "generated_at",
+        "verdict",
+        "summary",
+        "findings",
+    ];
     for key in &expected_keys {
         assert!(obj.contains_key(*key), "Missing expected key: {key}");
     }
@@ -173,7 +180,10 @@ fn verdict_serializes_lowercase() {
     assert_eq!(serde_json::to_string(&Verdict::Fail).unwrap(), "\"fail\"");
     assert_eq!(serde_json::to_string(&Verdict::Warn).unwrap(), "\"warn\"");
     assert_eq!(serde_json::to_string(&Verdict::Skip).unwrap(), "\"skip\"");
-    assert_eq!(serde_json::to_string(&Verdict::Pending).unwrap(), "\"pending\"");
+    assert_eq!(
+        serde_json::to_string(&Verdict::Pending).unwrap(),
+        "\"pending\""
+    );
 }
 
 #[test]

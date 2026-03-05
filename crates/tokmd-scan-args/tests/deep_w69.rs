@@ -50,10 +50,7 @@ fn normalize_absolute_path_unchanged() {
 
 #[test]
 fn normalize_forward_slash_preserved() {
-    assert_eq!(
-        normalize_scan_input(Path::new("a/b/c")),
-        "a/b/c"
-    );
+    assert_eq!(normalize_scan_input(Path::new("a/b/c")), "a/b/c");
 }
 
 // ── scan_args — basic construction ──────────────────────────────────
@@ -157,7 +154,11 @@ fn scan_args_redact_paths_hides_paths_and_exclusions() {
         excluded: vec!["target".to_string(), "vendor".to_string()],
         ..Default::default()
     };
-    let args = scan_args(&[PathBuf::from("src/lib.rs")], &opts, Some(RedactMode::Paths));
+    let args = scan_args(
+        &[PathBuf::from("src/lib.rs")],
+        &opts,
+        Some(RedactMode::Paths),
+    );
     assert_ne!(args.paths[0], "src/lib.rs", "path should be redacted");
     assert_ne!(args.excluded[0], "target", "exclusion should be redacted");
     assert_ne!(args.excluded[1], "vendor", "exclusion should be redacted");
@@ -180,7 +181,10 @@ fn scan_args_redact_all_hides_paths_and_exclusions() {
 fn scan_args_redact_without_excluded_not_flagged() {
     let opts = default_opts(); // no exclusions
     let args = scan_args(&[PathBuf::from("src")], &opts, Some(RedactMode::Paths));
-    assert!(!args.excluded_redacted, "no exclusions means flag stays false");
+    assert!(
+        !args.excluded_redacted,
+        "no exclusions means flag stays false"
+    );
 }
 
 // ── determinism ─────────────────────────────────────────────────────
@@ -228,7 +232,10 @@ fn scan_args_json_round_trip() {
     assert_eq!(back.paths, args.paths);
     assert_eq!(back.excluded, args.excluded);
     assert_eq!(back.hidden, args.hidden);
-    assert_eq!(back.treat_doc_strings_as_comments, args.treat_doc_strings_as_comments);
+    assert_eq!(
+        back.treat_doc_strings_as_comments,
+        args.treat_doc_strings_as_comments
+    );
 }
 
 #[test]

@@ -43,9 +43,7 @@ fn parse_publish_order(stdout: &str) -> Vec<String> {
         }
         if in_order {
             let trimmed = line.trim();
-            if trimmed.is_empty()
-                || trimmed.starts_with("Excluded")
-                || trimmed.starts_with("Flags")
+            if trimmed.is_empty() || trimmed.starts_with("Excluded") || trimmed.starts_with("Flags")
             {
                 break;
             }
@@ -98,9 +96,7 @@ fn publish_order_respects_tier_hierarchy() {
     }
 
     // Tier 3 before tier 4
-    if let (Some(&analysis_p), Some(&core_p)) =
-        (pos.get("tokmd-analysis"), pos.get("tokmd-core"))
-    {
+    if let (Some(&analysis_p), Some(&core_p)) = (pos.get("tokmd-analysis"), pos.get("tokmd-core")) {
         assert!(
             analysis_p < core_p,
             "tier 3 (analysis) before tier 4 (core)"
@@ -123,9 +119,7 @@ fn publish_order_settings_before_dependents() {
         .map(|(i, n)| (n.as_str(), i))
         .collect();
 
-    if let (Some(&settings_p), Some(&scan_p)) =
-        (pos.get("tokmd-settings"), pos.get("tokmd-scan"))
-    {
+    if let (Some(&settings_p), Some(&scan_p)) = (pos.get("tokmd-settings"), pos.get("tokmd-scan")) {
         assert!(
             settings_p < scan_p,
             "tokmd-settings must come before tokmd-scan"
@@ -182,10 +176,7 @@ fn publish_order_every_crate_after_its_deps() {
 #[test]
 fn publish_classify_rate_limit_status_429() {
     // Verify the source code handles "status 429" pattern
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/publish.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
     assert!(
         src.contains("status 429"),
         "rate limit classifier should detect 'status 429'"
@@ -194,10 +185,7 @@ fn publish_classify_rate_limit_status_429() {
 
 #[test]
 fn publish_classify_rate_limit_too_many_requests() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/publish.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
     assert!(
         src.contains("too many requests"),
         "rate limit classifier should detect 'too many requests'"
@@ -206,10 +194,7 @@ fn publish_classify_rate_limit_too_many_requests() {
 
 #[test]
 fn publish_rate_limit_has_retry_after_parsing() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/publish.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
     assert!(
         src.contains("parse_rate_limit_timestamp"),
         "should have retry-after timestamp parsing"
@@ -222,10 +207,7 @@ fn publish_rate_limit_has_retry_after_parsing() {
 
 #[test]
 fn publish_rate_limit_has_max_waits() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/publish.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
     assert!(
         src.contains("MAX_RATE_LIMIT_WAITS"),
         "should cap maximum rate limit wait iterations"
@@ -234,10 +216,7 @@ fn publish_rate_limit_has_max_waits() {
 
 #[test]
 fn publish_rate_limit_timeout_cli_arg_exists() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/cli.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/cli.rs")).unwrap();
     assert!(
         src.contains("rate_limit_timeout"),
         "PublishArgs should have rate_limit_timeout field"
@@ -250,10 +229,7 @@ fn publish_rate_limit_timeout_cli_arg_exists() {
 
 #[test]
 fn publish_dry_run_uses_cargo_package_list() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/publish.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
     // Dry run should use `cargo package --list` not `cargo publish --dry-run`
     assert!(
         src.contains("cargo package") || src.contains(r#""package""#),
@@ -391,7 +367,11 @@ fn publish_plan_workspace_version_is_semver() {
         .unwrap_or("");
 
     let parts: Vec<&str> = version.split('.').collect();
-    assert_eq!(parts.len(), 3, "workspace version should be semver: {version}");
+    assert_eq!(
+        parts.len(),
+        3,
+        "workspace version should be semver: {version}"
+    );
     for part in &parts {
         assert!(
             part.parse::<u32>().is_ok(),

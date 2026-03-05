@@ -6,13 +6,25 @@ use tokmd_io_port::{MemFs, ReadFs};
 
 fn project_snapshot() -> MemFs {
     let mut fs = MemFs::new();
-    fs.add_file("Cargo.toml", "[package]\nname = \"demo\"\nversion = \"0.1.0\"");
+    fs.add_file(
+        "Cargo.toml",
+        "[package]\nname = \"demo\"\nversion = \"0.1.0\"",
+    );
     fs.add_file("src/lib.rs", "pub fn add(a: i32, b: i32) -> i32 { a + b }");
-    fs.add_file("src/main.rs", "fn main() { println!(\"{}\", demo::add(1, 2)); }");
-    fs.add_file("tests/test_add.rs", "#[test] fn it_works() { assert_eq!(demo::add(2, 2), 4); }");
+    fs.add_file(
+        "src/main.rs",
+        "fn main() { println!(\"{}\", demo::add(1, 2)); }",
+    );
+    fs.add_file(
+        "tests/test_add.rs",
+        "#[test] fn it_works() { assert_eq!(demo::add(2, 2), 4); }",
+    );
     fs.add_file("README.md", "# Demo\nA sample project.");
     fs.add_file(".gitignore", "/target\n");
-    fs.add_bytes("assets/icon.png", vec![0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+    fs.add_bytes(
+        "assets/icon.png",
+        vec![0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+    );
     fs
 }
 
@@ -20,13 +32,21 @@ fn project_snapshot() -> MemFs {
 fn snapshot_all_files_readable() {
     let fs = project_snapshot();
     let expected_files = [
-        "Cargo.toml", "src/lib.rs", "src/main.rs", "tests/test_add.rs",
-        "README.md", ".gitignore", "assets/icon.png",
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/test_add.rs",
+        "README.md",
+        ".gitignore",
+        "assets/icon.png",
     ];
     for path in expected_files {
         assert!(fs.exists(Path::new(path)), "expected {path} to exist");
         assert!(fs.is_file(Path::new(path)), "expected {path} to be a file");
-        assert!(fs.read_bytes(Path::new(path)).is_ok(), "expected {path} to be readable");
+        assert!(
+            fs.read_bytes(Path::new(path)).is_ok(),
+            "expected {path} to be readable"
+        );
     }
 }
 
@@ -35,16 +55,29 @@ fn snapshot_directories_inferred() {
     let fs = project_snapshot();
     let expected_dirs = ["src", "tests", "assets"];
     for dir in expected_dirs {
-        assert!(fs.is_dir(Path::new(dir)), "expected {dir} to be a directory");
+        assert!(
+            fs.is_dir(Path::new(dir)),
+            "expected {dir} to be a directory"
+        );
     }
 }
 
 #[test]
 fn snapshot_text_files_are_valid_utf8() {
     let fs = project_snapshot();
-    let text_files = ["Cargo.toml", "src/lib.rs", "src/main.rs", "tests/test_add.rs", "README.md", ".gitignore"];
+    let text_files = [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/test_add.rs",
+        "README.md",
+        ".gitignore",
+    ];
     for path in text_files {
-        assert!(fs.read_to_string(Path::new(path)).is_ok(), "expected {path} to be valid UTF-8");
+        assert!(
+            fs.read_to_string(Path::new(path)).is_ok(),
+            "expected {path} to be valid UTF-8"
+        );
     }
 }
 
@@ -67,7 +100,11 @@ fn bulk_insert_from_btreemap() {
         fs.add_file(*path, *content);
     }
     for (path, content) in &entries {
-        assert_eq!(fs.read_to_string(Path::new(path)).unwrap(), *content, "mismatch for {path}");
+        assert_eq!(
+            fs.read_to_string(Path::new(path)).unwrap(),
+            *content,
+            "mismatch for {path}"
+        );
     }
 }
 
@@ -103,8 +140,14 @@ fn clone_is_independent() {
     let mut fs = project_snapshot();
     let fs2 = fs.clone();
     fs.add_file("src/lib.rs", "MODIFIED");
-    assert_eq!(fs2.read_to_string(Path::new("src/lib.rs")).unwrap(), "pub fn add(a: i32, b: i32) -> i32 { a + b }");
-    assert_eq!(fs.read_to_string(Path::new("src/lib.rs")).unwrap(), "MODIFIED");
+    assert_eq!(
+        fs2.read_to_string(Path::new("src/lib.rs")).unwrap(),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }"
+    );
+    assert_eq!(
+        fs.read_to_string(Path::new("src/lib.rs")).unwrap(),
+        "MODIFIED"
+    );
 }
 
 #[test]
@@ -113,8 +156,14 @@ fn mixed_text_and_binary_same_directory() {
     fs.add_file("data/config.json", "{\"key\": \"value\"}");
     fs.add_bytes("data/blob.dat", vec![0x00; 256]);
     assert!(fs.is_dir(Path::new("data")));
-    assert_eq!(fs.read_to_string(Path::new("data/config.json")).unwrap(), "{\"key\": \"value\"}");
-    assert_eq!(fs.read_bytes(Path::new("data/blob.dat")).unwrap().len(), 256);
+    assert_eq!(
+        fs.read_to_string(Path::new("data/config.json")).unwrap(),
+        "{\"key\": \"value\"}"
+    );
+    assert_eq!(
+        fs.read_bytes(Path::new("data/blob.dat")).unwrap().len(),
+        256
+    );
 }
 
 #[test]

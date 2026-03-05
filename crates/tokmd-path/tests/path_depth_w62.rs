@@ -112,10 +112,7 @@ fn slashes_accented_chars() {
 
 #[test]
 fn slashes_spaces_in_path() {
-    assert_eq!(
-        normalize_slashes("my dir\\my file.rs"),
-        "my dir/my file.rs"
-    );
+    assert_eq!(normalize_slashes("my dir\\my file.rs"), "my dir/my file.rs");
 }
 
 #[test]
@@ -215,10 +212,7 @@ fn rel_spaces() {
 #[test]
 fn rel_windows_absolute_passthrough() {
     // Absolute Windows paths have no "./" prefix to strip.
-    assert_eq!(
-        normalize_rel_path("C:\\Users\\dev"),
-        "C:/Users/dev"
-    );
+    assert_eq!(normalize_rel_path("C:\\Users\\dev"), "C:/Users/dev");
 }
 
 // ── normalize_rel_path: trailing slashes ───────────────────────────────────

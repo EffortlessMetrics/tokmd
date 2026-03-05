@@ -102,10 +102,7 @@ fn multiple_at_signs_skipped() {
 
 #[test]
 fn domain_normalized_lowercase() {
-    let fp = build_corporate_fingerprint(&[
-        commit("a@ACME.COM"),
-        commit("b@Acme.Com"),
-    ]);
+    let fp = build_corporate_fingerprint(&[commit("a@ACME.COM"), commit("b@Acme.Com")]);
     assert_eq!(fp.domains.len(), 1);
     assert_eq!(fp.domains[0].domain, "acme.com");
     assert_eq!(fp.domains[0].commits, 2);
@@ -130,10 +127,7 @@ fn sorted_by_commits_descending() {
 
 #[test]
 fn tie_breaking_alphabetical() {
-    let commits = vec![
-        commit("a@beta.com"),
-        commit("b@alpha.com"),
-    ];
+    let commits = vec![commit("a@beta.com"), commit("b@alpha.com")];
     let fp = build_corporate_fingerprint(&commits);
     // Both have 1 commit, sorted alphabetically
     assert_eq!(fp.domains[0].domain, "alpha.com");
@@ -194,10 +188,7 @@ fn deterministic_output() {
 
 #[test]
 fn serde_round_trip() {
-    let commits = vec![
-        commit("a@corp.com"),
-        commit("b@gmail.com"),
-    ];
+    let commits = vec![commit("a@corp.com"), commit("b@gmail.com")];
     let fp = build_corporate_fingerprint(&commits);
     let json = serde_json::to_string(&fp).unwrap();
     let deserialized: CorporateFingerprint = serde_json::from_str(&json).unwrap();

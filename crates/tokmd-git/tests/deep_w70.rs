@@ -68,46 +68,79 @@ fn range_format_with_empty_refs() {
 #[test]
 fn intent_feat_conventional() {
     assert_eq!(classify_intent("feat: add login"), CommitIntentKind::Feat);
-    assert_eq!(classify_intent("feat(auth): add login"), CommitIntentKind::Feat);
-    assert_eq!(classify_intent("feature!: breaking change"), CommitIntentKind::Feat);
+    assert_eq!(
+        classify_intent("feat(auth): add login"),
+        CommitIntentKind::Feat
+    );
+    assert_eq!(
+        classify_intent("feature!: breaking change"),
+        CommitIntentKind::Feat
+    );
 }
 
 #[test]
 fn intent_fix_conventional() {
     assert_eq!(classify_intent("fix: null pointer"), CommitIntentKind::Fix);
-    assert_eq!(classify_intent("bugfix: crash on empty"), CommitIntentKind::Fix);
-    assert_eq!(classify_intent("hotfix: security patch"), CommitIntentKind::Fix);
+    assert_eq!(
+        classify_intent("bugfix: crash on empty"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("hotfix: security patch"),
+        CommitIntentKind::Fix
+    );
 }
 
 #[test]
 fn intent_refactor_conventional() {
-    assert_eq!(classify_intent("refactor: extract method"), CommitIntentKind::Refactor);
+    assert_eq!(
+        classify_intent("refactor: extract method"),
+        CommitIntentKind::Refactor
+    );
 }
 
 #[test]
 fn intent_docs_conventional() {
-    assert_eq!(classify_intent("docs: update README"), CommitIntentKind::Docs);
+    assert_eq!(
+        classify_intent("docs: update README"),
+        CommitIntentKind::Docs
+    );
     assert_eq!(classify_intent("doc: fix typo"), CommitIntentKind::Docs);
 }
 
 #[test]
 fn intent_test_conventional() {
-    assert_eq!(classify_intent("test: add unit tests"), CommitIntentKind::Test);
+    assert_eq!(
+        classify_intent("test: add unit tests"),
+        CommitIntentKind::Test
+    );
     assert_eq!(classify_intent("tests: coverage"), CommitIntentKind::Test);
 }
 
 #[test]
 fn intent_chore_ci_build_perf_style_conventional() {
-    assert_eq!(classify_intent("chore: bump version"), CommitIntentKind::Chore);
+    assert_eq!(
+        classify_intent("chore: bump version"),
+        CommitIntentKind::Chore
+    );
     assert_eq!(classify_intent("ci: fix pipeline"), CommitIntentKind::Ci);
-    assert_eq!(classify_intent("build: update deps"), CommitIntentKind::Build);
-    assert_eq!(classify_intent("perf: optimize query"), CommitIntentKind::Perf);
+    assert_eq!(
+        classify_intent("build: update deps"),
+        CommitIntentKind::Build
+    );
+    assert_eq!(
+        classify_intent("perf: optimize query"),
+        CommitIntentKind::Perf
+    );
     assert_eq!(classify_intent("style: reformat"), CommitIntentKind::Style);
 }
 
 #[test]
 fn intent_revert_conventional() {
-    assert_eq!(classify_intent("revert: undo feat"), CommitIntentKind::Revert);
+    assert_eq!(
+        classify_intent("revert: undo feat"),
+        CommitIntentKind::Revert
+    );
 }
 
 #[test]
@@ -122,30 +155,48 @@ fn intent_revert_git_format() {
 
 #[test]
 fn intent_keyword_fix() {
-    assert_eq!(classify_intent("Fix crash on startup"), CommitIntentKind::Fix);
-    assert_eq!(classify_intent("Resolve bug in parser"), CommitIntentKind::Fix);
+    assert_eq!(
+        classify_intent("Fix crash on startup"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("Resolve bug in parser"),
+        CommitIntentKind::Fix
+    );
 }
 
 #[test]
 fn intent_keyword_feat() {
     assert_eq!(classify_intent("Add dark mode"), CommitIntentKind::Feat);
-    assert_eq!(classify_intent("Implement caching layer"), CommitIntentKind::Feat);
+    assert_eq!(
+        classify_intent("Implement caching layer"),
+        CommitIntentKind::Feat
+    );
     assert_eq!(classify_intent("Introduce new API"), CommitIntentKind::Feat);
 }
 
 #[test]
 fn intent_keyword_refactor() {
-    assert_eq!(classify_intent("Refactor config loading"), CommitIntentKind::Refactor);
+    assert_eq!(
+        classify_intent("Refactor config loading"),
+        CommitIntentKind::Refactor
+    );
 }
 
 #[test]
 fn intent_keyword_docs() {
-    assert_eq!(classify_intent("Update readme with examples"), CommitIntentKind::Docs);
+    assert_eq!(
+        classify_intent("Update readme with examples"),
+        CommitIntentKind::Docs
+    );
 }
 
 #[test]
 fn intent_keyword_perf() {
-    assert_eq!(classify_intent("Optimize database queries"), CommitIntentKind::Perf);
+    assert_eq!(
+        classify_intent("Optimize database queries"),
+        CommitIntentKind::Perf
+    );
 }
 
 #[test]
@@ -156,7 +207,10 @@ fn intent_keyword_style() {
 
 #[test]
 fn intent_keyword_other_fallback() {
-    assert_eq!(classify_intent("Bump version to 1.0"), CommitIntentKind::Other);
+    assert_eq!(
+        classify_intent("Bump version to 1.0"),
+        CommitIntentKind::Other
+    );
     assert_eq!(classify_intent("WIP"), CommitIntentKind::Other);
 }
 
@@ -204,7 +258,12 @@ fn collect_history_respects_max_commits() {
     let dir = tempfile::tempdir().unwrap();
     init_repo(dir.path());
     for i in 0..5 {
-        commit_file(dir.path(), &format!("f{i}.txt"), "x", &format!("commit {i}"));
+        commit_file(
+            dir.path(),
+            &format!("f{i}.txt"),
+            "x",
+            &format!("commit {i}"),
+        );
     }
 
     // When max_commits is set, the pipe may close early causing git log

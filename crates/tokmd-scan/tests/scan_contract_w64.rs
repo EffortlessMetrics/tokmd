@@ -104,7 +104,11 @@ fn scan_detects_javascript() -> Result<()> {
 #[test]
 fn scan_detects_c() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(&dir, "main.c", "#include <stdio.h>\nint main() { return 0; }\n");
+    write_file(
+        &dir,
+        "main.c",
+        "#include <stdio.h>\nint main() { return 0; }\n",
+    );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     assert!(langs.get(&tokei::LanguageType::C).is_some());
     Ok(())
@@ -199,7 +203,11 @@ fn scan_single_code_line() -> Result<()> {
 #[test]
 fn scan_only_comments() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(&dir, "comments.py", "# line one\n# line two\n# line three\n");
+    write_file(
+        &dir,
+        "comments.py",
+        "# line one\n# line two\n# line three\n",
+    );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     let py = langs.get(&tokei::LanguageType::Python).unwrap();
     assert_eq!(py.comments, 3);
@@ -226,52 +234,67 @@ fn scan_only_blanks_not_detected() -> Result<()> {
 
 #[test]
 fn scan_with_config_mode_auto() -> Result<()> {
-    let langs = scan(&[crate_src()], &ScanOptions {
-        config: ConfigMode::Auto,
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[crate_src()],
+        &ScanOptions {
+            config: ConfigMode::Auto,
+            ..default_opts()
+        },
+    )?;
     assert!(!langs.is_empty());
     Ok(())
 }
 
 #[test]
 fn scan_with_config_mode_none() -> Result<()> {
-    let langs = scan(&[crate_src()], &ScanOptions {
-        config: ConfigMode::None,
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[crate_src()],
+        &ScanOptions {
+            config: ConfigMode::None,
+            ..default_opts()
+        },
+    )?;
     assert!(!langs.is_empty());
     Ok(())
 }
 
 #[test]
 fn scan_with_hidden_flag() -> Result<()> {
-    let langs = scan(&[crate_src()], &ScanOptions {
-        hidden: true,
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[crate_src()],
+        &ScanOptions {
+            hidden: true,
+            ..default_opts()
+        },
+    )?;
     assert!(!langs.is_empty());
     Ok(())
 }
 
 #[test]
 fn scan_with_no_ignore_flag() -> Result<()> {
-    let langs = scan(&[crate_src()], &ScanOptions {
-        no_ignore: true,
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[crate_src()],
+        &ScanOptions {
+            no_ignore: true,
+            ..default_opts()
+        },
+    )?;
     assert!(!langs.is_empty());
     Ok(())
 }
 
 #[test]
 fn scan_with_all_no_ignore_sub_flags() -> Result<()> {
-    let langs = scan(&[crate_src()], &ScanOptions {
-        no_ignore_parent: true,
-        no_ignore_dot: true,
-        no_ignore_vcs: true,
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[crate_src()],
+        &ScanOptions {
+            no_ignore_parent: true,
+            no_ignore_dot: true,
+            no_ignore_vcs: true,
+            ..default_opts()
+        },
+    )?;
     assert!(!langs.is_empty());
     Ok(())
 }
@@ -285,10 +308,13 @@ fn scan_with_doc_strings_as_comments() -> Result<()> {
         "\"\"\"Module docstring.\"\"\"\n\ndef foo():\n    \"\"\"Func docstring.\"\"\"\n    pass\n",
     );
     let normal = scan(&[dir.path().to_path_buf()], &default_opts())?;
-    let with_docs = scan(&[dir.path().to_path_buf()], &ScanOptions {
-        treat_doc_strings_as_comments: true,
-        ..default_opts()
-    })?;
+    let with_docs = scan(
+        &[dir.path().to_path_buf()],
+        &ScanOptions {
+            treat_doc_strings_as_comments: true,
+            ..default_opts()
+        },
+    )?;
     // With treat_doc_strings_as_comments, comment count should be >= normal
     let normal_py = normal.get(&tokei::LanguageType::Python).unwrap();
     let docs_py = with_docs.get(&tokei::LanguageType::Python).unwrap();
@@ -304,10 +330,13 @@ fn scan_with_excluded_patterns() -> Result<()> {
     let dir = TempDir::new()?;
     write_file(&dir, "keep.rs", "fn main() {}\n");
     write_file(&dir, "skip.py", "print('hi')\n");
-    let langs = scan(&[dir.path().to_path_buf()], &ScanOptions {
-        excluded: vec!["*.py".to_string()],
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[dir.path().to_path_buf()],
+        &ScanOptions {
+            excluded: vec!["*.py".to_string()],
+            ..default_opts()
+        },
+    )?;
     assert!(langs.get(&tokei::LanguageType::Rust).is_some());
     assert!(
         langs.get(&tokei::LanguageType::Python).is_none(),
@@ -357,7 +386,10 @@ function hello() {
 "#,
     );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
-    assert!(langs.get(&tokei::LanguageType::Html).is_some(), "HTML should be detected");
+    assert!(
+        langs.get(&tokei::LanguageType::Html).is_some(),
+        "HTML should be detected"
+    );
     Ok(())
 }
 
@@ -390,7 +422,11 @@ h1 { font-size: 2em; }
 #[test]
 fn property_all_languages_lines_sum() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(&dir, "a.rs", "fn main() {\n    // hi\n\n    let x = 1;\n}\n");
+    write_file(
+        &dir,
+        "a.rs",
+        "fn main() {\n    // hi\n\n    let x = 1;\n}\n",
+    );
     write_file(&dir, "b.py", "# comment\nx = 1\n\ny = 2\n");
     write_file(&dir, "c.js", "// comment\nconst x = 1;\n\nconst y = 2;\n");
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
@@ -426,13 +462,19 @@ fn property_code_lines_are_usize() -> Result<()> {
 fn given_rust_file_when_scanned_then_language_and_counts_correct() -> Result<()> {
     // Given: a temp dir with one Rust file
     let dir = TempDir::new()?;
-    write_file(&dir, "lib.rs", "// docs\nfn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n");
+    write_file(
+        &dir,
+        "lib.rs",
+        "// docs\nfn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n",
+    );
 
     // When: scanning
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
 
     // Then: Rust detected with correct counts
-    let rust = langs.get(&tokei::LanguageType::Rust).expect("Rust should be detected");
+    let rust = langs
+        .get(&tokei::LanguageType::Rust)
+        .expect("Rust should be detected");
     assert_eq!(rust.code, 3, "3 code lines");
     assert_eq!(rust.comments, 1, "1 comment line");
     assert_eq!(rust.blanks, 0, "0 blank lines");
@@ -463,10 +505,13 @@ fn given_excluded_pattern_when_scanned_then_language_missing() -> Result<()> {
     write_file(&dir, "drop.py", "x = 1\n");
 
     // When: excluding *.py
-    let langs = scan(&[dir.path().to_path_buf()], &ScanOptions {
-        excluded: vec!["*.py".to_string()],
-        ..default_opts()
-    })?;
+    let langs = scan(
+        &[dir.path().to_path_buf()],
+        &ScanOptions {
+            excluded: vec!["*.py".to_string()],
+            ..default_opts()
+        },
+    )?;
 
     // Then: Python not in results
     assert!(langs.get(&tokei::LanguageType::Rust).is_some());
@@ -514,7 +559,10 @@ fn scan_file_with_sh_extension() -> Result<()> {
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     // tokei may detect this as Bash or Sh depending on version
     let detected = !langs.is_empty();
-    assert!(detected, "shell script with .sh extension should be detected");
+    assert!(
+        detected,
+        "shell script with .sh extension should be detected"
+    );
     Ok(())
 }
 
@@ -574,10 +622,7 @@ fn scan_mixed_nonexistent_and_valid_returns_error() {
     let dir = TempDir::new().unwrap();
     write_file(&dir, "a.rs", "fn f() {}\n");
     let bad = dir.path().join("ghost");
-    let result = scan(
-        &[dir.path().to_path_buf(), bad],
-        &default_opts(),
-    );
+    let result = scan(&[dir.path().to_path_buf(), bad], &default_opts());
     assert!(result.is_err(), "should error on any nonexistent path");
 }
 
@@ -633,7 +678,14 @@ mod properties {
             any::<bool>(),
         )
             .prop_map(
-                |(hidden, no_ignore, no_ignore_parent, no_ignore_dot, no_ignore_vcs, doc_comments)| {
+                |(
+                    hidden,
+                    no_ignore,
+                    no_ignore_parent,
+                    no_ignore_dot,
+                    no_ignore_vcs,
+                    doc_comments,
+                )| {
                     ScanOptions {
                         excluded: vec![],
                         config: ConfigMode::None,
@@ -704,7 +756,10 @@ fn scan_file_with_mixed_line_endings() -> Result<()> {
     write_file(&dir, "mixed.py", "x = 1\r\ny = 2\nz = 3\r\n");
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     let py = langs.get(&tokei::LanguageType::Python).unwrap();
-    assert_eq!(py.code, 3, "should count 3 code lines regardless of line endings");
+    assert_eq!(
+        py.code, 3,
+        "should count 3 code lines regardless of line endings"
+    );
     Ok(())
 }
 
@@ -744,7 +799,11 @@ fn scan_file_with_unicode_content() -> Result<()> {
 #[test]
 fn scan_markdown_file() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(&dir, "README.md", "# Title\n\nSome text.\n\n## Section\n\nMore text.\n");
+    write_file(
+        &dir,
+        "README.md",
+        "# Title\n\nSome text.\n\n## Section\n\nMore text.\n",
+    );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     assert!(langs.get(&tokei::LanguageType::Markdown).is_some());
     Ok(())
@@ -753,7 +812,11 @@ fn scan_markdown_file() -> Result<()> {
 #[test]
 fn scan_yaml_file() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(&dir, "config.yaml", "key: value\nlist:\n  - item1\n  - item2\n");
+    write_file(
+        &dir,
+        "config.yaml",
+        "key: value\nlist:\n  - item1\n  - item2\n",
+    );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     assert!(langs.get(&tokei::LanguageType::Yaml).is_some());
     Ok(())

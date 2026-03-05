@@ -101,7 +101,10 @@ fn w62_label_rect_fill_is_grey() {
 #[test]
 fn w62_value_rect_fill_is_blue() {
     let svg = badge_svg("label", "value");
-    assert!(svg.contains("fill=\"#4c9aff\""), "value rect should be #4c9aff");
+    assert!(
+        svg.contains("fill=\"#4c9aff\""),
+        "value rect should be #4c9aff"
+    );
 }
 
 #[test]

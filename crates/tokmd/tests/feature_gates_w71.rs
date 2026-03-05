@@ -145,12 +145,7 @@ fn analyze_deep_no_git_flag_suppresses_git() {
     let output = tokmd()
         .current_dir(fixture())
         .args([
-            "analyze",
-            "--preset",
-            "deep",
-            "--format",
-            "json",
-            "--no-git",
+            "analyze", "--preset", "deep", "--format", "json", "--no-git",
         ])
         .output()
         .unwrap();
@@ -212,13 +207,12 @@ fn all_presets_produce_valid_json_envelope() {
             "preset '{preset}' must succeed, stderr: {}",
             String::from_utf8_lossy(&output.stderr)
         );
-        let json: serde_json::Value =
-            serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
-                panic!(
-                    "preset '{preset}' must produce valid JSON: {e}\nstdout: {}",
-                    String::from_utf8_lossy(&output.stdout)
-                )
-            });
+        let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
+            panic!(
+                "preset '{preset}' must produce valid JSON: {e}\nstdout: {}",
+                String::from_utf8_lossy(&output.stdout)
+            )
+        });
         assert!(
             json.get("schema_version").is_some(),
             "preset '{preset}' must have schema_version"

@@ -97,7 +97,8 @@ mod classification_w68 {
         write_repeated(&dir.path().join("zeros.bin"), 0x00, 1024);
         let export = export_for_paths(&["zeros.bin"]);
         let files = vec![PathBuf::from("zeros.bin")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 1);
         assert_eq!(r.suspects[0].class, EntropyClass::Low);
         assert!(r.suspects[0].entropy_bits_per_byte < 0.01);
@@ -109,7 +110,8 @@ mod classification_w68 {
         write_pseudorandom(&dir.path().join("rand.bin"), 2048);
         let export = export_for_paths(&["rand.bin"]);
         let files = vec![PathBuf::from("rand.bin")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 1);
         assert_eq!(r.suspects[0].class, EntropyClass::High);
         assert!(r.suspects[0].entropy_bits_per_byte > 7.5);
@@ -121,7 +123,8 @@ mod classification_w68 {
         write_all_byte_values(&dir.path().join("uniform.bin"), 8);
         let export = export_for_paths(&["uniform.bin"]);
         let files = vec![PathBuf::from("uniform.bin")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 1);
         assert_eq!(r.suspects[0].class, EntropyClass::High);
     }
@@ -133,9 +136,13 @@ mod classification_w68 {
         fs::write(dir.path().join("main.rs"), &code).unwrap();
         let export = export_for_paths(&["main.rs"]);
         let files = vec![PathBuf::from("main.rs")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         // Normal entropy files are excluded from suspects
-        assert!(r.suspects.is_empty(), "source code should be normal entropy");
+        assert!(
+            r.suspects.is_empty(),
+            "source code should be normal entropy"
+        );
     }
 
     #[test]
@@ -148,7 +155,8 @@ mod classification_w68 {
         fs::write(dir.path().join("ab.txt"), &data).unwrap();
         let export = export_for_paths(&["ab.txt"]);
         let files = vec![PathBuf::from("ab.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         // 2 equally-distributed bytes → ~1.0 bits/byte → Low class (<2.0)
         assert_eq!(r.suspects.len(), 1);
         assert_eq!(r.suspects[0].class, EntropyClass::Low);
@@ -167,7 +175,8 @@ mod sorting_w68 {
         write_pseudorandom(&dir.path().join("high.bin"), 1024);
         let export = export_for_paths(&["low.txt", "high.bin"]);
         let files = vec![PathBuf::from("low.txt"), PathBuf::from("high.bin")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 2);
         assert!(r.suspects[0].entropy_bits_per_byte >= r.suspects[1].entropy_bits_per_byte);
     }
@@ -179,7 +188,8 @@ mod sorting_w68 {
         write_repeated(&dir.path().join("a.txt"), b'Z', 1024);
         let export = export_for_paths(&["b.txt", "a.txt"]);
         let files = vec![PathBuf::from("b.txt"), PathBuf::from("a.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 2);
         assert_eq!(r.suspects[0].path, "a.txt");
         assert_eq!(r.suspects[1].path, "b.txt");
@@ -198,7 +208,8 @@ mod sorting_w68 {
         }
         let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
         let export = export_for_paths(&path_refs);
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert!(r.suspects.len() <= 50, "got {} suspects", r.suspects.len());
     }
 }
@@ -223,7 +234,11 @@ mod budget_w68 {
             ..Default::default()
         };
         let r = build_entropy_report(dir.path(), &files, &export, &limits).unwrap();
-        assert!(r.suspects.len() <= 2, "budget should limit: got {}", r.suspects.len());
+        assert!(
+            r.suspects.len() <= 2,
+            "budget should limit: got {}",
+            r.suspects.len()
+        );
     }
 
     #[test]
@@ -232,14 +247,21 @@ mod budget_w68 {
         fs::write(dir.path().join("empty.txt"), b"").unwrap();
         let export = export_for_paths(&["empty.txt"]);
         let files = vec![PathBuf::from("empty.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert!(r.suspects.is_empty());
     }
 
     #[test]
     fn empty_file_list_gives_empty_report() {
         let dir = tempdir().unwrap();
-        let r = build_entropy_report(dir.path(), &[], &export_for_paths(&[]), &AnalysisLimits::default()).unwrap();
+        let r = build_entropy_report(
+            dir.path(),
+            &[],
+            &export_for_paths(&[]),
+            &AnalysisLimits::default(),
+        )
+        .unwrap();
         assert!(r.suspects.is_empty());
     }
 }
@@ -255,7 +277,8 @@ mod module_mapping_w68 {
         write_repeated(&dir.path().join("low.txt"), b'A', 1024);
         let export = export_with_modules(&[("low.txt", "my_module")]);
         let files = vec![PathBuf::from("low.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects[0].module, "my_module");
     }
 
@@ -265,7 +288,8 @@ mod module_mapping_w68 {
         write_repeated(&dir.path().join("orphan.txt"), b'A', 1024);
         let export = export_for_paths(&[]);
         let files = vec![PathBuf::from("orphan.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects[0].module, "(unknown)");
     }
 }
@@ -282,8 +306,10 @@ mod determinism_w68 {
         write_pseudorandom(&dir.path().join("high.bin"), 1024);
         let export = export_for_paths(&["low.txt", "high.bin"]);
         let files = vec![PathBuf::from("low.txt"), PathBuf::from("high.bin")];
-        let r1 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
-        let r2 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r1 =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r2 =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(
             serde_json::to_string(&r1).unwrap(),
             serde_json::to_string(&r2).unwrap(),
@@ -296,7 +322,8 @@ mod determinism_w68 {
         write_repeated(&dir.path().join("low.txt"), b'A', 1024);
         let export = export_for_paths(&["low.txt"]);
         let files = vec![PathBuf::from("low.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         let json = serde_json::to_string(&r).unwrap();
         let rt: EntropyReport = serde_json::from_str(&json).unwrap();
         assert_eq!(rt.suspects.len(), r.suspects.len());
@@ -311,7 +338,8 @@ mod determinism_w68 {
         write_repeated(&dir.path().join("low.txt"), b'A', 512);
         let export = export_for_paths(&["low.txt"]);
         let files = vec![PathBuf::from("low.txt")];
-        let r = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let r =
+            build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
         assert_eq!(r.suspects.len(), 1);
         assert!(r.suspects[0].sample_bytes > 0);
     }

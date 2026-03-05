@@ -8,8 +8,8 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use tokmd_envelope::{
-    Artifact, CapabilityStatus, Finding, FindingSeverity, SensorReport, ToolMeta, Verdict,
-    SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityStatus, Finding, FindingSeverity, SENSOR_REPORT_SCHEMA, SensorReport,
+    ToolMeta, Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
 use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
@@ -267,9 +267,7 @@ fn threshold_pass_at_exact_boundary() {
 #[test]
 fn threshold_on_empty_substrate() {
     let sub = empty_substrate();
-    let settings = ThresholdSettings {
-        max_code_lines: 0,
-    };
+    let settings = ThresholdSettings { max_code_lines: 0 };
     let report = ThresholdSensor.run(&settings, &sub).unwrap();
     assert_eq!(report.verdict, Verdict::Pass);
 }
@@ -462,9 +460,7 @@ fn finding_order_is_deterministic() {
 
 #[test]
 fn threshold_settings_roundtrip() {
-    let s = ThresholdSettings {
-        max_code_lines: 42,
-    };
+    let s = ThresholdSettings { max_code_lines: 42 };
     let json = serde_json::to_string(&s).unwrap();
     let back: ThresholdSettings = serde_json::from_str(&json).unwrap();
     assert_eq!(back.max_code_lines, 42);
@@ -484,7 +480,12 @@ fn diff_settings_unit_struct_roundtrip() {
 fn multiple_sensors_share_substrate() {
     let sub = multi_lang_substrate();
     let r1 = ThresholdSensor
-        .run(&ThresholdSettings { max_code_lines: 1000 }, &sub)
+        .run(
+            &ThresholdSettings {
+                max_code_lines: 1000,
+            },
+            &sub,
+        )
         .unwrap();
     let r2 = LangCountSensor
         .run(&LangCountSettings { min_languages: 1 }, &sub)

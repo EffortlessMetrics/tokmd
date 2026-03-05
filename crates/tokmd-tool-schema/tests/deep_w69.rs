@@ -3,9 +3,7 @@
 //! Covers OpenAI, Anthropic, JSON Schema, and Clap format rendering,
 //! deterministic output, envelope metadata, and parameter introspection.
 
-use tokmd_tool_schema::{
-    build_tool_schema, render_output, ToolSchemaFormat, TOOL_SCHEMA_VERSION,
-};
+use tokmd_tool_schema::{TOOL_SCHEMA_VERSION, ToolSchemaFormat, build_tool_schema, render_output};
 
 use clap::{Arg, ArgAction, Command};
 use serde_json::Value;
@@ -66,11 +64,7 @@ fn multi_arg_cmd() -> Command {
                 .action(ArgAction::Append)
                 .help("Repeated items"),
         )
-        .arg(
-            Arg::new("flag_a")
-                .long("flag-a")
-                .action(ArgAction::SetTrue),
-        )
+        .arg(Arg::new("flag_a").long("flag-a").action(ArgAction::SetTrue))
         .arg(
             Arg::new("flag_b")
                 .long("flag-b")
@@ -148,7 +142,11 @@ fn w69_minimal_cmd_single_tool() {
 fn w69_param_type_boolean() {
     let schema = build_tool_schema(&simple_cmd());
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert_eq!(verbose.param_type, "boolean");
 }
 
@@ -160,7 +158,11 @@ fn w69_param_type_boolean() {
 fn w69_param_type_count_integer() {
     let schema = build_tool_schema(&simple_cmd());
     let export = schema.tools.iter().find(|t| t.name == "export").unwrap();
-    let count = export.parameters.iter().find(|p| p.name == "count").unwrap();
+    let count = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "count")
+        .unwrap();
     assert_eq!(count.param_type, "integer");
 }
 
@@ -198,7 +200,11 @@ fn w69_required_flag() {
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
     let path = scan.parameters.iter().find(|p| p.name == "path").unwrap();
     assert!(path.required);
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert!(!verbose.required);
 }
 
@@ -210,7 +216,11 @@ fn w69_required_flag() {
 fn w69_enum_values_extracted() {
     let schema = build_tool_schema(&simple_cmd());
     let export = schema.tools.iter().find(|t| t.name == "export").unwrap();
-    let fmt = export.parameters.iter().find(|p| p.name == "format").unwrap();
+    let fmt = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "format")
+        .unwrap();
     let enums = fmt.enum_values.as_ref().expect("should have enum values");
     assert!(enums.contains(&"json".to_string()));
     assert!(enums.contains(&"csv".to_string()));

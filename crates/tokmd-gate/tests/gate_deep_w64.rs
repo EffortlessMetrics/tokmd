@@ -15,8 +15,8 @@
 use serde_json::json;
 use std::collections::BTreeMap;
 use tokmd_gate::{
-    evaluate_policy, evaluate_ratchet_policy, resolve_pointer, GateResult, PolicyConfig,
-    PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel, RuleOperator, RuleResult,
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
+    RuleOperator, RuleResult, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -155,7 +155,10 @@ fn empty_policy_always_passes() {
 #[test]
 fn single_passing_rule() {
     let receipt = json!({"v": 5});
-    let result = evaluate_policy(&receipt, &policy(vec![rule("r", "/v", RuleOperator::Lt, json!(10))]));
+    let result = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("r", "/v", RuleOperator::Lt, json!(10))]),
+    );
     assert!(result.passed);
     assert_eq!(result.rule_results.len(), 1);
     assert!(result.rule_results[0].passed);
@@ -178,7 +181,14 @@ fn many_rules_all_pass() {
     let rules: Vec<PolicyRule> = ["a", "b", "c", "d", "e"]
         .iter()
         .enumerate()
-        .map(|(i, k)| rule(&format!("r{i}"), &format!("/{k}"), RuleOperator::Lte, json!(10)))
+        .map(|(i, k)| {
+            rule(
+                &format!("r{i}"),
+                &format!("/{k}"),
+                RuleOperator::Lte,
+                json!(10),
+            )
+        })
         .collect();
     let result = evaluate_policy(&receipt, &policy(rules));
     assert!(result.passed);
@@ -258,7 +268,10 @@ fn all_numeric_operators() {
         (RuleOperator::Ne, json!(10), false),
     ];
     for (op, val, expected_pass) in cases {
-        let result = evaluate_policy(&receipt, &policy(vec![rule("op_test", "/v", op, val.clone())]));
+        let result = evaluate_policy(
+            &receipt,
+            &policy(vec![rule("op_test", "/v", op, val.clone())]),
+        );
         assert_eq!(
             result.passed, expected_pass,
             "op={op}, val={val}, expected_pass={expected_pass}"
@@ -429,7 +442,11 @@ fn fail_fast_stops_after_first_error() {
     };
     let result = evaluate_policy(&receipt, &p);
     assert!(!result.passed);
-    assert_eq!(result.rule_results.len(), 1, "fail_fast should stop after first error");
+    assert_eq!(
+        result.rule_results.len(),
+        1,
+        "fail_fast should stop after first error"
+    );
 }
 
 #[test]
@@ -478,7 +495,11 @@ fn rule_results_preserve_insertion_order() {
         rule("third", "/c", RuleOperator::Eq, json!(3)),
     ];
     let result = evaluate_policy(&receipt, &policy(rules));
-    let names: Vec<&str> = result.rule_results.iter().map(|r| r.name.as_str()).collect();
+    let names: Vec<&str> = result
+        .rule_results
+        .iter()
+        .map(|r| r.name.as_str())
+        .collect();
     assert_eq!(names, vec!["first", "second", "third"]);
 }
 

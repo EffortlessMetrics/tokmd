@@ -86,7 +86,10 @@ fn module_section_roots_and_depth() {
         "#,
     )
     .unwrap();
-    assert_eq!(cfg.module.roots, Some(vec!["crates".to_string(), "libs".to_string()]));
+    assert_eq!(
+        cfg.module.roots,
+        Some(vec!["crates".to_string(), "libs".to_string()])
+    );
     assert_eq!(cfg.module.depth, Some(3));
     assert_eq!(cfg.module.children, Some("collapse".to_string()));
 }
@@ -504,7 +507,13 @@ fn badge_metric_roundtrip() {
 
 #[test]
 fn shell_variants_roundtrip() {
-    for variant in [Shell::Bash, Shell::Elvish, Shell::Fish, Shell::Powershell, Shell::Zsh] {
+    for variant in [
+        Shell::Bash,
+        Shell::Elvish,
+        Shell::Fish,
+        Shell::Powershell,
+        Shell::Zsh,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: Shell = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -571,7 +580,11 @@ fn value_metric_roundtrip() {
 
 #[test]
 fn context_output_roundtrip() {
-    for variant in [ContextOutput::List, ContextOutput::Bundle, ContextOutput::Json] {
+    for variant in [
+        ContextOutput::List,
+        ContextOutput::Bundle,
+        ContextOutput::Json,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: ContextOutput = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -726,7 +739,10 @@ fn given_full_config_when_load_then_all_sections_present() {
     // When
     let cfg: TomlConfig = toml::from_str(toml_str).unwrap();
     // Then
-    assert_eq!(cfg.scan.paths, Some(vec!["src".to_string(), "lib".to_string()]));
+    assert_eq!(
+        cfg.scan.paths,
+        Some(vec!["src".to_string(), "lib".to_string()])
+    );
     assert_eq!(cfg.module.roots, Some(vec!["packages".to_string()]));
     assert_eq!(cfg.export.min_code, Some(5));
     assert_eq!(cfg.analyze.preset, Some("health".to_string()));

@@ -165,9 +165,7 @@ fn export_empty_directory_succeeds() {
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path());
-    cmd.args(["export", "--format", "json"])
-        .assert()
-        .success();
+    cmd.args(["export", "--format", "json"]).assert().success();
 }
 
 #[test]
@@ -177,9 +175,7 @@ fn module_empty_directory_succeeds() {
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path());
-    cmd.args(["module", "--format", "json"])
-        .assert()
-        .success();
+    cmd.args(["module", "--format", "json"]).assert().success();
 }
 
 // ===========================================================================

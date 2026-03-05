@@ -169,7 +169,11 @@ fn technical_debt_level_all_variants_roundtrip() {
 
 #[test]
 fn near_dup_scope_all_variants_roundtrip() {
-    let variants = [NearDupScope::Module, NearDupScope::Lang, NearDupScope::Global];
+    let variants = [
+        NearDupScope::Module,
+        NearDupScope::Lang,
+        NearDupScope::Global,
+    ];
     for v in variants {
         let json = serde_json::to_string(&v).unwrap();
         let back: NearDupScope = serde_json::from_str(&json).unwrap();
@@ -184,9 +188,18 @@ fn near_dup_scope_default_is_module() {
 
 #[test]
 fn near_dup_scope_uses_kebab_case() {
-    assert_eq!(serde_json::to_string(&NearDupScope::Module).unwrap(), "\"module\"");
-    assert_eq!(serde_json::to_string(&NearDupScope::Lang).unwrap(), "\"lang\"");
-    assert_eq!(serde_json::to_string(&NearDupScope::Global).unwrap(), "\"global\"");
+    assert_eq!(
+        serde_json::to_string(&NearDupScope::Module).unwrap(),
+        "\"module\""
+    );
+    assert_eq!(
+        serde_json::to_string(&NearDupScope::Lang).unwrap(),
+        "\"lang\""
+    );
+    assert_eq!(
+        serde_json::to_string(&NearDupScope::Global).unwrap(),
+        "\"global\""
+    );
 }
 
 #[test]
@@ -533,17 +546,32 @@ fn baseline_from_analysis_with_complexity() {
             tokens: 1000,
         },
         doc_density: RatioReport {
-            total: RatioRow { key: "t".into(), numerator: 20, denominator: 230, ratio: 0.087 },
+            total: RatioRow {
+                key: "t".into(),
+                numerator: 20,
+                denominator: 230,
+                ratio: 0.087,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         whitespace: RatioReport {
-            total: RatioRow { key: "t".into(), numerator: 10, denominator: 230, ratio: 0.043 },
+            total: RatioRow {
+                key: "t".into(),
+                numerator: 10,
+                denominator: 230,
+                ratio: 0.043,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         verbosity: RateReport {
-            total: RateRow { key: "t".into(), numerator: 5000, denominator: 230, rate: 21.7 },
+            total: RateRow {
+                key: "t".into(),
+                numerator: 5000,
+                denominator: 230,
+                rate: 21.7,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
@@ -552,39 +580,77 @@ fn baseline_from_analysis_with_complexity() {
                 path: "f.rs".into(),
                 module: "src".into(),
                 lang: "Rust".into(),
-                code: 100, comments: 10, blanks: 5, lines: 115, bytes: 2500, tokens: 500,
-                doc_pct: None, bytes_per_line: None, depth: 1,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 2500,
+                tokens: 500,
+                doc_pct: None,
+                bytes_per_line: None,
+                depth: 1,
             },
             by_lang: vec![],
             by_module: vec![],
         },
         lang_purity: LangPurityReport { rows: vec![] },
-        nesting: NestingReport { max: 3, avg: 1.5, by_module: vec![] },
+        nesting: NestingReport {
+            max: 3,
+            avg: 1.5,
+            by_module: vec![],
+        },
         test_density: TestDensityReport {
-            test_lines: 50, prod_lines: 150, test_files: 1, prod_files: 4, ratio: 0.33,
+            test_lines: 50,
+            prod_lines: 150,
+            test_files: 1,
+            prod_files: 4,
+            ratio: 0.33,
         },
         boilerplate: BoilerplateReport {
-            infra_lines: 10, logic_lines: 190, ratio: 0.05, infra_langs: vec![],
+            infra_lines: 10,
+            logic_lines: 190,
+            ratio: 0.05,
+            infra_langs: vec![],
         },
         polyglot: PolyglotReport {
-            lang_count: 1, entropy: 0.0, dominant_lang: "Rust".into(),
-            dominant_lines: 200, dominant_pct: 1.0,
+            lang_count: 1,
+            entropy: 0.0,
+            dominant_lang: "Rust".into(),
+            dominant_lines: 200,
+            dominant_pct: 1.0,
         },
         distribution: DistributionReport {
-            count: 5, min: 10, max: 100, mean: 40.0, median: 35.0,
-            p90: 90.0, p99: 99.0, gini: 0.25,
+            count: 5,
+            min: 10,
+            max: 100,
+            mean: 40.0,
+            median: 35.0,
+            p90: 90.0,
+            p99: 99.0,
+            gini: 0.25,
         },
         histogram: vec![],
         top: TopOffenders {
-            largest_lines: vec![], largest_tokens: vec![], largest_bytes: vec![],
-            least_documented: vec![], most_dense: vec![],
+            largest_lines: vec![],
+            largest_tokens: vec![],
+            largest_bytes: vec![],
+            least_documented: vec![],
+            most_dense: vec![],
         },
         tree: None,
-        reading_time: ReadingTimeReport { minutes: 1.5, lines_per_minute: 130, basis_lines: 200 },
+        reading_time: ReadingTimeReport {
+            minutes: 1.5,
+            lines_per_minute: 130,
+            basis_lines: 200,
+        },
         context_window: None,
         cocomo: None,
         todo: None,
-        integrity: IntegrityReport { algo: "blake3".into(), hash: "abc".into(), entries: 5 },
+        integrity: IntegrityReport {
+            algo: "blake3".into(),
+            hash: "abc".into(),
+            entries: 5,
+        },
     });
     receipt.complexity = Some(ComplexityReport {
         total_functions: 10,

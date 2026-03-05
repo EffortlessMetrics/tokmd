@@ -105,10 +105,7 @@ fn only_child_rows_produce_empty_trees() {
 
 #[test]
 fn analysis_tree_aggregates_parent_lines_and_tokens() {
-    let data = export(vec![
-        parent("src/a.rs", 10, 20),
-        parent("src/b.rs", 30, 60),
-    ]);
+    let data = export(vec![parent("src/a.rs", 10, 20), parent("src/b.rs", 30, 60)]);
     let tree = render_analysis_tree(&data);
     assert!(tree.contains("src (lines: 40, tokens: 80)"));
 }
@@ -204,7 +201,12 @@ fn handoff_tree_lexicographic_sibling_order() {
     let tree = render_handoff_tree(&data, 5);
     let dirs: Vec<&str> = tree
         .lines()
-        .filter(|l| l.trim().ends_with('/') || l.trim().starts_with("a/") || l.trim().starts_with("m/") || l.trim().starts_with("z/"))
+        .filter(|l| {
+            l.trim().ends_with('/')
+                || l.trim().starts_with("a/")
+                || l.trim().starts_with("m/")
+                || l.trim().starts_with("z/")
+        })
         .map(|l| l.trim().split(' ').next().unwrap())
         .collect();
     assert_eq!(dirs, vec!["a/", "m/", "z/"]);
@@ -212,10 +214,7 @@ fn handoff_tree_lexicographic_sibling_order() {
 
 #[test]
 fn reversed_input_order_produces_identical_output() {
-    let rows = vec![
-        parent("b/x.rs", 10, 20),
-        parent("a/y.rs", 30, 60),
-    ];
+    let rows = vec![parent("b/x.rs", 10, 20), parent("a/y.rs", 30, 60)];
     let mut rev = rows.clone();
     rev.reverse();
     assert_eq!(
@@ -312,12 +311,20 @@ fn handoff_tree_never_shows_file_names() {
 #[test]
 fn large_tree_aggregation_is_consistent() {
     let rows: Vec<FileRow> = (0..100)
-        .map(|i| parent(&format!("dir{}/sub{}/file{}.rs", i % 5, i % 10, i), i, i * 2))
+        .map(|i| {
+            parent(
+                &format!("dir{}/sub{}/file{}.rs", i % 5, i % 10, i),
+                i,
+                i * 2,
+            )
+        })
         .collect();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
     let total_tokens: usize = rows.iter().map(|r| r.tokens).sum();
 
     let handoff = render_handoff_tree(&export(rows), 10);
     let root_line = handoff.lines().next().unwrap();
-    assert!(root_line.contains(&format!("files: 100, lines: {total_lines}, tokens: {total_tokens}")));
+    assert!(root_line.contains(&format!(
+        "files: 100, lines: {total_lines}, tokens: {total_tokens}"
+    )));
 }

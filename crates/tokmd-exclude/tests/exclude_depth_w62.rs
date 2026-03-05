@@ -348,8 +348,8 @@ fn has_pattern_hidden_directory() {
 
 mod properties {
     use proptest::prelude::*;
-    use tokmd_exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
     use std::path::Path;
+    use tokmd_exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
 
     proptest! {
         #[test]

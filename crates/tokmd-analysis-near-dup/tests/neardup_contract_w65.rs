@@ -350,7 +350,10 @@ mod clustering {
         ]);
         let r = run_report(&dir, &data, NearDupScope::Global, 0.5);
         let clusters = r.clusters.unwrap();
-        let all_files: Vec<&str> = clusters.iter().flat_map(|c| c.files.iter().map(|f| f.as_str())).collect();
+        let all_files: Vec<&str> = clusters
+            .iter()
+            .flat_map(|c| c.files.iter().map(|f| f.as_str()))
+            .collect();
         assert!(all_files.contains(&"a.rs"));
         assert!(all_files.contains(&"b.rs"));
     }

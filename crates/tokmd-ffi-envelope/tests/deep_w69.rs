@@ -5,10 +5,10 @@
 //! determinism properties.
 
 use proptest::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_ffi_envelope::{
-    extract_data, extract_data_from_json, extract_data_json, format_error_message, parse_envelope,
-    EnvelopeExtractError,
+    EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
+    format_error_message, parse_envelope,
 };
 
 // ── parse_envelope ──────────────────────────────────────────────────
@@ -133,10 +133,7 @@ fn format_error_message_message_only() {
 #[test]
 fn format_error_message_non_string_fields() {
     let err = json!({"code": 123, "message": true});
-    assert_eq!(
-        format_error_message(Some(&err)),
-        "[unknown] Unknown error"
-    );
+    assert_eq!(format_error_message(Some(&err)), "[unknown] Unknown error");
 }
 
 // ── extract_data_from_json ──────────────────────────────────────────

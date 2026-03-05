@@ -411,7 +411,16 @@ fn substrate_single_zero_code_file() {
 #[test]
 fn substrate_many_languages() {
     let langs = [
-        "Rust", "Python", "Go", "Java", "C", "C++", "JavaScript", "TypeScript", "Ruby", "Shell",
+        "Rust",
+        "Python",
+        "Go",
+        "Java",
+        "C",
+        "C++",
+        "JavaScript",
+        "TypeScript",
+        "Ruby",
+        "Shell",
     ];
     let files: Vec<SubstrateFile> = langs
         .iter()

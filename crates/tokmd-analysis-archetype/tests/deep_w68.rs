@@ -213,10 +213,7 @@ fn python_package_detected() {
 
 #[test]
 fn node_package_detected() {
-    let export = export_with(vec![
-        parent_row("package.json"),
-        parent_row("src/index.js"),
-    ]);
+    let export = export_with(vec![parent_row("package.json"), parent_row("src/index.js")]);
     let a = detect_archetype(&export).unwrap();
     assert_eq!(a.kind, "Node package");
 }

@@ -55,10 +55,7 @@ fn slashes_unc_path() {
 
 #[test]
 fn slashes_windows_extended_path() {
-    assert_eq!(
-        normalize_slashes(r"\\?\C:\long\path"),
-        "//?/C:/long/path"
-    );
+    assert_eq!(normalize_slashes(r"\\?\C:\long\path"), "//?/C:/long/path");
 }
 
 // ── normalize_rel_path — basic ──────────────────────────────────────
@@ -107,10 +104,7 @@ fn rel_dot_slash_only_becomes_empty() {
 
 #[test]
 fn rel_deeply_nested_dot_slash() {
-    assert_eq!(
-        normalize_rel_path("./././src/./inner"),
-        "src/./inner"
-    );
+    assert_eq!(normalize_rel_path("./././src/./inner"), "src/./inner");
 }
 
 // ── idempotency ─────────────────────────────────────────────────────

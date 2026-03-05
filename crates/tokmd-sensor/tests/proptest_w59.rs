@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use tokmd_envelope::{SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA};
+use tokmd_envelope::{SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict};
 use tokmd_sensor::EffortlessSensor;
 use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
@@ -15,7 +15,13 @@ fn arb_substrate_file() -> impl Strategy<Value = SubstrateFile> {
     (
         "[a-z]+(/[a-z]+){0,3}\\.[a-z]{1,4}",
         prop::sample::select(vec![
-            "Rust", "Python", "TypeScript", "Go", "Java", "C", "Shell",
+            "Rust",
+            "Python",
+            "TypeScript",
+            "Go",
+            "Java",
+            "C",
+            "Shell",
         ]),
         0usize..5_000,
         0usize..10_000,

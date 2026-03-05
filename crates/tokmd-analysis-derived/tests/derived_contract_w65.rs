@@ -66,7 +66,10 @@ mod totals {
 
     #[test]
     fn single_file_totals_match() {
-        let r = derive_report(&export(vec![row("a.rs", "src", "Rust", 100, 20, 10, 3000, 500)]), None);
+        let r = derive_report(
+            &export(vec![row("a.rs", "src", "Rust", 100, 20, 10, 3000, 500)]),
+            None,
+        );
         assert_eq!(r.totals.files, 1);
         assert_eq!(r.totals.code, 100);
         assert_eq!(r.totals.comments, 20);
@@ -119,13 +122,19 @@ mod doc_density {
 
     #[test]
     fn pure_code_has_zero_doc_density() {
-        let r = derive_report(&export(vec![row("a.rs", "src", "Rust", 100, 0, 10, 2000, 500)]), None);
+        let r = derive_report(
+            &export(vec![row("a.rs", "src", "Rust", 100, 0, 10, 2000, 500)]),
+            None,
+        );
         assert_eq!(r.doc_density.total.ratio, 0.0);
     }
 
     #[test]
     fn equal_code_and_comments_gives_half() {
-        let r = derive_report(&export(vec![row("a.rs", "src", "Rust", 50, 50, 0, 2000, 500)]), None);
+        let r = derive_report(
+            &export(vec![row("a.rs", "src", "Rust", 50, 50, 0, 2000, 500)]),
+            None,
+        );
         assert!((r.doc_density.total.ratio - 0.5).abs() < 1e-6);
     }
 
@@ -141,9 +150,7 @@ mod doc_density {
 
     #[test]
     fn doc_density_ratio_bounded_zero_to_one() {
-        let data = export(vec![
-            row("a.rs", "src", "Rust", 10, 90, 5, 2000, 400),
-        ]);
+        let data = export(vec![row("a.rs", "src", "Rust", 10, 90, 5, 2000, 400)]);
         let r = derive_report(&data, None);
         assert!((0.0..=1.0).contains(&r.doc_density.total.ratio));
     }
@@ -156,7 +163,10 @@ mod whitespace {
 
     #[test]
     fn no_blanks_yields_zero_whitespace() {
-        let r = derive_report(&export(vec![row("a.rs", "src", "Rust", 100, 20, 0, 2000, 500)]), None);
+        let r = derive_report(
+            &export(vec![row("a.rs", "src", "Rust", 100, 20, 0, 2000, 500)]),
+            None,
+        );
         assert_eq!(r.whitespace.total.ratio, 0.0);
     }
 
@@ -198,7 +208,10 @@ mod distribution {
 
     #[test]
     fn single_file_distribution() {
-        let r = derive_report(&export(vec![row("a.rs", "src", "Rust", 100, 20, 10, 2000, 500)]), None);
+        let r = derive_report(
+            &export(vec![row("a.rs", "src", "Rust", 100, 20, 10, 2000, 500)]),
+            None,
+        );
         assert_eq!(r.distribution.count, 1);
         assert_eq!(r.distribution.min, 130);
         assert_eq!(r.distribution.max, 130);
@@ -359,7 +372,16 @@ mod test_density {
     #[test]
     fn no_test_files_yields_zero_ratio() {
         let r = derive_report(
-            &export(vec![row("src/main.rs", "src", "Rust", 200, 0, 0, 4000, 1000)]),
+            &export(vec![row(
+                "src/main.rs",
+                "src",
+                "Rust",
+                200,
+                0,
+                0,
+                4000,
+                1000,
+            )]),
             None,
         );
         assert_eq!(r.test_density.test_files, 0);
@@ -546,7 +568,16 @@ mod nesting {
     #[test]
     fn deeply_nested_file_increases_nesting() {
         let r = derive_report(
-            &export(vec![row("a/b/c/d/e.rs", "a/b", "Rust", 100, 0, 0, 2000, 500)]),
+            &export(vec![row(
+                "a/b/c/d/e.rs",
+                "a/b",
+                "Rust",
+                100,
+                0,
+                0,
+                2000,
+                500,
+            )]),
             None,
         );
         assert!(r.nesting.max > 0);
@@ -584,9 +615,17 @@ mod properties {
     use proptest::prelude::*;
 
     fn arb_row() -> impl Strategy<Value = FileRow> {
-        (1..5000usize, 0..2000usize, 0..500usize, 1..50000usize, 1..25000usize)
+        (
+            1..5000usize,
+            0..2000usize,
+            0..500usize,
+            1..50000usize,
+            1..25000usize,
+        )
             .prop_map(|(code, comments, blanks, bytes, tokens)| {
-                row("src/f.rs", "src", "Rust", code, comments, blanks, bytes, tokens)
+                row(
+                    "src/f.rs", "src", "Rust", code, comments, blanks, bytes, tokens,
+                )
             })
     }
 

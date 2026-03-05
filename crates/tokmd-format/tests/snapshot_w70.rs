@@ -6,8 +6,7 @@
 use std::path::PathBuf;
 
 use tokmd_format::{
-    write_export_csv_to, write_export_jsonl_to, write_lang_report_to,
-    write_module_report_to,
+    write_export_csv_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,
 };
 use tokmd_settings::{ChildIncludeMode, ChildrenMode, ScanOptions};
 use tokmd_types::{

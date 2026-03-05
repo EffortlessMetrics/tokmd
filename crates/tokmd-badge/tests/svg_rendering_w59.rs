@@ -56,7 +56,10 @@ fn svg_contains_exactly_two_text_elements() {
 fn svg_height_is_always_24() {
     for (l, v) in [("a", "1"), ("long label", "long value"), ("", "")] {
         let svg = badge_svg(l, v);
-        assert!(svg.contains("height=\"24\""), "height should be 24 for ({l:?}, {v:?})");
+        assert!(
+            svg.contains("height=\"24\""),
+            "height should be 24 for ({l:?}, {v:?})"
+        );
     }
 }
 
@@ -247,7 +250,10 @@ fn unicode_width_uses_char_count() {
     // "ab" (2 chars) and "日本" (2 chars) should produce same width
     let ascii = extract_width(&badge_svg("ab", "v"));
     let cjk = extract_width(&badge_svg("日本", "v"));
-    assert_eq!(ascii, cjk, "width should be based on char count, not byte length");
+    assert_eq!(
+        ascii, cjk,
+        "width should be based on char count, not byte length"
+    );
 }
 
 // ── Edge cases ─────────────────────────────────────────────────────────

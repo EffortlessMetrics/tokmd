@@ -374,9 +374,7 @@ fn md_imports_section() {
 #[test]
 fn md_entropy_no_suspects() {
     let mut receipt = minimal_receipt();
-    receipt.entropy = Some(EntropyReport {
-        suspects: vec![],
-    });
+    receipt.entropy = Some(EntropyReport { suspects: vec![] });
     let text = extract_text(render(&receipt, AnalysisFormat::Md).unwrap());
     assert!(text.contains("No entropy outliers detected"));
 }

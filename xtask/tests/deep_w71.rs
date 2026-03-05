@@ -44,9 +44,7 @@ fn parse_publish_order(stdout: &str) -> Vec<String> {
         }
         if in_order {
             let trimmed = line.trim();
-            if trimmed.is_empty()
-                || trimmed.starts_with("Excluded")
-                || trimmed.starts_with("Flags")
+            if trimmed.is_empty() || trimmed.starts_with("Excluded") || trimmed.starts_with("Flags")
             {
                 break;
             }
@@ -83,11 +81,8 @@ fn boundaries_check_succeeds_on_current_repo() {
 
 #[test]
 fn boundaries_forbidden_list_is_not_empty() {
-    let src = std::fs::read_to_string(
-        workspace_root()
-            .join("xtask/src/tasks/boundaries_check.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/boundaries_check.rs"))
+        .unwrap();
     assert!(
         src.contains("const FORBIDDEN: &[&str] = &["),
         "FORBIDDEN list should be declared as a const"
@@ -101,11 +96,8 @@ fn boundaries_forbidden_list_is_not_empty() {
 
 #[test]
 fn boundaries_checks_all_dep_tables() {
-    let src = std::fs::read_to_string(
-        workspace_root()
-            .join("xtask/src/tasks/boundaries_check.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/boundaries_check.rs"))
+        .unwrap();
     for table in &["dependencies", "dev-dependencies", "build-dependencies"] {
         assert!(
             src.contains(table),
@@ -116,11 +108,8 @@ fn boundaries_checks_all_dep_tables() {
 
 #[test]
 fn boundaries_only_scans_analysis_crates() {
-    let src = std::fs::read_to_string(
-        workspace_root()
-            .join("xtask/src/tasks/boundaries_check.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/boundaries_check.rs"))
+        .unwrap();
     assert!(
         src.contains("tokmd-analysis"),
         "boundaries check should filter for analysis crates"
@@ -259,10 +248,7 @@ fn docs_check_mode_either_passes_or_reports_drift() {
 
 #[test]
 fn docs_task_normalizes_crlf_and_exe_suffix() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/docs.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/docs.rs")).unwrap();
     assert!(
         src.contains(r#"replace("\r\n", "\n")"#),
         "docs task should normalize CRLF"
@@ -348,7 +334,11 @@ fn publish_plan_no_duplicates() {
     let (stdout, _, _) = run_xtask(&["publish", "--plan"]);
     let order = parse_publish_order(&stdout);
     let unique: BTreeSet<&str> = order.iter().map(|s| s.as_str()).collect();
-    assert_eq!(order.len(), unique.len(), "publish plan must not have duplicates");
+    assert_eq!(
+        order.len(),
+        unique.len(),
+        "publish plan must not have duplicates"
+    );
 }
 
 #[test]
@@ -395,7 +385,10 @@ fn bump_rejects_invalid_semver() {
     let cases = ["1.0", "not.a.version", "1.0.0.0", ""];
     for bad in &cases {
         let (_, stderr, success) = run_xtask(&["bump", bad, "--dry-run"]);
-        assert!(!success, "bump should reject invalid version '{bad}'. stderr: {stderr}");
+        assert!(
+            !success,
+            "bump should reject invalid version '{bad}'. stderr: {stderr}"
+        );
     }
 }
 
@@ -433,13 +426,8 @@ fn bump_schema_dry_run_shows_schema_updates() {
 
 #[test]
 fn bump_rejects_unknown_schema_constant() {
-    let (_, stderr, success) = run_xtask(&[
-        "bump",
-        "1.0.0",
-        "--dry-run",
-        "--schema",
-        "BOGUS_CONSTANT=1",
-    ]);
+    let (_, stderr, success) =
+        run_xtask(&["bump", "1.0.0", "--dry-run", "--schema", "BOGUS_CONSTANT=1"]);
     assert!(!success);
     assert!(
         stderr.contains("Unknown schema constant") || stderr.contains("BOGUS_CONSTANT"),
@@ -456,29 +444,32 @@ fn schema_constants_exist_in_source_files() {
     let root = workspace_root();
     let locations = [
         ("crates/tokmd-types/src/lib.rs", "SCHEMA_VERSION"),
-        ("crates/tokmd-analysis-types/src/lib.rs", "ANALYSIS_SCHEMA_VERSION"),
-        ("crates/tokmd-types/src/cockpit.rs", "COCKPIT_SCHEMA_VERSION"),
+        (
+            "crates/tokmd-analysis-types/src/lib.rs",
+            "ANALYSIS_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/cockpit.rs",
+            "COCKPIT_SCHEMA_VERSION",
+        ),
         ("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION"),
         ("crates/tokmd-types/src/lib.rs", "HANDOFF_SCHEMA_VERSION"),
-        ("crates/tokmd-types/src/lib.rs", "CONTEXT_BUNDLE_SCHEMA_VERSION"),
+        (
+            "crates/tokmd-types/src/lib.rs",
+            "CONTEXT_BUNDLE_SCHEMA_VERSION",
+        ),
     ];
 
     for (path, constant) in &locations {
         let content = std::fs::read_to_string(root.join(path)).unwrap();
         let pattern = format!("pub const {constant}: u32 = ");
-        assert!(
-            content.contains(&pattern),
-            "{constant} not found in {path}"
-        );
+        assert!(content.contains(&pattern), "{constant} not found in {path}");
     }
 }
 
 #[test]
 fn schema_locations_in_bump_match_actual_files() {
-    let src = std::fs::read_to_string(
-        workspace_root().join("xtask/src/tasks/bump.rs"),
-    )
-    .unwrap();
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/bump.rs")).unwrap();
 
     // Verify all SCHEMA_LOCATIONS entries reference existing files
     let root = workspace_root();
@@ -493,7 +484,10 @@ fn schema_locations_in_bump_match_actual_files() {
         }
     }
 
-    assert!(!paths.is_empty(), "should find schema location paths in bump.rs");
+    assert!(
+        !paths.is_empty(),
+        "should find schema location paths in bump.rs"
+    );
     for path in &paths {
         // Only check paths that the bump source references; skip if removed
         if root.join(path).exists() {
@@ -521,8 +515,7 @@ fn schema_version_values_are_positive() {
     for file in &files {
         let content = std::fs::read_to_string(root.join(file)).unwrap();
         for line in content.lines() {
-            if line.contains("_SCHEMA_VERSION: u32 = ") || line.contains("SCHEMA_VERSION: u32 = ")
-            {
+            if line.contains("_SCHEMA_VERSION: u32 = ") || line.contains("SCHEMA_VERSION: u32 = ") {
                 let val = line
                     .rsplit("= ")
                     .next()
@@ -553,15 +546,24 @@ fn publish_plan_is_deterministic() {
 fn boundaries_check_is_deterministic() {
     let (stdout1, _, s1) = run_xtask(&["boundaries-check"]);
     let (stdout2, _, s2) = run_xtask(&["boundaries-check"]);
-    assert_eq!(s1, s2, "boundaries check should have consistent exit status");
-    assert_eq!(stdout1, stdout2, "boundaries check output should be deterministic");
+    assert_eq!(
+        s1, s2,
+        "boundaries check should have consistent exit status"
+    );
+    assert_eq!(
+        stdout1, stdout2,
+        "boundaries check output should be deterministic"
+    );
 }
 
 #[test]
 fn bump_dry_run_is_deterministic() {
     let (stdout1, _, _) = run_xtask(&["bump", "42.42.42", "--dry-run"]);
     let (stdout2, _, _) = run_xtask(&["bump", "42.42.42", "--dry-run"]);
-    assert_eq!(stdout1, stdout2, "bump dry-run output should be deterministic");
+    assert_eq!(
+        stdout1, stdout2,
+        "bump dry-run output should be deterministic"
+    );
 }
 
 // ===========================================================================
@@ -576,7 +578,10 @@ fn workspace_has_version_in_workspace_package() {
         .and_then(|w| w.get("package"))
         .and_then(|p| p.get("version"))
         .and_then(|v| v.as_str());
-    assert!(version.is_some(), "root Cargo.toml must have [workspace.package].version");
+    assert!(
+        version.is_some(),
+        "root Cargo.toml must have [workspace.package].version"
+    );
     let v = version.unwrap();
     assert_eq!(v.split('.').count(), 3, "version must be semver: {v}");
 }

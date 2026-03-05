@@ -94,7 +94,8 @@ fn entropy_skewed_distribution() {
 
 #[test]
 fn entropy_ascii_text_typical_range() {
-    let text = b"The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.";
+    let text =
+        b"The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.";
     let e = entropy_bits_per_byte(text);
     // Typical English text: 3.5-5.0 bits per byte
     assert!(e > 3.0 && e < 6.0, "text entropy should be 3-6, got {e}");
@@ -233,7 +234,10 @@ fn hash_file_respects_max_bytes() {
     let path = write_file(&dir, "long.txt", b"abcdefghij");
     let h5 = hash_file(&path, 5).unwrap();
     let h10 = hash_file(&path, 10).unwrap();
-    assert_ne!(h5, h10, "different byte limits should produce different hashes");
+    assert_ne!(
+        h5, h10,
+        "different byte limits should produce different hashes"
+    );
     assert_eq!(h5, hash_bytes(b"abcde"));
 }
 

@@ -14,10 +14,10 @@
 use std::path::PathBuf;
 
 use tokmd_format::{
-    compute_diff_rows, compute_diff_totals, create_diff_receipt, render_diff_md,
-    render_diff_md_with_options, write_export_csv_to, write_export_cyclonedx_with_options,
-    write_export_json_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,
-    DiffColorMode, DiffRenderOptions,
+    DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
+    render_diff_md, render_diff_md_with_options, write_export_csv_to,
+    write_export_cyclonedx_with_options, write_export_json_to, write_export_jsonl_to,
+    write_lang_report_to, write_module_report_to,
 };
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
@@ -42,7 +42,9 @@ fn lang_row(lang: &str, code: usize) -> LangRow {
         files: code.checked_div(100).unwrap_or(1).max(1),
         bytes: code * 50,
         tokens: code * 3,
-        avg_lines: code.checked_div(code.checked_div(100).unwrap_or(1).max(1)).unwrap_or(0),
+        avg_lines: code
+            .checked_div(code.checked_div(100).unwrap_or(1).max(1))
+            .unwrap_or(0),
     }
 }
 
@@ -54,7 +56,9 @@ fn module_row(module: &str, code: usize) -> ModuleRow {
         files: code.checked_div(80).unwrap_or(1).max(1),
         bytes: code * 45,
         tokens: code * 2,
-        avg_lines: code.checked_div(code.checked_div(80).unwrap_or(1).max(1)).unwrap_or(0),
+        avg_lines: code
+            .checked_div(code.checked_div(80).unwrap_or(1).max(1))
+            .unwrap_or(0),
     }
 }
 
@@ -386,7 +390,10 @@ fn lang_json_roundtrip_parse_render_idempotent() {
     let rendered_again = serde_json::to_string(&parsed).unwrap();
     let reparsed: LangReceipt = serde_json::from_str(&rendered_again).unwrap();
     let rendered_third = serde_json::to_string(&reparsed).unwrap();
-    assert_eq!(rendered_again, rendered_third, "render(parse(render(x))) == render(x)");
+    assert_eq!(
+        rendered_again, rendered_third,
+        "render(parse(render(x))) == render(x)"
+    );
 }
 
 #[test]
@@ -866,7 +873,10 @@ fn bdd_given_module_rows_when_tsv_then_tab_delimited() {
     // Then: each line has correct number of tabs
     for line in tsv.lines() {
         let tab_count = line.matches('\t').count();
-        assert_eq!(tab_count, 6, "Expected 6 tabs per line, got {tab_count}: {line}");
+        assert_eq!(
+            tab_count, 6,
+            "Expected 6 tabs per line, got {tab_count}: {line}"
+        );
     }
 }
 
@@ -1142,10 +1152,7 @@ fn lang_json_children_separate() {
 
 #[test]
 fn snapshot_lang_md_two_langs() {
-    let report = make_lang_report(
-        vec![lang_row("Rust", 500), lang_row("Python", 200)],
-        true,
-    );
+    let report = make_lang_report(vec![lang_row("Rust", 500), lang_row("Python", 200)], true);
     let out = render_lang_md(&report);
     insta::assert_snapshot!("w64_lang_md_two_langs", out);
 }
@@ -1159,10 +1166,7 @@ fn snapshot_module_md_two_modules() {
 
 #[test]
 fn snapshot_lang_tsv_with_files() {
-    let report = make_lang_report(
-        vec![lang_row("Rust", 500), lang_row("Go", 300)],
-        true,
-    );
+    let report = make_lang_report(vec![lang_row("Rust", 500), lang_row("Go", 300)], true);
     let out = render_lang_tsv(&report);
     insta::assert_snapshot!("w64_lang_tsv_with_files", out);
 }

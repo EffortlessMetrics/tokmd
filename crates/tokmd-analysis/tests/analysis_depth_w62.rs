@@ -11,7 +11,7 @@ use tokmd_analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
     NearDupScope, analyze,
 };
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
+use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ---------------------------------------------------------------------------
@@ -21,11 +21,7 @@ use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 fn file_row(path: &str, lang: &str, code: usize) -> FileRow {
     FileRow {
         path: path.into(),
-        module: path
-            .rsplit('/')
-            .nth(1)
-            .unwrap_or("(root)")
-            .to_string(),
+        module: path.rsplit('/').nth(1).unwrap_or("(root)").to_string(),
         lang: lang.into(),
         kind: FileKind::Parent,
         code,
@@ -171,7 +167,10 @@ fn fun_preset_has_fun_report() {
     let r = run(AnalysisPreset::Fun);
     // Fun enricher needs real source files to scan; with mock data it may be None.
     // Verify the pipeline completes without error and derived metrics are present.
-    assert!(r.derived.is_some(), "fun preset should still produce derived metrics");
+    assert!(
+        r.derived.is_some(),
+        "fun preset should still produce derived metrics"
+    );
 }
 
 #[test]

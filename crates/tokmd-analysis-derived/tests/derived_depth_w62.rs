@@ -200,7 +200,10 @@ fn distribution_gini_max_inequality() {
         rows.push(row(&format!("s{i}.rs"), "Rust", 1, 0, 0));
     }
     let r = derive_report(&export(rows), None);
-    assert!(r.distribution.gini > 0.5, "high inequality should give high gini");
+    assert!(
+        r.distribution.gini > 0.5,
+        "high inequality should give high gini"
+    );
 }
 
 #[test]
@@ -237,7 +240,10 @@ fn cocomo_100k_loc() {
     let r = derive_report(&export(vec![row("a.rs", "Rust", 100_000, 0, 0)]), None);
     let c = r.cocomo.unwrap();
     assert_eq!(c.kloc, 100.0);
-    assert!(c.effort_pm > 200.0, "100 KLOC should require significant effort");
+    assert!(
+        c.effort_pm > 200.0,
+        "100 KLOC should require significant effort"
+    );
     assert!(c.duration_months > 10.0);
 }
 
@@ -374,10 +380,7 @@ fn single_file_all_metrics_populated() {
 
 #[test]
 fn single_file_max_file_is_itself() {
-    let r = derive_report(
-        &export(vec![row("src/main.rs", "Rust", 100, 10, 5)]),
-        None,
-    );
+    let r = derive_report(&export(vec![row("src/main.rs", "Rust", 100, 10, 5)]), None);
     assert_eq!(r.max_file.overall.path, "src/main.rs");
 }
 
@@ -409,7 +412,15 @@ fn single_file_test_density() {
 #[test]
 fn large_repo_2000_files() {
     let rows: Vec<FileRow> = (0..2000)
-        .map(|i| row(&format!("src/mod{}/file{}.rs", i / 50, i), "Rust", 10 + i % 200, i % 20, i % 10))
+        .map(|i| {
+            row(
+                &format!("src/mod{}/file{}.rs", i / 50, i),
+                "Rust",
+                10 + i % 200,
+                i % 20,
+                i % 10,
+            )
+        })
         .collect();
     let r = derive_report(&export(rows), None);
     assert_eq!(r.totals.files, 2000);
@@ -614,10 +625,7 @@ fn determinism_integrity_hash_stable() {
 
 #[test]
 fn snapshot_totals_json() {
-    let r = derive_report(
-        &export(vec![row("src/main.rs", "Rust", 100, 20, 10)]),
-        None,
-    );
+    let r = derive_report(&export(vec![row("src/main.rs", "Rust", 100, 20, 10)]), None);
     let json = serde_json::to_value(&r.totals).unwrap();
     assert_eq!(json["files"], 1);
     assert_eq!(json["code"], 100);
@@ -628,10 +636,7 @@ fn snapshot_totals_json() {
 
 #[test]
 fn snapshot_cocomo_json() {
-    let r = derive_report(
-        &export(vec![row("a.rs", "Rust", 10000, 0, 0)]),
-        None,
-    );
+    let r = derive_report(&export(vec![row("a.rs", "Rust", 10000, 0, 0)]), None);
     let c = r.cocomo.unwrap();
     let json = serde_json::to_value(&c).unwrap();
     assert_eq!(json["mode"], "organic");
@@ -657,10 +662,7 @@ fn snapshot_distribution_json() {
 
 #[test]
 fn snapshot_context_window_json() {
-    let r = derive_report(
-        &export(vec![row("a.rs", "Rust", 100, 0, 0)]),
-        Some(1000),
-    );
+    let r = derive_report(&export(vec![row("a.rs", "Rust", 100, 0, 0)]), Some(1000));
     let cw = r.context_window.unwrap();
     let json = serde_json::to_value(&cw).unwrap();
     assert_eq!(json["window_tokens"], 1000);
@@ -755,9 +757,9 @@ fn lang_purity_single_lang_module() {
 fn nesting_report_multiple_depths() {
     let r = derive_report(
         &export(vec![
-            row("a.rs", "Rust", 100, 0, 0),              // depth 1
-            row("src/b.rs", "Rust", 100, 0, 0),           // depth 2
-            row("src/deep/c.rs", "Rust", 100, 0, 0),      // depth 3
+            row("a.rs", "Rust", 100, 0, 0),          // depth 1
+            row("src/b.rs", "Rust", 100, 0, 0),      // depth 2
+            row("src/deep/c.rs", "Rust", 100, 0, 0), // depth 3
         ]),
         None,
     );
@@ -768,7 +770,7 @@ fn nesting_report_multiple_depths() {
 fn context_window_exact_boundary() {
     // tokens exactly equals window
     let r = derive_report(
-        &export(vec![row("a.rs", "Rust", 20, 0, 0)]),  // 20 lines * 5 = 100 tokens
+        &export(vec![row("a.rs", "Rust", 20, 0, 0)]), // 20 lines * 5 = 100 tokens
         Some(100),
     );
     let cw = r.context_window.unwrap();
@@ -779,10 +781,7 @@ fn context_window_exact_boundary() {
 
 #[test]
 fn histogram_huge_file_classification() {
-    let r = derive_report(
-        &export(vec![row("big.rs", "Rust", 2000, 0, 0)]),
-        None,
-    );
+    let r = derive_report(&export(vec![row("big.rs", "Rust", 2000, 0, 0)]), None);
     // 2000 lines > 1000 => "Huge"
     assert_eq!(r.histogram[4].files, 1);
     assert_eq!(r.histogram[4].label, "Huge");

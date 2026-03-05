@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use tokmd_analysis::{
     AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
+use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
@@ -333,7 +333,10 @@ fn analyze_empty_export_has_zero_cocomo() {
     let req = make_request(AnalysisPreset::Receipt);
     let receipt = analyze(ctx, req).unwrap();
     let derived = receipt.derived.unwrap();
-    assert!(derived.cocomo.is_none(), "COCOMO should be None for zero code");
+    assert!(
+        derived.cocomo.is_none(),
+        "COCOMO should be None for zero code"
+    );
 }
 
 #[test]
@@ -371,7 +374,9 @@ fn analyze_minimal_export_has_cocomo() {
     let req = make_request(AnalysisPreset::Receipt);
     let receipt = analyze(ctx, req).unwrap();
     let derived = receipt.derived.unwrap();
-    let cocomo = derived.cocomo.expect("COCOMO should be present for nonzero code");
+    let cocomo = derived
+        .cocomo
+        .expect("COCOMO should be present for nonzero code");
     assert_eq!(cocomo.mode, "organic");
     assert!(cocomo.kloc > 0.0);
     assert!(cocomo.effort_pm > 0.0);

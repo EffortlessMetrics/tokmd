@@ -229,7 +229,10 @@ fn slashes_idempotent_batch() {
     for input in &inputs {
         let once = normalize_slashes(input);
         let twice = normalize_slashes(&once);
-        assert_eq!(once, twice, "normalize_slashes not idempotent for '{input}'");
+        assert_eq!(
+            once, twice,
+            "normalize_slashes not idempotent for '{input}'"
+        );
     }
 }
 
@@ -246,7 +249,10 @@ fn rel_idempotent_batch() {
     for input in &inputs {
         let once = normalize_rel_path(input);
         let twice = normalize_rel_path(&once);
-        assert_eq!(once, twice, "normalize_rel_path not idempotent for '{input}'");
+        assert_eq!(
+            once, twice,
+            "normalize_rel_path not idempotent for '{input}'"
+        );
     }
 }
 

@@ -76,16 +76,14 @@ const KNOWN_KINDS: &[&str] = &[
 
 #[test]
 fn rust_workspace_with_both_crates_and_packages() {
-    let export = export_with_paths(&[
-        "Cargo.toml",
-        "crates/a/src/lib.rs",
-        "packages/b/src/lib.rs",
-    ]);
+    let export = export_with_paths(&["Cargo.toml", "crates/a/src/lib.rs", "packages/b/src/lib.rs"]);
     let a = detect_archetype(&export).unwrap();
     assert!(a.kind.starts_with("Rust workspace"));
     // Evidence should pick first matching workspace dir
     assert!(
-        a.evidence.iter().any(|e| e.starts_with("crates/") || e.starts_with("packages/")),
+        a.evidence
+            .iter()
+            .any(|e| e.starts_with("crates/") || e.starts_with("packages/")),
     );
 }
 
@@ -109,11 +107,7 @@ fn rust_workspace_cli_via_root_main_rs() {
 
 #[test]
 fn rust_workspace_evidence_always_starts_with_cargo_toml() {
-    let export = export_with_paths(&[
-        "Cargo.toml",
-        "crates/z/src/lib.rs",
-        "crates/a/src/lib.rs",
-    ]);
+    let export = export_with_paths(&["Cargo.toml", "crates/z/src/lib.rs", "crates/a/src/lib.rs"]);
     let a = detect_archetype(&export).unwrap();
     assert_eq!(a.evidence[0], "Cargo.toml");
 }
@@ -478,7 +472,10 @@ fn backslash_terraform_path_detected() {
 
 #[test]
 fn backslash_packages_path_detected() {
-    let rows = vec![parent_row("Cargo.toml"), parent_row("packages\\core\\src\\lib.rs")];
+    let rows = vec![
+        parent_row("Cargo.toml"),
+        parent_row("packages\\core\\src\\lib.rs"),
+    ];
     let export = export_from_rows(rows);
     let a = detect_archetype(&export).unwrap();
     assert!(a.kind.starts_with("Rust workspace"));
@@ -486,7 +483,10 @@ fn backslash_packages_path_detected() {
 
 #[test]
 fn backslash_kubernetes_path_detected() {
-    let rows = vec![parent_row("Dockerfile"), parent_row("kubernetes\\deploy.yaml")];
+    let rows = vec![
+        parent_row("Dockerfile"),
+        parent_row("kubernetes\\deploy.yaml"),
+    ];
     let export = export_from_rows(rows);
     let a = detect_archetype(&export).unwrap();
     assert_eq!(a.kind, "Containerized service");

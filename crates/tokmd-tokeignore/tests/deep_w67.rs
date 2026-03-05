@@ -98,15 +98,24 @@ fn w67_mono_header() {
 #[test]
 fn w67_rust_excludes_foreign_patterns() {
     let t = template_content(InitProfile::Rust);
-    assert!(!t.contains("node_modules"), "Rust should not mention node_modules");
-    assert!(!t.contains("__pycache__"), "Rust should not mention __pycache__");
+    assert!(
+        !t.contains("node_modules"),
+        "Rust should not mention node_modules"
+    );
+    assert!(
+        !t.contains("__pycache__"),
+        "Rust should not mention __pycache__"
+    );
 }
 
 #[test]
 fn w67_node_excludes_foreign_patterns() {
     let t = template_content(InitProfile::Node);
     assert!(!t.contains("target/"), "Node should not mention target/");
-    assert!(!t.contains("__pycache__"), "Node should not mention __pycache__");
+    assert!(
+        !t.contains("__pycache__"),
+        "Node should not mention __pycache__"
+    );
 }
 
 #[test]

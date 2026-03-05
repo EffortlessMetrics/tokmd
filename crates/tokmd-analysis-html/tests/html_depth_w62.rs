@@ -394,8 +394,7 @@ fn table_row_code_formatted() {
 #[test]
 fn escape_html_in_path_xss() {
     let mut r = receipt_with_derived();
-    r.derived.as_mut().unwrap().top.largest_lines[0].path =
-        "<script>alert('xss')</script>".into();
+    r.derived.as_mut().unwrap().top.largest_lines[0].path = "<script>alert('xss')</script>".into();
     let html = render(&r);
     assert!(html.contains("&lt;script&gt;"));
     assert!(!html.contains("<script>alert"));
@@ -428,8 +427,7 @@ fn escape_html_single_quote() {
 #[test]
 fn escape_combined_special_chars() {
     let mut r = receipt_with_derived();
-    r.derived.as_mut().unwrap().top.largest_lines[0].path =
-        r#"<a href="x">&'"#.into();
+    r.derived.as_mut().unwrap().top.largest_lines[0].path = r#"<a href="x">&'"#.into();
     let html = render(&r);
     assert!(html.contains("&lt;a href=&quot;x&quot;&gt;&amp;&#x27;"));
 }

@@ -3,8 +3,8 @@
 use std::path::Path;
 use tokmd_io_port::{MemFs, ReadFs};
 
-use proptest::prelude::*;
 use proptest::collection::vec as pvec;
+use proptest::prelude::*;
 
 fn path_segment() -> impl Strategy<Value = String> {
     "[a-z][a-z0-9_]{0,7}".prop_map(|s| s)

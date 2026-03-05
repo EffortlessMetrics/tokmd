@@ -5,8 +5,8 @@
 
 use serde_json::{Value, json};
 use tokmd_gate::{
-    GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, evaluate_policy,
-    evaluate_ratchet_policy, resolve_pointer, RatchetConfig, RatchetRule,
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetRule, RuleLevel, RuleOperator,
+    evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // ============================================================================
@@ -71,7 +71,12 @@ fn rule_on_missing_pointer_fails_when_allow_missing_false() {
     let receipt = json!({"tokens": 100});
     let result = eval(
         &receipt,
-        vec![rule("check_missing", "/nonexistent/path", RuleOperator::Lte, json!(500))],
+        vec![rule(
+            "check_missing",
+            "/nonexistent/path",
+            RuleOperator::Lte,
+            json!(500),
+        )],
     );
     assert!(!result.passed);
     assert_eq!(result.errors, 1);
@@ -183,8 +188,7 @@ value = 42
 
 #[test]
 fn from_file_with_nonexistent_path_returns_io_error() {
-    let result =
-        PolicyConfig::from_file(std::path::Path::new("/nonexistent/w70_policy_file.toml"));
+    let result = PolicyConfig::from_file(std::path::Path::new("/nonexistent/w70_policy_file.toml"));
     assert!(result.is_err());
 }
 
@@ -205,7 +209,12 @@ fn empty_policy_with_no_rules_passes() {
 #[test]
 fn exists_operator_on_missing_key_fails() {
     let receipt = json!({"a": 1});
-    let mut r = rule("check_exists", "/missing_key", RuleOperator::Exists, json!(null));
+    let mut r = rule(
+        "check_exists",
+        "/missing_key",
+        RuleOperator::Exists,
+        json!(null),
+    );
     r.value = None;
     r.op = RuleOperator::Exists;
     let result = eval(&receipt, vec![r]);
@@ -216,7 +225,12 @@ fn exists_operator_on_missing_key_fails() {
 #[test]
 fn exists_operator_on_present_key_passes() {
     let receipt = json!({"present": "value"});
-    let mut r = rule("check_exists", "/present", RuleOperator::Exists, json!(null));
+    let mut r = rule(
+        "check_exists",
+        "/present",
+        RuleOperator::Exists,
+        json!(null),
+    );
     r.value = None;
     let result = eval(&receipt, vec![r]);
     assert!(result.passed);

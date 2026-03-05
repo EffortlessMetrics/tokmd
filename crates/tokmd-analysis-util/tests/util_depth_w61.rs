@@ -3,8 +3,8 @@
 use std::path::PathBuf;
 
 use tokmd_analysis_util::{
-    empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path, normalize_root,
-    path_depth, percentile, round_f64, safe_ratio, AnalysisLimits,
+    AnalysisLimits, empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path,
+    normalize_root, path_depth, percentile, round_f64, safe_ratio,
 };
 
 // ---------------------------------------------------------------------------
@@ -45,7 +45,10 @@ fn normalize_path_only_dot_slash_returns_empty() {
 #[test]
 fn normalize_path_mixed_separators() {
     let root = PathBuf::from("repo");
-    assert_eq!(normalize_path(r".\src/main\lib.rs", &root), "src/main/lib.rs");
+    assert_eq!(
+        normalize_path(r".\src/main\lib.rs", &root),
+        "src/main/lib.rs"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -156,10 +159,29 @@ fn is_test_path_case_insensitive() {
 #[test]
 fn infra_langs_detected_lowercase() {
     let infra = [
-        "json", "yaml", "toml", "markdown", "xml", "html", "css", "scss",
-        "less", "makefile", "dockerfile", "hcl", "terraform", "nix", "cmake",
-        "ini", "properties", "gitignore", "gitconfig", "editorconfig",
-        "csv", "tsv", "svg",
+        "json",
+        "yaml",
+        "toml",
+        "markdown",
+        "xml",
+        "html",
+        "css",
+        "scss",
+        "less",
+        "makefile",
+        "dockerfile",
+        "hcl",
+        "terraform",
+        "nix",
+        "cmake",
+        "ini",
+        "properties",
+        "gitignore",
+        "gitconfig",
+        "editorconfig",
+        "csv",
+        "tsv",
+        "svg",
     ];
     for lang in &infra {
         assert!(is_infra_lang(lang), "{} should be infra", lang);
@@ -175,7 +197,17 @@ fn infra_langs_detected_uppercase() {
 
 #[test]
 fn code_langs_are_not_infra() {
-    let code = ["rust", "python", "javascript", "typescript", "go", "java", "c", "cpp", "ruby"];
+    let code = [
+        "rust",
+        "python",
+        "javascript",
+        "typescript",
+        "go",
+        "java",
+        "c",
+        "cpp",
+        "ruby",
+    ];
     for lang in &code {
         assert!(!is_infra_lang(lang), "{} should NOT be infra", lang);
     }
@@ -314,7 +346,11 @@ fn percentile_median_of_sorted_list() {
     let data = vec![1, 2, 3, 4, 5];
     let p50 = percentile(&data, 50.0);
     // Must be within the data range
-    assert!(p50 >= 1.0 && p50 <= 5.0, "Median should be in range [1,5]: {}", p50);
+    assert!(
+        p50 >= 1.0 && p50 <= 5.0,
+        "Median should be in range [1,5]: {}",
+        p50
+    );
 }
 
 #[test]
@@ -328,7 +364,11 @@ fn percentile_p0_is_minimum() {
 fn percentile_p100_is_maximum() {
     let data = vec![10, 20, 30];
     let p100 = percentile(&data, 100.0);
-    assert!((p100 - 30.0).abs() < 1.0, "P100 should be near max: {}", p100);
+    assert!(
+        (p100 - 30.0).abs() < 1.0,
+        "P100 should be near max: {}",
+        p100
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -380,8 +420,10 @@ fn empty_file_row_deterministic() {
 
 mod properties {
     use proptest::prelude::*;
-    use tokmd_analysis_util::{is_infra_lang, is_test_path, normalize_path, path_depth, round_f64, safe_ratio};
     use std::path::PathBuf;
+    use tokmd_analysis_util::{
+        is_infra_lang, is_test_path, normalize_path, path_depth, round_f64, safe_ratio,
+    };
 
     proptest! {
         #[test]

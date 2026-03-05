@@ -190,7 +190,10 @@ fn attach_halstead_recomputes_with_positive_volume() {
     attach_halstead_metrics(&mut cr, halstead(200.0));
 
     let mi = cr.maintainability_index.as_ref().unwrap();
-    assert!(mi.score < before, "Score should decrease with Halstead penalty");
+    assert!(
+        mi.score < before,
+        "Score should decrease with Halstead penalty"
+    );
     assert_eq!(mi.avg_halstead_volume, Some(200.0));
     assert!(cr.halstead.is_some());
 }

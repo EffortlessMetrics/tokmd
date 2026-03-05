@@ -92,9 +92,29 @@ fn test_path_non_test_returns_false() {
 #[test]
 fn infra_lang_recognises_all_known() {
     let known = [
-        "json", "yaml", "toml", "markdown", "xml", "html", "css", "scss", "less",
-        "makefile", "dockerfile", "hcl", "terraform", "nix", "cmake", "ini",
-        "properties", "gitignore", "gitconfig", "editorconfig", "csv", "tsv", "svg",
+        "json",
+        "yaml",
+        "toml",
+        "markdown",
+        "xml",
+        "html",
+        "css",
+        "scss",
+        "less",
+        "makefile",
+        "dockerfile",
+        "hcl",
+        "terraform",
+        "nix",
+        "cmake",
+        "ini",
+        "properties",
+        "gitignore",
+        "gitconfig",
+        "editorconfig",
+        "csv",
+        "tsv",
+        "svg",
     ];
     for lang in &known {
         assert!(is_infra_lang(lang), "Expected infra: {lang}");

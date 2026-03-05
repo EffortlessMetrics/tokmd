@@ -8,8 +8,7 @@ use tokmd_analysis_fun::build_fun_report;
 use tokmd_analysis_types::{
     BoilerplateReport, DerivedReport, DerivedTotals, DistributionReport, FileStatRow,
     IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport,
-    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TodoReport,
-    TopOffenders,
+    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TodoReport, TopOffenders,
 };
 
 // ── Helper ──────────────────────────────────────────────────────
@@ -41,17 +40,32 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             tokens: 1,
         },
         doc_density: RatioReport {
-            total: RatioRow { key: "All".into(), numerator: 0, denominator: 1, ratio: 0.0 },
+            total: RatioRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                ratio: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         whitespace: RatioReport {
-            total: RatioRow { key: "All".into(), numerator: 0, denominator: 1, ratio: 0.0 },
+            total: RatioRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                ratio: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         verbosity: RateReport {
-            total: RateRow { key: "All".into(), numerator: 0, denominator: 1, rate: 0.0 },
+            total: RateRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                rate: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
@@ -61,20 +75,40 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             by_module: vec![],
         },
         lang_purity: LangPurityReport { rows: vec![] },
-        nesting: NestingReport { max: 0, avg: 0.0, by_module: vec![] },
+        nesting: NestingReport {
+            max: 0,
+            avg: 0.0,
+            by_module: vec![],
+        },
         test_density: TestDensityReport {
-            test_lines: 0, prod_lines: 0, test_files: 0, prod_files: 0, ratio: 0.0,
+            test_lines: 0,
+            prod_lines: 0,
+            test_files: 0,
+            prod_files: 0,
+            ratio: 0.0,
         },
         boilerplate: BoilerplateReport {
-            infra_lines: 0, logic_lines: 0, ratio: 0.0, infra_langs: vec![],
+            infra_lines: 0,
+            logic_lines: 0,
+            ratio: 0.0,
+            infra_langs: vec![],
         },
         polyglot: PolyglotReport {
-            lang_count: 0, entropy: 0.0, dominant_lang: "unknown".into(),
-            dominant_lines: 0, dominant_pct: 0.0,
+            lang_count: 0,
+            entropy: 0.0,
+            dominant_lang: "unknown".into(),
+            dominant_lines: 0,
+            dominant_pct: 0.0,
         },
         distribution: DistributionReport {
-            count: 1, min: 1, max: 1, mean: 0.0, median: 0.0,
-            p90: 0.0, p99: 0.0, gini: 0.0,
+            count: 1,
+            min: 1,
+            max: 1,
+            mean: 0.0,
+            median: 0.0,
+            p90: 0.0,
+            p99: 0.0,
+            gini: 0.0,
         },
         histogram: Vec::new(),
         top: TopOffenders {
@@ -85,12 +119,22 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             most_dense: vec![row],
         },
         tree: None,
-        reading_time: ReadingTimeReport { minutes: 0.0, lines_per_minute: 0, basis_lines: 0 },
+        reading_time: ReadingTimeReport {
+            minutes: 0.0,
+            lines_per_minute: 0,
+            basis_lines: 0,
+        },
         context_window: None,
         cocomo: None,
-        todo: Some(TodoReport { total: 0, density_per_kloc: 0.0, tags: vec![] }),
+        todo: Some(TodoReport {
+            total: 0,
+            density_per_kloc: 0.0,
+            tags: vec![],
+        }),
         integrity: IntegrityReport {
-            algo: "sha1".into(), hash: "placeholder".into(), entries: 0,
+            algo: "sha1".into(),
+            hash: "placeholder".into(),
+            entries: 0,
         },
     }
 }
@@ -252,7 +296,10 @@ mod determinism_w66 {
     fn eco_label_always_present() {
         for bytes in [0, 1, 1024, 1024 * 1024, 500 * 1024 * 1024] {
             let r = build_fun_report(&derived_with_bytes(bytes));
-            assert!(r.eco_label.is_some(), "eco_label should always be Some for bytes={bytes}");
+            assert!(
+                r.eco_label.is_some(),
+                "eco_label should always be Some for bytes={bytes}"
+            );
         }
     }
 
@@ -261,13 +308,23 @@ mod determinism_w66 {
         for bytes in [0, 1, 1024 * 1024 * 1024] {
             let r = build_fun_report(&derived_with_bytes(bytes));
             let eco = r.eco_label.unwrap();
-            assert!(eco.score > 0.0, "score should be positive for bytes={bytes}");
+            assert!(
+                eco.score > 0.0,
+                "score should be positive for bytes={bytes}"
+            );
         }
     }
 
     #[test]
     fn label_is_single_uppercase_letter() {
-        for bytes in [0, 1024, 5 * 1024 * 1024, 30 * 1024 * 1024, 100 * 1024 * 1024, 300 * 1024 * 1024] {
+        for bytes in [
+            0,
+            1024,
+            5 * 1024 * 1024,
+            30 * 1024 * 1024,
+            100 * 1024 * 1024,
+            300 * 1024 * 1024,
+        ] {
             let r = build_fun_report(&derived_with_bytes(bytes));
             let eco = r.eco_label.unwrap();
             assert_eq!(eco.label.len(), 1);

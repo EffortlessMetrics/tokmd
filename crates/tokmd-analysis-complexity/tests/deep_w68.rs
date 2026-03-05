@@ -86,7 +86,15 @@ fn histogram_distributes_across_buckets() {
         make_file_complexity("c.rs", 5, 30, 12, None, None, ComplexityRisk::Moderate),
         make_file_complexity("d.rs", 8, 50, 18, None, None, ComplexityRisk::Moderate),
         make_file_complexity("e.rs", 10, 80, 25, None, None, ComplexityRisk::High),
-        make_file_complexity("f.rs", 15, 100, 45, Some(80), Some(7), ComplexityRisk::Critical),
+        make_file_complexity(
+            "f.rs",
+            15,
+            100,
+            45,
+            Some(80),
+            Some(7),
+            ComplexityRisk::Critical,
+        ),
     ];
     let hist = generate_complexity_histogram(&files, 5);
     assert_eq!(hist.total, 6);
@@ -107,17 +115,7 @@ fn histogram_bucket_boundaries() {
 #[test]
 fn histogram_all_in_first_bucket() {
     let files: Vec<FileComplexity> = (0..5)
-        .map(|i| {
-            make_file_complexity(
-                &format!("{i}.rs"),
-                1,
-                5,
-                i,
-                None,
-                None,
-                ComplexityRisk::Low,
-            )
-        })
+        .map(|i| make_file_complexity(&format!("{i}.rs"), 1, 5, i, None, None, ComplexityRisk::Low))
         .collect();
     let hist = generate_complexity_histogram(&files, 5);
     assert_eq!(hist.counts[0], 5);
@@ -185,15 +183,7 @@ fn file_complexity_moderate_risk() {
 
 #[test]
 fn file_complexity_high_risk() {
-    let fc = make_file_complexity(
-        "c.rs",
-        30,
-        80,
-        35,
-        Some(60),
-        Some(6),
-        ComplexityRisk::High,
-    );
+    let fc = make_file_complexity("c.rs", 30, 80, 35, Some(60), Some(6), ComplexityRisk::High);
     assert_eq!(fc.risk_level, ComplexityRisk::High);
     assert_eq!(fc.cognitive_complexity, Some(60));
     assert_eq!(fc.max_nesting, Some(6));

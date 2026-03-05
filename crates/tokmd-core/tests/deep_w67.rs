@@ -43,12 +43,12 @@ fn fixture_nested() -> TempDir {
     let dir = TempDir::new().expect("create tempdir");
     let sub = dir.path().join("src");
     fs::create_dir_all(&sub).unwrap();
+    fs::write(sub.join("lib.rs"), "pub fn init() {}\npub fn run() {}\n").unwrap();
     fs::write(
-        sub.join("lib.rs"),
-        "pub fn init() {}\npub fn run() {}\n",
+        sub.join("util.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }\n",
     )
     .unwrap();
-    fs::write(sub.join("util.rs"), "pub fn add(a: i32, b: i32) -> i32 { a + b }\n").unwrap();
     dir
 }
 
@@ -60,7 +60,10 @@ fn scan_for(dir: &TempDir) -> ScanSettings {
 }
 
 fn ffi_args(dir: &TempDir) -> String {
-    format!(r#"{{"paths": ["{}"]}}"#, dir.path().to_string_lossy().replace('\\', "/"))
+    format!(
+        r#"{{"paths": ["{}"]}}"#,
+        dir.path().to_string_lossy().replace('\\', "/")
+    )
 }
 
 // ===========================================================================
@@ -118,16 +121,25 @@ fn lang_workflow_mode_is_lang() {
 fn lang_workflow_multi_language() {
     let dir = fixture_multi();
     let scan = scan_for(&dir);
-    let lang = LangSettings { top: 0, ..Default::default() };
+    let lang = LangSettings {
+        top: 0,
+        ..Default::default()
+    };
     let receipt = lang_workflow(&scan, &lang).unwrap();
-    assert!(receipt.report.rows.len() >= 2, "should find at least 2 languages");
+    assert!(
+        receipt.report.rows.len() >= 2,
+        "should find at least 2 languages"
+    );
 }
 
 #[test]
 fn lang_workflow_top_limits_rows() {
     let dir = fixture_multi();
     let scan = scan_for(&dir);
-    let lang = LangSettings { top: 1, ..Default::default() };
+    let lang = LangSettings {
+        top: 1,
+        ..Default::default()
+    };
     let receipt = lang_workflow(&scan, &lang).unwrap();
     // top=1 keeps top 1 language + folds remainder into "(Other)"
     assert!(receipt.report.rows.len() <= 2);

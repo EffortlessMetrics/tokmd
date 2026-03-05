@@ -5,11 +5,11 @@
 
 use proptest::prelude::*;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, BoilerplateReport, CocomoReport,
-    ContextWindowReport, DerivedReport, DerivedTotals, DistributionReport, FileStatRow,
-    HistogramBucket, IntegrityReport, LangPurityReport, LangPurityRow, MaxFileReport, MaxFileRow,
-    NestingReport, PolyglotReport, RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport,
-    TestDensityReport, TodoReport, TodoTagRow, TopOffenders, ANALYSIS_SCHEMA_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, BoilerplateReport,
+    CocomoReport, ContextWindowReport, DerivedReport, DerivedTotals, DistributionReport,
+    FileStatRow, HistogramBucket, IntegrityReport, LangPurityReport, LangPurityRow, MaxFileReport,
+    MaxFileRow, NestingReport, PolyglotReport, RateReport, RateRow, RatioReport, RatioRow,
+    ReadingTimeReport, TestDensityReport, TodoReport, TodoTagRow, TopOffenders,
 };
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 

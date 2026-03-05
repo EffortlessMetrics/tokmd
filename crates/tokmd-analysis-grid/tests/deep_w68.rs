@@ -5,8 +5,7 @@
 //! messages, and deterministic ordering.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for,
-    preset_plan_for_name,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for, preset_plan_for_name,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -178,11 +177,7 @@ fn needs_files_true_for_file_dependent_presets() {
     ];
     for kind in &file_presets {
         let plan = preset_plan_for(*kind);
-        assert!(
-            plan.needs_files(),
-            "preset {:?} should need files",
-            kind
-        );
+        assert!(plan.needs_files(), "preset {:?} should need files", kind);
     }
 }
 
@@ -234,11 +229,7 @@ fn disabled_feature_warnings_non_empty_and_unique() {
     for feat in &features {
         let msg = feat.warning();
         assert!(!msg.is_empty(), "{:?} has empty warning", feat);
-        assert!(
-            seen.insert(msg),
-            "duplicate warning message: {}",
-            msg
-        );
+        assert!(seen.insert(msg), "duplicate warning message: {}", msg);
     }
 }
 

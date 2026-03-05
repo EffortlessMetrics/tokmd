@@ -32,7 +32,12 @@ fn different_paths_produce_different_hashes() {
     let mut sorted = hashes.clone();
     sorted.sort();
     sorted.dedup();
-    assert_eq!(hashes.len(), sorted.len(), "collision detected among {} paths", paths.len());
+    assert_eq!(
+        hashes.len(),
+        sorted.len(),
+        "collision detected among {} paths",
+        paths.len()
+    );
 }
 
 // -- 3. redact_path preserves extension deterministically --
@@ -136,7 +141,11 @@ fn short_hash_length_is_always_16() {
         "path with spaces/file name.txt",
     ];
     for input in &inputs {
-        assert_eq!(short_hash(input).len(), 16, "hash length wrong for {input:?}");
+        assert_eq!(
+            short_hash(input).len(),
+            16,
+            "hash length wrong for {input:?}"
+        );
     }
 }
 

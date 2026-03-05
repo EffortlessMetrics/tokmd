@@ -61,11 +61,7 @@ fn rust_mixed_use_and_mod() {
 
 #[test]
 fn rust_ignores_non_import_lines() {
-    let lines = [
-        "fn main() {}",
-        "// use fake;",
-        "let x = 42;",
-    ];
+    let lines = ["fn main() {}", "// use fake;", "let x = 42;"];
     let result = parse_imports("Rust", &lines);
     assert!(result.is_empty());
 }
@@ -198,11 +194,7 @@ fn parse_preserves_insertion_order() {
 
 #[test]
 fn parse_is_deterministic() {
-    let lines = [
-        "import os",
-        "from pathlib import Path",
-        "import sys",
-    ];
+    let lines = ["import os", "from pathlib import Path", "import sys"];
     let a = parse_imports("Python", &lines);
     let b = parse_imports("Python", &lines);
     assert_eq!(a, b, "parse_imports must be deterministic");

@@ -166,20 +166,38 @@ fn analysis_receipt_missing_optional_sections_ok() {
 
 #[test]
 fn entropy_class_serializes_snake_case() {
-    assert_eq!(serde_json::to_string(&EntropyClass::Low).unwrap(), "\"low\"");
-    assert_eq!(serde_json::to_string(&EntropyClass::Normal).unwrap(), "\"normal\"");
+    assert_eq!(
+        serde_json::to_string(&EntropyClass::Low).unwrap(),
+        "\"low\""
+    );
+    assert_eq!(
+        serde_json::to_string(&EntropyClass::Normal).unwrap(),
+        "\"normal\""
+    );
     assert_eq!(
         serde_json::to_string(&EntropyClass::Suspicious).unwrap(),
         "\"suspicious\""
     );
-    assert_eq!(serde_json::to_string(&EntropyClass::High).unwrap(), "\"high\"");
+    assert_eq!(
+        serde_json::to_string(&EntropyClass::High).unwrap(),
+        "\"high\""
+    );
 }
 
 #[test]
 fn trend_class_serializes_snake_case() {
-    assert_eq!(serde_json::to_string(&TrendClass::Rising).unwrap(), "\"rising\"");
-    assert_eq!(serde_json::to_string(&TrendClass::Flat).unwrap(), "\"flat\"");
-    assert_eq!(serde_json::to_string(&TrendClass::Falling).unwrap(), "\"falling\"");
+    assert_eq!(
+        serde_json::to_string(&TrendClass::Rising).unwrap(),
+        "\"rising\""
+    );
+    assert_eq!(
+        serde_json::to_string(&TrendClass::Flat).unwrap(),
+        "\"flat\""
+    );
+    assert_eq!(
+        serde_json::to_string(&TrendClass::Falling).unwrap(),
+        "\"falling\""
+    );
 }
 
 #[test]

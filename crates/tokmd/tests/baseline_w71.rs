@@ -107,7 +107,10 @@ fn baseline_custom_output_path() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success();
 
-    assert!(custom_path.exists(), "baseline should be written to custom path");
+    assert!(
+        custom_path.exists(),
+        "baseline should be written to custom path"
+    );
 
     let content = fs::read_to_string(&custom_path)?;
     let parsed: serde_json::Value = serde_json::from_str(&content)?;
@@ -187,13 +190,11 @@ fn baseline_deterministic_metrics() {
     let run2 = run_baseline(&[]);
 
     assert_eq!(
-        run1["metrics"]["total_files"],
-        run2["metrics"]["total_files"],
+        run1["metrics"]["total_files"], run2["metrics"]["total_files"],
         "total_files should be deterministic"
     );
     assert_eq!(
-        run1["metrics"]["function_count"],
-        run2["metrics"]["function_count"],
+        run1["metrics"]["function_count"], run2["metrics"]["function_count"],
         "function_count should be deterministic"
     );
 }
@@ -329,8 +330,14 @@ fn baseline_determinism_flag_deterministic_hash() {
 fn baseline_metrics_values_non_negative() {
     let parsed = run_baseline(&[]);
     let m = &parsed["metrics"];
-    assert!(m["total_files"].as_u64().is_some(), "total_files should be a non-negative integer");
-    assert!(m["function_count"].as_u64().is_some(), "function_count should be a non-negative integer");
+    assert!(
+        m["total_files"].as_u64().is_some(),
+        "total_files should be a non-negative integer"
+    );
+    assert!(
+        m["function_count"].as_u64().is_some(),
+        "function_count should be a non-negative integer"
+    );
     assert!(m["avg_cyclomatic"].as_f64().unwrap_or(0.0) >= 0.0);
     assert!(m["max_cyclomatic"].as_f64().unwrap_or(0.0) >= 0.0);
 }

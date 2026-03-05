@@ -389,12 +389,18 @@ fn init_each_profile_writes_correct_content() {
 
 #[test]
 fn deterministic_default() {
-    assert_eq!(template_for(InitProfile::Default), template_for(InitProfile::Default));
+    assert_eq!(
+        template_for(InitProfile::Default),
+        template_for(InitProfile::Default)
+    );
 }
 
 #[test]
 fn deterministic_rust() {
-    assert_eq!(template_for(InitProfile::Rust), template_for(InitProfile::Rust));
+    assert_eq!(
+        template_for(InitProfile::Rust),
+        template_for(InitProfile::Rust)
+    );
 }
 
 #[test]

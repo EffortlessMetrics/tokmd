@@ -35,15 +35,13 @@ fn make_file(path: &str, lang: &str, code: usize, in_diff: bool) -> SubstrateFil
 fn make_substrate(files: Vec<SubstrateFile>, diff: Option<DiffRange>) -> RepoSubstrate {
     let mut lang_summary: BTreeMap<String, LangSummary> = BTreeMap::new();
     for f in &files {
-        let e = lang_summary
-            .entry(f.lang.clone())
-            .or_insert(LangSummary {
-                files: 0,
-                code: 0,
-                lines: 0,
-                bytes: 0,
-                tokens: 0,
-            });
+        let e = lang_summary.entry(f.lang.clone()).or_insert(LangSummary {
+            files: 0,
+            code: 0,
+            lines: 0,
+            bytes: 0,
+            tokens: 0,
+        });
         e.files += 1;
         e.code += f.code;
         e.lines += f.lines;
@@ -278,7 +276,10 @@ fn finding_sensor_each_finding_has_location() {
     let sub = sample_substrate();
     let report = FindingSensor.run(&EmptySettings, &sub).unwrap();
     for finding in &report.findings {
-        assert!(finding.location.is_some(), "every finding must have a location");
+        assert!(
+            finding.location.is_some(),
+            "every finding must have a location"
+        );
     }
 }
 
@@ -299,10 +300,7 @@ fn finding_sensor_locations_match_file_paths() {
 
 #[test]
 fn diff_aware_sensor_pass_when_no_diff_files() {
-    let sub = make_substrate(
-        vec![make_file("a.rs", "Rust", 10, false)],
-        None,
-    );
+    let sub = make_substrate(vec![make_file("a.rs", "Rust", 10, false)], None);
     let report = DiffAwareSensor.run(&EmptySettings, &sub).unwrap();
     assert_eq!(report.verdict, Verdict::Pass);
 }
@@ -329,7 +327,12 @@ fn diff_aware_sensor_warn_when_diff_files_exist() {
 fn report_tool_meta_matches_sensor() {
     let sub = sample_substrate();
     let report = LineSensor
-        .run(&ThresholdSettings { max_code_lines: 999 }, &sub)
+        .run(
+            &ThresholdSettings {
+                max_code_lines: 999,
+            },
+            &sub,
+        )
         .unwrap();
     assert_eq!(report.tool.name, "line-sensor");
     assert_eq!(report.tool.version, "0.2.0");
@@ -365,9 +368,7 @@ fn finding_sensor_deterministic_across_runs() {
 
 #[test]
 fn threshold_settings_serde_roundtrip() {
-    let s = ThresholdSettings {
-        max_code_lines: 42,
-    };
+    let s = ThresholdSettings { max_code_lines: 42 };
     let json = serde_json::to_string(&s).unwrap();
     let back: ThresholdSettings = serde_json::from_str(&json).unwrap();
     assert_eq!(back.max_code_lines, 42);

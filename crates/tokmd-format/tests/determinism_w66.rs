@@ -29,7 +29,12 @@ fn sample_lang_report() -> LangReport {
             sample_lang_row("Go", 100),
         ],
         total: Totals {
-            code: 900, lines: 1050, files: 9, bytes: 3600, tokens: 900, avg_lines: 116,
+            code: 900,
+            lines: 1050,
+            files: 9,
+            bytes: 3600,
+            tokens: 900,
+            avg_lines: 116,
         },
         with_files: true,
         children: ChildrenMode::Collapse,
@@ -39,12 +44,14 @@ fn sample_lang_report() -> LangReport {
 
 fn sample_lang_report_no_files() -> LangReport {
     LangReport {
-        rows: vec![
-            sample_lang_row("Rust", 500),
-            sample_lang_row("Python", 300),
-        ],
+        rows: vec![sample_lang_row("Rust", 500), sample_lang_row("Python", 300)],
         total: Totals {
-            code: 800, lines: 900, files: 6, bytes: 3200, tokens: 800, avg_lines: 150,
+            code: 800,
+            lines: 900,
+            files: 6,
+            bytes: 3200,
+            tokens: 800,
+            avg_lines: 150,
         },
         with_files: false,
         children: ChildrenMode::Collapse,
@@ -57,15 +64,30 @@ fn sample_module_report() -> ModuleReport {
         rows: vec![
             ModuleRow {
                 module: "crates/tokmd".to_string(),
-                code: 800, lines: 1100, files: 10, bytes: 3200, tokens: 800, avg_lines: 110,
+                code: 800,
+                lines: 1100,
+                files: 10,
+                bytes: 3200,
+                tokens: 800,
+                avg_lines: 110,
             },
             ModuleRow {
                 module: "src".to_string(),
-                code: 200, lines: 300, files: 5, bytes: 800, tokens: 200, avg_lines: 60,
+                code: 200,
+                lines: 300,
+                files: 5,
+                bytes: 800,
+                tokens: 200,
+                avg_lines: 60,
             },
         ],
         total: Totals {
-            code: 1000, lines: 1400, files: 15, bytes: 4000, tokens: 1000, avg_lines: 93,
+            code: 1000,
+            lines: 1400,
+            files: 15,
+            bytes: 4000,
+            tokens: 1000,
+            avg_lines: 93,
         },
         module_roots: vec!["crates".to_string()],
         module_depth: 2,
@@ -82,14 +104,24 @@ fn sample_export_data() -> ExportData {
                 module: "src".to_string(),
                 lang: "Rust".to_string(),
                 kind: FileKind::Parent,
-                code: 120, comments: 30, blanks: 20, lines: 170, bytes: 4800, tokens: 1200,
+                code: 120,
+                comments: 30,
+                blanks: 20,
+                lines: 170,
+                bytes: 4800,
+                tokens: 1200,
             },
             FileRow {
                 path: "src/lib.rs".to_string(),
                 module: "src".to_string(),
                 lang: "Rust".to_string(),
                 kind: FileKind::Parent,
-                code: 80, comments: 10, blanks: 10, lines: 100, bytes: 3200, tokens: 800,
+                code: 80,
+                comments: 10,
+                blanks: 10,
+                lines: 100,
+                bytes: 3200,
+                tokens: 800,
             },
         ],
         module_roots: vec!["crates".to_string()],
@@ -281,7 +313,12 @@ fn diff_rows_are_deterministic() {
             sample_lang_row("TypeScript", 50),
         ],
         total: Totals {
-            code: 1000, lines: 1150, files: 9, bytes: 4000, tokens: 1000, avg_lines: 127,
+            code: 1000,
+            lines: 1150,
+            files: 9,
+            bytes: 4000,
+            tokens: 1000,
+            avg_lines: 127,
         },
         with_files: true,
         children: ChildrenMode::Collapse,
@@ -301,19 +338,39 @@ fn diff_totals_are_deterministic() {
     let rows = vec![
         DiffRow {
             lang: "Rust".into(),
-            old_code: 100, new_code: 200, delta_code: 100,
-            old_lines: 150, new_lines: 300, delta_lines: 150,
-            old_files: 5, new_files: 8, delta_files: 3,
-            old_bytes: 400, new_bytes: 800, delta_bytes: 400,
-            old_tokens: 100, new_tokens: 200, delta_tokens: 100,
+            old_code: 100,
+            new_code: 200,
+            delta_code: 100,
+            old_lines: 150,
+            new_lines: 300,
+            delta_lines: 150,
+            old_files: 5,
+            new_files: 8,
+            delta_files: 3,
+            old_bytes: 400,
+            new_bytes: 800,
+            delta_bytes: 400,
+            old_tokens: 100,
+            new_tokens: 200,
+            delta_tokens: 100,
         },
         DiffRow {
             lang: "Go".into(),
-            old_code: 50, new_code: 30, delta_code: -20,
-            old_lines: 80, new_lines: 50, delta_lines: -30,
-            old_files: 3, new_files: 2, delta_files: -1,
-            old_bytes: 200, new_bytes: 120, delta_bytes: -80,
-            old_tokens: 50, new_tokens: 30, delta_tokens: -20,
+            old_code: 50,
+            new_code: 30,
+            delta_code: -20,
+            old_lines: 80,
+            new_lines: 50,
+            delta_lines: -30,
+            old_files: 3,
+            new_files: 2,
+            delta_files: -1,
+            old_bytes: 200,
+            new_bytes: 120,
+            delta_bytes: -80,
+            old_tokens: 50,
+            new_tokens: 30,
+            delta_tokens: -20,
         },
     ];
     let t1 = compute_diff_totals(&rows);
@@ -327,16 +384,24 @@ fn diff_totals_are_deterministic() {
 
 #[test]
 fn diff_md_rendering_is_deterministic() {
-    let rows = vec![
-        DiffRow {
-            lang: "Rust".into(),
-            old_code: 100, new_code: 200, delta_code: 100,
-            old_lines: 150, new_lines: 300, delta_lines: 150,
-            old_files: 5, new_files: 8, delta_files: 3,
-            old_bytes: 400, new_bytes: 800, delta_bytes: 400,
-            old_tokens: 100, new_tokens: 200, delta_tokens: 100,
-        },
-    ];
+    let rows = vec![DiffRow {
+        lang: "Rust".into(),
+        old_code: 100,
+        new_code: 200,
+        delta_code: 100,
+        old_lines: 150,
+        new_lines: 300,
+        delta_lines: 150,
+        old_files: 5,
+        new_files: 8,
+        delta_files: 3,
+        old_bytes: 400,
+        new_bytes: 800,
+        delta_bytes: 400,
+        old_tokens: 100,
+        new_tokens: 200,
+        delta_tokens: 100,
+    }];
     let totals = compute_diff_totals(&rows);
     let md1 = render_diff_md("v1.0", "v2.0", &rows, &totals);
     let md2 = render_diff_md("v1.0", "v2.0", &rows, &totals);
@@ -349,7 +414,14 @@ fn diff_md_rendering_is_deterministic() {
 fn empty_lang_report_md_is_byte_stable() {
     let report = LangReport {
         rows: vec![],
-        total: Totals { code: 0, lines: 0, files: 0, bytes: 0, tokens: 0, avg_lines: 0 },
+        total: Totals {
+            code: 0,
+            lines: 0,
+            files: 0,
+            bytes: 0,
+            tokens: 0,
+            avg_lines: 0,
+        },
         with_files: true,
         children: ChildrenMode::Collapse,
         top: 0,
@@ -370,7 +442,12 @@ fn single_row_lang_report_is_stable() {
     let report = LangReport {
         rows: vec![sample_lang_row("Rust", 1000)],
         total: Totals {
-            code: 1000, lines: 1050, files: 3, bytes: 4000, tokens: 1000, avg_lines: 350,
+            code: 1000,
+            lines: 1050,
+            files: 3,
+            bytes: 4000,
+            tokens: 1000,
+            avg_lines: 350,
         },
         with_files: true,
         children: ChildrenMode::Collapse,
@@ -409,7 +486,10 @@ fn csv_header_order_is_deterministic() {
     tokmd_format::write_export_csv_to(&mut buf, &data, &args).unwrap();
     let csv_str = String::from_utf8(buf).unwrap();
     let header = csv_str.lines().next().unwrap();
-    assert_eq!(header, "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens");
+    assert_eq!(
+        header,
+        "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"
+    );
 }
 
 // -- 15. Repeated formatting 100 times --
@@ -440,7 +520,12 @@ fn markdown_rows_maintain_input_order() {
             sample_lang_row("Go", 100),
         ],
         total: Totals {
-            code: 900, lines: 1050, files: 9, bytes: 3600, tokens: 900, avg_lines: 116,
+            code: 900,
+            lines: 1050,
+            files: 9,
+            bytes: 3600,
+            tokens: 900,
+            avg_lines: 116,
         },
         with_files: true,
         children: ChildrenMode::Collapse,

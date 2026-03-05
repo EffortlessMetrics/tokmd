@@ -137,7 +137,10 @@ fn badge_various_values() {
 #[test]
 fn badge_label_background_is_grey() {
     let svg = badge_svg("test", "42");
-    assert!(svg.contains("fill=\"#555\""), "Label segment should be grey #555");
+    assert!(
+        svg.contains("fill=\"#555\""),
+        "Label segment should be grey #555"
+    );
 }
 
 #[test]
@@ -383,8 +386,14 @@ fn property_badge_always_valid_svg_structure() {
     ];
     for (label, value) in cases {
         let svg = badge_svg(label, value);
-        assert!(svg.starts_with("<svg"), "Must start with <svg: label={label}");
-        assert!(svg.ends_with("</svg>"), "Must end with </svg>: label={label}");
+        assert!(
+            svg.starts_with("<svg"),
+            "Must start with <svg: label={label}"
+        );
+        assert!(
+            svg.ends_with("</svg>"),
+            "Must end with </svg>: label={label}"
+        );
         assert!(
             svg.contains("xmlns=\"http://www.w3.org/2000/svg\""),
             "Must have xmlns: label={label}"
@@ -413,7 +422,10 @@ fn property_badge_width_always_positive() {
     for (label, value) in cases {
         let svg = badge_svg(label, value);
         let width = extract_width(&svg);
-        assert!(width > 0, "Width must be positive: label={label} value={value}");
+        assert!(
+            width > 0,
+            "Width must be positive: label={label} value={value}"
+        );
     }
 }
 

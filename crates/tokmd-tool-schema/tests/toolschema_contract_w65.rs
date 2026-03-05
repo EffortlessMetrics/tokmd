@@ -8,7 +8,7 @@ use clap::{Arg, ArgAction, Command};
 use serde_json::Value;
 use std::collections::BTreeSet;
 use tokmd_tool_schema::{
-    ParameterSchema, ToolDefinition, ToolSchemaFormat, ToolSchemaOutput, TOOL_SCHEMA_VERSION,
+    ParameterSchema, TOOL_SCHEMA_VERSION, ToolDefinition, ToolSchemaFormat, ToolSchemaOutput,
     build_tool_schema, render_output,
 };
 
@@ -206,11 +206,7 @@ fn param_boolean_from_set_false() {
 fn param_integer_from_count() {
     let schema = build_tool_schema(&realistic_cli());
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let depth = scan
-        .parameters
-        .iter()
-        .find(|p| p.name == "depth")
-        .unwrap();
+    let depth = scan.parameters.iter().find(|p| p.name == "depth").unwrap();
     assert_eq!(depth.param_type, "integer");
 }
 
@@ -251,11 +247,7 @@ fn param_required_flag_correct() {
 fn param_enum_values_captured() {
     let schema = build_tool_schema(&realistic_cli());
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let format_param = scan
-        .parameters
-        .iter()
-        .find(|p| p.name == "format")
-        .unwrap();
+    let format_param = scan.parameters.iter().find(|p| p.name == "format").unwrap();
     let enums = format_param.enum_values.as_ref().unwrap();
     assert_eq!(enums, &["json", "csv", "markdown"]);
 }
@@ -264,11 +256,7 @@ fn param_enum_values_captured() {
 fn param_default_value_captured() {
     let schema = build_tool_schema(&realistic_cli());
     let scan = schema.tools.iter().find(|p| p.name == "scan").unwrap();
-    let format_param = scan
-        .parameters
-        .iter()
-        .find(|p| p.name == "format")
-        .unwrap();
+    let format_param = scan.parameters.iter().find(|p| p.name == "format").unwrap();
     assert_eq!(format_param.default.as_deref(), Some("json"));
 }
 
@@ -493,8 +481,16 @@ fn cross_format_property_count_consistent() {
             .unwrap()
             .len();
 
-        assert_eq!(oai_count, expected_param_count, "OpenAI mismatch for {}", tool.name);
-        assert_eq!(ant_count, expected_param_count, "Anthropic mismatch for {}", tool.name);
+        assert_eq!(
+            oai_count, expected_param_count,
+            "OpenAI mismatch for {}",
+            tool.name
+        );
+        assert_eq!(
+            ant_count, expected_param_count,
+            "Anthropic mismatch for {}",
+            tool.name
+        );
     }
 }
 
@@ -624,20 +620,28 @@ fn edge_argless_subcommand_renders_empty_properties() {
             .iter()
             .find(|t| t["name"] == "noop")
             .unwrap();
-        assert!(noop_tool[params_key]["properties"].as_object().unwrap().is_empty());
-        assert!(noop_tool[params_key]["required"].as_array().unwrap().is_empty());
+        assert!(
+            noop_tool[params_key]["properties"]
+                .as_object()
+                .unwrap()
+                .is_empty()
+        );
+        assert!(
+            noop_tool[params_key]["required"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
     }
 }
 
 #[test]
 fn edge_nested_subcommands_only_top_level_extracted() {
-    let cmd = Command::new("top")
-        .version("1.0.0")
-        .subcommand(
-            Command::new("l1")
-                .about("Level 1")
-                .subcommand(Command::new("l2").about("Level 2")),
-        );
+    let cmd = Command::new("top").version("1.0.0").subcommand(
+        Command::new("l1")
+            .about("Level 1")
+            .subcommand(Command::new("l2").about("Level 2")),
+    );
     let schema = build_tool_schema(&cmd);
     let names: BTreeSet<&str> = schema.tools.iter().map(|t| t.name.as_str()).collect();
     assert!(names.contains("top"));
@@ -682,7 +686,10 @@ fn serde_parameter_schema_skip_none_fields() {
     };
     let json = serde_json::to_string(&ps).unwrap();
     let v: Value = serde_json::from_str(&json).unwrap();
-    assert!(v.get("description").is_none(), "None fields should be skipped");
+    assert!(
+        v.get("description").is_none(),
+        "None fields should be skipped"
+    );
     assert!(v.get("default").is_none());
     assert!(v.get("enum_values").is_none());
 }
@@ -733,10 +740,12 @@ fn bdd_given_empty_cmd_when_anthropic_then_valid_single_tool() {
     let tools = v["tools"].as_array().unwrap();
     assert_eq!(tools.len(), 1);
     assert_eq!(tools[0]["name"], "empty");
-    assert!(tools[0]["input_schema"]["properties"]
-        .as_object()
-        .unwrap()
-        .is_empty());
+    assert!(
+        tools[0]["input_schema"]["properties"]
+            .as_object()
+            .unwrap()
+            .is_empty()
+    );
 }
 
 /// Given a command with required and optional params
@@ -774,11 +783,7 @@ fn bdd_given_enum_defaults_when_clap_roundtrip_then_preserved() {
     let json = render_output(&schema, ToolSchemaFormat::Clap, false).unwrap();
     let rt: ToolSchemaOutput = serde_json::from_str(&json).unwrap();
     let scan = rt.tools.iter().find(|t| t.name == "scan").unwrap();
-    let format_param = scan
-        .parameters
-        .iter()
-        .find(|p| p.name == "format")
-        .unwrap();
+    let format_param = scan.parameters.iter().find(|p| p.name == "format").unwrap();
     assert_eq!(format_param.default.as_deref(), Some("json"));
     assert_eq!(
         format_param.enum_values.as_ref().unwrap(),

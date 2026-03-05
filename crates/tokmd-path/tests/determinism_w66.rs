@@ -42,7 +42,10 @@ fn normalize_slashes_removes_all_backslashes() {
     let inputs = ["\\", "\\\\", "a\\b", "\\a\\b\\c", "a\\\\b"];
     for input in &inputs {
         let result = normalize_slashes(input);
-        assert!(!result.contains('\\'), "output still contains backslash for {input:?}: {result}");
+        assert!(
+            !result.contains('\\'),
+            "output still contains backslash for {input:?}: {result}"
+        );
     }
 }
 
@@ -66,7 +69,10 @@ fn root_path_normalization() {
 
 #[test]
 fn unc_path_normalization() {
-    assert_eq!(normalize_slashes("\\\\server\\share\\file"), "//server/share/file");
+    assert_eq!(
+        normalize_slashes("\\\\server\\share\\file"),
+        "//server/share/file"
+    );
     let once = normalize_slashes("\\\\server\\share");
     let twice = normalize_slashes(&once);
     assert_eq!(once, twice);
@@ -77,7 +83,10 @@ fn unc_path_normalization() {
 #[test]
 fn paths_with_dots_normalize_slashes_only() {
     assert_eq!(normalize_slashes(".\\src\\lib.rs"), "./src/lib.rs");
-    assert_eq!(normalize_slashes("..\\parent\\file.rs"), "../parent/file.rs");
+    assert_eq!(
+        normalize_slashes("..\\parent\\file.rs"),
+        "../parent/file.rs"
+    );
 }
 
 // -- 8. normalize_rel_path strips leading ./ --

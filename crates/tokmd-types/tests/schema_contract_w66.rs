@@ -436,8 +436,14 @@ fn context_receipt_ignores_extra_fields() {
 
 #[test]
 fn scan_status_serializes_snake_case() {
-    assert_eq!(serde_json::to_string(&ScanStatus::Complete).unwrap(), "\"complete\"");
-    assert_eq!(serde_json::to_string(&ScanStatus::Partial).unwrap(), "\"partial\"");
+    assert_eq!(
+        serde_json::to_string(&ScanStatus::Complete).unwrap(),
+        "\"complete\""
+    );
+    assert_eq!(
+        serde_json::to_string(&ScanStatus::Partial).unwrap(),
+        "\"partial\""
+    );
 }
 
 #[test]
@@ -502,8 +508,14 @@ fn commit_intent_kind_serializes_snake_case() {
 
 #[test]
 fn export_format_serializes_kebab_case() {
-    assert_eq!(serde_json::to_string(&ExportFormat::Csv).unwrap(), "\"csv\"");
-    assert_eq!(serde_json::to_string(&ExportFormat::Jsonl).unwrap(), "\"jsonl\"");
+    assert_eq!(
+        serde_json::to_string(&ExportFormat::Csv).unwrap(),
+        "\"csv\""
+    );
+    assert_eq!(
+        serde_json::to_string(&ExportFormat::Jsonl).unwrap(),
+        "\"jsonl\""
+    );
     assert_eq!(
         serde_json::to_string(&ExportFormat::Cyclonedx).unwrap(),
         "\"cyclonedx\""

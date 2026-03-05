@@ -35,8 +35,7 @@ fn run_xtask(args: &[&str]) -> (String, String, bool) {
 }
 
 fn read_root_cargo_toml() -> toml::Table {
-    let content =
-        std::fs::read_to_string(workspace_root().join("Cargo.toml")).unwrap();
+    let content = std::fs::read_to_string(workspace_root().join("Cargo.toml")).unwrap();
     toml::from_str(&content).unwrap()
 }
 
@@ -64,7 +63,8 @@ fn parse_publish_order(stdout: &str) -> Vec<String> {
         }
         if in_order {
             let trimmed = line.trim();
-            if trimmed.is_empty() || trimmed.starts_with("Excluded") || trimmed.starts_with("Flags") {
+            if trimmed.is_empty() || trimmed.starts_with("Excluded") || trimmed.starts_with("Flags")
+            {
                 break;
             }
             // Lines like "  1. tokmd-types"
@@ -101,7 +101,10 @@ fn publish_plan_types_before_scan() {
     let types_pos = order.iter().position(|n| n == "tokmd-types");
     let scan_pos = order.iter().position(|n| n == "tokmd-scan");
     if let (Some(t), Some(s)) = (types_pos, scan_pos) {
-        assert!(t < s, "tokmd-types (pos {t}) must come before tokmd-scan (pos {s})");
+        assert!(
+            t < s,
+            "tokmd-types (pos {t}) must come before tokmd-scan (pos {s})"
+        );
     }
 }
 
@@ -186,7 +189,10 @@ fn publish_plan_excludes_fuzz() {
 fn publish_plan_crate_count_positive() {
     let (stdout, _, _) = run_xtask(&["publish", "--plan"]);
     let order = parse_publish_order(&stdout);
-    assert!(!order.is_empty(), "publish plan must include at least one crate");
+    assert!(
+        !order.is_empty(),
+        "publish plan must include at least one crate"
+    );
 }
 
 #[test]
@@ -324,7 +330,10 @@ fn boundaries_analysis_crates_each_have_package_name() {
             .get("package")
             .and_then(|p| p.get("name"))
             .and_then(|n| n.as_str());
-        assert!(pkg_name.is_some(), "{name}/Cargo.toml must have [package].name");
+        assert!(
+            pkg_name.is_some(),
+            "{name}/Cargo.toml must have [package].name"
+        );
     }
 }
 
@@ -357,12 +366,12 @@ fn docs_reference_cli_has_paired_markers() {
     }
     for cmd in &open_markers {
         let close = format!("<!-- /HELP: {cmd} -->");
-        assert!(
-            content.contains(&close),
-            "missing close marker for {cmd}"
-        );
+        assert!(content.contains(&close), "missing close marker for {cmd}");
     }
-    assert!(!open_markers.is_empty(), "should have at least one marker pair");
+    assert!(
+        !open_markers.is_empty(),
+        "should have at least one marker pair"
+    );
 }
 
 #[test]
@@ -495,10 +504,7 @@ fn gate_source_defines_all_expected_steps() {
     // The gate task defines STEPS with label fields
     assert!(src.contains("\"fmt\""), "gate should have fmt step");
     assert!(src.contains("\"clippy\""), "gate should have clippy step");
-    assert!(
-        src.contains("\"test"),
-        "gate should have test step"
-    );
+    assert!(src.contains("\"test"), "gate should have test step");
 }
 
 #[test]

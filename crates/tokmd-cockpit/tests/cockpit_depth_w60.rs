@@ -620,7 +620,10 @@ fn determinism_receipt_json_roundtrip() {
     assert_eq!(r.mode, r2.mode);
     assert_eq!(r.base_ref, r2.base_ref);
     assert_eq!(r.head_ref, r2.head_ref);
-    assert_eq!(r.change_surface.files_changed, r2.change_surface.files_changed);
+    assert_eq!(
+        r.change_surface.files_changed,
+        r2.change_surface.files_changed
+    );
     assert_eq!(r.code_health.score, r2.code_health.score);
     assert_eq!(r.risk.score, r2.risk.score);
 }
@@ -845,13 +848,14 @@ fn health_complexity_indicator_critical() {
 
 #[test]
 fn health_warnings_for_each_large_file() {
-    let stats = vec![
-        stat("src/a.rs", 300, 250),
-        stat("src/b.rs", 400, 200),
-    ];
+    let stats = vec![stat("src/a.rs", 300, 250), stat("src/b.rs", 400, 200)];
     let h = compute_code_health(&stats, &no_contracts());
     assert_eq!(h.warnings.len(), 2);
-    assert!(h.warnings.iter().all(|w| w.warning_type == WarningType::LargeFile));
+    assert!(
+        h.warnings
+            .iter()
+            .all(|w| w.warning_type == WarningType::LargeFile)
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -921,9 +925,15 @@ fn format_signed_zero() {
 
 #[test]
 fn trend_label_all_directions() {
-    assert_eq!(trend_direction_label(TrendDirection::Improving), "improving");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Improving),
+        "improving"
+    );
     assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
-    assert_eq!(trend_direction_label(TrendDirection::Degrading), "degrading");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Degrading),
+        "degrading"
+    );
 }
 
 #[test]
@@ -1152,8 +1162,7 @@ fn hash_skips_target_and_git_dirs() {
 
     // Hashing with target path should produce same result as without it
     let h1 = determinism::hash_files_from_paths(dir.path(), &["a.rs"]).unwrap();
-    let h2 =
-        determinism::hash_files_from_paths(dir.path(), &["a.rs", "target/debug.rs"]).unwrap();
+    let h2 = determinism::hash_files_from_paths(dir.path(), &["a.rs", "target/debug.rs"]).unwrap();
     assert_eq!(h1, h2);
 }
 

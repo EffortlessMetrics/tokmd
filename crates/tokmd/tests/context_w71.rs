@@ -226,8 +226,8 @@ fn context_log_flag_creates_logfile() {
         if line.trim().is_empty() {
             continue;
         }
-        let _: serde_json::Value = serde_json::from_str(line)
-            .unwrap_or_else(|e| panic!("Invalid JSONL in log: {e}"));
+        let _: serde_json::Value =
+            serde_json::from_str(line).unwrap_or_else(|e| panic!("Invalid JSONL in log: {e}"));
     }
 }
 
@@ -336,13 +336,7 @@ fn context_output_bundle_to_file() {
 #[test]
 fn context_invalid_rank_by_rejected() {
     tokmd_cmd()
-        .args([
-            "context",
-            "--mode",
-            "json",
-            "--rank-by",
-            "nonexistent",
-        ])
+        .args(["context", "--mode", "json", "--rank-by", "nonexistent"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("invalid value"));

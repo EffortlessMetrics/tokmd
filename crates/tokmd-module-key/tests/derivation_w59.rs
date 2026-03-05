@@ -33,10 +33,7 @@ fn derive_two_dirs_matching_root_depth_2() {
 #[test]
 fn derive_three_dirs_matching_root_depth_2() {
     let roots = vec!["crates".into()];
-    assert_eq!(
-        module_key("crates/foo/src/lib.rs", &roots, 2),
-        "crates/foo"
-    );
+    assert_eq!(module_key("crates/foo/src/lib.rs", &roots, 2), "crates/foo");
 }
 
 #[test]
@@ -75,19 +72,13 @@ fn derive_mixed_separators() {
 #[test]
 fn derive_leading_dot_slash_stripped() {
     let roots = vec!["crates".into()];
-    assert_eq!(
-        module_key("./crates/foo/lib.rs", &roots, 2),
-        "crates/foo"
-    );
+    assert_eq!(module_key("./crates/foo/lib.rs", &roots, 2), "crates/foo");
 }
 
 #[test]
 fn derive_leading_slash_stripped() {
     let roots = vec!["crates".into()];
-    assert_eq!(
-        module_key("/crates/foo/lib.rs", &roots, 2),
-        "crates/foo"
-    );
+    assert_eq!(module_key("/crates/foo/lib.rs", &roots, 2), "crates/foo");
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -137,11 +128,7 @@ fn depth_progression_adds_segments() {
         (5, "crates/a/b/c/d"),
     ];
     for (depth, want) in expected {
-        assert_eq!(
-            module_key(path, &roots, depth),
-            want,
-            "depth {depth}"
-        );
+        assert_eq!(module_key(path, &roots, depth), want, "depth {depth}");
     }
 }
 
@@ -262,19 +249,13 @@ fn empty_segments_filtered() {
 
 #[test]
 fn dot_only_dir_becomes_root() {
-    assert_eq!(
-        module_key_from_normalized("./lib.rs", &[], 2),
-        "(root)"
-    );
+    assert_eq!(module_key_from_normalized("./lib.rs", &[], 2), "(root)");
 }
 
 #[test]
 fn dot_only_dir_with_root_config() {
     let roots = vec!["crates".into()];
-    assert_eq!(
-        module_key_from_normalized("./lib.rs", &roots, 2),
-        "(root)"
-    );
+    assert_eq!(module_key_from_normalized("./lib.rs", &roots, 2), "(root)");
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -296,10 +277,14 @@ fn sort_root_before_alpha() {
 #[test]
 fn sort_alphabetical_within_module_root() {
     let roots = vec!["crates".into()];
-    let mut keys: Vec<String> = ["crates/zzz/lib.rs", "crates/aaa/lib.rs", "crates/mmm/lib.rs"]
-        .iter()
-        .map(|p| module_key(p, &roots, 2))
-        .collect();
+    let mut keys: Vec<String> = [
+        "crates/zzz/lib.rs",
+        "crates/aaa/lib.rs",
+        "crates/mmm/lib.rs",
+    ]
+    .iter()
+    .map(|p| module_key(p, &roots, 2))
+    .collect();
     keys.sort();
     assert_eq!(keys, ["crates/aaa", "crates/mmm", "crates/zzz"]);
 }
@@ -354,5 +339,8 @@ fn non_matching_root_returns_first_dir_regardless_of_depth() {
 fn root_prefix_no_false_match() {
     // "crates-extra" should NOT match the root "crates"
     let roots = vec!["crates".into()];
-    assert_eq!(module_key("crates-extra/foo/lib.rs", &roots, 2), "crates-extra");
+    assert_eq!(
+        module_key("crates-extra/foo/lib.rs", &roots, 2),
+        "crates-extra"
+    );
 }

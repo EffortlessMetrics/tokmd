@@ -148,20 +148,14 @@ fn add_returns_true_for_new_pattern() {
 #[test]
 fn add_returns_false_for_exact_duplicate() {
     let mut patterns = vec!["src/a.rs".to_string()];
-    assert!(!add_exclude_pattern(
-        &mut patterns,
-        "src/a.rs".to_string()
-    ));
+    assert!(!add_exclude_pattern(&mut patterns, "src/a.rs".to_string()));
     assert_eq!(patterns.len(), 1);
 }
 
 #[test]
 fn add_returns_false_for_backslash_duplicate() {
     let mut patterns = vec!["src/a.rs".to_string()];
-    assert!(!add_exclude_pattern(
-        &mut patterns,
-        r"src\a.rs".to_string()
-    ));
+    assert!(!add_exclude_pattern(&mut patterns, r"src\a.rs".to_string()));
     assert_eq!(patterns.len(), 1);
 }
 
@@ -185,18 +179,9 @@ fn add_rejects_empty_string() {
 #[test]
 fn add_accumulates_distinct_patterns() {
     let mut patterns = vec![];
-    assert!(add_exclude_pattern(
-        &mut patterns,
-        "a/b.rs".to_string()
-    ));
-    assert!(add_exclude_pattern(
-        &mut patterns,
-        "c/d.rs".to_string()
-    ));
-    assert!(add_exclude_pattern(
-        &mut patterns,
-        "e/f.rs".to_string()
-    ));
+    assert!(add_exclude_pattern(&mut patterns, "a/b.rs".to_string()));
+    assert!(add_exclude_pattern(&mut patterns, "c/d.rs".to_string()));
+    assert!(add_exclude_pattern(&mut patterns, "e/f.rs".to_string()));
     assert_eq!(patterns.len(), 3);
 }
 
