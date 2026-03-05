@@ -20,20 +20,67 @@ features = ["git", "walk", "content", "fun", "topics", "archetype"]
 
 ## Usage
 
-```rust
-use tokmd_analysis::{analyze, AnalysisRequest, AnalysisContext, AnalysisLimits, AnalysisPreset};
+```rust,no_run
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
+use std::path::PathBuf;
+use tokmd_analysis::{
+    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest,
+    ImportGranularity, NearDupScope,
+};
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
+use tokmd_types::{ChildIncludeMode, ExportData};
 
-let request = AnalysisRequest {
-    context: AnalysisContext {
-        paths: vec![PathBuf::from(".")],
-        export: export_data,
-        base_receipt: None,
+let context = AnalysisContext {
+    export: ExportData {
+        rows: vec![],
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
     },
-    limits: AnalysisLimits::default(),
-    preset: AnalysisPreset::Risk,
+    root: PathBuf::from("."),
+    source: AnalysisSource {
+        inputs: vec![".".into()],
+        export_path: None,
+        base_receipt_path: None,
+        export_schema_version: None,
+        export_generated_at_ms: None,
+        base_signature: None,
+        module_roots: vec![],
+        module_depth: 1,
+        children: "separate".into(),
+    },
 };
 
-let receipt = analyze(request)?;
+let request = AnalysisRequest {
+    preset: AnalysisPreset::Risk,
+    args: AnalysisArgsMeta {
+        preset: "risk".into(),
+        format: "json".into(),
+        window_tokens: None,
+        git: None,
+        max_files: None,
+        max_bytes: None,
+        max_commits: None,
+        max_commit_files: None,
+        max_file_bytes: None,
+        import_granularity: "module".into(),
+    },
+    limits: AnalysisLimits::default(),
+    window_tokens: None,
+    git: None,
+    import_granularity: ImportGranularity::Module,
+    detail_functions: false,
+    near_dup: false,
+    near_dup_threshold: 0.8,
+    near_dup_max_files: 500,
+    near_dup_scope: NearDupScope::Module,
+    near_dup_max_pairs: None,
+    near_dup_exclude: vec![],
+};
+
+let receipt = analyze(context, request)?;
+# Ok(())
+# }
 ```
 
 ## Analysis Presets
