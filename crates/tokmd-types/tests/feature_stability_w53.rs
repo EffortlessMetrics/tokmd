@@ -73,6 +73,13 @@ fn tool_info_default_without_features() {
 }
 
 #[test]
+fn tool_info_custom_without_features() {
+    let t = sample_tool_info();
+    assert_eq!(t.name, "tokmd");
+    assert_eq!(t.version, "0.1.0");
+}
+
+#[test]
 fn diff_totals_default_without_features() {
     let d = DiffTotals::default();
     assert_eq!(d.delta_code, 0);
