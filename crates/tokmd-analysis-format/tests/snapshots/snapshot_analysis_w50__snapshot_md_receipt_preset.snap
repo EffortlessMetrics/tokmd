@@ -1,0 +1,118 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_analysis_w50.rs
+expression: text
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|10|2000|300|200|2500|75000|5000|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|15.0%|
+|Whitespace ratio|8.7%|
+|Bytes per line|30.00|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|15.0%|300|1700|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|10|20|500|200.00|180.00|450.00|500.00|0.3500|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|0–100|0|100|4|40.0%|
+|101–500|101|500|6|60.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|620|500|18000|1250|16.0%|29.03|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|620|500|18000|1250|16.0%|29.03|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|620|500|18000|1250|16.0%|29.03|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|620|500|18000|1250|16.0%|29.03|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/lib.rs|Rust|620|500|18000|1250|16.0%|29.03|
+
+## Structure
+
+- Max depth: `3`
+- Avg depth: `1.50`
+
+## Test density
+
+- Test lines: `400`
+- Prod lines: `2100`
+- Test ratio: `19.0%`
+
+## Boilerplate ratio
+
+- Infra lines: `200`
+- Logic lines: `1800`
+- Infra ratio: `10.0%`
+
+## Polyglot
+
+- Languages: `2`
+- Dominant: `Rust` (90.0%)
+- Entropy: `0.4500`
+
+## Reading time
+
+- Minutes: `12.50` (200 lines/min)
+
+## Integrity
+
+- Hash: `abc123def456` (`blake3`)
+- Entries: `10`
