@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-format/tests/snapshot_format_w50.rs
+expression: "String::from_utf8(buf).unwrap()"
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|5000|6000|200000|12500|
+|Python|2000|2500|72000|5000|
+|JavaScript|1500|1800|54000|3750|
+|TOML|400|500|12000|1000|
+|Markdown|300|400|12000|750|
+|YAML|100|120|3600|250|
+|**Total**|9300|11320|353600|23250|

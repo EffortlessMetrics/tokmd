@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_analysis_w50.rs
+expression: text
+---
+<analysis><totals files="10" code="2000" comments="300" blanks="200" lines="2500" bytes="75000" tokens="5000"/></analysis>
