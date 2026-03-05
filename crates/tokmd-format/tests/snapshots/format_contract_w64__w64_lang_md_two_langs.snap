@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/format_contract_w64.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|500|600|5|25000|1500|100|
+|Python|200|240|2|10000|600|100|
+|**Total**|700|840|7|35000|2100|100|

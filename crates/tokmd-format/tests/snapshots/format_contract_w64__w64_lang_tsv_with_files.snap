@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/format_contract_w64.rs
+expression: out
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Rust	500	600	5	25000	1500	100
+Go	300	360	3	15000	900	100
+Total	800	960	8	40000	2400	100
