@@ -59,7 +59,7 @@ fn entropy_bounded_between_zero_and_eight() {
 fn count_tags_empty_text_returns_zeros() {
     let result = count_tags("", &["TODO", "FIXME"]);
     assert_eq!(result.len(), 2);
-    for (_, count) in &result {
+    for count in result.values() {
         assert_eq!(*count, 0);
     }
 }

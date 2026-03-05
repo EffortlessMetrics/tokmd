@@ -186,7 +186,7 @@ fn count_tags_case_insensitive() {
 fn count_tags_none_found() {
     let text = "clean code without any markers";
     let tags = count_tags(text, &["TODO", "FIXME", "HACK"]);
-    for (_, count) in &tags {
+    for count in tags.values() {
         assert_eq!(*count, 0);
     }
 }
@@ -523,7 +523,7 @@ mod properties {
             text in "[a-zA-Z ]{0,100}",
         ) {
             let tags = count_tags(&text, &["TODO", "FIXME"]);
-            for (_, count) in &tags {
+            for count in tags.values() {
                 assert!(*count <= text.len());
             }
         }

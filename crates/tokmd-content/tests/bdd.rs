@@ -347,7 +347,7 @@ mod tag_counting {
         // Given empty text
         let result = count_tags("", &["TODO", "FIXME", "HACK"]);
         // Then all counts are zero
-        for (_, count) in &result {
+        for count in result.values() {
             assert_eq!(*count, 0);
         }
         assert_eq!(result.len(), 3);

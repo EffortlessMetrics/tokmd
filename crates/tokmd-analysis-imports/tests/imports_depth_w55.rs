@@ -134,7 +134,7 @@ fn graph_with_no_imports_all_leaf_nodes() {
         ("c.js", "javascript", &["console.log('hello');"]),
     ];
     let graph = build_graph(&files);
-    for (_, deps) in &graph {
+    for deps in graph.values() {
         assert!(deps.is_empty());
     }
 }
