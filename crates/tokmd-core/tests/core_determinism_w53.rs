@@ -113,7 +113,9 @@ fn lang_json_key_order_stable() {
     let s2 = serde_json::to_string(&r2).unwrap();
 
     // Extract key order by finding all quoted keys
-    let keys1: Vec<&str> = s1.match_indices('"').collect::<Vec<_>>()
+    let keys1: Vec<&str> = s1
+        .match_indices('"')
+        .collect::<Vec<_>>()
         .chunks(2)
         .filter_map(|pair| {
             if pair.len() == 2 {
@@ -124,7 +126,9 @@ fn lang_json_key_order_stable() {
         })
         .take(20)
         .collect();
-    let keys2: Vec<&str> = s2.match_indices('"').collect::<Vec<_>>()
+    let keys2: Vec<&str> = s2
+        .match_indices('"')
+        .collect::<Vec<_>>()
         .chunks(2)
         .filter_map(|pair| {
             if pair.len() == 2 {
@@ -238,6 +242,8 @@ fn module_timestamp_is_millis_since_epoch() {
 fn ffi_lang_timestamp_in_json() {
     let r = run_json("lang", r#"{"paths":["src"]}"#);
     let v: Value = serde_json::from_str(&r).unwrap();
-    let ts = v["data"]["generated_at_ms"].as_u64().expect("must have generated_at_ms");
+    let ts = v["data"]["generated_at_ms"]
+        .as_u64()
+        .expect("must have generated_at_ms");
     assert!(ts > 1_577_836_800_000, "timestamp too old");
 }

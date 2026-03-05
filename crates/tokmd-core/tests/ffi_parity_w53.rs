@@ -103,7 +103,11 @@ fn lang_mode_respects_top_parameter() {
     let v = assert_ok(&r);
     let rows = v["data"]["rows"].as_array().unwrap();
     // top=1 means at most 2 rows (1 real + possible "Other")
-    assert!(rows.len() <= 2, "top=1 should limit rows, got {}", rows.len());
+    assert!(
+        rows.len() <= 2,
+        "top=1 should limit rows, got {}",
+        rows.len()
+    );
 }
 
 #[test]
@@ -207,7 +211,9 @@ fn version_mode_has_ok_true() {
 fn version_mode_returns_semver_string() {
     let r = run_json("version", "{}");
     let v = assert_ok(&r);
-    let ver = v["data"]["version"].as_str().expect("version must be string");
+    let ver = v["data"]["version"]
+        .as_str()
+        .expect("version must be string");
     let parts: Vec<&str> = ver.split('.').collect();
     assert!(parts.len() >= 2, "version should be semver: {ver}");
 }
@@ -234,19 +240,13 @@ fn version_mode_schema_version_matches_constant() {
 
 #[test]
 fn diff_mode_nonexistent_from_returns_error() {
-    let r = run_json(
-        "diff",
-        r#"{"from":"/nonexistent/path/abc123","to":"src"}"#,
-    );
+    let r = run_json("diff", r#"{"from":"/nonexistent/path/abc123","to":"src"}"#);
     assert_err(&r);
 }
 
 #[test]
 fn diff_mode_nonexistent_to_returns_error() {
-    let r = run_json(
-        "diff",
-        r#"{"from":"src","to":"/nonexistent/path/xyz789"}"#,
-    );
+    let r = run_json("diff", r#"{"from":"src","to":"/nonexistent/path/xyz789"}"#);
     assert_err(&r);
 }
 
@@ -281,7 +281,10 @@ fn invalid_mode_has_error_message() {
     let v = assert_err(&r);
     let msg = v["error"]["message"].as_str().unwrap();
     assert!(!msg.is_empty());
-    assert!(msg.contains("nonexistent"), "message should mention the mode");
+    assert!(
+        msg.contains("nonexistent"),
+        "message should mention the mode"
+    );
 }
 
 // ============================================================================

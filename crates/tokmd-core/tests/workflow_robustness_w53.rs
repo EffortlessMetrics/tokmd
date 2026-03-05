@@ -68,7 +68,10 @@ fn lang_receipt_has_all_metadata() {
 #[test]
 fn lang_top_zero_returns_all() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let lang = LangSettings { top: 0, ..Default::default() };
+    let lang = LangSettings {
+        top: 0,
+        ..Default::default()
+    };
     let receipt = lang_workflow(&scan, &lang).unwrap();
     assert!(!receipt.report.rows.is_empty());
 }
@@ -76,7 +79,10 @@ fn lang_top_zero_returns_all() {
 #[test]
 fn lang_top_one_limits_rows() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let lang = LangSettings { top: 1, ..Default::default() };
+    let lang = LangSettings {
+        top: 1,
+        ..Default::default()
+    };
     let receipt = lang_workflow(&scan, &lang).unwrap();
     // At most top + 1 ("Other" row)
     assert!(receipt.report.rows.len() <= 2);
@@ -98,7 +104,10 @@ fn module_default_depth_succeeds() {
 #[test]
 fn module_depth_1() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let module = ModuleSettings { module_depth: 1, ..Default::default() };
+    let module = ModuleSettings {
+        module_depth: 1,
+        ..Default::default()
+    };
     let receipt = module_workflow(&scan, &module).unwrap();
     assert_eq!(receipt.args.module_depth, 1);
 }
@@ -106,7 +115,10 @@ fn module_depth_1() {
 #[test]
 fn module_depth_5() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let module = ModuleSettings { module_depth: 5, ..Default::default() };
+    let module = ModuleSettings {
+        module_depth: 5,
+        ..Default::default()
+    };
     let receipt = module_workflow(&scan, &module).unwrap();
     assert_eq!(receipt.args.module_depth, 5);
 }
@@ -114,7 +126,10 @@ fn module_depth_5() {
 #[test]
 fn module_depth_0_succeeds() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let module = ModuleSettings { module_depth: 0, ..Default::default() };
+    let module = ModuleSettings {
+        module_depth: 0,
+        ..Default::default()
+    };
     let receipt = module_workflow(&scan, &module).unwrap();
     assert_eq!(receipt.args.module_depth, 0);
 }
@@ -133,7 +148,10 @@ fn module_custom_roots() {
 #[test]
 fn module_top_setting() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let module = ModuleSettings { top: 1, ..Default::default() };
+    let module = ModuleSettings {
+        top: 1,
+        ..Default::default()
+    };
     let receipt = module_workflow(&scan, &module).unwrap();
     assert_eq!(receipt.args.top, 1);
 }
@@ -167,22 +185,43 @@ fn export_paths_forward_slashes() {
     let export = ExportSettings::default();
     let receipt = export_workflow(&scan, &export).unwrap();
     for row in &receipt.data.rows {
-        assert!(!row.path.contains('\\'), "paths must use forward slashes: {}", row.path);
+        assert!(
+            !row.path.contains('\\'),
+            "paths must use forward slashes: {}",
+            row.path
+        );
     }
 }
 
 #[test]
 fn export_min_code_filter() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let all = export_workflow(&scan, &ExportSettings { min_code: 0, ..Default::default() }).unwrap();
-    let filtered = export_workflow(&scan, &ExportSettings { min_code: 9999, ..Default::default() }).unwrap();
+    let all = export_workflow(
+        &scan,
+        &ExportSettings {
+            min_code: 0,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let filtered = export_workflow(
+        &scan,
+        &ExportSettings {
+            min_code: 9999,
+            ..Default::default()
+        },
+    )
+    .unwrap();
     assert!(filtered.data.rows.len() <= all.data.rows.len());
 }
 
 #[test]
 fn export_max_rows_limit() {
     let scan = ScanSettings::for_paths(vec!["src".to_string()]);
-    let export = ExportSettings { max_rows: 1, ..Default::default() };
+    let export = ExportSettings {
+        max_rows: 1,
+        ..Default::default()
+    };
     let receipt = export_workflow(&scan, &export).unwrap();
     assert!(receipt.data.rows.len() <= 1);
 }
@@ -237,7 +276,10 @@ fn lang_empty_dir_returns_no_rows() {
     let scan = ScanSettings::for_paths(vec![p]);
     let lang = LangSettings::default();
     let receipt = lang_workflow(&scan, &lang).expect("should handle empty dir");
-    assert!(receipt.report.rows.is_empty(), "empty dir should have no rows");
+    assert!(
+        receipt.report.rows.is_empty(),
+        "empty dir should have no rows"
+    );
 }
 
 #[test]
@@ -247,7 +289,10 @@ fn module_empty_dir_returns_no_rows() {
     let scan = ScanSettings::for_paths(vec![p]);
     let module = ModuleSettings::default();
     let receipt = module_workflow(&scan, &module).expect("should handle empty dir");
-    assert!(receipt.report.rows.is_empty(), "empty dir should have no rows");
+    assert!(
+        receipt.report.rows.is_empty(),
+        "empty dir should have no rows"
+    );
 }
 
 #[test]
@@ -257,7 +302,10 @@ fn export_empty_dir_returns_no_rows() {
     let scan = ScanSettings::for_paths(vec![p]);
     let export = ExportSettings::default();
     let receipt = export_workflow(&scan, &export).expect("should handle empty dir");
-    assert!(receipt.data.rows.is_empty(), "empty dir should have no rows");
+    assert!(
+        receipt.data.rows.is_empty(),
+        "empty dir should have no rows"
+    );
 }
 
 // ============================================================================
