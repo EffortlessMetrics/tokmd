@@ -55,3 +55,23 @@ fmt-check:
 
 # Run all checks (fmt, lint, test)
 check: fmt-check lint test
+
+# Configure git to use project hooks
+setup:
+    git config core.hooksPath .githooks
+
+# Run pre-merge quality gate
+gate:
+    cargo xtask gate
+
+# Run gate in check-only mode (no file modifications)
+gate-check:
+    cargo xtask gate --check
+
+# Auto-fix lint issues (fmt + clippy --fix) then verify
+lint-fix:
+    cargo xtask lint-fix
+
+# Verify lint without modifying files
+lint-check:
+    cargo xtask lint-fix --check

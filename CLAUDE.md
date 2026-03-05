@@ -17,6 +17,28 @@ cargo clippy -- -D warnings          # Lint with strict warnings
 cargo install --path crates/tokmd    # Local install
 ```
 
+## Developer Workflow
+
+| Command | Purpose |
+|---------|---------|
+| `cargo xtask lint-fix` | Auto-fix fmt + clippy, then verify |
+| `cargo xtask lint-fix --no-clippy` | Fast fmt-only fix |
+| `cargo xtask gate --check` | Full quality gate (read-only) |
+| `cargo xtask gate` | Quality gate with auto-fix fmt step |
+
+### Git Hooks Setup
+
+```bash
+git config core.hooksPath .githooks
+```
+
+- **pre-commit**: `cargo xtask lint-fix` + restage + typos
+- **pre-push**: `cargo xtask gate --check`
+
+### Agent Rule
+
+Always run `cargo xtask lint-fix` before considering a code-editing task complete. This ensures fmt and clippy issues are resolved before the user sees the result.
+
 ## Architecture
 
 The codebase follows a tiered microcrate architecture: **types → scan → model → format → analysis → CLI**

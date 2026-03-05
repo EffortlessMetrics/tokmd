@@ -30,13 +30,18 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 ### Local Hooks
 
-Enable the project's pre-commit hook to catch formatting and typo issues before they reach CI:
+Enable the project's git hooks for automated lint-fix and quality gating:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-This is a one-time setup. The hook runs `cargo fmt --check` and `typos --diff` (if installed) on every commit. You can bypass it with `git commit --no-verify` in emergencies.
+This is a one-time setup. Two hooks are provided:
+
+- **pre-commit** — Runs `cargo xtask lint-fix` (fmt + clippy --fix + clippy verify), restages fixed files, and runs `typos --diff` (if installed). Only triggers when `.rs`, `Cargo.toml`, or `Cargo.lock` files are staged.
+- **pre-push** — Runs `cargo xtask gate --check` (fmt check + cargo check + clippy + test compile-only) to catch issues before they reach CI.
+
+You can bypass hooks with `git commit --no-verify` or `git push --no-verify` in emergencies.
 
 ## Project Structure
 
@@ -270,8 +275,9 @@ exclude_re = ["impl.*Display", "fn main\\("]
 
 ## Code Style
 
--   Run `cargo fmt` before committing.
--   Run `cargo clippy -- -D warnings` to catch common issues.
+-   Run `cargo xtask lint-fix` to auto-fix formatting and clippy issues.
+-   Run `cargo xtask lint-fix --no-clippy` for a fast fmt-only fix.
+-   Run `cargo xtask gate --check` to verify the full quality gate locally.
 
 ## Contribution Areas
 
