@@ -1,0 +1,60 @@
+---
+source: crates/tokmd-tool-schema/tests/toolschema_depth_w62.rs
+expression: v
+---
+{
+  "tools": [
+    {
+      "description": "A test tool",
+      "input_schema": {
+        "properties": {},
+        "required": [],
+        "type": "object"
+      },
+      "name": "mytool"
+    },
+    {
+      "description": "Scan files",
+      "input_schema": {
+        "properties": {
+          "path": {
+            "description": "Target path",
+            "type": "string"
+          },
+          "verbose": {
+            "description": "Verbose output",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "scan"
+    },
+    {
+      "description": "Export results",
+      "input_schema": {
+        "properties": {
+          "count": {
+            "description": "Verbosity count",
+            "type": "integer"
+          },
+          "format": {
+            "description": "Output format",
+            "enum": [
+              "json",
+              "csv",
+              "tsv"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "name": "export"
+    }
+  ]
+}

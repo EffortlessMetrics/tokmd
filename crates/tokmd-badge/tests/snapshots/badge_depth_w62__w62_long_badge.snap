@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-badge/tests/badge_depth_w62.rs
+expression: svg
+---
+<svg xmlns="http://www.w3.org/2000/svg" width="222" height="24" role="img"><rect width="153" height="24" fill="#555"/><rect x="153" width="69" height="24" fill="#4c9aff"/><text x="76" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">total lines of code</text><text x="187" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">1234567</text></svg>
