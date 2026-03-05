@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|4000|4800|20|100000|28000|140|
+|TypeScript|2500|3000|12|62500|17500|140|
+|Python|1200|1440|6|30000|8400|140|
+|Shell|300|360|1|7500|2100|140|
+|**Total**|8000|9600|39|200000|56000|140|

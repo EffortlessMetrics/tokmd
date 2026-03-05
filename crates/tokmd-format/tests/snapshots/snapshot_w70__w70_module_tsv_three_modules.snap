@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: out
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+crates/engine	2800	3500	14	84000	22400	250
+crates/api	1400	1750	8	42000	11200	218
+tests	900	1100	5	27000	7200	220
+Total	5100	6350	27	153000	40800	235

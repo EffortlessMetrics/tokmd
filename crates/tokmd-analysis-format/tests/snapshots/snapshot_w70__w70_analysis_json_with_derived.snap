@@ -1,0 +1,206 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w70.rs
+expression: out
+---
+{
+  "schema_version": 8,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "json",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": {
+    "totals": {
+      "files": 8,
+      "code": 1200,
+      "comments": 150,
+      "blanks": 80,
+      "lines": 1430,
+      "bytes": 12000,
+      "tokens": 3000
+    },
+    "doc_density": {
+      "total": {
+        "key": "total",
+        "numerator": 150,
+        "denominator": 1350,
+        "ratio": 0.1111
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "whitespace": {
+      "total": {
+        "key": "total",
+        "numerator": 80,
+        "denominator": 1430,
+        "ratio": 0.0559
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "verbosity": {
+      "total": {
+        "key": "total",
+        "numerator": 12000,
+        "denominator": 1430,
+        "rate": 8.39
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "max_file": {
+      "overall": {
+        "path": "src/engine.rs",
+        "module": "src",
+        "lang": "Rust",
+        "code": 400,
+        "comments": 60,
+        "blanks": 30,
+        "lines": 490,
+        "bytes": 4000,
+        "tokens": 1000,
+        "doc_pct": 0.13,
+        "bytes_per_line": 8.16,
+        "depth": 1
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "lang_purity": {
+      "rows": []
+    },
+    "nesting": {
+      "max": 5,
+      "avg": 2.5,
+      "by_module": []
+    },
+    "test_density": {
+      "test_lines": 200,
+      "prod_lines": 1000,
+      "test_files": 3,
+      "prod_files": 5,
+      "ratio": 0.2
+    },
+    "boilerplate": {
+      "infra_lines": 80,
+      "logic_lines": 1350,
+      "ratio": 0.0592,
+      "infra_langs": [
+        "TOML",
+        "YAML"
+      ]
+    },
+    "polyglot": {
+      "lang_count": 3,
+      "entropy": 0.85,
+      "dominant_lang": "Rust",
+      "dominant_lines": 1100,
+      "dominant_pct": 0.77
+    },
+    "distribution": {
+      "count": 8,
+      "min": 30,
+      "max": 490,
+      "mean": 178.75,
+      "median": 150.0,
+      "p90": 490.0,
+      "p99": 490.0,
+      "gini": 0.35
+    },
+    "histogram": [
+      {
+        "label": "Small",
+        "min": 0,
+        "max": 100,
+        "files": 4,
+        "pct": 0.5
+      },
+      {
+        "label": "Medium",
+        "min": 101,
+        "max": 500,
+        "files": 4,
+        "pct": 0.5
+      }
+    ],
+    "top": {
+      "largest_lines": [
+        {
+          "path": "src/engine.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 400,
+          "comments": 60,
+          "blanks": 30,
+          "lines": 490,
+          "bytes": 4000,
+          "tokens": 1000,
+          "doc_pct": 0.13,
+          "bytes_per_line": 8.16,
+          "depth": 1
+        }
+      ],
+      "largest_tokens": [],
+      "largest_bytes": [],
+      "least_documented": [],
+      "most_dense": []
+    },
+    "tree": null,
+    "reading_time": {
+      "minutes": 71.5,
+      "lines_per_minute": 20,
+      "basis_lines": 1430
+    },
+    "context_window": null,
+    "cocomo": null,
+    "todo": null,
+    "integrity": {
+      "algo": "blake3",
+      "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "entries": 8
+    }
+  },
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": null,
+  "complexity": null,
+  "api_surface": null,
+  "fun": null
+}

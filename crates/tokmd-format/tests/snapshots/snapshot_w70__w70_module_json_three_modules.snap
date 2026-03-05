@@ -1,0 +1,67 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "separate",
+    "format": "json",
+    "module_depth": 2,
+    "module_roots": [
+      "crates"
+    ],
+    "top": 0
+  },
+  "children": "separate",
+  "generated_at_ms": 0,
+  "mode": "module",
+  "module_depth": 2,
+  "module_roots": [
+    "crates"
+  ],
+  "rows": [
+    {
+      "avg_lines": 250,
+      "bytes": 84000,
+      "code": 2800,
+      "files": 14,
+      "lines": 3500,
+      "module": "crates/engine",
+      "tokens": 22400
+    },
+    {
+      "avg_lines": 218,
+      "bytes": 42000,
+      "code": 1400,
+      "files": 8,
+      "lines": 1750,
+      "module": "crates/api",
+      "tokens": 11200
+    },
+    {
+      "avg_lines": 220,
+      "bytes": 27000,
+      "code": 900,
+      "files": 5,
+      "lines": 1100,
+      "module": "tests",
+      "tokens": 7200
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 235,
+    "bytes": 153000,
+    "code": 5100,
+    "files": 27,
+    "lines": 6350,
+    "tokens": 40800
+  },
+  "warnings": []
+}

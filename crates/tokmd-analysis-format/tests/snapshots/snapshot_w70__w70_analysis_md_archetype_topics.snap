@@ -1,0 +1,20 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w70.rs
+expression: out
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Archetype
+
+- Kind: `monorepo`
+- Evidence: `Cargo.toml`, `package.json`
+
+## Topics
+
+- Overall: `systems, cli`
