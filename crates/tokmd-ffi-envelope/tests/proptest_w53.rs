@@ -55,7 +55,7 @@ proptest! {
         let json = serde_json::to_string(&val).unwrap();
         let a = parse_envelope(&json);
         let b = parse_envelope(&json);
-        assert_result_eq(a.map_err(|e| e), b.map_err(|e| e));
+        assert_result_eq(a, b);
     }
 
     // 2. extract_data_from_json ≡ parse + extract
