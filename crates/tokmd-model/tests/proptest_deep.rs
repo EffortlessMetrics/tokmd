@@ -29,7 +29,7 @@ fn arb_lang_row() -> impl Strategy<Value = LangRow> {
         1usize..1_000_000,  // tokens
     )
         .prop_map(|(lang, code, lines, files, bytes, tokens)| {
-            let avg_lines = if files > 0 { lines / files } else { 0 };
+            let avg_lines = lines.checked_div(files).unwrap_or(0);
             LangRow {
                 lang,
                 code,
@@ -58,7 +58,7 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
         1usize..500_000,   // tokens
     )
         .prop_map(|(module, code, lines, files, bytes, tokens)| {
-            let avg_lines = if files > 0 { lines / files } else { 0 };
+            let avg_lines = lines.checked_div(files).unwrap_or(0);
             ModuleRow {
                 module,
                 code,

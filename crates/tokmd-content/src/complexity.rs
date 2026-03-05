@@ -1262,11 +1262,7 @@ fn analyze_indentation_depth(lines: &[&str]) -> NestingAnalysis {
         }
 
         let indent = get_indent(line);
-        let depth = if indent_unit > 0 {
-            indent / indent_unit
-        } else {
-            0
-        };
+        let depth = indent.checked_div(indent_unit).unwrap_or(0);
 
         if depth > max_depth {
             max_depth = depth;

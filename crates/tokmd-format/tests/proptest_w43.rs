@@ -38,7 +38,7 @@ fn arb_lang_row() -> impl Strategy<Value = LangRow> {
             files,
             bytes: code * 10,
             tokens: code / 4,
-            avg_lines: if files > 0 { lines / files } else { 0 },
+            avg_lines: lines.checked_div(files).unwrap_or(0),
         })
 }
 
@@ -81,7 +81,7 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
             files,
             bytes: code * 10,
             tokens: code / 4,
-            avg_lines: if files > 0 { lines / files } else { 0 },
+            avg_lines: lines.checked_div(files).unwrap_or(0),
         })
 }
 

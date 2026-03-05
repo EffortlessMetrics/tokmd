@@ -1218,7 +1218,7 @@ proptest! {
         bytes in 0..100_000_000usize,
         tokens in 0..50_000_000usize,
     ) {
-        let avg = if files > 0 { lines / files } else { 0 };
+        let avg = lines.checked_div(files).unwrap_or(0);
         let row = LangRow {
             lang: name.clone(),
             code,
