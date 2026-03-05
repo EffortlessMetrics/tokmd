@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|1000|1200|10|40000|2000|120|
+|Python|500|600|5|20000|1000|120|
+|Go|200|240|2|8000|400|120|
+|**Total**|1700|2040|17|68000|3400|680|

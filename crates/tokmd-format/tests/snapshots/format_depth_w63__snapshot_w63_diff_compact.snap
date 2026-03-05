@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: md
+---
+## Diff: before → after
+
+### Summary
+
+|Metric|Value|
+|---|---:|
+|From LOC|500|
+|To LOC|800|
+|Delta LOC|+300|
+|LOC Change|+60.0%|
+|Delta Lines|+360|
+|Delta Files|+3|
+|Delta Bytes|+12000|
+|Delta Tokens|+600|
+|Languages changed|1|
+|Languages added|0|
+|Languages removed|0|
+|Languages modified|1|

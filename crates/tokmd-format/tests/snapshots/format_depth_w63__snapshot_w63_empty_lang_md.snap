@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|**Total**|0|0|0|0|0|0|

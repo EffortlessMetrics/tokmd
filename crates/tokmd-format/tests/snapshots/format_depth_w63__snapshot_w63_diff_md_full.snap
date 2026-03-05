@@ -1,0 +1,33 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: md
+---
+## Diff: v1.0 → v2.0
+
+### Summary
+
+|Metric|From|To|Delta|Change|
+|---|---:|---:|---:|---:|
+|LOC|1500|1600|+100|+6.7%|
+|Lines|1800|1920|+120|+6.7%|
+|Files|15|16|+1|+6.7%|
+|Bytes|60000|64000|+4000|+6.7%|
+|Tokens|3000|3200|+200|+6.7%|
+
+### Language Movement
+
+|Type|Count|
+|---|---:|
+|Changed|3|
+|Added|1|
+|Removed|0|
+|Modified|2|
+
+### Language Breakdown
+
+|Language|Old LOC|New LOC|Delta|
+|---|---:|---:|---:|
+|Go|500|300|-200|
+|Python|0|100|+100|
+|Rust|1000|1200|+200|
+|**Total**|1500|1600|+100|

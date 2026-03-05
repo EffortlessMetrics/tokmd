@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	100	120	4000	200
+Total	100	120	4000	200
