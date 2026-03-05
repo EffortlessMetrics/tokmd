@@ -1,0 +1,205 @@
+//! Feature-stability tests for WASM readiness seams.
+//!
+//! These tests verify that tokmd-types works correctly WITHOUT optional
+//! features (no `clap`). They must NOT use `#[cfg(feature = ...)]` guards.
+
+use tokmd_types::*;
+use tokmd_types::cockpit::COCKPIT_SCHEMA_VERSION;
+
+// ── Schema constants ──────────────────────────────────────────────────
+
+#[test]
+fn schema_version_is_accessible() {
+    assert!(SCHEMA_VERSION >= 2);
+}
+
+#[test]
+fn cockpit_schema_version_is_accessible() {
+    assert!(COCKPIT_SCHEMA_VERSION >= 3);
+}
+
+#[test]
+fn handoff_schema_version_is_accessible() {
+    assert!(HANDOFF_SCHEMA_VERSION >= 5);
+}
+
+#[test]
+fn context_schema_version_is_accessible() {
+    assert!(CONTEXT_SCHEMA_VERSION >= 4);
+}
+
+#[test]
+fn context_bundle_schema_version_is_accessible() {
+    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION >= 2);
+}
+
+// ── Core type construction ────────────────────────────────────────────
+
+fn sample_totals() -> Totals {
+    Totals {
+        code: 100,
+        lines: 150,
+        files: 5,
+        bytes: 4000,
+        tokens: 1000,
+        avg_lines: 30,
+    }
+}
+
+fn sample_tool_info() -> ToolInfo {
+    ToolInfo {
+        name: "tokmd".into(),
+        version: "0.1.0".into(),
+    }
+}
+
+#[test]
+fn totals_construction_without_features() {
+    let t = sample_totals();
+    assert_eq!(t.code, 100);
+    assert_eq!(t.files, 5);
+}
+
+#[test]
+fn tool_info_default_without_features() {
+    let t = ToolInfo::default();
+    assert!(t.name.is_empty());
+    assert!(t.version.is_empty());
+}
+
+#[test]
+fn diff_totals_default_without_features() {
+    let d = DiffTotals::default();
+    assert_eq!(d.delta_code, 0);
+    assert_eq!(d.old_files, 0);
+}
+
+#[test]
+fn lang_row_construction_without_features() {
+    let row = LangRow {
+        lang: "Rust".into(),
+        code: 500,
+        lines: 700,
+        files: 10,
+        bytes: 20000,
+        tokens: 5000,
+        avg_lines: 70,
+    };
+    assert_eq!(row.lang, "Rust");
+}
+
+#[test]
+fn file_row_construction_without_features() {
+    let row = FileRow {
+        path: "src/main.rs".into(),
+        module: "(root)".into(),
+        lang: "Rust".into(),
+        kind: FileKind::Parent,
+        code: 50,
+        comments: 10,
+        blanks: 5,
+        lines: 65,
+        bytes: 2000,
+        tokens: 500,
+    };
+    assert_eq!(row.kind, FileKind::Parent);
+}
+
+// ── Serde roundtrips ──────────────────────────────────────────────────
+
+#[test]
+fn totals_serde_roundtrip() {
+    let original = sample_totals();
+    let json = serde_json::to_string(&original).unwrap();
+    let restored: Totals = serde_json::from_str(&json).unwrap();
+    assert_eq!(original, restored);
+}
+
+#[test]
+fn diff_totals_serde_roundtrip() {
+    let original = DiffTotals {
+        old_code: 10,
+        new_code: 20,
+        delta_code: 10,
+        ..DiffTotals::default()
+    };
+    let json = serde_json::to_string(&original).unwrap();
+    let restored: DiffTotals = serde_json::from_str(&json).unwrap();
+    assert_eq!(original, restored);
+}
+
+#[test]
+fn diff_row_serde_roundtrip() {
+    let row = DiffRow {
+        lang: "Rust".into(),
+        old_code: 100,
+        new_code: 120,
+        delta_code: 20,
+        old_lines: 150,
+        new_lines: 180,
+        delta_lines: 30,
+        old_files: 5,
+        new_files: 6,
+        delta_files: 1,
+        old_bytes: 4000,
+        new_bytes: 5000,
+        delta_bytes: 1000,
+        old_tokens: 1000,
+        new_tokens: 1200,
+        delta_tokens: 200,
+    };
+    let json = serde_json::to_string(&row).unwrap();
+    let restored: DiffRow = serde_json::from_str(&json).unwrap();
+    assert_eq!(row, restored);
+}
+
+#[test]
+fn file_kind_serde_roundtrip() {
+    let parent = FileKind::Parent;
+    let child = FileKind::Child;
+    assert_eq!(
+        serde_json::to_string(&parent).unwrap(),
+        "\"parent\""
+    );
+    assert_eq!(
+        serde_json::to_string(&child).unwrap(),
+        "\"child\""
+    );
+    let restored: FileKind = serde_json::from_str("\"parent\"").unwrap();
+    assert_eq!(restored, FileKind::Parent);
+}
+
+#[test]
+fn scan_status_serde_roundtrip() {
+    let complete: ScanStatus = serde_json::from_str("\"complete\"").unwrap();
+    let json = serde_json::to_string(&complete).unwrap();
+    assert_eq!(json, "\"complete\"");
+}
+
+#[test]
+fn capability_state_serde_roundtrip() {
+    for (variant, expected) in [
+        (CapabilityState::Available, "\"available\""),
+        (CapabilityState::Skipped, "\"skipped\""),
+        (CapabilityState::Unavailable, "\"unavailable\""),
+    ] {
+        let json = serde_json::to_string(&variant).unwrap();
+        assert_eq!(json, expected);
+        let restored: CapabilityState = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored, variant);
+    }
+}
+
+#[test]
+fn inclusion_policy_default_is_full() {
+    assert_eq!(InclusionPolicy::default(), InclusionPolicy::Full);
+}
+
+#[test]
+fn file_classification_serde_roundtrip() {
+    let cls = FileClassification::Generated;
+    let json = serde_json::to_string(&cls).unwrap();
+    assert_eq!(json, "\"generated\"");
+    let restored: FileClassification = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored, cls);
+}
