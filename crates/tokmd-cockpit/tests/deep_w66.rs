@@ -80,7 +80,7 @@ fn composition_mixed_four_categories() {
     assert_eq!(c.test_pct, 0.25);
     assert_eq!(c.docs_pct, 0.25);
     assert_eq!(c.config_pct, 0.25);
-    assert_eq!(c.test_ratio, 1.0);
+    assert_eq!(c.test_ratio, 1.0); // 1 test : 1 code
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn contracts_all_flags() {
     assert!(c.api_changed);
     assert!(c.cli_changed);
     assert!(c.schema_changed);
-    assert_eq!(c.breaking_indicators, 2);
+    assert_eq!(c.breaking_indicators, 2); // api + schema
 }
 
 // =========================================================================
@@ -198,7 +198,7 @@ fn health_breaking_contracts_reduce_score() {
         breaking_indicators: 1,
     };
     let h = compute_code_health(&stats, &contracts);
-    assert_eq!(h.score, 80);
+    assert_eq!(h.score, 80); // 100 - 20 for breaking
     assert_eq!(h.grade, "B");
 }
 
@@ -248,9 +248,9 @@ fn risk_score_capped_at_100() {
 #[test]
 fn review_plan_sorted_by_priority() {
     let stats = vec![
-        stat("small.rs", 5, 5),
-        stat("medium.rs", 40, 20),
-        stat("big.rs", 150, 100),
+        stat("small.rs", 5, 5),     // low priority (3)
+        stat("medium.rs", 40, 20),  // medium priority (2)
+        stat("big.rs", 150, 100),   // high priority (1)
     ];
     let plan = generate_review_plan(&stats, &no_contracts());
     assert_eq!(plan.len(), 3);
@@ -300,8 +300,8 @@ fn sparkline_ascending_bars() {
     let s = sparkline(&[0.0, 50.0, 100.0]);
     assert_eq!(s.chars().count(), 3);
     let chars: Vec<char> = s.chars().collect();
-    assert_eq!(chars[0], '\u{2581}');
-    assert_eq!(chars[2], '\u{2588}');
+    assert_eq!(chars[0], '\u{2581}'); // lowest
+    assert_eq!(chars[2], '\u{2588}'); // highest
 }
 
 #[test]
@@ -399,6 +399,7 @@ mod properties {
 
 #[cfg(feature = "git")]
 mod git_tests {
+    use super::*;
     use std::fs;
 
     #[test]
