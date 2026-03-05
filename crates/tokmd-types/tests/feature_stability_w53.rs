@@ -10,27 +10,32 @@ use tokmd_types::*;
 
 #[test]
 fn schema_version_is_accessible() {
-    assert!(SCHEMA_VERSION >= 2);
+    let v = SCHEMA_VERSION;
+    assert!(v >= 2);
 }
 
 #[test]
 fn cockpit_schema_version_is_accessible() {
-    assert!(COCKPIT_SCHEMA_VERSION >= 3);
+    let v = COCKPIT_SCHEMA_VERSION;
+    assert!(v >= 3);
 }
 
 #[test]
 fn handoff_schema_version_is_accessible() {
-    assert!(HANDOFF_SCHEMA_VERSION >= 5);
+    let v = HANDOFF_SCHEMA_VERSION;
+    assert!(v >= 5);
 }
 
 #[test]
 fn context_schema_version_is_accessible() {
-    assert!(CONTEXT_SCHEMA_VERSION >= 4);
+    let v = CONTEXT_SCHEMA_VERSION;
+    assert!(v >= 4);
 }
 
 #[test]
 fn context_bundle_schema_version_is_accessible() {
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION >= 2);
+    let v = CONTEXT_BUNDLE_SCHEMA_VERSION;
+    assert!(v >= 2);
 }
 
 // ── Core type construction ────────────────────────────────────────────

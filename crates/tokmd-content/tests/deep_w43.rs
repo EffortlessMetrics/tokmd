@@ -154,7 +154,7 @@ fn count_tags_with_custom_tags() {
 fn count_tags_no_matches_returns_zeros() {
     let text = "clean code with no markers";
     let tags = count_tags(text, &["TODO", "FIXME", "HACK"]);
-    for count in tags.values() {
+    for (_, count) in &tags {
         assert_eq!(*count, 0);
     }
 }
