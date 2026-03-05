@@ -199,6 +199,7 @@ fn negate_flips_result() {
     let mut r = rule("neg", "/val", RuleOperator::Eq, json!(10));
     r.negate = true;
     let result = evaluate_policy(&receipt, &policy(vec![r]));
+    // val == 10 is true, negated → false → error
     assert!(!result.passed);
 }
 
@@ -216,6 +217,7 @@ fn negate_exists_absent() {
         message: None,
     };
     let result = evaluate_policy(&receipt, &policy(vec![r]));
+    // /missing does NOT exist, negated → true → pass
     assert!(result.passed);
 }
 
@@ -275,6 +277,7 @@ fn fail_fast_stops_after_first_error() {
     ]);
     p.fail_fast = true;
     let result = evaluate_policy(&receipt, &p);
+    // Should only have evaluated 1 rule
     assert_eq!(result.rule_results.len(), 1);
     assert!(!result.passed);
 }
@@ -380,7 +383,7 @@ description = "absolute ceiling"
 #[test]
 fn ratchet_pass_within_threshold() {
     let baseline = json!({"m": 100.0});
-    let current = json!({"m": 109.0});
+    let current = json!({"m": 109.0}); // 9%
     let cfg = RatchetConfig {
         rules: vec![ratchet_rule("/m", Some(10.0), None)],
         ..Default::default()
@@ -392,7 +395,7 @@ fn ratchet_pass_within_threshold() {
 #[test]
 fn ratchet_fail_exceeds_threshold() {
     let baseline = json!({"m": 100.0});
-    let current = json!({"m": 120.0});
+    let current = json!({"m": 120.0}); // 20%
     let cfg = RatchetConfig {
         rules: vec![ratchet_rule("/m", Some(10.0), None)],
         ..Default::default()
