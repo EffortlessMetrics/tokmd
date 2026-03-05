@@ -39,6 +39,3 @@ mutants.out.old/
 
 # Windows artifacts
 nul
-
-.gemini/
-gha-creds-*.json

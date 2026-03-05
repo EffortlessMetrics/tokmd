@@ -85,28 +85,12 @@ jobs:
   gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.head_ref }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      
-      - name: Run quality gate (auto-fix fmt)
-        run: cargo xtask gate
-        if: github.event_name == 'pull_request'
-
-      - name: Auto-commit fmt fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        if: github.event_name == 'pull_request'
-        with:
-          commit_message: "fmt: auto-fix rustfmt issues"
-          file_pattern: "*.rs"
-
-      - name: Verify quality gate (strict)
+      - name: Run quality gate
         run: cargo xtask gate --check
 
   deny:

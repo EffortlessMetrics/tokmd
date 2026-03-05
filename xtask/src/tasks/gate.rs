@@ -1,5 +1,5 @@
 use crate::cli::GateArgs;
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use std::process::Command;
 
 struct Step {
