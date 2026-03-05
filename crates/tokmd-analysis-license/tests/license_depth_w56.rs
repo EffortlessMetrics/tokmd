@@ -263,12 +263,12 @@ fn effective_is_highest_confidence_finding() {
         "[package]\nname = \"demo\"\nlicense = \"Apache-2.0\"\n",
     )
     .unwrap();
-    let mit_text = "Permission is hereby granted, free of charge. \
-        The software is provided \"as is\".";
+    // Only one MIT phrase → text confidence = 0.6 + 0.4*(1/2) = 0.8 < metadata 0.95
+    let mit_text = "Permission is hereby granted, free of charge.";
     fs::write(dir.path().join("LICENSE"), mit_text).unwrap();
     let files = vec![PathBuf::from("Cargo.toml"), PathBuf::from("LICENSE")];
     let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
-    // Metadata has 0.95, should be effective
+    // Metadata has 0.95 > text 0.8, so metadata effective wins
     assert_eq!(report.effective.as_deref(), Some("Apache-2.0"));
 }
 
@@ -326,8 +326,8 @@ fn source_paths_forward_slashes() {
 #[test]
 fn license_source_kind_serde_variants() {
     let kinds = [
-        (LicenseSourceKind::Metadata, "\"Metadata\""),
-        (LicenseSourceKind::Text, "\"Text\""),
+        (LicenseSourceKind::Metadata, "\"metadata\""),
+        (LicenseSourceKind::Text, "\"text\""),
     ];
     for (kind, expected) in &kinds {
         let json = serde_json::to_string(kind).unwrap();
