@@ -89,8 +89,7 @@ fn full_report(
     for f in findings {
         report.add_finding(f);
     }
-    let report = report.with_artifacts(artifacts).with_capabilities(caps);
-    report
+    report.with_artifacts(artifacts).with_capabilities(caps)
 }
 
 // ── Tests ───────────────────────────────────────────────────────────────
