@@ -181,8 +181,8 @@ fn lang_summary_python_code_correct() {
 #[test]
 fn lang_summary_missing_language_returns_none() {
     let sub = multi_lang_substrate();
-    assert!(sub.lang_summary.get("Go").is_none());
-    assert!(sub.lang_summary.get("Java").is_none());
+    assert!(!sub.lang_summary.contains_key("Go"));
+    assert!(!sub.lang_summary.contains_key("Java"));
 }
 
 #[test]

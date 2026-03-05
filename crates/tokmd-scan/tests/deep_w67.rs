@@ -205,8 +205,8 @@ fn deterministic_scan_multiple_languages() -> Result<()> {
     let r2 = scan(&[dir.path().to_path_buf()], &opts)?;
 
     // Same set of detected languages
-    let keys1: Vec<_> = r1.iter().map(|(k, _)| k).collect();
-    let keys2: Vec<_> = r2.iter().map(|(k, _)| k).collect();
+    let keys1: Vec<_> = r1.keys().collect();
+    let keys2: Vec<_> = r2.keys().collect();
     assert_eq!(keys1, keys2, "detected languages must be identical");
     Ok(())
 }

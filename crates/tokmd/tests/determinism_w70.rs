@@ -290,10 +290,10 @@ fn w70_export_jsonl_paths_use_forward_slashes() {
     assert!(out.status.success());
     let text = String::from_utf8_lossy(&out.stdout);
     for line in text.lines().filter(|l| !l.trim().is_empty()) {
-        if let Ok(v) = serde_json::from_str::<Value>(line) {
-            if let Some(path) = v.get("path").and_then(|p| p.as_str()) {
-                assert!(!path.contains('\\'), "backslash in JSONL path: {path}");
-            }
+        if let Ok(v) = serde_json::from_str::<Value>(line)
+            && let Some(path) = v.get("path").and_then(|p| p.as_str())
+        {
+            assert!(!path.contains('\\'), "backslash in JSONL path: {path}");
         }
     }
 }

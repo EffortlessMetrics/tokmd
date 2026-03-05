@@ -141,7 +141,7 @@ fn w69_gini_unequal_positive() {
 fn w69_gini_bounded_zero_to_one() {
     let data = [1, 2, 3, 4, 5, 100];
     let g = gini_coefficient(&data);
-    assert!(g >= 0.0 && g <= 1.0, "gini={g} out of [0,1]");
+    assert!((0.0..=1.0).contains(&g), "gini={g} out of [0,1]");
 }
 
 // ---------------------------------------------------------------------------

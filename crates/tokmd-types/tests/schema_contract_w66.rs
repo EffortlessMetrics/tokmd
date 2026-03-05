@@ -215,27 +215,42 @@ fn make_handoff_manifest() -> HandoffManifest {
 
 #[test]
 fn schema_version_is_positive() {
-    assert!(SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn context_schema_version_is_positive() {
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(CONTEXT_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn context_bundle_schema_version_is_positive() {
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn cockpit_schema_version_is_positive() {
-    assert!(cockpit::COCKPIT_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(cockpit::COCKPIT_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
 fn handoff_schema_version_is_positive() {
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(HANDOFF_SCHEMA_VERSION > 0);
+    }
 }
 
 // ===========================================================================

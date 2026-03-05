@@ -360,11 +360,11 @@ fn languages_iterator_is_deterministic() -> Result<()> {
     let path = dir.path().to_path_buf();
     let opts = default_opts();
 
-    let langs1 = scan(&[path.clone()], &opts)?;
+    let langs1 = scan(std::slice::from_ref(&path), &opts)?;
     let langs2 = scan(&[path], &opts)?;
 
-    let keys1: Vec<_> = langs1.iter().map(|(lt, _)| lt.name()).collect();
-    let keys2: Vec<_> = langs2.iter().map(|(lt, _)| lt.name()).collect();
+    let keys1: Vec<_> = langs1.keys().map(|lt| lt.name()).collect();
+    let keys2: Vec<_> = langs2.keys().map(|lt| lt.name()).collect();
     assert_eq!(keys1, keys2, "language iteration order must be stable");
     Ok(())
 }
@@ -517,12 +517,12 @@ fn determinism_same_dir_same_result() -> Result<()> {
     let path = dir.path().to_path_buf();
     let opts = default_opts();
 
-    let r1 = scan(&[path.clone()], &opts)?;
+    let r1 = scan(std::slice::from_ref(&path), &opts)?;
     let r2 = scan(&[path], &opts)?;
 
     // Same set of languages detected
-    let k1: Vec<_> = r1.iter().map(|(lt, _)| lt.name()).collect();
-    let k2: Vec<_> = r2.iter().map(|(lt, _)| lt.name()).collect();
+    let k1: Vec<_> = r1.keys().map(|lt| lt.name()).collect();
+    let k2: Vec<_> = r2.keys().map(|lt| lt.name()).collect();
     assert_eq!(k1, k2);
 
     // Same code counts per language
@@ -543,7 +543,7 @@ fn determinism_repeated_three_times() -> Result<()> {
 
     let mut codes = Vec::new();
     for _ in 0..3 {
-        let langs = scan(&[path.clone()], &opts)?;
+        let langs = scan(std::slice::from_ref(&path), &opts)?;
         let rust = langs.get(&tokei::LanguageType::Rust).unwrap();
         codes.push((rust.code, rust.comments, rust.blanks));
     }

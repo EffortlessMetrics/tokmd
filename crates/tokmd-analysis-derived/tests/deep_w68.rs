@@ -356,7 +356,7 @@ mod properties {
             let export = single_file_export(code, comments, blanks);
             let report = derive_report(&export, None);
             let ratio = report.doc_density.total.ratio;
-            prop_assert!(ratio >= 0.0 && ratio <= 1.0, "ratio={ratio}");
+            prop_assert!((0.0..=1.0).contains(&ratio), "ratio={ratio}");
         }
 
         #[test]

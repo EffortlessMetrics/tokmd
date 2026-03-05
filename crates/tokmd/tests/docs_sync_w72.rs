@@ -42,10 +42,10 @@ fn parse_help_subcommands(help: &str) -> Vec<String> {
             {
                 break;
             }
-            if let Some(name) = trimmed.split_whitespace().next() {
-                if name != "help" {
-                    cmds.push(name.to_string());
-                }
+            if let Some(name) = trimmed.split_whitespace().next()
+                && name != "help"
+            {
+                cmds.push(name.to_string());
             }
         }
     }
@@ -116,8 +116,7 @@ fn every_help_subcommand_is_in_readme() {
 
     for cmd in &subcommands {
         let pattern = format!("tokmd {cmd}");
-        let found = readme.contains(&pattern)
-            || (cmd == "lang" && readme.contains("| `tokmd`"));
+        let found = readme.contains(&pattern) || (cmd == "lang" && readme.contains("| `tokmd`"));
         assert!(
             found,
             "Subcommand `{cmd}` from --help is not documented in README.md"
@@ -225,66 +224,42 @@ fn help_output_contains_usage_line() {
 
 #[test]
 fn lang_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["lang", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["lang", "--help"]).assert().success();
 }
 
 #[test]
 fn module_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["module", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["module", "--help"]).assert().success();
 }
 
 #[test]
 fn export_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["export", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["export", "--help"]).assert().success();
 }
 
 #[test]
 fn analyze_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["analyze", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["analyze", "--help"]).assert().success();
 }
 
 #[test]
 fn badge_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["badge", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["badge", "--help"]).assert().success();
 }
 
 #[test]
 fn context_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["context", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["context", "--help"]).assert().success();
 }
 
 #[test]
 fn tools_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["tools", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["tools", "--help"]).assert().success();
 }
 
 #[test]
 fn gate_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["gate", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["gate", "--help"]).assert().success();
 }
 
 #[test]
@@ -297,8 +272,5 @@ fn completions_subcommand_help_works() {
 
 #[test]
 fn init_subcommand_help_works() {
-    tokmd_cmd()
-        .args(["init", "--help"])
-        .assert()
-        .success();
+    tokmd_cmd().args(["init", "--help"]).assert().success();
 }

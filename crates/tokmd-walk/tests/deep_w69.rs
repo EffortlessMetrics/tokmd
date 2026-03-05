@@ -119,7 +119,7 @@ fn list_files_includes_dotfiles() {
     fs::write(dir.path().join("visible.txt"), "public").unwrap();
     let files = list_files(dir.path(), None).unwrap();
     assert!(
-        files.len() >= 1,
+        !files.is_empty(),
         "should discover at least the visible file"
     );
 }

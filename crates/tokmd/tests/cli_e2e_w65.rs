@@ -171,7 +171,7 @@ fn lang_format_md_produces_markdown_table() {
 
 #[test]
 fn lang_format_tsv_is_tab_separated() {
-    let out = stdout_of(&mut tokmd_cmd().args(["lang", "--format", "tsv"]));
+    let out = stdout_of(tokmd_cmd().args(["lang", "--format", "tsv"]));
     let lines: Vec<&str> = out.lines().collect();
     assert!(lines.len() >= 2, "TSV needs header + at least 1 data row");
     assert!(lines[0].contains('\t'), "header line must contain tabs");
@@ -190,7 +190,7 @@ fn lang_format_tsv_is_tab_separated() {
 
 #[test]
 fn lang_format_json_is_valid() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     assert!(json["schema_version"].is_number());
     assert_eq!(json["mode"], "lang");
     assert!(json["rows"].is_array());
@@ -199,7 +199,7 @@ fn lang_format_json_is_valid() {
 
 #[test]
 fn lang_json_rows_have_expected_fields() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().expect("rows is array");
     assert!(
         !rows.is_empty(),
@@ -215,7 +215,7 @@ fn lang_json_rows_have_expected_fields() {
 
 #[test]
 fn lang_json_total_has_code_field() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     assert!(json["total"]["code"].is_number());
     let code = json["total"]["code"].as_u64().unwrap();
     assert!(code > 0, "fixture should have non-zero total code lines");
@@ -223,14 +223,14 @@ fn lang_json_total_has_code_field() {
 
 #[test]
 fn lang_json_schema_version_is_positive() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let sv = json["schema_version"].as_u64().unwrap();
     assert!(sv >= 1, "schema_version must be >= 1");
 }
 
 #[test]
 fn lang_json_has_envelope_metadata() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     assert!(json["generated_at_ms"].is_number());
     assert!(json["tool"].is_object());
     assert!(json["tool"]["name"].is_string());
@@ -252,7 +252,7 @@ fn module_default_produces_markdown() {
 
 #[test]
 fn module_format_json_valid() {
-    let json = json_of(&mut tokmd_cmd().args(["module", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["module", "--format", "json"]));
     assert_eq!(json["mode"], "module");
     assert!(json["rows"].is_array());
     assert!(json["total"].is_object());
@@ -260,7 +260,7 @@ fn module_format_json_valid() {
 
 #[test]
 fn module_json_rows_have_module_field() {
-    let json = json_of(&mut tokmd_cmd().args(["module", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["module", "--format", "json"]));
     for row in json["rows"].as_array().unwrap() {
         assert!(row["module"].is_string(), "module row must have module key");
         assert!(row["code"].is_number(), "module row must have code");
@@ -269,7 +269,7 @@ fn module_json_rows_have_module_field() {
 
 #[test]
 fn module_format_tsv_has_tabs() {
-    let out = stdout_of(&mut tokmd_cmd().args(["module", "--format", "tsv"]));
+    let out = stdout_of(tokmd_cmd().args(["module", "--format", "tsv"]));
     assert!(out.contains('\t'), "TSV output must contain tabs");
     assert!(out.lines().count() >= 2, "TSV needs header + data");
 }
@@ -308,7 +308,7 @@ fn module_depth_3_produces_output() {
 
 #[test]
 fn export_jsonl_produces_valid_lines() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl"]));
     let lines: Vec<&str> = out.lines().filter(|l| !l.trim().is_empty()).collect();
     assert!(lines.len() >= 2, "need meta + at least one data row");
     for (i, line) in lines.iter().enumerate() {
@@ -319,7 +319,7 @@ fn export_jsonl_produces_valid_lines() {
 
 #[test]
 fn export_jsonl_first_line_is_meta() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl"]));
     let first = out.lines().next().expect("must have at least one line");
     let meta: Value = serde_json::from_str(first).unwrap();
     assert!(
@@ -330,7 +330,7 @@ fn export_jsonl_first_line_is_meta() {
 
 #[test]
 fn export_csv_has_header_and_data() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "csv"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "csv"]));
     let lines: Vec<&str> = out.lines().collect();
     assert!(lines.len() >= 2, "CSV needs header + data");
     let header = lines[0];
@@ -342,7 +342,7 @@ fn export_csv_has_header_and_data() {
 
 #[test]
 fn export_csv_rows_have_consistent_column_count() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "csv"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "csv"]));
     let lines: Vec<&str> = out.lines().filter(|l| !l.trim().is_empty()).collect();
     assert!(lines.len() >= 2);
     let header_cols = lines[0].matches(',').count();
@@ -361,7 +361,7 @@ fn export_csv_rows_have_consistent_column_count() {
 
 #[test]
 fn export_json_is_valid_array() {
-    let json = json_of(&mut tokmd_cmd().args(["export", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["export", "--format", "json"]));
     assert!(
         json.is_object() || json.is_array(),
         "export JSON must be object or array"
@@ -370,10 +370,9 @@ fn export_json_is_valid_array() {
 
 #[test]
 fn export_min_code_filter_works() {
-    let out_all =
-        stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl", "--min-code", "0"]));
+    let out_all = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl", "--min-code", "0"]));
     let out_filtered =
-        stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl", "--min-code", "9999"]));
+        stdout_of(tokmd_cmd().args(["export", "--format", "jsonl", "--min-code", "9999"]));
     let all_lines: Vec<&str> = out_all.lines().filter(|l| !l.trim().is_empty()).collect();
     let filtered_lines: Vec<&str> = out_filtered
         .lines()
@@ -388,7 +387,7 @@ fn export_min_code_filter_works() {
 
 #[test]
 fn export_redact_none_shows_paths() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl", "--redact", "none"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl", "--redact", "none"]));
     let data_lines: Vec<&str> = out
         .lines()
         .skip(1)
@@ -431,9 +430,9 @@ fn lang_children_separate_succeeds() {
 #[test]
 fn lang_children_collapse_vs_separate_differ_in_json() {
     let collapse =
-        json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--children", "collapse"]));
+        json_of(tokmd_cmd().args(["lang", "--format", "json", "--children", "collapse"]));
     let separate =
-        json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--children", "separate"]));
+        json_of(tokmd_cmd().args(["lang", "--format", "json", "--children", "separate"]));
 
     let c_rows = collapse["rows"].as_array().unwrap().len();
     let s_rows = separate["rows"].as_array().unwrap().len();
@@ -452,7 +451,7 @@ fn lang_children_collapse_vs_separate_differ_in_json() {
 
 #[test]
 fn lang_top_1_limits_rows_in_json() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--top", "1"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json", "--top", "1"]));
     let rows = json["rows"].as_array().unwrap();
     // Should be at most 2 rows (1 real + "Other" roll-up)
     assert!(
@@ -464,8 +463,8 @@ fn lang_top_1_limits_rows_in_json() {
 
 #[test]
 fn lang_top_0_shows_all_rows() {
-    let json_all = json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--top", "0"]));
-    let json_top1 = json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--top", "1"]));
+    let json_all = json_of(tokmd_cmd().args(["lang", "--format", "json", "--top", "0"]));
+    let json_top1 = json_of(tokmd_cmd().args(["lang", "--format", "json", "--top", "1"]));
     let all_len = json_all["rows"].as_array().unwrap().len();
     let top1_len = json_top1["rows"].as_array().unwrap().len();
     assert!(
@@ -489,7 +488,7 @@ fn lang_files_flag_adds_file_info() {
         .success()
         .stdout(predicate::str::is_empty().not());
     // In JSON, file info is always present — verify it
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--files"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json", "--files"]));
     let rows = json["rows"].as_array().unwrap();
     assert!(!rows.is_empty());
     for row in rows {
@@ -503,9 +502,9 @@ fn lang_files_flag_adds_file_info() {
 
 #[test]
 fn lang_exclude_filters_files() {
-    let json_all = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json_all = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let json_filtered =
-        json_of(&mut tokmd_cmd().args(["lang", "--format", "json", "--exclude", "*.rs"]));
+        json_of(tokmd_cmd().args(["lang", "--format", "json", "--exclude", "*.rs"]));
 
     let total_all = json_all["total"]["code"].as_u64().unwrap_or(0);
     let total_filtered = json_filtered["total"]["code"].as_u64().unwrap_or(0);
@@ -782,7 +781,7 @@ fn export_jsonl_deterministic_across_runs() {
 
 #[test]
 fn lang_tsv_deterministic_across_runs() {
-    let run = || stdout_of(&mut tokmd_cmd().args(["lang", "--format", "tsv"]));
+    let run = || stdout_of(tokmd_cmd().args(["lang", "--format", "tsv"]));
     let a = run();
     let b = run();
     assert_eq!(a, b, "lang TSV must be stable across runs");
@@ -790,7 +789,7 @@ fn lang_tsv_deterministic_across_runs() {
 
 #[test]
 fn lang_md_deterministic_across_runs() {
-    let run = || stdout_of(&mut tokmd_cmd().args(["lang", "--format", "md"]));
+    let run = || stdout_of(tokmd_cmd().args(["lang", "--format", "md"]));
     let a = run();
     let b = run();
     assert_eq!(a, b, "lang Markdown must be stable across runs");
@@ -802,7 +801,7 @@ fn lang_md_deterministic_across_runs() {
 
 #[test]
 fn lang_json_rows_sorted_by_code_descending() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     if rows.len() >= 2 {
         let codes: Vec<u64> = rows
@@ -822,7 +821,7 @@ fn lang_json_rows_sorted_by_code_descending() {
 
 #[test]
 fn lang_json_total_equals_sum_of_rows() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     let sum: u64 = rows.iter().map(|r| r["code"].as_u64().unwrap_or(0)).sum();
     let total = json["total"]["code"].as_u64().unwrap();
@@ -831,7 +830,7 @@ fn lang_json_total_equals_sum_of_rows() {
 
 #[test]
 fn lang_json_lines_total_equals_sum() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     let sum: u64 = rows.iter().map(|r| r["lines"].as_u64().unwrap_or(0)).sum();
     let total = json["total"]["lines"].as_u64().unwrap();
@@ -840,7 +839,7 @@ fn lang_json_lines_total_equals_sum() {
 
 #[test]
 fn lang_json_files_total_equals_sum() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     let sum: u64 = rows.iter().map(|r| r["files"].as_u64().unwrap_or(0)).sum();
     let total = json["total"]["files"].as_u64().unwrap();
@@ -849,7 +848,7 @@ fn lang_json_files_total_equals_sum() {
 
 #[test]
 fn module_json_total_equals_sum_of_rows() {
-    let json = json_of(&mut tokmd_cmd().args(["module", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["module", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     let sum: u64 = rows.iter().map(|r| r["code"].as_u64().unwrap_or(0)).sum();
     let total = json["total"]["code"].as_u64().unwrap();
@@ -858,7 +857,7 @@ fn module_json_total_equals_sum_of_rows() {
 
 #[test]
 fn lang_json_no_duplicate_languages() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let rows = json["rows"].as_array().unwrap();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     for (i, row) in rows.iter().enumerate() {
@@ -878,7 +877,7 @@ fn lang_json_no_duplicate_languages() {
 
 #[test]
 fn lang_tsv_header_contains_expected_columns() {
-    let out = stdout_of(&mut tokmd_cmd().args(["lang", "--format", "tsv"]));
+    let out = stdout_of(tokmd_cmd().args(["lang", "--format", "tsv"]));
     let header = out.lines().next().expect("TSV must have header");
     let lower = header.to_lowercase();
     assert!(lower.contains("lang"), "TSV header should contain 'lang'");
@@ -887,7 +886,7 @@ fn lang_tsv_header_contains_expected_columns() {
 
 #[test]
 fn module_tsv_header_contains_module() {
-    let out = stdout_of(&mut tokmd_cmd().args(["module", "--format", "tsv"]));
+    let out = stdout_of(tokmd_cmd().args(["module", "--format", "tsv"]));
     let header = out.lines().next().expect("TSV must have header");
     let lower = header.to_lowercase();
     assert!(
@@ -902,7 +901,7 @@ fn module_tsv_header_contains_module() {
 
 #[test]
 fn lang_md_has_separator_line() {
-    let out = stdout_of(&mut tokmd_cmd().args(["lang", "--format", "md"]));
+    let out = stdout_of(tokmd_cmd().args(["lang", "--format", "md"]));
     // Markdown tables have a separator line with dashes
     let has_separator = out.lines().any(|l| l.contains("---"));
     assert!(
@@ -913,7 +912,7 @@ fn lang_md_has_separator_line() {
 
 #[test]
 fn module_md_has_separator_line() {
-    let out = stdout_of(&mut tokmd_cmd().args(["module", "--format", "md"]));
+    let out = stdout_of(tokmd_cmd().args(["module", "--format", "md"]));
     let has_separator = out.lines().any(|l| l.contains("---"));
     assert!(
         has_separator,
@@ -936,8 +935,7 @@ fn analyze_default_preset_succeeds() {
 
 #[test]
 fn analyze_receipt_preset_json_valid() {
-    let json =
-        json_of(&mut tokmd_cmd().args(["analyze", "--preset", "receipt", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["analyze", "--preset", "receipt", "--format", "json"]));
     assert!(json.is_object(), "analyze JSON should be an object");
 }
 
@@ -1019,7 +1017,7 @@ fn bare_invocation_produces_output() {
 #[test]
 fn bare_invocation_matches_lang() {
     let bare = stdout_of(&mut tokmd_cmd());
-    let lang = stdout_of(&mut tokmd_cmd().arg("lang"));
+    let lang = stdout_of(tokmd_cmd().arg("lang"));
     assert_eq!(bare, lang, "bare invocation should match `tokmd lang`");
 }
 
@@ -1077,11 +1075,11 @@ fn no_ignore_flag_succeeds() {
 
 #[test]
 fn lang_all_formats_report_same_total_code() {
-    let json = json_of(&mut tokmd_cmd().args(["lang", "--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["lang", "--format", "json"]));
     let total_code = json["total"]["code"].as_u64().unwrap();
 
     // TSV: last non-empty row is typically the total
-    let tsv_out = stdout_of(&mut tokmd_cmd().args(["lang", "--format", "tsv"]));
+    let tsv_out = stdout_of(tokmd_cmd().args(["lang", "--format", "tsv"]));
     let tsv_lines: Vec<&str> = tsv_out.lines().filter(|l| !l.trim().is_empty()).collect();
     // The total row in TSV should contain the same total code
     let last_line = tsv_lines.last().unwrap();
@@ -1099,7 +1097,7 @@ fn lang_all_formats_report_same_total_code() {
 
 #[test]
 fn export_jsonl_meta_true_has_meta_line() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl", "--meta", "true"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl", "--meta", "true"]));
     let first = out.lines().next().unwrap();
     let meta: Value = serde_json::from_str(first).unwrap();
     assert!(meta["schema_version"].is_number());
@@ -1107,7 +1105,7 @@ fn export_jsonl_meta_true_has_meta_line() {
 
 #[test]
 fn export_jsonl_meta_false_skips_meta() {
-    let out = stdout_of(&mut tokmd_cmd().args(["export", "--format", "jsonl", "--meta", "false"]));
+    let out = stdout_of(tokmd_cmd().args(["export", "--format", "jsonl", "--meta", "false"]));
     let first = out.lines().next().unwrap();
     let row: Value = serde_json::from_str(first).unwrap();
     // Without meta, first line should be a data row (has "path" field)
@@ -1123,7 +1121,7 @@ fn export_jsonl_meta_false_skips_meta() {
 
 #[test]
 fn export_max_rows_limits_output() {
-    let out_1 = stdout_of(&mut tokmd_cmd().args([
+    let out_1 = stdout_of(tokmd_cmd().args([
         "export",
         "--format",
         "jsonl",
@@ -1148,7 +1146,7 @@ fn export_max_rows_limits_output() {
 
 #[test]
 fn tools_openai_produces_json() {
-    let out = stdout_of(&mut tokmd_cmd().args(["tools", "--format", "openai"]));
+    let out = stdout_of(tokmd_cmd().args(["tools", "--format", "openai"]));
     let _: Value = serde_json::from_str(&out).expect("tools --format openai should produce JSON");
 }
 
@@ -1171,13 +1169,13 @@ fn init_help_shows_usage() {
 
 #[test]
 fn global_format_json_works() {
-    let json = json_of(&mut tokmd_cmd().args(["--format", "json"]));
+    let json = json_of(tokmd_cmd().args(["--format", "json"]));
     assert!(json["rows"].is_array());
 }
 
 #[test]
 fn global_format_tsv_works() {
-    let out = stdout_of(&mut tokmd_cmd().args(["--format", "tsv"]));
+    let out = stdout_of(tokmd_cmd().args(["--format", "tsv"]));
     assert!(out.contains('\t'));
 }
 

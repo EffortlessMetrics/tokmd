@@ -62,7 +62,7 @@ fn lang_workflow_with_files_flag() {
         ..LangSettings::default()
     };
     let receipt = tokmd_core::lang_workflow(&scan_cwd(), &settings).unwrap();
-    assert_eq!(receipt.args.with_files, true);
+    assert!(receipt.args.with_files);
 }
 
 #[test]

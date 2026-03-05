@@ -1007,8 +1007,8 @@ fn determinism_serialization_stable() {
     )
     .unwrap();
 
-    let j1 = serde_json::to_string(&r1).unwrap();
-    let j2 = serde_json::to_string(&r2).unwrap();
+    let _j1 = serde_json::to_string(&r1).unwrap();
+    let _j2 = serde_json::to_string(&r2).unwrap();
     // Ignore timing stats which may differ
     // Compare pairs section only
     assert_eq!(r1.pairs.len(), r2.pairs.len());

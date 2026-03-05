@@ -172,7 +172,7 @@ fn git_false_override_suppresses_git_in_deep_preset() {
 /// Health preset requests content-dependent enrichers (todo, complexity).
 #[test]
 fn health_preset_content_gate_no_silent_success() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
+    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
     let plan = preset_plan_for(PresetKind::Health);
     assert!(plan.todo, "health plan must request TODO scan");
     assert!(plan.complexity, "health plan must request complexity");
@@ -239,7 +239,7 @@ fn deep_preset_requests_all_content_enrichers() {
 /// Supply preset depends on walk for assets.
 #[test]
 fn supply_preset_walk_gate_no_silent_success() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
+    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
     let plan = preset_plan_for(PresetKind::Supply);
     assert!(plan.assets, "supply plan must request assets");
 

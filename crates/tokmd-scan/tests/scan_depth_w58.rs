@@ -173,7 +173,7 @@ fn scan_dir_with_only_unknown_ext_returns_empty() -> Result<()> {
     write_file(&dir, "data.xyz123", "some random content\n");
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     // tokei won't recognize .xyz123
-    let total: usize = langs.iter().map(|(_, l)| l.code as usize).sum();
+    let total: usize = langs.values().map(|l| l.code).sum();
     // Should either be empty or have zero code
     assert!(
         langs.is_empty() || total == 0,
@@ -218,7 +218,7 @@ fn scan_excludes_wildcard_extension() -> Result<()> {
         langs.get(&tokei::LanguageType::JavaScript).is_none()
             || langs
                 .get(&tokei::LanguageType::JavaScript)
-                .map_or(true, |l| l.code == 0),
+                .is_none_or(|l| l.code == 0),
         "JS should be excluded"
     );
     assert!(
@@ -262,7 +262,7 @@ fn scan_is_deterministic_same_input() -> Result<()> {
 
     let opts = default_opts();
     let path = dir.path().to_path_buf();
-    let r1 = scan(&[path.clone()], &opts)?;
+    let r1 = scan(std::slice::from_ref(&path), &opts)?;
     let r2 = scan(&[path], &opts)?;
 
     for (lang, stats1) in r1.iter() {
@@ -292,7 +292,7 @@ fn scan_deterministic_across_multiple_runs() -> Result<()> {
 
     let mut results = Vec::new();
     for _ in 0..5 {
-        let r = scan(&[path.clone()], &opts)?;
+        let r = scan(std::slice::from_ref(&path), &opts)?;
         let rust = r.get(&tokei::LanguageType::Rust).expect("Rust present");
         results.push((rust.code, rust.comments, rust.blanks));
     }

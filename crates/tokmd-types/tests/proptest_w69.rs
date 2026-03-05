@@ -142,9 +142,9 @@ proptest! {
         };
         let json = serde_json::to_string(&row).unwrap();
         let parsed: FileRow = serde_json::from_str(&json).unwrap();
-        prop_assert!(parsed.code <= usize::MAX);
-        prop_assert!(parsed.comments <= usize::MAX);
-        prop_assert!(parsed.blanks <= usize::MAX);
+        prop_assert!(parsed.code == code);
+        prop_assert!(parsed.comments == comments);
+        prop_assert!(parsed.blanks == blanks);
         prop_assert_eq!(parsed.lines, parsed.code + parsed.comments + parsed.blanks);
     }
 }
@@ -246,10 +246,8 @@ proptest! {
         a in 0usize..100_000,
         b in 0usize..100_000,
     ) {
-        let rows = vec![
-            LangRow { lang: "A".into(), code: a, lines: a, files: 1, bytes: 0, tokens: 0, avg_lines: a },
-            LangRow { lang: "B".into(), code: b, lines: b, files: 1, bytes: 0, tokens: 0, avg_lines: b },
-        ];
+        let rows = [LangRow { lang: "A".into(), code: a, lines: a, files: 1, bytes: 0, tokens: 0, avg_lines: a },
+            LangRow { lang: "B".into(), code: b, lines: b, files: 1, bytes: 0, tokens: 0, avg_lines: b }];
         let total_lines: usize = rows.iter().map(|r| r.lines).sum();
         let total = Totals { code: a + b, lines: total_lines, files: 2, bytes: 0, tokens: 0, avg_lines: total_lines / 2 };
         prop_assert_eq!(total.lines, rows.iter().map(|r| r.lines).sum::<usize>());
@@ -268,10 +266,8 @@ proptest! {
         a_files in 1usize..100,
         b_files in 1usize..100,
     ) {
-        let rows = vec![
-            ModuleRow { module: "a".into(), code: 100, lines: 100, files: a_files, bytes: 0, tokens: 0, avg_lines: 100 / a_files },
-            ModuleRow { module: "b".into(), code: 200, lines: 200, files: b_files, bytes: 0, tokens: 0, avg_lines: 200 / b_files },
-        ];
+        let rows = [ModuleRow { module: "a".into(), code: 100, lines: 100, files: a_files, bytes: 0, tokens: 0, avg_lines: 100 / a_files },
+            ModuleRow { module: "b".into(), code: 200, lines: 200, files: b_files, bytes: 0, tokens: 0, avg_lines: 200 / b_files }];
         let total = Totals { code: 300, lines: 300, files: a_files + b_files, bytes: 0, tokens: 0, avg_lines: 300 / (a_files + b_files) };
         prop_assert_eq!(total.files, rows.iter().map(|r| r.files).sum::<usize>());
     }

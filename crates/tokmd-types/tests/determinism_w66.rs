@@ -3,7 +3,6 @@
 //! The #1 invariant: same input must yield byte-identical output.
 
 use proptest::prelude::*;
-use serde_json;
 use tokmd_types::*;
 
 // -- Helpers --

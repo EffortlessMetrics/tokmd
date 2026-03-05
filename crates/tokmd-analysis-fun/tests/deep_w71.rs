@@ -450,7 +450,7 @@ fn label_is_valid_uppercase_a_through_e() {
 fn band_boundaries_inclusive_upper() {
     // Each threshold belongs to the lower band (≤ check)
     let cases: [(usize, &str); 4] = [
-        (1 * 1024 * 1024, "A"),   // 1 MB → still A
+        (1024 * 1024, "A"),   // 1 MB → still A
         (10 * 1024 * 1024, "B"),  // 10 MB → still B
         (50 * 1024 * 1024, "C"),  // 50 MB → still C
         (200 * 1024 * 1024, "D"), // 200 MB → still D
