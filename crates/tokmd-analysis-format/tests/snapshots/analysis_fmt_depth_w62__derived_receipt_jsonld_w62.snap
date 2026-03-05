@@ -1,0 +1,18 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_fmt_depth_w62.rs
+expression: ld
+---
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "codeLines": 500,
+  "commentCount": 50,
+  "fileSize": 20000,
+  "interactionStatistic": {
+    "@type": "InteractionCounter",
+    "interactionType": "http://schema.org/ReadAction",
+    "userInteractionCount": 3000
+  },
+  "lineCount": 650,
+  "name": "tokmd"
+}

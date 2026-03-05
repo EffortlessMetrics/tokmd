@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_fmt_depth_w62.rs
+expression: xml
+---
+<analysis></analysis>
