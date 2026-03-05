@@ -351,26 +351,26 @@ proptest! {
         let html = render(&receipt);
 
         // Find the table body and check that data-path values are escaped
-        if let Some(tbody_start) = html.find("<tbody>") {
-            if let Some(tbody_end) = html[tbody_start..].find("</tbody>") {
-                let tbody = &html[tbody_start..tbody_start + tbody_end];
-                // If the original strings contain '<' or '>', they must appear
-                // as &lt; / &gt; in the table body HTML attributes
-                if path.contains('<') || module.contains('<') || lang.contains('<') {
-                    // The tbody should NOT contain the raw substring
-                    // unless it's part of an HTML tag we generated (like <tr>, <td>)
-                    // Check data-path attribute specifically
-                    for attr_name in &["data-path=\"", "data-module=\"", "data-lang=\""] {
-                        if let Some(pos) = tbody.find(attr_name) {
-                            let attr_start = pos + attr_name.len();
-                            if let Some(attr_end) = tbody[attr_start..].find('"') {
-                                let attr_val = &tbody[attr_start..attr_start + attr_end];
-                                prop_assert!(
-                                    !attr_val.contains('<') && !attr_val.contains('>'),
-                                    "attribute {} contains raw angle bracket: {}",
-                                    attr_name, attr_val
-                                );
-                            }
+        if let Some(tbody_start) = html.find("<tbody>")
+            && let Some(tbody_end) = html[tbody_start..].find("</tbody>")
+        {
+            let tbody = &html[tbody_start..tbody_start + tbody_end];
+            // If the original strings contain '<' or '>', they must appear
+            // as &lt; / &gt; in the table body HTML attributes
+            if path.contains('<') || module.contains('<') || lang.contains('<') {
+                // The tbody should NOT contain the raw substring
+                // unless it's part of an HTML tag we generated (like <tr>, <td>)
+                // Check data-path attribute specifically
+                for attr_name in &["data-path=\"", "data-module=\"", "data-lang=\""] {
+                    if let Some(pos) = tbody.find(attr_name) {
+                        let attr_start = pos + attr_name.len();
+                        if let Some(attr_end) = tbody[attr_start..].find('"') {
+                            let attr_val = &tbody[attr_start..attr_start + attr_end];
+                            prop_assert!(
+                                !attr_val.contains('<') && !attr_val.contains('>'),
+                                "attribute {} contains raw angle bracket: {}",
+                                attr_name, attr_val
+                            );
                         }
                     }
                 }

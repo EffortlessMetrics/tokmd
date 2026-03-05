@@ -28,11 +28,16 @@ fn schema_version_constants_correct() {
 
 #[test]
 fn schema_versions_positive() {
-    assert!(SCHEMA_VERSION > 0);
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
-    assert!(COCKPIT_SCHEMA_VERSION > 0);
+    let sv = SCHEMA_VERSION;
+    assert!(sv > 0);
+    let hv = HANDOFF_SCHEMA_VERSION;
+    assert!(hv > 0);
+    let cbv = CONTEXT_BUNDLE_SCHEMA_VERSION;
+    assert!(cbv > 0);
+    let csv = CONTEXT_SCHEMA_VERSION;
+    assert!(csv > 0);
+    let ckv = COCKPIT_SCHEMA_VERSION;
+    assert!(ckv > 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -69,7 +74,7 @@ fn file_kind_ordering() {
 
 #[test]
 fn lang_row_sort_by_code_desc() {
-    let mut rows = vec![
+    let mut rows = [
         LangRow {
             lang: "Python".to_string(),
             code: 100,

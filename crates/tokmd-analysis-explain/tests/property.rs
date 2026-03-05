@@ -55,6 +55,7 @@ const CANONICAL_KEYS: &[&str] = &[
     "context_window_fit",
 ];
 
+#[allow(dead_code)]
 fn random_separator_variant(key: &str) -> impl Strategy<Value = String> + '_ {
     // Replace underscores with a random separator (_, -, ., space)
     let parts: Vec<&str> = key.split('_').collect();
@@ -78,7 +79,7 @@ proptest! {
         sep in prop_oneof![Just("_"), Just("-"), Just("."), Just(" ")],
     ) {
         let key = CANONICAL_KEYS[idx];
-        let variant = key.replace('_', &sep);
+        let variant = key.replace('_', sep);
         let result = lookup(&variant);
         prop_assert!(
             result.is_some(),

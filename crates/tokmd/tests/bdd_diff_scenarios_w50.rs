@@ -81,14 +81,14 @@ fn given_identical_receipts_when_diff_then_no_changes() {
         .expect("diff output should be valid JSON");
 
     // The summary deltas should all be zero
-    if let Some(summary) = json.get("summary") {
-        if let Some(delta_code) = summary.get("delta_code") {
-            assert_eq!(
-                delta_code.as_i64().unwrap_or(0),
-                0,
-                "identical receipts should have zero code delta"
-            );
-        }
+    if let Some(summary) = json.get("summary")
+        && let Some(delta_code) = summary.get("delta_code")
+    {
+        assert_eq!(
+            delta_code.as_i64().unwrap_or(0),
+            0,
+            "identical receipts should have zero code delta"
+        );
     }
 }
 

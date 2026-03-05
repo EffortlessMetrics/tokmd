@@ -328,7 +328,7 @@ proptest! {
     #[test]
     fn prop_hotspot_score_nonnegative(lines in 0usize..10_000, commits_count in 1usize..100) {
         let score = lines * commits_count;
-        prop_assert!(score >= 0);
+        prop_assert!(score <= lines * 99, "score should not exceed lines * max_commits");
     }
 
     #[test]
