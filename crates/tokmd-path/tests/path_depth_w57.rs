@@ -232,7 +232,7 @@ fn ordering_normalized_paths_are_lexicographically_sorted() {
         r"crates\foo\bar.rs",
     ]
     .into_iter()
-    .map(normalize_slashes)
+    .map(|p| normalize_slashes(p))
     .collect();
 
     paths.sort();
@@ -258,7 +258,7 @@ fn ordering_equivalent_paths_sort_identically() {
 fn ordering_rel_paths_deterministic_sort() {
     let mut paths: Vec<String> = vec![r".\src\b.rs", r".\src\a.rs", "./lib/c.rs", r".\tools\d.rs"]
         .into_iter()
-        .map(normalize_rel_path)
+        .map(|p| normalize_rel_path(p))
         .collect();
 
     paths.sort();
@@ -270,7 +270,7 @@ fn ordering_rel_paths_deterministic_sort() {
 
 #[test]
 fn ordering_repeated_normalization_preserves_order() {
-    let inputs = [r"b\2.rs", r"a\1.rs", r"c\3.rs"];
+    let inputs = vec![r"b\2.rs", r"a\1.rs", r"c\3.rs"];
     let mut first: Vec<String> = inputs.iter().map(|p| normalize_slashes(p)).collect();
     let mut second: Vec<String> = inputs.iter().map(|p| normalize_slashes(p)).collect();
     first.sort();

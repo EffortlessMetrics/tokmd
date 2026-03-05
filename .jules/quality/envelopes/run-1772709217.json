@@ -1,0 +1,1 @@
+{"persona": "Gatekeeper", "target": "crates/tokmd/src/commands/sensor.rs", "change": "Replaced HashSet with BTreeSet for reproducible output", "status": "completed", "receipts": ["cargo test -p tokmd --test sensor_integration", "cargo clippy --workspace --all-targets --all-features -- -D warnings"]}

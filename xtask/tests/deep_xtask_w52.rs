@@ -189,11 +189,10 @@ fn docs_reference_cli_has_paired_help_markers() {
     let mut open_count = 0u32;
     for line in content.lines() {
         if let Some(start) = line.find("<!-- HELP: ") {
-            let after = &line[start + 11..];
             if !line.contains("<!-- /HELP:") {
-                let end = after.find(" -->");
-                if let Some(end_idx) = end {
-                    let cmd = &after[..end_idx];
+                let after = &line[start + 11..];
+                if let Some(end) = after.find(" -->") {
+                    let cmd = &after[..end];
                     let close = format!("<!-- /HELP: {cmd} -->");
                     assert!(
                         content.contains(&close),

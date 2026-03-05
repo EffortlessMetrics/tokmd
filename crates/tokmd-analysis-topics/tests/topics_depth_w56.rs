@@ -388,7 +388,7 @@ fn massive_number_of_files_still_capped() {
     let clouds = build_topic_clouds(&data);
     // overall should still be capped at TOP_K=8
     assert!(clouds.overall.len() <= 8);
-    for terms in clouds.per_module.values() {
+    for (_, terms) in &clouds.per_module {
         assert!(terms.len() <= 8);
     }
 }

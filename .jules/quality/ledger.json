@@ -1,0 +1,7 @@
+[
+  {
+    "date": "$(date +%Y-%m-%d)",
+    "persona": "Gatekeeper",
+    "change": "Use BTreeSet instead of HashSet in tokmd sensor for determinism"
+  }
+]

@@ -500,10 +500,8 @@ fn dependency_report_deterministic_json() {
     let tmp = TempDir::new().unwrap();
     let cargo = "[[package]]\nname = \"z\"\n\n[[package]]\nname = \"a\"\n";
     let rel = write_file(tmp.path(), "Cargo.lock", cargo.as_bytes());
-    let j1 = serde_json::to_string(
-        &build_dependency_report(tmp.path(), std::slice::from_ref(&rel)).unwrap(),
-    )
-    .unwrap();
+    let j1 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel.clone()]).unwrap())
+        .unwrap();
     let j2 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel]).unwrap()).unwrap();
     assert_eq!(j1, j2);
 }

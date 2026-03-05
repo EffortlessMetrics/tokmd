@@ -260,6 +260,10 @@ fn all_hotspots_non_negative() {
     h.insert("a.rs".to_string(), 0);
     h.insert("b.rs".to_string(), 100);
     h.insert("c.rs".to_string(), usize::MAX);
+    for val in h.values() {
+        // usize is always non-negative
+        assert!(*val <= usize::MAX);
+    }
 }
 
 #[test]

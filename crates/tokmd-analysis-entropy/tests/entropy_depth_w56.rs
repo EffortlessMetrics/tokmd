@@ -153,7 +153,7 @@ fn pseudorandom_different_seeds_all_high() {
 #[test]
 fn single_byte_file_no_panic() {
     let dir = tempdir().unwrap();
-    fs::write(dir.path().join("one.bin"), [42u8]).unwrap();
+    fs::write(dir.path().join("one.bin"), &[42u8]).unwrap();
     let export = export_for(&["one.bin"]);
     let files = vec![PathBuf::from("one.bin")];
     let report = build_entropy_report(dir.path(), &files, &export, &default_limits()).unwrap();
@@ -168,7 +168,7 @@ fn single_byte_file_no_panic() {
 #[test]
 fn two_byte_file_no_panic() {
     let dir = tempdir().unwrap();
-    fs::write(dir.path().join("two.bin"), [0x00, 0xFF]).unwrap();
+    fs::write(dir.path().join("two.bin"), &[0x00, 0xFF]).unwrap();
     let export = export_for(&["two.bin"]);
     let files = vec![PathBuf::from("two.bin")];
     let report = build_entropy_report(dir.path(), &files, &export, &default_limits()).unwrap();

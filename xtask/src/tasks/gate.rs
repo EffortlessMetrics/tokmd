@@ -1,5 +1,5 @@
 use crate::cli::GateArgs;
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use std::process::Command;
 
 struct Step {
@@ -78,9 +78,7 @@ pub fn run(args: GateArgs) -> Result<()> {
         }
 
         if args.check {
-            println!(
-                "\nTip: Run 'cargo xtask gate' (without --check) to auto-fix formatting issues."
-            );
+            println!("\nTip: Run 'cargo xtask gate' (without --check) to auto-fix formatting issues.");
         }
 
         bail!("quality gate failed with {} failure(s)", failures.len());

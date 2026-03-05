@@ -218,7 +218,7 @@ fn ordering_sorted_module_keys_stable() {
 #[test]
 fn ordering_root_sorts_before_alpha() {
     let roots = vec!["crates".into()];
-    let mut keys = [
+    let mut keys = vec![
         module_key("crates/foo/lib.rs", &roots, 2),
         module_key("Cargo.toml", &roots, 2),
         module_key("src/main.rs", &roots, 2),

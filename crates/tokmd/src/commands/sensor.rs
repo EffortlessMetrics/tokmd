@@ -665,8 +665,7 @@ mod tests {
         });
 
         let gates = map_gates(&evidence);
-        let ids: std::collections::BTreeSet<_> =
-            gates.items.iter().map(|g| g.id.as_str()).collect();
+        let ids: std::collections::BTreeSet<_> = gates.items.iter().map(|g| g.id.as_str()).collect();
         for id in [
             "mutation",
             "diff_coverage",
