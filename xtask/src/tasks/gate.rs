@@ -46,7 +46,7 @@ const STEPS: &[Step] = &[
 
 pub fn run(args: GateArgs) -> Result<()> {
     let total = STEPS.len();
-    let mut passed = 0usize;
+    let mut failures = Vec::new();
 
     for (i, step) in STEPS.iter().enumerate() {
         let idx = i + 1;
@@ -61,15 +61,28 @@ pub fn run(args: GateArgs) -> Result<()> {
         let status = Command::new(step.cmd).args(effective_args).status()?;
 
         if !status.success() {
-            bail!(
-                "Step {idx}/{total} ({}) failed with exit code {}",
-                step.label,
-                status.code().unwrap_or(-1)
-            );
+            println!("   \u{274C} Step {} ({}) failed", idx, step.label);
+            failures.push((step.label, status.code().unwrap_or(-1)));
+        } else {
+            println!("   \u{2705} Step {} ({}) passed", idx, step.label);
         }
-        passed += 1;
     }
 
-    println!("gate: {passed}/{total} steps passed");
+    let passed = total - failures.len();
+    println!("\ngate result: {passed}/{total} steps passed");
+
+    if !failures.is_empty() {
+        println!("\nFailures:");
+        for (label, code) in &failures {
+            println!("  - {label} (exit code: {code})");
+        }
+        
+        if args.check {
+            println!("\nTip: Run 'cargo xtask gate' (without --check) to auto-fix formatting issues.");
+        }
+        
+        bail!("quality gate failed with {} failure(s)", failures.len());
+    }
+
     Ok(())
 }
