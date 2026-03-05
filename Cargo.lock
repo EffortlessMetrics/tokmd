@@ -3007,9 +3007,7 @@ dependencies = [
  "tokmd-path",
  "tokmd-progress",
  "tokmd-scan",
- "tokmd-sensor",
  "tokmd-settings",
- "tokmd-substrate",
  "tokmd-tokeignore",
  "tokmd-tool-schema",
  "tokmd-types",
@@ -3312,7 +3310,6 @@ dependencies = [
  "proptest",
  "tokmd-analysis-types",
  "tokmd-math",
- "tokmd-types",
 ]
 
 [[package]]

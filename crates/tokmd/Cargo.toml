@@ -70,9 +70,9 @@ tokmd-envelope.workspace = true
 tokmd-export-tree.workspace = true
 tokmd-progress.workspace = true
 tokmd-scan.workspace = true
-tokmd-sensor.workspace = true
+
 tokmd-settings.workspace = true
-tokmd-substrate.workspace = true
+
 tokmd-format.workspace = true
 tokmd-tokeignore.workspace = true
 tokmd-tool-schema.workspace = true
