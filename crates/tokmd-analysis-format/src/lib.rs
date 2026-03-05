@@ -864,12 +864,15 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 }
 
 fn render_file_table(rows: &[FileStatRow]) -> String {
-    let mut out = String::new();
+    use std::fmt::Write;
+    // Heuristic: (rows + 3) * 80 chars per row
+    let mut out = String::with_capacity((rows.len() + 3) * 80);
     out.push_str("|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|\n");
     out.push_str("|---|---|---:|---:|---:|---:|---:|---:|\n");
     for row in rows {
-        out.push_str(&format!(
-            "|{}|{}|{}|{}|{}|{}|{}|{}|\n",
+        let _ = writeln!(
+            out,
+            "|{}|{}|{}|{}|{}|{}|{}|{}|",
             row.path,
             row.lang,
             row.lines,
@@ -880,7 +883,7 @@ fn render_file_table(rows: &[FileStatRow]) -> String {
             row.bytes_per_line
                 .map(|v| fmt_f64(v, 2))
                 .unwrap_or_else(|| "-".to_string())
-        ));
+        );
     }
     out
 }

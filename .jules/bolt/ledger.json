@@ -1,0 +1,9 @@
+[
+  {
+    "date_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "lane": "scout",
+    "target": "crates/tokmd-analysis-format/src/lib.rs:render_file_table",
+    "proof_method": "structural",
+    "gates": ["build", "test", "fmt", "clippy"]
+  }
+]
