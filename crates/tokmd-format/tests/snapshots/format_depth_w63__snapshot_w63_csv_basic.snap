@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/lib.rs,src,Rust,parent,100,20,10,130,4000,200
+src/main.rs,src,Rust,parent,50,10,5,65,2000,100

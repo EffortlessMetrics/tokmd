@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|crates/core|800|960|8|32000|1600|120|
+|crates/format|400|480|4|16000|800|120|
+|crates/types|200|240|2|8000|400|120|
+|**Total**|1400|1680|14|56000|2800|0|

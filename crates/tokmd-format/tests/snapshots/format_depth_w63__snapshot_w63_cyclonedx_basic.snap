@@ -1,0 +1,57 @@
+---
+source: crates/tokmd-format/tests/format_depth_w63.rs
+expression: out
+---
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:snapshot-test",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "tools": [
+      {
+        "vendor": "tokmd",
+        "name": "tokmd",
+        "version": "1.7.2"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "src/lib.rs",
+      "group": "src",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "100"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "20"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "10"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "130"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "4000"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "200"
+        }
+      ]
+    }
+  ]
+}
