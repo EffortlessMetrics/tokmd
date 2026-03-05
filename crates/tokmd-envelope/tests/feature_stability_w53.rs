@@ -18,7 +18,12 @@ fn sensor_report_schema_is_accessible() {
 #[test]
 fn sensor_report_new_construction() {
     let tool = ToolMeta::new("tokmd", "0.1.0", "cockpit");
-    let report = SensorReport::new(tool, "2024-01-01T00:00:00Z".into(), Verdict::Pass, "All clear".into());
+    let report = SensorReport::new(
+        tool,
+        "2024-01-01T00:00:00Z".into(),
+        Verdict::Pass,
+        "All clear".into(),
+    );
     assert_eq!(report.schema, SENSOR_REPORT_SCHEMA);
     assert_eq!(report.summary, "All clear");
     assert!(report.findings.is_empty());
@@ -30,8 +35,13 @@ fn sensor_report_new_construction() {
 #[test]
 fn sensor_report_with_artifacts() {
     let tool = ToolMeta::tokmd("0.1.0", "analyze");
-    let report = SensorReport::new(tool, "2024-01-01T00:00:00Z".into(), Verdict::Pass, "ok".into())
-        .with_artifacts(vec![Artifact::receipt("output.json")]);
+    let report = SensorReport::new(
+        tool,
+        "2024-01-01T00:00:00Z".into(),
+        Verdict::Pass,
+        "ok".into(),
+    )
+    .with_artifacts(vec![Artifact::receipt("output.json")]);
     assert_eq!(report.artifacts.as_ref().unwrap().len(), 1);
 }
 
@@ -40,9 +50,17 @@ fn sensor_report_with_capabilities() {
     let tool = ToolMeta::new("tokmd", "0.1.0", "sensor");
     let mut caps = BTreeMap::new();
     caps.insert("git".into(), CapabilityStatus::available());
-    caps.insert("content".into(), CapabilityStatus::unavailable("feature disabled"));
-    let report = SensorReport::new(tool, "2024-01-01T00:00:00Z".into(), Verdict::Pass, "ok".into())
-        .with_capabilities(caps);
+    caps.insert(
+        "content".into(),
+        CapabilityStatus::unavailable("feature disabled"),
+    );
+    let report = SensorReport::new(
+        tool,
+        "2024-01-01T00:00:00Z".into(),
+        Verdict::Pass,
+        "ok".into(),
+    )
+    .with_capabilities(caps);
     let caps = report.capabilities.as_ref().unwrap();
     assert_eq!(caps["git"].status, CapabilityState::Available);
     assert_eq!(caps["content"].status, CapabilityState::Unavailable);
@@ -51,7 +69,12 @@ fn sensor_report_with_capabilities() {
 #[test]
 fn sensor_report_serde_roundtrip() {
     let tool = ToolMeta::tokmd("0.1.0", "cockpit");
-    let report = SensorReport::new(tool, "2024-01-01T00:00:00Z".into(), Verdict::Warn, "1 issue".into());
+    let report = SensorReport::new(
+        tool,
+        "2024-01-01T00:00:00Z".into(),
+        Verdict::Warn,
+        "1 issue".into(),
+    );
     let json = serde_json::to_string(&report).unwrap();
     let restored: SensorReport = serde_json::from_str(&json).unwrap();
     assert_eq!(restored.schema, SENSOR_REPORT_SCHEMA);
@@ -63,8 +86,14 @@ fn sensor_report_serde_roundtrip() {
 
 #[test]
 fn finding_construction_and_serde() {
-    let f = Finding::new("risk", "hotspot", FindingSeverity::Warn, "Hot file", "src/main.rs changed 50 times")
-        .with_location(FindingLocation::path_line("src/main.rs", 1));
+    let f = Finding::new(
+        "risk",
+        "hotspot",
+        FindingSeverity::Warn,
+        "Hot file",
+        "src/main.rs changed 50 times",
+    )
+    .with_location(FindingLocation::path_line("src/main.rs", 1));
     let json = serde_json::to_string(&f).unwrap();
     let restored: Finding = serde_json::from_str(&json).unwrap();
     assert_eq!(restored.check_id, "risk");

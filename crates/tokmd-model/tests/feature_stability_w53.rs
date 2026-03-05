@@ -43,10 +43,7 @@ fn normalize_path_strips_dot_prefix() {
 
 #[test]
 fn normalize_path_with_strip_prefix() {
-    let result = normalize_path(
-        Path::new("project/src/main.rs"),
-        Some(Path::new("project")),
-    );
+    let result = normalize_path(Path::new("project/src/main.rs"), Some(Path::new("project")));
     assert_eq!(result, "src/main.rs");
 }
 
@@ -93,14 +90,28 @@ fn create_module_report_empty_languages() {
 #[test]
 fn create_export_data_empty_languages() {
     let langs = Languages::new();
-    let data = create_export_data(&langs, &["crates".into()], 2, ChildIncludeMode::Separate, None, 0, 0);
+    let data = create_export_data(
+        &langs,
+        &["crates".into()],
+        2,
+        ChildIncludeMode::Separate,
+        None,
+        0,
+        0,
+    );
     assert!(data.rows.is_empty());
 }
 
 #[test]
 fn collect_file_rows_empty_languages() {
     let langs = Languages::new();
-    let rows = collect_file_rows(&langs, &["crates".into()], 2, ChildIncludeMode::Separate, None);
+    let rows = collect_file_rows(
+        &langs,
+        &["crates".into()],
+        2,
+        ChildIncludeMode::Separate,
+        None,
+    );
     assert!(rows.is_empty());
 }
 

@@ -3,8 +3,8 @@
 //! These tests verify that tokmd-types works correctly WITHOUT optional
 //! features (no `clap`). They must NOT use `#[cfg(feature = ...)]` guards.
 
-use tokmd_types::*;
 use tokmd_types::cockpit::COCKPIT_SCHEMA_VERSION;
+use tokmd_types::*;
 
 // ── Schema constants ──────────────────────────────────────────────────
 
@@ -157,14 +157,8 @@ fn diff_row_serde_roundtrip() {
 fn file_kind_serde_roundtrip() {
     let parent = FileKind::Parent;
     let child = FileKind::Child;
-    assert_eq!(
-        serde_json::to_string(&parent).unwrap(),
-        "\"parent\""
-    );
-    assert_eq!(
-        serde_json::to_string(&child).unwrap(),
-        "\"child\""
-    );
+    assert_eq!(serde_json::to_string(&parent).unwrap(), "\"parent\"");
+    assert_eq!(serde_json::to_string(&child).unwrap(), "\"child\"");
     let restored: FileKind = serde_json::from_str("\"parent\"").unwrap();
     assert_eq!(restored, FileKind::Parent);
 }

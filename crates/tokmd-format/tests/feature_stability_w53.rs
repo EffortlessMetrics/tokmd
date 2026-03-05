@@ -158,8 +158,13 @@ fn json_export_args() -> ExportArgs {
 #[test]
 fn markdown_lang_empty_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &empty_lang_report(), &default_scan_options(), &md_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &empty_lang_report(),
+        &default_scan_options(),
+        &md_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     // Empty report produces output (may be header-only or empty)
     // The key assertion: no panic, valid UTF-8
@@ -169,8 +174,13 @@ fn markdown_lang_empty_data() {
 #[test]
 fn markdown_lang_with_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &sample_lang_report(), &default_scan_options(), &md_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &sample_lang_report(),
+        &default_scan_options(),
+        &md_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     assert!(output.contains("Rust"));
 }
@@ -178,8 +188,13 @@ fn markdown_lang_with_data() {
 #[test]
 fn markdown_module_empty_data() {
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &empty_module_report(), &default_scan_options(), &md_module_args())
-        .unwrap();
+    write_module_report_to(
+        &mut buf,
+        &empty_module_report(),
+        &default_scan_options(),
+        &md_module_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     // Empty report produces output (may be header-only or empty)
     let _ = output;
@@ -190,8 +205,13 @@ fn markdown_module_empty_data() {
 #[test]
 fn tsv_lang_empty_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &empty_lang_report(), &default_scan_options(), &tsv_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &empty_lang_report(),
+        &default_scan_options(),
+        &tsv_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     // TSV output should have header with tab separators
     assert!(output.contains('\t'));
@@ -200,8 +220,13 @@ fn tsv_lang_empty_data() {
 #[test]
 fn tsv_lang_with_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &sample_lang_report(), &default_scan_options(), &tsv_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &sample_lang_report(),
+        &default_scan_options(),
+        &tsv_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     assert!(output.contains("Rust"));
     assert!(output.contains('\t'));
@@ -212,8 +237,13 @@ fn tsv_lang_with_data() {
 #[test]
 fn json_lang_empty_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &empty_lang_report(), &default_scan_options(), &json_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &empty_lang_report(),
+        &default_scan_options(),
+        &json_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
     assert!(parsed.is_object());
@@ -222,8 +252,13 @@ fn json_lang_empty_data() {
 #[test]
 fn json_lang_with_data() {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &sample_lang_report(), &default_scan_options(), &json_lang_args())
-        .unwrap();
+    write_lang_report_to(
+        &mut buf,
+        &sample_lang_report(),
+        &default_scan_options(),
+        &json_lang_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
     assert!(parsed.is_object());
@@ -243,8 +278,13 @@ fn csv_export_empty_data() {
 #[test]
 fn jsonl_export_empty_data() {
     let mut buf = Vec::new();
-    write_export_jsonl_to(&mut buf, &empty_export_data(), &default_scan_options(), &jsonl_export_args())
-        .unwrap();
+    write_export_jsonl_to(
+        &mut buf,
+        &empty_export_data(),
+        &default_scan_options(),
+        &jsonl_export_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     // Empty data produces no JSONL lines
     assert!(output.is_empty());
@@ -253,8 +293,13 @@ fn jsonl_export_empty_data() {
 #[test]
 fn json_export_empty_data() {
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, &empty_export_data(), &default_scan_options(), &json_export_args())
-        .unwrap();
+    write_export_json_to(
+        &mut buf,
+        &empty_export_data(),
+        &default_scan_options(),
+        &json_export_args(),
+    )
+    .unwrap();
     let output = String::from_utf8(buf).unwrap();
     // Empty export may produce empty string or valid JSON
     if !output.is_empty() {
