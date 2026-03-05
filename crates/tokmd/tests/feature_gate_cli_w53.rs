@@ -44,26 +44,17 @@ fn analyze_help_text_mentions_preset() {
 
 #[test]
 fn export_help_text_exits_successfully() {
-    tokmd()
-        .args(["export", "--help"])
-        .assert()
-        .success();
+    tokmd().args(["export", "--help"]).assert().success();
 }
 
 #[test]
 fn lang_help_text_exits_successfully() {
-    tokmd()
-        .args(["lang", "--help"])
-        .assert()
-        .success();
+    tokmd().args(["lang", "--help"]).assert().success();
 }
 
 #[test]
 fn module_help_text_exits_successfully() {
-    tokmd()
-        .args(["module", "--help"])
-        .assert()
-        .success();
+    tokmd().args(["module", "--help"]).assert().success();
 }
 
 // ── JSON output structure tests ──────────────────────────────────────
@@ -77,7 +68,10 @@ fn lang_json_output_has_schema_version() {
         .unwrap();
     assert!(output.status.success());
     let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json.get("schema_version").is_some(), "JSON must include schema_version");
+    assert!(
+        json.get("schema_version").is_some(),
+        "JSON must include schema_version"
+    );
 }
 
 #[test]
@@ -113,7 +107,10 @@ fn analyze_receipt_json_has_warnings_field() {
         .unwrap();
     assert!(output.status.success());
     let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json.get("warnings").is_some(), "analyze JSON must include warnings array");
+    assert!(
+        json.get("warnings").is_some(),
+        "analyze JSON must include warnings array"
+    );
 }
 
 #[test]
@@ -125,7 +122,10 @@ fn analyze_receipt_json_has_status_field() {
         .unwrap();
     assert!(output.status.success());
     let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json.get("status").is_some(), "analyze JSON must include status");
+    assert!(
+        json.get("status").is_some(),
+        "analyze JSON must include status"
+    );
 }
 
 #[test]

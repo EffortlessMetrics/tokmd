@@ -84,7 +84,11 @@ fn list_files_respects_max_files_limit() {
         fs::write(dir.path().join(format!("f{i}.txt")), format!("content {i}")).unwrap();
     }
     let files = list_files(dir.path(), Some(3)).unwrap();
-    assert!(files.len() <= 3, "should respect max_files limit, got {}", files.len());
+    assert!(
+        files.len() <= 3,
+        "should respect max_files limit, got {}",
+        files.len()
+    );
 }
 
 // ── license_candidates ───────────────────────────────────────────────
@@ -108,7 +112,10 @@ fn license_candidates_detects_copying_and_notice() {
         PathBuf::from("README.md"),
     ];
     let cands = license_candidates(&files);
-    assert!(cands.license_files.len() >= 2, "should detect COPYING and NOTICE");
+    assert!(
+        cands.license_files.len() >= 2,
+        "should detect COPYING and NOTICE"
+    );
 }
 
 #[test]
@@ -143,7 +150,10 @@ fn license_candidates_results_are_sorted() {
         v.sort();
         v
     };
-    assert_eq!(cands.license_files, sorted, "license files should be sorted");
+    assert_eq!(
+        cands.license_files, sorted,
+        "license files should be sorted"
+    );
 }
 
 // ── file_size ────────────────────────────────────────────────────────

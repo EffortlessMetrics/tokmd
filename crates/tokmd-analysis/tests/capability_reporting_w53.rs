@@ -7,7 +7,9 @@
 use std::path::PathBuf;
 use tokmd_analysis::{AnalysisContext, AnalysisRequest, ImportGranularity, analyze};
 use tokmd_analysis_grid::{DisabledFeature, PresetKind, preset_plan_for};
-use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource, NearDupScope};
+use tokmd_analysis_types::{
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource, NearDupScope,
+};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ── helpers ──────────────────────────────────────────────────────────
@@ -247,9 +249,18 @@ fn all_disabled_features_have_nonempty_warnings() {
 fn receipt_preset_produces_valid_receipt_with_derived() {
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
     assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
-    assert!(receipt.derived.is_some(), "receipt preset must include derived metrics");
-    assert!(receipt.git.is_none(), "receipt preset should not include git");
-    assert!(receipt.entropy.is_none(), "receipt preset should not include entropy");
+    assert!(
+        receipt.derived.is_some(),
+        "receipt preset must include derived metrics"
+    );
+    assert!(
+        receipt.git.is_none(),
+        "receipt preset should not include git"
+    );
+    assert!(
+        receipt.entropy.is_none(),
+        "receipt preset should not include entropy"
+    );
 }
 
 #[test]
@@ -315,7 +326,10 @@ fn explicit_git_false_skips_git_even_for_risk_preset() {
     let mut req = make_req(PresetKind::Risk);
     req.git = Some(false);
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
-    assert!(receipt.git.is_none(), "explicit git=false should suppress git enricher");
+    assert!(
+        receipt.git.is_none(),
+        "explicit git=false should suppress git enricher"
+    );
 }
 
 #[test]

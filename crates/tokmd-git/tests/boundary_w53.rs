@@ -101,7 +101,12 @@ fn collect_history_returns_all_commits() {
     }
     let dir = make_git_repo();
     for i in 0..3 {
-        add_commit(dir.path(), &format!("file{i}.txt"), &format!("content {i}"), &format!("commit {i}"));
+        add_commit(
+            dir.path(),
+            &format!("file{i}.txt"),
+            &format!("content {i}"),
+            &format!("commit {i}"),
+        );
     }
     let commits = collect_history(dir.path(), None, Some(300)).unwrap();
     assert_eq!(commits.len(), 3, "should return all 3 commits");
@@ -168,5 +173,8 @@ fn classify_intent_empty_string() {
 
 #[test]
 fn classify_intent_docs() {
-    assert_eq!(classify_intent("docs: update README"), CommitIntentKind::Docs);
+    assert_eq!(
+        classify_intent("docs: update README"),
+        CommitIntentKind::Docs
+    );
 }

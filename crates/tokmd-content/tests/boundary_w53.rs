@@ -108,7 +108,10 @@ fn is_text_like_valid_utf8_is_text() {
 #[test]
 fn is_text_like_null_bytes_is_binary() {
     let data = b"Hello\x00World";
-    assert!(!is_text_like(data), "null bytes should be detected as binary");
+    assert!(
+        !is_text_like(data),
+        "null bytes should be detected as binary"
+    );
 }
 
 #[test]
