@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_fmt_depth_w62.rs
+expression: md
+---
+# tokmd analysis
+
+Preset: `receipt`
