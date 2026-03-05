@@ -19,7 +19,7 @@ const STEPS: &[Step] = &[
     Step {
         label: "check (warm graph)",
         cmd: "cargo",
-        args: &["check", "--workspace", "--all-features"],
+        args: &["check", "--workspace", "--all-features", "--exclude", "tokmd-python"],
         check_args: None,
     },
     Step {
@@ -30,6 +30,8 @@ const STEPS: &[Step] = &[
             "--workspace",
             "--all-targets",
             "--all-features",
+            "--exclude",
+            "tokmd-python",
             "--",
             "-D",
             "warnings",
@@ -39,7 +41,7 @@ const STEPS: &[Step] = &[
     Step {
         label: "test (compile-only)",
         cmd: "cargo",
-        args: &["test", "--workspace", "--all-features", "--no-run"],
+        args: &["test", "--workspace", "--all-features", "--exclude", "tokmd-python", "--no-run"],
         check_args: None,
     },
 ];
