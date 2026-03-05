@@ -126,14 +126,16 @@ fn read_lines_with_very_long_line_respects_byte_limit() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("long_line.txt");
     let mut f = File::create(&path).unwrap();
-    // Write a single 10,000-character line
     let long_line = "x".repeat(10_000);
     writeln!(f, "{}", long_line).unwrap();
     writeln!(f, "short").unwrap();
 
-    // Byte limit should kick in after the first line
     let lines = read_lines(&path, 100, 5000).unwrap();
-    assert_eq!(lines.len(), 1, "byte limit should stop after first long line");
+    assert_eq!(
+        lines.len(),
+        1,
+        "byte limit should stop after first long line"
+    );
     assert_eq!(lines[0].len(), 10_000);
 }
 
@@ -181,7 +183,6 @@ fn entropy_empty_input_returns_zero() {
 
 #[test]
 fn entropy_single_byte_returns_zero() {
-    // Only one byte value present — zero entropy
     assert_eq!(entropy_bits_per_byte(&[42]), 0.0);
 }
 
@@ -189,12 +190,14 @@ fn entropy_single_byte_returns_zero() {
 fn entropy_all_same_bytes_returns_zero() {
     let data = vec![0xAB; 10_000];
     let e = entropy_bits_per_byte(&data);
-    assert!(e.abs() < 1e-6, "uniform bytes should have ~0 entropy, got {e}");
+    assert!(
+        e.abs() < 1e-6,
+        "uniform bytes should have ~0 entropy, got {e}"
+    );
 }
 
 #[test]
 fn entropy_maximum_for_uniform_256_values() {
-    // All 256 byte values equally represented -> 8 bits per byte
     let data: Vec<u8> = (0..=255).cycle().take(256 * 100).collect();
     let e = entropy_bits_per_byte(&data);
     assert!(
