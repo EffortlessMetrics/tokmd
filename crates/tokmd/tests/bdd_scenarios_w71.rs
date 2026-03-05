@@ -47,7 +47,11 @@ fn write_rs(dir: &std::path::Path, name: &str, body: &str) {
 fn given_rust_project_when_lang_then_shows_rust() {
     // Given: a directory containing .rs files
     let dir = hermetic_dir();
-    write_rs(dir.path(), "lib.rs", "pub fn add(a: i32, b: i32) -> i32 { a + b }");
+    write_rs(
+        dir.path(),
+        "lib.rs",
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }",
+    );
 
     // When: `tokmd lang` is run
     // Then: output contains "Rust"
@@ -84,7 +88,10 @@ fn given_multi_language_when_lang_json_then_all_languages_present() {
     let rows = json["rows"].as_array().expect("rows array");
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(langs.contains(&"Rust"), "should contain Rust: {langs:?}");
-    assert!(langs.contains(&"Python"), "should contain Python: {langs:?}");
+    assert!(
+        langs.contains(&"Python"),
+        "should contain Python: {langs:?}"
+    );
     assert!(
         langs.contains(&"JavaScript"),
         "should contain JavaScript: {langs:?}"
@@ -125,10 +132,18 @@ fn given_exclude_tests_when_lang_then_test_files_excluded() {
     let dir = hermetic_dir();
     let src = dir.path().join("src");
     std::fs::create_dir_all(&src).unwrap();
-    std::fs::write(src.join("lib.rs"), "pub fn add(a: i32, b: i32) -> i32 { a + b }").unwrap();
+    std::fs::write(
+        src.join("lib.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }",
+    )
+    .unwrap();
     let tests = dir.path().join("tests");
     std::fs::create_dir_all(&tests).unwrap();
-    std::fs::write(tests.join("test_add.rs"), "fn test() { assert_eq!(2, 1+1); }").unwrap();
+    std::fs::write(
+        tests.join("test_add.rs"),
+        "fn test() { assert_eq!(2, 1+1); }",
+    )
+    .unwrap();
 
     // When: `tokmd --exclude tests export --format json`
     let output = tokmd()
@@ -307,11 +322,7 @@ fn given_exclude_flag_when_scan_then_exclusion_applied() {
 fn given_unicode_filenames_when_scan_then_paths_normalized() {
     // Given: a file with a Unicode name
     let dir = hermetic_dir();
-    std::fs::write(
-        dir.path().join("café.rs"),
-        "fn greet() { let x = 1; }",
-    )
-    .unwrap();
+    std::fs::write(dir.path().join("café.rs"), "fn greet() { let x = 1; }").unwrap();
 
     // When: `tokmd export --format json`
     let output = tokmd()
@@ -486,7 +497,11 @@ fn given_format_json_when_analyze_then_has_schema_version() {
 fn given_same_input_when_run_twice_then_identical_output() {
     // Given: a fixed project
     let dir = hermetic_dir();
-    write_rs(dir.path(), "lib.rs", "pub fn add(a: i32, b: i32) -> i32 { a + b }");
+    write_rs(
+        dir.path(),
+        "lib.rs",
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }",
+    );
     write_rs(dir.path(), "main.rs", "fn main() { println!(\"hi\"); }");
 
     // When: run `tokmd lang --format json` twice
@@ -507,7 +522,10 @@ fn given_same_input_when_run_twice_then_identical_output() {
     let second = run(2);
 
     // Then: row data is byte-identical
-    assert_eq!(first, second, "deterministic output: rows must be identical");
+    assert_eq!(
+        first, second,
+        "deterministic output: rows must be identical"
+    );
 }
 
 // ===========================================================================
@@ -549,8 +567,7 @@ fn given_project_when_export_jsonl_then_every_line_valid_json() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     for (i, line) in stdout.lines().filter(|l| !l.trim().is_empty()).enumerate() {
-        let _: Value =
-            serde_json::from_str(line).unwrap_or_else(|e| panic!("line {}: {e}", i + 1));
+        let _: Value = serde_json::from_str(line).unwrap_or_else(|e| panic!("line {}: {e}", i + 1));
     }
 }
 
@@ -705,9 +722,15 @@ fn given_exclude_wildcard_when_lang_json_then_language_absent() {
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     let rows = json["rows"].as_array().unwrap();
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
-    assert!(!langs.contains(&"Rust"), "Rust should be excluded: {langs:?}");
+    assert!(
+        !langs.contains(&"Rust"),
+        "Rust should be excluded: {langs:?}"
+    );
     // Fixture has .js and .md files, at least one non-Rust language should remain
-    assert!(!langs.is_empty(), "non-Rust languages should remain: {langs:?}");
+    assert!(
+        !langs.is_empty(),
+        "non-Rust languages should remain: {langs:?}"
+    );
 }
 
 // ===========================================================================
@@ -814,7 +837,13 @@ fn given_multiple_excludes_when_lang_then_all_patterns_applied() {
     // When: exclude both .rs and .js
     let output = tokmd_fixture()
         .args([
-            "--exclude", "*.rs", "--exclude", "*.js", "lang", "--format", "json",
+            "--exclude",
+            "*.rs",
+            "--exclude",
+            "*.js",
+            "lang",
+            "--format",
+            "json",
         ])
         .output()
         .expect("run");

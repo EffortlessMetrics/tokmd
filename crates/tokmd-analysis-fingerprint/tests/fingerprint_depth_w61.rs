@@ -284,12 +284,7 @@ fn twenty_six_single_letter_domains_sorted() {
 #[test]
 fn public_email_sorts_with_corporate_by_count() {
     // 3 corporate, 1 public → corporate first
-    let r = fp(&[
-        "a@corp.io",
-        "b@corp.io",
-        "c@corp.io",
-        "d@gmail.com",
-    ]);
+    let r = fp(&["a@corp.io", "b@corp.io", "c@corp.io", "d@gmail.com"]);
     assert_eq!(r.domains[0].domain, "corp.io");
     assert_eq!(r.domains[0].commits, 3);
     assert_eq!(r.domains[1].domain, "public-email");
@@ -298,9 +293,7 @@ fn public_email_sorts_with_corporate_by_count() {
 
 #[test]
 fn sort_stability_across_runs() {
-    let authors = &[
-        "a@x.com", "b@y.com", "c@z.com", "d@x.com", "e@y.com",
-    ];
+    let authors = &["a@x.com", "b@y.com", "c@z.com", "d@x.com", "e@y.com"];
     let r1 = fp(authors);
     let r2 = fp(authors);
     for (a, b) in r1.domains.iter().zip(r2.domains.iter()) {
@@ -340,13 +333,7 @@ fn three_domains_equal_split() {
 
 #[test]
 fn percentages_sum_to_one() {
-    let r = fp(&[
-        "a@x.com",
-        "b@y.com",
-        "c@z.com",
-        "d@x.com",
-        "e@gmail.com",
-    ]);
+    let r = fp(&["a@x.com", "b@y.com", "c@z.com", "d@x.com", "e@gmail.com"]);
     let total: f32 = r.domains.iter().map(|d| d.pct).sum();
     assert!(
         (total - 1.0).abs() < 0.01,

@@ -103,7 +103,10 @@ fn walk_gitignore_excludes_target_dir() {
     write(dir.path(), "src/main.rs", "fn main() {}");
     write(dir.path(), "target/debug/binary", "binary");
     let files = list_files(dir.path(), None).unwrap();
-    let strs: Vec<String> = files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     assert!(
         !strs.iter().any(|s| s.contains("target")),
         "target/ should be ignored: {strs:?}"
@@ -151,7 +154,10 @@ fn walk_nested_gitignore_applies() {
     write(dir.path(), "src/bad.gen", "y");
     write(dir.path(), "root.gen", "z"); // NOT ignored (gitignore in src/)
     let files = list_files(dir.path(), None).unwrap();
-    let strs: Vec<String> = files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     // src/bad.gen should be excluded
     assert!(!strs.iter().any(|s| s.contains("bad.gen")));
 }
@@ -234,11 +240,7 @@ fn walk_dot_git_excluded_when_files_tracked() {
 fn walk_does_not_follow_symlinks() {
     let dir = non_git_dir();
     write(dir.path(), "real.txt", "content");
-    std::os::unix::fs::symlink(
-        dir.path().join("real.txt"),
-        dir.path().join("link.txt"),
-    )
-    .unwrap();
+    std::os::unix::fs::symlink(dir.path().join("real.txt"), dir.path().join("link.txt")).unwrap();
     let files = list_files(dir.path(), None).unwrap();
     // With follow_links(false), symlinks are skipped
     let names: Vec<String> = files
@@ -378,7 +380,11 @@ fn license_output_sorted_alphabetically() {
         PathBuf::from("a/LICENSE"),
     ];
     let lc = license_candidates(&files);
-    let strs: Vec<String> = lc.license_files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = lc
+        .license_files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     let mut sorted = strs.clone();
     sorted.sort();
     assert_eq!(strs, sorted);
@@ -392,7 +398,11 @@ fn license_metadata_output_sorted() {
         PathBuf::from("mmm/pyproject.toml"),
     ];
     let lc = license_candidates(&files);
-    let strs: Vec<String> = lc.metadata_files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = lc
+        .metadata_files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     let mut sorted = strs.clone();
     sorted.sort();
     assert_eq!(strs, sorted);
@@ -431,7 +441,10 @@ fn walk_results_sorted_deterministically() {
     write(dir.path(), "apple.txt", "a");
     write(dir.path(), "mango.txt", "m");
     let files = list_files(dir.path(), None).unwrap();
-    let strs: Vec<String> = files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     let mut sorted = strs.clone();
     sorted.sort();
     assert_eq!(strs, sorted, "walk results must be sorted");
@@ -444,7 +457,10 @@ fn walk_results_sorted_with_nested_dirs() {
     write(dir.path(), "a/file.txt", "x");
     write(dir.path(), "c/file.txt", "x");
     let files = list_files(dir.path(), None).unwrap();
-    let strs: Vec<String> = files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let strs: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
     let mut sorted = strs.clone();
     sorted.sort();
     assert_eq!(strs, sorted);

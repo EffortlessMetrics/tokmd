@@ -2,9 +2,9 @@
 //! health, risk, review plan, trend computation, and evidence helpers.
 
 use tokmd_cockpit::{
-    compute_code_health, compute_composition, compute_metric_trend, compute_risk,
-    detect_contracts, format_signed_f64, generate_review_plan, round_pct, sparkline,
-    trend_direction_label, FileStat, TrendDirection,
+    FileStat, TrendDirection, compute_code_health, compute_composition, compute_metric_trend,
+    compute_risk, detect_contracts, format_signed_f64, generate_review_plan, round_pct, sparkline,
+    trend_direction_label,
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────
@@ -150,10 +150,7 @@ fn risk_low_for_small_changes() {
 
 #[test]
 fn risk_increases_with_hotspots() {
-    let stats = vec![
-        stat("hot1.rs", 200, 200),
-        stat("hot2.rs", 200, 200),
-    ];
+    let stats = vec![stat("hot1.rs", 200, 200), stat("hot2.rs", 200, 200)];
     let contracts = detect_contracts::<&str>(&[]);
     let health = compute_code_health(&stats, &contracts);
     let risk = compute_risk(&stats, &contracts, &health);
@@ -245,9 +242,15 @@ fn format_signed_positive_and_negative() {
 
 #[test]
 fn trend_labels() {
-    assert_eq!(trend_direction_label(TrendDirection::Improving), "improving");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Improving),
+        "improving"
+    );
     assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
-    assert_eq!(trend_direction_label(TrendDirection::Degrading), "degrading");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Degrading),
+        "degrading"
+    );
 }
 
 #[test]

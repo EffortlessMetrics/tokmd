@@ -10,8 +10,8 @@
 
 use serde_json::json;
 use tokmd_gate::{
-    evaluate_policy, evaluate_ratchet_policy, resolve_pointer, GateResult, PolicyConfig,
-    PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel, RuleOperator, RuleResult,
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
+    RuleOperator, RuleResult, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // =========================================================================
@@ -62,10 +62,7 @@ fn pointer_deeply_nested() {
 #[test]
 fn pointer_array_in_object() {
     let doc = json!({"items": [{"name": "a"}, {"name": "b"}]});
-    assert_eq!(
-        resolve_pointer(&doc, "/items/1/name"),
-        Some(&json!("b"))
-    );
+    assert_eq!(resolve_pointer(&doc, "/items/1/name"), Some(&json!("b")));
 }
 
 #[test]
@@ -87,54 +84,90 @@ fn pointer_no_leading_slash_returns_none() {
 #[test]
 fn op_gt_pass_and_fail() {
     let receipt = json!({"val": 10});
-    let pass = evaluate_policy(&receipt, &policy(vec![rule("gt", "/val", RuleOperator::Gt, json!(5))]));
+    let pass = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("gt", "/val", RuleOperator::Gt, json!(5))]),
+    );
     assert!(pass.passed);
-    let fail = evaluate_policy(&receipt, &policy(vec![rule("gt", "/val", RuleOperator::Gt, json!(10))]));
+    let fail = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("gt", "/val", RuleOperator::Gt, json!(10))]),
+    );
     assert!(!fail.passed);
 }
 
 #[test]
 fn op_gte_boundary() {
     let receipt = json!({"val": 10});
-    let at = evaluate_policy(&receipt, &policy(vec![rule("gte", "/val", RuleOperator::Gte, json!(10))]));
+    let at = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("gte", "/val", RuleOperator::Gte, json!(10))]),
+    );
     assert!(at.passed);
-    let above = evaluate_policy(&receipt, &policy(vec![rule("gte", "/val", RuleOperator::Gte, json!(11))]));
+    let above = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("gte", "/val", RuleOperator::Gte, json!(11))]),
+    );
     assert!(!above.passed);
 }
 
 #[test]
 fn op_lt_pass_and_fail() {
     let receipt = json!({"val": 5});
-    let pass = evaluate_policy(&receipt, &policy(vec![rule("lt", "/val", RuleOperator::Lt, json!(10))]));
+    let pass = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("lt", "/val", RuleOperator::Lt, json!(10))]),
+    );
     assert!(pass.passed);
-    let fail = evaluate_policy(&receipt, &policy(vec![rule("lt", "/val", RuleOperator::Lt, json!(5))]));
+    let fail = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("lt", "/val", RuleOperator::Lt, json!(5))]),
+    );
     assert!(!fail.passed);
 }
 
 #[test]
 fn op_lte_boundary() {
     let receipt = json!({"val": 10});
-    let at = evaluate_policy(&receipt, &policy(vec![rule("lte", "/val", RuleOperator::Lte, json!(10))]));
+    let at = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("lte", "/val", RuleOperator::Lte, json!(10))]),
+    );
     assert!(at.passed);
-    let below = evaluate_policy(&receipt, &policy(vec![rule("lte", "/val", RuleOperator::Lte, json!(9))]));
+    let below = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("lte", "/val", RuleOperator::Lte, json!(9))]),
+    );
     assert!(!below.passed);
 }
 
 #[test]
 fn op_eq_string_and_numeric() {
     let receipt = json!({"lang": "Rust", "count": 42});
-    let s = evaluate_policy(&receipt, &policy(vec![rule("eq_s", "/lang", RuleOperator::Eq, json!("Rust"))]));
+    let s = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("eq_s", "/lang", RuleOperator::Eq, json!("Rust"))]),
+    );
     assert!(s.passed);
-    let n = evaluate_policy(&receipt, &policy(vec![rule("eq_n", "/count", RuleOperator::Eq, json!(42))]));
+    let n = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("eq_n", "/count", RuleOperator::Eq, json!(42))]),
+    );
     assert!(n.passed);
 }
 
 #[test]
 fn op_ne_pass_and_fail() {
     let receipt = json!({"val": 5});
-    let pass = evaluate_policy(&receipt, &policy(vec![rule("ne", "/val", RuleOperator::Ne, json!(6))]));
+    let pass = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("ne", "/val", RuleOperator::Ne, json!(6))]),
+    );
     assert!(pass.passed);
-    let fail = evaluate_policy(&receipt, &policy(vec![rule("ne", "/val", RuleOperator::Ne, json!(5))]));
+    let fail = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("ne", "/val", RuleOperator::Ne, json!(5))]),
+    );
     assert!(!fail.passed);
 }
 
@@ -155,16 +188,35 @@ fn op_in_with_values_list() {
 #[test]
 fn op_contains_string() {
     let receipt = json!({"msg": "hello world"});
-    let pass = evaluate_policy(&receipt, &policy(vec![rule("c", "/msg", RuleOperator::Contains, json!("world"))]));
+    let pass = evaluate_policy(
+        &receipt,
+        &policy(vec![rule(
+            "c",
+            "/msg",
+            RuleOperator::Contains,
+            json!("world"),
+        )]),
+    );
     assert!(pass.passed);
-    let fail = evaluate_policy(&receipt, &policy(vec![rule("c", "/msg", RuleOperator::Contains, json!("xyz"))]));
+    let fail = evaluate_policy(
+        &receipt,
+        &policy(vec![rule(
+            "c",
+            "/msg",
+            RuleOperator::Contains,
+            json!("xyz"),
+        )]),
+    );
     assert!(!fail.passed);
 }
 
 #[test]
 fn op_contains_array() {
     let receipt = json!({"tags": ["a", "b", "c"]});
-    let pass = evaluate_policy(&receipt, &policy(vec![rule("c", "/tags", RuleOperator::Contains, json!("b"))]));
+    let pass = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("c", "/tags", RuleOperator::Contains, json!("b"))]),
+    );
     assert!(pass.passed);
 }
 
@@ -251,7 +303,10 @@ fn empty_rules_passes() {
 #[test]
 fn missing_pointer_fails_without_allow_missing() {
     let receipt = json!({"x": 1});
-    let result = evaluate_policy(&receipt, &policy(vec![rule("m", "/nope", RuleOperator::Eq, json!(1))]));
+    let result = evaluate_policy(
+        &receipt,
+        &policy(vec![rule("m", "/nope", RuleOperator::Eq, json!(1))]),
+    );
     assert!(!result.passed);
 }
 
@@ -373,7 +428,10 @@ description = "absolute ceiling"
     assert!(cfg.allow_missing_baseline);
     assert!(cfg.allow_missing_current);
     assert_eq!(cfg.rules[0].max_value, Some(50.0));
-    assert_eq!(cfg.rules[0].description.as_deref(), Some("absolute ceiling"));
+    assert_eq!(
+        cfg.rules[0].description.as_deref(),
+        Some("absolute ceiling")
+    );
 }
 
 // =========================================================================

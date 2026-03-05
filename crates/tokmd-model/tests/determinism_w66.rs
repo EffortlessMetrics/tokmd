@@ -159,7 +159,11 @@ fn module_key_is_path_order_independent() {
         "src/lib.rs",
     ];
     let keys: Vec<String> = paths.iter().map(|p| module_key(p, &roots, 2)).collect();
-    let keys_rev: Vec<String> = paths.iter().rev().map(|p| module_key(p, &roots, 2)).collect();
+    let keys_rev: Vec<String> = paths
+        .iter()
+        .rev()
+        .map(|p| module_key(p, &roots, 2))
+        .collect();
     assert_eq!(keys[0], keys_rev[2]);
     assert_eq!(keys[1], keys_rev[1]);
     assert_eq!(keys[2], keys_rev[0]);
@@ -379,8 +383,12 @@ fn module_report_child_include_mode_serialization_stable() {
         let report = ModuleReport {
             rows: vec![make_module_row("src", 100)],
             total: Totals {
-                code: 100, lines: 130, files: 2,
-                bytes: 400, tokens: 100, avg_lines: 65,
+                code: 100,
+                lines: 130,
+                files: 2,
+                bytes: 400,
+                tokens: 100,
+                avg_lines: 65,
             },
             module_roots: vec![],
             module_depth: 1,

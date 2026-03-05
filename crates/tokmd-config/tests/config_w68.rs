@@ -2,9 +2,9 @@
 //! default generation, serde roundtrips, and deterministic serialization.
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, ContextOutput,
-    ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset, InitProfile,
-    NearDupScope, Profile, SensorFormat, TomlConfig, UserConfig, ValueMetric,
+    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, ContextOutput, ContextStrategy,
+    DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset, InitProfile, NearDupScope,
+    Profile, SensorFormat, TomlConfig, UserConfig, ValueMetric,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -53,10 +53,7 @@ policy = "gate.toml"
 "#;
     let config = TomlConfig::parse(toml_str).unwrap();
     assert_eq!(config.scan.paths.as_ref().unwrap(), &["src"]);
-    assert_eq!(
-        config.scan.exclude.as_ref().unwrap(),
-        &["target", "vendor"]
-    );
+    assert_eq!(config.scan.exclude.as_ref().unwrap(), &["target", "vendor"]);
     assert_eq!(config.scan.hidden, Some(true));
     assert_eq!(config.module.roots.as_ref().unwrap(), &["crates"]);
     assert_eq!(config.module.depth, Some(2));

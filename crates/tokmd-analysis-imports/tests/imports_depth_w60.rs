@@ -247,7 +247,12 @@ fn rust_pub_mod_is_not_captured() {
 
 #[test]
 fn python_from_import_with_parentheses_multiline_first_line_only() {
-    let lines = ["from collections import (", "    OrderedDict,", "    defaultdict,", ")"];
+    let lines = [
+        "from collections import (",
+        "    OrderedDict,",
+        "    defaultdict,",
+        ")",
+    ];
     let imports = parse_imports("python", &lines);
     // Only the "from collections" line matches
     assert_eq!(imports, vec!["collections"]);
@@ -482,10 +487,7 @@ fn normalize_rust_colon_path_returns_first_segment() {
 
 #[test]
 fn normalize_go_dotted_path_returns_first_segment() {
-    assert_eq!(
-        normalize_import_target("github.com/user/repo"),
-        "github"
-    );
+    assert_eq!(normalize_import_target("github.com/user/repo"), "github");
 }
 
 #[test]
@@ -593,7 +595,11 @@ fn supports_language_rejects_empty_and_whitespace() {
 
 #[test]
 fn unsupported_languages_always_return_empty_imports() {
-    let lines = ["#include <stdio.h>", "import java.util.*;", "require 'rails'"];
+    let lines = [
+        "#include <stdio.h>",
+        "import java.util.*;",
+        "require 'rails'",
+    ];
     for lang in ["c", "c++", "java", "ruby", "kotlin", "swift", "haskell", ""] {
         assert!(
             parse_imports(lang, &lines).is_empty(),
@@ -790,7 +796,11 @@ fn parse_preserves_source_order_for_all_languages() {
 
 #[test]
 fn parse_is_deterministic_across_500_calls() {
-    let lines = ["use std::io;", "use serde::Serialize;", "use anyhow::Result;"];
+    let lines = [
+        "use std::io;",
+        "use serde::Serialize;",
+        "use anyhow::Result;",
+    ];
     let baseline = parse_imports("rust", &lines);
     for _ in 0..500 {
         assert_eq!(parse_imports("rust", &lines), baseline);

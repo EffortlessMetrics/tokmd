@@ -52,19 +52,11 @@ fn scaffold_git_repo(
 }
 
 fn run_sensor_json(dir: &std::path::Path) -> Option<Value> {
-    let output_path = dir
-        .join("artifacts")
-        .join("tokmd")
-        .join("report.json");
+    let output_path = dir.join("artifacts").join("tokmd").join("report.json");
 
     let output = tokmd()
         .current_dir(dir)
-        .args([
-            "sensor",
-            "--base", "main",
-            "--head", "HEAD",
-            "--output",
-        ])
+        .args(["sensor", "--base", "main", "--head", "HEAD", "--output"])
         .arg(&output_path)
         .arg("--format")
         .arg("json")
@@ -72,10 +64,7 @@ fn run_sensor_json(dir: &std::path::Path) -> Option<Value> {
         .expect("run tokmd sensor");
 
     if !output.status.success() {
-        eprintln!(
-            "sensor failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        eprintln!("sensor failed: {}", String::from_utf8_lossy(&output.stderr));
         return None;
     }
 
@@ -237,12 +226,7 @@ fn sensor_creates_report_and_sidecar_files() {
 
     let output = tokmd()
         .current_dir(dir.path())
-        .args([
-            "sensor",
-            "--base", "main",
-            "--head", "HEAD",
-            "--output",
-        ])
+        .args(["sensor", "--base", "main", "--head", "HEAD", "--output"])
         .arg(&report_path)
         .arg("--format")
         .arg("json")
@@ -263,7 +247,10 @@ fn sensor_creates_report_and_sidecar_files() {
         .unwrap()
         .join("extras")
         .join("cockpit_receipt.json");
-    assert!(sidecar.exists(), "cockpit_receipt.json sidecar should be created");
+    assert!(
+        sidecar.exists(),
+        "cockpit_receipt.json sidecar should be created"
+    );
 }
 
 #[test]
@@ -283,10 +270,7 @@ fn sensor_json_artifacts_list_has_expected_ids() {
     };
 
     let artifacts = json["artifacts"].as_array().expect("artifacts array");
-    let ids: Vec<&str> = artifacts
-        .iter()
-        .filter_map(|a| a["id"].as_str())
-        .collect();
+    let ids: Vec<&str> = artifacts.iter().filter_map(|a| a["id"].as_str()).collect();
 
     for expected in ["receipt", "cockpit", "comment"] {
         assert!(
@@ -319,12 +303,7 @@ fn sensor_md_produces_markdown_report() {
 
     let output = tokmd()
         .current_dir(dir.path())
-        .args([
-            "sensor",
-            "--base", "main",
-            "--head", "HEAD",
-            "--output",
-        ])
+        .args(["sensor", "--base", "main", "--head", "HEAD", "--output"])
         .arg(&report_path)
         .arg("--format")
         .arg("md")
@@ -363,7 +342,10 @@ fn sensor_data_section_has_gates() {
     };
 
     assert!(json["data"].is_object(), "data should be present");
-    assert!(json["data"]["gates"].is_object(), "data.gates should be present");
+    assert!(
+        json["data"]["gates"].is_object(),
+        "data.gates should be present"
+    );
     assert!(
         json["data"]["gates"]["items"].is_array(),
         "data.gates.items should be an array"
@@ -416,12 +398,7 @@ fn sensor_on_disk_report_matches_stdout() {
 
     let output = tokmd()
         .current_dir(dir.path())
-        .args([
-            "sensor",
-            "--base", "main",
-            "--head", "HEAD",
-            "--output",
-        ])
+        .args(["sensor", "--base", "main", "--head", "HEAD", "--output"])
         .arg(&report_path)
         .arg("--format")
         .arg("json")
@@ -434,10 +411,8 @@ fn sensor_on_disk_report_matches_stdout() {
 
     let stdout_json: Value =
         serde_json::from_slice(&output.stdout).expect("valid JSON from stdout");
-    let disk_json: Value = serde_json::from_str(
-        &std::fs::read_to_string(&report_path).unwrap(),
-    )
-    .expect("valid JSON on disk");
+    let disk_json: Value = serde_json::from_str(&std::fs::read_to_string(&report_path).unwrap())
+        .expect("valid JSON on disk");
 
     assert_eq!(
         stdout_json["schema"], disk_json["schema"],

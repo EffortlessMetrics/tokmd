@@ -8,11 +8,10 @@
 //! - Negation, fail-fast, allow-missing semantics
 //! - Property-based tests for gate evaluation determinism
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_gate::{
-    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule,
-    RuleLevel, RuleOperator, RuleResult, evaluate_policy, evaluate_ratchet_policy,
-    resolve_pointer,
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
+    RuleOperator, RuleResult, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -57,7 +56,11 @@ fn eval(receipt: &Value, rules: Vec<PolicyRule>) -> GateResult {
     evaluate_policy(receipt, &policy(rules))
 }
 
-fn ratchet_rule(pointer: &str, max_increase_pct: Option<f64>, max_value: Option<f64>) -> RatchetRule {
+fn ratchet_rule(
+    pointer: &str,
+    max_increase_pct: Option<f64>,
+    max_value: Option<f64>,
+) -> RatchetRule {
     RatchetRule {
         pointer: pointer.into(),
         max_increase_pct,
@@ -161,7 +164,10 @@ fn given_empty_string_key_when_resolved_via_slash_then_found() {
 #[test]
 fn given_gt_when_actual_above_threshold_then_pass() {
     let receipt = json!({"score": 90});
-    let result = eval(&receipt, vec![rule("high_score", "/score", RuleOperator::Gt, json!(50))]);
+    let result = eval(
+        &receipt,
+        vec![rule("high_score", "/score", RuleOperator::Gt, json!(50))],
+    );
     assert!(result.passed);
     assert_eq!(result.errors, 0);
 }
@@ -169,7 +175,10 @@ fn given_gt_when_actual_above_threshold_then_pass() {
 #[test]
 fn given_gt_when_actual_equals_threshold_then_fail() {
     let receipt = json!({"score": 50});
-    let result = eval(&receipt, vec![rule("score_check", "/score", RuleOperator::Gt, json!(50))]);
+    let result = eval(
+        &receipt,
+        vec![rule("score_check", "/score", RuleOperator::Gt, json!(50))],
+    );
     assert!(!result.passed);
     assert_eq!(result.errors, 1);
 }
@@ -177,35 +186,50 @@ fn given_gt_when_actual_equals_threshold_then_fail() {
 #[test]
 fn given_lt_when_actual_below_threshold_then_pass() {
     let receipt = json!({"errors": 3});
-    let result = eval(&receipt, vec![rule("low_errors", "/errors", RuleOperator::Lt, json!(10))]);
+    let result = eval(
+        &receipt,
+        vec![rule("low_errors", "/errors", RuleOperator::Lt, json!(10))],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_lt_when_actual_equals_threshold_then_fail() {
     let receipt = json!({"errors": 10});
-    let result = eval(&receipt, vec![rule("err", "/errors", RuleOperator::Lt, json!(10))]);
+    let result = eval(
+        &receipt,
+        vec![rule("err", "/errors", RuleOperator::Lt, json!(10))],
+    );
     assert!(!result.passed);
 }
 
 #[test]
 fn given_gte_when_actual_equals_threshold_then_pass() {
     let receipt = json!({"coverage": 80.0});
-    let result = eval(&receipt, vec![rule("cov", "/coverage", RuleOperator::Gte, json!(80.0))]);
+    let result = eval(
+        &receipt,
+        vec![rule("cov", "/coverage", RuleOperator::Gte, json!(80.0))],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_lte_when_actual_equals_threshold_then_pass() {
     let receipt = json!({"tokens": 1000});
-    let result = eval(&receipt, vec![rule("tok", "/tokens", RuleOperator::Lte, json!(1000))]);
+    let result = eval(
+        &receipt,
+        vec![rule("tok", "/tokens", RuleOperator::Lte, json!(1000))],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_lte_when_actual_above_threshold_then_fail() {
     let receipt = json!({"tokens": 1001});
-    let result = eval(&receipt, vec![rule("tok", "/tokens", RuleOperator::Lte, json!(1000))]);
+    let result = eval(
+        &receipt,
+        vec![rule("tok", "/tokens", RuleOperator::Lte, json!(1000))],
+    );
     assert!(!result.passed);
     assert_eq!(result.errors, 1);
 }
@@ -213,28 +237,40 @@ fn given_lte_when_actual_above_threshold_then_fail() {
 #[test]
 fn given_eq_when_values_match_then_pass() {
     let receipt = json!({"lang": "Rust"});
-    let result = eval(&receipt, vec![rule("lang", "/lang", RuleOperator::Eq, json!("Rust"))]);
+    let result = eval(
+        &receipt,
+        vec![rule("lang", "/lang", RuleOperator::Eq, json!("Rust"))],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_eq_when_values_differ_then_fail() {
     let receipt = json!({"lang": "Python"});
-    let result = eval(&receipt, vec![rule("lang", "/lang", RuleOperator::Eq, json!("Rust"))]);
+    let result = eval(
+        &receipt,
+        vec![rule("lang", "/lang", RuleOperator::Eq, json!("Rust"))],
+    );
     assert!(!result.passed);
 }
 
 #[test]
 fn given_ne_when_values_differ_then_pass() {
     let receipt = json!({"status": "ok"});
-    let result = eval(&receipt, vec![rule("no_err", "/status", RuleOperator::Ne, json!("error"))]);
+    let result = eval(
+        &receipt,
+        vec![rule("no_err", "/status", RuleOperator::Ne, json!("error"))],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_ne_when_values_match_then_fail() {
     let receipt = json!({"status": "error"});
-    let result = eval(&receipt, vec![rule("no_err", "/status", RuleOperator::Ne, json!("error"))]);
+    let result = eval(
+        &receipt,
+        vec![rule("no_err", "/status", RuleOperator::Ne, json!("error"))],
+    );
     assert!(!result.passed);
 }
 
@@ -279,14 +315,30 @@ fn given_in_op_when_value_not_in_list_then_fail() {
 #[test]
 fn given_contains_op_when_string_has_substring_then_pass() {
     let receipt = json!({"path": "src/main.rs"});
-    let result = eval(&receipt, vec![rule("has_src", "/path", RuleOperator::Contains, json!("src"))]);
+    let result = eval(
+        &receipt,
+        vec![rule(
+            "has_src",
+            "/path",
+            RuleOperator::Contains,
+            json!("src"),
+        )],
+    );
     assert!(result.passed);
 }
 
 #[test]
 fn given_contains_op_when_array_has_element_then_pass() {
     let receipt = json!({"langs": ["Rust", "Python", "Go"]});
-    let result = eval(&receipt, vec![rule("has_rust", "/langs", RuleOperator::Contains, json!("Rust"))]);
+    let result = eval(
+        &receipt,
+        vec![rule(
+            "has_rust",
+            "/langs",
+            RuleOperator::Contains,
+            json!("Rust"),
+        )],
+    );
     assert!(result.passed);
 }
 
@@ -432,7 +484,12 @@ fn given_warn_rule_when_fails_then_gate_still_passes() {
     let receipt = json!({"tokens": 2000});
     let result = evaluate_policy(
         &receipt,
-        &policy(vec![warn_rule("warn_tok", "/tokens", RuleOperator::Lte, json!(1000))]),
+        &policy(vec![warn_rule(
+            "warn_tok",
+            "/tokens",
+            RuleOperator::Lte,
+            json!(1000),
+        )]),
     );
     assert!(result.passed);
     assert_eq!(result.warnings, 1);
@@ -479,10 +536,30 @@ fn given_nested_receipt_when_multiple_deep_rules_then_correct_outcome() {
         "meta": { "schema_version": 2 }
     });
     let rules = vec![
-        rule("max_code", "/derived/totals/code", RuleOperator::Lte, json!(10000)),
-        rule("max_tokens", "/derived/totals/tokens", RuleOperator::Lte, json!(500000)),
-        rule("min_comment", "/derived/density/comment_ratio", RuleOperator::Gte, json!(0.1)),
-        rule("schema_v", "/meta/schema_version", RuleOperator::Eq, json!(2)),
+        rule(
+            "max_code",
+            "/derived/totals/code",
+            RuleOperator::Lte,
+            json!(10000),
+        ),
+        rule(
+            "max_tokens",
+            "/derived/totals/tokens",
+            RuleOperator::Lte,
+            json!(500000),
+        ),
+        rule(
+            "min_comment",
+            "/derived/density/comment_ratio",
+            RuleOperator::Gte,
+            json!(0.1),
+        ),
+        rule(
+            "schema_v",
+            "/meta/schema_version",
+            RuleOperator::Eq,
+            json!(2),
+        ),
     ];
     let result = evaluate_policy(&receipt, &policy(rules));
     assert!(result.passed);
@@ -498,9 +575,24 @@ fn given_complex_receipt_when_one_nested_rule_fails_then_gate_fails() {
         }
     });
     let rules = vec![
-        rule("avg_cx", "/analysis/complexity/avg_cyclomatic", RuleOperator::Lte, json!(20.0)),
-        rule("max_cx", "/analysis/complexity/max_cyclomatic", RuleOperator::Lte, json!(30)),
-        rule("cov", "/analysis/coverage/line_pct", RuleOperator::Gte, json!(0.50)),
+        rule(
+            "avg_cx",
+            "/analysis/complexity/avg_cyclomatic",
+            RuleOperator::Lte,
+            json!(20.0),
+        ),
+        rule(
+            "max_cx",
+            "/analysis/complexity/max_cyclomatic",
+            RuleOperator::Lte,
+            json!(30),
+        ),
+        rule(
+            "cov",
+            "/analysis/coverage/line_pct",
+            RuleOperator::Gte,
+            json!(0.50),
+        ),
     ];
     let result = evaluate_policy(&receipt, &policy(rules));
     assert!(!result.passed);
@@ -618,8 +710,22 @@ fn given_ratchet_zero_baseline_with_zero_current_then_pass() {
 #[test]
 fn gate_result_from_all_passing_rules() {
     let results = vec![
-        RuleResult { name: "r1".into(), passed: true, level: RuleLevel::Error, actual: None, expected: "x".into(), message: None },
-        RuleResult { name: "r2".into(), passed: true, level: RuleLevel::Warn, actual: None, expected: "y".into(), message: None },
+        RuleResult {
+            name: "r1".into(),
+            passed: true,
+            level: RuleLevel::Error,
+            actual: None,
+            expected: "x".into(),
+            message: None,
+        },
+        RuleResult {
+            name: "r2".into(),
+            passed: true,
+            level: RuleLevel::Warn,
+            actual: None,
+            expected: "y".into(),
+            message: None,
+        },
     ];
     let gate = GateResult::from_results(results);
     assert!(gate.passed);
@@ -630,9 +736,30 @@ fn gate_result_from_all_passing_rules() {
 #[test]
 fn gate_result_counts_errors_and_warnings_separately() {
     let results = vec![
-        RuleResult { name: "e1".into(), passed: false, level: RuleLevel::Error, actual: None, expected: "x".into(), message: None },
-        RuleResult { name: "w1".into(), passed: false, level: RuleLevel::Warn, actual: None, expected: "y".into(), message: None },
-        RuleResult { name: "w2".into(), passed: false, level: RuleLevel::Warn, actual: None, expected: "z".into(), message: None },
+        RuleResult {
+            name: "e1".into(),
+            passed: false,
+            level: RuleLevel::Error,
+            actual: None,
+            expected: "x".into(),
+            message: None,
+        },
+        RuleResult {
+            name: "w1".into(),
+            passed: false,
+            level: RuleLevel::Warn,
+            actual: None,
+            expected: "y".into(),
+            message: None,
+        },
+        RuleResult {
+            name: "w2".into(),
+            passed: false,
+            level: RuleLevel::Warn,
+            actual: None,
+            expected: "z".into(),
+            message: None,
+        },
     ];
     let gate = GateResult::from_results(results);
     assert!(!gate.passed);
@@ -755,9 +882,14 @@ fn rule_level_serde_roundtrip() {
 
 #[test]
 fn gate_result_json_roundtrip() {
-    let gate = GateResult::from_results(vec![
-        RuleResult { name: "r1".into(), passed: true, level: RuleLevel::Error, actual: Some(json!(42)), expected: "lte 100".into(), message: None },
-    ]);
+    let gate = GateResult::from_results(vec![RuleResult {
+        name: "r1".into(),
+        passed: true,
+        level: RuleLevel::Error,
+        actual: Some(json!(42)),
+        expected: "lte 100".into(),
+        message: None,
+    }]);
     let json = serde_json::to_string(&gate).unwrap();
     let back: GateResult = serde_json::from_str(&json).unwrap();
     assert_eq!(back.passed, gate.passed);

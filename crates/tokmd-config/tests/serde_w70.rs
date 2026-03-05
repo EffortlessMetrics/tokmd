@@ -166,11 +166,11 @@ fn toml_config_json_roundtrip() {
 
     let json = serde_json::to_string(&config).unwrap();
     let back: TomlConfig = serde_json::from_str(&json).unwrap();
+    assert_eq!(back.scan.paths.as_deref(), Some(&[".".to_string()][..]));
     assert_eq!(
-        back.scan.paths.as_deref(),
-        Some(&[".".to_string()][..])
+        back.module.roots.as_deref(),
+        Some(&["crates".to_string()][..])
     );
-    assert_eq!(back.module.roots.as_deref(), Some(&["crates".to_string()][..]));
     assert_eq!(back.analyze.preset.as_deref(), Some("health"));
 }
 
@@ -288,7 +288,10 @@ fn btreemap_ordering_in_user_config_profiles() {
     let a = json.find("\"alpha\"").unwrap();
     let m = json.find("\"middle\"").unwrap();
     let z = json.find("\"zebra\"").unwrap();
-    assert!(a < m && m < z, "Profile keys must be alphabetically ordered");
+    assert!(
+        a < m && m < z,
+        "Profile keys must be alphabetically ordered"
+    );
 }
 
 // ─── 9. AnalysisPreset all variants roundtrip ───────────────────────────────
@@ -336,7 +339,11 @@ fn color_mode_roundtrip() {
 
 #[test]
 fn cockpit_format_roundtrip() {
-    for variant in [CockpitFormat::Json, CockpitFormat::Md, CockpitFormat::Sections] {
+    for variant in [
+        CockpitFormat::Json,
+        CockpitFormat::Md,
+        CockpitFormat::Sections,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: CockpitFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -362,7 +369,11 @@ fn context_enums_roundtrip() {
         let back: ValueMetric = serde_json::from_str(&json).unwrap();
         assert_eq!(back, v);
     }
-    for v in [ContextOutput::List, ContextOutput::Bundle, ContextOutput::Json] {
+    for v in [
+        ContextOutput::List,
+        ContextOutput::Bundle,
+        ContextOutput::Json,
+    ] {
         let json = serde_json::to_string(&v).unwrap();
         let back: ContextOutput = serde_json::from_str(&json).unwrap();
         assert_eq!(back, v);
@@ -418,7 +429,11 @@ fn misc_enums_roundtrip() {
         let back: GateFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, v);
     }
-    for v in [NearDupScope::Module, NearDupScope::Lang, NearDupScope::Global] {
+    for v in [
+        NearDupScope::Module,
+        NearDupScope::Lang,
+        NearDupScope::Global,
+    ] {
         let json = serde_json::to_string(&v).unwrap();
         let back: NearDupScope = serde_json::from_str(&json).unwrap();
         assert_eq!(back, v);
@@ -467,12 +482,8 @@ fn deterministic_toml_output() {
 #[test]
 fn deterministic_json_output() {
     let mut config = UserConfig::default();
-    config
-        .profiles
-        .insert("a".to_string(), Profile::default());
-    config
-        .profiles
-        .insert("b".to_string(), Profile::default());
+    config.profiles.insert("a".to_string(), Profile::default());
+    config.profiles.insert("b".to_string(), Profile::default());
 
     let json1 = serde_json::to_string(&config).unwrap();
     let json2 = serde_json::to_string(&config).unwrap();

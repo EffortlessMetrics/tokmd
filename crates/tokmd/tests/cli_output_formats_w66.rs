@@ -41,7 +41,10 @@ fn lang_json_has_required_envelope_fields() {
 
     assert!(output.status.success());
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json["schema_version"].is_number(), "must have schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "must have schema_version"
+    );
     assert!(json["rows"].is_array(), "must have rows array");
     assert!(json["mode"].is_string(), "must have mode field");
 }
@@ -67,7 +70,8 @@ fn lang_tsv_has_header_and_consistent_columns() {
         }
         let cols = line.split('\t').count();
         assert_eq!(
-            cols, header_cols,
+            cols,
+            header_cols,
             "row {} has {cols} cols, header has {header_cols}",
             i + 1
         );
@@ -130,7 +134,8 @@ fn module_tsv_has_consistent_columns() {
         }
         let cols = line.split('\t').count();
         assert_eq!(
-            cols, header_cols,
+            cols,
+            header_cols,
             "module TSV row {} has {cols} cols, header has {header_cols}",
             i + 1
         );
@@ -186,7 +191,8 @@ fn export_csv_has_header_and_consistent_columns() {
         }
         let cols = line.split(',').count();
         assert_eq!(
-            cols, header_cols,
+            cols,
+            header_cols,
             "export CSV row {} has {cols} cols, header has {header_cols}",
             i + 1
         );
@@ -237,7 +243,10 @@ fn analyze_markdown_produces_readable_output() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(!stdout.trim().is_empty(), "analyze md should produce output");
+    assert!(
+        !stdout.trim().is_empty(),
+        "analyze md should produce output"
+    );
 }
 
 // ===========================================================================

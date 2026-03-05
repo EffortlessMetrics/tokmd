@@ -150,11 +150,7 @@ fn make_lang_row(lang: &str, code: usize) -> LangRow {
 fn make_file_row(path: &str, lang: &str, code: usize) -> FileRow {
     FileRow {
         path: path.into(),
-        module: path
-            .rsplit_once('/')
-            .map(|(m, _)| m)
-            .unwrap_or(".")
-            .into(),
+        module: path.rsplit_once('/').map(|(m, _)| m).unwrap_or(".").into(),
         lang: lang.into(),
         kind: FileKind::Parent,
         code,
@@ -467,9 +463,8 @@ fn jsonl_100_rows_correct_count() {
 #[test]
 fn csv_header_columns() {
     let data = export_data(vec![make_file_row("a.rs", "Rust", 10)]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     let header = out.lines().next().unwrap();
     assert_eq!(
         header,
@@ -492,9 +487,8 @@ fn csv_commas_in_path_are_quoted() {
         tokens: 20,
     };
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     // CSV lib should quote the field containing a comma
     let data_line = out.lines().nth(1).unwrap();
     assert!(
@@ -519,9 +513,8 @@ fn csv_quotes_in_path_are_escaped() {
         tokens: 10,
     };
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     let data_line = out.lines().nth(1).unwrap();
     // CSV escapes double-quotes by doubling them
     assert!(
@@ -546,22 +539,17 @@ fn csv_child_kind_column() {
         tokens: 20,
     };
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     assert!(out.contains(",child,"), "kind column should show 'child'");
 }
 
 #[test]
 fn csv_parent_kind_column() {
     let data = export_data(vec![make_file_row("a.rs", "Rust", 10)]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
-    assert!(
-        out.contains(",parent,"),
-        "kind column should show 'parent'"
-    );
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
+    assert!(out.contains(",parent,"), "kind column should show 'parent'");
 }
 
 #[test]
@@ -570,9 +558,8 @@ fn csv_data_row_count() {
         .map(|i| make_file_row(&format!("f{}.rs", i), "Rust", 10))
         .collect();
     let data = export_data(rows);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     // 1 header + 5 data
     assert_eq!(out.lines().count(), 6);
 }
@@ -668,7 +655,10 @@ fn cyclonedx_child_kind_property() {
     let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     let props = v["components"][0]["properties"].as_array().unwrap();
     let kind_prop = props.iter().find(|p| p["name"] == "tokmd:kind");
-    assert!(kind_prop.is_some(), "child rows should have tokmd:kind property");
+    assert!(
+        kind_prop.is_some(),
+        "child rows should have tokmd:kind property"
+    );
     assert_eq!(kind_prop.unwrap()["value"], "child");
 }
 
@@ -687,7 +677,10 @@ fn cyclonedx_parent_no_kind_property() {
     let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     let props = v["components"][0]["properties"].as_array().unwrap();
     let kind_prop = props.iter().find(|p| p["name"] == "tokmd:kind");
-    assert!(kind_prop.is_none(), "parent rows should not have tokmd:kind");
+    assert!(
+        kind_prop.is_none(),
+        "parent rows should not have tokmd:kind"
+    );
 }
 
 #[test]
@@ -919,7 +912,10 @@ fn diff_md_negative_delta_red() {
             color: DiffColorMode::Ansi,
         },
     );
-    assert!(md.contains("\x1b[31m"), "negative delta should have red ANSI");
+    assert!(
+        md.contains("\x1b[31m"),
+        "negative delta should have red ANSI"
+    );
 }
 
 // ============================================================================
@@ -975,9 +971,8 @@ fn empty_module_tsv() {
 #[test]
 fn empty_export_csv() {
     let data = export_data(vec![]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     // Just header, no data rows
     assert_eq!(out.lines().count(), 1);
     assert!(out.starts_with("path,"));
@@ -1086,9 +1081,8 @@ fn unicode_file_path_csv() {
         tokens: 20,
     };
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     assert!(out.contains("café"));
     assert!(out.contains("données"));
 }
@@ -1148,9 +1142,8 @@ fn long_path_csv_preserves_full() {
     let long_path = format!("src/{}/file.rs", "a".repeat(500));
     let row = make_file_row(&long_path, "Rust", 10);
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     assert!(out.contains(&"a".repeat(500)));
 }
 
@@ -1233,12 +1226,10 @@ fn determinism_csv() {
         make_file_row("a.rs", "Rust", 100),
         make_file_row("b.rs", "Rust", 200),
     ]);
-    let out1 = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
-    let out2 = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out1 =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
+    let out2 =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     assert_eq!(out1, out2);
 }
 
@@ -1428,8 +1419,7 @@ fn snapshot_w63_lang_tsv_no_files() {
         files: false,
         ..lang_args(TableFormat::Tsv)
     };
-    let out =
-        render_to_string(|buf| write_lang_report_to(buf, &report, &globals(), &args));
+    let out = render_to_string(|buf| write_lang_report_to(buf, &report, &globals(), &args));
     insta::assert_snapshot!(out);
 }
 
@@ -1452,9 +1442,8 @@ fn snapshot_w63_csv_basic() {
         make_file_row("src/lib.rs", "Rust", 100),
         make_file_row("src/main.rs", "Rust", 50),
     ]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     insta::assert_snapshot!(out);
 }
 
@@ -1585,11 +1574,13 @@ fn csv_newline_in_lang_name_quoted() {
         tokens: 20,
     };
     let data = export_data(vec![row]);
-    let out = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv))
-    });
+    let out =
+        render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     // CSV writer should quote fields containing newlines
-    assert!(out.contains("\"Rust\nNext\""), "newline in field should be quoted");
+    assert!(
+        out.contains("\"Rust\nNext\""),
+        "newline in field should be quoted"
+    );
 }
 
 #[test]

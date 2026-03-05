@@ -99,7 +99,11 @@ mod todo_density_w66 {
     #[test]
     fn no_tags_produces_zero_total() {
         let tmp = TempDir::new().unwrap();
-        let f = write_file(tmp.path(), "clean.rs", b"fn main() { println!(\"hello\"); }\n");
+        let f = write_file(
+            tmp.path(),
+            "clean.rs",
+            b"fn main() { println!(\"hello\"); }\n",
+        );
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 500).unwrap();
         assert_eq!(r.total, 0);
         assert_eq!(r.density_per_kloc, 0.0);
@@ -156,7 +160,11 @@ mod content_limits_w66 {
             max_file_bytes: None,
         };
         let r = build_todo_report(tmp.path(), &files, &limits, 10000).unwrap();
-        assert!(r.total < 100, "byte limit should cap scanning; found {}", r.total);
+        assert!(
+            r.total < 100,
+            "byte limit should cap scanning; found {}",
+            r.total
+        );
     }
 
     #[test]
@@ -236,7 +244,8 @@ mod duplicate_detection_w66 {
             make_row("b1.rs", "src", "Rust", big.len()),
             make_row("b2.rs", "src", "Rust", big.len()),
         ]);
-        let r = build_duplicate_report(tmp.path(), &[f1, f2, f3, f4], &export, &default_limits()).unwrap();
+        let r = build_duplicate_report(tmp.path(), &[f1, f2, f3, f4], &export, &default_limits())
+            .unwrap();
         assert_eq!(r.groups.len(), 2);
         assert!(r.groups[0].bytes >= r.groups[1].bytes);
     }
@@ -244,7 +253,8 @@ mod duplicate_detection_w66 {
     #[test]
     fn strategy_is_exact_blake3() {
         let tmp = TempDir::new().unwrap();
-        let r = build_duplicate_report(tmp.path(), &[], &make_export(vec![]), &default_limits()).unwrap();
+        let r = build_duplicate_report(tmp.path(), &[], &make_export(vec![]), &default_limits())
+            .unwrap();
         assert_eq!(r.strategy, "exact-blake3");
     }
 }

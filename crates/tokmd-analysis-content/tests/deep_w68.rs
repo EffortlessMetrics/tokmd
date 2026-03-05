@@ -62,8 +62,18 @@ mod todo_w68 {
         let f = write_file(tmp.path(), "a.rs", b"// TODO: a\n// FIXME: b\n");
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
         assert_eq!(r.total, 2);
-        let todo_count = r.tags.iter().find(|t| t.tag == "TODO").map(|t| t.count).unwrap_or(0);
-        let fixme_count = r.tags.iter().find(|t| t.tag == "FIXME").map(|t| t.count).unwrap_or(0);
+        let todo_count = r
+            .tags
+            .iter()
+            .find(|t| t.tag == "TODO")
+            .map(|t| t.count)
+            .unwrap_or(0);
+        let fixme_count = r
+            .tags
+            .iter()
+            .find(|t| t.tag == "FIXME")
+            .map(|t| t.count)
+            .unwrap_or(0);
         assert_eq!(todo_count, 1);
         assert_eq!(fixme_count, 1);
     }
@@ -74,8 +84,18 @@ mod todo_w68 {
         let content = "// HACK: workaround\n// XXX: danger\nfn main() {}\n";
         let f = write_file(tmp.path(), "a.rs", content.as_bytes());
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
-        let hack = r.tags.iter().find(|t| t.tag == "HACK").map(|t| t.count).unwrap_or(0);
-        let xxx = r.tags.iter().find(|t| t.tag == "XXX").map(|t| t.count).unwrap_or(0);
+        let hack = r
+            .tags
+            .iter()
+            .find(|t| t.tag == "HACK")
+            .map(|t| t.count)
+            .unwrap_or(0);
+        let xxx = r
+            .tags
+            .iter()
+            .find(|t| t.tag == "XXX")
+            .map(|t| t.count)
+            .unwrap_or(0);
         assert_eq!(hack, 1);
         assert_eq!(xxx, 1);
     }
@@ -86,8 +106,16 @@ mod todo_w68 {
         let content = "// TODO: first TODO: second\n";
         let f = write_file(tmp.path(), "a.rs", content.as_bytes());
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
-        let todo_count = r.tags.iter().find(|t| t.tag == "TODO").map(|t| t.count).unwrap_or(0);
-        assert!(todo_count >= 2, "expected at least 2 TODOs, got {todo_count}");
+        let todo_count = r
+            .tags
+            .iter()
+            .find(|t| t.tag == "TODO")
+            .map(|t| t.count)
+            .unwrap_or(0);
+        assert!(
+            todo_count >= 2,
+            "expected at least 2 TODOs, got {todo_count}"
+        );
     }
 
     #[test]
@@ -248,7 +276,8 @@ mod duplicate_w68 {
             make_row("b1.rs", "src", "Rust", big.len()),
             make_row("b2.rs", "src", "Rust", big.len()),
         ]);
-        let r = build_duplicate_report(tmp.path(), &[f1, f2, f3, f4], &e, &default_limits()).unwrap();
+        let r =
+            build_duplicate_report(tmp.path(), &[f1, f2, f3, f4], &e, &default_limits()).unwrap();
         assert_eq!(r.groups.len(), 2);
         assert!(r.groups[0].bytes >= r.groups[1].bytes);
     }
@@ -256,7 +285,8 @@ mod duplicate_w68 {
     #[test]
     fn strategy_is_exact_blake3() {
         let tmp = TempDir::new().unwrap();
-        let r = build_duplicate_report(tmp.path(), &[], &make_export(vec![]), &default_limits()).unwrap();
+        let r = build_duplicate_report(tmp.path(), &[], &make_export(vec![]), &default_limits())
+            .unwrap();
         assert_eq!(r.strategy, "exact-blake3");
     }
 
@@ -319,7 +349,9 @@ mod determinism_w68 {
             make_row("a.rs", "src", "Rust", content.len()),
             make_row("b.rs", "src", "Rust", content.len()),
         ]);
-        let r1 = build_duplicate_report(tmp.path(), &[f1.clone(), f2.clone()], &e, &default_limits()).unwrap();
+        let r1 =
+            build_duplicate_report(tmp.path(), &[f1.clone(), f2.clone()], &e, &default_limits())
+                .unwrap();
         let r2 = build_duplicate_report(tmp.path(), &[f1, f2], &e, &default_limits()).unwrap();
         assert_eq!(
             serde_json::to_string(&r1).unwrap(),

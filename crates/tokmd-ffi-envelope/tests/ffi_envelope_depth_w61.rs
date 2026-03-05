@@ -4,7 +4,7 @@
 //! conditions, extraction pipeline fidelity, determinism guarantees,
 //! type coercion rules, serialization round-trips, and stress scenarios.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_ffi_envelope::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,

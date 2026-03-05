@@ -7,9 +7,8 @@
 use std::collections::BTreeMap;
 
 use tokmd_envelope::{
-    findings, Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation,
-    FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
-    SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
+    GateItem, GateResults, SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict, findings,
 };
 
 // ---------------------------------------------------------------------------
@@ -137,16 +136,14 @@ fn finding_with_location() {
 
 #[test]
 fn finding_with_evidence() {
-    let f = sample_finding(FindingSeverity::Info)
-        .with_evidence(serde_json::json!({"churn": 30}));
+    let f = sample_finding(FindingSeverity::Info).with_evidence(serde_json::json!({"churn": 30}));
     let ev = f.evidence.as_ref().unwrap();
     assert_eq!(ev["churn"], 30);
 }
 
 #[test]
 fn finding_with_docs_url() {
-    let f = sample_finding(FindingSeverity::Error)
-        .with_docs_url("https://example.com/docs");
+    let f = sample_finding(FindingSeverity::Error).with_docs_url("https://example.com/docs");
     assert_eq!(f.docs_url.as_deref(), Some("https://example.com/docs"));
 }
 
@@ -208,10 +205,8 @@ fn artifact_with_id_and_mime() {
 
 #[test]
 fn report_with_artifacts() {
-    let r = minimal_report().with_artifacts(vec![
-        Artifact::comment("c.md"),
-        Artifact::badge("b.svg"),
-    ]);
+    let r =
+        minimal_report().with_artifacts(vec![Artifact::comment("c.md"), Artifact::badge("b.svg")]);
     let arts = r.artifacts.as_ref().unwrap();
     assert_eq!(arts.len(), 2);
     assert_eq!(arts[0].artifact_type, "comment");
@@ -236,8 +231,7 @@ fn gate_item_minimal() {
 
 #[test]
 fn gate_item_with_threshold() {
-    let g = GateItem::new("coverage", Verdict::Fail)
-        .with_threshold(80.0, 72.5);
+    let g = GateItem::new("coverage", Verdict::Fail).with_threshold(80.0, 72.5);
     assert_eq!(g.threshold, Some(80.0));
     assert_eq!(g.actual, Some(72.5));
 }
@@ -273,15 +267,12 @@ fn gate_results_roundtrip() {
 
 #[test]
 fn gate_results_embedded_in_report_data() {
-    let gates = GateResults::new(Verdict::Pass, vec![
-        GateItem::new("quality", Verdict::Pass),
-    ]);
+    let gates = GateResults::new(Verdict::Pass, vec![GateItem::new("quality", Verdict::Pass)]);
     let r = minimal_report().with_data(serde_json::json!({
         "gates": serde_json::to_value(&gates).unwrap(),
     }));
     let data = r.data.as_ref().unwrap();
-    let recovered: GateResults =
-        serde_json::from_value(data["gates"].clone()).unwrap();
+    let recovered: GateResults = serde_json::from_value(data["gates"].clone()).unwrap();
     assert_eq!(recovered.items[0].id, "quality");
 }
 
@@ -396,11 +387,17 @@ fn full_report_roundtrip() {
 
 #[test]
 fn finding_roundtrip_preserves_all_fields() {
-    let f = Finding::new("contract", "schema_changed", FindingSeverity::Error, "Schema", "changed")
-        .with_location(FindingLocation::path_line("schema.json", 1))
-        .with_evidence(serde_json::json!({"old": 1, "new": 2}))
-        .with_docs_url("https://example.com")
-        .with_fingerprint("tokmd");
+    let f = Finding::new(
+        "contract",
+        "schema_changed",
+        FindingSeverity::Error,
+        "Schema",
+        "changed",
+    )
+    .with_location(FindingLocation::path_line("schema.json", 1))
+    .with_evidence(serde_json::json!({"old": 1, "new": 2}))
+    .with_docs_url("https://example.com")
+    .with_fingerprint("tokmd");
     let json = serde_json::to_string(&f).unwrap();
     let back: Finding = serde_json::from_str(&json).unwrap();
     assert_eq!(back.check_id, "contract");
@@ -413,7 +410,13 @@ fn finding_roundtrip_preserves_all_fields() {
 
 #[test]
 fn verdict_serde_all_variants() {
-    for v in [Verdict::Pass, Verdict::Fail, Verdict::Warn, Verdict::Skip, Verdict::Pending] {
+    for v in [
+        Verdict::Pass,
+        Verdict::Fail,
+        Verdict::Warn,
+        Verdict::Skip,
+        Verdict::Pending,
+    ] {
         let json = serde_json::to_value(v).unwrap();
         let back: Verdict = serde_json::from_value(json.clone()).unwrap();
         assert_eq!(back, v);
@@ -423,7 +426,11 @@ fn verdict_serde_all_variants() {
 
 #[test]
 fn severity_serde_all_variants() {
-    for s in [FindingSeverity::Error, FindingSeverity::Warn, FindingSeverity::Info] {
+    for s in [
+        FindingSeverity::Error,
+        FindingSeverity::Warn,
+        FindingSeverity::Info,
+    ] {
         let json = serde_json::to_value(s).unwrap();
         let back: FindingSeverity = serde_json::from_value(json).unwrap();
         assert_eq!(back, s);
@@ -432,7 +439,11 @@ fn severity_serde_all_variants() {
 
 #[test]
 fn capability_state_serde_all_variants() {
-    for s in [CapabilityState::Available, CapabilityState::Unavailable, CapabilityState::Skipped] {
+    for s in [
+        CapabilityState::Available,
+        CapabilityState::Unavailable,
+        CapabilityState::Skipped,
+    ] {
         let json = serde_json::to_value(s).unwrap();
         let back: CapabilityState = serde_json::from_value(json).unwrap();
         assert_eq!(back, s);

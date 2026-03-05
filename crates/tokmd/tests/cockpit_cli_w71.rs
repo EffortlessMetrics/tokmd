@@ -83,7 +83,9 @@ fn cockpit_json_has_schema_version_and_mode() {
 
     let output = tokmd()
         .current_dir(dir.path())
-        .args(["cockpit", "--base", "main", "--head", "HEAD", "--format", "json"])
+        .args([
+            "cockpit", "--base", "main", "--head", "HEAD", "--format", "json",
+        ])
         .output()
         .unwrap();
 
@@ -209,7 +211,10 @@ fn cockpit_json_has_review_plan() {
     }
 
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json["review_plan"].is_array(), "review_plan should be present");
+    assert!(
+        json["review_plan"].is_array(),
+        "review_plan should be present"
+    );
 }
 
 #[test]
@@ -263,8 +268,14 @@ fn cockpit_md_has_expected_sections() {
     }
 
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("## Glass Cockpit"), "missing Glass Cockpit header");
-    assert!(stdout.contains("### Change Surface"), "missing Change Surface");
+    assert!(
+        stdout.contains("## Glass Cockpit"),
+        "missing Glass Cockpit header"
+    );
+    assert!(
+        stdout.contains("### Change Surface"),
+        "missing Change Surface"
+    );
     assert!(stdout.contains("### Composition"), "missing Composition");
     assert!(stdout.contains("### Contracts"), "missing Contracts");
     assert!(stdout.contains("### Review Plan"), "missing Review Plan");
@@ -430,7 +441,10 @@ fn cockpit_json_has_risk_section() {
 
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(json["risk"].is_object(), "risk section should be present");
-    assert!(json["risk"]["level"].is_string(), "risk.level should be a string");
+    assert!(
+        json["risk"]["level"].is_string(),
+        "risk.level should be a string"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -459,6 +473,12 @@ fn cockpit_json_has_code_health() {
     }
 
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert!(json["code_health"].is_object(), "code_health should be present");
-    assert!(json["code_health"]["grade"].is_string(), "grade should be a string");
+    assert!(
+        json["code_health"].is_object(),
+        "code_health should be present"
+    );
+    assert!(
+        json["code_health"]["grade"].is_string(),
+        "grade should be a string"
+    );
 }

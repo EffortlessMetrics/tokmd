@@ -9,7 +9,7 @@ use tokmd_scan::scan;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ConfigMode, LangArgs, LangReceipt, LangReport, LangRow,
-    ModuleArgs, ModuleReceipt, ModuleReport, ModuleRow, TableFormat, Totals, SCHEMA_VERSION,
+    ModuleArgs, ModuleReceipt, ModuleReport, ModuleRow, SCHEMA_VERSION, TableFormat, Totals,
 };
 
 fn make_project() -> TempDir {
@@ -17,15 +17,31 @@ fn make_project() -> TempDir {
     let root = dir.path();
     std::fs::create_dir_all(root.join(".git")).unwrap();
     std::fs::create_dir_all(root.join("src")).unwrap();
-    std::fs::write(root.join("src/main.rs"), "fn main() {\n    println!(\"hello\");\n}\n").unwrap();
-    std::fs::write(root.join("src/lib.rs"), "/// Doc\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n").unwrap();
+    std::fs::write(
+        root.join("src/main.rs"),
+        "fn main() {\n    println!(\"hello\");\n}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/lib.rs"),
+        "/// Doc\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n",
+    )
+    .unwrap();
     std::fs::create_dir_all(root.join("lib")).unwrap();
-    std::fs::write(root.join("lib/util.py"), "# util\ndef greet(name):\n    return f\"Hello, {name}\"\n").unwrap();
+    std::fs::write(
+        root.join("lib/util.py"),
+        "# util\ndef greet(name):\n    return f\"Hello, {name}\"\n",
+    )
+    .unwrap();
     dir
 }
 
 fn opts() -> ScanOptions {
-    ScanOptions { config: ConfigMode::None, no_ignore_vcs: true, ..Default::default() }
+    ScanOptions {
+        config: ConfigMode::None,
+        no_ignore_vcs: true,
+        ..Default::default()
+    }
 }
 
 fn scan_lang(dir: &std::path::Path) -> LangReport {
@@ -41,31 +57,95 @@ fn scan_module(dir: &std::path::Path) -> ModuleReport {
 fn synthetic_lang_report() -> LangReport {
     LangReport {
         rows: vec![
-            LangRow { lang: "Rust".to_string(), code: 500, lines: 650, files: 10, bytes: 20_000, tokens: 5_000, avg_lines: 65 },
-            LangRow { lang: "Python".to_string(), code: 300, lines: 400, files: 5, bytes: 12_000, tokens: 3_000, avg_lines: 80 },
+            LangRow {
+                lang: "Rust".to_string(),
+                code: 500,
+                lines: 650,
+                files: 10,
+                bytes: 20_000,
+                tokens: 5_000,
+                avg_lines: 65,
+            },
+            LangRow {
+                lang: "Python".to_string(),
+                code: 300,
+                lines: 400,
+                files: 5,
+                bytes: 12_000,
+                tokens: 3_000,
+                avg_lines: 80,
+            },
         ],
-        total: Totals { code: 800, lines: 1050, files: 15, bytes: 32_000, tokens: 8_000, avg_lines: 70 },
-        with_files: true, children: ChildrenMode::Collapse, top: 0,
+        total: Totals {
+            code: 800,
+            lines: 1050,
+            files: 15,
+            bytes: 32_000,
+            tokens: 8_000,
+            avg_lines: 70,
+        },
+        with_files: true,
+        children: ChildrenMode::Collapse,
+        top: 0,
     }
 }
 
 fn synthetic_module_report() -> ModuleReport {
     ModuleReport {
         rows: vec![
-            ModuleRow { module: "src".to_string(), code: 500, lines: 650, files: 10, bytes: 20_000, tokens: 5_000, avg_lines: 65 },
-            ModuleRow { module: "lib".to_string(), code: 300, lines: 400, files: 5, bytes: 12_000, tokens: 3_000, avg_lines: 80 },
+            ModuleRow {
+                module: "src".to_string(),
+                code: 500,
+                lines: 650,
+                files: 10,
+                bytes: 20_000,
+                tokens: 5_000,
+                avg_lines: 65,
+            },
+            ModuleRow {
+                module: "lib".to_string(),
+                code: 300,
+                lines: 400,
+                files: 5,
+                bytes: 12_000,
+                tokens: 3_000,
+                avg_lines: 80,
+            },
         ],
-        total: Totals { code: 800, lines: 1050, files: 15, bytes: 32_000, tokens: 8_000, avg_lines: 70 },
-        module_roots: vec![], module_depth: 1, children: ChildIncludeMode::Separate, top: 0,
+        total: Totals {
+            code: 800,
+            lines: 1050,
+            files: 15,
+            bytes: 32_000,
+            tokens: 8_000,
+            avg_lines: 70,
+        },
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+        top: 0,
     }
 }
 
 fn lang_args(dir: &std::path::Path, fmt: TableFormat) -> LangArgs {
-    LangArgs { paths: vec![dir.to_path_buf()], format: fmt, top: 0, files: true, children: ChildrenMode::Collapse }
+    LangArgs {
+        paths: vec![dir.to_path_buf()],
+        format: fmt,
+        top: 0,
+        files: true,
+        children: ChildrenMode::Collapse,
+    }
 }
 
 fn module_args(dir: &std::path::Path, fmt: TableFormat) -> ModuleArgs {
-    ModuleArgs { paths: vec![dir.to_path_buf()], format: fmt, top: 0, module_roots: vec![], module_depth: 1, children: ChildIncludeMode::Separate }
+    ModuleArgs {
+        paths: vec![dir.to_path_buf()],
+        format: fmt,
+        top: 0,
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    }
 }
 
 // ===========================================================================
@@ -93,14 +173,24 @@ fn lang_md_includes_all_languages() {
     tokmd_format::write_lang_report_to(&mut buf, &report, &opts(), &args).unwrap();
     let out = String::from_utf8(buf).unwrap();
     for row in &report.rows {
-        assert!(out.contains(&row.lang), "MD should contain language {}", row.lang);
+        assert!(
+            out.contains(&row.lang),
+            "MD should contain language {}",
+            row.lang
+        );
     }
 }
 
 #[test]
 fn synthetic_lang_md_produces_valid_table() {
     let report = synthetic_lang_report();
-    let args = LangArgs { paths: vec![".".into()], format: TableFormat::Md, top: 0, files: true, children: ChildrenMode::Collapse };
+    let args = LangArgs {
+        paths: vec![".".into()],
+        format: TableFormat::Md,
+        top: 0,
+        files: true,
+        children: ChildrenMode::Collapse,
+    };
     let mut buf = Vec::new();
     tokmd_format::write_lang_report_to(&mut buf, &report, &opts(), &args).unwrap();
     let out = String::from_utf8(buf).unwrap();
@@ -142,7 +232,14 @@ fn module_tsv_header_is_correct() {
 #[test]
 fn synthetic_module_tsv_roundtrip_values() {
     let report = synthetic_module_report();
-    let args = ModuleArgs { paths: vec![".".into()], format: TableFormat::Tsv, top: 0, module_roots: vec![], module_depth: 1, children: ChildIncludeMode::Separate };
+    let args = ModuleArgs {
+        paths: vec![".".into()],
+        format: TableFormat::Tsv,
+        top: 0,
+        module_roots: vec![],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
     let mut buf = Vec::new();
     tokmd_format::write_module_report_to(&mut buf, &report, &opts(), &args).unwrap();
     let out = String::from_utf8(buf).unwrap();
@@ -174,8 +271,14 @@ fn totals_consistent_between_md_and_tsv_lang() {
     tokmd_format::write_lang_report_to(&mut tsv_buf, &report, &opts(), &tsv_args).unwrap();
     let tsv_out = String::from_utf8(tsv_buf).unwrap();
     let total_code = report.total.code.to_string();
-    assert!(md_out.contains(&total_code), "MD must contain total code {total_code}");
-    assert!(tsv_out.contains(&total_code), "TSV must contain total code {total_code}");
+    assert!(
+        md_out.contains(&total_code),
+        "MD must contain total code {total_code}"
+    );
+    assert!(
+        tsv_out.contains(&total_code),
+        "TSV must contain total code {total_code}"
+    );
 }
 
 #[test]

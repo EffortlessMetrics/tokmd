@@ -325,11 +325,7 @@ fn hidden_directory_excluded_by_default() -> Result<()> {
 #[test]
 fn doc_strings_as_comments_changes_counts() -> Result<()> {
     let dir = TempDir::new()?;
-    write_file(
-        &dir,
-        "lib.rs",
-        "/// A doc comment\nfn documented() {}\n",
-    );
+    write_file(&dir, "lib.rs", "/// A doc comment\nfn documented() {}\n");
     let mut opts_normal = default_opts();
     opts_normal.treat_doc_strings_as_comments = false;
 

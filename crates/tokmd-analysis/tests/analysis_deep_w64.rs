@@ -17,11 +17,11 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
-use tokmd_analysis_grid::{PresetKind, preset_plan_for, PRESET_KINDS};
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
+use tokmd_analysis_grid::{PRESET_KINDS, PresetKind, preset_plan_for};
+use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -163,7 +163,11 @@ fn preset_kinds_count() {
 fn all_preset_strings_are_lowercase() {
     for &kind in PresetKind::all() {
         let s = kind.as_str();
-        assert_eq!(s, s.to_lowercase(), "preset string should be lowercase: {s}");
+        assert_eq!(
+            s,
+            s.to_lowercase(),
+            "preset string should be lowercase: {s}"
+        );
     }
 }
 
@@ -308,7 +312,11 @@ fn near_dup_scope_default_is_module() {
 
 #[test]
 fn near_dup_scope_variants_distinct() {
-    let scopes = [NearDupScope::Module, NearDupScope::Lang, NearDupScope::Global];
+    let scopes = [
+        NearDupScope::Module,
+        NearDupScope::Lang,
+        NearDupScope::Global,
+    ];
     for (i, a) in scopes.iter().enumerate() {
         for (j, b) in scopes.iter().enumerate() {
             if i == j {
@@ -322,7 +330,11 @@ fn near_dup_scope_variants_distinct() {
 
 #[test]
 fn near_dup_scope_serde_roundtrip() {
-    for scope in [NearDupScope::Module, NearDupScope::Lang, NearDupScope::Global] {
+    for scope in [
+        NearDupScope::Module,
+        NearDupScope::Lang,
+        NearDupScope::Global,
+    ] {
         let json = serde_json::to_string(&scope).unwrap();
         let back: NearDupScope = serde_json::from_str(&json).unwrap();
         assert_eq!(scope, back);

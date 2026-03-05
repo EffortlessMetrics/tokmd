@@ -45,40 +45,28 @@ mod entropy_edge_cases {
     fn two_equal_values_yield_one_bit() {
         let buf: Vec<u8> = (0..2048).map(|i| (i % 2) as u8).collect();
         let e = entropy_bits_per_byte(&buf);
-        assert!(
-            (e - 1.0).abs() < 0.02,
-            "expected ~1.0 bit, got {e}"
-        );
+        assert!((e - 1.0).abs() < 0.02, "expected ~1.0 bit, got {e}");
     }
 
     #[test]
     fn four_equal_values_yield_two_bits() {
         let buf: Vec<u8> = (0..2048).map(|i| (i % 4) as u8).collect();
         let e = entropy_bits_per_byte(&buf);
-        assert!(
-            (e - 2.0).abs() < 0.02,
-            "expected ~2.0 bits, got {e}"
-        );
+        assert!((e - 2.0).abs() < 0.02, "expected ~2.0 bits, got {e}");
     }
 
     #[test]
     fn eight_equal_values_yield_three_bits() {
         let buf: Vec<u8> = (0..2048).map(|i| (i % 8) as u8).collect();
         let e = entropy_bits_per_byte(&buf);
-        assert!(
-            (e - 3.0).abs() < 0.05,
-            "expected ~3.0 bits, got {e}"
-        );
+        assert!((e - 3.0).abs() < 0.05, "expected ~3.0 bits, got {e}");
     }
 
     #[test]
     fn full_byte_range_yields_eight_bits() {
         let buf: Vec<u8> = (0u8..=255).cycle().take(4096).collect();
         let e = entropy_bits_per_byte(&buf);
-        assert!(
-            (e - 8.0).abs() < 0.01,
-            "expected ~8.0 bits, got {e}"
-        );
+        assert!((e - 8.0).abs() < 0.01, "expected ~8.0 bits, got {e}");
     }
 
     #[test]
@@ -122,7 +110,10 @@ mod entropy_edge_cases {
             v.push((x >> 16) as u8);
         }
         let e = entropy_bits_per_byte(&v);
-        assert!(e > 7.0, "pseudo-random data should have high entropy, got {e}");
+        assert!(
+            e > 7.0,
+            "pseudo-random data should have high entropy, got {e}"
+        );
     }
 }
 
@@ -294,7 +285,10 @@ mod hashing {
     #[test]
     fn hash_bytes_lowercase() {
         let h = hash_bytes(b"test");
-        assert!(h.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+        assert!(
+            h.chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        );
     }
 
     #[test]
@@ -668,7 +662,11 @@ fn branchy(x: i32) -> i32 {
 ";
         let cc = estimate_cyclomatic_complexity(code, "rust");
         assert_eq!(cc.function_count, 1);
-        assert!(cc.max_cc >= 3, "two if branches → CC >= 3, got {}", cc.max_cc);
+        assert!(
+            cc.max_cc >= 3,
+            "two if branches → CC >= 3, got {}",
+            cc.max_cc
+        );
     }
 
     #[test]
@@ -692,7 +690,11 @@ fn nested(x: i32) -> i32 {
 ";
         let cog = estimate_cognitive_complexity(code, "rust");
         assert_eq!(cog.function_count, 1);
-        assert!(cog.max >= 2, "nested ifs should contribute cognitive load, got {}", cog.max);
+        assert!(
+            cog.max >= 2,
+            "nested ifs should contribute cognitive load, got {}",
+            cog.max
+        );
     }
 
     #[test]
@@ -729,7 +731,11 @@ def foo():
             print(i)
 ";
         let n = analyze_nesting_depth(code, "python");
-        assert!(n.max_depth >= 2, "deeply indented Python, got {}", n.max_depth);
+        assert!(
+            n.max_depth >= 2,
+            "deeply indented Python, got {}",
+            n.max_depth
+        );
     }
 }
 

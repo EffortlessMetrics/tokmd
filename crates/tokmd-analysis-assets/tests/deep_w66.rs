@@ -27,7 +27,9 @@ mod asset_detection_w66 {
     #[test]
     fn all_image_extensions_detected() {
         let tmp = TempDir::new().unwrap();
-        let exts = ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tiff", "ico"];
+        let exts = [
+            "png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tiff", "ico",
+        ];
         let files: Vec<PathBuf> = exts
             .iter()
             .map(|e| write_file(tmp.path(), &format!("img.{e}"), &[0u8; 16]))
@@ -225,7 +227,8 @@ mod edge_cases_w66 {
     #[test]
     fn multiple_lockfiles_total_sums_correctly() {
         let tmp = TempDir::new().unwrap();
-        let cargo = "[[package]]\nname=\"a\"\n\n[[package]]\nname=\"b\"\n\n[[package]]\nname=\"c\"\n";
+        let cargo =
+            "[[package]]\nname=\"a\"\n\n[[package]]\nname=\"b\"\n\n[[package]]\nname=\"c\"\n";
         let go = "mod/x v1.0 h1:a=\nmod/y v2.0 h1:b=\n";
         let f1 = write_file(tmp.path(), "Cargo.lock", cargo.as_bytes());
         let f2 = write_file(tmp.path(), "go.sum", go.as_bytes());
@@ -239,8 +242,16 @@ mod edge_cases_w66 {
         let tmp = TempDir::new().unwrap();
         let f = write_file(tmp.path(), "sub/Cargo.lock", b"[[package]]\nname=\"x\"\n");
         let r = build_dependency_report(tmp.path(), &[f]).unwrap();
-        assert!(r.lockfiles[0].path.contains('/'), "path should use forward slashes: {}", r.lockfiles[0].path);
-        assert!(!r.lockfiles[0].path.contains('\\'), "path should not contain backslashes: {}", r.lockfiles[0].path);
+        assert!(
+            r.lockfiles[0].path.contains('/'),
+            "path should use forward slashes: {}",
+            r.lockfiles[0].path
+        );
+        assert!(
+            !r.lockfiles[0].path.contains('\\'),
+            "path should not contain backslashes: {}",
+            r.lockfiles[0].path
+        );
     }
 }
 

@@ -22,7 +22,10 @@ fn w69_memfs_read_string_roundtrip() {
 fn w69_memfs_read_bytes_roundtrip() {
     let mut fs = MemFs::new();
     fs.add_bytes(PathBuf::from("data.bin"), vec![0xCA, 0xFE]);
-    assert_eq!(fs.read_bytes(Path::new("data.bin")).unwrap(), vec![0xCA, 0xFE]);
+    assert_eq!(
+        fs.read_bytes(Path::new("data.bin")).unwrap(),
+        vec![0xCA, 0xFE]
+    );
 }
 
 #[test]
@@ -179,6 +182,8 @@ fn w69_hostfs_exists_and_predicates() {
 
 #[test]
 fn w69_hostfs_missing_file_error() {
-    let err = HostFs.read_to_string(Path::new("/nonexistent_w69_xyz")).unwrap_err();
+    let err = HostFs
+        .read_to_string(Path::new("/nonexistent_w69_xyz"))
+        .unwrap_err();
     assert!(err.to_string().len() > 0);
 }

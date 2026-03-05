@@ -8,8 +8,7 @@ use tokmd_analysis_fun::build_fun_report;
 use tokmd_analysis_types::{
     BoilerplateReport, DerivedReport, DerivedTotals, DistributionReport, FileStatRow,
     IntegrityReport, LangPurityReport, MaxFileReport, NestingReport, PolyglotReport, RateReport,
-    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TodoReport,
-    TopOffenders,
+    RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TodoReport, TopOffenders,
 };
 
 // ── Helper ──────────────────────────────────────────────────────
@@ -41,17 +40,32 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             tokens: 1,
         },
         doc_density: RatioReport {
-            total: RatioRow { key: "All".into(), numerator: 0, denominator: 1, ratio: 0.0 },
+            total: RatioRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                ratio: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         whitespace: RatioReport {
-            total: RatioRow { key: "All".into(), numerator: 0, denominator: 1, ratio: 0.0 },
+            total: RatioRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                ratio: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
         verbosity: RateReport {
-            total: RateRow { key: "All".into(), numerator: 0, denominator: 1, rate: 0.0 },
+            total: RateRow {
+                key: "All".into(),
+                numerator: 0,
+                denominator: 1,
+                rate: 0.0,
+            },
             by_lang: vec![],
             by_module: vec![],
         },
@@ -61,20 +75,40 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             by_module: vec![],
         },
         lang_purity: LangPurityReport { rows: vec![] },
-        nesting: NestingReport { max: 0, avg: 0.0, by_module: vec![] },
+        nesting: NestingReport {
+            max: 0,
+            avg: 0.0,
+            by_module: vec![],
+        },
         test_density: TestDensityReport {
-            test_lines: 0, prod_lines: 0, test_files: 0, prod_files: 0, ratio: 0.0,
+            test_lines: 0,
+            prod_lines: 0,
+            test_files: 0,
+            prod_files: 0,
+            ratio: 0.0,
         },
         boilerplate: BoilerplateReport {
-            infra_lines: 0, logic_lines: 0, ratio: 0.0, infra_langs: vec![],
+            infra_lines: 0,
+            logic_lines: 0,
+            ratio: 0.0,
+            infra_langs: vec![],
         },
         polyglot: PolyglotReport {
-            lang_count: 0, entropy: 0.0, dominant_lang: "unknown".into(),
-            dominant_lines: 0, dominant_pct: 0.0,
+            lang_count: 0,
+            entropy: 0.0,
+            dominant_lang: "unknown".into(),
+            dominant_lines: 0,
+            dominant_pct: 0.0,
         },
         distribution: DistributionReport {
-            count: 1, min: 1, max: 1, mean: 0.0, median: 0.0,
-            p90: 0.0, p99: 0.0, gini: 0.0,
+            count: 1,
+            min: 1,
+            max: 1,
+            mean: 0.0,
+            median: 0.0,
+            p90: 0.0,
+            p99: 0.0,
+            gini: 0.0,
         },
         histogram: Vec::new(),
         top: TopOffenders {
@@ -85,12 +119,22 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
             most_dense: vec![row],
         },
         tree: None,
-        reading_time: ReadingTimeReport { minutes: 0.0, lines_per_minute: 0, basis_lines: 0 },
+        reading_time: ReadingTimeReport {
+            minutes: 0.0,
+            lines_per_minute: 0,
+            basis_lines: 0,
+        },
         context_window: None,
         cocomo: None,
-        todo: Some(TodoReport { total: 0, density_per_kloc: 0.0, tags: vec![] }),
+        todo: Some(TodoReport {
+            total: 0,
+            density_per_kloc: 0.0,
+            tags: vec![],
+        }),
         integrity: IntegrityReport {
-            algo: "sha1".into(), hash: "placeholder".into(), entries: 0,
+            algo: "sha1".into(),
+            hash: "placeholder".into(),
+            entries: 0,
         },
     }
 }
@@ -103,9 +147,9 @@ fn derived_with_bytes(bytes: usize) -> DerivedReport {
 fn scores_decrease_monotonically_across_bands() {
     // Pick one representative from each band: A, B, C, D, E
     let samples: [(usize, &str); 5] = [
-        (512 * 1024, "A"),       // 0.5 MB
-        (5 * 1024 * 1024, "B"),  // 5 MB
-        (30 * 1024 * 1024, "C"), // 30 MB
+        (512 * 1024, "A"),        // 0.5 MB
+        (5 * 1024 * 1024, "B"),   // 5 MB
+        (30 * 1024 * 1024, "C"),  // 30 MB
         (100 * 1024 * 1024, "D"), // 100 MB
         (300 * 1024 * 1024, "E"), // 300 MB
     ];
@@ -130,7 +174,13 @@ fn scores_decrease_monotonically_across_bands() {
 
 #[test]
 fn all_grades_have_distinct_scores() {
-    let byte_samples = [0usize, 2 * 1024 * 1024, 20 * 1024 * 1024, 80 * 1024 * 1024, 300 * 1024 * 1024];
+    let byte_samples = [
+        0usize,
+        2 * 1024 * 1024,
+        20 * 1024 * 1024,
+        80 * 1024 * 1024,
+        300 * 1024 * 1024,
+    ];
     let scores: Vec<u64> = byte_samples
         .iter()
         .map(|b| {
@@ -143,7 +193,11 @@ fn all_grades_have_distinct_scores() {
     let mut unique = scores.clone();
     unique.sort();
     unique.dedup();
-    assert_eq!(unique.len(), scores.len(), "each band must have a unique score");
+    assert_eq!(
+        unique.len(),
+        scores.len(),
+        "each band must have a unique score"
+    );
 }
 
 // =========================================================================
@@ -157,11 +211,27 @@ fn json_round_trip_preserves_all_fields() {
     let deserialized: serde_json::Value = serde_json::from_str(&json).unwrap();
 
     let eco = deserialized["eco_label"].as_object().unwrap();
-    assert!(eco.contains_key("score"), "round-trip must preserve 'score'");
-    assert!(eco.contains_key("label"), "round-trip must preserve 'label'");
-    assert!(eco.contains_key("bytes"), "round-trip must preserve 'bytes'");
-    assert!(eco.contains_key("notes"), "round-trip must preserve 'notes'");
-    assert_eq!(eco.len(), 4, "FunReport.eco_label should have exactly 4 fields");
+    assert!(
+        eco.contains_key("score"),
+        "round-trip must preserve 'score'"
+    );
+    assert!(
+        eco.contains_key("label"),
+        "round-trip must preserve 'label'"
+    );
+    assert!(
+        eco.contains_key("bytes"),
+        "round-trip must preserve 'bytes'"
+    );
+    assert!(
+        eco.contains_key("notes"),
+        "round-trip must preserve 'notes'"
+    );
+    assert_eq!(
+        eco.len(),
+        4,
+        "FunReport.eco_label should have exactly 4 fields"
+    );
 }
 
 #[test]
@@ -182,8 +252,19 @@ fn json_round_trip_values_match() {
 
 #[test]
 fn score_within_zero_to_hundred() {
-    for bytes in [0, 1, 100, 1024, 1024 * 1024, 50 * 1024 * 1024, 500 * 1024 * 1024, usize::MAX / 2] {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+    for bytes in [
+        0,
+        1,
+        100,
+        1024,
+        1024 * 1024,
+        50 * 1024 * 1024,
+        500 * 1024 * 1024,
+        usize::MAX / 2,
+    ] {
+        let eco = build_fun_report(&derived_with_bytes(bytes))
+            .eco_label
+            .unwrap();
         assert!(eco.score > 0.0, "score must be positive for bytes={bytes}");
         assert!(eco.score <= 100.0, "score must be ≤ 100 for bytes={bytes}");
     }
@@ -196,9 +277,17 @@ fn score_within_zero_to_hundred() {
 #[test]
 fn notes_format_matches_expected_pattern() {
     for bytes in [0, 512, 1024 * 1024, 99 * 1024 * 1024] {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
-        assert!(eco.notes.starts_with("Size-based eco label ("), "notes prefix wrong for {bytes}");
-        assert!(eco.notes.ends_with(" MB)"), "notes suffix wrong for {bytes}");
+        let eco = build_fun_report(&derived_with_bytes(bytes))
+            .eco_label
+            .unwrap();
+        assert!(
+            eco.notes.starts_with("Size-based eco label ("),
+            "notes prefix wrong for {bytes}"
+        );
+        assert!(
+            eco.notes.ends_with(" MB)"),
+            "notes suffix wrong for {bytes}"
+        );
     }
 }
 
@@ -210,7 +299,9 @@ fn notes_format_matches_expected_pattern() {
 fn rounding_one_third_mb() {
     // 1/3 MB ≈ 349525.33... bytes → 0.33 MB after rounding
     let bytes = 349525;
-    let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_with_bytes(bytes))
+        .eco_label
+        .unwrap();
     // The MB value in parentheses should be rounded to 2 decimal places
     let paren = eco.notes.find('(').unwrap() + 1;
     let end = eco.notes.find(" MB)").unwrap();
@@ -227,8 +318,14 @@ fn rounding_one_third_mb() {
 #[test]
 fn rounding_exact_megabyte() {
     let bytes = 1024 * 1024; // exactly 1 MB
-    let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
-    assert!(eco.notes.contains("(1 MB)"), "exact 1 MB should show as '(1 MB)', got: {}", eco.notes);
+    let eco = build_fun_report(&derived_with_bytes(bytes))
+        .eco_label
+        .unwrap();
+    assert!(
+        eco.notes.contains("(1 MB)"),
+        "exact 1 MB should show as '(1 MB)', got: {}",
+        eco.notes
+    );
 }
 
 // =========================================================================
@@ -264,7 +361,9 @@ fn snapshot_all_bands() {
 #[test]
 fn bytes_field_is_exact() {
     for bytes in [0usize, 1, 42, 999_999, 1_073_741_824] {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes))
+            .eco_label
+            .unwrap();
         assert_eq!(eco.bytes, bytes as u64, "bytes mismatch for input {bytes}");
     }
 }
@@ -305,9 +404,14 @@ fn large_byte_value_no_panic() {
 #[test]
 fn fun_report_top_level_has_one_field() {
     let r = build_fun_report(&derived_with_bytes(1024));
-    let json: serde_json::Value = serde_json::from_str(&serde_json::to_string(&r).unwrap()).unwrap();
+    let json: serde_json::Value =
+        serde_json::from_str(&serde_json::to_string(&r).unwrap()).unwrap();
     let obj = json.as_object().unwrap();
-    assert_eq!(obj.len(), 1, "FunReport should serialize to exactly one top-level key");
+    assert_eq!(
+        obj.len(),
+        1,
+        "FunReport should serialize to exactly one top-level key"
+    );
     assert!(obj.contains_key("eco_label"));
 }
 
@@ -318,9 +422,18 @@ fn fun_report_top_level_has_one_field() {
 #[test]
 fn label_is_valid_uppercase_a_through_e() {
     let valid = ["A", "B", "C", "D", "E"];
-    let samples = [0, 500_000, 3 * 1024 * 1024, 15 * 1024 * 1024, 75 * 1024 * 1024, 250 * 1024 * 1024];
+    let samples = [
+        0,
+        500_000,
+        3 * 1024 * 1024,
+        15 * 1024 * 1024,
+        75 * 1024 * 1024,
+        250 * 1024 * 1024,
+    ];
     for bytes in samples {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes))
+            .eco_label
+            .unwrap();
         assert!(
             valid.contains(&eco.label.as_str()),
             "label '{}' is not in valid set for bytes={bytes}",
@@ -337,13 +450,15 @@ fn label_is_valid_uppercase_a_through_e() {
 fn band_boundaries_inclusive_upper() {
     // Each threshold belongs to the lower band (≤ check)
     let cases: [(usize, &str); 4] = [
-        (1 * 1024 * 1024, "A"),    // 1 MB → still A
-        (10 * 1024 * 1024, "B"),   // 10 MB → still B
-        (50 * 1024 * 1024, "C"),   // 50 MB → still C
-        (200 * 1024 * 1024, "D"),  // 200 MB → still D
+        (1 * 1024 * 1024, "A"),   // 1 MB → still A
+        (10 * 1024 * 1024, "B"),  // 10 MB → still B
+        (50 * 1024 * 1024, "C"),  // 50 MB → still C
+        (200 * 1024 * 1024, "D"), // 200 MB → still D
     ];
     for (bytes, expected) in &cases {
-        let eco = build_fun_report(&derived_with_bytes(*bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(*bytes))
+            .eco_label
+            .unwrap();
         assert_eq!(
             &eco.label, *expected,
             "boundary value {bytes} bytes should map to band {expected}",
@@ -359,15 +474,26 @@ fn band_boundaries_inclusive_upper() {
 fn eco_label_never_none() {
     // Exhaustively test: all five bands plus edge values
     let samples = [
-        0, 1, 100, 1024, 1024 * 1024, 1024 * 1024 + 1,
-        10 * 1024 * 1024, 10 * 1024 * 1024 + 1,
-        50 * 1024 * 1024, 50 * 1024 * 1024 + 1,
-        200 * 1024 * 1024, 200 * 1024 * 1024 + 1,
+        0,
+        1,
+        100,
+        1024,
+        1024 * 1024,
+        1024 * 1024 + 1,
+        10 * 1024 * 1024,
+        10 * 1024 * 1024 + 1,
+        50 * 1024 * 1024,
+        50 * 1024 * 1024 + 1,
+        200 * 1024 * 1024,
+        200 * 1024 * 1024 + 1,
         usize::MAX / 8,
     ];
     for bytes in samples {
         let r = build_fun_report(&derived_with_bytes(bytes));
-        assert!(r.eco_label.is_some(), "eco_label must be Some for bytes={bytes}");
+        assert!(
+            r.eco_label.is_some(),
+            "eco_label must be Some for bytes={bytes}"
+        );
     }
 }
 
@@ -378,7 +504,9 @@ fn eco_label_never_none() {
 #[test]
 fn notes_mb_matches_computed_value() {
     for bytes in [0usize, 512, 768 * 1024, 3 * 1024 * 1024 + 512 * 1024] {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes))
+            .eco_label
+            .unwrap();
         let expected_mb = (bytes as f64 / (1024.0 * 1024.0) * 100.0).round() / 100.0;
         let expected_notes = format!("Size-based eco label ({expected_mb} MB)");
         assert_eq!(

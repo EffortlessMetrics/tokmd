@@ -47,10 +47,7 @@ fn short_hash_single_char_inputs_differ() {
 
 #[test]
 fn hash_backslash_equals_forward_slash_deep() {
-    assert_eq!(
-        short_hash("a/b/c/d/e"),
-        short_hash("a\\b\\c\\d\\e")
-    );
+    assert_eq!(short_hash("a/b/c/d/e"), short_hash("a\\b\\c\\d\\e"));
 }
 
 #[test]
@@ -63,10 +60,7 @@ fn hash_mixed_separators_normalized() {
 
 #[test]
 fn redact_path_mixed_separators_same_output() {
-    assert_eq!(
-        redact_path("src\\main.rs"),
-        redact_path("src/main.rs")
-    );
+    assert_eq!(redact_path("src\\main.rs"), redact_path("src/main.rs"));
 }
 
 // ---------------------------------------------------------------------------
@@ -137,10 +131,7 @@ fn hash_windows_absolute_path_backslashes() {
     let h = short_hash("C:\\Users\\dev\\project\\src\\lib.rs");
     assert_eq!(h.len(), 16);
     // Normalised to forward slashes internally
-    assert_eq!(
-        h,
-        short_hash("C:/Users/dev/project/src/lib.rs")
-    );
+    assert_eq!(h, short_hash("C:/Users/dev/project/src/lib.rs"));
 }
 
 #[test]

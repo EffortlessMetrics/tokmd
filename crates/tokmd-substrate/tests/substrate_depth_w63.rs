@@ -244,7 +244,12 @@ fn file_module_computed_from_path() {
 #[test]
 fn file_in_diff_flags() {
     let sub = multi_lang_substrate();
-    let diff_paths: Vec<&str> = sub.files.iter().filter(|f| f.in_diff).map(|f| f.path.as_str()).collect();
+    let diff_paths: Vec<&str> = sub
+        .files
+        .iter()
+        .filter(|f| f.in_diff)
+        .map(|f| f.path.as_str())
+        .collect();
     assert_eq!(diff_paths.len(), 2);
     assert!(diff_paths.contains(&"src/lib.rs"));
     assert!(diff_paths.contains(&"app/index.ts"));
@@ -253,7 +258,12 @@ fn file_in_diff_flags() {
 #[test]
 fn file_not_in_diff_flags() {
     let sub = multi_lang_substrate();
-    let non_diff: Vec<&str> = sub.files.iter().filter(|f| !f.in_diff).map(|f| f.path.as_str()).collect();
+    let non_diff: Vec<&str> = sub
+        .files
+        .iter()
+        .filter(|f| !f.in_diff)
+        .map(|f| f.path.as_str())
+        .collect();
     assert_eq!(non_diff.len(), 3);
 }
 
@@ -389,7 +399,9 @@ fn cloned_substrate_files_are_deep_copies() {
 fn cloned_substrate_lang_summary_independent() {
     let sub = multi_lang_substrate();
     let mut clone = sub.clone();
-    clone.lang_summary.insert("Go".to_string(), make_lang(1, 50));
+    clone
+        .lang_summary
+        .insert("Go".to_string(), make_lang(1, 50));
     assert!(!sub.lang_summary.contains_key("Go"));
     assert!(clone.lang_summary.contains_key("Go"));
 }
@@ -626,7 +638,11 @@ fn substrate_file_tokens_positive_when_code_positive() {
     let sub = multi_lang_substrate();
     for f in &sub.files {
         if f.code > 0 {
-            assert!(f.tokens > 0, "tokens should be > 0 when code > 0: {}", f.path);
+            assert!(
+                f.tokens > 0,
+                "tokens should be > 0 when code > 0: {}",
+                f.path
+            );
         }
     }
 }

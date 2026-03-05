@@ -795,7 +795,8 @@ fn w69_export_csv_consistent_column_count() {
         for (i, line) in lines.iter().skip(1).enumerate() {
             let cols = line.split(',').count();
             assert_eq!(
-                cols, header_cols,
+                cols,
+                header_cols,
                 "row {} has {} columns but header has {}",
                 i + 1,
                 cols,

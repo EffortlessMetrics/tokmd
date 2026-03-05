@@ -130,7 +130,11 @@ fn diff_from_to_json_produces_valid_receipt() {
         .output()
         .expect("run diff");
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let json: Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
     assert_eq!(json["mode"], "diff");
     assert!(json["schema_version"].is_number());
@@ -441,16 +445,23 @@ fn diff_json_diff_rows_have_all_metric_fields() {
 
     for field in [
         "lang",
-        "old_code", "new_code", "delta_code",
-        "old_lines", "new_lines", "delta_lines",
-        "old_files", "new_files", "delta_files",
-        "old_bytes", "new_bytes", "delta_bytes",
-        "old_tokens", "new_tokens", "delta_tokens",
+        "old_code",
+        "new_code",
+        "delta_code",
+        "old_lines",
+        "new_lines",
+        "delta_lines",
+        "old_files",
+        "new_files",
+        "delta_files",
+        "old_bytes",
+        "new_bytes",
+        "delta_bytes",
+        "old_tokens",
+        "new_tokens",
+        "delta_tokens",
     ] {
-        assert!(
-            row.get(field).is_some(),
-            "diff row missing field: {field}"
-        );
+        assert!(row.get(field).is_some(), "diff row missing field: {field}");
     }
 }
 
@@ -480,16 +491,23 @@ fn diff_json_totals_have_all_metric_fields() {
     let totals = &json["totals"];
 
     for field in [
-        "old_code", "new_code", "delta_code",
-        "old_lines", "new_lines", "delta_lines",
-        "old_files", "new_files", "delta_files",
-        "old_bytes", "new_bytes", "delta_bytes",
-        "old_tokens", "new_tokens", "delta_tokens",
+        "old_code",
+        "new_code",
+        "delta_code",
+        "old_lines",
+        "new_lines",
+        "delta_lines",
+        "old_files",
+        "new_files",
+        "delta_files",
+        "old_bytes",
+        "new_bytes",
+        "delta_bytes",
+        "old_tokens",
+        "new_tokens",
+        "delta_tokens",
     ] {
-        assert!(
-            totals.get(field).is_some(),
-            "totals missing field: {field}"
-        );
+        assert!(totals.get(field).is_some(), "totals missing field: {field}");
     }
 }
 
@@ -530,7 +548,7 @@ fn diff_multi_language_growth() {
 
     let totals = &json["totals"];
     assert_eq!(totals["delta_code"], 130); // (200-100) + (80-50)
-    assert_eq!(totals["delta_files"], 3);  // (4-2) + (2-1)
+    assert_eq!(totals["delta_files"], 3); // (4-2) + (2-1)
 }
 
 #[test]
@@ -718,7 +736,11 @@ fn diff_via_receipt_json_resolves_to_sibling_lang_json() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(json["mode"], "diff");
     assert_eq!(json["totals"]["delta_code"], 100);
@@ -752,7 +774,11 @@ fn diff_via_directory_resolves_to_lang_json() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(json["totals"]["delta_code"], 50);
 }

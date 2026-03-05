@@ -13,18 +13,40 @@ mod canonical_keys_w66 {
     #[test]
     fn all_known_canonical_keys_resolve() {
         let keys = [
-            "doc_density", "whitespace_ratio", "verbosity", "test_density",
-            "todo_density", "polyglot_entropy", "gini", "avg_cyclomatic",
-            "max_cyclomatic", "avg_cognitive", "max_nesting_depth",
-            "maintainability_index", "technical_debt_ratio", "halstead",
-            "complexity_histogram", "hotspots", "bus_factor", "freshness",
-            "code_age_distribution", "coupling", "predictive_churn",
-            "duplicate_waste", "duplication_density", "imports",
-            "entropy_suspects", "license_radar", "archetype",
+            "doc_density",
+            "whitespace_ratio",
+            "verbosity",
+            "test_density",
+            "todo_density",
+            "polyglot_entropy",
+            "gini",
+            "avg_cyclomatic",
+            "max_cyclomatic",
+            "avg_cognitive",
+            "max_nesting_depth",
+            "maintainability_index",
+            "technical_debt_ratio",
+            "halstead",
+            "complexity_histogram",
+            "hotspots",
+            "bus_factor",
+            "freshness",
+            "code_age_distribution",
+            "coupling",
+            "predictive_churn",
+            "duplicate_waste",
+            "duplication_density",
+            "imports",
+            "entropy_suspects",
+            "license_radar",
+            "archetype",
             "context_window_fit",
         ];
         for key in keys {
-            assert!(lookup(key).is_some(), "canonical key '{key}' should resolve");
+            assert!(
+                lookup(key).is_some(),
+                "canonical key '{key}' should resolve"
+            );
         }
     }
 
@@ -169,7 +191,11 @@ mod catalog_w66 {
     #[test]
     fn catalog_keys_are_sorted() {
         let text = catalog();
-        let keys: Vec<&str> = text.lines().skip(1).filter_map(|l| l.strip_prefix("- ")).collect();
+        let keys: Vec<&str> = text
+            .lines()
+            .skip(1)
+            .filter_map(|l| l.strip_prefix("- "))
+            .collect();
         let mut sorted = keys.clone();
         sorted.sort();
         assert_eq!(keys, sorted);
@@ -178,7 +204,11 @@ mod catalog_w66 {
     #[test]
     fn catalog_has_no_duplicates() {
         let text = catalog();
-        let keys: Vec<&str> = text.lines().skip(1).filter_map(|l| l.strip_prefix("- ")).collect();
+        let keys: Vec<&str> = text
+            .lines()
+            .skip(1)
+            .filter_map(|l| l.strip_prefix("- "))
+            .collect();
         let unique: std::collections::BTreeSet<&str> = keys.iter().copied().collect();
         assert_eq!(keys.len(), unique.len());
     }
@@ -193,7 +223,10 @@ mod catalog_w66 {
         let text = catalog();
         for line in text.lines().skip(1) {
             if let Some(key) = line.strip_prefix("- ") {
-                assert!(lookup(key).is_some(), "catalog key '{key}' must be resolvable");
+                assert!(
+                    lookup(key).is_some(),
+                    "catalog key '{key}' must be resolvable"
+                );
             }
         }
     }

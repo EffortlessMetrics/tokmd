@@ -33,10 +33,7 @@ fn smart_exclude_lockfile_cargo() {
 
 #[test]
 fn smart_exclude_lockfile_npm() {
-    assert_eq!(
-        smart_exclude_reason("package-lock.json"),
-        Some("lockfile")
-    );
+    assert_eq!(smart_exclude_reason("package-lock.json"), Some("lockfile"));
 }
 
 #[test]
@@ -67,18 +64,12 @@ fn smart_exclude_minified_css() {
 
 #[test]
 fn smart_exclude_sourcemap_js() {
-    assert_eq!(
-        smart_exclude_reason("bundle.js.map"),
-        Some("sourcemap")
-    );
+    assert_eq!(smart_exclude_reason("bundle.js.map"), Some("sourcemap"));
 }
 
 #[test]
 fn smart_exclude_sourcemap_css() {
-    assert_eq!(
-        smart_exclude_reason("theme.css.map"),
-        Some("sourcemap")
-    );
+    assert_eq!(smart_exclude_reason("theme.css.map"), Some("sourcemap"));
 }
 
 #[test]
@@ -180,18 +171,16 @@ fn classify_no_data_blob_low_density() {
 #[test]
 fn classify_plain_source_file_empty() {
     let classes = classify_file("src/lib.rs", 100, 50, DEFAULT_DENSE_THRESHOLD);
-    assert!(classes.is_empty(), "plain source should have no classifications");
+    assert!(
+        classes.is_empty(),
+        "plain source should have no classifications"
+    );
 }
 
 #[test]
 fn classify_sorted_and_deduped() {
     // A file in vendor/ that is also generated: both should appear, sorted, no dups
-    let classes = classify_file(
-        "vendor/generated.pb.go",
-        500,
-        100,
-        DEFAULT_DENSE_THRESHOLD,
-    );
+    let classes = classify_file("vendor/generated.pb.go", 500, 100, DEFAULT_DENSE_THRESHOLD);
     assert!(classes.contains(&FileClassification::Generated));
     assert!(classes.contains(&FileClassification::Vendored));
     // Verify sorted order

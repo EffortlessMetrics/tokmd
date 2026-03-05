@@ -301,12 +301,7 @@ fn given_bsd2_text_then_bsd2_detected() {
     let files = vec![PathBuf::from("LICENSE")];
     let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
     // BSD-2-Clause or BSD-3-Clause (both match "redistribution and use")
-    assert!(
-        report
-            .findings
-            .iter()
-            .any(|f| f.spdx.starts_with("BSD"))
-    );
+    assert!(report.findings.iter().any(|f| f.spdx.starts_with("BSD")));
 }
 
 #[test]
@@ -540,11 +535,7 @@ fn source_paths_use_forward_slashes_for_nested_files() {
     let dir = tempdir().unwrap();
     let sub = dir.path().join("nested").join("dir");
     fs::create_dir_all(&sub).unwrap();
-    fs::write(
-        sub.join("package.json"),
-        r#"{"name":"x","license":"MIT"}"#,
-    )
-    .unwrap();
+    fs::write(sub.join("package.json"), r#"{"name":"x","license":"MIT"}"#).unwrap();
     let files = vec![PathBuf::from("nested").join("dir").join("package.json")];
     let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
     for f in &report.findings {
@@ -573,8 +564,16 @@ fn text_confidence_is_between_0_6_and_1_0() {
     let report = build_license_report(dir.path(), &files, &default_limits()).unwrap();
     for f in &report.findings {
         if f.source_kind == LicenseSourceKind::Text {
-            assert!(f.confidence >= 0.6, "text confidence too low: {}", f.confidence);
-            assert!(f.confidence <= 1.0, "text confidence too high: {}", f.confidence);
+            assert!(
+                f.confidence >= 0.6,
+                "text confidence too low: {}",
+                f.confidence
+            );
+            assert!(
+                f.confidence <= 1.0,
+                "text confidence too high: {}",
+                f.confidence
+            );
         }
     }
 }

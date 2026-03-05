@@ -94,44 +94,105 @@ fn derived_with_files(files: Vec<FileStatRow>) -> DerivedReport {
             tokens: total_tokens,
         },
         doc_density: RatioReport {
-            total: RatioRow { key: "total".into(), numerator: total_code / 5, denominator: total_code.max(1), ratio: 0.2 },
-            by_lang: vec![], by_module: vec![],
+            total: RatioRow {
+                key: "total".into(),
+                numerator: total_code / 5,
+                denominator: total_code.max(1),
+                ratio: 0.2,
+            },
+            by_lang: vec![],
+            by_module: vec![],
         },
         whitespace: RatioReport {
-            total: RatioRow { key: "total".into(), numerator: total_code / 10, denominator: total_lines.max(1), ratio: 0.07 },
-            by_lang: vec![], by_module: vec![],
+            total: RatioRow {
+                key: "total".into(),
+                numerator: total_code / 10,
+                denominator: total_lines.max(1),
+                ratio: 0.07,
+            },
+            by_lang: vec![],
+            by_module: vec![],
         },
         verbosity: RateReport {
-            total: RateRow { key: "total".into(), numerator: total_bytes, denominator: total_lines.max(1), rate: 40.0 },
-            by_lang: vec![], by_module: vec![],
+            total: RateRow {
+                key: "total".into(),
+                numerator: total_bytes,
+                denominator: total_lines.max(1),
+                rate: 40.0,
+            },
+            by_lang: vec![],
+            by_module: vec![],
         },
         max_file: MaxFileReport {
-            overall: files.first().cloned().unwrap_or_else(|| make_file_row("empty", ".", "Text", 0)),
-            by_lang: vec![], by_module: vec![],
+            overall: files
+                .first()
+                .cloned()
+                .unwrap_or_else(|| make_file_row("empty", ".", "Text", 0)),
+            by_lang: vec![],
+            by_module: vec![],
         },
         lang_purity: LangPurityReport { rows: vec![] },
-        nesting: NestingReport { max: 3, avg: 1.5, by_module: vec![] },
-        test_density: TestDensityReport { test_lines: 0, prod_lines: total_code, test_files: 0, prod_files: files.len(), ratio: 0.0 },
-        boilerplate: BoilerplateReport { infra_lines: 0, logic_lines: total_code, ratio: 0.0, infra_langs: vec![] },
-        polyglot: PolyglotReport { lang_count: 1, entropy: 0.0, dominant_lang: "Rust".into(), dominant_lines: total_code, dominant_pct: 1.0 },
+        nesting: NestingReport {
+            max: 3,
+            avg: 1.5,
+            by_module: vec![],
+        },
+        test_density: TestDensityReport {
+            test_lines: 0,
+            prod_lines: total_code,
+            test_files: 0,
+            prod_files: files.len(),
+            ratio: 0.0,
+        },
+        boilerplate: BoilerplateReport {
+            infra_lines: 0,
+            logic_lines: total_code,
+            ratio: 0.0,
+            infra_langs: vec![],
+        },
+        polyglot: PolyglotReport {
+            lang_count: 1,
+            entropy: 0.0,
+            dominant_lang: "Rust".into(),
+            dominant_lines: total_code,
+            dominant_pct: 1.0,
+        },
         distribution: DistributionReport {
-            count: files.len(), min: files.iter().map(|f| f.lines).min().unwrap_or(0),
+            count: files.len(),
+            min: files.iter().map(|f| f.lines).min().unwrap_or(0),
             max: files.iter().map(|f| f.lines).max().unwrap_or(0),
-            mean: if files.is_empty() { 0.0 } else { total_lines as f64 / files.len() as f64 },
-            median: 0.0, p90: 0.0, p99: 0.0, gini: 0.3,
+            mean: if files.is_empty() {
+                0.0
+            } else {
+                total_lines as f64 / files.len() as f64
+            },
+            median: 0.0,
+            p90: 0.0,
+            p99: 0.0,
+            gini: 0.3,
         },
         histogram: vec![],
         top: TopOffenders {
             largest_lines: files.clone(),
-            largest_tokens: vec![], largest_bytes: vec![],
-            least_documented: vec![], most_dense: vec![],
+            largest_tokens: vec![],
+            largest_bytes: vec![],
+            least_documented: vec![],
+            most_dense: vec![],
         },
         tree: None,
-        reading_time: ReadingTimeReport { minutes: total_lines as f64 / 20.0, lines_per_minute: 20, basis_lines: total_lines },
+        reading_time: ReadingTimeReport {
+            minutes: total_lines as f64 / 20.0,
+            lines_per_minute: 20,
+            basis_lines: total_lines,
+        },
         context_window: None,
         cocomo: None,
         todo: None,
-        integrity: IntegrityReport { algo: "blake3".into(), hash: "test".into(), entries: files.len() },
+        integrity: IntegrityReport {
+            algo: "blake3".into(),
+            hash: "test".into(),
+            entries: files.len(),
+        },
     }
 }
 
@@ -171,7 +232,9 @@ mod html_structure_w66 {
     #[test]
     fn render_json_section_is_valid() {
         let mut receipt = minimal_receipt();
-        receipt.derived = Some(derived_with_files(vec![make_file_row("a.rs", "src", "Rust", 100)]));
+        receipt.derived = Some(derived_with_files(vec![make_file_row(
+            "a.rs", "src", "Rust", 100,
+        )]));
         let html = render(&receipt);
         let marker = "const REPORT_DATA = ";
         if let Some(start) = html.find(marker) {
@@ -324,7 +387,9 @@ mod formatting_w66 {
     #[test]
     fn doc_pct_formatted_as_percentage() {
         let mut receipt = minimal_receipt();
-        receipt.derived = Some(derived_with_files(vec![make_file_row("a.rs", ".", "Rust", 100)]));
+        receipt.derived = Some(derived_with_files(vec![make_file_row(
+            "a.rs", ".", "Rust", 100,
+        )]));
         let html = render(&receipt);
         assert!(html.contains("%"));
     }
@@ -361,7 +426,9 @@ mod determinism_w66 {
     #[test]
     fn render_same_receipt_twice_no_panic() {
         let mut receipt = minimal_receipt();
-        receipt.derived = Some(derived_with_files(vec![make_file_row("a.rs", ".", "Rust", 10)]));
+        receipt.derived = Some(derived_with_files(vec![make_file_row(
+            "a.rs", ".", "Rust", 10,
+        )]));
         let _ = render(&receipt);
         let _ = render(&receipt);
     }

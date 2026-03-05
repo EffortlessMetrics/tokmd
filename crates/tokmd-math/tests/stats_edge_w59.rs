@@ -152,7 +152,10 @@ fn percentile_monotonic_across_range() {
     for i in 1..=20 {
         let pct = i as f64 / 20.0;
         let cur = percentile(&data, pct);
-        assert!(cur >= prev, "percentile should be monotonically non-decreasing");
+        assert!(
+            cur >= prev,
+            "percentile should be monotonically non-decreasing"
+        );
         prev = cur;
     }
 }
@@ -183,7 +186,10 @@ fn gini_uniform_distribution_is_zero() {
 fn gini_maximum_inequality() {
     // [0, 0, 0, N] should approach 0.75 for 4 elements
     let g = gini_coefficient(&[0, 0, 0, 1000]);
-    assert!(g > 0.7, "near-maximum inequality should produce gini > 0.7, got {g}");
+    assert!(
+        g > 0.7,
+        "near-maximum inequality should produce gini > 0.7, got {g}"
+    );
     assert!(g <= 1.0, "gini should never exceed 1.0");
 }
 
@@ -193,7 +199,10 @@ fn gini_known_value_three_elements() {
     // Manual: accum = (2*1-4)*1 + (2*2-4)*2 + (2*3-4)*3 = -2+0+6 = 4
     // gini = 4 / (3*6) = 4/18 ≈ 0.2222
     let g = gini_coefficient(&[1, 2, 3]);
-    assert!((g - 2.0 / 9.0).abs() < 1e-10, "expected 2/9 ≈ 0.2222, got {g}");
+    assert!(
+        (g - 2.0 / 9.0).abs() < 1e-10,
+        "expected 2/9 ≈ 0.2222, got {g}"
+    );
 }
 
 #[test]

@@ -158,7 +158,13 @@ fn lang_report_separate_mode_stored() {
 #[test]
 fn module_report_empty_languages() {
     let langs = Languages::new();
-    let report = create_module_report(&langs, &["crates".into()], 2, ChildIncludeMode::ParentsOnly, 0);
+    let report = create_module_report(
+        &langs,
+        &["crates".into()],
+        2,
+        ChildIncludeMode::ParentsOnly,
+        0,
+    );
     assert!(report.rows.is_empty());
     assert_eq!(report.total.code, 0);
 }
@@ -169,13 +175,7 @@ fn module_report_with_module_roots() {
     let langs = scan_dir(dir.path());
     // Use empty roots since tokei returns absolute paths from temp dirs;
     // module_key needs matching first-segment to activate root logic.
-    let report = create_module_report(
-        &langs,
-        &[],
-        2,
-        ChildIncludeMode::ParentsOnly,
-        0,
-    );
+    let report = create_module_report(&langs, &[], 2, ChildIncludeMode::ParentsOnly, 0);
     // Should have at least one module row for each subdirectory
     assert!(
         !report.rows.is_empty(),
@@ -218,22 +218,10 @@ fn module_report_depth_stores_settings() {
 fn module_report_top_limits() {
     let dir = temp_nested_modules();
     let langs = scan_dir(dir.path());
-    let full = create_module_report(
-        &langs,
-        &[],
-        2,
-        ChildIncludeMode::ParentsOnly,
-        0,
-    );
+    let full = create_module_report(&langs, &[], 2, ChildIncludeMode::ParentsOnly, 0);
     // Only test top-limit when there are enough rows to truncate
     if full.rows.len() > 1 {
-        let report = create_module_report(
-            &langs,
-            &[],
-            2,
-            ChildIncludeMode::ParentsOnly,
-            1,
-        );
+        let report = create_module_report(&langs, &[], 2, ChildIncludeMode::ParentsOnly, 1);
         assert_eq!(report.rows.len(), 2, "top=1 → 1 real + Other");
         assert_eq!(report.rows.last().unwrap().module, "Other");
     }
@@ -490,15 +478,7 @@ fn module_report_sorted_descending_by_code() {
 fn export_data_sorted_descending_by_code() {
     let dir = temp_multi();
     let langs = scan_dir(dir.path());
-    let data = create_export_data(
-        &langs,
-        &[],
-        1,
-        ChildIncludeMode::ParentsOnly,
-        None,
-        0,
-        0,
-    );
+    let data = create_export_data(&langs, &[], 1, ChildIncludeMode::ParentsOnly, None, 0, 0);
     for w in data.rows.windows(2) {
         assert!(
             w[0].code >= w[1].code,
@@ -772,24 +752,8 @@ fn module_report_deterministic() {
 fn export_data_deterministic() {
     let dir = temp_multi();
     let langs = scan_dir(dir.path());
-    let d1 = create_export_data(
-        &langs,
-        &[],
-        1,
-        ChildIncludeMode::ParentsOnly,
-        None,
-        0,
-        0,
-    );
-    let d2 = create_export_data(
-        &langs,
-        &[],
-        1,
-        ChildIncludeMode::ParentsOnly,
-        None,
-        0,
-        0,
-    );
+    let d1 = create_export_data(&langs, &[], 1, ChildIncludeMode::ParentsOnly, None, 0, 0);
+    let d2 = create_export_data(&langs, &[], 1, ChildIncludeMode::ParentsOnly, None, 0, 0);
     assert_eq!(d1.rows.len(), d2.rows.len());
     for (a, b) in d1.rows.iter().zip(d2.rows.iter()) {
         assert_eq!(a, b);

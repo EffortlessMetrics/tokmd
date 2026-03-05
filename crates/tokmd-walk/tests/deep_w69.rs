@@ -11,7 +11,10 @@ use tokmd_walk::{file_size, license_candidates, list_files};
 // ── helpers ─────────────────────────────────────────────────────────────
 
 fn sorted_names(files: &[PathBuf]) -> Vec<String> {
-    let mut v: Vec<String> = files.iter().map(|p| p.to_string_lossy().replace('\\', "/")).collect();
+    let mut v: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().replace('\\', "/"))
+        .collect();
     v.sort();
     v
 }
@@ -115,7 +118,10 @@ fn list_files_includes_dotfiles() {
     fs::write(dir.path().join(".hidden"), "secret").unwrap();
     fs::write(dir.path().join("visible.txt"), "public").unwrap();
     let files = list_files(dir.path(), None).unwrap();
-    assert!(files.len() >= 1, "should discover at least the visible file");
+    assert!(
+        files.len() >= 1,
+        "should discover at least the visible file"
+    );
 }
 
 // =========================================================================

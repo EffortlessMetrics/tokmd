@@ -1,7 +1,7 @@
 //! W61 depth tests for tokmd-analysis-grid: BDD edge cases, determinism, proptest.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PresetGridRow, PresetKind, PresetPlan, PRESET_GRID, PRESET_KINDS,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetGridRow, PresetKind, PresetPlan,
     preset_plan_for, preset_plan_for_name,
 };
 
@@ -38,7 +38,11 @@ fn from_str_returns_none_for_unicode_lookalike() {
 fn as_str_values_are_all_lowercase_ascii() {
     for kind in PresetKind::all() {
         let s = kind.as_str();
-        assert!(s.bytes().all(|b| b.is_ascii_lowercase()), "as_str for {:?} has non-lowercase chars", kind);
+        assert!(
+            s.bytes().all(|b| b.is_ascii_lowercase()),
+            "as_str for {:?} has non-lowercase chars",
+            kind
+        );
     }
 }
 
@@ -46,7 +50,11 @@ fn as_str_values_are_all_lowercase_ascii() {
 fn as_str_values_contain_no_whitespace() {
     for kind in PresetKind::all() {
         let s = kind.as_str();
-        assert!(!s.contains(char::is_whitespace), "as_str for {:?} contains whitespace", kind);
+        assert!(
+            !s.contains(char::is_whitespace),
+            "as_str for {:?} contains whitespace",
+            kind
+        );
     }
 }
 
@@ -89,7 +97,10 @@ fn grid_length_matches_preset_count() {
 #[test]
 fn grid_rows_ordered_same_as_all() {
     for (row, kind) in PRESET_GRID.iter().zip(PresetKind::all().iter()) {
-        assert_eq!(row.preset, *kind, "Grid row order doesn't match PresetKind::all()");
+        assert_eq!(
+            row.preset, *kind,
+            "Grid row order doesn't match PresetKind::all()"
+        );
     }
 }
 
@@ -97,7 +108,11 @@ fn grid_rows_ordered_same_as_all() {
 fn grid_has_no_duplicate_preset_kinds() {
     let mut seen = std::collections::HashSet::new();
     for row in &PRESET_GRID {
-        assert!(seen.insert(row.preset.as_str()), "Duplicate preset in grid: {:?}", row.preset);
+        assert!(
+            seen.insert(row.preset.as_str()),
+            "Duplicate preset in grid: {:?}",
+            row.preset
+        );
     }
 }
 
@@ -167,18 +182,42 @@ fn deep_is_superset_of_non_fun_presets() {
             continue;
         }
         let plan = preset_plan_for(*kind);
-        if plan.assets { assert!(deep.assets, "{:?} assets not in deep", kind); }
-        if plan.deps { assert!(deep.deps, "{:?} deps not in deep", kind); }
-        if plan.todo { assert!(deep.todo, "{:?} todo not in deep", kind); }
-        if plan.dup { assert!(deep.dup, "{:?} dup not in deep", kind); }
-        if plan.imports { assert!(deep.imports, "{:?} imports not in deep", kind); }
-        if plan.git { assert!(deep.git, "{:?} git not in deep", kind); }
-        if plan.archetype { assert!(deep.archetype, "{:?} archetype not in deep", kind); }
-        if plan.topics { assert!(deep.topics, "{:?} topics not in deep", kind); }
-        if plan.entropy { assert!(deep.entropy, "{:?} entropy not in deep", kind); }
-        if plan.license { assert!(deep.license, "{:?} license not in deep", kind); }
-        if plan.complexity { assert!(deep.complexity, "{:?} complexity not in deep", kind); }
-        if plan.api_surface { assert!(deep.api_surface, "{:?} api_surface not in deep", kind); }
+        if plan.assets {
+            assert!(deep.assets, "{:?} assets not in deep", kind);
+        }
+        if plan.deps {
+            assert!(deep.deps, "{:?} deps not in deep", kind);
+        }
+        if plan.todo {
+            assert!(deep.todo, "{:?} todo not in deep", kind);
+        }
+        if plan.dup {
+            assert!(deep.dup, "{:?} dup not in deep", kind);
+        }
+        if plan.imports {
+            assert!(deep.imports, "{:?} imports not in deep", kind);
+        }
+        if plan.git {
+            assert!(deep.git, "{:?} git not in deep", kind);
+        }
+        if plan.archetype {
+            assert!(deep.archetype, "{:?} archetype not in deep", kind);
+        }
+        if plan.topics {
+            assert!(deep.topics, "{:?} topics not in deep", kind);
+        }
+        if plan.entropy {
+            assert!(deep.entropy, "{:?} entropy not in deep", kind);
+        }
+        if plan.license {
+            assert!(deep.license, "{:?} license not in deep", kind);
+        }
+        if plan.complexity {
+            assert!(deep.complexity, "{:?} complexity not in deep", kind);
+        }
+        if plan.api_surface {
+            assert!(deep.api_surface, "{:?} api_surface not in deep", kind);
+        }
     }
 }
 

@@ -312,8 +312,18 @@ fn w70_analysis_md_archetype_topics() {
     receipt.topics = Some(TopicClouds {
         per_module: std::collections::BTreeMap::new(),
         overall: vec![
-            TopicTerm { term: "systems".into(), score: 0.85, tf: 12, df: 3 },
-            TopicTerm { term: "cli".into(), score: 0.72, tf: 8, df: 2 },
+            TopicTerm {
+                term: "systems".into(),
+                score: 0.85,
+                tf: 12,
+                df: 3,
+            },
+            TopicTerm {
+                term: "cli".into(),
+                score: 0.72,
+                tf: 8,
+                df: 2,
+            },
         ],
     });
     let out = text(render(&receipt, AnalysisFormat::Md).unwrap());
@@ -387,9 +397,21 @@ fn w70_analysis_mermaid_with_imports() {
     receipt.imports = Some(ImportReport {
         granularity: "module".into(),
         edges: vec![
-            ImportEdge { from: "engine".into(), to: "api".into(), count: 5 },
-            ImportEdge { from: "api".into(), to: "types".into(), count: 3 },
-            ImportEdge { from: "engine".into(), to: "types".into(), count: 2 },
+            ImportEdge {
+                from: "engine".into(),
+                to: "api".into(),
+                count: 5,
+            },
+            ImportEdge {
+                from: "api".into(),
+                to: "types".into(),
+                count: 3,
+            },
+            ImportEdge {
+                from: "engine".into(),
+                to: "types".into(),
+                count: 2,
+            },
         ],
     });
     let out = text(render(&receipt, AnalysisFormat::Mermaid).unwrap());

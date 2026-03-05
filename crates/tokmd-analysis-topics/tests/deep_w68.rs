@@ -70,10 +70,7 @@ fn empty_export_produces_empty_clouds() {
 
 #[test]
 fn single_file_produces_topic() {
-    let data = export(
-        vec![row("auth/login_handler.rs", "auth", "Rust", 100)],
-        &[],
-    );
+    let data = export(vec![row("auth/login_handler.rs", "auth", "Rust", 100)], &[]);
     let clouds = build_topic_clouds(&data);
     assert!(!clouds.overall.is_empty());
     let terms = overall_terms(&data);
@@ -101,10 +98,7 @@ fn stopwords_filtered_from_topics() {
 
 #[test]
 fn file_extensions_filtered() {
-    let data = export(
-        vec![row("utils/parser.rs", "utils", "Rust", 50)],
-        &[],
-    );
+    let data = export(vec![row("utils/parser.rs", "utils", "Rust", 50)], &[]);
     let terms = overall_terms(&data);
     assert!(!terms.contains(&"rs".to_string()));
     assert!(terms.contains(&"parser".to_string()));
@@ -199,10 +193,7 @@ fn child_rows_excluded_from_topics() {
 
 #[test]
 fn scores_are_positive() {
-    let data = export(
-        vec![row("core/engine.rs", "core", "Rust", 100)],
-        &[],
-    );
+    let data = export(vec![row("core/engine.rs", "core", "Rust", 100)], &[]);
     let clouds = build_topic_clouds(&data);
     for term in &clouds.overall {
         assert!(term.score > 0.0, "score should be positive: {:?}", term);
@@ -262,7 +253,10 @@ fn top_k_truncation_per_module() {
     let data = export(rows, &[]);
     let clouds = build_topic_clouds(&data);
     let mod_terms = clouds.per_module.get("mod").unwrap();
-    assert!(mod_terms.len() <= 8, "per-module should be truncated to TOP_K=8");
+    assert!(
+        mod_terms.len() <= 8,
+        "per-module should be truncated to TOP_K=8"
+    );
 }
 
 // ── 13. TOP_K truncation on overall ─────────────────────────────
@@ -274,7 +268,10 @@ fn top_k_truncation_overall() {
         .collect();
     let data = export(rows, &[]);
     let clouds = build_topic_clouds(&data);
-    assert!(clouds.overall.len() <= 8, "overall should be truncated to TOP_K=8");
+    assert!(
+        clouds.overall.len() <= 8,
+        "overall should be truncated to TOP_K=8"
+    );
 }
 
 // ── 14. Multi-language repo ─────────────────────────────────────

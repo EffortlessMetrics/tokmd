@@ -104,10 +104,7 @@ mod hotspot_w68 {
 
     #[test]
     fn files_seen_counts_unique_matched_files() {
-        let e = export(vec![
-            row("src/a.rs", "src", 10),
-            row("src/b.rs", "src", 10),
-        ]);
+        let e = export(vec![row("src/a.rs", "src", 10), row("src/b.rs", "src", 10)]);
         let commits = vec![
             commit(DAY, "a", "c1", &["src/a.rs"]),
             commit(2 * DAY, "a", "c2", &["src/a.rs", "src/b.rs"]),
@@ -154,7 +151,10 @@ mod coupling_w68 {
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         assert_eq!(r.coupling.len(), 1);
         let lift = r.coupling[0].lift.unwrap();
-        assert!(lift >= 1.0, "perfect co-occurrence should give lift >= 1.0, got {lift}");
+        assert!(
+            lift >= 1.0,
+            "perfect co-occurrence should give lift >= 1.0, got {lift}"
+        );
     }
 
     #[test]
@@ -188,14 +188,14 @@ mod coupling_w68 {
 
     #[test]
     fn coupling_pair_keys_are_ordered() {
-        let e = export(vec![
-            row("z.rs", "zulu", 10),
-            row("a.rs", "alpha", 10),
-        ]);
+        let e = export(vec![row("z.rs", "zulu", 10), row("a.rs", "alpha", 10)]);
         let commits = vec![commit(DAY, "a", "c1", &["z.rs", "a.rs"])];
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         assert_eq!(r.coupling.len(), 1);
-        assert!(r.coupling[0].left <= r.coupling[0].right, "left should be <= right");
+        assert!(
+            r.coupling[0].left <= r.coupling[0].right,
+            "left should be <= right"
+        );
     }
 }
 
@@ -255,9 +255,19 @@ mod freshness_w68 {
             row("src/m.rs", "mike", 10),
         ]);
         let now = 100 * DAY;
-        let commits = vec![commit(now - DAY, "a", "c", &["src/z.rs", "src/a.rs", "src/m.rs"])];
+        let commits = vec![commit(
+            now - DAY,
+            "a",
+            "c",
+            &["src/z.rs", "src/a.rs", "src/m.rs"],
+        )];
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
-        let modules: Vec<&str> = r.freshness.by_module.iter().map(|m| m.module.as_str()).collect();
+        let modules: Vec<&str> = r
+            .freshness
+            .by_module
+            .iter()
+            .map(|m| m.module.as_str())
+            .collect();
         let mut sorted = modules.clone();
         sorted.sort();
         assert_eq!(modules, sorted);
@@ -266,10 +276,7 @@ mod freshness_w68 {
     #[test]
     fn stale_pct_correct_when_half_stale() {
         let now = 500 * DAY;
-        let e = export(vec![
-            row("old.rs", "src", 100),
-            row("new.rs", "src", 100),
-        ]);
+        let e = export(vec![row("old.rs", "src", 100), row("new.rs", "src", 100)]);
         let commits = vec![
             commit(now - 400 * DAY, "a", "old", &["old.rs"]),
             commit(now - 10 * DAY, "a", "new", &["new.rs"]),
@@ -298,10 +305,7 @@ mod age_distribution_w68 {
     #[test]
     fn bucket_pcts_sum_to_one() {
         let now = 500 * DAY;
-        let e = export(vec![
-            row("a.rs", "src", 10),
-            row("b.rs", "src", 10),
-        ]);
+        let e = export(vec![row("a.rs", "src", 10), row("b.rs", "src", 10)]);
         let commits = vec![
             commit(now - 10 * DAY, "a", "c1", &["a.rs"]),
             commit(now - 200 * DAY, "a", "c2", &["b.rs"]),
@@ -309,7 +313,10 @@ mod age_distribution_w68 {
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         let dist = r.age_distribution.unwrap();
         let total_pct: f64 = dist.buckets.iter().map(|b| b.pct).sum();
-        assert!((total_pct - 1.0).abs() < 0.01, "bucket pcts should sum to ~1.0, got {total_pct}");
+        assert!(
+            (total_pct - 1.0).abs() < 0.01,
+            "bucket pcts should sum to ~1.0, got {total_pct}"
+        );
     }
 
     #[test]
@@ -408,7 +415,10 @@ mod churn_w68 {
         ];
         let r = build_predictive_churn_report(&e, &commits, Path::new("."));
         let trend = r.per_module.get("src").unwrap();
-        assert!(trend.slope > 0.0, "slope should be positive for increasing churn");
+        assert!(
+            trend.slope > 0.0,
+            "slope should be positive for increasing churn"
+        );
         assert_eq!(trend.classification, TrendClass::Rising);
     }
 
@@ -432,7 +442,11 @@ mod churn_w68 {
             .collect();
         let r = build_predictive_churn_report(&e, &commits, Path::new("."));
         let trend = r.per_module.get("src").unwrap();
-        assert!(trend.r2 >= 0.0 && trend.r2 <= 1.0, "r2={} out of range", trend.r2);
+        assert!(
+            trend.r2 >= 0.0 && trend.r2 <= 1.0,
+            "r2={} out of range",
+            trend.r2
+        );
     }
 
     #[test]

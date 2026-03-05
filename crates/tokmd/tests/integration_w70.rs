@@ -92,8 +92,7 @@ fn normalize_envelope(output: &str) -> String {
     let s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
-    let re_ver =
-        regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
+    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
     re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 
@@ -679,7 +678,12 @@ fn w70_sort_order_consistent_between_md_and_json() {
     let mut jbuf = Vec::new();
     tokmd_format::write_lang_report_to(&mut jbuf, &report, &scan_opts(), &json_args).unwrap();
     let receipt: LangReceipt = serde_json::from_slice(&jbuf).unwrap();
-    let json_langs: Vec<&str> = receipt.report.rows.iter().map(|r| r.lang.as_str()).collect();
+    let json_langs: Vec<&str> = receipt
+        .report
+        .rows
+        .iter()
+        .map(|r| r.lang.as_str())
+        .collect();
 
     let md_args = LangArgs {
         paths: vec![proj.path().to_path_buf()],
@@ -725,7 +729,12 @@ fn w70_sort_order_consistent_between_tsv_and_json() {
     let mut jbuf = Vec::new();
     tokmd_format::write_lang_report_to(&mut jbuf, &report, &scan_opts(), &json_args).unwrap();
     let receipt: LangReceipt = serde_json::from_slice(&jbuf).unwrap();
-    let json_langs: Vec<&str> = receipt.report.rows.iter().map(|r| r.lang.as_str()).collect();
+    let json_langs: Vec<&str> = receipt
+        .report
+        .rows
+        .iter()
+        .map(|r| r.lang.as_str())
+        .collect();
 
     let tsv_args = LangArgs {
         paths: vec![proj.path().to_path_buf()],

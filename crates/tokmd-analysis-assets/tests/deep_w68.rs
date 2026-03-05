@@ -313,7 +313,11 @@ fn nested_directory_paths_preserved() {
 #[test]
 fn lockfile_path_normalized() {
     let tmp = TempDir::new().unwrap();
-    let f = write_file(tmp.path(), "sub/Cargo.lock", b"[[package]]\nname = \"a\"\nversion = \"1.0.0\"\n");
+    let f = write_file(
+        tmp.path(),
+        "sub/Cargo.lock",
+        b"[[package]]\nname = \"a\"\nversion = \"1.0.0\"\n",
+    );
     let r = build_dependency_report(tmp.path(), &[f]).unwrap();
     assert_eq!(r.lockfiles[0].path, "sub/Cargo.lock");
     assert!(!r.lockfiles[0].path.contains('\\'));

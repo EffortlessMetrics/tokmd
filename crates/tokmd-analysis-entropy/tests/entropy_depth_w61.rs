@@ -361,10 +361,7 @@ fn max_bytes_budget_stops_second_file() {
     let files = vec![PathBuf::from("a.bin"), PathBuf::from("b.bin")];
     let r = build_entropy_report(dir.path(), &files, &export, &lim).unwrap();
     // After first file (512 bytes), total_bytes >= max_bytes, so second is skipped
-    assert!(
-        r.suspects.len() <= 2,
-        "budget should limit scanning"
-    );
+    assert!(r.suspects.len() <= 2, "budget should limit scanning");
 }
 
 #[test]
@@ -500,9 +497,7 @@ fn five_runs_identical_output() {
         for (a, b) in results[0].suspects.iter().zip(results[i].suspects.iter()) {
             assert_eq!(a.path, b.path);
             assert_eq!(a.class, b.class);
-            assert!(
-                (a.entropy_bits_per_byte - b.entropy_bits_per_byte).abs() < f32::EPSILON
-            );
+            assert!((a.entropy_bits_per_byte - b.entropy_bits_per_byte).abs() < f32::EPSILON);
             assert_eq!(a.sample_bytes, b.sample_bytes);
             assert_eq!(a.module, b.module);
         }

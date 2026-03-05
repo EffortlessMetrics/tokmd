@@ -50,7 +50,14 @@ fn write_file(dir: &TempDir, path: &str, content: &str) {
 /// Generate deterministic source with `n` lines and `seed`-based variation.
 fn gen_source(n: usize, seed: usize) -> String {
     (0..n)
-        .map(|i| format!("fn func_{}_{}_impl() {{ let val = {}; }}", seed, i, i * seed))
+        .map(|i| {
+            format!(
+                "fn func_{}_{}_impl() {{ let val = {}; }}",
+                seed,
+                i,
+                i * seed
+            )
+        })
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -76,9 +83,18 @@ fn exact_duplicates_two_files() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "mod", "Rust", 60, sz), frow("b.rs", "mod", "Rust", 60, sz)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "mod", "Rust", 60, sz),
+            frow("b.rs", "mod", "Rust", 60, sz),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.pairs.len(), 1);
     assert!((report.pairs[0].similarity - 1.0).abs() < 1e-4);
@@ -100,8 +116,14 @@ fn exact_duplicates_three_files_form_one_cluster() {
             frow("y.rs", "mod", "Rust", 60, sz),
             frow("z.rs", "mod", "Rust", 60, sz),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.pairs.len(), 3); // 3 choose 2
     let clusters = report.clusters.as_ref().unwrap();
@@ -119,9 +141,18 @@ fn exact_duplicates_similarity_is_one() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("left.rs", "m", "Rust", 80, sz), frow("right.rs", "m", "Rust", 80, sz)]),
-        NearDupScope::Global, 0.99, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("left.rs", "m", "Rust", 80, sz),
+            frow("right.rs", "m", "Rust", 80, sz),
+        ]),
+        NearDupScope::Global,
+        0.99,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(!report.pairs.is_empty());
     assert!((report.pairs[0].similarity - 1.0).abs() < 1e-4);
@@ -137,9 +168,18 @@ fn exact_dup_shared_fingerprints_equal_total() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, sz), frow("b.rs", "m", "Rust", 60, sz)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, sz),
+            frow("b.rs", "m", "Rust", 60, sz),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let p = &report.pairs[0];
     assert_eq!(p.shared_fingerprints, p.left_fingerprints);
@@ -160,9 +200,18 @@ fn threshold_0_catches_all_pairs() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, c1.len()), frow("b.rs", "m", "Rust", 60, c2.len())]),
-        NearDupScope::Global, 0.0, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, c1.len()),
+            frow("b.rs", "m", "Rust", 60, c2.len()),
+        ]),
+        NearDupScope::Global,
+        0.0,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     // With threshold 0, any files with shared fingerprints are pairs
     // (may or may not produce pairs depending on content overlap)
@@ -173,15 +222,27 @@ fn threshold_0_catches_all_pairs() {
 fn threshold_1_only_exact_matches() {
     let dir = TempDir::new().unwrap();
     let base = gen_source(60, 1);
-    let variant = format!("{}\nfn extra_variant_function() {{ let z = 123456; }}", &base);
+    let variant = format!(
+        "{}\nfn extra_variant_function() {{ let z = 123456; }}",
+        &base
+    );
     write_file(&dir, "a.rs", &base);
     write_file(&dir, "b.rs", &variant);
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, base.len()), frow("b.rs", "m", "Rust", 61, variant.len())]),
-        NearDupScope::Global, 1.0, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, base.len()),
+            frow("b.rs", "m", "Rust", 61, variant.len()),
+        ]),
+        NearDupScope::Global,
+        1.0,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     // Non-identical files should not match at threshold 1.0
     assert!(report.pairs.is_empty());
@@ -204,14 +265,28 @@ fn higher_threshold_fewer_or_equal_pairs() {
     ];
 
     let r_low = build_near_dup_report(
-        dir.path(), &make_export(rows.clone()),
-        NearDupScope::Global, 0.1, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows.clone()),
+        NearDupScope::Global,
+        0.1,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let r_high = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.99, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.99,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(r_high.pairs.len() <= r_low.pairs.len());
 }
@@ -222,19 +297,24 @@ fn moderate_similarity_detected_at_low_threshold() {
     let base = gen_source(60, 1);
     // Keep first 40 lines identical, change last 20
     let lines: Vec<&str> = base.lines().collect();
-    let modified = format!(
-        "{}\n{}",
-        lines[..40].join("\n"),
-        gen_source(20, 999)
-    );
+    let modified = format!("{}\n{}", lines[..40].join("\n"), gen_source(20, 999));
     write_file(&dir, "a.rs", &base);
     write_file(&dir, "b.rs", &modified);
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, base.len()), frow("b.rs", "m", "Rust", 60, modified.len())]),
-        NearDupScope::Global, 0.2, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, base.len()),
+            frow("b.rs", "m", "Rust", 60, modified.len()),
+        ]),
+        NearDupScope::Global,
+        0.2,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     if !report.pairs.is_empty() {
         assert!(report.pairs[0].similarity >= 0.2);
@@ -256,9 +336,18 @@ fn global_scope_finds_cross_module_dups() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "mod_a", "Rust", 60, sz), frow("b.rs", "mod_b", "Rust", 60, sz)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "mod_a", "Rust", 60, sz),
+            frow("b.rs", "mod_b", "Rust", 60, sz),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(!report.pairs.is_empty());
 }
@@ -273,9 +362,18 @@ fn module_scope_isolates_modules() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "alpha", "Rust", 60, sz), frow("b.rs", "beta", "Rust", 60, sz)]),
-        NearDupScope::Module, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "alpha", "Rust", 60, sz),
+            frow("b.rs", "beta", "Rust", 60, sz),
+        ]),
+        NearDupScope::Module,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -290,9 +388,18 @@ fn module_scope_finds_dups_within_same_module() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "same", "Rust", 60, sz), frow("b.rs", "same", "Rust", 60, sz)]),
-        NearDupScope::Module, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "same", "Rust", 60, sz),
+            frow("b.rs", "same", "Rust", 60, sz),
+        ]),
+        NearDupScope::Module,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(!report.pairs.is_empty());
 }
@@ -307,9 +414,18 @@ fn lang_scope_isolates_languages() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, sz), frow("b.py", "m", "Python", 60, sz)]),
-        NearDupScope::Lang, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, sz),
+            frow("b.py", "m", "Python", 60, sz),
+        ]),
+        NearDupScope::Lang,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -324,9 +440,18 @@ fn lang_scope_finds_dups_within_same_lang() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, sz), frow("b.rs", "m", "Rust", 60, sz)]),
-        NearDupScope::Lang, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, sz),
+            frow("b.rs", "m", "Rust", 60, sz),
+        ]),
+        NearDupScope::Lang,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(!report.pairs.is_empty());
 }
@@ -339,9 +464,16 @@ fn lang_scope_finds_dups_within_same_lang() {
 fn empty_export_no_pairs() {
     let dir = TempDir::new().unwrap();
     let report = build_near_dup_report(
-        dir.path(), &make_export(vec![]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(vec![]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
     assert_eq!(report.files_analyzed, 0);
@@ -356,9 +488,18 @@ fn empty_files_no_fingerprints() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 0, 0), frow("b.rs", "m", "Rust", 0, 0)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 0, 0),
+            frow("b.rs", "m", "Rust", 0, 0),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -371,9 +512,18 @@ fn whitespace_only_files_no_pairs() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 0, 12), frow("b.rs", "m", "Rust", 0, 12)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 0, 12),
+            frow("b.rs", "m", "Rust", 0, 12),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -386,9 +536,18 @@ fn very_short_files_below_kgram() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 1, 13), frow("b.rs", "m", "Rust", 1, 13)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 1, 13),
+            frow("b.rs", "m", "Rust", 1, 13),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     // < 25 tokens, so no k-grams → no fingerprints → no pairs
     assert!(report.pairs.is_empty());
@@ -407,8 +566,14 @@ fn single_file_no_pairs() {
     let report = build_near_dup_report(
         dir.path(),
         &make_export(vec![frow("only.rs", "m", "Rust", 60, content.len())]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
     assert_eq!(report.files_analyzed, 1);
@@ -424,8 +589,14 @@ fn single_file_with_module_scope() {
     let report = build_near_dup_report(
         dir.path(),
         &make_export(vec![frow("only.rs", "mod", "Rust", 60, content.len())]),
-        NearDupScope::Module, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Module,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -448,9 +619,16 @@ fn twenty_identical_files() {
         .collect();
 
     let report = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     // 20 choose 2 = 190 pairs
     assert_eq!(report.pairs.len(), 190);
@@ -472,9 +650,16 @@ fn max_files_limits_analysis() {
         .collect();
 
     let report = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.5, 5, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.5,
+        5,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.files_analyzed, 5);
     assert_eq!(report.files_skipped, 10);
@@ -493,9 +678,16 @@ fn max_pairs_truncation() {
         .collect();
 
     let report = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.5, 100, Some(3), &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.5,
+        100,
+        Some(3),
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.len() <= 3);
     assert!(report.truncated);
@@ -517,9 +709,16 @@ fn many_unique_files_no_pairs() {
         .collect();
 
     let report = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.8, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.8,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     // Unique content should produce few or no pairs at high threshold
     assert_eq!(report.files_analyzed, 30);
@@ -540,8 +739,14 @@ fn exclude_patterns_reduce_analyzed() {
             frow("b.rs", "m", "Rust", 60, content.len()),
             frow("gen_output.rs", "m", "Rust", 60, content.len()),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &["gen_*".to_string()],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &["gen_*".to_string()],
+    )
+    .unwrap();
 
     assert_eq!(report.excluded_by_pattern, Some(1));
     assert_eq!(report.files_analyzed, 2);
@@ -688,8 +893,28 @@ fn determinism_same_pairs() {
         frow("c.rs", "m", "Rust", 60, c3.len()),
     ]);
 
-    let r1 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
-    let r2 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
+    let r1 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
+    let r2 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(r1.pairs.len(), r2.pairs.len());
     for (a, b) in r1.pairs.iter().zip(r2.pairs.iter()) {
@@ -714,8 +939,28 @@ fn determinism_same_clusters() {
         frow("c.rs", "m", "Rust", 60, sz),
     ]);
 
-    let r1 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
-    let r2 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
+    let r1 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
+    let r2 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let c1 = r1.clusters.unwrap();
     let c2 = r2.clusters.unwrap();
@@ -739,8 +984,28 @@ fn determinism_serialization_stable() {
         frow("b.rs", "m", "Rust", 60, sz),
     ]);
 
-    let r1 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
-    let r2 = build_near_dup_report(dir.path(), &exp, NearDupScope::Global, 0.5, 100, None, &default_limits(), &[]).unwrap();
+    let r1 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
+    let r2 = build_near_dup_report(
+        dir.path(),
+        &exp,
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let j1 = serde_json::to_string(&r1).unwrap();
     let j2 = serde_json::to_string(&r2).unwrap();
@@ -775,8 +1040,14 @@ fn child_rows_filtered_out() {
     let report = build_near_dup_report(
         dir.path(),
         &make_export(vec![frow("a.rs", "m", "Rust", 60, content.len()), child]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.files_analyzed, 1);
     assert!(report.pairs.is_empty());
@@ -800,8 +1071,14 @@ fn max_file_bytes_excludes_large_files() {
             frow("a.rs", "m", "Rust", 60, content.len()),
             frow("b.rs", "m", "Rust", 60, content.len()),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &limits, &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &limits,
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.files_analyzed, 0);
 }
@@ -819,8 +1096,14 @@ fn missing_file_on_disk_graceful() {
             frow("a.rs", "m", "Rust", 60, content.len()),
             frow("b.rs", "m", "Rust", 60, content.len()),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert!(report.pairs.is_empty());
 }
@@ -829,9 +1112,16 @@ fn missing_file_on_disk_graceful() {
 fn params_recorded_in_report() {
     let dir = TempDir::new().unwrap();
     let report = build_near_dup_report(
-        dir.path(), &make_export(vec![]),
-        NearDupScope::Global, 0.75, 50, Some(10), &default_limits(), &["*.gen".to_string()],
-    ).unwrap();
+        dir.path(),
+        &make_export(vec![]),
+        NearDupScope::Global,
+        0.75,
+        50,
+        Some(10),
+        &default_limits(),
+        &["*.gen".to_string()],
+    )
+    .unwrap();
 
     assert_eq!(report.params.threshold, 0.75);
     assert_eq!(report.params.max_files, 50);
@@ -843,9 +1133,16 @@ fn params_recorded_in_report() {
 fn algorithm_params_recorded() {
     let dir = TempDir::new().unwrap();
     let report = build_near_dup_report(
-        dir.path(), &make_export(vec![]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(vec![]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let algo = report.params.algorithm.as_ref().unwrap();
     assert_eq!(algo.k_gram_size, 25);
@@ -863,9 +1160,18 @@ fn stats_timing_populated() {
 
     let report = build_near_dup_report(
         dir.path(),
-        &make_export(vec![frow("a.rs", "m", "Rust", 60, sz), frow("b.rs", "m", "Rust", 60, sz)]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        &make_export(vec![
+            frow("a.rs", "m", "Rust", 60, sz),
+            frow("b.rs", "m", "Rust", 60, sz),
+        ]),
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let stats = report.stats.unwrap();
     assert!(stats.bytes_processed > 0);
@@ -889,8 +1195,14 @@ fn cluster_representative_most_connected() {
             frow("b.rs", "m", "Rust", 60, sz),
             frow("c.rs", "m", "Rust", 60, sz),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     let clusters = report.clusters.as_ref().unwrap();
     assert_eq!(clusters.len(), 1);
@@ -914,8 +1226,14 @@ fn cluster_files_sorted() {
             frow("a.rs", "m", "Rust", 60, sz),
             frow("m.rs", "m", "Rust", 60, sz),
         ]),
-        NearDupScope::Global, 0.5, 100, None, &default_limits(), &[],
-    ).unwrap();
+        NearDupScope::Global,
+        0.5,
+        100,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     if let Some(clusters) = &report.clusters {
         for c in clusters {
@@ -939,9 +1257,16 @@ fn eligible_files_reflects_pre_cap_count() {
         .collect();
 
     let report = build_near_dup_report(
-        dir.path(), &make_export(rows),
-        NearDupScope::Global, 0.5, 3, None, &default_limits(), &[],
-    ).unwrap();
+        dir.path(),
+        &make_export(rows),
+        NearDupScope::Global,
+        0.5,
+        3,
+        None,
+        &default_limits(),
+        &[],
+    )
+    .unwrap();
 
     assert_eq!(report.eligible_files, Some(8));
     assert_eq!(report.files_analyzed, 3);

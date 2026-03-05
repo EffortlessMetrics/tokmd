@@ -318,7 +318,10 @@ fn lang_json_has_rows_field() {
     });
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
     // LangReport is #[serde(flatten)]'d so rows appear at top level
-    assert!(parsed["rows"].is_array(), "rows should be at top level (flattened)");
+    assert!(
+        parsed["rows"].is_array(),
+        "rows should be at top level (flattened)"
+    );
 }
 
 #[test]

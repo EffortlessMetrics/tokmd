@@ -161,7 +161,10 @@ fn empty_content_file() {
     fs.add_file("empty.txt", "");
     assert!(fs.is_file(Path::new("empty.txt")));
     assert_eq!(fs.read_to_string(Path::new("empty.txt")).unwrap(), "");
-    assert_eq!(fs.read_bytes(Path::new("empty.txt")).unwrap(), Vec::<u8>::new());
+    assert_eq!(
+        fs.read_bytes(Path::new("empty.txt")).unwrap(),
+        Vec::<u8>::new()
+    );
 }
 
 #[test]
@@ -178,7 +181,10 @@ fn binary_content_invalid_utf8() {
     fs.add_bytes("bad.bin", vec![0xFF, 0xFE, 0x00]);
     let err = fs.read_to_string(Path::new("bad.bin")).unwrap_err();
     assert!(err.to_string().contains("invalid UTF-8"));
-    assert_eq!(fs.read_bytes(Path::new("bad.bin")).unwrap(), vec![0xFF, 0xFE, 0x00]);
+    assert_eq!(
+        fs.read_bytes(Path::new("bad.bin")).unwrap(),
+        vec![0xFF, 0xFE, 0x00]
+    );
 }
 
 #[test]

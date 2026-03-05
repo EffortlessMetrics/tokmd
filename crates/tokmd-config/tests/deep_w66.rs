@@ -197,7 +197,10 @@ description = "complexity ceiling"
     let ratchet = cfg.gate.ratchet.as_ref().unwrap();
     assert_eq!(ratchet.len(), 1);
     assert_eq!(ratchet[0].max_increase_pct, Some(5.0));
-    assert_eq!(ratchet[0].description.as_deref(), Some("complexity ceiling"));
+    assert_eq!(
+        ratchet[0].description.as_deref(),
+        Some("complexity ceiling")
+    );
 }
 
 // =========================================================================

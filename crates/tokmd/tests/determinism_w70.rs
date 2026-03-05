@@ -274,7 +274,10 @@ fn w70_export_json_paths_use_forward_slashes() {
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
         let path = row["path"].as_str().unwrap();
-        assert!(!path.contains('\\'), "backslash in export JSON path: {path}");
+        assert!(
+            !path.contains('\\'),
+            "backslash in export JSON path: {path}"
+        );
     }
 }
 
@@ -289,10 +292,7 @@ fn w70_export_jsonl_paths_use_forward_slashes() {
     for line in text.lines().filter(|l| !l.trim().is_empty()) {
         if let Ok(v) = serde_json::from_str::<Value>(line) {
             if let Some(path) = v.get("path").and_then(|p| p.as_str()) {
-                assert!(
-                    !path.contains('\\'),
-                    "backslash in JSONL path: {path}"
-                );
+                assert!(!path.contains('\\'), "backslash in JSONL path: {path}");
             }
         }
     }
@@ -327,10 +327,7 @@ fn w70_module_json_paths_use_forward_slashes() {
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
         let module = row["module"].as_str().unwrap();
-        assert!(
-            !module.contains('\\'),
-            "backslash in module path: {module}"
-        );
+        assert!(!module.contains('\\'), "backslash in module path: {module}");
     }
 }
 
@@ -355,7 +352,9 @@ fn w70_lang_json_no_random_values() {
             for key in map.keys() {
                 let lower = key.to_lowercase();
                 assert!(
-                    !lower.contains("uuid") && !lower.contains("random") && !lower.contains("nonce"),
+                    !lower.contains("uuid")
+                        && !lower.contains("random")
+                        && !lower.contains("nonce"),
                     "suspicious non-deterministic key at {path}: {key}"
                 );
             }
@@ -384,7 +383,10 @@ fn w70_module_md_no_timestamp_leakage() {
     let a = run();
     let b = run();
     // Markdown has no envelope, so it should be perfectly byte-identical
-    assert_eq!(a, b, "module Markdown must be byte-stable (no timestamp leakage)");
+    assert_eq!(
+        a, b,
+        "module Markdown must be byte-stable (no timestamp leakage)"
+    );
 }
 
 #[test]
@@ -515,9 +517,7 @@ fn w70_nested_dirs_module_determinism() {
 
 #[test]
 fn w70_nested_dirs_forward_slashes_in_module_names() {
-    let tmp = make_fixture(&[
-        ("alpha/beta/gamma/code.rs", "fn deep() {}\n"),
-    ]);
+    let tmp = make_fixture(&[("alpha/beta/gamma/code.rs", "fn deep() {}\n")]);
     let out = tokmd_cmd_at(tmp.path())
         .args(["module", "--format", "json"])
         .output()
@@ -700,9 +700,8 @@ fn w70_export_jsonl_keys_sorted() {
     assert!(out.status.success());
     let text = String::from_utf8_lossy(&out.stdout);
     for (i, line) in text.lines().filter(|l| !l.trim().is_empty()).enumerate() {
-        let v: Value = serde_json::from_str(line).unwrap_or_else(|e| {
-            panic!("JSONL line {i} is not valid JSON: {e}")
-        });
+        let v: Value = serde_json::from_str(line)
+            .unwrap_or_else(|e| panic!("JSONL line {i} is not valid JSON: {e}"));
         assert_keys_sorted(&v, &format!("$line[{i}]"));
     }
 }

@@ -5,11 +5,11 @@
 
 use proptest::prelude::*;
 use tokmd_types::{
-    AnalysisFormat, CapabilityState, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode,
-    DiffRow, DiffTotals, FileClassification, FileKind, FileRow, InclusionPolicy, LangReport,
-    LangRow, ModuleReport, ModuleRow, ScanStatus, TokenAudit, TokenEstimationMeta, ToolInfo,
-    Totals, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION,
-    SCHEMA_VERSION, cockpit::COCKPIT_SCHEMA_VERSION,
+    AnalysisFormat, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, CapabilityState,
+    ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode, DiffRow, DiffTotals,
+    FileClassification, FileKind, FileRow, HANDOFF_SCHEMA_VERSION, InclusionPolicy, LangReport,
+    LangRow, ModuleReport, ModuleRow, SCHEMA_VERSION, ScanStatus, TokenAudit, TokenEstimationMeta,
+    ToolInfo, Totals, cockpit::COCKPIT_SCHEMA_VERSION,
 };
 
 // =========================================================================

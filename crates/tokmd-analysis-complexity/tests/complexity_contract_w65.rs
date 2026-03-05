@@ -13,7 +13,13 @@ use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-fn fc(path: &str, cyclomatic: usize, cognitive: Option<usize>, nesting: Option<usize>, risk: ComplexityRisk) -> FileComplexity {
+fn fc(
+    path: &str,
+    cyclomatic: usize,
+    cognitive: Option<usize>,
+    nesting: Option<usize>,
+    risk: ComplexityRisk,
+) -> FileComplexity {
     FileComplexity {
         path: path.to_string(),
         module: "src".to_string(),
@@ -168,7 +174,8 @@ mod report {
         let dir = TempDir::new().unwrap();
         let data = export(vec![]);
         let files: Vec<PathBuf> = vec![];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert_eq!(r.total_functions, 0);
         assert_eq!(r.max_cyclomatic, 0);
         assert_eq!(r.high_risk_files, 0);
@@ -182,7 +189,8 @@ mod report {
         write_file(&dir, "src/main.rs", code);
         let data = export(vec![make_row("src/main.rs", "Rust", 3, code.len())]);
         let files = vec![PathBuf::from("src/main.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert_eq!(r.files.len(), 1);
         assert!(r.total_functions >= 1);
     }
@@ -193,7 +201,8 @@ mod report {
         write_file(&dir, "data.json", "{\"key\": \"value\"}");
         let data = export(vec![make_row("data.json", "JSON", 1, 18)]);
         let files = vec![PathBuf::from("data.json")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.files.is_empty());
     }
 
@@ -204,7 +213,8 @@ mod report {
         write_file(&dir, "src/lib.rs", code);
         let data = export(vec![make_row("src/lib.rs", "Rust", 9, code.len())]);
         let files = vec![PathBuf::from("src/lib.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.total_functions >= 3);
     }
 
@@ -224,7 +234,8 @@ mod report {
             PathBuf::from("src/simple.rs"),
             PathBuf::from("src/complex.rs"),
         ];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.files.len() >= 2);
 
         let simple_fc = r.files.iter().find(|f| f.path.contains("simple")).unwrap();
@@ -239,7 +250,8 @@ mod report {
         write_file(&dir, "src/lib.rs", code);
         let data = export(vec![make_row("src/lib.rs", "Rust", 6, code.len())]);
         let files = vec![PathBuf::from("src/lib.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), true).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), true).unwrap();
         assert!(r.files[0].functions.is_some());
         let funcs = r.files[0].functions.as_ref().unwrap();
         assert!(funcs.len() >= 2);
@@ -252,7 +264,8 @@ mod report {
         write_file(&dir, "src/lib.rs", code);
         let data = export(vec![make_row("src/lib.rs", "Rust", 3, code.len())]);
         let files = vec![PathBuf::from("src/lib.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.files[0].functions.is_none());
     }
 
@@ -263,7 +276,8 @@ mod report {
         write_file(&dir, "src/app.js", code);
         let data = export(vec![make_row("src/app.js", "JavaScript", 3, code.len())]);
         let files = vec![PathBuf::from("src/app.js")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert_eq!(r.files.len(), 1);
     }
 
@@ -274,7 +288,8 @@ mod report {
         write_file(&dir, "src/app.py", code);
         let data = export(vec![make_row("src/app.py", "Python", 4, code.len())]);
         let files = vec![PathBuf::from("src/app.py")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(!r.files.is_empty());
         assert!(r.total_functions >= 2);
     }
@@ -286,7 +301,8 @@ mod report {
         write_file(&dir, "main.go", code);
         let data = export(vec![make_row("main.go", "Go", 5, code.len())]);
         let files = vec![PathBuf::from("main.go")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(!r.files.is_empty());
     }
 
@@ -302,7 +318,8 @@ mod report {
             make_row("src/high.rs", "Rust", 9, high.len()),
         ]);
         let files = vec![PathBuf::from("src/low.rs"), PathBuf::from("src/high.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         if r.files.len() >= 2 {
             assert!(r.files[0].cyclomatic_complexity >= r.files[1].cyclomatic_complexity);
         }
@@ -315,7 +332,8 @@ mod report {
         write_file(&dir, "src/lib.rs", code);
         let data = export(vec![make_row("src/lib.rs", "Rust", 3, code.len())]);
         let files = vec![PathBuf::from("src/lib.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.histogram.is_some());
     }
 
@@ -324,7 +342,8 @@ mod report {
         let dir = TempDir::new().unwrap();
         let data = export(vec![make_row("src/nonexistent.rs", "Rust", 10, 200)]);
         let files = vec![PathBuf::from("src/nonexistent.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.files.is_empty());
     }
 
@@ -358,7 +377,8 @@ mod edge_cases {
         write_file(&dir, "src/empty.rs", "");
         let data = export(vec![make_row("src/empty.rs", "Rust", 0, 0)]);
         let files = vec![PathBuf::from("src/empty.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         if !r.files.is_empty() {
             assert_eq!(r.files[0].cyclomatic_complexity, 1);
         }
@@ -371,7 +391,8 @@ mod edge_cases {
         write_file(&dir, "src/one.rs", code);
         let data = export(vec![make_row("src/one.rs", "Rust", 1, code.len())]);
         let files = vec![PathBuf::from("src/one.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(!r.files.is_empty());
     }
 
@@ -384,7 +405,8 @@ mod edge_cases {
         std::fs::write(&full, &content).unwrap();
         let data = export(vec![make_row("src/binary.rs", "Rust", 10, 256)]);
         let files = vec![PathBuf::from("src/binary.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert!(r.files.is_empty());
     }
 
@@ -407,7 +429,8 @@ mod edge_cases {
             tokens: 250,
         });
         let files = vec![PathBuf::from("src/main.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         // Only parent row should be processed
         assert!(r.files.len() <= 1);
     }
@@ -462,8 +485,10 @@ mod determinism {
         write_file(&dir, "src/lib.rs", code);
         let data = export(vec![make_row("src/lib.rs", "Rust", 9, code.len())]);
         let files = vec![PathBuf::from("src/lib.rs")];
-        let r1 = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
-        let r2 = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r1 =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r2 =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         assert_eq!(r1.total_functions, r2.total_functions);
         assert_eq!(r1.max_cyclomatic, r2.max_cyclomatic);
         assert_eq!(r1.files.len(), r2.files.len());
@@ -487,7 +512,8 @@ mod serialization {
         write_file(&dir, "src/main.rs", code);
         let data = export(vec![make_row("src/main.rs", "Rust", 3, code.len())]);
         let files = vec![PathBuf::from("src/main.rs")];
-        let r = build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
+        let r =
+            build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         let json = serde_json::to_string(&r).unwrap();
         assert!(json.contains("total_functions"));
         assert!(json.contains("avg_cyclomatic"));

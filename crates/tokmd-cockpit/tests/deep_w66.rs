@@ -248,9 +248,9 @@ fn risk_score_capped_at_100() {
 #[test]
 fn review_plan_sorted_by_priority() {
     let stats = vec![
-        stat("small.rs", 5, 5),     // low priority (3)
-        stat("medium.rs", 40, 20),  // medium priority (2)
-        stat("big.rs", 150, 100),   // high priority (1)
+        stat("small.rs", 5, 5),    // low priority (3)
+        stat("medium.rs", 40, 20), // medium priority (2)
+        stat("big.rs", 150, 100),  // high priority (1)
     ];
     let plan = generate_review_plan(&stats, &no_contracts());
     assert_eq!(plan.len(), 3);
@@ -314,9 +314,15 @@ fn sparkline_constant_all_same() {
 
 #[test]
 fn trend_direction_labels_all() {
-    assert_eq!(trend_direction_label(TrendDirection::Improving), "improving");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Improving),
+        "improving"
+    );
     assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
-    assert_eq!(trend_direction_label(TrendDirection::Degrading), "degrading");
+    assert_eq!(
+        trend_direction_label(TrendDirection::Degrading),
+        "degrading"
+    );
 }
 
 // =========================================================================
@@ -408,16 +414,10 @@ mod git_tests {
         fs::write(dir.path().join("a.rs"), "fn main() {}").unwrap();
         fs::write(dir.path().join("b.rs"), "fn test() {}").unwrap();
 
-        let h1 = tokmd_cockpit::determinism::hash_files_from_paths(
-            dir.path(),
-            &["a.rs", "b.rs"],
-        )
-        .unwrap();
-        let h2 = tokmd_cockpit::determinism::hash_files_from_paths(
-            dir.path(),
-            &["b.rs", "a.rs"],
-        )
-        .unwrap();
+        let h1 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["a.rs", "b.rs"])
+            .unwrap();
+        let h2 = tokmd_cockpit::determinism::hash_files_from_paths(dir.path(), &["b.rs", "a.rs"])
+            .unwrap();
         assert_eq!(h1, h2, "hash should be order-independent");
         assert_eq!(h1.len(), 64);
     }

@@ -110,7 +110,7 @@ fn w67_bar_inc_by_and_set_position() {
     b.inc_by(10);
     b.set_position(50);
     b.set_position(0); // backwards
-    b.inc_by(0);       // zero delta
+    b.inc_by(0); // zero delta
     b.finish_and_clear();
 }
 

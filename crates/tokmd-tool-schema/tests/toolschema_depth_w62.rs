@@ -6,9 +6,7 @@
 
 use clap::{Arg, ArgAction, Command};
 use serde_json::Value;
-use tokmd_tool_schema::{
-    ToolSchemaFormat, TOOL_SCHEMA_VERSION, build_tool_schema, render_output,
-};
+use tokmd_tool_schema::{TOOL_SCHEMA_VERSION, ToolSchemaFormat, build_tool_schema, render_output};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -59,18 +57,18 @@ fn nested_cmd() -> Command {
         .version("1.0.0")
         .about("Parent cmd")
         .subcommand(
-            Command::new("child")
-                .about("Child cmd")
-                .subcommand(
-                    Command::new("grandchild")
-                        .about("Grandchild cmd")
-                        .arg(Arg::new("depth").long("depth").help("Depth level")),
-                ),
+            Command::new("child").about("Child cmd").subcommand(
+                Command::new("grandchild")
+                    .about("Grandchild cmd")
+                    .arg(Arg::new("depth").long("depth").help("Depth level")),
+            ),
         )
 }
 
 fn empty_cmd() -> Command {
-    Command::new("empty").version("0.1.0").about("No subcommands")
+    Command::new("empty")
+        .version("0.1.0")
+        .about("No subcommands")
 }
 
 fn multi_arg_cmd() -> Command {
@@ -179,7 +177,11 @@ fn w62_empty_cmd_has_root_tool_only() {
 fn w62_set_true_maps_to_boolean() {
     let schema = build_tool_schema(&simple_cmd());
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert_eq!(verbose.param_type, "boolean");
 }
 
@@ -187,7 +189,11 @@ fn w62_set_true_maps_to_boolean() {
 fn w62_count_maps_to_integer() {
     let schema = build_tool_schema(&simple_cmd());
     let export = schema.tools.iter().find(|t| t.name == "export").unwrap();
-    let count = export.parameters.iter().find(|p| p.name == "count").unwrap();
+    let count = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "count")
+        .unwrap();
     assert_eq!(count.param_type, "integer");
 }
 
@@ -203,7 +209,11 @@ fn w62_append_maps_to_array() {
 fn w62_set_false_maps_to_boolean() {
     let schema = build_tool_schema(&multi_arg_cmd());
     let run = schema.tools.iter().find(|t| t.name == "run").unwrap();
-    let no_color = run.parameters.iter().find(|p| p.name == "no-color").unwrap();
+    let no_color = run
+        .parameters
+        .iter()
+        .find(|p| p.name == "no-color")
+        .unwrap();
     assert_eq!(no_color.param_type, "boolean");
 }
 
@@ -231,7 +241,11 @@ fn w62_required_param_marked_true() {
 fn w62_optional_param_marked_false() {
     let schema = build_tool_schema(&simple_cmd());
     let scan = schema.tools.iter().find(|t| t.name == "scan").unwrap();
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert!(!verbose.required);
 }
 
@@ -239,7 +253,11 @@ fn w62_optional_param_marked_false() {
 fn w62_default_value_captured() {
     let schema = build_tool_schema(&simple_cmd());
     let export = schema.tools.iter().find(|t| t.name == "export").unwrap();
-    let format = export.parameters.iter().find(|p| p.name == "format").unwrap();
+    let format = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "format")
+        .unwrap();
     assert_eq!(format.default.as_deref(), Some("json"));
 }
 
@@ -259,7 +277,11 @@ fn w62_no_default_is_none() {
 fn w62_enum_values_captured() {
     let schema = build_tool_schema(&simple_cmd());
     let export = schema.tools.iter().find(|t| t.name == "export").unwrap();
-    let format = export.parameters.iter().find(|p| p.name == "format").unwrap();
+    let format = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "format")
+        .unwrap();
     let enums = format.enum_values.as_ref().expect("should have enums");
     assert_eq!(enums, &["json", "csv", "tsv"]);
 }
@@ -360,7 +382,9 @@ fn w62_jsonschema_required_array() {
     let schema = build_tool_schema(&simple_cmd());
     let out = render_output(&schema, ToolSchemaFormat::Jsonschema, false).unwrap();
     let v = parse_json(&out);
-    let scan = v["tools"].as_array().unwrap()
+    let scan = v["tools"]
+        .as_array()
+        .unwrap()
         .iter()
         .find(|t| t["name"] == "scan")
         .unwrap();
@@ -374,7 +398,9 @@ fn w62_jsonschema_enum_in_properties() {
     let schema = build_tool_schema(&simple_cmd());
     let out = render_output(&schema, ToolSchemaFormat::Jsonschema, false).unwrap();
     let v = parse_json(&out);
-    let export = v["tools"].as_array().unwrap()
+    let export = v["tools"]
+        .as_array()
+        .unwrap()
         .iter()
         .find(|t| t["name"] == "export")
         .unwrap();
@@ -446,7 +472,10 @@ fn w62_anthropic_uses_input_schema() {
     let out = render_output(&schema, ToolSchemaFormat::Anthropic, false).unwrap();
     let v = parse_json(&out);
     for tool in v["tools"].as_array().unwrap() {
-        assert!(tool["input_schema"].is_object(), "Anthropic uses input_schema");
+        assert!(
+            tool["input_schema"].is_object(),
+            "Anthropic uses input_schema"
+        );
     }
 }
 
@@ -456,7 +485,10 @@ fn w62_anthropic_no_parameters_key() {
     let out = render_output(&schema, ToolSchemaFormat::Anthropic, false).unwrap();
     let v = parse_json(&out);
     for tool in v["tools"].as_array().unwrap() {
-        assert!(tool.get("parameters").is_none(), "Anthropic should not have parameters key");
+        assert!(
+            tool.get("parameters").is_none(),
+            "Anthropic should not have parameters key"
+        );
     }
 }
 
@@ -495,7 +527,9 @@ fn w62_clap_has_tools_with_parameters() {
     let out = render_output(&schema, ToolSchemaFormat::Clap, false).unwrap();
     let v = parse_json(&out);
     assert!(v["tools"].is_array());
-    let scan = v["tools"].as_array().unwrap()
+    let scan = v["tools"]
+        .as_array()
+        .unwrap()
         .iter()
         .find(|t| t["name"] == "scan")
         .unwrap();
@@ -536,30 +570,70 @@ fn w62_pretty_and_compact_parse_to_same_value() {
 
 #[test]
 fn w62_determinism_same_cmd_same_schema() {
-    let a = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Jsonschema, false).unwrap();
-    let b = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Jsonschema, false).unwrap();
+    let a = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Jsonschema,
+        false,
+    )
+    .unwrap();
+    let b = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Jsonschema,
+        false,
+    )
+    .unwrap();
     assert_eq!(a, b);
 }
 
 #[test]
 fn w62_determinism_openai_stable() {
-    let a = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Openai, false).unwrap();
-    let b = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Openai, false).unwrap();
+    let a = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Openai,
+        false,
+    )
+    .unwrap();
+    let b = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Openai,
+        false,
+    )
+    .unwrap();
     assert_eq!(a, b);
 }
 
 #[test]
 fn w62_determinism_anthropic_stable() {
-    let a = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Anthropic, false).unwrap();
-    let b = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Anthropic, false).unwrap();
+    let a = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Anthropic,
+        false,
+    )
+    .unwrap();
+    let b = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Anthropic,
+        false,
+    )
+    .unwrap();
     assert_eq!(a, b);
 }
 
 #[test]
 fn w62_determinism_100_iterations() {
-    let reference = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Openai, false).unwrap();
+    let reference = render_output(
+        &build_tool_schema(&simple_cmd()),
+        ToolSchemaFormat::Openai,
+        false,
+    )
+    .unwrap();
     for _ in 0..100 {
-        let out = render_output(&build_tool_schema(&simple_cmd()), ToolSchemaFormat::Openai, false).unwrap();
+        let out = render_output(
+            &build_tool_schema(&simple_cmd()),
+            ToolSchemaFormat::Openai,
+            false,
+        )
+        .unwrap();
         assert_eq!(out, reference);
     }
 }
@@ -589,10 +663,18 @@ fn w62_all_formats_same_tool_names() {
     let oai = parse_json(&render_output(&schema, ToolSchemaFormat::Openai, false).unwrap());
     let ant = parse_json(&render_output(&schema, ToolSchemaFormat::Anthropic, false).unwrap());
 
-    let oai_names: Vec<&str> = oai["functions"].as_array().unwrap()
-        .iter().map(|f| f["name"].as_str().unwrap()).collect();
-    let ant_names: Vec<&str> = ant["tools"].as_array().unwrap()
-        .iter().map(|t| t["name"].as_str().unwrap()).collect();
+    let oai_names: Vec<&str> = oai["functions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["name"].as_str().unwrap())
+        .collect();
+    let ant_names: Vec<&str> = ant["tools"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["name"].as_str().unwrap())
+        .collect();
     assert_eq!(oai_names, ant_names);
 }
 

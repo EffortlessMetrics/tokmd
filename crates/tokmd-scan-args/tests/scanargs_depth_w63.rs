@@ -25,10 +25,7 @@ fn normalize_strips_single_dot_slash() {
 
 #[test]
 fn normalize_strips_multiple_dot_slashes() {
-    assert_eq!(
-        normalize_scan_input(Path::new("./././foo/bar")),
-        "foo/bar"
-    );
+    assert_eq!(normalize_scan_input(Path::new("./././foo/bar")), "foo/bar");
 }
 
 #[test]

@@ -105,8 +105,8 @@ fn hotspot_formula_lines_times_commits() {
 fn hotspot_ordering_highest_first() {
     let scores = vec![
         ("lib.rs", simulate_hotspot(200, 3)),   // 600
-        ("main.rs", simulate_hotspot(100, 10)),  // 1000
-        ("util.rs", simulate_hotspot(50, 2)),    // 100
+        ("main.rs", simulate_hotspot(100, 10)), // 1000
+        ("util.rs", simulate_hotspot(50, 2)),   // 100
     ];
     let mut sorted = scores.clone();
     sorted.sort_by(|a, b| b.1.cmp(&a.1));
@@ -123,10 +123,9 @@ fn hotspot_keys_subset_of_commit_counts() {
     commit_counts.insert("c.rs".to_string(), 1);
 
     // Only a.rs and b.rs have known line counts
-    let file_lines: BTreeMap<String, usize> =
-        [("a.rs".to_string(), 100), ("b.rs".to_string(), 50)]
-            .into_iter()
-            .collect();
+    let file_lines: BTreeMap<String, usize> = [("a.rs".to_string(), 100), ("b.rs".to_string(), 50)]
+        .into_iter()
+        .collect();
 
     let hotspots: BTreeMap<String, usize> = commit_counts
         .iter()
@@ -151,8 +150,7 @@ fn hotspot_keys_subset_of_commit_counts() {
 
 #[test]
 fn empty_file_lines_means_empty_hotspots() {
-    let commit_counts: BTreeMap<String, usize> =
-        [("x.rs".to_string(), 5)].into_iter().collect();
+    let commit_counts: BTreeMap<String, usize> = [("x.rs".to_string(), 5)].into_iter().collect();
     let file_lines: BTreeMap<String, usize> = BTreeMap::new();
 
     let hotspots: BTreeMap<String, usize> = commit_counts
@@ -211,7 +209,11 @@ mod git_integration {
         let dir = tempfile::tempdir().ok()?;
         let root = dir.path();
 
-        Command::new("git").args(["init"]).current_dir(root).output().ok()?;
+        Command::new("git")
+            .args(["init"])
+            .current_dir(root)
+            .output()
+            .ok()?;
         Command::new("git")
             .args(["config", "user.email", "test@w67.com"])
             .current_dir(root)
@@ -224,15 +226,27 @@ mod git_integration {
             .ok()?;
 
         std::fs::write(root.join("main.rs"), "fn main() {}\n").ok()?;
-        Command::new("git").args(["add", "."]).current_dir(root).output().ok()?;
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(root)
+            .output()
+            .ok()?;
         Command::new("git")
             .args(["commit", "-m", "init"])
             .current_dir(root)
             .output()
             .ok()?;
 
-        std::fs::write(root.join("main.rs"), "fn main() {\n    println!(\"hi\");\n}\n").ok()?;
-        Command::new("git").args(["add", "."]).current_dir(root).output().ok()?;
+        std::fs::write(
+            root.join("main.rs"),
+            "fn main() {\n    println!(\"hi\");\n}\n",
+        )
+        .ok()?;
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(root)
+            .output()
+            .ok()?;
         Command::new("git")
             .args(["commit", "-m", "update"])
             .current_dir(root)
@@ -240,7 +254,11 @@ mod git_integration {
             .ok()?;
 
         std::fs::write(root.join("lib.rs"), "pub fn hello() {}\n").ok()?;
-        Command::new("git").args(["add", "."]).current_dir(root).output().ok()?;
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(root)
+            .output()
+            .ok()?;
         Command::new("git")
             .args(["commit", "-m", "add lib"])
             .current_dir(root)

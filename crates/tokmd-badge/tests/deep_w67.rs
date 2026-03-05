@@ -45,7 +45,11 @@ fn w67_svg_has_two_rects_and_two_texts() {
     let svg = badge_svg("metric", "value");
     assert_eq!(svg.matches("<rect").count(), 2, "expected 2 rects");
     assert_eq!(svg.matches("<text").count(), 2, "expected 2 text elements");
-    assert_eq!(svg.matches("</text>").count(), 2, "expected 2 closing text tags");
+    assert_eq!(
+        svg.matches("</text>").count(),
+        2,
+        "expected 2 closing text tags"
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

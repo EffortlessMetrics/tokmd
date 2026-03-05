@@ -8,8 +8,8 @@ use anyhow::Result;
 use proptest::prelude::*;
 use serde::{Deserialize, Serialize};
 use tokmd_envelope::{
-    Artifact, CapabilityState, CapabilityStatus, Finding, FindingSeverity,
-    SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityState, CapabilityStatus, Finding, FindingSeverity, SENSOR_REPORT_SCHEMA,
+    SensorReport, ToolMeta, Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
 use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
@@ -126,11 +126,7 @@ impl EffortlessSensor for ThresholdSensor {
     fn version(&self) -> &str {
         "1.0.0"
     }
-    fn run(
-        &self,
-        settings: &ThresholdSettings,
-        substrate: &RepoSubstrate,
-    ) -> Result<SensorReport> {
+    fn run(&self, settings: &ThresholdSettings, substrate: &RepoSubstrate) -> Result<SensorReport> {
         let verdict = if substrate.total_code_lines > settings.threshold {
             Verdict::Warn
         } else {
@@ -426,7 +422,10 @@ fn report_findings_initially_empty_for_noop() {
 #[test]
 fn report_serde_roundtrip() {
     let report = ThresholdSensor
-        .run(&ThresholdSettings { threshold: 10 }, &multi_lang_substrate())
+        .run(
+            &ThresholdSettings { threshold: 10 },
+            &multi_lang_substrate(),
+        )
         .unwrap();
     let json = serde_json::to_string(&report).unwrap();
     let back: SensorReport = serde_json::from_str(&json).unwrap();
@@ -463,7 +462,9 @@ fn report_optional_fields_absent_when_none() {
 
 #[test]
 fn full_sensor_reports_capabilities_with_diff() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let caps = report.capabilities.as_ref().unwrap();
     assert_eq!(caps["loc_count"].status, CapabilityState::Available);
     assert_eq!(caps["diff_analysis"].status, CapabilityState::Available);
@@ -472,22 +473,34 @@ fn full_sensor_reports_capabilities_with_diff() {
 
 #[test]
 fn full_sensor_skips_diff_without_range() {
-    let report = FullSensor.run(&UnitSettings, &single_file_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &single_file_substrate())
+        .unwrap();
     let caps = report.capabilities.as_ref().unwrap();
     assert_eq!(caps["diff_analysis"].status, CapabilityState::Skipped);
 }
 
 #[test]
 fn capability_unavailable_has_reason() {
-    let report = FullSensor.run(&UnitSettings, &single_file_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &single_file_substrate())
+        .unwrap();
     let caps = report.capabilities.as_ref().unwrap();
     assert!(caps["coverage"].reason.is_some());
-    assert!(caps["coverage"].reason.as_ref().unwrap().contains("coverage"));
+    assert!(
+        caps["coverage"]
+            .reason
+            .as_ref()
+            .unwrap()
+            .contains("coverage")
+    );
 }
 
 #[test]
 fn capability_skipped_has_reason() {
-    let report = FullSensor.run(&UnitSettings, &single_file_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &single_file_substrate())
+        .unwrap();
     let caps = report.capabilities.as_ref().unwrap();
     let diff_cap = &caps["diff_analysis"];
     assert_eq!(diff_cap.status, CapabilityState::Skipped);
@@ -496,14 +509,18 @@ fn capability_skipped_has_reason() {
 
 #[test]
 fn capability_available_has_no_reason() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let caps = report.capabilities.as_ref().unwrap();
     assert!(caps["loc_count"].reason.is_none());
 }
 
 #[test]
 fn capabilities_serialized_in_json() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let val: serde_json::Value = serde_json::to_value(&report).unwrap();
     let caps = val.get("capabilities").unwrap().as_object().unwrap();
     assert!(caps.contains_key("loc_count"));
@@ -517,14 +534,18 @@ fn capabilities_serialized_in_json() {
 
 #[test]
 fn full_sensor_includes_artifacts() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let arts = report.artifacts.as_ref().unwrap();
     assert_eq!(arts.len(), 2);
 }
 
 #[test]
 fn artifact_receipt_has_id() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let arts = report.artifacts.as_ref().unwrap();
     let receipt = arts.iter().find(|a| a.artifact_type == "receipt").unwrap();
     assert_eq!(receipt.id.as_deref(), Some("main"));
@@ -533,7 +554,9 @@ fn artifact_receipt_has_id() {
 
 #[test]
 fn artifact_badge_has_no_id() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let arts = report.artifacts.as_ref().unwrap();
     let badge = arts.iter().find(|a| a.artifact_type == "badge").unwrap();
     assert!(badge.id.is_none());
@@ -545,7 +568,9 @@ fn artifact_badge_has_no_id() {
 
 #[test]
 fn full_sensor_data_payload_present() {
-    let report = FullSensor.run(&UnitSettings, &multi_lang_substrate()).unwrap();
+    let report = FullSensor
+        .run(&UnitSettings, &multi_lang_substrate())
+        .unwrap();
     let data = report.data.as_ref().unwrap();
     assert!(data.get("total_code").is_some());
     assert!(data.get("languages").is_some());
@@ -556,8 +581,14 @@ fn full_sensor_data_matches_substrate() {
     let sub = multi_lang_substrate();
     let report = FullSensor.run(&UnitSettings, &sub).unwrap();
     let data = report.data.as_ref().unwrap();
-    assert_eq!(data["total_code"].as_u64().unwrap(), sub.total_code_lines as u64);
-    assert_eq!(data["languages"].as_u64().unwrap(), sub.lang_summary.len() as u64);
+    assert_eq!(
+        data["total_code"].as_u64().unwrap(),
+        sub.total_code_lines as u64
+    );
+    assert_eq!(
+        data["languages"].as_u64().unwrap(),
+        sub.lang_summary.len() as u64
+    );
 }
 
 // ===========================================================================
@@ -639,7 +670,10 @@ fn diff_sensor_produces_findings_for_changed_files() {
 #[test]
 fn diff_sensor_finding_messages_reference_paths() {
     let report = DiffFindingSensor
-        .run(&DiffSettings { max_diff_files: 10 }, &multi_lang_substrate())
+        .run(
+            &DiffSettings { max_diff_files: 10 },
+            &multi_lang_substrate(),
+        )
         .unwrap();
     let messages: Vec<&str> = report.findings.iter().map(|f| f.message.as_str()).collect();
     assert!(messages.iter().any(|m| m.contains("src/lib.rs")));
@@ -649,7 +683,10 @@ fn diff_sensor_finding_messages_reference_paths() {
 #[test]
 fn diff_sensor_passes_when_within_limit() {
     let report = DiffFindingSensor
-        .run(&DiffSettings { max_diff_files: 10 }, &multi_lang_substrate())
+        .run(
+            &DiffSettings { max_diff_files: 10 },
+            &multi_lang_substrate(),
+        )
         .unwrap();
     assert_eq!(report.verdict, Verdict::Pass);
 }
@@ -657,7 +694,10 @@ fn diff_sensor_passes_when_within_limit() {
 #[test]
 fn diff_sensor_no_diff_files_when_no_range() {
     let report = DiffFindingSensor
-        .run(&DiffSettings { max_diff_files: 0 }, &single_file_substrate())
+        .run(
+            &DiffSettings { max_diff_files: 0 },
+            &single_file_substrate(),
+        )
         .unwrap();
     assert!(report.findings.is_empty());
     assert_eq!(report.verdict, Verdict::Pass);

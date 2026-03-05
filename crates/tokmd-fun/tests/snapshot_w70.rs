@@ -103,7 +103,11 @@ fn w70_obj_fractional_coords() {
 
 fn midi_hex(notes: &[MidiNote], tempo: u16) -> String {
     let bytes = render_midi(notes, tempo).unwrap();
-    bytes.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ")
+    bytes
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[test]
@@ -121,9 +125,27 @@ fn w70_midi_single_note() {
 #[test]
 fn w70_midi_chord() {
     let notes = vec![
-        MidiNote { key: 60, velocity: 80, start: 0, duration: 960, channel: 0 },
-        MidiNote { key: 64, velocity: 80, start: 0, duration: 960, channel: 0 },
-        MidiNote { key: 67, velocity: 80, start: 0, duration: 960, channel: 0 },
+        MidiNote {
+            key: 60,
+            velocity: 80,
+            start: 0,
+            duration: 960,
+            channel: 0,
+        },
+        MidiNote {
+            key: 64,
+            velocity: 80,
+            start: 0,
+            duration: 960,
+            channel: 0,
+        },
+        MidiNote {
+            key: 67,
+            velocity: 80,
+            start: 0,
+            duration: 960,
+            channel: 0,
+        },
     ];
     insta::assert_snapshot!("w70_midi_chord", midi_hex(&notes, 100));
 }

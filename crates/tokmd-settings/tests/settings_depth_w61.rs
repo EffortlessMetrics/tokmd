@@ -793,10 +793,7 @@ fn arb_config_mode() -> impl Strategy<Value = ConfigMode> {
 }
 
 fn arb_children_mode() -> impl Strategy<Value = ChildrenMode> {
-    prop_oneof![
-        Just(ChildrenMode::Collapse),
-        Just(ChildrenMode::Separate),
-    ]
+    prop_oneof![Just(ChildrenMode::Collapse), Just(ChildrenMode::Separate),]
 }
 
 fn arb_child_include_mode() -> impl Strategy<Value = ChildIncludeMode> {

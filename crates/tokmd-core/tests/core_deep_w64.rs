@@ -38,7 +38,10 @@ fn lang_workflow_default_settings_produces_receipt() {
 #[test]
 fn lang_workflow_receipt_has_rows() {
     let receipt = tokmd_core::lang_workflow(&scan_cwd(), &LangSettings::default()).unwrap();
-    assert!(!receipt.report.rows.is_empty(), "should find at least one language");
+    assert!(
+        !receipt.report.rows.is_empty(),
+        "should find at least one language"
+    );
 }
 
 #[test]
@@ -65,7 +68,10 @@ fn lang_workflow_with_files_flag() {
 #[test]
 fn lang_workflow_status_is_complete() {
     let receipt = tokmd_core::lang_workflow(&scan_cwd(), &LangSettings::default()).unwrap();
-    assert!(matches!(receipt.status, tokmd_core::types::ScanStatus::Complete));
+    assert!(matches!(
+        receipt.status,
+        tokmd_core::types::ScanStatus::Complete
+    ));
 }
 
 #[test]
@@ -213,7 +219,10 @@ fn ffi_version_has_schema_version_key() {
 #[test]
 fn ffi_version_schema_matches_constant() {
     let v = envelope(&run_json("version", "{}"));
-    assert_eq!(v["data"]["schema_version"].as_u64().unwrap(), u64::from(SCHEMA_VERSION));
+    assert_eq!(
+        v["data"]["schema_version"].as_u64().unwrap(),
+        u64::from(SCHEMA_VERSION)
+    );
 }
 
 #[test]

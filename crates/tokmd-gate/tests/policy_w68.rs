@@ -2,8 +2,8 @@
 
 use serde_json::json;
 use tokmd_gate::{
-    evaluate_policy, evaluate_ratchet_policy, resolve_pointer, GateResult, PolicyConfig,
-    PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel, RuleOperator,
+    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
+    RuleOperator, evaluate_policy, evaluate_ratchet_policy, resolve_pointer,
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────

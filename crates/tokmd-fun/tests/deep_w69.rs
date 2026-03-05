@@ -28,9 +28,7 @@ fn face_count(obj: &str) -> usize {
 }
 
 fn object_names(obj: &str) -> Vec<&str> {
-    obj.lines()
-        .filter_map(|l| l.strip_prefix("o "))
-        .collect()
+    obj.lines().filter_map(|l| l.strip_prefix("o ")).collect()
 }
 
 // =========================================================================
@@ -39,7 +37,10 @@ fn object_names(obj: &str) -> Vec<&str> {
 
 #[test]
 fn obj_deterministic_across_calls() {
-    let buildings = vec![mk("alpha", 0.0, 0.0, 1.0, 1.0, 2.0), mk("beta", 2.0, 0.0, 1.0, 1.0, 3.0)];
+    let buildings = vec![
+        mk("alpha", 0.0, 0.0, 1.0, 1.0, 2.0),
+        mk("beta", 2.0, 0.0, 1.0, 1.0, 3.0),
+    ];
     let a = render_obj(&buildings);
     let b = render_obj(&buildings);
     assert_eq!(a, b, "render_obj must be deterministic");
@@ -65,7 +66,9 @@ fn obj_header_always_present() {
 #[test]
 fn obj_vertices_and_faces_scale_linearly() {
     for n in 1..=5 {
-        let buildings: Vec<_> = (0..n).map(|i| mk(&format!("b{i}"), i as f32 * 2.0, 0.0, 1.0, 1.0, 1.0)).collect();
+        let buildings: Vec<_> = (0..n)
+            .map(|i| mk(&format!("b{i}"), i as f32 * 2.0, 0.0, 1.0, 1.0, 1.0))
+            .collect();
         let out = render_obj(&buildings);
         assert_eq!(vertex_count(&out), n * 8, "expected {n}*8 vertices");
         assert_eq!(face_count(&out), n * 6, "expected {n}*6 faces");
@@ -74,12 +77,18 @@ fn obj_vertices_and_faces_scale_linearly() {
 
 #[test]
 fn obj_face_indices_reference_valid_vertices() {
-    let out = render_obj(&[mk("v", 0.0, 0.0, 1.0, 1.0, 1.0), mk("w", 3.0, 0.0, 1.0, 1.0, 1.0)]);
+    let out = render_obj(&[
+        mk("v", 0.0, 0.0, 1.0, 1.0, 1.0),
+        mk("w", 3.0, 0.0, 1.0, 1.0, 1.0),
+    ]);
     let vcount = vertex_count(&out);
     for line in out.lines().filter(|l| l.starts_with("f ")) {
         for tok in line.split_whitespace().skip(1) {
             let idx: usize = tok.parse().expect("face index must be numeric");
-            assert!(idx >= 1 && idx <= vcount, "face index {idx} out of range 1..{vcount}");
+            assert!(
+                idx >= 1 && idx <= vcount,
+                "face index {idx} out of range 1..{vcount}"
+            );
         }
     }
 }
@@ -113,10 +122,17 @@ fn obj_names_with_spaces_and_dashes() {
 
 #[test]
 fn obj_name_ordering_preserved() {
-    let buildings = vec![mk("z_last", 0.0, 0.0, 1.0, 1.0, 1.0), mk("a_first", 2.0, 0.0, 1.0, 1.0, 1.0)];
+    let buildings = vec![
+        mk("z_last", 0.0, 0.0, 1.0, 1.0, 1.0),
+        mk("a_first", 2.0, 0.0, 1.0, 1.0, 1.0),
+    ];
     let out = render_obj(&buildings);
     let names = object_names(&out);
-    assert_eq!(names, vec!["z_last", "a_first"], "input order must be preserved");
+    assert_eq!(
+        names,
+        vec!["z_last", "a_first"],
+        "input order must be preserved"
+    );
 }
 
 // =========================================================================
@@ -142,7 +158,10 @@ fn obj_all_zero_dimensions() {
 #[test]
 fn obj_negative_coords_allowed() {
     let out = render_obj(&[mk("neg", -1.0, -2.0, 1.0, 1.0, 1.0)]);
-    assert!(out.contains("v -1 -2 0"), "negative base coords should appear");
+    assert!(
+        out.contains("v -1 -2 0"),
+        "negative base coords should appear"
+    );
 }
 
 #[test]
@@ -159,8 +178,20 @@ fn obj_single_building_eco_label_proxy() {
 #[test]
 fn midi_deterministic_across_calls() {
     let notes = vec![
-        MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 0 },
-        MidiNote { key: 64, velocity: 80, start: 480, duration: 480, channel: 0 },
+        MidiNote {
+            key: 60,
+            velocity: 100,
+            start: 0,
+            duration: 480,
+            channel: 0,
+        },
+        MidiNote {
+            key: 64,
+            velocity: 80,
+            start: 480,
+            duration: 480,
+            channel: 0,
+        },
     ];
     let a = render_midi(&notes, 120).unwrap();
     let b = render_midi(&notes, 120).unwrap();
@@ -179,14 +210,26 @@ fn midi_empty_notes_produces_valid_header() {
 
 #[test]
 fn midi_zero_tempo_clamped() {
-    let notes = vec![MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 0 }];
+    let notes = vec![MidiNote {
+        key: 60,
+        velocity: 100,
+        start: 0,
+        duration: 480,
+        channel: 0,
+    }];
     let bytes = render_midi(&notes, 0).unwrap();
     assert_eq!(&bytes[..4], b"MThd");
 }
 
 #[test]
 fn midi_max_channel_clamped() {
-    let notes = vec![MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 255 }];
+    let notes = vec![MidiNote {
+        key: 60,
+        velocity: 100,
+        start: 0,
+        duration: 480,
+        channel: 255,
+    }];
     let bytes = render_midi(&notes, 120).unwrap();
     assert!(!bytes.is_empty());
 }
@@ -194,18 +237,45 @@ fn midi_max_channel_clamped() {
 #[test]
 fn midi_simultaneous_notes() {
     let notes = vec![
-        MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 0 },
-        MidiNote { key: 64, velocity: 100, start: 0, duration: 480, channel: 0 },
-        MidiNote { key: 67, velocity: 100, start: 0, duration: 480, channel: 0 },
+        MidiNote {
+            key: 60,
+            velocity: 100,
+            start: 0,
+            duration: 480,
+            channel: 0,
+        },
+        MidiNote {
+            key: 64,
+            velocity: 100,
+            start: 0,
+            duration: 480,
+            channel: 0,
+        },
+        MidiNote {
+            key: 67,
+            velocity: 100,
+            start: 0,
+            duration: 480,
+            channel: 0,
+        },
     ];
     let bytes = render_midi(&notes, 120).unwrap();
     assert_eq!(&bytes[..4], b"MThd");
-    assert!(bytes.len() > 14, "chord should produce substantial MIDI data");
+    assert!(
+        bytes.len() > 14,
+        "chord should produce substantial MIDI data"
+    );
 }
 
 #[test]
 fn midi_high_tempo() {
-    let notes = vec![MidiNote { key: 72, velocity: 90, start: 0, duration: 240, channel: 0 }];
+    let notes = vec![MidiNote {
+        key: 72,
+        velocity: 90,
+        start: 0,
+        duration: 240,
+        channel: 0,
+    }];
     let bytes = render_midi(&notes, u16::MAX).unwrap();
     assert_eq!(&bytes[..4], b"MThd");
 }
@@ -213,8 +283,20 @@ fn midi_high_tempo() {
 #[test]
 fn midi_overlapping_notes_sorted_correctly() {
     let notes = vec![
-        MidiNote { key: 60, velocity: 100, start: 0, duration: 960, channel: 0 },
-        MidiNote { key: 72, velocity: 80, start: 480, duration: 480, channel: 1 },
+        MidiNote {
+            key: 60,
+            velocity: 100,
+            start: 0,
+            duration: 960,
+            channel: 0,
+        },
+        MidiNote {
+            key: 72,
+            velocity: 80,
+            start: 480,
+            duration: 480,
+            channel: 1,
+        },
     ];
     let bytes = render_midi(&notes, 120).unwrap();
     assert_eq!(&bytes[..4], b"MThd");

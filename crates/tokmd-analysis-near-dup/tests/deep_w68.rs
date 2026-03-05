@@ -2,7 +2,7 @@
 
 use std::fs;
 use tempfile::tempdir;
-use tokmd_analysis_near_dup::{build_near_dup_report, NearDupLimits};
+use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
 use tokmd_analysis_types::NearDupScope;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
@@ -70,7 +70,10 @@ fn identical_files_detected() {
         &[],
     )
     .unwrap();
-    assert!(!report.pairs.is_empty(), "identical files should produce pairs");
+    assert!(
+        !report.pairs.is_empty(),
+        "identical files should produce pairs"
+    );
     assert!(report.pairs[0].similarity >= 0.99);
 }
 
@@ -163,7 +166,11 @@ fn pairs_sorted_by_similarity_desc() {
     let dir = tempdir().unwrap();
     let base = gen_source(100, 0);
     // a == b (identical), c shares ~50% with a
-    let half: String = base.split_whitespace().take(50).collect::<Vec<_>>().join(" ");
+    let half: String = base
+        .split_whitespace()
+        .take(50)
+        .collect::<Vec<_>>()
+        .join(" ");
     let other_half = gen_source(50, 7777);
     let c_body = format!("{half} {other_half}");
     fs::write(dir.path().join("a.rs"), &base).unwrap();

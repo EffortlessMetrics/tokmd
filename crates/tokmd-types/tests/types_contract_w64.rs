@@ -146,7 +146,10 @@ fn diff_row_construction() {
         new_tokens: 6000,
         delta_tokens: 1000,
     };
-    assert_eq!(row.delta_code, (row.new_code as i64) - (row.old_code as i64));
+    assert_eq!(
+        row.delta_code,
+        (row.new_code as i64) - (row.old_code as i64)
+    );
     assert_eq!(
         row.delta_files,
         (row.new_files as i64) - (row.old_files as i64)
@@ -844,7 +847,10 @@ fn property_diff_row_delta_consistency() {
         new_tokens: 12000,
         delta_tokens: 2000,
     };
-    assert_eq!(row.delta_code, (row.new_code as i64) - (row.old_code as i64));
+    assert_eq!(
+        row.delta_code,
+        (row.new_code as i64) - (row.old_code as i64)
+    );
     assert_eq!(
         row.delta_lines,
         (row.new_lines as i64) - (row.old_lines as i64)

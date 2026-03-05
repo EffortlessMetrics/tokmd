@@ -19,14 +19,23 @@ fn sample_fs() -> MemFs {
 #[test]
 fn contract_read_to_string_exact() {
     let fs = sample_fs();
-    assert_eq!(fs.read_to_string(Path::new("src/lib.rs")).unwrap(), "pub fn hello() {}");
-    assert_eq!(fs.read_to_string(Path::new("README.md")).unwrap(), "# Hello");
+    assert_eq!(
+        fs.read_to_string(Path::new("src/lib.rs")).unwrap(),
+        "pub fn hello() {}"
+    );
+    assert_eq!(
+        fs.read_to_string(Path::new("README.md")).unwrap(),
+        "# Hello"
+    );
 }
 
 #[test]
 fn contract_read_bytes_exact() {
     let fs = sample_fs();
-    assert_eq!(fs.read_bytes(Path::new("assets/logo.png")).unwrap(), vec![0x89, 0x50, 0x4E, 0x47]);
+    assert_eq!(
+        fs.read_bytes(Path::new("assets/logo.png")).unwrap(),
+        vec![0x89, 0x50, 0x4E, 0x47]
+    );
 }
 
 #[test]
@@ -115,8 +124,14 @@ fn contract_is_dir_false_for_missing() {
 fn contract_exists_equals_file_or_dir() {
     let fs = sample_fs();
     let paths = [
-        "src/lib.rs", "src/main.rs", "README.md", "assets/logo.png",
-        "src", "assets", "nope", "also/nope",
+        "src/lib.rs",
+        "src/main.rs",
+        "README.md",
+        "assets/logo.png",
+        "src",
+        "assets",
+        "nope",
+        "also/nope",
     ];
     for p in paths {
         let path = Path::new(p);
@@ -131,10 +146,20 @@ fn contract_exists_equals_file_or_dir() {
 #[test]
 fn contract_file_and_dir_mutually_exclusive() {
     let fs = sample_fs();
-    let paths = ["src/lib.rs", "src", "README.md", "assets", "assets/logo.png", "nothing"];
+    let paths = [
+        "src/lib.rs",
+        "src",
+        "README.md",
+        "assets",
+        "assets/logo.png",
+        "nothing",
+    ];
     for p in paths {
         let path = Path::new(p);
-        assert!(!(fs.is_file(path) && fs.is_dir(path)), "is_file and is_dir both true for {p}");
+        assert!(
+            !(fs.is_file(path) && fs.is_dir(path)),
+            "is_file and is_dir both true for {p}"
+        );
     }
 }
 
@@ -143,7 +168,10 @@ fn contract_error_contains_path() {
     let fs = MemFs::new();
     let err = fs.read_to_string(Path::new("some/path.txt")).unwrap_err();
     let msg = err.to_string();
-    assert!(msg.contains("some") || msg.contains("path.txt"), "error should mention the path: {msg}");
+    assert!(
+        msg.contains("some") || msg.contains("path.txt"),
+        "error should mention the path: {msg}"
+    );
 }
 
 #[test]

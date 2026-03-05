@@ -28,15 +28,13 @@ fn make_file(path: &str, lang: &str, code: usize, in_diff: bool) -> SubstrateFil
 fn make_substrate(files: Vec<SubstrateFile>, diff: Option<DiffRange>) -> RepoSubstrate {
     let mut lang_summary: BTreeMap<String, LangSummary> = BTreeMap::new();
     for f in &files {
-        let e = lang_summary
-            .entry(f.lang.clone())
-            .or_insert(LangSummary {
-                files: 0,
-                code: 0,
-                lines: 0,
-                bytes: 0,
-                tokens: 0,
-            });
+        let e = lang_summary.entry(f.lang.clone()).or_insert(LangSummary {
+            files: 0,
+            code: 0,
+            lines: 0,
+            bytes: 0,
+            tokens: 0,
+        });
         e.files += 1;
         e.code += f.code;
         e.lines += f.lines;
@@ -138,10 +136,7 @@ fn diff_files_returns_only_in_diff() {
 
 #[test]
 fn diff_files_empty_when_none_in_diff() {
-    let sub = make_substrate(
-        vec![make_file("a.rs", "Rust", 10, false)],
-        None,
-    );
+    let sub = make_substrate(vec![make_file("a.rs", "Rust", 10, false)], None);
     assert_eq!(sub.diff_files().count(), 0);
 }
 
@@ -218,10 +213,7 @@ fn substrate_without_diff_range_is_none() {
 
 #[test]
 fn substrate_serde_roundtrip_without_diff() {
-    let sub = make_substrate(
-        vec![make_file("a.rs", "Rust", 100, false)],
-        None,
-    );
+    let sub = make_substrate(vec![make_file("a.rs", "Rust", 100, false)], None);
     let json = serde_json::to_string(&sub).unwrap();
     let back: RepoSubstrate = serde_json::from_str(&json).unwrap();
     assert_eq!(back.files.len(), 1);
@@ -245,7 +237,10 @@ fn substrate_serde_roundtrip_with_diff() {
 fn diff_range_omitted_from_json_when_none() {
     let sub = make_substrate(vec![], None);
     let json = serde_json::to_string(&sub).unwrap();
-    assert!(!json.contains("diff_range"), "None diff_range should be omitted");
+    assert!(
+        !json.contains("diff_range"),
+        "None diff_range should be omitted"
+    );
 }
 
 #[test]
@@ -319,10 +314,7 @@ fn substrate_json_deterministic_across_builds() {
 
 #[test]
 fn substrate_is_cloneable_for_multi_sensor_sharing() {
-    let sub = make_substrate(
-        vec![make_file("a.rs", "Rust", 10, false)],
-        None,
-    );
+    let sub = make_substrate(vec![make_file("a.rs", "Rust", 10, false)], None);
     let clone = sub.clone();
     assert_eq!(clone.total_code_lines, sub.total_code_lines);
     assert_eq!(clone.files.len(), sub.files.len());

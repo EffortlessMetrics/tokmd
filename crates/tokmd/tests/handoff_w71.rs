@@ -73,7 +73,14 @@ fn handoff_preset_deep_succeeds() {
     let out_dir = dir.path().join("ho_deep");
 
     tokmd_cmd()
-        .args(["handoff", "--preset", "deep", "--budget", "20k", "--out-dir"])
+        .args([
+            "handoff",
+            "--preset",
+            "deep",
+            "--budget",
+            "20k",
+            "--out-dir",
+        ])
         .arg(&out_dir)
         .assert()
         .success();
@@ -88,7 +95,14 @@ fn handoff_preset_deep_intelligence_has_derived() {
     let out_dir = dir.path().join("ho_deep_i");
 
     tokmd_cmd()
-        .args(["handoff", "--preset", "deep", "--budget", "20k", "--out-dir"])
+        .args([
+            "handoff",
+            "--preset",
+            "deep",
+            "--budget",
+            "20k",
+            "--out-dir",
+        ])
         .arg(&out_dir)
         .assert()
         .success();
@@ -313,12 +327,7 @@ fn handoff_invalid_preset_rejected() {
     let out_dir = dir.path().join("ho_bad");
 
     tokmd_cmd()
-        .args([
-            "handoff",
-            "--preset",
-            "nonexistent",
-            "--out-dir",
-        ])
+        .args(["handoff", "--preset", "nonexistent", "--out-dir"])
         .arg(&out_dir)
         .assert()
         .failure()

@@ -23,9 +23,12 @@ fn cargo_toml_mit_license() {
         "[package]\nname = \"x\"\nlicense = \"MIT\"\n",
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("Cargo.toml")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("Cargo.toml")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.findings.len(), 1);
     assert_eq!(report.findings[0].spdx, "MIT");
     assert_eq!(report.findings[0].source_kind, LicenseSourceKind::Metadata);
@@ -40,9 +43,12 @@ fn cargo_toml_apache2_license() {
         "[package]\nname = \"y\"\nlicense = \"Apache-2.0\"\n",
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("Cargo.toml")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("Cargo.toml")],
+        &default_limits(),
+    )
+    .unwrap();
     assert!(report.findings.iter().any(|f| f.spdx == "Apache-2.0"));
 }
 
@@ -54,9 +60,12 @@ fn cargo_toml_dual_license_expression() {
         "[package]\nname = \"z\"\nlicense = \"MIT OR Apache-2.0\"\n",
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("Cargo.toml")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("Cargo.toml")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.findings.len(), 1);
     assert_eq!(report.findings[0].spdx, "MIT OR Apache-2.0");
 }
@@ -69,9 +78,12 @@ fn cargo_toml_single_quoted_license() {
         "[package]\nname = \"q\"\nlicense = 'BSD-3-Clause'\n",
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("Cargo.toml")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("Cargo.toml")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.findings[0].spdx, "BSD-3-Clause");
 }
 
@@ -87,9 +99,12 @@ fn package_json_string_license() {
         r#"{"name":"x","license":"ISC"}"#,
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("package.json")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("package.json")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.findings.len(), 1);
     assert_eq!(report.findings[0].spdx, "ISC");
     assert_eq!(report.findings[0].source_kind, LicenseSourceKind::Metadata);
@@ -103,9 +118,12 @@ fn package_json_object_license() {
         r#"{"name":"x","license":{"type":"MIT","url":"https://mit.example"}}"#,
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("package.json")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("package.json")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.findings[0].spdx, "MIT");
 }
 
@@ -258,10 +276,12 @@ fn unrecognized_text_no_finding() {
     .unwrap();
     let report =
         build_license_report(dir.path(), &[PathBuf::from("LICENSE")], &default_limits()).unwrap();
-    assert!(report
-        .findings
-        .iter()
-        .all(|f| f.source_kind != LicenseSourceKind::Text));
+    assert!(
+        report
+            .findings
+            .iter()
+            .all(|f| f.source_kind != LicenseSourceKind::Text)
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -299,9 +319,12 @@ fn effective_is_highest_confidence() {
         "[package]\nname = \"x\"\nlicense = \"MIT\"\n",
     )
     .unwrap();
-    let report =
-        build_license_report(dir.path(), &[PathBuf::from("Cargo.toml")], &default_limits())
-            .unwrap();
+    let report = build_license_report(
+        dir.path(),
+        &[PathBuf::from("Cargo.toml")],
+        &default_limits(),
+    )
+    .unwrap();
     assert_eq!(report.effective, Some("MIT".to_string()));
 }
 
@@ -349,18 +372,10 @@ fn confidence_increases_with_more_phrase_hits() {
         "Permission is hereby granted, free of charge. The software is provided \"as is\".",
     )
     .unwrap();
-    let r_a = build_license_report(
-        dir.path(),
-        &[PathBuf::from("LICENSE-A")],
-        &default_limits(),
-    )
-    .unwrap();
-    let r_b = build_license_report(
-        dir.path(),
-        &[PathBuf::from("LICENSE-B")],
-        &default_limits(),
-    )
-    .unwrap();
+    let r_a =
+        build_license_report(dir.path(), &[PathBuf::from("LICENSE-A")], &default_limits()).unwrap();
+    let r_b =
+        build_license_report(dir.path(), &[PathBuf::from("LICENSE-B")], &default_limits()).unwrap();
     let conf_a = r_a
         .findings
         .iter()

@@ -195,8 +195,7 @@ fn gate_results_roundtrip() {
                 .with_reason("Below threshold")
                 .with_source("ci_artifact")
                 .with_artifact_path("reports/mutants.json"),
-            GateItem::new("coverage", Verdict::Pass)
-                .with_threshold(70.0, 85.0),
+            GateItem::new("coverage", Verdict::Pass).with_threshold(70.0, 85.0),
         ],
     );
 

@@ -128,11 +128,7 @@ fn max_files_limits_large_directory() {
         write_file(&dir, &format!("f{i:03}.txt"), "x");
     }
     let files = list_files(dir.path(), Some(10)).unwrap();
-    assert!(
-        files.len() <= 10,
-        "expected ≤10, got {}",
-        files.len()
-    );
+    assert!(files.len() <= 10, "expected ≤10, got {}", files.len());
 }
 
 // ===========================================================================
@@ -146,7 +142,10 @@ fn list_files_is_sorted() {
         write_file(&dir, name, "x");
     }
     let files = list_files(dir.path(), None).unwrap();
-    let names: Vec<String> = files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut sorted = names.clone();
     sorted.sort();
     assert_eq!(names, sorted, "output must be sorted");
@@ -170,7 +169,10 @@ fn list_files_sorted_across_subdirectories() {
     write_file(&dir, "a/file.txt", "x");
     write_file(&dir, "m/file.txt", "x");
     let files = list_files(dir.path(), None).unwrap();
-    let names: Vec<String> = files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut sorted = names.clone();
     sorted.sort();
     assert_eq!(names, sorted);
@@ -266,11 +268,20 @@ fn list_files_respects_gitignore() {
     write_file(&dir, "debug.log", "logs");
     write_file(&dir, "build/output.js", "built");
     let files = list_files(dir.path(), None).unwrap();
-    let names: Vec<String> = files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     assert!(names.iter().any(|n| n.contains("keep.rs")));
     // .log and build/ should be ignored
-    assert!(!names.iter().any(|n| n.ends_with(".log")), "log files should be ignored");
-    assert!(!names.iter().any(|n| n.contains("build/")), "build dir should be ignored");
+    assert!(
+        !names.iter().any(|n| n.ends_with(".log")),
+        "log files should be ignored"
+    );
+    assert!(
+        !names.iter().any(|n| n.contains("build/")),
+        "build dir should be ignored"
+    );
 }
 
 #[test]
@@ -281,7 +292,10 @@ fn list_files_respects_nested_gitignore() {
     write_file(&dir, "src/main.rs", "fn main(){}");
     write_file(&dir, "src/generated/auto.rs", "// auto");
     let files = list_files(dir.path(), None).unwrap();
-    let names: Vec<String> = files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     assert!(names.iter().any(|n| n.contains("main.rs")));
     assert!(
         !names.iter().any(|n| n.contains("generated")),
@@ -315,9 +329,20 @@ fn list_files_subset_when_limited() {
 #[test]
 fn license_candidates_all_license_variants() {
     let files: Vec<PathBuf> = [
-        "LICENSE", "LICENSE.md", "LICENSE.txt", "LICENSE-MIT", "LICENSE-APACHE",
-        "license", "License.md", "COPYING", "COPYING.txt", "copying",
-        "NOTICE", "NOTICE.md", "notice", "notice.txt",
+        "LICENSE",
+        "LICENSE.md",
+        "LICENSE.txt",
+        "LICENSE-MIT",
+        "LICENSE-APACHE",
+        "license",
+        "License.md",
+        "COPYING",
+        "COPYING.txt",
+        "copying",
+        "NOTICE",
+        "NOTICE.md",
+        "notice",
+        "notice.txt",
     ]
     .iter()
     .map(PathBuf::from)
@@ -342,8 +367,14 @@ fn license_candidates_all_metadata_variants() {
 #[test]
 fn license_candidates_rejects_non_matching() {
     let files: Vec<PathBuf> = [
-        "README.md", "main.rs", "Makefile", ".gitignore", "Dockerfile",
-        "setup.py", "index.js", "tsconfig.json",
+        "README.md",
+        "main.rs",
+        "Makefile",
+        ".gitignore",
+        "Dockerfile",
+        "setup.py",
+        "index.js",
+        "tsconfig.json",
     ]
     .iter()
     .map(PathBuf::from)
@@ -355,12 +386,10 @@ fn license_candidates_rejects_non_matching() {
 
 #[test]
 fn license_candidates_mixed_with_paths() {
-    let files: Vec<PathBuf> = [
-        "sub/LICENSE", "sub/Cargo.toml", "sub/main.rs",
-    ]
-    .iter()
-    .map(PathBuf::from)
-    .collect();
+    let files: Vec<PathBuf> = ["sub/LICENSE", "sub/Cargo.toml", "sub/main.rs"]
+        .iter()
+        .map(PathBuf::from)
+        .collect();
     let result = license_candidates(&files);
     assert_eq!(result.license_files.len(), 1);
     assert_eq!(result.metadata_files.len(), 1);
@@ -370,7 +399,10 @@ fn license_candidates_mixed_with_paths() {
 fn license_candidates_preserves_full_path() {
     let files = [PathBuf::from("deep/nested/LICENSE-MIT")];
     let result = license_candidates(&files);
-    assert_eq!(result.license_files[0], PathBuf::from("deep/nested/LICENSE-MIT"));
+    assert_eq!(
+        result.license_files[0],
+        PathBuf::from("deep/nested/LICENSE-MIT")
+    );
 }
 
 #[test]
@@ -383,18 +415,30 @@ fn license_candidates_empty_slice() {
 #[test]
 fn license_candidates_sorted_deterministic() {
     let files: Vec<PathBuf> = [
-        "z/NOTICE", "a/LICENSE", "m/COPYING", "b/Cargo.toml", "x/package.json",
+        "z/NOTICE",
+        "a/LICENSE",
+        "m/COPYING",
+        "b/Cargo.toml",
+        "x/package.json",
     ]
     .iter()
     .map(PathBuf::from)
     .collect();
     let result = license_candidates(&files);
-    let lic_names: Vec<String> = result.license_files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let lic_names: Vec<String> = result
+        .license_files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut sorted_lic = lic_names.clone();
     sorted_lic.sort();
     assert_eq!(lic_names, sorted_lic, "license files must be sorted");
 
-    let meta_names: Vec<String> = result.metadata_files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let meta_names: Vec<String> = result
+        .metadata_files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut sorted_meta = meta_names.clone();
     sorted_meta.sort();
     assert_eq!(meta_names, sorted_meta, "metadata files must be sorted");
@@ -441,7 +485,10 @@ fn file_size_large_content() {
     let dir = non_git_dir();
     let content = "x".repeat(100_000);
     write_file(&dir, "big.bin", &content);
-    assert_eq!(file_size(dir.path(), Path::new("big.bin")).unwrap(), 100_000);
+    assert_eq!(
+        file_size(dir.path(), Path::new("big.bin")).unwrap(),
+        100_000
+    );
 }
 
 #[test]
@@ -517,7 +564,10 @@ fn given_gitignored_files_when_walking_then_ignored_excluded() {
 
     // When: walking
     let files = list_files(dir.path(), None).unwrap();
-    let names: Vec<String> = files.iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
 
     // Then: ignored files excluded, source kept
     assert!(names.iter().any(|n| n.contains("main.rs")));

@@ -11,8 +11,17 @@ use tokmd_analysis_halstead::{
 #[test]
 fn supported_languages_all_detected() {
     let supported = [
-        "rust", "javascript", "typescript", "python", "go",
-        "c", "c++", "java", "c#", "php", "ruby",
+        "rust",
+        "javascript",
+        "typescript",
+        "python",
+        "go",
+        "c",
+        "c++",
+        "java",
+        "c#",
+        "php",
+        "ruby",
     ];
     for lang in &supported {
         assert!(is_halstead_lang(lang), "{} should be a halstead lang", lang);
@@ -45,10 +54,26 @@ fn unsupported_languages_rejected() {
 
 #[test]
 fn operators_for_known_langs_nonempty() {
-    let langs = ["rust", "javascript", "typescript", "python", "go", "c", "c++", "java", "c#", "php", "ruby"];
+    let langs = [
+        "rust",
+        "javascript",
+        "typescript",
+        "python",
+        "go",
+        "c",
+        "c++",
+        "java",
+        "c#",
+        "php",
+        "ruby",
+    ];
     for lang in &langs {
         let ops = operators_for_lang(lang);
-        assert!(!ops.is_empty(), "Operators for {} should not be empty", lang);
+        assert!(
+            !ops.is_empty(),
+            "Operators for {} should not be empty",
+            lang
+        );
     }
 }
 
@@ -87,7 +112,11 @@ fn go_operators_contain_func_and_defer() {
 fn javascript_and_typescript_share_operators() {
     let js = operators_for_lang("javascript");
     let ts = operators_for_lang("typescript");
-    assert_eq!(js.len(), ts.len(), "JS and TS should have same operator set");
+    assert_eq!(
+        js.len(),
+        ts.len(),
+        "JS and TS should have same operator set"
+    );
     for op in js {
         assert!(ts.contains(op), "TS missing JS operator: {}", op);
     }
@@ -121,7 +150,11 @@ fn operators_lists_have_no_duplicates() {
         let mut sorted: Vec<&str> = ops.to_vec();
         sorted.sort();
         for window in sorted.windows(2) {
-            assert_ne!(window[0], window[1], "Duplicate operator '{}' in {}", window[0], lang);
+            assert_ne!(
+                window[0], window[1],
+                "Duplicate operator '{}' in {}",
+                window[0], lang
+            );
         }
     }
 }
@@ -176,7 +209,10 @@ fn simple_rust_fn_tokenizes_operators_and_operands() {
 fn string_literals_counted_as_single_operand() {
     let code = r#"let s = "hello world";"#;
     let counts = tokenize_for_halstead(code, "rust");
-    assert!(counts.operands.contains("<string>"), "String literal should be tracked as <string>");
+    assert!(
+        counts.operands.contains("<string>"),
+        "String literal should be tracked as <string>"
+    );
 }
 
 #[test]
@@ -200,7 +236,10 @@ fn tokenize_unknown_lang_yields_only_operands() {
     let code = "fn main() { let x = 5; }";
     let counts = tokenize_for_halstead(code, "brainfuck");
     // No operators recognized since unknown lang has empty operator list
-    assert_eq!(counts.total_operators, 0, "Unknown lang should have no operators");
+    assert_eq!(
+        counts.total_operators, 0,
+        "Unknown lang should have no operators"
+    );
     // But identifiers/numbers are still counted as operands
     assert!(counts.total_operands > 0, "Should still have operands");
 }
@@ -213,7 +252,10 @@ fn tokenize_length_equals_sum_of_ops_and_opds() {
     assert!(length > 0);
     // Verify operators map sums match total_operators
     let sum_ops: usize = counts.operators.values().sum();
-    assert_eq!(sum_ops, counts.total_operators, "Operator map sum should equal total_operators");
+    assert_eq!(
+        sum_ops, counts.total_operators,
+        "Operator map sum should equal total_operators"
+    );
 }
 
 // ---------------------------------------------------------------------------

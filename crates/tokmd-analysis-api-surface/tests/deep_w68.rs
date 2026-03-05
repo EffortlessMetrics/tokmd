@@ -245,11 +245,7 @@ fn by_language_keys_sorted_alphabetically() {
     let rust = "pub fn x() {}\n";
     let go = "func PublicFn() {}\n";
     let java = "public class Main {}\n";
-    let (dir, paths) = write_temp_files(&[
-        ("lib.rs", rust),
-        ("main.go", go),
-        ("Main.java", java),
-    ]);
+    let (dir, paths) = write_temp_files(&[("lib.rs", rust), ("main.go", go), ("Main.java", java)]);
     let export = make_export(vec![
         make_row("lib.rs", ".", "Rust"),
         make_row("main.go", ".", "Go"),
@@ -333,7 +329,8 @@ fn top_exporters_only_files_with_public_items() {
 
 #[test]
 fn go_mixed_visibility_in_report() {
-    let code = "func PublicFunc() {}\nfunc privateFunc() {}\ntype MyStruct struct{}\nvar counter int\n";
+    let code =
+        "func PublicFunc() {}\nfunc privateFunc() {}\ntype MyStruct struct{}\nvar counter int\n";
     let (dir, paths) = write_temp_files(&[("main.go", code)]);
     let export = make_export(vec![make_row("main.go", ".", "Go")]);
     let r = build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();

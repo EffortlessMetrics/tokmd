@@ -3,7 +3,7 @@
 //! These tests verify that the FFI JSON envelope structure `{"ok": bool, "data": ..., "error": ...}`
 //! is correct, stable, and backwards-compatible.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tokmd_ffi_envelope::*;
 
 // ===========================================================================

@@ -11,8 +11,7 @@ use tokmd_context_git::GitScores;
 // Helpers
 // ---------------------------------------------------------------------------
 
-fn build_scores(
-    files: &[(&str, usize, usize)], // (path, lines, commits)
+fn build_scores(files: &[(&str, usize, usize)], // (path, lines, commits)
 ) -> GitScores {
     let mut commit_counts = BTreeMap::new();
     let mut hotspots = BTreeMap::new();
@@ -49,11 +48,7 @@ fn given_single_file_when_scores_built_then_hotspot_equals_lines_times_commits()
 
 #[test]
 fn given_multiple_files_when_scores_built_then_all_files_present() {
-    let scores = build_scores(&[
-        ("a.rs", 10, 3),
-        ("b.rs", 20, 1),
-        ("c.rs", 5, 10),
-    ]);
+    let scores = build_scores(&[("a.rs", 10, 3), ("b.rs", 20, 1), ("c.rs", 5, 10)]);
     assert_eq!(scores.hotspots.len(), 3);
     assert_eq!(scores.commit_counts.len(), 3);
 }
@@ -77,8 +72,8 @@ fn given_file_with_zero_commits_when_scores_built_then_hotspot_is_zero() {
 #[test]
 fn given_two_files_when_ranked_by_hotspot_then_higher_hotspot_file_wins() {
     let scores = build_scores(&[
-        ("hot.rs", 200, 10),   // hotspot = 2000
-        ("cold.rs", 50, 2),    // hotspot = 100
+        ("hot.rs", 200, 10), // hotspot = 2000
+        ("cold.rs", 50, 2),  // hotspot = 100
     ]);
     assert!(scores.hotspots["hot.rs"] > scores.hotspots["cold.rs"]);
 }
@@ -95,8 +90,8 @@ fn given_equal_lines_when_ranked_then_more_commits_means_higher_hotspot() {
 #[test]
 fn given_equal_commits_when_ranked_then_more_lines_means_higher_hotspot() {
     let scores = build_scores(&[
-        ("big.rs", 500, 5),   // 2500
-        ("small.rs", 50, 5),  // 250
+        ("big.rs", 500, 5),  // 2500
+        ("small.rs", 50, 5), // 250
     ]);
     assert!(scores.hotspots["big.rs"] > scores.hotspots["small.rs"]);
 }
@@ -104,9 +99,9 @@ fn given_equal_commits_when_ranked_then_more_lines_means_higher_hotspot() {
 #[test]
 fn given_files_with_varying_scores_when_sorted_by_hotspot_then_descending_order() {
     let scores = build_scores(&[
-        ("c.rs", 10, 1),    // 10
-        ("a.rs", 100, 10),  // 1000
-        ("b.rs", 50, 5),    // 250
+        ("c.rs", 10, 1),   // 10
+        ("a.rs", 100, 10), // 1000
+        ("b.rs", 50, 5),   // 250
     ]);
 
     let mut ranked: Vec<(&String, &usize)> = scores.hotspots.iter().collect();
@@ -123,10 +118,7 @@ fn given_files_with_varying_scores_when_sorted_by_hotspot_then_descending_order(
 
 #[test]
 fn given_known_commit_counts_when_queried_then_counts_are_exact() {
-    let scores = build_scores(&[
-        ("lib.rs", 200, 7),
-        ("main.rs", 100, 3),
-    ]);
+    let scores = build_scores(&[("lib.rs", 200, 7), ("main.rs", 100, 3)]);
     assert_eq!(scores.commit_counts["lib.rs"], 7);
     assert_eq!(scores.commit_counts["main.rs"], 3);
 }
@@ -140,11 +132,7 @@ fn given_file_not_in_scores_when_queried_then_none_returned() {
 
 #[test]
 fn given_many_files_when_change_frequency_summed_then_total_is_correct() {
-    let scores = build_scores(&[
-        ("a.rs", 10, 5),
-        ("b.rs", 20, 3),
-        ("c.rs", 30, 2),
-    ]);
+    let scores = build_scores(&[("a.rs", 10, 5), ("b.rs", 20, 3), ("c.rs", 30, 2)]);
     let total_commits: usize = scores.commit_counts.values().sum();
     assert_eq!(total_commits, 10);
 }
@@ -155,10 +143,7 @@ fn given_many_files_when_change_frequency_summed_then_total_is_correct() {
 
 #[test]
 fn given_scores_when_hotspot_keys_checked_then_subset_of_commit_count_keys() {
-    let scores = build_scores(&[
-        ("x.rs", 50, 3),
-        ("y.rs", 100, 1),
-    ]);
+    let scores = build_scores(&[("x.rs", 50, 3), ("y.rs", 100, 1)]);
     for key in scores.hotspots.keys() {
         assert!(
             scores.commit_counts.contains_key(key),
@@ -198,17 +183,17 @@ fn given_scores_when_top_n_selected_then_correct_count_returned() {
     ranked.sort_by(|a, b| b.1.cmp(a.1));
     let top3: Vec<&str> = ranked.iter().take(3).map(|(k, _)| k.as_str()).collect();
     assert_eq!(top3.len(), 3);
-    assert_eq!(top3[0], "a.rs");  // 1000
-    assert_eq!(top3[1], "e.rs");  // 900
-    assert_eq!(top3[2], "b.rs");  // 250
+    assert_eq!(top3[0], "a.rs"); // 1000
+    assert_eq!(top3[1], "e.rs"); // 900
+    assert_eq!(top3[2], "b.rs"); // 250
 }
 
 #[test]
 fn given_scores_when_filtered_by_threshold_then_low_scores_excluded() {
     let scores = build_scores(&[
-        ("hot.rs", 500, 10),   // 5000
-        ("warm.rs", 100, 3),   // 300
-        ("cold.rs", 5, 1),     // 5
+        ("hot.rs", 500, 10), // 5000
+        ("warm.rs", 100, 3), // 300
+        ("cold.rs", 5, 1),   // 5
     ]);
 
     let threshold = 100;
@@ -230,11 +215,7 @@ fn given_scores_when_filtered_by_threshold_then_low_scores_excluded() {
 
 #[test]
 fn given_unordered_inserts_when_keys_collected_then_alphabetical_order() {
-    let scores = build_scores(&[
-        ("z.rs", 10, 1),
-        ("a.rs", 20, 2),
-        ("m.rs", 30, 3),
-    ]);
+    let scores = build_scores(&[("z.rs", 10, 1), ("a.rs", 20, 2), ("m.rs", 30, 3)]);
     let keys: Vec<&String> = scores.hotspots.keys().collect();
     assert_eq!(keys, vec!["a.rs", "m.rs", "z.rs"]);
 }
@@ -258,16 +239,8 @@ fn given_path_prefixes_when_keys_sorted_then_lexicographic() {
 
 #[test]
 fn given_same_inputs_when_scores_built_twice_then_identical_results() {
-    let s1 = build_scores(&[
-        ("a.rs", 100, 5),
-        ("b.rs", 200, 3),
-        ("c.rs", 50, 10),
-    ]);
-    let s2 = build_scores(&[
-        ("a.rs", 100, 5),
-        ("b.rs", 200, 3),
-        ("c.rs", 50, 10),
-    ]);
+    let s1 = build_scores(&[("a.rs", 100, 5), ("b.rs", 200, 3), ("c.rs", 50, 10)]);
+    let s2 = build_scores(&[("a.rs", 100, 5), ("b.rs", 200, 3), ("c.rs", 50, 10)]);
 
     assert_eq!(
         s1.hotspots.keys().collect::<Vec<_>>(),
@@ -285,16 +258,8 @@ fn given_same_inputs_when_scores_built_twice_then_identical_results() {
 
 #[test]
 fn given_different_insertion_order_when_scores_built_then_same_key_order() {
-    let s1 = build_scores(&[
-        ("z.rs", 10, 1),
-        ("a.rs", 20, 2),
-        ("m.rs", 30, 3),
-    ]);
-    let s2 = build_scores(&[
-        ("a.rs", 20, 2),
-        ("m.rs", 30, 3),
-        ("z.rs", 10, 1),
-    ]);
+    let s1 = build_scores(&[("z.rs", 10, 1), ("a.rs", 20, 2), ("m.rs", 30, 3)]);
+    let s2 = build_scores(&[("a.rs", 20, 2), ("m.rs", 30, 3), ("z.rs", 10, 1)]);
 
     assert_eq!(
         s1.hotspots.keys().collect::<Vec<_>>(),
@@ -346,11 +311,7 @@ fn given_path_with_special_chars_when_used_as_key_then_still_valid() {
 
 #[test]
 fn hotspot_values_are_never_negative() {
-    let scores = build_scores(&[
-        ("a.rs", 0, 5),
-        ("b.rs", 100, 0),
-        ("c.rs", 50, 3),
-    ]);
+    let scores = build_scores(&[("a.rs", 0, 5), ("b.rs", 100, 0), ("c.rs", 50, 3)]);
     for &val in scores.hotspots.values() {
         // usize is inherently non-negative, but we document the invariant
         assert_eq!(val, val); // always true for usize
@@ -359,11 +320,7 @@ fn hotspot_values_are_never_negative() {
 
 #[test]
 fn commit_count_sum_equals_total_file_touches() {
-    let files = &[
-        ("a.rs", 10, 5),
-        ("b.rs", 20, 3),
-        ("c.rs", 30, 7),
-    ];
+    let files = &[("a.rs", 10, 5), ("b.rs", 20, 3), ("c.rs", 30, 7)];
     let scores = build_scores(files);
     let expected_total: usize = files.iter().map(|(_, _, c)| c).sum();
     let actual_total: usize = scores.commit_counts.values().sum();
@@ -373,9 +330,9 @@ fn commit_count_sum_equals_total_file_touches() {
 #[test]
 fn hotspot_sum_equals_weighted_commit_touches() {
     let files = &[
-        ("a.rs", 10, 5),   // 50
-        ("b.rs", 20, 3),   // 60
-        ("c.rs", 30, 7),   // 210
+        ("a.rs", 10, 5), // 50
+        ("b.rs", 20, 3), // 60
+        ("c.rs", 30, 7), // 210
     ];
     let scores = build_scores(files);
     let expected_total: usize = files.iter().map(|(_, l, c)| l * c).sum();
@@ -584,13 +541,20 @@ mod with_git {
             Some(r) => r,
             None => return,
         };
-        let rows = vec![make_row("a.rs", 4), make_row("b.rs", 5), make_row("c.rs", 2)];
+        let rows = vec![
+            make_row("a.rs", 4),
+            make_row("b.rs", 5),
+            make_row("c.rs", 2),
+        ];
         let Some(scores) = compute_git_scores(repo.path(), &rows, 1, 100) else {
             return;
         };
         // With max_commits=1, only the latest commit (c3: c.rs) should be counted
         let total: usize = scores.commit_counts.values().sum();
-        assert!(total <= 3, "max_commits=1 should limit total file touches, got {total}");
+        assert!(
+            total <= 3,
+            "max_commits=1 should limit total file touches, got {total}"
+        );
     }
 }
 

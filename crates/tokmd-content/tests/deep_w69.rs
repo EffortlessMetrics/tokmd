@@ -6,13 +6,13 @@
 use std::fs::File;
 use std::io::Write;
 
+use tokmd_content::complexity::{
+    analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
+    estimate_cyclomatic_complexity,
+};
 use tokmd_content::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines,
-};
-use tokmd_content::complexity::{
-    analyze_functions, estimate_cyclomatic_complexity, estimate_cognitive_complexity,
-    analyze_nesting_depth,
 };
 
 // =========================================================================
@@ -35,12 +35,17 @@ fn entropy_uniform_single_byte_is_zero() {
 fn entropy_two_equal_frequencies_is_one() {
     let data: Vec<u8> = (0..1024).map(|i| (i % 2) as u8).collect();
     let e = entropy_bits_per_byte(&data);
-    assert!((e - 1.0).abs() < 0.01, "two bytes equally frequent → ~1.0, got {e}");
+    assert!(
+        (e - 1.0).abs() < 0.01,
+        "two bytes equally frequent → ~1.0, got {e}"
+    );
 }
 
 #[test]
 fn entropy_max_is_eight_bits() {
-    let data: Vec<u8> = (0..256).flat_map(|b| std::iter::repeat(b as u8).take(100)).collect();
+    let data: Vec<u8> = (0..256)
+        .flat_map(|b| std::iter::repeat(b as u8).take(100))
+        .collect();
     let e = entropy_bits_per_byte(&data);
     assert!((e - 8.0).abs() < 0.01, "uniform 256 values → ~8.0, got {e}");
 }
@@ -61,11 +66,14 @@ fn entropy_deterministic() {
 fn count_tags_basic_detection() {
     let text = "// TODO: fix this\n// FIXME: broken\n// HACK: workaround";
     let result = count_tags(text, &["TODO", "FIXME", "HACK"]);
-    assert_eq!(result, vec![
-        ("TODO".to_string(), 1),
-        ("FIXME".to_string(), 1),
-        ("HACK".to_string(), 1),
-    ]);
+    assert_eq!(
+        result,
+        vec![
+            ("TODO".to_string(), 1),
+            ("FIXME".to_string(), 1),
+            ("HACK".to_string(), 1),
+        ]
+    );
 }
 
 #[test]
@@ -126,7 +134,10 @@ fn is_text_like_detects_text_and_binary() {
 fn read_head_respects_limit() {
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("file.txt");
-    File::create(&path).unwrap().write_all(b"abcdefghij").unwrap();
+    File::create(&path)
+        .unwrap()
+        .write_all(b"abcdefghij")
+        .unwrap();
     let bytes = read_head(&path, 5).unwrap();
     assert_eq!(bytes, b"abcde");
 }
@@ -152,8 +163,14 @@ fn read_lines_max_zero_returns_empty() {
 fn hash_file_matches_hash_bytes() {
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("hash.txt");
-    File::create(&path).unwrap().write_all(b"deterministic").unwrap();
-    assert_eq!(hash_file(&path, 1000).unwrap(), hash_bytes(b"deterministic"));
+    File::create(&path)
+        .unwrap()
+        .write_all(b"deterministic")
+        .unwrap();
+    assert_eq!(
+        hash_file(&path, 1000).unwrap(),
+        hash_bytes(b"deterministic")
+    );
 }
 
 // =========================================================================
@@ -190,7 +207,10 @@ fn analyze_functions_python_defs() {
 fn cyclomatic_empty_and_simple() {
     let c = estimate_cyclomatic_complexity("", "rust");
     assert_eq!(c.total_cc, 0);
-    let c = estimate_cyclomatic_complexity("fn check(x: i32) {\n    if x > 0 {\n        println!(\"pos\");\n    }\n}\n", "rust");
+    let c = estimate_cyclomatic_complexity(
+        "fn check(x: i32) {\n    if x > 0 {\n        println!(\"pos\");\n    }\n}\n",
+        "rust",
+    );
     assert!(c.total_cc >= 2, "base 1 + if = 2, got {}", c.total_cc);
 }
 
@@ -207,6 +227,9 @@ fn cognitive_empty_content() {
 #[test]
 fn nesting_empty_and_simple() {
     assert_eq!(analyze_nesting_depth("", "rust").max_depth, 0);
-    let n = analyze_nesting_depth("fn main() {\n    if true {\n        println!(\"hi\");\n    }\n}\n", "rust");
+    let n = analyze_nesting_depth(
+        "fn main() {\n    if true {\n        println!(\"hi\");\n    }\n}\n",
+        "rust",
+    );
     assert!(n.max_depth >= 1);
 }

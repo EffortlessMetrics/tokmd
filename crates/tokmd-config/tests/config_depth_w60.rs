@@ -11,8 +11,8 @@
 //! - Property tests for config determinism
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, ColorMode, ConfigMode, ContextOutput, ContextStrategy,
-    CockpitFormat, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
+    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, ConfigMode, ContextOutput,
+    ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
     ImportGranularity, NearDupScope, Profile, RedactMode, SensorFormat, TomlConfig, UserConfig,
     ValueMetric, ViewProfile,
 };
@@ -261,19 +261,23 @@ fn given_invalid_toml_syntax_when_parsed_then_error() {
 
 #[test]
 fn given_wrong_type_for_field_when_parsed_then_error() {
-    let result = TomlConfig::parse(r#"
+    let result = TomlConfig::parse(
+        r#"
 [scan]
 hidden = "not_a_bool"
-"#);
+"#,
+    );
     assert!(result.is_err());
 }
 
 #[test]
 fn given_wrong_type_for_depth_when_parsed_then_error() {
-    let result = TomlConfig::parse(r#"
+    let result = TomlConfig::parse(
+        r#"
 [module]
 depth = "three"
-"#);
+"#,
+    );
     assert!(result.is_err());
 }
 

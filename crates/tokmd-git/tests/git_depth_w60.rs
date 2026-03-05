@@ -231,18 +231,12 @@ fn intent_feat_with_scope() {
 
 #[test]
 fn intent_fix_conventional() {
-    assert_eq!(
-        classify_intent("fix: null pointer"),
-        CommitIntentKind::Fix
-    );
+    assert_eq!(classify_intent("fix: null pointer"), CommitIntentKind::Fix);
 }
 
 #[test]
 fn intent_fix_with_bang() {
-    assert_eq!(
-        classify_intent("fix!: breaking fix"),
-        CommitIntentKind::Fix
-    );
+    assert_eq!(classify_intent("fix!: breaking fix"), CommitIntentKind::Fix);
 }
 
 #[test]
@@ -271,18 +265,12 @@ fn intent_test_conventional() {
 
 #[test]
 fn intent_chore_conventional() {
-    assert_eq!(
-        classify_intent("chore: bump deps"),
-        CommitIntentKind::Chore
-    );
+    assert_eq!(classify_intent("chore: bump deps"), CommitIntentKind::Chore);
 }
 
 #[test]
 fn intent_ci_conventional() {
-    assert_eq!(
-        classify_intent("ci: add workflow"),
-        CommitIntentKind::Ci
-    );
+    assert_eq!(classify_intent("ci: add workflow"), CommitIntentKind::Ci);
 }
 
 #[test]
@@ -405,18 +393,12 @@ fn intent_keyword_readme() {
 
 #[test]
 fn intent_keyword_perf_optimize() {
-    assert_eq!(
-        classify_intent("Optimize hot loop"),
-        CommitIntentKind::Perf
-    );
+    assert_eq!(classify_intent("Optimize hot loop"), CommitIntentKind::Perf);
 }
 
 #[test]
 fn intent_keyword_lint() {
-    assert_eq!(
-        classify_intent("Apply lint rules"),
-        CommitIntentKind::Style
-    );
+    assert_eq!(classify_intent("Apply lint rules"), CommitIntentKind::Style);
 }
 
 #[test]
@@ -620,7 +602,11 @@ fn freshness_all_timestamps_are_positive() {
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     for c in &commits {
-        assert!(c.timestamp > 0, "timestamp should be positive: {}", c.timestamp);
+        assert!(
+            c.timestamp > 0,
+            "timestamp should be positive: {}",
+            c.timestamp
+        );
     }
 }
 
@@ -843,10 +829,7 @@ fn merge_commit_is_included_in_history() {
     std::fs::write(repo.path.join("feature.rs"), "feature").unwrap();
     commit(&repo.path, "feature commit");
 
-    git_in(&repo.path)
-        .args(["checkout", "-"])
-        .output()
-        .unwrap();
+    git_in(&repo.path).args(["checkout", "-"]).output().unwrap();
     std::fs::write(repo.path.join("main_only.rs"), "main").unwrap();
     commit(&repo.path, "main commit");
 
@@ -1046,10 +1029,7 @@ fn intent_feature_alias() {
 
 #[test]
 fn intent_bugfix_alias() {
-    assert_eq!(
-        classify_intent("bugfix: fix race"),
-        CommitIntentKind::Fix
-    );
+    assert_eq!(classify_intent("bugfix: fix race"), CommitIntentKind::Fix);
 }
 
 #[test]
@@ -1070,8 +1050,5 @@ fn intent_tests_plural() {
 
 #[test]
 fn intent_doc_singular() {
-    assert_eq!(
-        classify_intent("doc: fix typo"),
-        CommitIntentKind::Docs
-    );
+    assert_eq!(classify_intent("doc: fix typo"), CommitIntentKind::Docs);
 }

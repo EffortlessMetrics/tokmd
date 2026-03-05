@@ -3,9 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use tokmd_envelope::{
-    findings, Artifact, CapabilityStatus, Finding, FindingLocation,
-    FindingSeverity, GateItem, GateResults, SensorReport, ToolMeta, Verdict,
-    SENSOR_REPORT_SCHEMA,
+    Artifact, CapabilityStatus, Finding, FindingLocation, FindingSeverity, GateItem, GateResults,
+    SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict, findings,
 };
 
 // ---------------------------------------------------------------------------
@@ -84,9 +83,7 @@ fn full_report_serde_roundtrip() {
         Verdict::Warn,
         "Warnings found".to_string(),
     );
-    r.add_finding(
-        sample_finding("risk", "hotspot", "src/lib.rs").with_fingerprint("custom-tool"),
-    );
+    r.add_finding(sample_finding("risk", "hotspot", "src/lib.rs").with_fingerprint("custom-tool"));
     r.add_capability("git", CapabilityStatus::available());
     r.add_capability("coverage", CapabilityStatus::unavailable("missing"));
     let r = r
@@ -141,7 +138,10 @@ fn finding_fingerprints_unique_for_different_codes() {
 #[test]
 fn finding_fingerprints_unique_for_different_tools() {
     let f = sample_finding("risk", "hotspot", "src/a.rs");
-    assert_ne!(f.compute_fingerprint("tokmd"), f.compute_fingerprint("other-tool"));
+    assert_ne!(
+        f.compute_fingerprint("tokmd"),
+        f.compute_fingerprint("other-tool")
+    );
 }
 
 #[test]
@@ -164,7 +164,11 @@ fn many_findings_all_unique_fingerprints() {
             fps.insert(f.compute_fingerprint("tokmd"));
         }
     }
-    assert_eq!(fps.len(), 15, "all 15 combinations must produce unique fingerprints");
+    assert_eq!(
+        fps.len(),
+        15,
+        "all 15 combinations must produce unique fingerprints"
+    );
 }
 
 #[test]
@@ -379,5 +383,8 @@ fn capabilities_sorted_by_key_in_json() {
     let a_pos = json.find("a-first").unwrap();
     let m_pos = json.find("m-middle").unwrap();
     let z_pos = json.find("z-last").unwrap();
-    assert!(a_pos < m_pos && m_pos < z_pos, "capabilities must be sorted");
+    assert!(
+        a_pos < m_pos && m_pos < z_pos,
+        "capabilities must be sorted"
+    );
 }

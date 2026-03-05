@@ -112,7 +112,8 @@ fn rust_doc_attr_counts_as_documented() {
 #[test]
 fn rust_comment_lines_not_counted_as_items() {
     let tmp = tempfile::tempdir().unwrap();
-    let code = "// fn fake_item() {}\n/* fn another_fake() {} */\n/// doc for next\npub fn real() {}\n";
+    let code =
+        "// fn fake_item() {}\n/* fn another_fake() {} */\n/// doc for next\npub fn real() {}\n";
     let rel = write_file(tmp.path(), "src/lib.rs", code);
     let rows = vec![make_row("src/lib.rs", "src", "Rust", FileKind::Parent)];
     let export = make_export(rows);
@@ -141,7 +142,12 @@ fn js_export_async_function_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "export async function fetchData() {}\nasync function localFetch() {}\n";
     let rel = write_file(tmp.path(), "src/api.js", code);
-    let rows = vec![make_row("src/api.js", "src", "JavaScript", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/api.js",
+        "src",
+        "JavaScript",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -153,7 +159,12 @@ fn ts_export_abstract_class_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "export abstract class Base {}\nclass Internal {}\n";
     let rel = write_file(tmp.path(), "src/base.ts", code);
-    let rows = vec![make_row("src/base.ts", "src", "TypeScript", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/base.ts",
+        "src",
+        "TypeScript",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -165,7 +176,12 @@ fn ts_export_let_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "export let counter = 0;\nlet internal = 1;\n";
     let rel = write_file(tmp.path(), "src/state.ts", code);
-    let rows = vec![make_row("src/state.ts", "src", "TypeScript", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/state.ts",
+        "src",
+        "TypeScript",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -177,7 +193,12 @@ fn ts_export_enum_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "export enum Color { Red, Green }\nenum Internal { A }\n";
     let rel = write_file(tmp.path(), "src/enums.ts", code);
-    let rows = vec![make_row("src/enums.ts", "src", "TypeScript", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/enums.ts",
+        "src",
+        "TypeScript",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -189,7 +210,12 @@ fn js_export_default_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "export default function main() {}\n";
     let rel = write_file(tmp.path(), "src/index.js", code);
-    let rows = vec![make_row("src/index.js", "src", "JavaScript", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/index.js",
+        "src",
+        "JavaScript",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -322,7 +348,12 @@ fn java_public_final_class_detected() {
     let tmp = tempfile::tempdir().unwrap();
     let code = "public final class Immutable {}\nfinal class Internal {}\n";
     let rel = write_file(tmp.path(), "src/Immutable.java", code);
-    let rows = vec![make_row("src/Immutable.java", "src", "Java", FileKind::Parent)];
+    let rows = vec![make_row(
+        "src/Immutable.java",
+        "src",
+        "Java",
+        FileKind::Parent,
+    )];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 1);
@@ -372,11 +403,31 @@ fn java_javadoc_documentation_detected() {
 fn six_language_report_deterministic_over_20_runs() {
     let tmp = tempfile::tempdir().unwrap();
     let rust = write_file(tmp.path(), "src/lib.rs", "pub fn a() {}\nfn b() {}\n");
-    let js = write_file(tmp.path(), "src/index.js", "export function c() {}\nfunction d() {}\n");
-    let ts = write_file(tmp.path(), "src/types.ts", "export interface I {}\ntype T = string;\n");
-    let py = write_file(tmp.path(), "lib/main.py", "def e():\n    pass\ndef _f():\n    pass\n");
-    let go = write_file(tmp.path(), "pkg/main.go", "func Public() {}\nfunc private() {}\n");
-    let java = write_file(tmp.path(), "src/Main.java", "public class Main {}\nclass Internal {}\n");
+    let js = write_file(
+        tmp.path(),
+        "src/index.js",
+        "export function c() {}\nfunction d() {}\n",
+    );
+    let ts = write_file(
+        tmp.path(),
+        "src/types.ts",
+        "export interface I {}\ntype T = string;\n",
+    );
+    let py = write_file(
+        tmp.path(),
+        "lib/main.py",
+        "def e():\n    pass\ndef _f():\n    pass\n",
+    );
+    let go = write_file(
+        tmp.path(),
+        "pkg/main.go",
+        "func Public() {}\nfunc private() {}\n",
+    );
+    let java = write_file(
+        tmp.path(),
+        "src/Main.java",
+        "public class Main {}\nclass Internal {}\n",
+    );
     let rows = vec![
         make_row("src/lib.rs", "src", "Rust", FileKind::Parent),
         make_row("src/index.js", "src", "JavaScript", FileKind::Parent),
@@ -398,8 +449,7 @@ fn six_language_report_deterministic_over_20_runs() {
     let baseline =
         build_api_surface_report(tmp.path(), &files, &export, &default_limits()).unwrap();
     for _ in 0..20 {
-        let r =
-            build_api_surface_report(tmp.path(), &files, &export, &default_limits()).unwrap();
+        let r = build_api_surface_report(tmp.path(), &files, &export, &default_limits()).unwrap();
         assert_eq!(r.total_items, baseline.total_items);
         assert_eq!(r.public_items, baseline.public_items);
         assert_eq!(r.internal_items, baseline.internal_items);
@@ -551,13 +601,8 @@ fn top_exporters_excludes_internal_only_files() {
         make_row("src/priv.rs", "src", "Rust", FileKind::Parent),
     ];
     let export = make_export(rows);
-    let r = build_api_surface_report(
-        tmp.path(),
-        &[rel_pub, rel_priv],
-        &export,
-        &default_limits(),
-    )
-    .unwrap();
+    let r = build_api_surface_report(tmp.path(), &[rel_pub, rel_priv], &export, &default_limits())
+        .unwrap();
     assert_eq!(r.top_exporters.len(), 1);
     assert!(r.top_exporters[0].public_items > 0);
 }
@@ -593,8 +638,14 @@ fn api_surface_report_json_roundtrip() {
 
     let json = serde_json::to_string(&r).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(parsed["total_items"].as_u64().unwrap(), r.total_items as u64);
-    assert_eq!(parsed["public_items"].as_u64().unwrap(), r.public_items as u64);
+    assert_eq!(
+        parsed["total_items"].as_u64().unwrap(),
+        r.total_items as u64
+    );
+    assert_eq!(
+        parsed["public_items"].as_u64().unwrap(),
+        r.public_items as u64
+    );
     assert_eq!(
         parsed["internal_items"].as_u64().unwrap(),
         r.internal_items as u64
@@ -689,7 +740,10 @@ fn any_lang_item_line() -> impl Strategy<Value = (String, String)> {
     prop_oneof![
         Just(("pub fn g() {}".to_string(), "Rust".to_string())),
         Just(("fn p() {}".to_string(), "Rust".to_string())),
-        Just(("export function e() {}".to_string(), "JavaScript".to_string())),
+        Just((
+            "export function e() {}".to_string(),
+            "JavaScript".to_string()
+        )),
         Just(("function i() {}".to_string(), "JavaScript".to_string())),
         Just(("func Public() {}".to_string(), "Go".to_string())),
         Just(("func private() {}".to_string(), "Go".to_string())),

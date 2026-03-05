@@ -172,7 +172,9 @@ fn one_byte_grade_a() {
 // ===========================================================================
 #[test]
 fn exactly_1mb_grade_a() {
-    let eco = build_fun_report(&derived_bytes(1_048_576)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(1_048_576))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "A");
     assert_eq!(eco.score, 95.0);
 }
@@ -182,7 +184,9 @@ fn exactly_1mb_grade_a() {
 // ===========================================================================
 #[test]
 fn one_byte_past_1mb_grade_b() {
-    let eco = build_fun_report(&derived_bytes(1_048_577)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(1_048_577))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "B");
     assert_eq!(eco.score, 80.0);
 }
@@ -192,7 +196,9 @@ fn one_byte_past_1mb_grade_b() {
 // ===========================================================================
 #[test]
 fn exactly_10mb_grade_b() {
-    let eco = build_fun_report(&derived_bytes(10_485_760)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(10_485_760))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "B");
     assert_eq!(eco.score, 80.0);
 }
@@ -202,7 +208,9 @@ fn exactly_10mb_grade_b() {
 // ===========================================================================
 #[test]
 fn one_byte_past_10mb_grade_c() {
-    let eco = build_fun_report(&derived_bytes(10_485_761)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(10_485_761))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "C");
     assert_eq!(eco.score, 65.0);
 }
@@ -212,7 +220,9 @@ fn one_byte_past_10mb_grade_c() {
 // ===========================================================================
 #[test]
 fn exactly_50mb_grade_c() {
-    let eco = build_fun_report(&derived_bytes(52_428_800)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(52_428_800))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "C");
     assert_eq!(eco.score, 65.0);
 }
@@ -222,7 +232,9 @@ fn exactly_50mb_grade_c() {
 // ===========================================================================
 #[test]
 fn one_byte_past_50mb_grade_d() {
-    let eco = build_fun_report(&derived_bytes(52_428_801)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(52_428_801))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "D");
     assert_eq!(eco.score, 45.0);
 }
@@ -232,7 +244,9 @@ fn one_byte_past_50mb_grade_d() {
 // ===========================================================================
 #[test]
 fn exactly_200mb_grade_d() {
-    let eco = build_fun_report(&derived_bytes(209_715_200)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(209_715_200))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "D");
     assert_eq!(eco.score, 45.0);
 }
@@ -242,7 +256,9 @@ fn exactly_200mb_grade_d() {
 // ===========================================================================
 #[test]
 fn one_byte_past_200mb_grade_e() {
-    let eco = build_fun_report(&derived_bytes(209_715_201)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(209_715_201))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "E");
     assert_eq!(eco.score, 30.0);
 }
@@ -327,7 +343,9 @@ fn notes_zero_bytes_shows_zero_mb() {
 // ===========================================================================
 #[test]
 fn notes_fractional_mb() {
-    let eco = build_fun_report(&derived_bytes(1_572_864)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(1_572_864))
+        .eco_label
+        .unwrap();
     assert!(eco.notes.contains("1.5 MB"), "got: {}", eco.notes);
 }
 
@@ -388,8 +406,12 @@ fn five_bands_distinct_scores() {
 #[test]
 fn files_code_dont_affect_label() {
     let bytes = 20 * 1024 * 1024;
-    let e1 = build_fun_report(&derived_with(bytes, 1, 10)).eco_label.unwrap();
-    let e2 = build_fun_report(&derived_with(bytes, 10_000, 500_000)).eco_label.unwrap();
+    let e1 = build_fun_report(&derived_with(bytes, 1, 10))
+        .eco_label
+        .unwrap();
+    let e2 = build_fun_report(&derived_with(bytes, 10_000, 500_000))
+        .eco_label
+        .unwrap();
     assert_eq!(e1.label, e2.label);
     assert_eq!(e1.score, e2.score);
     assert_eq!(e1.bytes, e2.bytes);
@@ -522,7 +544,11 @@ fn label_in_known_set() {
 fn score_in_range() {
     for bytes in [0, 1, 1_000_000, 100_000_000, 1_000_000_000] {
         let eco = build_fun_report(&derived_bytes(bytes)).eco_label.unwrap();
-        assert!((0.0..=100.0).contains(&eco.score), "out of range: {}", eco.score);
+        assert!(
+            (0.0..=100.0).contains(&eco.score),
+            "out of range: {}",
+            eco.score
+        );
     }
 }
 
@@ -541,7 +567,9 @@ fn eco_label_always_some() {
 // ===========================================================================
 #[test]
 fn notes_1gb() {
-    let eco = build_fun_report(&derived_bytes(1024 * 1024 * 1024)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(1024 * 1024 * 1024))
+        .eco_label
+        .unwrap();
     assert!(eco.notes.contains("1024 MB"), "got: {}", eco.notes);
 }
 
@@ -550,7 +578,9 @@ fn notes_1gb() {
 // ===========================================================================
 #[test]
 fn mid_band_b() {
-    let eco = build_fun_report(&derived_bytes(5 * 1024 * 1024)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(5 * 1024 * 1024))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "B");
     assert_eq!(eco.score, 80.0);
 }
@@ -560,7 +590,9 @@ fn mid_band_b() {
 // ===========================================================================
 #[test]
 fn mid_band_c() {
-    let eco = build_fun_report(&derived_bytes(30 * 1024 * 1024)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(30 * 1024 * 1024))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "C");
     assert_eq!(eco.score, 65.0);
 }
@@ -570,7 +602,9 @@ fn mid_band_c() {
 // ===========================================================================
 #[test]
 fn mid_band_d() {
-    let eco = build_fun_report(&derived_bytes(100 * 1024 * 1024)).eco_label.unwrap();
+    let eco = build_fun_report(&derived_bytes(100 * 1024 * 1024))
+        .eco_label
+        .unwrap();
     assert_eq!(eco.label, "D");
     assert_eq!(eco.score, 45.0);
 }
@@ -606,7 +640,10 @@ fn score_exact_values_all_bands() {
 fn grade_a_highest_score() {
     let a_score = build_fun_report(&derived_bytes(0)).eco_label.unwrap().score;
     for bytes in [5_000_000, 25_000_000, 100_000_000, 500_000_000] {
-        let s = build_fun_report(&derived_bytes(bytes)).eco_label.unwrap().score;
+        let s = build_fun_report(&derived_bytes(bytes))
+            .eco_label
+            .unwrap()
+            .score;
         assert!(a_score > s);
     }
 }

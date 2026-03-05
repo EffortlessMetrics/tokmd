@@ -110,14 +110,18 @@ fn category_extensions_sorted() {
 fn category_tiebreak_alphabetical() {
     let tmp = TempDir::new().unwrap();
     let files = vec![
-        write_file(tmp.path(), "a.zip", &[0u8; 100]),     // archive
-        write_file(tmp.path(), "b.mp3", &[0u8; 100]),     // audio
-        write_file(tmp.path(), "c.ttf", &[0u8; 100]),     // font
-        write_file(tmp.path(), "d.exe", &[0u8; 100]),     // binary
+        write_file(tmp.path(), "a.zip", &[0u8; 100]), // archive
+        write_file(tmp.path(), "b.mp3", &[0u8; 100]), // audio
+        write_file(tmp.path(), "c.ttf", &[0u8; 100]), // font
+        write_file(tmp.path(), "d.exe", &[0u8; 100]), // binary
     ];
     let report = build_assets_report(tmp.path(), &files).unwrap();
     // All 100 bytes: sorted alphabetically by category name
-    let cats: Vec<&str> = report.categories.iter().map(|c| c.category.as_str()).collect();
+    let cats: Vec<&str> = report
+        .categories
+        .iter()
+        .map(|c| c.category.as_str())
+        .collect();
     assert_eq!(cats, vec!["archive", "audio", "binary", "font"]);
 }
 
@@ -158,18 +162,25 @@ fn exactly_ten_files_no_truncation() {
 fn all_six_categories_present() {
     let tmp = TempDir::new().unwrap();
     let files = vec![
-        write_file(tmp.path(), "a.png", &[0u8; 10]),   // image
-        write_file(tmp.path(), "b.mp4", &[0u8; 10]),   // video
-        write_file(tmp.path(), "c.mp3", &[0u8; 10]),   // audio
-        write_file(tmp.path(), "d.zip", &[0u8; 10]),   // archive
-        write_file(tmp.path(), "e.exe", &[0u8; 10]),   // binary
-        write_file(tmp.path(), "f.ttf", &[0u8; 10]),   // font
+        write_file(tmp.path(), "a.png", &[0u8; 10]), // image
+        write_file(tmp.path(), "b.mp4", &[0u8; 10]), // video
+        write_file(tmp.path(), "c.mp3", &[0u8; 10]), // audio
+        write_file(tmp.path(), "d.zip", &[0u8; 10]), // archive
+        write_file(tmp.path(), "e.exe", &[0u8; 10]), // binary
+        write_file(tmp.path(), "f.ttf", &[0u8; 10]), // font
     ];
     let report = build_assets_report(tmp.path(), &files).unwrap();
     assert_eq!(report.categories.len(), 6);
-    let mut cats: Vec<&str> = report.categories.iter().map(|c| c.category.as_str()).collect();
+    let mut cats: Vec<&str> = report
+        .categories
+        .iter()
+        .map(|c| c.category.as_str())
+        .collect();
     cats.sort();
-    assert_eq!(cats, vec!["archive", "audio", "binary", "font", "image", "video"]);
+    assert_eq!(
+        cats,
+        vec!["archive", "audio", "binary", "font", "image", "video"]
+    );
 }
 
 // ===========================================================================
@@ -363,7 +374,11 @@ fn pnpm_lock_proper_format() {
 #[test]
 fn lockfile_path_forward_slashes() {
     let tmp = TempDir::new().unwrap();
-    let rel = write_file(tmp.path(), "sub/dir/Cargo.lock", b"[[package]]\nname = \"a\"\n");
+    let rel = write_file(
+        tmp.path(),
+        "sub/dir/Cargo.lock",
+        b"[[package]]\nname = \"a\"\n",
+    );
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
     assert_eq!(report.lockfiles[0].path, "sub/dir/Cargo.lock");
     assert!(!report.lockfiles[0].path.contains('\\'));
@@ -376,7 +391,11 @@ fn lockfile_path_forward_slashes() {
 fn multiple_same_type_lockfiles() {
     let tmp = TempDir::new().unwrap();
     let f1 = write_file(tmp.path(), "a/Cargo.lock", b"[[package]]\nname = \"x\"\n");
-    let f2 = write_file(tmp.path(), "b/Cargo.lock", b"[[package]]\nname = \"y\"\n[[package]]\nname = \"z\"\n");
+    let f2 = write_file(
+        tmp.path(),
+        "b/Cargo.lock",
+        b"[[package]]\nname = \"y\"\n[[package]]\nname = \"z\"\n",
+    );
     let report = build_dependency_report(tmp.path(), &[f1, f2]).unwrap();
     assert_eq!(report.lockfiles.len(), 2);
     assert_eq!(report.total, 3); // 1 + 2
@@ -390,7 +409,9 @@ fn cargo_lock_many_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::new();
     for i in 0..100 {
-        content.push_str(&format!("[[package]]\nname = \"crate-{i}\"\nversion = \"{i}.0.0\"\n\n"));
+        content.push_str(&format!(
+            "[[package]]\nname = \"crate-{i}\"\nversion = \"{i}.0.0\"\n\n"
+        ));
     }
     let rel = write_file(tmp.path(), "Cargo.lock", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
@@ -485,8 +506,13 @@ fn asset_report_deterministic() {
 #[test]
 fn dependency_report_deterministic() {
     let tmp = TempDir::new().unwrap();
-    let rel = write_file(tmp.path(), "Cargo.lock", b"[[package]]\nname = \"a\"\n[[package]]\nname = \"b\"\n");
-    let j1 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel.clone()]).unwrap()).unwrap();
+    let rel = write_file(
+        tmp.path(),
+        "Cargo.lock",
+        b"[[package]]\nname = \"a\"\n[[package]]\nname = \"b\"\n",
+    );
+    let j1 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel.clone()]).unwrap())
+        .unwrap();
     let j2 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel]).unwrap()).unwrap();
     assert_eq!(j1, j2);
 }
@@ -558,7 +584,8 @@ fn dependency_report_json_structure() {
 #[test]
 fn gemfile_lock_non_indented_stops_specs() {
     let tmp = TempDir::new().unwrap();
-    let content = "GEM\n  remote: https://rubygems.org/\n  specs:\n    rails (7.0)\nPLATFORMS\n  ruby\n";
+    let content =
+        "GEM\n  remote: https://rubygems.org/\n  specs:\n    rails (7.0)\nPLATFORMS\n  ruby\n";
     let rel = write_file(tmp.path(), "Gemfile.lock", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
     assert_eq!(report.lockfiles[0].dependencies, 1);

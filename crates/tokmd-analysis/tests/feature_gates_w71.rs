@@ -109,7 +109,10 @@ fn risk_preset_git_gate_no_silent_success() {
 
     #[cfg(not(feature = "git"))]
     {
-        assert!(receipt.git.is_none(), "git must be None without git feature");
+        assert!(
+            receipt.git.is_none(),
+            "git must be None without git feature"
+        );
         assert!(
             receipt
                 .warnings
@@ -463,7 +466,10 @@ fn disabled_feature_warnings_contain_required_keywords() {
 #[test]
 fn git_disabled_feature_mentions_git() {
     let w = DisabledFeature::GitMetrics.warning();
-    assert!(w.contains("git"), "GitMetrics warning must mention git: {w}");
+    assert!(
+        w.contains("git"),
+        "GitMetrics warning must mention git: {w}"
+    );
 }
 
 /// Walk-related DisabledFeature mentions "walk".
