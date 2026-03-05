@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_snapshot_w54.rs
+expression: "text(render(&r, AnalysisFormat::Tree).unwrap())"
+---
+project/
+  src/
+    engine.rs (600 lines)
+    lib.rs (225 lines)
+  tests/
+    smoke.rs (73 lines)
