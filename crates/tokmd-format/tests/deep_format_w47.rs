@@ -16,8 +16,8 @@ use tokmd_format::{
 };
 use tokmd_settings::{ChildIncludeMode, ChildrenMode, ScanOptions};
 use tokmd_types::{
-    DiffRow, ExportArgs, ExportData, ExportFormat, FileKind, FileRow, LangArgs, LangReport,
-    LangRow, ModuleArgs, ModuleReport, ModuleRow, RedactMode, TableFormat, Totals,
+    ExportArgs, ExportData, ExportFormat, FileKind, FileRow, LangArgs, LangReport, LangRow,
+    ModuleArgs, ModuleReport, ModuleRow, RedactMode, TableFormat, Totals,
 };
 
 // ============================================================================

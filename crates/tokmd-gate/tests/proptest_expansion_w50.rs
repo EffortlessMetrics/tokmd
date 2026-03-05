@@ -107,6 +107,7 @@ fn arb_simple_json_doc() -> impl Strategy<Value = Value> {
         .prop_map(|(a, b, s)| json!({"a": a, "b": b, "c": s}))
 }
 
+#[allow(dead_code)]
 fn arb_ratchet_rule() -> impl Strategy<Value = RatchetRule> {
     (
         "/[a-z]{1,10}",

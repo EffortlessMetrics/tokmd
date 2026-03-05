@@ -120,12 +120,12 @@ fn w43_roundtrip_string_through_extract_data_json() {
 
 #[test]
 fn w43_roundtrip_preserves_numeric_precision() {
-    let input = r#"{"ok":true,"data":{"big":9007199254740992,"neg":-42,"float":3.14159}}"#;
+    let input = r#"{"ok":true,"data":{"big":9007199254740992,"neg":-42,"float":3.15}}"#;
     let output = extract_data_json(input).unwrap();
     let parsed: Value = serde_json::from_str(&output).unwrap();
     assert_eq!(parsed["big"], 9007199254740992_u64);
     assert_eq!(parsed["neg"], -42);
-    assert!((parsed["float"].as_f64().unwrap() - 3.14159).abs() < 1e-10);
+    assert!((parsed["float"].as_f64().unwrap() - 3.15).abs() < 1e-10);
 }
 
 #[test]
