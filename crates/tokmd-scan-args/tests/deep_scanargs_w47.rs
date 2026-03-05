@@ -216,7 +216,7 @@ fn serde_roundtrip_with_redaction() {
     let back: ScanArgs = serde_json::from_str(&json).unwrap();
 
     assert_eq!(back.paths, args.paths);
-    assert_eq!(back.excluded_redacted, true);
+    assert!(back.excluded_redacted);
 }
 
 #[test]

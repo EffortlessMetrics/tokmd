@@ -273,8 +273,8 @@ mod properties {
             let total = public + internal;
             let public_ratio = if total == 0 { 0.0 } else { public as f64 / total as f64 };
             let documented_ratio = if public == 0 { 0.0 } else { (public / 2) as f64 / public as f64 };
-            prop_assert!(public_ratio >= 0.0 && public_ratio <= 1.0);
-            prop_assert!(documented_ratio >= 0.0 && documented_ratio <= 1.0);
+            prop_assert!((0.0..=1.0).contains(&public_ratio));
+            prop_assert!((0.0..=1.0).contains(&documented_ratio));
             prop_assert!(public + internal == total);
         }
     }

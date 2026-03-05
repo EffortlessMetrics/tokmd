@@ -77,7 +77,7 @@ fn total_code_equals_sum_of_row_code() {
 
 #[test]
 fn sort_order_descending_by_code() {
-    let mut rows = vec![
+    let mut rows = [
         lang_row("Go", 100, 150, 2),
         lang_row("Rust", 500, 600, 5),
         lang_row("Python", 300, 400, 3),
@@ -96,7 +96,7 @@ fn sort_order_descending_by_code() {
 
 #[test]
 fn sort_order_changes_when_code_changes() {
-    let mut rows_before = vec![
+    let mut rows_before = [
         lang_row("Rust", 500, 600, 5),
         lang_row("Python", 300, 400, 3),
     ];
@@ -104,7 +104,7 @@ fn sort_order_changes_when_code_changes() {
     assert_eq!(rows_before[0].lang, "Rust");
 
     // Now Python has more code
-    let mut rows_after = vec![
+    let mut rows_after = [
         lang_row("Rust", 200, 300, 5),
         lang_row("Python", 600, 700, 3),
     ];
@@ -118,7 +118,7 @@ fn sort_order_changes_when_code_changes() {
 
 #[test]
 fn zero_code_languages_sorted_by_name() {
-    let mut rows = vec![
+    let mut rows = [
         lang_row("Zig", 0, 10, 1),
         lang_row("Ada", 0, 5, 1),
         lang_row("Elm", 0, 8, 1),

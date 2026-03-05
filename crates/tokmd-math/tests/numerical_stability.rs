@@ -110,7 +110,7 @@ fn percentile_thousand_elements_no_issue() {
     let values: Vec<usize> = (0..1000).collect();
     let p50 = percentile(&values, 0.5);
     assert!(p50.is_finite());
-    assert!(p50 >= 0.0 && p50 <= 999.0);
+    assert!((0.0..=999.0).contains(&p50));
 }
 
 // ── safe_ratio precision ────────────────────────────────────────────

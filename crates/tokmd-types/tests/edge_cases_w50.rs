@@ -13,27 +13,32 @@ use tokmd_types::{
 
 #[test]
 fn schema_version_is_nonzero() {
-    assert!(SCHEMA_VERSION > 0);
+    let v = SCHEMA_VERSION;
+    assert!(v > 0);
 }
 
 #[test]
 fn cockpit_schema_version_is_nonzero() {
-    assert!(COCKPIT_SCHEMA_VERSION > 0);
+    let v = COCKPIT_SCHEMA_VERSION;
+    assert!(v > 0);
 }
 
 #[test]
 fn handoff_schema_version_is_nonzero() {
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
+    let v = HANDOFF_SCHEMA_VERSION;
+    assert!(v > 0);
 }
 
 #[test]
 fn context_schema_version_is_nonzero() {
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
+    let v = CONTEXT_SCHEMA_VERSION;
+    assert!(v > 0);
 }
 
 #[test]
 fn context_bundle_schema_version_is_nonzero() {
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
+    let v = CONTEXT_BUNDLE_SCHEMA_VERSION;
+    assert!(v > 0);
 }
 
 // ---------------------------------------------------------------------------

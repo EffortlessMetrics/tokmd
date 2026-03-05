@@ -7,10 +7,10 @@
 use proptest::prelude::*;
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
-    CapabilityState, ContextFileRow, DiffRow, DiffTotals, ExportData, FileClassification, FileKind,
-    FileRow, HANDOFF_SCHEMA_VERSION, InclusionPolicy, LangReport, LangRow, ModuleReport, ModuleRow,
-    PolicyExcludedFile, SCHEMA_VERSION, SmartExcludedFile, TokenAudit, TokenEstimationMeta,
-    ToolInfo, Totals, cockpit::COCKPIT_SCHEMA_VERSION,
+    CapabilityState, ContextFileRow, DiffRow, DiffTotals, FileClassification, FileKind, FileRow,
+    HANDOFF_SCHEMA_VERSION, InclusionPolicy, LangRow, ModuleRow, PolicyExcludedFile,
+    SCHEMA_VERSION, SmartExcludedFile, TokenAudit, TokenEstimationMeta, ToolInfo, Totals,
+    cockpit::COCKPIT_SCHEMA_VERSION,
 };
 
 // =========================================================================

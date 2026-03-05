@@ -181,12 +181,17 @@ fn w49_insert_order_does_not_affect_iteration() {
 
 #[test]
 fn w49_zero_lines_gives_zero_hotspot() {
-    assert_eq!(0usize * 42, 0);
+    let lines = 0usize;
+    let hotspot = lines.checked_mul(42).unwrap_or(0);
+    assert_eq!(hotspot, 0);
 }
 
 #[test]
 fn w49_zero_commits_gives_zero_hotspot() {
-    assert_eq!(100usize * 0, 0);
+    let lines = 100usize;
+    let commits = 0usize;
+    let hotspot = lines.checked_mul(commits).unwrap_or(0);
+    assert_eq!(hotspot, 0);
 }
 
 #[test]
@@ -199,7 +204,8 @@ fn w49_hotspot_is_commutative() {
 #[test]
 fn w49_single_commit_hotspot_equals_lines() {
     let lines = 314usize;
-    assert_eq!(lines * 1, lines);
+    let one_commit = 1usize;
+    assert_eq!(lines * one_commit, lines);
 }
 
 #[test]

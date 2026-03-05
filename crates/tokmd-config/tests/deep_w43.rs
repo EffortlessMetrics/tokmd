@@ -4,15 +4,14 @@
 //! loading from tokmd.toml, config merge behavior (CLI overrides file),
 //! enum variant serde, UserConfig/Profile, and conversions.
 
-use std::collections::BTreeMap;
 use std::io::Write;
 
 use tempfile::NamedTempFile;
 use tokmd_config::{
     AnalysisPreset, BadgeMetric, CliLangArgs, CockpitFormat, ColorMode, ContextOutput,
-    ContextStrategy, DiffFormat, DiffRangeMode, ExportFormat, GateFormat, GlobalArgs,
-    HandoffPreset, ImportGranularity, InitProfile, NearDupScope, Profile, RedactMode, SensorFormat,
-    Shell, TomlConfig, UserConfig, ValueMetric, ViewProfile,
+    ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
+    ImportGranularity, InitProfile, NearDupScope, Profile, RedactMode, SensorFormat, Shell,
+    TomlConfig, UserConfig, ValueMetric, ViewProfile,
 };
 
 // =============================================================================
