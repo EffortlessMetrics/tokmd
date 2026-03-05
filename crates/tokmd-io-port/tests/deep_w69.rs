@@ -165,7 +165,7 @@ fn w69_hostfs_read_to_string() {
 fn w69_hostfs_read_bytes() {
     let dir = tempfile::tempdir().unwrap();
     let f = dir.path().join("bin");
-    std::fs::write(&f, &[1, 2, 3]).unwrap();
+    std::fs::write(&f, [1, 2, 3]).unwrap();
     assert_eq!(HostFs.read_bytes(&f).unwrap(), vec![1, 2, 3]);
 }
 
@@ -185,5 +185,5 @@ fn w69_hostfs_missing_file_error() {
     let err = HostFs
         .read_to_string(Path::new("/nonexistent_w69_xyz"))
         .unwrap_err();
-    assert!(err.to_string().len() > 0);
+    assert!(!err.to_string().is_empty());
 }

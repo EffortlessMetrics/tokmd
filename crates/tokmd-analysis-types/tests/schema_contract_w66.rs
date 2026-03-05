@@ -67,7 +67,10 @@ fn make_analysis_receipt() -> AnalysisReceipt {
 
 #[test]
 fn analysis_schema_version_is_positive() {
-    assert!(ANALYSIS_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(ANALYSIS_SCHEMA_VERSION > 0);
+    }
 }
 
 #[test]
@@ -77,7 +80,10 @@ fn analysis_schema_version_value() {
 
 #[test]
 fn baseline_version_is_positive() {
-    assert!(BASELINE_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(BASELINE_VERSION > 0);
+    }
 }
 
 // ===========================================================================

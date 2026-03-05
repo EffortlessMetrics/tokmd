@@ -44,7 +44,7 @@ fn entropy_two_equal_frequencies_is_one() {
 #[test]
 fn entropy_max_is_eight_bits() {
     let data: Vec<u8> = (0..256)
-        .flat_map(|b| std::iter::repeat(b as u8).take(100))
+        .flat_map(|b| std::iter::repeat_n(b as u8, 100))
         .collect();
     let e = entropy_bits_per_byte(&data);
     assert!((e - 8.0).abs() < 0.01, "uniform 256 values → ~8.0, got {e}");

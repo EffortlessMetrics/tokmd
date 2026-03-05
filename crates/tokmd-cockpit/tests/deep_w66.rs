@@ -405,7 +405,7 @@ mod properties {
 
 #[cfg(feature = "git")]
 mod git_tests {
-    use super::*;
+    
     use std::fs;
 
     #[test]

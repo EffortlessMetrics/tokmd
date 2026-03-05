@@ -89,7 +89,10 @@ fn w72_lang_json_has_tool_metadata() {
     let tool = &json["tool"];
     assert!(tool.is_object(), "tool should be an object");
     assert_eq!(tool["name"], "tokmd");
-    assert!(tool["version"].is_string(), "tool.version should be a string");
+    assert!(
+        tool["version"].is_string(),
+        "tool.version should be a string"
+    );
 }
 
 #[test]
@@ -116,7 +119,10 @@ fn w72_lang_json_rows_have_required_fields() {
         assert!(row["files"].is_number(), "row.files must be a number");
         assert!(row["bytes"].is_number(), "row.bytes must be a number");
         assert!(row["tokens"].is_number(), "row.tokens must be a number");
-        assert!(row["avg_lines"].is_number(), "row.avg_lines must be a number");
+        assert!(
+            row["avg_lines"].is_number(),
+            "row.avg_lines must be a number"
+        );
     }
 }
 
@@ -186,7 +192,10 @@ fn w72_module_json_rows_have_required_fields() {
         assert!(row["files"].is_number(), "row.files must be a number");
         assert!(row["bytes"].is_number(), "row.bytes must be a number");
         assert!(row["tokens"].is_number(), "row.tokens must be a number");
-        assert!(row["avg_lines"].is_number(), "row.avg_lines must be a number");
+        assert!(
+            row["avg_lines"].is_number(),
+            "row.avg_lines must be a number"
+        );
     }
 }
 
@@ -345,7 +354,10 @@ fn w72_analyze_receipt_has_required_envelope() {
 #[test]
 fn w72_analyze_receipt_has_derived_section() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
-    assert!(json["derived"].is_object(), "receipt preset must include derived section");
+    assert!(
+        json["derived"].is_object(),
+        "receipt preset must include derived section"
+    );
 }
 
 #[test]
@@ -394,7 +406,8 @@ fn w72_all_json_envelopes_contain_tool_name_tokmd() {
     for args in commands {
         let json = run_json(args);
         assert_eq!(
-            json["tool"]["name"], "tokmd",
+            json["tool"]["name"],
+            "tokmd",
             "tool.name must be 'tokmd' for: {}",
             args.join(" ")
         );
@@ -412,8 +425,16 @@ fn w72_all_json_envelopes_have_timestamp() {
     for args in commands {
         let json = run_json(args);
         let ts = json["generated_at_ms"].as_u64();
-        assert!(ts.is_some(), "generated_at_ms must be a positive number for: {}", args.join(" "));
-        assert!(ts.unwrap() > 0, "timestamp must be non-zero for: {}", args.join(" "));
+        assert!(
+            ts.is_some(),
+            "generated_at_ms must be a positive number for: {}",
+            args.join(" ")
+        );
+        assert!(
+            ts.unwrap() > 0,
+            "timestamp must be non-zero for: {}",
+            args.join(" ")
+        );
     }
 }
 
@@ -432,7 +453,11 @@ fn w72_all_json_commands_produce_valid_json() {
     for args in commands {
         let raw = run_raw(args);
         let parsed: Result<Value, _> = serde_json::from_str(&raw);
-        assert!(parsed.is_ok(), "output must be valid JSON for: {}", args.join(" "));
+        assert!(
+            parsed.is_ok(),
+            "output must be valid JSON for: {}",
+            args.join(" ")
+        );
     }
 }
 

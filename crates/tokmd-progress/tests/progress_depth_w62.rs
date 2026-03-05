@@ -38,7 +38,7 @@ fn progress_set_message_unicode() {
 #[test]
 fn progress_set_message_long_string() {
     let p = Progress::new(false);
-    p.set_message(&"x".repeat(10_000));
+    p.set_message("x".repeat(10_000));
 }
 
 #[test]

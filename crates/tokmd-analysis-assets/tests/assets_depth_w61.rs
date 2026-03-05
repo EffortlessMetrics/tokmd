@@ -511,9 +511,14 @@ fn dependency_report_deterministic() {
         "Cargo.lock",
         b"[[package]]\nname = \"a\"\n[[package]]\nname = \"b\"\n",
     );
-    let j1 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel.clone()]).unwrap())
-        .unwrap();
-    let j2 = serde_json::to_string(&build_dependency_report(tmp.path(), &[rel]).unwrap()).unwrap();
+    let j1 = serde_json::to_string(
+        &build_dependency_report(tmp.path(), std::slice::from_ref(&rel)).unwrap(),
+    )
+    .unwrap();
+    let j2 = serde_json::to_string(
+        &build_dependency_report(tmp.path(), std::slice::from_ref(&rel)).unwrap(),
+    )
+    .unwrap();
     assert_eq!(j1, j2);
 }
 
@@ -694,7 +699,7 @@ mod properties {
             let rel = format!("sub/dir/file.{ext}");
             let full = tmp.path().join(&rel);
             std::fs::create_dir_all(full.parent().unwrap()).unwrap();
-            std::fs::write(&full, &[0u8; 16]).unwrap();
+            std::fs::write(&full, [0u8; 16]).unwrap();
             let report = build_assets_report(tmp.path(), &[PathBuf::from(&rel)]).unwrap();
             for f in &report.top_files {
                 prop_assert!(!f.path.contains('\\'), "backslash in: {}", f.path);

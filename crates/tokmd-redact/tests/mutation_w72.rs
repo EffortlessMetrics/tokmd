@@ -24,7 +24,10 @@ fn hash_empty_string_is_deterministic_nonzero() {
     let h = short_hash("");
     assert_eq!(h.len(), 16);
     // Must not be all zeros (that would indicate the hash was skipped)
-    assert!(h.chars().any(|c| c != '0'), "hash of empty string is all zeros");
+    assert!(
+        h.chars().any(|c| c != '0'),
+        "hash of empty string is all zeros"
+    );
 }
 
 #[test]

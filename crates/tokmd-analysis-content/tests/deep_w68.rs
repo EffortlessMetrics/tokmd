@@ -331,8 +331,20 @@ mod determinism_w68 {
     fn todo_report_deterministic() {
         let tmp = TempDir::new().unwrap();
         let f = write_file(tmp.path(), "a.rs", b"// TODO: x\n// FIXME: y\n// HACK: z\n");
-        let r1 = build_todo_report(tmp.path(), &[f.clone()], &default_limits(), 1000).unwrap();
-        let r2 = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
+        let r1 = build_todo_report(
+            tmp.path(),
+            std::slice::from_ref(&f),
+            &default_limits(),
+            1000,
+        )
+        .unwrap();
+        let r2 = build_todo_report(
+            tmp.path(),
+            std::slice::from_ref(&f),
+            &default_limits(),
+            1000,
+        )
+        .unwrap();
         assert_eq!(
             serde_json::to_string(&r1).unwrap(),
             serde_json::to_string(&r2).unwrap(),

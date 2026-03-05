@@ -172,7 +172,7 @@ fn percentile_all_same_values() {
 fn percentile_large_dataset() {
     let data: Vec<usize> = (1..=1000).collect();
     let p50 = percentile(&data, 0.5);
-    assert!(p50 >= 1.0 && p50 <= 1000.0);
+    assert!((1.0..=1000.0).contains(&p50));
 }
 
 #[test]
@@ -225,7 +225,7 @@ fn gini_maximum_inequality() {
 #[test]
 fn gini_in_unit_range() {
     let g = gini_coefficient(&[1, 2, 5, 10, 100]);
-    assert!(g >= 0.0 && g <= 1.0, "gini should be in [0,1], got {g}");
+    assert!((0.0..=1.0).contains(&g), "gini should be in [0,1], got {g}");
 }
 
 #[test]
@@ -324,7 +324,7 @@ mod property_tests {
             let mut sorted = data.clone();
             sorted.sort();
             let g = gini_coefficient(&sorted);
-            prop_assert!(g >= 0.0 && g <= 1.0,
+            prop_assert!((0.0..=1.0).contains(&g),
                 "gini outside [0,1]: {g}");
         }
 

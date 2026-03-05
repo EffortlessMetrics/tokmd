@@ -281,8 +281,8 @@ mod determinism_w66 {
         let tmp = TempDir::new().unwrap();
         let content = "[[package]]\nname=\"a\"\n\n[[package]]\nname=\"b\"\n";
         let f = write_file(tmp.path(), "Cargo.lock", content.as_bytes());
-        let r1 = build_dependency_report(tmp.path(), &[f.clone()]).unwrap();
-        let r2 = build_dependency_report(tmp.path(), &[f]).unwrap();
+        let r1 = build_dependency_report(tmp.path(), std::slice::from_ref(&f)).unwrap();
+        let r2 = build_dependency_report(tmp.path(), std::slice::from_ref(&f)).unwrap();
         assert_eq!(
             serde_json::to_string(&r1).unwrap(),
             serde_json::to_string(&r2).unwrap(),

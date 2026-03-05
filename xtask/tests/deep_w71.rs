@@ -615,14 +615,14 @@ fn workspace_internal_deps_have_path_and_version() {
             if !name.starts_with("tokmd") {
                 continue;
             }
-            if let Some(tbl) = val.as_table() {
-                if tbl.contains_key("path") {
-                    assert!(
-                        tbl.contains_key("version"),
-                        "workspace dep {name} has path but no version"
-                    );
-                    checked += 1;
-                }
+            if let Some(tbl) = val.as_table()
+                && tbl.contains_key("path")
+            {
+                assert!(
+                    tbl.contains_key("version"),
+                    "workspace dep {name} has path but no version"
+                );
+                checked += 1;
             }
         }
         assert!(checked > 0, "should have checked at least one internal dep");

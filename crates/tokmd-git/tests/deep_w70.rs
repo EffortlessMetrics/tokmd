@@ -268,10 +268,7 @@ fn collect_history_respects_max_commits() {
 
     // When max_commits is set, the pipe may close early causing git log
     // to exit with a broken pipe error on some platforms.
-    match collect_history(dir.path(), Some(2), None) {
-        Ok(commits) => assert!(commits.len() <= 2, "got {} commits", commits.len()),
-        Err(_) => {}
-    }
+    if let Ok(commits) = collect_history(dir.path(), Some(2), None) { assert!(commits.len() <= 2, "got {} commits", commits.len()) }
 }
 
 #[test]
@@ -307,10 +304,7 @@ fn collect_history_empty_repo_returns_empty() {
     git_in(dir.path()).args(["init"]).output().unwrap();
 
     let result = collect_history(dir.path(), None, None);
-    match result {
-        Ok(commits) => assert!(commits.is_empty()),
-        Err(_) => {}
-    }
+    if let Ok(commits) = result { assert!(commits.is_empty()) }
 }
 
 // -- rev_exists (requires git) --

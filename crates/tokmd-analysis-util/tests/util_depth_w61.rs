@@ -282,11 +282,13 @@ fn empty_file_row_has_none_optionals() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_f64_zero_decimals() {
     assert_eq!(round_f64(3.14159, 0), 3.0);
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_f64_two_decimals() {
     assert_eq!(round_f64(3.14159, 2), 3.14);
 }
@@ -347,7 +349,7 @@ fn percentile_median_of_sorted_list() {
     let p50 = percentile(&data, 50.0);
     // Must be within the data range
     assert!(
-        p50 >= 1.0 && p50 <= 5.0,
+        (1.0..=5.0).contains(&p50),
         "Median should be in range [1,5]: {}",
         p50
     );

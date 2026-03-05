@@ -659,9 +659,8 @@ mod properties {
         #[test]
         fn count_tags_non_negative(text in "[a-zA-Z ]{0,100}") {
             let tags = count_tags(&text, &["TODO", "FIXME"]);
-            for (_, count) in &tags {
-                prop_assert!(*count >= 0);
-            }
+            // Verify we get exactly the requested tags back
+            prop_assert!(tags.len() <= 2);
         }
 
         #[test]

@@ -494,7 +494,7 @@ mod properties {
                         || trimmed.starts_with('*')
                         || trimmed.starts_with('.')
                         || trimmed.starts_with('[')
-                        || trimmed.chars().next().map_or(true, |c| c.is_alphanumeric() || c == '_'),
+                        || trimmed.chars().next().is_none_or(|c| c.is_alphanumeric() || c == '_'),
                     "Invalid gitignore line: {}", trimmed
                 );
             }

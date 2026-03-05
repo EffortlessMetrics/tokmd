@@ -84,7 +84,10 @@ fn multi_arg_cmd() -> Command {
 
 #[test]
 fn w69_schema_version_is_positive() {
-    assert!(TOOL_SCHEMA_VERSION > 0);
+    #[allow(clippy::assertions_on_constants)]
+    {
+        assert!(TOOL_SCHEMA_VERSION > 0);
+    }
 }
 
 // ---------------------------------------------------------------------------

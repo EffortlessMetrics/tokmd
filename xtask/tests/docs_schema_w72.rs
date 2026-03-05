@@ -67,8 +67,7 @@ fn reference_cli_md() -> String {
 }
 
 fn changelog_md() -> String {
-    std::fs::read_to_string(workspace_root().join("CHANGELOG.md"))
-        .expect("CHANGELOG.md must exist")
+    std::fs::read_to_string(workspace_root().join("CHANGELOG.md")).expect("CHANGELOG.md must exist")
 }
 
 fn cargo_toml() -> String {
@@ -148,9 +147,11 @@ fn schema_md_core_version_matches_source() {
 
 #[test]
 fn schema_md_analysis_version_matches_source() {
-    let src =
-        read_const_u32("crates/tokmd-analysis-types/src/lib.rs", "ANALYSIS_SCHEMA_VERSION")
-            .expect("ANALYSIS_SCHEMA_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-analysis-types/src/lib.rs",
+        "ANALYSIS_SCHEMA_VERSION",
+    )
+    .expect("ANALYSIS_SCHEMA_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`ANALYSIS_SCHEMA_VERSION`")
         .expect("ANALYSIS_SCHEMA_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -161,8 +162,11 @@ fn schema_md_analysis_version_matches_source() {
 
 #[test]
 fn schema_md_cockpit_version_matches_source() {
-    let src = read_const_u32("crates/tokmd-types/src/cockpit.rs", "COCKPIT_SCHEMA_VERSION")
-        .expect("COCKPIT_SCHEMA_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-types/src/cockpit.rs",
+        "COCKPIT_SCHEMA_VERSION",
+    )
+    .expect("COCKPIT_SCHEMA_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`COCKPIT_SCHEMA_VERSION`")
         .expect("COCKPIT_SCHEMA_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -197,8 +201,11 @@ fn schema_md_context_version_matches_source() {
 
 #[test]
 fn schema_md_context_bundle_version_matches_source() {
-    let src = read_const_u32("crates/tokmd-types/src/lib.rs", "CONTEXT_BUNDLE_SCHEMA_VERSION")
-        .expect("CONTEXT_BUNDLE_SCHEMA_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-types/src/lib.rs",
+        "CONTEXT_BUNDLE_SCHEMA_VERSION",
+    )
+    .expect("CONTEXT_BUNDLE_SCHEMA_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`CONTEXT_BUNDLE_SCHEMA_VERSION`")
         .expect("CONTEXT_BUNDLE_SCHEMA_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -420,12 +427,12 @@ fn readme_and_reference_cli_list_same_subcommands() {
     for line in ref_cli.lines() {
         let trimmed = line.trim();
         // Match ### `tokmd <cmd>` patterns
-        if trimmed.starts_with("### `tokmd ") {
-            if let Some(rest) = trimmed.strip_prefix("### `tokmd ") {
-                let name = rest.trim_end_matches('`').split('`').next().unwrap_or("");
-                if !name.is_empty() {
-                    ref_cmds.push(name.to_string());
-                }
+        if trimmed.starts_with("### `tokmd ")
+            && let Some(rest) = trimmed.strip_prefix("### `tokmd ")
+        {
+            let name = rest.trim_end_matches('`').split('`').next().unwrap_or("");
+            if !name.is_empty() {
+                ref_cmds.push(name.to_string());
             }
         }
         // Match ### `tokmd` (Default / `lang`)

@@ -251,6 +251,7 @@ fn zero_vocabulary_yields_zero_volume() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_f64_basic() {
     assert_eq!(round_f64(3.14159, 2), 3.14);
     assert_eq!(round_f64(2.005, 2), 2.01); // banker's rounding in IEEE 754

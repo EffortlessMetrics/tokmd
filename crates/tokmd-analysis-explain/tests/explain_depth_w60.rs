@@ -594,7 +594,7 @@ fn given_every_alias_when_looked_up_then_output_starts_with_its_canonical() {
         ("context_fit", "context_window_fit"),
     ];
     for (alias, canonical) in alias_to_canonical {
-        let text = lookup(alias).expect(&format!("alias '{alias}' should resolve"));
+        let text = lookup(alias).unwrap_or_else(|| panic!("alias '{alias}' should resolve"));
         assert!(
             text.starts_with(&format!("{canonical}:")),
             "alias '{alias}' should resolve to canonical '{canonical}', got: {text}"

@@ -399,8 +399,7 @@ fn report_with_artifacts() {
     let settings = ThresholdSettings {
         max_code_lines: 1000,
     };
-    let mut report = ThresholdSensor.run(&settings, &sub).unwrap();
-    let report = report;
+    let report = ThresholdSensor.run(&settings, &sub).unwrap();
     let report = report.with_artifacts(vec![Artifact::receipt("out/receipt.json")]);
     assert!(report.artifacts.is_some());
     assert_eq!(report.artifacts.as_ref().unwrap().len(), 1);

@@ -45,7 +45,7 @@ fn w67_progress_set_message_unicode() {
 #[test]
 fn w67_progress_set_message_very_long() {
     let p = Progress::new(false);
-    p.set_message(&"x".repeat(50_000));
+    p.set_message("x".repeat(50_000));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

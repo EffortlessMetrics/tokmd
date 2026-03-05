@@ -268,9 +268,15 @@ fn round_f64_zero_decimal_places() {
     assert_eq!(round_f64(2.4, 0), 2.0);
 }
 
+#[allow(clippy::approx_constant)]
+fn test_pi_value() -> f64 {
+    3.14159
+}
+
 #[test]
+#[allow(clippy::approx_constant)]
 fn round_f64_two_decimal_places() {
-    assert_eq!(round_f64(3.14159, 2), 3.14);
+    assert_eq!(round_f64(test_pi_value(), 2), 3.14);
 }
 
 #[test]

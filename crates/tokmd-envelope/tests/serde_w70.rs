@@ -6,7 +6,6 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use serde_json;
 use tokmd_envelope::*;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
