@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|crates/core|3200|4100|16|96000|25600|256|
+|crates/api|1800|2250|10|54000|14400|225|
+|tests|1100|1350|6|33000|8800|225|
+|**Total**|6100|7700|32|183000|48800|240|

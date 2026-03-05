@@ -1,0 +1,62 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w74.rs
+expression: out
+---
+{
+  "schema_version": 8,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "json",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": null,
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": null,
+  "complexity": null,
+  "api_surface": null,
+  "fun": {
+    "eco_label": {
+      "score": 92.0,
+      "label": "A+",
+      "bytes": 150000,
+      "notes": "Size-based eco label (0.14 MB)"
+    }
+  }
+}

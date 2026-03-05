@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Rust|5200|6800|40|182000|46000|170|
+|TypeScript|3100|4000|25|93000|28000|160|
+|TOML|400|520|8|12000|3200|65|
+|**Total**|8700|11320|73|287000|77200|155|

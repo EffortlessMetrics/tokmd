@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|HTML|420|540|5|12600|4200|108|
+|JavaScript (embedded)|210|260|5|6300|2100|52|
+|CSS (embedded)|130|160|4|3900|1300|40|
+|**Total**|760|960|14|22800|7600|68|

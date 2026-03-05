@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	5200	6800	182000	46000
+TypeScript	3100	4000	93000	28000
+TOML	400	520	12000	3200
+Total	8700	11320	287000	77200

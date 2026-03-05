@@ -1,0 +1,61 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": true
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 170,
+      "bytes": 182000,
+      "code": 5200,
+      "files": 40,
+      "lang": "Rust",
+      "lines": 6800,
+      "tokens": 46000
+    },
+    {
+      "avg_lines": 160,
+      "bytes": 93000,
+      "code": 3100,
+      "files": 25,
+      "lang": "TypeScript",
+      "lines": 4000,
+      "tokens": 28000
+    },
+    {
+      "avg_lines": 65,
+      "bytes": 12000,
+      "code": 400,
+      "files": 8,
+      "lang": "TOML",
+      "lines": 520,
+      "tokens": 3200
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 155,
+    "bytes": 287000,
+    "code": 8700,
+    "files": 73,
+    "lines": 11320,
+    "tokens": 77200
+  },
+  "warnings": [],
+  "with_files": true
+}

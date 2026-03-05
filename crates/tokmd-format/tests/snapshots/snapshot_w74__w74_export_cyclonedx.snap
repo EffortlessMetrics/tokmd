@@ -1,0 +1,127 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: "serde_json::to_string_pretty(&pretty).unwrap()"
+---
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "group": "src",
+      "name": "src/main.rs",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "280"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "40"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "30"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "350"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "8400"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "2800"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "group": "src",
+      "name": "src/lib.rs",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "450"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "65"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "45"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "560"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "13500"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "4500"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "group": "tests",
+      "name": "tests/smoke.rs",
+      "properties": [
+        {
+          "name": "tokmd:lang",
+          "value": "Rust"
+        },
+        {
+          "name": "tokmd:code",
+          "value": "95"
+        },
+        {
+          "name": "tokmd:comments",
+          "value": "12"
+        },
+        {
+          "name": "tokmd:blanks",
+          "value": "15"
+        },
+        {
+          "name": "tokmd:lines",
+          "value": "122"
+        },
+        {
+          "name": "tokmd:bytes",
+          "value": "2850"
+        },
+        {
+          "name": "tokmd:tokens",
+          "value": "950"
+        }
+      ],
+      "type": "file"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "tools": [
+      {
+        "name": "tokmd",
+        "vendor": "tokmd",
+        "version": "1.7.2"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000000",
+  "specVersion": "1.6",
+  "version": 1
+}

@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w74.rs
+expression: out
+---
+graph TD
+  core -->|8| types
+  api -->|4| core
+  api -->|2| types

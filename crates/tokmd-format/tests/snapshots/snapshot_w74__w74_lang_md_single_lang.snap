@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|Python|920|1180|7|27600|9200|168|
+|**Total**|920|1180|7|27600|9200|168|
