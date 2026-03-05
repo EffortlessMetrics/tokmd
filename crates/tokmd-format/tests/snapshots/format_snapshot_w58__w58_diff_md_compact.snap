@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_diff_md_with_options(\"before\", \"after\", &rows, &totals, opts)"
+---
+## Diff: before → after
+
+### Summary
+
+|Metric|Value|
+|---|---:|
+|From LOC|2000|
+|To LOC|1800|
+|Delta LOC|-200|
+|LOC Change|-10.0%|
+|Delta Lines|-266|
+|Delta Files|-2|
+|Delta Bytes|-7000|
+|Delta Tokens|-1800|
+|Languages changed|1|
+|Languages added|0|
+|Languages removed|0|
+|Languages modified|1|

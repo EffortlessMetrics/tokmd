@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_lang(&report, TableFormat::Md)"
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|HTML|1050|1300|8|31500|10500|162|
+|**Total**|1050|1300|8|31500|10500|162|

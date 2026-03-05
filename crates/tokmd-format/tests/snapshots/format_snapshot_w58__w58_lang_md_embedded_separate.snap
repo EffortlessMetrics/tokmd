@@ -1,0 +1,10 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_lang(&report, TableFormat::Md)"
+---
+|Lang|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|HTML|600|750|8|18000|6000|93|
+|JavaScript (embedded)|300|370|8|9000|3000|46|
+|CSS (embedded)|150|180|4|4500|1500|45|
+|**Total**|1050|1300|20|31500|10500|65|

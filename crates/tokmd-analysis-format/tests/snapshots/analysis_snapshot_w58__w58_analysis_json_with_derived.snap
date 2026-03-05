@@ -1,0 +1,268 @@
+---
+source: crates/tokmd-analysis-format/tests/analysis_snapshot_w58.rs
+expression: v
+---
+{
+  "api_surface": null,
+  "archetype": null,
+  "args": {
+    "format": "md",
+    "git": null,
+    "import_granularity": "module",
+    "max_bytes": null,
+    "max_commit_files": null,
+    "max_commits": null,
+    "max_file_bytes": null,
+    "max_files": null,
+    "preset": "receipt",
+    "window_tokens": null
+  },
+  "assets": null,
+  "complexity": null,
+  "corporate_fingerprint": null,
+  "deps": null,
+  "derived": {
+    "boilerplate": {
+      "infra_langs": [
+        "TOML",
+        "YAML",
+        "JSON"
+      ],
+      "infra_lines": 350,
+      "logic_lines": 7950,
+      "ratio": 0.044
+    },
+    "cocomo": {
+      "a": 2.4,
+      "b": 1.05,
+      "c": 2.5,
+      "d": 0.38,
+      "duration_months": 7.5,
+      "effort_pm": 21.7,
+      "kloc": 7.0,
+      "mode": "organic",
+      "staff": 2.89
+    },
+    "context_window": {
+      "fits": true,
+      "pct": 54.69,
+      "total_tokens": 70000,
+      "window_tokens": 128000
+    },
+    "distribution": {
+      "count": 20,
+      "gini": 0.42,
+      "max": 1100,
+      "mean": 415.0,
+      "median": 320.0,
+      "min": 10,
+      "p90": 800.0,
+      "p99": 1050.0
+    },
+    "doc_density": {
+      "by_lang": [
+        {
+          "denominator": 5600,
+          "key": "Rust",
+          "numerator": 600,
+          "ratio": 0.1071
+        },
+        {
+          "denominator": 2200,
+          "key": "Python",
+          "numerator": 200,
+          "ratio": 0.0909
+        }
+      ],
+      "by_module": [],
+      "total": {
+        "denominator": 7800,
+        "key": "total",
+        "numerator": 800,
+        "ratio": 0.1026
+      }
+    },
+    "histogram": [
+      {
+        "files": 3,
+        "label": "Tiny",
+        "max": 50,
+        "min": 0,
+        "pct": 0.15
+      },
+      {
+        "files": 6,
+        "label": "Small",
+        "max": 200,
+        "min": 51,
+        "pct": 0.3
+      },
+      {
+        "files": 7,
+        "label": "Medium",
+        "max": 500,
+        "min": 201,
+        "pct": 0.35
+      },
+      {
+        "files": 4,
+        "label": "Large",
+        "max": null,
+        "min": 501,
+        "pct": 0.2
+      }
+    ],
+    "integrity": {
+      "algo": "blake3",
+      "entries": 20,
+      "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "lang_purity": {
+      "rows": []
+    },
+    "max_file": {
+      "by_lang": [],
+      "by_module": [],
+      "overall": {
+        "blanks": 80,
+        "bytes": 27500,
+        "bytes_per_line": 25.0,
+        "code": 900,
+        "comments": 120,
+        "depth": 2,
+        "doc_pct": 0.118,
+        "lang": "Rust",
+        "lines": 1100,
+        "module": "src/core",
+        "path": "src/core/engine.rs",
+        "tokens": 9000
+      }
+    },
+    "nesting": {
+      "avg": 3.1,
+      "by_module": [],
+      "max": 8
+    },
+    "polyglot": {
+      "dominant_lang": "Rust",
+      "dominant_lines": 5600,
+      "dominant_pct": 0.675,
+      "entropy": 1.2,
+      "lang_count": 5
+    },
+    "reading_time": {
+      "basis_lines": 8300,
+      "lines_per_minute": 20,
+      "minutes": 415.0
+    },
+    "test_density": {
+      "prod_files": 10,
+      "prod_lines": 6800,
+      "ratio": 0.2206,
+      "test_files": 10,
+      "test_lines": 1500
+    },
+    "todo": {
+      "density_per_kloc": 1.71,
+      "tags": [
+        {
+          "count": 8,
+          "tag": "TODO"
+        },
+        {
+          "count": 3,
+          "tag": "FIXME"
+        },
+        {
+          "count": 1,
+          "tag": "HACK"
+        }
+      ],
+      "total": 12
+    },
+    "top": {
+      "largest_bytes": [],
+      "largest_lines": [
+        {
+          "blanks": 80,
+          "bytes": 27500,
+          "bytes_per_line": 25.0,
+          "code": 900,
+          "comments": 120,
+          "depth": 2,
+          "doc_pct": 0.118,
+          "lang": "Rust",
+          "lines": 1100,
+          "module": "src/core",
+          "path": "src/core/engine.rs",
+          "tokens": 9000
+        }
+      ],
+      "largest_tokens": [],
+      "least_documented": [],
+      "most_dense": []
+    },
+    "totals": {
+      "blanks": 500,
+      "bytes": 210000,
+      "code": 7000,
+      "comments": 800,
+      "files": 20,
+      "lines": 8300,
+      "tokens": 70000
+    },
+    "tree": null,
+    "verbosity": {
+      "by_lang": [],
+      "by_module": [],
+      "total": {
+        "denominator": 8300,
+        "key": "total",
+        "numerator": 210000,
+        "rate": 25.3
+      }
+    },
+    "whitespace": {
+      "by_lang": [],
+      "by_module": [],
+      "total": {
+        "denominator": 8300,
+        "key": "total",
+        "numerator": 500,
+        "ratio": 0.0602
+      }
+    }
+  },
+  "dup": null,
+  "entropy": null,
+  "fun": null,
+  "generated_at_ms": 0,
+  "git": null,
+  "imports": null,
+  "license": null,
+  "mode": "analyze",
+  "predictive_churn": null,
+  "schema_version": 8,
+  "source": {
+    "base_receipt_path": null,
+    "base_signature": null,
+    "children": "collapse",
+    "export_generated_at_ms": null,
+    "export_path": null,
+    "export_schema_version": null,
+    "inputs": [
+      "."
+    ],
+    "module_depth": 2,
+    "module_roots": [
+      "src"
+    ]
+  },
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "topics": null,
+  "warnings": []
+}

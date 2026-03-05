@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_lang(&report, TableFormat::Tsv)"
+---
+Lang	Code	Lines	Bytes	Tokens
+Rust	3000	4000	105000	27000
+Go	1500	2000	52500	13500
+Total	4500	6000	157500	40500

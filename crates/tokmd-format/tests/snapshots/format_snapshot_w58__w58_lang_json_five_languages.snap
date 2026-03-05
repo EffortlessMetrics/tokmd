@@ -1,0 +1,79 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": true
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 130,
+      "bytes": 175000,
+      "code": 5000,
+      "files": 50,
+      "lang": "Rust",
+      "lines": 6666,
+      "tokens": 45000
+    },
+    {
+      "avg_lines": 130,
+      "bytes": 105000,
+      "code": 3000,
+      "files": 30,
+      "lang": "Go",
+      "lines": 4000,
+      "tokens": 27000
+    },
+    {
+      "avg_lines": 130,
+      "bytes": 70000,
+      "code": 2000,
+      "files": 20,
+      "lang": "Python",
+      "lines": 2666,
+      "tokens": 18000
+    },
+    {
+      "avg_lines": 130,
+      "bytes": 35000,
+      "code": 1000,
+      "files": 10,
+      "lang": "TypeScript",
+      "lines": 1333,
+      "tokens": 9000
+    },
+    {
+      "avg_lines": 130,
+      "bytes": 7000,
+      "code": 200,
+      "files": 2,
+      "lang": "Shell",
+      "lines": 266,
+      "tokens": 1800
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 133,
+    "bytes": 392000,
+    "code": 11200,
+    "files": 112,
+    "lines": 14931,
+    "tokens": 100800
+  },
+  "warnings": [],
+  "with_files": true
+}

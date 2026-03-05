@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: render_export_csv(&rich_export_data())
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/engine.rs,src,Rust,parent,500,60,40,600,15000,5000
+src/lib.rs,src,Rust,parent,250,30,25,305,7500,2500
+src/template.html,src,HTML,parent,80,5,10,95,2400,800
+src/template.html,src,JavaScript,child,30,2,3,35,900,300

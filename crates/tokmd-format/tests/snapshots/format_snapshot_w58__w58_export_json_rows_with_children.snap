@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: render_export_json(&rich_export_data())
+---
+[{"path":"src/engine.rs","module":"src","lang":"Rust","kind":"parent","code":500,"comments":60,"blanks":40,"lines":600,"bytes":15000,"tokens":5000},{"path":"src/lib.rs","module":"src","lang":"Rust","kind":"parent","code":250,"comments":30,"blanks":25,"lines":305,"bytes":7500,"tokens":2500},{"path":"src/template.html","module":"src","lang":"HTML","kind":"parent","code":80,"comments":5,"blanks":10,"lines":95,"bytes":2400,"tokens":800},{"path":"src/template.html","module":"src","lang":"JavaScript","kind":"child","code":30,"comments":2,"blanks":3,"lines":35,"bytes":900,"tokens":300}]

@@ -1,0 +1,33 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: "render_diff_md(\"v0.1.0\", \"v0.2.0\", &rows, &totals)"
+---
+## Diff: v0.1.0 → v0.2.0
+
+### Summary
+
+|Metric|From|To|Delta|Change|
+|---|---:|---:|---:|---:|
+|LOC|1500|2600|+1100|+73.3%|
+|Lines|1999|3466|+1467|+73.4%|
+|Files|15|26|+11|+73.3%|
+|Bytes|52500|91000|+38500|+73.3%|
+|Tokens|13500|23400|+9900|+73.3%|
+
+### Language Movement
+
+|Type|Count|
+|---|---:|
+|Changed|3|
+|Added|1|
+|Removed|0|
+|Modified|2|
+
+### Language Breakdown
+
+|Language|Old LOC|New LOC|Delta|
+|---|---:|---:|---:|
+|Go|0|300|+300|
+|Python|500|800|+300|
+|Rust|1000|1500|+500|
+|**Total**|1500|2600|+1100|

@@ -1,0 +1,43 @@
+---
+source: crates/tokmd-format/tests/format_snapshot_w58.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": false
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 130,
+      "bytes": 34965,
+      "code": 999,
+      "files": 9,
+      "lang": "Haskell",
+      "lines": 1332,
+      "tokens": 8991
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 148,
+    "bytes": 34965,
+    "code": 999,
+    "files": 9,
+    "lines": 1332,
+    "tokens": 8991
+  },
+  "warnings": [],
+  "with_files": false
+}
