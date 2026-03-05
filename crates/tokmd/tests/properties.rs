@@ -199,7 +199,7 @@ mod avg_function {
             let lower = lines / files;
             let upper = if lines % files == 0 { lower } else { lower + 1 };
 
-            prop_assert!(result >= lower && result <= upper,
+            prop_assert!((lower..=upper).contains(&result),
                 "avg({}, {}) = {} not in [{}, {}]", lines, files, result, lower, upper);
         }
 

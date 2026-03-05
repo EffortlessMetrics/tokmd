@@ -65,9 +65,8 @@ fn lang_workflow_nonexistent_path_errors() {
     let lang = LangSettings::default();
     let result = tokmd_core::lang_workflow(&scan, &lang);
     // Should either error or return empty rows
-    match result {
-        Err(_) => {} // expected
-        Ok(receipt) => assert!(receipt.report.rows.is_empty()),
+    if let Ok(receipt) = result {
+        assert!(receipt.report.rows.is_empty());
     }
 }
 

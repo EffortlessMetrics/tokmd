@@ -244,7 +244,7 @@ fn obj_face_indices_reference_valid_vertices() {
         for idx_str in line.split_whitespace().skip(1) {
             let idx: usize = idx_str.parse().unwrap();
             assert!(
-                idx >= 1 && idx <= total_vertices,
+                (1..=total_vertices).contains(&idx),
                 "face index {idx} out of range 1..={total_vertices}"
             );
         }
@@ -746,7 +746,7 @@ mod properties {
             h in 0.0f32..50.0,
         ) {
             let b = ObjBuilding { name: "det".into(), x, y, w, d, h };
-            prop_assert_eq!(render_obj(&[b.clone()]), render_obj(&[b]));
+            prop_assert_eq!(render_obj(std::slice::from_ref(&b)), render_obj(&[b]));
         }
 
         #[test]
@@ -770,7 +770,7 @@ mod properties {
             tempo in 1u16..=300,
         ) {
             let note = MidiNote { key, velocity: vel, start, duration: dur, channel: ch };
-            let r1 = render_midi(&[note.clone()], tempo).unwrap();
+            let r1 = render_midi(std::slice::from_ref(&note), tempo).unwrap();
             let r2 = render_midi(&[note], tempo).unwrap();
             prop_assert_eq!(r1, r2);
         }

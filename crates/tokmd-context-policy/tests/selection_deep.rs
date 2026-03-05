@@ -416,7 +416,7 @@ fn pack_plan_utilization_near_100_pct_when_files_fill_budget() {
         })
         .filter(|(_, p)| *p != InclusionPolicy::Skip)
         .collect();
-    candidates.sort_by(|a, b| b.0.tokens.cmp(&a.0.tokens));
+    candidates.sort_by_key(|x| std::cmp::Reverse(x.0.tokens));
 
     for (f, p) in &candidates {
         let eff = if *p == InclusionPolicy::HeadTail {

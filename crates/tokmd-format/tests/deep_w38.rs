@@ -724,7 +724,7 @@ fn make_lang_report(rows: Vec<LangRow>) -> LangReport {
             files,
             bytes,
             tokens,
-            avg_lines: if files > 0 { lines / files } else { 0 },
+            avg_lines: lines.checked_div(files).unwrap_or(0),
         },
         with_files: true,
         children: ChildrenMode::Collapse,

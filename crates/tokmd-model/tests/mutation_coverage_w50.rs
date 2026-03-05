@@ -30,7 +30,7 @@ fn lang_row(name: &str, code: usize, lines: usize, files: usize) -> LangRow {
         files,
         bytes: code * 40,
         tokens: code * 10,
-        avg_lines: if files > 0 { lines / files } else { 0 },
+        avg_lines: lines.checked_div(files).unwrap_or(0),
     }
 }
 

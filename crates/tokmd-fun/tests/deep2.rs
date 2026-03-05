@@ -71,7 +71,7 @@ fn obj_each_buildings_faces_reference_only_its_own_vertices() {
         for face in chunk {
             for &idx in face {
                 assert!(
-                    idx >= base && idx <= upper,
+                    (base..=upper).contains(&idx),
                     "building {b_idx}: face index {idx} outside [{base}, {upper}]"
                 );
             }

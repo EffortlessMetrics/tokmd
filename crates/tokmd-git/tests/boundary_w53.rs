@@ -76,9 +76,8 @@ fn collect_history_empty_repo_returns_empty_or_error() {
     }
     let dir = make_git_repo();
     // No commits yet — git log should be empty or error
-    match collect_history(dir.path(), Some(100), Some(300)) {
-        Ok(commits) => assert!(commits.is_empty(), "empty repo should have no commits"),
-        Err(_) => {} // also acceptable
+    if let Ok(commits) = collect_history(dir.path(), Some(100), Some(300)) {
+        assert!(commits.is_empty(), "empty repo should have no commits");
     }
 }
 

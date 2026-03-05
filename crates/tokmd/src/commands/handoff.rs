@@ -526,7 +526,7 @@ fn build_simple_complexity(export: &ExportData) -> HandoffComplexity {
     }
 
     // Sort by code lines descending, take top files
-    parents.sort_by(|a, b| b.code.cmp(&a.code));
+    parents.sort_by_key(|x| std::cmp::Reverse(x.code));
     parents.truncate(MAX_COMPLEXITY_FILES);
 
     let mut total_functions: usize = 0;
