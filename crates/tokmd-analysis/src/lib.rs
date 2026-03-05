@@ -28,5 +28,9 @@ mod util;
 
 pub use analysis::{AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze};
 pub use tokmd_analysis_types::NearDupScope;
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+pub mod readme_doctests {}
 pub use tokmd_analysis_util::AnalysisLimits;
 pub use util::normalize_root;

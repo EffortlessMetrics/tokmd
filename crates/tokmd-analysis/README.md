@@ -20,20 +20,66 @@ features = ["git", "walk", "content", "fun", "topics", "archetype"]
 
 ## Usage
 
-```rust
-use tokmd_analysis::{analyze, AnalysisRequest, AnalysisContext, AnalysisLimits, AnalysisPreset};
+```rust,no_run
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
+use tokmd_analysis::{analyze, AnalysisRequest, AnalysisContext, AnalysisLimits, AnalysisPreset, ImportGranularity};
+use tokmd_types::{ExportData, ChildIncludeMode};
+use tokmd_analysis_types::{AnalysisSource, AnalysisArgsMeta, NearDupScope};
+use std::path::PathBuf;
 
-let request = AnalysisRequest {
-    context: AnalysisContext {
-        paths: vec![PathBuf::from(".")],
-        export: export_data,
-        base_receipt: None,
-    },
-    limits: AnalysisLimits::default(),
-    preset: AnalysisPreset::Risk,
+let export_data = ExportData {
+    rows: vec![],
+    module_roots: vec![],
+    module_depth: 0,
+    children: ChildIncludeMode::ParentsOnly,
 };
 
-let receipt = analyze(request)?;
+let request = AnalysisRequest {
+    preset: AnalysisPreset::Risk,
+    args: AnalysisArgsMeta {
+        preset: "risk".to_string(),
+        format: "md".to_string(),
+        window_tokens: None,
+        git: None,
+        max_files: None,
+        max_bytes: None,
+        max_commits: None,
+        max_commit_files: None,
+        max_file_bytes: None,
+        import_granularity: "module".to_string(),
+    },
+    limits: AnalysisLimits::default(),
+    window_tokens: None,
+    git: None,
+    import_granularity: ImportGranularity::Module,
+    detail_functions: false,
+    near_dup: false,
+    near_dup_threshold: 0.8,
+    near_dup_max_files: 1000,
+    near_dup_scope: NearDupScope::Lang,
+    near_dup_max_pairs: None,
+    near_dup_exclude: vec![],
+};
+
+let context = AnalysisContext {
+    export: export_data,
+    root: PathBuf::from("."),
+    source: AnalysisSource {
+        inputs: vec![".".to_string()],
+        export_path: None,
+        base_receipt_path: None,
+        export_schema_version: None,
+        export_generated_at_ms: None,
+        base_signature: None,
+        module_roots: vec![],
+        module_depth: 0,
+        children: "parents-only".to_string(),
+    },
+};
+
+let receipt = analyze(context, request)?;
+# Ok(())
+# }
 ```
 
 ## Analysis Presets
