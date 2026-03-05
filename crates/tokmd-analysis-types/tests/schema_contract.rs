@@ -65,10 +65,8 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
 
 #[test]
 fn analysis_schema_version_is_positive() {
-    assert!(
-        ANALYSIS_SCHEMA_VERSION > 0,
-        "ANALYSIS_SCHEMA_VERSION must be a positive integer"
-    );
+    let v = ANALYSIS_SCHEMA_VERSION;
+    assert!(v > 0, "ANALYSIS_SCHEMA_VERSION must be a positive integer");
 }
 
 #[test]

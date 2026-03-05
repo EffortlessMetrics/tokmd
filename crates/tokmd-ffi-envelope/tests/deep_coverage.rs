@@ -47,9 +47,9 @@ fn envelope_with_mixed_type_array_payload() {
 
 #[test]
 fn envelope_with_numeric_payload() {
-    let envelope = json!({"ok": true, "data": 3.14});
+    let envelope = json!({"ok": true, "data": 3.15});
     let data = extract_data(envelope).unwrap();
-    assert!((data.as_f64().unwrap() - 3.14).abs() < 0.001);
+    assert!((data.as_f64().unwrap() - 3.15).abs() < 0.001);
 }
 
 #[test]

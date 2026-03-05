@@ -307,7 +307,7 @@ mod completely_different {
             "all unique files → no duplicate pairs"
         );
         // No clusters when no pairs
-        let has_clusters = report.clusters.as_ref().map_or(true, |c| c.is_empty());
+        let has_clusters = report.clusters.as_ref().is_none_or(|c| c.is_empty());
         assert!(has_clusters, "no pairs → no clusters");
     }
 }

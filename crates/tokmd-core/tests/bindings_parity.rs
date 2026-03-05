@@ -246,7 +246,7 @@ proptest! {
                 Just(Value::Null),
                 any::<bool>().prop_map(Value::Bool),
                 any::<i64>().prop_map(|n| Value::Number(n.into())),
-                "[a-z /\\.]{0,30}".prop_map(|s| Value::String(s)),
+                "[a-z /\\.]{0,30}".prop_map(Value::String),
             ],
             0..5,
         ),
