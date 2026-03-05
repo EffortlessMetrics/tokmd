@@ -3538,6 +3538,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "tempfile",
  "tokei",
  "tokmd-module-key",
  "tokmd-types",
