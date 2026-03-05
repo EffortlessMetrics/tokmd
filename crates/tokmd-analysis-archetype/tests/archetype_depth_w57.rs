@@ -1,6 +1,5 @@
 //! W57 depth tests for tokmd-analysis-archetype.
 
-use std::collections::BTreeSet;
 use tokmd_analysis_archetype::detect_archetype;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
