@@ -149,7 +149,7 @@ fn no_extension_files_skipped() {
 }
 
 // ===========================================================================
-// 9. Empty file list → zero everything
+// 9. Empty file list ΓåÆ zero everything
 // ===========================================================================
 #[test]
 fn empty_file_list_assets() {
@@ -476,7 +476,7 @@ fn empty_dependency_report() {
 }
 
 // ===========================================================================
-// 29. Deterministic: same input → same JSON
+// 29. Deterministic: same input ΓåÆ same JSON
 // ===========================================================================
 #[test]
 fn asset_report_deterministic_json() {

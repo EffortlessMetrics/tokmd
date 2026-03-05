@@ -30,7 +30,7 @@ fn make_empty_dir() -> tempfile::TempDir {
 }
 
 // ============================================================================
-// lang_workflow – default settings
+// lang_workflow ΓÇô default settings
 // ============================================================================
 
 #[test]
@@ -89,7 +89,7 @@ fn lang_top_one_limits_rows() {
 }
 
 // ============================================================================
-// module_workflow – various depths
+// module_workflow ΓÇô various depths
 // ============================================================================
 
 #[test]
@@ -157,7 +157,7 @@ fn module_top_setting() {
 }
 
 // ============================================================================
-// export_workflow – different settings
+// export_workflow ΓÇô different settings
 // ============================================================================
 
 #[test]
@@ -227,7 +227,7 @@ fn export_max_rows_limit() {
 }
 
 // ============================================================================
-// Error handling – non-existent paths
+// Error handling ΓÇô non-existent paths
 // ============================================================================
 
 #[test]

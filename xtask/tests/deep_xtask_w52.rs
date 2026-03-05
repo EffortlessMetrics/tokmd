@@ -28,7 +28,7 @@ fn run_xtask(args: &[&str]) -> (String, String, bool) {
     (stdout, stderr, output.status.success())
 }
 
-// ── Boundaries check tests ─────────────────────────────────────────────
+// ΓöÇΓöÇ Boundaries check tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 #[test]
 fn boundaries_check_succeeds_on_clean_repo() {
@@ -173,7 +173,7 @@ fn boundaries_analysis_crates_have_package_name() {
     }
 }
 
-// ── Docs check tests ───────────────────────────────────────────────────
+// ΓöÇΓöÇ Docs check tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 #[test]
 fn docs_reference_cli_exists() {
@@ -240,7 +240,7 @@ fn docs_task_without_flags_reports_status() {
     );
 }
 
-// ── Publish plan tests ─────────────────────────────────────────────────
+// ΓöÇΓöÇ Publish plan tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 #[test]
 fn publish_plan_succeeds_and_shows_version() {
@@ -312,7 +312,7 @@ fn publish_plan_verbose_shows_exclusion_reasons() {
     );
 }
 
-// ── Schema bump tests ──────────────────────────────────────────────────
+// ΓöÇΓöÇ Schema bump tests ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 #[test]
 fn bump_dry_run_detects_schema_locations() {
