@@ -9,26 +9,31 @@ use tokmd_types::*;
 // ── Schema constants ──────────────────────────────────────────────────
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn schema_version_is_accessible() {
     assert!(SCHEMA_VERSION >= 2);
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn cockpit_schema_version_is_accessible() {
     assert!(COCKPIT_SCHEMA_VERSION >= 3);
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn handoff_schema_version_is_accessible() {
     assert!(HANDOFF_SCHEMA_VERSION >= 5);
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn context_schema_version_is_accessible() {
     assert!(CONTEXT_SCHEMA_VERSION >= 4);
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn context_bundle_schema_version_is_accessible() {
     assert!(CONTEXT_BUNDLE_SCHEMA_VERSION >= 2);
 }
@@ -43,13 +48,6 @@ fn sample_totals() -> Totals {
         bytes: 4000,
         tokens: 1000,
         avg_lines: 30,
-    }
-}
-
-fn sample_tool_info() -> ToolInfo {
-    ToolInfo {
-        name: "tokmd".into(),
-        version: "0.1.0".into(),
     }
 }
 

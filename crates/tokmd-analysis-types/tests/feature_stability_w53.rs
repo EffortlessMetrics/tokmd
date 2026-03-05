@@ -9,11 +9,13 @@ use tokmd_types::{ScanStatus, ToolInfo};
 // ── Schema constants ──────────────────────────────────────────────────
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn analysis_schema_version_is_accessible() {
     assert!(ANALYSIS_SCHEMA_VERSION >= 8);
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn baseline_version_is_accessible() {
     assert!(BASELINE_VERSION >= 1);
 }
