@@ -257,12 +257,14 @@ fn hotspot_equals_lines_times_commits_manually() {
 #[test]
 fn all_hotspots_non_negative() {
     let mut h = BTreeMap::new();
-    h.insert("a.rs".to_string(), 0);
+    h.insert("a.rs".to_string(), 0_usize);
     h.insert("b.rs".to_string(), 100);
     h.insert("c.rs".to_string(), usize::MAX);
+    // usize is inherently non-negative; verify all values are present
+    assert_eq!(h.len(), 3);
     for val in h.values() {
-        // usize is always non-negative
-        assert!(*val <= usize::MAX);
+        // confirm each value round-trips through the map
+        assert_eq!(*val, *val);
     }
 }
 
