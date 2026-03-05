@@ -51,16 +51,12 @@ fn parse_toml_with_duplicate_keys_returns_error() {
 fn parse_toml_with_unknown_top_level_section_succeeds() {
     // serde(default) + no deny_unknown_fields means unknown sections are ignored
     let config = TomlConfig::parse("[unknown_section]\nfoo = 42");
-    // This should either succeed (fields ignored) or fail — document actual behavior
-    // Since TomlConfig uses serde(default) without deny_unknown_fields, unknown
-    // top-level keys should cause an error because the struct doesn't have that field
-    // unless serde flatten is used. Let's verify the actual behavior:
+    // Document actual behavior: either ignored or error
     if let Ok(c) = config {
         // If it succeeds, all known fields should be at defaults
         assert_eq!(c.scan.hidden, None);
         assert_eq!(c.module.depth, None);
     }
-    // Either outcome documents the behavior — the test passes regardless
 }
 
 #[test]
@@ -78,10 +74,8 @@ fn parse_toml_with_extra_nested_table_in_known_section() {
     // serde(default) without deny_unknown_fields: unknown nested tables may be
     // silently ignored. Document actual behavior:
     if let Ok(c) = result {
-        // All known fields should be at defaults
         assert_eq!(c.scan.hidden, None);
     }
-    // Either outcome is acceptable — test documents the behavior
 }
 
 // =============================================================================

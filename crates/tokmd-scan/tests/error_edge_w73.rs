@@ -30,7 +30,7 @@ fn default_options() -> ScanOptions {
 fn scan_nonexistent_directory_error_message_includes_path() {
     let dir = tempfile::tempdir().unwrap();
     let missing = dir.path().join("does_not_exist_w73");
-    let result = scan(&[missing.clone()], &default_options());
+    let result = scan(std::slice::from_ref(&missing), &default_options());
     assert!(result.is_err());
     let msg = result.unwrap_err().to_string();
     assert!(
@@ -53,8 +53,7 @@ fn scan_empty_directory_returns_empty_languages() {
     let result = scan(&[dir.path().to_path_buf()], &default_options());
     assert!(result.is_ok());
     let langs = result.unwrap();
-    // Empty dir has no source files — all language entries should have 0 code
-    let total_code: usize = langs.iter().map(|(_, lang)| lang.code).sum();
+    let total_code: usize = langs.values().map(|lang| lang.code).sum();
     assert_eq!(total_code, 0, "empty dir should yield zero code lines");
 }
 
@@ -71,7 +70,7 @@ fn scan_hidden_only_dir_without_hidden_flag_returns_no_code() {
 
     let opts = default_options(); // hidden = false
     let result = scan(&[dir.path().to_path_buf()], &opts).unwrap();
-    let total_code: usize = result.iter().map(|(_, lang)| lang.code).sum();
+    let total_code: usize = result.values().map(|lang| lang.code).sum();
     assert_eq!(
         total_code, 0,
         "hidden files should not be counted without --hidden"
@@ -88,7 +87,7 @@ fn scan_hidden_only_dir_with_hidden_flag_finds_code() {
     let mut opts = default_options();
     opts.hidden = true;
     let result = scan(&[dir.path().to_path_buf()], &opts).unwrap();
-    let total_code: usize = result.iter().map(|(_, lang)| lang.code).sum();
+    let total_code: usize = result.values().map(|lang| lang.code).sum();
     assert!(
         total_code > 0,
         "hidden files should be counted with --hidden"
@@ -133,7 +132,6 @@ fn scan_with_exclude_pattern_filters_matching_files() {
         ..default_options()
     };
     let result = scan(&[dir.path().to_path_buf()], &opts).unwrap();
-    // At most one Rust file should be found (keep.rs)
     if let Some(rust) = result.get(&tokei::LanguageType::Rust) {
         assert!(
             rust.reports.len() <= 1,
