@@ -116,7 +116,7 @@ fn context_json_utilization_within_bounds() {
 
     let pct = json["utilization_pct"].as_f64().unwrap();
     assert!(
-        pct >= 0.0 && pct <= 100.0,
+        (0.0..=100.0).contains(&pct),
         "utilization_pct out of range: {pct}"
     );
 }

@@ -156,10 +156,8 @@ fn sample_export_receipt() -> ExportReceipt {
 
 #[test]
 fn schema_version_is_positive() {
-    assert!(
-        SCHEMA_VERSION > 0,
-        "SCHEMA_VERSION must be a positive integer"
-    );
+    let v = SCHEMA_VERSION;
+    assert!(v > 0, "SCHEMA_VERSION must be a positive integer");
 }
 
 #[test]
@@ -169,9 +167,12 @@ fn schema_version_pinned() {
 
 #[test]
 fn all_schema_versions_are_positive() {
-    assert!(HANDOFF_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_BUNDLE_SCHEMA_VERSION > 0);
-    assert!(CONTEXT_SCHEMA_VERSION > 0);
+    let h = HANDOFF_SCHEMA_VERSION;
+    assert!(h > 0);
+    let cb = CONTEXT_BUNDLE_SCHEMA_VERSION;
+    assert!(cb > 0);
+    let cs = CONTEXT_SCHEMA_VERSION;
+    assert!(cs > 0);
 }
 
 // ── Default values ───────────────────────────────────────────────────────

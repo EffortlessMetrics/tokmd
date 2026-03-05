@@ -330,8 +330,8 @@ fn default_profile_selection_all_none() {
     let cfg = UserConfig::default();
     assert!(cfg.profiles.is_empty());
     // With no profiles, looking up any name yields None
-    assert!(cfg.profiles.get("default").is_none());
-    assert!(cfg.profiles.get("ci").is_none());
+    assert!(!cfg.profiles.contains_key("default"));
+    assert!(!cfg.profiles.contains_key("ci"));
 }
 
 #[test]
@@ -445,9 +445,9 @@ fn unknown_profile_name_returns_none() {
 format = "json"
 "#;
     let cfg = TomlConfig::parse(toml_str).unwrap();
-    assert!(cfg.view.get("nonexistent").is_none());
-    assert!(cfg.view.get("").is_none());
-    assert!(cfg.view.get("CI").is_none()); // case-sensitive
+    assert!(!cfg.view.contains_key("nonexistent"));
+    assert!(!cfg.view.contains_key(""));
+    assert!(!cfg.view.contains_key("CI")); // case-sensitive
 }
 
 #[test]

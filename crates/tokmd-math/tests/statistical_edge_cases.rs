@@ -142,7 +142,7 @@ fn percentile_large_sorted_slice() {
     assert_eq!(percentile(&values, 0.0), 1.0);
     assert_eq!(percentile(&values, 1.0), 1000.0);
     let median = percentile(&values, 0.5);
-    assert!(median >= 1.0 && median <= 1000.0);
+    assert!((1.0..=1000.0).contains(&median));
 }
 
 // ── Property test: mean proxy is between min and max ────────────────
