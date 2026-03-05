@@ -70,6 +70,25 @@ pub struct Totals {
     pub avg_lines: usize,
 }
 
+/// A single language row in the lang summary.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::LangRow;
+///
+/// let row = LangRow {
+///     lang: "Rust".to_string(),
+///     code: 5000,
+///     lines: 6500,
+///     files: 42,
+///     bytes: 180_000,
+///     tokens: 45_000,
+///     avg_lines: 154,
+/// };
+/// assert_eq!(row.lang, "Rust");
+/// assert_eq!(row.files, 42);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LangRow {
     pub lang: String,
@@ -90,6 +109,25 @@ pub struct LangReport {
     pub top: usize,
 }
 
+/// A single module row in the module breakdown.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::ModuleRow;
+///
+/// let row = ModuleRow {
+///     module: "crates/tokmd-types".to_string(),
+///     code: 800,
+///     lines: 1100,
+///     files: 3,
+///     bytes: 32_000,
+///     tokens: 8_000,
+///     avg_lines: 366,
+/// };
+/// assert_eq!(row.module, "crates/tokmd-types");
+/// assert_eq!(row.code, 800);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleRow {
     pub module: String,
@@ -118,6 +156,29 @@ pub enum FileKind {
     Child,
 }
 
+/// A single file row in the export inventory.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::{FileRow, FileKind};
+///
+/// let row = FileRow {
+///     path: "src/main.rs".to_string(),
+///     module: "src".to_string(),
+///     lang: "Rust".to_string(),
+///     kind: FileKind::Parent,
+///     code: 120,
+///     comments: 30,
+///     blanks: 20,
+///     lines: 170,
+///     bytes: 4_800,
+///     tokens: 1_200,
+/// };
+/// assert_eq!(row.path, "src/main.rs");
+/// assert_eq!(row.kind, FileKind::Parent);
+/// assert_eq!(row.lines, row.code + row.comments + row.blanks);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FileRow {
     pub path: String,
@@ -379,6 +440,22 @@ pub struct ContextFileRow {
 // -----------------------
 
 /// A row in the diff output showing changes for a single language.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::DiffRow;
+///
+/// let row = DiffRow {
+///     lang: "Rust".to_string(),
+///     old_code: 1000, new_code: 1200, delta_code: 200,
+///     old_lines: 1500, new_lines: 1800, delta_lines: 300,
+///     old_files: 10,   new_files: 12,   delta_files: 2,
+///     old_bytes: 40000, new_bytes: 48000, delta_bytes: 8000,
+///     old_tokens: 10000, new_tokens: 12000, delta_tokens: 2000,
+/// };
+/// assert_eq!(row.delta_code, (row.new_code as i64) - (row.old_code as i64));
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DiffRow {
     pub lang: String,
@@ -400,6 +477,17 @@ pub struct DiffRow {
 }
 
 /// Aggregate totals for the diff.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::DiffTotals;
+///
+/// // Default is all zeros
+/// let totals = DiffTotals::default();
+/// assert_eq!(totals.delta_code, 0);
+/// assert_eq!(totals.delta_files, 0);
+/// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DiffTotals {
     pub old_code: usize,
