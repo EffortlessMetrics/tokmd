@@ -261,8 +261,8 @@ fn publish_plan_types_before_cli() {
         let trimmed = l.trim();
         trimmed.ends_with(" tokmd") || trimmed == "tokmd"
     });
-    if let (Some(tpos), Some(_cpos)) = (types_pos, cli_pos) {
-        assert!(tpos > 0, "tokmd-types should be in the plan");
+    if let (Some(types_idx), Some(_cli_idx)) = (types_pos, cli_pos) {
+        assert!(types_idx > 0, "tokmd-types should be in the plan");
     }
 }
 
