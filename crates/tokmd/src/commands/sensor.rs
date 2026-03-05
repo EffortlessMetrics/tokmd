@@ -665,7 +665,7 @@ mod tests {
         });
 
         let gates = map_gates(&evidence);
-        let ids: std::collections::HashSet<_> = gates.items.iter().map(|g| g.id.as_str()).collect();
+        let ids: std::collections::BTreeSet<_> = gates.items.iter().map(|g| g.id.as_str()).collect();
         for id in [
             "mutation",
             "diff_coverage",
@@ -749,7 +749,7 @@ mod tests {
         emit_contract_findings(&mut report, &contracts);
 
         assert_eq!(report.findings.len(), 3);
-        let codes: std::collections::HashSet<_> =
+        let codes: std::collections::BTreeSet<_> =
             report.findings.iter().map(|f| f.code.as_str()).collect();
         for code in [
             findings::contract::SCHEMA_CHANGED,
@@ -823,7 +823,7 @@ mod tests {
 
         emit_gate_findings(&mut report, &evidence);
 
-        let codes: std::collections::HashSet<_> =
+        let codes: std::collections::BTreeSet<_> =
             report.findings.iter().map(|f| f.code.as_str()).collect();
         for code in [
             findings::gate::MUTATION_FAILED,
