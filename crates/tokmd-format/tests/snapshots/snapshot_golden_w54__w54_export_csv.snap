@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/main.rs,src,Rust,parent,250,40,30,320,8000,2500
+src/lib.rs,src,Rust,parent,180,25,20,225,5400,1800
+tests/smoke.rs,tests,Rust,parent,60,5,8,73,1800,600

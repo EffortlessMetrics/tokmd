@@ -1,0 +1,52 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: normalize_json(&out)
+---
+{
+  "args": {
+    "children": "collapse",
+    "format": "json",
+    "top": 0,
+    "with_files": true
+  },
+  "children": "collapse",
+  "generated_at_ms": 0,
+  "mode": "lang",
+  "rows": [
+    {
+      "avg_lines": 154,
+      "bytes": 180000,
+      "code": 5000,
+      "files": 42,
+      "lang": "Rust",
+      "lines": 6500,
+      "tokens": 45000
+    },
+    {
+      "avg_lines": 187,
+      "bytes": 36000,
+      "code": 1200,
+      "files": 8,
+      "lang": "Python",
+      "lines": 1500,
+      "tokens": 12000
+    }
+  ],
+  "schema_version": 2,
+  "status": "complete",
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "top": 0,
+  "total": {
+    "avg_lines": 160,
+    "bytes": 216000,
+    "code": 6200,
+    "files": 50,
+    "lines": 8000,
+    "tokens": 57000
+  },
+  "warnings": [],
+  "with_files": true
+}

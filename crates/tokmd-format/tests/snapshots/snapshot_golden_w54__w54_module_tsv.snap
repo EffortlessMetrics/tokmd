@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+Module	Code	Lines	Files	Bytes	Tokens	Avg
+crates/core	3000	3800	15	90000	24000	253
+crates/cli	1500	1900	7	45000	12000	271
+tests	800	1000	4	24000	6400	250
+Total	5300	6700	26	159000	42400	257

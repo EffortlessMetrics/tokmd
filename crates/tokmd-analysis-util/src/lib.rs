@@ -26,7 +26,7 @@ pub fn normalize_path(path: &str, root: &Path) -> String {
     if let Ok(stripped) = Path::new(&out).strip_prefix(root) {
         out = stripped.to_string_lossy().replace('\\', "/");
     }
-    if let Some(stripped) = out.strip_prefix("./") {
+    while let Some(stripped) = out.strip_prefix("./") {
         out = stripped.to_string();
     }
     out
