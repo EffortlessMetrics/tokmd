@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_golden_w54.rs
+expression: out
+---
+Lang	Code	Lines	Files	Bytes	Tokens	Avg
+Rust	5000	6500	42	180000	45000	154
+Python	1200	1500	8	36000	12000	187
+Total	6200	8000	50	216000	57000	160
