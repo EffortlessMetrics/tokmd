@@ -32,8 +32,8 @@ fn entropy_uniform_bytes_returns_zero() {
 #[test]
 fn entropy_two_values_equal_distribution_near_one_bit() {
     let mut data = vec![0u8; 1000];
-    for i in 0..500 {
-        data[i] = 1;
+    for item in data.iter_mut().take(500) {
+        *item = 1;
     }
     let e = entropy_bits_per_byte(&data);
     assert!((e - 1.0).abs() < 0.01, "expected ~1.0, got {e}");
@@ -50,7 +50,7 @@ fn entropy_all_256_values_near_eight_bits() {
 fn entropy_bounded_between_zero_and_eight() {
     let data = b"Hello, world! This is a test of entropy calculation.";
     let e = entropy_bits_per_byte(data);
-    assert!(e >= 0.0 && e <= 8.0, "entropy out of range: {e}");
+    assert!((0.0..=8.0).contains(&e), "entropy out of range: {e}");
 }
 
 // ── tag extraction ───────────────────────────────────────────────────
