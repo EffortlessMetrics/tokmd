@@ -72,7 +72,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
 
 #[test]
 fn analysis_schema_version_is_positive() {
-    assert!(ANALYSIS_SCHEMA_VERSION > 0);
+    const _: () = assert!(ANALYSIS_SCHEMA_VERSION > 0);
 }
 
 #[test]
