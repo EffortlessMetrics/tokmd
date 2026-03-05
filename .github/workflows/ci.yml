@@ -36,10 +36,10 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --all-features --verbose
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --all-features --verbose
       env:
         CI: true
 
@@ -55,10 +55,10 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --all-features --verbose
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --all-features --verbose
       env:
         CI: true
 
@@ -82,27 +82,16 @@ jobs:
       - name: Guard analysis microcrate boundaries
         run: cargo xtask boundaries-check
 
-  fmt:
-    name: Rustfmt
+  gate:
+    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt
-      - name: Check formatting
-        run: cargo fmt -- --check
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - name: Lint
-        run: cargo clippy -- -D warnings
+          components: clippy, rustfmt
+      - name: Run quality gate
+        run: cargo xtask gate --check
 
   deny:
     name: Cargo Deny
@@ -284,8 +273,7 @@ jobs:
       - msrv
       - build
       - build-macos
-      - fmt
-      - clippy
+      - gate
       - deny
       - typos
       - proptest-smoke

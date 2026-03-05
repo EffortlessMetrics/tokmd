@@ -20,6 +20,10 @@ pub enum Commands {
     Docs(DocsArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
+    /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
+    Gate(GateArgs),
+    /// Auto-fix lint issues (fmt + clippy --fix) then verify
+    LintFix(LintFixArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -139,6 +143,24 @@ pub struct BumpArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct BoundariesCheckArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct GateArgs {
+    /// Run in check-only mode (no file modifications)
+    #[arg(long)]
+    pub check: bool,
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct LintFixArgs {
+    /// Verify lint without modifying files
+    #[arg(long)]
+    pub check: bool,
+
+    /// Skip clippy --fix step
+    #[arg(long)]
+    pub no_clippy: bool,
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct CockpitArgs {
