@@ -50,6 +50,8 @@ sloc = "sloc"
 # Mathematical abbreviations (numerator/denominator)
 numer = "numer"
 
+# Malformed JSON in FFI envelope error tests (e.g. `{"ok": tru"`)
+tru = "tru"
 # Test variable suffixes (ordering patterns: ab = a-then-b, ba = b-then-a)
 ba = "ba"
 bck = "bck"
