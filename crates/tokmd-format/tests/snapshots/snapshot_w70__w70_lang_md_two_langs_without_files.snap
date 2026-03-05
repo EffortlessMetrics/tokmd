@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: out
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|Rust|4200|5500|150000|38000|
+|Python|1800|2300|54000|18000|
+|**Total**|6000|7800|204000|56000|

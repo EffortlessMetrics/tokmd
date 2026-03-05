@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: out
+---
+|Module|Code|Lines|Files|Bytes|Tokens|Avg|
+|---|---:|---:|---:|---:|---:|---:|
+|**Total**|0|0|0|0|0|0|

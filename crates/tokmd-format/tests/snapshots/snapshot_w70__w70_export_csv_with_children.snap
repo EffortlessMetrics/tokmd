@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/snapshot_w70.rs
+expression: out
+---
+path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
+src/engine.rs,src,Rust,parent,320,45,35,400,9600,3200
+src/api.rs,src,Rust,parent,210,30,25,265,6300,2100
+tests/integration.rs,tests,Rust,parent,85,10,12,107,2550,850
