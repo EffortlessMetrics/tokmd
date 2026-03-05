@@ -1,0 +1,116 @@
+---
+source: crates/tokmd-analysis-format/tests/snapshot_w74.rs
+expression: out
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|12|2400|310|160|2870|72000|19200|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|11.4%|
+|Whitespace ratio|5.6%|
+|Bytes per line|25.08|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|11.9%|250|1850|
+|TOML|9.8%|60|550|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|12|45|635|239.16|195.00|520.00|635.00|0.3200|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|Small|0|100|5|41.7%|
+|Medium|101|500|5|41.7%|
+|Large|501|∞|2|16.7%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/core.rs|Rust|635|520|15600|4160|12.6%|24.56|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+## Structure
+
+- Max depth: `6`
+- Avg depth: `2.80`
+
+## Test density
+
+- Test lines: `350`
+- Prod lines: `2050`
+- Test ratio: `17.1%`
+
+## Boilerplate ratio
+
+- Infra lines: `120`
+- Logic lines: `2750`
+- Infra ratio: `4.4%`
+
+## Polyglot
+
+- Languages: `3`
+- Dominant: `Rust` (73.0%)
+- Entropy: `0.7800`
+
+## Reading time
+
+- Minutes: `143.50` (20 lines/min)
+
+## Integrity
+
+- Hash: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` (`blake3`)
+- Entries: `12`

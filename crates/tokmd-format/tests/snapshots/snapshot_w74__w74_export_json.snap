@@ -1,0 +1,42 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: normalize_json(&raw)
+---
+[
+  {
+    "blanks": 30,
+    "bytes": 8400,
+    "code": 280,
+    "comments": 40,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 350,
+    "module": "src",
+    "path": "src/main.rs",
+    "tokens": 2800
+  },
+  {
+    "blanks": 45,
+    "bytes": 13500,
+    "code": 450,
+    "comments": 65,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 560,
+    "module": "src",
+    "path": "src/lib.rs",
+    "tokens": 4500
+  },
+  {
+    "blanks": 15,
+    "bytes": 2850,
+    "code": 95,
+    "comments": 12,
+    "kind": "parent",
+    "lang": "Rust",
+    "lines": 122,
+    "module": "tests",
+    "path": "tests/smoke.rs",
+    "tokens": 950
+  }
+]

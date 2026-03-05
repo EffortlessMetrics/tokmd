@@ -1,0 +1,7 @@
+---
+source: crates/tokmd-format/tests/snapshot_w74.rs
+expression: out
+---
+|Lang|Code|Lines|Bytes|Tokens|
+|---|---:|---:|---:|---:|
+|**Total**|0|0|0|0|
