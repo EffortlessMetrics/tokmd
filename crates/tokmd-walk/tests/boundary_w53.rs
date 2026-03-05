@@ -38,9 +38,8 @@ fn list_files_max_files_zero_returns_empty() {
 fn list_files_nonexistent_path_returns_error_or_empty() {
     let bogus = PathBuf::from("__nonexistent_w53_dir__");
     // May error or return empty depending on implementation
-    match list_files(&bogus, None) {
-        Ok(files) => assert!(files.is_empty()),
-        Err(_) => {} // error is acceptable
+    if let Ok(files) = list_files(&bogus, None) {
+        assert!(files.is_empty());
     }
 }
 

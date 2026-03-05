@@ -1,5 +1,5 @@
 use crate::cli::LintFixArgs;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use std::process::Command;
 
 pub fn run(args: LintFixArgs) -> Result<()> {
