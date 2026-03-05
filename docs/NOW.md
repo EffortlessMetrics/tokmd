@@ -1,47 +1,23 @@
-# NOW.md — Current State of tokmd
+# NOW / NEXT / LATER
 
-> Last updated: 2025-07-28
+> One-screen operational truth. Updated per-cycle.
 
-## Where We Are
+## NOW (active)
 
-v1.7.2 shipped. 56 crates in the workspace. **11,991+ tests** total.
-55/56 crates have `tests/` directories. CI green on main (macOS gated
-to main-only pushes). Two full test-expansion cycles complete.
+- **CI stabilization**: Main is red (Quality Gate fmt + pyo3 exclusion). PR #508 in flight.
+- **w58 test expansion**: 6 PRs (#499–#504) rebased, CI running — test-only, low risk.
+- **Quality gate DX**: PR #506 merged — gate accumulates all failures with ✅/❌ indicators.
 
----
+## NEXT (merge queue)
 
-## NOW — active work
+- **v1.8 WASM-ready seams**: Abstract host I/O (fs, path) behind trait ports for `wasm32-unknown-unknown` target.
+- **Determinism hardening**: Stable ordering tie-breaks, CRLF/LF normalization, path canonicalization.
+- **Schema docs sync**: Ensure docs/SCHEMA.md, docs/schema.json match code-generated output.
+- **Feature boundary expansion**: Broaden `xtask boundaries-check` to cover more tier constraints.
 
-- **Test infrastructure comprehensive.** 11,991+ tests across unit,
-  integration, snapshot, BDD, proptest, and E2E. 16 test-expansion PRs
-  merged in the latest cycle on top of the earlier 36-PR wave.
-- **CI stabilized.** macOS jobs gated to main-only pushes (#409). Nix
-  clippy lint and rustfmt fixes landed (#407, #390). Full gate green.
-- **Perf improvement merged.** Reduced allocations in token stream
-  formatting (top-of-tree commit).
-- **Determinism hardened.** Byte-stable output regression suite and
-  deterministic ordering locks in place.
+## LATER (roadmap)
 
----
-
-## NEXT — immediate priorities
-
-- **v1.8 WASM readiness.** Host IO abstraction, in-memory scan
-  pipeline, `wasm` feature profile, WASM CI builds.
-- **Bindings parity.** Ensure Python and Node.js bindings cover the
-  full workflow surface (analyze, diff, sensor).
-- **Schema hardening.** Lock remaining schema versions with contract
-  tests; publish updated `docs/schema.json`.
-- **Mutation testing expansion.** Broaden `cargo-mutants` coverage
-  across more crates for test quality verification.
-
----
-
-## LATER — roadmap horizon
-
-- **v1.9 browser runner.** `tokmd-wasm` crate, zipball ingestion,
-  in-browser receipt generation without server-side compute.
-- **v2.0 MCP server.** `tokmd serve` for native Claude/MCP-client
-  integration, streaming analysis, plugin system.
-- **Adze AST integration.** Tree-sitter/Adze-based complexity and
-  function extraction (v4.0 long-term track).
+- **v1.9 browser runner**: Zipball ingestion + in-browser receipt generation.
+- **v2.0 MCP server**: Streaming analysis, plugin system, server mode.
+- **v4.0 Adze AST**: Full AST integration (long-horizon).
+- **Bindings parity**: tokmd-core run_json + Python/Node bindings with explicit parity tests.
