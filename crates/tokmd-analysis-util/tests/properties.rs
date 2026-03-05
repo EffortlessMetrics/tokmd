@@ -224,7 +224,7 @@ proptest! {
         let result = percentile(&values, pct);
         let min = *values.first().unwrap() as f64;
         let max = *values.last().unwrap() as f64;
-        prop_assert!(result >= min && result <= max,
+        prop_assert!((min..=max).contains(&result),
             "percentile should be within [min, max]: {} not in [{}, {}]", result, min, max);
     }
 

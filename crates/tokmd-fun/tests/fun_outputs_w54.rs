@@ -244,7 +244,7 @@ fn obj_face_indices_reference_valid_vertices() {
         for idx_str in line.split_whitespace().skip(1) {
             let idx: usize = idx_str.parse().unwrap();
             assert!(
-                idx >= 1 && idx <= total_vertices,
+                (1..=total_vertices).contains(&idx),
                 "face index {idx} out of range 1..={total_vertices}"
             );
         }

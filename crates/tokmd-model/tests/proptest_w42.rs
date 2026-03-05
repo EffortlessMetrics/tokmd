@@ -84,7 +84,7 @@ proptest! {
         let r = avg(lines, files);
         let lo = lines / files;
         let hi = if lines % files == 0 { lo } else { lo + 1 };
-        prop_assert!(r >= lo && r <= hi,
+        prop_assert!((lo..=hi).contains(&r),
             "avg({},{})={} not in [{},{}]", lines, files, r, lo, hi);
     }
 
