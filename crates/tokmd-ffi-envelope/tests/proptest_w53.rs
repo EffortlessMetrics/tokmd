@@ -6,8 +6,8 @@
 use proptest::prelude::*;
 use serde_json::{Map, Number, Value};
 use tokmd_ffi_envelope::{
-    EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
-    format_error_message, parse_envelope,
+    extract_data, extract_data_from_json, extract_data_json, format_error_message, parse_envelope,
+    EnvelopeExtractError,
 };
 
 // ── Strategies ──────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ proptest! {
         let json = serde_json::to_string(&val).unwrap();
         let a = parse_envelope(&json);
         let b = parse_envelope(&json);
-        assert_result_eq(a.map_err(|e| e), b.map_err(|e| e));
+        assert_result_eq(a, b);
     }
 
     // 2. extract_data_from_json ≡ parse + extract
