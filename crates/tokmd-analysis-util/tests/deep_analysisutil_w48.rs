@@ -153,7 +153,7 @@ fn gini_range_is_zero_to_one() {
     for vals in &test_cases {
         let g = gini_coefficient(vals);
         assert!(
-            g >= 0.0 && g <= 1.0,
+            (0.0..=1.0).contains(&g),
             "Gini out of range: {} for {:?}",
             g,
             vals
@@ -173,13 +173,13 @@ fn round_f64_zero_decimals() {
 
 #[test]
 fn round_f64_two_decimals() {
-    assert_eq!(round_f64(3.14159, 2), 3.14);
+    assert_eq!(round_f64(1.23456, 2), 1.23);
     assert_eq!(round_f64(2.005, 2), 2.01); // floating point behavior
 }
 
 #[test]
 fn round_f64_negative_value() {
-    assert_eq!(round_f64(-3.14159, 2), -3.14);
+    assert_eq!(round_f64(-1.23456, 2), -1.23);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

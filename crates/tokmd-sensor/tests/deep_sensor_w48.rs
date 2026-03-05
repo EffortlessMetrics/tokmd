@@ -622,7 +622,7 @@ fn arb_substrate_file() -> impl Strategy<Value = SubstrateFile> {
 }
 
 fn arb_substrate() -> impl Strategy<Value = RepoSubstrate> {
-    prop::collection::vec(arb_substrate_file(), 0..20).prop_map(|files| substrate_from_files(files))
+    prop::collection::vec(arb_substrate_file(), 0..20).prop_map(substrate_from_files)
 }
 
 proptest! {

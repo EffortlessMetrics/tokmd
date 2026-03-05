@@ -551,7 +551,7 @@ fn w51_timestamp_is_consistent_format() {
 
         let ts = json
             .get("generated_at_ms")
-            .expect(&format!("{label} missing generated_at_ms"));
+            .unwrap_or_else(|| panic!("{label} missing generated_at_ms"));
         assert!(
             ts.is_number(),
             "{label} generated_at_ms must be a number, got: {ts}"
@@ -576,19 +576,21 @@ fn w51_tool_version_present_and_nonempty() {
         assert!(o.status.success(), "{label} command failed");
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
 
-        let tool = json.get("tool").expect(&format!("{label} missing tool"));
+        let tool = json
+            .get("tool")
+            .unwrap_or_else(|| panic!("{label} missing tool"));
         assert!(tool.is_object(), "{label} tool must be an object");
 
         let name = tool
             .get("name")
             .and_then(|v| v.as_str())
-            .expect(&format!("{label} missing tool.name"));
+            .unwrap_or_else(|| panic!("{label} missing tool.name"));
         assert_eq!(name, "tokmd", "{label} tool.name must be 'tokmd'");
 
         let version = tool
             .get("version")
             .and_then(|v| v.as_str())
-            .expect(&format!("{label} missing tool.version"));
+            .unwrap_or_else(|| panic!("{label} missing tool.version"));
         assert!(
             !version.is_empty(),
             "{label} tool.version must not be empty"

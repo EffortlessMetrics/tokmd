@@ -200,14 +200,11 @@ fn export_workflow_nonexistent_path_handles_gracefully() {
     let scan = ScanSettings::for_paths(vec!["nonexistent_path_abc_99".to_string()]);
     let result = export_workflow(&scan, &ExportSettings::default());
 
-    match result {
-        Ok(receipt) => {
-            assert!(
-                receipt.data.rows.is_empty(),
-                "nonexistent path should yield no rows"
-            );
-        }
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(
+            receipt.data.rows.is_empty(),
+            "nonexistent path should yield no rows"
+        );
     }
 }
 
@@ -216,13 +213,10 @@ fn module_workflow_nonexistent_path_handles_gracefully() {
     let scan = ScanSettings::for_paths(vec!["nonexistent_path_mod_77".to_string()]);
     let result = module_workflow(&scan, &ModuleSettings::default());
 
-    match result {
-        Ok(receipt) => {
-            assert!(
-                receipt.report.rows.is_empty(),
-                "nonexistent path should yield no rows"
-            );
-        }
-        Err(_) => {}
+    if let Ok(receipt) = result {
+        assert!(
+            receipt.report.rows.is_empty(),
+            "nonexistent path should yield no rows"
+        );
     }
 }
