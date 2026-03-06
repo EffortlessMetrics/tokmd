@@ -269,7 +269,7 @@ proptest! {
         max_tokens in prop::option::of(1usize..100_000),
     ) {
         let cap = compute_file_cap(budget, pct, max_tokens);
-        prop_assert!(cap > 0);
+        prop_assert!(cap <= budget);
     }
 
     #[test]
