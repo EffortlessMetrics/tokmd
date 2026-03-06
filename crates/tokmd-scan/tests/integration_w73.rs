@@ -34,11 +34,7 @@ fn scaffold() -> TempDir {
     .unwrap();
 
     // 2-line Python file
-    fs::write(
-        dir.path().join("script.py"),
-        "def run():\n    pass\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("script.py"), "def run():\n    pass\n").unwrap();
 
     // Nested directory
     let sub = dir.path().join("src");
@@ -145,7 +141,15 @@ fn scan_then_export_data_lists_all_files() {
     let paths = vec![dir.path().to_path_buf()];
 
     let languages = tokmd_scan::scan(&paths, &opts).unwrap();
-    let data = tokmd_model::create_export_data(&languages, &[], 1, ChildIncludeMode::ParentsOnly, None, 0, 0);
+    let data = tokmd_model::create_export_data(
+        &languages,
+        &[],
+        1,
+        ChildIncludeMode::ParentsOnly,
+        None,
+        0,
+        0,
+    );
 
     // We created 3 files: main.rs, script.py, src/lib.rs
     assert_eq!(data.rows.len(), 3, "should export exactly 3 file rows");
@@ -158,7 +162,15 @@ fn scan_then_export_data_paths_are_forward_slash() {
     let paths = vec![dir.path().to_path_buf()];
 
     let languages = tokmd_scan::scan(&paths, &opts).unwrap();
-    let data = tokmd_model::create_export_data(&languages, &[], 1, ChildIncludeMode::ParentsOnly, None, 0, 0);
+    let data = tokmd_model::create_export_data(
+        &languages,
+        &[],
+        1,
+        ChildIncludeMode::ParentsOnly,
+        None,
+        0,
+        0,
+    );
 
     for row in &data.rows {
         assert!(

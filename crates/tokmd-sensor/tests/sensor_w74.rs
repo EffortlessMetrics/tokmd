@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 use tokmd_envelope::{
-    CapabilityState, CapabilityStatus, Finding, FindingSeverity, FindingLocation,
-    SensorReport, ToolMeta, Verdict, SENSOR_REPORT_SCHEMA,
+    CapabilityState, CapabilityStatus, Finding, FindingLocation, FindingSeverity,
+    SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
 use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
@@ -58,10 +58,7 @@ impl EffortlessSensor for StubSensor {
         if substrate.diff_range.is_some() {
             report.add_capability("diff", CapabilityStatus::available());
         } else {
-            report.add_capability(
-                "diff",
-                CapabilityStatus::skipped("no diff range provided"),
-            );
+            report.add_capability("diff", CapabilityStatus::skipped("no diff range provided"));
         }
         Ok(report)
     }
@@ -184,9 +181,7 @@ fn sensor_run_returns_warn_above_threshold() {
 #[test]
 fn sensor_run_on_empty_substrate_passes() {
     let s = default_sensor();
-    let settings = StubSettings {
-        code_threshold: 0,
-    };
+    let settings = StubSettings { code_threshold: 0 };
     // 0 code lines is NOT > 0, so should pass
     let report = s.run(&settings, &empty_substrate()).unwrap();
     assert_eq!(report.verdict, Verdict::Pass);
@@ -252,7 +247,10 @@ fn capabilities_present_when_diff_range_exists() {
         code_threshold: 1000,
     };
     let report = s.run(&settings, &sample_substrate()).unwrap();
-    let caps = report.capabilities.as_ref().expect("capabilities should be set");
+    let caps = report
+        .capabilities
+        .as_ref()
+        .expect("capabilities should be set");
     assert_eq!(caps["scan"].status, CapabilityState::Available);
     assert_eq!(caps["diff"].status, CapabilityState::Available);
 }
@@ -264,7 +262,10 @@ fn capabilities_diff_skipped_without_diff_range() {
         code_threshold: 1000,
     };
     let report = s.run(&settings, &empty_substrate()).unwrap();
-    let caps = report.capabilities.as_ref().expect("capabilities should be set");
+    let caps = report
+        .capabilities
+        .as_ref()
+        .expect("capabilities should be set");
     assert_eq!(caps["scan"].status, CapabilityState::Available);
     assert_eq!(caps["diff"].status, CapabilityState::Skipped);
     assert!(caps["diff"].reason.as_ref().unwrap().contains("no diff"));
@@ -306,9 +307,15 @@ fn sensor_report_with_findings_roundtrip() {
     };
     let mut report = s.run(&settings, &sample_substrate()).unwrap();
     report.add_finding(
-        Finding::new("risk", "hotspot", FindingSeverity::Warn, "Churn", "high churn")
-            .with_location(FindingLocation::path("src/lib.rs"))
-            .with_fingerprint("test-sensor"),
+        Finding::new(
+            "risk",
+            "hotspot",
+            FindingSeverity::Warn,
+            "Churn",
+            "high churn",
+        )
+        .with_location(FindingLocation::path("src/lib.rs"))
+        .with_fingerprint("test-sensor"),
     );
     report.add_finding(Finding::new(
         "contract",

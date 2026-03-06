@@ -8,9 +8,9 @@ use std::path::PathBuf;
 use proptest::prelude::*;
 
 use tokmd_format::{
-    compute_diff_rows, compute_diff_totals, render_diff_md, render_diff_md_with_options,
-    write_export_csv_to, write_export_json_to, write_export_jsonl_to, write_lang_report_to,
-    write_module_report_to, DiffColorMode, DiffRenderOptions,
+    DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, render_diff_md,
+    render_diff_md_with_options, write_export_csv_to, write_export_json_to, write_export_jsonl_to,
+    write_lang_report_to, write_module_report_to,
 };
 use tokmd_settings::{ChildIncludeMode, ChildrenMode, ScanOptions};
 use tokmd_types::{

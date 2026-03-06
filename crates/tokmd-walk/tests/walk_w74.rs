@@ -75,10 +75,7 @@ fn make_repo(tag: &str) -> Option<TempRepo> {
 
 fn commit_all(dir: &Path, msg: &str) {
     git_in(dir).args(["add", "."]).output().unwrap();
-    git_in(dir)
-        .args(["commit", "-m", msg])
-        .output()
-        .unwrap();
+    git_in(dir).args(["commit", "-m", msg]).output().unwrap();
 }
 
 // ===========================================================================
@@ -211,12 +208,27 @@ fn walk_git_repo_respects_gitignore() {
     commit_all(root, "init with gitignore");
 
     let files = list_files(root, None).unwrap();
-    let names: Vec<String> = files.iter().map(|f| f.to_string_lossy().to_string()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|f| f.to_string_lossy().to_string())
+        .collect();
 
-    assert!(names.contains(&"main.rs".to_string()), "tracked file should appear");
-    assert!(names.contains(&".gitignore".to_string()), ".gitignore should be tracked");
-    assert!(!names.iter().any(|n| n.ends_with(".log")), "*.log should be ignored");
-    assert!(!names.iter().any(|n| n.contains("build")), "build/ should be ignored");
+    assert!(
+        names.contains(&"main.rs".to_string()),
+        "tracked file should appear"
+    );
+    assert!(
+        names.contains(&".gitignore".to_string()),
+        ".gitignore should be tracked"
+    );
+    assert!(
+        !names.iter().any(|n| n.ends_with(".log")),
+        "*.log should be ignored"
+    );
+    assert!(
+        !names.iter().any(|n| n.contains("build")),
+        "build/ should be ignored"
+    );
 }
 
 #[test]
@@ -233,7 +245,10 @@ fn walk_git_repo_untracked_excluded() {
     fs::write(root.join("untracked.txt"), "not committed").unwrap();
 
     let files = list_files(root, None).unwrap();
-    let names: Vec<String> = files.iter().map(|f| f.to_string_lossy().to_string()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|f| f.to_string_lossy().to_string())
+        .collect();
 
     assert!(names.contains(&"tracked.rs".to_string()));
     assert!(
@@ -259,10 +274,16 @@ fn walk_git_repo_nested_gitignore() {
     commit_all(root, "nested gitignore");
 
     let files = list_files(root, None).unwrap();
-    let names: Vec<String> = files.iter().map(|f| f.to_string_lossy().to_string()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|f| f.to_string_lossy().to_string())
+        .collect();
 
     assert!(names.iter().any(|n| n.contains("keep.rs")));
-    assert!(!names.iter().any(|n| n.ends_with(".tmp")), "*.tmp should be ignored by sub/.gitignore");
+    assert!(
+        !names.iter().any(|n| n.ends_with(".tmp")),
+        "*.tmp should be ignored by sub/.gitignore"
+    );
 }
 
 // ===========================================================================
@@ -279,8 +300,14 @@ fn license_candidates_ignores_image_and_binary_extensions() {
         PathBuf::from("src/main.rs"),
     ];
     let result = license_candidates(&files);
-    assert!(result.license_files.is_empty(), "binary/image files are not license files");
-    assert!(result.metadata_files.is_empty(), "binary/image files are not metadata");
+    assert!(
+        result.license_files.is_empty(),
+        "binary/image files are not license files"
+    );
+    assert!(
+        result.metadata_files.is_empty(),
+        "binary/image files are not metadata"
+    );
 }
 
 #[test]
@@ -292,7 +319,11 @@ fn license_candidates_detects_notice_variants() {
         PathBuf::from("notice"),
     ];
     let result = license_candidates(&files);
-    assert_eq!(result.license_files.len(), 4, "all NOTICE variants should match");
+    assert_eq!(
+        result.license_files.len(),
+        4,
+        "all NOTICE variants should match"
+    );
 }
 
 #[test]
@@ -306,7 +337,9 @@ fn license_candidates_with_nested_metadata() {
     let result = license_candidates(&files);
     assert_eq!(result.metadata_files.len(), 4);
     // Verify sorted order
-    let first = result.metadata_files[0].to_string_lossy().replace('\\', "/");
+    let first = result.metadata_files[0]
+        .to_string_lossy()
+        .replace('\\', "/");
     assert_eq!(first, "Cargo.toml", "root Cargo.toml sorts first");
 }
 
@@ -370,7 +403,11 @@ fn walk_git_max_files_truncates_tracked() {
     commit_all(root, "add 10 files");
 
     let files = list_files(root, Some(3)).unwrap();
-    assert_eq!(files.len(), 3, "max_files should truncate git ls-files output");
+    assert_eq!(
+        files.len(),
+        3,
+        "max_files should truncate git ls-files output"
+    );
 }
 
 #[test]
@@ -386,7 +423,10 @@ fn walk_git_max_files_larger_than_count() {
 
     let files = list_files(root, Some(100)).unwrap();
     assert!(!files.is_empty());
-    assert!(files.len() <= 2, "should return all tracked files (README + only.txt or just only.txt)");
+    assert!(
+        files.len() <= 2,
+        "should return all tracked files (README + only.txt or just only.txt)"
+    );
 }
 
 // ===========================================================================
@@ -403,7 +443,10 @@ fn walk_non_git_output_is_sorted() {
     fs::write(root.join("m.txt"), "m").unwrap();
 
     let files = list_files(root, None).unwrap();
-    let names: Vec<String> = files.iter().map(|f| f.to_string_lossy().to_string()).collect();
+    let names: Vec<String> = files
+        .iter()
+        .map(|f| f.to_string_lossy().to_string())
+        .collect();
 
     let mut sorted = names.clone();
     sorted.sort();

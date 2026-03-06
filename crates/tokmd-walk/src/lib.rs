@@ -264,3 +264,9 @@ mod tests {
         assert!(files.len() <= 3);
     }
 }
+
+#[cfg(doctest)]
+pub mod readme_doctests {
+    #[doc = include_str!("../README.md")]
+    pub struct ReadmeDoctests;
+}

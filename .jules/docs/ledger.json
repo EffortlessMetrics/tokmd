@@ -1,0 +1,15 @@
+[
+  {
+    "run_id": "tokmd-walk-fun-git-doctests",
+    "date": "2026-03-06T11:11:21.804903+00:00",
+    "description": "Add doctest coverage for README examples in tokmd-walk, tokmd-fun, and tokmd-git.",
+    "files_changed": [
+      "crates/tokmd-walk/README.md",
+      "crates/tokmd-walk/src/lib.rs",
+      "crates/tokmd-fun/README.md",
+      "crates/tokmd-fun/src/lib.rs",
+      "crates/tokmd-git/README.md",
+      "crates/tokmd-git/src/lib.rs"
+    ]
+  }
+]

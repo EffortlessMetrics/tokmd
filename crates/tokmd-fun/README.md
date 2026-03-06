@@ -18,6 +18,7 @@ tokmd-fun = "1.3"
 ### OBJ Code City
 
 ```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_fun::{render_obj, ObjBuilding};
 
 let buildings = vec![
@@ -31,11 +32,15 @@ let buildings = vec![
 
 let obj_content = render_obj(&buildings);
 std::fs::write("city.obj", obj_content)?;
+# std::fs::remove_file("city.obj")?; // cleanup
+# Ok(())
+# }
 ```
 
 ### MIDI Sonification
 
 ```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_fun::{render_midi, MidiNote};
 
 let notes = vec![
@@ -50,12 +55,15 @@ let notes = vec![
 
 let midi_bytes = render_midi(&notes, 120)?;  // 120 BPM
 std::fs::write("code.midi", midi_bytes)?;
+# std::fs::remove_file("code.midi")?; // cleanup
+# Ok(())
+# }
 ```
 
 ## Types
 
 ### ObjBuilding
-```rust
+```rust,ignore
 pub struct ObjBuilding {
     pub name: String,  // Object name (sanitized)
     pub x: f32,        // X position
@@ -67,7 +75,7 @@ pub struct ObjBuilding {
 ```
 
 ### MidiNote
-```rust
+```rust,ignore
 pub struct MidiNote {
     pub key: u8,       // MIDI note (0-127)
     pub velocity: u8,  // Volume (0-127)
