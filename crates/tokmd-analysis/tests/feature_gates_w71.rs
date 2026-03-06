@@ -103,6 +103,7 @@ fn make_req(preset: PresetKind) -> AnalysisRequest {
 /// pretending it ran. When git is absent, warnings must be emitted.
 #[test]
 fn risk_preset_git_gate_no_silent_success() {
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Risk)).unwrap();
     let plan = preset_plan_for(PresetKind::Risk);
     assert!(plan.git, "risk plan must request git enricher");
@@ -160,6 +161,7 @@ fn identity_preset_git_dependent_fields() {
 fn git_false_override_suppresses_git_in_deep_preset() {
     let mut req = make_req(PresetKind::Deep);
     req.git = Some(false);
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     assert!(
         receipt.git.is_none(),
@@ -172,7 +174,8 @@ fn git_false_override_suppresses_git_in_deep_preset() {
 /// Health preset requests content-dependent enrichers (todo, complexity).
 #[test]
 fn health_preset_content_gate_no_silent_success() {
-    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
+    #[allow(unused_variables)]
+    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
     let plan = preset_plan_for(PresetKind::Health);
     assert!(plan.todo, "health plan must request TODO scan");
     assert!(plan.complexity, "health plan must request complexity");
@@ -207,6 +210,7 @@ fn architecture_preset_content_gate() {
 
     #[cfg(not(feature = "content"))]
     {
+        #[allow(unused_variables)]
         let receipt = analyze(
             make_ctx(sample_export()),
             make_req(PresetKind::Architecture),
@@ -239,7 +243,8 @@ fn deep_preset_requests_all_content_enrichers() {
 /// Supply preset depends on walk for assets.
 #[test]
 fn supply_preset_walk_gate_no_silent_success() {
-    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
+    #[allow(unused_variables)]
+    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
     let plan = preset_plan_for(PresetKind::Supply);
     assert!(plan.assets, "supply plan must request assets");
 
@@ -281,6 +286,7 @@ fn receipt_preset_works_without_optional_features() {
     assert!(!plan.api_surface, "receipt must not request api_surface");
     assert!(!plan.fun, "receipt must not request fun");
 
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
     assert!(
         receipt.derived.is_some(),
@@ -302,6 +308,7 @@ fn receipt_preset_empty_export_still_produces_derived() {
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(empty), make_req(PresetKind::Receipt)).unwrap();
     assert!(receipt.derived.is_some());
 }
@@ -314,6 +321,7 @@ fn health_preset_does_not_request_git() {
     let plan = preset_plan_for(PresetKind::Health);
     assert!(!plan.git, "health must not request git");
 
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
     assert!(receipt.git.is_none(), "health must not produce git report");
     assert!(receipt.derived.is_some(), "health must include derived");
@@ -326,6 +334,7 @@ fn health_preset_does_not_request_git() {
 fn risk_preset_degrades_gracefully_without_git() {
     let mut req = make_req(PresetKind::Risk);
     req.git = Some(false);
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     assert!(receipt.git.is_none(), "git must be absent when git=false");
     assert!(
@@ -408,6 +417,7 @@ fn needs_files_consistent_with_plan_flags() {
 #[test]
 fn receipt_metadata_always_present() {
     for preset in &[PresetKind::Receipt, PresetKind::Health, PresetKind::Deep] {
+        #[allow(unused_variables)]
         let receipt = analyze(make_ctx(sample_export()), make_req(*preset)).unwrap();
         assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
         assert_eq!(receipt.tool.name, "tokmd");
@@ -418,6 +428,7 @@ fn receipt_metadata_always_present() {
 /// Warnings array is always present (even if empty) in every receipt.
 #[test]
 fn warnings_array_always_present() {
+    #[allow(unused_variables)]
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
     let _ = receipt.warnings.len();
 }
@@ -426,6 +437,7 @@ fn warnings_array_always_present() {
 #[test]
 fn status_is_complete_or_partial_for_all_presets() {
     for preset in &[PresetKind::Receipt, PresetKind::Health, PresetKind::Supply] {
+        #[allow(unused_variables)]
         let receipt = analyze(make_ctx(sample_export()), make_req(*preset)).unwrap();
         match receipt.status {
             ScanStatus::Complete | ScanStatus::Partial => {}
@@ -515,6 +527,7 @@ fn grid_covers_all_preset_kinds() {
 /// Deep preset enables strictly more enrichers than receipt.
 #[test]
 fn deep_is_superset_of_receipt() {
+    #[allow(unused_variables)]
     let receipt = preset_plan_for(PresetKind::Receipt);
     let deep = preset_plan_for(PresetKind::Deep);
 
@@ -543,6 +556,7 @@ fn deep_is_superset_of_receipt() {
     .iter()
     .filter(|&&b| b)
     .count();
+    #[allow(unused_variables)]
     let receipt_count = [
         receipt.assets,
         receipt.deps,
