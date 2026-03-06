@@ -3,7 +3,7 @@
 //! These tests verify template selection properties, content properties,
 //! and enum coverage for InitProfile variants.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use proptest::prelude::*;
@@ -216,7 +216,7 @@ proptest! {
 /// Test that all InitProfile variants produce distinct templates.
 #[test]
 fn all_profiles_produce_distinct_templates() {
-    let mut templates: HashSet<String> = HashSet::new();
+    let mut templates: BTreeSet<String> = BTreeSet::new();
     let mut profile_contents: Vec<(InitProfile, String)> = Vec::new();
 
     for profile in ALL_PROFILES {
@@ -601,7 +601,7 @@ proptest! {
             .map(|l| l.trim())
             .filter(|l| !l.is_empty() && !l.starts_with('#'))
             .collect();
-        let unique: HashSet<&str> = patterns.iter().copied().collect();
+        let unique: BTreeSet<&str> = patterns.iter().copied().collect();
         prop_assert_eq!(
             patterns.len(),
             unique.len(),

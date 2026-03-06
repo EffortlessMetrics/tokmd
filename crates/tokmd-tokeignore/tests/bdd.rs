@@ -781,7 +781,7 @@ mod template_structure {
 
     #[test]
     fn no_duplicate_patterns_in_any_template() {
-        use std::collections::HashSet;
+        use std::collections::BTreeSet;
         for profile in ALL_PROFILES {
             let content = write_and_read(profile);
             let patterns: Vec<&str> = content
@@ -789,7 +789,7 @@ mod template_structure {
                 .map(|l| l.trim())
                 .filter(|l| !l.is_empty() && !l.starts_with('#'))
                 .collect();
-            let unique: HashSet<&str> = patterns.iter().copied().collect();
+            let unique: BTreeSet<&str> = patterns.iter().copied().collect();
             assert_eq!(
                 patterns.len(),
                 unique.len(),
@@ -807,7 +807,7 @@ mod template_structure {
 mod superset_relationships {
     use super::*;
 
-    fn pattern_set(content: &str) -> std::collections::HashSet<String> {
+    fn pattern_set(content: &str) -> std::collections::BTreeSet<String> {
         content
             .lines()
             .map(|l| l.trim().to_string())

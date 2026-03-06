@@ -7,10 +7,10 @@
 use std::path::PathBuf;
 
 use tokmd_format::{
-    compute_diff_rows, compute_diff_totals, create_diff_receipt, render_diff_md,
-    render_diff_md_with_options, write_export_csv_to, write_export_cyclonedx_with_options,
-    write_export_json_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,
-    DiffColorMode, DiffRenderOptions,
+    DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
+    render_diff_md, render_diff_md_with_options, write_export_csv_to,
+    write_export_cyclonedx_with_options, write_export_json_to, write_export_jsonl_to,
+    write_lang_report_to, write_module_report_to,
 };
 use tokmd_settings::{ChildIncludeMode, ChildrenMode, ScanOptions};
 use tokmd_types::{
@@ -915,7 +915,10 @@ fn diff_identical_reports_filtered_out() {
     };
     let rows = compute_diff_rows(&report, &report);
     // Identical reports produce no diff rows (zero deltas are filtered out)
-    assert!(rows.is_empty(), "identical reports should produce no diff rows");
+    assert!(
+        rows.is_empty(),
+        "identical reports should produce no diff rows"
+    );
 }
 
 #[test]

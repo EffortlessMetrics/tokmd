@@ -81,10 +81,7 @@ mod hotspot_w76 {
 
     #[test]
     fn hotspot_tie_broken_by_path() {
-        let e = export(vec![
-            row("z.rs", "src", 100),
-            row("a.rs", "src", 100),
-        ]);
+        let e = export(vec![row("z.rs", "src", 100), row("a.rs", "src", 100)]);
         let commits = vec![commit(DAY, "a", "c", &["z.rs", "a.rs"])];
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         // Same score (100 * 1) -> alphabetical by path
@@ -125,10 +122,7 @@ mod bus_factor_w76 {
 
     #[test]
     fn bus_factor_sorted_by_authors_ascending() {
-        let e = export(vec![
-            row("a.rs", "alpha", 10),
-            row("b.rs", "beta", 10),
-        ]);
+        let e = export(vec![row("a.rs", "alpha", 10), row("b.rs", "beta", 10)]);
         let commits = vec![
             commit(DAY, "alice", "c1", &["a.rs"]),
             commit(2 * DAY, "alice", "c2", &["b.rs"]),
@@ -152,10 +146,7 @@ mod coupling_w76 {
 
     #[test]
     fn no_coupling_when_modules_never_co_change() {
-        let e = export(vec![
-            row("a.rs", "alpha", 50),
-            row("b.rs", "beta", 50),
-        ]);
+        let e = export(vec![row("a.rs", "alpha", 50), row("b.rs", "beta", 50)]);
         let commits = vec![
             commit(DAY, "a", "c1", &["a.rs"]),
             commit(2 * DAY, "a", "c2", &["b.rs"]),
@@ -166,10 +157,7 @@ mod coupling_w76 {
 
     #[test]
     fn perfect_coupling_jaccard_is_one() {
-        let e = export(vec![
-            row("a.rs", "alpha", 50),
-            row("b.rs", "beta", 50),
-        ]);
+        let e = export(vec![row("a.rs", "alpha", 50), row("b.rs", "beta", 50)]);
         // Both modules always change together
         let commits = vec![
             commit(DAY, "a", "c1", &["a.rs", "b.rs"]),
@@ -178,15 +166,15 @@ mod coupling_w76 {
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         assert_eq!(r.coupling.len(), 1);
         let j = r.coupling[0].jaccard.unwrap();
-        assert!((j - 1.0).abs() < 0.001, "perfect coupling jaccard should be 1.0, got {j}");
+        assert!(
+            (j - 1.0).abs() < 0.001,
+            "perfect coupling jaccard should be 1.0, got {j}"
+        );
     }
 
     #[test]
     fn coupling_count_reflects_co_occurrence() {
-        let e = export(vec![
-            row("a.rs", "alpha", 50),
-            row("b.rs", "beta", 50),
-        ]);
+        let e = export(vec![row("a.rs", "alpha", 50), row("b.rs", "beta", 50)]);
         let commits = vec![
             commit(DAY, "a", "c1", &["a.rs", "b.rs"]),
             commit(2 * DAY, "a", "c2", &["a.rs", "b.rs"]),
@@ -207,10 +195,7 @@ mod freshness_w76 {
     #[test]
     fn all_files_fresh_gives_zero_stale_pct() {
         let now = 100 * DAY;
-        let e = export(vec![
-            row("a.rs", "src", 10),
-            row("b.rs", "src", 10),
-        ]);
+        let e = export(vec![row("a.rs", "src", 10), row("b.rs", "src", 10)]);
         let commits = vec![
             commit(now - DAY, "a", "c1", &["a.rs"]),
             commit(now, "a", "c2", &["b.rs"]),
@@ -256,7 +241,10 @@ mod freshness_w76 {
         let r = build_git_report(Path::new("."), &e, &commits).unwrap();
         for m in &r.freshness.by_module {
             assert!(m.p90_days >= 0.0, "p90 should be non-negative");
-            assert!(m.p90_days >= m.avg_days * 0.5, "p90 should be >= half the average");
+            assert!(
+                m.p90_days >= m.avg_days * 0.5,
+                "p90 should be >= half the average"
+            );
         }
     }
 }
@@ -282,7 +270,10 @@ mod churn_w76 {
         ];
         let r = build_predictive_churn_report(&e, &commits, Path::new("."));
         let trend = r.per_module.get("src").unwrap();
-        assert!(trend.slope < 0.0, "slope should be negative for decreasing churn");
+        assert!(
+            trend.slope < 0.0,
+            "slope should be negative for decreasing churn"
+        );
         assert_eq!(trend.classification, TrendClass::Falling);
     }
 

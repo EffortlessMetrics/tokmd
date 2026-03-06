@@ -7,7 +7,6 @@
 mod common;
 
 use assert_cmd::Command;
-use predicates::prelude::*;
 use serde_json::Value;
 use tempfile::tempdir;
 
@@ -16,10 +15,7 @@ fn tokmd() -> Command {
 }
 
 /// Scaffold a two-branch git repo: main → feature.
-fn scaffold(
-    base_files: &[(&str, &str)],
-    feature_files: &[(&str, &str)],
-) -> tempfile::TempDir {
+fn scaffold(base_files: &[(&str, &str)], feature_files: &[(&str, &str)]) -> tempfile::TempDir {
     let dir = tempdir().unwrap();
 
     if !common::git_available() || !common::init_git_repo(dir.path()) {
@@ -57,11 +53,7 @@ fn run_cockpit_json(dir: &std::path::Path, extra_args: &[&str]) -> Option<Value>
     let mut args = vec!["cockpit", "--base", "main", "--format", "json"];
     args.extend_from_slice(extra_args);
 
-    let output = tokmd()
-        .current_dir(dir)
-        .args(&args)
-        .output()
-        .unwrap();
+    let output = tokmd().current_dir(dir).args(&args).output().unwrap();
 
     if !output.status.success() {
         return None;
@@ -137,7 +129,10 @@ fn cockpit_change_surface_detects_modification() {
 
     let dir = scaffold(
         &[("src/lib.rs", "fn old() {}\n")],
-        &[("src/lib.rs", "fn new_function() { println!(\"updated\"); }\n")],
+        &[(
+            "src/lib.rs",
+            "fn new_function() { println!(\"updated\"); }\n",
+        )],
     );
 
     let json = match run_cockpit_json(dir.path(), &[]) {
@@ -177,8 +172,14 @@ fn cockpit_markdown_format_has_sections() {
     }
 
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("## Glass Cockpit"), "missing cockpit header");
-    assert!(stdout.contains("### Change Surface"), "missing change surface");
+    assert!(
+        stdout.contains("## Glass Cockpit"),
+        "missing cockpit header"
+    );
+    assert!(
+        stdout.contains("### Change Surface"),
+        "missing change surface"
+    );
     assert!(stdout.contains("### Composition"), "missing composition");
 }
 

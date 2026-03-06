@@ -31,14 +31,9 @@ fn error_lang_invalid_format() {
 
 #[test]
 fn error_unknown_flag() {
-    tokmd_cmd()
-        .arg("--unknown-flag")
-        .assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("unexpected argument")
-                .or(predicate::str::contains("error")),
-        );
+    tokmd_cmd().arg("--unknown-flag").assert().failure().stderr(
+        predicate::str::contains("unexpected argument").or(predicate::str::contains("error")),
+    );
 }
 
 #[test]
@@ -52,15 +47,11 @@ fn error_export_nonexistent_path() {
 
 #[test]
 fn error_diff_no_args() {
-    tokmd_cmd()
-        .arg("diff")
-        .assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("Provide either two positional refs")
-                .or(predicate::str::contains("--from"))
-                .or(predicate::str::contains("error")),
-        );
+    tokmd_cmd().arg("diff").assert().failure().stderr(
+        predicate::str::contains("Provide either two positional refs")
+            .or(predicate::str::contains("--from"))
+            .or(predicate::str::contains("error")),
+    );
 }
 
 #[test]
@@ -101,8 +92,18 @@ fn help_root_contains_subcommands() {
     let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
 
     for subcmd in &[
-        "lang", "module", "export", "analyze", "badge", "diff", "context", "gate", "handoff",
-        "completions", "run", "init",
+        "lang",
+        "module",
+        "export",
+        "analyze",
+        "badge",
+        "diff",
+        "context",
+        "gate",
+        "handoff",
+        "completions",
+        "run",
+        "init",
     ] {
         assert!(
             stdout.contains(subcmd),
@@ -130,9 +131,7 @@ fn help_lang_mentions_format_and_children() {
         .args(["lang", "--help"])
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("--format").and(predicate::str::contains("--children")),
-        );
+        .stdout(predicate::str::contains("--format").and(predicate::str::contains("--children")));
 }
 
 #[test]
@@ -150,14 +149,14 @@ fn help_module_mentions_depth_and_format() {
 
 #[test]
 fn help_export_mentions_format_variants() {
-    let assert = tokmd_cmd()
-        .args(["export", "--help"])
-        .assert()
-        .success();
+    let assert = tokmd_cmd().args(["export", "--help"]).assert().success();
 
     let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
 
-    assert!(stdout.contains("--format"), "export --help missing --format");
+    assert!(
+        stdout.contains("--format"),
+        "export --help missing --format"
+    );
     // At least two of the three well-known export formats should appear
     let hits = ["jsonl", "csv", "json"]
         .iter()
@@ -184,9 +183,7 @@ fn help_context_mentions_mode_and_budget() {
         .args(["context", "--help"])
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("--mode").and(predicate::str::contains("--budget")),
-        );
+        .stdout(predicate::str::contains("--mode").and(predicate::str::contains("--budget")));
 }
 
 #[test]

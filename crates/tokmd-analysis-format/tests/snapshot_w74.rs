@@ -5,7 +5,7 @@
 
 use std::collections::BTreeMap;
 
-use tokmd_analysis_format::{render, RenderedOutput};
+use tokmd_analysis_format::{RenderedOutput, render};
 use tokmd_analysis_types::*;
 use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
@@ -309,7 +309,10 @@ fn w74_analysis_md_with_derived() {
 #[test]
 fn w74_analysis_md_with_warnings() {
     let mut receipt = minimal_receipt();
-    receipt.warnings = vec!["truncated at max_files".into(), "git history unavailable".into()];
+    receipt.warnings = vec![
+        "truncated at max_files".into(),
+        "git history unavailable".into(),
+    ];
     let out = text(render(&receipt, AnalysisFormat::Md).unwrap());
     insta::assert_snapshot!("w74_analysis_md_with_warnings", out);
 }

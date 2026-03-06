@@ -33,7 +33,7 @@ proptest! {
     fn batch_distinct_paths_distinct_hashes(
         paths in prop::collection::hash_set("[a-z]{3,12}/[a-z]{3,8}", 2..10)
     ) {
-        let hashes: std::collections::HashSet<String> =
+        let hashes: std::collections::BTreeSet<String> =
             paths.iter().map(|p| short_hash(p)).collect();
         prop_assert_eq!(
             hashes.len(), paths.len(),
@@ -46,7 +46,7 @@ proptest! {
     fn batch_distinct_paths_distinct_redactions(
         paths in prop::collection::hash_set("[a-z]{3,8}/[a-z]{3,8}\\.rs", 2..8)
     ) {
-        let redacted: std::collections::HashSet<String> =
+        let redacted: std::collections::BTreeSet<String> =
             paths.iter().map(|p| redact_path(p)).collect();
         prop_assert_eq!(
             redacted.len(), paths.len(),

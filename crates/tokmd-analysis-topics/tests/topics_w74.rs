@@ -70,30 +70,18 @@ fn overall_topics_are_populated() {
 #[test]
 fn file_extensions_are_stopwords() {
     // "rs" should be filtered out as a stopword
-    let export = make_export(&[
-        ("crates/auth/login.rs", "crates/auth", "Rust", 100),
-    ]);
+    let export = make_export(&[("crates/auth/login.rs", "crates/auth", "Rust", 100)]);
     let clouds = build_topic_clouds(&export);
-    let all_terms: Vec<&str> = clouds
-        .overall
-        .iter()
-        .map(|t| t.term.as_str())
-        .collect();
+    let all_terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
     assert!(!all_terms.contains(&"rs"), "'rs' should be a stopword");
 }
 
 #[test]
 fn common_dirs_are_stopwords() {
     // "src", "lib", "test" should be filtered
-    let export = make_export(&[
-        ("src/lib/utils/helpers.rs", "src/lib", "Rust", 100),
-    ]);
+    let export = make_export(&[("src/lib/utils/helpers.rs", "src/lib", "Rust", 100)]);
     let clouds = build_topic_clouds(&export);
-    let all_terms: Vec<&str> = clouds
-        .overall
-        .iter()
-        .map(|t| t.term.as_str())
-        .collect();
+    let all_terms: Vec<&str> = clouds.overall.iter().map(|t| t.term.as_str()).collect();
     assert!(!all_terms.contains(&"src"), "'src' should be a stopword");
     assert!(!all_terms.contains(&"lib"), "'lib' should be a stopword");
 }
@@ -114,7 +102,12 @@ fn topics_are_grouped_by_module() {
 #[test]
 fn module_topics_contain_relevant_terms() {
     let export = make_export(&[
-        ("crates/payments/stripe_api.rs", "crates/payments", "Rust", 100),
+        (
+            "crates/payments/stripe_api.rs",
+            "crates/payments",
+            "Rust",
+            100,
+        ),
         ("crates/payments/refund.rs", "crates/payments", "Rust", 100),
     ]);
     let clouds = build_topic_clouds(&export);
@@ -147,9 +140,7 @@ fn topic_clouds_are_deterministic() {
 
 #[test]
 fn topic_terms_have_positive_scores() {
-    let export = make_export(&[
-        ("crates/auth/login.rs", "crates/auth", "Rust", 100),
-    ]);
+    let export = make_export(&[("crates/auth/login.rs", "crates/auth", "Rust", 100)]);
     let clouds = build_topic_clouds(&export);
     for term in &clouds.overall {
         assert!(term.score > 0.0, "score should be positive: {:?}", term);

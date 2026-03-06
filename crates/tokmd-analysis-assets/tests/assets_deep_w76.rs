@@ -30,7 +30,9 @@ mod asset_categories_w76 {
     #[test]
     fn all_image_extensions_classified() {
         let tmp = TempDir::new().unwrap();
-        let exts = ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tiff", "ico"];
+        let exts = [
+            "png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tiff", "ico",
+        ];
         let files: Vec<PathBuf> = exts
             .iter()
             .map(|ext| write_file(tmp.path(), &format!("img.{ext}"), &[0u8; 8]))
@@ -97,7 +99,13 @@ mod top_files_w76 {
     fn top_files_truncated_to_ten() {
         let tmp = TempDir::new().unwrap();
         let files: Vec<PathBuf> = (0..15)
-            .map(|i| write_file(tmp.path(), &format!("img{i:02}.png"), &vec![0u8; (i + 1) * 10]))
+            .map(|i| {
+                write_file(
+                    tmp.path(),
+                    &format!("img{i:02}.png"),
+                    &vec![0u8; (i + 1) * 10],
+                )
+            })
             .collect();
         let r = build_assets_report(tmp.path(), &files).unwrap();
         assert_eq!(r.top_files.len(), 10);
