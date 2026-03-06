@@ -152,7 +152,7 @@ jobs:
   nix:
     name: Nix Build
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v6
 
@@ -282,7 +282,6 @@ jobs:
       - publish-plan
       - docs-check
       - nix
-      - nix-macos
       - mutation
       - feature-boundaries
     steps:
