@@ -271,7 +271,10 @@ fn diff_removed_language_appears_with_negative_delta() {
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
 
     let rows = json["diff_rows"].as_array().unwrap();
-    let shell_row = rows.iter().find(|r| r["lang"] == "Shell").expect("Shell row");
+    let shell_row = rows
+        .iter()
+        .find(|r| r["lang"] == "Shell")
+        .expect("Shell row");
     assert_eq!(shell_row["new_code"], 0);
     assert_eq!(shell_row["delta_code"], -30);
     assert_eq!(shell_row["delta_files"], -2);
@@ -734,17 +737,19 @@ fn diff_only_from_no_to_fails() {
         &lang_receipt(&[("Rust", 10, 12, 1, 500, 25)]),
     );
 
-    tokmd()
-        .args(["diff", "--from"])
-        .arg(&a)
-        .assert()
-        .failure();
+    tokmd().args(["diff", "--from"]).arg(&a).assert().failure();
 }
 
 #[test]
 fn diff_nonexistent_file_fails() {
     tokmd()
-        .args(["diff", "--from", "/nonexistent/path.json", "--to", "/also/missing.json"])
+        .args([
+            "diff",
+            "--from",
+            "/nonexistent/path.json",
+            "--to",
+            "/also/missing.json",
+        ])
         .assert()
         .failure();
 }

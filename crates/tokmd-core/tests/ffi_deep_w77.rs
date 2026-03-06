@@ -25,8 +25,11 @@ use tokmd_core::ffi::run_json;
 /// Create a temp dir with a simple Rust file for scanning.
 fn scaffold() -> TempDir {
     let tmp = TempDir::new().expect("create temp dir");
-    fs::write(tmp.path().join("main.rs"), "fn main() {\n    println!(\"hi\");\n}\n")
-        .expect("write main.rs");
+    fs::write(
+        tmp.path().join("main.rs"),
+        "fn main() {\n    println!(\"hi\");\n}\n",
+    )
+    .expect("write main.rs");
     tmp
 }
 
@@ -66,7 +69,9 @@ fn version_mode_returns_success() {
 #[test]
 fn version_mode_contains_version_string() {
     let v = assert_ok(&run_json("version", "{}"));
-    let ver = v["data"]["version"].as_str().expect("version must be string");
+    let ver = v["data"]["version"]
+        .as_str()
+        .expect("version must be string");
     assert!(!ver.is_empty(), "version must not be empty");
 }
 
@@ -225,7 +230,10 @@ fn ffi_response_is_valid_json_on_every_mode() {
     for mode in &["version", "lang", "module", "export", "nonexistent"] {
         let result = run_json(mode, &args);
         let parsed: Result<Value, _> = serde_json::from_str(&result);
-        assert!(parsed.is_ok(), "mode '{mode}' must return valid JSON, got: {result}");
+        assert!(
+            parsed.is_ok(),
+            "mode '{mode}' must return valid JSON, got: {result}"
+        );
     }
 }
 

@@ -56,7 +56,10 @@ fn error_envelope_missing_ok_treated_as_false() {
 #[test]
 fn format_error_message_with_full_error() {
     let err_obj = json!({"code": "bad_input", "message": "path missing"});
-    assert_eq!(format_error_message(Some(&err_obj)), "[bad_input] path missing");
+    assert_eq!(
+        format_error_message(Some(&err_obj)),
+        "[bad_input] path missing"
+    );
 }
 
 #[test]
@@ -66,7 +69,10 @@ fn format_error_message_with_none() {
 
 #[test]
 fn format_error_message_with_non_object() {
-    assert_eq!(format_error_message(Some(&json!("string_err"))), "Unknown error");
+    assert_eq!(
+        format_error_message(Some(&json!("string_err"))),
+        "Unknown error"
+    );
 }
 
 // ============================================================================
