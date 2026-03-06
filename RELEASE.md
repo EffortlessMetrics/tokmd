@@ -65,6 +65,35 @@ If publishing fails mid-stream, resume from a crate:
 cargo xtask publish --from <crate-name>
 ```
 
+## Publish Paths
+
+There are two ways to publish a release. Both invoke `cargo xtask publish` under the hood.
+
+### Manual local publish
+
+Run the full publish sequence locally:
+
+```bash
+cargo xtask publish --dry-run   # preflight
+cargo xtask publish --yes       # publish to crates.io
+```
+
+### CI-driven publish (canonical)
+
+Push a semver tag to trigger the release workflow:
+
+```bash
+git tag v1.7.3
+git push origin v1.7.3
+```
+
+This triggers `.github/workflows/release.yml`, which:
+1. Builds cross-platform release binaries
+2. Creates a GitHub release with artifacts
+3. Runs `cargo xtask publish --yes --skip-tests --verbose` to publish to crates.io
+
+The tag-driven path is the canonical production flow.
+
 ## Verification
 
 Before releasing, ensure:

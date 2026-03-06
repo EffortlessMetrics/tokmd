@@ -338,7 +338,7 @@ When adding new features with heavy dependencies, consider making them optional.
 
 ## Publishing to crates.io
 
-Publishing is handled via `cargo xtask publish`, which ensures correct dependency order, validates packaging, and handles propagation delays.
+Publishing is handled via `cargo xtask publish`, which ensures correct dependency order, validates packaging, and handles propagation delays. See [RELEASE.md](RELEASE.md) for the full release process, including the CI-driven tag workflow.
 
 ### Workflow
 
