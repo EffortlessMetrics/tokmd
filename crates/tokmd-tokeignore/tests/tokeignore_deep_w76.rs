@@ -2,7 +2,7 @@
 //! structure, language-specific isolation, default exclusion invariants,
 //! and template generation quality.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
@@ -138,7 +138,7 @@ fn no_duplicate_patterns_within_a_template() {
     for profile in ALL_PROFILES {
         let content = write_template(profile);
         let patterns = pattern_lines(&content);
-        let unique: HashSet<&str> = patterns.iter().copied().collect();
+        let unique: BTreeSet<&str> = patterns.iter().copied().collect();
         assert_eq!(
             patterns.len(),
             unique.len(),
@@ -167,7 +167,10 @@ fn no_line_exceeds_120_characters() {
 #[test]
 fn rust_template_does_not_contain_python_patterns() {
     let c = write_template(InitProfile::Rust);
-    assert!(!c.contains("__pycache__/"), "Rust should not have __pycache__");
+    assert!(
+        !c.contains("__pycache__/"),
+        "Rust should not have __pycache__"
+    );
     assert!(!c.contains(".venv/"), "Rust should not have .venv");
     assert!(!c.contains("*.pyc"), "Rust should not have *.pyc");
 }
@@ -199,8 +202,14 @@ fn go_template_is_minimal() {
         "Go template should be compact, found {} patterns",
         patterns.len()
     );
-    assert!(!c.contains("node_modules/"), "Go should not have node_modules");
-    assert!(!c.contains("__pycache__/"), "Go should not have __pycache__");
+    assert!(
+        !c.contains("node_modules/"),
+        "Go should not have node_modules"
+    );
+    assert!(
+        !c.contains("__pycache__/"),
+        "Go should not have __pycache__"
+    );
 }
 
 // ── Default exclusion entry invariants ───────────────────────────────────
@@ -225,7 +234,14 @@ fn every_template_excludes_tokmd_runs_dir() {
 fn directory_patterns_have_trailing_slash() {
     // Known directory patterns should always end with /
     let known_dirs = [
-        "target", "node_modules", "__pycache__", "vendor", "dist", "build", "out", "coverage",
+        "target",
+        "node_modules",
+        "__pycache__",
+        "vendor",
+        "dist",
+        "build",
+        "out",
+        "coverage",
     ];
     for profile in ALL_PROFILES {
         let content = write_template(profile);
@@ -234,9 +250,7 @@ fn directory_patterns_have_trailing_slash() {
             let bare = line.trim_start_matches("**/");
             for dir in &known_dirs {
                 if bare == *dir {
-                    panic!(
-                        "{profile:?}: directory pattern '{line}' missing trailing slash"
-                    );
+                    panic!("{profile:?}: directory pattern '{line}' missing trailing slash");
                 }
             }
         }
@@ -246,10 +260,7 @@ fn directory_patterns_have_trailing_slash() {
 #[test]
 fn default_template_has_section_separator_comments() {
     let c = write_template(InitProfile::Default);
-    let section_markers: Vec<&str> = c
-        .lines()
-        .filter(|l| l.contains("---"))
-        .collect();
+    let section_markers: Vec<&str> = c.lines().filter(|l| l.contains("---")).collect();
     assert!(
         section_markers.len() >= 3,
         "Default template should have at least 3 section separators, found {}",
@@ -276,12 +287,24 @@ fn template_written_to_disk_matches_returned_path() {
 fn consecutive_writes_with_different_profiles_overwrite_correctly() {
     let dir = tempfile::tempdir().unwrap();
     // Write Rust first
-    init_tokeignore(&make_args(InitProfile::Rust, false, false, dir.path().into())).unwrap();
+    init_tokeignore(&make_args(
+        InitProfile::Rust,
+        false,
+        false,
+        dir.path().into(),
+    ))
+    .unwrap();
     let c1 = fs::read_to_string(dir.path().join(".tokeignore")).unwrap();
     assert!(c1.contains("(Rust)"));
 
     // Overwrite with Python using --force
-    init_tokeignore(&make_args(InitProfile::Python, false, true, dir.path().into())).unwrap();
+    init_tokeignore(&make_args(
+        InitProfile::Python,
+        false,
+        true,
+        dir.path().into(),
+    ))
+    .unwrap();
     let c2 = fs::read_to_string(dir.path().join(".tokeignore")).unwrap();
     assert!(c2.contains("(Python)"));
     assert!(!c2.contains("(Rust)"), "old profile content should be gone");

@@ -42,7 +42,7 @@ fn arb_lang_row() -> impl Strategy<Value = LangRow> {
 fn arb_lang_report() -> impl Strategy<Value = LangReport> {
     prop::collection::vec(arb_lang_row(), 1..6).prop_map(|rows| {
         // Deduplicate by language name – keep first occurrence
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = std::collections::BTreeSet::new();
         let rows: Vec<LangRow> = rows
             .into_iter()
             .filter(|r| seen.insert(r.lang.clone()))
@@ -86,7 +86,7 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
 
 fn arb_module_report() -> impl Strategy<Value = ModuleReport> {
     prop::collection::vec(arb_module_row(), 1..5).prop_map(|rows| {
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = std::collections::BTreeSet::new();
         let rows: Vec<ModuleRow> = rows
             .into_iter()
             .filter(|r| seen.insert(r.module.clone()))
@@ -511,7 +511,7 @@ proptest! {
     fn export_json_preserves_all_paths(
         file_rows in prop::collection::vec(arb_file_row(), 1..6),
     ) {
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = std::collections::BTreeSet::new();
         let rows: Vec<FileRow> = file_rows
             .into_iter()
             .filter(|r| seen.insert(r.path.clone()))

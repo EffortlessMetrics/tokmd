@@ -437,7 +437,7 @@ fn collision_trailing_slash() {
 
 #[test]
 fn collision_100_sequential_paths() {
-    let mut hashes = std::collections::HashSet::new();
+    let mut hashes = std::collections::BTreeSet::new();
     for i in 0..100 {
         let h = short_hash(&format!("path/to/file_{}.rs", i));
         assert!(hashes.insert(h), "Collision at index {}", i);

@@ -123,18 +123,12 @@ fn unicode_path_normalised() {
 
 #[test]
 fn cjk_path_normalised() {
-    assert_eq!(
-        normalize_slashes("项目\\源码\\主.rs"),
-        "项目/源码/主.rs"
-    );
+    assert_eq!(normalize_slashes("项目\\源码\\主.rs"), "项目/源码/主.rs");
 }
 
 #[test]
 fn emoji_path_normalised() {
-    assert_eq!(
-        normalize_slashes("🚀\\launch\\🌍.md"),
-        "🚀/launch/🌍.md"
-    );
+    assert_eq!(normalize_slashes("🚀\\launch\\🌍.md"), "🚀/launch/🌍.md");
 }
 
 // ── prefix stripping (normalize_rel_path) ──────────────────────────

@@ -80,7 +80,10 @@ fn given_rust_project_when_lang_json_then_receipt_has_rust_with_code_gt_zero() {
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(langs.contains(&"Rust"), "should contain Rust: {langs:?}");
     let total_code = json["total"]["code"].as_u64().unwrap_or(0);
-    assert!(total_code > 0, "total code lines should be > 0, got {total_code}");
+    assert!(
+        total_code > 0,
+        "total code lines should be > 0, got {total_code}"
+    );
 }
 
 // ===========================================================================
@@ -107,12 +110,18 @@ fn given_multi_lang_project_when_lang_json_then_all_languages_present_sorted_des
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(langs.contains(&"Rust"), "missing Rust: {langs:?}");
     assert!(langs.contains(&"Python"), "missing Python: {langs:?}");
-    assert!(langs.contains(&"JavaScript"), "missing JavaScript: {langs:?}");
+    assert!(
+        langs.contains(&"JavaScript"),
+        "missing JavaScript: {langs:?}"
+    );
 
     // And: sorted descending by code lines
     let codes: Vec<u64> = rows.iter().filter_map(|r| r["code"].as_u64()).collect();
     for w in codes.windows(2) {
-        assert!(w[0] >= w[1], "rows should be sorted desc by code: {codes:?}");
+        assert!(
+            w[0] >= w[1],
+            "rows should be sorted desc by code: {codes:?}"
+        );
     }
 }
 
@@ -128,7 +137,10 @@ fn given_nested_dirs_when_module_depth1_then_modules_listed() {
     write_file(dir.path(), "baz/qux.rs", "fn qux() { let y = 2; }\n");
 
     // When: `tokmd module --format json --module-depth 1`
-    let json = run_json(dir.path(), &["module", "--format", "json", "--module-depth", "1"]);
+    let json = run_json(
+        dir.path(),
+        &["module", "--format", "json", "--module-depth", "1"],
+    );
 
     // Then: modules for foo and baz
     let rows = json["rows"].as_array().expect("rows array");
@@ -166,7 +178,11 @@ fn given_multiple_files_when_export_jsonl_then_each_line_valid_json_with_fields(
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     let lines: Vec<&str> = stdout.lines().filter(|l| !l.trim().is_empty()).collect();
-    assert!(lines.len() >= 2, "should have meta + data lines, got {}", lines.len());
+    assert!(
+        lines.len() >= 2,
+        "should have meta + data lines, got {}",
+        lines.len()
+    );
 
     for (i, line) in lines.iter().enumerate() {
         let v: Value = serde_json::from_str(line)
@@ -188,17 +204,31 @@ fn given_multiple_files_when_export_jsonl_then_each_line_valid_json_with_fields(
 fn given_small_project_when_context_json_budget_then_tokens_within_budget() {
     // Given: a small project with a few files
     let dir = hermetic_dir();
-    write_file(dir.path(), "lib.rs", "pub fn add(a: i32, b: i32) -> i32 { a + b }\n");
-    write_file(dir.path(), "util.rs", "pub fn sub(a: i32, b: i32) -> i32 { a - b }\n");
+    write_file(
+        dir.path(),
+        "lib.rs",
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }\n",
+    );
+    write_file(
+        dir.path(),
+        "util.rs",
+        "pub fn sub(a: i32, b: i32) -> i32 { a - b }\n",
+    );
 
     // When: `tokmd context --mode json --budget 10000`
-    let json = run_json(dir.path(), &["context", "--mode", "json", "--budget", "10000"]);
+    let json = run_json(
+        dir.path(),
+        &["context", "--mode", "json", "--budget", "10000"],
+    );
 
     // Then: total tokens in context <= 10000
     let used = json["used_tokens"].as_u64().expect("used_tokens");
     let budget = json["budget_tokens"].as_u64().expect("budget_tokens");
     assert!(used <= 10000, "used_tokens ({used}) should be <= 10000");
-    assert_eq!(budget, 10000, "budget_tokens should reflect requested budget");
+    assert_eq!(
+        budget, 10000,
+        "budget_tokens should reflect requested budget"
+    );
 }
 
 // ===========================================================================
@@ -254,7 +284,12 @@ fn given_exclude_when_check_ignore_then_explains_ignored() {
     // Then: output explains the file is ignored
     tokmd()
         .current_dir(dir.path())
-        .args(["--exclude", "ignored_file.rs", "check-ignore", "ignored_file.rs"])
+        .args([
+            "--exclude",
+            "ignored_file.rs",
+            "check-ignore",
+            "ignored_file.rs",
+        ])
         .assert()
         .success()
         .stdout(predicate::str::contains("ignored"));
@@ -358,13 +393,19 @@ fn given_project_when_module_json_then_total_has_code() {
 #[test]
 fn given_project_when_lang_json_then_has_schema_version() {
     let json = run_json(common::fixture_root(), &["lang", "--format", "json"]);
-    assert!(json["schema_version"].is_number(), "should have schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "should have schema_version"
+    );
 }
 
 #[test]
 fn given_project_when_export_json_then_has_schema_version() {
     let json = run_json(common::fixture_root(), &["export", "--format", "json"]);
-    assert!(json["schema_version"].is_number(), "should have schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "should have schema_version"
+    );
 }
 
 // ===========================================================================
@@ -375,7 +416,11 @@ fn given_project_when_export_json_then_has_schema_version() {
 fn given_same_input_when_lang_json_twice_then_rows_identical() {
     // Given: a fixed project
     let dir = hermetic_dir();
-    write_file(dir.path(), "lib.rs", "pub fn add(a: i32, b: i32) -> i32 { a + b }\n");
+    write_file(
+        dir.path(),
+        "lib.rs",
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }\n",
+    );
     write_file(dir.path(), "main.rs", "fn main() { println!(\"hi\"); }\n");
 
     // When: run twice
@@ -412,7 +457,10 @@ fn given_exclude_flag_when_export_then_excluded_files_absent() {
     // Then: Python file absent, Rust file present
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.contains("script.py"), "script.py should be excluded");
+    assert!(
+        !stdout.contains("script.py"),
+        "script.py should be excluded"
+    );
     assert!(stdout.contains("main.rs"), "main.rs should remain");
 }
 
@@ -437,7 +485,10 @@ fn given_hidden_file_when_default_scan_then_hidden_excluded() {
     // Then: hidden file absent
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.contains(".hidden.rs"), "hidden file should be excluded");
+    assert!(
+        !stdout.contains(".hidden.rs"),
+        "hidden file should be excluded"
+    );
     assert!(stdout.contains("visible.rs"), "visible file should remain");
 }
 
@@ -494,7 +545,10 @@ fn given_empty_dir_when_init_then_tokeignore_created() {
         .success();
 
     // Then: .tokeignore exists
-    assert!(dir.path().join(".tokeignore").exists(), ".tokeignore should be created");
+    assert!(
+        dir.path().join(".tokeignore").exists(),
+        ".tokeignore should be created"
+    );
 }
 
 // ===========================================================================
@@ -514,7 +568,10 @@ fn given_project_when_lang_tsv_then_tab_separated_header() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains('\t'), "TSV should contain tabs");
-    assert!(stdout.contains("Lang\tCode\tLines"), "TSV should have header");
+    assert!(
+        stdout.contains("Lang\tCode\tLines"),
+        "TSV should have header"
+    );
 }
 
 // ===========================================================================
@@ -597,15 +654,32 @@ fn given_multiple_excludes_when_lang_then_all_patterns_applied() {
     // When: exclude both .rs and .py
     let json = run_json(
         dir.path(),
-        &["--exclude", "*.rs", "--exclude", "*.py", "lang", "--format", "json"],
+        &[
+            "--exclude",
+            "*.rs",
+            "--exclude",
+            "*.py",
+            "lang",
+            "--format",
+            "json",
+        ],
     );
 
     // Then: only JavaScript remains
     let rows = json["rows"].as_array().unwrap();
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
-    assert!(!langs.contains(&"Rust"), "Rust should be excluded: {langs:?}");
-    assert!(!langs.contains(&"Python"), "Python should be excluded: {langs:?}");
-    assert!(langs.contains(&"JavaScript"), "JavaScript should remain: {langs:?}");
+    assert!(
+        !langs.contains(&"Rust"),
+        "Rust should be excluded: {langs:?}"
+    );
+    assert!(
+        !langs.contains(&"Python"),
+        "Python should be excluded: {langs:?}"
+    );
+    assert!(
+        langs.contains(&"JavaScript"),
+        "JavaScript should remain: {langs:?}"
+    );
 }
 
 // ===========================================================================
@@ -621,7 +695,10 @@ fn given_project_when_context_tight_budget_then_used_le_budget() {
     write_file(dir.path(), "c.rs", "fn c() { let z = 3; }\n");
 
     // When: `tokmd context --mode json --budget 500`
-    let json = run_json(dir.path(), &["context", "--mode", "json", "--budget", "500"]);
+    let json = run_json(
+        dir.path(),
+        &["context", "--mode", "json", "--budget", "500"],
+    );
 
     // Then: used_tokens <= budget_tokens
     let budget = json["budget_tokens"].as_u64().expect("budget_tokens");
@@ -666,7 +743,10 @@ fn given_project_when_analyze_json_then_schema_version_is_number() {
         common::fixture_root(),
         &["analyze", "--preset", "receipt", "--format", "json"],
     );
-    assert!(json["schema_version"].is_number(), "should have numeric schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "should have numeric schema_version"
+    );
 }
 
 // ===========================================================================
@@ -680,7 +760,10 @@ fn given_project_when_context_json_then_has_utilization_pct() {
     write_file(dir.path(), "main.rs", "fn main() { println!(\"hi\"); }\n");
 
     // When: `tokmd context --mode json --budget 10000`
-    let json = run_json(dir.path(), &["context", "--mode", "json", "--budget", "10000"]);
+    let json = run_json(
+        dir.path(),
+        &["context", "--mode", "json", "--budget", "10000"],
+    );
 
     // Then: utilization_pct is a number between 0 and 100
     let pct = json["utilization_pct"].as_f64().expect("utilization_pct");

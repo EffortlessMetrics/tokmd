@@ -1,8 +1,7 @@
 //! W61 depth tests for tokmd-analysis-grid: BDD edge cases, determinism, proptest.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind,
-    preset_plan_for, preset_plan_for_name,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for, preset_plan_for_name,
 };
 
 // ---------------------------------------------------------------------------
@@ -106,7 +105,7 @@ fn grid_rows_ordered_same_as_all() {
 
 #[test]
 fn grid_has_no_duplicate_preset_kinds() {
-    let mut seen = std::collections::HashSet::new();
+    let mut seen = std::collections::BTreeSet::new();
     for row in &PRESET_GRID {
         assert!(
             seen.insert(row.preset.as_str()),

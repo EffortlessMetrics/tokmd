@@ -53,11 +53,7 @@ fn rust_workspace_library_detected() {
 
 #[test]
 fn rust_workspace_cli_detected_via_main_rs() {
-    let export = export_with_paths(&[
-        "Cargo.toml",
-        "crates/core/src/lib.rs",
-        "src/main.rs",
-    ]);
+    let export = export_with_paths(&["Cargo.toml", "crates/core/src/lib.rs", "src/main.rs"]);
     let a = detect_archetype(&export).unwrap();
     assert_eq!(a.kind, "Rust workspace (CLI)");
 }

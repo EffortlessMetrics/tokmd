@@ -87,7 +87,7 @@ fn fingerprint_collision_resistance_different_tools() {
         .with_location(FindingLocation::path("src/lib.rs"));
 
     let fingerprints: Vec<String> = tools.iter().map(|t| f.compute_fingerprint(t)).collect();
-    let unique: std::collections::HashSet<&String> = fingerprints.iter().collect();
+    let unique: std::collections::BTreeSet<&String> = fingerprints.iter().collect();
     assert_eq!(
         unique.len(),
         tools.len(),
@@ -115,7 +115,7 @@ fn fingerprint_collision_resistance_different_check_ids() {
             Finding::new(*cid, "code", FindingSeverity::Info, "T", "M").compute_fingerprint("tokmd")
         })
         .collect();
-    let unique: std::collections::HashSet<&String> = fingerprints.iter().collect();
+    let unique: std::collections::BTreeSet<&String> = fingerprints.iter().collect();
     assert_eq!(unique.len(), check_ids.len());
 }
 
@@ -234,7 +234,7 @@ fn all_finding_constants_compose_valid_triples() {
         (findings::sensor::CHECK_ID, findings::sensor::DIFF_SUMMARY),
     ];
 
-    let mut ids = std::collections::HashSet::new();
+    let mut ids = std::collections::BTreeSet::new();
     for (check_id, code) in &triples {
         let id = findings::finding_id("tokmd", check_id, code);
         assert_eq!(id.matches('.').count(), 2, "ID must have 2 dots: {}", id);

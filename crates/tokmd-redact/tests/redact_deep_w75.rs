@@ -15,9 +15,9 @@ use tokmd_redact::{redact_path, short_hash};
 /// have no extension in Rust).
 fn path_with_ext() -> impl Strategy<Value = (String, String)> {
     (
-        "[a-z][a-z0-9_]{0,20}",            // directory / prefix
-        "[a-z][a-z0-9_]{0,10}",            // file stem (non-empty, no dots)
-        "[a-z]{1,6}",                       // extension
+        "[a-z][a-z0-9_]{0,20}", // directory / prefix
+        "[a-z][a-z0-9_]{0,10}", // file stem (non-empty, no dots)
+        "[a-z]{1,6}",           // extension
     )
         .prop_map(|(dir, stem, ext)| {
             let full = format!("{dir}/{stem}.{ext}");
@@ -150,26 +150,17 @@ fn known_redact_path_main_rs() {
 
 #[test]
 fn different_directory_same_file_different_hash() {
-    assert_ne!(
-        short_hash("alpha/lib.rs"),
-        short_hash("beta/lib.rs"),
-    );
+    assert_ne!(short_hash("alpha/lib.rs"), short_hash("beta/lib.rs"),);
 }
 
 #[test]
 fn same_directory_different_file_different_hash() {
-    assert_ne!(
-        short_hash("src/foo.rs"),
-        short_hash("src/bar.rs"),
-    );
+    assert_ne!(short_hash("src/foo.rs"), short_hash("src/bar.rs"),);
 }
 
 #[test]
 fn nested_depth_affects_hash() {
-    assert_ne!(
-        short_hash("a/b/c.rs"),
-        short_hash("a/b/d/c.rs"),
-    );
+    assert_ne!(short_hash("a/b/c.rs"), short_hash("a/b/d/c.rs"),);
 }
 
 // ── empty, root, and relative paths ────────────────────────────────
@@ -194,10 +185,7 @@ fn relative_dot_slash_normalised_to_bare() {
 
 #[test]
 fn double_dot_slash_normalised() {
-    assert_eq!(
-        short_hash("././src/lib.rs"),
-        short_hash("src/lib.rs"),
-    );
+    assert_eq!(short_hash("././src/lib.rs"), short_hash("src/lib.rs"),);
 }
 
 #[test]
@@ -210,10 +198,7 @@ fn interior_dot_segments_normalised() {
 
 #[test]
 fn trailing_dot_segment_normalised() {
-    assert_eq!(
-        short_hash("crates/foo/."),
-        short_hash("crates/foo"),
-    );
+    assert_eq!(short_hash("crates/foo/."), short_hash("crates/foo"),);
 }
 
 // ── cross-platform separator normalisation ─────────────────────────

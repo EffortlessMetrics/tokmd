@@ -2,7 +2,7 @@
 //! comparison, pattern classification, and cross-profile consistency
 //! not covered by existing deep/bdd/properties/init/snapshot tests.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
 
@@ -155,7 +155,7 @@ fn each_profile_has_unique_header_comment() {
         let header = content.lines().next().unwrap().to_string();
         headers.insert(format!("{profile:?}"), header);
     }
-    let unique: HashSet<&String> = headers.values().collect();
+    let unique: BTreeSet<&String> = headers.values().collect();
     assert_eq!(
         unique.len(),
         ALL_PROFILES.len(),

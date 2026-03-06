@@ -3,8 +3,8 @@
 use clap::{Arg, ArgAction, Command};
 use serde_json::Value;
 use tokmd_tool_schema::{
-    build_tool_schema, render_output, ToolDefinition, ToolSchemaFormat, ToolSchemaOutput,
-    TOOL_SCHEMA_VERSION,
+    TOOL_SCHEMA_VERSION, ToolDefinition, ToolSchemaFormat, ToolSchemaOutput, build_tool_schema,
+    render_output,
 };
 
 // ---------------------------------------------------------------------------
@@ -38,15 +38,13 @@ fn simple_cmd() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("export")
-                .about("Export data")
-                .arg(
-                    Arg::new("format")
-                        .long("format")
-                        .value_parser(["json", "csv", "tsv"])
-                        .default_value("json")
-                        .help("Output format"),
-                ),
+            Command::new("export").about("Export data").arg(
+                Arg::new("format")
+                    .long("format")
+                    .value_parser(["json", "csv", "tsv"])
+                    .default_value("json")
+                    .help("Output format"),
+            ),
         )
 }
 
@@ -155,7 +153,11 @@ fn w74_string_param_type() {
 fn w74_boolean_param_type() {
     let schema = build_tool_schema(&simple_cmd());
     let scan = find_tool(&schema, "scan");
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert_eq!(verbose.param_type, "boolean");
 }
 
@@ -185,7 +187,11 @@ fn w74_required_flag_propagated() {
     let scan = find_tool(&schema, "scan");
     let path_param = scan.parameters.iter().find(|p| p.name == "path").unwrap();
     assert!(path_param.required);
-    let verbose = scan.parameters.iter().find(|p| p.name == "verbose").unwrap();
+    let verbose = scan
+        .parameters
+        .iter()
+        .find(|p| p.name == "verbose")
+        .unwrap();
     assert!(!verbose.required);
 }
 
@@ -193,7 +199,11 @@ fn w74_required_flag_propagated() {
 fn w74_default_value_captured() {
     let schema = build_tool_schema(&simple_cmd());
     let export = find_tool(&schema, "export");
-    let fmt = export.parameters.iter().find(|p| p.name == "format").unwrap();
+    let fmt = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "format")
+        .unwrap();
     assert_eq!(fmt.default.as_deref(), Some("json"));
 }
 
@@ -201,7 +211,11 @@ fn w74_default_value_captured() {
 fn w74_enum_values_captured() {
     let schema = build_tool_schema(&simple_cmd());
     let export = find_tool(&schema, "export");
-    let fmt = export.parameters.iter().find(|p| p.name == "format").unwrap();
+    let fmt = export
+        .parameters
+        .iter()
+        .find(|p| p.name == "format")
+        .unwrap();
     let enums = fmt.enum_values.as_ref().expect("enum_values present");
     assert!(enums.contains(&"json".to_string()));
     assert!(enums.contains(&"csv".to_string()));
