@@ -227,6 +227,6 @@ mod tests {
         let sha = capture_git_commit(&PathBuf::from("/"));
         // Root should not be a git repo (in most cases)
         // Note: This might fail in some edge cases where / is somehow a git repo
-        assert!(sha.is_none() || sha.unwrap().len() == 40);
+        assert!(sha.is_none() || sha.is_some_and(|s| s.len() == 40));
     }
 }
