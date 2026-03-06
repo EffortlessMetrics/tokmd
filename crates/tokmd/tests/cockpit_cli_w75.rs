@@ -7,7 +7,6 @@
 mod common;
 
 use assert_cmd::Command;
-use predicates::prelude::*;
 use serde_json::Value;
 use tempfile::tempdir;
 
