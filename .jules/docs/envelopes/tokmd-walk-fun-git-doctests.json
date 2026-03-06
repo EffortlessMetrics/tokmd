@@ -1,0 +1,10 @@
+{
+  "run_id": "tokmd-walk-fun-git-doctests",
+  "status": "success",
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd-walk -p tokmd-fun -p tokmd-git --doc",
+      "status": "passed"
+    }
+  ]
+}

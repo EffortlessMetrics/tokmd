@@ -16,6 +16,7 @@ tokmd-git = "1.3"
 ## Usage
 
 ```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_git::{git_available, repo_root, collect_history};
 use std::path::Path;
 
@@ -35,18 +36,20 @@ if git_available() {
         }
     }
 }
+# Ok(())
+# }
 ```
 
 ## Key Functions
 
 ### Detection
-```rust
+```rust,ignore
 pub fn git_available() -> bool
 pub fn repo_root(path: &Path) -> Option<PathBuf>
 ```
 
 ### History Collection
-```rust
+```rust,ignore
 pub fn collect_history(
     repo_root: &Path,
     max_commits: Option<usize>,

@@ -526,3 +526,6 @@ mod tests {
         assert_eq!(resolve_base_ref(dir.path(), "nonexistent"), None);
     }
 }
+
+#[cfg(doctest)]
+pub mod readme_doctests { #[doc = include_str!("../README.md")] pub struct ReadmeDoctests; }
