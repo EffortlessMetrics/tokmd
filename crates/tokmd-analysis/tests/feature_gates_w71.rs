@@ -117,7 +117,7 @@ fn risk_preset_git_gate_no_silent_success() {
             receipt
                 .warnings
                 .iter()
-                .any(|w| w.contains(DisabledFeature::GitMetrics.warning())),
+                .any(|w: &String| w.contains(DisabledFeature::GitMetrics.warning())),
             "must warn about disabled git: {:?}",
             receipt.warnings
         );
@@ -126,7 +126,7 @@ fn risk_preset_git_gate_no_silent_success() {
     #[cfg(feature = "git")]
     {
         let has_git = receipt.git.is_some();
-        let has_git_warning = receipt.warnings.iter().any(|w| w.contains("git"));
+        let has_git_warning = receipt.warnings.iter().any(|w: &String| w.contains("git"));
         assert!(
             has_git || has_git_warning,
             "git feature compiled in but no git report and no git warning"
@@ -172,7 +172,8 @@ fn git_false_override_suppresses_git_in_deep_preset() {
 /// Health preset requests content-dependent enrichers (todo, complexity).
 #[test]
 fn health_preset_content_gate_no_silent_success() {
-    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
+    #[allow(unused_variables)]
+    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Health)).unwrap();
     let plan = preset_plan_for(PresetKind::Health);
     assert!(plan.todo, "health plan must request TODO scan");
     assert!(plan.complexity, "health plan must request complexity");
@@ -183,7 +184,7 @@ fn health_preset_content_gate_no_silent_success() {
             receipt
                 .warnings
                 .iter()
-                .any(|w| w.contains(DisabledFeature::TodoScan.warning())),
+                .any(|w: &String| w.contains(DisabledFeature::TodoScan.warning())),
             "must warn about disabled TODO scan: {:?}",
             receipt.warnings
         );
@@ -191,7 +192,7 @@ fn health_preset_content_gate_no_silent_success() {
             receipt
                 .warnings
                 .iter()
-                .any(|w| w.contains(DisabledFeature::ComplexityAnalysis.warning())),
+                .any(|w: &String| w.contains(DisabledFeature::ComplexityAnalysis.warning())),
             "must warn about disabled complexity: {:?}",
             receipt.warnings
         );
@@ -216,7 +217,7 @@ fn architecture_preset_content_gate() {
             receipt
                 .warnings
                 .iter()
-                .any(|w| w.contains(DisabledFeature::ImportScan.warning())),
+                .any(|w: &String| w.contains(DisabledFeature::ImportScan.warning())),
             "must warn about disabled import scan"
         );
     }
@@ -239,7 +240,8 @@ fn deep_preset_requests_all_content_enrichers() {
 /// Supply preset depends on walk for assets.
 #[test]
 fn supply_preset_walk_gate_no_silent_success() {
-    let _receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
+    #[allow(unused_variables)]
+    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Supply)).unwrap();
     let plan = preset_plan_for(PresetKind::Supply);
     assert!(plan.assets, "supply plan must request assets");
 
@@ -249,7 +251,7 @@ fn supply_preset_walk_gate_no_silent_success() {
             receipt
                 .warnings
                 .iter()
-                .any(|w| w.contains(DisabledFeature::FileInventory.warning())),
+                .any(|w: &String| w.contains(DisabledFeature::FileInventory.warning())),
             "must warn about disabled file inventory: {:?}",
             receipt.warnings
         );
