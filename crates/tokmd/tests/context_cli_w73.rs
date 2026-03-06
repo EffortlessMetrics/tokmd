@@ -21,8 +21,16 @@ fn tokmd_cmd() -> Command {
 fn w73_context_list_on_temp_dir() {
     let dir = tempdir().unwrap();
     let root = dir.path();
-    fs::write(root.join("hello.rs"), "fn main() { println!(\"hello\"); }\n").unwrap();
-    fs::write(root.join("lib.rs"), "pub fn add(a: i32, b: i32) -> i32 { a + b }\n").unwrap();
+    fs::write(
+        root.join("hello.rs"),
+        "fn main() { println!(\"hello\"); }\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("lib.rs"),
+        "pub fn add(a: i32, b: i32) -> i32 { a + b }\n",
+    )
+    .unwrap();
     fs::create_dir_all(root.join(".git")).unwrap();
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));

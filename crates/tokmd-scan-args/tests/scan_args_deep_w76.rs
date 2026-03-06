@@ -184,7 +184,11 @@ fn w76_redact_all_transforms_like_paths() {
 
 #[test]
 fn w76_redact_with_empty_excluded_not_flagged() {
-    let args = scan_args(&paths(&["src"]), &ScanOptions::default(), Some(RedactMode::Paths));
+    let args = scan_args(
+        &paths(&["src"]),
+        &ScanOptions::default(),
+        Some(RedactMode::Paths),
+    );
     assert!(!args.excluded_redacted, "no exclusions ⇒ flag stays false");
 }
 

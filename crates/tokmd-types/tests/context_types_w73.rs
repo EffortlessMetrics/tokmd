@@ -1,6 +1,5 @@
 //! Deep tests for context and handoff types in tokmd-types (W73).
 
-use serde_json;
 use tokmd_types::*;
 
 // ---------------------------------------------------------------------------
@@ -47,12 +46,18 @@ fn inclusion_policy_serde_roundtrip() {
 
 #[test]
 fn inclusion_policy_snake_case_serialization() {
-    assert_eq!(serde_json::to_string(&InclusionPolicy::Full).unwrap(), "\"full\"");
+    assert_eq!(
+        serde_json::to_string(&InclusionPolicy::Full).unwrap(),
+        "\"full\""
+    );
     assert_eq!(
         serde_json::to_string(&InclusionPolicy::HeadTail).unwrap(),
         "\"head_tail\""
     );
-    assert_eq!(serde_json::to_string(&InclusionPolicy::Skip).unwrap(), "\"skip\"");
+    assert_eq!(
+        serde_json::to_string(&InclusionPolicy::Skip).unwrap(),
+        "\"skip\""
+    );
 }
 
 // ---------------------------------------------------------------------------
