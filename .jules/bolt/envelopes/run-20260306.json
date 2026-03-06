@@ -1,0 +1,29 @@
+{
+  "run_id": "run-20260306",
+  "timestamp_utc": "2026-03-06T13:28:56Z",
+  "lane": null,
+  "target": null,
+  "proof_method": null,
+  "commands": [],
+  "results_summary": []
+}
+{
+  "commands": [
+    {"cmd": "cargo check --workspace --all-features", "status": 0, "summary": "PASS"}
+  ]
+}
+{
+  "commands": [
+    {"cmd": "CI=true cargo test --workspace --exclude tokmd-python --exclude tokmd-node --all-features", "status": 0, "summary": "PASS"}
+  ]
+}
+{
+  "commands": [
+    {"cmd": "cargo fmt -- --check", "status": 0, "summary": "PASS"}
+  ]
+}
+{
+  "commands": [
+    {"cmd": "cargo clippy --workspace --all-targets --all-features -- -D warnings", "status": 0, "summary": "PASS"}
+  ]
+}

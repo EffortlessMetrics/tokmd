@@ -1,0 +1,15 @@
+[
+  {
+    "date": "2026-03-06T13:28:56Z",
+    "lane": "scout",
+    "target": "tokmd-analysis-format string allocations",
+    "proof_method": "structural proof",
+    "pr_link": "pending",
+    "gates": [
+      "cargo check",
+      "cargo clippy",
+      "cargo test"
+    ],
+    "friction_ids": []
+  }
+]

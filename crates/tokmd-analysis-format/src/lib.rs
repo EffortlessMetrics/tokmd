@@ -40,26 +40,27 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
 }
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
-    let mut out = String::new();
+    use std::fmt::Write;
+    let mut out = String::with_capacity(4096);
     out.push_str("# tokmd analysis\n\n");
-    out.push_str(&format!("Preset: `{}`\n\n", receipt.args.preset));
+    let _ = write!(out, "Preset: `{}`\n\n", receipt.args.preset);
 
     if !receipt.source.inputs.is_empty() {
         out.push_str("## Inputs\n\n");
         for input in &receipt.source.inputs {
-            out.push_str(&format!("- `{}`\n", input));
+            let _ = write!(out, "- `{}`\n", input);
         }
         out.push('\n');
     }
 
     if let Some(archetype) = &receipt.archetype {
         out.push_str("## Archetype\n\n");
-        out.push_str(&format!("- Kind: `{}`\n", archetype.kind));
+        let _ = write!(out, "- Kind: `{}`\n", archetype.kind);
         if !archetype.evidence.is_empty() {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Evidence: `{}`\n",
                 archetype.evidence.join("`, `")
-            ));
+            );
         }
         out.push('\n');
     }
@@ -67,7 +68,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
     if let Some(topics) = &receipt.topics {
         out.push_str("## Topics\n\n");
         if !topics.overall.is_empty() {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Overall: `{}`\n",
                 topics
                     .overall
@@ -75,7 +76,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                     .map(|t| t.term.as_str())
                     .collect::<Vec<_>>()
                     .join(", ")
-            ));
+            );
         }
         for (module, terms) in &topics.per_module {
             if terms.is_empty() {
@@ -86,7 +87,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 .map(|t| t.term.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");
-            out.push_str(&format!("- `{}`: {}\n", module, line));
+            let _ = write!(out, "- `{}`: {}\n", module, line);
         }
         out.push('\n');
     }
@@ -99,14 +100,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Path|Module|Entropy|Sample bytes|Class|\n");
             out.push_str("|---|---|---:|---:|---|\n");
             for row in entropy.suspects.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|{:?}|\n",
                     row.path,
                     row.module,
                     fmt_f64(row.entropy_bits_per_byte as f64, 2),
                     row.sample_bytes,
                     row.class
-                ));
+                );
             }
             out.push('\n');
         }
@@ -115,20 +116,20 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
     if let Some(license) = &receipt.license {
         out.push_str("## License radar\n\n");
         if let Some(effective) = &license.effective {
-            out.push_str(&format!("- Effective: `{}`\n", effective));
+            let _ = write!(out, "- Effective: `{}`\n", effective);
         }
         out.push_str("- Heuristic detection; not legal advice.\n\n");
         if !license.findings.is_empty() {
             out.push_str("|SPDX|Confidence|Source|Kind|\n");
             out.push_str("|---|---:|---|---|\n");
             for row in license.findings.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{:?}|\n",
                     row.spdx,
                     fmt_f64(row.confidence as f64, 2),
                     row.source_path,
                     row.source_kind
-                ));
+                );
             }
             out.push('\n');
         }
@@ -142,12 +143,12 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Domain|Commits|Pct|\n");
             out.push_str("|---|---:|---:|\n");
             for row in fingerprint.domains.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|\n",
                     row.domain,
                     row.commits,
                     fmt_pct(row.pct as f64)
-                ));
+                );
             }
             out.push('\n');
         }
@@ -168,14 +169,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Slope|R²|Recent change|Class|\n");
             out.push_str("|---|---:|---:|---:|---|\n");
             for (module, trend) in rows.into_iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|{:?}|\n",
                     module,
                     fmt_f64(trend.slope, 4),
                     fmt_f64(trend.r2, 2),
                     trend.recent_change,
                     trend.classification
-                ));
+                );
             }
             out.push('\n');
         }
@@ -185,7 +186,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Totals\n\n");
         out.push_str("|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|\n");
         out.push_str("|---:|---:|---:|---:|---:|---:|---:|\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "|{}|{}|{}|{}|{}|{}|{}|\n\n",
             derived.totals.files,
             derived.totals.code,
@@ -194,35 +195,35 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             derived.totals.lines,
             derived.totals.bytes,
             derived.totals.tokens
-        ));
+        );
 
         out.push_str("## Ratios\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "|Doc density|{}|\n",
             fmt_pct(derived.doc_density.total.ratio)
-        ));
-        out.push_str(&format!(
+        );
+        let _ = write!(out,
             "|Whitespace ratio|{}|\n",
             fmt_pct(derived.whitespace.total.ratio)
-        ));
-        out.push_str(&format!(
+        );
+        let _ = write!(out,
             "|Bytes per line|{}|\n\n",
             fmt_f64(derived.verbosity.total.rate, 2)
-        ));
+        );
 
         out.push_str("### Doc density by language\n\n");
         out.push_str("|Lang|Doc%|Comments|Code|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.doc_density.by_lang.iter().take(10) {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "|{}|{}|{}|{}|\n",
                 row.key,
                 fmt_pct(row.ratio),
                 row.numerator,
                 row.denominator.saturating_sub(row.numerator)
-            ));
+            );
         }
         out.push('\n');
 
@@ -230,13 +231,13 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Lang|Blank%|Blanks|Code+Comments|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.whitespace.by_lang.iter().take(10) {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "|{}|{}|{}|{}|\n",
                 row.key,
                 fmt_pct(row.ratio),
                 row.numerator,
                 row.denominator
-            ));
+            );
         }
         out.push('\n');
 
@@ -244,20 +245,20 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Lang|Bytes/Line|Bytes|Lines|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.verbosity.by_lang.iter().take(10) {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "|{}|{}|{}|{}|\n",
                 row.key,
                 fmt_f64(row.rate, 2),
                 row.numerator,
                 row.denominator
-            ));
+            );
         }
         out.push('\n');
 
         out.push_str("## Distribution\n\n");
         out.push_str("|Count|Min|Max|Mean|Median|P90|P99|Gini|\n");
         out.push_str("|---:|---:|---:|---:|---:|---:|---:|---:|\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "|{}|{}|{}|{}|{}|{}|{}|{}|\n\n",
             derived.distribution.count,
             derived.distribution.min,
@@ -267,7 +268,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             fmt_f64(derived.distribution.p90, 2),
             fmt_f64(derived.distribution.p99, 2),
             fmt_f64(derived.distribution.gini, 4)
-        ));
+        );
 
         out.push_str("## File size histogram\n\n");
         out.push_str("|Bucket|Min|Max|Files|Pct|\n");
@@ -277,14 +278,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 .max
                 .map(|v| v.to_string())
                 .unwrap_or_else(|| "∞".to_string());
-            out.push_str(&format!(
+            let _ = write!(out,
                 "|{}|{}|{}|{}|{}|\n",
                 bucket.label,
                 bucket.min,
                 max,
                 bucket.files,
                 fmt_pct(bucket.pct)
-            ));
+            );
         }
         out.push('\n');
 
@@ -310,106 +311,106 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push('\n');
 
         out.push_str("## Structure\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Max depth: `{}`\n- Avg depth: `{}`\n\n",
             derived.nesting.max,
             fmt_f64(derived.nesting.avg, 2)
-        ));
+        );
 
         out.push_str("## Test density\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Test lines: `{}`\n- Prod lines: `{}`\n- Test ratio: `{}`\n\n",
             derived.test_density.test_lines,
             derived.test_density.prod_lines,
             fmt_pct(derived.test_density.ratio)
-        ));
+        );
 
         if let Some(todo) = &derived.todo {
             out.push_str("## TODOs\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Total: `{}`\n- Density (per KLOC): `{}`\n\n",
                 todo.total,
                 fmt_f64(todo.density_per_kloc, 2)
-            ));
+            );
             out.push_str("|Tag|Count|\n");
             out.push_str("|---|---:|\n");
             for tag in &todo.tags {
-                out.push_str(&format!("|{}|{}|\n", tag.tag, tag.count));
+                let _ = write!(out, "|{}|{}|\n", tag.tag, tag.count);
             }
             out.push('\n');
         }
 
         out.push_str("## Boilerplate ratio\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Infra lines: `{}`\n- Logic lines: `{}`\n- Infra ratio: `{}`\n\n",
             derived.boilerplate.infra_lines,
             derived.boilerplate.logic_lines,
             fmt_pct(derived.boilerplate.ratio)
-        ));
+        );
 
         out.push_str("## Polyglot\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Languages: `{}`\n- Dominant: `{}` ({})\n- Entropy: `{}`\n\n",
             derived.polyglot.lang_count,
             derived.polyglot.dominant_lang,
             fmt_pct(derived.polyglot.dominant_pct),
             fmt_f64(derived.polyglot.entropy, 4)
-        ));
+        );
 
         out.push_str("## Reading time\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Minutes: `{}` ({} lines/min)\n\n",
             fmt_f64(derived.reading_time.minutes, 2),
             derived.reading_time.lines_per_minute
-        ));
+        );
 
         if let Some(context) = &derived.context_window {
             out.push_str("## Context window\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Window tokens: `{}`\n- Total tokens: `{}`\n- Utilization: `{}`\n- Fits: `{}`\n\n",
                 context.window_tokens,
                 context.total_tokens,
                 fmt_pct(context.pct),
                 context.fits
-            ));
+            );
         }
 
         if let Some(cocomo) = &derived.cocomo {
             out.push_str("## COCOMO estimate\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Mode: `{}`\n- KLOC: `{}`\n- Effort (PM): `{}`\n- Duration (months): `{}`\n- Staff: `{}`\n\n",
                 cocomo.mode,
                 fmt_f64(cocomo.kloc, 4),
                 fmt_f64(cocomo.effort_pm, 2),
                 fmt_f64(cocomo.duration_months, 2),
                 fmt_f64(cocomo.staff, 2)
-            ));
+            );
         }
 
         out.push_str("## Integrity\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Hash: `{}` (`{}`)\n- Entries: `{}`\n\n",
             derived.integrity.hash, derived.integrity.algo, derived.integrity.entries
-        ));
+        );
     }
 
     if let Some(assets) = &receipt.assets {
         out.push_str("## Assets\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Total files: `{}`\n- Total bytes: `{}`\n\n",
             assets.total_files, assets.total_bytes
-        ));
+        );
         if !assets.categories.is_empty() {
             out.push_str("|Category|Files|Bytes|Extensions|\n");
             out.push_str("|---|---:|---:|---|\n");
             for row in &assets.categories {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     row.category,
                     row.files,
                     row.bytes,
                     row.extensions.join(", ")
-                ));
+                );
             }
             out.push('\n');
         }
@@ -417,7 +418,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|File|Bytes|Category|\n");
             out.push_str("|---|---:|---|\n");
             for row in &assets.top_files {
-                out.push_str(&format!("|{}|{}|{}|\n", row.path, row.bytes, row.category));
+                let _ = write!(out, "|{}|{}|{}|\n", row.path, row.bytes, row.category);
             }
             out.push('\n');
         }
@@ -425,15 +426,15 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(deps) = &receipt.deps {
         out.push_str("## Dependencies\n\n");
-        out.push_str(&format!("- Total: `{}`\n\n", deps.total));
+        let _ = write!(out, "- Total: `{}`\n\n", deps.total);
         if !deps.lockfiles.is_empty() {
             out.push_str("|Lockfile|Kind|Dependencies|\n");
             out.push_str("|---|---|---:|\n");
             for row in &deps.lockfiles {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|\n",
                     row.path, row.kind, row.dependencies
-                ));
+                );
             }
             out.push('\n');
         }
@@ -441,19 +442,19 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(git) = &receipt.git {
         out.push_str("## Git metrics\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Commits scanned: `{}`\n- Files seen: `{}`\n\n",
             git.commits_scanned, git.files_seen
-        ));
+        );
         if !git.hotspots.is_empty() {
             out.push_str("### Hotspots\n\n");
             out.push_str("|File|Commits|Lines|Score|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in git.hotspots.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     row.path, row.commits, row.lines, row.score
-                ));
+                );
             }
             out.push('\n');
         }
@@ -462,38 +463,38 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Authors|\n");
             out.push_str("|---|---:|\n");
             for row in git.bus_factor.iter().take(10) {
-                out.push_str(&format!("|{}|{}|\n", row.module, row.authors));
+                let _ = write!(out, "|{}|{}|\n", row.module, row.authors);
             }
             out.push('\n');
         }
         out.push_str("### Freshness\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Stale threshold (days): `{}`\n- Stale files: `{}` / `{}` ({})\n\n",
             git.freshness.threshold_days,
             git.freshness.stale_files,
             git.freshness.total_files,
             fmt_pct(git.freshness.stale_pct)
-        ));
+        );
         if !git.freshness.by_module.is_empty() {
             out.push_str("|Module|Avg days|P90 days|Stale%|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in git.freshness.by_module.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     row.module,
                     fmt_f64(row.avg_days, 2),
                     fmt_f64(row.p90_days, 2),
                     fmt_pct(row.stale_pct)
-                ));
+                );
             }
             out.push('\n');
         }
         if let Some(age) = &git.age_distribution {
             out.push_str("### Code age\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Refresh trend: `{:?}` (recent: `{}`, prior: `{}`)\n\n",
                 age.refresh_trend, age.recent_refreshes, age.prior_refreshes
-            ));
+            );
             if !age.buckets.is_empty() {
                 out.push_str("|Bucket|Min days|Max days|Files|Pct|\n");
                 out.push_str("|---|---:|---:|---:|---:|\n");
@@ -502,14 +503,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                         .max_days
                         .map(|v| v.to_string())
                         .unwrap_or_else(|| "∞".to_string());
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|{}|\n",
                         bucket.label,
                         bucket.min_days,
                         max,
                         bucket.files,
                         fmt_pct(bucket.pct)
-                    ));
+                    );
                 }
                 out.push('\n');
             }
@@ -531,10 +532,10 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                         .lift
                         .map(|v| fmt_f64(v, 4))
                         .unwrap_or_else(|| "-".to_string());
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|{}|\n",
                         row.left, row.right, row.count, jaccard, lift
-                    ));
+                    );
                 }
                 out.push('\n');
             }
@@ -561,16 +562,16 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             ];
             for (name, count) in entries {
                 if count > 0 {
-                    out.push_str(&format!("|{}|{}|\n", name, count));
+                    let _ = write!(out, "|{}|{}|\n", name, count);
                 }
             }
-            out.push_str(&format!("|**total**|{}|\n", o.total));
-            out.push_str(&format!("\n- Unknown: `{}`\n", fmt_pct(intent.unknown_pct)));
+            let _ = write!(out, "|**total**|{}|\n", o.total);
+            let _ = write!(out, "\n- Unknown: `{}`\n", fmt_pct(intent.unknown_pct));
             if let Some(cr) = intent.corrective_ratio {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "- Corrective ratio (fix+revert/total): `{}`\n",
                     fmt_pct(cr)
-                ));
+                );
             }
             out.push('\n');
 
@@ -597,13 +598,13 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|Module|Fix+Revert|Total|Share|\n");
                 out.push_str("|---|---:|---:|---:|\n");
                 for (m, share) in maintenance.iter().take(10) {
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|\n",
                         m.module,
                         m.counts.fix + m.counts.revert,
                         m.counts.total,
                         fmt_pct(*share)
-                    ));
+                    );
                 }
                 out.push('\n');
             }
@@ -612,12 +613,12 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(imports) = &receipt.imports {
         out.push_str("## Imports\n\n");
-        out.push_str(&format!("- Granularity: `{}`\n\n", imports.granularity));
+        let _ = write!(out, "- Granularity: `{}`\n\n", imports.granularity);
         if !imports.edges.is_empty() {
             out.push_str("|From|To|Count|\n");
             out.push_str("|---|---|---:|\n");
             for row in imports.edges.iter().take(20) {
-                out.push_str(&format!("|{}|{}|{}|\n", row.from, row.to, row.count));
+                let _ = write!(out, "|{}|{}|{}|\n", row.from, row.to, row.count);
             }
             out.push('\n');
         }
@@ -625,26 +626,26 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(dup) = &receipt.dup {
         out.push_str("## Duplicates\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Wasted bytes: `{}`\n- Strategy: `{}`\n\n",
             dup.wasted_bytes, dup.strategy
-        ));
+        );
         if let Some(density) = &dup.density {
             out.push_str("### Duplication density\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Duplicate groups: `{}`\n- Duplicate files: `{}`\n- Duplicated bytes: `{}`\n- Waste vs codebase: `{}`\n\n",
                 density.duplicate_groups,
                 density.duplicate_files,
                 density.duplicated_bytes,
                 fmt_pct(density.wasted_pct_of_codebase)
-            ));
+            );
             if !density.by_module.is_empty() {
                 out.push_str(
                     "|Module|Dup files|Wasted files|Dup bytes|Wasted bytes|Module bytes|Density|\n",
                 );
                 out.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
                 for row in density.by_module.iter().take(10) {
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|{}|{}|{}|\n",
                         row.module,
                         row.duplicate_files,
@@ -653,7 +654,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                         row.wasted_bytes,
                         row.module_bytes,
                         fmt_pct(row.density)
-                    ));
+                    );
                 }
                 out.push('\n');
             }
@@ -662,27 +663,27 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Hash|Bytes|Files|\n");
             out.push_str("|---|---:|---:|\n");
             for row in dup.groups.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|\n",
                     row.hash,
                     row.bytes,
                     row.files.len()
-                ));
+                );
             }
             out.push('\n');
         }
 
         if let Some(near) = &dup.near {
             out.push_str("### Near duplicates\n\n");
-            out.push_str(&format!(
+            let _ = write!(out,
                 "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`\n",
                 near.files_analyzed,
                 near.files_skipped,
                 fmt_f64(near.params.threshold, 2),
                 near.params.scope
-            ));
+            );
             if let Some(eligible) = near.eligible_files {
-                out.push_str(&format!("- Eligible files: `{}`\n", eligible));
+                let _ = write!(out, "- Eligible files: `{}`\n", eligible);
             }
             if near.truncated {
                 out.push_str("- **Warning**: Pair list truncated by `max_pairs` limit.\n");
@@ -697,14 +698,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|#|Files|Max Similarity|Representative|Pairs|\n");
                 out.push_str("|---:|---:|---:|---|---:|\n");
                 for (i, cluster) in clusters.iter().enumerate() {
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|{}|\n",
                         i + 1,
                         cluster.files.len(),
                         fmt_pct(cluster.max_similarity),
                         cluster.representative,
                         cluster.pair_count
-                    ));
+                    );
                 }
                 out.push('\n');
             }
@@ -717,23 +718,23 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|Left|Right|Similarity|Shared FPs|\n");
                 out.push_str("|---|---|---:|---:|\n");
                 for pair in near.pairs.iter().take(20) {
-                    out.push_str(&format!(
+                    let _ = write!(out,
                         "|{}|{}|{}|{}|\n",
                         pair.left,
                         pair.right,
                         fmt_pct(pair.similarity),
                         pair.shared_fingerprints
-                    ));
+                    );
                 }
                 out.push('\n');
             }
 
             // Runtime stats footer
             if let Some(stats) = &near.stats {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "> Near-dup stats: fingerprinting {}ms, pairing {}ms, {} bytes processed\n\n",
                     stats.fingerprinting_ms, stats.pairing_ms, stats.bytes_processed
-                ));
+                );
             }
         }
     }
@@ -742,46 +743,46 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Complexity\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        out.push_str(&format!("|Total functions|{}|\n", cx.total_functions));
-        out.push_str(&format!(
+        let _ = write!(out, "|Total functions|{}|\n", cx.total_functions);
+        let _ = write!(out,
             "|Avg function length|{}|\n",
             fmt_f64(cx.avg_function_length, 1)
-        ));
-        out.push_str(&format!(
+        );
+        let _ = write!(out,
             "|Max function length|{}|\n",
             cx.max_function_length
-        ));
-        out.push_str(&format!(
+        );
+        let _ = write!(out,
             "|Avg cyclomatic|{}|\n",
             fmt_f64(cx.avg_cyclomatic, 2)
-        ));
-        out.push_str(&format!("|Max cyclomatic|{}|\n", cx.max_cyclomatic));
+        );
+        let _ = write!(out, "|Max cyclomatic|{}|\n", cx.max_cyclomatic);
         if let Some(cog) = cx.avg_cognitive {
-            out.push_str(&format!("|Avg cognitive|{}|\n", fmt_f64(cog, 2)));
+            let _ = write!(out, "|Avg cognitive|{}|\n", fmt_f64(cog, 2));
         }
         if let Some(cog) = cx.max_cognitive {
-            out.push_str(&format!("|Max cognitive|{}|\n", cog));
+            let _ = write!(out, "|Max cognitive|{}|\n", cog);
         }
         if let Some(avg_nesting) = cx.avg_nesting_depth {
-            out.push_str(&format!(
+            let _ = write!(out,
                 "|Avg nesting depth|{}|\n",
                 fmt_f64(avg_nesting, 2)
-            ));
+            );
         }
         if let Some(max_nesting) = cx.max_nesting_depth {
-            out.push_str(&format!("|Max nesting depth|{}|\n", max_nesting));
+            let _ = write!(out, "|Max nesting depth|{}|\n", max_nesting);
         }
-        out.push_str(&format!("|High risk files|{}|\n\n", cx.high_risk_files));
+        let _ = write!(out, "|High risk files|{}|\n\n", cx.high_risk_files);
 
         if !cx.files.is_empty() {
             out.push_str("### Top complex files\n\n");
             out.push_str("|Path|CC|Functions|Max fn length|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for f in cx.files.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     f.path, f.cyclomatic_complexity, f.function_count, f.max_function_length
-                ));
+                );
             }
             out.push('\n');
         }
@@ -791,28 +792,28 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## API surface\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        out.push_str(&format!("|Total items|{}|\n", api.total_items));
-        out.push_str(&format!("|Public items|{}|\n", api.public_items));
-        out.push_str(&format!("|Internal items|{}|\n", api.internal_items));
-        out.push_str(&format!("|Public ratio|{}|\n", fmt_pct(api.public_ratio)));
-        out.push_str(&format!(
+        let _ = write!(out, "|Total items|{}|\n", api.total_items);
+        let _ = write!(out, "|Public items|{}|\n", api.public_items);
+        let _ = write!(out, "|Internal items|{}|\n", api.internal_items);
+        let _ = write!(out, "|Public ratio|{}|\n", fmt_pct(api.public_ratio));
+        let _ = write!(out,
             "|Documented ratio|{}|\n\n",
             fmt_pct(api.documented_ratio)
-        ));
+        );
 
         if !api.by_language.is_empty() {
             out.push_str("### By language\n\n");
             out.push_str("|Language|Total|Public|Internal|Public%|\n");
             out.push_str("|---|---:|---:|---:|---:|\n");
             for (lang, data) in &api.by_language {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|{}|\n",
                     lang,
                     data.total_items,
                     data.public_items,
                     data.internal_items,
                     fmt_pct(data.public_ratio)
-                ));
+                );
             }
             out.push('\n');
         }
@@ -822,13 +823,13 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Total|Public|Public%|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in api.by_module.iter().take(20) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     row.module,
                     row.total_items,
                     row.public_items,
                     fmt_pct(row.public_ratio)
-                ));
+                );
             }
             out.push('\n');
         }
@@ -838,10 +839,10 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Path|Language|Public|Total|\n");
             out.push_str("|---|---|---:|---:|\n");
             for item in api.top_exporters.iter().take(10) {
-                out.push_str(&format!(
+                let _ = write!(out,
                     "|{}|{}|{}|{}|\n",
                     item.path, item.lang, item.public_items, item.total_items
-                ));
+                );
             }
             out.push('\n');
         }
@@ -851,13 +852,13 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         && let Some(label) = &fun.eco_label
     {
         out.push_str("## Eco label\n\n");
-        out.push_str(&format!(
+        let _ = write!(out,
             "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
             label.label,
             fmt_f64(label.score, 1),
             label.bytes,
             label.notes
-        ));
+        );
     }
 
     out
@@ -922,11 +923,12 @@ fn render_jsonld(receipt: &AnalysisReceipt) -> String {
 }
 
 fn render_xml(receipt: &AnalysisReceipt) -> String {
+    use std::fmt::Write;
     let totals = receipt.derived.as_ref().map(|d| &d.totals);
-    let mut out = String::new();
+    let mut out = String::with_capacity(4096);
     out.push_str("<analysis>");
     if let Some(totals) = totals {
-        out.push_str(&format!(
+        let _ = write!(out,
             "<totals files=\"{}\" code=\"{}\" comments=\"{}\" blanks=\"{}\" lines=\"{}\" bytes=\"{}\" tokens=\"{}\"/>",
             totals.files,
             totals.code,
@@ -935,7 +937,7 @@ fn render_xml(receipt: &AnalysisReceipt) -> String {
             totals.lines,
             totals.bytes,
             totals.tokens
-        ));
+        );
     }
     out.push_str("</analysis>");
     out
@@ -971,12 +973,13 @@ fn render_svg(receipt: &AnalysisReceipt) -> String {
 }
 
 fn render_mermaid(receipt: &AnalysisReceipt) -> String {
+    use std::fmt::Write;
     let mut out = String::from("graph TD\n");
     if let Some(imports) = &receipt.imports {
         for edge in imports.edges.iter().take(200) {
             let from = sanitize_mermaid(&edge.from);
             let to = sanitize_mermaid(&edge.to);
-            out.push_str(&format!("  {} -->|{}| {}\n", from, edge.count, to));
+            let _ = write!(out, "  {} -->|{}| {}\n", from, edge.count, to);
         }
     }
     out
