@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-03-06
+
+### Added
+
+- WASM-ready I/O abstraction layer (`tokmd-io-port` crate with `ReadFs` trait and `MemFs`) (#510)
+- Massive test expansion: ~3,000+ new tests across all tiers (waves 56–77) including property-based, BDD, snapshot, determinism, and cross-crate integration tests
+
+### Fixed
+
+- `xtask bump`: corrected `TOOL_SCHEMA_VERSION` path to `crates/tokmd-tool-schema/src/lib.rs`
+- `xtask bump`: fixed help text for `COCKPIT_SCHEMA_VERSION` path and added missing schema constants
+- Strengthened schema location test to fail on any non-existent path reference
+- Deterministic sensor output using `BTreeSet` (#555)
+- Exhaustive match replacing string-parsing `expect` (#542)
+- Compatibility fixes for Rust 1.94 stable (fmt import ordering, new clippy lints) (#635)
+- Nix CI timeout cancellations unblocked (#642)
+
+### Changed
+
+- Reduced allocations in file table formatting (#543)
+- Removed unused `tokmd-analysis-types` dependency from `tokmd-gate` (#639)
+- Release documentation reconciled with CI-driven tag publish flow
+
 ## [1.7.2] - 2026-02-24
 
 ### Added

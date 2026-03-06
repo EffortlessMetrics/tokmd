@@ -489,19 +489,11 @@ fn schema_locations_in_bump_match_actual_files() {
         "should find schema location paths in bump.rs"
     );
     for path in &paths {
-        // Only check paths that the bump source references; skip if removed
-        if root.join(path).exists() {
-            continue;
-        }
-        // The path is referenced in bump.rs but doesn't exist on disk
-        // This is allowed if the schema constant has been moved/consolidated
-        // Fail only if none of the referenced paths exist
+        assert!(
+            root.join(path).exists(),
+            "SCHEMA_LOCATIONS references non-existent path: {path}"
+        );
     }
-    let existing_count = paths.iter().filter(|p| root.join(p).exists()).count();
-    assert!(
-        existing_count > 0,
-        "at least some schema location paths must exist"
-    );
 }
 
 #[test]
