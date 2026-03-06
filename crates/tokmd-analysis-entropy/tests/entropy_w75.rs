@@ -258,10 +258,8 @@ fn entropy_report_deterministic_across_calls() {
     let export = export_for(vec![parent_row("data.bin")]);
     let files = vec![PathBuf::from("data.bin")];
 
-    let r1 =
-        build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
-    let r2 =
-        build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+    let r1 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+    let r2 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
 
     assert_eq!(r1.suspects.len(), r2.suspects.len());
     for (a, b) in r1.suspects.iter().zip(r2.suspects.iter()) {

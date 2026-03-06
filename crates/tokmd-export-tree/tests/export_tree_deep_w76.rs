@@ -44,12 +44,7 @@ fn w76_analysis_empty_export() {
 
 #[test]
 fn w76_analysis_single_file_at_root() {
-    let tree = render_analysis_tree(&export(vec![row(
-        "main.rs",
-        FileKind::Parent,
-        50,
-        100,
-    )]));
+    let tree = render_analysis_tree(&export(vec![row("main.rs", FileKind::Parent, 50, 100)]));
     assert!(tree.contains("main.rs (lines: 50, tokens: 100)"));
 }
 
@@ -123,20 +118,14 @@ fn w76_handoff_root_sentinel_always_present() {
 
 #[test]
 fn w76_handoff_depth_zero_shows_only_root() {
-    let tree = render_handoff_tree(
-        &export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]),
-        0,
-    );
+    let tree = render_handoff_tree(&export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]), 0);
     assert!(tree.contains("(root)"));
     assert!(!tree.contains("a/"), "depth 0 must suppress children");
 }
 
 #[test]
 fn w76_handoff_depth_one_shows_first_level_only() {
-    let tree = render_handoff_tree(
-        &export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]),
-        1,
-    );
+    let tree = render_handoff_tree(&export(vec![row("a/b/c.rs", FileKind::Parent, 5, 10)]), 1);
     assert!(tree.contains("a/"));
     assert!(!tree.contains("b/"), "depth 1 must stop at first dir");
 }

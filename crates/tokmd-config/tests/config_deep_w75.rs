@@ -172,10 +172,7 @@ max_commits = 100
 
     let config = TomlConfig::from_file(f.path()).expect("from_file");
     assert_eq!(config.scan.hidden, Some(true));
-    assert_eq!(
-        config.scan.exclude,
-        Some(vec!["vendor".to_string()])
-    );
+    assert_eq!(config.scan.exclude, Some(vec!["vendor".to_string()]));
     assert_eq!(config.analyze.preset, Some("risk".to_string()));
     assert_eq!(config.analyze.max_commits, Some(100));
 }
@@ -279,7 +276,10 @@ message = "Unexpected language detected"
     assert_eq!(rules[1].op, "in");
     assert!(rules[1].negate);
     assert_eq!(rules[1].level.as_deref(), Some("warn"));
-    assert_eq!(rules[1].message.as_deref(), Some("Unexpected language detected"));
+    assert_eq!(
+        rules[1].message.as_deref(),
+        Some("Unexpected language detected")
+    );
 }
 
 // ── 8. Ratchet rules inline in TOML ─────────────────────────────────

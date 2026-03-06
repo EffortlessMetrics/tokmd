@@ -45,9 +45,7 @@ fn parse_publish_order(stdout: &str) -> Vec<String> {
         }
         if in_order {
             let trimmed = line.trim();
-            if trimmed.is_empty()
-                || trimmed.starts_with("Excluded")
-                || trimmed.starts_with("Flags")
+            if trimmed.is_empty() || trimmed.starts_with("Excluded") || trimmed.starts_with("Flags")
             {
                 break;
             }
@@ -112,7 +110,10 @@ fn boundaries_no_analysis_crate_depends_on_core() {
         }
         checked += 1;
     }
-    assert!(checked > 0, "should have checked at least one analysis crate");
+    assert!(
+        checked > 0,
+        "should have checked at least one analysis crate"
+    );
 }
 
 #[test]
@@ -199,8 +200,7 @@ fn publish_reconstruct_command_includes_scope_filters() {
 #[test]
 fn publish_plan_with_crates_filter() {
     // --crates with a known crate should succeed and include transitive deps.
-    let (stdout, stderr, success) =
-        run_xtask(&["publish", "--plan", "--crates", "tokmd-types"]);
+    let (stdout, stderr, success) = run_xtask(&["publish", "--plan", "--crates", "tokmd-types"]);
     assert!(
         success,
         "publish --plan --crates tokmd-types should succeed. stderr: {stderr}"
@@ -221,10 +221,7 @@ fn publish_plan_with_crates_filter() {
 fn publish_plan_with_nonexistent_crate_fails() {
     let (_, stderr, success) =
         run_xtask(&["publish", "--plan", "--crates", "nonexistent-crate-xyz"]);
-    assert!(
-        !success,
-        "plan with nonexistent crate should fail"
-    );
+    assert!(!success, "plan with nonexistent crate should fail");
     assert!(
         stderr.contains("nonexistent-crate-xyz"),
         "error should mention the bad crate name: {stderr}"
@@ -241,8 +238,17 @@ fn docs_task_markers_list_covers_all_subcommands() {
     // CLI subcommand to keep reference-cli.md in sync.
     let src = read_source("xtask/src/tasks/docs.rs");
     let required = [
-        "lang", "module", "export", "run", "analyze", "badge", "diff",
-        "context", "cockpit", "gate", "completions",
+        "lang",
+        "module",
+        "export",
+        "run",
+        "analyze",
+        "badge",
+        "diff",
+        "context",
+        "cockpit",
+        "gate",
+        "completions",
     ];
     for cmd in &required {
         assert!(
@@ -377,8 +383,13 @@ fn bump_schema_invalid_format_rejected() {
 
 #[test]
 fn bump_schema_non_numeric_version_rejected() {
-    let (_, stderr, success) =
-        run_xtask(&["bump", "1.0.0", "--dry-run", "--schema", "SCHEMA_VERSION=abc"]);
+    let (_, stderr, success) = run_xtask(&[
+        "bump",
+        "1.0.0",
+        "--dry-run",
+        "--schema",
+        "SCHEMA_VERSION=abc",
+    ]);
     assert!(!success, "non-numeric schema version should fail");
     assert!(
         stderr.contains("Invalid") || stderr.contains("abc"),
@@ -476,17 +487,13 @@ fn publish_order_envelope_and_substrate_before_sensor() {
         .map(|(i, n)| (n.as_str(), i))
         .collect();
 
-    if let (Some(&env_p), Some(&sensor_p)) =
-        (pos.get("tokmd-envelope"), pos.get("tokmd-sensor"))
-    {
+    if let (Some(&env_p), Some(&sensor_p)) = (pos.get("tokmd-envelope"), pos.get("tokmd-sensor")) {
         assert!(
             env_p < sensor_p,
             "tokmd-envelope must come before tokmd-sensor"
         );
     }
-    if let (Some(&sub_p), Some(&sensor_p)) =
-        (pos.get("tokmd-substrate"), pos.get("tokmd-sensor"))
-    {
+    if let (Some(&sub_p), Some(&sensor_p)) = (pos.get("tokmd-substrate"), pos.get("tokmd-sensor")) {
         assert!(
             sub_p < sensor_p,
             "tokmd-substrate must come before tokmd-sensor"
@@ -498,7 +505,10 @@ fn publish_order_envelope_and_substrate_before_sensor() {
 fn publish_order_analysis_deps_before_analysis() {
     // tokmd-analysis's own workspace deps should appear before it.
     let root = workspace_root();
-    let cargo_toml = root.join("crates").join("tokmd-analysis").join("Cargo.toml");
+    let cargo_toml = root
+        .join("crates")
+        .join("tokmd-analysis")
+        .join("Cargo.toml");
     if !cargo_toml.exists() {
         return;
     }
@@ -563,8 +573,7 @@ fn publish_order_config_before_core() {
 #[test]
 fn publish_plan_invalid_exclude_dependency_fails() {
     // Excluding tokmd-types should fail because many crates depend on it.
-    let (_, stderr, success) =
-        run_xtask(&["publish", "--plan", "--exclude", "tokmd-types"]);
+    let (_, stderr, success) = run_xtask(&["publish", "--plan", "--exclude", "tokmd-types"]);
     assert!(
         !success,
         "excluding a critical dep (tokmd-types) should fail"
@@ -602,7 +611,10 @@ fn lint_fix_help_shows_check_and_no_clippy() {
         .expect("failed to run lint-fix --help");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(output.status.success());
-    assert!(stdout.contains("--check"), "lint-fix should have --check flag");
+    assert!(
+        stdout.contains("--check"),
+        "lint-fix should have --check flag"
+    );
     assert!(
         stdout.contains("--no-clippy"),
         "lint-fix should have --no-clippy flag"
