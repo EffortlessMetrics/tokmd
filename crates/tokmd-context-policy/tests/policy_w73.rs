@@ -1,8 +1,8 @@
 //! Deep tests for tokmd-context-policy crate (W73).
 
 use tokmd_context_policy::{
-    assign_policy, classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
-    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, DEFAULT_MAX_FILE_TOKENS,
+    DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, DEFAULT_MAX_FILE_TOKENS, assign_policy,
+    classify_file, compute_file_cap, is_spine_file, smart_exclude_reason,
 };
 use tokmd_types::{FileClassification, InclusionPolicy};
 
@@ -207,7 +207,10 @@ fn classify_data_blob_below_threshold() {
 #[test]
 fn classify_regular_source_file_empty() {
     let classes = classify_file("src/lib.rs", 500, 100, DEFAULT_DENSE_THRESHOLD);
-    assert!(classes.is_empty(), "normal source file should have no classifications");
+    assert!(
+        classes.is_empty(),
+        "normal source file should have no classifications"
+    );
 }
 
 #[test]

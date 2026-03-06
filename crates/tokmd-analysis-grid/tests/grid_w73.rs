@@ -10,7 +10,7 @@
 //! - Deep preset superset property
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, PresetPlan, preset_plan_for,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for,
     preset_plan_for_name,
 };
 

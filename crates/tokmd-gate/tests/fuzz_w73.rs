@@ -46,14 +46,13 @@ fn arb_pointer_segment() -> impl Strategy<Value = String> {
 }
 
 fn arb_json_pointer() -> impl Strategy<Value = String> {
-    prop::collection::vec(arb_pointer_segment(), 0..6)
-        .prop_map(|segments| {
-            if segments.is_empty() {
-                String::new()
-            } else {
-                format!("/{}", segments.join("/"))
-            }
-        })
+    prop::collection::vec(arb_pointer_segment(), 0..6).prop_map(|segments| {
+        if segments.is_empty() {
+            String::new()
+        } else {
+            format!("/{}", segments.join("/"))
+        }
+    })
 }
 
 fn arb_operator() -> impl Strategy<Value = RuleOperator> {
@@ -115,13 +114,15 @@ fn arb_ratchet_rule() -> impl Strategy<Value = RatchetRule> {
         prop::option::of(any::<f64>().prop_filter("finite", |f| f.is_finite())),
         arb_level(),
     )
-        .prop_map(|(pointer, max_increase_pct, max_value, level)| RatchetRule {
-            pointer,
-            max_increase_pct,
-            max_value,
-            level,
-            description: None,
-        })
+        .prop_map(
+            |(pointer, max_increase_pct, max_value, level)| RatchetRule {
+                pointer,
+                max_increase_pct,
+                max_value,
+                level,
+                description: None,
+            },
+        )
 }
 
 fn arb_ratchet_config() -> impl Strategy<Value = RatchetConfig> {

@@ -64,8 +64,12 @@ fn run_stdout(dir: &Path, args: &[&str]) -> String {
 
 fn run_json(dir: &Path, args: &[&str]) -> Value {
     let stdout = run_stdout(dir, args);
-    serde_json::from_str(&stdout)
-        .unwrap_or_else(|e| panic!("not valid JSON for `{}`:\n{e}\n---\n{stdout}", args.join(" ")))
+    serde_json::from_str(&stdout).unwrap_or_else(|e| {
+        panic!(
+            "not valid JSON for `{}`:\n{e}\n---\n{stdout}",
+            args.join(" ")
+        )
+    })
 }
 
 // ===========================================================================
@@ -77,9 +81,13 @@ fn lang_format_markdown_has_pipes_and_separator() {
     let dir = make_fixture();
     let out = run_stdout(dir.path(), &["lang", "--format", "md"]);
 
-    assert!(out.contains('|'), "Markdown output must contain pipe characters");
     assert!(
-        out.lines().any(|l| l.contains("|---") || l.contains("|:--")),
+        out.contains('|'),
+        "Markdown output must contain pipe characters"
+    );
+    assert!(
+        out.lines()
+            .any(|l| l.contains("|---") || l.contains("|:--")),
         "Markdown output must contain separator row"
     );
 }
@@ -112,7 +120,10 @@ fn lang_format_tsv_has_tabs_and_consistent_columns() {
 
     assert!(lines.len() >= 2, "need header + at least one data row");
     let header_cols = lines[0].split('\t').count();
-    assert!(header_cols >= 3, "header should have >=3 tab-separated columns");
+    assert!(
+        header_cols >= 3,
+        "header should have >=3 tab-separated columns"
+    );
 
     for (i, line) in lines[1..].iter().enumerate() {
         let cols = line.split('\t').count();
@@ -144,7 +155,10 @@ fn lang_format_json_has_envelope_fields() {
     let json = run_json(dir.path(), &["lang", "--format", "json"]);
 
     assert_eq!(json["mode"], "lang", "mode must be 'lang'");
-    assert!(json["schema_version"].is_number(), "must have schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "must have schema_version"
+    );
     assert!(json["rows"].is_array(), "must have rows array");
     assert!(json["tool"].is_object(), "must have tool metadata");
 }
@@ -173,7 +187,8 @@ fn module_format_markdown_has_table_structure() {
 
     assert!(out.contains('|'), "Markdown must have pipes");
     assert!(
-        out.lines().any(|l| l.contains("|---") || l.contains("|:--")),
+        out.lines()
+            .any(|l| l.contains("|---") || l.contains("|:--")),
         "must have separator"
     );
     assert!(out.contains("Module"), "header must include Module");
@@ -186,7 +201,10 @@ fn module_format_markdown_shows_directories() {
     let out = run_stdout(dir.path(), &["module", "--format", "md"]);
 
     let has_module = out.contains("src") || out.contains("lib") || out.contains("(root)");
-    assert!(has_module, "module output must show directory-based modules");
+    assert!(
+        has_module,
+        "module output must show directory-based modules"
+    );
 }
 
 #[test]
@@ -200,7 +218,10 @@ fn module_format_tsv_has_consistent_columns() {
 
     for (i, line) in lines[1..].iter().enumerate() {
         let cols = line.split('\t').count();
-        assert_eq!(cols, header_cols, "module TSV row {i} column count mismatch");
+        assert_eq!(
+            cols, header_cols,
+            "module TSV row {i} column count mismatch"
+        );
     }
 }
 
@@ -304,7 +325,10 @@ fn export_format_json_is_parseable_with_envelope() {
     let json = run_json(dir.path(), &["export", "--format", "json"]);
 
     assert_eq!(json["mode"], "export", "mode must be 'export'");
-    assert!(json["schema_version"].is_number(), "must have schema_version");
+    assert!(
+        json["schema_version"].is_number(),
+        "must have schema_version"
+    );
     assert!(json["rows"].is_array(), "must have rows");
 }
 
@@ -328,7 +352,10 @@ fn export_format_json_rows_have_file_fields() {
 #[test]
 fn analyze_format_markdown_is_non_empty_with_structure() {
     let dir = make_fixture();
-    let out = run_stdout(dir.path(), &["analyze", "--format", "md", "--preset", "receipt"]);
+    let out = run_stdout(
+        dir.path(),
+        &["analyze", "--format", "md", "--preset", "receipt"],
+    );
 
     assert!(!out.trim().is_empty(), "analyze md must produce output");
     let has_structure = out.contains('#') || out.contains('|') || out.contains("---");
@@ -341,7 +368,10 @@ fn analyze_format_markdown_is_non_empty_with_structure() {
 #[test]
 fn analyze_format_markdown_mentions_metrics() {
     let dir = make_fixture();
-    let out = run_stdout(dir.path(), &["analyze", "--format", "md", "--preset", "receipt"]);
+    let out = run_stdout(
+        dir.path(),
+        &["analyze", "--format", "md", "--preset", "receipt"],
+    );
 
     let out_lower = out.to_lowercase();
     let has_metric = out_lower.contains("density")
@@ -402,7 +432,10 @@ fn badge_default_output_is_svg() {
     let dir = make_fixture();
     let out = run_stdout(dir.path(), &["badge", "--metric", "lines"]);
 
-    assert!(out.contains("<svg"), "badge output must contain SVG element");
+    assert!(
+        out.contains("<svg"),
+        "badge output must contain SVG element"
+    );
     assert!(out.contains("</svg>"), "badge SVG must be complete");
 }
 
