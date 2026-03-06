@@ -1,8 +1,7 @@
 //! W61 depth tests for tokmd-analysis-grid: BDD edge cases, determinism, proptest.
 
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind,
-    preset_plan_for, preset_plan_for_name,
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for, preset_plan_for_name,
 };
 
 // ---------------------------------------------------------------------------

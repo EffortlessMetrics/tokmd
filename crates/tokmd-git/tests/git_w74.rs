@@ -149,7 +149,10 @@ fn collect_history_max_commit_files_limits() {
     assert!(!commits.is_empty());
     // The commit with 5 files should have at most 2 file entries
     let bulk = commits.iter().find(|c| c.subject == "bulk").unwrap();
-    assert!(bulk.files.len() <= 2, "max_commit_files should cap file list");
+    assert!(
+        bulk.files.len() <= 2,
+        "max_commit_files should cap file list"
+    );
 }
 
 // ===========================================================================
@@ -254,7 +257,10 @@ fn hotspot_file_appears_in_multiple_commits() {
 #[test]
 fn repo_root_returns_none_for_non_git_dir() {
     let tmp = tempfile::tempdir().unwrap();
-    assert!(repo_root(tmp.path()).is_none(), "non-git dir should return None");
+    assert!(
+        repo_root(tmp.path()).is_none(),
+        "non-git dir should return None"
+    );
 }
 
 #[test]
@@ -276,22 +282,52 @@ fn resolve_base_ref_returns_none_for_non_git_dir() {
 #[test]
 fn classify_intent_conventional_commits() {
     assert_eq!(classify_intent("feat: add login"), CommitIntentKind::Feat);
-    assert_eq!(classify_intent("fix(auth): null check"), CommitIntentKind::Fix);
-    assert_eq!(classify_intent("docs: update README"), CommitIntentKind::Docs);
-    assert_eq!(classify_intent("test: add unit tests"), CommitIntentKind::Test);
+    assert_eq!(
+        classify_intent("fix(auth): null check"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("docs: update README"),
+        CommitIntentKind::Docs
+    );
+    assert_eq!(
+        classify_intent("test: add unit tests"),
+        CommitIntentKind::Test
+    );
     assert_eq!(classify_intent("chore: bump deps"), CommitIntentKind::Chore);
     assert_eq!(classify_intent("ci: add workflow"), CommitIntentKind::Ci);
-    assert_eq!(classify_intent("perf: optimize loop"), CommitIntentKind::Perf);
-    assert_eq!(classify_intent("refactor: extract fn"), CommitIntentKind::Refactor);
-    assert_eq!(classify_intent("style: fix formatting"), CommitIntentKind::Style);
-    assert_eq!(classify_intent("build: update Makefile"), CommitIntentKind::Build);
+    assert_eq!(
+        classify_intent("perf: optimize loop"),
+        CommitIntentKind::Perf
+    );
+    assert_eq!(
+        classify_intent("refactor: extract fn"),
+        CommitIntentKind::Refactor
+    );
+    assert_eq!(
+        classify_intent("style: fix formatting"),
+        CommitIntentKind::Style
+    );
+    assert_eq!(
+        classify_intent("build: update Makefile"),
+        CommitIntentKind::Build
+    );
 }
 
 #[test]
 fn classify_intent_keyword_heuristic() {
-    assert_eq!(classify_intent("Add new feature for users"), CommitIntentKind::Feat);
-    assert_eq!(classify_intent("Fix crash on startup"), CommitIntentKind::Fix);
-    assert_eq!(classify_intent("Update readme with examples"), CommitIntentKind::Docs);
+    assert_eq!(
+        classify_intent("Add new feature for users"),
+        CommitIntentKind::Feat
+    );
+    assert_eq!(
+        classify_intent("Fix crash on startup"),
+        CommitIntentKind::Fix
+    );
+    assert_eq!(
+        classify_intent("Update readme with examples"),
+        CommitIntentKind::Docs
+    );
 }
 
 #[test]
@@ -303,6 +339,12 @@ fn classify_intent_empty_and_unknown() {
 
 #[test]
 fn classify_intent_revert() {
-    assert_eq!(classify_intent("Revert \"feat: add login\""), CommitIntentKind::Revert);
-    assert_eq!(classify_intent("revert: undo thing"), CommitIntentKind::Revert);
+    assert_eq!(
+        classify_intent("Revert \"feat: add login\""),
+        CommitIntentKind::Revert
+    );
+    assert_eq!(
+        classify_intent("revert: undo thing"),
+        CommitIntentKind::Revert
+    );
 }

@@ -265,9 +265,11 @@ fn dot_only_dir_with_root_config() {
 #[test]
 fn sort_root_before_alpha() {
     let roots = vec!["crates".into()];
-    let mut keys = [module_key("crates/z/lib.rs", &roots, 2),
+    let mut keys = [
+        module_key("crates/z/lib.rs", &roots, 2),
         module_key("README.md", &roots, 2),
-        module_key("crates/a/lib.rs", &roots, 2)];
+        module_key("crates/a/lib.rs", &roots, 2),
+    ];
     keys.sort();
     assert_eq!(keys[0], "(root)");
 }

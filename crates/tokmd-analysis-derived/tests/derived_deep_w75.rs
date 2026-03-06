@@ -257,7 +257,10 @@ fn polyglot_single_lang_dominant_100pct() {
 fn polyglot_multi_lang_has_entropy() {
     let report = derive_report(&multi_lang_export(), None);
     assert_eq!(report.polyglot.lang_count, 3);
-    assert!(report.polyglot.entropy > 0.0, "multi-lang entropy should be positive");
+    assert!(
+        report.polyglot.entropy > 0.0,
+        "multi-lang entropy should be positive"
+    );
     assert_eq!(report.polyglot.dominant_lang, "Rust");
     // Rust has 600 code lines out of 750 total
     assert!(report.polyglot.dominant_pct > 0.5);

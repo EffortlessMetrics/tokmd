@@ -16,7 +16,10 @@ use tokmd_io_port::{HostFs, MemFs, ReadFs};
 fn w76_memfs_add_file_read_to_string() {
     let mut fs = MemFs::new();
     fs.add_file(PathBuf::from("hello.txt"), "hello world");
-    assert_eq!(fs.read_to_string(Path::new("hello.txt")).unwrap(), "hello world");
+    assert_eq!(
+        fs.read_to_string(Path::new("hello.txt")).unwrap(),
+        "hello world"
+    );
 }
 
 #[test]
@@ -42,7 +45,10 @@ fn w76_memfs_add_bytes_read_bytes() {
 fn w76_memfs_read_bytes_on_text_file() {
     let mut fs = MemFs::new();
     fs.add_file(PathBuf::from("text.txt"), "abc");
-    assert_eq!(fs.read_bytes(Path::new("text.txt")).unwrap(), b"abc".to_vec());
+    assert_eq!(
+        fs.read_bytes(Path::new("text.txt")).unwrap(),
+        b"abc".to_vec()
+    );
 }
 
 // ===========================================================================
