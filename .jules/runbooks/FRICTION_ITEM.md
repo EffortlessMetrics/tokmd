@@ -1,0 +1,13 @@
+# Title
+
+## Pain
+...
+
+## Evidence
+...
+
+## Done-when
+...
+
+## Tags
+...

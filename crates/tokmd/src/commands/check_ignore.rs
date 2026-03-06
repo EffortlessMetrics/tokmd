@@ -346,27 +346,28 @@ mod tests {
     }
 
     #[test]
-    fn check_tokeignore_matches_parent_dir() {
-        let dir = tempdir().unwrap();
+    fn check_tokeignore_matches_parent_dir() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
         let src_dir = dir.path().join("src");
-        std::fs::create_dir_all(&src_dir).unwrap();
-        std::fs::write(dir.path().join(".tokeignore"), "*.rs\n").unwrap();
+        std::fs::create_dir_all(&src_dir)?;
+        std::fs::write(dir.path().join(".tokeignore"), "*.rs\n")?;
 
         let file_path = src_dir.join("main.rs");
-        std::fs::write(&file_path, "fn main() {}\n").unwrap();
+        std::fs::write(&file_path, "fn main() {}\n")?;
 
         let reason = check_tokeignore(&file_path, file_path.to_string_lossy().as_ref());
         assert!(matches!(
             reason,
             Some(IgnoreReason::Tokeignore { pattern }) if pattern == "*.rs"
         ));
+        Ok(())
     }
 
     #[test]
-    fn check_path_reports_not_found() {
-        let dir = tempdir().unwrap();
+    fn check_path_reports_not_found() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
         let missing = dir.path().join("missing.rs");
-        let result = check_path(&missing, &GlobalArgs::default(), false).unwrap();
+        let result = check_path(&missing, &GlobalArgs::default(), false)?;
         assert!(!result.ignored);
         assert!(
             result
@@ -374,23 +375,25 @@ mod tests {
                 .iter()
                 .any(|r| matches!(r, IgnoreReason::NotFound))
         );
+        Ok(())
     }
 
     #[test]
-    fn check_path_honors_exclude_flag() {
-        let dir = tempdir().unwrap();
+    fn check_path_honors_exclude_flag() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
         let file_path = dir.path().join("skip.rs");
-        std::fs::write(&file_path, "fn skip() {}\n").unwrap();
+        std::fs::write(&file_path, "fn skip() {}\n")?;
 
         let mut global = GlobalArgs::default();
         global.excluded.push("*.rs".to_string());
 
-        let result = check_path(&file_path, &global, false).unwrap();
+        let result = check_path(&file_path, &global, false)?;
         assert!(result.ignored);
         assert!(
             result.reasons.iter().any(|r| {
                 matches!(r, IgnoreReason::ExcludeFlag { pattern } if pattern == "*.rs")
             })
         );
+        Ok(())
     }
 }

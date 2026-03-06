@@ -1,0 +1,34 @@
+{
+  "run_id": "20260306T132241Z",
+  "timestamp_utc": "2026-03-06T13:22:41.621050+00:00",
+  "lane": "scout",
+  "target": "unwrap/expect burn-down in crates/tokmd/src/commands/",
+  "commands": [
+    {
+      "cmd": "rg -n '\\bunsafe\\b' .",
+      "status": "0",
+      "result": "Found 33 unsafe lines. Top files: crates/tokmd-analysis-complexity/src/lib.rs (8), crates/tokmd-content/src/complexity.rs (5), crates/tokmd-analysis-api-surface/src/lib.rs (5)."
+    },
+    {
+      "cmd": "cargo build --verbose",
+      "status": "0",
+      "result": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "status": "0",
+      "result": "PASS (Verified tests in tokmd)"
+    },
+    {
+      "cmd": "cargo fmt",
+      "status": "0",
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "0",
+      "result": "PASS"
+    }
+  ],
+  "results": []
+}

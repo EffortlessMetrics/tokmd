@@ -1,0 +1,17 @@
+[
+  {
+    "timestamp": "2026-03-06T13:48:53.755184+00:00",
+    "lane": "scout",
+    "target": "unwrap/expect burn-down in crates/tokmd/src/commands/",
+    "pr_link": "PENDING",
+    "gates_run": [
+      "rg -n '\\bunsafe\\b' .",
+      "cargo build --verbose",
+      "CI=true cargo test --verbose",
+      "cargo fmt",
+      "cargo clippy -- -D warnings"
+    ],
+    "gates_status": "PASS",
+    "friction_ids_created": []
+  }
+]
