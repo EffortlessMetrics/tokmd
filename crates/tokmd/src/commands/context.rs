@@ -349,22 +349,22 @@ fn format_list_output(
     utilization: f64,
     strategy: cli::ContextStrategy,
 ) -> String {
-    let mut out = String::new();
-    out.push_str("# Context Pack\n\n");
-    out.push_str(&format!("Budget: {} tokens\n", budget));
-    out.push_str(&format!(
-        "Used: {} tokens ({:.1}%)\n",
-        used_tokens, utilization
-    ));
-    out.push_str(&format!("Files: {}\n", selected.len()));
-    out.push_str(&format!("Strategy: {:?}\n\n", strategy));
-    out.push_str("|Path|Module|Lang|Tokens|Code|\n");
-    out.push_str("|---|---|---|---:|---:|\n");
+    use std::fmt::Write;
+
+    let mut out = String::with_capacity((selected.len() + 10) * 80);
+    let _ = writeln!(out, "# Context Pack\n");
+    let _ = writeln!(out, "Budget: {} tokens", budget);
+    let _ = writeln!(out, "Used: {} tokens ({:.1}%)", used_tokens, utilization);
+    let _ = writeln!(out, "Files: {}", selected.len());
+    let _ = writeln!(out, "Strategy: {:?}\n", strategy);
+    let _ = writeln!(out, "|Path|Module|Lang|Tokens|Code|");
+    let _ = writeln!(out, "|---|---|---|---:|---:|");
     for file in selected {
-        out.push_str(&format!(
-            "|{}|{}|{}|{}|{}|\n",
+        let _ = writeln!(
+            out,
+            "|{}|{}|{}|{}|{}|",
             file.path, file.module, file.lang, file.tokens, file.code
-        ));
+        );
     }
     out
 }
