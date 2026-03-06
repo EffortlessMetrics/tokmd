@@ -1,6 +1,5 @@
 //! Deep tests for context and handoff types in tokmd-types (W73).
 
-use serde_json;
 use tokmd_types::*;
 
 // ---------------------------------------------------------------------------
