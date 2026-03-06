@@ -317,10 +317,7 @@ fn cockpit_settings_custom_roundtrip() {
     assert_eq!(back.base, "v2.0.0");
     assert_eq!(back.head, "feature-branch");
     assert_eq!(back.range_mode, "three-dot");
-    assert_eq!(
-        back.baseline.as_deref(),
-        Some("path/to/baseline.json")
-    );
+    assert_eq!(back.baseline.as_deref(), Some("path/to/baseline.json"));
 }
 
 // ── 19. DiffSettings: default is empty strings ──────────────────────

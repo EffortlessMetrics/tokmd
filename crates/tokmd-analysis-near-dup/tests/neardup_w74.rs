@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use tokmd_analysis_near_dup::{build_near_dup_report, NearDupLimits};
+use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
 use tokmd_analysis_types::NearDupScope;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 

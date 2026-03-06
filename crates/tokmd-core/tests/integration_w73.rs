@@ -7,7 +7,9 @@ use std::fs;
 use tempfile::TempDir;
 
 use tokmd_core::{
-    export_workflow, ffi::run_json, lang_workflow, module_workflow,
+    export_workflow,
+    ffi::run_json,
+    lang_workflow, module_workflow,
     settings::{ExportSettings, LangSettings, ModuleSettings, ScanSettings},
 };
 
@@ -88,7 +90,12 @@ fn lang_workflow_finds_rust_and_python() {
     let dir = scaffold();
     let receipt = lang_workflow(&scan_for(&dir), &LangSettings::default()).unwrap();
 
-    let langs: Vec<&str> = receipt.report.rows.iter().map(|r| r.lang.as_str()).collect();
+    let langs: Vec<&str> = receipt
+        .report
+        .rows
+        .iter()
+        .map(|r| r.lang.as_str())
+        .collect();
     assert!(langs.contains(&"Rust"), "should find Rust");
     assert!(langs.contains(&"Python"), "should find Python");
 }
@@ -320,7 +327,10 @@ fn ffi_version_schema_version_matches_constant() {
 #[test]
 fn ffi_lang_returns_receipt() {
     let dir = scaffold();
-    let args = format!(r#"{{"paths": ["{}"]}}"#, dir.path().to_string_lossy().replace('\\', "/"));
+    let args = format!(
+        r#"{{"paths": ["{}"]}}"#,
+        dir.path().to_string_lossy().replace('\\', "/")
+    );
     let result = run_json("lang", &args);
     let parsed: serde_json::Value = serde_json::from_str(&result).expect("valid JSON");
 
@@ -332,7 +342,10 @@ fn ffi_lang_returns_receipt() {
 #[test]
 fn ffi_lang_receipt_has_schema_version() {
     let dir = scaffold();
-    let args = format!(r#"{{"paths": ["{}"]}}"#, dir.path().to_string_lossy().replace('\\', "/"));
+    let args = format!(
+        r#"{{"paths": ["{}"]}}"#,
+        dir.path().to_string_lossy().replace('\\', "/")
+    );
     let result = run_json("lang", &args);
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
 
@@ -383,7 +396,10 @@ fn ffi_error_envelope_has_error_object() {
 fn ffi_error_envelope_no_data() {
     let result = run_json("lang", "not valid json!!!");
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
-    assert!(parsed["data"].is_null(), "error response should not have data");
+    assert!(
+        parsed["data"].is_null(),
+        "error response should not have data"
+    );
 }
 
 // ===========================================================================

@@ -239,9 +239,11 @@ fn histogram_with_zero_complexity_files() {
 
 #[test]
 fn file_complexities_sort_by_cyclomatic_desc() {
-    let mut files = [make_file_complexity("a.rs", 1, 5, 3, None, None, ComplexityRisk::Low),
+    let mut files = [
+        make_file_complexity("a.rs", 1, 5, 3, None, None, ComplexityRisk::Low),
         make_file_complexity("c.rs", 5, 30, 20, None, None, ComplexityRisk::Moderate),
-        make_file_complexity("b.rs", 3, 15, 10, None, None, ComplexityRisk::Low)];
+        make_file_complexity("b.rs", 3, 15, 10, None, None, ComplexityRisk::Low),
+    ];
     files.sort_by(|a, b| {
         b.cyclomatic_complexity
             .cmp(&a.cyclomatic_complexity)
@@ -254,8 +256,10 @@ fn file_complexities_sort_by_cyclomatic_desc() {
 
 #[test]
 fn file_complexities_sort_stable_on_tie() {
-    let mut files = [make_file_complexity("b.rs", 2, 10, 5, None, None, ComplexityRisk::Low),
-        make_file_complexity("a.rs", 2, 10, 5, None, None, ComplexityRisk::Low)];
+    let mut files = [
+        make_file_complexity("b.rs", 2, 10, 5, None, None, ComplexityRisk::Low),
+        make_file_complexity("a.rs", 2, 10, 5, None, None, ComplexityRisk::Low),
+    ];
     files.sort_by(|a, b| {
         b.cyclomatic_complexity
             .cmp(&a.cyclomatic_complexity)

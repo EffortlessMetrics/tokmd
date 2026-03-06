@@ -68,7 +68,10 @@ mod todo_w76 {
         let f = write_file(tmp.path(), "a.rs", b"// TODO: something\n");
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 0).unwrap();
         assert_eq!(r.total, 1);
-        assert_eq!(r.density_per_kloc, 0.0, "density should be 0 when kloc is 0");
+        assert_eq!(
+            r.density_per_kloc, 0.0,
+            "density should be 0 when kloc is 0"
+        );
     }
 
     #[test]
@@ -116,7 +119,11 @@ mod todo_w76 {
         };
         let r = build_todo_report(tmp.path(), &[f1, f2, f3], &limits, 1000).unwrap();
         // Only the first file should be scanned before budget is exhausted
-        assert!(r.total <= 2, "max_bytes should cap total scanning, got {}", r.total);
+        assert!(
+            r.total <= 2,
+            "max_bytes should cap total scanning, got {}",
+            r.total
+        );
     }
 }
 
@@ -233,7 +240,10 @@ mod import_w76 {
         .unwrap();
         assert_eq!(r.granularity, "module");
         for edge in &r.edges {
-            assert_eq!(edge.from, "src", "module granularity should use module name");
+            assert_eq!(
+                edge.from, "src",
+                "module granularity should use module name"
+            );
         }
     }
 
@@ -354,8 +364,7 @@ mod invariants_w76 {
             make_row("b2.rs", "big_mod", "Rust", big.len()),
         ]);
         let r =
-            build_duplicate_report(tmp.path(), &[fs, fs2, fb, fb2], &e, &default_limits())
-                .unwrap();
+            build_duplicate_report(tmp.path(), &[fs, fs2, fb, fb2], &e, &default_limits()).unwrap();
         let density = r.density.as_ref().unwrap();
         for w in density.by_module.windows(2) {
             assert!(

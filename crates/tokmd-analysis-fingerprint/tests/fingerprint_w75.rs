@@ -134,8 +134,18 @@ fn localhost_and_example_ignored() {
 fn rich_commit_fields_do_not_affect_result() {
     let simple = vec![commit("dev@work.com"), commit("ops@work.com")];
     let rich = vec![
-        rich_commit("dev@work.com", "abc123", "feat: new feature", &["src/lib.rs"]),
-        rich_commit("ops@work.com", "def456", "fix: bug fix", &["src/main.rs", "tests/t.rs"]),
+        rich_commit(
+            "dev@work.com",
+            "abc123",
+            "feat: new feature",
+            &["src/lib.rs"],
+        ),
+        rich_commit(
+            "ops@work.com",
+            "def456",
+            "fix: bug fix",
+            &["src/main.rs", "tests/t.rs"],
+        ),
     ];
 
     let fp_simple = build_corporate_fingerprint(&simple);

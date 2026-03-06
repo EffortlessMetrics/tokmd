@@ -133,7 +133,16 @@ fn obj_empty_input_produces_header_only() {
 fn obj_many_buildings_scales_correctly() {
     let n = 50;
     let buildings: Vec<_> = (0..n)
-        .map(|i| mk(&format!("lang{i}"), i as f32 * 2.0, 0.0, 1.0, 1.0, (i + 1) as f32))
+        .map(|i| {
+            mk(
+                &format!("lang{i}"),
+                i as f32 * 2.0,
+                0.0,
+                1.0,
+                1.0,
+                (i + 1) as f32,
+            )
+        })
         .collect();
     let out = render_obj(&buildings);
     assert_eq!(vertex_count(&out), n * 8);
@@ -154,7 +163,10 @@ fn midi_many_notes_produces_valid_output() {
         .collect();
     let bytes = render_midi(&notes, 120).unwrap();
     assert_eq!(&bytes[..4], b"MThd");
-    assert!(bytes.len() > 100, "many notes should produce substantial data");
+    assert!(
+        bytes.len() > 100,
+        "many notes should produce substantial data"
+    );
 }
 
 #[test]
