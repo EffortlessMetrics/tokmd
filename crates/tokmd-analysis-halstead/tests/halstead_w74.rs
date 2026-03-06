@@ -171,7 +171,7 @@ fn effort_is_difficulty_times_volume() {
 
 #[test]
 fn round_f64_two_decimals() {
-    assert_eq!(round_f64(3.14159, 2), 3.14);
+    assert_eq!(round_f64(1.23456, 2), 1.23);
     assert_eq!(round_f64(2.005, 2), 2.01); // banker's rounding edge
     assert_eq!(round_f64(0.0, 2), 0.0);
 }
