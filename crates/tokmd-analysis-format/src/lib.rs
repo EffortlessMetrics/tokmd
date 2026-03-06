@@ -43,24 +43,21 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
     use std::fmt::Write;
     let mut out = String::with_capacity(4096);
     out.push_str("# tokmd analysis\n\n");
-    let _ = write!(out, "Preset: `{}`\n\n", receipt.args.preset);
+    let _ = writeln!(out, "Preset: `{}`\n", receipt.args.preset);
 
     if !receipt.source.inputs.is_empty() {
         out.push_str("## Inputs\n\n");
         for input in &receipt.source.inputs {
-            let _ = write!(out, "- `{}`\n", input);
+            let _ = writeln!(out, "- `{}`", input);
         }
         out.push('\n');
     }
 
     if let Some(archetype) = &receipt.archetype {
         out.push_str("## Archetype\n\n");
-        let _ = write!(out, "- Kind: `{}`\n", archetype.kind);
+        let _ = writeln!(out, "- Kind: `{}`", archetype.kind);
         if !archetype.evidence.is_empty() {
-            let _ = write!(out,
-                "- Evidence: `{}`\n",
-                archetype.evidence.join("`, `")
-            );
+            let _ = writeln!(out, "- Evidence: `{}`", archetype.evidence.join("`, `"));
         }
         out.push('\n');
     }
@@ -68,8 +65,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
     if let Some(topics) = &receipt.topics {
         out.push_str("## Topics\n\n");
         if !topics.overall.is_empty() {
-            let _ = write!(out,
-                "- Overall: `{}`\n",
+            let _ = writeln!(
+                out,
+                "- Overall: `{}`",
                 topics
                     .overall
                     .iter()
@@ -87,7 +85,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 .map(|t| t.term.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");
-            let _ = write!(out, "- `{}`: {}\n", module, line);
+            let _ = writeln!(out, "- `{}`: {}", module, line);
         }
         out.push('\n');
     }
@@ -100,8 +98,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Path|Module|Entropy|Sample bytes|Class|\n");
             out.push_str("|---|---|---:|---:|---|\n");
             for row in entropy.suspects.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|{:?}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|{:?}|",
                     row.path,
                     row.module,
                     fmt_f64(row.entropy_bits_per_byte as f64, 2),
@@ -116,15 +115,16 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
     if let Some(license) = &receipt.license {
         out.push_str("## License radar\n\n");
         if let Some(effective) = &license.effective {
-            let _ = write!(out, "- Effective: `{}`\n", effective);
+            let _ = writeln!(out, "- Effective: `{}`", effective);
         }
         out.push_str("- Heuristic detection; not legal advice.\n\n");
         if !license.findings.is_empty() {
             out.push_str("|SPDX|Confidence|Source|Kind|\n");
             out.push_str("|---|---:|---|---|\n");
             for row in license.findings.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{:?}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{:?}|",
                     row.spdx,
                     fmt_f64(row.confidence as f64, 2),
                     row.source_path,
@@ -143,8 +143,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Domain|Commits|Pct|\n");
             out.push_str("|---|---:|---:|\n");
             for row in fingerprint.domains.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|",
                     row.domain,
                     row.commits,
                     fmt_pct(row.pct as f64)
@@ -169,8 +170,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Slope|R²|Recent change|Class|\n");
             out.push_str("|---|---:|---:|---:|---|\n");
             for (module, trend) in rows.into_iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|{:?}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|{:?}|",
                     module,
                     fmt_f64(trend.slope, 4),
                     fmt_f64(trend.r2, 2),
@@ -186,8 +188,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Totals\n\n");
         out.push_str("|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|\n");
         out.push_str("|---:|---:|---:|---:|---:|---:|---:|\n");
-        let _ = write!(out,
-            "|{}|{}|{}|{}|{}|{}|{}|\n\n",
+        let _ = writeln!(
+            out,
+            "|{}|{}|{}|{}|{}|{}|{}|\n",
             derived.totals.files,
             derived.totals.code,
             derived.totals.comments,
@@ -200,16 +203,19 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Ratios\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        let _ = write!(out,
-            "|Doc density|{}|\n",
+        let _ = writeln!(
+            out,
+            "|Doc density|{}|",
             fmt_pct(derived.doc_density.total.ratio)
         );
-        let _ = write!(out,
-            "|Whitespace ratio|{}|\n",
+        let _ = writeln!(
+            out,
+            "|Whitespace ratio|{}|",
             fmt_pct(derived.whitespace.total.ratio)
         );
-        let _ = write!(out,
-            "|Bytes per line|{}|\n\n",
+        let _ = writeln!(
+            out,
+            "|Bytes per line|{}|\n",
             fmt_f64(derived.verbosity.total.rate, 2)
         );
 
@@ -217,8 +223,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Lang|Doc%|Comments|Code|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.doc_density.by_lang.iter().take(10) {
-            let _ = write!(out,
-                "|{}|{}|{}|{}|\n",
+            let _ = writeln!(
+                out,
+                "|{}|{}|{}|{}|",
                 row.key,
                 fmt_pct(row.ratio),
                 row.numerator,
@@ -231,8 +238,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Lang|Blank%|Blanks|Code+Comments|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.whitespace.by_lang.iter().take(10) {
-            let _ = write!(out,
-                "|{}|{}|{}|{}|\n",
+            let _ = writeln!(
+                out,
+                "|{}|{}|{}|{}|",
                 row.key,
                 fmt_pct(row.ratio),
                 row.numerator,
@@ -245,8 +253,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("|Lang|Bytes/Line|Bytes|Lines|\n");
         out.push_str("|---|---:|---:|---:|\n");
         for row in derived.verbosity.by_lang.iter().take(10) {
-            let _ = write!(out,
-                "|{}|{}|{}|{}|\n",
+            let _ = writeln!(
+                out,
+                "|{}|{}|{}|{}|",
                 row.key,
                 fmt_f64(row.rate, 2),
                 row.numerator,
@@ -258,8 +267,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Distribution\n\n");
         out.push_str("|Count|Min|Max|Mean|Median|P90|P99|Gini|\n");
         out.push_str("|---:|---:|---:|---:|---:|---:|---:|---:|\n");
-        let _ = write!(out,
-            "|{}|{}|{}|{}|{}|{}|{}|{}|\n\n",
+        let _ = writeln!(
+            out,
+            "|{}|{}|{}|{}|{}|{}|{}|{}|\n",
             derived.distribution.count,
             derived.distribution.min,
             derived.distribution.max,
@@ -278,8 +288,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 .max
                 .map(|v| v.to_string())
                 .unwrap_or_else(|| "∞".to_string());
-            let _ = write!(out,
-                "|{}|{}|{}|{}|{}|\n",
+            let _ = writeln!(
+                out,
+                "|{}|{}|{}|{}|{}|",
                 bucket.label,
                 bucket.min,
                 max,
@@ -311,15 +322,17 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push('\n');
 
         out.push_str("## Structure\n\n");
-        let _ = write!(out,
-            "- Max depth: `{}`\n- Avg depth: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Max depth: `{}`\n- Avg depth: `{}`\n",
             derived.nesting.max,
             fmt_f64(derived.nesting.avg, 2)
         );
 
         out.push_str("## Test density\n\n");
-        let _ = write!(out,
-            "- Test lines: `{}`\n- Prod lines: `{}`\n- Test ratio: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Test lines: `{}`\n- Prod lines: `{}`\n- Test ratio: `{}`\n",
             derived.test_density.test_lines,
             derived.test_density.prod_lines,
             fmt_pct(derived.test_density.ratio)
@@ -327,30 +340,33 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
         if let Some(todo) = &derived.todo {
             out.push_str("## TODOs\n\n");
-            let _ = write!(out,
-                "- Total: `{}`\n- Density (per KLOC): `{}`\n\n",
+            let _ = writeln!(
+                out,
+                "- Total: `{}`\n- Density (per KLOC): `{}`\n",
                 todo.total,
                 fmt_f64(todo.density_per_kloc, 2)
             );
             out.push_str("|Tag|Count|\n");
             out.push_str("|---|---:|\n");
             for tag in &todo.tags {
-                let _ = write!(out, "|{}|{}|\n", tag.tag, tag.count);
+                let _ = writeln!(out, "|{}|{}|", tag.tag, tag.count);
             }
             out.push('\n');
         }
 
         out.push_str("## Boilerplate ratio\n\n");
-        let _ = write!(out,
-            "- Infra lines: `{}`\n- Logic lines: `{}`\n- Infra ratio: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Infra lines: `{}`\n- Logic lines: `{}`\n- Infra ratio: `{}`\n",
             derived.boilerplate.infra_lines,
             derived.boilerplate.logic_lines,
             fmt_pct(derived.boilerplate.ratio)
         );
 
         out.push_str("## Polyglot\n\n");
-        let _ = write!(out,
-            "- Languages: `{}`\n- Dominant: `{}` ({})\n- Entropy: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Languages: `{}`\n- Dominant: `{}` ({})\n- Entropy: `{}`\n",
             derived.polyglot.lang_count,
             derived.polyglot.dominant_lang,
             fmt_pct(derived.polyglot.dominant_pct),
@@ -358,16 +374,18 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         );
 
         out.push_str("## Reading time\n\n");
-        let _ = write!(out,
-            "- Minutes: `{}` ({} lines/min)\n\n",
+        let _ = writeln!(
+            out,
+            "- Minutes: `{}` ({} lines/min)\n",
             fmt_f64(derived.reading_time.minutes, 2),
             derived.reading_time.lines_per_minute
         );
 
         if let Some(context) = &derived.context_window {
             out.push_str("## Context window\n\n");
-            let _ = write!(out,
-                "- Window tokens: `{}`\n- Total tokens: `{}`\n- Utilization: `{}`\n- Fits: `{}`\n\n",
+            let _ = writeln!(
+                out,
+                "- Window tokens: `{}`\n- Total tokens: `{}`\n- Utilization: `{}`\n- Fits: `{}`\n",
                 context.window_tokens,
                 context.total_tokens,
                 fmt_pct(context.pct),
@@ -377,8 +395,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
         if let Some(cocomo) = &derived.cocomo {
             out.push_str("## COCOMO estimate\n\n");
-            let _ = write!(out,
-                "- Mode: `{}`\n- KLOC: `{}`\n- Effort (PM): `{}`\n- Duration (months): `{}`\n- Staff: `{}`\n\n",
+            let _ = writeln!(
+                out,
+                "- Mode: `{}`\n- KLOC: `{}`\n- Effort (PM): `{}`\n- Duration (months): `{}`\n- Staff: `{}`\n",
                 cocomo.mode,
                 fmt_f64(cocomo.kloc, 4),
                 fmt_f64(cocomo.effort_pm, 2),
@@ -388,24 +407,27 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         }
 
         out.push_str("## Integrity\n\n");
-        let _ = write!(out,
-            "- Hash: `{}` (`{}`)\n- Entries: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Hash: `{}` (`{}`)\n- Entries: `{}`\n",
             derived.integrity.hash, derived.integrity.algo, derived.integrity.entries
         );
     }
 
     if let Some(assets) = &receipt.assets {
         out.push_str("## Assets\n\n");
-        let _ = write!(out,
-            "- Total files: `{}`\n- Total bytes: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Total files: `{}`\n- Total bytes: `{}`\n",
             assets.total_files, assets.total_bytes
         );
         if !assets.categories.is_empty() {
             out.push_str("|Category|Files|Bytes|Extensions|\n");
             out.push_str("|---|---:|---:|---|\n");
             for row in &assets.categories {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     row.category,
                     row.files,
                     row.bytes,
@@ -418,7 +440,7 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|File|Bytes|Category|\n");
             out.push_str("|---|---:|---|\n");
             for row in &assets.top_files {
-                let _ = write!(out, "|{}|{}|{}|\n", row.path, row.bytes, row.category);
+                let _ = writeln!(out, "|{}|{}|{}|", row.path, row.bytes, row.category);
             }
             out.push('\n');
         }
@@ -426,15 +448,12 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(deps) = &receipt.deps {
         out.push_str("## Dependencies\n\n");
-        let _ = write!(out, "- Total: `{}`\n\n", deps.total);
+        let _ = writeln!(out, "- Total: `{}`\n", deps.total);
         if !deps.lockfiles.is_empty() {
             out.push_str("|Lockfile|Kind|Dependencies|\n");
             out.push_str("|---|---|---:|\n");
             for row in &deps.lockfiles {
-                let _ = write!(out,
-                    "|{}|{}|{}|\n",
-                    row.path, row.kind, row.dependencies
-                );
+                let _ = writeln!(out, "|{}|{}|{}|", row.path, row.kind, row.dependencies);
             }
             out.push('\n');
         }
@@ -442,8 +461,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(git) = &receipt.git {
         out.push_str("## Git metrics\n\n");
-        let _ = write!(out,
-            "- Commits scanned: `{}`\n- Files seen: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Commits scanned: `{}`\n- Files seen: `{}`\n",
             git.commits_scanned, git.files_seen
         );
         if !git.hotspots.is_empty() {
@@ -451,8 +471,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|File|Commits|Lines|Score|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in git.hotspots.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     row.path, row.commits, row.lines, row.score
                 );
             }
@@ -463,13 +484,14 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Authors|\n");
             out.push_str("|---|---:|\n");
             for row in git.bus_factor.iter().take(10) {
-                let _ = write!(out, "|{}|{}|\n", row.module, row.authors);
+                let _ = writeln!(out, "|{}|{}|", row.module, row.authors);
             }
             out.push('\n');
         }
         out.push_str("### Freshness\n\n");
-        let _ = write!(out,
-            "- Stale threshold (days): `{}`\n- Stale files: `{}` / `{}` ({})\n\n",
+        let _ = writeln!(
+            out,
+            "- Stale threshold (days): `{}`\n- Stale files: `{}` / `{}` ({})\n",
             git.freshness.threshold_days,
             git.freshness.stale_files,
             git.freshness.total_files,
@@ -479,8 +501,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Avg days|P90 days|Stale%|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in git.freshness.by_module.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     row.module,
                     fmt_f64(row.avg_days, 2),
                     fmt_f64(row.p90_days, 2),
@@ -491,8 +514,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         }
         if let Some(age) = &git.age_distribution {
             out.push_str("### Code age\n\n");
-            let _ = write!(out,
-                "- Refresh trend: `{:?}` (recent: `{}`, prior: `{}`)\n\n",
+            let _ = writeln!(
+                out,
+                "- Refresh trend: `{:?}` (recent: `{}`, prior: `{}`)\n",
                 age.refresh_trend, age.recent_refreshes, age.prior_refreshes
             );
             if !age.buckets.is_empty() {
@@ -503,8 +527,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                         .max_days
                         .map(|v| v.to_string())
                         .unwrap_or_else(|| "∞".to_string());
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|{}|",
                         bucket.label,
                         bucket.min_days,
                         max,
@@ -532,8 +557,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                         .lift
                         .map(|v| fmt_f64(v, 4))
                         .unwrap_or_else(|| "-".to_string());
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|{}|",
                         row.left, row.right, row.count, jaccard, lift
                     );
                 }
@@ -562,14 +588,15 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             ];
             for (name, count) in entries {
                 if count > 0 {
-                    let _ = write!(out, "|{}|{}|\n", name, count);
+                    let _ = writeln!(out, "|{}|{}|", name, count);
                 }
             }
-            let _ = write!(out, "|**total**|{}|\n", o.total);
-            let _ = write!(out, "\n- Unknown: `{}`\n", fmt_pct(intent.unknown_pct));
+            let _ = writeln!(out, "|**total**|{}|", o.total);
+            let _ = writeln!(out, "\n- Unknown: `{}`", fmt_pct(intent.unknown_pct));
             if let Some(cr) = intent.corrective_ratio {
-                let _ = write!(out,
-                    "- Corrective ratio (fix+revert/total): `{}`\n",
+                let _ = writeln!(
+                    out,
+                    "- Corrective ratio (fix+revert/total): `{}`",
                     fmt_pct(cr)
                 );
             }
@@ -598,8 +625,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|Module|Fix+Revert|Total|Share|\n");
                 out.push_str("|---|---:|---:|---:|\n");
                 for (m, share) in maintenance.iter().take(10) {
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|",
                         m.module,
                         m.counts.fix + m.counts.revert,
                         m.counts.total,
@@ -613,12 +641,12 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(imports) = &receipt.imports {
         out.push_str("## Imports\n\n");
-        let _ = write!(out, "- Granularity: `{}`\n\n", imports.granularity);
+        let _ = writeln!(out, "- Granularity: `{}`\n", imports.granularity);
         if !imports.edges.is_empty() {
             out.push_str("|From|To|Count|\n");
             out.push_str("|---|---|---:|\n");
             for row in imports.edges.iter().take(20) {
-                let _ = write!(out, "|{}|{}|{}|\n", row.from, row.to, row.count);
+                let _ = writeln!(out, "|{}|{}|{}|", row.from, row.to, row.count);
             }
             out.push('\n');
         }
@@ -626,14 +654,16 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
     if let Some(dup) = &receipt.dup {
         out.push_str("## Duplicates\n\n");
-        let _ = write!(out,
-            "- Wasted bytes: `{}`\n- Strategy: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Wasted bytes: `{}`\n- Strategy: `{}`\n",
             dup.wasted_bytes, dup.strategy
         );
         if let Some(density) = &dup.density {
             out.push_str("### Duplication density\n\n");
-            let _ = write!(out,
-                "- Duplicate groups: `{}`\n- Duplicate files: `{}`\n- Duplicated bytes: `{}`\n- Waste vs codebase: `{}`\n\n",
+            let _ = writeln!(
+                out,
+                "- Duplicate groups: `{}`\n- Duplicate files: `{}`\n- Duplicated bytes: `{}`\n- Waste vs codebase: `{}`\n",
                 density.duplicate_groups,
                 density.duplicate_files,
                 density.duplicated_bytes,
@@ -645,8 +675,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 );
                 out.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
                 for row in density.by_module.iter().take(10) {
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|{}|{}|{}|",
                         row.module,
                         row.duplicate_files,
                         row.wasted_files,
@@ -663,27 +694,23 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Hash|Bytes|Files|\n");
             out.push_str("|---|---:|---:|\n");
             for row in dup.groups.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|\n",
-                    row.hash,
-                    row.bytes,
-                    row.files.len()
-                );
+                let _ = writeln!(out, "|{}|{}|{}|", row.hash, row.bytes, row.files.len());
             }
             out.push('\n');
         }
 
         if let Some(near) = &dup.near {
             out.push_str("### Near duplicates\n\n");
-            let _ = write!(out,
-                "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`\n",
+            let _ = writeln!(
+                out,
+                "- Files analyzed: `{}`\n- Files skipped: `{}`\n- Threshold: `{}`\n- Scope: `{:?}`",
                 near.files_analyzed,
                 near.files_skipped,
                 fmt_f64(near.params.threshold, 2),
                 near.params.scope
             );
             if let Some(eligible) = near.eligible_files {
-                let _ = write!(out, "- Eligible files: `{}`\n", eligible);
+                let _ = writeln!(out, "- Eligible files: `{}`", eligible);
             }
             if near.truncated {
                 out.push_str("- **Warning**: Pair list truncated by `max_pairs` limit.\n");
@@ -698,8 +725,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|#|Files|Max Similarity|Representative|Pairs|\n");
                 out.push_str("|---:|---:|---:|---|---:|\n");
                 for (i, cluster) in clusters.iter().enumerate() {
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|{}|",
                         i + 1,
                         cluster.files.len(),
                         fmt_pct(cluster.max_similarity),
@@ -718,8 +746,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
                 out.push_str("|Left|Right|Similarity|Shared FPs|\n");
                 out.push_str("|---|---|---:|---:|\n");
                 for pair in near.pairs.iter().take(20) {
-                    let _ = write!(out,
-                        "|{}|{}|{}|{}|\n",
+                    let _ = writeln!(
+                        out,
+                        "|{}|{}|{}|{}|",
                         pair.left,
                         pair.right,
                         fmt_pct(pair.similarity),
@@ -731,8 +760,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
 
             // Runtime stats footer
             if let Some(stats) = &near.stats {
-                let _ = write!(out,
-                    "> Near-dup stats: fingerprinting {}ms, pairing {}ms, {} bytes processed\n\n",
+                let _ = writeln!(
+                    out,
+                    "> Near-dup stats: fingerprinting {}ms, pairing {}ms, {} bytes processed\n",
                     stats.fingerprinting_ms, stats.pairing_ms, stats.bytes_processed
                 );
             }
@@ -743,44 +773,37 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## Complexity\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        let _ = write!(out, "|Total functions|{}|\n", cx.total_functions);
-        let _ = write!(out,
-            "|Avg function length|{}|\n",
+        let _ = writeln!(out, "|Total functions|{}|", cx.total_functions);
+        let _ = writeln!(
+            out,
+            "|Avg function length|{}|",
             fmt_f64(cx.avg_function_length, 1)
         );
-        let _ = write!(out,
-            "|Max function length|{}|\n",
-            cx.max_function_length
-        );
-        let _ = write!(out,
-            "|Avg cyclomatic|{}|\n",
-            fmt_f64(cx.avg_cyclomatic, 2)
-        );
-        let _ = write!(out, "|Max cyclomatic|{}|\n", cx.max_cyclomatic);
+        let _ = writeln!(out, "|Max function length|{}|", cx.max_function_length);
+        let _ = writeln!(out, "|Avg cyclomatic|{}|", fmt_f64(cx.avg_cyclomatic, 2));
+        let _ = writeln!(out, "|Max cyclomatic|{}|", cx.max_cyclomatic);
         if let Some(cog) = cx.avg_cognitive {
-            let _ = write!(out, "|Avg cognitive|{}|\n", fmt_f64(cog, 2));
+            let _ = writeln!(out, "|Avg cognitive|{}|", fmt_f64(cog, 2));
         }
         if let Some(cog) = cx.max_cognitive {
-            let _ = write!(out, "|Max cognitive|{}|\n", cog);
+            let _ = writeln!(out, "|Max cognitive|{}|", cog);
         }
         if let Some(avg_nesting) = cx.avg_nesting_depth {
-            let _ = write!(out,
-                "|Avg nesting depth|{}|\n",
-                fmt_f64(avg_nesting, 2)
-            );
+            let _ = writeln!(out, "|Avg nesting depth|{}|", fmt_f64(avg_nesting, 2));
         }
         if let Some(max_nesting) = cx.max_nesting_depth {
-            let _ = write!(out, "|Max nesting depth|{}|\n", max_nesting);
+            let _ = writeln!(out, "|Max nesting depth|{}|", max_nesting);
         }
-        let _ = write!(out, "|High risk files|{}|\n\n", cx.high_risk_files);
+        let _ = writeln!(out, "|High risk files|{}|\n", cx.high_risk_files);
 
         if !cx.files.is_empty() {
             out.push_str("### Top complex files\n\n");
             out.push_str("|Path|CC|Functions|Max fn length|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for f in cx.files.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     f.path, f.cyclomatic_complexity, f.function_count, f.max_function_length
                 );
             }
@@ -792,12 +815,13 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         out.push_str("## API surface\n\n");
         out.push_str("|Metric|Value|\n");
         out.push_str("|---|---:|\n");
-        let _ = write!(out, "|Total items|{}|\n", api.total_items);
-        let _ = write!(out, "|Public items|{}|\n", api.public_items);
-        let _ = write!(out, "|Internal items|{}|\n", api.internal_items);
-        let _ = write!(out, "|Public ratio|{}|\n", fmt_pct(api.public_ratio));
-        let _ = write!(out,
-            "|Documented ratio|{}|\n\n",
+        let _ = writeln!(out, "|Total items|{}|", api.total_items);
+        let _ = writeln!(out, "|Public items|{}|", api.public_items);
+        let _ = writeln!(out, "|Internal items|{}|", api.internal_items);
+        let _ = writeln!(out, "|Public ratio|{}|", fmt_pct(api.public_ratio));
+        let _ = writeln!(
+            out,
+            "|Documented ratio|{}|\n",
             fmt_pct(api.documented_ratio)
         );
 
@@ -806,8 +830,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Language|Total|Public|Internal|Public%|\n");
             out.push_str("|---|---:|---:|---:|---:|\n");
             for (lang, data) in &api.by_language {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|{}|",
                     lang,
                     data.total_items,
                     data.public_items,
@@ -823,8 +848,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Module|Total|Public|Public%|\n");
             out.push_str("|---|---:|---:|---:|\n");
             for row in api.by_module.iter().take(20) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     row.module,
                     row.total_items,
                     row.public_items,
@@ -839,8 +865,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             out.push_str("|Path|Language|Public|Total|\n");
             out.push_str("|---|---|---:|---:|\n");
             for item in api.top_exporters.iter().take(10) {
-                let _ = write!(out,
-                    "|{}|{}|{}|{}|\n",
+                let _ = writeln!(
+                    out,
+                    "|{}|{}|{}|{}|",
                     item.path, item.lang, item.public_items, item.total_items
                 );
             }
@@ -852,8 +879,9 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
         && let Some(label) = &fun.eco_label
     {
         out.push_str("## Eco label\n\n");
-        let _ = write!(out,
-            "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n\n",
+        let _ = writeln!(
+            out,
+            "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n",
             label.label,
             fmt_f64(label.score, 1),
             label.bytes,
@@ -928,7 +956,8 @@ fn render_xml(receipt: &AnalysisReceipt) -> String {
     let mut out = String::with_capacity(4096);
     out.push_str("<analysis>");
     if let Some(totals) = totals {
-        let _ = write!(out,
+        let _ = write!(
+            out,
             "<totals files=\"{}\" code=\"{}\" comments=\"{}\" blanks=\"{}\" lines=\"{}\" bytes=\"{}\" tokens=\"{}\"/>",
             totals.files,
             totals.code,
@@ -979,7 +1008,7 @@ fn render_mermaid(receipt: &AnalysisReceipt) -> String {
         for edge in imports.edges.iter().take(200) {
             let from = sanitize_mermaid(&edge.from);
             let to = sanitize_mermaid(&edge.to);
-            let _ = write!(out, "  {} -->|{}| {}\n", from, edge.count, to);
+            let _ = writeln!(out, "  {} -->|{}| {}", from, edge.count, to);
         }
     }
     out

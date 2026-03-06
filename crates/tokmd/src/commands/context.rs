@@ -352,21 +352,17 @@ fn format_list_output(
     use std::fmt::Write;
 
     let mut out = String::with_capacity((selected.len() + 10) * 80);
-    let _ = write!(out, "# Context Pack\n\n");
-    let _ = write!(out, "Budget: {} tokens\n", budget);
-    let _ = write!(
-        out,
-        "Used: {} tokens ({:.1}%)\n",
-        used_tokens, utilization
-    );
-    let _ = write!(out, "Files: {}\n", selected.len());
-    let _ = write!(out, "Strategy: {:?}\n\n", strategy);
-    let _ = write!(out, "|Path|Module|Lang|Tokens|Code|\n");
-    let _ = write!(out, "|---|---|---|---:|---:|\n");
+    let _ = writeln!(out, "# Context Pack\n");
+    let _ = writeln!(out, "Budget: {} tokens", budget);
+    let _ = writeln!(out, "Used: {} tokens ({:.1}%)", used_tokens, utilization);
+    let _ = writeln!(out, "Files: {}", selected.len());
+    let _ = writeln!(out, "Strategy: {:?}\n", strategy);
+    let _ = writeln!(out, "|Path|Module|Lang|Tokens|Code|");
+    let _ = writeln!(out, "|---|---|---|---:|---:|");
     for file in selected {
-        let _ = write!(
+        let _ = writeln!(
             out,
-            "|{}|{}|{}|{}|{}|\n",
+            "|{}|{}|{}|{}|{}|",
             file.path, file.module, file.lang, file.tokens, file.code
         );
     }
