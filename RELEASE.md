@@ -83,8 +83,8 @@ cargo xtask publish --yes       # publish to crates.io
 Push a semver tag to trigger the release workflow:
 
 ```bash
-git tag v1.7.3
-git push origin v1.7.3
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 This triggers `.github/workflows/release.yml`, which:
