@@ -123,9 +123,8 @@ fn collect_history_max_commits_limits() {
     // max_commits=2: result should have at most 2 commits.
     // On some platforms early pipe close may cause git log to return
     // non-zero; accept Ok with <=2 or Err as valid outcomes.
-    match collect_history(&repo.path, Some(2), None) {
-        Ok(commits) => assert!(commits.len() <= 2, "max_commits should limit results"),
-        Err(_) => {} // broken pipe on early close is known behaviour
+    if let Ok(commits) = collect_history(&repo.path, Some(2), None) {
+        assert!(commits.len() <= 2, "max_commits should limit results");
     }
 }
 
