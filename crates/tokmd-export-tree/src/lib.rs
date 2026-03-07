@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeMap;
+use std::fmt::Write;
 
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -27,10 +28,11 @@ fn insert_analysis(node: &mut AnalysisNode, parts: &[&str], lines: usize, tokens
 
 fn render_analysis(node: &AnalysisNode, name: &str, indent: &str, out: &mut String) {
     if !name.is_empty() {
-        out.push_str(&format!(
-            "{}{} (lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (lines: {}, tokens: {})",
             indent, name, node.lines, node.tokens
-        ));
+        );
     }
     let next_indent = if name.is_empty() {
         indent.to_string()
@@ -57,7 +59,7 @@ pub fn render_analysis_tree(export: &ExportData) -> String {
         insert_analysis(&mut root, &parts, row.lines, row.tokens);
     }
 
-    let mut out = String::new();
+    let mut out = String::with_capacity(1024);
     render_analysis(&root, "", "", &mut out);
     out
 }
@@ -99,10 +101,11 @@ fn render_handoff(
     };
 
     if !display.is_empty() {
-        out.push_str(&format!(
-            "{}{} (files: {}, lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (files: {}, lines: {}, tokens: {})",
             indent, display, node.files, node.lines, node.tokens
-        ));
+        );
     }
 
     if depth >= max_depth {
@@ -140,7 +143,7 @@ pub fn render_handoff_tree(export: &ExportData, max_depth: usize) -> String {
         insert_handoff(&mut root, &parts, row.lines, row.tokens);
     }
 
-    let mut out = String::new();
+    let mut out = String::with_capacity(1024);
     render_handoff(&root, "(root)", "", 0, max_depth, &mut out);
     out
 }
