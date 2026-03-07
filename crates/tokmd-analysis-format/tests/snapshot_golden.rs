@@ -14,6 +14,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -411,3 +412,4 @@ fn snapshot_xml_with_derived() {
     let out = text(render(&receipt, AnalysisFormat::Xml).unwrap());
     insta::assert_snapshot!("xml_with_derived", out);
 }
+

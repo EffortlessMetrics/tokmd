@@ -13,6 +13,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn base_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -600,3 +601,4 @@ fn w58_analysis_svg_with_context_window() {
         text(render(&r, AnalysisFormat::Svg).unwrap())
     );
 }
+

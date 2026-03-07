@@ -12,6 +12,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn base_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -480,3 +481,4 @@ fn w54_analysis_md_full() {
         text(render(&r, AnalysisFormat::Md).unwrap())
     );
 }
+

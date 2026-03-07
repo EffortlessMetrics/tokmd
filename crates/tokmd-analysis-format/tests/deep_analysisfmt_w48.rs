@@ -14,6 +14,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 1_700_000_000_000,
         tool: ToolInfo {
@@ -383,3 +384,4 @@ fn md_with_derived_contains_integrity_section() {
     );
     assert!(text.contains("abc123"), "MD should contain hash");
 }
+

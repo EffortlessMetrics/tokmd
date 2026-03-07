@@ -13,6 +13,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -505,3 +506,4 @@ fn sample_derived() -> DerivedReport {
         },
     }
 }
+

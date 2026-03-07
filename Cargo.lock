@@ -3030,6 +3030,7 @@ dependencies = [
  "tokmd-analysis-complexity",
  "tokmd-analysis-content",
  "tokmd-analysis-derived",
+ "tokmd-analysis-effort",
  "tokmd-analysis-entropy",
  "tokmd-analysis-fingerprint",
  "tokmd-analysis-fun",
@@ -3127,6 +3128,19 @@ dependencies = [
  "tokmd-analysis-util",
  "tokmd-export-tree",
  "tokmd-math",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-effort"
+version = "1.7.3"
+dependencies = [
+ "anyhow",
+ "proptest",
+ "serde",
+ "tokmd-analysis-types",
+ "tokmd-analysis-util",
+ "tokmd-git",
  "tokmd-types",
 ]
 

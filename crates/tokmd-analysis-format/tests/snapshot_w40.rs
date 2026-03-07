@@ -48,6 +48,7 @@ fn minimal_args() -> AnalysisArgsMeta {
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: fixed_tool(),
@@ -342,3 +343,4 @@ fn snapshot_analysis_xml_minimal() {
     );
     insta::assert_snapshot!(normalized);
 }
+

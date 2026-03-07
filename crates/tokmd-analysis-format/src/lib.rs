@@ -16,7 +16,7 @@
 //! * Base receipt formatting (use tokmd-format)
 
 use anyhow::Result;
-use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
+use tokmd_analysis_types::{AnalysisReceipt, EffortDriverDirection, EffortEstimateReport, FileStatRow};
 use tokmd_types::AnalysisFormat;
 
 pub enum RenderedOutput {
@@ -374,16 +374,10 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             ));
         }
 
-        if let Some(cocomo) = &derived.cocomo {
-            out.push_str("## COCOMO estimate\n\n");
-            out.push_str(&format!(
-                "- Mode: `{}`\n- KLOC: `{}`\n- Effort (PM): `{}`\n- Duration (months): `{}`\n- Staff: `{}`\n\n",
-                cocomo.mode,
-                fmt_f64(cocomo.kloc, 4),
-                fmt_f64(cocomo.effort_pm, 2),
-                fmt_f64(cocomo.duration_months, 2),
-                fmt_f64(cocomo.staff, 2)
-            ));
+        if let Some(effort) = &receipt.effort {
+            render_effort_report(&mut out, effort);
+        } else if let Some(cocomo) = &derived.cocomo {
+            render_legacy_cocomo_report(&mut out, derived, cocomo);
         }
 
         out.push_str("## Integrity\n\n");
@@ -888,6 +882,173 @@ fn render_file_table(rows: &[FileStatRow]) -> String {
     out
 }
 
+fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
+    out.push_str("## Effort estimate\n\n");
+
+    out.push_str("### Size basis\n\n");
+    out.push_str(&format!(
+        "- Model: `{:?}`\n- Total LOC lines: `{}`\n- Authored LOC lines: `{}`\n- Generated LOC lines: `{}`\n- Vendored LOC lines: `{}`\n- Authoring KLOC: `{}`\n- Total KLOC: `{}`\n- Generated share: `{}`\n- Vendored share: `{}`\n- Classification confidence: `{:?}`\n\n",
+        effort.model,
+        effort.size_basis.total_lines,
+        effort.size_basis.authored_lines,
+        effort.size_basis.generated_lines,
+        effort.size_basis.vendored_lines,
+        fmt_f64(effort.size_basis.kloc_authored, 4),
+        fmt_f64(effort.size_basis.kloc_total, 4),
+        fmt_pct(effort.size_basis.generated_pct),
+        fmt_pct(effort.size_basis.vendored_pct),
+        effort.size_basis.classification_confidence
+    ));
+
+    if !effort.size_basis.by_tag.is_empty() {
+        out.push_str("### Size by tag\n\n");
+        out.push_str("|Tag|Lines|Authored|Share|\n");
+        out.push_str("|---|---:|---:|---:|\n");
+        for row in &effort.size_basis.by_tag {
+            out.push_str(&format!(
+                "|{}|{}|{}|{}|\n",
+                row.tag,
+                row.lines,
+                row.authored_lines,
+                fmt_pct(row.pct_of_total)
+            ));
+        }
+        out.push('\n');
+    }
+
+    out.push_str("### Headline\n\n");
+    out.push_str(&format!(
+        "- Effort p50: `{}` person-months (low `{}` / p80 `{}`)\n- Schedule p50: `{}` months (low `{}` / p80 `{}`)\n- Staff p50: `{}` FTE (low `{}` / p80 `{}`)\n\n",
+        fmt_f64(effort.results.effort_pm_p50, 4),
+        fmt_f64(effort.results.effort_pm_low, 4),
+        fmt_f64(effort.results.effort_pm_p80, 4),
+        fmt_f64(effort.results.schedule_months_p50, 4),
+        fmt_f64(effort.results.schedule_months_low, 4),
+        fmt_f64(effort.results.schedule_months_p80, 4),
+        fmt_f64(effort.results.staff_p50, 4),
+        fmt_f64(effort.results.staff_low, 4),
+        fmt_f64(effort.results.staff_p80, 4),
+    ));
+
+    out.push_str("### Why\n\n");
+    out.push_str(&format!(
+        "- Confidence level: `{:?}`\n",
+        effort.confidence.level
+    ));
+    if let Some(coverage) = effort.confidence.data_coverage_pct {
+        out.push_str(&format!("- Data coverage: `{}`\n", fmt_pct(coverage)));
+    }
+    if !effort.confidence.reasons.is_empty() {
+        out.push_str("- Reasons:\n");
+        for reason in &effort.confidence.reasons {
+            out.push_str(&format!("  - {reason}\n"));
+        }
+    }
+    out.push('\n');
+
+    out.push_str("### Drivers\n\n");
+    if effort.drivers.is_empty() {
+        out.push_str("- No material drivers were inferred.\n\n");
+    } else {
+        out.push_str("|Driver|Direction|Weight|Evidence|\n");
+        out.push_str("|---|---|---:|---|\n");
+        for row in effort.drivers.iter().take(35) {
+            let direction = match row.direction {
+                EffortDriverDirection::Raises => "raises",
+                EffortDriverDirection::Lowers => "lowers",
+                EffortDriverDirection::Neutral => "neutral",
+            };
+            out.push_str(&format!(
+                "|{}|{}|{}|{}|\n",
+                row.label,
+                direction,
+                fmt_f64(row.weight, 4),
+                row.evidence
+            ));
+        }
+        out.push('\n');
+    }
+
+    if !effort.assumptions.notes.is_empty() {
+        out.push_str("### Assumptions\n\n");
+        for note in &effort.assumptions.notes {
+            out.push_str(&format!("- {note}\n"));
+        }
+        out.push('\n');
+    }
+
+    if !effort.assumptions.overrides.is_empty() {
+        out.push_str("### Assumption overrides\n\n");
+        out.push_str("|Setting|Value|\n");
+        out.push_str("|---|---|\n");
+        for (key, value) in &effort.assumptions.overrides {
+            out.push_str(&format!("|{key}|{value}|\n"));
+        }
+        out.push('\n');
+    }
+
+    out.push_str("### Delta\n\n");
+    if let Some(delta) = &effort.delta {
+        out.push_str(&format!(
+            "- Reference window: `{}`..`{}`\n- Files changed: `{}`\n- Modules changed: `{}`\n- Languages changed: `{}`\n- Hotspots touched: `{}`\n- Coupled neighbors touched: `{}`\n- Blast radius: `{}`\n- Classification: `{:?}`\n- Effort p50 impact: `{}`\n- Effort p80 impact: `{}`\n\n",
+            delta.base,
+            delta.head,
+            delta.files_changed,
+            delta.modules_changed,
+            delta.langs_changed,
+            delta.hotspot_files_touched,
+            delta.coupled_neighbors_touched,
+            fmt_f64(delta.blast_radius, 4),
+            delta.classification,
+            fmt_f64(delta.effort_pm_est, 4),
+            fmt_f64(delta.effort_pm_high, 4)
+        ));
+        out.push_str(&format!(
+            "- Effort low bound (delta): `{}`\n\n",
+            fmt_f64(delta.effort_pm_low, 4),
+        ));
+    } else {
+        out.push_str("- Baseline comparison is not available for this receipt.\n\n");
+    }
+}
+
+fn render_legacy_cocomo_report(
+    out: &mut String,
+    derived: &tokmd_analysis_types::DerivedReport,
+    cocomo: &tokmd_analysis_types::CocomoReport,
+) {
+    out.push_str("## Effort estimate\n\n");
+
+    out.push_str("### Size basis\n\n");
+    out.push_str(&format!(
+        "- Source lines: `{}`\n- Total lines: `{}`\n- KLOC: `{}`\n\n",
+        derived.totals.code,
+        derived.totals.lines,
+        fmt_f64(cocomo.kloc, 4)
+    ));
+
+    out.push_str("### Headline\n\n");
+    out.push_str(&format!(
+        "- Effort: `{}` person-months\n- Duration: `{}` months\n- Staff: `{}`\n\n",
+        fmt_f64(cocomo.effort_pm, 2),
+        fmt_f64(cocomo.duration_months, 2),
+        fmt_f64(cocomo.staff, 2)
+    ));
+
+    out.push_str("### Why\n\n");
+    out.push_str(&format!(
+        "- Model: `COCOMO` (`{}` mode)\n- Formula: `E = a * KLOC^b`\n- Coefficients: `a={}`, `b={}`, `c={}`, `d={}`\n\n",
+        cocomo.mode,
+        fmt_f64(cocomo.a, 2),
+        fmt_f64(cocomo.b, 2),
+        fmt_f64(cocomo.c, 2),
+        fmt_f64(cocomo.d, 2)
+    ));
+
+    out.push_str("### Delta\n\n");
+    out.push_str("- Baseline comparison is not available for this receipt.\n\n");
+}
+
 fn fmt_pct(ratio: f64) -> String {
     format!("{:.1}%", ratio * 100.0)
 }
@@ -1090,6 +1251,7 @@ fn render_html(receipt: &AnalysisReceipt) -> String {
 mod tests {
     use super::*;
     use tokmd_analysis_types::*;
+    use std::collections::BTreeMap;
 
     fn minimal_receipt() -> AnalysisReceipt {
         AnalysisReceipt {
@@ -1140,6 +1302,7 @@ mod tests {
             complexity: None,
             api_surface: None,
             fun: None,
+            effort: None,
         }
     }
 
@@ -2519,7 +2682,11 @@ mod tests {
         assert!(result.contains("## Polyglot"));
         assert!(result.contains("## Reading time"));
         assert!(result.contains("## Context window"));
-        assert!(result.contains("## COCOMO estimate"));
+        assert!(result.contains("## Effort estimate"));
+        assert!(result.contains("### Size basis"));
+        assert!(result.contains("### Headline"));
+        assert!(result.contains("### Why"));
+        assert!(result.contains("### Delta"));
         assert!(result.contains("## Integrity"));
     }
 
@@ -2601,5 +2768,313 @@ mod tests {
         receipt.derived = Some(sample_derived());
         let result = render_html(&receipt);
         assert!(result.contains("<!DOCTYPE html>") || result.contains("<html"));
+    }
+
+    #[test]
+    fn render_effort_report_renders_full_sections_when_effort_is_present() {
+        let effort = test_effort_report(true, true);
+        let mut out = String::new();
+
+        render_effort_report(&mut out, &effort);
+
+        assert!(out.contains("## Effort estimate"));
+        assert!(out.contains("### Size basis"));
+        assert!(out.contains("### Size by tag"));
+        assert!(out.contains("### Headline"));
+        assert!(out.contains("### Why"));
+        assert!(out.contains("### Drivers"));
+        assert!(out.contains("### Assumptions"));
+        assert!(out.contains("### Assumption overrides"));
+        assert!(out.contains("### Delta"));
+
+        assert!(out.contains("Authored LOC lines: `8500`"));
+        assert!(out.contains("Generated LOC lines: `1000`"));
+        assert!(out.contains("Vendored LOC lines: `500`"));
+        assert!(out.contains("Authoring KLOC: `8.5000`"));
+        assert!(out.contains("Effort p50: `18.5000` person-months"));
+        assert!(out.contains("Schedule p50: `7.0000` months"));
+        assert!(out.contains("Staff p50: `2.6000` FTE"));
+
+        assert!(out.contains("|core|7000|7000|70.0%|"));
+        assert!(out.contains("|generated|1000|0|10.0%|"));
+        assert!(out.contains("|vendored|500|0|5.0%|"));
+
+        assert!(out.contains("top 5 files drive 61% of churn"));
+        assert!(out.contains("documented ratio 0.42"));
+        assert!(out.contains("Reference window: `main`..`HEAD`"));
+        assert!(out.contains("Files changed: `14`"));
+        assert!(out.contains("Blast radius: `17.5000`"));
+    }
+
+    #[test]
+    fn render_effort_report_emits_empty_state_when_drivers_and_delta_are_absent() {
+        let effort = test_effort_report(false, false);
+        let mut out = String::new();
+
+        render_effort_report(&mut out, &effort);
+
+        assert!(out.contains("## Effort estimate"));
+        assert!(out.contains("### Drivers"));
+        assert!(out.contains("No material drivers were inferred."));
+        assert!(out.contains("### Delta"));
+        assert!(out.contains("Baseline comparison is not available for this receipt."));
+        assert!(!out.contains("|Driver|Direction|Weight|Evidence|"));
+    }
+
+    #[test]
+    fn render_legacy_cocomo_report_uses_derived_totals_for_size_basis() {
+        let derived = test_derived_report_for_effort(2500);
+        let cocomo = CocomoReport {
+            mode: "organic".to_string(),
+            kloc: 2.5,
+            effort_pm: 11.23,
+            duration_months: 6.42,
+            staff: 1.75,
+            a: 2.4,
+            b: 1.05,
+            c: 2.5,
+            d: 0.38,
+        };
+        let mut out = String::new();
+
+        render_legacy_cocomo_report(&mut out, &derived, &cocomo);
+
+        assert!(out.contains("## Effort estimate"));
+        assert!(out.contains("### Size basis"));
+        assert!(out.contains("Source lines: `2500`"));
+        assert!(out.contains(&format!("Total lines: `{}`", derived.totals.lines)));
+        assert!(out.contains("KLOC: `2.5000`"));
+
+        assert!(out.contains("### Headline"));
+        assert!(out.contains("Effort: `11.23` person-months"));
+        assert!(out.contains("Duration: `6.42` months"));
+        assert!(out.contains("Staff: `1.75`"));
+
+        assert!(out.contains("### Why"));
+        assert!(out.contains("Model: `COCOMO` (`organic` mode)"));
+        assert!(out.contains("Coefficients: `a=2.40`, `b=1.05`, `c=2.50`, `d=0.38`"));
+
+        assert!(out.contains("### Delta"));
+        assert!(out.contains("Baseline comparison is not available for this receipt."));
+    }
+
+    fn test_effort_report(with_delta: bool, with_drivers: bool) -> EffortEstimateReport {
+        let delta = with_delta.then(|| EffortDeltaReport {
+            base: "main".to_string(),
+            head: "HEAD".to_string(),
+            files_changed: 14,
+            modules_changed: 3,
+            langs_changed: 2,
+            hotspot_files_touched: 2,
+            coupled_neighbors_touched: 4,
+            blast_radius: 17.5,
+            classification: EffortDeltaClassification::Medium,
+            effort_pm_low: 1.5,
+            effort_pm_est: 3.2,
+            effort_pm_high: 5.8,
+        });
+
+        let drivers = if with_drivers {
+            vec![
+                EffortDriver {
+                    key: "hotspots".to_string(),
+                    label: "High hotspot concentration".to_string(),
+                    weight: 0.42,
+                    direction: EffortDriverDirection::Raises,
+                    evidence: "top 5 files drive 61% of churn".to_string(),
+                },
+                EffortDriver {
+                    key: "docs".to_string(),
+                    label: "Weak API documentation coverage".to_string(),
+                    weight: 0.22,
+                    direction: EffortDriverDirection::Raises,
+                    evidence: "documented ratio 0.42".to_string(),
+                },
+            ]
+        } else {
+            Vec::new()
+        };
+
+        EffortEstimateReport {
+            model: EffortModel::Cocomo81Basic,
+            size_basis: EffortSizeBasis {
+                total_lines: 10_000,
+                authored_lines: 8_500,
+                generated_lines: 1_000,
+                vendored_lines: 500,
+                kloc_total: 10.0,
+                kloc_authored: 8.5,
+                generated_pct: 0.10,
+                vendored_pct: 0.05,
+                classification_confidence: EffortConfidenceLevel::High,
+                warnings: vec!["1 path matched generated heuristics".to_string()],
+                by_tag: vec![
+                    EffortTagSizeRow {
+                        tag: "core".to_string(),
+                        lines: 7_000,
+                        authored_lines: 7_000,
+                        pct_of_total: 0.70,
+                    },
+                    EffortTagSizeRow {
+                        tag: "generated".to_string(),
+                        lines: 1_000,
+                        authored_lines: 0,
+                        pct_of_total: 0.10,
+                    },
+                    EffortTagSizeRow {
+                        tag: "vendored".to_string(),
+                        lines: 500,
+                        authored_lines: 0,
+                        pct_of_total: 0.05,
+                    },
+                ],
+            },
+            results: EffortResults {
+                effort_pm_low: 12.0,
+                effort_pm_p50: 18.5,
+                effort_pm_p80: 27.0,
+                schedule_months_low: 5.5,
+                schedule_months_p50: 7.0,
+                schedule_months_p80: 9.8,
+                staff_low: 2.0,
+                staff_p50: 2.6,
+                staff_p80: 3.8,
+            },
+            confidence: EffortConfidence {
+                level: EffortConfidenceLevel::Medium,
+                reasons: vec![
+                    "git history available for hotspot and coupling signals".to_string(),
+                    "size basis includes generated/vendored classification".to_string(),
+                ],
+                data_coverage_pct: Some(0.83),
+            },
+            drivers,
+            assumptions: EffortAssumptions {
+                notes: vec![
+                    "uses authored lines as effort size basis".to_string(),
+                    "p80 widens the deterministic baseline using risk signals".to_string(),
+                ],
+                overrides: BTreeMap::from([
+                    ("effort_model".to_string(), "cocomo81_basic".to_string()),
+                    ("classification_mode".to_string(), "heuristic+paths".to_string()),
+                ]),
+            },
+            delta,
+        }
+    }
+
+    fn test_derived_report_for_effort(code_lines: usize) -> DerivedReport {
+        let ratio_zero = RatioReport {
+            total: RatioRow {
+                key: "total".into(),
+                numerator: 0,
+                denominator: code_lines,
+                ratio: 0.0,
+            },
+            by_lang: vec![],
+            by_module: vec![],
+        };
+
+        let rate_zero = RateReport {
+            total: RateRow {
+                key: "total".into(),
+                numerator: 0,
+                denominator: code_lines,
+                rate: 0.0,
+            },
+            by_lang: vec![],
+            by_module: vec![],
+        };
+
+        DerivedReport {
+            totals: DerivedTotals {
+                files: 10,
+                code: code_lines,
+                comments: 100,
+                blanks: 50,
+                lines: code_lines + 150,
+                bytes: code_lines * 40,
+                tokens: code_lines * 3,
+            },
+            doc_density: ratio_zero.clone(),
+            whitespace: ratio_zero,
+            verbosity: rate_zero,
+            max_file: MaxFileReport {
+                overall: FileStatRow {
+                    path: "src/main.rs".into(),
+                    module: "src".into(),
+                    lang: "Rust".into(),
+                    code: code_lines,
+                    comments: 0,
+                    blanks: 0,
+                    lines: code_lines,
+                    bytes: code_lines * 40,
+                    tokens: code_lines * 3,
+                    doc_pct: None,
+                    bytes_per_line: Some(40.0),
+                    depth: 1,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            lang_purity: LangPurityReport { rows: vec![] },
+            nesting: NestingReport {
+                max: 1,
+                avg: 1.0,
+                by_module: vec![],
+            },
+            test_density: TestDensityReport {
+                test_lines: 0,
+                prod_lines: code_lines,
+                test_files: 0,
+                prod_files: 10,
+                ratio: 0.0,
+            },
+            boilerplate: BoilerplateReport {
+                infra_lines: 0,
+                logic_lines: code_lines,
+                ratio: 0.0,
+                infra_langs: vec![],
+            },
+            polyglot: PolyglotReport {
+                lang_count: 1,
+                entropy: 0.0,
+                dominant_lang: "Rust".into(),
+                dominant_lines: code_lines,
+                dominant_pct: 1.0,
+            },
+            distribution: DistributionReport {
+                count: 10,
+                min: 10,
+                max: code_lines,
+                mean: code_lines as f64 / 10.0,
+                median: code_lines as f64 / 10.0,
+                p90: code_lines as f64,
+                p99: code_lines as f64,
+                gini: 0.0,
+            },
+            histogram: vec![],
+            top: TopOffenders {
+                largest_lines: vec![],
+                largest_tokens: vec![],
+                largest_bytes: vec![],
+                least_documented: vec![],
+                most_dense: vec![],
+            },
+            tree: None,
+            reading_time: ReadingTimeReport {
+                minutes: 1.0,
+                lines_per_minute: 200,
+                basis_lines: code_lines,
+            },
+            context_window: None,
+            cocomo: None,
+            todo: None,
+            integrity: IntegrityReport {
+                algo: "blake3".into(),
+                hash: "test".into(),
+                entries: 10,
+            },
+        }
     }
 }

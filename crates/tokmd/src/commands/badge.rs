@@ -70,6 +70,7 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
         near_dup_scope: analysis::NearDupScope::Module,
         near_dup_max_pairs: None,
         near_dup_exclude: Vec::new(),
+        effort: None,
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,

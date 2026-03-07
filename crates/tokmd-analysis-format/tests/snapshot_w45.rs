@@ -55,6 +55,7 @@ fn minimal_args() -> AnalysisArgsMeta {
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: fixed_tool(),
@@ -354,3 +355,4 @@ fn snapshot_md_with_warnings() {
     let text = extract_text(render(&receipt, AnalysisFormat::Md).unwrap());
     insta::assert_snapshot!(text);
 }
+

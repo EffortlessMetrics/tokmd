@@ -274,6 +274,54 @@ fn parse_redact_mode(args: &Value, default: RedactMode) -> Result<RedactMode, To
     }
 }
 
+/// Parse an optional u32 field strictly: missing/null -> None, non-number/out of range -> error.
+fn parse_optional_u32(args: &Value, field: &str) -> Result<Option<u32>, TokmdError> {
+    match args.get(field) {
+        None | Some(Value::Null) => Ok(None),
+        Some(v) => v
+            .as_u64()
+            .map(|n| {
+                u32::try_from(n)
+                    .map_err(|_| TokmdError::invalid_field(field, "a positive 32-bit integer"))
+            })
+            .ok_or_else(|| TokmdError::invalid_field(field, "a positive 32-bit integer"))?,
+    }
+}
+
+/// Parse an effort model from a string: missing/null -> None, unsupported values -> error.
+fn parse_effort_model(args: &Value, field: &str) -> Result<Option<String>, TokmdError> {
+    match parse_optional_string(args, field)? {
+        None => Ok(None),
+        Some(value) => {
+            let normalized = value.trim().to_ascii_lowercase();
+            match normalized.as_str() {
+                "cocomo81-basic" | "cocomo2-early" | "ensemble" => Ok(Some(normalized)),
+                _ => Err(TokmdError::invalid_field(
+                    field,
+                    "'cocomo81-basic', 'cocomo2-early', or 'ensemble'",
+                )),
+            }
+        }
+    }
+}
+
+/// Parse an effort layer from a string: missing/null -> None, unsupported values -> error.
+fn parse_effort_layer(args: &Value, field: &str) -> Result<Option<String>, TokmdError> {
+    match parse_optional_string(args, field)? {
+        None => Ok(None),
+        Some(value) => {
+            let normalized = value.trim().to_ascii_lowercase();
+            match normalized.as_str() {
+                "headline" | "why" | "full" => Ok(Some(normalized)),
+                _ => Err(TokmdError::invalid_field(
+                    field,
+                    "'headline', 'why', or 'full'",
+                )),
+            }
+        }
+    }
+}
+
 /// Parse an optional RedactMode field strictly.
 fn parse_optional_redact_mode(args: &Value) -> Result<Option<RedactMode>, TokmdError> {
     match args.get("redact") {
@@ -308,11 +356,21 @@ fn parse_analyze_preset(args: &Value, default: &str) -> Result<String, TokmdErro
     let preset = parse_string(args, "preset", default)?;
     let normalized = preset.trim().to_ascii_lowercase();
     match normalized.as_str() {
-        "receipt" | "health" | "risk" | "supply" | "architecture" | "topics" | "security"
-        | "identity" | "git" | "deep" | "fun" => Ok(normalized),
+        "receipt"
+        | "estimate"
+        | "health"
+        | "risk"
+        | "supply"
+        | "architecture"
+        | "topics"
+        | "security"
+        | "identity"
+        | "git"
+        | "deep"
+        | "fun" => Ok(normalized),
         _ => Err(TokmdError::invalid_field(
             "preset",
-            "'receipt', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
+            "'receipt', 'estimate', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
         )),
     }
 }
@@ -408,6 +466,25 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
     // Use nested object if present, otherwise use root
     let obj = args.get("analyze").unwrap_or(args);
 
+    let effort_base_ref = parse_optional_string(obj, "effort_base_ref")?;
+    let effort_head_ref = parse_optional_string(obj, "effort_head_ref")?;
+    if (effort_base_ref.is_some() && effort_head_ref.is_none())
+        || (effort_base_ref.is_none() && effort_head_ref.is_some())
+    {
+        return Err(TokmdError::invalid_field(
+            "effort_base_ref/effort_head_ref",
+            "both effort_base_ref and effort_head_ref must be provided together",
+        ));
+    }
+    if let Some(iterations) = parse_optional_u32(obj, "effort_mc_iterations")? {
+        if iterations == 0 {
+            return Err(TokmdError::invalid_field(
+                "effort_mc_iterations",
+                "must be greater than 0",
+            ));
+        }
+    }
+
     Ok(AnalyzeSettings {
         preset: parse_analyze_preset(obj, "receipt")?,
         window: parse_optional_usize(obj, "window")?,
@@ -418,6 +495,13 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
         max_commits: parse_optional_usize(obj, "max_commits")?,
         max_commit_files: parse_optional_usize(obj, "max_commit_files")?,
         granularity: parse_import_granularity(obj, "module")?,
+        effort_base_ref,
+        effort_head_ref,
+        effort_model: parse_effort_model(obj, "effort_model")?,
+        effort_layer: parse_effort_layer(obj, "effort_layer")?,
+        effort_monte_carlo: parse_optional_bool(obj, "effort_monte_carlo")?,
+        effort_mc_iterations: parse_optional_u32(obj, "effort_mc_iterations")?,
+        effort_mc_seed: parse_optional_u64(obj, "effort_mc_seed")?,
     })
 }
 

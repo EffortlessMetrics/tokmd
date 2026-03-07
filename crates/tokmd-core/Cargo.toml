@@ -19,6 +19,7 @@ analysis = [
     "tokmd-analysis/git",
     "tokmd-analysis/walk",
     "tokmd-analysis/content",
+    "tokmd-analysis/effort",
     "tokmd-analysis/fun",
     "tokmd-analysis/archetype",
     "tokmd-analysis/halstead",

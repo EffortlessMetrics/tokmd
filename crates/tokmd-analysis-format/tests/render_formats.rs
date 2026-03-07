@@ -16,6 +16,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -973,9 +974,13 @@ fn md_derived_cocomo_present() {
         RenderedOutput::Text(s) => s,
         RenderedOutput::Binary(_) => panic!("expected text"),
     };
-    assert!(text.contains("## COCOMO estimate"));
-    assert!(text.contains("Mode: `organic`"));
+    assert!(text.contains("## Effort estimate"));
+    assert!(text.contains("### Size basis"));
+    assert!(text.contains("### Headline"));
+    assert!(text.contains("### Why"));
+    assert!(text.contains("### Delta"));
     assert!(text.contains("KLOC: `0.5000`"));
+    assert!(text.contains("Effort: `1.08` person-months"));
 }
 
 #[test]
@@ -1202,3 +1207,4 @@ fn midi_format_requires_fun_feature() {
     let err = result.err().unwrap();
     assert!(err.to_string().contains("fun"));
 }
+

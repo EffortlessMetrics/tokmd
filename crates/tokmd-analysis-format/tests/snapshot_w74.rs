@@ -15,6 +15,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -488,3 +489,4 @@ fn w74_analysis_html_minimal() {
     let out = redact_timestamp(&text(render(&receipt, AnalysisFormat::Html).unwrap()));
     insta::assert_snapshot!("w74_analysis_html_minimal", out);
 }
+

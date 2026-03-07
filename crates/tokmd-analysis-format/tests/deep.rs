@@ -15,6 +15,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: 2,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -552,7 +553,7 @@ fn md_full_receipt_contains_all_sections() {
         "## Polyglot",
         "## Reading time",
         "## Context window",
-        "## COCOMO estimate",
+        "## Effort estimate",
         "## Integrity",
         "## Assets",
         "## Dependencies",
@@ -715,7 +716,7 @@ fn md_derived_without_cocomo() {
     r.derived = Some(d);
     let md = extract_text(render(&r, AnalysisFormat::Md).unwrap());
     assert!(md.contains("## Totals"));
-    assert!(!md.contains("## COCOMO estimate"));
+    assert!(!md.contains("## Effort estimate"));
 }
 
 #[test]
@@ -1773,3 +1774,4 @@ fn md_reading_time_and_integrity() {
     assert!(md.contains("Hash: `abc123` (`blake3`)"));
     assert!(md.contains("Entries: `10`"));
 }
+

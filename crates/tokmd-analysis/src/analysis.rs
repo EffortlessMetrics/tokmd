@@ -10,6 +10,8 @@ use tokmd_analysis_types::{
 };
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
+#[cfg(feature = "effort")]
+use tokmd_analysis_effort::{build_effort_report, EffortRequest};
 
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
@@ -65,6 +67,8 @@ pub struct AnalysisRequest {
     pub preset: AnalysisPreset,
     pub args: AnalysisArgsMeta,
     pub limits: AnalysisLimits,
+    #[cfg(feature = "effort")]
+    pub effort: Option<EffortRequest>,
     pub window_tokens: Option<usize>,
     pub git: Option<bool>,
     pub import_granularity: ImportGranularity,
@@ -508,6 +512,28 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         fun = None;
     }
 
+    #[cfg(feature = "effort")]
+    let effort = if let Some(effort_request) = &req.effort {
+        match build_effort_report(
+            &ctx.root,
+            &ctx.export,
+            &derived,
+            git.as_ref(),
+            complexity.as_ref(),
+            api_surface.as_ref(),
+            dup.as_ref(),
+            effort_request,
+        ) {
+            Ok(report) => Some(report),
+            Err(err) => {
+                warnings.push(format!("effort estimate failed: {}", err));
+                None
+            }
+        }
+    } else {
+        None
+    };
+
     let status = if warnings.is_empty() {
         ScanStatus::Complete
     } else {
@@ -537,6 +563,8 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         dup,
         complexity,
         api_surface,
+        #[cfg(feature = "effort")]
+        effort,
         fun,
     };
 

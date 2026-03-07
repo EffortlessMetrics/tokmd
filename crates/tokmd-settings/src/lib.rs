@@ -283,6 +283,34 @@ pub struct AnalyzeSettings {
     /// Import graph granularity.
     #[serde(default = "default_granularity")]
     pub granularity: String,
+
+    /// Effort model for estimate calculations.
+    #[serde(default)]
+    pub effort_model: Option<String>,
+
+    /// Effort report layer.
+    #[serde(default)]
+    pub effort_layer: Option<String>,
+
+    /// Base reference for effort delta computation.
+    #[serde(default)]
+    pub effort_base_ref: Option<String>,
+
+    /// Head reference for effort delta computation.
+    #[serde(default)]
+    pub effort_head_ref: Option<String>,
+
+    /// Enable Monte Carlo uncertainty for effort estimation.
+    #[serde(default)]
+    pub effort_monte_carlo: Option<bool>,
+
+    /// Monte Carlo iterations for effort estimation.
+    #[serde(default)]
+    pub effort_mc_iterations: Option<u32>,
+
+    /// Monte Carlo seed for effort estimation.
+    #[serde(default)]
+    pub effort_mc_seed: Option<u64>,
 }
 
 fn default_preset() -> String {
@@ -305,6 +333,13 @@ impl Default for AnalyzeSettings {
             max_commits: None,
             max_commit_files: None,
             granularity: default_granularity(),
+            effort_model: None,
+            effort_layer: None,
+            effort_base_ref: None,
+            effort_head_ref: None,
+            effort_monte_carlo: None,
+            effort_mc_iterations: None,
+            effort_mc_seed: None,
         }
     }
 }
@@ -495,6 +530,27 @@ pub struct AnalyzeConfig {
 
     /// Import graph granularity: "module" or "file".
     pub granularity: Option<String>,
+
+    /// Effort model for estimate calculations.
+    pub effort_model: Option<String>,
+
+    /// Effort report layer.
+    pub effort_layer: Option<String>,
+
+    /// Base reference for effort delta computation.
+    pub effort_base_ref: Option<String>,
+
+    /// Head reference for effort delta computation.
+    pub effort_head_ref: Option<String>,
+
+    /// Enable Monte Carlo uncertainty for effort estimation.
+    pub effort_monte_carlo: Option<bool>,
+
+    /// Monte Carlo iterations for effort estimation.
+    pub effort_mc_iterations: Option<u32>,
+
+    /// Monte Carlo seed for effort estimation.
+    pub effort_mc_seed: Option<u64>,
 }
 
 /// Context command settings.

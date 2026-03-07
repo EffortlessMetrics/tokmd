@@ -1,0 +1,23 @@
+[package]
+name = "tokmd-analysis-effort"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Effort estimation scaffolding and outputs for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["analysis", "estimation", "cocomo", "effort", "metrics"]
+categories = ["development-tools", "science"]
+documentation = "https://docs.rs/tokmd-analysis-effort"
+
+[dependencies]
+anyhow = "1.0.101"
+serde = { version = "1.0.228", features = ["derive"] }
+tokmd-analysis-types.workspace = true
+tokmd-types.workspace = true
+tokmd-analysis-util.workspace = true
+tokmd-git = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = "1.10.0"

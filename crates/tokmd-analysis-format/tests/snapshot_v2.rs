@@ -13,6 +13,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -337,3 +338,4 @@ fn snapshot_v2_jsonld_with_eco_label() {
     let rendered = text(render(&receipt, AnalysisFormat::Jsonld).unwrap());
     insta::assert_snapshot!("v2_jsonld_eco_label", rendered);
 }
+

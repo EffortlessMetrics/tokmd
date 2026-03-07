@@ -14,6 +14,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -281,8 +282,12 @@ mod md_rendering {
         let mut r = minimal_receipt();
         r.derived = Some(sample_derived());
         let md = text(render(&r, AnalysisFormat::Md).unwrap());
-        assert!(md.contains("## COCOMO estimate"));
-        assert!(md.contains("Mode: `organic`"));
+        assert!(md.contains("## Effort estimate"));
+        assert!(md.contains("### Size basis"));
+        assert!(md.contains("### Headline"));
+        assert!(md.contains("### Why"));
+        assert!(md.contains("### Delta"));
+        assert!(md.contains("Model: `COCOMO` (`organic` mode)"));
     }
 
     #[test]
@@ -292,7 +297,7 @@ mod md_rendering {
         derived.cocomo = None;
         r.derived = Some(derived);
         let md = text(render(&r, AnalysisFormat::Md).unwrap());
-        assert!(!md.contains("## COCOMO estimate"));
+        assert!(!md.contains("## Effort estimate"));
     }
 
     #[test]
@@ -797,3 +802,4 @@ mod doc_density_rendering {
         assert!(md.contains("|Go|"));
     }
 }
+

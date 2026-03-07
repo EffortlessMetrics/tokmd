@@ -145,6 +145,7 @@ fn make_derived_report(largest_lines: Vec<FileStatRow>) -> DerivedReport {
 /// Create a test AnalysisReceipt with the given derived report.
 fn make_receipt(derived: DerivedReport) -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -543,3 +544,4 @@ fn render_midi_start_time() {
         "third note should be 240 ticks after second"
     );
 }
+

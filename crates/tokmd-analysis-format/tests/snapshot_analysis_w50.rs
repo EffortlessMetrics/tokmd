@@ -60,6 +60,7 @@ fn minimal_args() -> AnalysisArgsMeta {
 
 fn empty_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: fixed_tool(),
@@ -485,3 +486,4 @@ fn snapshot_xml_archetype_license() {
     let text = extract_text(render(&receipt, AnalysisFormat::Xml).unwrap());
     insta::assert_snapshot!(text);
 }
+

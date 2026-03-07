@@ -21,6 +21,7 @@ members = [
     "crates/tokmd-analysis-near-dup",
     "crates/tokmd-analysis-format",
     "crates/tokmd-analysis-types",
+    "crates/tokmd-analysis-effort",
     "crates/tokmd-config",
     "crates/tokmd-core",
     "crates/tokmd-content",
@@ -168,6 +169,7 @@ tokmd-analysis-grid = { path = "crates/tokmd-analysis-grid", version = "1.7.3" }
 tokmd-analysis-archetype = { path = "crates/tokmd-analysis-archetype", version = "1.7.3" }
 tokmd-analysis-topics = { path = "crates/tokmd-analysis-topics", version = "1.7.3" }
 tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", version = "1.7.3" }
+tokmd-analysis-effort = { path = "crates/tokmd-analysis-effort", version = "1.7.3" }
 tokmd-git = { path = "crates/tokmd-git", version = "1.7.3" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.7.3" }
 tokmd-module-key = { path = "crates/tokmd-module-key", version = "1.7.3" }

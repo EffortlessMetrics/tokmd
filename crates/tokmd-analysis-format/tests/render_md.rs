@@ -88,6 +88,7 @@ fn render_md_snapshot() {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,

@@ -434,6 +434,34 @@ pub struct CliAnalyzeArgs {
     #[arg(long, value_enum)]
     pub granularity: Option<ImportGranularity>,
 
+    /// Effort model for estimate calculations [default: cocomo81-basic].
+    #[arg(long)]
+    pub effort_model: Option<EffortModelKind>,
+
+    /// Effort layer for report detail [default: full].
+    #[arg(long)]
+    pub effort_layer: Option<EffortLayer>,
+
+    /// Base reference for effort delta computation.
+    #[arg(long = "effort-base-ref")]
+    pub effort_base_ref: Option<String>,
+
+    /// Head reference for effort delta computation.
+    #[arg(long = "effort-head-ref")]
+    pub effort_head_ref: Option<String>,
+
+    /// Enable Monte Carlo simulation for effort estimation.
+    #[arg(long)]
+    pub monte_carlo: bool,
+
+    /// Monte Carlo iterations when effort estimation is enabled [default: 10000].
+    #[arg(long = "mc-iterations")]
+    pub mc_iterations: Option<u32>,
+
+    /// Monte Carlo seed for deterministic effort estimation.
+    #[arg(long = "mc-seed")]
+    pub mc_seed: Option<u64>,
+
     /// Include function-level complexity details in output.
     #[arg(long)]
     pub detail_functions: bool,
@@ -529,6 +557,7 @@ pub struct InitArgs {
 #[serde(rename_all = "kebab-case")]
 pub enum AnalysisPreset {
     Receipt,
+    Estimate,
     Health,
     Risk,
     Supply,
@@ -546,6 +575,22 @@ pub enum AnalysisPreset {
 pub enum ImportGranularity {
     Module,
     File,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum EffortModelKind {
+    Cocomo81Basic,
+    Cocomo2Early,
+    Ensemble,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum EffortLayer {
+    Headline,
+    Why,
+    Full,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1059,6 +1104,7 @@ mod tests {
     fn analysis_preset_serde_roundtrip() {
         for variant in [
             AnalysisPreset::Receipt,
+            AnalysisPreset::Estimate,
             AnalysisPreset::Health,
             AnalysisPreset::Risk,
             AnalysisPreset::Supply,

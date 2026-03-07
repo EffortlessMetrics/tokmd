@@ -50,6 +50,7 @@ pub struct AnalysisReceipt {
     pub dup: Option<DuplicateReport>,
     pub complexity: Option<ComplexityReport>,
     pub api_surface: Option<ApiSurfaceReport>,
+    pub effort: Option<EffortEstimateReport>,
     pub fun: Option<FunReport>,
 }
 
@@ -408,6 +409,126 @@ pub struct ContextWindowReport {
     pub total_tokens: usize,
     pub pct: f64,
     pub fits: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortEstimateReport {
+    pub model: EffortModel,
+    pub size_basis: EffortSizeBasis,
+    pub results: EffortResults,
+    pub confidence: EffortConfidence,
+    pub drivers: Vec<EffortDriver>,
+    pub assumptions: EffortAssumptions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta: Option<EffortDeltaReport>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortSizeBasis {
+    pub total_lines: usize,
+    pub authored_lines: usize,
+    pub generated_lines: usize,
+    pub vendored_lines: usize,
+    pub kloc_total: f64,
+    pub kloc_authored: f64,
+    pub generated_pct: f64,
+    pub vendored_pct: f64,
+    pub classification_confidence: EffortConfidenceLevel,
+    pub warnings: Vec<String>,
+    pub by_tag: Vec<EffortTagSizeRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortTagSizeRow {
+    pub tag: String,
+    pub lines: usize,
+    pub authored_lines: usize,
+    pub pct_of_total: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortModel {
+    Cocomo81Basic,
+    Cocomo2Early,
+    Ensemble,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortResults {
+    pub effort_pm_p50: f64,
+    pub schedule_months_p50: f64,
+    pub staff_p50: f64,
+    pub effort_pm_low: f64,
+    pub effort_pm_p80: f64,
+    pub schedule_months_low: f64,
+    pub schedule_months_p80: f64,
+    pub staff_low: f64,
+    pub staff_p80: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortConfidence {
+    pub level: EffortConfidenceLevel,
+    pub reasons: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_coverage_pct: Option<f64>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortConfidenceLevel {
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortDriver {
+    pub key: String,
+    pub label: String,
+    pub weight: f64,
+    pub direction: EffortDriverDirection,
+    pub evidence: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortDriverDirection {
+    Raises,
+    Lowers,
+    Neutral,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortAssumptions {
+    pub notes: Vec<String>,
+    pub overrides: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortDeltaReport {
+    pub base: String,
+    pub head: String,
+    pub files_changed: usize,
+    pub modules_changed: usize,
+    pub langs_changed: usize,
+    pub hotspot_files_touched: usize,
+    pub coupled_neighbors_touched: usize,
+    pub blast_radius: f64,
+    pub classification: EffortDeltaClassification,
+    pub effort_pm_low: f64,
+    pub effort_pm_est: f64,
+    pub effort_pm_high: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortDeltaClassification {
+    Low,
+    Medium,
+    High,
+    Critical,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

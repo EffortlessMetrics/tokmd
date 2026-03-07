@@ -281,6 +281,7 @@ pub fn analyze_workflow(
     let export_receipt = export_workflow(scan, &ExportSettings::default())?;
     let (preset, preset_meta) = parse_analysis_preset(&analyze.preset)?;
     let (granularity, granularity_meta) = parse_import_granularity(&analyze.granularity)?;
+    let effort = parse_effort_request(analyze)?;
 
     let source = AnalysisSource {
         inputs: scan.paths.clone(),
@@ -325,6 +326,7 @@ pub fn analyze_workflow(
         near_dup_scope: analysis::NearDupScope::Module,
         near_dup_max_pairs: None,
         near_dup_exclude: Vec::new(),
+        effort,
     };
 
     let root = derive_analysis_root(scan)
@@ -476,6 +478,7 @@ fn parse_analysis_preset(value: &str) -> Result<(analysis::AnalysisPreset, Strin
     let normalized = value.trim().to_ascii_lowercase();
     let preset = match normalized.as_str() {
         "receipt" => analysis::AnalysisPreset::Receipt,
+        "estimate" => analysis::AnalysisPreset::Estimate,
         "health" => analysis::AnalysisPreset::Health,
         "risk" => analysis::AnalysisPreset::Risk,
         "supply" => analysis::AnalysisPreset::Supply,
@@ -489,7 +492,7 @@ fn parse_analysis_preset(value: &str) -> Result<(analysis::AnalysisPreset, Strin
         _ => {
             return Err(error::TokmdError::invalid_field(
                 "preset",
-                "'receipt', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
+                "'receipt', 'estimate', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
             )
             .into());
         }
@@ -510,6 +513,103 @@ fn parse_import_granularity(value: &str) -> Result<(analysis::ImportGranularity,
         }
     };
     Ok((granularity, normalized))
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_request(
+    analyze: &settings::AnalyzeSettings,
+) -> Result<Option<analysis::EffortRequest>> {
+    let request = analysis::EffortRequest::default();
+    let requested = analyze.effort_model.is_some()
+        || analyze.effort_layer.is_some()
+        || analyze.effort_base_ref.is_some()
+        || analyze.effort_head_ref.is_some()
+        || analyze.effort_monte_carlo.unwrap_or(false)
+        || analyze.effort_mc_iterations.is_some()
+        || analyze.effort_mc_seed.is_some();
+
+    if !requested {
+        return Ok(None);
+    }
+
+    if (analyze.effort_base_ref.is_some() && analyze.effort_head_ref.is_none())
+        || (analyze.effort_base_ref.is_none() && analyze.effort_head_ref.is_some())
+    {
+        return Err(error::TokmdError::invalid_field(
+            "effort_base_ref/effort_head_ref",
+            "both effort_base_ref and effort_head_ref must be provided together",
+        )
+        .into());
+    }
+
+    let model = analyze
+        .effort_model
+        .as_deref()
+        .map(parse_effort_model)
+        .transpose()?
+        .unwrap_or(request.model);
+    let layer = analyze
+        .effort_layer
+        .as_deref()
+        .map(parse_effort_layer)
+        .transpose()?
+        .unwrap_or(request.layer);
+
+    let monte_carlo = analyze.effort_monte_carlo.unwrap_or(false);
+
+    let mc_iterations = analyze
+        .effort_mc_iterations
+        .unwrap_or(request.mc_iterations);
+
+    if mc_iterations == 0 {
+        return Err(error::TokmdError::invalid_field(
+            "effort_mc_iterations",
+            "must be greater than 0",
+        )
+        .into());
+    }
+
+    Ok(Some(analysis::EffortRequest {
+        model,
+        layer,
+        base_ref: analyze.effort_base_ref.clone(),
+        head_ref: analyze.effort_head_ref.clone(),
+        monte_carlo,
+        mc_iterations,
+        mc_seed: analyze.effort_mc_seed,
+    }))
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_model(value: &str) -> Result<analysis::EffortModelKind> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "cocomo81-basic" => Ok(analysis::EffortModelKind::Cocomo81Basic),
+        "cocomo2-early" => Ok(analysis::EffortModelKind::Cocomo2Early),
+        "ensemble" => Ok(analysis::EffortModelKind::Ensemble),
+        _ => Err(
+            error::TokmdError::invalid_field(
+                "effort_model",
+                "'cocomo81-basic', 'cocomo2-early', or 'ensemble'",
+            )
+            .into(),
+        ),
+    }
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_layer(value: &str) -> Result<analysis::EffortLayer> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "headline" => Ok(analysis::EffortLayer::Headline),
+        "why" => Ok(analysis::EffortLayer::Why),
+        "full" => Ok(analysis::EffortLayer::Full),
+        _ => Err(
+            error::TokmdError::invalid_field(
+                "effort_layer",
+                "'headline', 'why', or 'full'",
+            )
+            .into(),
+        ),
+    }
 }
 
 #[cfg(feature = "analysis")]
