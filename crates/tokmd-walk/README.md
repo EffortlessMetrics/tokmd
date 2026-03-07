@@ -16,6 +16,7 @@ tokmd-walk = "1.3"
 ## Usage
 
 ```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_walk::{list_files, license_candidates, file_size};
 use std::path::Path;
 
@@ -29,18 +30,20 @@ println!("Metadata files: {:?}", candidates.metadata_files);
 
 // Get file size
 let size = file_size(Path::new("."), Path::new("src/lib.rs"))?;
+# Ok(())
+# }
 ```
 
 ## Key Functions
 
 ### File Listing
-```rust
+```rust,ignore
 pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
 ```
 Lists files respecting gitignore. Tries `git ls-files` first, falls back to the `ignore` crate.
 
 ### License Detection
-```rust
+```rust,ignore
 pub fn license_candidates(files: &[PathBuf]) -> LicenseCandidates
 ```
 Identifies common license files:
@@ -48,7 +51,7 @@ Identifies common license files:
 - Metadata: `Cargo.toml`, `package.json`, `pyproject.toml`
 
 ### File Size
-```rust
+```rust,ignore
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64>
 ```
 
