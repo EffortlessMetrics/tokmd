@@ -2,8 +2,8 @@
 
 #![forbid(unsafe_code)]
 
-use std::fmt::Write;
 use std::collections::BTreeMap;
+use std::fmt::Write;
 
 use tokmd_types::{ExportData, FileKind, FileRow};
 
@@ -28,8 +28,9 @@ fn insert_analysis(node: &mut AnalysisNode, parts: &[&str], lines: usize, tokens
 
 fn render_analysis(node: &AnalysisNode, name: &str, indent: &str, out: &mut String) {
     if !name.is_empty() {
-        let _ = write!(out,
-            "{}{} (lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (lines: {}, tokens: {})",
             indent, name, node.lines, node.tokens
         );
     }
@@ -100,8 +101,9 @@ fn render_handoff(
     };
 
     if !display.is_empty() {
-        let _ = write!(out,
-            "{}{} (files: {}, lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (files: {}, lines: {}, tokens: {})",
             indent, display, node.files, node.lines, node.tokens
         );
     }
