@@ -1,4 +1,6 @@
+
 use std::fs::{self, File, OpenOptions};
+use std::fmt::Write as FmtWrite;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -349,22 +351,22 @@ fn format_list_output(
     utilization: f64,
     strategy: cli::ContextStrategy,
 ) -> String {
-    let mut out = String::new();
+    let mut out = String::with_capacity((selected.len() + 10) * 80);
     out.push_str("# Context Pack\n\n");
-    out.push_str(&format!("Budget: {} tokens\n", budget));
-    out.push_str(&format!(
+    let _ = write!(out, "Budget: {} tokens\n", budget);
+    let _ = write!(out,
         "Used: {} tokens ({:.1}%)\n",
         used_tokens, utilization
-    ));
-    out.push_str(&format!("Files: {}\n", selected.len()));
-    out.push_str(&format!("Strategy: {:?}\n\n", strategy));
+    );
+    let _ = write!(out, "Files: {}\n", selected.len());
+    let _ = write!(out, "Strategy: {:?}\n\n", strategy);
     out.push_str("|Path|Module|Lang|Tokens|Code|\n");
     out.push_str("|---|---|---|---:|---:|\n");
     for file in selected {
-        out.push_str(&format!(
+        let _ = write!(out,
             "|{}|{}|{}|{}|{}|\n",
             file.path, file.module, file.lang, file.tokens, file.code
-        ));
+        );
     }
     out
 }
