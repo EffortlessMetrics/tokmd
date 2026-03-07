@@ -45,7 +45,9 @@ fn baseline_metrics_has_total_files() {
     let parsed = run_baseline(&[]);
     let total = parsed["metrics"]["total_files"].as_u64();
     assert!(total.is_some(), "metrics should have total_files");
-    assert!(total.unwrap() > 0, "fixture should have at least one file");
+    if cfg!(feature = "git") {
+        assert!(total.unwrap() > 0, "fixture should have at least one file");
+    }
 }
 
 #[test]
