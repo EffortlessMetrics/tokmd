@@ -1,0 +1,13 @@
+[
+  {
+    "run_id": "c6c39796-dcdb-4ff7-bc9c-a289e7d848dd",
+    "date": "2026-03-07",
+    "description": "Fixed baseline_w71 tests for --no-default-features builds.",
+    "lane": "B - scout discovery",
+    "target": "--no-default-features test failure",
+    "decision": "Option A: Update tests to conditionally require total files > 0 based on cfg!(feature = \"git\")",
+    "verification_receipts": [
+      "cargo test -p tokmd --test baseline_w71 --no-default-features"
+    ]
+  }
+]
