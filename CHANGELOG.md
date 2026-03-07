@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Effort estimation support: new `estimate` analysis preset with COCOMO-based effort models (`cocomo81-basic`, `cocomo2-early`, `ensemble`), per-language/module breakdowns, delta comparison, and Monte Carlo simulation
-- New CLI args for analyze command: `--effort-model`, `--effort-layer`, `--effort-base`, `--effort-head`, `--monte-carlo`, `--mc-iterations`, `--mc-seed`
-- Analysis schema v9: added `EffortReport` with headline, by-language, by-module, delta, and Monte Carlo sections
+- Effort estimation scaffolding: new `tokmd-analysis-effort` crate, `estimate` analysis preset, and `EffortEstimateReport` receipt type (results are placeholder/zeroed pending follow-up implementation)
+- New CLI args for analyze command: `--effort-model`, `--effort-layer`, `--effort-base`, `--effort-head`, `--monte-carlo`, `--mc-iterations`, `--mc-seed` (parsed but not yet wired to computation)
+- Analysis schema v9: added `effort` section with size basis, result placeholders, confidence tracking, and driver/delta structure
 
 ## [1.7.3] - 2026-03-06
 

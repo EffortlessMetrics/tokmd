@@ -39,7 +39,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 | Version | Changes |
 |---------|---------|
-| **9** | Added `effort` section with COCOMO-based effort estimation (headline, by-language, by-module, delta, Monte Carlo), new `estimate` preset, and effort CLI args (`effort_model`, `effort_layer`, `base_ref`, `head_ref`, `monte_carlo`, `mc_iterations`, `mc_seed`) in `AnalysisArgsMeta` |
+| **9** | Added `effort` section scaffolding with size basis, result placeholders, confidence tracking, and driver/delta structure; new `estimate` preset; effort CLI args (`effort_model`, `effort_layer`, `base_ref`, `head_ref`, `monte_carlo`, `mc_iterations`, `mc_seed`) in `AnalysisArgsMeta`. Results are zeroed pending follow-up COCOMO model implementation |
 | **8** | Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats |
 | **7** | Coupling normalization (Jaccard similarity, Lift), commit intent classification, near-duplicate detection report |
 | **6** | Added API surface enricher (`api_surface` report with public export ratios per language) |
