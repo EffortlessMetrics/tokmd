@@ -1,0 +1,16 @@
+{
+  "run_id": "1",
+  "timestamp": "2026-03-07T12:39:05Z",
+  "lane": "scout discovery",
+  "action": "remove unused anyhow from tokmd-model",
+  "receipts": [
+    {
+      "command": "cargo check -p tokmd-model",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo test -p tokmd-model",
+      "exit_code": 0
+    }
+  ]
+}
