@@ -63,7 +63,7 @@ fn as_str_values_contain_no_whitespace() {
 
 #[test]
 fn all_returns_exactly_eleven_presets() {
-    assert_eq!(PresetKind::all().len(), 11);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]

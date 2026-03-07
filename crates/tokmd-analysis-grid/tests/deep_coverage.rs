@@ -54,7 +54,7 @@ fn preset_plan_for_name_matches_preset_plan_for() {
 #[test]
 fn grid_length_matches_kinds_length() {
     assert_eq!(PRESET_GRID.len(), PRESET_KINDS.len());
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -259,6 +259,7 @@ fn grid_order_is_stable() {
         "git",
         "deep",
         "fun",
+        "estimate",
     ];
     assert_eq!(names, expected);
 }

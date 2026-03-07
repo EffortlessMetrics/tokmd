@@ -307,6 +307,13 @@ pub fn analyze_workflow(
             max_commits: analyze.max_commits,
             max_commit_files: analyze.max_commit_files,
             import_granularity: granularity_meta,
+            effort_model: None,
+            effort_layer: None,
+            base_ref: None,
+            head_ref: None,
+            monte_carlo: None,
+            mc_iterations: None,
+            mc_seed: None,
         },
         limits: analysis::AnalysisLimits {
             max_files: analyze.max_files,

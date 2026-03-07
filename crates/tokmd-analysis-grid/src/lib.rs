@@ -13,6 +13,7 @@ pub enum PresetKind {
     Git,
     Deep,
     Fun,
+    Estimate,
 }
 
 impl PresetKind {
@@ -29,6 +30,7 @@ impl PresetKind {
             Self::Git => "git",
             Self::Deep => "deep",
             Self::Fun => "fun",
+            Self::Estimate => "estimate",
         }
     }
 
@@ -46,12 +48,13 @@ impl PresetKind {
             "git" => Some(Self::Git),
             "deep" => Some(Self::Deep),
             "fun" => Some(Self::Fun),
+            "estimate" => Some(Self::Estimate),
             _ => None,
         }
     }
 }
 
-pub const PRESET_KINDS: [PresetKind; 11] = [
+pub const PRESET_KINDS: [PresetKind; 12] = [
     PresetKind::Receipt,
     PresetKind::Health,
     PresetKind::Risk,
@@ -63,10 +66,11 @@ pub const PRESET_KINDS: [PresetKind; 11] = [
     PresetKind::Git,
     PresetKind::Deep,
     PresetKind::Fun,
+    PresetKind::Estimate,
 ];
 
 impl PresetKind {
-    pub const fn all() -> &'static [PresetKind; 11] {
+    pub const fn all() -> &'static [PresetKind; 12] {
         &PRESET_KINDS
     }
 }
@@ -86,6 +90,7 @@ pub struct PresetPlan {
     pub license: bool,
     pub complexity: bool,
     pub api_surface: bool,
+    pub effort: bool,
     #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
     pub halstead: bool,
     #[cfg(feature = "git")]
@@ -123,7 +128,7 @@ pub struct PresetGridRow {
     pub plan: PresetPlan,
 }
 
-pub const PRESET_GRID: [PresetGridRow; 11] = [
+pub const PRESET_GRID: [PresetGridRow; 12] = [
     PresetGridRow {
         preset: PresetKind::Receipt,
         plan: PresetPlan {
@@ -140,6 +145,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -164,6 +170,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: true,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -188,6 +195,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: true,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -212,6 +220,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -236,6 +245,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: true,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -260,6 +270,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -284,6 +295,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: true,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -308,6 +320,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -332,6 +345,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
@@ -356,6 +370,7 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: true,
             complexity: true,
             api_surface: true,
+            effort: true,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: true,
             #[cfg(feature = "git")]
@@ -380,6 +395,32 @@ pub const PRESET_GRID: [PresetGridRow; 11] = [
             license: false,
             complexity: false,
             api_surface: false,
+            effort: false,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
+            #[cfg(feature = "git")]
+            churn: false,
+            #[cfg(feature = "git")]
+            fingerprint: false,
+        },
+    },
+    PresetGridRow {
+        preset: PresetKind::Estimate,
+        plan: PresetPlan {
+            assets: false,
+            deps: false,
+            todo: false,
+            dup: false,
+            imports: false,
+            git: false,
+            fun: false,
+            archetype: false,
+            topics: false,
+            entropy: false,
+            license: false,
+            complexity: false,
+            api_surface: false,
+            effort: true,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]

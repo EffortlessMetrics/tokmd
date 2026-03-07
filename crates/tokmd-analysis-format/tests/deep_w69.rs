@@ -44,6 +44,13 @@ fn minimal_receipt() -> AnalysisReceipt {
             max_commit_files: None,
             max_file_bytes: None,
             import_granularity: "module".to_string(),
+            effort_model: None,
+            effort_layer: None,
+            base_ref: None,
+            head_ref: None,
+            monte_carlo: None,
+            mc_iterations: None,
+            mc_seed: None,
         },
         archetype: None,
         topics: None,
@@ -60,6 +67,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         complexity: None,
         api_surface: None,
         fun: None,
+        effort: None,
     }
 }
 

@@ -94,9 +94,11 @@ proptest! {
         let report = derive_report(&export(rows), None);
         if let Some(cocomo) = &report.cocomo {
             prop_assert!(cocomo.kloc >= 0.0, "kloc must be non-negative");
-            prop_assert!(cocomo.effort_pm > 0.0, "effort must be positive for non-zero code");
-            prop_assert!(cocomo.duration_months > 0.0, "duration must be positive");
-            prop_assert!(cocomo.staff > 0.0, "staff must be positive");
+            // effort_pm/duration_months/staff are rounded to 2 decimal places,
+            // so very small codebases (e.g. 1 LOC) can round to 0.0
+            prop_assert!(cocomo.effort_pm >= 0.0, "effort must be non-negative");
+            prop_assert!(cocomo.duration_months >= 0.0, "duration must be non-negative");
+            prop_assert!(cocomo.staff >= 0.0, "staff must be non-negative");
         }
     }
 

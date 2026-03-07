@@ -4,9 +4,9 @@ use anyhow::Result;
 use tokmd_analysis_grid::{PresetKind, PresetPlan, preset_plan_for};
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
-    ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
-    FunReport, GitReport, ImportReport, LicenseReport, NearDupScope, PredictiveChurnReport,
-    TopicClouds,
+    ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport,
+    EffortEstimateReport, EntropyReport, FunReport, GitReport, ImportReport, LicenseReport,
+    NearDupScope, PredictiveChurnReport, TopicClouds,
 };
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
@@ -27,6 +27,8 @@ use tokmd_analysis_archetype::detect_archetype;
 use tokmd_analysis_assets::{build_assets_report, build_dependency_report};
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_complexity::build_complexity_report;
+#[cfg(feature = "effort")]
+use tokmd_analysis_effort::build_effort_report;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_entropy::build_entropy_report;
 #[cfg(feature = "git")]
@@ -169,6 +171,11 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     let mut topics: Option<TopicClouds> = None;
     #[cfg(not(feature = "topics"))]
     let topics: Option<TopicClouds> = None;
+
+    #[cfg(feature = "effort")]
+    let mut effort: Option<EffortEstimateReport> = None;
+    #[cfg(not(feature = "effort"))]
+    let effort: Option<EffortEstimateReport> = None;
 
     let fun: Option<FunReport>;
 
@@ -490,6 +497,13 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
     }
 
+    if plan.effort {
+        #[cfg(feature = "effort")]
+        {
+            effort = Some(build_effort_report(&derived));
+        }
+    }
+
     if plan.fun {
         #[cfg(feature = "fun")]
         {
@@ -538,6 +552,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         complexity,
         api_surface,
         fun,
+        effort,
     };
 
     Ok(receipt)

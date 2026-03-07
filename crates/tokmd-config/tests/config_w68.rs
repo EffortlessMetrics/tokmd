@@ -252,6 +252,7 @@ fn analysis_preset_serde_roundtrip() {
         AnalysisPreset::Git,
         AnalysisPreset::Deep,
         AnalysisPreset::Fun,
+        AnalysisPreset::Estimate,
     ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: AnalysisPreset = serde_json::from_str(&json).unwrap();

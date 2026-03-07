@@ -19,7 +19,7 @@ use tokmd_analysis_grid::{
 
 #[test]
 fn grid_has_exactly_eleven_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn grid_covers_every_preset_kind() {
 
 #[test]
 fn preset_kinds_array_has_eleven_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]

@@ -1,0 +1,12 @@
+[package]
+name = "tokmd-hook-format"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+publish = false
+description = "Native Rust replacement for Claude post-edit Rust formatting hook logic."
+
+[dependencies]
+serde_json = { workspace = true }

@@ -42,6 +42,13 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
             max_commit_files: None,
             max_file_bytes: None,
             import_granularity: "module".into(),
+            effort_model: None,
+            effort_layer: None,
+            base_ref: None,
+            head_ref: None,
+            monte_carlo: None,
+            mc_iterations: None,
+            mc_seed: None,
         },
         archetype: None,
         topics: None,
@@ -58,6 +65,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
         complexity: None,
         api_surface: None,
         fun: None,
+        effort: None,
     }
 }
 
@@ -71,7 +79,7 @@ fn analysis_schema_version_is_positive() {
 
 #[test]
 fn analysis_schema_version_pinned() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]
@@ -253,6 +261,13 @@ mod properties {
                 max_commit_files: None,
                 max_file_bytes: None,
                 import_granularity: "module".into(),
+                effort_model: None,
+                effort_layer: None,
+                base_ref: None,
+                head_ref: None,
+                monte_carlo: None,
+                mc_iterations: None,
+                mc_seed: None,
             },
             archetype: None,
             topics: None,
@@ -269,6 +284,7 @@ mod properties {
             complexity: None,
             api_surface: None,
             fun: None,
+            effort: None,
         })
     }
 

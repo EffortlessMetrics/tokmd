@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Effort estimation scaffolding: new `tokmd-analysis-effort` crate, `estimate` analysis preset, and `EffortEstimateReport` receipt type (results are placeholder/zeroed pending follow-up implementation)
+- New CLI args for analyze command: `--effort-model`, `--effort-layer`, `--effort-base`, `--effort-head`, `--monte-carlo`, `--mc-iterations`, `--mc-seed` (parsed but not yet wired to computation)
+- Analysis schema v9: added `effort` section with size basis, result placeholders, confidence tracking, and driver/delta structure
+
 ## [1.7.3] - 2026-03-06
 
 ### Added

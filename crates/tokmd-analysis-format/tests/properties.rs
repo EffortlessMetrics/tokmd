@@ -249,6 +249,13 @@ fn arb_receipt() -> impl Strategy<Value = AnalysisReceipt> {
                 max_commits: None,
                 max_commit_files: None,
                 import_granularity: "module".into(),
+                effort_model: None,
+                effort_layer: None,
+                base_ref: None,
+                head_ref: None,
+                monte_carlo: None,
+                mc_iterations: None,
+                mc_seed: None,
             },
             archetype: None,
             topics: None,
@@ -265,6 +272,7 @@ fn arb_receipt() -> impl Strategy<Value = AnalysisReceipt> {
             complexity: None,
             api_surface: None,
             fun: None,
+            effort: None,
         }
     })
 }
@@ -439,6 +447,13 @@ proptest! {
                 max_commits: None,
                 max_commit_files: None,
                 import_granularity: "module".into(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
             },
             archetype: None,
             topics: None,
@@ -455,6 +470,7 @@ proptest! {
             complexity: None,
             api_surface: None,
             fun: None,
+        effort: None,
         };
         let rendered = render(&receipt, AnalysisFormat::Md).unwrap();
         let text = match rendered {

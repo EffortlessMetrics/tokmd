@@ -47,6 +47,13 @@ fn sample_analysis_args() -> AnalysisArgsMeta {
         max_commit_files: None,
         max_file_bytes: None,
         import_granularity: "module".to_string(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     }
 }
 
@@ -75,6 +82,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
         complexity: None,
         api_surface: None,
         fun: None,
+        effort: None,
     }
 }
 
@@ -85,7 +93,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
 #[test]
 fn analysis_schema_version_matches_expected() {
     assert_eq!(
-        ANALYSIS_SCHEMA_VERSION, 8,
+        ANALYSIS_SCHEMA_VERSION, 9,
         "ANALYSIS_SCHEMA_VERSION changed — update docs/SCHEMA.md and docs/schema.json"
     );
 }

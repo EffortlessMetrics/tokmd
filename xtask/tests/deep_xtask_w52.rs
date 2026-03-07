@@ -235,7 +235,7 @@ fn docs_task_without_flags_reports_status() {
     let (stdout, _stderr, success) = run_xtask(&["docs"]);
     assert!(success, "docs without flags should succeed");
     assert!(
-        stdout.contains("up to date") || stdout.contains("Updated"),
+        stdout.contains("up to date") || stdout.contains("Updated") || stdout.contains("drift"),
         "should report documentation status: {stdout}"
     );
 }

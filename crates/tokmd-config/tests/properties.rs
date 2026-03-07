@@ -51,7 +51,7 @@ const ANALYSIS_FORMATS: [AnalysisFormat; 10] = [
     AnalysisFormat::Html,
 ];
 
-const ANALYSIS_PRESETS: [AnalysisPreset; 11] = [
+const ANALYSIS_PRESETS: [AnalysisPreset; 12] = [
     AnalysisPreset::Receipt,
     AnalysisPreset::Health,
     AnalysisPreset::Risk,
@@ -63,6 +63,7 @@ const ANALYSIS_PRESETS: [AnalysisPreset; 11] = [
     AnalysisPreset::Git,
     AnalysisPreset::Deep,
     AnalysisPreset::Fun,
+    AnalysisPreset::Estimate,
 ];
 
 const IMPORT_GRANULARITIES: [ImportGranularity; 2] =

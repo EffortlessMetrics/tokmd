@@ -48,6 +48,13 @@ fn args() -> AnalysisArgsMeta {
         max_commit_files: None,
         max_file_bytes: None,
         import_granularity: "module".into(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     }
 }
 
@@ -76,6 +83,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         complexity: None,
         api_surface: None,
         fun: None,
+        effort: None,
     }
 }
 
@@ -84,8 +92,8 @@ fn minimal_receipt() -> AnalysisReceipt {
 // ══════════════════════════════════════════════════════════════════════
 
 #[test]
-fn schema_version_is_8() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+fn schema_version_is_9() {
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]

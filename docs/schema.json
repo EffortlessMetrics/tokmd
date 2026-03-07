@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 8 },
+        "schema_version": { "type": "integer", "const": 9 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -268,7 +268,8 @@
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
         "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
         "api_surface": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ApiSurfaceReport" }] },
-        "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
+        "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] },
+        "effort": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EffortEstimateReport" }] }
       }
     },
     "ApiSurfaceReport": {
@@ -353,7 +354,14 @@
         "max_commits": { "type": ["integer", "null"], "description": "Maximum commits limit." },
         "max_commit_files": { "type": ["integer", "null"], "description": "Maximum files per commit limit." },
         "max_file_bytes": { "type": ["integer", "null"], "description": "Maximum bytes per file limit." },
-        "import_granularity": { "type": "string", "description": "Import graph granularity (module or file)." }
+        "import_granularity": { "type": "string", "description": "Import graph granularity (module or file)." },
+        "effort_model": { "type": ["string", "null"], "description": "Effort estimation model (cocomo81-basic, cocomo2-early, ensemble)." },
+        "effort_layer": { "type": ["string", "null"], "description": "Effort output detail layer (headline, why, full)." },
+        "base_ref": { "type": ["string", "null"], "description": "Base git ref for effort delta comparison." },
+        "head_ref": { "type": ["string", "null"], "description": "Head git ref for effort delta comparison." },
+        "monte_carlo": { "type": ["boolean", "null"], "description": "Whether Monte Carlo simulation was enabled." },
+        "mc_iterations": { "type": ["integer", "null"], "description": "Number of Monte Carlo iterations." },
+        "mc_seed": { "type": ["integer", "null"], "description": "Random seed for Monte Carlo reproducibility." }
       }
     },
     "Archetype": {
@@ -1107,6 +1115,108 @@
         "label": { "type": "string", "description": "Eco label (A-F)." },
         "bytes": { "type": "integer", "description": "Total bytes." },
         "notes": { "type": "string", "description": "Notes about the rating." }
+      }
+    },
+    "EffortEstimateReport": {
+      "type": "object",
+      "description": "Effort estimation report.",
+      "required": ["model", "size_basis", "results", "confidence", "assumptions"],
+      "properties": {
+        "model": { "type": "string", "enum": ["cocomo81_basic", "cocomo2_early", "ensemble"], "description": "Effort estimation model." },
+        "size_basis": { "$ref": "#/definitions/EffortSizeBasis" },
+        "results": { "$ref": "#/definitions/EffortResults" },
+        "confidence": { "$ref": "#/definitions/EffortConfidence" },
+        "drivers": { "type": "array", "items": { "$ref": "#/definitions/EffortDriver" }, "default": [] },
+        "assumptions": { "$ref": "#/definitions/EffortAssumptions" },
+        "delta": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EffortDeltaReport" }] }
+      }
+    },
+    "EffortSizeBasis": {
+      "type": "object",
+      "required": ["total_lines", "authored_lines", "generated_lines", "vendored_lines", "kloc_total", "kloc_authored", "generated_pct", "vendored_pct", "classification_confidence"],
+      "properties": {
+        "total_lines": { "type": "integer" },
+        "authored_lines": { "type": "integer" },
+        "generated_lines": { "type": "integer" },
+        "vendored_lines": { "type": "integer" },
+        "kloc_total": { "type": "number" },
+        "kloc_authored": { "type": "number" },
+        "generated_pct": { "type": "number" },
+        "vendored_pct": { "type": "number" },
+        "classification_confidence": { "type": "string", "enum": ["low", "medium", "high"] },
+        "warnings": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "by_tag": { "type": "array", "items": { "$ref": "#/definitions/EffortTagSizeRow" }, "default": [] }
+      }
+    },
+    "EffortResults": {
+      "type": "object",
+      "required": ["effort_pm_low", "effort_pm_p50", "effort_pm_p80", "schedule_months_low", "schedule_months_p50", "schedule_months_p80", "staff_low", "staff_p50", "staff_p80"],
+      "properties": {
+        "effort_pm_low": { "type": "number" },
+        "effort_pm_p50": { "type": "number" },
+        "effort_pm_p80": { "type": "number" },
+        "schedule_months_low": { "type": "number" },
+        "schedule_months_p50": { "type": "number" },
+        "schedule_months_p80": { "type": "number" },
+        "staff_low": { "type": "number" },
+        "staff_p50": { "type": "number" },
+        "staff_p80": { "type": "number" }
+      }
+    },
+    "EffortConfidence": {
+      "type": "object",
+      "required": ["level", "reasons"],
+      "properties": {
+        "level": { "type": "string", "enum": ["low", "medium", "high"] },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "data_coverage_pct": { "type": ["number", "null"] }
+      }
+    },
+    "EffortDriver": {
+      "type": "object",
+      "required": ["key", "label", "weight", "direction", "evidence"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string" },
+        "weight": { "type": "number" },
+        "direction": { "type": "string", "enum": ["raises", "lowers", "neutral"] },
+        "evidence": { "type": "string" }
+      }
+    },
+    "EffortAssumptions": {
+      "type": "object",
+      "required": ["notes"],
+      "properties": {
+        "notes": { "type": "array", "items": { "type": "string" } },
+        "overrides": { "type": "object", "additionalProperties": { "type": "string" }, "default": {} }
+      }
+    },
+    "EffortTagSizeRow": {
+      "type": "object",
+      "required": ["tag", "lines", "authored_lines", "pct_of_total"],
+      "properties": {
+        "tag": { "type": "string" },
+        "lines": { "type": "integer" },
+        "authored_lines": { "type": "integer" },
+        "pct_of_total": { "type": "number" }
+      }
+    },
+    "EffortDeltaReport": {
+      "type": "object",
+      "required": ["base", "head", "files_changed", "modules_changed", "langs_changed", "hotspot_files_touched", "coupled_neighbors_touched", "blast_radius", "classification", "effort_pm_low", "effort_pm_est", "effort_pm_high"],
+      "properties": {
+        "base": { "type": "string" },
+        "head": { "type": "string" },
+        "files_changed": { "type": "integer" },
+        "modules_changed": { "type": "integer" },
+        "langs_changed": { "type": "integer" },
+        "hotspot_files_touched": { "type": "integer" },
+        "coupled_neighbors_touched": { "type": "integer" },
+        "blast_radius": { "type": "number" },
+        "classification": { "type": "string" },
+        "effort_pm_low": { "type": "number" },
+        "effort_pm_est": { "type": "number" },
+        "effort_pm_high": { "type": "number" }
       }
     },
     "CockpitReceipt": {

@@ -67,6 +67,13 @@ pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
         max_commits: None,
         max_commit_files: None,
         import_granularity: "module".to_string(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     };
 
     // Run analysis with "health" preset (includes complexity)

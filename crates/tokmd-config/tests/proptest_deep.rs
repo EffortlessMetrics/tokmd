@@ -91,6 +91,7 @@ double_roundtrip_test!(
         AnalysisPreset::Git,
         AnalysisPreset::Deep,
         AnalysisPreset::Fun,
+        AnalysisPreset::Estimate,
     ]
 );
 
