@@ -66,6 +66,13 @@ fn sample_args(preset: &str) -> AnalysisArgsMeta {
         max_commit_files: None,
         max_file_bytes: None,
         import_granularity: "module".to_string(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     }
 }
 

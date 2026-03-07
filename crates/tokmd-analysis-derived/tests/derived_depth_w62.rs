@@ -515,8 +515,10 @@ proptest! {
         let r = derive_report(&export(rows), None);
         if total_code > 0 {
             let c = r.cocomo.unwrap();
-            prop_assert!(c.effort_pm > 0.0);
-            prop_assert!(c.duration_months > 0.0);
+            // effort_pm/duration_months are rounded to 2 decimal places,
+            // so very small codebases (e.g. 1 LOC) can round to 0.0
+            prop_assert!(c.effort_pm >= 0.0);
+            prop_assert!(c.duration_months >= 0.0);
         } else {
             prop_assert!(r.cocomo.is_none());
         }

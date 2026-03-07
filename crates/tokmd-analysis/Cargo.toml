@@ -12,7 +12,7 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis"
 
 [features]
-default = ["fun", "topics", "archetype"]
+default = ["fun", "topics", "archetype", "effort"]
 git = [
     "dep:tokmd-git",
     "dep:tokmd-analysis-fingerprint",
@@ -44,6 +44,7 @@ halstead = [
 fun = ["dep:tokmd-analysis-fun", "tokmd-analysis-grid/fun"]
 topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
 archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
+effort = ["dep:tokmd-analysis-effort"]
 
 [dependencies]
 anyhow = "1.0.101"
@@ -75,6 +76,7 @@ tokmd-analysis-complexity = { workspace = true, optional = true }
 tokmd-analysis-entropy = { workspace = true, optional = true }
 tokmd-analysis-license = { workspace = true, optional = true }
 tokmd-analysis-halstead = { workspace = true, optional = true }
+tokmd-analysis-effort = { workspace = true, optional = true }
 tokmd-analysis-maintainability = { workspace = true, optional = true }
 
 [dev-dependencies]

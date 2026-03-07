@@ -68,6 +68,31 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         max_commits: args.max_commits,
         max_commit_files: args.max_commit_files,
         import_granularity: analysis_utils::granularity_to_string(granularity),
+        effort_model: args.effort_model.map(|m| {
+            match m {
+                cli::EffortModelArg::Cocomo81Basic => "cocomo81-basic",
+                cli::EffortModelArg::Cocomo2Early => "cocomo2-early",
+                cli::EffortModelArg::Ensemble => "ensemble",
+            }
+            .to_string()
+        }),
+        effort_layer: args.effort_layer.map(|l| {
+            match l {
+                cli::EffortLayerArg::Headline => "headline",
+                cli::EffortLayerArg::Why => "why",
+                cli::EffortLayerArg::Full => "full",
+            }
+            .to_string()
+        }),
+        base_ref: args.effort_base.clone(),
+        head_ref: args.effort_head.clone(),
+        monte_carlo: if args.monte_carlo { Some(true) } else { None },
+        mc_iterations: if args.monte_carlo {
+            Some(args.mc_iterations)
+        } else {
+            None
+        },
+        mc_seed: args.mc_seed,
     };
     let near_dup_scope = match args.near_dup_scope {
         Some(cli::NearDupScope::Module) | None => analysis::NearDupScope::Module,

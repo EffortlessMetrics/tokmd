@@ -56,6 +56,7 @@ pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPrese
         cli::AnalysisPreset::Git => analysis::AnalysisPreset::Git,
         cli::AnalysisPreset::Deep => analysis::AnalysisPreset::Deep,
         cli::AnalysisPreset::Fun => analysis::AnalysisPreset::Fun,
+        cli::AnalysisPreset::Estimate => analysis::AnalysisPreset::Estimate,
     }
 }
 
@@ -153,6 +154,7 @@ mod tests {
         assert_eq!(preset_to_string(cli::AnalysisPreset::Git), "git");
         assert_eq!(preset_to_string(cli::AnalysisPreset::Deep), "deep");
         assert_eq!(preset_to_string(cli::AnalysisPreset::Fun), "fun");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Estimate), "estimate");
     }
 
     #[test]
@@ -223,6 +225,10 @@ mod tests {
         assert!(matches!(
             map_preset(cli::AnalysisPreset::Fun),
             analysis::AnalysisPreset::Fun
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Estimate),
+            analysis::AnalysisPreset::Estimate
         ));
     }
 

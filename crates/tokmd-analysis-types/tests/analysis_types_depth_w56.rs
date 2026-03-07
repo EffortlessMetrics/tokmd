@@ -42,6 +42,13 @@ fn minimal_receipt() -> AnalysisReceipt {
             max_commit_files: None,
             max_file_bytes: None,
             import_granularity: "module".to_string(),
+            effort_model: None,
+            effort_layer: None,
+            base_ref: None,
+            head_ref: None,
+            monte_carlo: None,
+            mc_iterations: None,
+            mc_seed: None,
         },
         archetype: None,
         topics: None,
@@ -58,6 +65,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         complexity: None,
         api_surface: None,
         fun: None,
+        effort: None,
     }
 }
 
@@ -202,7 +210,7 @@ fn file_stat_row(path: &str) -> FileStatRow {
 fn minimal_receipt_serializes_to_json() {
     let r = minimal_receipt();
     let json = serde_json::to_string(&r).unwrap();
-    assert!(json.contains("\"schema_version\":8"));
+    assert!(json.contains("\"schema_version\":9"));
     assert!(json.contains("\"mode\":\"receipt\""));
 }
 
@@ -253,8 +261,8 @@ fn receipt_source_fields_preserved() {
 // ──────────────────────────────────────────────────────────────────────
 
 #[test]
-fn analysis_schema_version_is_8() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+fn analysis_schema_version_is_9() {
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]

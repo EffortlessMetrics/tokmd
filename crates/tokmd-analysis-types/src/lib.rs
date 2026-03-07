@@ -24,7 +24,8 @@ use tokmd_types::{ScanStatus, ToolInfo};
 /// Schema version for analysis receipts.
 /// v7: Added coupling normalization (Jaccard/Lift), commit intent classification, near-duplicate detection.
 /// v8: Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;
+/// v9: Added effort estimation report.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisReceipt {
@@ -51,6 +52,8 @@ pub struct AnalysisReceipt {
     pub complexity: Option<ComplexityReport>,
     pub api_surface: Option<ApiSurfaceReport>,
     pub fun: Option<FunReport>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effort: Option<EffortEstimateReport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -78,6 +81,20 @@ pub struct AnalysisArgsMeta {
     pub max_commit_files: Option<usize>,
     pub max_file_bytes: Option<u64>,
     pub import_granularity: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effort_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effort_layer: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub head_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub monte_carlo: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mc_iterations: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mc_seed: Option<u64>,
 }
 
 // ---------------
@@ -1370,6 +1387,125 @@ pub struct ApiExportItem {
 }
 
 // ---------
+// Effort estimation
+// ---------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortEstimateReport {
+    pub model: EffortModel,
+    pub size_basis: EffortSizeBasis,
+    pub results: EffortResults,
+    pub confidence: EffortConfidence,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub drivers: Vec<EffortDriver>,
+    pub assumptions: EffortAssumptions,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delta: Option<EffortDeltaReport>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortModel {
+    Cocomo81Basic,
+    Cocomo2Early,
+    Ensemble,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortSizeBasis {
+    pub total_lines: usize,
+    pub authored_lines: usize,
+    pub generated_lines: usize,
+    pub vendored_lines: usize,
+    pub kloc_total: f64,
+    pub kloc_authored: f64,
+    pub generated_pct: f64,
+    pub vendored_pct: f64,
+    pub classification_confidence: EffortConfidenceLevel,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub by_tag: Vec<EffortTagSizeRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortResults {
+    pub effort_pm_low: f64,
+    pub effort_pm_p50: f64,
+    pub effort_pm_p80: f64,
+    pub schedule_months_low: f64,
+    pub schedule_months_p50: f64,
+    pub schedule_months_p80: f64,
+    pub staff_low: f64,
+    pub staff_p50: f64,
+    pub staff_p80: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortConfidence {
+    pub level: EffortConfidenceLevel,
+    pub reasons: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_coverage_pct: Option<f64>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortConfidenceLevel {
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortDriver {
+    pub key: String,
+    pub label: String,
+    pub weight: f64,
+    pub direction: EffortDriverDirection,
+    pub evidence: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EffortDriverDirection {
+    Raises,
+    Lowers,
+    Neutral,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortAssumptions {
+    pub notes: Vec<String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub overrides: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortTagSizeRow {
+    pub tag: String,
+    pub lines: usize,
+    pub authored_lines: usize,
+    pub pct_of_total: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffortDeltaReport {
+    pub base: String,
+    pub head: String,
+    pub files_changed: usize,
+    pub modules_changed: usize,
+    pub langs_changed: usize,
+    pub hotspot_files_touched: usize,
+    pub coupled_neighbors_touched: usize,
+    pub blast_radius: f64,
+    pub classification: String,
+    pub effort_pm_low: f64,
+    pub effort_pm_est: f64,
+    pub effort_pm_high: f64,
+}
+
+// ---------
 // Fun stuff
 // ---------
 
@@ -1417,7 +1553,7 @@ mod tests {
     // ── Schema version constant ───────────────────────────────────────
     #[test]
     fn analysis_schema_version_constant() {
-        assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+        assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
     }
 
     #[test]

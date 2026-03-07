@@ -8,7 +8,7 @@ use tokmd_analysis_grid::{
 
 #[test]
 fn preset_kind_all_returns_eleven() {
-    assert_eq!(PresetKind::all().len(), 11);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn preset_kind_clone_eq() {
 
 #[test]
 fn grid_has_eleven_rows() {
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]

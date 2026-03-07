@@ -462,6 +462,34 @@ pub struct CliAnalyzeArgs {
     #[arg(long, value_name = "GLOB")]
     pub near_dup_exclude: Vec<String>,
 
+    /// Effort estimation model.
+    #[arg(long, value_enum)]
+    pub effort_model: Option<EffortModelArg>,
+
+    /// Effort output detail layer.
+    #[arg(long, value_enum)]
+    pub effort_layer: Option<EffortLayerArg>,
+
+    /// Base git ref for effort delta analysis.
+    #[arg(long = "effort-base")]
+    pub effort_base: Option<String>,
+
+    /// Head git ref for effort delta analysis.
+    #[arg(long = "effort-head")]
+    pub effort_head: Option<String>,
+
+    /// Enable Monte Carlo simulation for confidence intervals.
+    #[arg(long)]
+    pub monte_carlo: bool,
+
+    /// Number of Monte Carlo iterations.
+    #[arg(long, default_value = "10000")]
+    pub mc_iterations: u32,
+
+    /// Seed for Monte Carlo RNG (for reproducibility).
+    #[arg(long)]
+    pub mc_seed: Option<u64>,
+
     /// Explain a metric or finding key and exit.
     #[arg(long, value_name = "KEY")]
     pub explain: Option<String>,
@@ -539,6 +567,7 @@ pub enum AnalysisPreset {
     Git,
     Deep,
     Fun,
+    Estimate,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -973,6 +1002,24 @@ pub enum DiffRangeMode {
     ThreeDot,
 }
 
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum EffortModelArg {
+    #[default]
+    Cocomo81Basic,
+    Cocomo2Early,
+    Ensemble,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum EffortLayerArg {
+    Headline,
+    Why,
+    #[default]
+    Full,
+}
+
 // =============================================================================
 // TOML Configuration File Structures (re-exported from tokmd-settings)
 // =============================================================================
@@ -1069,6 +1116,7 @@ mod tests {
             AnalysisPreset::Git,
             AnalysisPreset::Deep,
             AnalysisPreset::Fun,
+            AnalysisPreset::Estimate,
         ] {
             let json = serde_json::to_string(&variant).unwrap();
             let back: AnalysisPreset = serde_json::from_str(&json).unwrap();
@@ -1150,6 +1198,10 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&AnalysisPreset::Deep).unwrap(),
             "\"deep\""
+        );
+        assert_eq!(
+            serde_json::to_string(&AnalysisPreset::Estimate).unwrap(),
+            "\"estimate\""
         );
     }
 

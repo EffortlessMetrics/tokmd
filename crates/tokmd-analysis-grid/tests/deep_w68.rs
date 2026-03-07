@@ -182,14 +182,14 @@ fn needs_files_true_for_file_dependent_presets() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// § 12. PRESET_GRID has exactly 11 entries
+// § 12. PRESET_GRID has exactly 12 entries
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
 fn grid_has_eleven_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
-    assert_eq!(PRESET_KINDS.len(), 11);
-    assert_eq!(PresetKind::all().len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
+    assert_eq!(PRESET_KINDS.len(), 12);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 // ═══════════════════════════════════════════════════════════════════

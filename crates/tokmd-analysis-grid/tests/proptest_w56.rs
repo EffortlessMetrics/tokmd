@@ -4,7 +4,7 @@ use tokmd_analysis_grid::*;
 proptest! {
     /// PresetKind::as_str → from_str round-trip is stable for all presets.
     #[test]
-    fn preset_roundtrip_all(idx in 0usize..11) {
+    fn preset_roundtrip_all(idx in 0usize..12) {
         let preset = PRESET_KINDS[idx];
         let name = preset.as_str();
         let parsed = PresetKind::from_str(name);
@@ -13,14 +13,14 @@ proptest! {
 
     /// preset_plan_for never panics for valid presets.
     #[test]
-    fn preset_plan_for_never_panics(idx in 0usize..11) {
+    fn preset_plan_for_never_panics(idx in 0usize..12) {
         let preset = PRESET_KINDS[idx];
         let _plan = preset_plan_for(preset);
     }
 
     /// preset_plan_for is deterministic.
     #[test]
-    fn preset_plan_for_is_deterministic(idx in 0usize..11) {
+    fn preset_plan_for_is_deterministic(idx in 0usize..12) {
         let preset = PRESET_KINDS[idx];
         let p1 = preset_plan_for(preset);
         let p2 = preset_plan_for(preset);
@@ -29,7 +29,7 @@ proptest! {
 
     /// preset_plan_for_name matches preset_plan_for for known names.
     #[test]
-    fn preset_plan_for_name_matches(idx in 0usize..11) {
+    fn preset_plan_for_name_matches(idx in 0usize..12) {
         let preset = PRESET_KINDS[idx];
         let by_kind = preset_plan_for(preset);
         let by_name = preset_plan_for_name(preset.as_str());
@@ -51,17 +51,17 @@ proptest! {
         prop_assert!(result.is_none());
     }
 
-    /// The grid has exactly 11 entries (one per preset kind).
+    /// The grid has exactly 12 entries (one per preset kind).
     #[test]
     fn grid_has_correct_size(_dummy in 0..1u8) {
-        prop_assert_eq!(PRESET_GRID.len(), 11);
-        prop_assert_eq!(PRESET_KINDS.len(), 11);
-        prop_assert_eq!(PresetKind::all().len(), 11);
+        prop_assert_eq!(PRESET_GRID.len(), 12);
+        prop_assert_eq!(PRESET_KINDS.len(), 12);
+        prop_assert_eq!(PresetKind::all().len(), 12);
     }
 
     /// Every preset in the grid matches its index in PRESET_KINDS.
     #[test]
-    fn grid_entry_matches_preset_kinds(idx in 0usize..11) {
+    fn grid_entry_matches_preset_kinds(idx in 0usize..12) {
         prop_assert_eq!(PRESET_GRID[idx].preset, PRESET_KINDS[idx]);
     }
 

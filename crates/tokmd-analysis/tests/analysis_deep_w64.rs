@@ -62,6 +62,13 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             max_commits: None,
             max_commit_files: None,
             import_granularity: "module".to_string(),
+            effort_model: None,
+            effort_layer: None,
+            base_ref: None,
+            head_ref: None,
+            monte_carlo: None,
+            mc_iterations: None,
+            mc_seed: None,
         },
         limits: AnalysisLimits::default(),
         window_tokens: None,
@@ -155,8 +162,8 @@ fn preset_kind_from_str_unknown_returns_none() {
 
 #[test]
 fn preset_kinds_count() {
-    assert_eq!(PRESET_KINDS.len(), 11);
-    assert_eq!(PresetKind::all().len(), 11);
+    assert_eq!(PRESET_KINDS.len(), 12);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]
@@ -347,7 +354,7 @@ fn near_dup_scope_serde_roundtrip() {
 
 #[test]
 fn analysis_schema_version_is_current() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]
@@ -566,6 +573,13 @@ fn args_meta_serde_roundtrip() {
         max_commits: Some(1000),
         max_commit_files: Some(100),
         import_granularity: "file".to_string(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     };
     let json = serde_json::to_string(&args).unwrap();
     let back: AnalysisArgsMeta = serde_json::from_str(&json).unwrap();

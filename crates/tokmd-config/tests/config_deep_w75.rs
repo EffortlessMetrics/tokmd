@@ -462,6 +462,7 @@ fn analysis_preset_all_variants_kebab_case() {
         (AnalysisPreset::Git, "\"git\""),
         (AnalysisPreset::Deep, "\"deep\""),
         (AnalysisPreset::Fun, "\"fun\""),
+        (AnalysisPreset::Estimate, "\"estimate\""),
     ];
     for (variant, expected_str) in expected {
         let json = serde_json::to_string(&variant).unwrap();

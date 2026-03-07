@@ -322,6 +322,7 @@ fn all_analysis_presets_serialize_lowercase() {
         (AnalysisPreset::Git, "git"),
         (AnalysisPreset::Deep, "deep"),
         (AnalysisPreset::Fun, "fun"),
+        (AnalysisPreset::Estimate, "estimate"),
     ];
     for (variant, expected) in &presets {
         let json = serde_json::to_string(variant).unwrap();

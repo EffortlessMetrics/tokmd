@@ -120,6 +120,7 @@ fn analysis_preset_all_variants_roundtrip() {
         AnalysisPreset::Git,
         AnalysisPreset::Deep,
         AnalysisPreset::Fun,
+        AnalysisPreset::Estimate,
     ];
     for v in variants {
         let json = serde_json::to_string(&v).unwrap();

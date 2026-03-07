@@ -268,7 +268,7 @@ expression: v
   "license": null,
   "mode": "analyze",
   "predictive_churn": null,
-  "schema_version": 8,
+  "schema_version": 9,
   "source": {
     "base_receipt_path": null,
     "base_signature": null,

@@ -67,7 +67,8 @@ fn receipt_is_the_only_preset_with_all_base_flags_off() {
                 || p.entropy
                 || p.license
                 || p.complexity
-                || p.api_surface;
+                || p.api_surface
+                || p.effort;
             assert!(
                 any_flag,
                 "{:?} has all base flags off like Receipt",

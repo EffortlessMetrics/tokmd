@@ -49,6 +49,13 @@ pub(crate) fn handle(args: cli::BadgeArgs, global: &cli::GlobalArgs) -> Result<(
         max_commits: args.max_commits,
         max_commit_files: args.max_commit_files,
         import_granularity: "module".to_string(),
+        effort_model: None,
+        effort_layer: None,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: None,
+        mc_iterations: None,
+        mc_seed: None,
     };
     let request = analysis::AnalysisRequest {
         preset: analysis_utils::map_preset(preset),

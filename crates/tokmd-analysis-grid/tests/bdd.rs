@@ -9,7 +9,7 @@ use tokmd_analysis_grid::{
 
 #[test]
 fn preset_kinds_array_has_exactly_11_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn from_str_returns_none_for_unknown_names() {
 
 #[test]
 fn preset_grid_has_exactly_11_rows() {
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]

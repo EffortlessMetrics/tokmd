@@ -72,6 +72,8 @@ pub fn run(args: DocsArgs) -> Result<()> {
                 "Documentation drift detected in {}. Run `cargo xtask docs --update` to fix.",
                 ref_md_path.display()
             );
+        } else {
+            println!("Documentation drift detected. Run `cargo xtask docs --update` to fix.");
         }
     } else {
         println!("Documentation is up to date.");

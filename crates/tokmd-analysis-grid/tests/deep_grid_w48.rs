@@ -16,12 +16,12 @@ use tokmd_analysis_grid::{
 
 #[test]
 fn preset_grid_has_11_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
 fn preset_kinds_has_11_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]

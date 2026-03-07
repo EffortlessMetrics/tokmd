@@ -35,6 +35,7 @@ mod preset_names {
         "git",
         "deep",
         "fun",
+        "estimate",
     ];
 
     #[test]
@@ -136,6 +137,7 @@ mod preset_flags {
             plan.license,
             plan.complexity,
             plan.api_surface,
+            plan.effort,
         ];
         flags.iter().filter(|&&f| f).count()
     }
@@ -216,10 +218,17 @@ mod preset_flags {
     }
 
     #[test]
+    fn estimate_has_exactly_one_base_flag() {
+        let plan = preset_plan_for(PresetKind::Estimate);
+        assert_eq!(count_base_flags(&plan), 1);
+        assert!(plan.effort);
+    }
+
+    #[test]
     fn deep_has_all_base_flags_except_fun() {
         let plan = preset_plan_for(PresetKind::Deep);
-        // All 12 non-fun flags should be true
-        assert_eq!(count_base_flags(&plan), 12);
+        // All 13 non-fun flags should be true
+        assert_eq!(count_base_flags(&plan), 13);
         assert!(!plan.fun);
     }
 
@@ -507,6 +516,9 @@ mod deep_superset {
             if plan.api_surface {
                 assert!(deep.api_surface, "deep missing api_surface from {:?}", kind);
             }
+            if plan.effort {
+                assert!(deep.effort, "deep missing effort from {:?}", kind);
+            }
         }
     }
 
@@ -516,7 +528,7 @@ mod deep_superset {
     }
 
     #[test]
-    fn deep_enables_all_twelve_non_fun_flags() {
+    fn deep_enables_all_thirteen_non_fun_flags() {
         let plan = preset_plan_for(PresetKind::Deep);
         assert!(plan.assets);
         assert!(plan.deps);
@@ -530,6 +542,7 @@ mod deep_superset {
         assert!(plan.license);
         assert!(plan.complexity);
         assert!(plan.api_surface);
+        assert!(plan.effort);
     }
 }
 
@@ -556,7 +569,8 @@ mod receipt_minimal {
                 && !plan.entropy
                 && !plan.license
                 && !plan.complexity
-                && !plan.api_surface;
+                && !plan.api_surface
+                && !plan.effort;
 
             if *kind == PresetKind::Receipt {
                 assert!(all_base_false, "Receipt should have all base flags false");

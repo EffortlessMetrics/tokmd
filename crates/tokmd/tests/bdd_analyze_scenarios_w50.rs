@@ -44,7 +44,7 @@ fn given_project_when_analyze_receipt_then_derived_metrics_present() {
 }
 
 // ---------------------------------------------------------------------------
-// Scenario 2: JSON output has analysis_schema_version (schema_version=8)
+// Scenario 2: JSON output has analysis_schema_version (schema_version=9)
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -60,8 +60,8 @@ fn given_project_when_analyze_json_then_has_schema_version() {
     assert!(output.status.success());
     let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
     assert_eq!(
-        json["schema_version"], 8,
-        "analysis schema_version should be 8"
+        json["schema_version"], 9,
+        "analysis schema_version should be 9"
     );
     assert!(
         json["generated_at_ms"].is_number(),

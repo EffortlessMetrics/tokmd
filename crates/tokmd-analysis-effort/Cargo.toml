@@ -1,0 +1,12 @@
+[package]
+name = "tokmd-analysis-effort"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Effort estimation for tokmd analysis receipts."
+
+[dependencies]
+tokmd-analysis-types.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
