@@ -1,0 +1,12 @@
+{
+  "run_id": "895d1046-a4c0-4bfe-90e8-1c980519dbfb",
+  "date": "2026-03-08T11:48:39Z",
+  "persona": "Auditor",
+  "lane": "scout",
+  "target": "tokmd-analysis-format",
+  "action": "remove unused dependency serde",
+  "receipts": [
+    "cargo machete output identifying unused serde in tokmd-analysis-format",
+    "cargo test -p tokmd-analysis-format completed successfully after removal"
+  ]
+}
