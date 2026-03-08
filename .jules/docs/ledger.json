@@ -1,0 +1,8 @@
+[
+  {
+    "run_id": "run-1772963981",
+    "timestamp": 1772963981,
+    "description": "Updated tokmd-core README API examples to match current lang_workflow and settings structs.",
+    "target": "crates/tokmd-core/README.md"
+  }
+]
