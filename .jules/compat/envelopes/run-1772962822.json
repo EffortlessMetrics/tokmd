@@ -1,0 +1,10 @@
+{
+  "run_id": "run-1772962822",
+  "date": "2026-03-08",
+  "target": "tokmd",
+  "issue": "--no-default-features test failure",
+  "action": "Fix baseline_metrics_has_total_files test to account for missing walk feature",
+  "receipts": [
+    "cargo test -p tokmd --no-default-features"
+  ]
+}
