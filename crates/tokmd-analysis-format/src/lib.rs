@@ -5,6 +5,21 @@
 //! Rendering for analysis receipts. Supports multiple output formats including
 //! Markdown, JSON, JSON-LD, XML, SVG, Mermaid, and optional fun outputs.
 //!
+//! ## Effort rendering
+//!
+//! Effort sections are rendered in two tiers:
+//!
+//! 1. `receipt.effort` the preferred path for the newer effort-estimation
+//!    receipt surface. This can render size basis, confidence, drivers,
+//!    assumptions, and optional delta data.
+//! 2. `derived.cocomo` a legacy fallback used when the richer `effort`
+//!    section is absent but classic derived COCOMO data is present.
+//!
+//! The formatter intentionally renders whatever the receipt contains without
+//! inferring missing estimate data. If the upstream effort builder is still
+//! scaffold-only, the formatter preserves that truth rather than making the
+//! estimate look more complete than it is.
+//!
 //! ## What belongs here
 //! * Analysis receipt rendering to various formats
 //! * Format-specific transformations
@@ -374,6 +389,8 @@ fn render_md(receipt: &AnalysisReceipt) -> String {
             ));
         }
 
+        // Prefer the richer top-level effort contract when present; fall back
+        // to legacy derived COCOMO output for older receipts.
         if let Some(effort) = &receipt.effort {
             render_effort_report(&mut out, effort);
         } else if let Some(cocomo) = &derived.cocomo {
@@ -882,6 +899,19 @@ fn render_file_table(rows: &[FileStatRow]) -> String {
     out
 }
 
+/// Render the richer `receipt.effort` section to Markdown.
+///
+/// This path is preferred over legacy `derived.cocomo` rendering because it can
+/// expose the newer effort contract: authored-vs-total size basis, confidence,
+/// explanatory drivers, assumptions, and optional base/head delta analysis.
+///
+/// The function is intentionally receipt-driven:
+/// - it does not compute estimates,
+/// - it does not backfill missing fields,
+/// - it does not hide placeholder/scaffold values.
+///
+/// That keeps formatting honest when the upstream effort engine is only
+/// partially implemented.
 fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
     out.push_str("## Effort estimate\n\n");
 
@@ -1012,6 +1042,15 @@ fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
     }
 }
 
+/// Render the legacy `derived.cocomo` estimate block.
+///
+/// This is a compatibility fallback for receipts that do not yet populate the
+/// top-level `effort` section. It renders classic derived COCOMO values using
+/// `derived.totals` for line-count context and `derived.cocomo` for the model
+/// coefficients and headline estimate.
+///
+/// Newer receipts should prefer [`render_effort_report`], which can represent
+/// authored size basis, confidence, drivers, assumptions, and delta data.
 fn render_legacy_cocomo_report(
     out: &mut String,
     derived: &tokmd_analysis_types::DerivedReport,
@@ -2858,6 +2897,8 @@ mod tests {
         assert!(out.contains("Baseline comparison is not available for this receipt."));
     }
 
+    /// Synthetic top-level effort report fixture used to exercise Markdown rendering
+    /// of the richer `receipt.effort` path.
     fn test_effort_report(with_delta: bool, with_drivers: bool) -> EffortEstimateReport {
         let delta = with_delta.then(|| EffortDeltaReport {
             base: "main".to_string(),
@@ -2963,6 +3004,8 @@ mod tests {
         }
     }
 
+    /// Minimal derived-report fixture used to exercise legacy `derived.cocomo`
+    /// Markdown rendering.
     fn test_derived_report_for_effort(code_lines: usize) -> DerivedReport {
         let ratio_zero = RatioReport {
             total: RatioRow {
