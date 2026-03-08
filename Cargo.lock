@@ -3334,7 +3334,6 @@ dependencies = [
  "insta",
  "midly",
  "proptest",
- "serde",
  "serde_json",
  "tokmd-analysis",
  "tokmd-analysis-html",
