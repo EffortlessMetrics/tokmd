@@ -272,7 +272,7 @@ fn report_with_many_findings() {
     assert_eq!(back.findings.len(), 100);
 
     // All fingerprints should be unique (different code + path)
-    let fingerprints: std::collections::HashSet<_> = back
+    let fingerprints: std::collections::BTreeSet<_> = back
         .findings
         .iter()
         .filter_map(|f| f.fingerprint.as_deref())
@@ -440,7 +440,7 @@ fn finding_id_all_categories() {
     }
 
     // All IDs are unique
-    let unique: std::collections::HashSet<&String> = ids.iter().collect();
+    let unique: std::collections::BTreeSet<&String> = ids.iter().collect();
     assert_eq!(unique.len(), ids.len());
 }
 

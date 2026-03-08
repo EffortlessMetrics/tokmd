@@ -144,9 +144,9 @@ proptest! {
             .map(|(cid, code)| tokmd_envelope::findings::finding_id(&tool, cid, code))
             .collect();
         // Deduplicate: unique pairs should produce unique IDs
-        let unique_pairs: std::collections::HashSet<(&str, &str)> =
+        let unique_pairs: std::collections::BTreeSet<(&str, &str)> =
             pairs.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
-        let unique_ids: std::collections::HashSet<&str> =
+        let unique_ids: std::collections::BTreeSet<&str> =
             ids.iter().map(|s| s.as_str()).collect();
         prop_assert_eq!(unique_pairs.len(), unique_ids.len());
     }
@@ -243,7 +243,7 @@ proptest! {
         for name in &names {
             report.add_capability(name.clone(), CapabilityStatus::available());
         }
-        let unique: std::collections::HashSet<&str> =
+        let unique: std::collections::BTreeSet<&str> =
             names.iter().map(|s| s.as_str()).collect();
         let caps = report.capabilities.unwrap();
         prop_assert_eq!(unique.len(), caps.len());
