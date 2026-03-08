@@ -105,7 +105,7 @@ fn grid_rows_ordered_same_as_all() {
 
 #[test]
 fn grid_has_no_duplicate_preset_kinds() {
-    let mut seen = std::collections::HashSet::new();
+    let mut seen = std::collections::BTreeSet::new();
     for row in &PRESET_GRID {
         assert!(
             seen.insert(row.preset.as_str()),

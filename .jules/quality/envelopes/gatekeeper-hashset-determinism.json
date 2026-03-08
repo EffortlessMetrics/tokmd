@@ -1,0 +1,6 @@
+{
+  "run_id": "gatekeeper-hashset-determinism",
+  "persona": "Gatekeeper",
+  "target": "tests",
+  "receipts": []
+}

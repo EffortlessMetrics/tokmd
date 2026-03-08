@@ -1,0 +1,8 @@
+[
+  {
+    "date": "$(date +%Y-%m-%d)",
+    "persona": "Gatekeeper",
+    "change": "Refactored test crates to replace HashSet with BTreeSet for deterministic ordering",
+    "receipt": ".jules/quality/runs/$(date +%Y-%m-%d).md"
+  }
+]
