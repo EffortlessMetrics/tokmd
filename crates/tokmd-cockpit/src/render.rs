@@ -19,7 +19,7 @@ pub fn render_json(receipt: &CockpitReceipt) -> Result<String> {
 /// Render receipt as Markdown summary.
 pub fn render_markdown(receipt: &CockpitReceipt) -> String {
     use std::fmt::Write;
-    let mut s = String::new();
+    let mut s = String::with_capacity(1024);
 
     let _ = writeln!(s, "## Glass Cockpit");
     let _ = writeln!(s);
@@ -338,7 +338,7 @@ pub fn render_markdown(receipt: &CockpitReceipt) -> String {
 /// Render receipt as sectioned output.
 pub fn render_sections(receipt: &CockpitReceipt) -> String {
     use std::fmt::Write;
-    let mut s = String::new();
+    let mut s = String::with_capacity(1024);
 
     let _ = writeln!(s, "<!-- SECTION:COCKPIT -->");
     let _ = writeln!(s);
@@ -427,7 +427,7 @@ pub fn render_sections(receipt: &CockpitReceipt) -> String {
 /// Render comment.md for PR comments.
 pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
     use std::fmt::Write;
-    let mut s = String::new();
+    let mut s = String::with_capacity(1024);
 
     // Summary bullet points
     let _ = writeln!(s, "## Glass Cockpit Summary");
