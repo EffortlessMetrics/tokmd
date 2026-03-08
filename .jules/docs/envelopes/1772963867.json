@@ -1,0 +1,4 @@
+{
+  "lane": "B",
+  "reason": "Found outdated API usage in crates/tokmd-core/README.md examples. `scan_workflow` and `GlobalArgs`/`LangArgs` are deprecated in favor of `lang_workflow` and settings types."
+}
