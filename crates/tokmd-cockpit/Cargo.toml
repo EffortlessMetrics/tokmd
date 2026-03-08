@@ -30,7 +30,13 @@ tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
+criterion = "0.8.2"
 insta = { workspace = true }
 proptest = "1.10.0"
 serde_json = "1.0.149"
 tempfile = "3.25.0"
+
+
+[[bench]]
+name = "render_bench"
+harness = false
