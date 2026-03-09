@@ -1,0 +1,11 @@
+[
+  {
+    "run_id": "f0616ea1-a5ae-4efe-bcde-47fb3334043d",
+    "target": "baseline_w71.rs",
+    "type": "no-default-features build failure",
+    "receipts": [
+      "cargo test --no-default-features --workspace -p tokmd --test baseline_w71",
+      "cargo test --all-features --workspace -p tokmd --test baseline_w71"
+    ]
+  }
+]
