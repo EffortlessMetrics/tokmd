@@ -3138,6 +3138,7 @@ dependencies = [
  "anyhow",
  "proptest",
  "serde",
+ "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-git",

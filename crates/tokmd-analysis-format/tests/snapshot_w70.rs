@@ -442,4 +442,3 @@ fn w70_analysis_html_with_derived() {
     let out = redact_timestamp(&text(render(&receipt, AnalysisFormat::Html).unwrap()));
     insta::assert_snapshot!("w70_analysis_html_with_derived", out);
 }
-

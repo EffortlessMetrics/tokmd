@@ -6,12 +6,12 @@
 //! results while pretending it ran.
 
 use std::path::PathBuf;
-use tokmd_analysis::{AnalysisContext, AnalysisRequest, ImportGranularity, analyze};
+use tokmd_analysis::{analyze, AnalysisContext, AnalysisRequest, ImportGranularity};
 use tokmd_analysis_grid::{
-    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, preset_plan_for, preset_plan_for_name,
+    preset_plan_for, preset_plan_for_name, DisabledFeature, PresetKind, PRESET_GRID, PRESET_KINDS,
 };
 use tokmd_analysis_types::{
-    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource, NearDupScope,
+    AnalysisArgsMeta, AnalysisSource, NearDupScope, ANALYSIS_SCHEMA_VERSION,
 };
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
@@ -84,6 +84,7 @@ fn make_req(preset: PresetKind) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: Default::default(),
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,

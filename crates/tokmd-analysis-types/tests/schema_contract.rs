@@ -2,8 +2,8 @@
 
 use serde_json::Value;
 use tokmd_analysis_types::{
-    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
-    BASELINE_VERSION, EntropyReport, FunReport, ImportReport,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, EntropyReport, FunReport,
+    ImportReport, ANALYSIS_SCHEMA_VERSION, BASELINE_VERSION,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 
@@ -55,6 +55,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,
@@ -71,7 +72,7 @@ fn analysis_schema_version_is_positive() {
 
 #[test]
 fn analysis_schema_version_pinned() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]
@@ -216,7 +217,7 @@ fn unknown_fields_in_json_are_tolerated() {
 mod properties {
     use proptest::prelude::*;
     use tokmd_analysis_types::{
-        ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource,
+        AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ANALYSIS_SCHEMA_VERSION,
     };
     use tokmd_types::{ScanStatus, ToolInfo};
 
@@ -266,6 +267,7 @@ mod properties {
             git: None,
             imports: None,
             dup: None,
+            effort: None,
             complexity: None,
             api_surface: None,
             fun: None,

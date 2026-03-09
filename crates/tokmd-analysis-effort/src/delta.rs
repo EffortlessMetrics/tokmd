@@ -1,14 +1,20 @@
-use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 use tokmd_analysis_types::{EffortDeltaClassification, EffortDeltaReport, GitReport};
-use tokmd_types::{ExportData, FileKind};
+use tokmd_types::ExportData;
 
 #[cfg(feature = "git")]
+use anyhow::Context;
+#[cfg(feature = "git")]
+use std::collections::{BTreeMap, BTreeSet};
+#[cfg(feature = "git")]
 use tokmd_git::GitRangeMode;
+#[cfg(feature = "git")]
+use tokmd_types::FileKind;
 
+#[cfg(feature = "git")]
 use crate::cocomo81::cocomo81_baseline;
 
 pub fn build_delta(
@@ -32,8 +38,7 @@ pub fn build_delta(
 
     #[cfg(feature = "git")]
     {
-        let repo_root = tokmd_git::repo_root(root)
-            .context("failed to locate git repository")?;
+        let repo_root = tokmd_git::repo_root(root).context("failed to locate git repository")?;
 
         let changed = tokmd_git::get_added_lines(&repo_root, &base, &head, GitRangeMode::TwoDot)
             .context("failed to compute changed files")?;
@@ -67,13 +72,13 @@ pub fn build_delta(
             }
         }
 
-        let total_files = path_to_module_lang.len();
+        let _total_files = path_to_module_lang.len();
         let modules_ratio = if all_modules.is_empty() {
             0.0
         } else {
             (changed_modules.len() as f64) / (all_modules.len() as f64)
         };
-        let langs_ratio = if all_langs.is_empty() {
+        let _langs_ratio = if all_langs.is_empty() {
             0.0
         } else {
             (changed_langs.len() as f64) / (all_langs.len() as f64)
@@ -81,16 +86,8 @@ pub fn build_delta(
         let hotspot_files_touched = if let Some(git_report) = git {
             changed
                 .keys()
-                .filter_map(|path| {
-                    let normalized = path.to_string_lossy().trim_start_matches("./");
-                    Some(normalized)
-                })
-                .filter(|path| {
-                    git_report
-                        .hotspots
-                        .iter()
-                        .any(|row| row.path == **path)
-                })
+                .map(|path| path.to_string_lossy().trim_start_matches("./").to_string())
+                .filter(|path| git_report.hotspots.iter().any(|row| row.path == *path))
                 .count()
         } else {
             0
@@ -108,7 +105,7 @@ pub fn build_delta(
             0.0
         };
 
-        let coupling_ratio = if coupling_total <= 0.0 {
+        let _coupling_ratio = if coupling_total <= 0.0 {
             0.0
         } else {
             coupled_neighbors_touched / coupling_total
@@ -156,6 +153,7 @@ pub fn build_delta(
     }
 }
 
+#[allow(dead_code)]
 fn classify_blast(blast_radius: f64) -> EffortDeltaClassification {
     if blast_radius < 10.0 {
         EffortDeltaClassification::Low

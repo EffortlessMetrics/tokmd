@@ -1207,4 +1207,3 @@ fn midi_format_requires_fun_feature() {
     let err = result.err().unwrap();
     assert!(err.to_string().contains("fun"));
 }
-

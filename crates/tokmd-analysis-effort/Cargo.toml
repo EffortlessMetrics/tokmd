@@ -11,6 +11,10 @@ keywords = ["analysis", "estimation", "cocomo", "effort", "metrics"]
 categories = ["development-tools", "science"]
 documentation = "https://docs.rs/tokmd-analysis-effort"
 
+[features]
+default = []
+git = ["dep:tokmd-git"]
+
 [dependencies]
 anyhow = "1.0.101"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -21,3 +25,4 @@ tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = "1.10.0"
+tempfile = "3.25.0"

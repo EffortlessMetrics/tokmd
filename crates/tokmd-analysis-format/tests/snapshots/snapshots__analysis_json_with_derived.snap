@@ -208,5 +208,6 @@ expression: rendered
   "dup": null,
   "complexity": null,
   "api_surface": null,
+  "effort": null,
   "fun": null
 }

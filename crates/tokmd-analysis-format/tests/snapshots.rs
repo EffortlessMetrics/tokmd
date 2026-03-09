@@ -445,4 +445,3 @@ fn regex_replace_timestamp(s: &str) -> String {
         .collect::<Vec<_>>()
         .join("\n")
 }
-

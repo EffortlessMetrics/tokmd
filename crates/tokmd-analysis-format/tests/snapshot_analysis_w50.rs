@@ -486,4 +486,3 @@ fn snapshot_xml_archetype_license() {
     let text = extract_text(render(&receipt, AnalysisFormat::Xml).unwrap());
     insta::assert_snapshot!(text);
 }
-

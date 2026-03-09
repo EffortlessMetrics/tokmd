@@ -57,6 +57,7 @@ expression: out
   "dup": null,
   "complexity": null,
   "api_surface": null,
+  "effort": null,
   "fun": {
     "eco_label": {
       "score": 88.0,

@@ -73,6 +73,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,
@@ -84,8 +85,8 @@ fn minimal_receipt() -> AnalysisReceipt {
 // ══════════════════════════════════════════════════════════════════════
 
 #[test]
-fn schema_version_is_8() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+fn schema_version_is_9() {
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]

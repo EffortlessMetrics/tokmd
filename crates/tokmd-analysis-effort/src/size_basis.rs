@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use std::{fs, io::BufRead, io::BufReader};
 
 use tokmd_analysis_types::{EffortSizeBasis, EffortTagSizeRow};
-use tokmd_types::{ExportData, FileRow};
 use tokmd_analysis_util::normalize_path;
+use tokmd_types::{ExportData, FileRow};
 
 #[derive(Debug, Clone, Copy)]
 enum FileKind {
@@ -29,6 +29,7 @@ enum ClassKind {
 }
 
 impl ClassKind {
+    #[allow(dead_code)]
     fn confidence_boost(self) -> f64 {
         match self {
             Self::Generated | Self::Vendored => 1.0,
@@ -41,6 +42,7 @@ impl ClassKind {
 struct GitAttrRule {
     kind: ClassKind,
     pattern: String,
+    #[allow(dead_code)]
     source: String,
 }
 
@@ -119,14 +121,15 @@ pub fn build_size_basis(root: &Path, export: &ExportData) -> SizeBasisResult {
         })
         .collect::<Vec<_>>();
 
-    let confidence_from_rules = if rules.len() > 0 {
-        0.75
-    } else {
-        0.55
-    };
+    let confidence_from_rules = if !rules.is_empty() { 0.75 } else { 0.55 };
 
-    let confidence_heuristic = if total_lines == 0 { 0.0 } else { 1.0 - (unknown_lines as f64) / (total_lines as f64) };
-    let classification_confidence = ((0.4 * confidence_from_rules) + (0.6 * confidence_heuristic)).clamp(0.0, 1.0);
+    let confidence_heuristic = if total_lines == 0 {
+        0.0
+    } else {
+        1.0 - (unknown_lines as f64) / (total_lines as f64)
+    };
+    let classification_confidence =
+        ((0.4 * confidence_from_rules) + (0.6 * confidence_heuristic)).clamp(0.0, 1.0);
 
     let warnings = if unknown_lines > 0 {
         vec!["heuristic classification used for some files".to_string()]
@@ -160,21 +163,24 @@ pub fn build_size_basis(root: &Path, export: &ExportData) -> SizeBasisResult {
     }
 }
 
-fn classify_row<'a>(
+fn classify_row(
     root: &Path,
     path: &str,
-    rules: &'a [GitAttrRule],
+    rules: &[GitAttrRule],
     row: &FileRow,
 ) -> (ClassKind, FileKind) {
-    let lower = path.to_lowercase();
+    let _lower = path.to_lowercase();
 
     for rule in rules {
         if matches_path_pattern(path, root, &rule.pattern) {
-            return (rule.kind, match rule.kind {
-                ClassKind::Generated => FileKind::Generated,
-                ClassKind::Vendored => FileKind::Vendored,
-                ClassKind::Unknown => FileKind::Core,
-            });
+            return (
+                rule.kind,
+                match rule.kind {
+                    ClassKind::Generated => FileKind::Generated,
+                    ClassKind::Vendored => FileKind::Vendored,
+                    ClassKind::Unknown => FileKind::Core,
+                },
+            );
         }
     }
 
@@ -227,7 +233,12 @@ fn tag_name(kind: &FileKind) -> &str {
     }
 }
 
-fn accumulate_tag(map: &mut BTreeMap<String, (usize, usize)>, tag: &str, lines: usize, authored: usize) {
+fn accumulate_tag(
+    map: &mut BTreeMap<String, (usize, usize)>,
+    tag: &str,
+    lines: usize,
+    authored: usize,
+) {
     let entry = map.entry(tag.to_string()).or_insert((0, 0));
     entry.0 = entry.0.saturating_add(lines);
     entry.1 = entry.1.saturating_add(authored);
@@ -347,10 +358,7 @@ fn load_gitattributes(root: &Path) -> Vec<GitAttrRule> {
             continue;
         }
 
-        let mut parts = line
-            .split_whitespace()
-            .map(str::trim)
-            .collect::<Vec<_>>();
+        let mut parts = line.split_whitespace().map(str::trim).collect::<Vec<_>>();
         if parts.len() < 2 {
             continue;
         }

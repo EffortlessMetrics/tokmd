@@ -5,10 +5,10 @@
 
 use proptest::prelude::*;
 use tokmd_analysis_types::{
-    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
-    BASELINE_VERSION, BaselineMetrics, CommitIntentCounts, CommitIntentKind, ComplexityBaseline,
-    ComplexityRisk, DomainStat, EcoLabel, EntropyClass, LicenseSourceKind, NearDupScope, RatioRow,
-    TechnicalDebtLevel, TopicTerm, TrendClass,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, BaselineMetrics,
+    CommitIntentCounts, CommitIntentKind, ComplexityBaseline, ComplexityRisk, DomainStat, EcoLabel,
+    EntropyClass, LicenseSourceKind, NearDupScope, RatioRow, TechnicalDebtLevel, TopicTerm,
+    TrendClass, ANALYSIS_SCHEMA_VERSION, BASELINE_VERSION,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 
@@ -21,7 +21,7 @@ proptest! {
 
     #[test]
     fn analysis_schema_version_value(_dummy in 0..1u8) {
-        prop_assert_eq!(ANALYSIS_SCHEMA_VERSION, 8u32);
+        prop_assert_eq!(ANALYSIS_SCHEMA_VERSION, 9u32);
     }
 }
 
@@ -401,6 +401,7 @@ proptest! {
             git: None,
             imports: None,
             dup: None,
+            effort: None,
             complexity: None,
             api_surface: None,
             fun: None,

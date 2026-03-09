@@ -456,7 +456,7 @@ pub struct CliAnalyzeArgs {
 
     /// Monte Carlo iterations when effort estimation is enabled [default: 10000].
     #[arg(long = "mc-iterations")]
-    pub mc_iterations: Option<u32>,
+    pub mc_iterations: Option<usize>,
 
     /// Monte Carlo seed for deterministic effort estimation.
     #[arg(long = "mc-seed")]

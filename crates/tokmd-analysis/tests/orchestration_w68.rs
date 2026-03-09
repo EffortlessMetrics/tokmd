@@ -6,9 +6,9 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
+    analyze, AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity,
 };
-use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
@@ -125,6 +125,7 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
         preset,
         args: default_args(preset.as_str()),
         limits: AnalysisLimits::default(),
+        effort: None,
         window_tokens: None,
         git: Some(false),
         import_granularity: ImportGranularity::Module,
@@ -286,7 +287,7 @@ fn preset_git_enables_git() {
 
 #[test]
 fn all_presets_have_plans() {
-    use tokmd_analysis_grid::{PresetKind, preset_plan_for};
+    use tokmd_analysis_grid::{preset_plan_for, PresetKind};
     for preset in PresetKind::all() {
         let _plan = preset_plan_for(*preset);
     }

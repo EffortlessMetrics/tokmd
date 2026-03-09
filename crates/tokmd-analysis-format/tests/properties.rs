@@ -468,4 +468,3 @@ proptest! {
         prop_assert!(text.contains("## Integrity"));
     }
 }
-

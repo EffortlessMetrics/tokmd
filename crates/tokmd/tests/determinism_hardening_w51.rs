@@ -477,7 +477,7 @@ fn w51_core_receipts_schema_version_is_2() {
 }
 
 #[test]
-fn w51_analyze_schema_version_is_8() {
+fn w51_analyze_schema_version_is_9() {
     let o = tokmd_cmd()
         .args(["analyze", ".", "--preset", "receipt", "--format", "json"])
         .output()
@@ -485,8 +485,8 @@ fn w51_analyze_schema_version_is_8() {
     assert!(o.status.success(), "analyze command failed");
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     assert_eq!(
-        json["schema_version"], 8,
-        "analysis schema_version must be 8"
+        json["schema_version"], 9,
+        "analysis schema_version must be 9"
     );
 }
 

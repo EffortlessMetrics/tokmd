@@ -338,4 +338,3 @@ fn snapshot_v2_jsonld_with_eco_label() {
     let rendered = text(render(&receipt, AnalysisFormat::Jsonld).unwrap());
     insta::assert_snapshot!("v2_jsonld_eco_label", rendered);
 }
-

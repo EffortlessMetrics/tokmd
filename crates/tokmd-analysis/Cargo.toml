@@ -18,6 +18,7 @@ git = [
     "dep:tokmd-analysis-fingerprint",
     "dep:tokmd-analysis-git",
     "tokmd-analysis-grid/git",
+    "tokmd-analysis-effort/git",
 ]
 walk = [
     "dep:tokmd-walk",

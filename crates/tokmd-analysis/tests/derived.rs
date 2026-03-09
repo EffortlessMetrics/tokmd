@@ -1,6 +1,6 @@
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope, analyze,
+    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
@@ -98,6 +98,7 @@ fn derived_metrics_basic() {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -133,12 +134,12 @@ fn derived_metrics_basic() {
     // New assertions
     // Nesting
     assert_eq!(derived.nesting.max, 2); // src/lib.rs -> depth 2
-    assert!((derived.nesting.avg - 1.67).abs() < 0.01); // (2+2+1)/3 = 1.67 
-    // paths: src/lib.rs (2), tests/lib_test.rs (2), Cargo.toml (1)
-    // Avg = 5/3 = 1.666...
-    // Let's recheck logic: path_depth("src/lib.rs") -> 2.
-    // path_depth("Cargo.toml") -> 1.
-    // 2+2+1 = 5. 5/3 = 1.67.
+    assert!((derived.nesting.avg - 1.67).abs() < 0.01); // (2+2+1)/3 = 1.67
+                                                        // paths: src/lib.rs (2), tests/lib_test.rs (2), Cargo.toml (1)
+                                                        // Avg = 5/3 = 1.666...
+                                                        // Let's recheck logic: path_depth("src/lib.rs") -> 2.
+                                                        // path_depth("Cargo.toml") -> 1.
+                                                        // 2+2+1 = 5. 5/3 = 1.67.
 
     // Polyglot
     assert_eq!(derived.polyglot.lang_count, 2); // Rust, TOML

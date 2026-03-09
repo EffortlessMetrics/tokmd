@@ -1,6 +1,6 @@
 use tokmd_analysis_types::{
-    ComplexityReport, DerivedReport, DuplicateReport, EffortConfidence, EffortConfidenceLevel,
-    EffortDriver, EffortDriverDirection, EffortSizeBasis, GitReport, ApiSurfaceReport,
+    ApiSurfaceReport, ComplexityReport, DerivedReport, DuplicateReport, EffortConfidence,
+    EffortConfidenceLevel, EffortSizeBasis, GitReport,
 };
 
 pub fn build_confidence(

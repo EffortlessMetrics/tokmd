@@ -73,5 +73,6 @@ expression: rendered
   },
   "complexity": null,
   "api_surface": null,
+  "effort": null,
   "fun": null
 }

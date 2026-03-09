@@ -906,4 +906,3 @@ fn json_complete_status_rendered() {
     let v: serde_json::Value = serde_json::from_str(&json).unwrap();
     assert_eq!(v["status"], "complete");
 }
-

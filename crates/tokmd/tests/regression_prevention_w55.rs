@@ -16,8 +16,8 @@ use tokmd_model::{
 use tokmd_scan::scan;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode,
-    ConfigMode, HANDOFF_SCHEMA_VERSION, LangArgs, SCHEMA_VERSION, TableFormat,
+    ChildIncludeMode, ChildrenMode, ConfigMode, LangArgs, TableFormat,
+    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION, SCHEMA_VERSION,
 };
 
 use std::path::{Path, PathBuf};
@@ -80,11 +80,11 @@ fn schema_version_is_2() {
 }
 
 #[test]
-fn analysis_schema_version_is_8() {
+fn analysis_schema_version_is_9() {
     assert_eq!(
         tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
-        8,
-        "ANALYSIS_SCHEMA_VERSION must be 8"
+        9,
+        "ANALYSIS_SCHEMA_VERSION must be 9"
     );
 }
 

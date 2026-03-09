@@ -556,4 +556,3 @@ fn xml_rendering_is_deterministic() {
     let b = extract_text(render(&receipt, AnalysisFormat::Xml).unwrap());
     assert_eq!(a, b, "XML output must be deterministic");
 }
-

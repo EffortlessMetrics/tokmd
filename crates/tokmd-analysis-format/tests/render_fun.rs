@@ -544,4 +544,3 @@ fn render_midi_start_time() {
         "third note should be 240 ticks after second"
     );
 }
-

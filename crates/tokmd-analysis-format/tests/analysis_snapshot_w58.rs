@@ -601,4 +601,3 @@ fn w58_analysis_svg_with_context_window() {
         text(render(&r, AnalysisFormat::Svg).unwrap())
     );
 }
-

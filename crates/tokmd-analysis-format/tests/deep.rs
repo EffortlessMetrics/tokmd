@@ -1774,4 +1774,3 @@ fn md_reading_time_and_integrity() {
     assert!(md.contains("Hash: `abc123` (`blake3`)"));
     assert!(md.contains("Entries: `10`"));
 }
-

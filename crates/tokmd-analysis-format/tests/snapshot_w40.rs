@@ -343,4 +343,3 @@ fn snapshot_analysis_xml_minimal() {
     );
     insta::assert_snapshot!(normalized);
 }
-

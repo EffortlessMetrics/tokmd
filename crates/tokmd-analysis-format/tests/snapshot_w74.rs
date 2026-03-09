@@ -489,4 +489,3 @@ fn w74_analysis_html_minimal() {
     let out = redact_timestamp(&text(render(&receipt, AnalysisFormat::Html).unwrap()));
     insta::assert_snapshot!("w74_analysis_html_minimal", out);
 }
-

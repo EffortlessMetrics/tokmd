@@ -306,7 +306,7 @@ pub struct AnalyzeSettings {
 
     /// Monte Carlo iterations for effort estimation.
     #[serde(default)]
-    pub effort_mc_iterations: Option<u32>,
+    pub effort_mc_iterations: Option<usize>,
 
     /// Monte Carlo seed for effort estimation.
     #[serde(default)]
@@ -547,7 +547,7 @@ pub struct AnalyzeConfig {
     pub effort_monte_carlo: Option<bool>,
 
     /// Monte Carlo iterations for effort estimation.
-    pub effort_mc_iterations: Option<u32>,
+    pub effort_mc_iterations: Option<usize>,
 
     /// Monte Carlo seed for effort estimation.
     pub effort_mc_seed: Option<u64>,

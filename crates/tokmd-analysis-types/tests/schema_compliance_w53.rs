@@ -5,8 +5,8 @@
 
 use serde_json::Value;
 use tokmd_analysis_types::{
-    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
-    ComplexityRisk, EntropyReport, FunReport, TopicClouds,
+    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, ComplexityRisk, EntropyReport,
+    FunReport, TopicClouds, ANALYSIS_SCHEMA_VERSION,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 
@@ -60,6 +60,7 @@ fn sample_analysis_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,
@@ -77,7 +78,7 @@ fn analysis_schema_version_is_positive() {
 
 #[test]
 fn analysis_schema_version_matches_documented_value() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 // ---------------------------------------------------------------------------

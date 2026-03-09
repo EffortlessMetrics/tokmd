@@ -3,24 +3,43 @@ pub use crate::request::{DeltaInput, EffortLayer, EffortModelKind, EffortRequest
 use std::path::Path;
 
 use anyhow::Result;
+use tokmd_analysis_types::{ApiSurfaceReport, ComplexityReport, DuplicateReport, GitReport};
 use tokmd_analysis_types::{
-    DerivedReport, EffortAssumptions, EffortConfidence, EffortConfidenceLevel, EffortDriver,
-    EffortEstimateReport, EffortModel, EffortResults, EffortSizeBasis, EffortDeltaReport,
+    DerivedReport, EffortAssumptions, EffortDriver, EffortEstimateReport, EffortModel,
+    EffortResults, EffortSizeBasis,
 };
-use tokmd_analysis_types::{GitReport, ApiSurfaceReport, DuplicateReport, ComplexityReport};
 use tokmd_types::ExportData;
 
-use crate::confidence::build_confidence;
-use crate::cocomo81::cocomo81_baseline;
 use crate::cocomo2::cocomo2_baseline;
+use crate::cocomo81::cocomo81_baseline;
+use crate::confidence::build_confidence;
 use crate::delta::build_delta;
 use crate::drivers::build_drivers;
-use crate::size_basis::build_size_basis;
-use crate::size_basis::SizeBasisResult;
 use crate::monte_carlo::apply_monte_carlo;
+use crate::size_basis::SizeBasisResult;
+use crate::size_basis::build_size_basis;
 use crate::uncertainty::apply_uncertainty;
 
-/// Build the effort estimate for the selected report and optional driver inputs.
+/// Build an effort estimate from exported code inventory plus optional enrichers.
+///
+/// The builder is intentionally staged:
+///
+/// 1. classify authored/generated/vendored surface,
+/// 2. compute a deterministic baseline from authored KLOC,
+/// 3. extract explanatory drivers from available signals,
+/// 4. derive confidence from signal coverage and classification quality,
+/// 5. attach delta/blast-radius output when base/head refs are provided.
+///
+/// The function is conservative:
+///
+/// - it does not require git/complexity/docs/dup inputs to be present,
+/// - it degrades confidence rather than failing when signals are missing,
+/// - it keeps the estimate deterministic unless the request explicitly opts
+///   into probabilistic follow-up behavior.
+///
+/// Callers should prefer passing the richest available context instead of
+/// backfilling values later in the formatting layer.
+#[allow(clippy::too_many_arguments)]
 pub fn build_effort_report(
     root: &Path,
     export: &ExportData,
@@ -36,14 +55,12 @@ pub fn build_effort_report(
         source_confidence: basis_confidence,
     } = build_size_basis(root, export);
 
-    let drivers: Vec<EffortDriver> = build_drivers(&size_basis, derived, git, complexity, api_surface, dup);
+    let drivers: Vec<EffortDriver> =
+        build_drivers(&size_basis, derived, git, complexity, api_surface, dup);
 
     let delta = match (&req.base_ref, &req.head_ref) {
         (Some(base), Some(head)) => {
-            match build_delta(root, export, git, base.as_str(), head.as_str()) {
-                Ok(delta) => Some(delta),
-                Err(_) => None,
-            }
+            build_delta(root, export, git, base.as_str(), head.as_str()).ok()
         }
         _ => None,
     };
@@ -94,7 +111,9 @@ pub fn build_effort_report(
     let mut assumptions = assumptions_summary(&size_basis, confidence_score, req);
 
     if req.base_ref.is_some() || req.head_ref.is_some() {
-        assumptions.notes.push("Delta path requested via base/head references".to_string());
+        assumptions
+            .notes
+            .push("Delta path requested via base/head references".to_string());
     }
     if req.monte_carlo {
         assumptions.notes.push(format!(
@@ -114,12 +133,16 @@ pub fn build_effort_report(
     })
 }
 
-fn assumptions_summary(size_basis: &EffortSizeBasis, confidence: f64, req: &EffortRequest) -> EffortAssumptions {
+fn assumptions_summary(
+    size_basis: &EffortSizeBasis,
+    confidence: f64,
+    req: &EffortRequest,
+) -> EffortAssumptions {
     let mut notes: Vec<String> = Vec::new();
 
     notes.push(format!("Effort layer requested: {}", req.layer.as_str()));
 
-    if !req.base_ref.is_none() {
+    if req.base_ref.is_some() {
         notes.push("Base/head inputs requested for delta context".to_string());
     }
 
@@ -169,6 +192,7 @@ fn avg_models(a: &EffortResults, b: &EffortResults) -> EffortResults {
     out
 }
 
+#[allow(dead_code)]
 struct SizeContext {
     size_basis: EffortSizeBasis,
     basis_confidence: f64,

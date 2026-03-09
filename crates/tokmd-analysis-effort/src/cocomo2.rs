@@ -30,15 +30,15 @@ pub fn cocomo2_baseline(kloc_authored: f64) -> EffortResults {
     let (effort_p50, schedule_p50, staff_p50, _) = cocomo2_effort_pm(kloc);
     if effort_p50 <= 0.0 || schedule_p50 <= 0.0 {
         return EffortResults {
-        effort_pm_p50: 0.0,
-        schedule_months_p50: 0.0,
-        staff_p50: 0.0,
-        effort_pm_low: 0.0,
-        effort_pm_p80: 0.0,
-        schedule_months_low: 0.0,
-        schedule_months_p80: 0.0,
-        staff_low: 0.0,
-        staff_p80: 0.0,
+            effort_pm_p50: 0.0,
+            schedule_months_p50: 0.0,
+            staff_p50: 0.0,
+            effort_pm_low: 0.0,
+            effort_pm_p80: 0.0,
+            schedule_months_low: 0.0,
+            schedule_months_p80: 0.0,
+            staff_low: 0.0,
+            staff_p80: 0.0,
         };
     }
 
@@ -62,7 +62,7 @@ pub fn cocomo2_baseline(kloc_authored: f64) -> EffortResults {
     EffortResults {
         effort_pm_p50: effort_p50,
         schedule_months_p50: schedule_p50,
-        staff_p50: staff_p50,
+        staff_p50,
         effort_pm_low,
         effort_pm_p80: effort_pm_high,
         schedule_months_low: schedule_low,

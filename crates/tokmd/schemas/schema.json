@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokmd Receipt",
-  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 8.",
+  "description": "Output schema for tokmd (language, module, export, and analysis reports). Schema version 9.",
   "oneOf": [
     { "$ref": "#/definitions/LangReceipt" },
     { "$ref": "#/definitions/ModuleReceipt" },
@@ -246,7 +246,7 @@
       "description": "Output from `tokmd analyze --format json`.",
       "required": ["schema_version", "generated_at_ms", "tool", "mode", "status", "warnings", "source", "args"],
       "properties": {
-        "schema_version": { "type": "integer", "const": 8 },
+        "schema_version": { "type": "integer", "const": 9 },
         "generated_at_ms": { "type": "integer", "description": "Unix timestamp (milliseconds) when the analysis ran." },
         "tool": { "$ref": "#/definitions/ToolInfo" },
         "mode": { "type": "string", "const": "analysis" },
@@ -268,6 +268,7 @@
         "dup": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/DuplicateReport" }] },
         "complexity": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ComplexityReport" }] },
         "api_surface": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/ApiSurfaceReport" }] },
+        "effort": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EffortEstimateReport" }] },
         "fun": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/FunReport" }] }
       }
     },
@@ -1090,6 +1091,135 @@
       "type": "string",
       "enum": ["low", "moderate", "high", "critical"],
       "description": "Complexity risk classification."
+    },
+    "EffortEstimateReport": {
+      "type": "object",
+      "description": "Effort estimation report with COCOMO-based projections.",
+      "required": ["model", "size_basis", "results", "confidence", "drivers", "assumptions"],
+      "properties": {
+        "model": { "$ref": "#/definitions/EffortModel" },
+        "size_basis": { "$ref": "#/definitions/EffortSizeBasis" },
+        "results": { "$ref": "#/definitions/EffortResults" },
+        "confidence": { "$ref": "#/definitions/EffortConfidence" },
+        "drivers": { "type": "array", "items": { "$ref": "#/definitions/EffortDriver" } },
+        "assumptions": { "$ref": "#/definitions/EffortAssumptions" },
+        "delta": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/EffortDeltaReport" }] }
+      }
+    },
+    "EffortModel": {
+      "type": "string",
+      "enum": ["cocomo81-basic", "cocomo2-early", "ensemble"],
+      "description": "Effort estimation model used."
+    },
+    "EffortSizeBasis": {
+      "type": "object",
+      "description": "Size basis for effort estimation with authored/generated/vendored breakdown.",
+      "required": ["total_lines", "authored_lines", "generated_lines", "vendored_lines", "kloc_total", "kloc_authored", "generated_pct", "vendored_pct", "classification_confidence", "warnings", "by_tag"],
+      "properties": {
+        "total_lines": { "type": "integer", "description": "Total lines of code." },
+        "authored_lines": { "type": "integer", "description": "Lines classified as authored." },
+        "generated_lines": { "type": "integer", "description": "Lines classified as generated." },
+        "vendored_lines": { "type": "integer", "description": "Lines classified as vendored." },
+        "kloc_total": { "type": "number", "description": "Total KLOC." },
+        "kloc_authored": { "type": "number", "description": "Authored KLOC." },
+        "generated_pct": { "type": "number", "description": "Percentage of code that is generated." },
+        "vendored_pct": { "type": "number", "description": "Percentage of code that is vendored." },
+        "classification_confidence": { "$ref": "#/definitions/EffortConfidenceLevel" },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Classification warnings." },
+        "by_tag": { "type": "array", "items": { "$ref": "#/definitions/EffortTagSizeRow" }, "description": "Size breakdown by language tag." }
+      }
+    },
+    "EffortTagSizeRow": {
+      "type": "object",
+      "description": "Size contribution for a single language tag.",
+      "required": ["tag", "lines", "authored_lines", "pct_of_total"],
+      "properties": {
+        "tag": { "type": "string", "description": "Language tag." },
+        "lines": { "type": "integer", "description": "Total lines for this tag." },
+        "authored_lines": { "type": "integer", "description": "Authored lines for this tag." },
+        "pct_of_total": { "type": "number", "description": "Percentage of total lines." }
+      }
+    },
+    "EffortResults": {
+      "type": "object",
+      "description": "Effort estimation results with percentile ranges.",
+      "required": ["effort_pm_p50", "schedule_months_p50", "staff_p50", "effort_pm_low", "effort_pm_p80", "schedule_months_low", "schedule_months_p80", "staff_low", "staff_p80"],
+      "properties": {
+        "effort_pm_p50": { "type": "number", "description": "Effort in person-months (p50 estimate)." },
+        "schedule_months_p50": { "type": "number", "description": "Schedule in months (p50 estimate)." },
+        "staff_p50": { "type": "number", "description": "Staff count (p50 estimate)." },
+        "effort_pm_low": { "type": "number", "description": "Effort in person-months (low estimate)." },
+        "effort_pm_p80": { "type": "number", "description": "Effort in person-months (p80 estimate)." },
+        "schedule_months_low": { "type": "number", "description": "Schedule in months (low estimate)." },
+        "schedule_months_p80": { "type": "number", "description": "Schedule in months (p80 estimate)." },
+        "staff_low": { "type": "number", "description": "Staff count (low estimate)." },
+        "staff_p80": { "type": "number", "description": "Staff count (p80 estimate)." }
+      }
+    },
+    "EffortConfidence": {
+      "type": "object",
+      "description": "Confidence assessment for the effort estimate.",
+      "required": ["level", "reasons"],
+      "properties": {
+        "level": { "$ref": "#/definitions/EffortConfidenceLevel" },
+        "reasons": { "type": "array", "items": { "type": "string" }, "description": "Reasons for the confidence level." },
+        "data_coverage_pct": { "type": ["number", "null"], "description": "Percentage of data coverage for the estimate." }
+      }
+    },
+    "EffortConfidenceLevel": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Confidence level for effort estimates."
+    },
+    "EffortDriver": {
+      "type": "object",
+      "description": "A cost driver that influences the effort estimate.",
+      "required": ["key", "label", "weight", "direction", "evidence"],
+      "properties": {
+        "key": { "type": "string", "description": "Driver identifier." },
+        "label": { "type": "string", "description": "Human-readable driver label." },
+        "weight": { "type": "number", "description": "Driver weight multiplier." },
+        "direction": { "$ref": "#/definitions/EffortDriverDirection" },
+        "evidence": { "type": "string", "description": "Evidence supporting the driver assessment." }
+      }
+    },
+    "EffortDriverDirection": {
+      "type": "string",
+      "enum": ["raises", "lowers", "neutral"],
+      "description": "Direction of a cost driver's influence on effort."
+    },
+    "EffortAssumptions": {
+      "type": "object",
+      "description": "Assumptions and overrides applied to the estimate.",
+      "required": ["notes", "overrides"],
+      "properties": {
+        "notes": { "type": "array", "items": { "type": "string" }, "description": "Assumption notes." },
+        "overrides": { "type": "object", "additionalProperties": { "type": "string" }, "description": "User-supplied overrides." }
+      }
+    },
+    "EffortDeltaReport": {
+      "type": "object",
+      "description": "Delta effort estimation for changed files.",
+      "required": ["base", "head", "files_changed", "modules_changed", "langs_changed", "hotspot_files_touched", "coupled_neighbors_touched", "blast_radius", "classification", "effort_pm_low", "effort_pm_est", "effort_pm_high"],
+      "properties": {
+        "base": { "type": "string", "description": "Base reference." },
+        "head": { "type": "string", "description": "Head reference." },
+        "files_changed": { "type": "integer", "description": "Number of files changed." },
+        "modules_changed": { "type": "integer", "description": "Number of modules changed." },
+        "langs_changed": { "type": "integer", "description": "Number of languages changed." },
+        "hotspot_files_touched": { "type": "integer", "description": "Number of hotspot files touched." },
+        "coupled_neighbors_touched": { "type": "integer", "description": "Number of coupled neighbor files touched." },
+        "blast_radius": { "type": "number", "description": "Blast radius score." },
+        "classification": { "$ref": "#/definitions/EffortDeltaClassification" },
+        "effort_pm_low": { "type": "number", "description": "Delta effort low estimate (person-months)." },
+        "effort_pm_est": { "type": "number", "description": "Delta effort estimate (person-months)." },
+        "effort_pm_high": { "type": "number", "description": "Delta effort high estimate (person-months)." }
+      }
+    },
+    "EffortDeltaClassification": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Classification of the delta effort impact."
     },
     "FunReport": {
       "type": "object",

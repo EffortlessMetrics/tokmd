@@ -246,6 +246,7 @@ expression: v
     }
   },
   "dup": null,
+  "effort": null,
   "entropy": null,
   "fun": null,
   "generated_at_ms": 0,

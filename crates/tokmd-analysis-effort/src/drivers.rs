@@ -71,7 +71,8 @@ pub fn build_drivers(
         if complexity.avg_cyclomatic > 4.0 {
             drivers.push(EffortDriver {
                 key: "complexity_breadth".to_string(),
-                label: "Average cyclomatic complexity suggests added control flow overhead".to_string(),
+                label: "Average cyclomatic complexity suggests added control flow overhead"
+                    .to_string(),
                 weight: ((complexity.avg_cyclomatic - 1.0) / 30.0).clamp(0.08, 0.45),
                 direction: EffortDriverDirection::Raises,
                 evidence: format!("avg cyclomatic {:.2}", complexity.avg_cyclomatic),
@@ -100,16 +101,16 @@ pub fn build_drivers(
         }
     }
 
-    if let Some(dup) = dup {
-        if dup.wasted_bytes > 0 {
-            drivers.push(EffortDriver {
-                key: "duplication".to_string(),
-                label: "Duplicate blocks add review and refactor overhead".to_string(),
-                weight: (dup.wasted_bytes as f64 / 12_000.0).clamp(0.1, 0.7),
-                direction: EffortDriverDirection::Raises,
-                evidence: format!("{} bytes wasted by duplication", dup.wasted_bytes),
-            });
-        }
+    if let Some(dup) = dup
+        && dup.wasted_bytes > 0
+    {
+        drivers.push(EffortDriver {
+            key: "duplication".to_string(),
+            label: "Duplicate blocks add review and refactor overhead".to_string(),
+            weight: (dup.wasted_bytes as f64 / 12_000.0).clamp(0.1, 0.7),
+            direction: EffortDriverDirection::Raises,
+            evidence: format!("{} bytes wasted by duplication", dup.wasted_bytes),
+        });
     }
 
     if derived.test_density.ratio < 0.10 {

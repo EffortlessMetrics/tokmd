@@ -48,11 +48,13 @@ Pure data structures for analysis receipts. This is a **Tier 0** crate defining 
 
 ### Schema Version
 ```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;
+pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;
 ```
 v5 added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution.
 v6 added API surface enricher.
 v7 added coupling normalization (Jaccard/Lift), commit intent classification, and near-duplicate detection.
+v8 added near-dup clusters, selection metadata, max_pairs guardrail, runtime stats.
+v9 added effort estimation report.
 
 ### Optional Fields
 All analysis sections are `Option<T>` to support preset-based inclusion:

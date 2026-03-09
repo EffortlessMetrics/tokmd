@@ -6,11 +6,11 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope, analyze,
+    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope,
 };
-use tokmd_analysis_grid::{PresetKind, preset_plan_for};
-use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
+use tokmd_analysis_grid::{preset_plan_for, PresetKind};
+use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ============================================================================
@@ -55,6 +55,7 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,

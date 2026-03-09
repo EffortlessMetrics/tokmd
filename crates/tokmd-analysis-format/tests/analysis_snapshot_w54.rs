@@ -481,4 +481,3 @@ fn w54_analysis_md_full() {
         text(render(&r, AnalysisFormat::Md).unwrap())
     );
 }
-

@@ -355,4 +355,3 @@ fn snapshot_md_with_warnings() {
     let text = extract_text(render(&receipt, AnalysisFormat::Md).unwrap());
     insta::assert_snapshot!(text);
 }
-

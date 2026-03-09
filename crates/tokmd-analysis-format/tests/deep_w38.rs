@@ -802,4 +802,3 @@ mod doc_density_rendering {
         assert!(md.contains("|Go|"));
     }
 }
-

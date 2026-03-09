@@ -274,20 +274,6 @@ fn parse_redact_mode(args: &Value, default: RedactMode) -> Result<RedactMode, To
     }
 }
 
-/// Parse an optional u32 field strictly: missing/null -> None, non-number/out of range -> error.
-fn parse_optional_u32(args: &Value, field: &str) -> Result<Option<u32>, TokmdError> {
-    match args.get(field) {
-        None | Some(Value::Null) => Ok(None),
-        Some(v) => v
-            .as_u64()
-            .map(|n| {
-                u32::try_from(n)
-                    .map_err(|_| TokmdError::invalid_field(field, "a positive 32-bit integer"))
-            })
-            .ok_or_else(|| TokmdError::invalid_field(field, "a positive 32-bit integer"))?,
-    }
-}
-
 /// Parse an effort model from a string: missing/null -> None, unsupported values -> error.
 fn parse_effort_model(args: &Value, field: &str) -> Result<Option<String>, TokmdError> {
     match parse_optional_string(args, field)? {
@@ -295,11 +281,12 @@ fn parse_effort_model(args: &Value, field: &str) -> Result<Option<String>, Tokmd
         Some(value) => {
             let normalized = value.trim().to_ascii_lowercase();
             match normalized.as_str() {
-                "cocomo81-basic" | "cocomo2-early" | "ensemble" => Ok(Some(normalized)),
-                _ => Err(TokmdError::invalid_field(
+                "cocomo81-basic" => Ok(Some(normalized)),
+                "cocomo2-early" | "ensemble" => Err(TokmdError::invalid_field(
                     field,
-                    "'cocomo81-basic', 'cocomo2-early', or 'ensemble'",
+                    "only 'cocomo81-basic' is currently supported",
                 )),
+                _ => Err(TokmdError::invalid_field(field, "'cocomo81-basic'")),
             }
         }
     }
@@ -356,18 +343,8 @@ fn parse_analyze_preset(args: &Value, default: &str) -> Result<String, TokmdErro
     let preset = parse_string(args, "preset", default)?;
     let normalized = preset.trim().to_ascii_lowercase();
     match normalized.as_str() {
-        "receipt"
-        | "estimate"
-        | "health"
-        | "risk"
-        | "supply"
-        | "architecture"
-        | "topics"
-        | "security"
-        | "identity"
-        | "git"
-        | "deep"
-        | "fun" => Ok(normalized),
+        "receipt" | "estimate" | "health" | "risk" | "supply" | "architecture" | "topics"
+        | "security" | "identity" | "git" | "deep" | "fun" => Ok(normalized),
         _ => Err(TokmdError::invalid_field(
             "preset",
             "'receipt', 'estimate', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
@@ -476,13 +453,13 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
             "both effort_base_ref and effort_head_ref must be provided together",
         ));
     }
-    if let Some(iterations) = parse_optional_u32(obj, "effort_mc_iterations")? {
-        if iterations == 0 {
-            return Err(TokmdError::invalid_field(
-                "effort_mc_iterations",
-                "must be greater than 0",
-            ));
-        }
+    if let Some(iterations) = parse_optional_usize(obj, "effort_mc_iterations")?
+        && iterations == 0
+    {
+        return Err(TokmdError::invalid_field(
+            "effort_mc_iterations",
+            "must be greater than 0",
+        ));
     }
 
     Ok(AnalyzeSettings {
@@ -500,7 +477,7 @@ fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
         effort_model: parse_effort_model(obj, "effort_model")?,
         effort_layer: parse_effort_layer(obj, "effort_layer")?,
         effort_monte_carlo: parse_optional_bool(obj, "effort_monte_carlo")?,
-        effort_mc_iterations: parse_optional_u32(obj, "effort_mc_iterations")?,
+        effort_mc_iterations: parse_optional_usize(obj, "effort_mc_iterations")?,
         effort_mc_seed: parse_optional_u64(obj, "effort_mc_seed")?,
     })
 }
@@ -890,6 +867,18 @@ mod tests {
                 .expect("message string")
                 .contains("granularity")
         );
+    }
+
+    #[test]
+    #[cfg(feature = "analysis")]
+    fn parse_analyze_settings_rejects_unsupported_effort_model() {
+        let args: Value = serde_json::json!({
+            "preset": "estimate",
+            "effort_model": "cocomo2-early"
+        });
+        let err = parse_analyze_settings(&args).expect_err("unsupported model should fail");
+        assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+        assert!(err.message.contains("only 'cocomo81-basic'"));
     }
 
     // ========================================================================

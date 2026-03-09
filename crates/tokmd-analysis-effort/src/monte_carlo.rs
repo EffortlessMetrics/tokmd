@@ -5,7 +5,7 @@ pub fn apply_monte_carlo(
     _drivers: &[EffortDriver],
     _confidence: &EffortConfidence,
     _basis_confidence: f64,
-    iterations: u32,
+    iterations: usize,
     _seed: Option<u64>,
 ) -> EffortResults {
     if iterations == 0 {

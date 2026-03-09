@@ -31,7 +31,9 @@
 //! * Base receipt formatting (use tokmd-format)
 
 use anyhow::Result;
-use tokmd_analysis_types::{AnalysisReceipt, EffortDriverDirection, EffortEstimateReport, FileStatRow};
+use tokmd_analysis_types::{
+    AnalysisReceipt, EffortDriverDirection, EffortEstimateReport, FileStatRow,
+};
 use tokmd_types::AnalysisFormat;
 
 pub enum RenderedOutput {
@@ -917,7 +919,7 @@ fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
 
     out.push_str("### Size basis\n\n");
     out.push_str(&format!(
-        "- Model: `{:?}`\n- Total LOC lines: `{}`\n- Authored LOC lines: `{}`\n- Generated LOC lines: `{}`\n- Vendored LOC lines: `{}`\n- Authoring KLOC: `{}`\n- Total KLOC: `{}`\n- Generated share: `{}`\n- Vendored share: `{}`\n- Classification confidence: `{:?}`\n\n",
+        "- Model: `{}`\n- Total LOC lines: `{}`\n- Authored LOC lines: `{}`\n- Generated LOC lines: `{}`\n- Vendored LOC lines: `{}`\n- Authoring KLOC: `{}`\n- Total KLOC: `{}`\n- Generated share: `{}`\n- Vendored share: `{}`\n- Classification confidence: `{}`\n\n",
         effort.model,
         effort.size_basis.total_lines,
         effort.size_basis.authored_lines,
@@ -962,7 +964,7 @@ fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
 
     out.push_str("### Why\n\n");
     out.push_str(&format!(
-        "- Confidence level: `{:?}`\n",
+        "- Confidence level: `{}`\n",
         effort.confidence.level
     ));
     if let Some(coverage) = effort.confidence.data_coverage_pct {
@@ -1020,7 +1022,7 @@ fn render_effort_report(out: &mut String, effort: &EffortEstimateReport) {
     out.push_str("### Delta\n\n");
     if let Some(delta) = &effort.delta {
         out.push_str(&format!(
-            "- Reference window: `{}`..`{}`\n- Files changed: `{}`\n- Modules changed: `{}`\n- Languages changed: `{}`\n- Hotspots touched: `{}`\n- Coupled neighbors touched: `{}`\n- Blast radius: `{}`\n- Classification: `{:?}`\n- Effort p50 impact: `{}`\n- Effort p80 impact: `{}`\n\n",
+            "- Reference window: `{}`..`{}`\n- Files changed: `{}`\n- Modules changed: `{}`\n- Languages changed: `{}`\n- Hotspots touched: `{}`\n- Coupled neighbors touched: `{}`\n- Blast radius: `{}`\n- Classification: `{}`\n- Effort p50 impact: `{}`\n- Effort p80 impact: `{}`\n\n",
             delta.base,
             delta.head,
             delta.files_changed,
@@ -1289,8 +1291,8 @@ fn render_html(receipt: &AnalysisReceipt) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokmd_analysis_types::*;
     use std::collections::BTreeMap;
+    use tokmd_analysis_types::*;
 
     fn minimal_receipt() -> AnalysisReceipt {
         AnalysisReceipt {
@@ -2997,7 +2999,10 @@ mod tests {
                 ],
                 overrides: BTreeMap::from([
                     ("effort_model".to_string(), "cocomo81_basic".to_string()),
-                    ("classification_mode".to_string(), "heuristic+paths".to_string()),
+                    (
+                        "classification_mode".to_string(),
+                        "heuristic+paths".to_string(),
+                    ),
                 ]),
             },
             delta,

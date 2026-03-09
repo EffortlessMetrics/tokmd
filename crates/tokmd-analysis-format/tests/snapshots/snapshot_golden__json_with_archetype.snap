@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd-analysis-format/tests/snapshot_golden.rs
-assertion_line: 249
 expression: out
 ---
 {
@@ -58,5 +57,6 @@ expression: out
   "dup": null,
   "complexity": null,
   "api_surface": null,
+  "effort": null,
   "fun": null
 }

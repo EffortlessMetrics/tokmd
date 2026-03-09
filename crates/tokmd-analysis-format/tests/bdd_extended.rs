@@ -506,4 +506,3 @@ fn sample_derived() -> DerivedReport {
         },
     }
 }
-
