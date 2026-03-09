@@ -27,9 +27,6 @@ mutants.out.old/
 # Snapshots
 *.snap.new
 
-# Proptest regressions
-*.proptest-regressions
-
 .runs/
 
 .tokmd/cache/
