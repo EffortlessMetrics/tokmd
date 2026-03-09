@@ -27,12 +27,16 @@ mutants.out.old/
 # Snapshots
 *.snap.new
 
+# Proptest regressions
+*.proptest-regressions
+
 .runs/
 
 .tokmd/cache/
 
 # Claude Code (local overrides)
 .claude/settings.local.json
+.claude/worktrees/
 
 # Jules agent metadata (stale run logs, envelopes)
 .jules/
