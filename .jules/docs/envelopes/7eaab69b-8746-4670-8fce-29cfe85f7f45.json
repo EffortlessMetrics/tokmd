@@ -1,0 +1,13 @@
+{
+  "id": "7eaab69b-8746-4670-8fce-29cfe85f7f45",
+  "commands": [
+    {
+      "command": "cargo test --workspace --doc",
+      "status": "success"
+    },
+    {
+      "command": "cargo test --workspace --exclude tokmd-python --exclude tokmd-node",
+      "status": "success"
+    }
+  ]
+}
