@@ -1,0 +1,8 @@
+[
+  {
+    "id": "06554180-2e65-4682-b212-b670b466729d",
+    "date": "2025-03-10",
+    "crate": "tokmd-python",
+    "fix": "no-default-features build with pyo3"
+  }
+]
