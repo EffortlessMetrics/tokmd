@@ -1,25 +1,56 @@
-## Summary
+---
+# PR Glass Cockpit
 
-Add 116 targeted mutation-killing tests across four critical crates to improve mutation testing scores and protect against subtle behavioral regressions.
+Make review boring. Make truth cheap.
 
-### Crates Covered
+## 💡 Summary
+Unified the wording for the `--children` argument across subcommands in the CLI help for improved consistency.
 
-| Crate | Tests | Key Mutation Targets |
-|-------|-------|---------------------|
-| **tokmd-redact** | 20 | Hash truncation boundary (16 vs 15/17), separator normalization, extension preservation, privacy guarantees |
-| **tokmd-gate** | 48 | Comparison operator boundaries (> vs >=, < vs <=), negate logic, from_results counting, fail_fast conjunctions, ratchet percentage arithmetic, missing value handling |
-| **tokmd-model** | 20 | avg() division-by-zero guard, rounding arithmetic, normalize_path separator handling, module_key depth logic |
-| **tokmd-types** | 28 | Schema version constant pinning (all 5 constants), TokenEstimationMeta ceil-vs-floor arithmetic, TokenAudit saturating_sub, default trait impls, serde roundtrips |
+## 🎯 Why (user/dev pain)
+Previously, the `--children` argument had slightly varying descriptions depending on whether it was viewed in `tokmd module` ("Whether to include embedded languages..."), `tokmd export`, or the default `tokmd lang` command ("How to handle embedded languages..."). Unifying the text clarifies intent across contexts.
 
-### Mutation Patterns Targeted
+## 🔎 Evidence (before/after)
+- **Before**: `tokmd module --help` displayed: `Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].`
+- **After**: `tokmd module --help` displays: `How to handle embedded languages (tokei "children" / blobs) in module totals [default: separate].`
+- File paths: `crates/tokmd-config/src/lib.rs`
 
-- **Boundary conditions**: Exact values where `>` vs `>=` (or `<` vs `<=`) produce different results
-- **Arithmetic mutations**: `+` to `-`, `*` to `/`, `ceil` to `floor`
-- **Boolean logic**: `&&` to `||`, `!` removal, `true`/`false` flips
-- **Guard removal**: `if x == 0 { return 0 }` deletion
-- **Constant mutations**: Schema version ±1 changes
-- **Method removal**: `replace()`, `strip_prefix()`, `saturating_sub()` deletions
+## 🧭 Options considered
+### Option A (recommended)
+- Unify around the more descriptive phrase: "How to handle embedded languages...".
+- Why it fits this repo: Consistently explains the action ("How to handle") rather than implying a yes/no inclusion ("Whether to include") when multiple enums (`separate`, `parents-only`) exist.
+- Trade-offs: Requires a minor snaptest update.
 
-### Testing
+### Option B
+- No-op. Leave the discrepancies in the CLI.
 
-All 116 tests pass. No existing tests affected. Clippy clean.
+## ✅ Decision
+Option A. It's a small DX improvement with minimal risk.
+
+## 🧱 Changes made (SRP)
+- `crates/tokmd-config/src/lib.rs`: Updated docstrings for `CliModuleArgs` and `CliExportArgs`.
+- `crates/tokmd/tests/snapshots/cli_snapshot_golden__help.snap`: Updated auto-generated CLI help.
+
+## 🧪 Verification receipts
+- `cargo build --verbose`: PASS (Finished `dev` profile)
+- `cargo test -p tokmd-config`: PASS (test result: ok. 15 passed; 0 failed)
+- `INSTA_UPDATE=always cargo test -p tokmd --test cli_snapshot_golden`: PASS (test result: ok. 12 passed; 0 failed)
+- `cargo fmt -- --check && cargo clippy -- -D warnings`: PASS (Finished `dev` profile)
+
+## 🧭 Telemetry
+- Change shape: Small documentation / snapshot update
+- Blast radius: CLI documentation
+- Risk class: Low (no runtime logic changed)
+- Rollback: `git revert`
+- Merge-confidence gates: `build`, `test`, `fmt`, `clippy`
+
+## 🗂️ .jules updates
+- Bootstrapped `.jules/policy/scheduled_tasks.json`, `.jules/runbooks/*`, and `.jules/palette/*`.
+- Added run envelope: `.jules/palette/envelopes/run-001.json`
+- Initialized `.jules/palette/ledger.json`
+
+## 📝 Notes (freeform)
+N/A
+
+## 🔜 Follow-ups
+N/A
+---

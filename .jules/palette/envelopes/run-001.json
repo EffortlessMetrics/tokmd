@@ -1,0 +1,40 @@
+{
+  "run_id": "run-001",
+  "timestamp_utc": "2025-03-10T12:00:00Z",
+  "lane": "scout",
+  "target": "cli-help",
+  "commands": [],
+  "results_summary": {}
+}
+{
+  "run_id": "run-001",
+  "timestamp_utc": "2025-03-10T12:00:00Z",
+  "lane": "scout",
+  "target": "cli-help",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "minimal_lines": "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+    },
+    {
+      "cmd": "cargo test -p tokmd-config",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "minimal_lines": "test result: ok. 15 passed; 0 failed"
+    },
+    {
+      "cmd": "INSTA_UPDATE=always cargo test -p tokmd --test cli_snapshot_golden",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "minimal_lines": "test result: ok. 12 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo fmt -- --check && cargo clippy -- -D warnings",
+      "exit_status": 0,
+      "result_summary": "PASS",
+      "minimal_lines": "Finished `dev` profile"
+    }
+  ]
+}
