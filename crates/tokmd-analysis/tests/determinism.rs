@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
@@ -82,6 +82,7 @@ fn test_derive_report_determinism() {
         preset: AnalysisPreset::Receipt,
         args: args_meta,
         limits,
+        #[cfg(feature = "effort")]
         effort: None,
         window_tokens: None,
         git: Some(false),

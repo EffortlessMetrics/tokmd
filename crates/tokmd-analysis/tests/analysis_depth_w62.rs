@@ -8,10 +8,10 @@ use std::path::PathBuf;
 
 use proptest::prelude::*;
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ANALYSIS_SCHEMA_VERSION};
+use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ---------------------------------------------------------------------------
@@ -100,6 +100,7 @@ fn request(preset: AnalysisPreset) -> AnalysisRequest {
         preset,
         args: args(preset.as_str()),
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
         effort: None,
         window_tokens: None,
         git: Some(false),

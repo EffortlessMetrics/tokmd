@@ -5,10 +5,10 @@
 
 use proptest::prelude::*;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, BaselineMetrics,
-    CommitIntentCounts, CommitIntentKind, ComplexityBaseline, ComplexityRisk, DomainStat, EcoLabel,
-    EntropyClass, LicenseSourceKind, NearDupScope, RatioRow, TechnicalDebtLevel, TopicTerm,
-    TrendClass, ANALYSIS_SCHEMA_VERSION, BASELINE_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
+    BASELINE_VERSION, BaselineMetrics, CommitIntentCounts, CommitIntentKind, ComplexityBaseline,
+    ComplexityRisk, DomainStat, EcoLabel, EntropyClass, LicenseSourceKind, NearDupScope, RatioRow,
+    TechnicalDebtLevel, TopicTerm, TrendClass,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 

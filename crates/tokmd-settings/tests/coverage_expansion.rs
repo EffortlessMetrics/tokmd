@@ -217,6 +217,7 @@ fn analyze_settings_json_key_order_is_deterministic() {
         max_commits: Some(1000),
         max_commit_files: Some(50),
         granularity: "file".to_string(),
+        ..Default::default()
     };
     let json1 = serde_json::to_string(&s).unwrap();
     let json2 = serde_json::to_string(&s).unwrap();

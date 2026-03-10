@@ -663,8 +663,8 @@ fn test_envelope_struct_validates_against_sensor_report_v1() -> Result<()> {
 #[test]
 fn test_envelope_output_determinism() -> Result<()> {
     use tokmd_envelope::{
-        findings, Artifact, CapabilityStatus, Finding, FindingSeverity, GateItem, GateResults,
-        SensorReport, ToolMeta, Verdict,
+        Artifact, CapabilityStatus, Finding, FindingSeverity, GateItem, GateResults, SensorReport,
+        ToolMeta, Verdict, findings,
     };
 
     // Create identical reports twice

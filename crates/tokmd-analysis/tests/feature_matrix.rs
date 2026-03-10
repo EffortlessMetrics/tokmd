@@ -1,8 +1,8 @@
 #[cfg(feature = "git")]
 use std::process::Command;
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
-    NearDupScope,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
@@ -38,40 +38,50 @@ fn make_git_context(export: ExportData) -> (AnalysisContext, tempfile::TempDir) 
     .unwrap();
     std::fs::write(repo_root.join("src/lib.rs"), "pub fn foo() {}\n").unwrap();
 
-    assert!(Command::new("git")
-        .args(["init"])
-        .current_dir(repo_root)
-        .status()
-        .expect("git init")
-        .success());
+    assert!(
+        Command::new("git")
+            .args(["init"])
+            .current_dir(repo_root)
+            .status()
+            .expect("git init")
+            .success()
+    );
 
-    assert!(Command::new("git")
-        .args(["config", "user.email", "builder@example.internal"])
-        .current_dir(repo_root)
-        .status()
-        .expect("git config user.email")
-        .success());
+    assert!(
+        Command::new("git")
+            .args(["config", "user.email", "builder@example.internal"])
+            .current_dir(repo_root)
+            .status()
+            .expect("git config user.email")
+            .success()
+    );
 
-    assert!(Command::new("git")
-        .args(["config", "user.name", "Builder"])
-        .current_dir(repo_root)
-        .status()
-        .expect("git config user.name")
-        .success());
+    assert!(
+        Command::new("git")
+            .args(["config", "user.name", "Builder"])
+            .current_dir(repo_root)
+            .status()
+            .expect("git config user.name")
+            .success()
+    );
 
-    assert!(Command::new("git")
-        .args(["add", "."])
-        .current_dir(repo_root)
-        .status()
-        .expect("git add")
-        .success());
+    assert!(
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(repo_root)
+            .status()
+            .expect("git add")
+            .success()
+    );
 
-    assert!(Command::new("git")
-        .args(["commit", "-m", "fixture seed"])
-        .current_dir(repo_root)
-        .status()
-        .expect("git commit")
-        .success());
+    assert!(
+        Command::new("git")
+            .args(["commit", "-m", "fixture seed"])
+            .current_dir(repo_root)
+            .status()
+            .expect("git commit")
+            .success()
+    );
 
     let context = AnalysisContext {
         export,
@@ -108,6 +118,7 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
         effort: None,
         window_tokens: None,
         git: None,
@@ -243,10 +254,12 @@ fn fun_feature_is_reported_when_disabled() {
     let receipt = analyze(make_context(export), request).expect("analyze");
 
     assert!(receipt.fun.is_none());
-    assert!(receipt
-        .warnings
-        .iter()
-        .any(|warning| warning.contains(tokmd_analysis_grid::DisabledFeature::Fun.warning())),);
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|warning| warning.contains(tokmd_analysis_grid::DisabledFeature::Fun.warning())),
+    );
 }
 
 #[cfg(feature = "git")]

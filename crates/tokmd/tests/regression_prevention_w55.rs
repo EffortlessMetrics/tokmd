@@ -16,8 +16,8 @@ use tokmd_model::{
 use tokmd_scan::scan;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ChildIncludeMode, ChildrenMode, ConfigMode, LangArgs, TableFormat,
-    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, HANDOFF_SCHEMA_VERSION, SCHEMA_VERSION,
+    CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, ChildIncludeMode, ChildrenMode,
+    ConfigMode, HANDOFF_SCHEMA_VERSION, LangArgs, SCHEMA_VERSION, TableFormat,
 };
 
 use std::path::{Path, PathBuf};

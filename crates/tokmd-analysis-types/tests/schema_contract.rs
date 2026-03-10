@@ -2,8 +2,8 @@
 
 use serde_json::Value;
 use tokmd_analysis_types::{
-    AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype, EntropyReport, FunReport,
-    ImportReport, ANALYSIS_SCHEMA_VERSION, BASELINE_VERSION,
+    ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
+    BASELINE_VERSION, EntropyReport, FunReport, ImportReport,
 };
 use tokmd_types::{ScanStatus, ToolInfo};
 
@@ -217,7 +217,7 @@ fn unknown_fields_in_json_are_tolerated() {
 mod properties {
     use proptest::prelude::*;
     use tokmd_analysis_types::{
-        AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ANALYSIS_SCHEMA_VERSION,
+        ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource,
     };
     use tokmd_types::{ScanStatus, ToolInfo};
 

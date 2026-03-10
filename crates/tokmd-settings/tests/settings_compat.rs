@@ -113,6 +113,7 @@ fn analyze_settings_json_roundtrip() {
         max_commits: Some(100),
         max_commit_files: Some(50),
         granularity: "file".into(),
+        ..Default::default()
     };
     let json = serde_json::to_string(&s).unwrap();
     let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();

@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, NearDupScope};
 use tokmd_analysis_util::AnalysisLimits;
@@ -74,6 +74,7 @@ fn sample_request(preset: AnalysisPreset) -> AnalysisRequest {
         preset,
         args: sample_args(preset.as_str()),
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
         effort: None,
         window_tokens: None,
         git: Some(false), // disable git for unit tests (no repo)

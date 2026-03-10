@@ -542,6 +542,7 @@ fn analyze_settings_preset_validation() {
         max_commits: Some(1000),
         max_commit_files: Some(500),
         granularity: "file".into(),
+        ..Default::default()
     };
     assert_eq!(custom.preset, "deep");
     assert_eq!(custom.granularity, "file");

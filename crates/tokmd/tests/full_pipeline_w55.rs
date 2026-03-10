@@ -21,7 +21,7 @@ use tokmd_scan::scan;
 use tokmd_settings::{ScanOptions, TomlConfig};
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ConfigMode, DiffRow, ExportArgs, ExportFormat, LangArgs,
-    ModuleArgs, RedactMode, TableFormat, SCHEMA_VERSION,
+    ModuleArgs, RedactMode, SCHEMA_VERSION, TableFormat,
 };
 
 // ===========================================================================

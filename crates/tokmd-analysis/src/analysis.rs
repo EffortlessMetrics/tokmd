@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+#[cfg(feature = "effort")]
+use tokmd_analysis_effort::{EffortRequest, build_effort_report};
 use tokmd_analysis_grid::{PresetKind, PresetPlan, preset_plan_for};
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
@@ -10,8 +12,6 @@ use tokmd_analysis_types::{
 };
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
-#[cfg(feature = "effort")]
-use tokmd_analysis_effort::{build_effort_report, EffortRequest};
 
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
@@ -533,6 +533,8 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     } else {
         None
     };
+    #[cfg(not(feature = "effort"))]
+    let effort: Option<tokmd_analysis_types::EffortEstimateReport> = None;
 
     let status = if warnings.is_empty() {
         ScanStatus::Complete
@@ -563,7 +565,6 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         dup,
         complexity,
         api_surface,
-        #[cfg(feature = "effort")]
         effort,
         fun,
     };
