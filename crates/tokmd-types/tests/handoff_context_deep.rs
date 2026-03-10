@@ -1223,7 +1223,7 @@ fn schema_versions_are_all_independent() {
         CONTEXT_BUNDLE_SCHEMA_VERSION,
     ];
     // At least two must differ (they currently all differ).
-    let unique: std::collections::HashSet<u32> = versions.iter().copied().collect();
+    let unique: std::collections::BTreeSet<u32> = versions.iter().copied().collect();
     assert!(unique.len() >= 2, "schema versions should be independent");
 }
 

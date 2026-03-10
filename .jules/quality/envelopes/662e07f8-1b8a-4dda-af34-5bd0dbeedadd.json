@@ -1,0 +1,15 @@
+{
+  "id": "662e07f8-1b8a-4dda-af34-5bd0dbeedadd",
+  "persona": "Gatekeeper",
+  "status": "completed",
+  "receipts": [
+    {
+      "command": "sed -i 's/std::collections::HashSet/std::collections::BTreeSet/g' ...",
+      "status": "success"
+    },
+    {
+      "command": "cargo test -p tokmd-format --all-features",
+      "status": "success"
+    }
+  ]
+}

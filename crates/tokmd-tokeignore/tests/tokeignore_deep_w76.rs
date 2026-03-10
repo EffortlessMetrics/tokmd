@@ -2,7 +2,7 @@
 //! structure, language-specific isolation, default exclusion invariants,
 //! and template generation quality.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
@@ -138,7 +138,7 @@ fn no_duplicate_patterns_within_a_template() {
     for profile in ALL_PROFILES {
         let content = write_template(profile);
         let patterns = pattern_lines(&content);
-        let unique: HashSet<&str> = patterns.iter().copied().collect();
+        let unique: BTreeSet<&str> = patterns.iter().copied().collect();
         assert_eq!(
             patterns.len(),
             unique.len(),
