@@ -1,4 +1,3 @@
-use std::fmt::Write;
 use std::path::PathBuf;
 
 use proptest::prelude::*;

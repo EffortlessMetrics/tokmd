@@ -377,7 +377,7 @@ fn sensor_envelope_verdict_aggregation() {
 fn high_cc_source(fn_name: &str) -> String {
     let mut body = format!("fn {fn_name}(x: i32) -> i32 {{\n");
     for i in 0..16 {
-        let _ = write!(body, "    if x == {i} {{ return {i}; }}\n");
+        let _ = writeln!(body, "    if x == {i} {{ return {i}; }}");
     }
     body.push_str("    -1\n}\n");
     body
