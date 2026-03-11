@@ -1,0 +1,13 @@
+{
+  "id": "5ff823db-a0c2-4add-bff4-84a451a8a4d7",
+  "persona": "Auditor",
+  "status": "completed",
+  "lane": "B",
+  "timestamp": "2023-10-27T10:00:00Z",
+  "receipts": [
+    "cargo-machete identified tokmd-git as unused in tokmd-sensor",
+    "cargo test -p tokmd-sensor passed",
+    "cargo xtask gate passed"
+  ],
+  "decision": "Option A"
+}
