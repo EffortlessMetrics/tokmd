@@ -408,10 +408,12 @@ fn multiple_same_type_lockfiles() {
 fn cargo_lock_many_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::new();
+    use std::fmt::Write;
     for i in 0..100 {
-        content.push_str(&format!(
+        let _ = write!(
+            content,
             "[[package]]\nname = \"crate-{i}\"\nversion = \"{i}.0.0\"\n\n"
-        ));
+        );
     }
     let rel = write_file(tmp.path(), "Cargo.lock", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
@@ -662,8 +664,9 @@ mod properties {
         fn cargo_lock_count_matches(n in 0usize..30) {
             let tmp = TempDir::new().unwrap();
             let mut content = String::new();
+        use std::fmt::Write;
             for i in 0..n {
-                content.push_str(&format!("[[package]]\nname = \"dep-{i}\"\n\n"));
+                let _ = write!(content, "[[package]]\nname = \"dep-{i}\"\n\n");
             }
             std::fs::write(tmp.path().join("Cargo.lock"), &content).unwrap();
             let report = build_dependency_report(tmp.path(), &[PathBuf::from("Cargo.lock")]).unwrap();
@@ -675,14 +678,15 @@ mod properties {
         fn dep_total_sum(cargo_n in 0usize..10, yarn_n in 0usize..10) {
             let tmp = TempDir::new().unwrap();
             let mut cargo_content = String::new();
+                use std::fmt::Write;
             for i in 0..cargo_n {
-                cargo_content.push_str(&format!("[[package]]\nname = \"c-{i}\"\n\n"));
+                let _ = write!(cargo_content, "[[package]]\nname = \"c-{i}\"\n\n");
             }
             std::fs::write(tmp.path().join("Cargo.lock"), &cargo_content).unwrap();
 
             let mut yarn_content = String::from("# yarn lockfile v1\n\n");
             for i in 0..yarn_n {
-                yarn_content.push_str(&format!("dep-{i}@^1.0:\n  version \"1.0.{i}\"\n\n"));
+                let _ = write!(yarn_content, "dep-{i}@^1.0:\n  version \"1.0.{i}\"\n\n");
             }
             std::fs::write(tmp.path().join("yarn.lock"), &yarn_content).unwrap();
 
