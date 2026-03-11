@@ -198,8 +198,7 @@ mod tests {
         fs::write(
             dir.path().join("Cargo.lock"),
             "[[package]]\nname = \"test\"",
-        )
-        ?;
+        )?;
 
         let result = hash_cargo_lock(dir.path())?;
         assert!(result.is_some());
