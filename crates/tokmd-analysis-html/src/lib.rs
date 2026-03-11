@@ -4,6 +4,7 @@
 //!
 //! Single-responsibility HTML renderer for `AnalysisReceipt`.
 
+use std::fmt::Write;
 use time::OffsetDateTime;
 use time::macros::format_description;
 use tokmd_analysis_types::AnalysisReceipt;
@@ -44,17 +45,19 @@ fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {
         ];
 
         for (label, value) in metrics {
-            cards.push_str(&format!(
+            let _ = write!(
+                cards,
                 r#"<div class="metric-card"><span class="value">{}</span><span class="label">{}</span></div>"#,
                 value, label
-            ));
+            );
         }
 
         if let Some(ctx) = &derived.context_window {
-            cards.push_str(&format!(
+            let _ = write!(
+                cards,
                 r#"<div class="metric-card"><span class="value">{}</span><span class="label">Context Fit</span></div>"#,
                 format_pct(ctx.pct)
-            ));
+            );
         }
     }
 
@@ -66,7 +69,8 @@ fn build_table_rows(receipt: &AnalysisReceipt) -> String {
 
     if let Some(derived) = &receipt.derived {
         for row in derived.top.largest_lines.iter().take(100) {
-            rows.push_str(&format!(
+            let _ = write!(
+                rows,
                 r#"<tr><td class="path" data-path="{path}">{path}</td><td data-module="{module}">{module}</td><td data-lang="{lang}"><span class="lang-badge">{lang}</span></td><td class="num" data-lines="{lines}">{lines_fmt}</td><td class="num" data-code="{code}">{code_fmt}</td><td class="num" data-tokens="{tokens}">{tokens_fmt}</td><td class="num" data-bytes="{bytes}">{bytes_fmt}</td></tr>"#,
                 path = escape_html(&row.path),
                 module = escape_html(&row.module),
@@ -79,7 +83,7 @@ fn build_table_rows(receipt: &AnalysisReceipt) -> String {
                 tokens_fmt = format_number(row.tokens),
                 bytes = row.bytes,
                 bytes_fmt = format_number(row.bytes),
-            ));
+            );
         }
     }
 

@@ -249,8 +249,9 @@ proptest! {
 
         // Build a Cargo.lock with N [[package]] entries
         let mut cargo_content = String::new();
+            use std::fmt::Write;
         for i in 0..cargo_count {
-            cargo_content.push_str(&format!("[[package]]\nname = \"dep-{i}\"\n\n"));
+            let _ = write!(cargo_content, "[[package]]\nname = \"dep-{i}\"\n\n");
         }
         let cargo_rel = tmp.path().join("Cargo.lock");
         std::fs::write(&cargo_rel, &cargo_content).unwrap();
@@ -259,7 +260,7 @@ proptest! {
         // Build a yarn.lock with N entries
         let mut yarn_content = String::from("# yarn lockfile v1\n\n");
         for i in 0..yarn_count {
-            yarn_content.push_str(&format!("dep-{i}@^1.0.0:\n  version \"1.0.{i}\"\n\n"));
+            let _ = write!(yarn_content, "dep-{i}@^1.0.0:\n  version \"1.0.{i}\"\n\n");
         }
         let yarn_rel = tmp.path().join("yarn.lock");
         std::fs::write(&yarn_rel, &yarn_content).unwrap();
@@ -276,8 +277,9 @@ proptest! {
     ) {
         let tmp = TempDir::new().unwrap();
         let mut content = String::new();
+        use std::fmt::Write;
         for i in 0..n {
-            content.push_str(&format!("[[package]]\nname = \"crate-{i}\"\n\n"));
+            let _ = write!(content, "[[package]]\nname = \"crate-{i}\"\n\n");
         }
         let path = tmp.path().join("Cargo.lock");
         std::fs::write(&path, &content).unwrap();
@@ -292,11 +294,12 @@ proptest! {
     ) {
         let tmp = TempDir::new().unwrap();
         let mut content = String::new();
+        use std::fmt::Write;
         for i in 0..n {
             // Each module has a source line + go.mod line; only source should count
-            content.push_str(&format!(
+            let _ = write!(content,
                 "example.com/mod{i} v1.0.0 h1:abc=\nexample.com/mod{i} v1.0.0/go.mod h1:def=\n"
-            ));
+            );
         }
         let path = tmp.path().join("go.sum");
         std::fs::write(&path, &content).unwrap();

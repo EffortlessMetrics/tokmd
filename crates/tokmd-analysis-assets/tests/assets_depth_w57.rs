@@ -573,10 +573,12 @@ fn dependency_report_json_keys() {
 fn pnpm_lock_many_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::from("lockfileVersion: 5.4\n\npackages:\n");
+    use std::fmt::Write;
     for i in 0..20 {
-        content.push_str(&format!(
+        let _ = write!(
+            content,
             "  /pkg-{i}/1.0.{i}:\n    resolution: {{integrity: sha512-xxx}}\n"
-        ));
+        );
     }
     let rel = write_file(tmp.path(), "pnpm-lock.yaml", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();

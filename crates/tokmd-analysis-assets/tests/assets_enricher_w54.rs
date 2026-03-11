@@ -193,8 +193,9 @@ fn dependency_lockfile_path_normalized() {
 fn dependency_cargo_lock_many_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::new();
+    use std::fmt::Write;
     for i in 0..50 {
-        content.push_str(&format!("[[package]]\nname = \"pkg-{i}\"\n\n"));
+        let _ = write!(content, "[[package]]\nname = \"pkg-{i}\"\n\n");
     }
     let rel = write_file(tmp.path(), "Cargo.lock", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();
