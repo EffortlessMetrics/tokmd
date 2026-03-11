@@ -3810,7 +3810,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-envelope",
- "tokmd-git",
  "tokmd-model",
  "tokmd-scan",
  "tokmd-settings",
