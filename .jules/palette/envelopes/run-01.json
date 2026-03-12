@@ -1,0 +1,36 @@
+{
+  "run_id": "run-01",
+  "timestamp_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "lane": "scout",
+  "target": "crates/tokmd/src/interactive/wizard.rs and crates/tokmd/src/commands/sensor.rs unwrap/expect removal",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd",
+      "status": 0,
+      "result": "PASS",
+      "lines": [
+        "test result: ok. 18 passed; 0 failed",
+        "test result: ok. 14 passed; 0 failed",
+        "test result: ok. 7 passed; 0 failed",
+        "test result: ok. 43 passed; 0 failed"
+      ]
+    },
+    {
+      "cmd": "cargo clippy -p tokmd -- -D warnings",
+      "status": 0,
+      "result": "PASS",
+      "lines": [
+        "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+      ]
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": 0,
+      "result": "PASS",
+      "lines": []
+    }
+  ],
+  "results_summary": [
+    "Tests passed. Clippy clean. Format checked."
+  ]
+}

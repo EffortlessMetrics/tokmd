@@ -465,7 +465,7 @@ mod tests {
     };
 
     #[test]
-    fn render_sensor_md_includes_findings_and_gates() {
+    fn render_sensor_md_includes_findings_and_gates() -> Result<(), Box<dyn std::error::Error>> {
         let mut report = SensorReport::new(
             ToolMeta::tokmd("1.0.0", "sensor"),
             "2024-01-01T00:00:00Z".to_string(),
@@ -488,7 +488,7 @@ mod tests {
             vec![GateItem::new("mutation", Verdict::Warn).with_source("computed")],
         );
         report = report.with_data(serde_json::json!({
-            "gates": serde_json::to_value(gates).unwrap(),
+            "gates": serde_json::to_value(gates)?,
         }));
 
         let md = render_sensor_md(&report);
@@ -497,6 +497,7 @@ mod tests {
         assert!(md.contains("risk.hotspot"));
         assert!(md.contains("### Gates (warn)"));
         assert!(md.contains("mutation"));
+        Ok(())
     }
 
     #[cfg(feature = "git")]
@@ -622,7 +623,7 @@ mod tests {
 
     #[cfg(feature = "git")]
     #[test]
-    fn map_gates_includes_optional_items_and_reasons() {
+    fn map_gates_includes_optional_items_and_reasons() -> Result<(), Box<dyn std::error::Error>> {
         let mut evidence = base_evidence();
         evidence.diff_coverage = Some(DiffCoverageGate {
             meta: sample_meta(GateStatus::Fail),
@@ -682,7 +683,7 @@ mod tests {
             .items
             .iter()
             .find(|g| g.id == "diff_coverage")
-            .expect("diff gate");
+            .ok_or("diff gate")?;
         assert_eq!(diff_gate.threshold, Some(0.8));
         assert_eq!(diff_gate.actual, Some(0.5));
 
@@ -690,16 +691,17 @@ mod tests {
             .items
             .iter()
             .find(|g| g.id == "contracts")
-            .expect("contracts gate");
+            .ok_or("contracts gate")?;
         assert_eq!(
             contracts_gate.reason.as_deref(),
             Some("2 sub-gate(s) failed")
         );
+        Ok(())
     }
 
     #[cfg(feature = "git")]
     #[test]
-    fn emit_risk_findings_emits_hotspots_and_bus_factor() {
+    fn emit_risk_findings_emits_hotspots_and_bus_factor() -> Result<(), Box<dyn std::error::Error>> {
         let mut report = SensorReport::new(
             ToolMeta::tokmd("1.0.0", "sensor"),
             "2024-01-01T00:00:00Z".to_string(),
@@ -720,15 +722,16 @@ mod tests {
             .findings
             .iter()
             .find(|f| f.code == findings::risk::HOTSPOT)
-            .expect("hotspot finding");
+            .ok_or("hotspot finding")?;
         assert!(hotspot.location.is_some());
 
         let bus_factor = report
             .findings
             .iter()
             .find(|f| f.code == findings::risk::BUS_FACTOR)
-            .expect("bus factor finding");
+            .ok_or("bus factor finding")?;
         assert!(bus_factor.location.is_some());
+        Ok(())
     }
 
     #[cfg(feature = "git")]
