@@ -701,7 +701,8 @@ mod tests {
 
     #[cfg(feature = "git")]
     #[test]
-    fn emit_risk_findings_emits_hotspots_and_bus_factor() -> Result<(), Box<dyn std::error::Error>> {
+    fn emit_risk_findings_emits_hotspots_and_bus_factor() -> Result<(), Box<dyn std::error::Error>>
+    {
         let mut report = SensorReport::new(
             ToolMeta::tokmd("1.0.0", "sensor"),
             "2024-01-01T00:00:00Z".to_string(),
