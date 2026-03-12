@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2025-03-12T12:00:00Z",
+    "lane": "scout",
+    "target": "tokmd-core::ffi::tests",
+    "gates": ["test", "fmt", "clippy"],
+    "status": "PASS",
+    "pr_link": "PENDING"
+  }
+]
