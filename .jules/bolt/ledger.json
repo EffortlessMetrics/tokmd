@@ -1,0 +1,14 @@
+[
+  {
+    "date": "2023-10-24T00:00:00Z",
+    "lane": "friction",
+    "target": "FRIC-20231024-001",
+    "proof_method": "structural",
+    "gates": [
+      { "gate": "build", "status": "PASS" },
+      { "gate": "test", "status": "PASS" },
+      { "gate": "fmt", "status": "PASS" },
+      { "gate": "clippy", "status": "PASS" }
+    ]
+  }
+]
