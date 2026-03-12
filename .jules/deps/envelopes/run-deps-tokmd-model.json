@@ -1,0 +1,10 @@
+{
+  "id": "run-deps-tokmd-model",
+  "status": "completed",
+  "target": "tokmd-model",
+  "action": "remove unused dependency anyhow",
+  "receipts": [
+    "cargo machete output identifying unused anyhow in tokmd-model",
+    "cargo test -p tokmd-model completed successfully after removal"
+  ]
+}
