@@ -1,0 +1,9 @@
+{
+  "run_id": "run-20231024",
+  "timestamp_utc": "2023-10-24T00:00:00Z",
+  "lane": "friction",
+  "target": "FRIC-20231024-001",
+  "proof_method": "structural",
+  "commands": [],
+  "results": {}
+}
