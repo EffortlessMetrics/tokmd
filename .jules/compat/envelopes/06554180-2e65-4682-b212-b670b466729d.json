@@ -1,0 +1,10 @@
+{
+  "id": "06554180-2e65-4682-b212-b670b466729d",
+  "target": "tokmd-python",
+  "issue": "cargo test --no-default-features fails due to pyo3 extension-module linker errors",
+  "resolution": "Expose extension-module as a default Cargo feature to prevent linking errors during cargo test",
+  "commands": [
+    "cargo build --no-default-features --workspace",
+    "cargo test --no-default-features -p tokmd-python"
+  ]
+}
