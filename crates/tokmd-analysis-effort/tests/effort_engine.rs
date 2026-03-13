@@ -565,7 +565,7 @@ fn effort_driver_extraction_tracks_expected_signal_types() {
         mc_seed: None,
     };
     let report = build_effort_report(
-        &Path::new("."),
+        Path::new("."),
         &export,
         &derived,
         Some(&git),
@@ -627,7 +627,7 @@ fn effort_confidence_distinguishes_signal_coverage() {
         mc_seed: None,
     };
     let report_low = build_effort_report(
-        &Path::new("."),
+        Path::new("."),
         &export_low,
         &make_derived(100, 0.0, 0),
         None,
@@ -725,7 +725,7 @@ fn effort_confidence_distinguishes_signal_coverage() {
     };
 
     let report_high = build_effort_report(
-        &Path::new("."),
+        Path::new("."),
         &make_export(1_000),
         &derived_high,
         Some(&git),
