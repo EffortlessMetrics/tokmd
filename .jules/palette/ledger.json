@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp": "2026-03-13T12:43:22Z",
+    "lane": "scout",
+    "target": "tokmd-analysis-format binary stdout protection",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
+  }
+]
