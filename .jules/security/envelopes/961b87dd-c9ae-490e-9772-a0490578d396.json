@@ -1,0 +1,13 @@
+{
+  "run_id": "961b87dd-c9ae-490e-9772-a0490578d396",
+  "timestamp_utc": "2026-03-11T12:45:40Z",
+  "lane": "scout",
+  "target": "crates/tokmd-cockpit/src/determinism.rs",
+  "commands": [
+    {"cmd": "cargo build --verbose", "status": "PASS"},
+    {"cmd": "CI=true cargo test --verbose", "status": "PASS"},
+    {"cmd": "cargo fmt -- --check", "status": "PASS"},
+    {"cmd": "cargo clippy -- -D warnings", "status": "PASS"}
+  ],
+  "results": ["Replaced 35 unwraps with ?"]
+}
