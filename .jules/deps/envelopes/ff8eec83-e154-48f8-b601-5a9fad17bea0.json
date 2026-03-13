@@ -1,0 +1,15 @@
+{
+  "run_id": "ff8eec83-e154-48f8-b601-5a9fad17bea0",
+  "persona": "Auditor",
+  "lane": "B",
+  "target": "crates/tokmd-model/Cargo.toml",
+  "action": "remove_unused_dependency",
+  "dependency": "anyhow",
+  "status": "success",
+  "receipts": [
+    "cargo machete --with-metadata",
+    "cargo test -p tokmd-model",
+    "cargo check --workspace"
+  ],
+  "timestamp": "2024-03-09T12:00:00Z"
+}

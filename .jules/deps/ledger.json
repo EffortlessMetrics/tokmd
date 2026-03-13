@@ -10,5 +10,15 @@
       "cargo machete output identifying unused tokmd-analysis-types in tokmd-gate",
       "cargo test -p tokmd-gate completed successfully after removal"
     ]
+  },
+  {
+    "run_id": "ff8eec83-e154-48f8-b601-5a9fad17bea0",
+    "date": "2024-03-09",
+    "action": "Removed unused anyhow dependency from tokmd-model",
+    "receipts": [
+      "cargo machete --with-metadata",
+      "cargo test -p tokmd-model",
+      "cargo check --workspace"
+    ]
   }
 ]
