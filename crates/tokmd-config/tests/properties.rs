@@ -51,8 +51,9 @@ const ANALYSIS_FORMATS: [AnalysisFormat; 10] = [
     AnalysisFormat::Html,
 ];
 
-const ANALYSIS_PRESETS: [AnalysisPreset; 11] = [
+const ANALYSIS_PRESETS: [AnalysisPreset; 12] = [
     AnalysisPreset::Receipt,
+    AnalysisPreset::Estimate,
     AnalysisPreset::Health,
     AnalysisPreset::Risk,
     AnalysisPreset::Supply,
@@ -192,7 +193,7 @@ proptest! {
     #[test]
     fn unknown_analysis_preset_fails(unknown in "[a-z]{5,15}") {
         let known = [
-            "receipt", "health", "risk", "supply", "architecture",
+            "receipt", "estimate", "health", "risk", "supply", "architecture",
             "topics", "security", "identity", "git", "deep", "fun"
         ];
         if !known.contains(&unknown.as_str()) {

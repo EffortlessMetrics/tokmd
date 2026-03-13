@@ -148,7 +148,9 @@ fn receipt_preset_has_derived_section() {
 }
 
 #[test]
-fn receipt_preset_has_no_optional_enrichers() {
+fn receipt_preset_omits_non_receipt_enrichers() {
+    // Receipt now enables dup/git/complexity/api_surface, but git is suppressed
+    // by the make_req helper (git: Some(false)). The fields below should remain None.
     let receipt = run(sample_export(), PresetKind::Receipt);
     assert!(receipt.assets.is_none());
     assert!(receipt.deps.is_none());
@@ -187,7 +189,7 @@ fn supply_preset_plan_enables_assets_and_deps() {
 fn deep_preset_plan_is_superset_of_receipt() {
     let deep = preset_plan_for(PresetKind::Deep);
     let receipt = preset_plan_for(PresetKind::Receipt);
-    // Deep enables everything Receipt enables (Receipt enables nothing)
+    // Deep enables everything Receipt enables (Receipt enables dup/git/complexity/api_surface)
     // Plus Deep enables all major enrichers
     assert!(deep.assets);
     assert!(deep.deps);

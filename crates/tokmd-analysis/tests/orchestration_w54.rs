@@ -331,12 +331,13 @@ fn w54_deterministic_derived() {
 }
 
 // ===========================================================================
-// 18. All 11 presets produce valid receipts
+// 18. All 12 presets produce valid receipts
 // ===========================================================================
 #[test]
 fn w54_all_presets_valid() {
     let presets = [
         PresetKind::Receipt,
+        PresetKind::Estimate,
         PresetKind::Health,
         PresetKind::Risk,
         PresetKind::Supply,

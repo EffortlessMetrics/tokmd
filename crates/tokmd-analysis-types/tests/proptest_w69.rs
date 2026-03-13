@@ -444,9 +444,9 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(22))]
 
     #[test]
-    fn analysis_preset_names_valid(idx in 0usize..11) {
+    fn analysis_preset_names_valid(idx in 0usize..12) {
         let presets = [
-            "receipt", "health", "risk", "supply", "architecture",
+            "receipt", "estimate", "health", "risk", "supply", "architecture",
             "topics", "security", "identity", "git", "deep", "fun",
         ];
         let preset = presets[idx];

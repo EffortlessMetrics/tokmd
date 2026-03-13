@@ -1,7 +1,7 @@
 //! W73 deep tests for analysis orchestration.
 //!
 //! Covers:
-//! - Preset→enricher mapping correctness for all 11 presets
+//! - Preset→enricher mapping correctness for all 12 presets
 //! - Enricher execution determinism (multiple runs yield identical receipts)
 //! - Missing capability reporting (feature-gated warnings)
 //! - Preset composition (deep = everything except fun)

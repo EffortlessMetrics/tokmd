@@ -359,6 +359,7 @@ fn every_preset_has_a_plan() {
 fn preset_plan_for_name_accepts_all_canonical_names() {
     let names = [
         "receipt",
+        "estimate",
         "health",
         "risk",
         "supply",
@@ -508,7 +509,7 @@ fn content_disabled_features_mention_content() {
     }
 }
 
-/// Grid has exactly 11 presets matching PRESET_KINDS.
+/// Grid has exactly 12 presets matching PRESET_KINDS.
 #[test]
 fn grid_covers_all_preset_kinds() {
     assert_eq!(PRESET_GRID.len(), PRESET_KINDS.len());
