@@ -18,27 +18,27 @@ tokmd-types = "1.4"
 
 ```rust,no_run
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
-use tokmd_core::scan_workflow;
-use tokmd_core::config::GlobalArgs;
-use tokmd_core::types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
-use std::path::PathBuf;
+use tokmd_core::lang_workflow;
+use tokmd_core::settings::{ScanSettings, LangSettings};
+use tokmd_core::types::{ChildrenMode, RedactMode};
 
 // Configure scan
-let global = GlobalArgs::default();
-let lang = LangArgs {
-    paths: vec![PathBuf::from(".")],
-    format: TableFormat::Json,
+let scan = ScanSettings::current_dir();
+let lang = LangSettings {
     top: 10,
     files: false,
     children: ChildrenMode::Collapse,
+    ..Default::default()
 };
 
 // Run pipeline (without redaction)
-let receipt = scan_workflow(&global, &lang, None)?;
+let receipt = lang_workflow(&scan, &lang)?;
 println!("Scanned {} languages", receipt.report.rows.len());
 
 // Run pipeline (with path redaction)
-let redacted = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
+let mut redacted_lang = lang.clone();
+redacted_lang.redact = Some(RedactMode::Paths);
+let redacted = lang_workflow(&scan, &redacted_lang)?;
 # Ok(())
 # }
 ```
@@ -46,10 +46,9 @@ let redacted = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
 ## Main Function
 
 ```rust,ignore
-pub fn scan_workflow(
-    global: &GlobalArgs,
-    lang: &LangArgs,
-    redact: Option<RedactMode>,
+pub fn lang_workflow(
+    scan: &ScanSettings,
+    lang: &LangSettings,
 ) -> Result<LangReceipt>
 ```
 
