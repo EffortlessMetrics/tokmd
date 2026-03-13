@@ -1,0 +1,9 @@
+[
+  {
+    "run_id": "ad977ace-73da-46d3-b7de-74f65caaa3ba",
+    "persona": "Librarian",
+    "target": "crates/tokmd-types",
+    "improvement": "add README.md doctest coverage",
+    "timestamp": "2026-03-13T10:17:23Z"
+  }
+]
