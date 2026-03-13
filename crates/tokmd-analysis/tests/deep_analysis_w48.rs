@@ -282,12 +282,19 @@ fn receipt_source_inputs_preserved() {
 #[test]
 fn receipt_warnings_empty_for_receipt_preset() {
     let receipt = run(sample_export(), PresetKind::Receipt);
-    assert!(
-        receipt.warnings.is_empty(),
-        "Receipt preset should have no warnings: {:?}",
-        receipt.warnings
-    );
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            receipt.warnings.is_empty(),
+            "no warnings when features present, got: {:?}",
+            receipt.warnings
+        );
+        assert!(matches!(receipt.status, ScanStatus::Complete));
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 #[test]

@@ -117,19 +117,21 @@ fn empty_export() -> ExportData {
 #[test]
 fn receipt_preset_enables_no_optional_enrichers() {
     let plan = preset_plan_for(PresetKind::Receipt);
+    // Receipt now enables these four enrichers
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
 }
 
 #[test]
@@ -367,12 +369,19 @@ fn analyze_all_presets_produce_valid_receipts() {
 #[test]
 fn receipt_preset_produces_no_warnings() {
     let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
-    assert!(
-        receipt.warnings.is_empty(),
-        "Receipt should have no warnings but got: {:?}",
-        receipt.warnings
-    );
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            receipt.warnings.is_empty(),
+            "no warnings when features present, got: {:?}",
+            receipt.warnings
+        );
+        assert!(matches!(receipt.status, ScanStatus::Complete));
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 #[test]

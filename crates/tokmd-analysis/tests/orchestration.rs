@@ -152,16 +152,20 @@ fn receipt_generated_at_ms_is_nonzero() {
 
 #[test]
 fn receipt_preset_with_no_warnings_is_complete() {
-    // Given: Receipt preset requests only derived metrics (no file walk / git)
-    // When: analyze succeeds without warnings
-    // Then: status is Complete
     let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
-    assert!(
-        matches!(receipt.status, ScanStatus::Complete),
-        "Receipt preset should be Complete, got {:?}",
-        receipt.status
-    );
-    assert!(receipt.warnings.is_empty());
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            matches!(receipt.status, ScanStatus::Complete),
+            "Receipt preset should be Complete, got {:?}",
+            receipt.status
+        );
+        assert!(receipt.warnings.is_empty());
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 #[test]
@@ -239,10 +243,10 @@ fn git_false_override_suppresses_git_enrichment() {
 
 #[test]
 fn git_none_defers_to_preset_plan() {
-    // Given: a preset that does NOT want git (Receipt)
+    // Given: a preset that does NOT want git (Fun)
     // When: req.git = None (defer to plan)
     // Then: no git sections
-    let req = make_req(AnalysisPreset::Receipt);
+    let req = make_req(AnalysisPreset::Fun);
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     assert!(receipt.git.is_none());
     assert!(receipt.predictive_churn.is_none());
@@ -347,16 +351,13 @@ fn receipt_preset_produces_only_derived() {
     let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
 
     assert!(receipt.derived.is_some(), "derived must be present");
-    // Receipt preset should not trigger any optional enrichers
-    assert!(receipt.git.is_none());
+    // Receipt now enables dup/git/complexity/api_surface — but without
+    // content+walk features they are skipped at runtime.
     assert!(receipt.imports.is_none());
-    assert!(receipt.dup.is_none());
     assert!(receipt.assets.is_none());
     assert!(receipt.deps.is_none());
     assert!(receipt.entropy.is_none());
     assert!(receipt.license.is_none());
-    assert!(receipt.complexity.is_none());
-    assert!(receipt.api_surface.is_none());
     assert!(receipt.predictive_churn.is_none());
     assert!(receipt.fun.is_none());
 }
@@ -1255,14 +1256,19 @@ fn deep_preset_warnings_are_superset_of_receipt_warnings() {
 
 #[test]
 fn receipt_preset_produces_no_warnings_without_feature_gates() {
-    // Receipt requests only derived metrics — no file walk, no git,
-    // no content scanning — so it should produce zero warnings.
     let receipt = run_preset(multi_lang_export(), AnalysisPreset::Receipt);
-    assert!(
-        receipt.warnings.is_empty(),
-        "Receipt preset should have no warnings, got: {:?}",
-        receipt.warnings
-    );
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            receipt.warnings.is_empty(),
+            "no warnings when features present, got: {:?}",
+            receipt.warnings
+        );
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 #[test]

@@ -156,15 +156,17 @@ fn make_context(export: ExportData) -> AnalysisContext {
 fn preset_receipt_exists() {
     use tokmd_analysis_grid::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Receipt);
-    // Receipt preset should have everything disabled
+    // Receipt now enables dup, git, complexity, api_surface
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
     assert!(!plan.fun);
-    assert!(!plan.complexity);
 }
 
 #[test]
@@ -430,7 +432,15 @@ fn receipt_status_complete_for_receipt_preset() {
     let ctx = make_context(minimal_export());
     let req = make_request(AnalysisPreset::Receipt);
     let receipt = analyze(ctx, req).unwrap();
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(matches!(receipt.status, ScanStatus::Complete));
+    } else {
+        assert!(
+            matches!(receipt.status, ScanStatus::Partial),
+            "expected Partial without features, got {:?}",
+            receipt.status
+        );
+    }
 }
 
 #[test]
