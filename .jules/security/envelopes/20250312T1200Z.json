@@ -1,0 +1,33 @@
+{
+  "run_id": "20250312T1200Z",
+  "timestamp_utc": "2025-03-12T12:00:00Z",
+  "lane": "scout",
+  "target": "tokmd-core::ffi::tests",
+  "commands": [
+    {
+      "command": "cargo fmt --manifest-path crates/tokmd-core/Cargo.toml",
+      "exit_code": 0,
+      "summary": "PASS",
+      "stdout": ""
+    },
+    {
+      "command": "cargo test -p tokmd-core --lib ffi::tests",
+      "exit_code": 0,
+      "summary": "PASS",
+      "stdout": "test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.17s"
+    },
+    {
+      "command": "cargo clippy -p tokmd-core -- -D warnings",
+      "exit_code": 0,
+      "summary": "PASS",
+      "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 25.95s"
+    }
+  ],
+  "results": [
+    {
+      "file": "crates/tokmd-core/src/ffi.rs",
+      "action": "refactor",
+      "description": "Replaced `.unwrap()` and `.expect()` in tests with `?`"
+    }
+  ]
+}
