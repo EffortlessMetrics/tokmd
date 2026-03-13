@@ -1,0 +1,17 @@
+[
+  {
+    "date": "2026-03-13",
+    "run_id": "9ec8ee5d-c6c4-44b7-9d6d-1fbdea23ac90",
+    "lane": "scout",
+    "target": "tokmd-cockpit determinism tests",
+    "pr_link": "pending",
+    "gates_run": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "success",
+    "friction_ids_created": []
+  }
+]
