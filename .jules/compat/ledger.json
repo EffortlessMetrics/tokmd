@@ -1,0 +1,8 @@
+[
+  {
+    "run_id": "d4484895-c4ac-4c9f-a8b3-1a1985de9ebd",
+    "timestamp": "2026-03-13T09:37:32Z",
+    "type": "scout",
+    "target": "baseline tests with no-default-features"
+  }
+]
