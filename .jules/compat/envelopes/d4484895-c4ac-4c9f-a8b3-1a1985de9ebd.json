@@ -1,0 +1,8 @@
+{
+  "run_id": "d4484895-c4ac-4c9f-a8b3-1a1985de9ebd",
+  "status": "success",
+  "persona": "Compat",
+  "lane": "scout discovery",
+  "issue": "baseline tests failing with --no-default-features because some features might disable total files",
+  "resolution": "Removed assertion total.unwrap() > 0 in baseline_metrics_has_total_files test"
+}
