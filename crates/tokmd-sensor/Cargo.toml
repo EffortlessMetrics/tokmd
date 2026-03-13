@@ -13,7 +13,6 @@ documentation = "https://docs.rs/tokmd-sensor"
 
 [features]
 default = []
-git = ["dep:tokmd-git"]
 
 [dependencies]
 anyhow = "1.0.101"
@@ -24,7 +23,6 @@ tokmd-settings.workspace = true
 tokmd-scan.workspace = true
 tokmd-model.workspace = true
 tokmd-types.workspace = true
-tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = "1.10.0"
