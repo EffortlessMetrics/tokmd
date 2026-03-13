@@ -1,0 +1,15 @@
+{
+  "run_id": "420f398f-a537-4557-a450-fb7ddb1cc3f5",
+  "persona": "Gatekeeper",
+  "category": "quality",
+  "timestamp": "2024-03-13T09:54:00Z",
+  "lane": "Lane B",
+  "target": "determinism / ordering fix",
+  "files_touched": ["crates/tokmd/tests/sensor_integration.rs"],
+  "receipts": [
+    {
+      "command": "cargo test -p tokmd --test sensor_integration",
+      "exit_code": 0
+    }
+  ]
+}
