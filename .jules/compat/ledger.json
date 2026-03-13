@@ -1,0 +1,9 @@
+[
+  {
+    "run_id": "780d963a-f594-4b58-ad83-f5dae053e367",
+    "date": "2025-03-12",
+    "persona": "Compat",
+    "target": "crates/tokmd-cockpit/src/lib.rs",
+    "action": "fixed --no-default-features build by gating git-specific imports, functions, and tests with #[cfg(feature = \"git\")]"
+  }
+]
