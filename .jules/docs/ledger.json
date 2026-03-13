@@ -1,0 +1,9 @@
+[
+  {
+    "id": "f84a7759-8549-41df-8e3a-654b88c87c37",
+    "persona": "Librarian",
+    "lane": "scout",
+    "date": "2026-03-10T09:47:51Z",
+    "description": "Updated crates/tokmd-core/README.md to reflect the actual lang_workflow API, resolving documentation drift and improving developer experience."
+  }
+]
