@@ -1,3 +1,4 @@
+use std::io::IsTerminal;
 use std::path::Path;
 
 use anyhow::Result;
@@ -110,6 +111,12 @@ pub(crate) fn write_analysis_stdout(
             print!("{}", text);
         }
         analysis_format::RenderedOutput::Binary(bytes) => {
+            if std::io::stdout().is_terminal() {
+                anyhow::bail!(
+                    "Refusing to write binary output (format: {:?}) to a terminal to prevent rendering garbage characters. Please redirect stdout to a file (e.g., `> output.bin`) or specify an output directory.",
+                    format
+                );
+            }
             use std::io::Write;
             let mut stdout = std::io::stdout().lock();
             stdout.write_all(&bytes)?;
