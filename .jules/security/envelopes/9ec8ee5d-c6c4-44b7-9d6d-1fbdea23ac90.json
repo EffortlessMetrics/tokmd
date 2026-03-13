@@ -1,0 +1,34 @@
+{
+  "run_id": "9ec8ee5d-c6c4-44b7-9d6d-1fbdea23ac90",
+  "timestamp_utc": "2026-03-13T12:29:16Z",
+  "lane": "scout",
+  "target": "tokmd-cockpit determinism tests",
+  "commands": [
+    {
+      "cmd": "cargo fmt -p tokmd-cockpit",
+      "exit_status": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo check -p tokmd-cockpit",
+      "exit_status": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-cockpit --all-features",
+      "exit_status": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": 0,
+      "result": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-cockpit -- -D warnings",
+      "exit_status": 0,
+      "result": "PASS"
+    }
+  ],
+  "results": []
+}
