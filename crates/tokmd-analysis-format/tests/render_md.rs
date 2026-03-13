@@ -58,9 +58,11 @@ fn sample_export() -> ExportData {
 #[test]
 fn render_md_snapshot() {
     let export = sample_export();
+    let tmp = std::env::temp_dir().join("tokmd-render-md-test");
+    let _ = std::fs::create_dir_all(&tmp);
     let ctx = AnalysisContext {
         export,
-        root: std::path::PathBuf::from("."),
+        root: tmp,
         source: AnalysisSource {
             inputs: vec![".".to_string()],
             export_path: None,
