@@ -53,8 +53,8 @@
           || (pkgs.lib.hasInfix "/docs/" p && pkgs.lib.hasSuffix ".md" baseName)
           # Keep docs directory (directory entry must pass filter for contents to be evaluated)
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
-          # Keep root markdown files (CHANGELOG.md, CLAUDE.md used by tests)
-          || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
+          # Keep root markdown files (CHANGELOG.md, CLAUDE.md, README.md used by tests)
+          || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md" || (baseName == "README.md" && !(pkgs.lib.hasInfix "/crates/" p)))
           # Keep crate README.md files (include_str! in lib.rs #[doc] attributes)
           || (baseName == "README.md" && pkgs.lib.hasInfix "/crates/" p)
           # Keep test directories and their contents
