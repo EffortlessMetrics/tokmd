@@ -1,0 +1,13 @@
+{
+  "run_id": "FRIC-20231024-001",
+  "timestamp_utc": "2026-03-13T12:37:14Z",
+  "lane": "scout",
+  "target": "Refuse to write binary format outputs (e.g. MIDI) to stdout when running in a terminal, preventing garbage characters from breaking the user's terminal session.",
+  "commands": [],
+  "results": {
+    "build": "PASS",
+    "test": "PASS",
+    "fmt": "PASS",
+    "clippy": "PASS"
+  }
+}
