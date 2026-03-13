@@ -1,0 +1,10 @@
+{
+  "run_id": "37933191-a204-4605-9e4d-7821d7abce6d",
+  "persona": "Auditor",
+  "timestamp": "2026-03-13T11:52:50Z",
+  "target": "tokmd-model",
+  "action": "remove unused anyhow and serde dependencies",
+  "receipts": [
+    "Security tooling (cargo audit, cargo deny) N/A"
+  ]
+}

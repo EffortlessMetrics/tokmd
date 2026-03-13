@@ -10,5 +10,11 @@
       "cargo machete output identifying unused tokmd-analysis-types in tokmd-gate",
       "cargo test -p tokmd-gate completed successfully after removal"
     ]
+  },
+  {
+    "run_id": "37933191-a204-4605-9e4d-7821d7abce6d",
+    "timestamp": "2026-03-13T11:55:37Z",
+    "target": "tokmd-model",
+    "action": "remove unused anyhow and serde dependencies"
   }
 ]
