@@ -110,5 +110,14 @@ fn render_md_snapshot() {
         tokmd_analysis_format::RenderedOutput::Binary(_) => panic!("expected text"),
     };
 
-    insta::assert_snapshot!(text);
+    // Content-feature enrichers (duplicates, complexity, API surface) produce
+    // additional zero-value sections when tokmd-analysis is compiled with the
+    // `content` feature.  CI runs `cargo test --all-features` (workspace-wide)
+    // which activates these enrichers, whereas local per-package testing does
+    // not.  Use a separate snapshot for each variant so both passes succeed.
+    if text.contains("## Duplicates") {
+        insta::assert_snapshot!("render_md_snapshot_content", text);
+    } else {
+        insta::assert_snapshot!("render_md_snapshot", text);
+    }
 }
