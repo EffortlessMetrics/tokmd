@@ -27,6 +27,8 @@ mod git;
 mod util;
 
 pub use analysis::{AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze};
+#[cfg(feature = "effort")]
+pub use tokmd_analysis_effort::{EffortLayer, EffortModelKind, EffortRequest};
 pub use tokmd_analysis_types::NearDupScope;
 pub use tokmd_analysis_util::AnalysisLimits;
 pub use util::normalize_root;

@@ -90,6 +90,8 @@ fn make_req(preset: PresetKind) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: Default::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -106,13 +108,23 @@ fn make_req(preset: PresetKind) -> AnalysisRequest {
 // ── preset plan resolution tests ─────────────────────────────────────
 
 #[test]
-fn receipt_preset_enables_no_optional_enrichers() {
+fn receipt_preset_matches_current_contract() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.git, "receipt should not request git");
+    // Receipt now enables these four enrichers
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
     assert!(!plan.todo, "receipt should not request todo scan");
-    assert!(!plan.dup, "receipt should not request dup scan");
     assert!(!plan.entropy, "receipt should not request entropy");
     assert!(!plan.assets, "receipt should not request assets");
+    assert!(!plan.deps, "receipt should not request deps");
+    assert!(!plan.imports, "receipt should not request imports");
+    assert!(!plan.fun, "receipt should not request fun");
+    assert!(!plan.archetype, "receipt should not request archetype");
+    assert!(!plan.topics, "receipt should not request topics");
+    assert!(!plan.license, "receipt should not request license");
 }
 
 #[test]
@@ -247,7 +259,10 @@ fn all_disabled_features_have_nonempty_warnings() {
 
 #[test]
 fn receipt_preset_produces_valid_receipt_with_derived() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
+    let mut req = make_req(PresetKind::Receipt);
+    // Suppress git to isolate the receipt-structure test from git availability
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
     assert!(
         receipt.derived.is_some(),
@@ -255,7 +270,7 @@ fn receipt_preset_produces_valid_receipt_with_derived() {
     );
     assert!(
         receipt.git.is_none(),
-        "receipt preset should not include git"
+        "receipt preset with git=false should not include git"
     );
     assert!(
         receipt.entropy.is_none(),

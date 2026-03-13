@@ -205,6 +205,7 @@ fn analyze_settings_with_limits() {
         git: Some(true),
         window: Some(128_000),
         granularity: "file".to_string(),
+        ..Default::default()
     };
     assert_eq!(s.preset, "deep");
     assert_eq!(s.max_files, Some(1000));
@@ -364,6 +365,7 @@ fn serde_roundtrip_analyze_settings() {
         max_commits: Some(1000),
         max_commit_files: Some(200),
         granularity: "file".to_string(),
+        ..Default::default()
     };
     let json = serde_json::to_string(&s).unwrap();
     let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();

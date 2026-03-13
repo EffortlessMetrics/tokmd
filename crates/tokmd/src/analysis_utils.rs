@@ -46,6 +46,7 @@ pub(crate) fn granularity_to_string(granularity: cli::ImportGranularity) -> Stri
 pub(crate) fn map_preset(preset: cli::AnalysisPreset) -> analysis::AnalysisPreset {
     match preset {
         cli::AnalysisPreset::Receipt => analysis::AnalysisPreset::Receipt,
+        cli::AnalysisPreset::Estimate => analysis::AnalysisPreset::Estimate,
         cli::AnalysisPreset::Health => analysis::AnalysisPreset::Health,
         cli::AnalysisPreset::Risk => analysis::AnalysisPreset::Risk,
         cli::AnalysisPreset::Supply => analysis::AnalysisPreset::Supply,
@@ -140,6 +141,7 @@ mod tests {
     #[test]
     fn test_preset_to_string_all_variants() {
         assert_eq!(preset_to_string(cli::AnalysisPreset::Receipt), "receipt");
+        assert_eq!(preset_to_string(cli::AnalysisPreset::Estimate), "estimate");
         assert_eq!(preset_to_string(cli::AnalysisPreset::Health), "health");
         assert_eq!(preset_to_string(cli::AnalysisPreset::Risk), "risk");
         assert_eq!(preset_to_string(cli::AnalysisPreset::Supply), "supply");
@@ -183,6 +185,10 @@ mod tests {
         assert!(matches!(
             map_preset(cli::AnalysisPreset::Receipt),
             analysis::AnalysisPreset::Receipt
+        ));
+        assert!(matches!(
+            map_preset(cli::AnalysisPreset::Estimate),
+            analysis::AnalysisPreset::Estimate
         ));
         assert!(matches!(
             map_preset(cli::AnalysisPreset::Health),

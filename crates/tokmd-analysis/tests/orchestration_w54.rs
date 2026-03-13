@@ -53,6 +53,8 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -102,9 +104,9 @@ fn sample_export() -> ExportData {
 fn w54_receipt_preset_derived_only() {
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
     assert!(receipt.derived.is_some());
-    assert!(receipt.git.is_none());
+    // Receipt now enables git/dup/complexity/api_surface but without features
+    // they are skipped. Only assert fields that are always off.
     assert!(receipt.imports.is_none());
-    assert!(receipt.dup.is_none());
     assert!(receipt.assets.is_none());
     assert!(receipt.deps.is_none());
 }
@@ -260,8 +262,15 @@ fn w54_context_window_present() {
 #[test]
 fn w54_receipt_complete_status() {
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
-    assert!(matches!(receipt.status, ScanStatus::Complete));
-    assert!(receipt.warnings.is_empty());
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(matches!(receipt.status, ScanStatus::Complete));
+        assert!(receipt.warnings.is_empty());
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 // ===========================================================================
@@ -322,12 +331,13 @@ fn w54_deterministic_derived() {
 }
 
 // ===========================================================================
-// 18. All 11 presets produce valid receipts
+// 18. All 12 presets produce valid receipts
 // ===========================================================================
 #[test]
 fn w54_all_presets_valid() {
     let presets = [
         PresetKind::Receipt,
+        PresetKind::Estimate,
         PresetKind::Health,
         PresetKind::Risk,
         PresetKind::Supply,
@@ -423,10 +433,19 @@ fn w54_git_on_tempdir_partial() {
 // ===========================================================================
 #[test]
 fn w54_near_dup_disabled_default() {
-    let req = make_req(PresetKind::Receipt);
+    let mut req = make_req(PresetKind::Receipt);
+    req.git = Some(false);
     assert!(!req.near_dup);
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
-    assert!(receipt.dup.is_none());
+    #[cfg(feature = "content")]
+    {
+        // Receipt now enables dup; with content feature dup report is present
+        // but near section is absent because near_dup=false.
+        let dup = receipt.dup.as_ref().expect("dup present with content");
+        assert!(dup.near.is_none(), "near-dup absent because near_dup=false");
+    }
+    #[cfg(not(feature = "content"))]
+    assert!(receipt.dup.is_none(), "dup absent without content feature");
 }
 
 // ===========================================================================

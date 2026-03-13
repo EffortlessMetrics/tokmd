@@ -25,6 +25,7 @@ mod preset_names {
     /// Documented preset names from CLAUDE.md / docs.
     const DOCUMENTED_PRESETS: &[&str] = &[
         "receipt",
+        "estimate",
         "health",
         "risk",
         "supply",
@@ -141,9 +142,23 @@ mod preset_flags {
     }
 
     #[test]
-    fn receipt_has_zero_base_flags() {
+    fn receipt_has_four_base_flags() {
         let plan = preset_plan_for(PresetKind::Receipt);
-        assert_eq!(count_base_flags(&plan), 0);
+        assert_eq!(count_base_flags(&plan), 4);
+        assert!(plan.dup);
+        assert!(plan.git);
+        assert!(plan.complexity);
+        assert!(plan.api_surface);
+    }
+
+    #[test]
+    fn estimate_has_four_base_flags() {
+        let plan = preset_plan_for(PresetKind::Estimate);
+        assert_eq!(count_base_flags(&plan), 4);
+        assert!(plan.dup);
+        assert!(plan.git);
+        assert!(plan.complexity);
+        assert!(plan.api_surface);
     }
 
     #[test]
@@ -224,11 +239,8 @@ mod preset_flags {
     }
 
     #[test]
-    fn every_non_receipt_preset_has_at_least_one_flag() {
+    fn every_preset_has_at_least_one_flag() {
         for kind in PresetKind::all() {
-            if *kind == PresetKind::Receipt {
-                continue;
-            }
             let plan = preset_plan_for(*kind);
             assert!(
                 count_base_flags(&plan) > 0,
@@ -336,13 +348,16 @@ mod enricher_selection {
     }
 
     #[test]
-    fn only_deep_enables_dup() {
+    fn receipt_estimate_and_deep_enable_dup() {
         let with_dup: Vec<PresetKind> = PRESET_GRID
             .iter()
             .filter(|r| r.plan.dup)
             .map(|r| r.preset)
             .collect();
-        assert_eq!(with_dup, vec![PresetKind::Deep]);
+        assert!(with_dup.contains(&PresetKind::Receipt));
+        assert!(with_dup.contains(&PresetKind::Estimate));
+        assert!(with_dup.contains(&PresetKind::Deep));
+        assert_eq!(with_dup.len(), 3);
     }
 
     #[test]
@@ -358,17 +373,19 @@ mod enricher_selection {
     }
 
     #[test]
-    fn only_risk_identity_git_deep_enable_git_flag() {
+    fn receipt_estimate_risk_identity_git_deep_enable_git_flag() {
         let with_git: Vec<PresetKind> = PRESET_GRID
             .iter()
             .filter(|r| r.plan.git)
             .map(|r| r.preset)
             .collect();
+        assert!(with_git.contains(&PresetKind::Receipt));
+        assert!(with_git.contains(&PresetKind::Estimate));
         assert!(with_git.contains(&PresetKind::Risk));
         assert!(with_git.contains(&PresetKind::Identity));
         assert!(with_git.contains(&PresetKind::Git));
         assert!(with_git.contains(&PresetKind::Deep));
-        assert_eq!(with_git.len(), 4);
+        assert_eq!(with_git.len(), 6);
     }
 
     #[test]
@@ -430,28 +447,32 @@ mod enricher_selection {
     }
 
     #[test]
-    fn only_health_risk_deep_enable_complexity() {
+    fn receipt_estimate_health_risk_deep_enable_complexity() {
         let with_complexity: Vec<PresetKind> = PRESET_GRID
             .iter()
             .filter(|r| r.plan.complexity)
             .map(|r| r.preset)
             .collect();
+        assert!(with_complexity.contains(&PresetKind::Receipt));
+        assert!(with_complexity.contains(&PresetKind::Estimate));
         assert!(with_complexity.contains(&PresetKind::Health));
         assert!(with_complexity.contains(&PresetKind::Risk));
         assert!(with_complexity.contains(&PresetKind::Deep));
-        assert_eq!(with_complexity.len(), 3);
+        assert_eq!(with_complexity.len(), 5);
     }
 
     #[test]
-    fn only_architecture_and_deep_enable_api_surface() {
+    fn receipt_estimate_architecture_deep_enable_api_surface() {
         let with_api: Vec<PresetKind> = PRESET_GRID
             .iter()
             .filter(|r| r.plan.api_surface)
             .map(|r| r.preset)
             .collect();
+        assert!(with_api.contains(&PresetKind::Receipt));
+        assert!(with_api.contains(&PresetKind::Estimate));
         assert!(with_api.contains(&PresetKind::Architecture));
         assert!(with_api.contains(&PresetKind::Deep));
-        assert_eq!(with_api.len(), 2);
+        assert_eq!(with_api.len(), 4);
     }
 }
 
@@ -537,42 +558,31 @@ mod deep_superset {
 // 6. Receipt preset is minimal
 // =========================================================================
 
-mod receipt_minimal {
+mod receipt_enrichers {
     use super::*;
 
     #[test]
-    fn receipt_is_the_only_all_false_preset() {
-        for kind in PresetKind::all() {
-            let plan = preset_plan_for(*kind);
-            let all_base_false = !plan.assets
-                && !plan.deps
-                && !plan.todo
-                && !plan.dup
-                && !plan.imports
-                && !plan.git
-                && !plan.fun
-                && !plan.archetype
-                && !plan.topics
-                && !plan.entropy
-                && !plan.license
-                && !plan.complexity
-                && !plan.api_surface;
-
-            if *kind == PresetKind::Receipt {
-                assert!(all_base_false, "Receipt should have all base flags false");
-            } else {
-                assert!(
-                    !all_base_false,
-                    "{:?} should have at least one flag enabled",
-                    kind
-                );
-            }
-        }
+    fn receipt_enables_core_enrichers() {
+        let plan = preset_plan_for(PresetKind::Receipt);
+        assert!(plan.dup);
+        assert!(plan.git);
+        assert!(plan.complexity);
+        assert!(plan.api_surface);
+        // But not these:
+        assert!(!plan.assets);
+        assert!(!plan.deps);
+        assert!(!plan.todo);
+        assert!(!plan.imports);
+        assert!(!plan.fun);
+        assert!(!plan.archetype);
+        assert!(!plan.topics);
+        assert!(!plan.entropy);
+        assert!(!plan.license);
     }
 
     #[test]
-    fn receipt_does_not_need_files() {
-        assert!(!preset_plan_for(PresetKind::Receipt).needs_files());
+    fn receipt_needs_files() {
+        assert!(preset_plan_for(PresetKind::Receipt).needs_files());
     }
 }
 
@@ -875,6 +885,7 @@ mod traits {
     fn preset_kind_debug_output_matches_variant_name() {
         let cases = [
             (PresetKind::Receipt, "Receipt"),
+            (PresetKind::Estimate, "Estimate"),
             (PresetKind::Health, "Health"),
             (PresetKind::Risk, "Risk"),
             (PresetKind::Supply, "Supply"),

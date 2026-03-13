@@ -54,7 +54,7 @@ fn preset_plan_for_name_matches_preset_plan_for() {
 #[test]
 fn grid_length_matches_kinds_length() {
     assert_eq!(PRESET_GRID.len(), PRESET_KINDS.len());
-    assert_eq!(PRESET_GRID.len(), 11);
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -82,21 +82,21 @@ fn grid_has_no_duplicate_presets() {
 // ===========================================================================
 
 #[test]
-fn receipt_preset_enables_nothing() {
+fn receipt_preset_enables_core_enrichers() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
@@ -205,9 +205,9 @@ fn deep_preset_enables_everything_except_fun() {
 // ===========================================================================
 
 #[test]
-fn receipt_needs_files_is_false() {
+fn receipt_needs_files_is_true() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.needs_files());
+    assert!(plan.needs_files());
 }
 
 #[test]
@@ -249,6 +249,7 @@ fn grid_order_is_stable() {
     let names: Vec<&str> = PRESET_GRID.iter().map(|row| row.preset.as_str()).collect();
     let expected = vec![
         "receipt",
+        "estimate",
         "health",
         "risk",
         "supply",

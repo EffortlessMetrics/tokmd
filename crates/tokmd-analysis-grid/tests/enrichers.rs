@@ -49,40 +49,31 @@ fn all_presets_with_entropy_also_need_files() {
 // ── Scenario: Preset plan mutual exclusions ─────────────────────────────
 
 #[test]
-fn receipt_is_the_only_preset_with_all_base_flags_off() {
-    let receipt_plan = preset_plan_for(PresetKind::Receipt);
-    // Verify Receipt is uniquely "empty" among all presets
+fn every_preset_has_at_least_one_base_flag_on() {
+    // Every preset in the grid enables at least one base flag
     for row in &PRESET_GRID {
-        if row.preset != PresetKind::Receipt {
-            let p = &row.plan;
-            let any_flag = p.assets
-                || p.deps
-                || p.todo
-                || p.dup
-                || p.imports
-                || p.git
-                || p.fun
-                || p.archetype
-                || p.topics
-                || p.entropy
-                || p.license
-                || p.complexity
-                || p.api_surface;
-            assert!(
-                any_flag,
-                "{:?} has all base flags off like Receipt",
-                row.preset
-            );
-        }
+        let p = &row.plan;
+        let any_flag = p.assets
+            || p.deps
+            || p.todo
+            || p.dup
+            || p.imports
+            || p.git
+            || p.fun
+            || p.archetype
+            || p.topics
+            || p.entropy
+            || p.license
+            || p.complexity
+            || p.api_surface;
+        assert!(any_flag, "{:?} has all base flags off", row.preset);
     }
-    // Receipt itself has all off
-    assert!(!receipt_plan.assets);
-    assert!(!receipt_plan.deps);
-    assert!(!receipt_plan.todo);
-    assert!(!receipt_plan.dup);
-    assert!(!receipt_plan.imports);
-    assert!(!receipt_plan.git);
-    assert!(!receipt_plan.fun);
+    // Receipt now enables core enrichers
+    let receipt_plan = preset_plan_for(PresetKind::Receipt);
+    assert!(receipt_plan.dup);
+    assert!(receipt_plan.git);
+    assert!(receipt_plan.complexity);
+    assert!(receipt_plan.api_surface);
 }
 
 // ── Scenario: Plan lookup determinism ───────────────────────────────────

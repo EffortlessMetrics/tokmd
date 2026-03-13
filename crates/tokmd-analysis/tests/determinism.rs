@@ -82,6 +82,8 @@ fn test_derive_report_determinism() {
         preset: AnalysisPreset::Receipt,
         args: args_meta,
         limits,
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: Some(false),
         import_granularity: ImportGranularity::Module,

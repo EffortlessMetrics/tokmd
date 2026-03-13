@@ -55,6 +55,8 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -113,12 +115,16 @@ fn empty_export() -> ExportData {
 #[test]
 fn receipt_preset_enables_only_derived() {
     let plan = preset_plan_for(PresetKind::Receipt);
+    // Receipt now enables dup, git, complexity, api_surface
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
     assert!(!plan.fun);
 }
 
@@ -243,14 +249,21 @@ fn empty_export_health_preset_succeeds() {
 
 #[test]
 fn empty_export_has_complete_status() {
-    // With no files, enrichers that need files simply skip —
-    // but receipt preset doesn't require files, so status is Complete.
     let receipt = analyze(make_ctx(empty_export()), make_req(AnalysisPreset::Receipt)).unwrap();
-    assert!(
-        matches!(receipt.status, ScanStatus::Complete),
-        "empty receipt preset should be Complete, got {:?}",
-        receipt.status
-    );
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            matches!(receipt.status, ScanStatus::Complete),
+            "empty receipt preset should be Complete, got {:?}",
+            receipt.status
+        );
+    } else {
+        // Receipt now requests dup/complexity/api_surface which need content+walk
+        assert!(
+            matches!(receipt.status, ScanStatus::Partial),
+            "expected Partial without features, got {:?}",
+            receipt.status
+        );
+    }
 }
 
 #[test]

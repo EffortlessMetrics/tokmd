@@ -33,6 +33,7 @@ mutants.out.old/
 
 # Claude Code (local overrides)
 .claude/settings.local.json
+.claude/worktrees/
 
 # Jules agent metadata (stale run logs, envelopes)
 .jules/

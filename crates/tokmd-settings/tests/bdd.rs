@@ -274,6 +274,7 @@ mod json_roundtrip {
             max_commits: Some(500),
             max_commit_files: Some(50),
             granularity: "file".into(),
+            ..Default::default()
         };
         // When: round-tripped
         let json = serde_json::to_string(&s).unwrap();

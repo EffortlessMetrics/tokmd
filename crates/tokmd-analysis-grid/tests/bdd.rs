@@ -8,8 +8,8 @@ use tokmd_analysis_grid::{
 // ── Scenario: PRESET_KINDS array completeness ──────────────────────────
 
 #[test]
-fn preset_kinds_array_has_exactly_11_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+fn preset_kinds_array_has_exactly_12_entries() {
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]
@@ -56,8 +56,8 @@ fn from_str_returns_none_for_unknown_names() {
 // ── Scenario: PRESET_GRID coverage ─────────────────────────────────────
 
 #[test]
-fn preset_grid_has_exactly_11_rows() {
-    assert_eq!(PRESET_GRID.len(), 11);
+fn preset_grid_has_exactly_12_rows() {
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -111,29 +111,29 @@ fn preset_plan_for_name_returns_none_for_invalid_names() {
     assert!(preset_plan_for_name("DEEP").is_none());
 }
 
-// ── Scenario: Receipt preset enables nothing ───────────────────────────
+// ── Scenario: Receipt preset enables core enrichers ─────────────────────
 
 #[test]
-fn receipt_preset_enables_no_enrichers() {
+fn receipt_preset_enables_core_enrichers() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
-fn receipt_preset_does_not_need_files() {
-    assert!(!preset_plan_for(PresetKind::Receipt).needs_files());
+fn receipt_preset_needs_files() {
+    assert!(preset_plan_for(PresetKind::Receipt).needs_files());
 }
 
 // ── Scenario: Deep preset enables everything (except fun) ──────────────
@@ -268,6 +268,8 @@ fn git_preset_enables_git() {
 fn needs_files_is_true_when_any_file_dependent_flag_is_set() {
     // Presets that should need files (they have at least one file-dependent flag)
     let needs_files_presets = [
+        PresetKind::Receipt,      // dup, complexity, api_surface
+        PresetKind::Estimate,     // dup, complexity, api_surface
         PresetKind::Health,       // todo
         PresetKind::Supply,       // assets, deps
         PresetKind::Architecture, // imports, api_surface
@@ -286,7 +288,7 @@ fn needs_files_is_true_when_any_file_dependent_flag_is_set() {
 
 #[test]
 fn needs_files_is_false_when_no_file_dependent_flags_set() {
-    let no_files_presets = [PresetKind::Receipt, PresetKind::Fun];
+    let no_files_presets = [PresetKind::Fun];
     for preset in &no_files_presets {
         assert!(
             !preset_plan_for(*preset).needs_files(),
@@ -299,17 +301,19 @@ fn needs_files_is_false_when_no_file_dependent_flags_set() {
 // ── Scenario: Presets with git flag set ─────────────────────────────────
 
 #[test]
-fn presets_requiring_git_are_risk_identity_git_deep() {
+fn presets_requiring_git_include_receipt_estimate_risk_identity_git_deep() {
     let git_presets: Vec<PresetKind> = PRESET_GRID
         .iter()
         .filter(|r| r.plan.git)
         .map(|r| r.preset)
         .collect();
+    assert!(git_presets.contains(&PresetKind::Receipt));
+    assert!(git_presets.contains(&PresetKind::Estimate));
     assert!(git_presets.contains(&PresetKind::Risk));
     assert!(git_presets.contains(&PresetKind::Identity));
     assert!(git_presets.contains(&PresetKind::Git));
     assert!(git_presets.contains(&PresetKind::Deep));
-    assert_eq!(git_presets.len(), 4);
+    assert_eq!(git_presets.len(), 6);
 }
 
 // ── Scenario: DisabledFeature exhaustive warnings ──────────────────────

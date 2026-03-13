@@ -23,6 +23,7 @@ fn preset_plan_for_each_kind_matches_grid_row() {
 fn preset_plan_for_name_resolves_all_known_names() {
     let names = [
         "receipt",
+        "estimate",
         "health",
         "risk",
         "supply",

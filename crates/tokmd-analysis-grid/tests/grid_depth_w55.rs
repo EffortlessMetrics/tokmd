@@ -7,8 +7,8 @@ use tokmd_analysis_grid::{
 // ── PresetKind basics ───────────────────────────────────────────────
 
 #[test]
-fn preset_kind_all_returns_eleven() {
-    assert_eq!(PresetKind::all().len(), 11);
+fn preset_kind_all_returns_twelve() {
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]
@@ -59,8 +59,8 @@ fn preset_kind_clone_eq() {
 // ── PRESET_GRID ─────────────────────────────────────────────────────
 
 #[test]
-fn grid_has_eleven_rows() {
-    assert_eq!(PRESET_GRID.len(), 11);
+fn grid_has_twelve_rows() {
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -96,21 +96,21 @@ fn grid_row_debug_format() {
 // ── preset_plan_for / preset_plan_for_name ──────────────────────────
 
 #[test]
-fn plan_for_receipt_has_nothing_enabled() {
+fn plan_for_receipt_has_core_enrichers_enabled() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
@@ -220,8 +220,8 @@ fn plan_for_name_invalid_returns_none() {
 // ── PresetPlan::needs_files ─────────────────────────────────────────
 
 #[test]
-fn receipt_needs_no_files() {
-    assert!(!preset_plan_for(PresetKind::Receipt).needs_files());
+fn receipt_needs_files() {
+    assert!(preset_plan_for(PresetKind::Receipt).needs_files());
 }
 
 #[test]

@@ -144,6 +144,8 @@ mod git_tests {
             near_dup_scope: NearDupScope::Module,
             near_dup_max_pairs: None,
             near_dup_exclude: Vec::new(),
+            #[cfg(feature = "effort")]
+            effort: None,
         };
 
         let receipt = analyze(ctx, request).expect("analysis");

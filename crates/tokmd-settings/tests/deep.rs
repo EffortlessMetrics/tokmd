@@ -658,6 +658,7 @@ fn analyze_settings_all_optional_fields() {
         max_commits: Some(1000),
         max_commit_files: Some(100),
         granularity: "file".into(),
+        ..Default::default()
     };
     let json = serde_json::to_string(&a).unwrap();
     let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();

@@ -80,11 +80,11 @@ fn schema_version_is_2() {
 }
 
 #[test]
-fn analysis_schema_version_is_8() {
+fn analysis_schema_version_is_9() {
     assert_eq!(
         tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
-        8,
-        "ANALYSIS_SCHEMA_VERSION must be 8"
+        9,
+        "ANALYSIS_SCHEMA_VERSION must be 9"
     );
 }
 

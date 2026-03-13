@@ -15,13 +15,13 @@ use tokmd_analysis_grid::{
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn preset_grid_has_11_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
+fn preset_grid_has_12_entries() {
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
-fn preset_kinds_has_11_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+fn preset_kinds_has_12_entries() {
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]
@@ -84,21 +84,21 @@ fn preset_kind_from_str_roundtrip() {
 }
 
 #[test]
-fn receipt_plan_enables_nothing() {
+fn receipt_plan_enables_core_enrichers() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
@@ -134,8 +134,8 @@ fn fun_plan_enables_only_fun() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_does_not_need_files() {
-    assert!(!preset_plan_for(PresetKind::Receipt).needs_files());
+fn receipt_needs_files() {
+    assert!(preset_plan_for(PresetKind::Receipt).needs_files());
 }
 
 #[test]

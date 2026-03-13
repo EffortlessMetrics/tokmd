@@ -3,7 +3,7 @@ source: crates/tokmd-analysis-format/tests/snapshots.rs
 expression: rendered
 ---
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "generated_at_ms": 0,
   "tool": {
     "name": "tokmd",
@@ -51,5 +51,6 @@ expression: rendered
   "dup": null,
   "complexity": null,
   "api_surface": null,
+  "effort": null,
   "fun": null
 }

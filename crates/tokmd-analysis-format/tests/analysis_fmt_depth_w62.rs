@@ -55,6 +55,7 @@ fn args(preset: &str, format: &str) -> AnalysisArgsMeta {
 
 fn empty_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: tool(),
@@ -413,8 +414,12 @@ fn md_context_window_section() {
 #[test]
 fn md_cocomo_section() {
     let md = render_text(&receipt_with_derived(), AnalysisFormat::Md);
-    assert!(md.contains("## COCOMO estimate"));
-    assert!(md.contains("Mode: `organic`"));
+    assert!(md.contains("## Effort estimate"));
+    assert!(md.contains("### Size basis"));
+    assert!(md.contains("### Headline"));
+    assert!(md.contains("### Why"));
+    assert!(md.contains("### Delta"));
+    assert!(md.contains("Model: `COCOMO` (`organic` mode)"));
     assert!(md.contains("KLOC: `0.5000`"));
 }
 
@@ -439,7 +444,7 @@ fn md_no_cocomo_when_absent() {
     let mut r = receipt_with_derived();
     r.derived.as_mut().unwrap().cocomo = None;
     let md = render_text(&r, AnalysisFormat::Md);
-    assert!(!md.contains("## COCOMO estimate"));
+    assert!(!md.contains("## Effort estimate"));
 }
 
 #[test]
@@ -683,11 +688,11 @@ fn md_section_order_distribution_before_histogram() {
 }
 
 #[test]
-fn md_section_order_integrity_after_cocomo() {
+fn md_section_order_integrity_after_effort() {
     let md = render_text(&receipt_with_derived(), AnalysisFormat::Md);
-    let cocomo_pos = md.find("## COCOMO estimate").unwrap();
+    let effort_pos = md.find("## Effort estimate").unwrap();
     let int_pos = md.find("## Integrity").unwrap();
-    assert!(cocomo_pos < int_pos);
+    assert!(effort_pos < int_pos);
 }
 
 #[test]

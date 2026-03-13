@@ -66,6 +66,8 @@ let request = AnalysisRequest {
         import_granularity: "module".into(),
     },
     limits: AnalysisLimits::default(),
+    #[cfg(feature = "effort")]
+    effort: None,
     window_tokens: None,
     git: None,
     import_granularity: ImportGranularity::Module,

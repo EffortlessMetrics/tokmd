@@ -55,6 +55,7 @@ fn make_analysis_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,
@@ -75,7 +76,7 @@ fn analysis_schema_version_is_positive() {
 
 #[test]
 fn analysis_schema_version_value() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]

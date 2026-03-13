@@ -58,9 +58,11 @@ fn sample_export() -> ExportData {
 #[test]
 fn render_md_snapshot() {
     let export = sample_export();
+    let tmp = std::env::temp_dir().join("tokmd-render-md-test");
+    let _ = std::fs::create_dir_all(&tmp);
     let ctx = AnalysisContext {
         export,
-        root: std::path::PathBuf::from("."),
+        root: tmp,
         source: AnalysisSource {
             inputs: vec![".".to_string()],
             export_path: None,
@@ -88,6 +90,7 @@ fn render_md_snapshot() {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -107,5 +110,14 @@ fn render_md_snapshot() {
         tokmd_analysis_format::RenderedOutput::Binary(_) => panic!("expected text"),
     };
 
-    insta::assert_snapshot!(text);
+    // Content-feature enrichers (duplicates, complexity, API surface) produce
+    // additional zero-value sections when tokmd-analysis is compiled with the
+    // `content` feature.  CI runs `cargo test --all-features` (workspace-wide)
+    // which activates these enrichers, whereas local per-package testing does
+    // not.  Use a separate snapshot for each variant so both passes succeed.
+    if text.contains("## Duplicates") {
+        insta::assert_snapshot!("render_md_snapshot_content", text);
+    } else {
+        insta::assert_snapshot!("render_md_snapshot", text);
+    }
 }

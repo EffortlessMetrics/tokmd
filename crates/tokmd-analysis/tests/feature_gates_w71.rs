@@ -84,6 +84,8 @@ fn make_req(preset: PresetKind) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: Default::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -268,19 +270,21 @@ fn security_preset_walk_content_gates() {
 
 // -- 4. receipt preset works without optional features --
 
-/// Receipt preset must produce derived metrics without any optional features.
+/// Receipt preset must produce derived metrics; now enables dup/git/complexity/api_surface.
 #[test]
 fn receipt_preset_works_without_optional_features() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.git, "receipt must not request git");
+    // Receipt now enables these four enrichers
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
     assert!(!plan.todo, "receipt must not request todo");
-    assert!(!plan.dup, "receipt must not request dup");
     assert!(!plan.imports, "receipt must not request imports");
     assert!(!plan.entropy, "receipt must not request entropy");
     assert!(!plan.assets, "receipt must not request assets");
     assert!(!plan.license, "receipt must not request license");
-    assert!(!plan.complexity, "receipt must not request complexity");
-    assert!(!plan.api_surface, "receipt must not request api_surface");
     assert!(!plan.fun, "receipt must not request fun");
 
     let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
@@ -289,10 +293,12 @@ fn receipt_preset_works_without_optional_features() {
         "receipt must always produce derived"
     );
     assert_eq!(receipt.schema_version, ANALYSIS_SCHEMA_VERSION);
-    assert!(
-        matches!(receipt.status, ScanStatus::Complete),
-        "receipt preset should be complete without optional features"
-    );
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            matches!(receipt.status, ScanStatus::Complete),
+            "receipt preset should be complete with features"
+        );
+    }
 }
 
 /// Receipt preset with empty export still produces derived (no panic).
@@ -353,6 +359,7 @@ fn every_preset_has_a_plan() {
 fn preset_plan_for_name_accepts_all_canonical_names() {
     let names = [
         "receipt",
+        "estimate",
         "health",
         "risk",
         "supply",
@@ -502,7 +509,7 @@ fn content_disabled_features_mention_content() {
     }
 }
 
-/// Grid has exactly 11 presets matching PRESET_KINDS.
+/// Grid has exactly 12 presets matching PRESET_KINDS.
 #[test]
 fn grid_covers_all_preset_kinds() {
     assert_eq!(PRESET_GRID.len(), PRESET_KINDS.len());

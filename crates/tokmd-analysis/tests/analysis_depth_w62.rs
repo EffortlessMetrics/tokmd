@@ -100,6 +100,8 @@ fn request(preset: AnalysisPreset) -> AnalysisRequest {
         preset,
         args: args(preset.as_str()),
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: Some(false),
         import_granularity: ImportGranularity::Module,
@@ -221,9 +223,17 @@ fn git_disabled_produces_warning_for_risk_preset() {
 #[test]
 fn receipt_preset_no_warnings_without_optional_features() {
     let r = run(AnalysisPreset::Receipt);
-    // Receipt doesn't need git/walk/content, so should be complete
-    assert!(matches!(r.status, ScanStatus::Complete));
-    assert!(r.warnings.is_empty());
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(matches!(r.status, ScanStatus::Complete));
+        assert!(
+            r.warnings.is_empty(),
+            "no warnings when features present, got: {:?}",
+            r.warnings
+        );
+    } else {
+        // Receipt now requests dup/complexity/api_surface which need content+walk
+        assert!(!r.warnings.is_empty(), "disabled-feature warnings expected");
+    }
 }
 
 #[test]

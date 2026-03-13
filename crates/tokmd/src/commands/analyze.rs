@@ -74,6 +74,8 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         Some(cli::NearDupScope::Lang) => analysis::NearDupScope::Lang,
         Some(cli::NearDupScope::Global) => analysis::NearDupScope::Global,
     };
+    let effort = parse_effort_request(&args, preset == cli::AnalysisPreset::Estimate)?;
+
     let request = analysis::AnalysisRequest {
         preset: analysis_utils::map_preset(preset),
         args: args_meta,
@@ -94,6 +96,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         near_dup_scope,
         near_dup_max_pairs: Some(args.near_dup_max_pairs),
         near_dup_exclude: args.near_dup_exclude.clone(),
+        effort,
     };
     let ctx = analysis::AnalysisContext {
         export: bundle.export,
@@ -114,4 +117,70 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     }
 
     Ok(())
+}
+
+fn parse_effort_request(
+    args: &cli::CliAnalyzeArgs,
+    estimate_preset: bool,
+) -> Result<Option<analysis::EffortRequest>> {
+    let base_ref = args.effort_base_ref.clone();
+    let head_ref = args.effort_head_ref.clone();
+    if (base_ref.is_some() && head_ref.is_none()) || (base_ref.is_none() && head_ref.is_some()) {
+        bail!("both --effort-base-ref and --effort-head-ref are required together");
+    }
+
+    let requested = estimate_preset
+        || args.effort_model.is_some()
+        || args.effort_layer.is_some()
+        || base_ref.is_some()
+        || head_ref.is_some()
+        || args.monte_carlo
+        || args.mc_iterations.is_some()
+        || args.mc_seed.is_some();
+    if !requested {
+        return Ok(None);
+    }
+
+    let default = analysis::EffortRequest::default();
+    let model = args
+        .effort_model
+        .map(map_effort_model)
+        .transpose()?
+        .unwrap_or(default.model);
+    let layer = args
+        .effort_layer
+        .map(map_effort_layer)
+        .unwrap_or(default.layer);
+    let monte_carlo = args.monte_carlo;
+    let mc_iterations = args.mc_iterations.unwrap_or(default.mc_iterations);
+    if mc_iterations == 0 {
+        bail!("--mc-iterations must be greater than 0");
+    }
+
+    Ok(Some(analysis::EffortRequest {
+        model,
+        layer,
+        base_ref,
+        head_ref,
+        monte_carlo,
+        mc_iterations,
+        mc_seed: args.mc_seed,
+    }))
+}
+
+fn map_effort_model(model: cli::EffortModelKind) -> Result<analysis::EffortModelKind> {
+    match model {
+        cli::EffortModelKind::Cocomo81Basic => Ok(analysis::EffortModelKind::Cocomo81Basic),
+        cli::EffortModelKind::Cocomo2Early | cli::EffortModelKind::Ensemble => {
+            bail!("only 'cocomo81-basic' is currently supported")
+        }
+    }
+}
+
+fn map_effort_layer(layer: cli::EffortLayer) -> analysis::EffortLayer {
+    match layer {
+        cli::EffortLayer::Headline => analysis::EffortLayer::Headline,
+        cli::EffortLayer::Why => analysis::EffortLayer::Why,
+        cli::EffortLayer::Full => analysis::EffortLayer::Full,
+    }
 }

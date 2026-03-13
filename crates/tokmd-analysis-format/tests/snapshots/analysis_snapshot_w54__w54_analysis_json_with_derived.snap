@@ -229,6 +229,7 @@ expression: v
     }
   },
   "dup": null,
+  "effort": null,
   "entropy": null,
   "fun": null,
   "generated_at_ms": 0,
@@ -237,7 +238,7 @@ expression: v
   "license": null,
   "mode": "analyze",
   "predictive_churn": null,
-  "schema_version": 8,
+  "schema_version": 9,
   "source": {
     "base_receipt_path": null,
     "base_signature": null,

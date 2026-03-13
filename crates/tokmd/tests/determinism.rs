@@ -409,7 +409,7 @@ fn schema_version_constants_match_expected() {
     );
     assert_eq!(
         tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
-        8,
+        9,
         "analysis schema version"
     );
 }

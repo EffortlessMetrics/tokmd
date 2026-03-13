@@ -25,3 +25,4 @@ tempfile = "3.25.0"
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-types.workspace = true
+uselesskey.workspace = true
