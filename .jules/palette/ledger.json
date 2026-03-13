@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp_utc": "2026-03-12T12:19:12Z",
+    "lane": "scout",
+    "target": "Remove unwrap()/expect() panics in wizard/sensor tests",
+    "pr_link": null,
+    "gates": {
+      "build": "PASS",
+      "test": "PASS",
+      "fmt": "PASS",
+      "clippy": "PASS"
+    },
+    "friction_ids": []
+  }
+]

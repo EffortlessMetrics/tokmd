@@ -450,7 +450,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_config() {
+    fn test_generate_config() -> Result<(), Box<dyn std::error::Error>> {
         let result = WizardResult {
             project_type: ProjectType::Rust,
             module_roots: vec!["crates".to_string(), "src".to_string()],
@@ -460,7 +460,7 @@ mod tests {
             write_tokeignore: true,
         };
 
-        let config = generate_toml_config(&result).expect("should generate config");
+        let config = generate_toml_config(&result)?;
 
         // Check header comment
         assert!(config.contains("# tokmd configuration"));
@@ -487,10 +487,10 @@ mod tests {
         assert!(config.contains("preset = \"receipt\""));
 
         // Verify it's valid TOML by parsing
-        let parsed: tokmd_config::TomlConfig =
-            toml::from_str(&config).expect("generated config should be valid TOML");
+        let parsed: tokmd_config::TomlConfig = toml::from_str(&config)?;
         assert_eq!(parsed.module.depth, Some(2));
         assert_eq!(parsed.context.budget, Some("128k".to_string()));
+        Ok(())
     }
 
     // ==================== index_to_project_type() tests ====================
@@ -546,7 +546,7 @@ mod tests {
     // ==================== wizard_result_from_answers() tests ====================
 
     #[test]
-    fn test_wizard_result_happy_path() {
+    fn test_wizard_result_happy_path() -> Result<(), Box<dyn std::error::Error>> {
         // Kills "wizard_result_from_answers -> None" mutant
         let result = wizard_result_from_answers(
             Some(ProjectType::Rust),
@@ -557,13 +557,14 @@ mod tests {
             true,
         );
         assert!(result.is_some());
-        let r = result.unwrap();
+        let r = result.ok_or("result should be some")?;
         assert_eq!(r.project_type, ProjectType::Rust);
         assert_eq!(r.module_roots, vec!["crates"]);
         assert_eq!(r.module_depth, 2);
         assert_eq!(r.context_budget, "128k");
         assert!(r.write_config);
         assert!(r.write_tokeignore);
+        Ok(())
     }
 
     #[test]
@@ -595,7 +596,7 @@ mod tests {
     }
 
     #[test]
-    fn test_wizard_result_only_config_returns_some() {
+    fn test_wizard_result_only_config_returns_some() -> Result<(), Box<dyn std::error::Error>> {
         let result = wizard_result_from_answers(
             Some(ProjectType::Python),
             vec!["src".to_string()],
@@ -605,13 +606,14 @@ mod tests {
             false,
         );
         assert!(result.is_some());
-        let r = result.unwrap();
+        let r = result.ok_or("result should be some")?;
         assert!(r.write_config);
         assert!(!r.write_tokeignore);
+        Ok(())
     }
 
     #[test]
-    fn test_wizard_result_only_tokeignore_returns_some() {
+    fn test_wizard_result_only_tokeignore_returns_some() -> Result<(), Box<dyn std::error::Error>> {
         let result = wizard_result_from_answers(
             Some(ProjectType::Node),
             vec!["packages".to_string()],
@@ -621,13 +623,14 @@ mod tests {
             true,
         );
         assert!(result.is_some());
-        let r = result.unwrap();
+        let r = result.ok_or("result should be some")?;
         assert!(!r.write_config);
         assert!(r.write_tokeignore);
+        Ok(())
     }
 
     #[test]
-    fn test_wizard_result_preserves_all_fields() {
+    fn test_wizard_result_preserves_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         let result = wizard_result_from_answers(
             Some(ProjectType::Go),
             vec!["cmd".to_string(), "pkg".to_string()],
@@ -636,11 +639,12 @@ mod tests {
             true,
             false,
         );
-        let r = result.unwrap();
+        let r = result.ok_or("result should be some")?;
         assert_eq!(r.project_type, ProjectType::Go);
         assert_eq!(r.module_roots, vec!["cmd", "pkg"]);
         assert_eq!(r.module_depth, 5);
         assert_eq!(r.context_budget, "1m");
+        Ok(())
     }
 
     // ==================== Mutant killer: as_str not empty/xyzzy ====================
