@@ -1,0 +1,11 @@
+[
+  {
+    "date": "2025-03-10T12:00:00Z",
+    "lane": "scout",
+    "target": "cli-help",
+    "pr_link": "TBD",
+    "gates_run": ["build", "test", "fmt", "clippy"],
+    "status": "PASS",
+    "friction_ids_created": []
+  }
+]

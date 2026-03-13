@@ -328,7 +328,7 @@ pub struct CliModuleArgs {
     #[arg(long)]
     pub module_depth: Option<usize>,
 
-    /// Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].
+    /// How to handle embedded languages (tokei "children" / blobs) in module totals [default: separate].
     #[arg(long, value_enum)]
     pub children: Option<ChildIncludeMode>,
 }
@@ -355,7 +355,7 @@ pub struct CliExportArgs {
     #[arg(long)]
     pub module_depth: Option<usize>,
 
-    /// Whether to include embedded languages (tokei "children" / blobs) [default: separate].
+    /// How to handle embedded languages (tokei "children" / blobs) [default: separate].
     #[arg(long, value_enum)]
     pub children: Option<ChildIncludeMode>,
 
