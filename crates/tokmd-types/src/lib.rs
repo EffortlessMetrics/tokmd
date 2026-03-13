@@ -1409,3 +1409,7 @@ mod tests {
         assert_eq!(back, r);
     }
 }
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+pub mod readme_doctests {}
