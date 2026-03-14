@@ -24,6 +24,11 @@
       "cmd": "cargo test -p tokmd-analysis-format",
       "exit_status": 0,
       "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-core -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
     }
   ],
   "results": {}
