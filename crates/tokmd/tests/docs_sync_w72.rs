@@ -113,12 +113,14 @@ fn every_help_subcommand_is_in_readme() {
 
     let readme_path = workspace_root().join("README.md");
     if !readme_path.exists() {
-        println!("Skipping test: README.md not found at {}", readme_path.display());
+        println!(
+            "Skipping test: README.md not found at {}",
+            readme_path.display()
+        );
         return;
     }
 
-    let readme =
-        std::fs::read_to_string(readme_path).expect("README.md must be readable");
+    let readme = std::fs::read_to_string(readme_path).expect("README.md must be readable");
 
     for cmd in &subcommands {
         let pattern = format!("tokmd {cmd}");
@@ -141,12 +143,15 @@ fn every_help_subcommand_is_in_reference_cli() {
 
     let ref_cli_path = workspace_root().join("docs/reference-cli.md");
     if !ref_cli_path.exists() {
-        println!("Skipping test: docs/reference-cli.md not found at {}", ref_cli_path.display());
+        println!(
+            "Skipping test: docs/reference-cli.md not found at {}",
+            ref_cli_path.display()
+        );
         return;
     }
 
-    let ref_cli = std::fs::read_to_string(ref_cli_path)
-        .expect("docs/reference-cli.md must be readable");
+    let ref_cli =
+        std::fs::read_to_string(ref_cli_path).expect("docs/reference-cli.md must be readable");
 
     for cmd in &subcommands {
         let pattern = format!("tokmd {cmd}");
