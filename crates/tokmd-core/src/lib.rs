@@ -699,14 +699,20 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
+    #[cfg(feature = "analysis")]
     use std::fs;
+    #[cfg(feature = "analysis")]
     use std::path::{Path, PathBuf};
+    #[cfg(feature = "analysis")]
     use std::time::{SystemTime, UNIX_EPOCH};
 
+    #[cfg(feature = "analysis")]
     #[derive(Debug)]
     struct TempDirGuard(PathBuf);
 
+    #[cfg(feature = "analysis")]
     impl Drop for TempDirGuard {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
@@ -750,29 +756,32 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn effort_request_defaults_to_estimate_preset() {
+    fn effort_request_defaults_to_estimate_preset() -> Result<(), Box<dyn std::error::Error>> {
         let analyze = AnalyzeSettings {
             preset: "estimate".to_string(),
             ..Default::default()
         };
-        let req = parse_effort_request(&analyze, "estimate").expect("parse effort request");
-        let req = req.expect("estimate should imply effort request");
+        let req = parse_effort_request(&analyze, "estimate")?;
+        let req = req.ok_or("estimate should imply effort request")?;
         assert_eq!(
             req.model.as_str(),
             analysis::EffortModelKind::Cocomo81Basic.as_str()
         );
         assert_eq!(req.layer.as_str(), analysis::EffortLayer::Full.as_str());
+        Ok(())
     }
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn effort_request_not_implied_for_non_estimate_without_flags() {
+    fn effort_request_not_implied_for_non_estimate_without_flags()
+    -> Result<(), Box<dyn std::error::Error>> {
         let analyze = AnalyzeSettings {
             preset: "receipt".to_string(),
             ..Default::default()
         };
-        let req = parse_effort_request(&analyze, "receipt").expect("parse effort request");
+        let req = parse_effort_request(&analyze, "receipt")?;
         assert!(req.is_none());
+        Ok(())
     }
 
     #[cfg(feature = "analysis")]
@@ -788,6 +797,7 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
+    #[cfg(feature = "analysis")]
     fn mk_temp_dir(prefix: &str) -> PathBuf {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -798,27 +808,30 @@ mod tests {
         root
     }
 
-    fn write_file(path: &Path, contents: &str) {
+    #[cfg(feature = "analysis")]
+    fn write_file(path: &Path, contents: &str) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, contents).unwrap();
+        fs::write(path, contents)?;
+        Ok(())
     }
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
+    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown()
+    -> Result<(), Box<dyn std::error::Error>> {
         let root = mk_temp_dir("tokmd-core-estimate-preset");
         let _guard = TempDirGuard(root.clone());
-        write_file(&root.join("src/main.rs"), "fn main() {}\n");
+        write_file(&root.join("src/main.rs"), "fn main() {}\n")?;
         write_file(
             &root.join("target/generated/bundle.min.js"),
             "console.log(1);\n",
-        );
+        )?;
         write_file(
             &root.join("vendor/lib/external.rs"),
             "pub fn external() {}\n",
-        );
+        )?;
 
         let scan = settings::ScanSettings::for_paths(vec![root.display().to_string()]);
         let analyze = AnalyzeSettings {
@@ -826,11 +839,11 @@ mod tests {
             ..Default::default()
         };
 
-        let receipt = analyze_workflow(&scan, &analyze).expect("estimate analyze failed");
+        let receipt = analyze_workflow(&scan, &analyze)?;
         let effort = receipt
             .effort
             .as_ref()
-            .expect("estimate preset should produce effort");
+            .ok_or("estimate preset should produce effort")?;
 
         assert!(effort.results.effort_pm_p50 > 0.0);
         assert_eq!(
@@ -844,6 +857,7 @@ mod tests {
             effort.size_basis.generated_lines + effort.size_basis.vendored_lines > 0,
             "expected deterministic generated or vendored lines"
         );
+        Ok(())
     }
 }
 

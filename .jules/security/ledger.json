@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-03-14T12:23:22Z",
+    "lane": "scout",
+    "target": "crates/tokmd-core/src/",
+    "pr": "TBD",
+    "gates": "build,test,fmt,clippy",
+    "status": "PASS"
+  }
+]
