@@ -699,10 +699,11 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(all(feature = "git", feature = "content"))]
+    #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
     #[cfg(feature = "analysis")]
     use std::fs;
+    #[cfg(feature = "analysis")]
     use std::path::{Path, PathBuf};
     #[cfg(feature = "analysis")]
     use std::time::{SystemTime, UNIX_EPOCH};
