@@ -1,0 +1,14 @@
+[
+  {
+    "date": "2026-03-14",
+    "lane": "scout",
+    "target": "crates/tokmd-analysis-format/src/lib.rs string formatting",
+    "proof_method": "structural proof",
+    "gates_run": [
+      "check",
+      "fmt",
+      "clippy",
+      "test"
+    ]
+  }
+]
