@@ -1,0 +1,35 @@
+{
+  "run_id": "run-001",
+  "timestamp_utc": "2026-03-14T12:13:23Z",
+  "lane": "scout",
+  "target": "crates/tokmd-analysis-format/src/lib.rs string formatting",
+  "proof_method": "structural proof: removed intermediate allocations by replacing out.push_str(&format!(...)) with write!/writeln! direct macro writes",
+  "commands": [
+    {
+      "cmd": "cargo check -p tokmd-analysis-format",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -p tokmd-analysis-format",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-analysis-format -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-analysis-format",
+      "exit_status": 0,
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-core -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS"
+    }
+  ],
+  "results": {}
+}
