@@ -186,10 +186,12 @@ fn find_workspace_root() -> Result<std::path::PathBuf> {
 
 /// Validate that a version string is valid semver.
 fn validate_semver(version: &str) -> Result<()> {
-    let parts: Vec<&str> = version.split('.').collect();
+    // Split off pre-release suffix if present (e.g., "1.8.0-rc.1")
+    let base = version.split('-').next().unwrap_or(version);
+    let parts: Vec<&str> = base.split('.').collect();
     if parts.len() != 3 {
         bail!(
-            "Version must be in semver format (MAJOR.MINOR.PATCH), got: {}",
+            "Version must be in semver format (MAJOR.MINOR.PATCH[-PRERELEASE]), got: {}",
             version
         );
     }
@@ -440,6 +442,7 @@ mod tests {
         assert!(validate_semver("1.0.0").is_ok());
         assert!(validate_semver("0.1.0").is_ok());
         assert!(validate_semver("10.20.30").is_ok());
+        assert!(validate_semver("1.8.0-rc.1").is_ok());
     }
 
     #[test]
