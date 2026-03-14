@@ -1,7 +1,0 @@
-[
-  {
-    "id": "cd9104c0-9eab-483b-b798-cc746dd9935f",
-    "timestamp": "2026-03-14T10:23:31Z",
-    "description": "Fix drift in tokmd-core README API example to use lang_workflow, ScanSettings, and LangSettings."
-  }
-]

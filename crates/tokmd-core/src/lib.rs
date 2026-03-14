@@ -699,11 +699,16 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[allow(unused_imports)]
     use crate::settings::AnalyzeSettings;
+    #[allow(unused_imports)]
     use std::fs;
+    #[allow(unused_imports)]
     use std::path::{Path, PathBuf};
+    #[allow(unused_imports)]
     use std::time::{SystemTime, UNIX_EPOCH};
 
+    #[allow(dead_code)]
     #[derive(Debug)]
     struct TempDirGuard(PathBuf);
 
@@ -788,6 +793,7 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
+    #[allow(dead_code)]
     fn mk_temp_dir(prefix: &str) -> PathBuf {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -798,6 +804,7 @@ mod tests {
         root
     }
 
+    #[allow(dead_code)]
     fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
