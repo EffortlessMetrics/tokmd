@@ -3114,7 +3114,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3163,7 +3163,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3199,7 +3199,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-api-surface"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3213,7 +3213,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-archetype"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3223,7 +3223,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-assets"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3235,7 +3235,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-complexity"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3250,7 +3250,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-content"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3267,7 +3267,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-derived"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "blake3",
  "proptest",
@@ -3281,7 +3281,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-effort"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3295,7 +3295,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-entropy"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3310,7 +3310,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-explain"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "insta",
  "proptest",
@@ -3318,7 +3318,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-fingerprint"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3328,7 +3328,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-format"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "insta",
@@ -3345,7 +3345,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-fun"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "insta",
  "proptest",
@@ -3355,7 +3355,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-git"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3370,14 +3370,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-grid"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
 ]
 
 [[package]]
 name = "tokmd-analysis-halstead"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3391,7 +3391,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-html"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "insta",
  "proptest",
@@ -3403,7 +3403,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-imports"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "insta",
  "proptest",
@@ -3411,7 +3411,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-license"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3425,7 +3425,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-maintainability"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3434,7 +3434,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-near-dup"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "globset",
@@ -3448,7 +3448,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-topics"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3458,7 +3458,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-types"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde",
@@ -3469,7 +3469,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-analysis-util"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tokmd-analysis-types",
@@ -3478,7 +3478,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-badge"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "insta",
  "proptest",
@@ -3486,7 +3486,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-cockpit"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3505,7 +3505,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-config"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "clap",
  "proptest",
@@ -3520,7 +3520,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-content"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "blake3",
@@ -3531,7 +3531,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-context-git"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tempfile",
@@ -3542,7 +3542,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-context-policy"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tokmd-path",
@@ -3551,7 +3551,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-core"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3573,7 +3573,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-envelope"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "blake3",
  "proptest",
@@ -3583,7 +3583,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-exclude"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tokmd-path",
@@ -3591,7 +3591,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-export-tree"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tokmd-types",
@@ -3599,7 +3599,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-ffi-envelope"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3609,7 +3609,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-format"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "csv",
@@ -3628,7 +3628,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-fun"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "insta",
@@ -3664,7 +3664,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-gate"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde",
@@ -3676,7 +3676,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-git"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3686,7 +3686,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-io-port"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "tempfile",
@@ -3694,14 +3694,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-math"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
 ]
 
 [[package]]
 name = "tokmd-model"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "insta",
@@ -3716,14 +3716,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-module-key"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
 ]
 
 [[package]]
 name = "tokmd-node"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "napi",
  "napi-build",
@@ -3740,14 +3740,14 @@ dependencies = [
 
 [[package]]
 name = "tokmd-path"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
 ]
 
 [[package]]
 name = "tokmd-progress"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "indicatif",
  "proptest",
@@ -3755,7 +3755,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-python"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -3769,7 +3769,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-redact"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "blake3",
  "proptest",
@@ -3777,7 +3777,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-scan"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3790,7 +3790,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-scan-args"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde_json",
@@ -3802,7 +3802,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-sensor"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "proptest",
@@ -3820,7 +3820,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-settings"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde",
@@ -3832,7 +3832,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-substrate"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "proptest",
  "serde",
@@ -3841,7 +3841,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-tokeignore"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "insta",
@@ -3852,7 +3852,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-tool-schema"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -3863,7 +3863,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-types"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "clap",
  "insta",
@@ -3877,7 +3877,7 @@ dependencies = [
 
 [[package]]
 name = "tokmd-walk"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "ignore",
@@ -4970,7 +4970,7 @@ checksum = "9edde0db4769d2dc68579893f2306b26c6ecfbe0ef499b013d731b7b9247e0b9"
 
 [[package]]
 name = "xtask"
-version = "1.7.3"
+version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
  "cargo_metadata",
