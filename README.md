@@ -127,7 +127,7 @@ tokmd analyze --preset risk    # Hotspots, coupling, freshness
 | `tokmd handoff`      | Bundle codebase for LLM handoff with intelligence presets.      |
 | `tokmd tools`        | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema). |
 | `tokmd init`         | Generate a `.tokeignore` file (supports templates).             |
-| `tokmd check-ignore` | Explain why files are being ignored (troubleshooting).          |
+| `tokmd check-ignore` | Check why a file is being ignored (for troubleshooting).          |
 | `tokmd completions`  | Generate shell completions (bash, zsh, fish, powershell).       |
 
 ## Analysis Presets
