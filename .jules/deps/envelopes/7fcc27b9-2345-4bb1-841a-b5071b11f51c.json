@@ -1,0 +1,11 @@
+{
+  "run_id": "7fcc27b9-2345-4bb1-841a-b5071b11f51c",
+  "persona": "Auditor",
+  "lane": "scout",
+  "target": "tokmd-analysis-effort",
+  "action": "remove unused dependency serde",
+  "receipts": [
+    "cargo machete output identifying unused serde in tokmd-analysis-effort",
+    "cargo test -p tokmd-analysis-effort completed successfully after removal"
+  ]
+}

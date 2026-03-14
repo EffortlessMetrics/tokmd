@@ -17,7 +17,6 @@ git = ["dep:tokmd-git"]
 
 [dependencies]
 anyhow = "1.0.101"
-serde = { version = "1.0.228", features = ["derive"] }
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
 tokmd-analysis-util.workspace = true
