@@ -1,25 +1,18 @@
-## Summary
+## Description
 
-Add 116 targeted mutation-killing tests across four critical crates to improve mutation testing scores and protect against subtle behavioral regressions.
+Fix drift in the `tokmd-core` README API example. The documentation was still incorrectly referencing the older `scan_workflow` with `GlobalArgs`, `LangArgs`, and `TableFormat`, which have been replaced.
 
-### Crates Covered
+This update modifies the example to properly use `lang_workflow` alongside the correct structures: `ScanSettings` and `LangSettings`. The updated code snippet has been validated using cargo's doctest capabilities to ensure future drift is caught by the test runner.
 
-| Crate | Tests | Key Mutation Targets |
-|-------|-------|---------------------|
-| **tokmd-redact** | 20 | Hash truncation boundary (16 vs 15/17), separator normalization, extension preservation, privacy guarantees |
-| **tokmd-gate** | 48 | Comparison operator boundaries (> vs >=, < vs <=), negate logic, from_results counting, fail_fast conjunctions, ratchet percentage arithmetic, missing value handling |
-| **tokmd-model** | 20 | avg() division-by-zero guard, rounding arithmetic, normalize_path separator handling, module_key depth logic |
-| **tokmd-types** | 28 | Schema version constant pinning (all 5 constants), TokenEstimationMeta ceil-vs-floor arithmetic, TokenAudit saturating_sub, default trait impls, serde roundtrips |
+## Receipts
+```
+running 6 tests
+test crates/tokmd-core/src/../README.md - readme_doctests (line 50) ... ignored
+test crates/tokmd-core/src/../README.md - readme_doctests (line 69) ... ignored
+test crates/tokmd-core/src/../README.md - readme_doctests (line 20) - compile ... ok
+test crates/tokmd-core/src/ffi.rs - ffi::run_json (line 51) ... ok
+test crates/tokmd-core/src/lib.rs - (line 24) ... ok
+test crates/tokmd-core/src/lib.rs - (line 42) ... ok
 
-### Mutation Patterns Targeted
-
-- **Boundary conditions**: Exact values where `>` vs `>=` (or `<` vs `<=`) produce different results
-- **Arithmetic mutations**: `+` to `-`, `*` to `/`, `ceil` to `floor`
-- **Boolean logic**: `&&` to `||`, `!` removal, `true`/`false` flips
-- **Guard removal**: `if x == 0 { return 0 }` deletion
-- **Constant mutations**: Schema version ±1 changes
-- **Method removal**: `replace()`, `strip_prefix()`, `saturating_sub()` deletions
-
-### Testing
-
-All 116 tests pass. No existing tests affected. Clippy clean.
+test result: ok. 4 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.11s
+```

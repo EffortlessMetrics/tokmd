@@ -1,0 +1,10 @@
+{
+  "id": "cd9104c0-9eab-483b-b798-cc746dd9935f",
+  "lane": "scout",
+  "persona": "Librarian",
+  "target": "crates/tokmd-core/README.md",
+  "description": "Fix drift in tokmd-core README API example to use lang_workflow, ScanSettings, and LangSettings.",
+  "receipts": [
+    "cargo test -p tokmd-core --doc (ok. 4 passed; 0 failed; 2 ignored)"
+  ]
+}
