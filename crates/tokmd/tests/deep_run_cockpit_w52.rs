@@ -256,8 +256,6 @@ fn run_receipt_generated_at_ms_is_present() {
 
 /// Helper: create a minimal git repo with two branches for cockpit tests.
 /// Returns the tempdir (caller must keep it alive).
-#[cfg(feature = "git")]
-#[allow(dead_code)]
 fn setup_cockpit_repo() -> Option<tempfile::TempDir> {
     if !common::git_available() {
         return None;

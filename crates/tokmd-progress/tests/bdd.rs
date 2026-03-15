@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 //! BDD-style scenario tests for `tokmd-progress`.
 //!
 //! These tests exercise the public API of [`Progress`] and [`ProgressBarWithEta`]

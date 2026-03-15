@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 //! Comprehensive depth tests for tokmd-progress – wave 55.
 //!
 //! All tests exercise the no-op (non-ui) code paths since the `ui`

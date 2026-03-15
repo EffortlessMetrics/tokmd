@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 //! W59 – Depth tests for `tokmd-progress` no-op paths.
 //!
 //! All tests use `enabled = false` (or rely on non-TTY CI) so that the no-op

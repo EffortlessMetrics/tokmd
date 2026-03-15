@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 //! Deep tests for tokmd-progress: spinner/bar creation, no-op mode, and edge cases.
 //!
 //! All tests run with `enabled = false` to avoid TTY requirements in CI.

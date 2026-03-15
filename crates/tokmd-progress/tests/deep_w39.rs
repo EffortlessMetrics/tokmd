@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 //! Wave-39 deep tests for tokmd-progress: construction, method coverage,
 //! and edge cases for both Progress and ProgressBarWithEta.
 

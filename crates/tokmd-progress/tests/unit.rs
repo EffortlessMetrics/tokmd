@@ -1,4 +1,3 @@
-#![allow(clippy::drop_non_drop)]
 use tokmd_progress::{Progress, ProgressBarWithEta};
 
 // ---------------------------------------------------------------------------
