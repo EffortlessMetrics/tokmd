@@ -10,12 +10,15 @@ use std::path::PathBuf;
 
 /// Workspace root (two levels above the crate manifest).
 fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    // Depending on whether we're in `crates/tokmd` or just `tokmd`,
+    // we may need to go up one or two levels to find the workspace root.
+    // The workspace root is the directory containing the workspace `Cargo.lock`.
+    let mut root = manifest_dir;
+    while !root.join("Cargo.lock").exists() && root.parent().is_some() {
+        root = root.parent().unwrap().to_path_buf();
+    }
+    root
 }
 
 /// Build a `tokmd` command pointed at the test fixtures.

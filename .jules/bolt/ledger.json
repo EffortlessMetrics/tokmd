@@ -24,5 +24,31 @@
       "test"
     ],
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-15T15:41:16Z",
+    "lane": "scout",
+    "target": "crates/tokmd/tests/docs_sync_w72.rs",
+    "proof_method": "structural",
+    "pr_link": "pending",
+    "gates_run": [
+      "fmt",
+      "clippy",
+      "test"
+    ],
+    "friction_ids": []
+  },
+  {
+    "date": "2026-03-15T15:41:35Z",
+    "lane": "scout",
+    "target": "crates/tokmd/tests/docs_sync_w72.rs",
+    "proof_method": "structural",
+    "pr_link": "pending",
+    "gates_run": [
+      "fmt",
+      "clippy",
+      "test"
+    ],
+    "friction_ids": []
   }
 ]
