@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! Wave-49 deep tests for tokmd-progress: spinner creation, progress bar
 //! lifecycle, message updates, completion, property tests, and edge cases.
 

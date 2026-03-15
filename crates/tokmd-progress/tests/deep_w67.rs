@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! W67 deep tests for tokmd-progress crate.
 //!
 //! ~15 tests covering: Progress spinner creation, message setting,

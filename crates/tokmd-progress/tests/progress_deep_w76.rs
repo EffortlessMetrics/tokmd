@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! Deep tests for tokmd-progress (W76).
 //!
 //! ~10 tests covering: Progress spinner creation (disabled/enabled-in-CI),

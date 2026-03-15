@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! Integration tests for `tokmd-progress`.
 //!
 //! These tests exercise realistic workflows and property-based invariants.

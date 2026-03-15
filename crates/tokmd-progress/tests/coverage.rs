@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! Additional coverage tests for `tokmd-progress`.
 //!
 //! Targets concurrent usage, edge cases around enabled=true in non-TTY,

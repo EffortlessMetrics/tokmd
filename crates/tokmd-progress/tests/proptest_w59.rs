@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! W59 – Property-based tests for `tokmd-progress`.
 //!
 //! Since progress bars are no-op without a TTY, these tests verify that

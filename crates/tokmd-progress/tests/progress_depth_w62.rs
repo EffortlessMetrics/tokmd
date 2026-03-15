@@ -1,3 +1,4 @@
+#![allow(clippy::drop_non_drop)]
 //! Depth tests for tokmd-progress crate.
 
 use tokmd_progress::{Progress, ProgressBarWithEta};
