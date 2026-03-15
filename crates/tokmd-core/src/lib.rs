@@ -697,6 +697,7 @@ pub fn version() -> &'static str {
 }
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests {
     use super::*;
     use crate::settings::AnalyzeSettings;

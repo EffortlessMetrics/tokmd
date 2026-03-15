@@ -1,0 +1,12 @@
+[
+  {
+    "date": "2026-03-15T12:29:20Z",
+    "lane": "scout",
+    "target": "tokmd-core FFI error handling",
+    "pr_link": null,
+    "gates": [
+      "test"
+    ],
+    "friction_ids": []
+  }
+]
