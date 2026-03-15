@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 /// Workspace root (two levels above the crate manifest).
 fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
         .parent()
         .unwrap()
         .parent()
