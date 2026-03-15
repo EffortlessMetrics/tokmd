@@ -1,0 +1,7 @@
+{
+  "run_id": "3deb2dfb-4709-40ad-8ef2-309be97153fc",
+  "timestamp": "2026-03-15T09:11:31.126532+00:00",
+  "target": "tokmd-python",
+  "issue": "linker error due to extension-module in no-default-features",
+  "fix": "make extension-module optional and enabled by default"
+}
