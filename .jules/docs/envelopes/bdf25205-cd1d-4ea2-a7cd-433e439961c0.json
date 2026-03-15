@@ -1,0 +1,10 @@
+{
+  "run_id": "bdf25205-cd1d-4ea2-a7cd-433e439961c0",
+  "persona": "Librarian",
+  "target": "crates/tokmd-core/README.md",
+  "action": "fix_api_drift",
+  "description": "Updated README to use latest lang_workflow API structures to fix compilation",
+  "receipts": [
+    "cargo test -p tokmd-core --doc"
+  ]
+}
