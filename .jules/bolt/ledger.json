@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "date": "2026-03-15T12:56:56Z",
+    "lane": "scout",
+    "target": "crates/tokmd-core/src/lib.rs",
+    "proof_method": "structural",
+    "pr_link": "pending",
+    "gates_run": [
+      "fmt",
+      "clippy",
+      "test"
+    ],
+    "friction_ids": []
+  },
+  {
+    "date": "2026-03-15T12:57:20Z",
+    "lane": "scout",
+    "target": "crates/tokmd-core/src/lib.rs",
+    "proof_method": "structural",
+    "pr_link": "pending",
+    "gates_run": [
+      "fmt",
+      "clippy",
+      "test"
+    ],
+    "friction_ids": []
+  }
+]
