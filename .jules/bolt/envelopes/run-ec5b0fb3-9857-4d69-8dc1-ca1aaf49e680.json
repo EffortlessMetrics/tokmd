@@ -1,0 +1,60 @@
+{
+  "run_id": "run-ec5b0fb3-9857-4d69-8dc1-ca1aaf49e680",
+  "timestamp_utc": "2026-03-15T12:01:20Z",
+  "lane": "scout",
+  "target": "crates/tokmd-analysis-format/src/lib.rs",
+  "proof_method": "structural",
+  "commands": [
+    {
+      "cmd": "cargo fmt --manifest-path crates/tokmd-analysis-format/Cargo.toml",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        ""
+      ]
+    },
+    {
+      "cmd": "cargo clippy --manifest-path crates/tokmd-analysis-format/Cargo.toml -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        "Finished `dev` profile"
+      ]
+    },
+    {
+      "cmd": "cargo test -p tokmd-analysis-format",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        "test result: ok. 43 passed; 0 failed",
+        "test result: ok. 16 passed; 0 failed"
+      ]
+    },
+    {
+      "cmd": "cargo fmt --manifest-path crates/tokmd-analysis-format/Cargo.toml",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        ""
+      ]
+    },
+    {
+      "cmd": "cargo clippy --manifest-path crates/tokmd-analysis-format/Cargo.toml -- -D warnings",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        "Finished `dev` profile"
+      ]
+    },
+    {
+      "cmd": "cargo test -p tokmd-analysis-format",
+      "exit_status": 0,
+      "summary": "PASS",
+      "key_lines": [
+        "test result: ok. 43 passed; 0 failed",
+        "test result: ok. 16 passed; 0 failed"
+      ]
+    }
+  ],
+  "results_summary": {}
+}
