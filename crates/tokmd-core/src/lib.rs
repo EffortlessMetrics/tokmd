@@ -699,19 +699,6 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::settings::AnalyzeSettings;
-    use std::fs;
-    use std::path::{Path, PathBuf};
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    #[derive(Debug)]
-    struct TempDirGuard(PathBuf);
-
-    impl Drop for TempDirGuard {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.0);
-        }
-    }
 
     #[test]
     fn version_not_empty() {
@@ -788,22 +775,6 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
-    fn mk_temp_dir(prefix: &str) -> PathBuf {
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos();
-        let mut root = std::env::temp_dir();
-        root.push(format!("{prefix}-{timestamp}-{}", std::process::id()));
-        root
-    }
-
-    fn write_file(path: &Path, contents: &str) {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
-        }
-        fs::write(path, contents).unwrap();
-    }
 
     #[cfg(feature = "analysis")]
     #[test]
