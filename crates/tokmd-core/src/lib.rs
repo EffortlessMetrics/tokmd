@@ -775,7 +775,6 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
-
     #[cfg(feature = "analysis")]
     #[test]
     fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
