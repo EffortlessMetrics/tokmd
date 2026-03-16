@@ -763,16 +763,28 @@ fn ffi_version_returns_semver() {
     assert_eq!(v["ok"], true);
 
     let ver = v["data"]["version"].as_str().unwrap();
-    let parts: Vec<&str> = ver.split('.').collect();
+    assert_semver_format(ver);
+}
+
+fn assert_semver_format(version: &str) {
+    let mut meta_parts = version.split('+');
+    let core = meta_parts.next().unwrap();
+    assert!(
+        meta_parts.next().is_none(),
+        "version should only have optional +metadata once: {version}"
+    );
+
+    let core_version = core.split('-').next().unwrap();
+    let parts: Vec<&str> = core_version.split('.').collect();
     assert_eq!(
         parts.len(),
         3,
-        "version should be MAJOR.MINOR.PATCH, got: {ver}"
+        "version should be MAJOR.MINOR.PATCH[-...][+...], got: {version}"
     );
+
     for part in &parts {
-        let numeric_part = part.split('-').next().unwrap();
         assert!(
-            numeric_part.parse::<u32>().is_ok(),
+            part.parse::<u32>().is_ok(),
             "version part should be numeric: {part}"
         );
     }

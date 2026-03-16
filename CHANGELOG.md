@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0-rc.1] - 2026-03-14
+
+### Added
+
+- Effort estimation engine (`tokmd-analysis-effort` crate) with COCOMO 81, COCOMO II, and Monte Carlo models (#654)
+- New `Estimate` analysis preset for effort-focused analysis
+- Effort estimation section in Markdown receipt output (size basis, headline, model explanation, delta comparison)
+- `--effort` CLI flag for `tokmd analyze` command with configurable models, modes, and scale factors
+- Effort estimate report in analysis receipts (`EffortEstimateReport` type)
+- Analysis schema version bumped to 9 (effort estimation fields)
+- Receipt and Estimate presets now include dup, git, complexity, and API surface enrichers
+- High-entropy key detection (`uselesskey`) runtime fixtures for security preset
+
+### Changed
+
+- `ANALYSIS_SCHEMA_VERSION` bumped from 8 to 9
+- Preset grid expanded from 11 to 12 presets (new `Estimate` preset)
+- Receipt preset enriched: now enables dup, git, complexity, and API surface analysis
+
+### Dependencies
+
+- Bumped GitHub Actions: docker/setup-qemu-action v4, setup-buildx-action v4, login-action v4, metadata-action v6, build-push-action v7 (#659)
+- Bumped toml 1.0.6, uuid 1.22.0, tokio 1.50.0 (#660)
+- Bumped jsonschema from 0.44.0 to 0.45.0 (#661)
+
 ## [1.7.3] - 2026-03-06
 
 ### Added

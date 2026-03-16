@@ -575,7 +575,10 @@ fn workspace_has_version_in_workspace_package() {
         "root Cargo.toml must have [workspace.package].version"
     );
     let v = version.unwrap();
-    assert_eq!(v.split('.').count(), 3, "version must be semver: {v}");
+    assert!(
+        semver::Version::parse(v).is_ok(),
+        "version must be valid semver: {v}"
+    );
 }
 
 #[test]

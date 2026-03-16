@@ -186,18 +186,13 @@ fn find_workspace_root() -> Result<std::path::PathBuf> {
 
 /// Validate that a version string is valid semver.
 fn validate_semver(version: &str) -> Result<()> {
-    let parts: Vec<&str> = version.split('.').collect();
-    if parts.len() != 3 {
-        bail!(
-            "Version must be in semver format (MAJOR.MINOR.PATCH), got: {}",
-            version
-        );
+    let parsed = semver::Version::parse(version)
+        .with_context(|| format!("Version must be valid semver, got: {version}"))?;
+
+    if !parsed.build.is_empty() {
+        bail!("Version must not include build metadata for release bumps: {version}");
     }
-    for (i, part) in parts.iter().enumerate() {
-        let name = ["major", "minor", "patch"][i];
-        part.parse::<u32>()
-            .with_context(|| format!("Invalid {} version component: {}", name, part))?;
-    }
+
     Ok(())
 }
 
@@ -440,6 +435,7 @@ mod tests {
         assert!(validate_semver("1.0.0").is_ok());
         assert!(validate_semver("0.1.0").is_ok());
         assert!(validate_semver("10.20.30").is_ok());
+        assert!(validate_semver("1.8.0-rc.1").is_ok());
     }
 
     #[test]
@@ -448,6 +444,7 @@ mod tests {
         assert!(validate_semver("1.0.0.0").is_err());
         assert!(validate_semver("1.0.a").is_err());
         assert!(validate_semver("").is_err());
+        assert!(validate_semver("1.8.0-rc.1+build.5").is_err());
     }
 
     #[test]
