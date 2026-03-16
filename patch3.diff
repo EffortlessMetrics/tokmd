@@ -1,0 +1,11 @@
+--- crates/tokmd/src/export_bundle.rs
++++ crates/tokmd/src/export_bundle.rs
+@@ -83,7 +83,7 @@
+     std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+ }
+
+-fn resolve_base_dir(run_dir: &Option<PathBuf>, path: &PathBuf) -> PathBuf {
++fn resolve_base_dir(run_dir: &Option<PathBuf>, path: &Path) -> PathBuf {
+     run_dir
+         .clone()
+         .unwrap_or_else(|| path.parent().unwrap_or(path).to_path_buf())
