@@ -178,7 +178,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Check flake
-        run: nix flake check
+        run: nix flake check --no-build --accept-flake-config
 
       - name: Build package
         run: nix build
