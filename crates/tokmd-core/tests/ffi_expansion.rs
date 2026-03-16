@@ -45,7 +45,7 @@ fn assert_err(result: &str) -> Value {
 #[test]
 fn version_returns_valid_semver_format() {
     let v = tokmd_core::version();
-    assert_semver_format(&v, "version");
+    assert_semver_format(v.as_str(), "version");
 }
 
 fn assert_semver_format(version: &str, label: &str) {
@@ -55,7 +55,7 @@ fn assert_semver_format(version: &str, label: &str) {
     let core = meta_parts.next().unwrap();
     assert!(meta_parts.next().is_none(), "{label} should only have optional +metadata once: {version}");
 
-    let core_version = core.splitn(2, '-').next().unwrap();
+    let core_version = core.split('-').next().unwrap();
 
     let parts: Vec<&str> = core_version.split('.').collect();
     assert_eq!(
