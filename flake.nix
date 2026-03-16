@@ -102,14 +102,19 @@
           tokmd-with-alias = tokmdWithAlias;
         });
 
-      apps = forAllSystems (system: {
+      apps = forAllSystems (system: let
+        tokmdPackage = self.packages.${system}.tokmd;
+      in
+      {
         default = {
           type = "app";
-          program = "${self.packages.${system}.tokmd}/bin/tokmd";
+          program = "tokmd";
+          runtimeInputs = [ tokmdPackage ];
         };
         tokmd = {
           type = "app";
-          program = "${self.packages.${system}.tokmd}/bin/tokmd";
+          program = "tokmd";
+          runtimeInputs = [ tokmdPackage ];
         };
       });
 
