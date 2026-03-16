@@ -699,14 +699,23 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[derive(Debug)]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     struct TempDirGuard(PathBuf);
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     impl Drop for TempDirGuard {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
@@ -755,8 +764,8 @@ mod tests {
             preset: "estimate".to_string(),
             ..Default::default()
         };
-        let req = parse_effort_request(&analyze, "estimate").expect("parse effort request");
-        let req = req.expect("estimate should imply effort request");
+        let req = parse_effort_request(&analyze, "estimate").expect("parse effort request ");
+        let req = req.expect("estimate should imply effort request ");
         assert_eq!(
             req.model.as_str(),
             analysis::EffortModelKind::Cocomo81Basic.as_str()
@@ -771,7 +780,7 @@ mod tests {
             preset: "receipt".to_string(),
             ..Default::default()
         };
-        let req = parse_effort_request(&analyze, "receipt").expect("parse effort request");
+        let req = parse_effort_request(&analyze, "receipt").expect("parse effort request ");
         assert!(req.is_none());
     }
 
@@ -780,14 +789,17 @@ mod tests {
     fn effort_request_rejects_unsupported_model() {
         let analyze = AnalyzeSettings {
             preset: "estimate".to_string(),
-            effort_model: Some("cocomo2-early".to_string()),
+            effort_model: Some("cocomo2-early ".to_string()),
             ..Default::default()
         };
         let err =
-            parse_effort_request(&analyze, "estimate").expect_err("unsupported model should fail");
+            parse_effort_request(&analyze, "estimate").expect_err("unsupported model should fail ");
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     fn mk_temp_dir(prefix: &str) -> PathBuf {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -798,6 +810,9 @@ mod tests {
         root
     }
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
