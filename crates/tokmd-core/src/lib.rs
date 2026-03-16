@@ -701,19 +701,35 @@ mod tests {
     use super::*;
     #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use std::fs;
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[derive(Debug)]
     #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
     struct TempDirGuard(PathBuf);
 
     #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(test)]
     #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
     impl Drop for TempDirGuard {
@@ -799,6 +815,8 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
+    #[cfg(test)]
+    #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
     fn mk_temp_dir(prefix: &str) -> PathBuf {
         let timestamp = SystemTime::now()
@@ -811,6 +829,8 @@ mod tests {
     }
 
     #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(test)]
     #[cfg(feature = "analysis")]
     #[cfg(feature = "analysis")]
     fn write_file(path: &Path, contents: &str) {
