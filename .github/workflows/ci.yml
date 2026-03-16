@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -C debuginfo=0
 
 jobs:
   msrv:
@@ -35,6 +37,10 @@ jobs:
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Use larger writable target dir on Linux
+      if: runner.os == 'Linux'
+      run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
+
     - name: Build
       run: cargo build --all-features --verbose
 
@@ -53,6 +59,10 @@ jobs:
 
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
+
+    - name: Use larger writable target dir on Linux
+      if: runner.os == 'Linux'
+      run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
     - name: Build
       run: cargo build --all-features --verbose
@@ -90,6 +100,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
+
+      - name: Use larger writable target dir on Linux
+        if: runner.os == 'Linux'
+        run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
+
       - name: Run quality gate
         run: cargo xtask gate --check
 
