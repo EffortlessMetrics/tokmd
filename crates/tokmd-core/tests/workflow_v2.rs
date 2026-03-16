@@ -769,7 +769,10 @@ fn ffi_version_returns_semver() {
 fn assert_semver_format(version: &str) {
     let mut meta_parts = version.split('+');
     let core = meta_parts.next().unwrap();
-    assert!(meta_parts.next().is_none(), "version should only have optional +metadata once: {version}");
+    assert!(
+        meta_parts.next().is_none(),
+        "version should only have optional +metadata once: {version}"
+    );
 
     let core_version = core.split('-').next().unwrap();
     let parts: Vec<&str> = core_version.split('.').collect();

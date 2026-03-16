@@ -49,11 +49,17 @@ fn version_returns_valid_semver_format() {
 }
 
 fn assert_semver_format(version: &str, label: &str) {
-    assert!(version.contains('.'), "{label} should look like semver: {version}");
+    assert!(
+        version.contains('.'),
+        "{label} should look like semver: {version}"
+    );
 
     let mut meta_parts = version.split('+');
     let core = meta_parts.next().unwrap();
-    assert!(meta_parts.next().is_none(), "{label} should only have optional +metadata once: {version}");
+    assert!(
+        meta_parts.next().is_none(),
+        "{label} should only have optional +metadata once: {version}"
+    );
 
     let core_version = core.split('-').next().unwrap();
 
