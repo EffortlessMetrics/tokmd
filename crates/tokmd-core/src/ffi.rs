@@ -527,7 +527,7 @@ mod tests {
         assert!(
             parsed["data"]["version"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains(env!("CARGO_PKG_VERSION"))
         );
         assert!(parsed["data"]["schema_version"].is_number());
@@ -543,7 +543,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("unknown")
         );
         Ok(())
@@ -692,7 +692,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("children")
         );
         Ok(())
@@ -707,7 +707,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("format")
         );
         Ok(())
@@ -767,7 +767,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("hidden")
         );
         Ok(())
@@ -782,7 +782,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("top")
         );
         Ok(())
@@ -837,7 +837,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("from")
         );
         Ok(())
@@ -851,7 +851,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("from")
         );
         Ok(())
@@ -867,7 +867,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("preset")
         );
         Ok(())
@@ -883,7 +883,7 @@ mod tests {
         assert!(
             parsed["error"]["message"]
                 .as_str()
-                .ok_or("not a string")?
+                .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("granularity")
         );
         Ok(())
