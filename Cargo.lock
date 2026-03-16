@@ -3284,8 +3284,6 @@ name = "tokmd-analysis-effort"
 version = "1.8.0-rc.1"
 dependencies = [
  "anyhow",
- "proptest",
- "serde",
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
