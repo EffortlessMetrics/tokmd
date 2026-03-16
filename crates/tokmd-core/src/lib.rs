@@ -701,6 +701,7 @@ mod tests {
     use super::*;
     #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
+    #[cfg(feature = "analysis")]
     use std::fs;
     #[cfg(feature = "analysis")]
     use std::path::{Path, PathBuf};
