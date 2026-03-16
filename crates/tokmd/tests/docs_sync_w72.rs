@@ -22,7 +22,10 @@ fn workspace_root() -> PathBuf {
             break;
         }
     }
-    panic!("Could not locate workspace root from {}", env!("CARGO_MANIFEST_DIR"));
+    panic!(
+        "Could not locate workspace root from {}",
+        env!("CARGO_MANIFEST_DIR")
+    );
 }
 
 /// Build a `tokmd` command pointed at the test fixtures.
