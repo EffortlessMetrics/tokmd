@@ -45,6 +45,9 @@ fn baseline_metrics_has_total_files() {
     let parsed = run_baseline(&[]);
     let total = parsed["metrics"]["total_files"].as_u64();
     assert!(total.is_some(), "metrics should have total_files");
+    // When testing commands like `baseline` with `--no-default-features`, certain subsystems like directory walking may be disabled, resulting in legitimately empty metrics.
+    // Test assertions must account for this by avoiding hardcoded expectations of `total > 0`.
+    #[cfg(feature = "walk")]
     assert!(total.unwrap() > 0, "fixture should have at least one file");
 }
 

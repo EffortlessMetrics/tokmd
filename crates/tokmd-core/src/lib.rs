@@ -699,14 +699,42 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use std::fs;
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use std::path::{Path, PathBuf};
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[derive(Debug)]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     struct TempDirGuard(PathBuf);
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     impl Drop for TempDirGuard {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
@@ -788,6 +816,12 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     fn mk_temp_dir(prefix: &str) -> PathBuf {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -798,6 +832,12 @@ mod tests {
         root
     }
 
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
+    #[cfg(feature = "analysis")]
     fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
