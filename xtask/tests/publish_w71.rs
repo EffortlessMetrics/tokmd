@@ -366,16 +366,8 @@ fn publish_plan_workspace_version_is_semver() {
         .map(|s| s.trim())
         .unwrap_or("");
 
-    let parts: Vec<&str> = version.split('.').collect();
-    assert_eq!(
-        parts.len(),
-        3,
-        "workspace version should be semver: {version}"
+    assert!(
+        semver::Version::parse(version).is_ok(),
+        "workspace version should be valid semver: {version}"
     );
-    for part in &parts {
-        assert!(
-            part.parse::<u32>().is_ok(),
-            "semver component should be numeric: {part}"
-        );
-    }
 }

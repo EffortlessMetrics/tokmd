@@ -4979,6 +4979,7 @@ dependencies = [
  "console 0.16.2",
  "indicatif",
  "petgraph",
+ "semver",
  "serde",
  "serde_json",
  "toml 1.0.6+spec-1.1.0",
