@@ -90,7 +90,7 @@ fn sensor_json_outputs_artifacts_and_data() {
         .get("artifacts")
         .and_then(|v| v.as_array())
         .expect("artifacts array");
-    let ids: std::collections::HashSet<_> = artifacts
+    let ids: std::collections::BTreeSet<_> = artifacts
         .iter()
         .filter_map(|a| a.get("id").and_then(|id| id.as_str()))
         .collect();
