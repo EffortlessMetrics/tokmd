@@ -45,16 +45,28 @@ fn assert_err(result: &str) -> Value {
 #[test]
 fn version_returns_valid_semver_format() {
     let v = tokmd_core::version();
-    let parts: Vec<&str> = v.split('.').collect();
+    assert_semver_format(&v, "version");
+}
+
+fn assert_semver_format(version: &str, label: &str) {
+    assert!(version.contains('.'), "{label} should look like semver: {version}");
+
+    let mut meta_parts = version.split('+');
+    let core = meta_parts.next().unwrap();
+    assert!(meta_parts.next().is_none(), "{label} should only have optional +metadata once: {version}");
+
+    let core_version = core.splitn(2, '-').next().unwrap();
+
+    let parts: Vec<&str> = core_version.split('.').collect();
     assert_eq!(
         parts.len(),
         3,
-        "version should be MAJOR.MINOR.PATCH, got: {v}"
+        "{label} should be MAJOR.MINOR.PATCH[-...][+...], got: {version}"
     );
     for (i, part) in parts.iter().enumerate() {
         assert!(
-            part.split('-').next().unwrap().parse::<u32>().is_ok(),
-            "semver part {i} should be numeric, got: {part}"
+            part.parse::<u32>().is_ok(),
+            "{label} semver part {i} should be numeric, got: {part}"
         );
     }
 }
