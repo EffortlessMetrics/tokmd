@@ -102,22 +102,6 @@
           tokmd-with-alias = tokmdWithAlias;
         });
 
-      apps = forAllSystems (system: let
-        tokmdPackage = self.packages.${system}.tokmd;
-      in
-      {
-        default = {
-          type = "app";
-          program = "tokmd";
-          runtimeInputs = [ tokmdPackage ];
-        };
-        tokmd = {
-          type = "app";
-          program = "tokmd";
-          runtimeInputs = [ tokmdPackage ];
-        };
-      });
-
       checks = forAllSystems (system:
         let
           pkgs = mkPkgs system;
@@ -130,7 +114,6 @@
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
         {
-          tokmd = self.packages.${system}.tokmd;
           clippy = craneLib.cargoClippy (commonArgs // {
             inherit cargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
