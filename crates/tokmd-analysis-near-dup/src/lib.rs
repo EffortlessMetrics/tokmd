@@ -126,7 +126,7 @@ pub fn build_near_dup_report(
             let file_path = root.join(&row.path);
             match read_and_fingerprint(&file_path) {
                 Ok(mut fps) if !fps.is_empty() => {
-                    fps.sort_unstable();
+                    fps.sort();
                     fps.dedup();
                     bytes_processed += row.bytes as u64;
                     file_fingerprints.push((file_idx, fps));

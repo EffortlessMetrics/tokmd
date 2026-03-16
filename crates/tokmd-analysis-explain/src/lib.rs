@@ -214,7 +214,7 @@ mod tests {
         );
 
         let mut sorted = keys.clone();
-        sorted.sort_unstable();
+        sorted.sort();
         sorted.dedup();
         assert_eq!(keys, sorted, "catalog keys should be sorted and unique");
     }

@@ -683,7 +683,7 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
 
 fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
     let mut sorted_rows = rows.to_vec();
-    sorted_rows.sort_unstable_by(|&a, &b| compare_integrity_rows(a, b));
+    sorted_rows.sort_by(|&a, &b| compare_integrity_rows(a, b));
 
     let mut hasher = blake3::Hasher::new();
     let mut first = true;

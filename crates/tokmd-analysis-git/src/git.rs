@@ -306,7 +306,7 @@ fn build_code_age_distribution(
             }
         })
         .collect();
-    ages_days.sort_unstable();
+    ages_days.sort();
 
     let buckets = vec![
         ("0-30d", 0usize, Some(30usize)),

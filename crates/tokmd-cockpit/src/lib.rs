@@ -527,7 +527,7 @@ fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<Uncove
         return;
     }
     let mut sorted = uncovered.to_vec();
-    sorted.sort_unstable();
+    sorted.sort();
     let mut start = sorted[0];
     let mut end = sorted[0];
     for &line in &sorted[1..] {
