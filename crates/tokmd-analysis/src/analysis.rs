@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+#[cfg(feature = "effort")]
+use tokmd_analysis_effort::{EffortRequest, build_effort_report};
 use tokmd_analysis_grid::{PresetKind, PresetPlan, preset_plan_for};
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
@@ -65,6 +67,8 @@ pub struct AnalysisRequest {
     pub preset: AnalysisPreset,
     pub args: AnalysisArgsMeta,
     pub limits: AnalysisLimits,
+    #[cfg(feature = "effort")]
+    pub effort: Option<EffortRequest>,
     pub window_tokens: Option<usize>,
     pub git: Option<bool>,
     pub import_granularity: ImportGranularity,
@@ -508,6 +512,30 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         fun = None;
     }
 
+    #[cfg(feature = "effort")]
+    let effort = if let Some(effort_request) = &req.effort {
+        match build_effort_report(
+            &ctx.root,
+            &ctx.export,
+            &derived,
+            git.as_ref(),
+            complexity.as_ref(),
+            api_surface.as_ref(),
+            dup.as_ref(),
+            effort_request,
+        ) {
+            Ok(report) => Some(report),
+            Err(err) => {
+                warnings.push(format!("effort estimate failed: {}", err));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    #[cfg(not(feature = "effort"))]
+    let effort: Option<tokmd_analysis_types::EffortEstimateReport> = None;
+
     let status = if warnings.is_empty() {
         ScanStatus::Complete
     } else {
@@ -537,6 +565,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         dup,
         complexity,
         api_surface,
+        effort,
         fun,
     };
 

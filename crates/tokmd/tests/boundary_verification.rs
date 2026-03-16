@@ -290,6 +290,7 @@ fn git_feature_only_in_expected_crates() {
     let expected: BTreeSet<&str> = [
         "tokmd",
         "tokmd-analysis",
+        "tokmd-analysis-effort",
         "tokmd-analysis-grid",
         "tokmd-cockpit",
         "tokmd-context-git",

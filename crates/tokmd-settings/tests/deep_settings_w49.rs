@@ -182,6 +182,7 @@ fn analyze_settings_preset_override() {
         max_commits: Some(500),
         max_commit_files: Some(100),
         granularity: "file".to_string(),
+        ..Default::default()
     };
     let json = serde_json::to_string(&a).unwrap();
     let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();

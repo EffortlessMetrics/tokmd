@@ -26,6 +26,19 @@ use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+/// Expected status for Receipt-preset tests that set `req.git = Some(false)`.
+///
+/// With content+walk features, Receipt's dup/complexity/api_surface analyses
+/// all execute successfully → Complete.
+/// Without them, disabled-feature warnings are emitted → Partial.
+fn expected_receipt_status() -> ScanStatus {
+    if cfg!(all(feature = "content", feature = "walk")) {
+        ScanStatus::Complete
+    } else {
+        ScanStatus::Partial
+    }
+}
+
 fn make_source() -> AnalysisSource {
     AnalysisSource {
         inputs: vec![".".to_string()],
@@ -64,6 +77,8 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -155,8 +170,8 @@ fn preset_kind_from_str_unknown_returns_none() {
 
 #[test]
 fn preset_kinds_count() {
-    assert_eq!(PRESET_KINDS.len(), 11);
-    assert_eq!(PresetKind::all().len(), 11);
+    assert_eq!(PRESET_KINDS.len(), 12);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]
@@ -176,21 +191,21 @@ fn all_preset_strings_are_lowercase() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_plan_has_nothing_enabled() {
+fn receipt_plan_matches_current_contract() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
@@ -242,9 +257,9 @@ fn fun_plan_enables_only_fun() {
 }
 
 #[test]
-fn receipt_plan_does_not_need_files() {
+fn receipt_plan_needs_files() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.needs_files());
+    assert!(plan.needs_files());
 }
 
 #[test]
@@ -347,7 +362,7 @@ fn near_dup_scope_serde_roundtrip() {
 
 #[test]
 fn analysis_schema_version_is_current() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]
@@ -376,7 +391,7 @@ fn receipt_mode_is_analyze() {
 #[test]
 fn receipt_status_is_complete() {
     let receipt = run_analysis(sample_export(), PresetKind::Receipt);
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    assert_eq!(receipt.status, expected_receipt_status());
 }
 
 #[test]
@@ -448,7 +463,7 @@ fn derived_density_computed() {
 fn empty_export_produces_valid_receipt() {
     let receipt = run_analysis(empty_export(), PresetKind::Receipt);
     assert!(receipt.derived.is_some());
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    assert_eq!(receipt.status, expected_receipt_status());
 }
 
 #[test]
@@ -746,7 +761,7 @@ fn bdd_empty_repo_valid_receipt() {
     let receipt = run_analysis(export, PresetKind::Receipt);
 
     // Then
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    assert_eq!(receipt.status, expected_receipt_status());
     let d = receipt.derived.as_ref().unwrap();
     assert_eq!(d.totals.files, 0);
     assert_eq!(d.totals.code, 0);
@@ -803,12 +818,24 @@ fn preset_plans_are_deterministic() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn near_dup_disabled_no_dup_section() {
+fn near_dup_disabled_keeps_dup_report_without_near_section() {
     let mut req = make_req(PresetKind::Receipt);
     req.git = Some(false);
     req.near_dup = false;
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
-    assert!(receipt.dup.is_none());
+    #[cfg(feature = "content")]
+    {
+        let dup = receipt
+            .dup
+            .as_ref()
+            .expect("dup report present with content feature");
+        assert!(
+            dup.near.is_none(),
+            "near-dup absent because req.near_dup is false"
+        );
+    }
+    #[cfg(not(feature = "content"))]
+    assert!(receipt.dup.is_none(), "dup absent without content feature");
 }
 
 #[test]
@@ -819,7 +846,7 @@ fn request_with_near_dup_exclude_patterns() {
     req.near_dup_exclude = vec!["*.lock".to_string(), "vendor/**".to_string()];
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     // Should succeed without error even with exclude patterns
-    assert!(matches!(receipt.status, ScanStatus::Complete));
+    assert_eq!(receipt.status, expected_receipt_status());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -879,10 +906,17 @@ fn hundred_files_produces_valid_receipt() {
 #[test]
 fn receipt_preset_no_warnings() {
     let receipt = run_analysis(sample_export(), PresetKind::Receipt);
-    assert!(
-        receipt.warnings.is_empty(),
-        "receipt preset with git=false should have no warnings"
-    );
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            receipt.warnings.is_empty(),
+            "no warnings when features present"
+        );
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

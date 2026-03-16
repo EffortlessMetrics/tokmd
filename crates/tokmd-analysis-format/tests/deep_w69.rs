@@ -13,6 +13,7 @@ use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
 fn minimal_receipt() -> AnalysisReceipt {
     AnalysisReceipt {
+        effort: None,
         schema_version: ANALYSIS_SCHEMA_VERSION,
         generated_at_ms: 0,
         tool: ToolInfo {
@@ -307,8 +308,12 @@ fn md_derived_cocomo_section() {
     let mut receipt = minimal_receipt();
     receipt.derived = Some(sample_derived());
     let text = extract_text(render(&receipt, AnalysisFormat::Md).unwrap());
-    assert!(text.contains("## COCOMO estimate"));
-    assert!(text.contains("Mode: `organic`"));
+    assert!(text.contains("## Effort estimate"));
+    assert!(text.contains("### Size basis"));
+    assert!(text.contains("### Headline"));
+    assert!(text.contains("### Why"));
+    assert!(text.contains("### Delta"));
+    assert!(text.contains("Model: `COCOMO` (`organic` mode)"));
 }
 
 #[test]

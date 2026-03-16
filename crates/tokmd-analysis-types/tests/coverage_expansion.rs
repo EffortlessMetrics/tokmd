@@ -69,6 +69,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,

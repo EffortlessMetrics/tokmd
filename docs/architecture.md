@@ -48,7 +48,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 - Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, run)
 - Context receipts: `CONTEXT_SCHEMA_VERSION = 4`
 - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
-- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 8`
+- Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 9`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
 
 ### Tier 1: Core Processing

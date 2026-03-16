@@ -226,6 +226,7 @@ proptest! {
             window, git, max_files, max_bytes,
             max_file_bytes, max_commits, max_commit_files,
             granularity: granularity.clone(),
+            ..Default::default()
         };
         let json = serde_json::to_string(&s).unwrap();
         let back: AnalyzeSettings = serde_json::from_str(&json).unwrap();

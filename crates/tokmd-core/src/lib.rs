@@ -281,6 +281,7 @@ pub fn analyze_workflow(
     let export_receipt = export_workflow(scan, &ExportSettings::default())?;
     let (preset, preset_meta) = parse_analysis_preset(&analyze.preset)?;
     let (granularity, granularity_meta) = parse_import_granularity(&analyze.granularity)?;
+    let effort = parse_effort_request(analyze, &preset_meta)?;
 
     let source = AnalysisSource {
         inputs: scan.paths.clone(),
@@ -325,6 +326,7 @@ pub fn analyze_workflow(
         near_dup_scope: analysis::NearDupScope::Module,
         near_dup_max_pairs: None,
         near_dup_exclude: Vec::new(),
+        effort,
     };
 
     let root = derive_analysis_root(scan)
@@ -476,6 +478,7 @@ fn parse_analysis_preset(value: &str) -> Result<(analysis::AnalysisPreset, Strin
     let normalized = value.trim().to_ascii_lowercase();
     let preset = match normalized.as_str() {
         "receipt" => analysis::AnalysisPreset::Receipt,
+        "estimate" => analysis::AnalysisPreset::Estimate,
         "health" => analysis::AnalysisPreset::Health,
         "risk" => analysis::AnalysisPreset::Risk,
         "supply" => analysis::AnalysisPreset::Supply,
@@ -489,7 +492,7 @@ fn parse_analysis_preset(value: &str) -> Result<(analysis::AnalysisPreset, Strin
         _ => {
             return Err(error::TokmdError::invalid_field(
                 "preset",
-                "'receipt', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
+                "'receipt', 'estimate', 'health', 'risk', 'supply', 'architecture', 'topics', 'security', 'identity', 'git', 'deep', or 'fun'",
             )
             .into());
         }
@@ -510,6 +513,98 @@ fn parse_import_granularity(value: &str) -> Result<(analysis::ImportGranularity,
         }
     };
     Ok((granularity, normalized))
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_request(
+    analyze: &settings::AnalyzeSettings,
+    preset: &str,
+) -> Result<Option<analysis::EffortRequest>> {
+    let request = analysis::EffortRequest::default();
+    let requested = preset == "estimate"
+        || analyze.effort_model.is_some()
+        || analyze.effort_layer.is_some()
+        || analyze.effort_base_ref.is_some()
+        || analyze.effort_head_ref.is_some()
+        || analyze.effort_monte_carlo.unwrap_or(false)
+        || analyze.effort_mc_iterations.is_some()
+        || analyze.effort_mc_seed.is_some();
+
+    if !requested {
+        return Ok(None);
+    }
+
+    if (analyze.effort_base_ref.is_some() && analyze.effort_head_ref.is_none())
+        || (analyze.effort_base_ref.is_none() && analyze.effort_head_ref.is_some())
+    {
+        return Err(error::TokmdError::invalid_field(
+            "effort_base_ref/effort_head_ref",
+            "both effort_base_ref and effort_head_ref must be provided together",
+        )
+        .into());
+    }
+
+    let model = analyze
+        .effort_model
+        .as_deref()
+        .map(parse_effort_model)
+        .transpose()?
+        .unwrap_or(request.model);
+    let layer = analyze
+        .effort_layer
+        .as_deref()
+        .map(parse_effort_layer)
+        .transpose()?
+        .unwrap_or(request.layer);
+
+    let monte_carlo = analyze.effort_monte_carlo.unwrap_or(false);
+
+    let mc_iterations = analyze
+        .effort_mc_iterations
+        .unwrap_or(request.mc_iterations);
+
+    if mc_iterations == 0 {
+        return Err(error::TokmdError::invalid_field(
+            "effort_mc_iterations",
+            "must be greater than 0",
+        )
+        .into());
+    }
+
+    Ok(Some(analysis::EffortRequest {
+        model,
+        layer,
+        base_ref: analyze.effort_base_ref.clone(),
+        head_ref: analyze.effort_head_ref.clone(),
+        monte_carlo,
+        mc_iterations,
+        mc_seed: analyze.effort_mc_seed,
+    }))
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_model(value: &str) -> Result<analysis::EffortModelKind> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "cocomo81-basic" => Ok(analysis::EffortModelKind::Cocomo81Basic),
+        "cocomo2-early" | "ensemble" => Err(error::TokmdError::invalid_field(
+            "effort_model",
+            "only 'cocomo81-basic' is currently supported",
+        )
+        .into()),
+        _ => Err(error::TokmdError::invalid_field("effort_model", "'cocomo81-basic'").into()),
+    }
+}
+
+#[cfg(feature = "analysis")]
+fn parse_effort_layer(value: &str) -> Result<analysis::EffortLayer> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "headline" => Ok(analysis::EffortLayer::Headline),
+        "why" => Ok(analysis::EffortLayer::Why),
+        "full" => Ok(analysis::EffortLayer::Full),
+        _ => Err(
+            error::TokmdError::invalid_field("effort_layer", "'headline', 'why', or 'full'").into(),
+        ),
+    }
 }
 
 #[cfg(feature = "analysis")]
@@ -604,6 +699,19 @@ pub fn version() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::settings::AnalyzeSettings;
+    use std::fs;
+    use std::path::{Path, PathBuf};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[derive(Debug)]
+    struct TempDirGuard(PathBuf);
+
+    impl Drop for TempDirGuard {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
 
     #[test]
     fn version_not_empty() {
@@ -638,6 +746,104 @@ mod tests {
     fn scan_settings_for_paths() {
         let settings = ScanSettings::for_paths(vec!["src".to_string(), "lib".to_string()]);
         assert_eq!(settings.paths, vec!["src", "lib"]);
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn effort_request_defaults_to_estimate_preset() {
+        let analyze = AnalyzeSettings {
+            preset: "estimate".to_string(),
+            ..Default::default()
+        };
+        let req = parse_effort_request(&analyze, "estimate").expect("parse effort request");
+        let req = req.expect("estimate should imply effort request");
+        assert_eq!(
+            req.model.as_str(),
+            analysis::EffortModelKind::Cocomo81Basic.as_str()
+        );
+        assert_eq!(req.layer.as_str(), analysis::EffortLayer::Full.as_str());
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn effort_request_not_implied_for_non_estimate_without_flags() {
+        let analyze = AnalyzeSettings {
+            preset: "receipt".to_string(),
+            ..Default::default()
+        };
+        let req = parse_effort_request(&analyze, "receipt").expect("parse effort request");
+        assert!(req.is_none());
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn effort_request_rejects_unsupported_model() {
+        let analyze = AnalyzeSettings {
+            preset: "estimate".to_string(),
+            effort_model: Some("cocomo2-early".to_string()),
+            ..Default::default()
+        };
+        let err =
+            parse_effort_request(&analyze, "estimate").expect_err("unsupported model should fail");
+        assert!(err.to_string().contains("only 'cocomo81-basic'"));
+    }
+
+    fn mk_temp_dir(prefix: &str) -> PathBuf {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos();
+        let mut root = std::env::temp_dir();
+        root.push(format!("{prefix}-{timestamp}-{}", std::process::id()));
+        root
+    }
+
+    fn write_file(path: &Path, contents: &str) {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).unwrap();
+        }
+        fs::write(path, contents).unwrap();
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
+        let root = mk_temp_dir("tokmd-core-estimate-preset");
+        let _guard = TempDirGuard(root.clone());
+        write_file(&root.join("src/main.rs"), "fn main() {}\n");
+        write_file(
+            &root.join("target/generated/bundle.min.js"),
+            "console.log(1);\n",
+        );
+        write_file(
+            &root.join("vendor/lib/external.rs"),
+            "pub fn external() {}\n",
+        );
+
+        let scan = settings::ScanSettings::for_paths(vec![root.display().to_string()]);
+        let analyze = AnalyzeSettings {
+            preset: "estimate".to_string(),
+            ..Default::default()
+        };
+
+        let receipt = analyze_workflow(&scan, &analyze).expect("estimate analyze failed");
+        let effort = receipt
+            .effort
+            .as_ref()
+            .expect("estimate preset should produce effort");
+
+        assert!(effort.results.effort_pm_p50 > 0.0);
+        assert_eq!(
+            effort.size_basis.total_lines,
+            effort.size_basis.authored_lines
+                + effort.size_basis.generated_lines
+                + effort.size_basis.vendored_lines
+        );
+        assert!(effort.size_basis.authored_lines > 0);
+        assert!(
+            effort.size_basis.generated_lines + effort.size_basis.vendored_lines > 0,
+            "expected deterministic generated or vendored lines"
+        );
     }
 }
 

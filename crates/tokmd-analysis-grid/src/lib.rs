@@ -3,6 +3,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PresetKind {
     Receipt,
+    Estimate,
     Health,
     Risk,
     Supply,
@@ -19,6 +20,7 @@ impl PresetKind {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Receipt => "receipt",
+            Self::Estimate => "estimate",
             Self::Health => "health",
             Self::Risk => "risk",
             Self::Supply => "supply",
@@ -36,6 +38,7 @@ impl PresetKind {
     pub fn from_str(value: &str) -> Option<Self> {
         match value {
             "receipt" => Some(Self::Receipt),
+            "estimate" => Some(Self::Estimate),
             "health" => Some(Self::Health),
             "risk" => Some(Self::Risk),
             "supply" => Some(Self::Supply),
@@ -51,8 +54,9 @@ impl PresetKind {
     }
 }
 
-pub const PRESET_KINDS: [PresetKind; 11] = [
+pub const PRESET_KINDS: [PresetKind; 12] = [
     PresetKind::Receipt,
+    PresetKind::Estimate,
     PresetKind::Health,
     PresetKind::Risk,
     PresetKind::Supply,
@@ -66,7 +70,7 @@ pub const PRESET_KINDS: [PresetKind; 11] = [
 ];
 
 impl PresetKind {
-    pub const fn all() -> &'static [PresetKind; 11] {
+    pub const fn all() -> &'static [PresetKind; 12] {
         &PRESET_KINDS
     }
 }
@@ -123,27 +127,51 @@ pub struct PresetGridRow {
     pub plan: PresetPlan,
 }
 
-pub const PRESET_GRID: [PresetGridRow; 11] = [
+pub const PRESET_GRID: [PresetGridRow; 12] = [
     PresetGridRow {
         preset: PresetKind::Receipt,
         plan: PresetPlan {
             assets: false,
             deps: false,
             todo: false,
-            dup: false,
+            dup: true,
             imports: false,
-            git: false,
+            git: true,
             fun: false,
             archetype: false,
             topics: false,
             entropy: false,
             license: false,
-            complexity: false,
-            api_surface: false,
+            complexity: true,
+            api_surface: true,
             #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
             halstead: false,
             #[cfg(feature = "git")]
             churn: false,
+            #[cfg(feature = "git")]
+            fingerprint: false,
+        },
+    },
+    PresetGridRow {
+        preset: PresetKind::Estimate,
+        plan: PresetPlan {
+            assets: false,
+            deps: false,
+            todo: false,
+            dup: true,
+            imports: false,
+            git: true,
+            fun: false,
+            archetype: false,
+            topics: false,
+            entropy: false,
+            license: false,
+            complexity: true,
+            api_surface: true,
+            #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+            halstead: false,
+            #[cfg(feature = "git")]
+            churn: true,
             #[cfg(feature = "git")]
             fingerprint: false,
         },

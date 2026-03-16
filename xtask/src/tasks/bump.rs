@@ -33,7 +33,7 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
     SchemaVersionLocation {
         path: "crates/tokmd-analysis-types/src/lib.rs",
         constant: "ANALYSIS_SCHEMA_VERSION",
-        current: 8,
+        current: 9,
     },
     SchemaVersionLocation {
         path: "crates/tokmd-types/src/cockpit.rs",

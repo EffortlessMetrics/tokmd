@@ -20,7 +20,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Core** | 2 | `SCHEMA_VERSION` | `lang`, `module`, `export`, `diff`, `run` |
 | **Context** | 4 | `CONTEXT_SCHEMA_VERSION` | `context` receipt |
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
-| **Analysis** | 8 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
+| **Analysis** | 9 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | `COCKPIT_SCHEMA_VERSION` | `cockpit` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
@@ -39,6 +39,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 | Version | Changes |
 |---------|---------|
+| **9** | Added effort estimation report (COCOMO-based projections, size basis, confidence, drivers) |
 | **8** | Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats |
 | **7** | Coupling normalization (Jaccard similarity, Lift), commit intent classification, near-duplicate detection report |
 | **6** | Added API surface enricher (`api_surface` report with public export ratios per language) |
@@ -83,7 +84,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 ### Code References
 
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
-- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 8;`
+- **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;`
 - **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`

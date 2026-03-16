@@ -18,8 +18,8 @@ use tokmd_analysis_grid::{
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn grid_has_exactly_eleven_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
+fn grid_has_exactly_twelve_entries() {
+    assert_eq!(PRESET_GRID.len(), 12);
 }
 
 #[test]
@@ -31,8 +31,8 @@ fn grid_covers_every_preset_kind() {
 }
 
 #[test]
-fn preset_kinds_array_has_eleven_entries() {
-    assert_eq!(PRESET_KINDS.len(), 11);
+fn preset_kinds_array_has_twelve_entries() {
+    assert_eq!(PRESET_KINDS.len(), 12);
 }
 
 #[test]
@@ -113,9 +113,12 @@ fn preset_plan_for_name_returns_none_for_unknown() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_plan_does_not_need_files() {
+fn receipt_plan_needs_files() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.needs_files(), "Receipt should not need files");
+    assert!(
+        plan.needs_files(),
+        "Receipt should need files (dup, complexity, api_surface)"
+    );
 }
 
 #[test]

@@ -136,13 +136,29 @@ Preset: `risk`
 - Utilization: `5469.0%`
 - Fits: `true`
 
-## COCOMO estimate
+## Effort estimate
 
-- Mode: `organic`
+### Size basis
+
+- Source lines: `7000`
+- Total lines: `8300`
 - KLOC: `7.0000`
-- Effort (PM): `21.70`
-- Duration (months): `7.50`
+
+### Headline
+
+- Effort: `21.70` person-months
+- Duration: `7.50` months
 - Staff: `2.89`
+
+### Why
+
+- Model: `COCOMO` (`organic` mode)
+- Formula: `E = a * KLOC^b`
+- Coefficients: `a=2.40`, `b=1.05`, `c=2.50`, `d=0.38`
+
+### Delta
+
+- Baseline comparison is not available for this receipt.
 
 ## Integrity
 

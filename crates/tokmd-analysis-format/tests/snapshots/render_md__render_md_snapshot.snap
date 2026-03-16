@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd-analysis-format/tests/render_md.rs
-assertion_line: 100
 expression: text
 ---
 # tokmd analysis
@@ -130,13 +129,29 @@ Preset: `receipt`
 
 - Minutes: `8.50` (20 lines/min)
 
-## COCOMO estimate
+## Effort estimate
 
-- Mode: `organic`
+### Size basis
+
+- Source lines: `170`
+- Total lines: `220`
 - KLOC: `0.1700`
-- Effort (PM): `0.37`
-- Duration (months): `1.72`
+
+### Headline
+
+- Effort: `0.37` person-months
+- Duration: `1.72` months
 - Staff: `0.22`
+
+### Why
+
+- Model: `COCOMO` (`organic` mode)
+- Formula: `E = a * KLOC^b`
+- Coefficients: `a=2.40`, `b=1.05`, `c=2.50`, `d=0.38`
+
+### Delta
+
+- Baseline comparison is not available for this receipt.
 
 ## Integrity
 

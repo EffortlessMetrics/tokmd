@@ -64,6 +64,8 @@ fn make_req(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,
@@ -119,12 +121,22 @@ fn run_preset(export: ExportData, preset: AnalysisPreset) -> tokmd_analysis_type
 #[test]
 fn near_dup_disabled_produces_no_dup_section_on_receipt() {
     let mut req = make_req(AnalysisPreset::Receipt);
+    req.git = Some(false);
     req.near_dup = false;
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
-    assert!(
-        receipt.dup.is_none(),
-        "Receipt preset with near_dup=false should have no dup section"
-    );
+    #[cfg(feature = "content")]
+    {
+        let dup = receipt
+            .dup
+            .as_ref()
+            .expect("dup report present with content feature");
+        assert!(
+            dup.near.is_none(),
+            "near-dup absent because req.near_dup is false"
+        );
+    }
+    #[cfg(not(feature = "content"))]
+    assert!(receipt.dup.is_none(), "dup absent without content feature");
 }
 
 #[test]
@@ -212,13 +224,19 @@ fn warnings_from_disabled_features_match_catalog() {
 
 #[test]
 fn receipt_preset_emits_no_disabled_feature_warnings() {
-    // Receipt preset asks for nothing optional → no feature-gated warnings.
     let receipt = run_preset(sample_export(), AnalysisPreset::Receipt);
-    assert!(
-        receipt.warnings.is_empty(),
-        "Receipt should emit zero warnings, got: {:?}",
-        receipt.warnings
-    );
+    if cfg!(all(feature = "content", feature = "walk")) {
+        assert!(
+            receipt.warnings.is_empty(),
+            "no warnings when features present, got: {:?}",
+            receipt.warnings
+        );
+    } else {
+        assert!(
+            !receipt.warnings.is_empty(),
+            "disabled-feature warnings expected"
+        );
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -612,21 +630,23 @@ fn source_json_roundtrip() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_plan_has_all_flags_false() {
+fn receipt_plan_matches_current_contract() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.assets);
-    assert!(!plan.deps);
-    assert!(!plan.todo);
-    assert!(!plan.dup);
-    assert!(!plan.imports);
-    assert!(!plan.git);
-    assert!(!plan.fun);
-    assert!(!plan.archetype);
-    assert!(!plan.topics);
-    assert!(!plan.entropy);
-    assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    // Receipt now enables these four enrichers
+    assert!(plan.dup, "receipt should request dup");
+    assert!(plan.git, "receipt should request git");
+    assert!(plan.complexity, "receipt should request complexity");
+    assert!(plan.api_surface, "receipt should request api_surface");
+    // Everything else stays off
+    assert!(!plan.assets, "receipt should not request assets");
+    assert!(!plan.deps, "receipt should not request deps");
+    assert!(!plan.todo, "receipt should not request todo");
+    assert!(!plan.imports, "receipt should not request imports");
+    assert!(!plan.fun, "receipt should not request fun");
+    assert!(!plan.archetype, "receipt should not request archetype");
+    assert!(!plan.topics, "receipt should not request topics");
+    assert!(!plan.entropy, "receipt should not request entropy");
+    assert!(!plan.license, "receipt should not request license");
 }
 
 #[test]
@@ -733,9 +753,9 @@ fn deep_plan_enables_everything_except_fun() {
 }
 
 #[test]
-fn receipt_plan_needs_no_files() {
+fn receipt_plan_needs_files() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.needs_files(), "receipt plan should not need files");
+    assert!(plan.needs_files(), "receipt plan should need files");
 }
 
 #[test]

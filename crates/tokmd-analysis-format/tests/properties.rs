@@ -227,6 +227,7 @@ fn arb_receipt() -> impl Strategy<Value = AnalysisReceipt> {
             mode: "analyze".into(),
             status: ScanStatus::Complete,
             warnings: vec![],
+            effort: None,
             source: AnalysisSource {
                 inputs: vec![".".into()],
                 export_path: None,
@@ -417,6 +418,7 @@ proptest! {
             mode: "analyze".into(),
             status: ScanStatus::Complete,
             warnings: vec![],
+            effort: None,
             source: AnalysisSource {
                 inputs: vec![".".into()],
                 export_path: None,

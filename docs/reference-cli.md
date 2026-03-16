@@ -773,7 +773,7 @@ Options:
       --preset <PRESET>
           Analysis preset (for compute-then-gate mode)
           
-          [possible values: receipt, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
 
       --format <FORMAT>
           Output format

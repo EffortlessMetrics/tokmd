@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: crate-ci/typos@v1.29.0
+      - uses: crate-ci/typos@v1
 
   proptest-smoke:
     name: Proptest Smoke

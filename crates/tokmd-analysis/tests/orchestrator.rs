@@ -74,6 +74,8 @@ fn sample_request(preset: AnalysisPreset) -> AnalysisRequest {
         preset,
         args: sample_args(preset.as_str()),
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: Some(false), // disable git for unit tests (no repo)
         import_granularity: ImportGranularity::Module,

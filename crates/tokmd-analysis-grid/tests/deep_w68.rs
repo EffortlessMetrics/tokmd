@@ -9,35 +9,35 @@ use tokmd_analysis_grid::{
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// § 1. Receipt preset enables no enrichers
+// § 1. Receipt preset enables core enrichers
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_enables_nothing() {
+fn receipt_enables_core_enrichers() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// § 2. Receipt preset needs_files is false
+// § 2. Receipt preset needs_files is true
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
-fn receipt_needs_no_files() {
+fn receipt_needs_files() {
     let plan = preset_plan_for(PresetKind::Receipt);
-    assert!(!plan.needs_files());
+    assert!(plan.needs_files());
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -169,6 +169,8 @@ fn deep_needs_files() {
 #[test]
 fn needs_files_true_for_file_dependent_presets() {
     let file_presets = [
+        PresetKind::Receipt,
+        PresetKind::Estimate,
         PresetKind::Health,
         PresetKind::Supply,
         PresetKind::Architecture,
@@ -182,14 +184,14 @@ fn needs_files_true_for_file_dependent_presets() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// § 12. PRESET_GRID has exactly 11 entries
+// § 12. PRESET_GRID has exactly 12 entries
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
-fn grid_has_eleven_entries() {
-    assert_eq!(PRESET_GRID.len(), 11);
-    assert_eq!(PRESET_KINDS.len(), 11);
-    assert_eq!(PresetKind::all().len(), 11);
+fn grid_has_twelve_entries() {
+    assert_eq!(PRESET_GRID.len(), 12);
+    assert_eq!(PRESET_KINDS.len(), 12);
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 // ═══════════════════════════════════════════════════════════════════

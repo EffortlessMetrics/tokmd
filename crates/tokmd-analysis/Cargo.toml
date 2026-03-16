@@ -12,12 +12,13 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis"
 
 [features]
-default = ["fun", "topics", "archetype"]
+default = ["fun", "topics", "archetype", "effort"]
 git = [
     "dep:tokmd-git",
     "dep:tokmd-analysis-fingerprint",
     "dep:tokmd-analysis-git",
     "tokmd-analysis-grid/git",
+    "tokmd-analysis-effort/git",
 ]
 walk = [
     "dep:tokmd-walk",
@@ -41,6 +42,7 @@ halstead = [
     "dep:tokmd-analysis-maintainability",
     "tokmd-analysis-grid/halstead",
 ]
+effort = ["dep:tokmd-analysis-effort"]
 fun = ["dep:tokmd-analysis-fun", "tokmd-analysis-grid/fun"]
 topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
 archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
@@ -76,7 +78,9 @@ tokmd-analysis-entropy = { workspace = true, optional = true }
 tokmd-analysis-license = { workspace = true, optional = true }
 tokmd-analysis-halstead = { workspace = true, optional = true }
 tokmd-analysis-maintainability = { workspace = true, optional = true }
+tokmd-analysis-effort = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile = "3.25.0"
 proptest = "1.10.0"
+uselesskey.workspace = true

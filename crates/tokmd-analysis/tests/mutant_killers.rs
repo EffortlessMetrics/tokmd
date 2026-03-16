@@ -47,6 +47,8 @@ fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
             import_granularity: "module".to_string(),
         },
         limits: AnalysisLimits::default(),
+        #[cfg(feature = "effort")]
+        effort: None,
         window_tokens: None,
         git: None,
         import_granularity: ImportGranularity::Module,

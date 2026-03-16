@@ -297,6 +297,7 @@ proptest! {
             max_commits,
             max_commit_files: None,
             granularity: "file".into(),
+            ..Default::default()
         };
         let json = serde_json::to_string(&s).unwrap();
         let parsed: AnalyzeSettings = serde_json::from_str(&json).unwrap();

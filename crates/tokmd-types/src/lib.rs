@@ -211,7 +211,7 @@ pub struct RunReceipt {
     // We could store the scan args here too
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ScanStatus {
     Complete,

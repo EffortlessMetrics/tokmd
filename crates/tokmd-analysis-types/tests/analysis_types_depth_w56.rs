@@ -55,6 +55,7 @@ fn minimal_receipt() -> AnalysisReceipt {
         git: None,
         imports: None,
         dup: None,
+        effort: None,
         complexity: None,
         api_surface: None,
         fun: None,
@@ -202,7 +203,7 @@ fn file_stat_row(path: &str) -> FileStatRow {
 fn minimal_receipt_serializes_to_json() {
     let r = minimal_receipt();
     let json = serde_json::to_string(&r).unwrap();
-    assert!(json.contains("\"schema_version\":8"));
+    assert!(json.contains("\"schema_version\":9"));
     assert!(json.contains("\"mode\":\"receipt\""));
 }
 
@@ -253,8 +254,8 @@ fn receipt_source_fields_preserved() {
 // ──────────────────────────────────────────────────────────────────────
 
 #[test]
-fn analysis_schema_version_is_8() {
-    assert_eq!(ANALYSIS_SCHEMA_VERSION, 8);
+fn analysis_schema_version_is_9() {
+    assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
 }
 
 #[test]

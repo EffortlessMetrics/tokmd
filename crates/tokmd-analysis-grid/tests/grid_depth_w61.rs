@@ -62,8 +62,8 @@ fn as_str_values_contain_no_whitespace() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn all_returns_exactly_eleven_presets() {
-    assert_eq!(PresetKind::all().len(), 11);
+fn all_returns_exactly_twelve_presets() {
+    assert_eq!(PresetKind::all().len(), 12);
 }
 
 #[test]
@@ -120,21 +120,21 @@ fn grid_has_no_duplicate_preset_kinds() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn receipt_plan_has_all_flags_false() {
+fn receipt_plan_has_core_enrichers_enabled() {
     let plan = preset_plan_for(PresetKind::Receipt);
     assert!(!plan.assets);
     assert!(!plan.deps);
     assert!(!plan.todo);
-    assert!(!plan.dup);
+    assert!(plan.dup);
     assert!(!plan.imports);
-    assert!(!plan.git);
+    assert!(plan.git);
     assert!(!plan.fun);
     assert!(!plan.archetype);
     assert!(!plan.topics);
     assert!(!plan.entropy);
     assert!(!plan.license);
-    assert!(!plan.complexity);
-    assert!(!plan.api_surface);
+    assert!(plan.complexity);
+    assert!(plan.api_surface);
 }
 
 #[test]
@@ -245,8 +245,8 @@ fn plan_for_name_agrees_with_plan_for_kind() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn receipt_does_not_need_files() {
-    assert!(!preset_plan_for(PresetKind::Receipt).needs_files());
+fn receipt_needs_files() {
+    assert!(preset_plan_for(PresetKind::Receipt).needs_files());
 }
 
 #[test]
@@ -405,6 +405,7 @@ mod properties {
     fn arb_preset_kind() -> impl Strategy<Value = PresetKind> {
         prop::sample::select(vec![
             PresetKind::Receipt,
+            PresetKind::Estimate,
             PresetKind::Health,
             PresetKind::Risk,
             PresetKind::Supply,
