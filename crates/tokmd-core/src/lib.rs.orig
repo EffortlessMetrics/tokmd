@@ -50,6 +50,7 @@
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+
 use anyhow::Result;
 #[cfg(feature = "analysis")]
 use tokmd_analysis as analysis;
@@ -698,22 +699,13 @@ pub fn version() -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    #[cfg(feature = "analysis")]
-    use crate::settings::AnalyzeSettings;
-    use std::fs;
-    use std::path::{Path, PathBuf};
-    use std::time::{SystemTime, UNIX_EPOCH};
 
-    #[derive(Debug)]
-    #[cfg(feature = "analysis")]
-    struct TempDirGuard(PathBuf);
 
-    #[cfg(feature = "analysis")]
-    impl Drop for TempDirGuard {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.0);
-        }
+
+
+
+
+
     }
 
     #[test]
@@ -791,66 +783,7 @@ mod tests {
         assert!(err.to_string().contains("only 'cocomo81-basic'"));
     }
 
-    #[cfg(feature = "analysis")]
-    fn mk_temp_dir(prefix: &str) -> PathBuf {
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos();
-        let mut root = std::env::temp_dir();
-        root.push(format!("{prefix}-{timestamp}-{}", std::process::id()));
-        root
-    }
 
-    #[cfg(feature = "analysis")]
-    fn write_file(path: &Path, contents: &str) {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
-        }
-        fs::write(path, contents).unwrap();
-    }
-
-    #[cfg(feature = "analysis")]
-    #[test]
-    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
-        let root = mk_temp_dir("tokmd-core-estimate-preset");
-        let _guard = TempDirGuard(root.clone());
-        write_file(&root.join("src/main.rs"), "fn main() {}\n");
-        write_file(
-            &root.join("target/generated/bundle.min.js"),
-            "console.log(1);\n",
-        );
-        write_file(
-            &root.join("vendor/lib/external.rs"),
-            "pub fn external() {}\n",
-        );
-
-        let scan = settings::ScanSettings::for_paths(vec![root.display().to_string()]);
-        let analyze = AnalyzeSettings {
-            preset: "estimate".to_string(),
-            ..Default::default()
-        };
-
-        let receipt = analyze_workflow(&scan, &analyze).expect("estimate analyze failed");
-        let effort = receipt
-            .effort
-            .as_ref()
-            .expect("estimate preset should produce effort");
-
-        assert!(effort.results.effort_pm_p50 > 0.0);
-        assert_eq!(
-            effort.size_basis.total_lines,
-            effort.size_basis.authored_lines
-                + effort.size_basis.generated_lines
-                + effort.size_basis.vendored_lines
-        );
-        assert!(effort.size_basis.authored_lines > 0);
-        assert!(
-            effort.size_basis.generated_lines + effort.size_basis.vendored_lines > 0,
-            "expected deterministic generated or vendored lines"
-        );
-    }
-}
 
 #[cfg(doctest)]
 #[doc = include_str!("../README.md")]
