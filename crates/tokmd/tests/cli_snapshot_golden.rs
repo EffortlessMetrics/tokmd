@@ -26,7 +26,7 @@ fn normalize(output: &str) -> String {
     let s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
 
     // Normalize --version output line (e.g. "tokmd 0.42.1" -> "tokmd <VERSION>")
-    let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+").unwrap();
+    let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?").unwrap();
     let s = re_version_line
         .replace_all(&s, "tokmd <VERSION>")
         .to_string();
