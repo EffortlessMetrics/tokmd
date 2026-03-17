@@ -11,7 +11,7 @@
 ## NEXT (short horizon)
 
 - **Main CI boringness**: confirm the cleaned workflow shape stays green on normal pushes.
-- **Automation spillover cleanup**: remove tracked `.jules` artifacts and keep them out of the repo.
+- **Jules history**: keep curated `.jules/` history in the repo so agent work can accumulate context without broadening unrelated diffs.
 - **Low-blast-radius devex**: continue small workflow, docs, and compat fixes that reduce false red and review noise.
 - **Release discipline**: keep release work paused until `main` is boring again.
 
