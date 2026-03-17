@@ -1,0 +1,17 @@
+id: compat
+adapter: jules
+shared_role: agents/shared/roles/compat.md
+mission: Keep feature-flag and platform compatibility honest.
+max_concerns: 1
+may_touch:
+  - "crates/**"
+  - ".github/workflows/**"
+must_not_touch:
+  - "CHANGELOG.md"
+  - "ROADMAP.md"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - commands_run
+    - compatibility_risks

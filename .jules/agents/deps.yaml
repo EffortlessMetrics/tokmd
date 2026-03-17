@@ -1,0 +1,18 @@
+id: deps
+adapter: jules
+shared_role: agents/shared/roles/deps.md
+mission: Keep dependency surfaces narrow and honest.
+max_concerns: 1
+may_touch:
+  - "Cargo.toml"
+  - "Cargo.lock"
+  - "crates/**/Cargo.toml"
+  - ".github/dependabot.yml"
+must_not_touch:
+  - "CHANGELOG.md"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - commands_run
+    - rollout_risks

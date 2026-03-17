@@ -1,0 +1,18 @@
+id: author
+adapter: jules
+shared_role: agents/shared/roles/author.md
+mission: Implement one narrow change cleanly.
+max_concerns: 1
+may_touch:
+  - "crates/**"
+  - "docs/**"
+  - ".github/**"
+must_not_touch:
+  - ".jules/runs/**"
+  - ".jules/cache/**"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - commands_run
+    - risks
