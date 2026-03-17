@@ -59,7 +59,58 @@ const STEPS: &[Step] = &[
     },
 ];
 
+const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
+    ".claude/worktrees",
+    ".claude/cache",
+    ".claude/transcripts",
+    ".claude/runtime",
+    ".jules/worktrees",
+    ".jules/runs",
+    ".jules/cache",
+    ".jules/transcripts",
+    ".jules/runtime",
+    ".jules/tmp",
+];
+
+fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
+    let output = Command::new("git")
+        .arg("ls-files")
+        .arg("--")
+        .args(TRACKED_AGENT_RUNTIME_PATHS)
+        .output()?;
+
+    if !output.status.success() {
+        bail!("failed to query tracked agent runtime state with git ls-files");
+    }
+
+    let tracked: Vec<String> = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(ToOwned::to_owned)
+        .collect();
+
+    if tracked.is_empty() {
+        return Ok(());
+    }
+
+    println!("Tracked agent runtime state detected:");
+    for path in &tracked {
+        println!("  - {path}");
+    }
+    println!();
+    println!("Remove these paths from the Git index and re-run the gate.");
+    println!("Curated `.jules/deps/**` history is allowed and intentionally excluded.");
+
+    bail!(
+        "tracked agent runtime state found in {} path(s)",
+        tracked.len()
+    );
+}
+
 pub fn run(args: GateArgs) -> Result<()> {
+    ensure_no_tracked_agent_runtime_state()?;
+
     let total = STEPS.len();
     let mut failures = Vec::new();
 
