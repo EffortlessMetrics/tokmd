@@ -19,12 +19,19 @@
 pub mod determinism;
 pub mod render;
 
+#[cfg(feature = "git")]
 use std::cmp::Reverse;
+#[cfg(feature = "git")]
 use std::collections::BTreeMap;
+#[cfg(feature = "git")]
 use std::path::{Path, PathBuf};
+#[cfg(feature = "git")]
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
+#[cfg(feature = "git")]
+use anyhow::{Context, bail};
+#[cfg(feature = "git")]
 use serde::Deserialize;
 
 // Re-export types from tokmd_types::cockpit for convenience
@@ -301,6 +308,7 @@ fn compute_evidence(
 }
 
 /// Compute overall status from all gates.
+#[cfg(feature = "git")]
 fn compute_overall_status(
     mutation: &MutationGate,
     diff_coverage: &Option<DiffCoverageGate>,
@@ -522,6 +530,7 @@ fn compute_diff_coverage_gate(
 }
 
 /// Flush consecutive uncovered lines into hunk ranges.
+#[cfg(feature = "git")]
 fn flush_uncovered_hunks(file: &str, uncovered: &[usize], hunks: &mut Vec<UncoveredHunk>) {
     if uncovered.is_empty() || file.is_empty() {
         return;
@@ -707,6 +716,7 @@ fn compute_contract_gate(
 
 /// Run cargo-semver-checks if available.
 /// Returns a SemverSubGate with the result.
+#[cfg(feature = "git")]
 fn run_semver_check(repo_root: &Path) -> SemverSubGate {
     // Check if cargo-semver-checks is available
     let available = Command::new("cargo")
@@ -784,6 +794,7 @@ fn run_semver_check(repo_root: &Path) -> SemverSubGate {
 
 /// Run git diff on docs/schema.json to detect schema changes.
 /// Returns a SchemaSubGate with the result.
+#[cfg(feature = "git")]
 fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
     // Use two-dot syntax for comparing refs directly (per project convention)
     let range = format!("{}..{}", base, head);
@@ -1298,6 +1309,7 @@ fn compute_complexity_gate(
 }
 
 /// Results from analyzing a Rust file's complexity.
+#[cfg(feature = "git")]
 struct ComplexityAnalysis {
     /// Total cyclomatic complexity across all functions.
     total_complexity: u32,
@@ -1311,6 +1323,7 @@ struct ComplexityAnalysis {
 
 /// Analyze the cyclomatic complexity of Rust source code.
 /// Uses a simple heuristic approach counting decision points.
+#[cfg(feature = "git")]
 fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
     let mut total_complexity: u32 = 0;
     let mut max_complexity: u32 = 0;
@@ -1475,6 +1488,7 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
 
 /// Check if a file is a relevant Rust source file for mutation testing.
 /// Excludes test files, fuzz targets, etc.
+#[cfg(feature = "git")]
 fn is_relevant_rust_source(path: &str) -> bool {
     let path_lower = path.to_lowercase();
 
@@ -1526,6 +1540,7 @@ fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
 
 /// CI workflow summary format (mutants-summary.json).
 #[derive(Debug, Clone, Deserialize)]
+#[cfg(feature = "git")]
 struct CiMutantsSummary {
     commit: String,
     status: String,
@@ -1537,6 +1552,7 @@ struct CiMutantsSummary {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[cfg(feature = "git")]
 struct CiSurvivor {
     file: String,
     line: usize,
@@ -2578,6 +2594,7 @@ mod tests {
     // ---- flush_uncovered_hunks ----
 
     #[test]
+    #[cfg(feature = "git")]
     fn test_flush_uncovered_hunks_consecutive() {
         let mut hunks = Vec::new();
         flush_uncovered_hunks("test.rs", &[1, 2, 3, 5, 6, 10], &mut hunks);
@@ -2591,6 +2608,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "git")]
     fn test_flush_uncovered_hunks_empty() {
         let mut hunks = Vec::new();
         flush_uncovered_hunks("test.rs", &[], &mut hunks);
@@ -2598,6 +2616,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "git")]
     fn test_flush_uncovered_hunks_empty_file() {
         let mut hunks = Vec::new();
         flush_uncovered_hunks("", &[1, 2], &mut hunks);
@@ -2605,6 +2624,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "git")]
     fn test_flush_uncovered_hunks_single_line() {
         let mut hunks = Vec::new();
         flush_uncovered_hunks("test.rs", &[42], &mut hunks);
