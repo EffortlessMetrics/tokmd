@@ -23,4 +23,4 @@ tokmd-analysis-util.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.27.0"

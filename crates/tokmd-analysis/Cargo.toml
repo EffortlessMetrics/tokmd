@@ -81,6 +81,6 @@ tokmd-analysis-maintainability = { workspace = true, optional = true }
 tokmd-analysis-effort = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.25.0"
+tempfile = "3.27.0"
 proptest = "1.10.0"
 uselesskey.workspace = true
