@@ -1,5 +1,8 @@
 # CLAUDE.md
 
+Canonical shared repo guidance is mirrored in `agents/shared/repo.md`.
+This file remains a Codex-facing entrypoint because some tooling ingests `AGENTS.md` directly.
+
 This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
