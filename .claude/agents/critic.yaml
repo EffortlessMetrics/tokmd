@@ -1,0 +1,13 @@
+id: critic
+adapter: claude
+shared_role: agents/shared/roles/critic.md
+mission: Review a proposed change before merge.
+max_concerns: 1
+may_touch: []
+must_not_touch:
+  - "**"
+handoff:
+  requires:
+    - findings
+    - open_questions
+    - residual_risks

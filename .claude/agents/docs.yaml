@@ -1,0 +1,17 @@
+id: docs
+adapter: claude
+shared_role: agents/shared/roles/docs.md
+mission: Keep READMEs and reference docs aligned with reality.
+max_concerns: 1
+may_touch:
+  - "README.md"
+  - "docs/**"
+  - "crates/**/README.md"
+must_not_touch:
+  - ".github/workflows/**"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - example_status
+    - risks

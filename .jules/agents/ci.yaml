@@ -1,0 +1,18 @@
+id: ci
+adapter: jules
+shared_role: agents/shared/roles/ci.md
+mission: Improve CI reliability without weakening gates.
+max_concerns: 1
+may_touch:
+  - ".github/workflows/**"
+  - ".github/actions/**"
+  - "xtask/**"
+must_not_touch:
+  - "CHANGELOG.md"
+  - "ROADMAP.md"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - commands_run
+    - reliability_risks
