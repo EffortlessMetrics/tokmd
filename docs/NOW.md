@@ -1,25 +1,23 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated per-cycle.
+> One-screen operational truth. Updated during stabilization.
 
 ## NOW (active)
 
-- **CI validation**: 46+ PRs merged in massive wave (Waves 58-65). Waiting for CI run on latest main commit.
-- **Test expansion (Wave 66)**: 6 agents adding determinism hardening, schema contracts, cross-crate integration, enricher depth, CLI edge cases, and gate/cockpit/config deep tests.
-- **Test count**: 21,884 tests across 56+ crates (up from 11,991 at v1.7.2).
-- **Quality Gate**: Fixed — excludes tokmd-python (PyO3 needs Python headers).
-- **WASM foundation**: `tokmd-io-port` crate merged (ReadFs trait + MemFs).
+- **CI cleanup**: macOS Nix is out of the main CI workflow; Linux Nix remains in the fast path.
+- **Queue cleanup**: the broad draft PR backlog has been collapsed into narrow merges and honest follow-ups.
+- **Stabilization focus**: keep `main` green, keep `--no-default-features` builds honest, and reduce branch noise from automation artifacts.
 
-## NEXT (merge queue)
+## NEXT (short horizon)
 
-- **v1.7.3 release**: Tag once CI confirms green. Includes: massive test expansion, Quality Gate fix, sensor determinism (BTreeSet), io-port crate, performance improvements, .jules cleanup.
-- **v1.8 WASM-ready seams**: Wire `tokmd-io-port` into `tokmd-scan` and `tokmd-walk`. Abstract host I/O for `wasm32-unknown-unknown`.
-- **Determinism hardening**: Wave 66 adds dedicated determinism tests. Follow up with CRLF/LF edge cases.
-- **Schema docs sync**: Ensure docs/SCHEMA.md, docs/schema.json match code-generated output.
+- **Main CI boringness**: confirm the cleaned workflow shape stays green on normal pushes.
+- **Automation spillover cleanup**: remove tracked `.jules` artifacts and keep them out of the repo.
+- **Low-blast-radius devex**: continue small workflow, docs, and compat fixes that reduce false red and review noise.
+- **Release discipline**: keep release work paused until `main` is boring again.
 
 ## LATER (roadmap)
 
-- **v1.9 browser runner**: Zipball ingestion + in-browser receipt generation.
-- **v2.0 MCP server**: Streaming analysis, plugin system, server mode.
-- **v4.0 Adze AST**: Full AST integration (long-horizon).
-- **Bindings parity**: tokmd-core run_json + Python/Node bindings with explicit parity tests.
+- **WASM-ready seams**: continue wiring `tokmd-io-port` into scan and walk paths.
+- **Browser runner**: zipball ingestion + in-browser receipt generation.
+- **MCP/server mode**: streaming analysis, plugin system, and server surfaces.
+- **AST depth**: higher-resolution syntax/AST integration on a later horizon.
