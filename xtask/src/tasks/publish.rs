@@ -251,7 +251,10 @@ fn resolve_publish_plan(metadata: &Metadata, args: &PublishArgs) -> Result<Publi
             if exclude_set.contains(name) {
                 continue;
             }
-            let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();
+            let pkg = workspace_packages
+                .iter()
+                .find(|p| p.name == *name)
+                .ok_or_else(|| anyhow!("Package {} not found in workspace", name))?;
             for dep in &pkg.dependencies {
                 if !is_publish_dependency(&dep.kind) {
                     continue;
@@ -1177,7 +1180,7 @@ mod tests {
                        Please try again after Tue, 24 Feb 2026 16:57:08 GMT or email help@crates.io";
         let ts = parse_rate_limit_timestamp(stderr);
         assert!(ts.is_some(), "should parse RFC2822 timestamp");
-        let ts = ts.unwrap();
+        let ts = ts.expect("ts should be Some as checked by assert");
         assert_eq!(ts.year(), 2026);
         assert_eq!(ts.month(), 2);
         assert_eq!(ts.day(), 24);

@@ -457,7 +457,10 @@ members = ["crates/foo"]
 version = "1.2.3"
 edition = "2021"
 "#;
-        assert_eq!(extract_workspace_version(content).unwrap(), "1.2.3");
+        assert_eq!(
+            extract_workspace_version(content).expect("Should extract valid workspace version"),
+            "1.2.3"
+        );
     }
 
     #[test]
@@ -466,7 +469,8 @@ edition = "2021"
 version = "1.2.3"
 edition = "2021"
 "#;
-        let result = update_workspace_package_version(content, "1.3.0").unwrap();
+        let result = update_workspace_package_version(content, "1.3.0")
+            .expect("Should update valid workspace version");
         assert!(result.contains("version = \"1.3.0\""));
         assert!(!result.contains("version = \"1.2.3\""));
     }
@@ -495,11 +499,13 @@ edition = "2021"
 
     #[test]
     fn test_parse_schema_bump() {
-        let (name, version) = parse_schema_bump("SCHEMA_VERSION=3").unwrap();
+        let (name, version) =
+            parse_schema_bump("SCHEMA_VERSION=3").expect("Should parse valid schema bump");
         assert_eq!(name, "SCHEMA_VERSION");
         assert_eq!(version, 3);
 
-        let (name, version) = parse_schema_bump("ANALYSIS_SCHEMA_VERSION = 5").unwrap();
+        let (name, version) = parse_schema_bump("ANALYSIS_SCHEMA_VERSION = 5")
+            .expect("Should parse valid schema bump with spaces");
         assert_eq!(name, "ANALYSIS_SCHEMA_VERSION");
         assert_eq!(version, 5);
     }
