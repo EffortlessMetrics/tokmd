@@ -30,4 +30,14 @@ git config core.hooksPath .githooks
 - `pre-commit`: `cargo xtask lint-fix` + restage + typos
 - `pre-push`: `cargo xtask gate --check`
 
+## Schema Version Sync
+
+These lines are kept explicit here because `tokmd-types` tests verify that `CLAUDE.md` stays aligned with the exported schema constants:
+
+- `SCHEMA_VERSION = 2`
+- `COCKPIT_SCHEMA_VERSION = 3`
+- `HANDOFF_SCHEMA_VERSION = 5`
+- `CONTEXT_SCHEMA_VERSION = 4`
+- `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`
+
 Use `agents/shared/repo.md` for project overview, architecture, CLI surface, invariants, testing notes, and reference docs.
