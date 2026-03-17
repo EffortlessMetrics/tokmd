@@ -1,0 +1,29 @@
+name: Nix Build (macOS)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  nix-macos:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        continue-on-error: true
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+
+      - name: Check flake
+        run: nix flake check --accept-flake-config
+
+      - name: Build package
+        run: nix build

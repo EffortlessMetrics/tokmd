@@ -172,33 +172,14 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
+        uses: DeterminateSystems/nix-installer-action@v21
 
       - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
+        continue-on-error: true
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Check flake
         run: nix flake check --no-build --accept-flake-config
-
-      - name: Build package
-        run: nix build
-
-  nix-macos:
-    name: Nix Build (macOS)
-    if: github.event_name == 'push'
-    runs-on: macos-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Check flake
-        run: nix flake check
 
       - name: Build package
         run: nix build
