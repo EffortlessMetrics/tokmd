@@ -1,0 +1,16 @@
+[
+  {
+    "date": "2026-03-17T12:30:38Z",
+    "lane": "scout",
+    "target": "xtask/src/tasks/bump.rs and xtask/src/tasks/publish.rs unwrap removal",
+    "pr_link": "PENDING",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
+  }
+]
