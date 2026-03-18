@@ -181,6 +181,10 @@ jobs:
     name: Nix Build
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v6
 
@@ -190,6 +194,9 @@ jobs:
       - name: Setup Nix cache
         continue-on-error: true
         uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
+          use-gha-cache: enabled
 
       - name: Check flake
         run: nix flake check --no-build --accept-flake-config
