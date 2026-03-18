@@ -1,0 +1,33 @@
+{
+  "run_id": "9ae86ead-60c0-42ce-8743-2e2139162947",
+  "timestamp_utc": "2026-03-18T12:30:30Z",
+  "lane": "scout",
+  "target": "crates/tokmd-config/tests (deep.rs, determinism.rs)",
+  "commands": [],
+  "results_summary": [
+    {
+      "cmd": "cargo build --verbose -p tokmd-config",
+      "exit_status": "0",
+      "result": "PASS",
+      "output_snippet": "       Fresh serde_spanned v1.0.4\n       Fresh toml_datetime v1.0.0+spec-1.1.0\n       Fresh toml_writer v1.0.6+spec-1.1.0\n       Fresh toml v1.0.6+spec-1.1.0\n       Fresh anyhow v1.0.102\n       Fresh tokmd-types v1.8.0-rc.1 (/app/crates/tokmd-types)\n       Fresh tokmd-tool-schema v1.8.0-rc.1 (/app/crates/tokmd-tool-schema)\n       Fresh tokmd-settings v1.8.0-rc.1 (/app/crates/tokmd-settings)\n       Fresh tokmd-config v1.8.0-rc.1 (/app/crates/tokmd-config)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.10s"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose -p tokmd-config",
+      "exit_status": "0",
+      "result": "PASS",
+      "output_snippet": "\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests tokmd_config\n     Running `/home/jules/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc --edition=2024 --crate-type lib --color auto --crate-name tokmd_config --test crates/tokmd-config/src/lib.rs --test-run-directory /app/crates/tokmd-config --extern clap=/app/target/debug/deps/libclap-2eed9d45da5da9b8.rlib --extern proptest=/app/target/debug/deps/libproptest-c22aa1ec6e28355e.rlib --extern serde=/app/target/debug/deps/libserde-3212bfb5f96dd2de.rlib --extern serde_json=/app/target/debug/deps/libserde_json-21f7f787615c95cd.rlib --extern tempfile=/app/target/debug/deps/libtempfile-57e95f3aec4ee295.rlib --extern tokmd_config=/app/target/debug/deps/libtokmd_config-8f923a86dc819e15.rlib --extern tokmd_settings=/app/target/debug/deps/libtokmd_settings-d2f976631b94e892.rlib --extern tokmd_tool_schema=/app/target/debug/deps/libtokmd_tool_schema-98b082b935bead0a.rlib --extern tokmd_types=/app/target/debug/deps/libtokmd_types-594f72cc04e49597.rlib --extern toml=/app/target/debug/deps/libtoml-f869d4e0127f1b78.rlib -L dependency=/app/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human`\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    },
+    {
+      "cmd": "cargo fmt --manifest-path crates/tokmd-config/Cargo.toml -- --check",
+      "exit_status": "0",
+      "result": "PASS",
+      "output_snippet": ""
+    },
+    {
+      "cmd": "cargo clippy --manifest-path crates/tokmd-config/Cargo.toml -- -D warnings",
+      "exit_status": "0",
+      "result": "PASS",
+      "output_snippet": "    Checking tokmd-types v1.8.0-rc.1 (/app/crates/tokmd-types)\n    Checking tokmd-tool-schema v1.8.0-rc.1 (/app/crates/tokmd-tool-schema)\n    Checking tokmd-settings v1.8.0-rc.1 (/app/crates/tokmd-settings)\n    Checking tokmd-config v1.8.0-rc.1 (/app/crates/tokmd-config)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.10s"
+    }
+  ]
+}

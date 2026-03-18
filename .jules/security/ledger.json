@@ -12,5 +12,14 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-18T12:30:30Z",
+    "lane": "scout",
+    "target": "crates/tokmd-config/tests",
+    "pr_link": "pending",
+    "gates_run": "build, test, fmt, clippy",
+    "gates_status": "PASS",
+    "friction_ids": []
   }
 ]
