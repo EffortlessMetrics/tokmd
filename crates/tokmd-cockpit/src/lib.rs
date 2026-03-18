@@ -2083,7 +2083,11 @@ pub fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> 
         });
     }
 
-    items.sort_by_key(|i| i.priority);
+    items.sort_by(|a, b| {
+        a.priority
+            .cmp(&b.priority)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     items
 }
 
@@ -2554,6 +2558,25 @@ mod tests {
         assert_eq!(plan[0].priority, 1);
         assert_eq!(plan[1].priority, 2);
         assert_eq!(plan[2].priority, 3);
+    }
+
+    #[test]
+    fn test_review_plan_tiebreaks_by_path_within_priority() {
+        let stats = vec![
+            make_stat("zeta.rs", 120, 20),
+            make_stat("alpha.rs", 110, 10),
+            make_stat("middle.rs", 60, 0),
+        ];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let plan = generate_review_plan(&stats, &contracts);
+        assert_eq!(plan[0].path, "alpha.rs");
+        assert_eq!(plan[1].path, "middle.rs");
+        assert_eq!(plan[2].path, "zeta.rs");
     }
 
     #[test]
