@@ -1,0 +1,34 @@
+{
+  "commands": [
+    "cargo build --verbose",
+    "CI=true cargo test --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd -- -D warnings"
+  ],
+  "results_summary": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "details": "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "status": "PASS",
+      "details": "test result: ok. 0 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "cmd": "cargo clippy -p tokmd -- -D warnings",
+      "status": "PASS",
+      "details": "Finished `dev` profile"
+    }
+  ],
+  "run_id": "run-01",
+  "timestamp_utc": "2026-03-18T12:33:19Z",
+  "lane": "scout",
+  "target": "Error hints for missing diff sources"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "date": "2024-03-18",
+    "lane": "scout",
+    "target": "Error hints for missing diff sources",
+    "pr_link": "pending",
+    "gates_run": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
+  }
+]
