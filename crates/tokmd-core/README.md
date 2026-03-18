@@ -16,7 +16,7 @@ tokmd-types = "1.4"
 
 ## Usage
 
-```rust,no_run
+```rust
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_core::lang_workflow;
 use tokmd_core::settings::{ScanSettings, LangSettings};

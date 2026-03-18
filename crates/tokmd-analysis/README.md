@@ -20,7 +20,7 @@ features = ["git", "walk", "content", "fun", "topics", "archetype"]
 
 ## Usage
 
-```rust,no_run
+```rust
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 use std::path::PathBuf;
 use tokmd_analysis::{
