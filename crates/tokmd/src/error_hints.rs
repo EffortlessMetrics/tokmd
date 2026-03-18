@@ -59,6 +59,17 @@ fn suggestions(err: &Error) -> Vec<String> {
         );
     }
 
+    if haystack.contains("failed to load diff source") || haystack.contains("invalid reference") {
+        push_hint(
+            &mut out,
+            "If you meant to compare files, ensure they both exist locally.",
+        );
+        push_hint(
+            &mut out,
+            "If you meant to compare git refs, ensure the branch, tag, or commit exists.",
+        );
+    }
+
     if haystack.contains("unknown metric/finding key") {
         push_hint(
             &mut out,
@@ -108,6 +119,24 @@ mod tests {
         let err = anyhow!("Unknown metric/finding key 'foo'.");
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("--explain list")));
+    }
+
+    #[test]
+    fn suggests_for_missing_diff_source() {
+        let err = anyhow!(
+            "Failed to load diff source 'missing_file.json': Failed to create worktree for 'missing_file.json': git worktree add failed for 'missing_file.json'"
+        );
+        let hints = suggestions(&err);
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("ensure they both exist locally"))
+        );
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("ensure the branch, tag, or commit exists"))
+        );
     }
 
     #[test]
