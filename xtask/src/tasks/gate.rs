@@ -1,4 +1,5 @@
 use crate::cli::GateArgs;
+use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
 use std::process::Command;
 
@@ -7,6 +8,7 @@ struct Step {
     cmd: &'static str,
     args: &'static [&'static str],
     check_args: Option<&'static [&'static str]>,
+    use_workspace_fmt: bool,
 }
 
 const STEPS: &[Step] = &[
@@ -15,6 +17,7 @@ const STEPS: &[Step] = &[
         cmd: "cargo",
         args: &["fmt", "--all"],
         check_args: Some(&["fmt", "--all", "--", "--check"]),
+        use_workspace_fmt: true,
     },
     Step {
         label: "check (warm graph)",
@@ -27,6 +30,7 @@ const STEPS: &[Step] = &[
             "tokmd-python",
         ],
         check_args: None,
+        use_workspace_fmt: false,
     },
     Step {
         label: "clippy",
@@ -43,6 +47,7 @@ const STEPS: &[Step] = &[
             "warnings",
         ],
         check_args: None,
+        use_workspace_fmt: false,
     },
     Step {
         label: "test (compile-only)",
@@ -56,6 +61,7 @@ const STEPS: &[Step] = &[
             "--no-run",
         ],
         check_args: None,
+        use_workspace_fmt: false,
     },
 ];
 
@@ -124,11 +130,35 @@ pub fn run(args: GateArgs) -> Result<()> {
 
         println!("[{idx}/{total}] {}", step.label);
 
-        let status = Command::new(step.cmd).args(effective_args).status()?;
+        let exit_code = if step.use_workspace_fmt {
+            match run_workspace_fmt(args.check) {
+                Ok(()) => 0,
+                Err(error) => {
+                    eprintln!("{error:#}");
+                    1
+                }
+            }
+        } else {
+            let mut command = Command::new(step.cmd);
+            command.args(effective_args);
+            if cfg!(windows) && step.label == "test (compile-only)" {
+                // Windows keeps the running xtask binary locked, so compile
+                // the rest of the workspace here and let xtask's own tests
+                // cover the binary crate separately.
+                command.args(["--exclude", "xtask"]);
+            }
 
-        if !status.success() {
+            let status = command.status()?;
+            if status.success() {
+                0
+            } else {
+                status.code().unwrap_or(-1)
+            }
+        };
+
+        if exit_code != 0 {
             println!("   \u{274C} Step {} ({}) failed", idx, step.label);
-            failures.push((step.label, status.code().unwrap_or(-1)));
+            failures.push((step.label, exit_code));
         } else {
             println!("   \u{2705} Step {} ({}) passed", idx, step.label);
         }

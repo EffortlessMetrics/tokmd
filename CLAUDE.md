@@ -18,8 +18,11 @@ Preferred commands for repo work:
 |---------|---------|
 | `cargo xtask lint-fix` | Auto-fix fmt + clippy, then verify |
 | `cargo xtask lint-fix --no-clippy` | Fast fmt-only fix |
+| `cargo fmt-check` | Verify workspace formatting via the repo-native alias |
 | `cargo xtask gate --check` | Full quality gate (read-only) |
 | `cargo xtask gate` | Quality gate with auto-fix fmt step |
+
+On Windows, prefer `cargo fmt-fix` / `cargo fmt-check` over raw `cargo fmt --all`; the full workspace can exceed Cargo's formatter argv budget even when long paths are enabled.
 
 Optional git hooks:
 

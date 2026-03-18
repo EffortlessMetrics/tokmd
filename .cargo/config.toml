@@ -4,3 +4,8 @@
 [alias]
 # xtask alias for running development tasks
 xtask = "run -p xtask --"
+# Windows-safe workspace formatting aliases. `cargo fmt --all` can exceed the
+# Windows process argument budget in this repo.
+fmt-fix = "xtask lint-fix --no-clippy"
+fmt-check = "xtask lint-fix --check --no-clippy"
+gate-check = "xtask gate --check"

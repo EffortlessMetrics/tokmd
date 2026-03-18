@@ -276,7 +276,8 @@ exclude_re = ["impl.*Display", "fn main\\("]
 ## Code Style
 
 -   Run `cargo xtask lint-fix` to auto-fix formatting and clippy issues.
--   Run `cargo xtask lint-fix --no-clippy` for a fast fmt-only fix.
+-   Run `cargo fmt-fix` for a fast, Windows-safe fmt-only fix.
+-   Run `cargo fmt-check` to verify formatting only.
 -   Run `cargo xtask gate --check` to verify the full quality gate locally.
 
 ## Contribution Areas

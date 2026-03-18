@@ -279,12 +279,14 @@ fn test_git_analysis() { ... }
 
 Minimum requirements for merging:
 
-1. `cargo fmt --check` - Formatting
+1. `cargo fmt-check` - Formatting
 2. `cargo clippy -- -D warnings` - Linting
 3. `cargo test --all-features` - All tests pass
 4. `cargo insta test` - Snapshots match
 5. Property tests (smoke run)
 6. Fuzz tests (short run, optional)
+
+On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
 
 ### Scheduled Jobs
 

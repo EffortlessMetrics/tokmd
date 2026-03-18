@@ -324,6 +324,15 @@ fn gate_excludes_tokmd_python() {
 }
 
 #[test]
+fn gate_excludes_xtask_from_compile_only_step() {
+    let src = read_source("xtask/src/tasks/gate.rs");
+    assert!(
+        src.contains("\"xtask\""),
+        "gate compile-only step should exclude xtask to avoid self-rebuild conflicts"
+    );
+}
+
+#[test]
 fn gate_reports_pass_fail_count() {
     // The gate runner should print a summary like "gate result: N/M steps passed".
     let src = read_source("xtask/src/tasks/gate.rs");
@@ -464,6 +473,7 @@ fn all_task_modules_declared_in_mod_rs() {
         "gate",
         "lint_fix",
         "publish",
+        "workspace",
     ];
     for module in &expected_modules {
         assert!(

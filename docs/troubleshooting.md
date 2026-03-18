@@ -534,8 +534,10 @@ Ensure documentation meets the required standards.
 Run the relevant linters and fix issues:
 ```bash
 cargo clippy -- -D warnings
-cargo fmt --check
+cargo fmt-check
 ```
+
+On Windows, prefer `cargo fmt-check` over `cargo fmt --all --check`; the full workspace can exceed Cargo's formatter argv budget and fail with `os error 206`.
 
 **4. Adjust thresholds if appropriate**:
 If the default thresholds are too strict for your project, configure custom thresholds in `tokmd.toml`.

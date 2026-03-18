@@ -15,10 +15,13 @@ This file provides guidance to Claude Code when working with code in this reposi
 cargo build                          # Debug build
 cargo build --release                # Release build with LTO
 cargo test --verbose                 # Run all tests
-cargo fmt                            # Format code
+cargo fmt-fix                        # Format code across the workspace
+cargo fmt-check                      # Verify workspace formatting
 cargo clippy -- -D warnings          # Lint with strict warnings
 cargo install --path crates/tokmd    # Local install
 ```
+
+On Windows, prefer `cargo fmt-fix` / `cargo fmt-check` over `cargo fmt --all`; the full workspace can exceed Cargo's formatter argv budget even when long paths are enabled.
 
 ## Architecture
 
