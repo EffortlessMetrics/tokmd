@@ -287,6 +287,7 @@ Minimum requirements for merging:
 6. Fuzz tests (short run, optional)
 
 On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
+For bloated local `target/debug` directories, use `cargo trim-target --check` to inspect reclaimable space and `cargo trim-target` to trim PDB and incremental artifacts.
 
 ### Scheduled Jobs
 

@@ -24,6 +24,8 @@ pub enum Commands {
     Gate(GateArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
+    /// Reclaim target/debug space by trimming Windows PDBs and incremental state
+    TrimTarget(TrimTargetArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -163,6 +165,21 @@ pub struct LintFixArgs {
     /// Skip clippy --fix step
     #[arg(long)]
     pub no_clippy: bool,
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct TrimTargetArgs {
+    /// Report reclaimable target/debug space without deleting files
+    #[arg(long)]
+    pub check: bool,
+
+    /// Keep PDB files
+    #[arg(long)]
+    pub keep_pdb: bool,
+
+    /// Keep incremental compilation directories
+    #[arg(long)]
+    pub keep_incremental: bool,
 }
 
 #[derive(Args, Debug, Clone, Default)]

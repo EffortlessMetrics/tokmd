@@ -17,11 +17,14 @@ cargo build --release                # Release build with LTO
 cargo test --verbose                 # Run all tests
 cargo fmt-fix                        # Format code across the workspace
 cargo fmt-check                      # Verify workspace formatting
+cargo trim-target --check            # Report reclaimable target/debug space
 cargo clippy -- -D warnings          # Lint with strict warnings
 cargo install --path crates/tokmd    # Local install
 ```
 
 On Windows, prefer `cargo fmt-fix` / `cargo fmt-check` over `cargo fmt --all`; the full workspace can exceed Cargo's formatter argv budget even when long paths are enabled.
+Windows MSVC builds in this repo also default to line-table debuginfo to keep `target/debug` from being dominated by full PDBs.
+If you need full local symbols for a debugging session, use `$env:RUSTFLAGS='-C debuginfo=2'; cargo test ...`.
 
 ## Architecture
 

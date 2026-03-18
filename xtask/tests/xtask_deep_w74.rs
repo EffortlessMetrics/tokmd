@@ -473,6 +473,7 @@ fn all_task_modules_declared_in_mod_rs() {
         "gate",
         "lint_fix",
         "publish",
+        "trim_target",
         "workspace",
     ];
     for module in &expected_modules {
@@ -628,6 +629,29 @@ fn lint_fix_help_shows_check_and_no_clippy() {
     assert!(
         stdout.contains("--no-clippy"),
         "lint-fix should have --no-clippy flag"
+    );
+}
+
+#[test]
+fn trim_target_help_shows_trim_flags() {
+    let output = Command::new("cargo")
+        .args(["run", "-q", "-p", "xtask", "--", "trim-target", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("failed to run trim-target --help");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(output.status.success(), "trim-target --help should succeed");
+    assert!(
+        stdout.contains("--check"),
+        "trim-target should have --check flag"
+    );
+    assert!(
+        stdout.contains("--keep-pdb"),
+        "trim-target should have --keep-pdb flag"
+    );
+    assert!(
+        stdout.contains("--keep-incremental"),
+        "trim-target should have --keep-incremental flag"
     );
 }
 

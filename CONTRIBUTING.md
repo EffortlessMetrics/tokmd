@@ -279,6 +279,9 @@ exclude_re = ["impl.*Display", "fn main\\("]
 -   Run `cargo fmt-fix` for a fast, Windows-safe fmt-only fix.
 -   Run `cargo fmt-check` to verify formatting only.
 -   Run `cargo xtask gate --check` to verify the full quality gate locally.
+-   Run `cargo trim-target --check` to inspect reclaimable `target/debug` footprint.
+-   Run `cargo trim-target` to drop Windows PDBs and incremental state from `target/debug` without a full `cargo clean`.
+-   If you need full local symbols on Windows for a debugging session, use `$env:RUSTFLAGS='-C debuginfo=2'; cargo test ...`.
 
 ## Contribution Areas
 

@@ -544,6 +544,51 @@ If the default thresholds are too strict for your project, configure custom thre
 
 ---
 
+## Windows Target Directory Ballooning
+
+**Symptom**:
+`target/debug` grows into tens of gigabytes, often after repeated `cargo test` runs.
+
+**Diagnosis**:
+
+Inspect reclaimable build artifacts:
+```bash
+cargo trim-target --check
+```
+
+Large Windows workspaces often accumulate two categories under `target/debug`:
+
+- MSVC `.pdb` files for each test binary
+- `target/debug/incremental/` directories from repeated local compiles
+
+**Solutions**:
+
+**1. Trim reclaimable build artifacts**:
+```bash
+cargo trim-target
+```
+
+**2. Keep one category if needed**:
+```bash
+cargo trim-target --check --keep-pdb
+cargo trim-target --check --keep-incremental
+```
+
+**3. Prefer repo aliases for quality checks**:
+```bash
+cargo fmt-check
+cargo gate-check
+```
+
+This repo also defaults Windows MSVC builds to line-table debuginfo so future local builds generate much smaller symbol files than full PDB output.
+If you need full local symbols for a debugging session, use:
+```powershell
+$env:RUSTFLAGS='-C debuginfo=2'
+cargo test ...
+```
+
+---
+
 ## Gate Command Issues
 
 ### Policy File Parsing Errors

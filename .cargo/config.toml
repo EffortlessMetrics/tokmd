@@ -9,3 +9,13 @@ xtask = "run -p xtask --"
 fmt-fix = "xtask lint-fix --no-clippy"
 fmt-check = "xtask lint-fix --check --no-clippy"
 gate-check = "xtask gate --check"
+trim-target = "xtask trim-target"
+
+[target.x86_64-pc-windows-msvc]
+# This workspace has enough integration tests that full MSVC PDBs in `cargo
+# test` quickly dominate `target/debug`. Keep line tables for usable backtraces
+# while materially shrinking local artifact growth.
+rustflags = ["-C", "debuginfo=line-tables-only"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "debuginfo=line-tables-only"]
