@@ -15,10 +15,19 @@ This file provides guidance to Claude Code when working with code in this reposi
 cargo build                          # Debug build
 cargo build --release                # Release build with LTO
 cargo test --verbose                 # Run all tests
-cargo fmt                            # Format code
+cargo fmt-fix                        # Format code across the workspace
+cargo fmt-check                      # Verify workspace formatting
+cargo trim-target --check            # Report reclaimable target/debug space
+cargo sccache-check                  # Verify local sccache setup
 cargo clippy -- -D warnings          # Lint with strict warnings
 cargo install --path crates/tokmd    # Local install
 ```
+
+On Windows, prefer `cargo fmt-fix` / `cargo fmt-check` over `cargo fmt --all`; the full workspace can exceed Cargo's formatter argv budget even when long paths are enabled.
+Windows MSVC builds in this repo also default to line-table debuginfo to keep `target/debug` from being dominated by full PDBs.
+If you need full local symbols for a debugging session, use `$env:RUSTFLAGS='-C debuginfo=2'; cargo test ...`.
+For opt-in local build caching, use `cargo with-sccache ...`; the wrapper sets `RUSTC_WRAPPER=sccache` and defaults `CARGO_INCREMENTAL=0` unless you pass `--keep-incremental`.
+For cross-worktree cache reuse, use `cargo xtask sccache --basedir <PATH> -- <cargo args>` so the wrapper can set `SCCACHE_BASEDIRS` explicitly.
 
 ## Architecture
 

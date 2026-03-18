@@ -4,3 +4,22 @@
 [alias]
 # xtask alias for running development tasks
 xtask = "run -p xtask --"
+# Windows-safe workspace formatting aliases. `cargo fmt --all` can exceed the
+# Windows process argument budget in this repo.
+fmt-fix = "xtask lint-fix --no-clippy"
+fmt-check = "xtask lint-fix --check --no-clippy"
+gate-check = "xtask gate --check"
+trim-target = "xtask trim-target"
+with-sccache = "xtask sccache --"
+sccache-check = "xtask sccache --check"
+sccache-stats = "xtask sccache --stats"
+sccache-stop = "xtask sccache --stop"
+
+[target.x86_64-pc-windows-msvc]
+# This workspace has enough integration tests that full MSVC PDBs in `cargo
+# test` quickly dominate `target/debug`. Keep line tables for usable backtraces
+# while materially shrinking local artifact growth.
+rustflags = ["-C", "debuginfo=line-tables-only"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "debuginfo=line-tables-only"]

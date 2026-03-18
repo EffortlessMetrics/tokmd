@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use tokmd_config::{Profile, UserConfig};
 
 #[test]
-fn test_user_config_determinism() {
+fn test_user_config_determinism() -> Result<(), Box<dyn std::error::Error>> {
     let mut profiles = BTreeMap::new();
     // Insert in reverse order to test sorting
     profiles.insert("zebra".to_string(), Profile::default());
@@ -16,15 +16,15 @@ fn test_user_config_determinism() {
 
     let config = UserConfig { profiles, repos };
 
-    let json = serde_json::to_string(&config).expect("failed to serialize");
+    let json = serde_json::to_string(&config)?;
 
     // We expect "alpha" < "beta" < "zebra"
     // Find indices of keys in the JSON string
 
     // Check profiles keys
-    let p_alpha = json.find("\"alpha\":").expect("alpha profile missing");
-    let p_beta = json.find("\"beta\":").expect("beta profile missing");
-    let p_zebra = json.find("\"zebra\":").expect("zebra profile missing");
+    let p_alpha = json.find("\"alpha\":").ok_or("alpha profile missing")?;
+    let p_beta = json.find("\"beta\":").ok_or("beta profile missing")?;
+    let p_zebra = json.find("\"zebra\":").ok_or("zebra profile missing")?;
 
     assert!(
         p_alpha < p_beta,
@@ -40,9 +40,9 @@ fn test_user_config_determinism() {
     );
 
     // Check repos keys
-    let r_alpha = json.find("\"owner/alpha\":").expect("alpha repo missing");
-    let r_beta = json.find("\"owner/beta\":").expect("beta repo missing");
-    let r_zebra = json.find("\"owner/zebra\":").expect("zebra repo missing");
+    let r_alpha = json.find("\"owner/alpha\":").ok_or("alpha repo missing")?;
+    let r_beta = json.find("\"owner/beta\":").ok_or("beta repo missing")?;
+    let r_zebra = json.find("\"owner/zebra\":").ok_or("zebra repo missing")?;
 
     assert!(
         r_alpha < r_beta,
@@ -56,4 +56,5 @@ fn test_user_config_determinism() {
         r_beta,
         r_zebra
     );
+    Ok(())
 }

@@ -279,12 +279,16 @@ fn test_git_analysis() { ... }
 
 Minimum requirements for merging:
 
-1. `cargo fmt --check` - Formatting
+1. `cargo fmt-check` - Formatting
 2. `cargo clippy -- -D warnings` - Linting
 3. `cargo test --all-features` - All tests pass
 4. `cargo insta test` - Snapshots match
 5. Property tests (smoke run)
 6. Fuzz tests (short run, optional)
+
+On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
+For bloated local `target/debug` directories, use `cargo trim-target --check` to inspect reclaimable space and `cargo trim-target` to trim PDB and incremental artifacts.
+For repeated local rebuilds, `cargo with-sccache test --workspace --all-features` enables an opt-in compiler cache wrapper, and `cargo sccache-stats` reports hit rates. For cache reuse across multiple worktrees, use `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
 
 ### Scheduled Jobs
 

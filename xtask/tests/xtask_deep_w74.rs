@@ -324,6 +324,15 @@ fn gate_excludes_tokmd_python() {
 }
 
 #[test]
+fn gate_excludes_xtask_from_compile_only_step() {
+    let src = read_source("xtask/src/tasks/gate.rs");
+    assert!(
+        src.contains("\"xtask\""),
+        "gate compile-only step should exclude xtask to avoid self-rebuild conflicts"
+    );
+}
+
+#[test]
 fn gate_reports_pass_fail_count() {
     // The gate runner should print a summary like "gate result: N/M steps passed".
     let src = read_source("xtask/src/tasks/gate.rs");
@@ -340,6 +349,19 @@ fn gate_check_flag_exists_in_cli() {
     assert!(
         src.contains("pub check: bool") || src.contains("check:"),
         "GateArgs should have a check flag"
+    );
+}
+
+#[test]
+fn gate_runtime_guard_keeps_curated_jules_deps_history() {
+    let src = read_source("xtask/src/tasks/gate.rs");
+    assert!(
+        src.contains("\".jules/runs\""),
+        "gate should treat root .jules/runs as runtime state"
+    );
+    assert!(
+        src.contains("Curated `.jules/deps/**` history is allowed"),
+        "gate should document the curated .jules/deps allowance"
     );
 }
 
@@ -464,6 +486,9 @@ fn all_task_modules_declared_in_mod_rs() {
         "gate",
         "lint_fix",
         "publish",
+        "sccache",
+        "trim_target",
+        "workspace",
     ];
     for module in &expected_modules {
         assert!(
@@ -618,6 +643,74 @@ fn lint_fix_help_shows_check_and_no_clippy() {
     assert!(
         stdout.contains("--no-clippy"),
         "lint-fix should have --no-clippy flag"
+    );
+}
+
+#[test]
+fn trim_target_help_shows_trim_flags() {
+    let output = Command::new("cargo")
+        .args(["run", "-q", "-p", "xtask", "--", "trim-target", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("failed to run trim-target --help");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(output.status.success(), "trim-target --help should succeed");
+    assert!(
+        stdout.contains("--check"),
+        "trim-target should have --check flag"
+    );
+    assert!(
+        stdout.contains("--keep-pdb"),
+        "trim-target should have --keep-pdb flag"
+    );
+    assert!(
+        stdout.contains("--keep-incremental"),
+        "trim-target should have --keep-incremental flag"
+    );
+}
+
+#[test]
+fn sccache_help_shows_wrapper_flags() {
+    let output = Command::new("cargo")
+        .args(["run", "-q", "-p", "xtask", "--", "sccache", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("failed to run sccache --help");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(output.status.success(), "sccache --help should succeed");
+    for flag in &[
+        "--check",
+        "--stats",
+        "--stop",
+        "--keep-incremental",
+        "--basedir",
+    ] {
+        assert!(stdout.contains(flag), "sccache help should mention {flag}");
+    }
+}
+
+#[test]
+fn sccache_task_sets_wrapper_and_incremental_policy() {
+    let src = read_source("xtask/src/tasks/sccache.rs");
+    assert!(
+        src.contains("RUSTC_WRAPPER"),
+        "sccache task should set RUSTC_WRAPPER"
+    );
+    assert!(
+        src.contains("CARGO_INCREMENTAL"),
+        "sccache task should manage incremental policy"
+    );
+    assert!(
+        src.contains("SCCACHE_SERVER_PORT"),
+        "sccache task should isolate the repo-native server port"
+    );
+    assert!(
+        src.contains("SCCACHE_BASEDIRS"),
+        "sccache task should propagate basedir normalization"
+    );
+    assert!(
+        src.contains("cargo with-sccache test"),
+        "sccache check output should document the repo-native opt-in path"
     );
 }
 

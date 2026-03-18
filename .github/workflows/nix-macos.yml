@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "0 6 * * *"
 
+concurrency:
+  group: nix-macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   nix-macos:
     runs-on: macos-latest

@@ -18,8 +18,8 @@ use tokmd_config::{
 // =========================================================================
 
 #[test]
-fn empty_string_produces_default_toml_config() {
-    let cfg = TomlConfig::parse("").unwrap();
+fn empty_string_produces_default_toml_config() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("")?;
     assert!(cfg.scan.paths.is_none());
     assert!(cfg.scan.exclude.is_none());
     assert!(cfg.scan.hidden.is_none());
@@ -62,6 +62,7 @@ fn empty_string_produces_default_toml_config() {
     assert!(cfg.gate.allow_missing_baseline.is_none());
     assert!(cfg.gate.allow_missing_current.is_none());
     assert!(cfg.view.is_empty());
+    Ok(())
 }
 
 // =========================================================================
@@ -69,19 +70,21 @@ fn empty_string_produces_default_toml_config() {
 // =========================================================================
 
 #[test]
-fn minimal_config_single_scan_field() {
-    let cfg = TomlConfig::parse("[scan]\nhidden = true").unwrap();
+fn minimal_config_single_scan_field() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[scan]\nhidden = true")?;
     assert_eq!(cfg.scan.hidden, Some(true));
     // Everything else is None/empty
     assert!(cfg.module.depth.is_none());
     assert!(cfg.view.is_empty());
+    Ok(())
 }
 
 #[test]
-fn minimal_config_single_view_profile() {
-    let cfg = TomlConfig::parse("[view.x]\nformat = \"md\"").unwrap();
+fn minimal_config_single_view_profile() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[view.x]\nformat = \"md\"")?;
     assert_eq!(cfg.view.len(), 1);
     assert_eq!(cfg.view["x"].format.as_deref(), Some("md"));
+    Ok(())
 }
 
 // =========================================================================
@@ -89,7 +92,7 @@ fn minimal_config_single_view_profile() {
 // =========================================================================
 
 #[test]
-fn all_fields_populated_config() {
+fn all_fields_populated_config() -> Result<(), Box<dyn std::error::Error>> {
     let toml_str = r#"
 [scan]
 paths = ["src", "lib"]
@@ -177,7 +180,7 @@ output = "list"
 compress = false
 metric = "lines"
 "#;
-    let cfg = TomlConfig::parse(toml_str).unwrap();
+    let cfg = TomlConfig::parse(toml_str)?;
 
     // Scan
     assert_eq!(cfg.scan.paths, Some(vec!["src".into(), "lib".into()]));
@@ -191,7 +194,7 @@ metric = "lines"
     assert_eq!(cfg.scan.doc_comments, Some(true));
 
     // Module
-    assert_eq!(cfg.module.roots.as_ref().unwrap().len(), 3);
+    assert_eq!(cfg.module.roots.as_ref().ok_or("missing")?.len(), 3);
     assert_eq!(cfg.module.depth, Some(3));
     assert_eq!(cfg.module.children, Some("collapse".into()));
 
@@ -231,15 +234,15 @@ metric = "lines"
     assert_eq!(cfg.gate.fail_fast, Some(true));
     assert_eq!(cfg.gate.allow_missing_baseline, Some(false));
     assert_eq!(cfg.gate.allow_missing_current, Some(true));
-    assert_eq!(cfg.gate.rules.as_ref().unwrap().len(), 1);
-    assert_eq!(cfg.gate.ratchet.as_ref().unwrap().len(), 1);
+    assert_eq!(cfg.gate.rules.as_ref().ok_or("missing")?.len(), 1);
+    assert_eq!(cfg.gate.ratchet.as_ref().ok_or("missing")?.len(), 1);
 
     // View profile
     let vp = &cfg.view["full"];
     assert_eq!(vp.format, Some("json".into()));
     assert_eq!(vp.top, Some(20));
     assert_eq!(vp.files, Some(true));
-    assert_eq!(vp.module_roots.as_ref().unwrap(), &["crates"]);
+    assert_eq!(vp.module_roots.as_ref().ok_or("missing")?, &["crates"]);
     assert_eq!(vp.module_depth, Some(2));
     assert_eq!(vp.min_code, Some(1));
     assert_eq!(vp.max_rows, Some(100));
@@ -254,6 +257,7 @@ metric = "lines"
     assert_eq!(vp.output, Some("list".into()));
     assert_eq!(vp.compress, Some(false));
     assert_eq!(vp.metric, Some("lines".into()));
+    Ok(())
 }
 
 // =========================================================================
@@ -261,11 +265,12 @@ metric = "lines"
 // =========================================================================
 
 #[test]
-fn missing_file_returns_io_error() {
+fn missing_file_returns_io_error() -> Result<(), Box<dyn std::error::Error>> {
     let result = TomlConfig::from_file(std::path::Path::new("/nonexistent/tokmd.toml"));
     assert!(result.is_err());
     let err = result.unwrap_err();
     assert_eq!(err.kind(), std::io::ErrorKind::NotFound);
+    Ok(())
 }
 
 // =========================================================================
@@ -273,45 +278,53 @@ fn missing_file_returns_io_error() {
 // =========================================================================
 
 #[test]
-fn invalid_toml_missing_bracket() {
+fn invalid_toml_missing_bracket() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[scan\nhidden = true").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_duplicate_keys() {
+fn invalid_toml_duplicate_keys() -> Result<(), Box<dyn std::error::Error>> {
     // TOML spec: duplicate keys in the same table are errors
     let result = TomlConfig::parse("[scan]\nhidden = true\nhidden = false");
     assert!(result.is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_wrong_type_bool_for_usize() {
+fn invalid_toml_wrong_type_bool_for_usize() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[module]\ndepth = true").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_wrong_type_string_for_bool() {
+fn invalid_toml_wrong_type_string_for_bool() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[scan]\nhidden = \"yes\"").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_negative_unsigned() {
+fn invalid_toml_negative_unsigned() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[export]\nmin_code = -1").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_float_for_usize() {
+fn invalid_toml_float_for_usize() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[module]\ndepth = 2.5").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_array_for_string() {
+fn invalid_toml_array_for_string() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[context]\nbudget = [\"128k\"]").is_err());
+    Ok(())
 }
 
 #[test]
-fn invalid_toml_string_for_array() {
+fn invalid_toml_string_for_array() -> Result<(), Box<dyn std::error::Error>> {
     assert!(TomlConfig::parse("[module]\nroots = \"crates\"").is_err());
+    Ok(())
 }
 
 // =========================================================================
@@ -319,28 +332,31 @@ fn invalid_toml_string_for_array() {
 // =========================================================================
 
 #[test]
-fn unknown_top_level_key_ignored() {
-    let cfg = TomlConfig::parse("mystery_key = 42\n[scan]\nhidden = true").unwrap();
+fn unknown_top_level_key_ignored() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("mystery_key = 42\n[scan]\nhidden = true")?;
     assert_eq!(cfg.scan.hidden, Some(true));
+    Ok(())
 }
 
 #[test]
-fn unknown_field_inside_section_ignored() {
-    let cfg = TomlConfig::parse("[scan]\nhidden = true\nfuture_flag = 99").unwrap();
+fn unknown_field_inside_section_ignored() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[scan]\nhidden = true\nfuture_flag = 99")?;
     assert_eq!(cfg.scan.hidden, Some(true));
+    Ok(())
 }
 
 #[test]
-fn unknown_section_ignored() {
-    let cfg =
-        TomlConfig::parse("[unknown_section]\nfoo = \"bar\"\n[scan]\nhidden = false").unwrap();
+fn unknown_section_ignored() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[unknown_section]\nfoo = \"bar\"\n[scan]\nhidden = false")?;
     assert_eq!(cfg.scan.hidden, Some(false));
+    Ok(())
 }
 
 #[test]
-fn unknown_field_in_view_profile_ignored() {
-    let cfg = TomlConfig::parse("[view.x]\nformat = \"md\"\nalien = true").unwrap();
+fn unknown_field_in_view_profile_ignored() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[view.x]\nformat = \"md\"\nalien = true")?;
     assert_eq!(cfg.view["x"].format.as_deref(), Some("md"));
+    Ok(())
 }
 
 // =========================================================================
@@ -348,16 +364,17 @@ fn unknown_field_in_view_profile_ignored() {
 // =========================================================================
 
 #[test]
-fn toml_config_json_roundtrip_empty() {
-    let cfg = TomlConfig::parse("").unwrap();
-    let json = serde_json::to_string(&cfg).unwrap();
-    let back: TomlConfig = serde_json::from_str(&json).unwrap();
+fn toml_config_json_roundtrip_empty() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("")?;
+    let json = serde_json::to_string(&cfg)?;
+    let back: TomlConfig = serde_json::from_str(&json)?;
     assert!(back.scan.hidden.is_none());
     assert!(back.view.is_empty());
+    Ok(())
 }
 
 #[test]
-fn toml_config_json_roundtrip_populated() {
+fn toml_config_json_roundtrip_populated() -> Result<(), Box<dyn std::error::Error>> {
     let toml_str = r#"
 [scan]
 hidden = true
@@ -401,9 +418,9 @@ max_increase_pct = 2.5
 format = "tsv"
 top = 7
 "#;
-    let cfg = TomlConfig::parse(toml_str).unwrap();
-    let json = serde_json::to_string_pretty(&cfg).unwrap();
-    let back: TomlConfig = serde_json::from_str(&json).unwrap();
+    let cfg = TomlConfig::parse(toml_str)?;
+    let json = serde_json::to_string_pretty(&cfg)?;
+    let back: TomlConfig = serde_json::from_str(&json)?;
 
     assert_eq!(back.scan.hidden, Some(true));
     assert_eq!(back.scan.exclude, Some(vec!["a".into(), "b".into()]));
@@ -417,10 +434,11 @@ top = 7
     assert_eq!(back.badge.metric, Some("bytes".into()));
     assert_eq!(back.gate.fail_fast, Some(true));
     assert_eq!(back.gate.allow_missing_baseline, Some(true));
-    assert_eq!(back.gate.rules.as_ref().unwrap().len(), 1);
-    assert_eq!(back.gate.rules.as_ref().unwrap()[0].name, "r1");
-    assert_eq!(back.gate.ratchet.as_ref().unwrap().len(), 1);
+    assert_eq!(back.gate.rules.as_ref().ok_or("missing")?.len(), 1);
+    assert_eq!(back.gate.rules.as_ref().ok_or("missing")?[0].name, "r1");
+    assert_eq!(back.gate.ratchet.as_ref().ok_or("missing")?.len(), 1);
     assert_eq!(back.view["v1"].top, Some(7));
+    Ok(())
 }
 
 // =========================================================================
@@ -428,7 +446,7 @@ top = 7
 // =========================================================================
 
 #[test]
-fn toml_serialize_roundtrip() {
+fn toml_serialize_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
@@ -441,15 +459,15 @@ depth = 2
 [view.ci]
 format = "tsv"
 "#,
-    )
-    .unwrap();
+    )?;
 
-    let toml_str = toml::to_string(&cfg).unwrap();
-    let back = TomlConfig::parse(&toml_str).unwrap();
+    let toml_str = toml::to_string(&cfg)?;
+    let back = TomlConfig::parse(&toml_str)?;
     assert_eq!(back.scan.hidden, Some(true));
     assert_eq!(back.scan.exclude, Some(vec!["target".into()]));
     assert_eq!(back.module.depth, Some(2));
     assert_eq!(back.view["ci"].format.as_deref(), Some("tsv"));
+    Ok(())
 }
 
 // =========================================================================
@@ -457,52 +475,57 @@ format = "tsv"
 // =========================================================================
 
 #[test]
-fn export_format_variants_accepted() {
+fn export_format_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for fmt in ["jsonl", "csv", "json", "cyclonedx"] {
         let toml_str = format!("[export]\nformat = \"{}\"", fmt);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.export.format.as_deref(), Some(fmt));
     }
+    Ok(())
 }
 
 #[test]
-fn analyze_format_variants_accepted() {
+fn analyze_format_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for fmt in ["json", "md"] {
         let toml_str = format!("[analyze]\nformat = \"{}\"", fmt);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.analyze.format.as_deref(), Some(fmt));
     }
+    Ok(())
 }
 
 #[test]
-fn context_strategy_variants_accepted() {
+fn context_strategy_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for s in ["greedy", "spread"] {
         let toml_str = format!("[context]\nstrategy = \"{}\"", s);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.context.strategy.as_deref(), Some(s));
     }
+    Ok(())
 }
 
 #[test]
-fn context_rank_by_variants_accepted() {
+fn context_rank_by_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for r in ["code", "tokens", "churn", "hotspot"] {
         let toml_str = format!("[context]\nrank_by = \"{}\"", r);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.context.rank_by.as_deref(), Some(r));
     }
+    Ok(())
 }
 
 #[test]
-fn context_output_variants_accepted() {
+fn context_output_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for o in ["list", "bundle", "json"] {
         let toml_str = format!("[context]\noutput = \"{}\"", o);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.context.output.as_deref(), Some(o));
     }
+    Ok(())
 }
 
 #[test]
-fn analyze_preset_variants_accepted() {
+fn analyze_preset_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for p in [
         "receipt",
         "health",
@@ -517,36 +540,40 @@ fn analyze_preset_variants_accepted() {
         "fun",
     ] {
         let toml_str = format!("[analyze]\npreset = \"{}\"", p);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.analyze.preset.as_deref(), Some(p));
     }
+    Ok(())
 }
 
 #[test]
-fn redact_mode_variants_accepted() {
+fn redact_mode_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for r in ["none", "paths", "all"] {
         let toml_str = format!("[export]\nredact = \"{}\"", r);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.export.redact.as_deref(), Some(r));
     }
+    Ok(())
 }
 
 #[test]
-fn children_mode_variants_accepted() {
+fn children_mode_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for c in ["collapse", "separate"] {
         let toml_str = format!("[module]\nchildren = \"{}\"", c);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.module.children.as_deref(), Some(c));
     }
+    Ok(())
 }
 
 #[test]
-fn granularity_variants_accepted() {
+fn granularity_variants_accepted() -> Result<(), Box<dyn std::error::Error>> {
     for g in ["module", "file"] {
         let toml_str = format!("[analyze]\ngranularity = \"{}\"", g);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.analyze.granularity.as_deref(), Some(g));
     }
+    Ok(())
 }
 
 // =========================================================================
@@ -554,29 +581,30 @@ fn granularity_variants_accepted() {
 // =========================================================================
 
 #[test]
-fn paths_with_forward_slashes() {
+fn paths_with_forward_slashes() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
 paths = ["src/main", "crates/tokmd-config/src"]
 exclude = ["**/target/**", "node_modules/"]
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(
         cfg.scan.paths,
         Some(vec!["src/main".into(), "crates/tokmd-config/src".into()])
     );
-    assert!(cfg.scan.exclude.as_ref().unwrap()[0].contains('/'));
+    assert!(cfg.scan.exclude.as_ref().ok_or("missing")?[0].contains('/'));
+    Ok(())
 }
 
 #[test]
-fn module_roots_with_slashes() {
-    let cfg = TomlConfig::parse("[module]\nroots = [\"src/crates\", \"lib/packages\"]").unwrap();
+fn module_roots_with_slashes() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[module]\nroots = [\"src/crates\", \"lib/packages\"]")?;
     assert_eq!(
         cfg.module.roots,
         Some(vec!["src/crates".into(), "lib/packages".into()])
     );
+    Ok(())
 }
 
 // =========================================================================
@@ -584,7 +612,7 @@ fn module_roots_with_slashes() {
 // =========================================================================
 
 #[test]
-fn gate_rule_value_integer() {
+fn gate_rule_value_integer() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -593,15 +621,15 @@ pointer = "/x"
 op = "gt"
 value = 42
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
-    let v = rules[0].value.as_ref().unwrap();
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
+    let v = rules[0].value.as_ref().ok_or("missing")?;
     assert_eq!(v.as_i64(), Some(42));
+    Ok(())
 }
 
 #[test]
-fn gate_rule_value_float() {
+fn gate_rule_value_float() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -610,15 +638,15 @@ pointer = "/x"
 op = "gt"
 value = 1.23
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
-    let v = rules[0].value.as_ref().unwrap();
-    assert!((v.as_f64().unwrap() - 1.23).abs() < 1e-9);
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
+    let v = rules[0].value.as_ref().ok_or("missing")?;
+    assert!((v.as_f64().ok_or("missing")? - 1.23).abs() < 1e-9);
+    Ok(())
 }
 
 #[test]
-fn gate_rule_value_string() {
+fn gate_rule_value_string() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -627,15 +655,15 @@ pointer = "/lang"
 op = "eq"
 value = "Rust"
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
-    let v = rules[0].value.as_ref().unwrap();
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
+    let v = rules[0].value.as_ref().ok_or("missing")?;
     assert_eq!(v.as_str(), Some("Rust"));
+    Ok(())
 }
 
 #[test]
-fn gate_rule_value_bool() {
+fn gate_rule_value_bool() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -644,15 +672,15 @@ pointer = "/flag"
 op = "eq"
 value = true
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
-    let v = rules[0].value.as_ref().unwrap();
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
+    let v = rules[0].value.as_ref().ok_or("missing")?;
     assert_eq!(v.as_bool(), Some(true));
+    Ok(())
 }
 
 #[test]
-fn gate_rule_values_array_of_strings() {
+fn gate_rule_values_array_of_strings() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -661,17 +689,17 @@ pointer = "/lang"
 op = "in"
 values = ["Rust", "Go", "Python"]
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
-    let vals = rules[0].values.as_ref().unwrap();
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
+    let vals = rules[0].values.as_ref().ok_or("missing")?;
     assert_eq!(vals.len(), 3);
     assert_eq!(vals[0].as_str(), Some("Rust"));
     assert_eq!(vals[2].as_str(), Some("Python"));
+    Ok(())
 }
 
 #[test]
-fn gate_rule_no_value_no_values() {
+fn gate_rule_no_value_no_values() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -679,15 +707,15 @@ name = "bare"
 pointer = "/x"
 op = "exists"
 "#,
-    )
-    .unwrap();
-    let rule = &cfg.gate.rules.unwrap()[0];
+    )?;
+    let rule = &cfg.gate.rules.ok_or("missing rules")?[0];
     assert!(rule.value.is_none());
     assert!(rule.values.is_none());
+    Ok(())
 }
 
 #[test]
-fn gate_rule_negate_default_false() {
+fn gate_rule_negate_default_false() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -696,9 +724,9 @@ pointer = "/x"
 op = "eq"
 value = 1
 "#,
-    )
-    .unwrap();
-    assert!(!cfg.gate.rules.unwrap()[0].negate);
+    )?;
+    assert!(!cfg.gate.rules.ok_or("missing rules")?[0].negate);
+    Ok(())
 }
 
 // =========================================================================
@@ -706,15 +734,17 @@ value = 1
 // =========================================================================
 
 #[test]
-fn analyze_preset_none_when_omitted() {
-    let cfg = TomlConfig::parse("[analyze]\nwindow = 100").unwrap();
+fn analyze_preset_none_when_omitted() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[analyze]\nwindow = 100")?;
     assert!(cfg.analyze.preset.is_none());
+    Ok(())
 }
 
 #[test]
-fn analyze_preset_set_when_provided() {
-    let cfg = TomlConfig::parse("[analyze]\npreset = \"security\"").unwrap();
+fn analyze_preset_set_when_provided() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[analyze]\npreset = \"security\"")?;
     assert_eq!(cfg.analyze.preset, Some("security".into()));
+    Ok(())
 }
 
 // =========================================================================
@@ -722,7 +752,7 @@ fn analyze_preset_set_when_provided() {
 // =========================================================================
 
 #[test]
-fn view_profile_default_all_none() {
+fn view_profile_default_all_none() -> Result<(), Box<dyn std::error::Error>> {
     let vp = ViewProfile::default();
     assert!(vp.format.is_none());
     assert!(vp.top.is_none());
@@ -742,6 +772,7 @@ fn view_profile_default_all_none() {
     assert!(vp.output.is_none());
     assert!(vp.compress.is_none());
     assert!(vp.metric.is_none());
+    Ok(())
 }
 
 // =========================================================================
@@ -749,7 +780,7 @@ fn view_profile_default_all_none() {
 // =========================================================================
 
 #[test]
-fn three_profiles_independent() {
+fn three_profiles_independent() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [view.a]
@@ -763,13 +794,13 @@ top = 99
 [view.c]
 compress = true
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.view.len(), 3);
     assert_eq!(cfg.view["a"].top, Some(1));
     assert_eq!(cfg.view["b"].top, Some(99));
     assert!(cfg.view["c"].top.is_none());
     assert_eq!(cfg.view["c"].compress, Some(true));
+    Ok(())
 }
 
 // =========================================================================
@@ -777,7 +808,7 @@ compress = true
 // =========================================================================
 
 #[test]
-fn view_profiles_sorted_by_name() {
+fn view_profiles_sorted_by_name() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [view.zeta]
@@ -787,10 +818,10 @@ format = "json"
 [view.mid]
 format = "tsv"
 "#,
-    )
-    .unwrap();
+    )?;
     let keys: Vec<&String> = cfg.view.keys().collect();
     assert_eq!(keys, vec!["alpha", "mid", "zeta"]);
+    Ok(())
 }
 
 // =========================================================================
@@ -798,7 +829,7 @@ format = "tsv"
 // =========================================================================
 
 #[test]
-fn zero_values_accepted() {
+fn zero_values_accepted() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [export]
@@ -809,39 +840,41 @@ max_rows = 0
 window = 0
 max_files = 0
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.export.min_code, Some(0));
     assert_eq!(cfg.export.max_rows, Some(0));
     assert_eq!(cfg.analyze.window, Some(0));
     assert_eq!(cfg.analyze.max_files, Some(0));
+    Ok(())
 }
 
 #[test]
-fn large_values_accepted() {
+fn large_values_accepted() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [analyze]
 max_bytes = 9999999999999
 window = 1000000
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.analyze.max_bytes, Some(9_999_999_999_999));
     assert_eq!(cfg.analyze.window, Some(1_000_000));
+    Ok(())
 }
 
 #[test]
-fn empty_arrays_accepted() {
-    let cfg = TomlConfig::parse("[scan]\nexclude = []\npaths = []").unwrap();
+fn empty_arrays_accepted() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[scan]\nexclude = []\npaths = []")?;
     assert_eq!(cfg.scan.exclude, Some(vec![]));
     assert_eq!(cfg.scan.paths, Some(vec![]));
+    Ok(())
 }
 
 #[test]
-fn empty_string_values_accepted() {
-    let cfg = TomlConfig::parse("[context]\nbudget = \"\"").unwrap();
+fn empty_string_values_accepted() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[context]\nbudget = \"\"")?;
     assert_eq!(cfg.context.budget, Some(String::new()));
+    Ok(())
 }
 
 // =========================================================================
@@ -849,7 +882,7 @@ fn empty_string_values_accepted() {
 // =========================================================================
 
 #[test]
-fn toml_comments_ignored() {
+fn toml_comments_ignored() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 # This is a comment
@@ -858,10 +891,10 @@ hidden = true  # inline comment
 # another comment
 exclude = ["target"]
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.scan.hidden, Some(true));
     assert_eq!(cfg.scan.exclude, Some(vec!["target".into()]));
+    Ok(())
 }
 
 // =========================================================================
@@ -869,25 +902,26 @@ exclude = ["target"]
 // =========================================================================
 
 #[test]
-fn unicode_in_paths() {
+fn unicode_in_paths() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
 paths = ["src/日本語", "lib/données"]
 exclude = ["目标/**"]
 "#,
-    )
-    .unwrap();
-    assert_eq!(cfg.scan.paths.as_ref().unwrap()[0], "src/日本語");
-    assert_eq!(cfg.scan.paths.as_ref().unwrap()[1], "lib/données");
-    assert_eq!(cfg.scan.exclude.as_ref().unwrap()[0], "目标/**");
+    )?;
+    assert_eq!(cfg.scan.paths.as_ref().ok_or("missing")?[0], "src/日本語");
+    assert_eq!(cfg.scan.paths.as_ref().ok_or("missing")?[1], "lib/données");
+    assert_eq!(cfg.scan.exclude.as_ref().ok_or("missing")?[0], "目标/**");
+    Ok(())
 }
 
 #[test]
-fn unicode_in_view_profile_name() {
+fn unicode_in_view_profile_name() -> Result<(), Box<dyn std::error::Error>> {
     // TOML requires quoting keys with non-ASCII chars
-    let cfg = TomlConfig::parse("[view.\"über\"]\nformat = \"md\"").unwrap();
+    let cfg = TomlConfig::parse("[view.\"über\"]\nformat = \"md\"")?;
     assert!(cfg.view.contains_key("über"));
+    Ok(())
 }
 
 // =========================================================================
@@ -895,32 +929,35 @@ fn unicode_in_view_profile_name() {
 // =========================================================================
 
 #[test]
-fn from_file_valid_content() {
+fn from_file_valid_content() -> Result<(), Box<dyn std::error::Error>> {
     let content = b"[scan]\nhidden = true\n[module]\ndepth = 4";
-    let mut f = NamedTempFile::new().unwrap();
-    f.write_all(content).unwrap();
+    let mut f = NamedTempFile::new()?;
+    f.write_all(content)?;
 
-    let cfg = TomlConfig::from_file(f.path()).unwrap();
+    let cfg = TomlConfig::from_file(f.path())?;
     assert_eq!(cfg.scan.hidden, Some(true));
     assert_eq!(cfg.module.depth, Some(4));
+    Ok(())
 }
 
 #[test]
-fn from_file_invalid_content_returns_error() {
-    let mut f = NamedTempFile::new().unwrap();
-    f.write_all(b"[broken\nno = good").unwrap();
+fn from_file_invalid_content_returns_error() -> Result<(), Box<dyn std::error::Error>> {
+    let mut f = NamedTempFile::new()?;
+    f.write_all(b"[broken\nno = good")?;
 
     let result = TomlConfig::from_file(f.path());
     assert!(result.is_err());
     assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::InvalidData);
+    Ok(())
 }
 
 #[test]
-fn from_file_empty_file_yields_defaults() {
-    let f = NamedTempFile::new().unwrap();
-    let cfg = TomlConfig::from_file(f.path()).unwrap();
+fn from_file_empty_file_yields_defaults() -> Result<(), Box<dyn std::error::Error>> {
+    let f = NamedTempFile::new()?;
+    let cfg = TomlConfig::from_file(f.path())?;
     assert!(cfg.scan.hidden.is_none());
     assert!(cfg.view.is_empty());
+    Ok(())
 }
 
 // =========================================================================
@@ -928,24 +965,24 @@ fn from_file_empty_file_yields_defaults() {
 // =========================================================================
 
 #[test]
-fn ratchet_rule_minimal_only_pointer() {
+fn ratchet_rule_minimal_only_pointer() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.ratchet]]
 pointer = "/metric"
 "#,
-    )
-    .unwrap();
-    let r = &cfg.gate.ratchet.unwrap()[0];
+    )?;
+    let r = &cfg.gate.ratchet.ok_or("missing ratchet")?[0];
     assert_eq!(r.pointer, "/metric");
     assert!(r.max_increase_pct.is_none());
     assert!(r.max_value.is_none());
     assert!(r.level.is_none());
     assert!(r.description.is_none());
+    Ok(())
 }
 
 #[test]
-fn ratchet_rule_all_fields() {
+fn ratchet_rule_all_fields() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.ratchet]]
@@ -955,14 +992,14 @@ max_value = 200.0
 level = "error"
 description = "Complexity ceiling"
 "#,
-    )
-    .unwrap();
-    let r = &cfg.gate.ratchet.unwrap()[0];
+    )?;
+    let r = &cfg.gate.ratchet.ok_or("missing ratchet")?[0];
     assert_eq!(r.pointer, "/complexity/max");
-    assert!((r.max_increase_pct.unwrap() - 10.5).abs() < 1e-9);
-    assert!((r.max_value.unwrap() - 200.0).abs() < 1e-9);
+    assert!((r.max_increase_pct.ok_or("missing")? - 10.5).abs() < 1e-9);
+    assert!((r.max_value.ok_or("missing")? - 200.0).abs() < 1e-9);
     assert_eq!(r.level, Some("error".into()));
     assert_eq!(r.description, Some("Complexity ceiling".into()));
+    Ok(())
 }
 
 // =========================================================================
@@ -970,7 +1007,7 @@ description = "Complexity ceiling"
 // =========================================================================
 
 #[test]
-fn many_gate_rules_preserved_in_order() {
+fn many_gate_rules_preserved_in_order() -> Result<(), Box<dyn std::error::Error>> {
     let mut toml_str = String::from("[gate]\n");
     for i in 0..10 {
         toml_str.push_str(&format!(
@@ -978,12 +1015,13 @@ fn many_gate_rules_preserved_in_order() {
             i, i, i
         ));
     }
-    let cfg = TomlConfig::parse(&toml_str).unwrap();
-    let rules = cfg.gate.rules.unwrap();
+    let cfg = TomlConfig::parse(&toml_str)?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
     assert_eq!(rules.len(), 10);
     for (i, rule) in rules.iter().enumerate() {
         assert_eq!(rule.name, format!("rule-{}", i));
     }
+    Ok(())
 }
 
 // =========================================================================
@@ -991,14 +1029,15 @@ fn many_gate_rules_preserved_in_order() {
 // =========================================================================
 
 #[test]
-fn user_config_default_empty() {
+fn user_config_default_empty() -> Result<(), Box<dyn std::error::Error>> {
     let uc = UserConfig::default();
     assert!(uc.profiles.is_empty());
     assert!(uc.repos.is_empty());
+    Ok(())
 }
 
 #[test]
-fn user_config_json_roundtrip() {
+fn user_config_json_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     let mut uc = UserConfig::default();
     uc.profiles.insert(
         "ci".into(),
@@ -1017,15 +1056,15 @@ fn user_config_json_roundtrip() {
     );
     uc.repos.insert("org/repo".into(), "ci".into());
 
-    let json = serde_json::to_string(&uc).unwrap();
-    let back: UserConfig = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&uc)?;
+    let back: UserConfig = serde_json::from_str(&json)?;
     assert_eq!(back.profiles.len(), 1);
     assert_eq!(back.repos.len(), 1);
     let p = &back.profiles["ci"];
     assert_eq!(p.format, Some("tsv".into()));
     assert_eq!(p.top, Some(5));
     assert_eq!(p.files, Some(true));
-    assert_eq!(p.module_roots.as_ref().unwrap(), &["crates"]);
+    assert_eq!(p.module_roots.as_ref().ok_or("missing")?, &["crates"]);
     assert_eq!(p.module_depth, Some(2));
     assert_eq!(p.min_code, Some(1));
     assert_eq!(p.max_rows, Some(50));
@@ -1033,6 +1072,7 @@ fn user_config_json_roundtrip() {
     assert_eq!(p.meta, Some(false));
     assert_eq!(p.children, Some("collapse".into()));
     assert_eq!(back.repos["org/repo"], "ci");
+    Ok(())
 }
 
 // =========================================================================
@@ -1040,7 +1080,7 @@ fn user_config_json_roundtrip() {
 // =========================================================================
 
 #[test]
-fn global_args_defaults() {
+fn global_args_defaults() -> Result<(), Box<dyn std::error::Error>> {
     let g = GlobalArgs::default();
     assert!(g.excluded.is_empty());
     assert_eq!(g.config, tokmd_config::ConfigMode::Auto);
@@ -1052,6 +1092,7 @@ fn global_args_defaults() {
     assert!(!g.treat_doc_strings_as_comments);
     assert_eq!(g.verbose, 0);
     assert!(!g.no_progress);
+    Ok(())
 }
 
 // =========================================================================
@@ -1059,7 +1100,7 @@ fn global_args_defaults() {
 // =========================================================================
 
 #[test]
-fn global_args_to_scan_options_all_fields() {
+fn global_args_to_scan_options_all_fields() -> Result<(), Box<dyn std::error::Error>> {
     let g = GlobalArgs {
         excluded: vec!["a".into(), "b".into()],
         config: tokmd_config::ConfigMode::None,
@@ -1081,6 +1122,7 @@ fn global_args_to_scan_options_all_fields() {
     assert!(opts.no_ignore_dot);
     assert!(opts.no_ignore_vcs);
     assert!(opts.treat_doc_strings_as_comments);
+    Ok(())
 }
 
 // =========================================================================
@@ -1088,13 +1130,14 @@ fn global_args_to_scan_options_all_fields() {
 // =========================================================================
 
 #[test]
-fn cli_lang_args_default_all_none() {
+fn cli_lang_args_default_all_none() -> Result<(), Box<dyn std::error::Error>> {
     let a = CliLangArgs::default();
     assert!(a.paths.is_none());
     assert!(a.format.is_none());
     assert!(a.top.is_none());
     assert!(!a.files);
     assert!(a.children.is_none());
+    Ok(())
 }
 
 // =========================================================================
@@ -1102,7 +1145,7 @@ fn cli_lang_args_default_all_none() {
 // =========================================================================
 
 #[test]
-fn enum_defaults() {
+fn enum_defaults() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(DiffFormat::default(), DiffFormat::Md);
     assert_eq!(ColorMode::default(), ColorMode::Auto);
     assert_eq!(ContextStrategy::default(), ContextStrategy::Greedy);
@@ -1114,6 +1157,7 @@ fn enum_defaults() {
     assert_eq!(SensorFormat::default(), SensorFormat::Json);
     assert_eq!(NearDupScope::default(), NearDupScope::Module);
     assert_eq!(DiffRangeMode::default(), DiffRangeMode::TwoDot);
+    Ok(())
 }
 
 // =========================================================================
@@ -1121,146 +1165,98 @@ fn enum_defaults() {
 // =========================================================================
 
 #[test]
-fn analysis_preset_kebab_names() {
+fn analysis_preset_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Receipt).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Receipt)?,
         "\"receipt\""
     );
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Health).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Health)?,
         "\"health\""
     );
+    assert_eq!(serde_json::to_string(&AnalysisPreset::Risk)?, "\"risk\"");
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Risk).unwrap(),
-        "\"risk\""
-    );
-    assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Supply).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Supply)?,
         "\"supply\""
     );
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Architecture).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Architecture)?,
         "\"architecture\""
     );
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Topics).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Topics)?,
         "\"topics\""
     );
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Security).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Security)?,
         "\"security\""
     );
     assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Identity).unwrap(),
+        serde_json::to_string(&AnalysisPreset::Identity)?,
         "\"identity\""
     );
-    assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Git).unwrap(),
-        "\"git\""
-    );
-    assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Deep).unwrap(),
-        "\"deep\""
-    );
-    assert_eq!(
-        serde_json::to_string(&AnalysisPreset::Fun).unwrap(),
-        "\"fun\""
-    );
+    assert_eq!(serde_json::to_string(&AnalysisPreset::Git)?, "\"git\"");
+    assert_eq!(serde_json::to_string(&AnalysisPreset::Deep)?, "\"deep\"");
+    assert_eq!(serde_json::to_string(&AnalysisPreset::Fun)?, "\"fun\"");
+    Ok(())
 }
 
 #[test]
-fn handoff_preset_kebab_names() {
+fn handoff_preset_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(
-        serde_json::to_string(&HandoffPreset::Minimal).unwrap(),
+        serde_json::to_string(&HandoffPreset::Minimal)?,
         "\"minimal\""
     );
     assert_eq!(
-        serde_json::to_string(&HandoffPreset::Standard).unwrap(),
+        serde_json::to_string(&HandoffPreset::Standard)?,
         "\"standard\""
     );
-    assert_eq!(
-        serde_json::to_string(&HandoffPreset::Risk).unwrap(),
-        "\"risk\""
-    );
-    assert_eq!(
-        serde_json::to_string(&HandoffPreset::Deep).unwrap(),
-        "\"deep\""
-    );
+    assert_eq!(serde_json::to_string(&HandoffPreset::Risk)?, "\"risk\"");
+    assert_eq!(serde_json::to_string(&HandoffPreset::Deep)?, "\"deep\"");
+    Ok(())
 }
 
 #[test]
-fn import_granularity_kebab_names() {
+fn import_granularity_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(
-        serde_json::to_string(&ImportGranularity::Module).unwrap(),
+        serde_json::to_string(&ImportGranularity::Module)?,
         "\"module\""
     );
-    assert_eq!(
-        serde_json::to_string(&ImportGranularity::File).unwrap(),
-        "\"file\""
-    );
+    assert_eq!(serde_json::to_string(&ImportGranularity::File)?, "\"file\"");
+    Ok(())
 }
 
 #[test]
-fn badge_metric_kebab_names() {
-    assert_eq!(
-        serde_json::to_string(&BadgeMetric::Lines).unwrap(),
-        "\"lines\""
-    );
-    assert_eq!(
-        serde_json::to_string(&BadgeMetric::Tokens).unwrap(),
-        "\"tokens\""
-    );
-    assert_eq!(
-        serde_json::to_string(&BadgeMetric::Bytes).unwrap(),
-        "\"bytes\""
-    );
-    assert_eq!(serde_json::to_string(&BadgeMetric::Doc).unwrap(), "\"doc\"");
-    assert_eq!(
-        serde_json::to_string(&BadgeMetric::Blank).unwrap(),
-        "\"blank\""
-    );
-    assert_eq!(
-        serde_json::to_string(&BadgeMetric::Hotspot).unwrap(),
-        "\"hotspot\""
-    );
+fn badge_metric_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(serde_json::to_string(&BadgeMetric::Lines)?, "\"lines\"");
+    assert_eq!(serde_json::to_string(&BadgeMetric::Tokens)?, "\"tokens\"");
+    assert_eq!(serde_json::to_string(&BadgeMetric::Bytes)?, "\"bytes\"");
+    assert_eq!(serde_json::to_string(&BadgeMetric::Doc)?, "\"doc\"");
+    assert_eq!(serde_json::to_string(&BadgeMetric::Blank)?, "\"blank\"");
+    assert_eq!(serde_json::to_string(&BadgeMetric::Hotspot)?, "\"hotspot\"");
+    Ok(())
 }
 
 #[test]
-fn init_profile_kebab_names() {
-    assert_eq!(
-        serde_json::to_string(&InitProfile::Default).unwrap(),
-        "\"default\""
-    );
-    assert_eq!(
-        serde_json::to_string(&InitProfile::Rust).unwrap(),
-        "\"rust\""
-    );
-    assert_eq!(
-        serde_json::to_string(&InitProfile::Node).unwrap(),
-        "\"node\""
-    );
-    assert_eq!(
-        serde_json::to_string(&InitProfile::Mono).unwrap(),
-        "\"mono\""
-    );
-    assert_eq!(
-        serde_json::to_string(&InitProfile::Python).unwrap(),
-        "\"python\""
-    );
-    assert_eq!(serde_json::to_string(&InitProfile::Go).unwrap(), "\"go\"");
-    assert_eq!(serde_json::to_string(&InitProfile::Cpp).unwrap(), "\"cpp\"");
+fn init_profile_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(serde_json::to_string(&InitProfile::Default)?, "\"default\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Rust)?, "\"rust\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Node)?, "\"node\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Mono)?, "\"mono\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Python)?, "\"python\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Go)?, "\"go\"");
+    assert_eq!(serde_json::to_string(&InitProfile::Cpp)?, "\"cpp\"");
+    Ok(())
 }
 
 #[test]
-fn shell_kebab_names() {
-    assert_eq!(serde_json::to_string(&Shell::Bash).unwrap(), "\"bash\"");
-    assert_eq!(serde_json::to_string(&Shell::Fish).unwrap(), "\"fish\"");
-    assert_eq!(serde_json::to_string(&Shell::Zsh).unwrap(), "\"zsh\"");
-    assert_eq!(
-        serde_json::to_string(&Shell::Powershell).unwrap(),
-        "\"powershell\""
-    );
-    assert_eq!(serde_json::to_string(&Shell::Elvish).unwrap(), "\"elvish\"");
+fn shell_kebab_names() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(serde_json::to_string(&Shell::Bash)?, "\"bash\"");
+    assert_eq!(serde_json::to_string(&Shell::Fish)?, "\"fish\"");
+    assert_eq!(serde_json::to_string(&Shell::Zsh)?, "\"zsh\"");
+    assert_eq!(serde_json::to_string(&Shell::Powershell)?, "\"powershell\"");
+    assert_eq!(serde_json::to_string(&Shell::Elvish)?, "\"elvish\"");
+    Ok(())
 }
 
 // =========================================================================
@@ -1268,7 +1264,7 @@ fn shell_kebab_names() {
 // =========================================================================
 
 #[test]
-fn all_analysis_presets_roundtrip() {
+fn all_analysis_presets_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     for v in [
         AnalysisPreset::Receipt,
         AnalysisPreset::Health,
@@ -1282,24 +1278,26 @@ fn all_analysis_presets_roundtrip() {
         AnalysisPreset::Deep,
         AnalysisPreset::Fun,
     ] {
-        let json = serde_json::to_string(&v).unwrap();
-        let back: AnalysisPreset = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&v)?;
+        let back: AnalysisPreset = serde_json::from_str(&json)?;
         assert_eq!(v, back);
     }
+    Ok(())
 }
 
 #[test]
-fn all_export_formats_roundtrip() {
+fn all_export_formats_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     for v in [
         ExportFormat::Jsonl,
         ExportFormat::Csv,
         ExportFormat::Json,
         ExportFormat::Cyclonedx,
     ] {
-        let json = serde_json::to_string(&v).unwrap();
-        let back: ExportFormat = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&v)?;
+        let back: ExportFormat = serde_json::from_str(&json)?;
         assert_eq!(v, back);
     }
+    Ok(())
 }
 
 // =========================================================================
@@ -1307,10 +1305,11 @@ fn all_export_formats_roundtrip() {
 // =========================================================================
 
 #[test]
-fn dotted_key_syntax() {
-    let cfg = TomlConfig::parse("scan.hidden = true\nmodule.depth = 5").unwrap();
+fn dotted_key_syntax() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("scan.hidden = true\nmodule.depth = 5")?;
     assert_eq!(cfg.scan.hidden, Some(true));
     assert_eq!(cfg.module.depth, Some(5));
+    Ok(())
 }
 
 // =========================================================================
@@ -1318,7 +1317,7 @@ fn dotted_key_syntax() {
 // =========================================================================
 
 #[test]
-fn multiline_array_syntax() {
+fn multiline_array_syntax() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
@@ -1328,12 +1327,12 @@ exclude = [
     "dist",
 ]
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(
         cfg.scan.exclude,
         Some(vec!["target".into(), "node_modules".into(), "dist".into()])
     );
+    Ok(())
 }
 
 // =========================================================================
@@ -1341,7 +1340,7 @@ exclude = [
 // =========================================================================
 
 #[test]
-fn gate_only_config() {
+fn gate_only_config() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [gate]
@@ -1350,14 +1349,14 @@ fail_fast = false
 allow_missing_baseline = true
 allow_missing_current = false
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.gate.policy, Some("strict.toml".into()));
     assert_eq!(cfg.gate.fail_fast, Some(false));
     assert_eq!(cfg.gate.allow_missing_baseline, Some(true));
     assert_eq!(cfg.gate.allow_missing_current, Some(false));
     // Other sections default
     assert!(cfg.scan.hidden.is_none());
+    Ok(())
 }
 
 // =========================================================================
@@ -1365,10 +1364,11 @@ allow_missing_current = false
 // =========================================================================
 
 #[test]
-fn whitespace_only_toml_yields_defaults() {
-    let cfg = TomlConfig::parse("   \n  \n\t\n").unwrap();
+fn whitespace_only_toml_yields_defaults() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("   \n  \n\t\n")?;
     assert!(cfg.scan.hidden.is_none());
     assert!(cfg.view.is_empty());
+    Ok(())
 }
 
 // =========================================================================
@@ -1376,7 +1376,7 @@ fn whitespace_only_toml_yields_defaults() {
 // =========================================================================
 
 #[test]
-fn explicit_false_stored_as_some_false() {
+fn explicit_false_stored_as_some_false() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
@@ -1390,13 +1390,13 @@ allow_missing_baseline = false
 [context]
 compress = false
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.scan.hidden, Some(false));
     assert_eq!(cfg.scan.no_ignore, Some(false));
     assert_eq!(cfg.gate.fail_fast, Some(false));
     assert_eq!(cfg.gate.allow_missing_baseline, Some(false));
     assert_eq!(cfg.context.compress, Some(false));
+    Ok(())
 }
 
 // =========================================================================
@@ -1404,12 +1404,13 @@ compress = false
 // =========================================================================
 
 #[test]
-fn scan_config_field_accepts_strings() {
+fn scan_config_field_accepts_strings() -> Result<(), Box<dyn std::error::Error>> {
     for val in ["auto", "none"] {
         let toml_str = format!("[scan]\nconfig = \"{}\"", val);
-        let cfg = TomlConfig::parse(&toml_str).unwrap();
+        let cfg = TomlConfig::parse(&toml_str)?;
         assert_eq!(cfg.scan.config, Some(val.to_string()));
     }
+    Ok(())
 }
 
 // =========================================================================
@@ -1417,7 +1418,7 @@ fn scan_config_field_accepts_strings() {
 // =========================================================================
 
 #[test]
-fn gate_rules_mixed_value_types_in_same_config() {
+fn gate_rules_mixed_value_types_in_same_config() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [[gate.rules]]
@@ -1438,13 +1439,13 @@ pointer = "/c"
 op = "eq"
 value = false
 "#,
-    )
-    .unwrap();
-    let rules = cfg.gate.rules.unwrap();
+    )?;
+    let rules = cfg.gate.rules.ok_or("missing rules")?;
     assert_eq!(rules.len(), 3);
-    assert!(rules[0].value.as_ref().unwrap().is_i64());
-    assert!(rules[1].value.as_ref().unwrap().is_string());
-    assert!(rules[2].value.as_ref().unwrap().is_boolean());
+    assert!(rules[0].value.as_ref().ok_or("missing")?.is_i64());
+    assert!(rules[1].value.as_ref().ok_or("missing")?.is_string());
+    assert!(rules[2].value.as_ref().ok_or("missing")?.is_boolean());
+    Ok(())
 }
 
 // =========================================================================
@@ -1452,7 +1453,7 @@ value = false
 // =========================================================================
 
 #[test]
-fn multiple_sections_coexist() {
+fn multiple_sections_coexist() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = TomlConfig::parse(
         r#"
 [scan]
@@ -1472,13 +1473,13 @@ pointer = "/x"
 op = "lt"
 value = 50
 "#,
-    )
-    .unwrap();
+    )?;
     assert_eq!(cfg.scan.hidden, Some(true));
     assert_eq!(cfg.analyze.preset, Some("health".into()));
     assert_eq!(cfg.analyze.git, Some(false));
     assert_eq!(cfg.gate.fail_fast, Some(true));
-    assert_eq!(cfg.gate.rules.unwrap().len(), 1);
+    assert_eq!(cfg.gate.rules.ok_or("missing rules")?.len(), 1);
+    Ok(())
 }
 
 // =========================================================================
@@ -1486,19 +1487,22 @@ value = 50
 // =========================================================================
 
 #[test]
-fn analyze_git_true() {
-    let cfg = TomlConfig::parse("[analyze]\ngit = true").unwrap();
+fn analyze_git_true() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[analyze]\ngit = true")?;
     assert_eq!(cfg.analyze.git, Some(true));
+    Ok(())
 }
 
 #[test]
-fn analyze_git_false() {
-    let cfg = TomlConfig::parse("[analyze]\ngit = false").unwrap();
+fn analyze_git_false() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[analyze]\ngit = false")?;
     assert_eq!(cfg.analyze.git, Some(false));
+    Ok(())
 }
 
 #[test]
-fn analyze_git_omitted() {
-    let cfg = TomlConfig::parse("[analyze]\npreset = \"receipt\"").unwrap();
+fn analyze_git_omitted() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = TomlConfig::parse("[analyze]\npreset = \"receipt\"")?;
     assert!(cfg.analyze.git.is_none());
+    Ok(())
 }

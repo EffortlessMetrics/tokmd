@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
@@ -21,6 +25,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.92
+      - uses: Swatinem/rust-cache@v2
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
 
@@ -41,8 +46,13 @@ jobs:
       if: runner.os == 'Linux'
       run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
-    - name: Build
-      run: cargo build --all-features --verbose
+    - uses: Swatinem/rust-cache@v2
+      if: runner.os == 'Linux'
+      with:
+        cache-directories: ${{ runner.temp }}/target
+
+    - uses: Swatinem/rust-cache@v2
+      if: runner.os != 'Linux'
 
     - name: Run tests
       run: cargo test --all-features --verbose
@@ -60,12 +70,7 @@ jobs:
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Use larger writable target dir on Linux
-      if: runner.os == 'Linux'
-      run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
-
-    - name: Build
-      run: cargo build --all-features --verbose
+    - uses: Swatinem/rust-cache@v2
 
     - name: Run tests
       run: cargo test --all-features --verbose
@@ -78,6 +83,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: ${{ runner.temp }}/target
 
       - name: tokmd-analysis with all features
         run: cargo test -p tokmd-analysis --all-features --verbose
@@ -104,6 +112,8 @@ jobs:
       - name: Use larger writable target dir on Linux
         if: runner.os == 'Linux'
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
+
+      - uses: Swatinem/rust-cache@v2
 
       - name: Run quality gate
         run: cargo xtask gate --check
@@ -134,6 +144,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Run property tests (reduced iterations)
         run: |
           PROPTEST_CASES=50 cargo test -p tokmd-model --test properties --all-features --verbose
@@ -148,6 +159,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Verify publish plan
         run: cargo xtask publish --plan --verbose
         env:
@@ -159,6 +171,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Check documentation drift
         run: cargo xtask docs --check
         env:

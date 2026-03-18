@@ -1,23 +1,16 @@
 use crate::cli::LintFixArgs;
+use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
 use std::process::Command;
 
 pub fn run(args: LintFixArgs) -> Result<()> {
     // Step 1: fmt
     if args.check {
-        println!("[1/2] cargo fmt --all -- --check");
-        let status = Command::new("cargo")
-            .args(["fmt", "--all", "--", "--check"])
-            .status()?;
-        if !status.success() {
-            bail!("fmt check failed");
-        }
+        println!("[1/2] cargo fmt --check");
+        run_workspace_fmt(true).map_err(|error| anyhow::anyhow!("fmt check failed: {error:#}"))?;
     } else {
-        println!("[1/{}] cargo fmt --all", if args.no_clippy { 1 } else { 3 });
-        let status = Command::new("cargo").args(["fmt", "--all"]).status()?;
-        if !status.success() {
-            bail!("fmt failed");
-        }
+        println!("[1/{}] cargo fmt", if args.no_clippy { 1 } else { 3 });
+        run_workspace_fmt(false).map_err(|error| anyhow::anyhow!("fmt failed: {error:#}"))?;
     }
 
     if args.no_clippy {

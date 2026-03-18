@@ -65,14 +65,14 @@ expression: md
 
 ### Review Plan
 
-- **src/mega.rs** (priority: 1)
-  - Reason: 600 lines changed
-  - Complexity: 5
-  - Lines changed: 600
 - **src/another_big.rs** (priority: 1)
   - Reason: 550 lines changed
   - Complexity: 5
   - Lines changed: 550
+- **src/mega.rs** (priority: 1)
+  - Reason: 600 lines changed
+  - Complexity: 5
+  - Lines changed: 600
 - **src/small.rs** (priority: 3)
   - Reason: 12 lines changed
   - Complexity: 1
