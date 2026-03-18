@@ -102,7 +102,11 @@ pub fn build_duplicate_report(
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let normalized = normalize_path(&row.path, root);
         path_to_module.insert(normalized, row.module.clone());
-        *module_bytes.entry(row.module.clone()).or_insert(0) += row.bytes as u64;
+        if let Some(val) = module_bytes.get_mut(&row.module) {
+            *val += row.bytes as u64;
+        } else {
+            module_bytes.insert(row.module.clone(), row.bytes as u64);
+        }
     }
 
     let mut groups: Vec<DuplicateGroup> = Vec::new();
@@ -141,14 +145,30 @@ pub fn build_duplicate_report(
                     .get(file)
                     .cloned()
                     .unwrap_or_else(|| "(unknown)".to_string());
-                *module_duplicate_files.entry(module.clone()).or_insert(0) += 1;
-                *module_duplicated_bytes.entry(module.clone()).or_insert(0) += size;
+                if let Some(val) = module_duplicate_files.get_mut(&module) {
+                    *val += 1;
+                } else {
+                    module_duplicate_files.insert(module.clone(), 1);
+                }
+                if let Some(val) = module_duplicated_bytes.get_mut(&module) {
+                    *val += size;
+                } else {
+                    module_duplicated_bytes.insert(module.clone(), size);
+                }
                 duplicate_files += 1;
                 duplicated_bytes += size;
 
                 if idx > 0 {
-                    *module_wasted_files.entry(module.clone()).or_insert(0) += 1;
-                    *module_wasted_bytes.entry(module).or_insert(0) += size;
+                    if let Some(val) = module_wasted_files.get_mut(&module) {
+                        *val += 1;
+                    } else {
+                        module_wasted_files.insert(module.clone(), 1);
+                    }
+                    if let Some(val) = module_wasted_bytes.get_mut(&module) {
+                        *val += size;
+                    } else {
+                        module_wasted_bytes.insert(module.clone(), size);
+                    }
                 }
             }
 
