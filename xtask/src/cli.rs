@@ -24,6 +24,8 @@ pub enum Commands {
     Gate(GateArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
+    /// Run Cargo through an opt-in local sccache wrapper
+    Sccache(SccacheArgs),
     /// Reclaim target/debug space by trimming Windows PDBs and incremental state
     TrimTarget(TrimTargetArgs),
 }
@@ -180,6 +182,33 @@ pub struct TrimTargetArgs {
     /// Keep incremental compilation directories
     #[arg(long)]
     pub keep_incremental: bool,
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct SccacheArgs {
+    /// Verify that sccache is installed and print the repo-native entry points
+    #[arg(long)]
+    pub check: bool,
+
+    /// Show sccache cache statistics
+    #[arg(long)]
+    pub stats: bool,
+
+    /// Stop the local sccache server
+    #[arg(long)]
+    pub stop: bool,
+
+    /// Preserve the caller's incremental setting instead of defaulting to 0
+    #[arg(long)]
+    pub keep_incremental: bool,
+
+    /// Normalize paths under this base dir for cross-worktree cache reuse
+    #[arg(long = "basedir", value_name = "PATH")]
+    pub basedirs: Vec<std::path::PathBuf>,
+
+    /// Cargo subcommand and arguments to run under sccache
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    pub cargo_args: Vec<String>,
 }
 
 #[derive(Args, Debug, Clone, Default)]

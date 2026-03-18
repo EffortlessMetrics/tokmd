@@ -473,6 +473,7 @@ fn all_task_modules_declared_in_mod_rs() {
         "gate",
         "lint_fix",
         "publish",
+        "sccache",
         "trim_target",
         "workspace",
     ];
@@ -652,6 +653,51 @@ fn trim_target_help_shows_trim_flags() {
     assert!(
         stdout.contains("--keep-incremental"),
         "trim-target should have --keep-incremental flag"
+    );
+}
+
+#[test]
+fn sccache_help_shows_wrapper_flags() {
+    let output = Command::new("cargo")
+        .args(["run", "-q", "-p", "xtask", "--", "sccache", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("failed to run sccache --help");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(output.status.success(), "sccache --help should succeed");
+    for flag in &[
+        "--check",
+        "--stats",
+        "--stop",
+        "--keep-incremental",
+        "--basedir",
+    ] {
+        assert!(stdout.contains(flag), "sccache help should mention {flag}");
+    }
+}
+
+#[test]
+fn sccache_task_sets_wrapper_and_incremental_policy() {
+    let src = read_source("xtask/src/tasks/sccache.rs");
+    assert!(
+        src.contains("RUSTC_WRAPPER"),
+        "sccache task should set RUSTC_WRAPPER"
+    );
+    assert!(
+        src.contains("CARGO_INCREMENTAL"),
+        "sccache task should manage incremental policy"
+    );
+    assert!(
+        src.contains("SCCACHE_SERVER_PORT"),
+        "sccache task should isolate the repo-native server port"
+    );
+    assert!(
+        src.contains("SCCACHE_BASEDIRS"),
+        "sccache task should propagate basedir normalization"
+    );
+    assert!(
+        src.contains("cargo with-sccache test"),
+        "sccache check output should document the repo-native opt-in path"
     );
 }
 

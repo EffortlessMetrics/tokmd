@@ -17,6 +17,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
         Some(cli::Commands::LintFix(args)) => tasks::lint_fix::run(args),
+        Some(cli::Commands::Sccache(args)) => tasks::sccache::run(args),
         Some(cli::Commands::TrimTarget(args)) => tasks::trim_target::run(args),
         None => tasks::publish::run(PublishArgs::default()),
     }

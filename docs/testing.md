@@ -288,6 +288,7 @@ Minimum requirements for merging:
 
 On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
 For bloated local `target/debug` directories, use `cargo trim-target --check` to inspect reclaimable space and `cargo trim-target` to trim PDB and incremental artifacts.
+For repeated local rebuilds, `cargo with-sccache test --workspace --all-features` enables an opt-in compiler cache wrapper, and `cargo sccache-stats` reports hit rates. For cache reuse across multiple worktrees, use `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
 
 ### Scheduled Jobs
 

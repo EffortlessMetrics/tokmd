@@ -589,6 +589,51 @@ cargo test ...
 
 ---
 
+## Optional Local sccache
+
+**Symptom**:
+Repeated local rebuilds still spend too much time recompiling the same crates.
+
+**Diagnosis**:
+
+Verify that `sccache` is installed and the repo-native wrapper is available:
+```bash
+cargo sccache-check
+```
+
+**Solutions**:
+
+**1. Run Cargo through the opt-in wrapper**:
+```bash
+cargo with-sccache test --workspace --all-features
+```
+
+**2. Inspect hit rates**:
+```bash
+cargo sccache-stats
+```
+
+**3. Stop the local server when you are done**:
+```bash
+cargo sccache-stop
+```
+
+The wrapper sets `RUSTC_WRAPPER=sccache` and defaults `CARGO_INCREMENTAL=0` because incrementally compiled Rust crates do not produce sccache hits. If you prefer to preserve your current incremental setting, use:
+```bash
+cargo xtask sccache --keep-incremental -- test --workspace --all-features
+```
+
+If you want cache reuse across multiple worktrees or checkout roots, use:
+```bash
+cargo xtask sccache --basedir <PATH> -- test --workspace --all-features
+```
+
+The repo-native wrapper also picks a deterministic per-workspace `SCCACHE_SERVER_PORT` so it does not collide with another local `sccache` server already using the default `127.0.0.1:4226`. If you need a different port, set `SCCACHE_SERVER_PORT` explicitly before running the wrapper.
+
+Expect the biggest wins on repeated library and dependency compiles; final binary and test-binary link steps still run uncached.
+
+---
+
 ## Gate Command Issues
 
 ### Policy File Parsing Errors

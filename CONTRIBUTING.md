@@ -28,6 +28,29 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
     cargo build
     ```
 
+### Optional Local Compiler Cache
+
+For repeated local rebuilds, `sccache` is supported as an opt-in wrapper rather than a repo default.
+
+1.  **Install sccache**:
+    ```bash
+    winget install Mozilla.sccache
+    # or
+    cargo install sccache --locked
+    ```
+2.  **Verify setup**:
+    ```bash
+    cargo sccache-check
+    ```
+3.  **Run Cargo through the wrapper**:
+    ```bash
+    cargo with-sccache test --workspace --all-features
+    cargo sccache-stats
+    ```
+
+The wrapper sets `RUSTC_WRAPPER=sccache` and defaults `CARGO_INCREMENTAL=0` because incrementally compiled Rust crates do not produce sccache hits. Pass `cargo xtask sccache --keep-incremental -- test ...` if you want to preserve your current incremental setting.
+If you want cache hits across multiple worktrees or checkout roots, use `cargo xtask sccache --basedir <PATH> -- test ...` so the wrapper sets `SCCACHE_BASEDIRS` explicitly.
+
 ### Local Hooks
 
 Enable the project's git hooks for automated lint-fix and quality gating:
@@ -282,6 +305,11 @@ exclude_re = ["impl.*Display", "fn main\\("]
 -   Run `cargo trim-target --check` to inspect reclaimable `target/debug` footprint.
 -   Run `cargo trim-target` to drop Windows PDBs and incremental state from `target/debug` without a full `cargo clean`.
 -   If you need full local symbols on Windows for a debugging session, use `$env:RUSTFLAGS='-C debuginfo=2'; cargo test ...`.
+-   Run `cargo sccache-check` to verify the optional local compiler cache.
+-   Run `cargo with-sccache test --workspace --all-features` for cache-friendly local rebuilds.
+-   The repo-native `sccache` wrapper uses a deterministic per-workspace `SCCACHE_SERVER_PORT`; set `SCCACHE_SERVER_PORT` yourself if you need to override it.
+-   For cross-worktree cache reuse, run `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
+-   Expect the biggest `sccache` wins on repeated library and dependency compiles; final binary and test-binary link steps still run uncached.
 
 ## Contribution Areas
 

@@ -5,5 +5,6 @@ pub mod docs;
 pub mod gate;
 pub mod lint_fix;
 pub mod publish;
+pub mod sccache;
 pub mod trim_target;
 pub mod workspace;
