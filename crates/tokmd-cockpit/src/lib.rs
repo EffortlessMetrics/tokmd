@@ -2083,7 +2083,11 @@ pub fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> 
         });
     }
 
-    items.sort_by_key(|i| i.priority);
+    items.sort_by(|a, b| {
+        a.priority
+            .cmp(&b.priority)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     items
 }
 

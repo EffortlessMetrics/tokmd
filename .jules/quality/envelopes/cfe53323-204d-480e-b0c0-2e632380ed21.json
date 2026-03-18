@@ -1,0 +1,8 @@
+{
+  "uuid": "cfe53323-204d-480e-b0c0-2e632380ed21",
+  "persona": "Gatekeeper",
+  "target": "crates/tokmd-cockpit/src/lib.rs",
+  "lane": "scout discovery",
+  "issue": "Review items sorting is non-deterministic, since it only sorted by priority, which can have multiple matching elements. Using `sort_by` resolving priority then path fixes it.",
+  "receipts": []
+}
