@@ -2133,3 +2133,7 @@ mod tests {
         assert_eq!(receipt.report.total.code, 1000);
     }
 }
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+pub mod readme_doctests {}

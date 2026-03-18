@@ -16,16 +16,48 @@ tokmd-format = "1.3"
 ## Usage
 
 ```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
+use std::path::PathBuf;
 use tokmd_format::{print_lang_report, scan_args, normalize_scan_input};
+use tokmd_settings::ScanOptions;
+use tokmd_types::{ChildrenMode, LangArgs, LangReport, RedactMode, TableFormat, Totals};
+
+// Create dummy data
+let report = LangReport {
+    with_files: true,
+    top: 10,
+    children: ChildrenMode::Separate,
+    total: Totals {
+        code: 0,
+        lines: 0,
+        files: 0,
+        bytes: 0,
+        tokens: 0,
+        avg_lines: 0,
+    },
+    rows: vec![],
+};
+let global_args = ScanOptions::default();
+let lang_args = LangArgs {
+    paths: vec![PathBuf::from(".")],
+    format: TableFormat::Md,
+    top: 10,
+    files: true,
+    children: ChildrenMode::Separate,
+};
 
 // Print language report to stdout
 print_lang_report(&report, &global_args, &lang_args)?;
 
 // Build ScanArgs with optional redaction
-let args = scan_args(&paths, &global, Some(RedactMode::Paths));
+let paths = vec![PathBuf::from("src")];
+let args = scan_args(&paths, &global_args, Some(RedactMode::Paths));
 
 // Normalize path for cross-platform consistency
-let normalized = normalize_scan_input(&path);
+let normalized = normalize_scan_input(std::path::Path::new("src/lib.rs"));
+assert_eq!(normalized, "src/lib.rs");
+# Ok(())
+# }
 ```
 
 ## Supported Formats
@@ -66,7 +98,7 @@ let normalized = normalize_scan_input(&path);
 
 ## Re-exports
 
-```rust
+```rust,ignore
 pub use tokmd_redact::{redact_path, short_hash};
 ```
 
