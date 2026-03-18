@@ -1,0 +1,9 @@
+[
+  {
+    "date": "2026-03-18T12:36:38Z",
+    "lane": "scout",
+    "target": "reduce unnecessary clone in map lookups",
+    "proof_method": "structural proof",
+    "gates": "PASS"
+  }
+]
