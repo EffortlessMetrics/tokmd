@@ -71,6 +71,7 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".claude/transcripts",
     ".claude/runtime",
     ".jules/worktrees",
+    // Root `.jules/runs/` is runtime state; curated `.jules/deps/**` history is allowed.
     ".jules/runs",
     ".jules/cache",
     ".jules/transcripts",

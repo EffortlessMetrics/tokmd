@@ -11,7 +11,7 @@
 ## NEXT (short horizon)
 
 - **Main CI boringness**: confirm the cleaned workflow shape stays green on normal pushes.
-- **Agent boundary cleanup**: keep `.claude/` and `.jules/` as checked-in adapter surfaces; keep only runtime state out of git.
+- **Agent boundary cleanup**: keep `.claude/` and `.jules/` as checked-in adapter surfaces; keep only runtime state out of git. Root `.jules/runs/` stays untracked, while curated `.jules/deps/**` history stays checked in.
 - **Low-blast-radius devex**: continue small workflow, docs, and compat fixes that reduce false red and review noise.
 - **Release discipline**: keep release work paused until `main` is boring again.
 
