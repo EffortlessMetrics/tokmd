@@ -426,6 +426,7 @@ fn compute_diff_coverage_gate(
     // 3. Parse LCOV into a lookup map: file -> line -> hit_count
     let mut lcov_data: BTreeMap<String, BTreeMap<usize, usize>> = BTreeMap::new();
     let mut current_file: Option<String> = None;
+    let mut current_lines = BTreeMap::new();
 
     for line in content.lines() {
         if let Some(sf) = line.strip_prefix("SF:") {
@@ -441,21 +442,27 @@ fn compute_diff_coverage_gate(
             } else {
                 path
             };
-            current_file = Some(normalized.clone());
-            lcov_data.entry(normalized).or_default();
+            current_file = Some(normalized);
+            current_lines.clear();
         } else if let Some(da) = line.strip_prefix("DA:") {
-            if let Some(ref file) = current_file {
+            if current_file.is_some() {
                 let parts: Vec<&str> = da.splitn(2, ',').collect();
                 if parts.len() == 2
                     && let (Ok(line_no), Ok(count)) =
                         (parts[0].parse::<usize>(), parts[1].parse::<usize>())
-                    && let Some(entry) = lcov_data.get_mut(file.as_str())
                 {
-                    entry.insert(line_no, count);
+                    current_lines.insert(line_no, count);
                 }
             }
-        } else if line == "end_of_record" {
-            current_file = None;
+        } else if line == "end_of_record"
+            && let Some(file) = current_file.take()
+        {
+            let lines = std::mem::take(&mut current_lines);
+            if let Some(entry) = lcov_data.get_mut(&file) {
+                entry.extend(lines);
+            } else {
+                lcov_data.insert(file, lines);
+            }
         }
     }
 
