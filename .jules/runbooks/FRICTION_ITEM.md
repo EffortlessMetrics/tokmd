@@ -1,9 +1,13 @@
 # Friction Item
 
 ## Pain
+...
 
 ## Evidence
+...
 
-## Done When
+## Done-when
+...
 
 ## Tags
+...

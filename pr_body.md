@@ -3,58 +3,74 @@
 Make review boring. Make truth cheap.
 
 ## 💡 Summary
-Removed raw `unwrap()` calls in `xtask` tasks `bump.rs` and `publish.rs`, replacing them with context-aware error handling or informative `.expect()` in tests. This burns down panic-candidates and hardens the build tooling against unchecked errors.
+Removed all panicking assertions (`unwrap`, `unwrap_err`) from tests in `tokmd-ffi-envelope` (specifically `deep_w69.rs` and `schema_compliance_w53.rs`) in alignment with the full-quality stance goal.
 
 ## 🎯 Why / Threat model
-Raw unwraps in build/publish scripts can lead to opaque panics when operating on unexpected package states or network responses (like rate limiting). This reduces the risk of undocumented build failures and brings `xtask` closer to zero-panic correctness.
+Tests using `unwrap()` or `unwrap_err()` lead to ungraceful test thread panics rather than cleanly formatted test failures when assertions aren't met. Moving to proper error propagation via `Result` allows for better diagnostics and aligns the codebase with strict security/quality hygiene.
 
 ## 🔎 Finding (evidence)
-Observed raw `.unwrap()` calls in:
-- `xtask/src/tasks/publish.rs` (on workspace package lookups and RFC2822 timestamps)
-- `xtask/src/tasks/bump.rs` (across version parsing tests)
-
-Command demonstrating unwraps:
-`rg -n "\bunwrap\(\)|\bexpect\(" xtask/src/ | grep -v 'unwrap_or'`
+Observed multiple panics when reviewing:
+- `crates/tokmd-ffi-envelope/tests/schema_compliance_w53.rs`
+- `crates/tokmd-ffi-envelope/tests/deep_w69.rs`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Replace unwraps with `Result` handling in library code, and `.expect("...")` with descriptive messages in tests.
-- Why it fits this repo: Strongly typed error handling is preferred. It safely burns down panics without losing context.
-- Trade-offs: Requires a slight change in structure (e.g. `ok_or_else()`), but no loss of velocity or governance.
+- **What it is:** Refactor test signatures to return `Result<(), Box<dyn std::error::Error>>`, replacing `.unwrap()` with `?` and `.unwrap_err()` with explicit match blocks.
+- **Why it fits this repo:** Moves test failure handling from thread panics to structured `Result`-based error propagation, aligning with Rust best practices and the Sentinel full quality stance.
+- **Trade-offs:** Slightly longer test signatures. More robust failures.
 
 ### Option B
-- What it is: Bulk replace `unwrap()` with `unwrap_or_default()`.
-- When to choose it instead: If the value truly doesn't matter and default is safe.
-- Trade-offs: Masks errors, making tests/builds falsely succeed on bad state.
+- **What it is:** Change `unwrap()` calls to `expect("clear error message")`.
+- **When to choose it instead:** When the type does not easily convert to a standard `Error`, or changing the test signature is problematic.
+- **Trade-offs:** Better error messages than unwrap, but still panics.
 
 ## ✅ Decision
-Option A. It preserves correctness and fits the repo's strong validation norms while cleanly addressing the panic backlog.
+**Option A**. Replacing `unwrap` with `?` is the preferred way to burn down panics and enforce rigorous test hygiene.
 
 ## 🧱 Changes made (SRP)
-- `xtask/src/tasks/publish.rs`: Replaced `.unwrap()` on package lookup with `.ok_or_else()`, and timestamp unwrap with `.expect()`.
-- `xtask/src/tasks/bump.rs`: Replaced `.unwrap()` in tests with `.expect()` containing descriptive messages.
+- `crates/tokmd-ffi-envelope/tests/schema_compliance_w53.rs`: Changed test signatures to `Result`, replaced `unwrap`/`unwrap_err`.
+- `crates/tokmd-ffi-envelope/tests/deep_w69.rs`: Changed test signatures to `Result`, replaced `unwrap`/`unwrap_err`, and correctly handled `proptest!` assertions without panicking.
 
 ## 🧪 Verification receipts
-- `cargo build --verbose` (PASS: Finished dev profile)
-- `CI=true cargo test --verbose -p xtask` (PASS: test result: ok)
-- `cargo fmt -- --check` (PASS: Applied fixes successfully)
-- `cargo clippy -- -D warnings` (PASS: Finished dev profile)
+```json
+{
+  "run_id": "7d38742b-eaf2-40e8-a354-555e60692bca",
+  "timestamp_utc": "2026-03-19T12:19:19Z",
+  "lane": "scout",
+  "target": "crates/tokmd-ffi-envelope/tests",
+  "commands": [],
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-ffi-envelope --verbose",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-ffi-envelope -- -D warnings",
+      "status": "PASS"
+    }
+  ]
+}
+```
 
 ## 🧭 Telemetry
-- Change shape: Moderate source change, tight scope.
-- Blast radius: Internal CLI/build.
-- Risk class: Low (primarily refactoring tests and local tools).
-- Rollback: Safe to revert.
-- Merge-confidence gates: `build`, `test`, `fmt`, `clippy`
+- Change shape: Moderate refactoring of test suite signatures.
+- Blast radius: Highly contained (only touches test files).
+- Risk class: Low risk. Does not modify application logic.
+- Rollback: Revert the PR.
+- Merge-confidence gates: `cargo build`, `cargo test -p tokmd-ffi-envelope`, `cargo clippy -p tokmd-ffi-envelope`
 
 ## 🗂️ .jules updates
-- Created baseline policies/templates in `.jules/`.
-- Updated `.jules/security/envelopes/run-01.json` with execution plan and receipts.
-- Appended run entry to `.jules/security/ledger.json`.
-- Created `.jules/security/runs/YYYY-MM-DD.md` log.
+- Created run envelope `.jules/security/envelopes/7d38742b-eaf2-40e8-a354-555e60692bca.json`
+- Created run log `.jules/security/runs/2026-03-19.md`
+- Appended run outcome to `.jules/security/ledger.json`
+- Created `.jules/policy/scheduled_tasks.json` and `.jules/runbooks/PR_GLASS_COCKPIT.md` as they were missing.
 
 ## 📝 Notes (freeform)
-This run successfully removed remaining unwraps (excluding `unwrap_or/unwrap_or_default` logic) in the core `xtask/src` directory.
+Refactoring `proptest!` blocks required using `prop_assert!` instead of `?` to avoid signature mismatch issues inside the macro expansion.
 
 ## 🔜 Follow-ups
-None at this time for this specific path.
+None.
