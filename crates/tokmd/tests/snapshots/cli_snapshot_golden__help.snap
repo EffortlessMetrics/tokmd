@@ -40,10 +40,10 @@ Options:
           [aliases: --ignore]
 
       --config <MODE>
-          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+          Whether to load discovered `tokmd.toml` configuration
 
           Possible values:
-          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - auto: Read discovered `tokmd.toml` configuration if present (plus legacy user `config.json`)
           - none: Ignore config files
           
           [default: auto]

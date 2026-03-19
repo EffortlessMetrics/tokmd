@@ -69,7 +69,7 @@ pub struct GlobalArgs {
     )]
     pub excluded: Vec<String>,
 
-    /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
+    /// Whether to load discovered `tokmd.toml` configuration.
     #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto)]
     pub config: ConfigMode,
 
