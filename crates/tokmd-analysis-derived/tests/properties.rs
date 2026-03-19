@@ -2,6 +2,7 @@
 
 use proptest::prelude::*;
 use tokmd_analysis_derived::derive_report;
+use tokmd_math::round_f64;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -91,10 +92,16 @@ proptest! {
 
     #[test]
     fn cocomo_effort_and_duration_positive(rows in arb_file_rows()) {
+        let total_code: usize = rows.iter().map(|r| r.code).sum();
         let report = derive_report(&export(rows), None);
         if let Some(cocomo) = &report.cocomo {
+            let expected_effort_pm = round_f64(2.4 * (total_code as f64 / 1000.0).powf(1.05), 2);
             prop_assert!(cocomo.kloc >= 0.0, "kloc must be non-negative");
-            prop_assert!(cocomo.effort_pm > 0.0, "effort must be positive for non-zero code");
+            if expected_effort_pm == 0.0 {
+                prop_assert_eq!(cocomo.effort_pm, 0.0, "tiny non-zero code can round effort down to 0.00");
+            } else {
+                prop_assert!(cocomo.effort_pm > 0.0, "effort must be positive once the rounded public value is above 0.00");
+            }
             prop_assert!(cocomo.duration_months > 0.0, "duration must be positive");
             prop_assert!(cocomo.staff > 0.0, "staff must be positive");
         }
