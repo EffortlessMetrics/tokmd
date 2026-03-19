@@ -1032,9 +1032,7 @@ fn run_pre_publish_checks(args: &PublishArgs, workspace_version: &str) -> Result
             test_command.args(["--exclude", "xtask"]);
         }
 
-        let test_status = test_command
-            .status()
-            .context("Failed to run tests")?;
+        let test_status = test_command.status().context("Failed to run tests")?;
 
         if !test_status.success() {
             bail!("Tests failed");
