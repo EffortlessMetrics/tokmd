@@ -1147,17 +1147,30 @@ impl ComplexityHistogram {
     /// # Returns
     /// A multi-line string with labeled bars showing distribution
     pub fn to_ascii(&self, width: usize) -> String {
+        use std::fmt::Write;
         let max_count = self.counts.iter().max().copied().unwrap_or(1).max(1);
-        let mut output = String::new();
+        let mut output = String::with_capacity(self.counts.len() * (width + 20));
         for (i, count) in self.counts.iter().enumerate() {
-            let label = if i < self.buckets.len() - 1 {
-                format!("{:>2}-{:<2}", self.buckets[i], self.buckets[i + 1] - 1)
+            if i < self.buckets.len() - 1 {
+                let _ = write!(
+                    output,
+                    "{:>2}-{:<2} |",
+                    self.buckets[i],
+                    self.buckets[i + 1] - 1
+                );
             } else {
-                format!("{:>2}+ ", self.buckets.get(i).copied().unwrap_or(30))
-            };
+                let _ = write!(
+                    output,
+                    "{:>2}+  |",
+                    self.buckets.get(i).copied().unwrap_or(30)
+                );
+            }
+
             let bar_len = (*count as f64 / max_count as f64 * width as f64) as usize;
-            let bar = "\u{2588}".repeat(bar_len);
-            output.push_str(&format!("{} |{} {}\n", label, bar, count));
+            for _ in 0..bar_len {
+                output.push('\u{2588}');
+            }
+            let _ = writeln!(output, " {}", count);
         }
         output
     }
