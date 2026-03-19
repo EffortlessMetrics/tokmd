@@ -521,7 +521,7 @@ pub fn select_files_with_options(
 
     let mut spine_files: Vec<ContextFileRow> = Vec::new();
     let mut spine_used = 0;
-    let mut spine_paths: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut spine_paths: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
 
     let mut spine_candidates: Vec<&FileRow> = parents
         .iter()
@@ -533,7 +533,7 @@ pub fn select_files_with_options(
     for row in spine_candidates {
         if spine_used + row.tokens <= spine_budget {
             spine_used += row.tokens;
-            spine_paths.insert(row.path.clone());
+            spine_paths.insert(row.path.as_str());
             spine_files.push(to_context_row_with_reason(
                 row,
                 effective_metric,
@@ -547,7 +547,7 @@ pub fn select_files_with_options(
     let remaining_budget = budget.saturating_sub(spine_used);
     let non_spine_rows: Vec<FileRow> = pack_rows
         .iter()
-        .filter(|r| !spine_paths.contains(&r.path))
+        .filter(|r| !spine_paths.contains(&r.path.as_str()))
         .cloned()
         .collect();
 
