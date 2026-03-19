@@ -1031,7 +1031,7 @@ tokmd completions powershell >> $PROFILE
 
 `tokmd` supports a `tokmd.toml` configuration file for persistent settings.
 
-This application config is separate from the top-level `--config <MODE>` flag. `--config` only controls scan-layer `tokei.toml` / `.tokeirc` loading; `tokmd.toml` discovery follows the precedence chain below.
+This application config is separate from the global `--config <MODE>` flag. `--config` only controls scan-layer `tokei.toml` / `.tokeirc` loading; `tokmd.toml` discovery follows the precedence chain below.
 
 ### File Location Precedence
 
