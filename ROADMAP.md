@@ -28,11 +28,11 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.6.0** | ✅ Complete | Halstead metrics, maintainability index, sensor envelope, cockpit overhaul. |
 | **v1.6.3** | ✅ Complete | UX polish: colored diff, progress indicators, --explain flag.    |
 | **v1.7.0** | ✅ Complete | Near-duplicate detection, commit intent, token estimation renames. |
-| **v1.7.1** | ✅ Complete | Focused microcrate extraction (40+ crates), AnalysisFormat to Tier 0. |
-| **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, CI fixes. |
-| **v1.7.x** | ✅ Complete | Deep test expansion: 21,884+ total tests, 56/56 crates with tests/, CI stabilized, Quality Gate fix, sensor determinism, io-port crate. |
-| **v1.8.0** | 🔭 Planned  | WASM-ready core: host ports + in-memory scan + WASM CI builds |
-| **v1.9.0** | 🔭 Planned  | WASM distribution + browser runner: zipball ingestion + receipts in-browser |
+| **v1.7.1** | ✅ Complete | Focused microcrate extraction, FFI-envelope reuse, and sharper tier boundaries. |
+| **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, and CI fixes. |
+| **v1.7.x** | ✅ Complete | Deep test expansion across the workspace, sensor determinism, and the first `tokmd-io-port` seam. |
+| **v1.8.0** | ✅ Complete | Effort estimation, estimate preset/reporting, `tokmd-io-port` seam work, and release/devex hardening. |
+| **v1.9.0** | 🔭 Planned  | Finish WASM-ready core + browser runner: in-memory scan, wasm CI, zipball ingestion |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 | **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
@@ -106,7 +106,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: Focused crates for modularity (16 initial crates; grown to 40+ by v1.7.1)
+- [x] **Microcrate Architecture**: Focused crates for modularity (16 initial crates; now 58 crate members in the workspace by `1.8.0`)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
@@ -403,7 +403,7 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Moved `AnalysisFormat` to `tokmd-types` (Tier 0) for broader reuse
 - [x] Extracted 15 focused microcrates from monolithic modules
 - [x] Analysis schema version: 7 → 8
-- [x] Total crate count: 56 (up from 16 initial crates in v1.2.0)
+- [x] Workspace graph continued to expand beyond the original 16-crate v1.2.0 layout and now sits at 58 crate members in `1.8.0`
 - [x] Fixed clippy/lint across all new crates for strict `--all-targets` check coverage
 - [x] Updated CI/tooling for release and publish readiness
 
@@ -411,17 +411,15 @@ UX work is explicitly **incremental and non-breaking**:
 
 ## Completed: v1.7.x — Deep Test Coverage Expansion
 
-**Goal**: Achieve comprehensive test coverage across all 56 crates with multiple testing strategies at every tier.
+**Goal**: Achieve broad, multi-strategy test coverage across the workspace without breaking deterministic or release-facing surfaces.
 
 ### Test Numbers
 
-| Metric             | Value       |
-| :----------------- | :---------- |
-| Total tests        | **11,991+** |
-| Crates with `tests/` | **55/56** |
-| `proptest!` blocks | **250+**    |
-| Fuzz targets       | **19**      |
-| Crates with property tests | **14+** |
+| Metric | Current framing |
+| :----- | :-------------- |
+| Test depth | Expanded across unit, integration, snapshot, deep, property, fuzz, and mutation layers |
+| Workspace reach | Coverage spread across essentially the full crate graph, including CLI and binding-facing seams |
+| Determinism focus | Receipt stability, schema contracts, and cross-crate invariants locked in by dedicated suites |
 
 ### Coverage by Tier
 
@@ -432,7 +430,7 @@ UX work is explicitly **incremental and non-breaking**:
 | 2 | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
 | 3 | All `tokmd-analysis-*` microcrates, `tokmd-gate`, `tokmd-fun` | BDD scenarios, enricher contract verification, deep proptests |
 | 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-ffi-envelope` | FFI workflow integration, JSON API round-trip tests |
-| 5 | `tokmd` CLI | E2E tests for all major subcommands |
+| 5 | `tokmd` CLI | E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`, `sensor`, and `baseline` |
 
 ### What Landed (36+ PRs first wave, 16 PRs second wave)
 
@@ -442,7 +440,7 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Error handling coverage for edge cases and malformed inputs
 - [x] Snapshot tests (`insta`) for all format renderers (Markdown, TSV, JSON, HTML)
 - [x] Deep analysis crate tests: complexity, halstead, near-dup, topics, entropy, license, archetype, fingerprint, API surface
-- [x] CLI E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`
+- [x] CLI E2E tests for the core scan, analysis, review, sensor, and LLM-bundle commands
 - [x] FFI and workflow integration tests in `tokmd-core`
 - [x] Property tests expanded across 14+ crates with `proptest`
 - [x] 3 new fuzz targets (import parser, export tree, policy TOML)
@@ -459,36 +457,40 @@ UX work is explicitly **incremental and non-breaking**:
 
 ---
 
-## Planned: v1.8.0 — WASM-Ready Core
+## Completed: v1.8.0 — Effort Estimation & Release Hardening
 
-**Goal:** Make the tokmd engine compile for `wasm32-unknown-unknown` and run against an in-memory repo substrate, producing deterministic receipts that match native output for the same file set (within defined limits).
+**Goal:** Expand `tokmd analyze` with first-class effort estimation while hardening the repo-native operator surface for CI, Windows, and release prep.
+
+### What landed
+
+- [x] **Effort estimation engine**: new `tokmd-analysis-effort` crate with COCOMO 81, COCOMO II, and Monte Carlo scaffolding.
+- [x] **Estimate preset and receipt/report support**: effort outputs now flow through analysis receipts and Markdown renderers.
+- [x] **Preset grid expansion**: the analysis surface now exposes 12 presets, with `estimate` joining a stronger `receipt` baseline.
+- [x] **Schema evolution**: analysis schema advanced to v9 to carry effort estimation data.
+- [x] **WASM seam foundation**: `tokmd-io-port` landed with `ReadFs`, `HostFs`, and `MemFs` as the host-abstracted file access boundary.
+- [x] **Windows-safe repo-native quality path**: repo-native fmt and publish flows avoid Windows `xtask.exe` self-lock and `cargo fmt --all` pain.
+- [x] **Build-footprint reduction**: `cargo trim-target`, leaner Windows debug info defaults, and opt-in `sccache` support reduce local rebuild churn.
+- [x] **CI/release boringness**: workflow concurrency, smarter Rust caching, Node 24 Nix canary, and a clean tag-driven `1.8.0` release through GitHub Actions.
+
+### Notes
+
+- The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
+
+## Planned: v1.9.0 — Finish WASM-Ready Core + Browser Runner
+
+**Goal:** Complete the in-memory/WASM execution path and provide a browser-first runner that can generate deterministic receipts locally from a fetched repo archive.
 
 ### Work items
 
-- Host abstraction (IO ports): enumerate files, read bytes, clock, optional logging/progress. Native uses FS; WASM uses an in-memory substrate provided by the host.
-- In-memory scan pipeline: add a scan path that accepts `Vec<(path, bytes)>` instead of filesystem `PathBuf`s so scans can run entirely from memory.
-- CLI/Clap separation hardening: ensure library surface does not depend on `clap` or OS-bound types; keep clap in the CLI crate only.
-- WASM feature profile: add a `wasm` (or `web`) feature that disables OS-bound pieces (`git`, `dirs`, `std::process`) and enables in-memory I/O.
-- WASM CI builds: add `cargo build --target wasm32-unknown-unknown` to CI and optionally `wasm32-wasi` for other runtimes.
-- Conformance tests: golden tests that verify native and wasm-engine outputs match (schema + deterministic ordering).
-
-### Notes & constraints
-
-- Scope limitation: git-history enrichers (hotspots/churn) are unavailable in the browser WASM mode and must be surfaced as "unavailable" in capability reporting.
-- No `std::process` in WASM mode; any shelling out must be feature-gated or moved behind a host capability.
-- Determinism: when scanning from an unordered JS file list, sort paths up front and avoid non-deterministic map iteration.
-
-## Planned: v1.9.0 — WASM Distribution + Browser Runner
-
-**Goal:** Provide a browser-first experience where a user can paste a GitHub repo URL into a web page, the page fetches an archive, runs tokmd in WASM locally, and returns deterministic receipts, markdown, and downloadable artifacts without any server-side computation.
-
-### Work items
-
-- `tokmd-wasm` crate: a dedicated crate exposing a JS-friendly API (via `wasm-bindgen`): `run_lang`, `run_module`, `run_export`, `run_analyze` that accept in-memory file inputs.
-- Browser runner (static app): minimal web UI (repo URL + ref + Run), run scans in a Web Worker, stream progress, and support cancel.
-- Zipball ingestion: fetch `https://api.github.com/repos/{owner}/{repo}/zipball/{ref}` (public or with token), unzip in-browser, filter files (skip vendor/binary by default), and feed `(path, bytes)` to wasm.
-- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, use ETag/If-None-Match, enforce hard limits (max archive size, max file count, max bytes read).
-- Capability reporting: outputs include a capabilities section describing what ran and what was unavailable (e.g., git metrics).
+- Wire `tokmd-io-port` through scan and walk paths so scans can run entirely from a host-provided in-memory substrate.
+- Add an in-memory scan pipeline that accepts ordered `(path, bytes)` inputs and preserves deterministic output.
+- Keep CLI/Clap separation hard so lower-tier library crates stay free of OS-bound argument types.
+- Add a `wasm`/`web` feature profile and CI builds for `wasm32-unknown-unknown`, plus conformance tests against native output.
+- `tokmd-wasm` crate: expose JS-friendly APIs (via `wasm-bindgen`) for `run_lang`, `run_module`, `run_export`, and `run_analyze`.
+- Browser runner (static app): minimal web UI (repo URL + ref + Run), Web Worker execution, progress updates, cancel, and artifact download.
+- Zipball ingestion: fetch `https://api.github.com/repos/{owner}/{repo}/zipball/{ref}`, unzip in-browser, filter files, and feed `(path, bytes)` to wasm.
+- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits for archive size, file count, and bytes read.
+- Capability reporting: outputs include a capabilities section describing what ran and what was unavailable (for example, git-history metrics).
 - Packaging & distribution: publish the WASM bundle as a pinned artifact (GitHub release / npm) for the web app to consume.
 
 ### Non-goals for v1.9

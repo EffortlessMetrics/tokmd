@@ -15,7 +15,7 @@ tokmd follows a tiered microcrate architecture with strict dependency rules.
 
 ```
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
-                       tokmd-envelope, tokmd-substrate
+                       tokmd-envelope, tokmd-substrate, tokmd-io-port
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-module-key, tokmd-path, tokmd-exclude,
                        tokmd-context-policy, tokmd-math, tokmd-redact, tokmd-scan-args,
@@ -24,10 +24,15 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-module-key, tokmd-path, to
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
                        tokmd-context-git, tokmd-badge, tokmd-progress, tokmd-export-tree
          ↓
-Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-format, tokmd-analysis-archetype,
-                       tokmd-analysis-topics, tokmd-analysis-fingerprint, tokmd-analysis-explain,
-                       tokmd-analysis-html, tokmd-analysis-imports, tokmd-analysis-maintainability,
-                       tokmd-fun, tokmd-gate
+Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysis-archetype,
+                       tokmd-analysis-assets, tokmd-analysis-complexity, tokmd-analysis-content,
+                       tokmd-analysis-derived, tokmd-analysis-effort, tokmd-analysis-entropy,
+                       tokmd-analysis-explain, tokmd-analysis-fingerprint, tokmd-analysis-format,
+                       tokmd-analysis-fun, tokmd-analysis-git, tokmd-analysis-grid,
+                       tokmd-analysis-halstead, tokmd-analysis-html, tokmd-analysis-imports,
+                       tokmd-analysis-license, tokmd-analysis-maintainability,
+                       tokmd-analysis-near-dup, tokmd-analysis-topics, tokmd-analysis-util,
+                       tokmd-cockpit, tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-config, tokmd-core, tokmd-ffi-envelope, tokmd-tool-schema
          ↓
@@ -43,10 +48,12 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-settings` | Clap-free settings types (`ScanOptions`, `LangSettings`, etc.) | `serde`, `tokmd-types` |
 | `tokmd-envelope` | Cross-fleet `SensorReport` contract (`Verdict`, `Finding`, `GateResults`) | `serde`, `serde_json` |
 | `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
+| `tokmd-io-port` | Host-abstracted file access contracts (`ReadFs`, `HostFs`, `MemFs`) | `std` only |
 
 **Schema Versions** (separate per family):
 - Core receipts: `SCHEMA_VERSION = 2` (lang, module, export, diff, run)
 - Context receipts: `CONTEXT_SCHEMA_VERSION = 4`
+- Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`
 - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
 - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 9`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
@@ -92,11 +99,13 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
 | `tokmd-analysis-imports` | Language-aware import parsing + normalization |
 | `tokmd-analysis-derived` | Core derived metrics (density, COCOMO) |
+| `tokmd-analysis-effort` | Effort-estimation engine (COCOMO, delta support, Monte Carlo scaffolding) |
 | `tokmd-analysis-entropy` | High-entropy file detection |
 | `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
 | `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
+| `tokmd-analysis-fun` | Analysis-side novelty enrichment wiring |
 | `tokmd-analysis-git` | Git history analysis adapters |
 | `tokmd-analysis-grid` | Preset/feature matrix metadata |
 | `tokmd-analysis-halstead` | Halstead metrics |
@@ -105,6 +114,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd-analysis-near-dup` | Near-duplicate detection |
 | `tokmd-analysis-topics` | Topic-cloud extraction adapter |
 | `tokmd-analysis-util` | Shared analysis utilities |
+| `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 
@@ -112,7 +122,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-config` | CLI parsing (clap) + configuration loading |
+| `tokmd-config` | Clap-backed CLI/config types plus configuration loading |
 | `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings |
 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
 | `tokmd-core` | Library facade with FFI layer |
@@ -147,16 +157,15 @@ Filesystem → tokmd-walk → tokmd-scan (tokei) → tokmd-model → tokmd-forma
 ### Flow B: Analysis (analyze/cockpit)
 
 ```
-Receipt → tokmd-analysis → Enrichers → tokmd-analysis-format → Output
-              ↓
-    ┌───────────────┴────────────────────┐
-    ↓                                  ↓
-Optional:                          Core:
-- tokmd-git            - identity fingerprint, git risk metrics
-- tokmd-content        - topics enrichment adapter
-- tokmd-walk           - scan-adjacent enrichers (assets/dependency reports, entropy/license)
-- tokmd-analysis-fingerprint
-- tokmd-analysis-archetype
+Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-format → Output
+                                ↓
+                 ┌──────────────┴─────────────────────────────┐
+                 ↓                                            ↓
+        Core enrichers                                  Optional adapters
+        - tokmd-analysis-derived                        - tokmd-git / tokmd-analysis-git
+        - tokmd-analysis-complexity                     - tokmd-content / tokmd-analysis-content
+        - tokmd-analysis-api-surface                    - tokmd-walk / tokmd-analysis-assets
+        - tokmd-analysis-effort                         - tokmd-analysis-license / entropy / topics
 ```
 
 ### Flow C: Sensor Integration (tokmd-sensor)
@@ -211,27 +220,25 @@ tokmd guarantees byte-stable output for identical inputs:
 
 ```toml
 [features]
-git = ["tokmd-git", "tokmd-context-git/git"]      # Git history analysis + context git scores
-content = ["tokmd-content"]  # File content scanning
-walk = ["tokmd-walk"]    # Filesystem traversal
-topics = ["tokmd-analysis-topics"] # Topic extraction
-archetype = ["tokmd-analysis-archetype"] # Repository archetype detection
-fun = ["tokmd-analysis-fun"] # Eco-label and novelty helpers
-ui = ["dialoguer", "indicatif"]  # Interactive CLI
+git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git", "tokmd-context-git/git"]
+walk = ["tokmd-analysis/walk"]
+content = ["tokmd-analysis/content"]
+fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
+topics = ["tokmd-analysis/topics"]
+archetype = ["tokmd-analysis/archetype"]
+ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
 ```
 
 ## Publishing Matrix
 
-### Published to crates.io
-- `tokmd` (binary)
-- `tokmd-types`, `tokmd-analysis-types` (contracts)
-- Core crates as stable
+### crates.io publish lane
+- Rust crates ship in lockstep from the workspace version.
+- `tokmd`, `tokmd-core`, contract crates, and most library crates publish through `cargo xtask publish`.
 
-### Workspace-only (publish = false)
-- `tokmd-python` (published to PyPI via maturin)
-- `tokmd-node` (published to npm via napi-rs)
-- Clap-facing argument models
-- UI affordances
+### Non-crates.io products
+- `tokmd-python` ships to PyPI via maturin.
+- `tokmd-node` ships to npm via napi-rs.
+- `fuzz/` and `xtask/` stay workspace-only support surfaces.
 
 ## Sensor Integration Architecture
 
@@ -242,6 +249,7 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 
 | Crate | Role |
 |-------|------|
+| `tokmd-io-port` | Host-side file access seam used to keep future in-memory/WASM paths honest |
 | `tokmd-substrate` | Shared scan context (files, languages, diff range) — built once |
 | `tokmd-envelope` | Standardized report contract (`sensor.report.v1`) |
 | `tokmd-settings` | Clap-free settings for library/FFI consumers |
@@ -254,31 +262,30 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
 4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation
 
-## WASM & Browser Runner (v1.8.0 — v1.9.0)
+## WASM & Browser Runner (post-1.8.0 horizon)
 
-### v1.8.0 — WASM-Ready Core
+### Foundation Landed in v1.8.0
 
-Goal: Make the tokmd engine compile for `wasm32-unknown-unknown` and run against an in-memory repo substrate so the same deterministic receipts can be produced from an in-memory file set.
+`1.8.0` did not finish the full browser/WASM milestone, but it did land the core seam work needed to keep that path real:
+
+- `tokmd-io-port` introduces host-abstracted file access with `HostFs`, `ReadFs`, and `MemFs`.
+- Feature-stability tests keep lower tiers honest around clap-free and WASM-friendly boundaries.
+- The release/devex hardening work keeps CI and release automation boring enough that a future wasm lane can be added without compounding operator noise.
+
+### Next: v1.9.0 — Finish WASM-Ready Core + Browser Runner
+
+Goal: Complete the in-memory/WASM execution path and expose it through a browser-first runner that produces deterministic receipts locally.
 
 Work items:
-- Host abstraction (IO ports): enumerate files, read bytes, clock, and optional logging/progress; native uses FS, WASM uses a host-provided substrate.
-- In-memory scan pipeline: accept `Vec<(path, bytes)>` instead of `PathBuf` to enable scans from memory.
-- CLI/Clap separation: ensure library crates do not depend on `clap`; keep argument parsing in the CLI crate.
-- WASM feature profile: add a `wasm`/`web` feature that disables OS-bound pieces (`git`, `dirs`, `std::process`).
-- WASM CI builds and conformance tests: add `cargo build --target wasm32-unknown-unknown` to CI and golden tests to validate parity.
+- Wire `tokmd-io-port` through scan and walk paths so scans can run against a host-provided in-memory substrate instead of only filesystem `PathBuf`s.
+- Add an in-memory scan pipeline that accepts `(path, bytes)` inputs and preserves deterministic ordering and capability reporting.
+- Keep CLI/Clap separation strict so the library surface stays free of OS-bound argument types.
+- Add a `wasm`/`web` feature profile and CI builds for `wasm32-unknown-unknown`, plus parity tests against the native engine.
+- Add a `tokmd-wasm` crate exposing JS-friendly APIs for `lang`, `module`, `export`, and `analyze`.
+- Build a minimal browser runner that fetches a GitHub zipball, unpacks in a Worker, runs tokmd locally, and supports progress/cancel/download flows.
+- Add caching and guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits for archive size, file count, and bytes read.
+- Publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
 
 Notes: Git-history enrichers (hotspots/churn) are not available in browser WASM mode and must be reported as unavailable in capability reporting.
-
-### v1.9.0 — WASM Distribution + Browser Runner
-
-Goal: Ship a `tokmd-wasm` bundle and a minimal static web runner that fetches a GitHub zipball, unpacks in the browser, runs tokmd in a Worker, and renders/downloads deterministic receipts locally without server-side computation.
-
-Work items:
-- `tokmd-wasm` crate: expose JS-friendly APIs (via `wasm-bindgen`): `run_lang`, `run_module`, `run_export`, `run_analyze` accepting in-memory inputs.
-- Browser runner: minimal static app (repo URL + ref + Run) that runs scans in a Web Worker, streams progress, and supports cancel.
-- Zipball ingestion: fetch GitHub zipball (`/zipball/{ref}`), unzip in-browser, filter files (skip vendor/binaries by default), and feed `(path, bytes)` to wasm.
-- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits (max archive size, file count, bytes read).
-- Capability reporting: outputs include a capabilities section indicating which enrichers ran and which were unavailable.
-- Packaging: publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
 
 Non-goals for v1.9.0: no in-browser git churn/hotspot metrics or heavy tooling; provide a backend escape hatch for very large repos or git-based analysis.

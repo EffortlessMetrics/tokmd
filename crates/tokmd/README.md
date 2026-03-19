@@ -1,16 +1,16 @@
 # tokmd
 
-CLI binary for tokmd - code intelligence for humans, machines, and LLMs.
+CLI binary for `tokmd`: deterministic code receipts, derived analysis, and review artifacts for humans, CI, and LLM workflows.
 
 ## Overview
 
-This is the **Tier 5** entry point that orchestrates all other crates. It provides the `tokmd` command-line application for generating code inventory receipts, analysis reports, and LLM context.
+This is the **Tier 5** entry point that wires together the lower-tier crates into the end-user CLI. It turns a source tree into stable receipts you can summarize, diff, analyze, gate, and pack into bounded LLM context.
 
 ## Installation
 
 ```bash
 # From crates.io
-cargo install tokmd
+cargo install tokmd --locked
 
 # From source
 cargo install --path crates/tokmd
@@ -22,38 +22,44 @@ nix profile install github:EffortlessMetrics/tokmd
 ## Quick Start
 
 ```bash
-# Language summary (Markdown)
-tokmd
+# Language summary
+tokmd --format md --top 8
 
-# Module breakdown
-tokmd module --module-roots crates,packages
+# Pack code into an LLM-ready bundle
+tokmd context --budget 128k --mode bundle --output context.txt
 
-# Pack for LLM context
-tokmd context --budget 128k --mode bundle > context.txt
+# Save deterministic artifacts for later comparison
+tokmd run --analysis receipt --output-dir .runs/current
 
-# Analysis report
+# Risk-oriented analysis
 tokmd analyze --preset risk --format md
 
-# Generate badge
-tokmd badge --metric lines --out badge.svg
+# Effort estimate between refs
+tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md
+
+# Generate a badge
+tokmd badge --metric hotspot --preset risk --output hotspot.svg
 ```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `tokmd` / `tokmd lang` | Language summary |
-| `tokmd module` | Module breakdown by directory |
-| `tokmd export` | File-level inventory (JSONL/CSV/CycloneDX) |
-| `tokmd run` | Full scan with artifact output |
-| `tokmd analyze` | Derived metrics and enrichments |
+| `tokmd` / `tokmd lang` | Language summary for a repo or path set |
+| `tokmd module` | Module breakdown by directory roots |
+| `tokmd export` | File-level inventory (`jsonl`, `json`, `csv`, `cyclonedx`) |
+| `tokmd run` | Save receipts to a run directory, optionally with `--analysis <preset>` |
+| `tokmd analyze` | Derived metrics and enrichments, including the `estimate` preset |
 | `tokmd badge` | SVG badge generation |
-| `tokmd diff` | Compare two runs or receipts |
-| `tokmd cockpit` | PR metrics with evidence gates for code review |
-| `tokmd gate` | Policy-based quality gates with JSON pointer rules |
-| `tokmd tools` | Generate LLM tool definitions (OpenAI, Anthropic, JSON Schema) |
-| `tokmd context` | Pack files into LLM context window |
-| `tokmd init` | Generate .tokeignore template |
+| `tokmd diff` | Compare two runs, receipts, or refs |
+| `tokmd cockpit` | PR metrics with evidence gates and review plan output |
+| `tokmd baseline` | Capture a complexity baseline for ratchet comparisons |
+| `tokmd handoff` | Build an LLM handoff bundle |
+| `tokmd sensor` | Emit a `sensor.report.v1` envelope |
+| `tokmd gate` | Evaluate policy and ratchet rules |
+| `tokmd tools` | Generate tool definitions for OpenAI, Anthropic, and JSON Schema consumers |
+| `tokmd context` | Pack files into an LLM context window under a token budget |
+| `tokmd init` | Generate a `.tokeignore` template |
 | `tokmd check-ignore` | Explain why files are ignored |
 | `tokmd completions` | Generate shell completions |
 
@@ -61,38 +67,22 @@ tokmd badge --metric lines --out badge.svg
 
 ```toml
 [features]
-default = ["git", "walk", "content"]
-alias-tok = []   # Enable `tok` binary alias
-git = []         # Git history analysis
-walk = []        # Asset discovery
-content = []     # Content scanning
+default = ["git", "walk", "content", "ui", "fun", "topics", "archetype"]
+alias-tok = []   # Enable the `tok` binary alias
+git = []         # Git history analysis and PR-oriented commands
+walk = []        # Filesystem traversal helpers
+content = []     # Content scanning (entropy, imports, etc.)
+ui = []          # Interactive prompts and progress UI
+fun = []         # Novelty outputs
+topics = []      # Semantic topic analysis
+archetype = []   # Project archetype detection
 ```
 
-## Configuration
+## Notes
 
-Supports `tokmd.toml` configuration files with:
-- Scan settings (excludes, ignore handling)
-- Module settings (roots, depth)
-- Export settings (format, redaction)
-- Analysis settings (presets, limits)
-- Named profiles for different workflows
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (includes non-existent paths) |
-| 2 | CLI parsing error |
-
-## Dependencies
-
-Coordinates all tokmd crates:
-- `tokmd-analysis` with git, walk, content features
-- `tokmd-analysis-format` with fun feature
-- `tokmd-config`, `tokmd-core`, `tokmd-format`
-- `tokmd-model`, `tokmd-scan`, `tokmd-types`
-- `tokmd-tokeignore`
+- `tokmd run` now uses `--analysis <preset>` when you want saved analysis artifacts.
+- `tokmd context` uses `--mode <list|bundle|json>` for output mode and `--output <path>` for file output.
+- `tokmd analyze --preset estimate` is the effort-focused lane introduced in `1.8.0`.
 
 ## Documentation
 

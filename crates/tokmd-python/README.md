@@ -1,6 +1,6 @@
 # tokmd
 
-Python bindings for [tokmd](https://github.com/EffortlessMetrics/tokmd) - fast code inventory receipts and analytics.
+Python bindings for [tokmd](https://github.com/EffortlessMetrics/tokmd): deterministic repo receipts, analysis, cockpit metrics, and diff workflows from Python.
 
 ## Installation
 
@@ -13,96 +13,65 @@ pip install tokmd
 ```python
 import tokmd
 
-# Get language summary
-result = tokmd.lang(paths=["src"])
-for row in result["rows"]:
+# Language summary
+result = tokmd.lang(paths=["src"], top=5)
+for row in result["report"]["rows"]:
     print(f"{row['lang']}: {row['code']} lines")
 
-# Get module breakdown
-result = tokmd.module(paths=["."])
-for row in result["rows"]:
-    print(f"{row['module']}: {row['code']} lines")
+# Effort-focused analysis (1.8.0 preset)
+result = tokmd.analyze(
+    paths=["."],
+    preset="estimate",
+    effort_base_ref="main",
+    effort_head_ref="HEAD",
+)
 
-# Run analysis
-result = tokmd.analyze(paths=["."], preset="health")
-if result.get("derived"):
-    totals = result["derived"]["totals"]
-    print(f"Total: {totals['code']} lines in {totals['files']} files")
+if result.get("effort"):
+    print(result["effort"]["results"]["effort_pm_p50"])
 ```
 
-## API Reference
+## High-Level Functions
 
-### Functions
+The binding exposes Python-native wrappers for:
 
-#### `lang(paths=None, top=0, files=False, children=None, redact=None, excluded=None, hidden=False)`
+- `lang(...)`
+- `module(...)`
+- `export(...)`
+- `analyze(...)`
+- `cockpit(...)`
+- `diff(from_path, to_path)`
 
-Scan paths and return a language summary.
+These return Python dictionaries extracted from the shared JSON envelope.
 
-- `paths`: List of paths to scan (default: `["."]`)
-- `top`: Show only top N languages (0 = all)
-- `files`: Include file counts
-- `children`: How to handle embedded languages (`"collapse"` or `"separate"`)
-- `redact`: Redaction mode (`"none"`, `"paths"`, `"all"`)
-- `excluded`: List of glob patterns to exclude
-- `hidden`: Include hidden files
+## Low-Level API
 
-#### `module(paths=None, top=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=False)`
+Use these when you want direct access to the FFI boundary:
 
-Scan paths and return a module summary.
+- `run_json(mode, args_json)`
+- `run(mode, args)`
+- `version()`
+- `schema_version()`
 
-- `paths`: List of paths to scan (default: `["."]`)
-- `top`: Show only top N modules (0 = all)
-- `module_roots`: Top-level directories as module roots (default: `["crates", "packages"]`)
-- `module_depth`: Path segments to include for module roots
-- `children`: How to handle embedded languages (`"separate"` or `"parents-only"`)
+Supported low-level modes are:
 
-#### `export(paths=None, format=None, min_code=0, max_rows=0, ...)`
+- `lang`
+- `module`
+- `export`
+- `analyze`
+- `cockpit`
+- `diff`
+- `version`
 
-Scan paths and return file-level export data.
+The response envelope is stable:
 
-- `format`: Output format (`"jsonl"`, `"json"`, `"csv"`, `"cyclonedx"`)
-- `min_code`: Minimum lines of code to include
-- `max_rows`: Maximum rows to return (0 = unlimited)
+- success: `{"ok": true, "data": {...}}`
+- error: `{"ok": false, "error": {...}}`
 
-#### `analyze(paths=None, preset=None, window=None, git=None, ...)`
+## Notes
 
-Run analysis on paths and return derived metrics.
-
-- `preset`: Analysis preset (`"receipt"`, `"health"`, `"risk"`, `"supply"`, `"architecture"`, `"topics"`, `"security"`, `"identity"`, `"git"`, `"deep"`, `"fun"`)
-- `window`: Context window size in tokens
-- `git`: Force enable/disable git metrics
-
-#### `diff(from_path, to_path)`
-
-Compare two receipts or paths and return a diff.
-
-### Low-Level API
-
-#### `run_json(mode, args_json)`
-
-Run any tokmd operation with JSON string arguments.
-
-```python
-result = tokmd.run_json("lang", '{"paths": ["."], "top": 10}')
-data = json.loads(result)
-```
-
-#### `run(mode, args)`
-
-Run any tokmd operation with a Python dict.
-
-```python
-result = tokmd.run("lang", {"paths": ["."], "top": 10})
-```
-
-### Constants
-
-- `tokmd.__version__`: The tokmd version string
-- `tokmd.SCHEMA_VERSION`: The current JSON schema version
-
-### Exceptions
-
-- `tokmd.TokmdError`: Raised when an operation fails
+- Current analysis presets include `estimate`, `risk`, `deep`, and `fun`.
+- The binding forwards current effort options such as `effort_base_ref`, `effort_head_ref`, `effort_layer`, `effort_monte_carlo`, `effort_mc_iterations`, and `effort_mc_seed`.
+- Long-running scans release the GIL while the Rust core is doing the work.
 
 ## Development
 

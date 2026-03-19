@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Reset planning docs for the post-`1.8.0` cycle, including roadmap/NOW updates and a clearer post-release checklist in `RELEASE.md`
+
 ## [1.8.0] - 2026-03-18
 
 ### Added

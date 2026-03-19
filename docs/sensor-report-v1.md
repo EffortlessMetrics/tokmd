@@ -47,7 +47,7 @@ The formal JSON Schema is available at:
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.6.0",
+    "version": "1.8.0",
     "mode": "cockpit"
   },
   "generated_at": "2026-02-07T12:00:00Z",
@@ -117,7 +117,7 @@ The formal JSON Schema is available at:
 ```json
 {
   "name": "tokmd",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "mode": "cockpit"
 }
 ```
@@ -262,7 +262,7 @@ In sensor mode:
 The `tokmd sensor` command emits sensor.report.v1 envelope directly:
 
 ```bash
-tokmd sensor --base main --head HEAD --output artifacts/tokmd/
+tokmd sensor --base main --head HEAD --output artifacts/tokmd/report.json
 ```
 
 ### Artifact Layout
