@@ -36,7 +36,7 @@ fn make_receipt(stats: &[FileStat]) -> CockpitReceipt {
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
+    let risk = compute_risk(stats, &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {
@@ -397,13 +397,13 @@ fn risk_hotspot_threshold_at_300_lines() {
     // Under threshold → no hotspots
     let stats = vec![stat("src/a.rs", 150, 149)]; // 299 total
     let health = compute_code_health(&stats, &no_contracts());
-    let risk = compute_risk(stats.clone(), &no_contracts(), &health);
+    let risk = compute_risk(&stats, &no_contracts(), &health);
     assert!(risk.hotspots_touched.is_empty());
 
     // Over threshold → hotspot
     let stats = vec![stat("src/a.rs", 200, 101)]; // 301 total
     let health = compute_code_health(&stats, &no_contracts());
-    let risk = compute_risk(stats.clone(), &no_contracts(), &health);
+    let risk = compute_risk(&stats, &no_contracts(), &health);
     assert_eq!(risk.hotspots_touched.len(), 1);
     assert_eq!(risk.hotspots_touched[0], "src/a.rs");
 }
@@ -414,7 +414,7 @@ fn risk_level_increases_with_hotspots() {
         .map(|i| stat(&format!("src/big_{i}.rs"), 200, 200))
         .collect();
     let health = compute_code_health(&stats, &no_contracts());
-    let risk = compute_risk(stats.clone(), &no_contracts(), &health);
+    let risk = compute_risk(&stats, &no_contracts(), &health);
     assert!(risk.score > 20);
     assert!(matches!(
         risk.level,
@@ -584,7 +584,7 @@ proptest! {
             .collect();
         let contracts = no_contracts();
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(stats.clone(), &contracts, &health);
+        let risk = compute_risk(&stats, &contracts, &health);
         prop_assert!(risk.score <= 100);
     }
 

@@ -306,7 +306,7 @@ fn scenario_low_risk_small_pr() {
     let health = compute_code_health(&stats, &contracts);
 
     // When: we compute risk
-    let risk = compute_risk(stats.clone(), &contracts, &health);
+    let risk = compute_risk(&stats, &contracts, &health);
 
     // Then: low risk
     assert_eq!(risk.level, RiskLevel::Low);
@@ -326,7 +326,7 @@ fn scenario_hotspot_files_increase_risk() {
     let health = compute_code_health(&stats, &contracts);
 
     // When: we compute risk
-    let risk = compute_risk(stats.clone(), &contracts, &health);
+    let risk = compute_risk(&stats, &contracts, &health);
 
     // Then: file appears as hotspot
     assert!(!risk.hotspots_touched.is_empty());

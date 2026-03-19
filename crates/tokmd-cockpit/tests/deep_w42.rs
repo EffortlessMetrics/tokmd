@@ -222,7 +222,7 @@ fn risk_low_with_small_changes() {
     let c = no_contracts();
     let stats = vec![stat("a.rs", 10, 5)];
     let h = compute_code_health(&stats, &c);
-    let r = compute_risk(stats.clone(), &c, &h);
+    let r = compute_risk(&stats, &c, &h);
     assert_eq!(r.level, RiskLevel::Low);
     assert!(r.hotspots_touched.is_empty());
 }
@@ -232,7 +232,7 @@ fn risk_hotspots_over_300_lines() {
     let c = no_contracts();
     let stats = vec![stat("big.rs", 200, 200)]; // 400 lines > 300
     let h = compute_code_health(&stats, &c);
-    let r = compute_risk(stats.clone(), &c, &h);
+    let r = compute_risk(&stats, &c, &h);
     assert_eq!(r.hotspots_touched.len(), 1);
     assert_eq!(r.hotspots_touched[0], "big.rs");
 }
@@ -244,7 +244,7 @@ fn risk_score_capped_at_100() {
         .map(|i| stat(&format!("f{i}.rs"), 300, 300))
         .collect();
     let h = compute_code_health(&stats, &c);
-    let r = compute_risk(stats.clone(), &c, &h);
+    let r = compute_risk(&stats, &c, &h);
     assert!(r.score <= 100);
 }
 

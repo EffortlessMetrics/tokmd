@@ -217,7 +217,7 @@ fn health_empty_stats() {
 fn risk_low_when_small_changes() {
     let stats = vec![stat("a.rs", 10, 5)];
     let health = compute_code_health(&stats, &no_contracts());
-    let r = compute_risk(stats.clone(), &no_contracts(), &health);
+    let r = compute_risk(&stats, &no_contracts(), &health);
     assert_eq!(r.level, RiskLevel::Low);
     assert!(r.hotspots_touched.is_empty());
 }
@@ -226,7 +226,7 @@ fn risk_low_when_small_changes() {
 fn risk_medium_with_hotspot() {
     let stats = vec![stat("hot.rs", 200, 200)];
     let health = compute_code_health(&stats, &no_contracts());
-    let r = compute_risk(stats.clone(), &no_contracts(), &health);
+    let r = compute_risk(&stats, &no_contracts(), &health);
     assert!(!r.hotspots_touched.is_empty());
     assert!(r.score > 0);
 }
@@ -237,7 +237,7 @@ fn risk_score_capped_at_100() {
         .map(|i| stat(&format!("f{i}.rs"), 500, 500))
         .collect();
     let health = compute_code_health(&stats, &no_contracts());
-    let r = compute_risk(stats.clone(), &no_contracts(), &health);
+    let r = compute_risk(&stats, &no_contracts(), &health);
     assert!(r.score <= 100);
 }
 

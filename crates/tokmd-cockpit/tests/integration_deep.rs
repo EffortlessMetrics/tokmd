@@ -22,7 +22,7 @@ fn make_receipt(stats: &[FileStat]) -> CockpitReceipt {
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
+    let risk = compute_risk(stats, &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {
@@ -423,7 +423,7 @@ fn health_avg_file_size() {
 #[test]
 fn risk_no_files() {
     let health = compute_code_health(&[], &make_no_contract());
-    let risk = compute_risk(vec![], &make_no_contract(), &health);
+    let risk = compute_risk(&[], &make_no_contract(), &health);
     assert_eq!(risk.score, 0);
     assert_eq!(risk.level, RiskLevel::Low);
     assert!(risk.hotspots_touched.is_empty());
@@ -433,7 +433,7 @@ fn risk_no_files() {
 fn risk_small_files_low() {
     let stats = vec![make_file_stat("a.rs", 50, 10)];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.level, RiskLevel::Low);
     assert!(risk.hotspots_touched.is_empty());
 }
@@ -442,7 +442,7 @@ fn risk_small_files_low() {
 fn risk_hotspot_detection() {
     let stats = vec![make_file_stat("hot.rs", 200, 150)];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.hotspots_touched.len(), 1);
     assert_eq!(risk.hotspots_touched[0], "hot.rs");
 }
@@ -451,7 +451,7 @@ fn risk_hotspot_detection() {
 fn risk_score_formula() {
     let stats = vec![make_file_stat("hot.rs", 200, 150)];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.score, 15);
     assert_eq!(risk.level, RiskLevel::Low);
 }
@@ -463,7 +463,7 @@ fn risk_medium_level() {
         make_file_stat("b.rs", 200, 150),
     ];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.score, 30);
     assert_eq!(risk.level, RiskLevel::Medium);
 }
@@ -474,7 +474,7 @@ fn risk_high_level() {
         .map(|i| make_file_stat(&format!("f{i}.rs"), 200, 150))
         .collect();
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.score, 60);
     assert_eq!(risk.level, RiskLevel::High);
 }
@@ -485,7 +485,7 @@ fn risk_critical_level() {
         .map(|i| make_file_stat(&format!("f{i}.rs"), 300, 250))
         .collect();
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert!(risk.score > 80);
     assert_eq!(risk.level, RiskLevel::Critical);
 }
@@ -496,7 +496,7 @@ fn risk_score_capped_at_100() {
         .map(|i| make_file_stat(&format!("f{i}.rs"), 300, 250))
         .collect();
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.score, 100);
 }
 
@@ -1201,7 +1201,7 @@ fn edge_exact_501_lines_is_large() {
 fn edge_exact_300_lines_not_hotspot() {
     let stats = vec![make_file_stat("edge.rs", 200, 100)];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert!(risk.hotspots_touched.is_empty());
 }
 
@@ -1209,6 +1209,6 @@ fn edge_exact_300_lines_not_hotspot() {
 fn edge_exact_301_lines_is_hotspot() {
     let stats = vec![make_file_stat("edge.rs", 201, 100)];
     let health = compute_code_health(&stats, &make_no_contract());
-    let risk = compute_risk(stats.clone(), &make_no_contract(), &health);
+    let risk = compute_risk(&stats, &make_no_contract(), &health);
     assert_eq!(risk.hotspots_touched.len(), 1);
 }

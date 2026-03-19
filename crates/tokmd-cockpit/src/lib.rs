@@ -2054,16 +2054,11 @@ where
 }
 
 /// Compute risk metrics for borrowed file stats.
-pub fn compute_risk(
-    file_stats: impl AsRef<[FileStat]>,
-    contracts: &Contracts,
-    health: &CodeHealth,
-) -> Risk {
+pub fn compute_risk(file_stats: &[FileStat], contracts: &Contracts, health: &CodeHealth) -> Risk {
     compute_risk_from_iter(
         contracts,
         health,
         file_stats
-            .as_ref()
             .iter()
             .filter(|stat| stat.insertions + stat.deletions > 300)
             .map(|stat| stat.path.clone()),
@@ -2548,7 +2543,7 @@ mod tests {
             breaking_indicators: 0,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(stats.clone(), &contracts, &health);
+        let risk = compute_risk(&stats, &contracts, &health);
         assert_eq!(risk.level, RiskLevel::Low);
         assert!(risk.hotspots_touched.is_empty());
     }
@@ -2566,7 +2561,7 @@ mod tests {
             breaking_indicators: 0,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(stats.clone(), &contracts, &health);
+        let risk = compute_risk(&stats, &contracts, &health);
         assert!(!risk.hotspots_touched.is_empty());
         assert!(risk.score > 0);
     }

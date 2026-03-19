@@ -55,7 +55,7 @@ fn build_receipt(stats: &[FileStat]) -> CockpitReceipt {
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
+    let risk = compute_risk(stats, &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {
@@ -286,7 +286,7 @@ fn risk_low_for_small_change() {
     let stats = vec![make_file_stat("src/lib.rs", 5, 2)];
     let contracts = detect_contracts(&stats);
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(stats.clone(), &contracts, &health);
+    let risk = compute_risk(&stats, &contracts, &health);
     assert!(risk.score <= 30, "small change should be low risk");
 }
 
@@ -295,7 +295,7 @@ fn risk_hotspot_detected_for_large_file() {
     let stats = vec![make_file_stat("src/core.rs", 200, 150)];
     let contracts = detect_contracts(&stats);
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(stats.clone(), &contracts, &health);
+    let risk = compute_risk(&stats, &contracts, &health);
     assert!(
         risk.hotspots_touched.contains(&"src/core.rs".to_string()),
         "files with >300 total lines should be hotspots"

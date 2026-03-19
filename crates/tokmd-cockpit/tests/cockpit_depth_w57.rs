@@ -293,7 +293,7 @@ fn risk_low_for_small_changes() {
         breaking_indicators: 0,
     };
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(stats.clone(), &contracts, &health);
+    let r = compute_risk(&stats, &contracts, &health);
     assert_eq!(r.level, RiskLevel::Low);
     assert!(r.hotspots_touched.is_empty());
 }
@@ -312,7 +312,7 @@ fn risk_increases_with_hotspots() {
         breaking_indicators: 0,
     };
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(stats.clone(), &contracts, &health);
+    let r = compute_risk(&stats, &contracts, &health);
     assert!(!r.hotspots_touched.is_empty());
     assert!(r.score > 0);
 }
