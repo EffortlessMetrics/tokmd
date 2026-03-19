@@ -554,7 +554,7 @@ pub enum ExportFormat {
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum ConfigMode {
-    /// Read `tokei.toml` / `.tokeirc` if present.
+    /// Read scan config files (`tokei.toml` / `.tokeirc`) if present.
     #[default]
     Auto,
     /// Ignore config files.

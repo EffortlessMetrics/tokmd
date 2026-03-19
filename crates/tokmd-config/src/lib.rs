@@ -65,8 +65,8 @@ pub struct GlobalArgs {
     )]
     pub excluded: Vec<String>,
 
-    /// Whether to load `tokei.toml` / `.tokeirc`.
-    #[arg(long, value_enum, default_value_t = ConfigMode::Auto)]
+    /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
+    #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto)]
     pub config: ConfigMode,
 
     /// Count hidden files and directories.
