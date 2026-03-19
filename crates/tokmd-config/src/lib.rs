@@ -65,7 +65,7 @@ pub struct GlobalArgs {
     )]
     pub excluded: Vec<String>,
 
-    /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
+    /// Whether to load discovered `tokmd.toml` configuration.
     #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto)]
     pub config: ConfigMode,
 
@@ -826,7 +826,7 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
 
-    /// Write cockpit artifacts (report.json, comment.md) to directory.
+    /// Write cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) to directory.
     #[arg(long, value_name = "DIR")]
     pub artifacts_dir: Option<std::path::PathBuf>,
 
@@ -844,9 +844,8 @@ pub struct CockpitArgs {
     /// Run in sensor mode for CI integration.
     ///
     /// When enabled:
-    /// - Always writes sensor.report.v1 envelope to artifacts_dir/report.json
+    /// - Writes only sensor.report.v1 envelope to artifacts_dir/report.json
     /// - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
-    /// - Reports capability availability for "No Green By Omission"
     #[arg(long)]
     pub sensor_mode: bool,
 }

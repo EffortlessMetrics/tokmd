@@ -833,7 +833,14 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
         { "id": "mutation", "status": "pass", "threshold": 0.8, "actual": 0.92 }
       ]
     },
-    "cockpit_receipt": {}
+    "summary_metrics": {
+      "files_changed": 12,
+      "insertions": 340,
+      "deletions": 72,
+      "health_score": 78,
+      "risk_level": "warn",
+      "risk_score": 63
+    }
   }
 }
 ```
@@ -850,7 +857,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
 | `findings` | `array` | List of findings (may be empty). |
 | `artifacts` | `array\|null` | Related artifact paths (optional). |
 | `capabilities` | `object\|null` | Capability availability status for "No Green By Omission" (see below). |
-| `data` | `object\|null` | Tool-specific payload (opaque to director); gates and cockpit receipt are embedded here. |
+| `data` | `object\|null` | Tool-specific payload (opaque to director). Current tokmd sensor receipts use `gates` and `summary_metrics` here; the full cockpit receipt is linked via artifacts. |
 
 ### Verdict Enum
 

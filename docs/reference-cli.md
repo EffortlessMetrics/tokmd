@@ -2,14 +2,14 @@
 
 This document details the command-line interface for `tokmd`.
 
-## Global Arguments
+## Top-Level `tokmd` Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `sensor`, `gate`, `tools`, `context`, `handoff`, `init`, `check-ignore`, `completions`).
+These arguments apply when you invoke `tokmd` directly without an explicit subcommand. They describe the root language-summary surface, not a universal flag set shared by every subcommand.
 
 | Flag | Description |
 | :--- | :--- |
 | `--exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
-| `--config <MODE>` | Scan config strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
+| `--config <MODE>` | Scan config strategy: `auto` (default, discovers `tokmd.toml` via `TOKMD_CONFIG`, current directory/parents, and user config; also loads legacy user `config.json`) or `none`. |
 | `--hidden` | Count hidden files and directories (start with `.`). |
 | `--no-ignore` | Disable all ignore files (`.gitignore`, `.ignore`, `.tokeignore`). |
 | `--no-ignore-parent` | Do not traverse parent directories for ignore files. |
@@ -568,7 +568,7 @@ Options:
           Output file (stdout if omitted)
 
       --artifacts-dir <DIR>
-          Write cockpit artifacts (report.json, comment.md) to directory
+          Write cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) to directory
 
       --baseline <PATH>
           Path to baseline receipt for trend comparison.
@@ -587,7 +587,7 @@ Options:
       --sensor-mode
           Run in sensor mode for CI integration.
           
-          When enabled: - Always writes sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code) - Reports capability availability for "No Green By Omission"
+          When enabled: - Writes only sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
 
       --no-progress
           Disable progress spinners
@@ -610,7 +610,7 @@ Options:
 | `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
 | `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
-| `--artifacts-dir <DIR>` | Write `report.json` + `comment.md` to a directory. | `(none)` |
+| `--artifacts-dir <DIR>` | In standard cockpit mode, write `cockpit.json`, `report.json`, and `comment.md` to a directory. | `(none)` |
 | `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
 | `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
@@ -669,13 +669,13 @@ tokmd cockpit --artifacts-dir artifacts/tokmd
 # Custom base ref for release branches
 tokmd cockpit --base release/v1.2 --head HEAD
 
-# Sensor mode: emit sensor.report.v1 envelope alongside artifacts (CI-friendly)
+# Sensor mode: emit only the sensor.report.v1 envelope for CI ingestion
 tokmd cockpit --sensor-mode --artifacts-dir artifacts/tokmd
 ```
 
 ### `tokmd sensor`
 
-Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. Always writes a canonical JSON receipt to the output path; with `--format md` also prints markdown to stdout.
+Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. It always writes the canonical JSON envelope to `--output`, and stdout follows `--format` (`json` echoes the envelope, `md` prints a markdown summary).
 
 <!-- HELP: sensor -->
 ```text
@@ -743,9 +743,10 @@ The sensor command produces a `sensor.report.v1` JSON envelope containing:
 - **verdict**: Overall pass/fail/warn mapped from cockpit evidence gates
 - **findings**: Risk hotspots, bus factor warnings, and contract change signals
 - **gates**: Evidence gate results from the cockpit computation
-- **data.cockpit_receipt**: Full cockpit receipt embedded for tool-specific analysis
+- **data.summary_metrics**: Slim change, health, and risk summary for quick routing
+- **artifacts[id=cockpit]**: Full cockpit receipt sidecar at `extras/cockpit_receipt.json`
 
-When `--format md` is used, the JSON receipt is still written to `--output` and a markdown summary is printed to stdout.
+The JSON envelope is always written to `--output`. Stdout follows `--format`: `json` echoes the envelope, while `md` prints a markdown summary.
 
 > **Note**: Requires the `git` feature and a git repository. Uses two-dot diff syntax for accurate line counts.
 
