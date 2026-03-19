@@ -1,16 +1,16 @@
 ## 💡 Summary
-Moved `blake3` and `serde` from `[dependencies]` to `[dev-dependencies]` in `crates/tokmd-analysis/Cargo.toml` as they are only used for tests.
+Trimmed the production dependency surface in `crates/tokmd-analysis/Cargo.toml` by moving test-only `blake3`, `serde`, and `tokmd-content` usage out of `[dependencies]`. The `content` feature now points only at the analysis-layer crates it actually drives.
 
 ## 🎯 Why / Threat model
-These dependencies are not used in production, and reducing production dependency bloat improves compile times and trims down unnecessary code, maintaining a tightly-scoped footprint.
+These dependencies are not needed in the production `tokmd-analysis` path, and keeping them out of `[dependencies]` reduces compile-time and shipped dependency weight.
 
 ## 🔎 Finding (evidence)
-- `cargo-machete` output showed `blake3` and `serde` were identified as unused.
-- Confirmed via `rg` and manual inspection that they are only used in `/tests` directories.
+- `cargo machete` flagged `tokmd-content` as unused in `crates/tokmd-analysis/Cargo.toml`.
+- Manual inspection confirmed `blake3` and `serde` are only referenced from `crates/tokmd-analysis/tests/**`, not from the library crate itself.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Remove `blake3` and `serde` from `[dependencies]` and append them to `[dev-dependencies]`.
+- Remove `blake3`, `serde`, and the test-only `tokmd-content` edge from `[dependencies]`, and keep them under `[dev-dependencies]`.
 - Reduces the build dependency tree for production builds without affecting tests.
 - Trade-offs: Minor change, no downside.
 
@@ -24,7 +24,8 @@ Option A. This adheres to the Auditor persona's goal to tighten dependency hygie
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-analysis/Cargo.toml`
   - Removed `blake3` and `serde` from `[dependencies]`.
-  - Added `blake3` and `serde` to `[dev-dependencies]`.
+  - Removed `tokmd-content` from the optional production dependency set and from the `content` feature.
+  - Added `tokmd-content`, `blake3`, and `serde` to `[dev-dependencies]`.
 
 ## 🧪 Verification receipts
 ```json
