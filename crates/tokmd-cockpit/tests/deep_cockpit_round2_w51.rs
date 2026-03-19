@@ -124,7 +124,7 @@ fn make_receipt(stats: &[FileStat]) -> CockpitReceipt {
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats, &contracts, &code_health);
+    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {
@@ -343,7 +343,7 @@ fn risk_score_low_for_small_changes() {
         breaking_indicators: 0,
     };
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     assert_eq!(risk.level, RiskLevel::Low);
     assert!(risk.hotspots_touched.is_empty());
 }
@@ -360,7 +360,7 @@ fn risk_score_high_for_many_hotspots() {
         breaking_indicators: 0,
     };
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     assert!(!risk.hotspots_touched.is_empty());
     assert!(risk.score > 20);
 }
@@ -377,7 +377,7 @@ fn risk_score_capped_at_100() {
         breaking_indicators: 1,
     };
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     assert!(risk.score <= 100);
 }
 

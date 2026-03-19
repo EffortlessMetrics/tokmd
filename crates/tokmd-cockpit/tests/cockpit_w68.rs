@@ -144,7 +144,7 @@ fn risk_low_for_small_changes() {
     let stats = vec![stat("a.rs", 10, 5)];
     let contracts = detect_contracts::<&str>(&[]);
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     assert_eq!(risk.score, 0);
 }
 
@@ -153,7 +153,7 @@ fn risk_increases_with_hotspots() {
     let stats = vec![stat("hot1.rs", 200, 200), stat("hot2.rs", 200, 200)];
     let contracts = detect_contracts::<&str>(&[]);
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     assert!(risk.score > 0);
     assert!(!risk.hotspots_touched.is_empty());
 }

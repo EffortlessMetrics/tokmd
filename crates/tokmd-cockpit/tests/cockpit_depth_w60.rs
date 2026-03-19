@@ -437,7 +437,7 @@ fn change_surface_net_lines_negative() {
     let stats = vec![stat("src/cleanup.rs", 5, 50)];
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let risk = compute_risk(&stats, &contracts, &health);
+    let risk = compute_risk(stats.clone(), &contracts, &health);
     // Net lines is computed at higher level; verify health/risk don't panic
     assert!(health.score > 0);
     assert_eq!(risk.level, RiskLevel::Low);
@@ -587,8 +587,8 @@ fn determinism_same_inputs_same_risk() {
     let stats = vec![stat("src/big.rs", 200, 150)];
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let r1 = compute_risk(&stats, &contracts, &health);
-    let r2 = compute_risk(&stats, &contracts, &health);
+    let r1 = compute_risk(stats.clone(), &contracts, &health);
+    let r2 = compute_risk(stats.clone(), &contracts, &health);
     assert_eq!(r1.score, r2.score);
     assert_eq!(r1.level, r2.level);
     assert_eq!(r1.hotspots_touched, r2.hotspots_touched);
@@ -867,7 +867,7 @@ fn risk_no_hotspots_low() {
     let stats = vec![stat("src/small.rs", 10, 5)];
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(&stats, &contracts, &health);
+    let r = compute_risk(stats.clone(), &contracts, &health);
     assert_eq!(r.level, RiskLevel::Low);
     assert!(r.hotspots_touched.is_empty());
 }
@@ -877,7 +877,7 @@ fn risk_hotspot_above_300_lines() {
     let stats = vec![stat("src/core.rs", 200, 150)];
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(&stats, &contracts, &health);
+    let r = compute_risk(stats.clone(), &contracts, &health);
     assert!(r.hotspots_touched.contains(&"src/core.rs".to_string()));
     assert!(r.score > 0);
 }
@@ -889,7 +889,7 @@ fn risk_score_capped_at_100() {
         .collect();
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(&stats, &contracts, &health);
+    let r = compute_risk(stats.clone(), &contracts, &health);
     assert!(r.score <= 100);
 }
 
@@ -900,7 +900,7 @@ fn risk_many_hotspots_high_or_critical() {
         .collect();
     let contracts = no_contracts();
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(&stats, &contracts, &health);
+    let r = compute_risk(stats.clone(), &contracts, &health);
     assert!(matches!(r.level, RiskLevel::High | RiskLevel::Critical));
 }
 
@@ -1270,7 +1270,7 @@ proptest! {
     ) {
         let contracts = no_contracts();
         let health = compute_code_health(&stats, &contracts);
-        let r = compute_risk(&stats, &contracts, &health);
+        let r = compute_risk(stats.clone(), &contracts, &health);
         prop_assert!(r.score <= 100);
         prop_assert!(matches!(
             r.level,

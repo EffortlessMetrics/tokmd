@@ -21,7 +21,7 @@ fn make_receipt(stats: &[FileStat]) -> CockpitReceipt {
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats, &contracts, &code_health);
+    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {

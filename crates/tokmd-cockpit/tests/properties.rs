@@ -143,7 +143,7 @@ proptest! {
             breaking_indicators: 0,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(&stats, &contracts, &health);
+        let risk = compute_risk(stats.clone(), &contracts, &health);
 
         prop_assert!(risk.score <= 100, "risk score was {}", risk.score);
     }
@@ -423,7 +423,7 @@ proptest! {
             breaking_indicators: breaking,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(&stats, &contracts, &health);
+        let risk = compute_risk(stats.clone(), &contracts, &health);
 
         prop_assert_eq!(health.large_files_touched, 0);
         prop_assert!(health.warnings.is_empty());

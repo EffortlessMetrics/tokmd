@@ -159,7 +159,7 @@ proptest! {
     ) {
         let contracts = detect_contracts::<String>(&[]);
         let health = compute_code_health(&stats, &contracts);
-        let _ = compute_risk(&stats, &contracts, &health);
+        let _ = compute_risk(stats.clone(), &contracts, &health);
     }
 
     #[test]
@@ -168,7 +168,7 @@ proptest! {
     ) {
         let contracts = detect_contracts::<String>(&[]);
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(&stats, &contracts, &health);
+        let risk = compute_risk(stats.clone(), &contracts, &health);
         prop_assert!(risk.score <= 100, "Risk score {} exceeds 100", risk.score);
     }
 }

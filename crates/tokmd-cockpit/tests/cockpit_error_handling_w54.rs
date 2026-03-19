@@ -164,7 +164,7 @@ fn code_health_with_breaking_contracts() {
 fn risk_empty_stats() {
     let contracts = detect_contracts::<&str>(&[]);
     let health = compute_code_health(&[], &contracts);
-    let r = compute_risk(&[], &contracts, &health);
+    let r = compute_risk(vec![], &contracts, &health);
     assert!(r.hotspots_touched.is_empty());
     assert_eq!(r.score, 0);
 }
@@ -178,7 +178,7 @@ fn risk_with_hotspots() {
     }];
     let contracts = detect_contracts::<&str>(&[]);
     let health = compute_code_health(&stats, &contracts);
-    let r = compute_risk(&stats, &contracts, &health);
+    let r = compute_risk(stats.clone(), &contracts, &health);
     assert!(!r.hotspots_touched.is_empty());
     assert!(r.score > 0);
 }

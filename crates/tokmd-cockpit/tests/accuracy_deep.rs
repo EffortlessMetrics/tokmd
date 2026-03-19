@@ -76,7 +76,7 @@ fn make_receipt_with_evidence(stats: &[FileStat], evidence: Evidence) -> Cockpit
     let contracts = detect_contracts(stats);
     let composition = compute_composition(stats);
     let code_health = compute_code_health(stats, &contracts);
-    let risk = compute_risk(stats, &contracts, &code_health);
+    let risk = compute_risk(stats.to_vec(), &contracts, &code_health);
     let review_plan = generate_review_plan(stats, &contracts);
 
     CockpitReceipt {
@@ -799,7 +799,7 @@ fn review_plan_hotspot_files_get_risk() {
         stat("src/helper.rs", 10, 5),  // 15 → not hotspot
     ];
     let health = compute_code_health(&stats, &no_contracts());
-    let risk = compute_risk(&stats, &no_contracts(), &health);
+    let risk = compute_risk(stats.clone(), &no_contracts(), &health);
     assert_eq!(risk.hotspots_touched.len(), 1);
     assert_eq!(risk.hotspots_touched[0], "src/core.rs");
     // Plan should list the hotspot file as priority 1

@@ -88,9 +88,6 @@ pub fn compute_cockpit(
     // Compute code health
     let code_health = compute_code_health(&file_stats, &contracts);
 
-    // Compute risk based on various factors
-    let risk = compute_risk(&file_stats, &contracts, &code_health);
-
     // Compute all gate evidence
     let evidence = compute_evidence(
         repo_root,
@@ -104,6 +101,9 @@ pub fn compute_cockpit(
 
     // Generate review plan with complexity scores
     let review_plan = generate_review_plan(&file_stats, &contracts);
+
+    // Compute risk based on various factors
+    let risk = compute_risk(file_stats, &contracts, &code_health);
 
     Ok(CockpitReceipt {
         schema_version: COCKPIT_SCHEMA_VERSION,
@@ -2026,13 +2026,17 @@ pub fn compute_code_health(file_stats: &[FileStat], contracts: &Contracts) -> Co
 }
 
 /// Compute risk metrics.
-pub fn compute_risk(file_stats: &[FileStat], _contracts: &Contracts, health: &CodeHealth) -> Risk {
+pub fn compute_risk(
+    file_stats: Vec<FileStat>,
+    _contracts: &Contracts,
+    health: &CodeHealth,
+) -> Risk {
     let mut hotspots_touched = Vec::new();
     let bus_factor_warnings = Vec::new();
 
-    for stat in file_stats {
+    for stat in file_stats.into_iter() {
         if stat.insertions + stat.deletions > 300 {
-            hotspots_touched.push(stat.path.clone());
+            hotspots_touched.push(stat.path);
         }
     }
 
@@ -2515,7 +2519,7 @@ mod tests {
             breaking_indicators: 0,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(&stats, &contracts, &health);
+        let risk = compute_risk(stats.clone(), &contracts, &health);
         assert_eq!(risk.level, RiskLevel::Low);
         assert!(risk.hotspots_touched.is_empty());
     }
@@ -2533,7 +2537,7 @@ mod tests {
             breaking_indicators: 0,
         };
         let health = compute_code_health(&stats, &contracts);
-        let risk = compute_risk(&stats, &contracts, &health);
+        let risk = compute_risk(stats.clone(), &contracts, &health);
         assert!(!risk.hotspots_touched.is_empty());
         assert!(risk.score > 0);
     }
