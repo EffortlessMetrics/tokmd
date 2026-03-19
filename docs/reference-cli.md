@@ -9,7 +9,7 @@ These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `an
 | Flag | Description |
 | :--- | :--- |
 | `--exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
-| `--config <MODE>` | Config file strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
+| `--config <MODE>` | Config file strategy: `auto` (default, discovers `tokmd.toml` via `TOKMD_CONFIG`, current directory/parents, and user config; also loads legacy user `config.json`) or `none`. |
 | `--hidden` | Count hidden files and directories (start with `.`). |
 | `--no-ignore` | Disable all ignore files (`.gitignore`, `.ignore`, `.tokeignore`). |
 | `--no-ignore-parent` | Do not traverse parent directories for ignore files. |

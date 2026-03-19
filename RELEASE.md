@@ -98,7 +98,7 @@ The tag-driven path is the canonical production flow.
 
 Before releasing, ensure:
 - `cargo fmt-check` passes.
-- `cargo clippy -- -D warnings` passes.
+- `cargo gate-check` passes (workspace-wide fmt/check/clippy/test compile gates).
 - `cargo xtask publish --dry-run` passes end-to-end.
 
 On Windows, prefer the repo-native quality commands above over raw `cargo fmt --all`; the workspace can exceed formatter argv limits and the release docs should reflect the supported path.
