@@ -176,16 +176,16 @@ fn build_coupling(
     commits: &[tokmd_git::GitCommit],
     row_map: &BTreeMap<String, (&FileRow, String)>,
 ) -> Vec<CouplingRow> {
-    let mut pairs: BTreeMap<(String, String), usize> = BTreeMap::new();
-    let mut touches: BTreeMap<String, usize> = BTreeMap::new();
+    let mut pairs: BTreeMap<(&str, &str), usize> = BTreeMap::new();
+    let mut touches: BTreeMap<&str, usize> = BTreeMap::new();
     let mut commits_considered: usize = 0;
 
     for commit in commits {
-        let mut modules: BTreeSet<String> = BTreeSet::new();
+        let mut modules: BTreeSet<&str> = BTreeSet::new();
         for file in &commit.files {
             let key = normalize_git_path(file);
             if let Some((_row, module)) = row_map.get(&key) {
-                modules.insert(module.clone());
+                modules.insert(module.as_str());
             }
         }
         // Only count commits where at least one file maps to a module
@@ -197,19 +197,14 @@ fn build_coupling(
             if let Some(val) = touches.get_mut(m) {
                 *val += 1;
             } else {
-                touches.insert(m.clone(), 1);
+                touches.insert(*m, 1);
             }
         }
-        let modules: Vec<String> = modules.into_iter().collect();
+        let modules: Vec<&str> = modules.into_iter().collect();
         for i in 0..modules.len() {
-            for j in (i + 1)..modules.len() {
-                let left = modules[i].clone();
-                let right = modules[j].clone();
-                let key = if left <= right {
-                    (left, right)
-                } else {
-                    (right, left)
-                };
+            let left = modules[i];
+            for right in modules.iter().skip(i + 1) {
+                let key = (left, *right);
                 *pairs.entry(key).or_insert(0) += 1;
             }
         }
@@ -220,8 +215,8 @@ fn build_coupling(
     let mut rows: Vec<CouplingRow> = pairs
         .into_iter()
         .map(|((left, right), count)| {
-            let n_a = touches.get(&left).copied().unwrap_or(0);
-            let n_b = touches.get(&right).copied().unwrap_or(0);
+            let n_a = touches.get(left).copied().unwrap_or(0);
+            let n_b = touches.get(right).copied().unwrap_or(0);
             let denom = (n_a + n_b).saturating_sub(count);
             let jaccard = if denom > 0 {
                 Some(round_f64(count as f64 / denom as f64, 4))
@@ -237,8 +232,8 @@ fn build_coupling(
                 None
             };
             CouplingRow {
-                left,
-                right,
+                left: left.to_string(),
+                right: right.to_string(),
                 count,
                 jaccard,
                 lift,
@@ -263,15 +258,15 @@ fn build_intent_report(
         overall.increment(kind);
 
         // Attribute intent to all modules touched by this commit
-        let mut modules: BTreeSet<String> = BTreeSet::new();
+        let mut modules: BTreeSet<&str> = BTreeSet::new();
         for file in &commit.files {
             let key = normalize_git_path(file);
             if let Some((_row, module)) = row_map.get(&key) {
-                modules.insert(module.clone());
+                modules.insert(module.as_str());
             }
         }
         for module in modules {
-            by_module_counts.entry(module).or_default().increment(kind);
+            by_module_counts.entry(module.to_string()).or_default().increment(kind);
         }
     }
 
