@@ -266,7 +266,10 @@ fn build_intent_report(
             }
         }
         for module in modules {
-            by_module_counts.entry(module.to_string()).or_default().increment(kind);
+            by_module_counts
+                .entry(module.to_string())
+                .or_default()
+                .increment(kind);
         }
     }
 
