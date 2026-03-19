@@ -242,6 +242,15 @@ fn publish_dry_run_uses_cargo_package_list() {
 }
 
 #[test]
+fn publish_preflight_excludes_xtask_on_windows() {
+    let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/publish.rs")).unwrap();
+    assert!(
+        src.contains("cfg!(windows)") && src.contains("\"xtask\""),
+        "publish preflight should exclude xtask on Windows to avoid self-rebuild conflicts"
+    );
+}
+
+#[test]
 fn publish_plan_mode_does_not_execute() {
     // --plan should return quickly and not attempt actual publishing
     let start = std::time::Instant::now();

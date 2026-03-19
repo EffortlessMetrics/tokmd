@@ -1016,17 +1016,23 @@ fn run_pre_publish_checks(args: &PublishArgs, workspace_version: &str) -> Result
     // Tests
     if !args.skip_tests {
         println!("  Running tests...");
-        let test_status = Command::new("cargo")
-            .args([
-                "test",
-                "--workspace",
-                "--all-features",
-                "--exclude",
-                "tokmd-fuzz",
-                "--locked",
-            ])
-            .status()
-            .context("Failed to run tests")?;
+        let mut test_command = Command::new("cargo");
+        test_command.args([
+            "test",
+            "--workspace",
+            "--all-features",
+            "--exclude",
+            "tokmd-fuzz",
+            "--locked",
+        ]);
+        if cfg!(windows) {
+            // Windows keeps the running xtask binary locked, so exclude it
+            // from the publish preflight workspace test pass and let the
+            // dedicated xtask test suite cover the binary crate separately.
+            test_command.args(["--exclude", "xtask"]);
+        }
+
+        let test_status = test_command.status().context("Failed to run tests")?;
 
         if !test_status.success() {
             bail!("Tests failed");

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.8.0-rc.1] - 2026-03-14
+## [1.8.0] - 2026-03-18
 
 ### Added
 
@@ -25,12 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ANALYSIS_SCHEMA_VERSION` bumped from 8 to 9
 - Preset grid expanded from 11 to 12 presets (new `Estimate` preset)
 - Receipt preset enriched: now enables dup, git, complexity, and API surface analysis
+- Repository-native quality commands now handle the Windows `cargo fmt --all`/`xtask.exe` edge cases transparently
+- Windows local builds now default to leaner debug info, with `cargo trim-target` and opt-in `sccache` support to reduce rebuild footprint
+- CI now uses workflow concurrency cancellation, smarter Rust caching, and a Node 24 canary Nix lane with FlakeHub cache disabled
 
 ### Dependencies
 
 - Bumped GitHub Actions: docker/setup-qemu-action v4, setup-buildx-action v4, login-action v4, metadata-action v6, build-push-action v7 (#659)
 - Bumped toml 1.0.6, uuid 1.22.0, tokio 1.50.0 (#660)
 - Bumped jsonschema from 0.44.0 to 0.45.0 (#661)
+
+### Fixed
+
+- Added explicit error hints for missing diff sources and invalid diff references
+- Locked deterministic review-plan ordering and removed remaining unwrap-heavy test paths in `tokmd-config`
+- Refreshed doctest examples and trimmed a stray unused dev-dependency in `tokmd-analysis-git`
 
 ## [1.7.3] - 2026-03-06
 
