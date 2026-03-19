@@ -466,6 +466,15 @@ fn compute_diff_coverage_gate(
         }
     }
 
+    if let Some(file) = current_file.take() {
+        let lines = std::mem::take(&mut current_lines);
+        if let Some(entry) = lcov_data.get_mut(&file) {
+            entry.extend(lines);
+        } else {
+            lcov_data.insert(file, lines);
+        }
+    }
+
     // 4. Intersect added lines with LCOV hits
     let mut total_added = 0usize;
     let mut total_covered = 0usize;
@@ -2661,6 +2670,48 @@ mod tests {
         assert_eq!(hunks.len(), 1);
         assert_eq!(hunks[0].start_line, 42);
         assert_eq!(hunks[0].end_line, 42);
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_diff_coverage_gate_flushes_unterminated_final_lcov_record() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join("src")).unwrap();
+        std::fs::write(dir.path().join("src/lib.rs"), "fn a() {}\n").unwrap();
+
+        let git = |args: &[&str]| {
+            let status = Command::new("git")
+                .args(args)
+                .current_dir(dir.path())
+                .status()
+                .unwrap();
+            assert!(status.success(), "git {:?} failed", args);
+        };
+
+        git(&["init", "-b", "main"]);
+        git(&["config", "user.email", "tokmd@example.com"]);
+        git(&["config", "user.name", "tokmd"]);
+        git(&["add", "."]);
+        git(&["commit", "-m", "base"]);
+
+        std::fs::write(dir.path().join("src/lib.rs"), "fn a() {}\nfn b() {}\n").unwrap();
+        git(&["add", "."]);
+        git(&["commit", "-m", "head"]);
+
+        std::fs::write(dir.path().join("lcov.info"), "SF:src/lib.rs\nDA:2,1\n").unwrap();
+
+        let gate = compute_diff_coverage_gate(
+            dir.path(),
+            "HEAD~1",
+            "HEAD",
+            tokmd_git::GitRangeMode::TwoDot,
+        )
+        .unwrap()
+        .expect("diff coverage gate should exist");
+
+        assert_eq!(gate.coverage_pct, 1.0);
+        assert_eq!(gate.meta.scope.lines_relevant, Some(1));
+        assert_eq!(gate.meta.scope.lines_tested, Some(1));
     }
 
     // ---- now_iso8601 ----
