@@ -35,7 +35,7 @@ pub struct ScanOptions {
     #[serde(default)]
     pub excluded: Vec<String>,
 
-    /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
+    /// Whether to load discovered `tokmd.toml` configuration (plus legacy user `config.json`).
     #[serde(default)]
     pub config: ConfigMode,
 
