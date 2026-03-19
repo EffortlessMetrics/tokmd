@@ -515,7 +515,14 @@ proptest! {
         let r = derive_report(&export(rows), None);
         if total_code > 0 {
             let c = r.cocomo.unwrap();
-            prop_assert!(c.effort_pm > 0.0);
+            // Tiny nonzero inputs can round effort down to 0.0 at two decimal
+            // places (for example 1-2 LOC), so only require strict positivity
+            // once the aggregated code volume clears that rounding floor.
+            if total_code >= 3 {
+                prop_assert!(c.effort_pm > 0.0);
+            } else {
+                prop_assert!(c.effort_pm >= 0.0);
+            }
             prop_assert!(c.duration_months > 0.0);
         } else {
             prop_assert!(r.cocomo.is_none());
