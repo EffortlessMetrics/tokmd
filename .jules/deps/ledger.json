@@ -17,6 +17,13 @@
     "persona": "Auditor",
     "lane": "scout",
     "target": "tokmd-analysis",
-    "action": "move unused dependencies blake3 and serde to dev-dependencies"
+    "action": "move test-only deps and remove tokmd-content from the content feature",
+    "receipts": [
+      "cargo machete flagged tokmd-content as unused in tokmd-analysis",
+      "cargo test -p tokmd-analysis --all-features completed successfully after the manifest cleanup",
+      "cargo test -p tokmd-analysis --no-default-features completed successfully after the manifest cleanup",
+      "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully",
+      "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check completed successfully"
+    ]
   }
 ]

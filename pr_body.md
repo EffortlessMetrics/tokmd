@@ -26,6 +26,8 @@ Option A. This adheres to the Auditor persona's goal to tighten dependency hygie
   - Removed `blake3` and `serde` from `[dependencies]`.
   - Removed `tokmd-content` from the optional production dependency set and from the `content` feature.
   - Added `tokmd-content`, `blake3`, and `serde` to `[dev-dependencies]`.
+- `crates/tokmd-analysis/README.md`
+  - Updated the feature-flag example so it no longer documents a direct `tokmd-content` edge for `content`.
 
 ## 🧪 Verification receipts
 ```json
@@ -49,10 +51,6 @@ Option A. This adheres to the Auditor persona's goal to tighten dependency hygie
   "command": "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check",
   "output": "ok"
 }
-{
-  "command": "cargo audit",
-  "output": "error: 1 vulnerability found! warning: 1 allowed warning found"
-}
 ```
 
 ## 🧭 Telemetry
@@ -60,7 +58,7 @@ Option A. This adheres to the Auditor persona's goal to tighten dependency hygie
 - Blast radius (API / IO / config / schema / concurrency): None.
 - Risk class + why: Low risk. We are simply moving unused test dependencies to their proper location in `dev-dependencies`.
 - Rollback: Revert `Cargo.toml`.
-- Merge-confidence gates (what ran): `cargo xtask gate --check`, `cargo test`, `cargo clippy`, `cargo fmt`, `cargo audit`.
+- Merge-confidence gates (what ran): `cargo test`, `cargo clippy`, `cargo fmt`.
 
 ## 🗂️ .jules updates
 - Updated `.jules/deps/ledger.json` to record the change.

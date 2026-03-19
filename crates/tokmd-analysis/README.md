@@ -122,7 +122,7 @@ let receipt = analyze(context, request)?;
 [features]
 git = ["tokmd-git"]       # Git history analysis
 walk = ["tokmd-walk"]     # Asset discovery
-content = ["tokmd-content"]  # Content scanning
+content = ["tokmd-analysis-content", "tokmd-analysis-complexity", "tokmd-analysis-entropy"]  # Content-derived enrichers
 topics = ["tokmd-analysis-topics"] # Topic-cloud extraction
 archetype = ["tokmd-analysis-archetype"] # Archetype detection
 fun = ["tokmd-analysis-fun"]  # Fun/novelty report enrichers
