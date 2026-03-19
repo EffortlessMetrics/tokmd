@@ -9,7 +9,7 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | Flag | Description |
 | :--- | :--- |
 | `--exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
-| `--config <MODE>` | Scan config strategy: `auto` (default, discovers `tokmd.toml` via `TOKMD_CONFIG`, current directory/parents, and user config; also loads legacy user `config.json`) or `none`. |
+| `--config <MODE>` | Scan config strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
 | `--hidden` | Count hidden files and directories (start with `.`). |
 | `--no-ignore` | Disable all ignore files (`.gitignore`, `.ignore`, `.tokeignore`). |
 | `--no-ignore-parent` | Do not traverse parent directories for ignore files. |
@@ -1031,7 +1031,7 @@ tokmd completions powershell >> $PROFILE
 
 `tokmd` supports a `tokmd.toml` configuration file for persistent settings.
 
-This application config is separate from the global `--config <MODE>` flag. `--config` only controls scan-layer `tokei.toml` / `.tokeirc` loading; `tokmd.toml` discovery follows the precedence chain below.
+This application config is separate from the top-level `--config <MODE>` flag. `--config` only controls scan-layer `tokei.toml` / `.tokeirc` loading; `tokmd.toml` discovery follows the precedence chain below.
 
 ### File Location Precedence
 
