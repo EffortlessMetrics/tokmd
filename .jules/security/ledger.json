@@ -25,5 +25,18 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-20T12:00:00Z",
+    "lane": "scout",
+    "target": "Burn down test unwraps in tokmd CLI tests",
+    "pr_link": "pending",
+    "gates_run": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS"
   }
 ]

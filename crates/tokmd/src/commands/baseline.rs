@@ -223,11 +223,12 @@ mod tests {
     }
 
     #[test]
-    fn test_capture_git_commit_returns_none_for_non_repo() {
+    fn test_capture_git_commit_returns_none_for_non_repo() -> anyhow::Result<()> {
         // A path that is very unlikely to be a git repo
         let sha = capture_git_commit(&PathBuf::from("/"));
         // Root should not be a git repo (in most cases)
         // Note: This might fail in some edge cases where / is somehow a git repo
-        assert!(sha.is_none() || sha.unwrap().len() == 40);
+        assert!(sha.is_none() || sha.as_ref().unwrap().len() == 40);
+        Ok(())
     }
 }

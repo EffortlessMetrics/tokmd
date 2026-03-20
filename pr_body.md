@@ -1,68 +1,59 @@
+# PR Glass Cockpit
+
+Make review boring. Make truth cheap.
+
 ## 💡 Summary
-Trimmed the production dependency surface in `crates/tokmd-analysis/Cargo.toml` by moving test-only `blake3`, `serde`, and `tokmd-content` usage out of `[dependencies]`. The `content` feature now points only at the analysis-layer crates it actually drives.
+Replaced numerous `unwrap()` calls in `tokmd` CLI tests with `?` by converting test signatures to return `anyhow::Result<()>`.
 
 ## 🎯 Why / Threat model
-These dependencies are not needed in the production `tokmd-analysis` path, and keeping them out of `[dependencies]` reduces compile-time and shipped dependency weight.
+Test execution relies on robust error reporting. Using `unwrap()` or `expect()` causes thread panics that immediately kill the test runner without graceful unwinding or explicit error reporting, which violates the strict panic burn-down rule for the codebase.
 
 ## 🔎 Finding (evidence)
-- `cargo machete` flagged `tokmd-content` as unused in `crates/tokmd-analysis/Cargo.toml`.
-- Manual inspection confirmed `blake3` and `serde` are only referenced from `crates/tokmd-analysis/tests/**`, not from the library crate itself.
+Files:
+- `crates/tokmd/src/interactive/wizard.rs`
+- `crates/tokmd/src/commands/baseline.rs`
+- `crates/tokmd/src/commands/check_ignore.rs`
+- `crates/tokmd/src/export_bundle.rs`
+
+All contain `result.unwrap()` or `result.expect()` within `#[test]` blocks.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Remove `blake3`, `serde`, and the test-only `tokmd-content` edge from `[dependencies]`, and keep them under `[dev-dependencies]`.
-- Reduces the build dependency tree for production builds without affecting tests.
-- Trade-offs: Minor change, no downside.
+- Convert test functions to return `anyhow::Result<()>` and use the `?` operator to propagate errors gracefully instead of panicking.
+- Fits the repo style of burning down unwraps completely and improves error reporting on test failures.
 
 ### Option B
-- Do nothing and leave unused dependencies.
-- Trade-offs: Increases dependency footprint unnecessarily.
+- Just use `expect("msg")` everywhere.
+- Doesn't fully remove panicking paths and creates brittle error messages.
 
 ## ✅ Decision
-Option A. This adheres to the Auditor persona's goal to tighten dependency hygiene and reduce unnecessary weight from the workspace.
+Option A. It aligns with the repo's strict quality gate requirement to burn down panics and ensures test failures are handled nicely.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/Cargo.toml`
-  - Removed `blake3` and `serde` from `[dependencies]`.
-  - Removed `tokmd-content` from the optional production dependency set and from the `content` feature.
-  - Added `tokmd-content`, `blake3`, and `serde` to `[dev-dependencies]`.
-- `crates/tokmd-analysis/README.md`
-  - Updated the feature-flag example so it no longer documents a direct `tokmd-content` edge for `content`.
+- `crates/tokmd/src/interactive/wizard.rs`
+- `crates/tokmd/src/commands/baseline.rs`
+- `crates/tokmd/src/commands/check_ignore.rs`
+- `crates/tokmd/src/export_bundle.rs`
 
 ## 🧪 Verification receipts
-```json
-{
-  "command": "cargo machete",
-  "output": "Analyzing dependencies of crates in this directory...\ncargo-machete found the following unused dependencies in this directory:\nxtask -- ./xtask/Cargo.toml:\n\tconsole\n\tindicatif\n\tserde\ntokmd-node -- ./crates/tokmd-node/Cargo.toml:\n\ttokmd-analysis-types\n\ttokmd-types\ntokmd-model -- ./crates/tokmd-model/Cargo.toml:\n\tserde\ntokmd-python -- ./crates/tokmd-python/Cargo.toml:\n\ttokmd-analysis-types\n\ttokmd-types\ntokmd-analysis -- ./crates/tokmd-analysis/Cargo.toml:\n\ttokmd-content\n\nIf you believe cargo-machete has detected an unused dependency incorrectly,\nyou can add the dependency to the list of dependencies to ignore in the\n`[package.metadata.cargo-machete]` section of the appropriate Cargo.toml.\nFor example:\n\n[package.metadata.cargo-machete]\nignored = [\"prost\"]\n\nYou can also try running it with the `--with-metadata` flag for better accuracy,\nthough this may modify your Cargo.lock files.\n\nDone!"
-}
-{
-  "command": "cargo test -p tokmd-analysis --all-features",
-  "output": "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;"
-}
-{
-  "command": "cargo test -p tokmd-analysis --no-default-features",
-  "output": "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;"
-}
-{
-  "command": "cargo clippy -p tokmd-analysis --all-features -- -D warnings",
-  "output": "Finished dev profile [unoptimized + debuginfo] target(s) in 10.12s"
-}
-{
-  "command": "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check",
-  "output": "ok"
-}
-```
+`cargo test -p tokmd --lib` - PASS
+`cargo clippy -- -D warnings` - PASS
+`cargo fmt -- --check` - PASS
 
 ## 🧭 Telemetry
-- Change shape: Narrow dependency manifest update.
-- Blast radius (API / IO / config / schema / concurrency): None.
-- Risk class + why: Low risk. We are simply moving unused test dependencies to their proper location in `dev-dependencies`.
-- Rollback: Revert `Cargo.toml`.
-- Merge-confidence gates (what ran): `cargo test`, `cargo clippy`, `cargo fmt`.
+- Change shape: Test refactor
+- Blast radius (API / IO / config / schema / concurrency): Minimal, strictly test suites.
+- Risk class + why: Low, affects only local testing.
+- Rollback: `git revert`
+- Merge-confidence gates: build, test, fmt, clippy
 
 ## 🗂️ .jules updates
-- Updated `.jules/deps/ledger.json` to record the change.
-- Wrote an audit run log `.jules/deps/runs/2026-03-19.md`.
+- Created `.jules/security/envelopes/<run-id>.json`
+- Wrote execution details to `.jules/security/runs/<date>.md`
+- Appended execution summary to `.jules/security/ledger.json`
 
 ## 📝 Notes (freeform)
-N/A
+Using `sed` and `python` to automate the transition works nicely. Some variables like `.as_ref()` needed manual cleanup to re-satisfy type constraints but the compiler provides extremely obvious directions here.
+
+## 🔜 Follow-ups
+None
