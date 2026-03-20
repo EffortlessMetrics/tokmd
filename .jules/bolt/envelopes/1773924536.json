@@ -1,0 +1,12 @@
+{
+  "run_id": "1773924536",
+  "improvements": [
+    {
+      "description": "Optimized ComplexityHistogram::to_ascii string formatting",
+      "metric": "execution time",
+      "baseline": "24.723 µs - 27.154 µs per call",
+      "result": "7.5839 µs - 7.6088 µs per call (~72% improvement)",
+      "rationale": "Replacing intermediate format! calls with write!/writeln! direct appending, pre-allocating the string buffer based on row count and width, and replacing string .repeat allocation with char pushing inside a loop significantly improved performance and reduced allocations."
+    }
+  ]
+}
