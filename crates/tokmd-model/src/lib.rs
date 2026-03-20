@@ -21,7 +21,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use tokei::{LanguageType, Languages};
+use tokei::Languages;
 use tokmd_module_key::module_key_from_normalized;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
@@ -46,134 +46,117 @@ pub fn create_lang_report(
     with_files: bool,
     children: ChildrenMode,
 ) -> LangReport {
-    // Aggregate metrics per language.
-    // Since we need to access the filesystem for bytes, we do it via collect_file_rows first?
-    // Or just iterate and compute. Since collect_file_rows is for Module/Export, we can't reuse it easily
-    // for Lang report without re-grouping.
-    // However, Lang report also needs to be accurate.
-    // To avoid double-counting bytes for embedded languages, we should only count bytes for PARENT languages.
+    let rows = collect_file_rows(languages, &[], 1, ChildIncludeMode::Separate, None);
+    create_lang_report_from_rows(&rows, top, with_files, children)
+}
 
-    // Let's iterate languages and files similar to collect_file_rows but grouping by Lang.
-
-    // We can't use collect_file_rows directly because it flattens everything.
-    // But we CAN use the same helper logic.
-
-    let mut rows: Vec<LangRow> = Vec::new();
-
-    // Helper map to store aggregated stats including bytes
+pub fn create_lang_report_from_rows(
+    file_rows: &[FileRow],
+    top: usize,
+    with_files: bool,
+    children: ChildrenMode,
+) -> LangReport {
     #[derive(Default)]
     struct LangAgg {
         code: usize,
         lines: usize,
-        files: usize,
+        bytes: usize,
+        tokens: usize,
     }
 
-    match children {
-        ChildrenMode::Collapse => {
-            // Collapse embedded languages into the parent row.
-            // Bytes are attributed to the parent file's language.
+    let parent_lang_by_path: BTreeMap<&str, &str> = file_rows
+        .iter()
+        .filter(|row| row.kind == FileKind::Parent)
+        .map(|row| (row.path.as_str(), row.lang.as_str()))
+        .collect();
+    let mut child_totals_by_path: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
+    for row in file_rows.iter().filter(|row| row.kind == FileKind::Child) {
+        let entry = child_totals_by_path.entry(row.path.as_str()).or_default();
+        entry.0 += row.code;
+        entry.1 += row.lines;
+    }
 
-            for (lang_type, lang) in languages.iter() {
-                let sum = lang.summarise();
-                if sum.code == 0 {
-                    continue;
-                }
+    let mut by_lang: BTreeMap<String, LangAgg> = BTreeMap::new();
+    let mut lang_files: BTreeMap<String, BTreeSet<&str>> = BTreeMap::new();
 
-                // Compute bytes sum for all files in this language
-                let mut bytes_sum = 0;
-                let mut tokens_sum = 0;
-                for report in &lang.reports {
-                    let (b, t) = get_file_metrics(&report.name);
-                    bytes_sum += b;
-                    tokens_sum += t;
-                }
-
-                let lines = sum.code + sum.comments + sum.blanks;
-                let files = lang.reports.len();
-                let avg_lines = avg(lines, files);
-
-                rows.push(LangRow {
-                    lang: lang_type.name().to_string(),
-                    code: sum.code,
-                    lines,
-                    files,
-                    bytes: bytes_sum,
-                    tokens: tokens_sum,
-                    avg_lines,
-                });
+    for row in file_rows {
+        match (children, row.kind) {
+            (ChildrenMode::Collapse, FileKind::Parent) => {
+                let entry = by_lang.entry(row.lang.clone()).or_default();
+                entry.code += row.code;
+                entry.lines += row.lines;
+                entry.bytes += row.bytes;
+                entry.tokens += row.tokens;
+                lang_files
+                    .entry(row.lang.clone())
+                    .or_default()
+                    .insert(row.path.as_str());
             }
-        }
-        ChildrenMode::Separate => {
-            // Separate embedded languages.
-            // Bytes/Tokens should only be counted for the PARENT file.
-            // Embedded segments (children) have 0 bytes/tokens effectively to avoid double counting.
-
-            let mut embedded: BTreeMap<LanguageType, LangAgg> = BTreeMap::new();
-
-            for (lang_type, lang) in languages.iter() {
-                if lang.code > 0 {
-                    let lines = lang.code + lang.comments + lang.blanks;
-                    let files = lang.reports.len();
-
-                    // Parent files get the bytes
-                    let mut bytes_sum = 0;
-                    let mut tokens_sum = 0;
-                    for report in &lang.reports {
-                        let (b, t) = get_file_metrics(&report.name);
-                        bytes_sum += b;
-                        tokens_sum += t;
-                    }
-
-                    rows.push(LangRow {
-                        lang: lang_type.name().to_string(),
-                        code: lang.code,
-                        lines,
-                        files,
-                        bytes: bytes_sum,
-                        tokens: tokens_sum,
-                        avg_lines: avg(lines, files),
-                    });
-                }
-
-                for (child_type, reports) in &lang.children {
-                    let entry = embedded.entry(*child_type).or_default();
-                    entry.files += reports.len();
-                    for r in reports {
-                        let st = r.stats.summarise();
-                        entry.code += st.code;
-                        entry.lines += st.code + st.comments + st.blanks;
-                        // Embedded languages don't own the file, so 0 bytes/tokens
-                    }
+            (ChildrenMode::Collapse, FileKind::Child) => {
+                if !parent_lang_by_path.contains_key(row.path.as_str()) {
+                    let entry = by_lang.entry(row.lang.clone()).or_default();
+                    entry.code += row.code;
+                    entry.lines += row.lines;
+                    lang_files
+                        .entry(row.lang.clone())
+                        .or_default()
+                        .insert(row.path.as_str());
                 }
             }
-
-            for (child_type, agg) in embedded {
-                if agg.code == 0 {
-                    continue;
-                }
-                let avg_lines = avg(agg.lines, agg.files);
-                rows.push(LangRow {
-                    lang: format!("{} (embedded)", child_type.name()),
-                    code: agg.code,
-                    lines: agg.lines,
-                    files: agg.files,
-                    bytes: 0,  // No bytes for embedded
-                    tokens: 0, // No tokens for embedded
-                    avg_lines,
-                });
+            (ChildrenMode::Separate, FileKind::Parent) => {
+                let (child_code, child_lines) = child_totals_by_path
+                    .get(row.path.as_str())
+                    .copied()
+                    .unwrap_or((0, 0));
+                let entry = by_lang.entry(row.lang.clone()).or_default();
+                entry.code += row.code.saturating_sub(child_code);
+                entry.lines += row.lines.saturating_sub(child_lines);
+                entry.bytes += row.bytes;
+                entry.tokens += row.tokens;
+                lang_files
+                    .entry(row.lang.clone())
+                    .or_default()
+                    .insert(row.path.as_str());
+            }
+            (ChildrenMode::Separate, FileKind::Child) => {
+                let lang = format!("{} (embedded)", row.lang);
+                let entry = by_lang.entry(lang.clone()).or_default();
+                entry.code += row.code;
+                entry.lines += row.lines;
+                lang_files
+                    .entry(lang)
+                    .or_default()
+                    .insert(row.path.as_str());
             }
         }
     }
 
-    // Sort descending by code, then by language name for determinism.
+    let mut rows: Vec<LangRow> = by_lang
+        .into_iter()
+        .filter_map(|(lang, agg)| {
+            if agg.code == 0 {
+                return None;
+            }
+            let files = lang_files.get(&lang).map(|paths| paths.len()).unwrap_or(0);
+            Some(LangRow {
+                lang,
+                code: agg.code,
+                lines: agg.lines,
+                files,
+                bytes: agg.bytes,
+                tokens: agg.tokens,
+                avg_lines: avg(agg.lines, files),
+            })
+        })
+        .collect();
+
     rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
-    // Compute totals
     let total_code: usize = rows.iter().map(|r| r.code).sum();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
     let total_bytes: usize = rows.iter().map(|r| r.bytes).sum();
     let total_tokens: usize = rows.iter().map(|r| r.tokens).sum();
-    let total_files = unique_parent_file_count(languages);
+    let total_files = unique_parent_file_count_from_rows(file_rows);
 
     let total = Totals {
         code: total_code,
@@ -232,9 +215,17 @@ pub fn create_module_report(
     children: ChildIncludeMode,
     top: usize,
 ) -> ModuleReport {
-    // Aggregate stats per module, but count files uniquely (parent files only).
     let file_rows = collect_file_rows(languages, module_roots, module_depth, children, None);
+    create_module_report_from_rows(&file_rows, module_roots, module_depth, children, top)
+}
 
+pub fn create_module_report_from_rows(
+    file_rows: &[FileRow],
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    top: usize,
+) -> ModuleReport {
     #[derive(Default)]
     struct Agg {
         code: usize,
@@ -255,22 +246,19 @@ pub fn create_module_report(
         total_bytes += r.bytes;
         total_tokens += r.tokens;
 
-        let entry = by_module.entry(r.module).or_default();
+        let entry = by_module.entry(r.module.clone()).or_default();
         entry.code += r.code;
         entry.lines += r.lines;
         entry.bytes += r.bytes;
         entry.tokens += r.tokens;
     }
 
-    // Unique parent files per module.
     let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (lang_type, lang) in languages.iter() {
-        let _ = lang_type; // keep the pattern explicit; we only need reports
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
-            module_files.entry(module).or_default().insert(path);
-        }
+    for row in file_rows.iter().filter(|row| row.kind == FileKind::Parent) {
+        module_files
+            .entry(row.module.clone())
+            .or_default()
+            .insert(row.path.clone());
     }
 
     let mut rows: Vec<ModuleRow> = Vec::new();
@@ -296,7 +284,7 @@ pub fn create_module_report(
         rows.push(other);
     }
 
-    let total_files = unique_parent_file_count(languages);
+    let total_files = unique_parent_file_count_from_rows(file_rows);
 
     let total = Totals {
         code: total_code,
@@ -352,14 +340,31 @@ pub fn create_export_data(
     min_code: usize,
     max_rows: usize,
 ) -> ExportData {
-    let mut rows = collect_file_rows(
+    let rows = collect_file_rows(
         languages,
         module_roots,
         module_depth,
         children,
         strip_prefix,
     );
+    create_export_data_from_rows(
+        rows,
+        module_roots,
+        module_depth,
+        children,
+        min_code,
+        max_rows,
+    )
+}
 
+pub fn create_export_data_from_rows(
+    mut rows: Vec<FileRow>,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    min_code: usize,
+    max_rows: usize,
+) -> ExportData {
     // Filter and sort for determinism.
     if min_code > 0 {
         rows.retain(|r| r.code >= min_code);
@@ -475,14 +480,17 @@ pub fn collect_file_rows(
 }
 
 pub fn unique_parent_file_count(languages: &Languages) -> usize {
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    for (_lang_type, lang) in languages.iter() {
-        for report in &lang.reports {
-            let path = normalize_path(&report.name, None);
-            seen.insert(path);
-        }
-    }
-    seen.len()
+    let rows = collect_file_rows(languages, &[], 1, ChildIncludeMode::ParentsOnly, None);
+    unique_parent_file_count_from_rows(&rows)
+}
+
+pub fn unique_parent_file_count_from_rows(file_rows: &[FileRow]) -> usize {
+    file_rows
+        .iter()
+        .filter(|row| row.kind == FileKind::Parent)
+        .map(|row| row.path.as_str())
+        .collect::<BTreeSet<_>>()
+        .len()
 }
 
 /// Compute the average of `lines` over `files`, rounding to nearest integer.
