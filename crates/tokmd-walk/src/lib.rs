@@ -20,6 +20,7 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
 use ignore::WalkBuilder;
+use tokmd_io_port::MemFs;
 
 #[derive(Debug, Clone)]
 pub struct LicenseCandidates {
@@ -66,6 +67,35 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
     }
 
     files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
+    Ok(files)
+}
+
+/// List files from an in-memory filesystem backend.
+///
+/// Returned paths are relative to `root` and sorted for deterministic output.
+pub fn list_files_from_memfs(
+    fs: &MemFs,
+    root: &Path,
+    max_files: Option<usize>,
+) -> Result<Vec<PathBuf>> {
+    if max_files == Some(0) {
+        return Ok(Vec::new());
+    }
+
+    let normalized_root = normalize_memfs_root(root);
+    let mut files: Vec<PathBuf> = fs
+        .file_paths()
+        .filter_map(|path| memfs_relative_path(path, normalized_root))
+        .collect();
+
+    files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
+
+    if let Some(limit) = max_files
+        && files.len() > limit
+    {
+        files.truncate(limit);
+    }
+
     Ok(files)
 }
 
@@ -138,6 +168,32 @@ pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
     let meta =
         std::fs::metadata(&path).with_context(|| format!("Failed to stat {}", path.display()))?;
     Ok(meta.len())
+}
+
+/// Query a file size from an in-memory filesystem backend.
+pub fn file_size_from_memfs(fs: &MemFs, root: &Path, relative: &Path) -> Result<u64> {
+    let path = if normalize_memfs_root(root).as_os_str().is_empty() {
+        relative.to_path_buf()
+    } else {
+        root.join(relative)
+    };
+    fs.file_size(&path)
+        .with_context(|| format!("Failed to stat {}", path.display()))
+}
+
+fn normalize_memfs_root(root: &Path) -> &Path {
+    if root == Path::new(".") {
+        Path::new("")
+    } else {
+        root
+    }
+}
+
+fn memfs_relative_path<'a>(path: &'a Path, root: &Path) -> Option<PathBuf> {
+    if root.as_os_str().is_empty() {
+        return Some(path.to_path_buf());
+    }
+    path.strip_prefix(root).ok().map(Path::to_path_buf)
 }
 
 #[cfg(test)]
