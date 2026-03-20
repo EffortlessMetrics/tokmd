@@ -88,9 +88,6 @@ pub fn compute_cockpit(
     // Compute code health
     let code_health = compute_code_health(&file_stats, &contracts);
 
-    // Compute risk based on various factors
-    let risk = compute_risk(&file_stats, &contracts, &code_health);
-
     // Compute all gate evidence
     let evidence = compute_evidence(
         repo_root,
@@ -104,6 +101,9 @@ pub fn compute_cockpit(
 
     // Generate review plan with complexity scores
     let review_plan = generate_review_plan(&file_stats, &contracts);
+
+    // Compute risk based on various factors
+    let risk = compute_risk_owned(file_stats, &contracts, &code_health);
 
     Ok(CockpitReceipt {
         schema_version: COCKPIT_SCHEMA_VERSION,
@@ -2025,15 +2025,15 @@ pub fn compute_code_health(file_stats: &[FileStat], contracts: &Contracts) -> Co
     }
 }
 
-/// Compute risk metrics.
-pub fn compute_risk(file_stats: &[FileStat], _contracts: &Contracts, health: &CodeHealth) -> Risk {
+fn compute_risk_from_iter<I>(_contracts: &Contracts, health: &CodeHealth, file_stats: I) -> Risk
+where
+    I: IntoIterator<Item = String>,
+{
     let mut hotspots_touched = Vec::new();
     let bus_factor_warnings = Vec::new();
 
-    for stat in file_stats {
-        if stat.insertions + stat.deletions > 300 {
-            hotspots_touched.push(stat.path.clone());
-        }
+    for path in file_stats {
+        hotspots_touched.push(path);
     }
 
     let score = (hotspots_touched.len() * 15 + (100 - health.score) as usize).min(100) as u32;
@@ -2051,6 +2051,34 @@ pub fn compute_risk(file_stats: &[FileStat], _contracts: &Contracts, health: &Co
         level,
         score,
     }
+}
+
+/// Compute risk metrics for borrowed file stats.
+pub fn compute_risk(file_stats: &[FileStat], contracts: &Contracts, health: &CodeHealth) -> Risk {
+    compute_risk_from_iter(
+        contracts,
+        health,
+        file_stats
+            .iter()
+            .filter(|stat| stat.insertions + stat.deletions > 300)
+            .map(|stat| stat.path.clone()),
+    )
+}
+
+/// Internal fast path used by cockpit assembly when it already owns the stats.
+fn compute_risk_owned(
+    file_stats: Vec<FileStat>,
+    contracts: &Contracts,
+    health: &CodeHealth,
+) -> Risk {
+    compute_risk_from_iter(
+        contracts,
+        health,
+        file_stats
+            .into_iter()
+            .filter(|stat| stat.insertions + stat.deletions > 300)
+            .map(|stat| stat.path),
+    )
 }
 
 /// Generate review plan.
