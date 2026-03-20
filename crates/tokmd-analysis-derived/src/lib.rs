@@ -371,13 +371,15 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
     let mut out = Vec::new();
     for (module, langs) in by_module {
         let mut total = 0usize;
-        let mut dominant_lang = String::new();
+        let mut dominant_lang: Option<&str> = None;
         let mut dominant_lines = 0usize;
         for (lang, lines) in &langs {
             total += *lines;
-            if *lines > dominant_lines || (*lines == dominant_lines && lang < &dominant_lang) {
+            if *lines > dominant_lines
+                || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
+            {
                 dominant_lines = *lines;
-                dominant_lang = lang.clone();
+                dominant_lang = Some(lang.as_str());
             }
         }
         let pct = if total == 0 {
@@ -388,7 +390,7 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
         out.push(LangPurityRow {
             module,
             lang_count: langs.len(),
-            dominant_lang,
+            dominant_lang: dominant_lang.unwrap_or_default().to_string(),
             dominant_lines,
             dominant_pct: pct,
         });
@@ -522,13 +524,15 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     }
 
     let mut entropy = 0.0;
-    let mut dominant_lang = String::new();
+    let mut dominant_lang: Option<&str> = None;
     let mut dominant_lines = 0usize;
 
     for (lang, lines) in &by_lang {
-        if *lines > dominant_lines || (*lines == dominant_lines && lang < &dominant_lang) {
+        if *lines > dominant_lines
+            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
+        {
             dominant_lines = *lines;
-            dominant_lang = lang.clone();
+            dominant_lang = Some(lang.as_str());
         }
         if total > 0 && *lines > 0 {
             let p = *lines as f64 / total as f64;
@@ -545,7 +549,7 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     PolyglotReport {
         lang_count: by_lang.len(),
         entropy: round_f64(entropy, 4),
-        dominant_lang,
+        dominant_lang: dominant_lang.unwrap_or_default().to_string(),
         dominant_lines,
         dominant_pct,
     }
