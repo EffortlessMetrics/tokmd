@@ -1,0 +1,39 @@
+{
+  "run_id": "20260319T122251Z",
+  "timestamp_utc": "20260319T122251Z",
+  "lane": "scout",
+  "target": "tokmd-analysis-types unwrap() removal + windows test flake fix",
+  "commands": [],
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "output": "Built the workspace after touching tokmd-analysis-types and the Windows-sensitive tokmd-walk property tests."
+    },
+    {
+      "cmd": "cargo test -q -p tokmd-analysis-types",
+      "status": "PASS",
+      "output": "tokmd-analysis-types tests passed."
+    },
+    {
+      "cmd": "cargo test -q -p tokmd-walk --test properties_traversal file_size_nested_matches_content",
+      "status": "PASS",
+      "output": "The Windows reserved-name regression case passed."
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "output": "Formatting check passed."
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-analysis-types -- -D warnings",
+      "status": "PASS",
+      "output": "Clippy passed for tokmd-analysis-types."
+    },
+    {
+      "cmd": "typos .jules/palette/envelopes/20260319T122251Z.json .jules/palette/ledger.json crates/tokmd-walk/tests/properties_traversal.rs crates/tokmd-analysis-types/src/lib.rs",
+      "status": "PASS",
+      "output": "Typos passed after normalizing the palette receipt output."
+    }
+  ]
+}

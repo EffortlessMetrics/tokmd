@@ -1570,18 +1570,20 @@ mod tests {
 
     // ── Schema version constant ───────────────────────────────────────
     #[test]
-    fn analysis_schema_version_constant() {
+    fn analysis_schema_version_constant() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
+        Ok(())
     }
 
     #[test]
-    fn baseline_version_constant() {
+    fn baseline_version_constant() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(BASELINE_VERSION, 1);
+        Ok(())
     }
 
     // ── Default impls ─────────────────────────────────────────────────
     #[test]
-    fn complexity_baseline_default() {
+    fn complexity_baseline_default() -> Result<(), Box<dyn std::error::Error>> {
         let b = ComplexityBaseline::default();
         assert_eq!(b.baseline_version, BASELINE_VERSION);
         assert!(b.generated_at.is_empty());
@@ -1589,19 +1591,21 @@ mod tests {
         assert!(b.files.is_empty());
         assert!(b.complexity.is_none());
         assert!(b.determinism.is_none());
+        Ok(())
     }
 
     #[test]
-    fn complexity_baseline_new_equals_default() {
+    fn complexity_baseline_new_equals_default() -> Result<(), Box<dyn std::error::Error>> {
         let a = ComplexityBaseline::new();
         let b = ComplexityBaseline::default();
         assert_eq!(a.baseline_version, b.baseline_version);
         assert_eq!(a.generated_at, b.generated_at);
         assert_eq!(a.files.len(), b.files.len());
+        Ok(())
     }
 
     #[test]
-    fn baseline_metrics_default_is_zeroed() {
+    fn baseline_metrics_default_is_zeroed() -> Result<(), Box<dyn std::error::Error>> {
         let m = BaselineMetrics::default();
         assert_eq!(m.total_code_lines, 0);
         assert_eq!(m.total_files, 0);
@@ -1609,147 +1613,160 @@ mod tests {
         assert_eq!(m.max_cyclomatic, 0);
         assert_eq!(m.avg_cognitive, 0.0);
         assert_eq!(m.function_count, 0);
+        Ok(())
     }
 
     // ── Enum serde roundtrips ─────────────────────────────────────────
     #[test]
-    fn entropy_class_serde_roundtrip() {
+    fn entropy_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [
             EntropyClass::Low,
             EntropyClass::Normal,
             EntropyClass::Suspicious,
             EntropyClass::High,
         ] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: EntropyClass = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)?;
+            let back: EntropyClass = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
+        Ok(())
     }
 
     #[test]
-    fn trend_class_serde_roundtrip() {
+    fn trend_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [TrendClass::Rising, TrendClass::Flat, TrendClass::Falling] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: TrendClass = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)?;
+            let back: TrendClass = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
+        Ok(())
     }
 
     #[test]
-    fn license_source_kind_serde_roundtrip() {
+    fn license_source_kind_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [LicenseSourceKind::Metadata, LicenseSourceKind::Text] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: LicenseSourceKind = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)?;
+            let back: LicenseSourceKind = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
+        Ok(())
     }
 
     #[test]
-    fn complexity_risk_serde_roundtrip() {
+    fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [
             ComplexityRisk::Low,
             ComplexityRisk::Moderate,
             ComplexityRisk::High,
             ComplexityRisk::Critical,
         ] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: ComplexityRisk = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)?;
+            let back: ComplexityRisk = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
+        Ok(())
     }
 
     #[test]
-    fn technical_debt_level_serde_roundtrip() {
+    fn technical_debt_level_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [
             TechnicalDebtLevel::Low,
             TechnicalDebtLevel::Moderate,
             TechnicalDebtLevel::High,
             TechnicalDebtLevel::Critical,
         ] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: TechnicalDebtLevel = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)?;
+            let back: TechnicalDebtLevel = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
+        Ok(())
     }
 
     // ── Enum naming conventions ───────────────────────────────────────
     #[test]
-    fn entropy_class_uses_snake_case() {
+    fn entropy_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
-            serde_json::to_string(&EntropyClass::Suspicious).unwrap(),
+            serde_json::to_string(&EntropyClass::Suspicious)?,
             "\"suspicious\""
         );
+        Ok(())
     }
 
     #[test]
-    fn trend_class_uses_snake_case() {
-        assert_eq!(
-            serde_json::to_string(&TrendClass::Rising).unwrap(),
-            "\"rising\""
-        );
+    fn trend_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
+        assert_eq!(serde_json::to_string(&TrendClass::Rising)?, "\"rising\"");
+        Ok(())
     }
 
     #[test]
-    fn effort_model_display_strings_are_stable() {
+    fn effort_model_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(EffortModel::Cocomo81Basic.to_string(), "cocomo81-basic");
         assert_eq!(EffortModel::Cocomo2Early.to_string(), "cocomo2-early");
         assert_eq!(EffortModel::Ensemble.to_string(), "ensemble");
+        Ok(())
     }
 
     #[test]
-    fn effort_confidence_level_display_strings_are_stable() {
+    fn effort_confidence_level_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>>
+    {
         assert_eq!(EffortConfidenceLevel::Low.to_string(), "low");
         assert_eq!(EffortConfidenceLevel::Medium.to_string(), "medium");
         assert_eq!(EffortConfidenceLevel::High.to_string(), "high");
+        Ok(())
     }
 
     #[test]
-    fn effort_delta_classification_display_strings_are_stable() {
+    fn effort_delta_classification_display_strings_are_stable()
+    -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(EffortDeltaClassification::Low.to_string(), "low");
         assert_eq!(EffortDeltaClassification::Medium.to_string(), "medium");
         assert_eq!(EffortDeltaClassification::High.to_string(), "high");
         assert_eq!(EffortDeltaClassification::Critical.to_string(), "critical");
+        Ok(())
     }
 
     #[test]
-    fn complexity_risk_uses_snake_case() {
+    fn complexity_risk_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
-            serde_json::to_string(&ComplexityRisk::Moderate).unwrap(),
+            serde_json::to_string(&ComplexityRisk::Moderate)?,
             "\"moderate\""
         );
+        Ok(())
     }
 
     // ── Struct serde roundtrips ───────────────────────────────────────
     #[test]
-    fn eco_label_serde_roundtrip() {
+    fn eco_label_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         let label = EcoLabel {
             score: 85.0,
             label: "A".into(),
             bytes: 1000,
             notes: "Good".into(),
         };
-        let json = serde_json::to_string(&label).unwrap();
-        let back: EcoLabel = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&label)?;
+        let back: EcoLabel = serde_json::from_str(&json)?;
         assert_eq!(back.label, "A");
         assert_eq!(back.bytes, 1000);
+        Ok(())
     }
 
     #[test]
-    fn topic_term_serde_roundtrip() {
+    fn topic_term_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         let term = TopicTerm {
             term: "async".into(),
             score: 0.95,
             tf: 10,
             df: 3,
         };
-        let json = serde_json::to_string(&term).unwrap();
-        let back: TopicTerm = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&term)?;
+        let back: TopicTerm = serde_json::from_str(&json)?;
         assert_eq!(back.term, "async");
         assert_eq!(back.tf, 10);
+        Ok(())
     }
 
     #[test]
-    fn complexity_baseline_serde_roundtrip() {
+    fn complexity_baseline_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         let b = ComplexityBaseline {
             baseline_version: BASELINE_VERSION,
             generated_at: "2025-01-01T00:00:00.000Z".into(),
@@ -1767,17 +1784,18 @@ mod tests {
             complexity: None,
             determinism: None,
         };
-        let json = serde_json::to_string(&b).unwrap();
-        let back: ComplexityBaseline = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&b)?;
+        let back: ComplexityBaseline = serde_json::from_str(&json)?;
         assert_eq!(back.baseline_version, BASELINE_VERSION);
         assert_eq!(back.commit.as_deref(), Some("abc123"));
         assert_eq!(back.files.len(), 1);
         assert_eq!(back.files[0].path, "src/lib.rs");
+        Ok(())
     }
 
     // ── ComplexityHistogram ───────────────────────────────────────────
     #[test]
-    fn complexity_histogram_to_ascii_basic() {
+    fn complexity_histogram_to_ascii_basic() -> Result<(), Box<dyn std::error::Error>> {
         let h = ComplexityHistogram {
             buckets: vec![0, 5, 10],
             counts: vec![10, 5, 2],
@@ -1787,10 +1805,11 @@ mod tests {
         assert!(!ascii.is_empty());
         // Should have 3 lines (one per bucket)
         assert_eq!(ascii.lines().count(), 3);
+        Ok(())
     }
 
     #[test]
-    fn complexity_histogram_to_ascii_empty_counts() {
+    fn complexity_histogram_to_ascii_empty_counts() -> Result<(), Box<dyn std::error::Error>> {
         let h = ComplexityHistogram {
             buckets: vec![0, 5],
             counts: vec![0, 0],
@@ -1798,20 +1817,23 @@ mod tests {
         };
         let ascii = h.to_ascii(20);
         assert!(!ascii.is_empty());
+        Ok(())
     }
 
     // ── chrono_timestamp_iso8601 ──────────────────────────────────────
     #[test]
-    fn timestamp_epoch() {
+    fn timestamp_epoch() -> Result<(), Box<dyn std::error::Error>> {
         let result = chrono_timestamp_iso8601(0);
         assert_eq!(result, "1970-01-01T00:00:00.000Z");
+        Ok(())
     }
 
     #[test]
-    fn timestamp_with_millis() {
+    fn timestamp_with_millis() -> Result<(), Box<dyn std::error::Error>> {
         // 2025-01-01T00:00:00.500Z = 1735689600500 ms
         let result = chrono_timestamp_iso8601(1735689600500);
         assert!(result.ends_with(".500Z"));
         assert!(result.starts_with("2025-01-01"));
+        Ok(())
     }
 }

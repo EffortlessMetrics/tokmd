@@ -254,7 +254,10 @@ proptest! {
     /// file_size for nested files works correctly.
     #[test]
     fn file_size_nested_matches_content(
-        dir_parts in prop::collection::vec("[a-z]{1,4}", 1..=3),
+        dir_parts in arb_dir_depth().prop_filter(
+            "nested path requires at least one directory",
+            |parts| !parts.is_empty(),
+        ),
         content in arb_content(),
     ) {
         let tmp = TempDir::new().unwrap();
