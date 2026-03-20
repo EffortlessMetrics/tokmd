@@ -47,7 +47,7 @@
 //! assert_eq!(parsed["ok"], true);
 //! ```
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
@@ -63,6 +63,7 @@ pub mod settings;
 
 // Re-export types for convenience
 pub use tokmd_config as config;
+pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
@@ -70,8 +71,9 @@ use tokmd_config::GlobalArgs;
 use tokmd_scan_args::scan_args;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, LangArgs, LangArgsMeta, LangReceipt,
-    LangReport, ModuleArgsMeta, ModuleReceipt, RedactMode, SCHEMA_VERSION, ScanStatus, ToolInfo,
+    ChildIncludeMode, DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, FileRow, LangArgs,
+    LangArgsMeta, LangReceipt, LangReport, ModuleArgsMeta, ModuleReceipt, ModuleReport, RedactMode,
+    SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
 
 fn now_ms() -> u128 {
@@ -107,25 +109,26 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
     // Model
     let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
 
-    // Build receipt
-    let receipt = LangReceipt {
-        schema_version: SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "lang".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan_args(&paths, &scan_opts, lang.redact),
-        args: LangArgsMeta {
-            format: "json".to_string(),
-            top: lang.top,
-            with_files: lang.files,
-            children: lang.children,
-        },
-        report,
-    };
+    Ok(build_lang_receipt(&paths, &scan_opts, lang, report))
+}
 
-    Ok(receipt)
+/// Runs the language summary workflow for ordered in-memory inputs.
+pub fn lang_workflow_from_inputs(
+    inputs: &[InMemoryFile],
+    scan_opts: &ScanOptions,
+    lang: &LangSettings,
+) -> Result<LangReceipt> {
+    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let rows = collect_materialized_rows(&scan, &[], 1, ChildIncludeMode::Separate);
+    let report =
+        tokmd_model::create_lang_report_from_rows(&rows, lang.top, lang.files, lang.children);
+
+    Ok(build_lang_receipt(
+        scan.logical_paths(),
+        scan_opts,
+        lang,
+        report,
+    ))
 }
 
 /// Runs the module summary workflow with pure settings types.
@@ -154,26 +157,36 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
         module.top,
     );
 
-    // Build receipt
-    let receipt = ModuleReceipt {
-        schema_version: SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "module".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan_args(&paths, &scan_opts, module.redact),
-        args: ModuleArgsMeta {
-            format: "json".to_string(),
-            top: module.top,
-            module_roots: module.module_roots.clone(),
-            module_depth: module.module_depth,
-            children: module.children,
-        },
-        report,
-    };
+    Ok(build_module_receipt(&paths, &scan_opts, module, report))
+}
 
-    Ok(receipt)
+/// Runs the module summary workflow for ordered in-memory inputs.
+pub fn module_workflow_from_inputs(
+    inputs: &[InMemoryFile],
+    scan_opts: &ScanOptions,
+    module: &ModuleSettings,
+) -> Result<ModuleReceipt> {
+    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let rows = collect_materialized_rows(
+        &scan,
+        &module.module_roots,
+        module.module_depth,
+        module.children,
+    );
+    let report = tokmd_model::create_module_report_from_rows(
+        &rows,
+        &module.module_roots,
+        module.module_depth,
+        module.children,
+        module.top,
+    );
+
+    Ok(build_module_receipt(
+        scan.logical_paths(),
+        scan_opts,
+        module,
+        report,
+    ))
 }
 
 /// Runs the export workflow with pure settings types.
@@ -205,41 +218,47 @@ pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<E
         export.max_rows,
     );
 
-    // Apply redaction if needed
-    let should_redact = export.redact == RedactMode::Paths || export.redact == RedactMode::All;
-    let strip_prefix_redacted = should_redact && export.strip_prefix.is_some();
+    Ok(build_export_receipt(&paths, &scan_opts, export, data))
+}
 
-    // Build receipt
-    let receipt = ExportReceipt {
-        schema_version: SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "export".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan_args(&paths, &scan_opts, Some(export.redact)),
-        args: ExportArgsMeta {
-            format: export.format,
-            module_roots: export.module_roots.clone(),
-            module_depth: export.module_depth,
-            children: export.children,
-            min_code: export.min_code,
-            max_rows: export.max_rows,
-            redact: export.redact,
-            strip_prefix: if should_redact {
-                export
-                    .strip_prefix
-                    .as_ref()
-                    .map(|p| tokmd_format::redact_path(p))
-            } else {
-                export.strip_prefix.clone()
-            },
-            strip_prefix_redacted,
-        },
-        data: redact_export_data(data, export.redact),
-    };
+/// Runs the file export workflow for ordered in-memory inputs.
+pub fn export_workflow_from_inputs(
+    inputs: &[InMemoryFile],
+    scan_opts: &ScanOptions,
+    export: &ExportSettings,
+) -> Result<ExportReceipt> {
+    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let mut rows = collect_materialized_rows(
+        &scan,
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+    );
 
-    Ok(receipt)
+    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
+        rows = strip_virtual_export_prefix(
+            rows,
+            strip_prefix,
+            &export.module_roots,
+            export.module_depth,
+        );
+    }
+
+    let data = tokmd_model::create_export_data_from_rows(
+        rows,
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+        export.min_code,
+        export.max_rows,
+    );
+
+    Ok(build_export_receipt(
+        scan.logical_paths(),
+        scan_opts,
+        export,
+        data,
+    ))
 }
 
 /// Runs the diff workflow comparing two receipts or paths.
@@ -471,6 +490,126 @@ pub fn scan_workflow(
 /// Convert ScanSettings to ScanOptions for lower-tier crates.
 fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
     scan.options.clone()
+}
+
+fn collect_materialized_rows(
+    scan: &tokmd_scan::MaterializedScan,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+) -> Vec<FileRow> {
+    tokmd_model::collect_file_rows(
+        scan.languages(),
+        module_roots,
+        module_depth,
+        children,
+        Some(scan.strip_prefix()),
+    )
+}
+
+fn strip_virtual_export_prefix(
+    rows: Vec<FileRow>,
+    strip_prefix: &str,
+    module_roots: &[String],
+    module_depth: usize,
+) -> Vec<FileRow> {
+    rows.into_iter()
+        .map(|mut row| {
+            let normalized =
+                tokmd_model::normalize_path(Path::new(&row.path), Some(Path::new(strip_prefix)));
+            row.path = normalized.clone();
+            row.module = tokmd_model::module_key(&normalized, module_roots, module_depth);
+            row
+        })
+        .collect()
+}
+
+fn build_lang_receipt(
+    paths: &[PathBuf],
+    scan_opts: &ScanOptions,
+    lang: &LangSettings,
+    report: LangReport,
+) -> LangReceipt {
+    LangReceipt {
+        schema_version: SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "lang".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan_args(paths, scan_opts, lang.redact),
+        args: LangArgsMeta {
+            format: "json".to_string(),
+            top: lang.top,
+            with_files: lang.files,
+            children: lang.children,
+        },
+        report,
+    }
+}
+
+fn build_module_receipt(
+    paths: &[PathBuf],
+    scan_opts: &ScanOptions,
+    module: &ModuleSettings,
+    report: ModuleReport,
+) -> ModuleReceipt {
+    ModuleReceipt {
+        schema_version: SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "module".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan_args(paths, scan_opts, module.redact),
+        args: ModuleArgsMeta {
+            format: "json".to_string(),
+            top: module.top,
+            module_roots: module.module_roots.clone(),
+            module_depth: module.module_depth,
+            children: module.children,
+        },
+        report,
+    }
+}
+
+fn build_export_receipt(
+    paths: &[PathBuf],
+    scan_opts: &ScanOptions,
+    export: &ExportSettings,
+    data: ExportData,
+) -> ExportReceipt {
+    let should_redact = export.redact == RedactMode::Paths || export.redact == RedactMode::All;
+    let strip_prefix_redacted = should_redact && export.strip_prefix.is_some();
+
+    ExportReceipt {
+        schema_version: SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "export".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan_args(paths, scan_opts, Some(export.redact)),
+        args: ExportArgsMeta {
+            format: export.format,
+            module_roots: export.module_roots.clone(),
+            module_depth: export.module_depth,
+            children: export.children,
+            min_code: export.min_code,
+            max_rows: export.max_rows,
+            redact: export.redact,
+            strip_prefix: if should_redact {
+                export
+                    .strip_prefix
+                    .as_ref()
+                    .map(|p| tokmd_format::redact_path(p))
+            } else {
+                export.strip_prefix.clone()
+            },
+            strip_prefix_redacted,
+        },
+        data: redact_export_data(data, export.redact),
+    }
 }
 
 #[cfg(feature = "analysis")]

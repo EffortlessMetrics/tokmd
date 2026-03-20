@@ -45,6 +45,7 @@ assert!(!receipt.report.rows.is_empty());
 With the `analysis` feature enabled, the same facade can drive the effort-aware analysis path:
 
 ```rust,no_run
+# #[cfg(feature = "analysis")]
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 use tokmd_core::settings::{AnalyzeSettings, ScanSettings};
 use tokmd_core::analyze_workflow;
@@ -59,6 +60,8 @@ let receipt = analyze_workflow(&scan, &analyze)?;
 assert!(receipt.effort.is_some());
 # Ok(())
 # }
+# #[cfg(not(feature = "analysis"))]
+# fn main() {}
 ```
 
 ## Main Workflows
