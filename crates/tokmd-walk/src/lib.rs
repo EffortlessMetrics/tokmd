@@ -189,7 +189,7 @@ fn normalize_memfs_root(root: &Path) -> &Path {
     }
 }
 
-fn memfs_relative_path<'a>(path: &'a Path, root: &Path) -> Option<PathBuf> {
+fn memfs_relative_path(path: &Path, root: &Path) -> Option<PathBuf> {
     if root.as_os_str().is_empty() {
         return Some(path.to_path_buf());
     }
