@@ -1,0 +1,22 @@
+{
+  "run_id": "20260320T093403Z",
+  "status": "started",
+  "receipts": [
+    {
+      "command": "cargo build --verbose",
+      "result": "passed"
+    },
+    {
+      "command": "CI=true cargo test --verbose",
+      "result": "passed"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "result": "passed"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "result": "passed"
+    }
+  ]
+}
