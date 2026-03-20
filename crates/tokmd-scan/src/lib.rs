@@ -89,8 +89,9 @@ pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
 }
 
 pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {
-    let logical_paths = normalize_logical_paths(inputs)?;
     let root = tempfile::tempdir()?;
+    let case_insensitive = temp_root_is_case_insensitive(root.path())?;
+    let logical_paths = normalize_logical_paths(inputs, case_insensitive)?;
 
     for (logical_path, input) in logical_paths.iter().zip(inputs) {
         let full_path = root.path().join(logical_path);
@@ -146,13 +147,16 @@ fn ignored_patterns(args: &ScanOptions) -> Vec<&str> {
     args.excluded.iter().map(|s| s.as_str()).collect()
 }
 
-fn normalize_logical_paths(inputs: &[InMemoryFile]) -> Result<Vec<PathBuf>> {
+fn normalize_logical_paths(
+    inputs: &[InMemoryFile],
+    case_insensitive: bool,
+) -> Result<Vec<PathBuf>> {
     let mut seen = BTreeSet::new();
     let mut normalized = Vec::with_capacity(inputs.len());
 
     for input in inputs {
         let logical_path = normalize_logical_path(&input.path)?;
-        if !seen.insert(logical_path_key(&logical_path)) {
+        if !seen.insert(logical_path_key(&logical_path, case_insensitive)) {
             anyhow::bail!("Duplicate in-memory path: {}", logical_path.display());
         }
         normalized.push(logical_path);
@@ -161,16 +165,22 @@ fn normalize_logical_paths(inputs: &[InMemoryFile]) -> Result<Vec<PathBuf>> {
     Ok(normalized)
 }
 
-fn logical_path_key(path: &Path) -> String {
+fn logical_path_key(path: &Path, case_insensitive: bool) -> String {
     let rendered = path.to_string_lossy();
-    #[cfg(windows)]
-    {
-        rendered.to_ascii_lowercase()
-    }
-    #[cfg(not(windows))]
-    {
+    if case_insensitive {
+        rendered.to_lowercase()
+    } else {
         rendered.into_owned()
     }
+}
+
+fn temp_root_is_case_insensitive(root: &Path) -> Result<bool> {
+    let probe = root.join(".tokmd-case-probe");
+    let probe_upper = root.join(".TOKMD-CASE-PROBE");
+    fs::write(&probe, [])?;
+    let case_insensitive = probe_upper.exists();
+    fs::remove_file(&probe)?;
+    Ok(case_insensitive)
 }
 
 fn normalize_logical_path(path: &Path) -> Result<PathBuf> {
@@ -384,19 +394,18 @@ mod tests {
             InMemoryFile::new("src/lib.rs", "fn main() {}\n"),
         ];
 
-        let err = normalize_logical_paths(&inputs).unwrap_err();
+        let err = normalize_logical_paths(&inputs, false).unwrap_err();
         assert!(err.to_string().contains("Duplicate in-memory path"));
     }
 
-    #[cfg(windows)]
     #[test]
-    fn normalize_logical_paths_rejects_case_only_collision_on_windows() {
+    fn normalize_logical_paths_rejects_case_only_collision_on_case_insensitive_fs() {
         let inputs = vec![
             InMemoryFile::new("src/lib.rs", "fn main() {}\n"),
             InMemoryFile::new("SRC/LIB.rs", "fn main() {}\n"),
         ];
 
-        let err = normalize_logical_paths(&inputs).unwrap_err();
+        let err = normalize_logical_paths(&inputs, true).unwrap_err();
         assert!(err.to_string().contains("Duplicate in-memory path"));
     }
 }

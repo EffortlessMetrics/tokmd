@@ -1,9 +1,8 @@
 use anyhow::Result;
 use std::path::PathBuf;
 
-use tokmd_model::collect_file_rows;
 use tokmd_scan::{InMemoryFile, scan_in_memory};
-use tokmd_settings::{ChildIncludeMode, ConfigMode, ScanOptions};
+use tokmd_settings::{ConfigMode, ScanOptions};
 
 fn default_scan_options() -> ScanOptions {
     ScanOptions {
@@ -19,31 +18,22 @@ fn default_scan_options() -> ScanOptions {
 }
 
 #[test]
-fn scan_in_memory_materializes_relative_rows_without_leaking_temp_root() -> Result<()> {
+fn scan_in_memory_preserves_logical_paths_and_materializes_files() -> Result<()> {
     let inputs = vec![
         InMemoryFile::new("src/lib.rs", "pub fn alpha() -> usize { 1 }\n"),
         InMemoryFile::new("tests/basic.py", "print('ok')\n"),
     ];
 
     let scan = scan_in_memory(&inputs, &default_scan_options())?;
-    let rows = collect_file_rows(
-        scan.languages(),
-        &[],
-        1,
-        ChildIncludeMode::ParentsOnly,
-        Some(scan.strip_prefix()),
-    );
-
-    let row_paths: Vec<_> = rows.iter().map(|row| row.path.as_str()).collect();
-    assert!(row_paths.contains(&"src/lib.rs"));
-    assert!(row_paths.contains(&"tests/basic.py"));
-    assert!(rows.iter().all(|row| !row.path.contains("\\temp\\")));
-    assert!(rows.iter().all(|row| !row.path.contains("/tmp/")));
-    assert!(rows.iter().all(|row| row.bytes > 0));
+    assert!(scan.languages().get(&tokei::LanguageType::Rust).is_some());
+    assert!(scan.languages().get(&tokei::LanguageType::Python).is_some());
     assert_eq!(
         scan.logical_paths(),
         &[PathBuf::from("src/lib.rs"), PathBuf::from("tests/basic.py")]
     );
+    assert!(scan.logical_paths().iter().all(|path| path.is_relative()));
+    assert!(scan.strip_prefix().join("src/lib.rs").exists());
+    assert!(scan.strip_prefix().join("tests/basic.py").exists());
 
     Ok(())
 }

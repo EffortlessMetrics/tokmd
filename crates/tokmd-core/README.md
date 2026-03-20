@@ -67,13 +67,16 @@ assert!(receipt.effort.is_some());
 ## Main Workflows
 
 - `lang_workflow(scan, lang) -> LangReceipt`
+- `lang_workflow_from_inputs(inputs, scan_opts, lang) -> LangReceipt`
 - `module_workflow(scan, module) -> ModuleReceipt`
+- `module_workflow_from_inputs(inputs, scan_opts, module) -> ModuleReceipt`
 - `export_workflow(scan, export) -> ExportReceipt`
+- `export_workflow_from_inputs(inputs, scan_opts, export) -> ExportReceipt`
 - `diff_workflow(settings) -> DiffReceipt`
 - `analyze_workflow(scan, analyze) -> AnalysisReceipt` with `analysis` feature
 - `cockpit_workflow(settings) -> CockpitReceipt` with `cockpit` feature
 
-All workflows use pure settings types from `tokmd_core::settings`, so they stay free of clap-specific argument structures.
+All workflows use pure settings types from `tokmd_core::settings`, so they stay free of clap-specific argument structures. For ordered virtual inputs, build `tokmd_core::InMemoryFile` values and use the `*_workflow_from_inputs` variants instead of filesystem paths.
 
 ## FFI JSON API
 
