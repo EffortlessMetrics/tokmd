@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 845e9cab740504ff1b8cdefafdccd12c7b226854651d73dd89d2801bc927a580 # shrinks to rows = [FileRow { path: "a.rs", module: "root", lang: "Rust", kind: Parent, code: 1, comments: 0, blanks: 0, lines: 1, bytes: 0, tokens: 0 }]

@@ -1,0 +1,9 @@
+{
+  "receipts": [
+    "cargo test -p tokmd-analysis-types passed",
+    "cargo build --verbose passed",
+    "CI=true cargo test --verbose passed",
+    "cargo fmt -- --check passed",
+    "cargo clippy -- -D warnings passed"
+  ]
+}
