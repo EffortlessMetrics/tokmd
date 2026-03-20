@@ -48,6 +48,16 @@ fn list_files_from_memfs_root_dot_returns_all_files() {
 }
 
 #[test]
+fn list_files_from_memfs_dot_prefixed_root_matches_plain_root() {
+    let fs = sample_memfs();
+
+    let plain = list_files_from_memfs(&fs, Path::new("src"), None).unwrap();
+    let dotted = list_files_from_memfs(&fs, Path::new("./src"), None).unwrap();
+
+    assert_eq!(dotted, plain);
+}
+
+#[test]
 fn list_files_from_memfs_respects_max_files() {
     let fs = sample_memfs();
 
@@ -87,6 +97,16 @@ fn file_size_from_memfs_reads_relative_bytes() {
     let size = file_size_from_memfs(&fs, Path::new("src"), Path::new("lib.rs")).unwrap();
 
     assert_eq!(size, "pub fn lib() {}".len() as u64);
+}
+
+#[test]
+fn file_size_from_memfs_dot_prefixed_root_matches_plain_root() {
+    let fs = sample_memfs();
+
+    let plain = file_size_from_memfs(&fs, Path::new("src"), Path::new("lib.rs")).unwrap();
+    let dotted = file_size_from_memfs(&fs, Path::new("./src"), Path::new("./lib.rs")).unwrap();
+
+    assert_eq!(dotted, plain);
 }
 
 #[test]

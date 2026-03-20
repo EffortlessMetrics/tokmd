@@ -15,7 +15,7 @@
 //! * Git history analysis (use tokmd-git)
 //! * File modification
 
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
@@ -82,10 +82,10 @@ pub fn list_files_from_memfs(
         return Ok(Vec::new());
     }
 
-    let normalized_root = normalize_memfs_root(root);
+    let normalized_root = normalize_memfs_path(root);
     let mut files: Vec<PathBuf> = fs
         .file_paths()
-        .filter_map(|path| memfs_relative_path(path, normalized_root))
+        .filter_map(|path| memfs_relative_path(path, &normalized_root))
         .collect();
 
     files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
@@ -172,21 +172,27 @@ pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
 
 /// Query a file size from an in-memory filesystem backend.
 pub fn file_size_from_memfs(fs: &MemFs, root: &Path, relative: &Path) -> Result<u64> {
-    let path = if normalize_memfs_root(root).as_os_str().is_empty() {
-        relative.to_path_buf()
+    let normalized_root = normalize_memfs_path(root);
+    let path = if normalized_root.as_os_str().is_empty() {
+        normalize_memfs_path(relative)
     } else {
-        root.join(relative)
+        normalize_memfs_path(&normalized_root.join(relative))
     };
     fs.file_size(&path)
         .with_context(|| format!("Failed to stat {}", path.display()))
 }
 
-fn normalize_memfs_root(root: &Path) -> &Path {
-    if root == Path::new(".") {
-        Path::new("")
-    } else {
-        root
+fn normalize_memfs_path(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir | Component::RootDir => {}
+            Component::Normal(part) => normalized.push(part),
+            Component::ParentDir => normalized.push(".."),
+            Component::Prefix(prefix) => normalized.push(prefix.as_os_str()),
+        }
     }
+    normalized
 }
 
 fn memfs_relative_path(path: &Path, root: &Path) -> Option<PathBuf> {
