@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use serde_json::Value;
+use serde_json::json;
 use tokei::{Config, Languages};
 use tokmd_model::{
     collect_file_rows, create_export_data, create_export_data_from_rows, create_lang_report,
@@ -28,6 +29,238 @@ fn to_json<T: serde::Serialize>(value: &T) -> Value {
 fn reversed_rows(mut rows: Vec<FileRow>) -> Vec<FileRow> {
     rows.reverse();
     rows
+}
+
+fn fixture_rows() -> Vec<FileRow> {
+    vec![
+        FileRow {
+            path: "src/app.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 100,
+            comments: 10,
+            blanks: 5,
+            lines: 115,
+            bytes: 400,
+            tokens: 100,
+        },
+        FileRow {
+            path: "web/page.html".to_string(),
+            module: "web".to_string(),
+            lang: "HTML".to_string(),
+            kind: FileKind::Parent,
+            code: 50,
+            comments: 7,
+            blanks: 5,
+            lines: 62,
+            bytes: 300,
+            tokens: 75,
+        },
+        FileRow {
+            path: "web/page.html".to_string(),
+            module: "web".to_string(),
+            lang: "JavaScript".to_string(),
+            kind: FileKind::Child,
+            code: 10,
+            comments: 1,
+            blanks: 1,
+            lines: 12,
+            bytes: 0,
+            tokens: 0,
+        },
+    ]
+}
+
+#[test]
+fn create_lang_report_from_rows_manual_collapse_fixture() {
+    let report = create_lang_report_from_rows(&fixture_rows(), 0, false, ChildrenMode::Collapse);
+
+    assert_eq!(
+        to_json(&report),
+        json!({
+            "rows": [
+                {
+                    "lang": "Rust",
+                    "code": 100,
+                    "lines": 115,
+                    "files": 1,
+                    "bytes": 400,
+                    "tokens": 100,
+                    "avg_lines": 115
+                },
+                {
+                    "lang": "HTML",
+                    "code": 50,
+                    "lines": 62,
+                    "files": 1,
+                    "bytes": 300,
+                    "tokens": 75,
+                    "avg_lines": 62
+                }
+            ],
+            "total": {
+                "code": 150,
+                "lines": 177,
+                "files": 2,
+                "bytes": 700,
+                "tokens": 175,
+                "avg_lines": 89
+            },
+            "with_files": false,
+            "children": "collapse",
+            "top": 0
+        })
+    );
+}
+
+#[test]
+fn create_lang_report_from_rows_manual_separate_fixture() {
+    let report = create_lang_report_from_rows(&fixture_rows(), 0, false, ChildrenMode::Separate);
+
+    assert_eq!(
+        to_json(&report),
+        json!({
+            "rows": [
+                {
+                    "lang": "Rust",
+                    "code": 100,
+                    "lines": 115,
+                    "files": 1,
+                    "bytes": 400,
+                    "tokens": 100,
+                    "avg_lines": 115
+                },
+                {
+                    "lang": "HTML",
+                    "code": 40,
+                    "lines": 50,
+                    "files": 1,
+                    "bytes": 300,
+                    "tokens": 75,
+                    "avg_lines": 50
+                },
+                {
+                    "lang": "JavaScript (embedded)",
+                    "code": 10,
+                    "lines": 12,
+                    "files": 1,
+                    "bytes": 0,
+                    "tokens": 0,
+                    "avg_lines": 12
+                }
+            ],
+            "total": {
+                "code": 150,
+                "lines": 177,
+                "files": 2,
+                "bytes": 700,
+                "tokens": 175,
+                "avg_lines": 89
+            },
+            "with_files": false,
+            "children": "separate",
+            "top": 0
+        })
+    );
+}
+
+#[test]
+fn create_module_report_from_rows_manual_fixture() {
+    let module_roots = vec!["src".to_string(), "web".to_string()];
+    let report = create_module_report_from_rows(
+        &fixture_rows(),
+        &module_roots,
+        2,
+        ChildIncludeMode::Separate,
+        0,
+    );
+
+    assert_eq!(
+        to_json(&report),
+        json!({
+            "rows": [
+                {
+                    "module": "src",
+                    "code": 100,
+                    "lines": 115,
+                    "files": 1,
+                    "bytes": 400,
+                    "tokens": 100,
+                    "avg_lines": 115
+                },
+                {
+                    "module": "web",
+                    "code": 60,
+                    "lines": 74,
+                    "files": 1,
+                    "bytes": 300,
+                    "tokens": 75,
+                    "avg_lines": 74
+                }
+            ],
+            "total": {
+                "code": 160,
+                "lines": 189,
+                "files": 2,
+                "bytes": 700,
+                "tokens": 175,
+                "avg_lines": 95
+            },
+            "module_roots": ["src", "web"],
+            "module_depth": 2,
+            "children": "separate",
+            "top": 0
+        })
+    );
+}
+
+#[test]
+fn create_export_data_from_rows_manual_fixture() {
+    let module_roots = vec!["src".to_string(), "web".to_string()];
+    let report = create_export_data_from_rows(
+        fixture_rows(),
+        &module_roots,
+        2,
+        ChildIncludeMode::Separate,
+        20,
+        2,
+    );
+
+    assert_eq!(
+        to_json(&report),
+        json!({
+            "rows": [
+                {
+                    "path": "src/app.rs",
+                    "module": "src",
+                    "lang": "Rust",
+                    "kind": "parent",
+                    "code": 100,
+                    "comments": 10,
+                    "blanks": 5,
+                    "lines": 115,
+                    "bytes": 400,
+                    "tokens": 100
+                },
+                {
+                    "path": "web/page.html",
+                    "module": "web",
+                    "lang": "HTML",
+                    "kind": "parent",
+                    "code": 50,
+                    "comments": 7,
+                    "blanks": 5,
+                    "lines": 62,
+                    "bytes": 300,
+                    "tokens": 75
+                }
+            ],
+            "module_roots": ["src", "web"],
+            "module_depth": 2,
+            "children": "separate"
+        })
+    );
 }
 
 #[test]
