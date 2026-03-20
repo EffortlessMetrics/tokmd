@@ -15,13 +15,103 @@
 //! * Receipt construction
 
 use anyhow::Result;
-use std::path::PathBuf;
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::{Component, Path, PathBuf};
 use tokei::{Config, Languages};
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
 
+/// A single logical file supplied from memory rather than the host filesystem.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InMemoryFile {
+    pub path: PathBuf,
+    pub bytes: Vec<u8>,
+}
+
+impl InMemoryFile {
+    #[must_use]
+    pub fn new(path: impl Into<PathBuf>, bytes: impl Into<Vec<u8>>) -> Self {
+        Self {
+            path: path.into(),
+            bytes: bytes.into(),
+        }
+    }
+}
+
+/// A scan result that keeps its backing temp root alive for downstream row modeling.
+///
+/// Keep this wrapper alive while any downstream code needs to read file metadata from
+/// the scanned paths. `tokmd-model` uses the underlying paths to compute byte and token
+/// counts after the scan phase.
+///
+/// When converting these scan results into `FileRow`s, pass [`Self::strip_prefix`] as the
+/// `strip_prefix` argument so receipts keep the logical in-memory paths rather than the
+/// temp backing root.
+#[derive(Debug)]
+pub struct MaterializedScan {
+    languages: Languages,
+    logical_paths: Vec<PathBuf>,
+    root: tempfile::TempDir,
+}
+
+impl MaterializedScan {
+    #[must_use]
+    pub fn languages(&self) -> &Languages {
+        &self.languages
+    }
+
+    #[must_use]
+    pub fn logical_paths(&self) -> &[PathBuf] {
+        &self.logical_paths
+    }
+
+    #[must_use]
+    pub fn strip_prefix(&self) -> &Path {
+        self.root.path()
+    }
+}
+
 pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
+    let cfg = build_config(args);
+    let ignores = ignored_patterns(args);
+    for path in paths {
+        if !path.exists() {
+            anyhow::bail!("Path not found: {}", path.display());
+        }
+    }
+
+    let mut languages = Languages::new();
+    languages.get_statistics(paths, &ignores, &cfg);
+
+    Ok(languages)
+}
+
+pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {
+    let root = tempfile::tempdir()?;
+    let case_insensitive = temp_root_is_case_insensitive(root.path())?;
+    let logical_paths = normalize_logical_paths(inputs, case_insensitive)?;
+
+    for (logical_path, input) in logical_paths.iter().zip(inputs) {
+        let full_path = root.path().join(logical_path);
+        if let Some(parent) = full_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(full_path, &input.bytes)?;
+    }
+
+    let scan_root = vec![root.path().to_path_buf()];
+    let languages = scan(&scan_root, args)?;
+
+    Ok(MaterializedScan {
+        languages,
+        logical_paths,
+        root,
+    })
+}
+
+fn build_config(args: &ScanOptions) -> Config {
     let mut cfg = match args.config {
         ConfigMode::Auto => Config::from_config_files(),
         ConfigMode::None => Config::default(),
@@ -50,18 +140,76 @@ pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
         cfg.treat_doc_strings_as_comments = Some(true);
     }
 
-    let ignores: Vec<&str> = args.excluded.iter().map(|s| s.as_str()).collect();
+    cfg
+}
 
-    for path in paths {
-        if !path.exists() {
-            anyhow::bail!("Path not found: {}", path.display());
+fn ignored_patterns(args: &ScanOptions) -> Vec<&str> {
+    args.excluded.iter().map(|s| s.as_str()).collect()
+}
+
+fn normalize_logical_paths(
+    inputs: &[InMemoryFile],
+    case_insensitive: bool,
+) -> Result<Vec<PathBuf>> {
+    let mut seen = BTreeSet::new();
+    let mut normalized = Vec::with_capacity(inputs.len());
+
+    for input in inputs {
+        let logical_path = normalize_logical_path(&input.path)?;
+        if !seen.insert(logical_path_key(&logical_path, case_insensitive)) {
+            anyhow::bail!("Duplicate in-memory path: {}", logical_path.display());
+        }
+        normalized.push(logical_path);
+    }
+
+    Ok(normalized)
+}
+
+fn logical_path_key(path: &Path, case_insensitive: bool) -> String {
+    let rendered = path.to_string_lossy();
+    if case_insensitive {
+        rendered.to_lowercase()
+    } else {
+        rendered.into_owned()
+    }
+}
+
+fn temp_root_is_case_insensitive(root: &Path) -> Result<bool> {
+    let probe = root.join(".tokmd-case-probe");
+    let probe_upper = root.join(".TOKMD-CASE-PROBE");
+    fs::write(&probe, [])?;
+    let case_insensitive = probe_upper.exists();
+    fs::remove_file(&probe)?;
+    Ok(case_insensitive)
+}
+
+fn normalize_logical_path(path: &Path) -> Result<PathBuf> {
+    if path.as_os_str().is_empty() {
+        anyhow::bail!("In-memory path must not be empty");
+    }
+
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::Normal(segment) => normalized.push(segment),
+            Component::CurDir => {}
+            Component::ParentDir => {
+                anyhow::bail!(
+                    "In-memory path must not contain parent traversal: {}",
+                    path.display()
+                );
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                anyhow::bail!("In-memory path must be relative: {}", path.display());
+            }
         }
     }
 
-    let mut languages = Languages::new();
-    languages.get_statistics(paths, &ignores, &cfg);
+    if normalized.as_os_str().is_empty() {
+        anyhow::bail!("In-memory path must resolve to a file: {}", path.display());
+    }
 
-    Ok(languages)
+    Ok(normalized)
 }
 
 #[cfg(test)]
@@ -218,5 +366,46 @@ mod tests {
         assert!(rust.code > 0);
         assert!(rust.lines() > 0);
         Ok(())
+    }
+
+    #[test]
+    fn normalize_logical_path_strips_dot_segments() -> Result<()> {
+        let normalized = normalize_logical_path(Path::new("./src/./lib.rs"))?;
+        assert_eq!(normalized, PathBuf::from("src/lib.rs"));
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_logical_path_rejects_absolute_paths() {
+        let err = normalize_logical_path(Path::new("/src/lib.rs")).unwrap_err();
+        assert!(err.to_string().contains("must be relative"));
+    }
+
+    #[test]
+    fn normalize_logical_path_rejects_parent_traversal() {
+        let err = normalize_logical_path(Path::new("../src/lib.rs")).unwrap_err();
+        assert!(err.to_string().contains("parent traversal"));
+    }
+
+    #[test]
+    fn normalize_logical_paths_rejects_duplicate_after_normalization() {
+        let inputs = vec![
+            InMemoryFile::new("./src/lib.rs", "fn main() {}\n"),
+            InMemoryFile::new("src/lib.rs", "fn main() {}\n"),
+        ];
+
+        let err = normalize_logical_paths(&inputs, false).unwrap_err();
+        assert!(err.to_string().contains("Duplicate in-memory path"));
+    }
+
+    #[test]
+    fn normalize_logical_paths_rejects_case_only_collision_on_case_insensitive_fs() {
+        let inputs = vec![
+            InMemoryFile::new("src/lib.rs", "fn main() {}\n"),
+            InMemoryFile::new("SRC/LIB.rs", "fn main() {}\n"),
+        ];
+
+        let err = normalize_logical_paths(&inputs, true).unwrap_err();
+        assert!(err.to_string().contains("Duplicate in-memory path"));
     }
 }

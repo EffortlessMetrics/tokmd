@@ -13,6 +13,7 @@ documentation = "https://docs.rs/tokmd-scan"
 
 [dependencies]
 anyhow = "1.0.101"
+tempfile = "3.27.0"
 tokei = { version = "14.0.0", default-features = false }
 tokmd-settings.workspace = true
 tokmd-types.workspace = true
@@ -21,4 +22,3 @@ tokmd-types.workspace = true
 proptest = "1.10.0"
 tempfile = "3.27.0"
 tokmd-model.workspace = true
-
