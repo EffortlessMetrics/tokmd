@@ -2,14 +2,14 @@
 
 This document details the command-line interface for `tokmd`.
 
-## Global Arguments
+## Top-Level `tokmd` Arguments
 
-These arguments apply to all subcommands (`lang`, `module`, `export`, `run`, `analyze`, `badge`, `baseline`, `diff`, `cockpit`, `sensor`, `gate`, `tools`, `context`, `handoff`, `init`, `check-ignore`, `completions`).
+These arguments apply when you invoke `tokmd` directly without an explicit subcommand. They describe the root language-summary surface, not a universal flag set shared by every subcommand.
 
 | Flag | Description |
 | :--- | :--- |
 | `--exclude <PATTERN>` | Glob pattern to exclude (e.g., `*.lock`, `vendor/`). Can be used multiple times. |
-| `--config <MODE>` | Config file strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
+| `--config <MODE>` | Scan config strategy: `auto` (default, reads `tokei.toml`/`.tokeirc`) or `none`. |
 | `--hidden` | Count hidden files and directories (start with `.`). |
 | `--no-ignore` | Disable all ignore files (`.gitignore`, `.ignore`, `.tokeignore`). |
 | `--no-ignore-parent` | Do not traverse parent directories for ignore files. |
@@ -107,9 +107,9 @@ Generates a summary grouped by **Module** (directory structure).
 | :--- | :--- | :--- |
 | `-f, --format <FMT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
 | `-t, --top <N>` | Only show the top N modules. | `0` (all) |
-| `--children <MODE>` | Handling of embedded languages. | `collapse` |
-| `--module-roots <DIRS>` | Comma-separated list of root directories to group by (e.g., `src,tests`). | `.` |
-| `--module-depth <N>` | How deep to group modules. | `1` |
+| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
+| `--module-roots <DIRS>` | Comma-separated roots to treat as module roots. | `crates,packages` |
+| `--module-depth <N>` | How many path segments to keep under module roots. | `2` |
 
 **Example**:
 ```bash
@@ -125,10 +125,14 @@ Generates a row-level inventory of files. Best for machine processing.
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-f, --format <FMT>` | Output format: `jsonl`, `csv`. | `jsonl` |
+| `-f, --format <FMT>` | Output format: `jsonl`, `json`, `csv`, `cyclonedx`. | `jsonl` |
+| `--output <PATH>` | Write output to a file instead of stdout. | stdout |
+| `--module-roots <DIRS>` | Module roots used for module key generation. | `crates,packages` |
+| `--module-depth <N>` | Depth used for module key generation. | `2` |
 | `--min-code <N>` | Exclude files with fewer than N lines of code. | `0` |
 | `--max-rows <N>` | Limit output to the top N largest files. | `0` (unlimited) |
-| `--children <MODE>` | Handling of embedded languages. | `separate` |
+| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
+| `--meta <BOOL>` | Include a meta record in JSON / JSONL output. | `true` |
 | `--redact <MODE>` | Redaction strategy for paths/names. | `none` |
 | | `none`: Show full paths. | |
 | | `paths`: Hash file paths (preserve extension). | |
@@ -151,26 +155,25 @@ Executes a full scan and saves all artifacts to a run directory.
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--output-dir <DIR>` | Directory to write artifacts into. | `.runs/tokmd/<timestamp>` |
-| `--module-roots <DIRS>` | Comma-separated list of root directories. | `.` |
-| `--module-depth <N>` | How deep to group modules. | `1` |
-| `--children <MODE>` | Handling of embedded languages. | `collapse` |
-| `--preset <PRESET>` | Analysis preset to include. | `receipt` |
-| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
+| `--output-dir <DIR>` | Directory to write artifacts into. | `.runs/tokmd` in-repo, else temp dir |
+| `--name <NAME>` | Optional name/tag for the run. | auto |
+| `--analysis <PRESET>` | Also emit analysis artifacts using the given preset. | none |
+| `--redact <MODE>` | Redact paths or paths+module names in emitted receipts. | `none` |
 
 **Output files**:
 - `lang.json` — Language summary receipt
 - `module.json` — Module summary receipt
 - `export.jsonl` — File-level inventory
-- `analysis.json` — Derived metrics and enrichments
+- `receipt.json` — Core run receipt
+- `analysis.json` / `analysis.md` — Derived metrics when `--analysis <PRESET>` is supplied
 
 **Example**:
 ```bash
 # Save a baseline run
-tokmd run --output-dir .runs/baseline
+tokmd run --analysis receipt --output-dir .runs/baseline
 
 # Full run with deep analysis
-tokmd run --output-dir .runs/full --preset deep
+tokmd run --analysis deep --output-dir .runs/full
 ```
 
 ### `tokmd analyze`
@@ -182,7 +185,7 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--preset <PRESET>` | Preset bundle (see table below). | `receipt` |
-| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`. | `md` |
+| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`, `html`. | `md` |
 | `--window <TOKENS>` | Context window size for utilization analysis. | `None` |
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 | `--output-dir <DIR>` | Write `analysis.*` into a directory. | stdout |
@@ -192,18 +195,30 @@ Derives additional metrics and optional enrichments from a run directory, receip
 | `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
 | `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
+| `--effort-model <MODEL>` | Effort model for estimate calculations. | `cocomo81-basic` |
+| `--effort-layer <LAYER>` | How much estimate detail to emit. | `full` |
+| `--effort-base-ref <REF>` | Base ref for estimate delta computation. | `None` |
+| `--effort-head-ref <REF>` | Head ref for estimate delta computation. | `None` |
+| `--monte-carlo` | Enable Monte Carlo simulation for effort estimation. | `false` |
+| `--mc-iterations <N>` | Monte Carlo iterations for effort estimation. | `10000` |
+| `--mc-seed <N>` | Deterministic Monte Carlo seed. | `None` |
 | `--detail-functions` | Include per-function complexity details in output. | `false` |
 | `--near-dup` | Enable near-duplicate file detection. | `false` |
 | `--near-dup-threshold <N>` | Similarity threshold 0.0–1.0. | `0.80` |
 | `--near-dup-max-files <N>` | Max files to analyze for near-duplicates. | `2000` |
 | `--near-dup-scope <SCOPE>` | Comparison scope: `module`, `lang`, or `global`. | `module` |
+| `--near-dup-max-pairs <N>` | Truncation guardrail for emitted near-duplicate pairs. | `10000` |
+| `--near-dup-exclude <GLOB>` | Exclude glob from near-duplicate analysis. Repeatable. | `None` |
 | `--explain <KEY>` | Explain a metric/finding key and exit (`list` to show keys). | `None` |
+
+> **Effort model note**: the CLI currently executes `cocomo81-basic` end-to-end. Other enum values shown in help are reserved surface area and currently return an error if selected explicitly.
 
 **Presets**:
 
 | Preset | Includes |
 | :--- | :--- |
 | `receipt` | Core derived metrics (totals, density, distribution, COCOMO) |
+| `estimate` | Effort-focused analysis with model selection and optional base/head deltas |
 | `health` | `receipt` + TODO density |
 | `risk` | `health` + git hotspots, coupling, freshness |
 | `supply` | `risk` + assets + dependency lockfile summary |
@@ -270,7 +285,7 @@ Renders a simple SVG badge for a metric.
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--metric <METRIC>` | Badge metric: `lines`, `tokens`, `bytes`, `doc`, `blank`, `hotspot`. | required |
-| `--preset <PRESET>` | Analysis preset to use. | `receipt` |
+| `--preset <PRESET>` | Optional analysis preset to use when computing the badge. | none |
 | `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
 | `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
 | `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
@@ -292,15 +307,16 @@ tokmd badge --metric doc --output docs-badge.svg
 
 Compares two runs, receipts, or directories and shows the delta.
 
-**Usage**: `tokmd diff <FROM> <TO> [OPTIONS]`
+**Usage**: `tokmd diff [REF] [REF]... [OPTIONS]`
 
 | Argument | Description |
 | :--- | :--- |
-| `<FROM>` | Baseline: run directory, receipt file, or path to scan |
-| `<TO>` | Target: run directory, receipt file, or path to scan |
+| `[REF] [REF]...` | Two positional refs or paths to compare: run directories, receipt files, git refs, or paths to scan. |
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
+| `--from <FROM>` | Base receipt/run or git ref to compare from. | `(none)` |
+| `--to <TO>` | Target receipt/run or git ref to compare to. | `(none)` |
 | `--format <FMT>` | Output format: `md`, `json`. | `md` |
 | `--compact` | Summary-only markdown table for narrow terminals. | `false` |
 | `--color <MODE>` | Color policy: `auto`, `always`, `never`. | `auto` |
@@ -312,6 +328,9 @@ tokmd diff .runs/baseline .runs/current
 
 # Compare git refs (scans each)
 tokmd diff main HEAD
+
+# Equivalent explicit form
+tokmd diff --from main --to HEAD
 
 # Compare a run to current state
 tokmd diff .runs/baseline .
@@ -367,15 +386,22 @@ Packs files into an LLM context window within a token budget. Intelligently sele
 | `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
 | `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
 | `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
-| `--output <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
+| `--mode <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
 | `--compress` | Strip blank lines from bundle output. | `false` |
+| `--no-smart-exclude` | Disable smart exclusion of generated or low-signal artifacts. | `false` |
 | `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
 | `--module-depth <N>` | How deep to group modules. | `2` |
+| `--git` / `--no-git` | Force-enable or disable git-based ranking. | auto |
+| `--max-commits <N>` | Max commits to scan for git ranking. | `1000` |
+| `--max-commit-files <N>` | Max files per commit for git ranking. | `100` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--force` | Overwrite existing output file. | `false` |
 | `--bundle-dir <DIR>` | Write bundle to directory with manifest (receipt.json, bundle.txt, manifest.json). | `(none)` |
 | `--log <PATH>` | Append JSONL record to log file (metadata only). | `(none)` |
 | `--max-output-bytes <N>` | Warn if output exceeds N bytes (0=disable). | `10485760` |
+| `--max-file-pct <RATIO>` | Maximum fraction of budget any single file may consume. | `0.15` |
+| `--max-file-tokens <N>` | Hard cap on tokens per file. | `None` |
+| `--require-git-scores` | Error if churn/hotspot ranking is requested without git scores. | `false` |
 
 > **Note**: `--rank-by churn` and `--rank-by hotspot` require git history. If no git data is available, they fall back to ranking by `code` lines with a warning.
 
@@ -542,7 +568,7 @@ Options:
           Output file (stdout if omitted)
 
       --artifacts-dir <DIR>
-          Write cockpit artifacts (report.json, comment.md) to directory
+          Write cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) to directory
 
       --baseline <PATH>
           Path to baseline receipt for trend comparison.
@@ -561,7 +587,7 @@ Options:
       --sensor-mode
           Run in sensor mode for CI integration.
           
-          When enabled: - Always writes sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code) - Reports capability availability for "No Green By Omission"
+          When enabled: - Writes only sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
 
       --no-progress
           Disable progress spinners
@@ -584,7 +610,7 @@ Options:
 | `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
 | `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
-| `--artifacts-dir <DIR>` | Write `report.json` + `comment.md` to a directory. | `(none)` |
+| `--artifacts-dir <DIR>` | In standard cockpit mode, write `cockpit.json`, `report.json`, and `comment.md` to a directory. | `(none)` |
 | `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
 | `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
@@ -643,13 +669,13 @@ tokmd cockpit --artifacts-dir artifacts/tokmd
 # Custom base ref for release branches
 tokmd cockpit --base release/v1.2 --head HEAD
 
-# Sensor mode: emit sensor.report.v1 envelope alongside artifacts (CI-friendly)
+# Sensor mode: emit only the sensor.report.v1 envelope for CI ingestion
 tokmd cockpit --sensor-mode --artifacts-dir artifacts/tokmd
 ```
 
 ### `tokmd sensor`
 
-Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. Always writes a canonical JSON receipt to the output path; with `--format md` also prints markdown to stdout.
+Runs tokmd as a conforming sensor, producing a `sensor.report.v1` envelope backed by cockpit computation. It always writes the canonical JSON envelope to `--output`, and stdout follows `--format` (`json` echoes the envelope, `md` prints a markdown summary).
 
 <!-- HELP: sensor -->
 ```text
@@ -717,9 +743,10 @@ The sensor command produces a `sensor.report.v1` JSON envelope containing:
 - **verdict**: Overall pass/fail/warn mapped from cockpit evidence gates
 - **findings**: Risk hotspots, bus factor warnings, and contract change signals
 - **gates**: Evidence gate results from the cockpit computation
-- **data.cockpit_receipt**: Full cockpit receipt embedded for tool-specific analysis
+- **data.summary_metrics**: Slim change, health, and risk summary for quick routing
+- **artifacts[id=cockpit]**: Full cockpit receipt sidecar at `extras/cockpit_receipt.json`
 
-When `--format md` is used, the JSON receipt is still written to `--output` and a markdown summary is printed to stdout.
+The JSON envelope is always written to `--output`. Stdout follows `--format`: `json` echoes the envelope, while `md` prints a markdown summary.
 
 > **Note**: Requires the `git` feature and a git repository. Uses two-dot diff syntax for accurate line counts.
 
@@ -802,9 +829,10 @@ Options:
 
 **Usage**: `tokmd gate [INPUT] [OPTIONS]`
 
+`INPUT` is positional: pass either an analysis receipt or a path to scan. If omitted, `tokmd gate` scans `.`.
+
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--input <PATH>` | Analysis receipt JSON or path to scan. | `.` |
 | `--policy <PATH>` | Path to policy TOML file. | from config |
 | `--ratchet-config <PATH>` | Path to ratchet config TOML file. | from config |
 | `--baseline <PATH>` | Path to baseline JSON file for ratchet comparison. | from config |
@@ -910,7 +938,7 @@ description = "Average function length"
 tokmd gate
 
 # Gate an existing receipt with explicit policy
-tokmd gate --input analysis.json --policy policy.toml
+tokmd gate analysis.json --policy policy.toml
 
 # Compute then gate with specific preset
 tokmd gate --preset health
@@ -1003,6 +1031,8 @@ tokmd completions powershell >> $PROFILE
 
 `tokmd` supports a `tokmd.toml` configuration file for persistent settings.
 
+This application config is separate from the top-level `--config <MODE>` flag. `--config` only controls scan-layer `tokei.toml` / `.tokeirc` loading; `tokmd.toml` discovery follows the precedence chain below.
+
 ### File Location Precedence
 
 Configuration is loaded from the first file found (highest to lowest priority):
@@ -1029,11 +1059,11 @@ Configuration is loaded from the first file found (highest to lowest priority):
 # Root directories for module grouping
 roots = ["crates", "packages", "src"]
 
-# Depth for module grouping (default: 1)
+# Depth for module grouping (default: 2)
 depth = 2
 
-# Children handling: "collapse" or "separate" (default: "collapse")
-children = "collapse"
+# Children handling: "separate" or "parents-only" (default: "separate")
+children = "separate"
 
 # =============================================================================
 # Export Command Settings
@@ -1051,7 +1081,7 @@ redact = "none"
 # Output format: "jsonl", "csv", "cyclonedx" (default: "jsonl")
 format = "jsonl"
 
-# Children handling: "collapse" or "separate" (default: "separate")
+# Children handling: "separate" or "parents-only" (default: "separate")
 children = "separate"
 
 # =============================================================================
@@ -1079,6 +1109,15 @@ max_commit_files = 100
 
 # Import graph granularity: "module" or "file" (default: "module")
 granularity = "module"
+
+# Effort-estimation settings for the estimate preset
+effort_model = "cocomo81-basic"
+effort_layer = "full"
+# effort_base_ref = "main"
+# effort_head_ref = "HEAD"
+# effort_monte_carlo = true
+# effort_mc_iterations = 10000
+# effort_mc_seed = 42
 
 # =============================================================================
 # Context Command Settings

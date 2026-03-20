@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document outlines planned improvements aligned with the roadmap.
+This document records completed implementation phases through `1.8.0` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -254,7 +254,97 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 5: MCP Server Mode (v2.0)
+## Phase 4d: Deep Test Expansion & I/O Seam (v1.7.x) ✅ Complete
+
+**Goal**: Harden every tier with deeper coverage while landing the first host-abstraction seam for future in-memory and WASM execution.
+
+### Coverage Expansion
+
+1. **Workspace-wide test deepening**: property, BDD, snapshot, determinism, and cross-crate integration tests across all tiers
+2. **Regression resistance**: more contract and serde compatibility tests for schema-bearing crates
+3. **CLI confidence**: broader E2E coverage for `context`, `handoff`, `sensor`, `baseline`, `cockpit`, and help/docs sync
+
+### Host-Abstraction Foundation
+
+1. **`tokmd-io-port` crate**: `ReadFs`, `HostFs`, and `MemFs` abstractions
+2. **WASM seam groundwork**: lower-tier code paths prepared for future host-provided file access
+3. **Sensor determinism**: stable set ordering and envelope consistency across platforms
+
+### Work Items
+
+- [x] Expand tests across the full 50+ crate workspace
+- [x] Add deeper docs/help/schema sync coverage
+- [x] Land `tokmd-io-port` as the first host I/O seam
+- [x] Tighten deterministic sensor output and contract checks
+- [x] Keep CI green while the workspace size and test volume scaled up
+
+---
+
+## Phase 4e: Effort Estimation & Operator Hardening (v1.8.0) ✅ Complete
+
+**Goal**: Add first-class effort estimation while making the repo-native release and operator path more boring on Windows, CI, and release day.
+
+### Effort Estimation
+
+1. **New crate**: `tokmd-analysis-effort`
+2. **Preset**: `estimate`
+3. **CLI surface**: `--effort-model`, `--effort-layer`, `--effort-base-ref`, `--effort-head-ref`, `--monte-carlo`, `--mc-iterations`, `--mc-seed`
+
+### Operator Hardening
+
+1. **Workspace-native quality commands**: smoother Windows formatting and xtask invocation paths
+2. **Build footprint reduction**: leaner Windows debug info, `cargo trim-target`, and opt-in `sccache`
+3. **CI boringness**: smarter caching, concurrency cancellation, and release workflow cleanup
+
+### Schema Changes
+
+- **Analysis schema version**: 8 → 9
+- **New receipt section**: `effort`
+
+### Work Items
+
+- [x] Implement the effort estimation engine and receipt/report integration
+- [x] Add the `estimate` preset and effort-specific CLI flags
+- [x] Update analysis schema and docs for effort output
+- [x] Keep receipt and estimate presets aligned with newer enrichers
+- [x] Harden repo-native commands and release preflight on Windows
+- [x] Reduce local build churn with better debug-info defaults and helper commands
+
+---
+
+## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)
+
+**Goal**: Turn the new host-abstraction seam into a real in-memory/WASM execution path and ship a browser-first runner.
+
+### In-Memory Core
+
+1. **Wire `tokmd-io-port` through scan/walk paths**
+2. **Accept ordered `(path, bytes)` inputs for in-memory scans**
+3. **Preserve deterministic ordering and capability reporting without filesystem-only assumptions**
+
+### WASM + Browser Delivery
+
+1. **Feature profile**: `wasm` / `web`
+2. **Crate**: `tokmd-wasm`
+3. **Runner**: static browser app using a Worker, repo zipball ingestion, caching, and artifact download
+
+### Work Items
+
+- [ ] Route scan and walk through host-provided I/O traits
+- [ ] Add wasm CI builds and parity checks against native output
+- [ ] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
+- [ ] Build a browser runner with progress, cancel, and download flows
+- [ ] Add cache/guardrail policy for archive size, file count, and bytes read
+
+### Tests
+
+- Parity tests: native vs wasm receipt equivalence on fixture repos
+- Integration tests: in-memory scan path using `MemFs`
+- Browser smoke tests: worker execution and zipball ingestion
+
+---
+
+## Phase 6: MCP Server Mode (v2.0)
 
 **Goal**: Native integration with Claude and MCP clients.
 
@@ -291,7 +381,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 6: Tree-sitter Integration (v3.0 — Long-term)
+## Phase 7: Tree-sitter Integration (v3.0 — Long-term)
 
 **Goal**: Accurate parsing for precise metrics. This is a significant R&D effort requiring multi-language grammar integration, cross-platform build toolchains, and extensive correctness validation. Intentionally deferred well beyond v2.x.
 

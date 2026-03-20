@@ -113,7 +113,7 @@ Every receipt includes:
 | `generated_at_ms` | `integer` | Unix timestamp (milliseconds) when the scan ran. |
 | `tool` | `object` | Information about the tool version. |
 | `tool.name` | `string` | Always `"tokmd"`. |
-| `tool.version` | `string` | The version of tokmd used (e.g., `"1.2.0"`). |
+| `tool.version` | `string` | The version of tokmd used (e.g., `"1.8.0"`). |
 | `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, `"analysis"`, or `"cockpit"`. |
 | `status` | `string` | Scan status: `"complete"` or `"partial"`. |
 | `warnings` | `array` | Array of warning strings generated during the scan. |
@@ -146,7 +146,7 @@ Produced by `tokmd --format json` or `tokmd lang --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.0.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "lang",
   "status": "complete",
   "warnings": [],
@@ -227,7 +227,7 @@ Produced by `tokmd module --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.0.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "module",
   "status": "complete",
   "warnings": [],
@@ -310,7 +310,7 @@ JSONL output consists of a **Meta Record** (first line) followed by **Data Rows*
   "type": "meta",
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.0.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -354,7 +354,7 @@ When using `--format json`, the output is a single JSON object:
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.0.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -434,7 +434,7 @@ The `total` object in language and module receipts contains aggregate metrics:
 
 Produced by `tokmd analyze --format json`.
 
-**Schema version**: 8
+**Schema version**: 9
 
 Analysis receipts contain derived metrics and optional enrichments. All sections except `source`, `args`, and `derived` are optional based on the preset used.
 
@@ -442,9 +442,9 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 
 ```json
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.6.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "analysis",
   "status": "complete",
   "warnings": [],
@@ -462,6 +462,7 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
   "git": { ... },
   "imports": { ... },
   "dup": { ... },
+  "effort": { ... },
   "fun": { ... }
 }
 ```
@@ -638,6 +639,130 @@ Present when `--git` is enabled or preset includes git analysis.
 }
 ```
 
+### Effort Estimate Report (Optional)
+
+Present when the `estimate` preset is used or when explicit `--effort-*` flags request effort estimation.
+
+```json
+{
+  "effort": {
+    "model": "cocomo81-basic",
+    "size_basis": {
+      "total_lines": 10000,
+      "authored_lines": 9200,
+      "generated_lines": 500,
+      "vendored_lines": 300,
+      "kloc_total": 10.0,
+      "kloc_authored": 9.2,
+      "generated_pct": 0.05,
+      "vendored_pct": 0.03,
+      "classification_confidence": "high",
+      "warnings": [],
+      "by_tag": [
+        { "tag": "Rust", "lines": 8700, "authored_lines": 8500, "pct_of_total": 0.87 },
+        { "tag": "TOML", "lines": 1300, "authored_lines": 700, "pct_of_total": 0.13 }
+      ]
+    },
+    "results": {
+      "effort_pm_p50": 22.4,
+      "schedule_months_p50": 7.6,
+      "staff_p50": 2.9,
+      "effort_pm_low": 18.1,
+      "effort_pm_p80": 27.5,
+      "schedule_months_low": 6.8,
+      "schedule_months_p80": 8.7,
+      "staff_low": 2.6,
+      "staff_p80": 3.2
+    },
+    "confidence": {
+      "level": "medium",
+      "reasons": [
+        "High authored-code coverage",
+        "Git enrichment available for delta context"
+      ],
+      "data_coverage_pct": 0.91
+    },
+    "drivers": [
+      {
+        "key": "codebase_familiarity",
+        "label": "Codebase familiarity",
+        "weight": 1.08,
+        "direction": "raises",
+        "evidence": "High hotspot concentration raises coordination cost"
+      }
+    ],
+    "assumptions": {
+      "notes": [
+        "Effort layer requested: full",
+        "Base/head inputs requested for delta context"
+      ],
+      "overrides": {}
+    },
+    "delta": {
+      "base": "main",
+      "head": "HEAD",
+      "files_changed": 14,
+      "modules_changed": 4,
+      "langs_changed": 2,
+      "hotspot_files_touched": 3,
+      "coupled_neighbors_touched": 5,
+      "blast_radius": 21.4,
+      "classification": "high",
+      "effort_pm_low": 0.7,
+      "effort_pm_est": 1.0,
+      "effort_pm_high": 1.4
+    }
+  }
+}
+```
+
+#### Effort Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `model` | `string` | Effort model label: `cocomo81-basic`, `cocomo2-early`, or `ensemble`. |
+| `size_basis` | `object` | Lines/KLOC basis used for the estimate, including authored/generated/vendored split and per-tag contribution rows. |
+| `results` | `object` | Person-month, schedule, and staffing ranges (`low`, `p50`, `p80`). |
+| `confidence` | `object` | Confidence level plus reasons and optional data-coverage percentage. |
+| `drivers` | `array` | Cost drivers that materially raised, lowered, or left the estimate neutral. |
+| `assumptions` | `object` | Narrative notes and any explicit overrides used during estimation. |
+| `delta` | `object\|null` | Optional base/head diff-aware effort estimate for changed files only. Present when both `--effort-base-ref` and `--effort-head-ref` are supplied. |
+
+> **Current CLI support**: the formal schema allows the broader effort-model label set, but the current `tokmd analyze` path executes `cocomo81-basic` end-to-end. Other model labels are reserved schema surface for future expansion and currently error if selected explicitly via the CLI.
+
+#### `size_basis`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `total_lines` | `integer` | Total lines used as the overall estimate basis. |
+| `authored_lines` | `integer` | Lines classified as authored code. |
+| `generated_lines` | `integer` | Lines classified as generated code. |
+| `vendored_lines` | `integer` | Lines classified as vendored code. |
+| `kloc_total` | `number` | Total KLOC. |
+| `kloc_authored` | `number` | Authored KLOC used by the baseline model. |
+| `generated_pct` | `number` | Generated-code share of total lines. |
+| `vendored_pct` | `number` | Vendored-code share of total lines. |
+| `classification_confidence` | `string` | `low`, `medium`, or `high`. |
+| `warnings` | `array` | Classification warnings for the size basis. |
+| `by_tag` | `array` | Per-language-tag contribution rows. |
+
+#### `delta`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `base` | `string` | Base ref used for diff-aware effort context. |
+| `head` | `string` | Head ref used for diff-aware effort context. |
+| `files_changed` | `integer` | Number of files changed. |
+| `modules_changed` | `integer` | Number of modules touched. |
+| `langs_changed` | `integer` | Number of languages touched. |
+| `hotspot_files_touched` | `integer` | Count of changed files that were already git hotspots. |
+| `coupled_neighbors_touched` | `integer` | Count of coupled neighbor files implicated by git coupling. |
+| `blast_radius` | `number` | Composite blast-radius score used to classify change scope. |
+| `classification` | `string` | `low`, `medium`, `high`, or `critical`. |
+| `effort_pm_low` | `number` | Low delta estimate in person-months. |
+| `effort_pm_est` | `number` | Midpoint delta estimate in person-months. |
+| `effort_pm_high` | `number` | High delta estimate in person-months. |
+
 ### Other Optional Sections
 
 | Section | Preset | Description |
@@ -655,6 +780,7 @@ Present when `--git` is enabled or preset includes git analysis.
 | `near_dup` | `deep` | Near-duplicate file detection with configurable similarity threshold |
 | `dup` | `deep` | Duplicate file detection with module-level duplication density |
 | `complexity` | `health`, `risk`, `deep` | Cyclomatic/cognitive metrics, maintainability, and technical-debt ratio |
+| `effort` | `estimate` or explicit `--effort-*` flags | COCOMO-based effort projections, optional base/head delta, and Monte Carlo metadata |
 | `fun` | `fun` | Novelty outputs (eco-label) |
 
 ---
@@ -676,7 +802,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.6.0",
+    "version": "1.8.0",
     "mode": "cockpit"
   },
   "generated_at": "2024-01-27T10:30:00Z",
@@ -707,7 +833,14 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
         { "id": "mutation", "status": "pass", "threshold": 0.8, "actual": 0.92 }
       ]
     },
-    "cockpit_receipt": {}
+    "summary_metrics": {
+      "files_changed": 12,
+      "insertions": 340,
+      "deletions": 72,
+      "health_score": 78,
+      "risk_level": "warn",
+      "risk_score": 63
+    }
   }
 }
 ```
@@ -724,7 +857,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
 | `findings` | `array` | List of findings (may be empty). |
 | `artifacts` | `array\|null` | Related artifact paths (optional). |
 | `capabilities` | `object\|null` | Capability availability status for "No Green By Omission" (see below). |
-| `data` | `object\|null` | Tool-specific payload (opaque to director); gates and cockpit receipt are embedded here. |
+| `data` | `object\|null` | Tool-specific payload (opaque to director). Current tokmd sensor receipts use `gates` and `summary_metrics` here; the full cockpit receipt is linked via artifacts. |
 
 ### Verdict Enum
 

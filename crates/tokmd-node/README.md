@@ -1,6 +1,6 @@
 # @tokmd/core
 
-Node.js bindings for [tokmd](https://github.com/EffortlessMetrics/tokmd) - fast code inventory receipts and analytics.
+Node.js bindings for [tokmd](https://github.com/EffortlessMetrics/tokmd): deterministic repo receipts, analysis, cockpit metrics, and diff workflows from JavaScript.
 
 ## Installation
 
@@ -15,146 +15,81 @@ pnpm add @tokmd/core
 ## Quick Start
 
 ```javascript
-import { lang, module, analyze } from '@tokmd/core';
+import { lang, analyze, diff } from '@tokmd/core';
 
-// Get language summary
-const langResult = await lang({ paths: ['src'] });
-for (const row of langResult.rows) {
+// Language summary
+const langReceipt = await lang({ paths: ['src'], top: 5 });
+for (const row of langReceipt.report.rows) {
   console.log(`${row.lang}: ${row.code} lines`);
 }
 
-// Get module breakdown
-const moduleResult = await module({ paths: ['.'] });
-for (const row of moduleResult.rows) {
-  console.log(`${row.module}: ${row.code} lines`);
+// Effort-focused analysis (1.8.0 preset)
+const analysisReceipt = await analyze({
+  paths: ['.'],
+  preset: 'estimate',
+  effort_base_ref: 'main',
+  effort_head_ref: 'HEAD',
+});
+
+if (analysisReceipt.effort) {
+  console.log(`P50 effort: ${analysisReceipt.effort.results.effort_pm_p50}`);
 }
 
-// Run analysis
-const analysisResult = await analyze({ paths: ['.'], preset: 'health' });
-if (analysisResult.derived) {
-  console.log(`Total: ${analysisResult.derived.totals.code} lines`);
-}
+// Compare two saved receipts or run directories
+const diffReceipt = await diff('.runs/base/lang.json', '.runs/current/lang.json');
+console.log(diffReceipt.mode);
 ```
 
-## API Reference
+## API Surface
 
-All functions return Promises and are non-blocking (they use tokio's spawn_blocking to not block the event loop).
+High-level Promise-based helpers:
 
-### Functions
+- `lang(options?)`
+- `module(options?)`
+- `export(options?)`
+- `analyze(options?)`
+- `cockpit(options?)`
+- `diff(fromPath, toPath)`
 
-#### `lang(options?: LangOptions): Promise<LangReceipt>`
+Low-level helpers:
 
-Scan paths and return a language summary.
+- `run(mode, args)`
+- `runJson(mode, argsJson)`
+- `version()`
+- `schemaVersion()`
 
-```typescript
-interface LangOptions {
-  paths?: string[]              // Paths to scan (default: ["."])
-  top?: number                  // Show only top N languages (0 = all)
-  files?: boolean               // Include file counts
-  children?: 'collapse' | 'separate'  // How to handle embedded languages
-  redact?: 'none' | 'paths' | 'all'  // Redaction mode
-  excluded?: string[]           // Glob patterns to exclude
-  hidden?: boolean              // Include hidden files
-}
-```
+These wrappers sit on top of `tokmd-core` and use `spawn_blocking` internally so long-running scans do not block the Node event loop.
 
-#### `module(options?: ModuleOptions): Promise<ModuleReceipt>`
+## Low-Level Modes
 
-Scan paths and return a module summary.
+`run()` and `runJson()` target the shared JSON/FFI workflow boundary. Supported modes are:
 
-```typescript
-interface ModuleOptions {
-  paths?: string[]              // Paths to scan (default: ["."])
-  top?: number                  // Show only top N modules (0 = all)
-  module_roots?: string[]       // Module root directories
-  module_depth?: number         // Path segments for module roots (default: 2)
-  children?: 'separate' | 'parents-only'  // Embedded language handling
-  // ...other options
-}
-```
+- `lang`
+- `module`
+- `export`
+- `analyze`
+- `cockpit`
+- `diff`
+- `version`
 
-#### `export(options?: ExportOptions): Promise<ExportReceipt>`
+The JSON envelope is stable:
 
-Scan paths and return file-level export data.
+- success: `{"ok": true, "data": {...}}`
+- error: `{"ok": false, "error": {...}}`
 
-```typescript
-interface ExportOptions {
-  paths?: string[]
-  format?: 'jsonl' | 'json' | 'csv' | 'cyclonedx'
-  min_code?: number             // Minimum lines of code
-  max_rows?: number             // Maximum rows (0 = unlimited)
-  // ...other options
-}
-```
+## Notes
 
-#### `analyze(options?: AnalyzeOptions): Promise<AnalysisReceipt>`
-
-Run analysis on paths and return derived metrics.
-
-```typescript
-interface AnalyzeOptions {
-  paths?: string[]
-  preset?: 'receipt' | 'health' | 'risk' | 'supply' | 'architecture' |
-           'topics' | 'security' | 'identity' | 'git' | 'deep' | 'fun'
-  window?: number               // Context window size in tokens
-  git?: boolean                 // Force enable/disable git metrics
-  max_files?: number
-  max_bytes?: number
-  max_commits?: number
-}
-```
-
-#### `diff(fromPath: string, toPath: string): Promise<DiffReceipt>`
-
-Compare two receipts or paths and return a diff.
-
-### Low-Level API
-
-#### `runJson(mode: string, argsJson: string): Promise<string>`
-
-Run any tokmd operation with JSON string arguments.
-
-```javascript
-const result = await runJson('lang', JSON.stringify({ paths: ['.'], top: 10 }));
-const data = JSON.parse(result);
-```
-
-#### `run(mode: string, args: object): Promise<object>`
-
-Run any tokmd operation with an object.
-
-```javascript
-const result = await run('lang', { paths: ['.'], top: 10 });
-console.log(result.rows[0].lang);
-```
-
-### Constants
-
-#### `version(): string`
-
-Returns the tokmd version string.
-
-#### `schemaVersion(): number`
-
-Returns the current JSON schema version.
-
-## TypeScript
-
-Full TypeScript support with type definitions included.
-
-```typescript
-import { lang, LangReceipt, LangRow } from '@tokmd/core';
-
-const result: LangReceipt = await lang({ paths: ['src'] });
-const rows: LangRow[] = result.rows;
-```
+- Current analysis presets include `estimate`, `risk`, `deep`, and `fun`.
+- `estimate` is the effort-focused preset added in `1.8.0`.
+- For exact TypeScript shapes, use the bundled declarations in [`index.d.ts`](./index.d.ts).
 
 ## Platform Support
 
-Pre-built binaries are available for:
-- macOS (x64, arm64)
-- Linux (x64, arm64) - glibc
-- Windows (x64)
+Prebuilt binaries are available for:
+
+- macOS (`x64`, `arm64`)
+- Linux (`x64`, `arm64`)
+- Windows (`x64`)
 
 ## Development
 

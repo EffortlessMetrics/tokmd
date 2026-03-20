@@ -47,7 +47,7 @@ The formal JSON Schema is available at:
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.6.0",
+    "version": "1.8.0",
     "mode": "cockpit"
   },
   "generated_at": "2026-02-07T12:00:00Z",
@@ -72,7 +72,7 @@ The formal JSON Schema is available at:
     },
     {
       "type": "receipt",
-      "path": "artifacts/tokmd/cockpit.json"
+      "path": "artifacts/tokmd/extras/cockpit_receipt.json"
     }
   ],
   "capabilities": {
@@ -117,7 +117,7 @@ The formal JSON Schema is available at:
 ```json
 {
   "name": "tokmd",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "mode": "cockpit"
 }
 ```
@@ -247,7 +247,7 @@ Gate IDs:
 The `--sensor-mode` flag enables CI-friendly envelope output:
 
 ```bash
-# Emit envelope alongside cockpit artifacts
+# Emit only the sensor.report.v1 envelope to the artifacts directory
 tokmd cockpit --base main --head HEAD --sensor-mode --artifacts-dir artifacts/tokmd/
 ```
 
@@ -255,14 +255,14 @@ In sensor mode:
 - Writes `report.json` (sensor.report.v1 envelope) to artifacts directory
 - Always exits 0 if envelope was written successfully
 - Uses `verdict` field instead of exit code to signal pass/fail
-- Includes `capabilities` block showing what was available
+- Does not emit the full `cockpit.json` / `comment.md` artifact set
 
 ### Standalone Sensor Command
 
-The `tokmd sensor` command emits sensor.report.v1 envelope directly:
+The `tokmd sensor` command emits sensor.report.v1 envelope directly and writes the richer sidecar set (`comment.md`, `extras/cockpit_receipt.json`) alongside the requested output path:
 
 ```bash
-tokmd sensor --base main --head HEAD --output artifacts/tokmd/
+tokmd sensor --base main --head HEAD --output artifacts/tokmd/report.json
 ```
 
 ### Artifact Layout
@@ -273,8 +273,9 @@ Canonical output location: `artifacts/<tool>/`
 artifacts/
 └── tokmd/
     ├── report.json      # sensor.report.v1 envelope
-    ├── cockpit.json     # Full tokmd-native receipt
     ├── comment.md       # PR comment markdown
+    ├── extras/
+    │   └── cockpit_receipt.json  # Full tokmd-native receipt
     └── badge.svg        # Optional badge
 ```
 

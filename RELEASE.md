@@ -97,6 +97,18 @@ The tag-driven path is the canonical production flow.
 ## Verification
 
 Before releasing, ensure:
-- `cargo fmt --check` passes.
-- `cargo clippy --workspace --all-targets --all-features -- -D warnings` passes.
+- `cargo fmt-check` passes.
+- `cargo gate-check` passes (workspace-wide fmt/check/clippy/test compile gates).
 - `cargo xtask publish --dry-run` passes end-to-end.
+
+On Windows, prefer the repo-native quality commands above over raw `cargo fmt --all`; the workspace can exceed formatter argv limits and the release docs should reflect the supported path.
+
+## After Release
+
+Once the tag-driven release completes:
+
+1. Verify the GitHub release and release workflow succeeded.
+2. Confirm representative crates show the new version on crates.io.
+3. Restore a fresh `## [Unreleased]` section in `CHANGELOG.md` if the release branch changed it materially.
+4. Update planning docs (`docs/NOW.md`, `ROADMAP.md`) so they describe the next active horizon rather than the just-shipped release.
+5. Prune temporary release branches/worktrees so `main` is the only active lane again.

@@ -69,7 +69,7 @@ Every JSON receipt includes:
 {
   "schema_version": 2,
   "tool": "tokmd",
-  "tool_version": "1.7.1",
+  "tool_version": "1.8.0",
   "generated_at_ms": 1706886000000,
   "mode": "lang",
   "scan": { ... },
@@ -87,6 +87,10 @@ Separate versions per receipt family:
 - Core receipts: `SCHEMA_VERSION = 2`
 - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 9`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
+- Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
+- Context receipts: `CONTEXT_SCHEMA_VERSION = 4`
+- Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`
+- Sensor reports: semantic schema id `sensor.report.v1`
 
 Evolution rules:
 - Additive changes within vN (new optional fields)
@@ -135,6 +139,14 @@ Falls back to ignore crate
 Respects .gitignore, .tokeignore
 ```
 
+### I/O Port Contract (tokmd-io-port)
+
+Host-abstracted file access for future in-memory and WASM execution:
+```
+ReadFs trait → HostFs (native std::fs)
+             → MemFs (tests / future in-memory substrates)
+```
+
 ## Analysis Architecture
 
 ### Preset System
@@ -143,9 +155,10 @@ Presets bundle enrichers for common use cases:
 
 | Preset | Enrichers |
 |--------|-----------|
-| `receipt` | derived |
+| `receipt` | derived + dup + git + complexity + API surface |
+| `estimate` | `receipt` + effort estimation and optional base/head delta |
 | `health` | derived + content (TODOs) + complexity + Halstead |
-| `risk` | derived + git (hotspots, coupling, freshness) + complexity + Halstead |
+| `risk` | `health` + git (hotspots, coupling, freshness) |
 | `supply` | derived + walk (assets) + content (deps) |
 | `architecture` | derived + content (imports) |
 | `topics` | semantic topic clouds (TF-IDF) |
@@ -193,7 +206,8 @@ All PR-facing outputs are budgeted:
 Context packing respects token budgets:
 ```
 --budget 128k → Select files that fit
---strategy ranked → By churn/hotspot/size
+--strategy greedy|spread → Selection order
+--rank-by code|tokens|churn|hotspot → File priority signal
 Explicit [truncated] markers
 ```
 

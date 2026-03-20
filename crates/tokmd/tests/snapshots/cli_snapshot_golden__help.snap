@@ -1,5 +1,6 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
+assertion_line: 219
 expression: normalize(&stdout)
 ---
 `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`
@@ -38,11 +39,11 @@ Options:
           
           [aliases: --ignore]
 
-      --config <CONFIG>
-          Whether to load `tokei.toml` / `.tokeirc`
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
 
           Possible values:
-          - auto: Read `tokei.toml` / `.tokeirc` if present
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
           - none: Ignore config files
           
           [default: auto]

@@ -98,7 +98,7 @@ Use `tokmd` in CI to generate a "receipt" of the repo size for every commit or r
 tokmd module --format json > tokmd_report.json
 
 # Or use run to save all artifacts
-tokmd run --output-dir .runs/$(date +%Y%m%d)
+tokmd run --analysis receipt --output-dir .runs/current
 ```
 
 **Analysis**:
@@ -176,6 +176,26 @@ Returns:
 - Effort in person-months
 - Duration in months
 - Suggested team size
+
+## 9a. Effort Estimate for a Proposed Change
+
+Use the dedicated `estimate` preset when you want the report itself, not just the legacy derived COCOMO block.
+
+```bash
+# Compare the current branch to main
+tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md
+
+# Emit only the summary layer
+tokmd analyze --preset estimate --effort-layer headline --format md
+
+# Reproducible Monte Carlo output for CI artifacts
+tokmd analyze --preset estimate --monte-carlo --mc-seed 42 --format json
+```
+
+**Why**:
+- `estimate` is the 1.8.0 effort-focused preset.
+- `--effort-base-ref` and `--effort-head-ref` give you delta-aware estimates for a branch or PR.
+- `--effort-layer` lets you choose between a headline, explanatory, or full report.
 
 ## 10. CI Gate: Policy-Based Quality Gates
 
@@ -419,12 +439,12 @@ jobs:
   cockpit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Generate cockpit metrics
         run: |
@@ -503,10 +523,10 @@ jobs:
   badges:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Generate badges
         run: |
@@ -533,12 +553,12 @@ jobs:
   size-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Need history for diff
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Check PR size
         run: |
@@ -567,14 +587,14 @@ jobs:
   metrics:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Generate metrics
         run: |
-          tokmd run --output-dir .runs/$(git rev-parse --short HEAD)
+          tokmd run --analysis receipt --output-dir .runs/${{ github.sha }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -595,9 +615,9 @@ code-metrics:
   stage: analyze
   image: rust:latest
   before_script:
-    - cargo install tokmd
+    - cargo install tokmd --locked
   script:
-    - tokmd run --output-dir metrics/
+    - tokmd run --analysis receipt --output-dir metrics/
     - tokmd analyze --preset health --format md > metrics/report.md
   artifacts:
     paths:
@@ -614,7 +634,7 @@ mr-metrics:
   stage: analyze
   image: rust:latest
   before_script:
-    - cargo install tokmd
+    - cargo install tokmd --locked
   script:
     - |
       # Generate diff report
@@ -715,8 +735,10 @@ tokmd handoff --preset risk --budget 128k
 cat .handoff/manifest.json | jq '.artifacts'
 
 # Feed the code bundle to your LLM
-cat .handoff/code.txt | pbcopy  # macOS
+cat .handoff/code.txt
 ```
+
+Copy `code.txt` into your editor, clipboard manager, or chat tool using whatever is native on your platform.
 
 **CI integration for automated handoffs**:
 ```yaml
@@ -728,12 +750,12 @@ jobs:
   handoff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Generate handoff bundle
         run: tokmd handoff --preset risk --budget 128k --out-dir .handoff
@@ -754,7 +776,7 @@ Track code metrics over time with automated baseline management.
 ```bash
 # Create initial baseline
 mkdir -p .tokmd/baselines
-tokmd run --output-dir .tokmd/baselines/initial
+tokmd run --analysis receipt --output-dir .tokmd/baselines/initial
 
 # Commit the baseline
 git add .tokmd/baselines/initial
@@ -783,15 +805,14 @@ jobs:
   baseline:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install tokmd
-        run: cargo install tokmd
+        run: cargo install tokmd --locked
 
       - name: Generate baseline
         run: |
-          DATE=$(date +%Y%m%d)
-          tokmd run --output-dir .tokmd/baselines/$DATE
+          tokmd run --analysis receipt --output-dir .tokmd/baselines/${{ github.run_id }}
 
       - name: Compare to previous
         run: |
@@ -818,7 +839,7 @@ jobs:
 tokmd diff .tokmd/baselines/v1.0.0 . --format md
 
 # After release: save new baseline
-tokmd run --output-dir .tokmd/baselines/v1.1.0
+tokmd run --analysis receipt --output-dir .tokmd/baselines/v1.1.0
 ```
 
 **Detecting codebase bloat**:

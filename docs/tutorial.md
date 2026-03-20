@@ -17,7 +17,7 @@ nix profile install github:EffortlessMetrics/tokmd
 
 ### Cargo (alternative)
 ```bash
-cargo install tokmd
+cargo install tokmd --locked
 ```
 
 Verify it works:
@@ -104,7 +104,7 @@ tokmd context --budget 128k --mode bundle --output context.txt
 ```
 
 **What happened?**
-- `--budget 128k`: Set a token limit matching Claude's context window.
+- `--budget 128k`: Set a token limit matching a common large-model context tier.
 - `--mode bundle`: Concatenated selected files into a single text file.
 - `--output context.txt`: Write output to a file instead of stdout.
 - Files are selected by size (largest = most valuable) until the budget is exhausted.
@@ -186,6 +186,28 @@ tokmd analyze --preset risk --format md
 - **Freshness**: Stale files that may be outdated
 - **Coupling**: Files that always change together
 
+## Step 8.5: Estimating Effort for a Change
+
+`1.8.0` adds an effort-focused preset that turns repo size and diff scope into an explicit estimate report.
+
+```bash
+tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md
+```
+
+**What you get**:
+- **Headline estimate**: person-month, duration, and staffing projections.
+- **Size basis**: authored vs generated/vendored lines so the estimate is grounded in what tokmd actually counted.
+- **Delta view**: how the current change compares with the selected base/head refs.
+
+**Useful follow-ons**:
+```bash
+# Keep the report short
+tokmd analyze --preset estimate --effort-layer headline --format md
+
+# Make Monte Carlo output deterministic for reproducible docs/CI
+tokmd analyze --preset estimate --monte-carlo --mc-seed 42 --format json
+```
+
 ## Step 9: Generating a Badge
 
 Add a lines-of-code badge to your README:
@@ -206,19 +228,21 @@ Then add to your README:
 To track changes over time, save a complete analysis:
 
 ```bash
-tokmd run --output-dir .runs/baseline
+tokmd run --analysis receipt --output-dir .runs/baseline
 ```
 
 This creates:
 - `lang.json` — Language summary
 - `module.json` — Module breakdown
 - `export.jsonl` — File inventory
-- `analysis.json` — Derived metrics
+- `receipt.json` — Core scan receipt
+- `analysis.json` / `analysis.md` — Derived metrics (because `--analysis receipt` was requested)
 
 Later, you can diff against this baseline:
 
 ```bash
-tokmd diff .runs/baseline .
+tokmd run --analysis receipt --output-dir .runs/current
+tokmd diff .runs/baseline .runs/current
 ```
 
 ---
@@ -474,7 +498,7 @@ tokmd baseline --output .tokmd/baseline.json
 tokmd baseline --force
 ```
 
-The baseline is used by the ratchet system to enforce that complexity does not regress across commits. See the [Recipes](recipes.md) for CI integration examples.
+The baseline is used by the ratchet system to enforce that complexity does not regress across commits. Use `tokmd run --analysis receipt` when you want a full saved inventory for later diffs, and `tokmd baseline` when you want the dedicated complexity ratchet file. See the [Recipes](recipes.md) for CI integration examples.
 
 ---
 
