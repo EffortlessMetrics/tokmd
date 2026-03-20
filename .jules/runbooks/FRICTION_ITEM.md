@@ -2,16 +2,8 @@
 
 ## Pain
 
-...
-
 ## Evidence
 
-...
-
-## Done-when
-
-...
+## Done When
 
 ## Tags
-
-...
