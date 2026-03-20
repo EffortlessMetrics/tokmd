@@ -119,6 +119,19 @@ impl MemFs {
         self.files.insert(path.into(), bytes.into());
     }
 
+    /// Iterate deterministic file paths stored in the virtual filesystem.
+    pub fn file_paths(&self) -> impl Iterator<Item = &Path> {
+        self.files.keys().map(PathBuf::as_path)
+    }
+
+    /// Return the size of a stored file in bytes.
+    pub fn file_size(&self, path: &Path) -> Result<u64, MemFsError> {
+        self.files
+            .get(path)
+            .map(|bytes| bytes.len() as u64)
+            .ok_or_else(|| self.not_found(path))
+    }
+
     fn not_found(&self, path: &Path) -> MemFsError {
         MemFsError {
             kind: MemFsErrorKind::NotFound,
@@ -287,5 +300,35 @@ mod tests {
     fn mem_fs_default_is_empty() {
         let fs = MemFs::default();
         assert!(!fs.exists(Path::new("anything")));
+    }
+
+    #[test]
+    fn mem_fs_file_paths_are_sorted() {
+        let mut fs = MemFs::new();
+        fs.add_file(PathBuf::from("z/file.txt"), "z");
+        fs.add_file(PathBuf::from("a/file.txt"), "a");
+        fs.add_file(PathBuf::from("m/file.txt"), "m");
+
+        let paths: Vec<_> = fs
+            .file_paths()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect();
+
+        assert_eq!(paths, vec!["a/file.txt", "m/file.txt", "z/file.txt"]);
+    }
+
+    #[test]
+    fn mem_fs_file_size_reads_inserted_length() {
+        let mut fs = MemFs::new();
+        fs.add_bytes(PathBuf::from("blob.bin"), vec![1, 2, 3, 4, 5]);
+
+        assert_eq!(fs.file_size(Path::new("blob.bin")).unwrap(), 5);
+    }
+
+    #[test]
+    fn mem_fs_file_size_missing_errors() {
+        let fs = MemFs::new();
+        let err = fs.file_size(Path::new("missing.bin")).unwrap_err();
+        assert!(err.to_string().contains("not found"));
     }
 }
