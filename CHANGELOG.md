@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-03-20
+
 ### Changed
 
-- Reset planning docs for the post-`1.8.0` cycle, including roadmap/NOW updates and a clearer post-release checklist in `RELEASE.md`
+- Reduced allocations across git analysis, context packing, cockpit risk/lcov paths, dominant-language detection, polyglot report generation, complexity histogram rendering, and coupling computation
+- Reset planning/reference docs after `1.8.0` so README, roadmap, release instructions, schema docs, and crate READMEs match the shipped command surface
+- Moved unused `blake3`, `serde`, and `tokmd-content` edges out of production dependencies in `tokmd-analysis`
+
+### Fixed
+
+- Locked rounded COCOMO effort semantics with a retained regression seed and synced the schema/version docs that describe the estimate surface
+- Replaced remaining unwrap/panic-heavy test paths in `tokmd-analysis-types` and `tokmd-ffi-envelope`, and hardened a Windows-sensitive traversal property test
 
 ## [1.8.0] - 2026-03-18
 
