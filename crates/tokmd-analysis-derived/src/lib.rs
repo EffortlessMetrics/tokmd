@@ -485,7 +485,9 @@ fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
     for row in rows {
         if is_infra_lang(&row.lang) {
             infra_lines += row.lines;
-            infra_langs.insert(row.lang.clone());
+            if !infra_langs.contains(&row.lang) {
+                infra_langs.insert(row.lang.clone());
+            }
         } else {
             logic_lines += row.lines;
         }
@@ -511,7 +513,11 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     let mut total = 0usize;
 
     for row in rows {
-        *by_lang.entry(row.lang.clone()).or_insert(0) += row.code;
+        if let Some(val) = by_lang.get_mut(&row.lang) {
+            *val += row.code;
+        } else {
+            by_lang.insert(row.lang.clone(), row.code);
+        }
         total += row.code;
     }
 
