@@ -8,6 +8,8 @@ use tokmd_core::{
     lang_workflow_from_inputs, module_workflow_from_inputs,
     settings::{ExportSettings, LangSettings, ModuleSettings, ScanOptions, ScanSettings},
 };
+#[cfg(feature = "analysis")]
+use tokmd_core::{analyze_workflow_from_inputs, settings::AnalyzeSettings};
 use tokmd_types::ConfigMode;
 
 fn scan_options() -> ScanOptions {
@@ -39,7 +41,11 @@ fn fixture_dir() -> TempDir {
         "pub fn alpha() -> usize { 1 }\n",
     );
     write_file(dir.path(), "src/main.rs", "fn main() {}\n");
-    write_file(dir.path(), "tests/basic.py", "print('ok')\n");
+    write_file(
+        dir.path(),
+        "tests/basic.py",
+        "# TODO: keep smoke\nprint('ok')\n",
+    );
     dir
 }
 
@@ -47,7 +53,7 @@ fn fixture_inputs() -> Vec<InMemoryFile> {
     vec![
         InMemoryFile::new("crates/app/src/lib.rs", "pub fn alpha() -> usize { 1 }\n"),
         InMemoryFile::new("src/main.rs", "fn main() {}\n"),
-        InMemoryFile::new("tests/basic.py", "print('ok')\n"),
+        InMemoryFile::new("tests/basic.py", "# TODO: keep smoke\nprint('ok')\n"),
     ]
 }
 
@@ -157,6 +163,83 @@ fn export_workflow_from_inputs_preserves_path_redaction() -> Result<()> {
 
     assert_ne!(receipt.data.rows[0].path, "src/lib.rs");
     assert_ne!(receipt.scan.paths[0], "src/lib.rs");
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_uses_logical_inputs_and_populates_estimate_receipt() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "estimate".to_string(),
+        ..Default::default()
+    };
+    let actual = analyze_workflow_from_inputs(&fixture_inputs(), &scan_options(), &analyze)?;
+    let actual_derived = actual
+        .derived
+        .as_ref()
+        .expect("estimate should populate derived metrics");
+    let effort = actual
+        .effort
+        .as_ref()
+        .expect("estimate should produce effort");
+
+    assert_eq!(actual_derived.totals.files, 3);
+    assert_eq!(actual_derived.totals.code, 3);
+    assert!(actual_derived.totals.bytes > 0);
+    assert!(actual_derived.totals.tokens > 0);
+    assert_eq!(effort.size_basis.total_lines, actual_derived.totals.code);
+    assert!(effort.results.effort_pm_p50 > 0.0);
+    assert_eq!(effort.model.to_string(), "cocomo81-basic");
+    assert_eq!(
+        actual.source.inputs,
+        vec![
+            "crates/app/src/lib.rs".to_string(),
+            "src/main.rs".to_string(),
+            "tests/basic.py".to_string(),
+        ]
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("/tmp/"))
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("\\temp\\"))
+    );
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_runs_health_preset_against_materialized_files() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "health".to_string(),
+        ..Default::default()
+    };
+    let receipt = analyze_workflow_from_inputs(&fixture_inputs(), &scan_options(), &analyze)?;
+    let derived = receipt
+        .derived
+        .as_ref()
+        .expect("health should populate derived metrics");
+    let todo = derived
+        .todo
+        .as_ref()
+        .expect("health should populate TODO data");
+
+    assert!(todo.total > 0);
+    assert!(
+        todo.tags
+            .iter()
+            .any(|tag| tag.tag.eq_ignore_ascii_case("todo"))
+    );
 
     Ok(())
 }

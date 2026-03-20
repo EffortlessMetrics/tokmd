@@ -228,30 +228,7 @@ pub fn export_workflow_from_inputs(
     export: &ExportSettings,
 ) -> Result<ExportReceipt> {
     let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
-    let mut rows = collect_materialized_rows(
-        &scan,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-    );
-
-    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
-        rows = strip_virtual_export_prefix(
-            rows,
-            strip_prefix,
-            &export.module_roots,
-            export.module_depth,
-        );
-    }
-
-    let data = tokmd_model::create_export_data_from_rows(
-        rows,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-        export.min_code,
-        export.max_rows,
-    );
+    let data = collect_materialized_export_data(&scan, export);
 
     Ok(build_export_receipt(
         scan.logical_paths(),
@@ -298,12 +275,46 @@ pub fn analyze_workflow(
     analyze: &settings::AnalyzeSettings,
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
     let export_receipt = export_workflow(scan, &ExportSettings::default())?;
-    let (preset, preset_meta) = parse_analysis_preset(&analyze.preset)?;
-    let (granularity, granularity_meta) = parse_import_granularity(&analyze.granularity)?;
-    let effort = parse_effort_request(analyze, &preset_meta)?;
+    let root = derive_analysis_root(scan)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
 
+    analyze_with_export_receipt(export_receipt, scan.paths.clone(), root, analyze)
+}
+
+/// Analyze workflow for ordered in-memory inputs (requires `analysis` feature).
+///
+/// Runs the in-memory export + analysis pipeline and returns an `AnalysisReceipt`.
+#[cfg(feature = "analysis")]
+pub fn analyze_workflow_from_inputs(
+    inputs: &[InMemoryFile],
+    scan_opts: &ScanOptions,
+    analyze: &settings::AnalyzeSettings,
+) -> Result<tokmd_analysis_types::AnalysisReceipt> {
+    let export = ExportSettings::default();
+    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let data = collect_materialized_export_data(&scan, &export);
+    let logical_inputs: Vec<String> = scan
+        .logical_paths()
+        .iter()
+        .map(|path| tokmd_model::normalize_path(path, None))
+        .collect();
+    let root = scan.strip_prefix().to_path_buf();
+    let export_receipt = build_export_receipt(scan.logical_paths(), scan_opts, &export, data);
+
+    analyze_with_export_receipt(export_receipt, logical_inputs, root, analyze)
+}
+
+#[cfg(feature = "analysis")]
+fn analyze_with_export_receipt(
+    export_receipt: ExportReceipt,
+    inputs: Vec<String>,
+    root: PathBuf,
+    analyze: &settings::AnalyzeSettings,
+) -> Result<tokmd_analysis_types::AnalysisReceipt> {
+    let request = build_analysis_request(analyze)?;
     let source = AnalysisSource {
-        inputs: scan.paths.clone(),
+        inputs,
         export_path: None,
         base_receipt_path: None,
         export_schema_version: Some(export_receipt.schema_version),
@@ -314,7 +325,24 @@ pub fn analyze_workflow(
         children: child_include_mode_to_string(export_receipt.data.children),
     };
 
-    let request = analysis::AnalysisRequest {
+    let ctx = analysis::AnalysisContext {
+        export: export_receipt.data,
+        root,
+        source,
+    };
+
+    analysis::analyze(ctx, request)
+}
+
+#[cfg(feature = "analysis")]
+fn build_analysis_request(
+    analyze: &settings::AnalyzeSettings,
+) -> Result<analysis::AnalysisRequest> {
+    let (preset, preset_meta) = parse_analysis_preset(&analyze.preset)?;
+    let (granularity, granularity_meta) = parse_import_granularity(&analyze.granularity)?;
+    let effort = parse_effort_request(analyze, &preset_meta)?;
+
+    Ok(analysis::AnalysisRequest {
         preset,
         args: AnalysisArgsMeta {
             preset: preset_meta,
@@ -346,19 +374,7 @@ pub fn analyze_workflow(
         near_dup_max_pairs: None,
         near_dup_exclude: Vec::new(),
         effort,
-    };
-
-    let root = derive_analysis_root(scan)
-        .or_else(|| std::env::current_dir().ok())
-        .unwrap_or_else(|| PathBuf::from("."));
-
-    let ctx = analysis::AnalysisContext {
-        export: export_receipt.data,
-        root,
-        source,
-    };
-
-    analysis::analyze(ctx, request)
+    })
 }
 
 // =============================================================================
@@ -522,6 +538,36 @@ fn strip_virtual_export_prefix(
             row
         })
         .collect()
+}
+
+fn collect_materialized_export_data(
+    scan: &tokmd_scan::MaterializedScan,
+    export: &ExportSettings,
+) -> ExportData {
+    let mut rows = collect_materialized_rows(
+        scan,
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+    );
+
+    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
+        rows = strip_virtual_export_prefix(
+            rows,
+            strip_prefix,
+            &export.module_roots,
+            export.module_depth,
+        );
+    }
+
+    tokmd_model::create_export_data_from_rows(
+        rows,
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+        export.min_code,
+        export.max_rows,
+    )
 }
 
 fn build_lang_receipt(

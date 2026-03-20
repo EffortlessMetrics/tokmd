@@ -74,6 +74,7 @@ assert!(receipt.effort.is_some());
 - `export_workflow_from_inputs(inputs, scan_opts, export) -> ExportReceipt`
 - `diff_workflow(settings) -> DiffReceipt`
 - `analyze_workflow(scan, analyze) -> AnalysisReceipt` with `analysis` feature
+- `analyze_workflow_from_inputs(inputs, scan_opts, analyze) -> AnalysisReceipt` with `analysis` feature
 - `cockpit_workflow(settings) -> CockpitReceipt` with `cockpit` feature
 
 All workflows use pure settings types from `tokmd_core::settings`, so they stay free of clap-specific argument structures. For ordered virtual inputs, build `tokmd_core::InMemoryFile` values and use the `*_workflow_from_inputs` variants instead of filesystem paths.
