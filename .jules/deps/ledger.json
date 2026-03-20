@@ -10,5 +10,20 @@
       "cargo machete output identifying unused tokmd-analysis-types in tokmd-gate",
       "cargo test -p tokmd-gate completed successfully after removal"
     ]
+  },
+  {
+    "run_id": "fcedf7ca-4c68-42ad-b9f3-1d762ed7d569",
+    "date": "2026-03-19T11:56:38Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-analysis",
+    "action": "move test-only deps and remove tokmd-content from the content feature",
+    "receipts": [
+      "cargo machete flagged tokmd-content as unused in tokmd-analysis",
+      "cargo test -p tokmd-analysis --all-features completed successfully after the manifest cleanup",
+      "cargo test -p tokmd-analysis --no-default-features completed successfully after the manifest cleanup",
+      "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully",
+      "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check completed successfully"
+    ]
   }
 ]

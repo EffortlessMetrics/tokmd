@@ -1,0 +1,30 @@
+{
+  "run_id": "fcedf7ca-4c68-42ad-b9f3-1d762ed7d569",
+  "date": "2026-03-19T11:56:38Z",
+  "persona": "Auditor",
+  "lane": "scout",
+  "target": "tokmd-analysis",
+  "action": "move test-only deps and remove tokmd-content from the content feature",
+  "receipts": [
+    {
+      "command": "cargo machete",
+      "output": "Analyzing dependencies of crates in this directory...\ncargo-machete found the following unused dependencies in this directory:\nxtask -- ./xtask/Cargo.toml:\n\tconsole\n\tindicatif\n\tserde\ntokmd-node -- ./crates/tokmd-node/Cargo.toml:\n\ttokmd-analysis-types\n\ttokmd-types\ntokmd-model -- ./crates/tokmd-model/Cargo.toml:\n\tserde\ntokmd-python -- ./crates/tokmd-python/Cargo.toml:\n\ttokmd-analysis-types\n\ttokmd-types\ntokmd-analysis -- ./crates/tokmd-analysis/Cargo.toml:\n\ttokmd-content\n\nIf you believe cargo-machete has detected an unused dependency incorrectly,\nyou can add the dependency to the list of dependencies to ignore in the\n`[package.metadata.cargo-machete]` section of the appropriate Cargo.toml.\nFor example:\n\n[package.metadata.cargo-machete]\nignored = [\"prost\"]\n\nYou can also try running it with the `--with-metadata` flag for better accuracy,\nthough this may modify your Cargo.lock files.\n\nDone!"
+    },
+    {
+      "command": "cargo test -p tokmd-analysis --all-features",
+      "output": "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;"
+    },
+    {
+      "command": "cargo test -p tokmd-analysis --no-default-features",
+      "output": "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;"
+    },
+    {
+      "command": "cargo clippy -p tokmd-analysis --all-features -- -D warnings",
+      "output": "Finished dev profile [unoptimized + debuginfo] target(s) in 10.12s"
+    },
+    {
+      "command": "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check",
+      "output": "ok"
+    }
+  ]
+}
