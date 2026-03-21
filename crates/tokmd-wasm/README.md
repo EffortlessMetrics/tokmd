@@ -9,7 +9,8 @@ ordered in-memory inputs without going through the CLI.
 ## Exports
 
 - `version()`
-- `schemaVersion()`
+- `schemaVersion()` for core receipts (`lang`, `module`, `export`)
+- `analysisSchemaVersion()` when the `analysis` feature is enabled
 - `runJson(mode, argsJson)`
 - `run(mode, args)`
 - `runLang(args)`
@@ -35,3 +36,5 @@ use the same JSON shape that the Node and Python bindings already accept:
 fixed-mode helpers unwrap that envelope and return the `data` payload as a
 plain JavaScript object, throwing on upstream errors.
 
+Use `schemaVersion()` only for core receipt families. Browser callers that
+consume `runAnalyze()` should read `analysisSchemaVersion()` instead.

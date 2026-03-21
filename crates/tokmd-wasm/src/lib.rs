@@ -11,6 +11,8 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 use serde_json::Value;
+#[cfg(feature = "analysis")]
+use tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
 
 fn to_js_error(message: impl Into<String>) -> JsValue {
     JsError::new(&message.into()).into()
@@ -56,10 +58,17 @@ pub fn version() -> String {
     tokmd_core::ffi::version().to_string()
 }
 
-/// Return the current receipt schema version.
+/// Return the current core receipt schema version for `lang`, `module`, and `export`.
 #[wasm_bindgen(js_name = schemaVersion)]
 pub fn schema_version() -> u32 {
     tokmd_core::ffi::schema_version()
+}
+
+/// Return the current analysis receipt schema version for `runAnalyze`.
+#[cfg(feature = "analysis")]
+#[wasm_bindgen(js_name = analysisSchemaVersion)]
+pub fn analysis_schema_version() -> u32 {
+    ANALYSIS_SCHEMA_VERSION
 }
 
 /// Run a tokmd mode and return the raw JSON response envelope.
@@ -204,5 +213,95 @@ mod tests {
 
         assert!(err.contains("[invalid_settings]"));
         assert!(err.contains("cannot be combined with in-memory inputs"));
+    }
+
+    #[test]
+    fn schema_version_matches_core_receipts() {
+        assert_eq!(schema_version(), tokmd_types::SCHEMA_VERSION);
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn analysis_schema_version_matches_analysis_receipts() {
+        assert_eq!(analysis_schema_version(), ANALYSIS_SCHEMA_VERSION);
+    }
+}
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod wasm_tests {
+    use super::*;
+    use serde_json::Value;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_test::*;
+
+    fn parse_js_args(json: &str) -> JsValue {
+        JSON::parse(json).expect("valid JS object")
+    }
+
+    fn js_value_to_json(value: &JsValue) -> Value {
+        let json = JSON::stringify(value)
+            .expect("serializable JS value")
+            .as_string()
+            .expect("JSON string");
+        serde_json::from_str(&json).expect("valid JSON value")
+    }
+
+    #[wasm_bindgen_test]
+    fn run_lang_exercises_js_value_boundary() {
+        let data = run_lang(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" },
+                    { "path": "tests/basic.py", "text": "print('ok')\n" }
+                ],
+                "files": true
+            }"#,
+        ))
+        .expect("lang data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "lang");
+        assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
+        assert_eq!(parsed["total"]["files"], 2);
+    }
+
+    #[wasm_bindgen_test]
+    fn run_surfaces_js_facing_errors() {
+        let err = run(
+            "lang",
+            parse_js_args(
+                r#"{
+                    "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                    "paths": ["src"]
+                }"#,
+            ),
+        )
+        .expect_err("conflicting inputs should error")
+        .dyn_into::<JsError>()
+        .expect("js error");
+
+        let message = err.message().as_string().expect("js string message");
+        assert!(message.contains("[invalid_settings]"));
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_analyze_reports_analysis_schema_and_logical_paths() {
+        let data = run_analyze(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "crates/app/src/lib.rs", "text": "pub fn alpha() -> usize { 1 }\n" },
+                    { "path": "src/main.rs", "text": "fn main() {}\n" }
+                ],
+                "preset": "estimate"
+            }"#,
+        ))
+        .expect("analysis data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(analysis_schema_version(), ANALYSIS_SCHEMA_VERSION);
+        assert_eq!(parsed["mode"], "analysis");
+        assert_eq!(parsed["source"]["inputs"][0], "crates/app/src/lib.rs");
+        assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
     }
 }
