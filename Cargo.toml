@@ -47,6 +47,7 @@ members = [
     "crates/tokmd-node",
     "crates/tokmd-progress",
     "crates/tokmd-python",
+    "crates/tokmd-wasm",
     "crates/tokmd-redact",
     "crates/tokmd-scan",
     "crates/tokmd-scan-args",
@@ -177,6 +178,7 @@ tokmd-math = { path = "crates/tokmd-math", version = "1.8.1" }
 tokmd-exclude = { path = "crates/tokmd-exclude", version = "1.8.1" }
 tokmd-path = { path = "crates/tokmd-path", version = "1.8.1" }
 tokmd-progress = { path = "crates/tokmd-progress", version = "1.8.1" }
+tokmd-wasm = { path = "crates/tokmd-wasm", version = "1.8.1" }
 tokmd-redact = { path = "crates/tokmd-redact", version = "1.8.1" }
 tokmd-scan = { path = "crates/tokmd-scan", version = "1.8.1" }
 tokmd-scan-args = { path = "crates/tokmd-scan-args", version = "1.8.1" }

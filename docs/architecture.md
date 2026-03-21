@@ -36,7 +36,7 @@ Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysi
          ↓
 Tier 4 (Facade)        tokmd-config, tokmd-core, tokmd-ffi-envelope, tokmd-tool-schema
          ↓
-Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
+Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 ```
 
 ### Tier 0: Contracts (Pure Data)
@@ -134,6 +134,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node
 | `tokmd` | CLI binary |
 | `tokmd-python` | PyO3 bindings for Python |
 | `tokmd-node` | napi-rs bindings for Node.js |
+| `tokmd-wasm` | wasm-bindgen bindings for browser/worker callers |
 
 ## Dependency Rules
 
@@ -238,6 +239,7 @@ ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
 ### Non-crates.io products
 - `tokmd-python` ships to PyPI via maturin.
 - `tokmd-node` ships to npm via napi-rs.
+- `tokmd-wasm` ships as a wasm-bindgen/browser package surface for pinned web artifacts.
 - `fuzz/` and `xtask/` stay workspace-only support surfaces.
 
 ## Sensor Integration Architecture
@@ -281,7 +283,7 @@ Work items:
 - Add an in-memory scan pipeline that accepts `(path, bytes)` inputs and preserves deterministic ordering and capability reporting.
 - Keep CLI/Clap separation strict so the library surface stays free of OS-bound argument types.
 - Add a `wasm`/`web` feature profile and CI builds for `wasm32-unknown-unknown`, plus parity tests against the native engine.
-- Add a `tokmd-wasm` crate exposing JS-friendly APIs for `lang`, `module`, `export`, and `analyze`.
+- Harden the new `tokmd-wasm` crate so its JS-friendly APIs for `lang`, `module`, `export`, and `analyze` are ready for browser packaging.
 - Build a minimal browser runner that fetches a GitHub zipball, unpacks in a Worker, runs tokmd locally, and supports progress/cancel/download flows.
 - Add caching and guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits for archive size, file count, and bytes read.
 - Publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.

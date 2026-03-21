@@ -3840,6 +3840,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-wasm"
+version = "1.8.1"
+dependencies = [
+ "js-sys",
+ "serde_json",
+ "tokmd-core",
+ "tokmd-ffi-envelope",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "toml"
 version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
