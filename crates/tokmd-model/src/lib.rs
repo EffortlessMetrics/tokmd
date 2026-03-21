@@ -94,10 +94,42 @@ fn language_from_in_memory_shebang(bytes: &[u8]) -> Option<LanguageType> {
         .next()?;
     let first_line = std::str::from_utf8(first_line).ok()?;
 
-    LanguageType::list()
+    let direct = LanguageType::list()
         .iter()
         .map(|(lang, _)| *lang)
-        .find(|lang| lang.shebangs().contains(&first_line))
+        .find(|lang| lang.shebangs().contains(&first_line));
+    if direct.is_some() {
+        return direct;
+    }
+
+    let mut words = first_line.split_whitespace();
+    if words.next() == Some("#!/usr/bin/env") {
+        return words.next().and_then(language_from_env_interpreter);
+    }
+
+    None
+}
+
+fn language_from_env_interpreter(interpreter: &str) -> Option<LanguageType> {
+    let token = interpreter
+        .rsplit('/')
+        .next()
+        .unwrap_or(interpreter)
+        .trim_start_matches('-');
+
+    if token.starts_with("python") {
+        return LanguageType::from_file_extension("py");
+    }
+
+    match token {
+        "bash" | "sh" | "zsh" | "ksh" | "fish" => LanguageType::from_name("Bash"),
+        "node" | "nodejs" => LanguageType::from_name("JavaScript"),
+        "ruby" => LanguageType::from_name("Ruby"),
+        "perl" | "perl5" => LanguageType::from_name("Perl"),
+        "php" => LanguageType::from_name("PHP"),
+        "pwsh" | "powershell" => LanguageType::from_name("PowerShell"),
+        _ => None,
+    }
 }
 
 fn detect_in_memory_language(

@@ -72,3 +72,21 @@ fn collect_in_memory_file_rows_uses_inline_shebang_instead_of_host_file() {
     assert_eq!(actual.len(), 1);
     assert_eq!(actual[0].lang, LanguageType::Bash.name());
 }
+
+#[test]
+fn collect_in_memory_file_rows_supports_env_python_shebangs() {
+    let inputs = vec![InMemoryRowInput::new(
+        Path::new("script"),
+        b"#!/usr/bin/env python3\nprint('ok')\n",
+    )];
+    let actual = collect_in_memory_file_rows(
+        &inputs,
+        &[],
+        1,
+        ChildIncludeMode::Separate,
+        &Config::default(),
+    );
+
+    assert_eq!(actual.len(), 1);
+    assert_eq!(actual[0].lang, LanguageType::Python.name());
+}
