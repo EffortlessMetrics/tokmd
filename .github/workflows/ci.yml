@@ -113,6 +113,8 @@ jobs:
         run: cargo check -p tokmd-scan --target wasm32-unknown-unknown
       - name: Check tokmd-core analysis for wasm32
         run: cargo check -p tokmd-core --features analysis --target wasm32-unknown-unknown
+      - name: Check tokmd-wasm core-only for wasm32
+        run: cargo check -p tokmd-wasm --no-default-features --target wasm32-unknown-unknown
       - name: Check tokmd-wasm for wasm32
         run: cargo check -p tokmd-wasm --features analysis --target wasm32-unknown-unknown
 
