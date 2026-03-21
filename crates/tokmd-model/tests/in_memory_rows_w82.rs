@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use tempfile::TempDir;
-use tokei::{Config, Languages};
+use tokei::{Config, LanguageType, Languages};
 use tokmd_model::{InMemoryRowInput, collect_file_rows, collect_in_memory_file_rows};
 use tokmd_types::ChildIncludeMode;
 
@@ -45,4 +45,30 @@ fn collect_in_memory_file_rows_matches_filesystem_rows_with_embedded_children() 
     );
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn collect_in_memory_file_rows_uses_inline_shebang_instead_of_host_file() {
+    let tmp = TempDir::new().expect("temp dir");
+    let host_path = tmp.path().join("script");
+    write_file(
+        tmp.path(),
+        "script",
+        "#!/usr/bin/env python3\nprint('host file')\n",
+    );
+
+    let inputs = vec![InMemoryRowInput::new(
+        host_path.as_path(),
+        b"#!/bin/bash\necho inline\n",
+    )];
+    let actual = collect_in_memory_file_rows(
+        &inputs,
+        &[],
+        1,
+        ChildIncludeMode::Separate,
+        &Config::default(),
+    );
+
+    assert_eq!(actual.len(), 1);
+    assert_eq!(actual[0].lang, LanguageType::Bash.name());
 }

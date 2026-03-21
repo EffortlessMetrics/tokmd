@@ -19,7 +19,7 @@
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use tokei::{CodeStats, Config, LanguageType, Languages};
 use tokmd_module_key::module_key_from_normalized;
@@ -80,6 +80,36 @@ fn metrics_from_byte_len(bytes: usize) -> (usize, usize) {
     (bytes, tokens)
 }
 
+fn synthetic_detection_path(logical_path: &Path) -> PathBuf {
+    let mut path = PathBuf::from("__tokmd_in_memory_detection__");
+    path.push(logical_path.file_name().unwrap_or(logical_path.as_os_str()));
+    path
+}
+
+fn language_from_in_memory_shebang(bytes: &[u8]) -> Option<LanguageType> {
+    const READ_LIMIT: usize = 128;
+
+    let first_line = bytes[..bytes.len().min(READ_LIMIT)]
+        .split(|b| *b == b'\n')
+        .next()?;
+    let first_line = std::str::from_utf8(first_line).ok()?;
+
+    LanguageType::list()
+        .iter()
+        .map(|(lang, _)| *lang)
+        .find(|lang| lang.shebangs().contains(&first_line))
+}
+
+fn detect_in_memory_language(
+    logical_path: &Path,
+    bytes: &[u8],
+    config: &Config,
+) -> Option<LanguageType> {
+    let detection_path = synthetic_detection_path(logical_path);
+    LanguageType::from_path(&detection_path, config)
+        .or_else(|| language_from_in_memory_shebang(bytes))
+}
+
 fn insert_row(
     map: &mut BTreeMap<Key, (String, Agg)>,
     key: Key,
@@ -130,7 +160,8 @@ pub fn collect_in_memory_file_rows(
     let mut map: BTreeMap<Key, (String, Agg)> = BTreeMap::new();
 
     for input in inputs {
-        let Some(lang_type) = LanguageType::from_path(input.logical_path, config) else {
+        let Some(lang_type) = detect_in_memory_language(input.logical_path, input.bytes, config)
+        else {
             continue;
         };
 
