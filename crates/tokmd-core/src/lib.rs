@@ -48,6 +48,7 @@
 //! ```
 
 use std::path::{Path, PathBuf};
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
@@ -76,6 +77,14 @@ use tokmd_types::{
     SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
 
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+fn now_ms() -> u128 {
+    // `std::time` is not implemented on bare wasm. Keep receipts buildable and
+    // deterministic until the browser runner supplies an explicit clock surface.
+    0
+}
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
