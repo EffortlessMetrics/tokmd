@@ -559,8 +559,11 @@ fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
 
 fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions {
     let mut effective = scan_opts.clone();
-    // In-memory workflows should not depend on host cwd tokei config discovery.
+    // Explicit in-memory inputs are authoritative; they should not depend on
+    // host cwd config discovery or be filtered back out by hidden/exclude rules.
     effective.config = tokmd_types::ConfigMode::None;
+    effective.hidden = true;
+    effective.excluded.clear();
     effective
 }
 

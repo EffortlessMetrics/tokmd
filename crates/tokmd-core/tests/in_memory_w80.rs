@@ -365,3 +365,43 @@ fn analyze_workflow_from_inputs_runs_health_preset_against_materialized_files() 
 
     Ok(())
 }
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_health_keeps_explicit_hidden_inputs() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "health".to_string(),
+        ..Default::default()
+    };
+    let scan = ScanOptions {
+        excluded: vec![".hidden/*".to_string()],
+        ..ScanOptions::default()
+    };
+    let inputs = vec![
+        InMemoryFile::new(
+            ".hidden/secret.py",
+            "# TODO: preserve hidden\nprint('hidden')\n",
+        ),
+        InMemoryFile::new("src/main.rs", "fn main() {}\n"),
+    ];
+
+    let receipt = analyze_workflow_from_inputs(&inputs, &scan, &analyze)?;
+    let derived = receipt
+        .derived
+        .as_ref()
+        .expect("health should populate derived metrics");
+    let todo = derived
+        .todo
+        .as_ref()
+        .expect("health should populate TODO data");
+
+    assert_eq!(derived.totals.files, 2);
+    assert_eq!(derived.totals.code, 2);
+    assert_eq!(
+        receipt.source.inputs,
+        vec![".hidden/secret.py".to_string(), "src/main.rs".to_string()]
+    );
+    assert_eq!(todo.total, 1);
+
+    Ok(())
+}
