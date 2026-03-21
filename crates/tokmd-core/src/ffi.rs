@@ -18,14 +18,16 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde_json::Value;
 
+#[cfg(feature = "analysis")]
+use crate::analyze_workflow_from_inputs;
 use crate::error::{ResponseEnvelope, TokmdError};
 use crate::settings::{
     AnalyzeSettings, ChildIncludeMode, ChildrenMode, ConfigMode, DiffSettings, ExportFormat,
     ExportSettings, LangSettings, ModuleSettings, RedactMode, ScanSettings,
 };
 use crate::{
-    InMemoryFile, analyze_workflow_from_inputs, export_workflow, export_workflow_from_inputs,
-    lang_workflow, lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
+    InMemoryFile, export_workflow, export_workflow_from_inputs, lang_workflow,
+    lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
 };
 
 /// Run a tokmd operation with JSON arguments, returning JSON output.
