@@ -1,6 +1,9 @@
 use anyhow::Result;
+use std::env;
 use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
 
 use tempfile::TempDir;
 use tokmd_core::{
@@ -8,6 +11,8 @@ use tokmd_core::{
     lang_workflow_from_inputs, module_workflow_from_inputs,
     settings::{ExportSettings, LangSettings, ModuleSettings, ScanOptions, ScanSettings},
 };
+#[cfg(feature = "analysis")]
+use tokmd_core::{analyze_workflow_from_inputs, settings::AnalyzeSettings};
 use tokmd_types::ConfigMode;
 
 fn scan_options() -> ScanOptions {
@@ -21,6 +26,34 @@ fn scan_options() -> ScanOptions {
         no_ignore_vcs: false,
         treat_doc_strings_as_comments: false,
     }
+}
+
+fn auto_scan_options() -> ScanOptions {
+    ScanOptions {
+        config: ConfigMode::Auto,
+        ..scan_options()
+    }
+}
+
+static CWD_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+struct RestoreCurrentDir(PathBuf);
+
+impl Drop for RestoreCurrentDir {
+    fn drop(&mut self) {
+        let _ = env::set_current_dir(&self.0);
+    }
+}
+
+fn with_current_dir<T>(path: &Path, f: impl FnOnce() -> T) -> T {
+    let _lock = CWD_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .expect("cwd lock");
+    let original = env::current_dir().expect("current dir");
+    env::set_current_dir(path).expect("set current dir");
+    let _restore = RestoreCurrentDir(original);
+    f()
 }
 
 fn write_file(root: &Path, rel: &str, contents: &str) {
@@ -39,7 +72,11 @@ fn fixture_dir() -> TempDir {
         "pub fn alpha() -> usize { 1 }\n",
     );
     write_file(dir.path(), "src/main.rs", "fn main() {}\n");
-    write_file(dir.path(), "tests/basic.py", "print('ok')\n");
+    write_file(
+        dir.path(),
+        "tests/basic.py",
+        "# TODO: keep smoke\nprint('ok')\n",
+    );
     dir
 }
 
@@ -47,7 +84,7 @@ fn fixture_inputs() -> Vec<InMemoryFile> {
     vec![
         InMemoryFile::new("crates/app/src/lib.rs", "pub fn alpha() -> usize { 1 }\n"),
         InMemoryFile::new("src/main.rs", "fn main() {}\n"),
-        InMemoryFile::new("tests/basic.py", "print('ok')\n"),
+        InMemoryFile::new("tests/basic.py", "# TODO: keep smoke\nprint('ok')\n"),
     ]
 }
 
@@ -69,6 +106,19 @@ fn lang_workflow_from_inputs_matches_path_workflow_report() -> Result<()> {
         actual.scan.paths,
         vec!["crates/app/src/lib.rs", "src/main.rs", "tests/basic.py"]
     );
+
+    Ok(())
+}
+
+#[test]
+fn lang_workflow_from_inputs_clamps_scan_config_to_none() -> Result<()> {
+    let receipt = lang_workflow_from_inputs(
+        &fixture_inputs(),
+        &auto_scan_options(),
+        &LangSettings::default(),
+    )?;
+
+    assert_eq!(receipt.scan.config, ConfigMode::None);
 
     Ok(())
 }
@@ -157,6 +207,161 @@ fn export_workflow_from_inputs_preserves_path_redaction() -> Result<()> {
 
     assert_ne!(receipt.data.rows[0].path, "src/lib.rs");
     assert_ne!(receipt.scan.paths[0], "src/lib.rs");
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_uses_logical_inputs_and_populates_estimate_receipt() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "estimate".to_string(),
+        ..Default::default()
+    };
+    let actual = analyze_workflow_from_inputs(&fixture_inputs(), &scan_options(), &analyze)?;
+    let actual_derived = actual
+        .derived
+        .as_ref()
+        .expect("estimate should populate derived metrics");
+    let effort = actual
+        .effort
+        .as_ref()
+        .expect("estimate should produce effort");
+
+    assert_eq!(actual_derived.totals.files, 3);
+    assert_eq!(actual_derived.totals.code, 3);
+    assert_eq!(actual_derived.totals.comments, 1);
+    assert_eq!(actual_derived.totals.blanks, 0);
+    assert_eq!(actual_derived.totals.lines, 4);
+    assert!(actual_derived.totals.bytes > 0);
+    assert!(actual_derived.totals.tokens > 0);
+    assert_eq!(effort.size_basis.total_lines, actual_derived.totals.code);
+    assert_eq!(effort.size_basis.authored_lines, 3);
+    assert_eq!(effort.size_basis.generated_lines, 0);
+    assert_eq!(effort.size_basis.vendored_lines, 0);
+    assert!(effort.results.effort_pm_p50 > 0.0);
+    assert_eq!(effort.model.to_string(), "cocomo81-basic");
+    assert_eq!(
+        actual.source.inputs,
+        vec![
+            "crates/app/src/lib.rs".to_string(),
+            "src/main.rs".to_string(),
+            "tests/basic.py".to_string(),
+        ]
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("/tmp/"))
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("\\temp\\"))
+    );
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_ignores_ambient_tokei_config_files() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "estimate".to_string(),
+        ..Default::default()
+    };
+    let inputs = vec![
+        InMemoryFile::new(".hidden/secret.py", "print('hidden')\n"),
+        InMemoryFile::new("src/main.rs", "fn main() {}\n"),
+    ];
+    let hostile_dir = TempDir::new()?;
+    write_file(hostile_dir.path(), "tokei.toml", "hidden = true\n");
+
+    let expected = analyze_workflow_from_inputs(&inputs, &scan_options(), &analyze)?;
+    let actual = with_current_dir(hostile_dir.path(), || {
+        analyze_workflow_from_inputs(&inputs, &auto_scan_options(), &analyze)
+    })?;
+    let expected_derived = expected
+        .derived
+        .as_ref()
+        .expect("estimate should populate derived metrics");
+    let actual_derived = actual
+        .derived
+        .as_ref()
+        .expect("estimate should populate derived metrics");
+    let expected_effort = expected
+        .effort
+        .as_ref()
+        .expect("estimate should produce effort");
+    let actual_effort = actual
+        .effort
+        .as_ref()
+        .expect("estimate should produce effort");
+
+    assert_eq!(actual_derived.totals.files, 1);
+    assert_eq!(actual_derived.totals.code, 1);
+    assert_eq!(
+        actual_derived.totals.comments,
+        expected_derived.totals.comments
+    );
+    assert_eq!(actual_derived.totals.blanks, expected_derived.totals.blanks);
+    assert_eq!(actual_derived.totals.lines, expected_derived.totals.lines);
+    assert_eq!(actual_effort.size_basis.total_lines, 1);
+    assert_eq!(actual_effort.size_basis.authored_lines, 1);
+    assert_eq!(actual_effort.size_basis.generated_lines, 0);
+    assert_eq!(actual_effort.size_basis.vendored_lines, 0);
+    assert_eq!(
+        actual_effort.size_basis.total_lines,
+        expected_effort.size_basis.total_lines
+    );
+    assert_eq!(
+        actual_effort.size_basis.authored_lines,
+        expected_effort.size_basis.authored_lines
+    );
+    assert_eq!(
+        actual_effort.size_basis.generated_lines,
+        expected_effort.size_basis.generated_lines
+    );
+    assert_eq!(
+        actual_effort.size_basis.vendored_lines,
+        expected_effort.size_basis.vendored_lines
+    );
+    assert_eq!(
+        actual.source.inputs,
+        vec![".hidden/secret.py".to_string(), "src/main.rs".to_string()]
+    );
+    assert!(actual.source.inputs.iter().all(|path| !path.contains('\\')));
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn analyze_workflow_from_inputs_runs_health_preset_against_materialized_files() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "health".to_string(),
+        ..Default::default()
+    };
+    let receipt = analyze_workflow_from_inputs(&fixture_inputs(), &scan_options(), &analyze)?;
+    let derived = receipt
+        .derived
+        .as_ref()
+        .expect("health should populate derived metrics");
+    let todo = derived
+        .todo
+        .as_ref()
+        .expect("health should populate TODO data");
+
+    assert!(todo.total > 0);
+    assert!(
+        todo.tags
+            .iter()
+            .any(|tag| tag.tag.eq_ignore_ascii_case("todo"))
+    );
 
     Ok(())
 }
