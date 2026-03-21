@@ -49,26 +49,27 @@ pub fn build_delta(
                 (files + 1, lines + hunks.len())
             });
 
-        let mut path_to_module_lang = BTreeMap::<String, (String, String)>::new();
-        let mut all_modules = BTreeSet::<String>::new();
-        let mut all_langs = BTreeSet::<String>::new();
-        let mut changed_modules = BTreeSet::<String>::new();
-        let mut changed_langs = BTreeSet::<String>::new();
+        let mut path_to_module_lang = BTreeMap::<&str, (&str, &str)>::new();
+        let mut all_modules = BTreeSet::<&str>::new();
+        let mut all_langs = BTreeSet::<&str>::new();
+        let mut changed_modules = BTreeSet::<&str>::new();
+        let mut changed_langs = BTreeSet::<&str>::new();
 
         for row in &export.rows {
             if row.kind != FileKind::Parent {
                 continue;
             }
-            path_to_module_lang.insert(row.path.clone(), (row.module.clone(), row.lang.clone()));
-            all_modules.insert(row.module.clone());
-            all_langs.insert(row.lang.clone());
+            path_to_module_lang.insert(row.path.as_str(), (row.module.as_str(), row.lang.as_str()));
+            all_modules.insert(row.module.as_str());
+            all_langs.insert(row.lang.as_str());
         }
 
         for path in changed.keys() {
-            let key = path.to_string_lossy().trim_start_matches("./").to_string();
-            if let Some((module, lang)) = path_to_module_lang.get(&key) {
-                changed_modules.insert(module.clone());
-                changed_langs.insert(lang.clone());
+            let key_lossy = path.to_string_lossy();
+            let key = key_lossy.trim_start_matches("./");
+            if let Some((module, lang)) = path_to_module_lang.get(key) {
+                changed_modules.insert(*module);
+                changed_langs.insert(*lang);
             }
         }
 
@@ -99,7 +100,10 @@ pub fn build_delta(
             git_report
                 .coupling
                 .iter()
-                .filter(|c| touched_modules.contains(&c.left) || touched_modules.contains(&c.right))
+                .filter(|c| {
+                    touched_modules.contains(c.left.as_str())
+                        || touched_modules.contains(c.right.as_str())
+                })
                 .count() as f64
         } else {
             0.0

@@ -1,0 +1,26 @@
+{
+  "run_id": "1",
+  "timestamp_utc": "2026-03-21T12:42:01Z",
+  "lane": "scout",
+  "target": "crates/tokmd-analysis-effort/src/delta.rs: replace String cloning and BTreeSets with BTreeSet<&str> / Option<&str> in build_delta",
+  "proof_method": "structural",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS"
+    },
+    {
+      "cmd": "CI=true cargo test -p tokmd-analysis-effort",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-analysis-effort -- -D warnings",
+      "status": "PASS"
+    }
+  ],
+  "results": []
+}
