@@ -52,6 +52,30 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
     JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
 }
 
+#[cfg(feature = "analysis")]
+fn validate_analyze_args_json(args_json: &str) -> Result<(), String> {
+    let args: serde_json::Value =
+        serde_json::from_str(args_json).map_err(|err| format!("JSON decode error: {err}"))?;
+    match args.get("preset").and_then(serde_json::Value::as_str) {
+        Some("estimate") => Ok(()),
+        Some(preset) => Err(format!(
+            "tokmd-wasm currently supports runAnalyze only with preset=\"estimate\" for in-memory inputs; got {preset:?}"
+        )),
+        None => Err(
+            "tokmd-wasm currently supports runAnalyze only with preset=\"estimate\" for in-memory inputs"
+                .to_string(),
+        ),
+    }
+}
+
+#[cfg(feature = "analysis")]
+fn run_analyze_js(args: JsValue) -> Result<JsValue, JsValue> {
+    let args_json = js_args_to_json(args)?;
+    validate_analyze_args_json(&args_json).map_err(to_js_error)?;
+    let data_json = extract_mode_data_json("analyze", &args_json).map_err(to_js_error)?;
+    JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
+}
+
 /// Return the tokmd package version.
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -102,10 +126,13 @@ pub fn run_export(args: JsValue) -> Result<JsValue, JsValue> {
 }
 
 /// Run the `analyze` workflow on in-memory inputs.
+///
+/// `tokmd-wasm` currently supports only `preset: "estimate"` because the
+/// richer analysis presets still depend on filesystem-backed content scans.
 #[cfg(feature = "analysis")]
 #[wasm_bindgen(js_name = runAnalyze)]
 pub fn run_analyze(args: JsValue) -> Result<JsValue, JsValue> {
-    run_mode_js("analyze", args)
+    run_analyze_js(args)
 }
 
 #[cfg(test)]
@@ -200,6 +227,28 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn validate_analyze_args_requires_estimate() {
+        validate_analyze_args_json(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "preset": "estimate"
+            }"#,
+        )
+        .expect("estimate should be allowed");
+
+        let err = validate_analyze_args_json(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "preset": "health"
+            }"#,
+        )
+        .expect_err("non-estimate preset should be rejected");
+
+        assert!(err.contains("preset=\"estimate\""));
+    }
+
     #[test]
     fn run_mode_value_surfaces_upstream_errors() {
         let err = run_mode_value(
@@ -266,6 +315,42 @@ mod wasm_tests {
     }
 
     #[wasm_bindgen_test]
+    fn run_module_exercises_js_value_boundary() {
+        let data = run_module(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" },
+                    { "path": "tests/basic.py", "text": "print('ok')\n" }
+                ]
+            }"#,
+        ))
+        .expect("module data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "module");
+        assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
+        assert!(parsed["rows"].as_array().is_some());
+    }
+
+    #[wasm_bindgen_test]
+    fn run_export_exercises_js_value_boundary() {
+        let data = run_export(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" },
+                    { "path": "tests/basic.py", "text": "print('ok')\n" }
+                ]
+            }"#,
+        ))
+        .expect("export data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "export");
+        assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
+        assert_eq!(parsed["rows"][0]["path"], "src/lib.rs");
+    }
+
+    #[wasm_bindgen_test]
     fn run_surfaces_js_facing_errors() {
         let err = run(
             "lang",
@@ -303,5 +388,22 @@ mod wasm_tests {
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["source"]["inputs"][0], "crates/app/src/lib.rs");
         assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_analyze_rejects_non_estimate_presets() {
+        let err = run_analyze(parse_js_args(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "preset": "health"
+            }"#,
+        ))
+        .expect_err("non-estimate preset should be rejected")
+        .dyn_into::<JsError>()
+        .expect("js error");
+
+        let message = err.message().as_string().expect("js string message");
+        assert!(message.contains("preset=\"estimate\""));
     }
 }
