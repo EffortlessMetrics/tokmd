@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use tokmd_analysis_types::FileStatRow;
@@ -14,6 +15,14 @@ pub struct AnalysisLimits {
     pub max_commit_files: Option<usize>,
 }
 
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+pub fn now_ms() -> u128 {
+    // `std::time` is not implemented on bare wasm. Keep analysis receipts
+    // deterministic until the browser path provides a host clock explicitly.
+    0
+}
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
