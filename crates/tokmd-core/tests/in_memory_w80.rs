@@ -302,16 +302,16 @@ fn analyze_workflow_from_inputs_ignores_ambient_tokei_config_files() -> Result<(
         .as_ref()
         .expect("estimate should produce effort");
 
-    assert_eq!(actual_derived.totals.files, 1);
-    assert_eq!(actual_derived.totals.code, 1);
+    assert_eq!(actual_derived.totals.files, 2);
+    assert_eq!(actual_derived.totals.code, 2);
     assert_eq!(
         actual_derived.totals.comments,
         expected_derived.totals.comments
     );
     assert_eq!(actual_derived.totals.blanks, expected_derived.totals.blanks);
     assert_eq!(actual_derived.totals.lines, expected_derived.totals.lines);
-    assert_eq!(actual_effort.size_basis.total_lines, 1);
-    assert_eq!(actual_effort.size_basis.authored_lines, 1);
+    assert_eq!(actual_effort.size_basis.total_lines, 2);
+    assert_eq!(actual_effort.size_basis.authored_lines, 2);
     assert_eq!(actual_effort.size_basis.generated_lines, 0);
     assert_eq!(actual_effort.size_basis.vendored_lines, 0);
     assert_eq!(

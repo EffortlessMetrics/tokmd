@@ -21,7 +21,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use tokei::Languages;
+use tokei::{CodeStats, Config, LanguageType, Languages};
 use tokmd_module_key::module_key_from_normalized;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
@@ -31,13 +31,148 @@ use tokmd_types::{
 /// Simple heuristic: 1 token ~= 4 chars (bytes).
 const CHARS_PER_TOKEN: usize = 4;
 
+#[derive(Default, Clone, Copy)]
+struct Agg {
+    code: usize,
+    comments: usize,
+    blanks: usize,
+    bytes: usize,
+    tokens: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct Key {
+    path: String,
+    lang: String,
+    kind: FileKind,
+}
+
+/// A logical in-memory file used to synthesize `FileRow`s without the host filesystem.
+pub struct InMemoryRowInput<'a> {
+    pub logical_path: &'a Path,
+    pub bytes: &'a [u8],
+}
+
+impl<'a> InMemoryRowInput<'a> {
+    #[must_use]
+    pub fn new(logical_path: &'a Path, bytes: &'a [u8]) -> Self {
+        Self {
+            logical_path,
+            bytes,
+        }
+    }
+}
+
 fn get_file_metrics(path: &Path) -> (usize, usize) {
     // Best-effort size calculation.
     // If the file was deleted or is inaccessible during the scan post-processing,
     // we return 0 bytes/tokens rather than crashing.
     let bytes = fs::metadata(path).map(|m| m.len() as usize).unwrap_or(0);
+    metrics_from_byte_len(bytes)
+}
+
+fn metrics_from_bytes(bytes: &[u8]) -> (usize, usize) {
+    metrics_from_byte_len(bytes.len())
+}
+
+fn metrics_from_byte_len(bytes: usize) -> (usize, usize) {
     let tokens = bytes / CHARS_PER_TOKEN;
     (bytes, tokens)
+}
+
+fn insert_row(
+    map: &mut BTreeMap<Key, (String, Agg)>,
+    key: Key,
+    module: String,
+    stats: &CodeStats,
+    bytes: usize,
+    tokens: usize,
+) {
+    let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
+    entry.1.code += stats.code;
+    entry.1.comments += stats.comments;
+    entry.1.blanks += stats.blanks;
+    entry.1.bytes += bytes;
+    entry.1.tokens += tokens;
+}
+
+fn rows_from_map(map: BTreeMap<Key, (String, Agg)>) -> Vec<FileRow> {
+    map.into_iter()
+        .map(|(key, (module, agg))| {
+            let lines = agg.code + agg.comments + agg.blanks;
+            FileRow {
+                path: key.path,
+                module,
+                lang: key.lang,
+                kind: key.kind,
+                code: agg.code,
+                comments: agg.comments,
+                blanks: agg.blanks,
+                lines,
+                bytes: agg.bytes,
+                tokens: agg.tokens,
+            }
+        })
+        .collect()
+}
+
+/// Collect `FileRow`s directly from ordered in-memory inputs.
+///
+/// This path avoids host filesystem metadata and keeps logical paths intact,
+/// which makes it suitable for browser/WASM callers.
+pub fn collect_in_memory_file_rows(
+    inputs: &[InMemoryRowInput<'_>],
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    config: &Config,
+) -> Vec<FileRow> {
+    let mut map: BTreeMap<Key, (String, Agg)> = BTreeMap::new();
+
+    for input in inputs {
+        let Some(lang_type) = LanguageType::from_path(input.logical_path, config) else {
+            continue;
+        };
+
+        let path = normalize_path(input.logical_path, None);
+        let module = module_key_from_normalized(&path, module_roots, module_depth);
+        let stats = lang_type.parse_from_slice(input.bytes, config);
+        let summary = stats.summarise();
+        let (bytes, tokens) = metrics_from_bytes(input.bytes);
+
+        insert_row(
+            &mut map,
+            Key {
+                path: path.clone(),
+                lang: lang_type.name().to_string(),
+                kind: FileKind::Parent,
+            },
+            module.clone(),
+            &summary,
+            bytes,
+            tokens,
+        );
+
+        if children == ChildIncludeMode::Separate {
+            for (child_type, child_stats) in &stats.blobs {
+                let child_summary = child_stats.summarise();
+                insert_row(
+                    &mut map,
+                    Key {
+                        path: path.clone(),
+                        lang: child_type.name().to_string(),
+                        kind: FileKind::Child,
+                    },
+                    module.clone(),
+                    &child_summary,
+                    0,
+                    0,
+                );
+            }
+        }
+    }
+
+    rows_from_map(map)
 }
 
 pub fn create_lang_report(
@@ -394,23 +529,6 @@ pub fn collect_file_rows(
     children: ChildIncludeMode,
     strip_prefix: Option<&Path>,
 ) -> Vec<FileRow> {
-    #[derive(Default, Clone, Copy)]
-    struct Agg {
-        code: usize,
-        comments: usize,
-        blanks: usize,
-        bytes: usize,
-        tokens: usize,
-    }
-
-    // Deterministic map: key ordering is stable.
-    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-    struct Key {
-        path: String,
-        lang: String,
-        kind: FileKind,
-    }
-
     let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
 
     // Parent reports
@@ -420,18 +538,18 @@ pub fn collect_file_rows(
             let module = module_key_from_normalized(&path, module_roots, module_depth);
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
-
-            let key = Key {
-                path,
-                lang: lang_type.name().to_string(),
-                kind: FileKind::Parent,
-            };
-            let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-            entry.1.code += st.code;
-            entry.1.comments += st.comments;
-            entry.1.blanks += st.blanks;
-            entry.1.bytes += bytes;
-            entry.1.tokens += tokens;
+            insert_row(
+                &mut map,
+                Key {
+                    path,
+                    lang: lang_type.name().to_string(),
+                    kind: FileKind::Parent,
+                },
+                module,
+                &st,
+                bytes,
+                tokens,
+            );
         }
     }
 
@@ -442,41 +560,24 @@ pub fn collect_file_rows(
                     let path = normalize_path(&report.name, strip_prefix);
                     let module = module_key_from_normalized(&path, module_roots, module_depth);
                     let st = report.stats.summarise();
-                    // Embedded children do not have bytes/tokens (they are inside the parent)
-
-                    let key = Key {
-                        path,
-                        lang: child_type.name().to_string(),
-                        kind: FileKind::Child,
-                    };
-                    let entry = map.entry(key).or_insert_with(|| (module, Agg::default()));
-                    entry.1.code += st.code;
-                    entry.1.comments += st.comments;
-                    entry.1.blanks += st.blanks;
-                    // entry.1.bytes += 0;
-                    // entry.1.tokens += 0;
+                    insert_row(
+                        &mut map,
+                        Key {
+                            path,
+                            lang: child_type.name().to_string(),
+                            kind: FileKind::Child,
+                        },
+                        module,
+                        &st,
+                        0,
+                        0,
+                    );
                 }
             }
         }
     }
 
-    map.into_iter()
-        .map(|(key, (module, agg))| {
-            let lines = agg.code + agg.comments + agg.blanks;
-            FileRow {
-                path: key.path,
-                module,
-                lang: key.lang,
-                kind: key.kind,
-                code: agg.code,
-                comments: agg.comments,
-                blanks: agg.blanks,
-                lines,
-                bytes: agg.bytes,
-                tokens: agg.tokens,
-            }
-        })
-        .collect()
+    rows_from_map(map)
 }
 
 pub fn unique_parent_file_count(languages: &Languages) -> usize {

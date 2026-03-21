@@ -119,17 +119,12 @@ pub fn lang_workflow_from_inputs(
     lang: &LangSettings,
 ) -> Result<LangReceipt> {
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
-    let rows = collect_materialized_rows(&scan, &[], 1, ChildIncludeMode::Separate);
+    let (paths, rows) =
+        collect_pure_in_memory_rows(inputs, &scan_opts, &[], 1, ChildIncludeMode::Separate)?;
     let report =
         tokmd_model::create_lang_report_from_rows(&rows, lang.top, lang.files, lang.children);
 
-    Ok(build_lang_receipt(
-        scan.logical_paths(),
-        &scan_opts,
-        lang,
-        report,
-    ))
+    Ok(build_lang_receipt(&paths, &scan_opts, lang, report))
 }
 
 /// Runs the module summary workflow with pure settings types.
@@ -168,13 +163,13 @@ pub fn module_workflow_from_inputs(
     module: &ModuleSettings,
 ) -> Result<ModuleReceipt> {
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
-    let rows = collect_materialized_rows(
-        &scan,
+    let (paths, rows) = collect_pure_in_memory_rows(
+        inputs,
+        &scan_opts,
         &module.module_roots,
         module.module_depth,
         module.children,
-    );
+    )?;
     let report = tokmd_model::create_module_report_from_rows(
         &rows,
         &module.module_roots,
@@ -183,12 +178,7 @@ pub fn module_workflow_from_inputs(
         module.top,
     );
 
-    Ok(build_module_receipt(
-        scan.logical_paths(),
-        &scan_opts,
-        module,
-        report,
-    ))
+    Ok(build_module_receipt(&paths, &scan_opts, module, report))
 }
 
 /// Runs the export workflow with pure settings types.
@@ -230,15 +220,31 @@ pub fn export_workflow_from_inputs(
     export: &ExportSettings,
 ) -> Result<ExportReceipt> {
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
-    let data = collect_materialized_export_data(&scan, export);
-
-    Ok(build_export_receipt(
-        scan.logical_paths(),
+    let (paths, mut rows) = collect_pure_in_memory_rows(
+        inputs,
         &scan_opts,
-        export,
-        data,
-    ))
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+    )?;
+    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
+        rows = strip_virtual_export_prefix(
+            rows,
+            strip_prefix,
+            &export.module_roots,
+            export.module_depth,
+        );
+    }
+    let data = tokmd_model::create_export_data_from_rows(
+        rows,
+        &export.module_roots,
+        export.module_depth,
+        export.children,
+        export.min_code,
+        export.max_rows,
+    );
+
+    Ok(build_export_receipt(&paths, &scan_opts, export, data))
 }
 
 /// Runs the diff workflow comparing two receipts or paths.
@@ -296,6 +302,36 @@ pub fn analyze_workflow_from_inputs(
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
     let export = ExportSettings::default();
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
+    if analyze.preset == "estimate" {
+        let (paths, rows) = collect_pure_in_memory_rows(
+            inputs,
+            &scan_opts,
+            &export.module_roots,
+            export.module_depth,
+            export.children,
+        )?;
+        let data = tokmd_model::create_export_data_from_rows(
+            rows,
+            &export.module_roots,
+            export.module_depth,
+            export.children,
+            export.min_code,
+            export.max_rows,
+        );
+        let logical_inputs: Vec<String> = paths
+            .iter()
+            .map(|path| tokmd_model::normalize_path(path, None))
+            .collect();
+        let export_receipt = build_export_receipt(&paths, &scan_opts, &export, data);
+
+        return analyze_with_export_receipt(
+            export_receipt,
+            logical_inputs,
+            PathBuf::from("."),
+            analyze,
+        );
+    }
+
     let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
     let data = collect_materialized_export_data(&scan, &export);
     let logical_inputs: Vec<String> = scan
@@ -519,6 +555,33 @@ fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions 
     effective
 }
 
+fn collect_pure_in_memory_rows(
+    inputs: &[InMemoryFile],
+    scan_opts: &ScanOptions,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+) -> Result<(Vec<PathBuf>, Vec<FileRow>)> {
+    let paths = tokmd_scan::normalize_in_memory_paths(inputs)?;
+    let config = tokmd_scan::config_from_scan_options(scan_opts);
+    let row_inputs: Vec<tokmd_model::InMemoryRowInput<'_>> = paths
+        .iter()
+        .zip(inputs)
+        .map(|(path, input)| {
+            tokmd_model::InMemoryRowInput::new(path.as_path(), input.bytes.as_slice())
+        })
+        .collect();
+    let rows = tokmd_model::collect_in_memory_file_rows(
+        &row_inputs,
+        module_roots,
+        module_depth,
+        children,
+        &config,
+    );
+    Ok((paths, rows))
+}
+
+#[cfg(feature = "analysis")]
 fn collect_materialized_rows(
     scan: &tokmd_scan::MaterializedScan,
     module_roots: &[String],
@@ -551,6 +614,7 @@ fn strip_virtual_export_prefix(
         .collect()
 }
 
+#[cfg(feature = "analysis")]
 fn collect_materialized_export_data(
     scan: &tokmd_scan::MaterializedScan,
     export: &ExportSettings,
