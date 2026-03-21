@@ -202,3 +202,7 @@ uselesskey = { version = "0.4.0", default-features = false, features = ["rsa"] }
 lto = true
 codegen-units = 1
 strip = true
+
+# Temporary until upstream `home` grows a non-Unix/non-Windows fallback.
+[patch.crates-io]
+home = { path = "vendor/home-0.5.12" }
