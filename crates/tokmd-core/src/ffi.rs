@@ -270,12 +270,32 @@ fn parse_string_array(
 }
 
 fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, TokmdError> {
-    let obj = scan_arg_object(args);
-    let Some(raw_inputs) = obj.get("inputs") else {
-        return Ok(None);
+    let scan_obj = args.get("scan");
+    let root_inputs = args.get("inputs").filter(|value| !value.is_null());
+    let nested_inputs = scan_obj
+        .and_then(Value::as_object)
+        .and_then(|scan| scan.get("inputs"))
+        .filter(|value| !value.is_null());
+
+    let raw_inputs = match (root_inputs, nested_inputs) {
+        (Some(_), Some(_)) => {
+            return Err(TokmdError::invalid_field(
+                "inputs",
+                "provide in-memory inputs either at the top level or under 'scan', not both",
+            ));
+        }
+        (Some(inputs), None) => inputs,
+        (None, Some(inputs)) => inputs,
+        (None, None) => return Ok(None),
     };
 
-    if obj.get("paths").is_some() {
+    let root_has_paths = args.get("paths").is_some_and(|value| !value.is_null());
+    let scan_has_paths = scan_obj
+        .and_then(Value::as_object)
+        .and_then(|scan| scan.get("paths"))
+        .is_some_and(|value| !value.is_null());
+
+    if root_has_paths || scan_has_paths {
         return Err(TokmdError::invalid_field(
             "paths",
             "cannot be combined with in-memory inputs",

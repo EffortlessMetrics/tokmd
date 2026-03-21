@@ -111,6 +111,30 @@ fn run_json_lang_and_module_accept_mixed_text_and_base64_inputs() {
     assert_eq!(module_data["total"]["files"], 2);
 }
 
+#[test]
+fn run_json_export_accepts_top_level_inputs_with_nested_scan_options() {
+    let args = json!({
+        "inputs": [
+            {
+                "path": "repo/src/lib.rs",
+                "text": "pub fn alpha() -> usize { 1 }\n"
+            }
+        ],
+        "scan": {
+            "hidden": true,
+            "config": "auto"
+        },
+        "format": "json"
+    });
+
+    let data = assert_ok(&run_json("export", &args.to_string()));
+
+    assert_eq!(data["mode"], "export");
+    assert_eq!(data["scan"]["config"], "none");
+    assert_eq!(data["scan"]["paths"], json!(["repo/src/lib.rs"]));
+    assert_eq!(data["rows"][0]["path"], "repo/src/lib.rs");
+}
+
 #[cfg(feature = "analysis")]
 #[test]
 fn run_json_analyze_estimate_accepts_in_memory_inputs() {
@@ -193,4 +217,25 @@ fn run_json_rejects_paths_when_inputs_are_present() {
             .expect("error message")
             .contains("paths")
     );
+}
+
+#[test]
+fn run_json_allows_null_paths_when_inputs_are_present() {
+    let data = assert_ok(&run_json(
+        "export",
+        &json!({
+            "inputs": [
+                {
+                    "path": "src/lib.rs",
+                    "text": "pub fn alpha() {}\n"
+                }
+            ],
+            "paths": null,
+            "format": "json"
+        })
+        .to_string(),
+    ));
+
+    assert_eq!(data["scan"]["paths"], json!(["src/lib.rs"]));
+    assert_eq!(data["rows"][0]["path"], "src/lib.rs");
 }

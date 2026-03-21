@@ -103,7 +103,7 @@ Response shape:
 - Success: `{"ok": true, "data": {...}}`
 - Error: `{"ok": false, "error": {"code": "...", "message": "..."}}`
 
-For ordered virtual inputs, pass `scan.inputs` instead of `paths`. Each entry supplies a logical `path` plus exactly one of `text` or `base64`:
+For ordered virtual inputs, pass `scan.inputs` instead of `paths`. Bindings may also send top-level `inputs` for backwards-compatible flat request shapes. Each entry supplies a logical `path` plus exactly one of `text` or `base64`:
 
 ```json
 {
