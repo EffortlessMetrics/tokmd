@@ -100,6 +100,20 @@ jobs:
       - name: Guard analysis microcrate boundaries
         run: cargo xtask boundaries-check
 
+  wasm-compile:
+    name: Wasm Compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Check tokmd-scan for wasm32
+        run: cargo check -p tokmd-scan --target wasm32-unknown-unknown
+      - name: Check tokmd-core analysis for wasm32
+        run: cargo check -p tokmd-core --features analysis --target wasm32-unknown-unknown
+
   gate:
     name: Quality Gate
     runs-on: ubuntu-latest
@@ -293,6 +307,7 @@ jobs:
       - build-macos
       - gate
       - deny
+      - wasm-compile
       - typos
       - proptest-smoke
       - publish-plan
