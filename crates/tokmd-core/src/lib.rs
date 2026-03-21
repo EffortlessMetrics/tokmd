@@ -303,6 +303,10 @@ pub fn analyze_workflow(
 /// Analyze workflow for ordered in-memory inputs (requires `analysis` feature).
 ///
 /// Runs the in-memory export + analysis pipeline and returns an `AnalysisReceipt`.
+///
+/// `preset = "estimate"` stays on the pure row path. Richer presets still
+/// materialize a temporary scan root until the remaining analysis seams are
+/// moved off the filesystem.
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow_from_inputs(
     inputs: &[InMemoryFile],
@@ -311,7 +315,7 @@ pub fn analyze_workflow_from_inputs(
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
     let export = ExportSettings::default();
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    if analyze.preset == "estimate" {
+    if analyze.preset.trim().eq_ignore_ascii_case("estimate") {
         let (paths, rows) = collect_pure_in_memory_rows(
             inputs,
             &scan_opts,
