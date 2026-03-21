@@ -28,9 +28,27 @@
       mkBuildSrc = craneLib: craneLib.path {
         path = ./.;
         filter = path: type:
+          let
+            p = toString path;
+            baseName = baseNameOf path;
+          in
           (craneLib.filterCargoSources path type)
-          || (builtins.match ".*/vendor(/.*)?$" (toString path) != null)
-          || (builtins.match ".*\\.html$" path != null);
+          # Keep HTML templates (for include_str!)
+          || (builtins.match ".*\\.html$" p != null)
+          # Keep embedded schemas pulled in by sync tests during buildDepsOnly.
+          || (nixpkgs.lib.hasInfix "/crates/tokmd/schemas" p)
+          # Keep the published schema used by include_str! sync tests.
+          || (nixpkgs.lib.hasInfix "/docs/schema.json" p)
+          # Keep docs markdown referenced by compile-time include_str!s.
+          || (nixpkgs.lib.hasInfix "/docs/" p && nixpkgs.lib.hasSuffix ".md" baseName)
+          # Keep docs directory entries so the file filter can traverse them.
+          || (type == "directory" && nixpkgs.lib.hasSuffix "/docs" p)
+          # Keep root markdown files referenced by sync tests.
+          || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
+          # Keep vendored crate patches used by Cargo path overrides.
+          || (builtins.match ".*/vendor(/.*)?$" p != null)
+          # Keep crate README.md files used by #[doc = include_str!(...)].
+          || (baseName == "README.md" && nixpkgs.lib.hasInfix "/crates/" p);
       };
 
       # Full source for tests/checks - keeps fixtures, golden files, ignore files, etc.
