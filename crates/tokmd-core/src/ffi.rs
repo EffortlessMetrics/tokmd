@@ -15,6 +15,7 @@
 //! - Missing keys use sensible defaults
 //! - Invalid values return errors (no silent fallback to defaults)
 
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde_json::Value;
 
 use crate::error::{ResponseEnvelope, TokmdError};
@@ -22,7 +23,10 @@ use crate::settings::{
     AnalyzeSettings, ChildIncludeMode, ChildrenMode, ConfigMode, DiffSettings, ExportFormat,
     ExportSettings, LangSettings, ModuleSettings, RedactMode, ScanSettings,
 };
-use crate::{export_workflow, lang_workflow, module_workflow};
+use crate::{
+    InMemoryFile, analyze_workflow_from_inputs, export_workflow, export_workflow_from_inputs,
+    lang_workflow, lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
+};
 
 /// Run a tokmd operation with JSON arguments, returning JSON output.
 ///
@@ -68,6 +72,7 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Parse common scan settings from the JSON
     let args: Value = serde_json::from_str(args_json)?;
+    let inputs = parse_in_memory_inputs(&args)?;
 
     // Extract scan settings (shared by all modes)
     let scan = parse_scan_settings(&args)?;
@@ -75,24 +80,40 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     match mode {
         "lang" => {
             let settings = parse_lang_settings(&args)?;
-            let receipt = lang_workflow(&scan, &settings)?;
+            let receipt = if let Some(inputs) = inputs.as_deref() {
+                lang_workflow_from_inputs(inputs, &scan.options, &settings)?
+            } else {
+                lang_workflow(&scan, &settings)?
+            };
             Ok(serde_json::to_value(receipt)?)
         }
         "module" => {
             let settings = parse_module_settings(&args)?;
-            let receipt = module_workflow(&scan, &settings)?;
+            let receipt = if let Some(inputs) = inputs.as_deref() {
+                module_workflow_from_inputs(inputs, &scan.options, &settings)?
+            } else {
+                module_workflow(&scan, &settings)?
+            };
             Ok(serde_json::to_value(receipt)?)
         }
         "export" => {
             let settings = parse_export_settings(&args)?;
-            let receipt = export_workflow(&scan, &settings)?;
+            let receipt = if let Some(inputs) = inputs.as_deref() {
+                export_workflow_from_inputs(inputs, &scan.options, &settings)?
+            } else {
+                export_workflow(&scan, &settings)?
+            };
             Ok(serde_json::to_value(receipt)?)
         }
         "analyze" => {
             #[cfg(feature = "analysis")]
             {
                 let settings = parse_analyze_settings(&args)?;
-                let receipt = crate::analyze_workflow(&scan, &settings)?;
+                let receipt = if let Some(inputs) = inputs.as_deref() {
+                    analyze_workflow_from_inputs(inputs, &scan.options, &settings)?
+                } else {
+                    crate::analyze_workflow(&scan, &settings)?
+                };
                 Ok(serde_json::to_value(receipt)?)
             }
             #[cfg(not(feature = "analysis"))]
@@ -130,6 +151,10 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         }
         _ => Err(TokmdError::unknown_mode(mode)),
     }
+}
+
+fn scan_arg_object(args: &Value) -> &Value {
+    args.get("scan").unwrap_or(args)
 }
 
 // ============================================================================
@@ -242,6 +267,95 @@ fn parse_string_array(
             .collect(),
         Some(_) => Err(TokmdError::invalid_field(field, "an array of strings")),
     }
+}
+
+fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, TokmdError> {
+    let scan_obj = args.get("scan");
+    let root_inputs = args.get("inputs").filter(|value| !value.is_null());
+    let nested_inputs = scan_obj
+        .and_then(Value::as_object)
+        .and_then(|scan| scan.get("inputs"))
+        .filter(|value| !value.is_null());
+
+    let raw_inputs = match (root_inputs, nested_inputs) {
+        (Some(_), Some(_)) => {
+            return Err(TokmdError::invalid_field(
+                "inputs",
+                "provide in-memory inputs either at the top level or under 'scan', not both",
+            ));
+        }
+        (Some(inputs), None) => inputs,
+        (None, Some(inputs)) => inputs,
+        (None, None) => return Ok(None),
+    };
+
+    let root_has_paths = args.get("paths").is_some_and(|value| !value.is_null());
+    let scan_has_paths = scan_obj
+        .and_then(Value::as_object)
+        .and_then(|scan| scan.get("paths"))
+        .is_some_and(|value| !value.is_null());
+
+    if root_has_paths || scan_has_paths {
+        return Err(TokmdError::invalid_field(
+            "paths",
+            "cannot be combined with in-memory inputs",
+        ));
+    }
+
+    let arr = raw_inputs
+        .as_array()
+        .ok_or_else(|| TokmdError::invalid_field("inputs", "an array of input objects"))?;
+    let mut inputs = Vec::with_capacity(arr.len());
+
+    for (idx, raw_input) in arr.iter().enumerate() {
+        let input = raw_input.as_object().ok_or_else(|| {
+            TokmdError::invalid_field(
+                &format!("inputs[{idx}]"),
+                "an object with 'path' and exactly one of 'text' or 'base64'",
+            )
+        })?;
+        let path = input
+            .get("path")
+            .and_then(Value::as_str)
+            .ok_or_else(|| TokmdError::invalid_field(&format!("inputs[{idx}].path"), "a string"))?
+            .to_string();
+        let text = input.get("text");
+        let base64 = input.get("base64");
+
+        let bytes = match (text, base64) {
+            (Some(text), None) => text
+                .as_str()
+                .ok_or_else(|| {
+                    TokmdError::invalid_field(&format!("inputs[{idx}].text"), "a string")
+                })?
+                .as_bytes()
+                .to_vec(),
+            (None, Some(base64)) => {
+                let encoded = base64.as_str().ok_or_else(|| {
+                    TokmdError::invalid_field(&format!("inputs[{idx}].base64"), "a string")
+                })?;
+                BASE64.decode(encoded).map_err(|_| {
+                    TokmdError::invalid_field(&format!("inputs[{idx}].base64"), "valid base64")
+                })?
+            }
+            (Some(_), Some(_)) => {
+                return Err(TokmdError::invalid_field(
+                    &format!("inputs[{idx}]"),
+                    "provide exactly one of 'text' or 'base64'",
+                ));
+            }
+            (None, None) => {
+                return Err(TokmdError::invalid_field(
+                    &format!("inputs[{idx}]"),
+                    "missing content: provide exactly one of 'text' or 'base64'",
+                ));
+            }
+        };
+
+        inputs.push(InMemoryFile::new(path, bytes));
+    }
+
+    Ok(Some(inputs))
 }
 
 /// Parse a ChildrenMode field strictly.
@@ -371,7 +485,7 @@ fn parse_import_granularity(args: &Value, default: &str) -> Result<String, Tokmd
 
 fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
     // Use nested object if present, otherwise use root
-    let obj = args.get("scan").unwrap_or(args);
+    let obj = scan_arg_object(args);
 
     Ok(ScanSettings {
         paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
