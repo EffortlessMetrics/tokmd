@@ -116,7 +116,7 @@ fn tier_for_crate(name: &str) -> Option<u8> {
         "tokmd-config" | "tokmd-core" | "tokmd-tool-schema" => Some(4),
 
         // Tier 5: Products
-        "tokmd" | "tokmd-python" | "tokmd-node" => Some(5),
+        "tokmd" | "tokmd-python" | "tokmd-node" | "tokmd-wasm" => Some(5),
 
         _ => None,
     }
