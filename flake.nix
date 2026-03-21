@@ -29,6 +29,7 @@
         path = ./.;
         filter = path: type:
           (craneLib.filterCargoSources path type)
+          || (builtins.match ".*/vendor(/.*)?$" (toString path) != null)
           || (builtins.match ".*\\.html$" path != null);
       };
 
@@ -55,6 +56,8 @@
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
           # Keep root markdown files (CHANGELOG.md, CLAUDE.md used by tests)
           || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
+          # Keep vendored crate patches used by Cargo path overrides
+          || (builtins.match ".*/vendor(/.*)?$" p != null)
           # Keep crate README.md files (include_str! in lib.rs #[doc] attributes)
           || (baseName == "README.md" && pkgs.lib.hasInfix "/crates/" p)
           # Keep test directories and their contents
@@ -79,6 +82,9 @@
           commonArgs = {
             pname = "tokmd";
             inherit version src;
+            # buildDepsOnly's manifest-only dummy source breaks the vendored
+            # `home` path patch because etcetera needs the real crate API.
+            dummySrc = src;
             strictDeps = true;
           };
 
@@ -109,6 +115,9 @@
           src = mkCheckSrc craneLib pkgs;
           commonArgs = {
             inherit src;
+            # Keep checks aligned with the package build when vendored path
+            # patches are in use.
+            dummySrc = src;
             strictDeps = true;
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
