@@ -3510,6 +3510,7 @@ name = "tokmd-core"
 version = "1.8.1"
 dependencies = [
  "anyhow",
+ "base64",
  "proptest",
  "serde",
  "serde_json",

@@ -103,6 +103,19 @@ Response shape:
 - Success: `{"ok": true, "data": {...}}`
 - Error: `{"ok": false, "error": {"code": "...", "message": "..."}}`
 
+For ordered virtual inputs, pass `scan.inputs` instead of `paths`. Each entry supplies a logical `path` plus exactly one of `text` or `base64`:
+
+```json
+{
+  "scan": {
+    "inputs": [
+      { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" },
+      { "path": "tests/basic.py", "base64": "cHJpbnQoJ29rJykK" }
+    ]
+  }
+}
+```
+
 ## Re-exports
 
 For convenience, the crate re-exports:
