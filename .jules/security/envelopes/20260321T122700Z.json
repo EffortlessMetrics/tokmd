@@ -1,8 +1,0 @@
-{
-  "run_id": "20260321T122700Z",
-  "timestamp_utc": "2026-03-21T12:27:00Z",
-  "lane": "scout",
-  "target": "Remove unwrap in tokmd/src/interactive/wizard.rs tests to use proper Result-based checks or proper expects",
-  "commands": [],
-  "results": []
-}

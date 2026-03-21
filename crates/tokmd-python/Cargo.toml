@@ -14,7 +14,7 @@ publish = false
 
 [lib]
 name = "tokmd"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.24", features = ["abi3-py39"] }
