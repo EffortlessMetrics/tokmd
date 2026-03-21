@@ -74,7 +74,7 @@ impl MaterializedScan {
 }
 
 pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
-    let cfg = build_config(args);
+    let cfg = config_from_scan_options(args);
     let ignores = ignored_patterns(args);
     for path in paths {
         if !path.exists() {
@@ -88,10 +88,23 @@ pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
     Ok(languages)
 }
 
+/// Build the `tokei` config used for a scan from clap-free `ScanOptions`.
+#[must_use]
+pub fn config_from_scan_options(args: &ScanOptions) -> Config {
+    build_config(args)
+}
+
+/// Normalize ordered in-memory inputs into deterministic logical paths.
+///
+/// This rejects empty, absolute, escaping, and case-only-colliding paths so
+/// native and browser callers see the same contract.
+pub fn normalize_in_memory_paths(inputs: &[InMemoryFile]) -> Result<Vec<PathBuf>> {
+    normalize_logical_paths(inputs, true)
+}
+
 pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {
     let root = tempfile::tempdir()?;
-    let case_insensitive = temp_root_is_case_insensitive(root.path())?;
-    let logical_paths = normalize_logical_paths(inputs, case_insensitive)?;
+    let logical_paths = normalize_in_memory_paths(inputs)?;
 
     for (logical_path, input) in logical_paths.iter().zip(inputs) {
         let full_path = root.path().join(logical_path);
@@ -172,15 +185,6 @@ fn logical_path_key(path: &Path, case_insensitive: bool) -> String {
     } else {
         rendered.into_owned()
     }
-}
-
-fn temp_root_is_case_insensitive(root: &Path) -> Result<bool> {
-    let probe = root.join(".tokmd-case-probe");
-    let probe_upper = root.join(".TOKMD-CASE-PROBE");
-    fs::write(&probe, [])?;
-    let case_insensitive = probe_upper.exists();
-    fs::remove_file(&probe)?;
-    Ok(case_insensitive)
 }
 
 fn normalize_logical_path(path: &Path) -> Result<PathBuf> {
