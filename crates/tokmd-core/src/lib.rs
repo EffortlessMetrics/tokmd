@@ -118,14 +118,15 @@ pub fn lang_workflow_from_inputs(
     scan_opts: &ScanOptions,
     lang: &LangSettings,
 ) -> Result<LangReceipt> {
-    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
+    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
     let rows = collect_materialized_rows(&scan, &[], 1, ChildIncludeMode::Separate);
     let report =
         tokmd_model::create_lang_report_from_rows(&rows, lang.top, lang.files, lang.children);
 
     Ok(build_lang_receipt(
         scan.logical_paths(),
-        scan_opts,
+        &scan_opts,
         lang,
         report,
     ))
@@ -166,7 +167,8 @@ pub fn module_workflow_from_inputs(
     scan_opts: &ScanOptions,
     module: &ModuleSettings,
 ) -> Result<ModuleReceipt> {
-    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
+    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
     let rows = collect_materialized_rows(
         &scan,
         &module.module_roots,
@@ -183,7 +185,7 @@ pub fn module_workflow_from_inputs(
 
     Ok(build_module_receipt(
         scan.logical_paths(),
-        scan_opts,
+        &scan_opts,
         module,
         report,
     ))
@@ -227,12 +229,13 @@ pub fn export_workflow_from_inputs(
     scan_opts: &ScanOptions,
     export: &ExportSettings,
 ) -> Result<ExportReceipt> {
-    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
+    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
     let data = collect_materialized_export_data(&scan, export);
 
     Ok(build_export_receipt(
         scan.logical_paths(),
-        scan_opts,
+        &scan_opts,
         export,
         data,
     ))
@@ -292,7 +295,8 @@ pub fn analyze_workflow_from_inputs(
     analyze: &settings::AnalyzeSettings,
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
     let export = ExportSettings::default();
-    let scan = tokmd_scan::scan_in_memory(inputs, scan_opts)?;
+    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
+    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
     let data = collect_materialized_export_data(&scan, &export);
     let logical_inputs: Vec<String> = scan
         .logical_paths()
@@ -300,7 +304,7 @@ pub fn analyze_workflow_from_inputs(
         .map(|path| tokmd_model::normalize_path(path, None))
         .collect();
     let root = scan.strip_prefix().to_path_buf();
-    let export_receipt = build_export_receipt(scan.logical_paths(), scan_opts, &export, data);
+    let export_receipt = build_export_receipt(scan.logical_paths(), &scan_opts, &export, data);
 
     analyze_with_export_receipt(export_receipt, logical_inputs, root, analyze)
 }
@@ -506,6 +510,13 @@ pub fn scan_workflow(
 /// Convert ScanSettings to ScanOptions for lower-tier crates.
 fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
     scan.options.clone()
+}
+
+fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions {
+    let mut effective = scan_opts.clone();
+    // In-memory workflows should not depend on host cwd tokei config discovery.
+    effective.config = tokmd_types::ConfigMode::None;
+    effective
 }
 
 fn collect_materialized_rows(
