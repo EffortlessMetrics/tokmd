@@ -6,24 +6,32 @@
 #![forbid(unsafe_code)]
 
 use serde_json::Value;
-use thiserror::Error;
 
 /// Errors produced while parsing or extracting a response envelope.
-#[derive(Debug, Clone, PartialEq, Eq, Error)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EnvelopeExtractError {
     /// Input could not be parsed as JSON.
-    #[error("JSON parse error: {0}")]
     JsonParse(String),
     /// Extracted value could not be serialized back to JSON.
-    #[error("JSON serialize error: {0}")]
     JsonSerialize(String),
     /// Envelope is not a JSON object.
-    #[error("Invalid response format")]
     InvalidResponseFormat,
     /// Upstream returned `{ "ok": false, "error": ... }`.
-    #[error("{0}")]
     Upstream(String),
 }
+
+impl std::fmt::Display for EnvelopeExtractError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::JsonParse(err) => write!(f, "JSON parse error: {err}"),
+            Self::JsonSerialize(err) => write!(f, "JSON serialize error: {err}"),
+            Self::InvalidResponseFormat => write!(f, "Invalid response format"),
+            Self::Upstream(msg) => write!(f, "{msg}"),
+        }
+    }
+}
+
+impl std::error::Error for EnvelopeExtractError {}
 
 /// Parse a JSON envelope.
 ///

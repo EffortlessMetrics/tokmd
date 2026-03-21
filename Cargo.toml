@@ -193,7 +193,6 @@ tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.8.1" }
 
 # External crates - centralized for consistent versioning
 blake3 = "1.8.3"
-thiserror = "2.0.18"
 serde_json = "1.0.149"
 insta = { version = "1.46.3", features = ["json"] }
 uselesskey = { version = "0.4.0", default-features = false, features = ["rsa"] }
