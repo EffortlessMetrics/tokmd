@@ -21,10 +21,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
             return Ok(());
         }
 
-        bail!(
-            "Unknown metric/finding key '{}'. Use --explain list to see supported keys.",
-            key
-        );
+        bail!("Unknown metric/finding key '{}'.", key);
     }
 
     let progress = Progress::new(!global.no_progress);

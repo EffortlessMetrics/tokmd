@@ -1,0 +1,33 @@
+{
+  "run_id": "run-01",
+  "timestamp_utc": "2026-03-21T12:35:34Z",
+  "lane": "scout",
+  "target": "Error messages in analyze --explain",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "summary": "cargo build --verbose completed successfully",
+      "key_lines": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 27.22s"
+    },
+    {
+      "cmd": "cargo test -p tokmd",
+      "status": "PASS",
+      "summary": "tokmd crate tests passed",
+      "key_lines": "test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "summary": "cargo clippy -- -D warnings completed successfully",
+      "key_lines": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 39.65s"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "summary": "cargo fmt passed cleanly",
+      "key_lines": ""
+    }
+  ],
+  "results_summary": []
+}
