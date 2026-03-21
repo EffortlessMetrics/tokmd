@@ -1,0 +1,8 @@
+{
+  "run_id": "20260321T122852Z",
+  "timestamp_utc": "2026-03-21T12:28:52Z",
+  "lane": "scout",
+  "target": "crates/tokmd-content/src/complexity.rs: replace unwrap on static regexes with explicit expect",
+  "commands": [],
+  "results": []
+}

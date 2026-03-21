@@ -25,5 +25,18 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-21",
+    "lane": "scout",
+    "target": "crates/tokmd-content/src/complexity.rs",
+    "pr_link": "PENDING",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
   }
 ]
