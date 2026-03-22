@@ -27,6 +27,9 @@ function onceMessage(worker) {
 test("worker publishes ready on boot", async () => {
     const worker = new Worker(new URL("./worker.js", import.meta.url), {
         type: "module",
+        workerData: {
+            runnerMode: "stub",
+        },
     });
 
     try {
@@ -34,7 +37,8 @@ test("worker publishes ready on boot", async () => {
 
         assert.equal(message.type, MESSAGE_TYPES.READY);
         assert.equal(message.capabilities.cancel, false);
-        assert.equal(message.capabilities.wasm, false);
+        assert.equal(message.capabilities.wasm, true);
+        assert.equal(message.engine.version, "stub");
     } finally {
         await worker.terminate();
     }
@@ -43,6 +47,9 @@ test("worker publishes ready on boot", async () => {
 test("worker forwards run messages through the runtime", async () => {
     const worker = new Worker(new URL("./worker.js", import.meta.url), {
         type: "module",
+        workerData: {
+            runnerMode: "stub",
+        },
     });
 
     try {
@@ -59,9 +66,10 @@ test("worker forwards run messages through the runtime", async () => {
 
         const message = await onceMessage(worker);
 
-        assert.equal(message.type, MESSAGE_TYPES.ERROR);
+        assert.equal(message.type, MESSAGE_TYPES.RESULT);
         assert.equal(message.requestId, "run-3");
-        assert.equal(message.error.code, "runner_not_wired");
+        assert.equal(message.data.mode, "analysis");
+        assert.equal(message.data.preset, "receipt");
     } finally {
         await worker.terminate();
     }

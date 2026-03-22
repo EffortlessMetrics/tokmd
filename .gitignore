@@ -16,6 +16,7 @@ crates/*/target
 !/tokmd-role.md
 
 /.runs/pr_glass_cockpit
+/web/runner/vendor/
 
 # Fuzzing
 fuzz/target/

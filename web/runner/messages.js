@@ -28,7 +28,9 @@ export function normalizeAnalyzePreset(args = {}) {
     return normalized || "receipt";
 }
 
-export function createReadyMessage() {
+export function createReadyMessage(options = {}) {
+    const { capabilities = {}, engine = null } = options;
+
     return {
         type: MESSAGE_TYPES.READY,
         protocolVersion: RUNNER_PROTOCOL_VERSION,
@@ -40,7 +42,9 @@ export function createReadyMessage() {
             progress: false,
             cancel: false,
             downloads: false,
+            ...capabilities,
         },
+        ...(engine ? { engine } : {}),
     };
 }
 

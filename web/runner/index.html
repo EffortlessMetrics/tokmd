@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>tokmd Browser Runner Skeleton</title>
+    <title>tokmd Browser Runner</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <main>
       <section class="hero">
         <p class="eyebrow">tokmd 1.9.0 browser runner</p>
-        <h1>Worker-first browser runner skeleton</h1>
+        <h1>Worker-first browser runner</h1>
         <p>
-          This page exercises the minimal browser execution contract for the upcoming
-          zipball-powered runner. It intentionally stops short of loading
-          <code>tokmd-wasm</code>; the goal here is to lock the worker message protocol,
-          request shape, and UI shell before wiring the real engine.
+          This page boots <code>tokmd-wasm</code> inside a dedicated Worker and
+          exercises the current browser-safe in-memory modes. Zipball fetch,
+          filtering, progress, and artifact downloads still land in later PRs.
         </p>
       </section>
 

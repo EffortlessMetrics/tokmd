@@ -125,8 +125,12 @@ jobs:
         run: wasm-pack test --node crates/tokmd-wasm --no-default-features
       - name: Run tokmd-wasm analysis wasm tests
         run: wasm-pack test --node crates/tokmd-wasm --features analysis
+      - name: Build browser runner wasm bundle
+        run: npm --prefix web/runner run build:wasm
       - name: Browser runner protocol smoke
-        run: node --test web/runner/*.test.mjs
+        run: npm --prefix web/runner test
+      - name: Browser runner syntax check
+        run: npm --prefix web/runner run check
 
   gate:
     name: Quality Gate

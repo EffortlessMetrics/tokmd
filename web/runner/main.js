@@ -81,11 +81,10 @@ function setCapabilities(message) {
     state.capabilities = {
         ...message.capabilities,
     };
-    capabilitiesOutput.textContent = JSON.stringify(
-        message.capabilities,
-        null,
-        2
-    );
+    capabilitiesOutput.textContent = JSON.stringify({
+        capabilities: message.capabilities,
+        engine: message.engine ?? null,
+    }, null, 2);
     cancelButton.disabled = true;
 }
 
@@ -101,7 +100,18 @@ worker.addEventListener("message", (event) => {
     switch (message.type) {
         case MESSAGE_TYPES.READY:
             setCapabilities(message);
-            renderStatus("worker ready");
+            renderStatus(
+                message.engine?.version
+                    ? `worker ready with tokmd-wasm ${message.engine.version}`
+                    : "worker ready"
+            );
+            break;
+        case MESSAGE_TYPES.RESULT:
+            if (state.activeRequestId === message.requestId) {
+                state.activeRequestId = null;
+            }
+            cancelButton.disabled = true;
+            renderStatus(`completed ${message.requestId}`);
             break;
         case MESSAGE_TYPES.ERROR:
             if (state.activeRequestId === message.requestId) {
