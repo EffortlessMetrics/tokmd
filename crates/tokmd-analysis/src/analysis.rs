@@ -1,4 +1,6 @@
-use std::path::{Path, PathBuf};
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+use std::path::Path;
+use std::path::PathBuf;
 
 use anyhow::Result;
 #[cfg(feature = "effort")]
