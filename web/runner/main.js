@@ -46,19 +46,12 @@ function sampleArgsForMode(mode) {
                 files: true,
             };
         case "module":
-            return {
-                inputs: sampleInputs(),
-            };
         case "export":
-            return {
-                inputs: sampleInputs(),
-            };
         case "analyze":
+        default:
             return {
                 inputs: sampleInputs(),
             };
-        default:
-            return { inputs: sampleInputs() };
     }
 }
 
