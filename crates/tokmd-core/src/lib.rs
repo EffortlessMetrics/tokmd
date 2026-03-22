@@ -361,10 +361,8 @@ pub fn analyze_workflow_from_inputs(
 
 #[cfg(feature = "analysis")]
 fn supports_rootless_in_memory_analyze_preset(preset: &str) -> bool {
-    matches!(
-        preset.trim().to_ascii_lowercase().as_str(),
-        "receipt" | "estimate"
-    )
+    let preset = preset.trim();
+    preset.eq_ignore_ascii_case("receipt") || preset.eq_ignore_ascii_case("estimate")
 }
 
 #[cfg(feature = "analysis")]
