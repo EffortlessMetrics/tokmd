@@ -73,6 +73,35 @@ impl MaterializedScan {
     }
 }
 
+/// Scans a set of paths and computes line counts for each language found.
+///
+/// # Examples
+///
+/// ```
+/// use std::fs;
+/// use std::path::PathBuf;
+/// use tokmd_settings::ScanOptions;
+/// use tokmd_types::ConfigMode;
+/// use tokmd_scan::scan;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let dir = tempfile::tempdir()?;
+/// let file_path = dir.path().join("main.rs");
+/// fs::write(&file_path, "fn main() { println!(\"hello\"); }\n")?;
+///
+/// let paths = vec![file_path];
+/// let options = ScanOptions {
+///     config: ConfigMode::None,
+///     ..Default::default()
+/// };
+///
+/// let languages = scan(&paths, &options)?;
+/// let rust_stats = languages.get(&tokei::LanguageType::Rust).unwrap();
+///
+/// assert_eq!(rust_stats.code, 1);
+/// # Ok(())
+/// # }
+/// ```
 pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
     let cfg = config_from_scan_options(args);
     let ignores = ignored_patterns(args);
