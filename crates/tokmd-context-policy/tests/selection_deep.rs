@@ -419,7 +419,7 @@ fn pack_plan_utilization_near_100_pct_when_files_fill_budget() {
     candidates.sort_by(|a, b| {
         b.0.tokens
             .cmp(&a.0.tokens)
-            .then_with(|| a.0.path.cmp(&b.0.path))
+            .then_with(|| a.0.path.cmp(b.0.path))
     });
 
     for (f, p) in &candidates {
