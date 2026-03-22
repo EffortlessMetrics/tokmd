@@ -20,8 +20,6 @@ pub mod determinism;
 pub mod render;
 
 #[cfg(feature = "git")]
-use std::cmp::Reverse;
-#[cfg(feature = "git")]
 use std::collections::BTreeMap;
 #[cfg(feature = "git")]
 use std::path::{Path, PathBuf};
@@ -1854,7 +1852,7 @@ fn compute_change_surface(
         .iter()
         .map(|s| s.insertions + s.deletions)
         .collect();
-    changes.sort_by_key(|&c| Reverse(c));
+    changes.sort_unstable_by(|a, b| b.cmp(a));
 
     let top_count = (files_changed as f64 * 0.2).ceil() as usize;
     let total_changes: usize = changes.iter().sum();

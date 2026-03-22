@@ -631,7 +631,11 @@ fn given_review_items_when_sorted_by_priority_then_lowest_first() {
         },
     ];
 
-    items.sort_by_key(|i| i.priority);
+    items.sort_by(|a, b| {
+        a.priority
+            .cmp(&b.priority)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     assert_eq!(items[0].path, "a.rs");
     assert_eq!(items[1].path, "b.rs");
     assert_eq!(items[2].path, "c.rs");
