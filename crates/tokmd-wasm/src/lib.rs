@@ -55,19 +55,13 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
 }
 
 #[cfg(feature = "analysis")]
-fn supports_in_memory_analyze_preset(preset: &str) -> bool {
-    let preset = preset.trim();
-    preset.eq_ignore_ascii_case("receipt") || preset.eq_ignore_ascii_case("estimate")
-}
-
-#[cfg(feature = "analysis")]
 fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     let args: serde_json::Value =
         serde_json::from_str(args_json).map_err(TokmdError::invalid_json)?;
     let obj = args.get("analyze").unwrap_or(&args);
 
     match obj.get("preset").and_then(serde_json::Value::as_str) {
-        Some(preset) if supports_in_memory_analyze_preset(preset) => Ok(()),
+        Some(preset) if tokmd_core::supports_rootless_in_memory_analyze_preset(preset) => Ok(()),
         Some(preset) => Err(TokmdError::not_implemented(format!(
             "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs; got {preset:?}"
         ))),
