@@ -10,6 +10,7 @@ import {
     createReadyMessage,
     createRunMessage,
     isCancelMessage,
+    isInMemoryInput,
     isRunMessage,
     normalizeAnalyzePreset,
 } from "./messages.js";
@@ -48,4 +49,21 @@ test("run and cancel helpers produce valid protocol messages", () => {
     assert.equal(isRunMessage(run), true);
     assert.equal(isCancelMessage(cancel), true);
     assert.equal(isRunMessage(cancel), false);
+});
+
+test("run messages require ordered in-memory inputs", () => {
+    assert.equal(
+        isInMemoryInput({ path: "src/lib.rs", text: "pub fn alpha() {}\n" }),
+        true
+    );
+    assert.equal(isRunMessage({ type: "run", requestId: "x", mode: "lang", args: {} }), false);
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: { inputs: [{ path: "", text: "bad\n" }] },
+        }),
+        false
+    );
 });

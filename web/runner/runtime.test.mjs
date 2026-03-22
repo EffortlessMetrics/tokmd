@@ -13,6 +13,19 @@ test("runtime rejects malformed messages", () => {
     assert.equal(isProtocolMessage(message), true);
 });
 
+test("runtime rejects run messages without valid inputs", () => {
+    const message = handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-2",
+            mode: "lang",
+            args: {},
+        })
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "invalid_message");
+});
+
 test("runtime reserves cancel without promising it", () => {
     const message = handleRunnerMessage(createCancelMessage("run-7"));
 

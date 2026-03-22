@@ -16,6 +16,9 @@ const logOutput = document.querySelector("[data-log]");
 const state = {
     nextRequestId: 1,
     activeRequestId: null,
+    capabilities: {
+        cancel: false,
+    },
 };
 
 const worker = new Worker(new URL("./worker.js", import.meta.url), {
@@ -75,11 +78,15 @@ function setSampleArgs(mode) {
 }
 
 function setCapabilities(message) {
+    state.capabilities = {
+        ...message.capabilities,
+    };
     capabilitiesOutput.textContent = JSON.stringify(
         message.capabilities,
         null,
         2
     );
+    cancelButton.disabled = true;
 }
 
 worker.addEventListener("message", (event) => {
@@ -95,13 +102,12 @@ worker.addEventListener("message", (event) => {
         case MESSAGE_TYPES.READY:
             setCapabilities(message);
             renderStatus("worker ready");
-            cancelButton.disabled = true;
             break;
         case MESSAGE_TYPES.ERROR:
             if (state.activeRequestId === message.requestId) {
                 state.activeRequestId = null;
-                cancelButton.disabled = true;
             }
+            cancelButton.disabled = true;
             renderStatus(`${message.error.code}: ${message.error.message}`);
             break;
         default:
@@ -130,7 +136,7 @@ runButton.addEventListener("click", () => {
 
     const requestId = `run-${state.nextRequestId++}`;
     state.activeRequestId = requestId;
-    cancelButton.disabled = false;
+    cancelButton.disabled = !state.capabilities.cancel;
     renderStatus(`sent ${requestId}`);
 
     const message = createRunMessage({

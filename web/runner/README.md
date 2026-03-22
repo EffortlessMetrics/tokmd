@@ -32,6 +32,7 @@ Main -> worker:
 Current behavior:
 
 - `ready` advertises supported modes plus `receipt` / `estimate` analyze presets
+- `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
 - `run` validates the request shape and responds with a placeholder
   `runner_not_wired` error until the wasm bootstrap lands
 - `cancel` is reserved in the protocol but returns `cancel_unavailable` for now

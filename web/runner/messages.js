@@ -79,6 +79,16 @@ export function createErrorMessage(requestId, code, message) {
     };
 }
 
+export function isInMemoryInput(value) {
+    return Boolean(
+        value &&
+            typeof value === "object" &&
+            typeof value.path === "string" &&
+            value.path.trim().length > 0 &&
+            typeof value.text === "string"
+    );
+}
+
 export function isRunMessage(value) {
     return Boolean(
         value &&
@@ -87,7 +97,9 @@ export function isRunMessage(value) {
             typeof value.mode === "string" &&
             value.args &&
             typeof value.args === "object" &&
-            !Array.isArray(value.args)
+            !Array.isArray(value.args) &&
+            Array.isArray(value.args.inputs) &&
+            value.args.inputs.every(isInMemoryInput)
     );
 }
 
