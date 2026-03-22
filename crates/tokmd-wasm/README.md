@@ -13,7 +13,8 @@ path and return an error from `tokmd-wasm` until the remaining in-memory
 analysis seams land. This applies consistently to `runJson("analyze", ...)`,
 `run("analyze", ...)`, and `runAnalyze()`. These rootless analyze modes can
 still report partial results with warnings when host-backed file or git
-enrichers are unavailable in browser mode.
+enrichers are unavailable in browser mode. Omitting `preset` defaults to
+`receipt`, matching `tokmd-core`.
 
 ## Exports
 
@@ -27,7 +28,7 @@ enrichers are unavailable in browser mode.
 - `runExport(args)`
 - `runAnalyze(args)` when the `analysis` feature is enabled
   Analyze currently supports only `receipt` and `estimate` across `runJson`,
-  `run`, and `runAnalyze`.
+  `run`, and `runAnalyze`. If omitted, `preset` defaults to `receipt`.
 
 ## Input shape
 

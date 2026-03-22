@@ -73,9 +73,7 @@ fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
         Some(preset) => Err(TokmdError::not_implemented(format!(
             "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs; got {preset:?}"
         ))),
-        None => Err(TokmdError::not_implemented(
-            "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs",
-        )),
+        None => Ok(()),
     }
 }
 
@@ -153,7 +151,8 @@ pub fn run_export(args: JsValue) -> Result<JsValue, JsValue> {
 ///
 /// `tokmd-wasm` currently supports only `preset: "receipt"` and
 /// `preset: "estimate"` because the richer analysis presets still depend on
-/// filesystem-backed content scans.
+/// filesystem-backed content scans. Omitting `preset` defaults to `receipt`,
+/// matching `tokmd-core`.
 #[cfg(feature = "analysis")]
 #[wasm_bindgen(js_name = runAnalyze)]
 pub fn run_analyze(args: JsValue) -> Result<JsValue, JsValue> {
@@ -289,7 +288,31 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[test]
+    fn run_mode_value_analyze_without_preset_defaults_to_receipt_payload() {
+        let data = run_mode_value(
+            "analyze",
+            &json!({
+                "inputs": fixture_inputs()
+            }),
+        )
+        .expect("analysis data");
+
+        assert_eq!(data["mode"], "analysis");
+        assert_eq!(data["source"]["inputs"][0], "crates/app/src/lib.rs");
+        assert_eq!(data["derived"]["totals"]["files"], 3);
+        assert_eq!(data["effort"], Value::Null);
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
     fn validate_analyze_args_accepts_rootless_receipt_and_estimate() {
+        validate_analyze_args_json(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }]
+            }"#,
+        )
+        .expect("missing preset should default to receipt");
+
         validate_analyze_args_json(
             r#"{
                 "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
@@ -521,6 +544,25 @@ mod wasm_tests {
                     { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }
                 ],
                 "preset": "receipt"
+            }"#,
+        ))
+        .expect("analysis data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "analysis");
+        assert_eq!(parsed["source"]["inputs"][0], "src/lib.rs");
+        assert_eq!(parsed["derived"]["totals"]["files"], 1);
+        assert_eq!(parsed["effort"], Value::Null);
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_analyze_without_preset_defaults_to_receipt() {
+        let data = run_analyze(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }
+                ]
             }"#,
         ))
         .expect("analysis data");
