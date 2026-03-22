@@ -3,5 +3,10 @@
     "run_id": "c334b849-39bc-4437-bfd5-7ec9e732765e",
     "timestamp": "2026-03-17T09:40:38Z",
     "description": "Fix dead_code warning in tokmd tests during no-default-features build"
+  },
+  {
+    "run_id": "7df7dfc4-fa15-41eb-809b-835a445c8722",
+    "timestamp": "2026-03-22T09:33:27Z",
+    "description": "Fix dead_code warning on compute_risk_owned in tokmd-cockpit during no-default-features build"
   }
 ]

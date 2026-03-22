@@ -1,0 +1,23 @@
+{
+  "run_id": "7df7dfc4-fa15-41eb-809b-835a445c8722",
+  "timestamp": "2026-03-22T09:33:27Z",
+  "description": "Fix dead_code warning on compute_risk_owned in tokmd-cockpit during no-default-features build",
+  "receipts": [
+    {
+      "command": "cargo check -p tokmd-cockpit --no-default-features",
+      "output": "    Checking tokmd-cockpit v1.8.1 (/app/crates/tokmd-cockpit)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.70s"
+    },
+    {
+      "command": "cargo clippy -p tokmd-cockpit --no-default-features -- -D warnings",
+      "output": "    Checking tokmd-cockpit v1.8.1 (/app/crates/tokmd-cockpit)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.90s"
+    },
+    {
+      "command": "cargo test -p tokmd-cockpit --no-default-features",
+      "output": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    },
+    {
+      "command": "cargo test -p tokmd-cockpit --all-features",
+      "output": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    }
+  ]
+}
