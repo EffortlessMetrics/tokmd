@@ -304,9 +304,10 @@ pub fn analyze_workflow(
 ///
 /// Runs the in-memory export + analysis pipeline and returns an `AnalysisReceipt`.
 ///
-/// `preset = "estimate"` stays on the pure row path. Richer presets still
-/// materialize a temporary scan root until the remaining analysis seams are
-/// moved off the filesystem.
+/// `preset = "estimate"` stays on the pure row path and does not borrow the
+/// host repository as a fake root. Richer presets still materialize a
+/// temporary scan root until the remaining analysis seams are moved off the
+/// filesystem.
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow_from_inputs(
     inputs: &[InMemoryFile],
@@ -340,7 +341,7 @@ pub fn analyze_workflow_from_inputs(
         return analyze_with_export_receipt(
             export_receipt,
             logical_inputs,
-            PathBuf::from("."),
+            PathBuf::new(),
             analyze,
         );
     }

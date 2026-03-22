@@ -311,6 +311,33 @@ fn analysis_receipt_tool_name_is_tokmd() {
     assert_eq!(receipt.tool.name, "tokmd");
 }
 
+#[cfg(all(feature = "walk", feature = "git"))]
+#[test]
+fn estimate_with_rootless_context_emits_host_root_warnings() {
+    let mut ctx = make_ctx(sample_export());
+    ctx.root = PathBuf::new();
+
+    let receipt = analyze(ctx, make_req(PresetKind::Estimate)).unwrap();
+
+    assert!(receipt.git.is_none(), "rootless estimate should skip git");
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("no host root") && warning.contains("file-backed")),
+        "expected file-backed rootless warning, got {:?}",
+        receipt.warnings
+    );
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("no host root") && warning.contains("git")),
+        "expected git rootless warning, got {:?}",
+        receipt.warnings
+    );
+}
+
 // ── enricher determinism tests ───────────────────────────────────────
 
 #[test]
