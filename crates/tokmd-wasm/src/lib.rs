@@ -13,6 +13,7 @@ use wasm_bindgen::prelude::*;
 use serde_json::Value;
 #[cfg(feature = "analysis")]
 use tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
+use tokmd_core::error::{ResponseEnvelope, TokmdError};
 
 fn to_js_error(message: impl Into<String>) -> JsValue {
     JsError::new(&message.into()).into()
@@ -24,6 +25,7 @@ fn serialize_args(args: &Value) -> Result<String, String> {
 }
 
 fn extract_mode_data_json(mode: &str, args_json: &str) -> Result<String, String> {
+    validate_mode_args_json(mode, args_json).map_err(|err| err.to_string())?;
     let result_json = tokmd_core::ffi::run_json(mode, args_json);
     tokmd_ffi_envelope::extract_data_json(&result_json).map_err(|err| err.to_string())
 }
@@ -53,25 +55,34 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
 }
 
 #[cfg(feature = "analysis")]
-fn validate_analyze_args_json(args_json: &str) -> Result<(), String> {
+fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     let args: serde_json::Value =
-        serde_json::from_str(args_json).map_err(|err| format!("JSON decode error: {err}"))?;
+        serde_json::from_str(args_json).map_err(TokmdError::invalid_json)?;
     match args.get("preset").and_then(serde_json::Value::as_str) {
         Some("estimate") => Ok(()),
-        Some(preset) => Err(format!(
-            "tokmd-wasm currently supports runAnalyze only with preset=\"estimate\" for in-memory inputs; got {preset:?}"
+        Some(preset) => Err(TokmdError::not_implemented(format!(
+            "tokmd-wasm currently supports analyze only with preset=\"estimate\" for in-memory inputs; got {preset:?}"
+        ))),
+        None => Err(TokmdError::not_implemented(
+            "tokmd-wasm currently supports analyze only with preset=\"estimate\" for in-memory inputs",
         )),
-        None => Err(
-            "tokmd-wasm currently supports runAnalyze only with preset=\"estimate\" for in-memory inputs"
-                .to_string(),
-        ),
     }
+}
+
+fn validate_mode_args_json(mode: &str, args_json: &str) -> Result<(), TokmdError> {
+    #[cfg(feature = "analysis")]
+    if mode == "analyze" {
+        return validate_analyze_args_json(args_json);
+    }
+
+    let _ = (mode, args_json);
+    Ok(())
 }
 
 #[cfg(feature = "analysis")]
 fn run_analyze_js(args: JsValue) -> Result<JsValue, JsValue> {
     let args_json = js_args_to_json(args)?;
-    validate_analyze_args_json(&args_json).map_err(to_js_error)?;
+    validate_analyze_args_json(&args_json).map_err(|err| to_js_error(err.to_string()))?;
     let data_json = extract_mode_data_json("analyze", &args_json).map_err(to_js_error)?;
     JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
 }
@@ -98,6 +109,9 @@ pub fn analysis_schema_version() -> u32 {
 /// Run a tokmd mode and return the raw JSON response envelope.
 #[wasm_bindgen(js_name = runJson)]
 pub fn run_json(mode: &str, args_json: &str) -> String {
+    if let Err(err) = validate_mode_args_json(mode, args_json) {
+        return ResponseEnvelope::error(&err).to_json();
+    }
     tokmd_core::ffi::run_json(mode, args_json)
 }
 
@@ -246,7 +260,29 @@ mod tests {
         )
         .expect_err("non-estimate preset should be rejected");
 
-        assert!(err.contains("preset=\"estimate\""));
+        assert!(err.message.contains("preset=\"estimate\""));
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn run_json_analyze_rejects_non_estimate_presets() {
+        let result = run_json(
+            "analyze",
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "preset": "health"
+            }"#,
+        );
+        let envelope = tokmd_ffi_envelope::parse_envelope(&result).expect("valid JSON envelope");
+
+        assert_eq!(envelope["ok"], false);
+        assert_eq!(envelope["error"]["code"], "not_implemented");
+        assert!(
+            envelope["error"]["message"]
+                .as_str()
+                .expect("error message")
+                .contains("preset=\"estimate\"")
+        );
     }
 
     #[test]
@@ -399,6 +435,26 @@ mod wasm_tests {
                 "preset": "health"
             }"#,
         ))
+        .expect_err("non-estimate preset should be rejected")
+        .dyn_into::<JsError>()
+        .expect("js error");
+
+        let message = err.message().as_string().expect("js string message");
+        assert!(message.contains("preset=\"estimate\""));
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_rejects_non_estimate_analyze_presets() {
+        let err = run(
+            "analyze",
+            parse_js_args(
+                r#"{
+                    "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                    "preset": "health"
+                }"#,
+            ),
+        )
         .expect_err("non-estimate preset should be rejected")
         .dyn_into::<JsError>()
         .expect("js error");
