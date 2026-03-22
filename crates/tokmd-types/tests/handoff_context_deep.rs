@@ -358,7 +358,7 @@ fn handoff_intelligence_hotspots_sorted_by_score() {
         },
     ];
     let mut sorted = hotspots.clone();
-    sorted.sort_by_key(|x| std::cmp::Reverse(x.score));
+    sorted.sort_by(|a, b| b.score.cmp(&a.score).then_with(|| a.path.cmp(&b.path)));
     assert_eq!(sorted[0].path, "b.rs");
     assert_eq!(sorted[1].path, "c.rs");
     assert_eq!(sorted[2].path, "a.rs");

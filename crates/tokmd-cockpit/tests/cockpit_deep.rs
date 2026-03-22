@@ -525,7 +525,7 @@ fn review_plan_complexity_increases_with_size() {
     let plan = generate_review_plan(&stats, &contracts);
     // Sort by path to align with the stat order, since plan is sorted by priority
     let mut by_path: Vec<_> = plan.iter().collect();
-    by_path.sort_by_key(|r| &r.path);
+    by_path.sort_unstable_by(|a, b| a.path.cmp(&b.path));
     let complexities: Vec<u8> = by_path.iter().filter_map(|r| r.complexity).collect();
     assert!(complexities.len() == 3);
     // large.rs < medium.rs < small.rs alphabetically, so:
