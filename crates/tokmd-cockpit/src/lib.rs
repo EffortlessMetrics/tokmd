@@ -2082,6 +2082,7 @@ pub fn compute_risk(file_stats: &[FileStat], contracts: &Contracts, health: &Cod
 }
 
 /// Internal fast path used by cockpit assembly when it already owns the stats.
+#[cfg(feature = "git")]
 fn compute_risk_owned(
     file_stats: Vec<FileStat>,
     contracts: &Contracts,
