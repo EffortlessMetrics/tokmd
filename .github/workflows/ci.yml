@@ -127,7 +127,7 @@ jobs:
         run: wasm-pack test --node crates/tokmd-wasm --features analysis
       - name: Build browser runner wasm bundle
         run: npm --prefix web/runner run build:wasm
-      - name: Browser runner protocol smoke
+      - name: Browser runner protocol and wasm boot smoke
         run: npm --prefix web/runner test
       - name: Browser runner syntax check
         run: npm --prefix web/runner run check

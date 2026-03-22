@@ -108,3 +108,47 @@ fn collect_in_memory_file_rows_supports_env_split_string_shebangs() {
     assert_eq!(actual.len(), 1);
     assert_eq!(actual[0].lang, LanguageType::Python.name());
 }
+
+#[test]
+fn collect_in_memory_file_rows_supports_env_assignment_prefixes() {
+    let inputs = vec![InMemoryRowInput::new(
+        Path::new("script"),
+        b"#!/usr/bin/env VAR=1 python3\nprint('ok')\n",
+    )];
+    let actual = collect_in_memory_file_rows(
+        &inputs,
+        &[],
+        1,
+        ChildIncludeMode::Separate,
+        &Config::default(),
+    );
+
+    assert_eq!(actual.len(), 1);
+    assert_eq!(actual[0].lang, LanguageType::Python.name());
+}
+
+#[test]
+fn collect_in_memory_file_rows_supports_env_flags_with_values() {
+    let inputs = vec![
+        InMemoryRowInput::new(
+            Path::new("script"),
+            b"#!/usr/bin/env -u PYTHONPATH python3\nprint('ok')\n",
+        ),
+        InMemoryRowInput::new(
+            Path::new("shell-script"),
+            b"#!/usr/bin/env -i bash\necho ok\n",
+        ),
+    ];
+    let actual = collect_in_memory_file_rows(
+        &inputs,
+        &[],
+        1,
+        ChildIncludeMode::Separate,
+        &Config::default(),
+    );
+
+    assert_eq!(actual.len(), 2);
+    let langs: Vec<&str> = actual.iter().map(|row| row.lang.as_str()).collect();
+    assert!(langs.contains(&LanguageType::Python.name()));
+    assert!(langs.contains(&LanguageType::Bash.name()));
+}

@@ -4,6 +4,7 @@ import { handleRunnerMessage } from "./runtime.js";
 let emitMessage;
 let subscribe;
 let nodeWorkerData = null;
+let isNodeWorker = false;
 
 if (
     typeof globalThis.postMessage === "function" &&
@@ -17,6 +18,7 @@ if (
     };
 } else {
     const { parentPort, workerData } = await import("node:worker_threads");
+    isNodeWorker = true;
     nodeWorkerData = workerData;
 
     emitMessage = (message) => parentPort.postMessage(message);
@@ -74,8 +76,13 @@ async function loadTokmdRunner() {
 
     const moduleUrl = new URL("./vendor/tokmd-wasm/tokmd_wasm.js", import.meta.url);
     const wasmModule = await import(moduleUrl.href);
-
-    await wasmModule.default();
+    if (isNodeWorker) {
+        const { readFile } = await import("node:fs/promises");
+        const wasmUrl = new URL("./vendor/tokmd-wasm/tokmd_wasm_bg.wasm", import.meta.url);
+        await wasmModule.default({ module_or_path: await readFile(wasmUrl) });
+    } else {
+        await wasmModule.default();
+    }
 
     return {
         runLang(args) {
