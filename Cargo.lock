@@ -1538,7 +1538,7 @@ version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 dependencies = [
- "spin",
+ "spin 0.9.8",
 ]
 
 [[package]]
@@ -2839,6 +2839,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
 
 [[package]]
+name = "spin"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5fe4ccb98d9c292d56fec89a5e07da7fc4cf0dc11e156b41793132775d3e591"
+
+[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4123,9 +4129,9 @@ dependencies = [
 
 [[package]]
 name = "uselesskey"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "640da42b4dd0ee94c37de0387598c60738d4351611717a001906d712a7ceb217"
+checksum = "7f81a867b596e0b732e766b467bc6c48ced2512814f0c0028f826fbf9e3d20a2"
 dependencies = [
  "uselesskey-core",
  "uselesskey-rsa",
@@ -4133,9 +4139,9 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b80aed3ebf2464620ed4b8fdcd40e55c1b6c01b25869786e0b042df0b8a5b2d"
+checksum = "6694713cbd54b58f17bfbb4ec50f4da95b74f486d2f190e8c61dd93d273d068a"
 dependencies = [
  "thiserror 2.0.18",
  "uselesskey-core-cache",
@@ -4147,20 +4153,20 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-cache"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97009a7be5adf2784375988f8f7d4545ef32560e93e3e6ff25ab8d2d542fe664"
+checksum = "85821e0eef60f348ea9e1c1b9afd415f21fa6bcc56b4eda7d9e95ea2e5bb9862"
 dependencies = [
  "dashmap",
- "spin",
+ "spin 0.10.0",
  "uselesskey-core-id",
 ]
 
 [[package]]
 name = "uselesskey-core-factory"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f1a5753747b6b54b1d251dcfda02020e37a807c7546248693db8f3f8d4837b7"
+checksum = "34190df9e83014bf0b553529a4053db64bd938c760414f7466a9aea22c59aa40"
 dependencies = [
  "rand 0.10.0",
  "uselesskey-core-cache",
@@ -4169,18 +4175,18 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-hash"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fd405e53be5b41880eafb27194deee404ea72d44edd86b217b2f73cd9ab02b3"
+checksum = "7541863ee49fb627a20bea671ce7873fed271d7304b2a2b6cdba5bd79190d123"
 dependencies = [
  "blake3",
 ]
 
 [[package]]
 name = "uselesskey-core-id"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "673f8d778fdc95cf820604a79ae11a79d9a6967148fc268a587c213ac4295dcb"
+checksum = "e000e7f255b4ef3ff3fed1a0507493f91db964c7b192b8d78d42444a1c43b1a8"
 dependencies = [
  "uselesskey-core-hash",
  "uselesskey-core-seed",
@@ -4188,9 +4194,9 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-keypair-material"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc917df0c8366cdb8a4a2751646756f4fe21e2d37a1d14f3516ee2d39346d453"
+checksum = "f4f22446c76948b06a03c694ac725990acd8744de861bdc374864394ef7684b4"
 dependencies = [
  "uselesskey-core",
  "uselesskey-core-kid",
@@ -4198,9 +4204,9 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-kid"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40a8c7904cd3bdfd3e02ef3bfcb9981f394cd26e5911dd25f815f490039799b2"
+checksum = "304ffa6cf47e823f7584637e069dbbaa676ad2ae1eea5ca499a9a8622bdf4e58"
 dependencies = [
  "base64",
  "blake3",
@@ -4208,9 +4214,9 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-negative"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96b0895f9c6e815920e0e6fb96e804376417074c17003e43fd8d2c048b075225"
+checksum = "5ddae24e5515639aefec352e5ae2ddf73e62b5259ec8fd8fe25f5103613eb3ee"
 dependencies = [
  "uselesskey-core-negative-der",
  "uselesskey-core-negative-pem",
@@ -4218,27 +4224,27 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-negative-der"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fc5418f94618f973525043ace993a800fc1b00ba2ddfa0ce268ac4297462f7f"
+checksum = "3eada76b181f2b28df3d42f3c3f0fe4061c0a06ab6fc71581d0dd2ae3fdf956a"
 dependencies = [
  "uselesskey-core-hash",
 ]
 
 [[package]]
 name = "uselesskey-core-negative-pem"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d25b32703b06a8d056473b0d4bcb899cdc07b8cca5bce1c3fc1ac6496a9ceb28"
+checksum = "16bb47de0d54f59dbb944467ff2e851f56a9fce51347c6b65cd2d1a2706e551f"
 dependencies = [
  "uselesskey-core-hash",
 ]
 
 [[package]]
 name = "uselesskey-core-seed"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b924edc2e9e2bcb8d28013e6963a3f30b0ab40d91b1128a4247bdf19bb8913e"
+checksum = "9f4eb6ca50ea6d87b7309786813f1fe9573307b251bd5a7c16b5de9974986149"
 dependencies = [
  "blake3",
  "rand_chacha 0.10.0",
@@ -4247,18 +4253,18 @@ dependencies = [
 
 [[package]]
 name = "uselesskey-core-sink"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35472dbfae87e41838a9f43fa52d331c06712a0c6d5f0f85dab8dd55a1123e59"
+checksum = "7d42624000e28959a601483a58e06e2a4f30198aee08a1694577fd5a76253a5a"
 dependencies = [
  "tempfile",
 ]
 
 [[package]]
 name = "uselesskey-rsa"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0234dbe7f26ac5afad6505f5d3c7b1f43604591d43767c1e9c0f00893a4b79ac"
+checksum = "73cdb48a92bb116c0b49d4f142a5c82895fa1f6c8715c5a6cb2e2ecd9e2b9998"
 dependencies = [
  "rand_chacha 0.3.1",
  "rand_core 0.6.4",
