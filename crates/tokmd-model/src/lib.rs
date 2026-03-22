@@ -104,7 +104,8 @@ fn language_from_in_memory_shebang(bytes: &[u8]) -> Option<LanguageType> {
 
     let mut words = first_line.split_whitespace();
     if words.next() == Some("#!/usr/bin/env") {
-        return words.next().and_then(language_from_env_interpreter);
+        let interpreter = words.find(|word| !word.starts_with('-') && !word.contains('='))?;
+        return language_from_env_interpreter(interpreter);
     }
 
     None
@@ -115,6 +116,8 @@ fn language_from_env_interpreter(interpreter: &str) -> Option<LanguageType> {
         .rsplit('/')
         .next()
         .unwrap_or(interpreter)
+        // Some shells and malformed env invocations can surface "-python3"-style
+        // interpreter tokens; strip the leading dash defensively before matching.
         .trim_start_matches('-');
 
     if token.starts_with("python") {
