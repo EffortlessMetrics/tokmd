@@ -29,3 +29,6 @@ wasm-bindgen = "0.2.114"
 [dev-dependencies]
 tokmd-types.workspace = true
 wasm-bindgen-test = "0.3.64"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

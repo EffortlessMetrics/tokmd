@@ -1,0 +1,67 @@
+# Browser Runner
+
+`web/runner` is the first browser-facing slice for `tokmd` `1.9.0`.
+
+It now boots `tokmd-wasm` inside a dedicated worker and runs the in-memory
+`lang`, `module`, `export`, and rootless `analyze` (`receipt` / `estimate`)
+paths locally in the browser. GitHub zipball ingestion, filtering, progress,
+and download flows still come later, but the worker contract and wasm bootstrap
+are live now.
+
+## Files
+
+- `index.html`: static browser shell
+- `main.js`: main-thread wiring, sample requests, and log surface
+- `worker.js`: dedicated Worker entrypoint
+- `runtime.js`: request validation plus mode dispatch into the wasm runner
+- `messages.js`: protocol constants and helpers
+- `*.test.mjs`: Node smoke tests for protocol and runtime behavior
+- `package.json`: repeatable local scripts for building the browser wasm bundle
+
+## Protocol
+
+Worker -> main:
+
+- `ready`
+- `result`
+- `error`
+
+Main -> worker:
+
+- `run`
+- `cancel`
+
+Current behavior:
+
+- `ready` advertises supported modes plus `receipt` / `estimate` analyze presets
+  and reports the loaded `tokmd-wasm` engine version
+- `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
+- `run` validates the request shape and executes the corresponding `tokmd-wasm`
+  entrypoint
+- `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
+
+## Build The Browser Bundle
+
+```bash
+npm --prefix web/runner run build:wasm
+```
+
+## Local Smoke Test
+
+```bash
+npm --prefix web/runner test
+```
+
+## Local Preview
+
+Build the browser bundle, then serve the repo root with any static file server
+and open `/web/runner/`.
+
+Examples:
+
+```bash
+npm --prefix web/runner run build:wasm
+python -m http.server 8080
+# or
+npx serve .
+```

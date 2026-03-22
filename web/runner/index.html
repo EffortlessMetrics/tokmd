@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>tokmd Browser Runner</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">tokmd 1.9.0 browser runner</p>
+        <h1>Worker-first browser runner</h1>
+        <p>
+          This page boots <code>tokmd-wasm</code> inside a dedicated Worker and
+          exercises the current browser-safe in-memory modes. Zipball fetch,
+          filtering, progress, and artifact downloads still land in later PRs.
+        </p>
+      </section>
+
+      <section class="grid">
+        <section class="panel">
+          <h2>Request</h2>
+          <div class="controls">
+            <div class="field">
+              <label for="mode">Mode</label>
+              <select id="mode" data-mode>
+                <option value="lang">lang</option>
+                <option value="module">module</option>
+                <option value="export">export</option>
+                <option value="analyze">analyze</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="args">Args JSON</label>
+              <textarea id="args" data-args spellcheck="false"></textarea>
+            </div>
+
+            <div class="actions">
+              <button class="primary" type="button" data-run>Send Run</button>
+              <button class="secondary" type="button" data-cancel disabled>Send Cancel</button>
+            </div>
+
+            <div class="status" data-status></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Capabilities</h2>
+          <pre data-capabilities>{}</pre>
+
+          <h2>Protocol Log</h2>
+          <div class="log" data-log></div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

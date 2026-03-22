@@ -1,0 +1,205 @@
+:root {
+    --paper: #f6f1e7;
+    --card: rgba(255, 252, 246, 0.9);
+    --ink: #1f1c18;
+    --muted: #6a5c4e;
+    --accent: #b5542f;
+    --accent-soft: rgba(181, 84, 47, 0.12);
+    --line: rgba(63, 45, 31, 0.14);
+    --shadow: 0 20px 60px rgba(58, 34, 16, 0.12);
+    --radius: 18px;
+    --mono: "Iosevka Web", "SFMono-Regular", "Cascadia Code", monospace;
+    --sans: "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+        radial-gradient(circle at top left, rgba(234, 165, 114, 0.28), transparent 28rem),
+        radial-gradient(circle at bottom right, rgba(124, 147, 196, 0.18), transparent 30rem),
+        linear-gradient(180deg, #fcfaf5 0%, var(--paper) 100%);
+}
+
+main {
+    width: min(1100px, calc(100vw - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 3rem;
+}
+
+.hero,
+.panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+}
+
+.hero {
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+}
+
+.eyebrow {
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.04;
+}
+
+.hero p {
+    max-width: 46rem;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1.3fr 0.9fr;
+}
+
+.panel {
+    padding: 1.25rem;
+}
+
+.panel h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.panel p {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.controls {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.field label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+
+select,
+textarea,
+button,
+pre {
+    font: inherit;
+}
+
+select,
+textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.88);
+    padding: 0.9rem 1rem;
+    color: var(--ink);
+}
+
+textarea,
+pre {
+    font-family: var(--mono);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+textarea {
+    min-height: 20rem;
+    resize: vertical;
+}
+
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.85rem 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+.primary {
+    background: var(--accent);
+    color: white;
+}
+
+.secondary {
+    background: var(--accent-soft);
+    color: var(--ink);
+}
+
+.status {
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--line);
+}
+
+pre {
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    border-radius: 14px;
+    background: rgba(38, 31, 24, 0.97);
+    color: #f9f3e7;
+}
+
+.log {
+    display: grid;
+    gap: 0.85rem;
+    max-height: 38rem;
+    overflow: auto;
+}
+
+.log-entry {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
