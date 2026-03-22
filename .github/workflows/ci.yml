@@ -101,18 +101,30 @@ jobs:
         run: cargo xtask boundaries-check
 
   wasm-compile:
-    name: Wasm Compile
+    name: Wasm Compile & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
       - uses: Swatinem/rust-cache@v2
       - name: Check tokmd-scan for wasm32
         run: cargo check -p tokmd-scan --target wasm32-unknown-unknown
       - name: Check tokmd-core analysis for wasm32
         run: cargo check -p tokmd-core --features analysis --target wasm32-unknown-unknown
+      - name: Check tokmd-wasm core-only for wasm32
+        run: cargo check -p tokmd-wasm --no-default-features --target wasm32-unknown-unknown
+      - name: Check tokmd-wasm for wasm32
+        run: cargo check -p tokmd-wasm --features analysis --target wasm32-unknown-unknown
+      - name: Run tokmd-wasm core-only wasm tests
+        run: wasm-pack test --node crates/tokmd-wasm --no-default-features
+      - name: Run tokmd-wasm analysis wasm tests
+        run: wasm-pack test --node crates/tokmd-wasm --features analysis
 
   gate:
     name: Quality Gate
