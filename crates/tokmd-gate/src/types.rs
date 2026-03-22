@@ -2,28 +2,57 @@
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use thiserror::Error;
 
 /// Errors from policy evaluation.
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum GateError {
-    #[error("Failed to read policy file: {0}")]
-    IoError(#[from] std::io::Error),
-
-    #[error("Failed to parse policy TOML: {0}")]
-    TomlError(#[from] toml::de::Error),
-
-    #[error("Invalid JSON pointer: {0}")]
+    IoError(std::io::Error),
+    TomlError(toml::de::Error),
     InvalidPointer(String),
-
-    #[error("Type mismatch: expected {expected}, got {actual}")]
     TypeMismatch { expected: String, actual: String },
-
-    #[error("Invalid operator '{op}' for type '{value_type}'")]
     InvalidOperator { op: String, value_type: String },
-
-    #[error("Rule '{name}' missing required field: {field}")]
     MissingField { name: String, field: String },
+}
+
+impl std::fmt::Display for GateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::IoError(e) => write!(f, "Failed to read policy file: {e}"),
+            Self::TomlError(e) => write!(f, "Failed to parse policy TOML: {e}"),
+            Self::InvalidPointer(p) => write!(f, "Invalid JSON pointer: {p}"),
+            Self::TypeMismatch { expected, actual } => {
+                write!(f, "Type mismatch: expected {expected}, got {actual}")
+            }
+            Self::InvalidOperator { op, value_type } => {
+                write!(f, "Invalid operator '{op}' for type '{value_type}'")
+            }
+            Self::MissingField { name, field } => {
+                write!(f, "Rule '{name}' missing required field: {field}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for GateError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::IoError(e) => Some(e),
+            Self::TomlError(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl From<std::io::Error> for GateError {
+    fn from(err: std::io::Error) -> Self {
+        Self::IoError(err)
+    }
+}
+
+impl From<toml::de::Error> for GateError {
+    fn from(err: toml::de::Error) -> Self {
+        Self::TomlError(err)
+    }
 }
 
 /// Root policy configuration.

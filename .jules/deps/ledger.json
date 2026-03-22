@@ -25,5 +25,14 @@
       "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully",
       "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check completed successfully"
     ]
+  },
+  {
+    "id": "20260321T121351Z",
+    "action": "Removed thiserror dependency",
+    "crates": [
+      "tokmd-gate",
+      "tokmd-ffi-envelope"
+    ],
+    "timestamp": "2026-03-21T12:13:51Z"
   }
 ]

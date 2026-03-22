@@ -3600,7 +3600,6 @@ version = "1.8.1"
 dependencies = [
  "proptest",
  "serde_json",
- "thiserror 2.0.18",
  "tokmd-core",
 ]
 
@@ -3667,7 +3666,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.18",
  "toml 1.0.7+spec-1.1.0",
 ]
 
