@@ -21,8 +21,6 @@ pyo3 = { version = "0.24", features = ["abi3-py39"] }
 serde_json = "1.0.149"
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-ffi-envelope.workspace = true
-tokmd-types.workspace = true
-tokmd-analysis-types.workspace = true
 
 [features]
 default = ["extension-module"]

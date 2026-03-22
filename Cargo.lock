@@ -3732,10 +3732,8 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
- "tokmd-analysis-types",
  "tokmd-core",
  "tokmd-ffi-envelope",
- "tokmd-types",
 ]
 
 [[package]]
@@ -3761,10 +3759,8 @@ dependencies = [
  "pyo3-build-config",
  "serde_json",
  "tempfile",
- "tokmd-analysis-types",
  "tokmd-core",
  "tokmd-ffi-envelope",
- "tokmd-types",
 ]
 
 [[package]]

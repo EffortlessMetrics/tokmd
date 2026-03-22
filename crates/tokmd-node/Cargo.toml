@@ -23,8 +23,6 @@ serde_json = "1.0.149"
 serde = "1.0.228"
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-ffi-envelope.workspace = true
-tokmd-types.workspace = true
-tokmd-analysis-types.workspace = true
 
 [build-dependencies]
 napi-build = "2"
