@@ -2,5 +2,14 @@
   {
     "run_id": "1773924536",
     "timestamp": "2026-03-19T12:49:09Z"
+  },
+  {
+    "date": "2026-03-21T14:08:30Z",
+    "lane": "scout",
+    "target": "crates/tokmd-analysis-effort/src/delta.rs: replace String cloning and BTreeSets with BTreeSet<&str> / Option<&str> in build_delta",
+    "proof_method": "structural",
+    "pr_link": "",
+    "gates": "build, test, fmt, clippy",
+    "friction_ids": []
   }
 ]
