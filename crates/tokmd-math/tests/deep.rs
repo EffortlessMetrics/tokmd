@@ -252,7 +252,7 @@ fn percentile_gini_pipeline() {
     let values: Vec<usize> = (1..=20).collect();
     let p90 = percentile(&values, 0.9);
     let gini = gini_coefficient(&values);
-    let ratio = safe_ratio(p90 as usize, *values.last().unwrap());
+    let ratio = safe_ratio(p90 as usize, values.last().copied().unwrap_or(0));
     let display = round_f64(ratio * 100.0, 1);
 
     // All results should be well-defined

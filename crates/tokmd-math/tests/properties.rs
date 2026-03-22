@@ -12,8 +12,8 @@ proptest! {
                                    pct in 0.0f64..=1.0) {
         values.sort();
         let got = percentile(&values, pct);
-        prop_assert!(got >= *values.first().unwrap() as f64);
-        prop_assert!(got <= *values.last().unwrap() as f64);
+        prop_assert!(got >= values.first().copied().unwrap_or(0) as f64);
+        prop_assert!(got <= values.last().copied().unwrap_or(0) as f64);
     }
 
     #[test]
@@ -95,14 +95,14 @@ proptest! {
     fn percentile_0_equals_min(mut values in prop::collection::vec(0usize..10000, 1..100)) {
         values.sort();
         let got = percentile(&values, 0.0);
-        prop_assert_eq!(got, *values.first().unwrap() as f64);
+        prop_assert_eq!(got, values.first().copied().unwrap_or(0) as f64);
     }
 
     #[test]
     fn percentile_1_equals_max(mut values in prop::collection::vec(0usize..10000, 1..100)) {
         values.sort();
         let got = percentile(&values, 1.0);
-        prop_assert_eq!(got, *values.last().unwrap() as f64);
+        prop_assert_eq!(got, values.last().copied().unwrap_or(0) as f64);
     }
 
     #[test]
