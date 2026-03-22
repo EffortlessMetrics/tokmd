@@ -58,8 +58,10 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
 fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     let args: serde_json::Value =
         serde_json::from_str(args_json).map_err(TokmdError::invalid_json)?;
-    match args.get("preset").and_then(serde_json::Value::as_str) {
-        Some("estimate") => Ok(()),
+    let obj = args.get("analyze").unwrap_or(&args);
+
+    match obj.get("preset").and_then(serde_json::Value::as_str) {
+        Some(preset) if preset.trim().eq_ignore_ascii_case("estimate") => Ok(()),
         Some(preset) => Err(TokmdError::not_implemented(format!(
             "tokmd-wasm currently supports analyze only with preset=\"estimate\" for in-memory inputs; got {preset:?}"
         ))),
@@ -252,6 +254,14 @@ mod tests {
         )
         .expect("estimate should be allowed");
 
+        validate_analyze_args_json(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "analyze": { "preset": "Estimate" }
+            }"#,
+        )
+        .expect("nested mixed-case estimate should be allowed");
+
         let err = validate_analyze_args_json(
             r#"{
                 "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
@@ -283,6 +293,23 @@ mod tests {
                 .expect("error message")
                 .contains("preset=\"estimate\"")
         );
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn run_mode_value_analyze_accepts_nested_case_insensitive_estimate() {
+        let data = run_mode_value(
+            "analyze",
+            &json!({
+                "inputs": fixture_inputs(),
+                "analyze": { "preset": "Estimate" }
+            }),
+        )
+        .expect("analysis data");
+
+        assert_eq!(data["mode"], "analysis");
+        assert_eq!(data["source"]["inputs"][0], "crates/app/src/lib.rs");
+        assert_eq!(data["effort"]["model"], "cocomo81-basic");
     }
 
     #[test]
@@ -441,6 +468,27 @@ mod wasm_tests {
 
         let message = err.message().as_string().expect("js string message");
         assert!(message.contains("preset=\"estimate\""));
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_accepts_nested_case_insensitive_analyze_preset() {
+        let data = run(
+            "analyze",
+            parse_js_args(
+                r#"{
+                    "inputs": [
+                        { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }
+                    ],
+                    "analyze": { "preset": "Estimate" }
+                }"#,
+            ),
+        )
+        .expect("analysis data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "analysis");
+        assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
     }
 
     #[cfg(feature = "analysis")]
