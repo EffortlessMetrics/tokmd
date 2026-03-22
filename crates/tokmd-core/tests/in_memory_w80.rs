@@ -286,6 +286,73 @@ fn analyze_workflow_from_inputs_uses_logical_inputs_and_populates_estimate_recei
 
 #[cfg(feature = "analysis")]
 #[test]
+fn analyze_workflow_from_inputs_uses_logical_inputs_and_populates_rootless_receipt() -> Result<()> {
+    let analyze = AnalyzeSettings {
+        preset: "receipt".to_string(),
+        ..Default::default()
+    };
+    let actual = analyze_workflow_from_inputs(&fixture_inputs(), &scan_options(), &analyze)?;
+    let actual_derived = actual
+        .derived
+        .as_ref()
+        .expect("receipt should populate derived metrics");
+
+    assert_eq!(actual_derived.totals.files, 3);
+    assert_eq!(actual_derived.totals.code, 3);
+    assert_eq!(actual_derived.totals.comments, 1);
+    assert_eq!(actual_derived.totals.blanks, 0);
+    assert_eq!(actual_derived.totals.lines, 4);
+    assert!(actual_derived.totals.bytes > 0);
+    assert!(actual_derived.totals.tokens > 0);
+    assert!(
+        actual.effort.is_none(),
+        "receipt should not imply an effort report"
+    );
+    assert!(actual.git.is_none(), "rootless receipt should skip git");
+    assert!(
+        actual
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("no host root") && warning.contains("file-backed")),
+        "expected file-backed rootless warning, got {:?}",
+        actual.warnings
+    );
+    assert!(
+        actual
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("no host root") && warning.contains("git")),
+        "expected git rootless warning, got {:?}",
+        actual.warnings
+    );
+    assert_eq!(
+        actual.source.inputs,
+        vec![
+            "crates/app/src/lib.rs".to_string(),
+            "src/main.rs".to_string(),
+            "tests/basic.py".to_string(),
+        ]
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("/tmp/"))
+    );
+    assert!(
+        actual
+            .source
+            .inputs
+            .iter()
+            .all(|path| !path.contains("\\temp\\"))
+    );
+
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
 fn analyze_workflow_from_inputs_ignores_ambient_tokei_config_files() -> Result<()> {
     let analyze = AnalyzeSettings {
         preset: "estimate".to_string(),

@@ -6,11 +6,14 @@ It exposes thin `wasm-bindgen` bindings over `tokmd-core`'s JSON API so browser
 and worker callers can run `lang`, `module`, `export`, and `analyze` against
 ordered in-memory inputs without going through the CLI.
 
-Analyze entrypoints are intentionally narrower today: only `preset: "estimate"`
-is browser-safe in the wasm wrapper. Richer analyze presets still depend on the
-filesystem-backed scan path and return an error from `tokmd-wasm` until the
-remaining in-memory analysis seams land. This applies consistently to
-`runJson("analyze", ...)`, `run("analyze", ...)`, and `runAnalyze()`.
+Analyze entrypoints are intentionally narrower today: only
+`preset: "receipt"` and `preset: "estimate"` are browser-safe in the wasm
+wrapper. Richer analyze presets still depend on the filesystem-backed scan
+path and return an error from `tokmd-wasm` until the remaining in-memory
+analysis seams land. This applies consistently to `runJson("analyze", ...)`,
+`run("analyze", ...)`, and `runAnalyze()`. These rootless analyze modes can
+still report partial results with warnings when host-backed file or git
+enrichers are unavailable in browser mode.
 
 ## Exports
 
@@ -23,7 +26,8 @@ remaining in-memory analysis seams land. This applies consistently to
 - `runModule(args)`
 - `runExport(args)`
 - `runAnalyze(args)` when the `analysis` feature is enabled
-  Analyze is estimate-only today across `runJson`, `run`, and `runAnalyze`.
+  Analyze currently supports only `receipt` and `estimate` across `runJson`,
+  `run`, and `runAnalyze`.
 
 ## Input shape
 

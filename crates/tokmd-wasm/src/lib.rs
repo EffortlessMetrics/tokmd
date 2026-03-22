@@ -55,18 +55,26 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
 }
 
 #[cfg(feature = "analysis")]
+fn supports_in_memory_analyze_preset(preset: &str) -> bool {
+    matches!(
+        preset.trim().to_ascii_lowercase().as_str(),
+        "receipt" | "estimate"
+    )
+}
+
+#[cfg(feature = "analysis")]
 fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     let args: serde_json::Value =
         serde_json::from_str(args_json).map_err(TokmdError::invalid_json)?;
     let obj = args.get("analyze").unwrap_or(&args);
 
     match obj.get("preset").and_then(serde_json::Value::as_str) {
-        Some(preset) if preset.trim().eq_ignore_ascii_case("estimate") => Ok(()),
+        Some(preset) if supports_in_memory_analyze_preset(preset) => Ok(()),
         Some(preset) => Err(TokmdError::not_implemented(format!(
-            "tokmd-wasm currently supports analyze only with preset=\"estimate\" for in-memory inputs; got {preset:?}"
+            "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs; got {preset:?}"
         ))),
         None => Err(TokmdError::not_implemented(
-            "tokmd-wasm currently supports analyze only with preset=\"estimate\" for in-memory inputs",
+            "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs",
         )),
     }
 }
@@ -143,8 +151,9 @@ pub fn run_export(args: JsValue) -> Result<JsValue, JsValue> {
 
 /// Run the `analyze` workflow on in-memory inputs.
 ///
-/// `tokmd-wasm` currently supports only `preset: "estimate"` because the
-/// richer analysis presets still depend on filesystem-backed content scans.
+/// `tokmd-wasm` currently supports only `preset: "receipt"` and
+/// `preset: "estimate"` because the richer analysis presets still depend on
+/// filesystem-backed content scans.
 #[cfg(feature = "analysis")]
 #[wasm_bindgen(js_name = runAnalyze)]
 pub fn run_analyze(args: JsValue) -> Result<JsValue, JsValue> {
@@ -245,7 +254,50 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn validate_analyze_args_requires_estimate() {
+    fn run_mode_value_analyze_receipt_returns_rootless_receipt_payload() {
+        let data = run_mode_value(
+            "analyze",
+            &json!({
+                "inputs": fixture_inputs(),
+                "preset": "receipt"
+            }),
+        )
+        .expect("analysis data");
+
+        assert_eq!(data["mode"], "analysis");
+        assert_eq!(data["source"]["inputs"][2], "tests/basic.py");
+        assert_eq!(data["derived"]["totals"]["files"], 3);
+        assert_eq!(data["effort"], Value::Null);
+        assert_eq!(data["git"], Value::Null);
+        assert!(
+            data["warnings"]
+                .as_array()
+                .expect("warnings array")
+                .iter()
+                .filter_map(Value::as_str)
+                .any(|warning| warning.contains("no host root") && warning.contains("file-backed"))
+        );
+        assert!(
+            data["warnings"]
+                .as_array()
+                .expect("warnings array")
+                .iter()
+                .filter_map(Value::as_str)
+                .any(|warning| warning.contains("no host root") && warning.contains("git"))
+        );
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn validate_analyze_args_accepts_rootless_receipt_and_estimate() {
+        validate_analyze_args_json(
+            r#"{
+                "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
+                "analyze": { "preset": "Receipt" }
+            }"#,
+        )
+        .expect("nested mixed-case receipt should be allowed");
+
         validate_analyze_args_json(
             r#"{
                 "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
@@ -268,14 +320,15 @@ mod tests {
                 "preset": "health"
             }"#,
         )
-        .expect_err("non-estimate preset should be rejected");
+        .expect_err("unsupported preset should be rejected");
 
+        assert!(err.message.contains("preset=\"receipt\""));
         assert!(err.message.contains("preset=\"estimate\""));
     }
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn run_json_analyze_rejects_non_estimate_presets() {
+    fn run_json_analyze_rejects_unsupported_presets() {
         let result = run_json(
             "analyze",
             r#"{
@@ -287,6 +340,12 @@ mod tests {
 
         assert_eq!(envelope["ok"], false);
         assert_eq!(envelope["error"]["code"], "not_implemented");
+        assert!(
+            envelope["error"]["message"]
+                .as_str()
+                .expect("error message")
+                .contains("preset=\"receipt\"")
+        );
         assert!(
             envelope["error"]["message"]
                 .as_str()
@@ -455,7 +514,27 @@ mod wasm_tests {
 
     #[cfg(feature = "analysis")]
     #[wasm_bindgen_test]
-    fn run_analyze_rejects_non_estimate_presets() {
+    fn run_analyze_accepts_receipt_preset() {
+        let data = run_analyze(parse_js_args(
+            r#"{
+                "inputs": [
+                    { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }
+                ],
+                "preset": "receipt"
+            }"#,
+        ))
+        .expect("analysis data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "analysis");
+        assert_eq!(parsed["source"]["inputs"][0], "src/lib.rs");
+        assert_eq!(parsed["derived"]["totals"]["files"], 1);
+        assert_eq!(parsed["effort"], Value::Null);
+    }
+
+    #[cfg(feature = "analysis")]
+    #[wasm_bindgen_test]
+    fn run_analyze_rejects_unsupported_presets() {
         let err = run_analyze(parse_js_args(
             r#"{
                 "inputs": [{ "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }],
@@ -467,6 +546,7 @@ mod wasm_tests {
         .expect("js error");
 
         let message = err.message().as_string().expect("js string message");
+        assert!(message.contains("preset=\"receipt\""));
         assert!(message.contains("preset=\"estimate\""));
     }
 
@@ -493,7 +573,7 @@ mod wasm_tests {
 
     #[cfg(feature = "analysis")]
     #[wasm_bindgen_test]
-    fn run_rejects_non_estimate_analyze_presets() {
+    fn run_rejects_unsupported_analyze_presets() {
         let err = run(
             "analyze",
             parse_js_args(
@@ -508,6 +588,7 @@ mod wasm_tests {
         .expect("js error");
 
         let message = err.message().as_string().expect("js string message");
+        assert!(message.contains("preset=\"receipt\""));
         assert!(message.contains("preset=\"estimate\""));
     }
 }

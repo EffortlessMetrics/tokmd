@@ -304,10 +304,10 @@ pub fn analyze_workflow(
 ///
 /// Runs the in-memory export + analysis pipeline and returns an `AnalysisReceipt`.
 ///
-/// `preset = "estimate"` stays on the pure row path and does not borrow the
-/// host repository as a fake root. Richer presets still materialize a
-/// temporary scan root until the remaining analysis seams are moved off the
-/// filesystem.
+/// `preset = "receipt"` and `preset = "estimate"` stay on the pure row path
+/// and do not borrow the host repository as a fake root. Richer presets still
+/// materialize a temporary scan root until the remaining analysis seams are
+/// moved off the filesystem.
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow_from_inputs(
     inputs: &[InMemoryFile],
@@ -316,7 +316,7 @@ pub fn analyze_workflow_from_inputs(
 ) -> Result<tokmd_analysis_types::AnalysisReceipt> {
     let export = ExportSettings::default();
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    if analyze.preset.trim().eq_ignore_ascii_case("estimate") {
+    if supports_rootless_in_memory_analyze_preset(&analyze.preset) {
         let (paths, rows) = collect_pure_in_memory_rows(
             inputs,
             &scan_opts,
@@ -357,6 +357,14 @@ pub fn analyze_workflow_from_inputs(
     let export_receipt = build_export_receipt(scan.logical_paths(), &scan_opts, &export, data);
 
     analyze_with_export_receipt(export_receipt, logical_inputs, root, analyze)
+}
+
+#[cfg(feature = "analysis")]
+fn supports_rootless_in_memory_analyze_preset(preset: &str) -> bool {
+    matches!(
+        preset.trim().to_ascii_lowercase().as_str(),
+        "receipt" | "estimate"
+    )
 }
 
 #[cfg(feature = "analysis")]
