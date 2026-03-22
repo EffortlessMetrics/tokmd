@@ -1,3 +1,5 @@
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+use std::path::Path;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -91,6 +93,25 @@ fn preset_plan(preset: AnalysisPreset) -> PresetPlan {
     preset_plan_for(preset)
 }
 
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+const ROOTLESS_FILE_ANALYSIS_WARNING: &str =
+    "in-memory analysis has no host root; skipping file-backed enrichers";
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+const ROOTLESS_GIT_ANALYSIS_WARNING: &str =
+    "in-memory analysis has no host root; skipping git-backed enrichers";
+
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+fn has_host_root(root: &Path) -> bool {
+    !root.as_os_str().is_empty()
+}
+
+#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+fn push_warning_once(warnings: &mut Vec<String>, warning: &str) {
+    if warnings.iter().all(|existing| existing != warning) {
+        warnings.push(warning.to_string());
+    }
+}
+
 pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisReceipt> {
     let mut warnings: Vec<String> = Vec::new();
     #[cfg_attr(not(feature = "content"), allow(unused_mut))]
@@ -109,6 +130,8 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         Some(flag) => flag,
         None => plan.git,
     };
+    #[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+    let has_host_root = has_host_root(&ctx.root);
 
     #[cfg(feature = "walk")]
     let mut assets: Option<AssetReport> = None;
@@ -183,9 +206,13 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
 
     if plan.needs_files() {
         #[cfg(feature = "walk")]
-        match tokmd_walk::list_files(&ctx.root, req.limits.max_files) {
-            Ok(list) => files = Some(list),
-            Err(err) => warnings.push(format!("walk failed: {}", err)),
+        if has_host_root {
+            match tokmd_walk::list_files(&ctx.root, req.limits.max_files) {
+                Ok(list) => files = Some(list),
+                Err(err) => warnings.push(format!("walk failed: {}", err)),
+            }
+        } else {
+            push_warning_once(&mut warnings, ROOTLESS_FILE_ANALYSIS_WARNING);
         }
         #[cfg(not(feature = "walk"))]
         {
@@ -261,35 +288,39 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     if req.near_dup {
         #[cfg(feature = "content")]
         {
-            let near_dup_limits = NearDupLimits {
-                max_bytes: req.limits.max_bytes,
-                max_file_bytes: req.limits.max_file_bytes,
-            };
-            match build_near_dup_report(
-                &ctx.root,
-                &ctx.export,
-                req.near_dup_scope,
-                req.near_dup_threshold,
-                req.near_dup_max_files,
-                req.near_dup_max_pairs,
-                &near_dup_limits,
-                &req.near_dup_exclude,
-            ) {
-                Ok(report) => {
-                    // Attach to existing dup report or create a minimal one
-                    if let Some(ref mut d) = dup {
-                        d.near = Some(report);
-                    } else {
-                        dup = Some(DuplicateReport {
-                            groups: Vec::new(),
-                            wasted_bytes: 0,
-                            strategy: "none".to_string(),
-                            density: None,
-                            near: Some(report),
-                        });
+            if has_host_root {
+                let near_dup_limits = NearDupLimits {
+                    max_bytes: req.limits.max_bytes,
+                    max_file_bytes: req.limits.max_file_bytes,
+                };
+                match build_near_dup_report(
+                    &ctx.root,
+                    &ctx.export,
+                    req.near_dup_scope,
+                    req.near_dup_threshold,
+                    req.near_dup_max_files,
+                    req.near_dup_max_pairs,
+                    &near_dup_limits,
+                    &req.near_dup_exclude,
+                ) {
+                    Ok(report) => {
+                        // Attach to existing dup report or create a minimal one
+                        if let Some(ref mut d) = dup {
+                            d.near = Some(report);
+                        } else {
+                            dup = Some(DuplicateReport {
+                                groups: Vec::new(),
+                                wasted_bytes: 0,
+                                strategy: "none".to_string(),
+                                density: None,
+                                near: Some(report),
+                            });
+                        }
                     }
+                    Err(err) => warnings.push(format!("near-dup scan failed: {}", err)),
                 }
-                Err(err) => warnings.push(format!("near-dup scan failed: {}", err)),
+            } else {
+                push_warning_once(&mut warnings, ROOTLESS_FILE_ANALYSIS_WARNING);
             }
         }
         #[cfg(not(feature = "content"))]
@@ -327,39 +358,43 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     if include_git {
         #[cfg(feature = "git")]
         {
-            let repo_root = match tokmd_git::repo_root(&ctx.root) {
-                Some(root) => root,
-                None => {
-                    warnings.push("git scan failed: not a git repo".to_string());
-                    PathBuf::new()
-                }
-            };
-            if !repo_root.as_os_str().is_empty() {
-                match tokmd_git::collect_history(
-                    &repo_root,
-                    req.limits.max_commits,
-                    req.limits.max_commit_files,
-                ) {
-                    Ok(commits) => {
-                        if plan.git {
-                            match build_git_report(&repo_root, &ctx.export, &commits) {
-                                Ok(report) => git = Some(report),
-                                Err(err) => warnings.push(format!("git scan failed: {}", err)),
+            if has_host_root {
+                let repo_root = match tokmd_git::repo_root(&ctx.root) {
+                    Some(root) => root,
+                    None => {
+                        warnings.push("git scan failed: not a git repo".to_string());
+                        PathBuf::new()
+                    }
+                };
+                if !repo_root.as_os_str().is_empty() {
+                    match tokmd_git::collect_history(
+                        &repo_root,
+                        req.limits.max_commits,
+                        req.limits.max_commit_files,
+                    ) {
+                        Ok(commits) => {
+                            if plan.git {
+                                match build_git_report(&repo_root, &ctx.export, &commits) {
+                                    Ok(report) => git = Some(report),
+                                    Err(err) => warnings.push(format!("git scan failed: {}", err)),
+                                }
+                            }
+                            if plan.churn {
+                                churn = Some(build_predictive_churn_report(
+                                    &ctx.export,
+                                    &commits,
+                                    &repo_root,
+                                ));
+                            }
+                            if plan.fingerprint {
+                                fingerprint = Some(build_corporate_fingerprint(&commits));
                             }
                         }
-                        if plan.churn {
-                            churn = Some(build_predictive_churn_report(
-                                &ctx.export,
-                                &commits,
-                                &repo_root,
-                            ));
-                        }
-                        if plan.fingerprint {
-                            fingerprint = Some(build_corporate_fingerprint(&commits));
-                        }
+                        Err(err) => warnings.push(format!("git scan failed: {}", err)),
                     }
-                    Err(err) => warnings.push(format!("git scan failed: {}", err)),
                 }
+            } else {
+                push_warning_once(&mut warnings, ROOTLESS_GIT_ANALYSIS_WARNING);
             }
         }
         #[cfg(not(feature = "git"))]

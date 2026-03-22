@@ -18,6 +18,10 @@ use crate::drivers::build_drivers;
 use crate::monte_carlo::apply_monte_carlo;
 use crate::size_basis::SizeBasisResult;
 use crate::size_basis::build_size_basis;
+
+fn has_host_root(root: &Path) -> bool {
+    !root.as_os_str().is_empty()
+}
 use crate::uncertainty::apply_uncertainty;
 
 /// Build an effort estimate from exported code inventory plus optional enrichers.
@@ -59,7 +63,7 @@ pub fn build_effort_report(
         build_drivers(&size_basis, derived, git, complexity, api_surface, dup);
 
     let delta = match (&req.base_ref, &req.head_ref) {
-        (Some(base), Some(head)) => {
+        (Some(base), Some(head)) if has_host_root(root) => {
             build_delta(root, export, git, base.as_str(), head.as_str()).ok()
         }
         _ => None,
