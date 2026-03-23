@@ -197,7 +197,8 @@ pre {
     background: rgba(38, 31, 24, 0.97);
     color: #f9f3e7;
     white-space: pre-wrap;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: anywhere;
 }
 
 .log {

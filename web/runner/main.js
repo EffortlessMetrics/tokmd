@@ -105,7 +105,7 @@ function artifactFileName(data) {
     }
 
     if (data.mode === "analysis") {
-        const preset = data.args?.preset ?? "receipt";
+        const preset = data.args?.preset ?? data.preset ?? "receipt";
         return `tokmd-analysis-${preset}.json`;
     }
 
