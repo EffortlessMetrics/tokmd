@@ -264,30 +264,34 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
 4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation
 
-## WASM & Browser Runner (post-1.8.0 horizon)
+## WASM & Browser Runner (v1.9.0 in progress)
 
-### Foundation Landed in v1.8.0
+### Landed foundation and product surface
 
-`1.8.0` did not finish the full browser/WASM milestone, but it did land the core seam work needed to keep that path real:
+The browser/WASM lane is no longer just seam work:
 
-- `tokmd-io-port` introduces host-abstracted file access with `HostFs`, `ReadFs`, and `MemFs`.
-- Feature-stability tests keep lower tiers honest around clap-free and WASM-friendly boundaries.
-- The release/devex hardening work keeps CI and release automation boring enough that a future wasm lane can be added without compounding operator noise.
+- `tokmd-io-port` plus the in-memory scan/model/core workflow paths keep lower tiers host-abstracted and deterministic on ordered in-memory inputs.
+- `tokmd-wasm` now exposes the browser-facing `lang`, `module`, `export`, and browser-safe `analyze` entrypoints.
+- CI includes wasm compile/tests plus native-vs-wasm parity coverage for the browser-safe modes.
+- `web/runner` now boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
+- Public browser repo loading now uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
 
-### Next: v1.9.0 — Finish WASM-Ready Core + Browser Runner
+### Supported browser-safe contract today
 
-Goal: Complete the in-memory/WASM execution path and expose it through a browser-first runner that produces deterministic receipts locally.
+- Modes: `lang`, `module`, `export`
+- Analyze presets: `receipt`, `estimate`
+- Input contract: ordered in-memory rows, not filesystem paths
+- Acquisition strategy: GitHub tree + contents API, not zipball fetch
 
-Work items:
-- Wire `tokmd-io-port` through scan and walk paths so scans can run against a host-provided in-memory substrate instead of only filesystem `PathBuf`s.
-- Add an in-memory scan pipeline that accepts `(path, bytes)` inputs and preserves deterministic ordering and capability reporting.
-- Keep CLI/Clap separation strict so the library surface stays free of OS-bound argument types.
-- Add a `wasm`/`web` feature profile and CI builds for `wasm32-unknown-unknown`, plus parity tests against the native engine.
-- Harden the new `tokmd-wasm` crate so its JS-friendly APIs for `lang`, `module`, `export`, and `analyze` are ready for browser packaging.
-- Build a minimal browser runner that fetches a GitHub zipball, unpacks in a Worker, runs tokmd locally, and supports progress/cancel/download flows.
-- Add caching and guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits for archive size, file count, and bytes read.
-- Publish the WASM bundle as a pinned artifact (GitHub Release / npm) for the web app to consume.
+Host-backed enrichers remain explicit capability misses in browser mode. Git-history signals such as hotspots and churn are intentionally unavailable there today.
 
-Notes: Git-history enrichers (hotspots/churn) are not available in browser WASM mode and must be reported as unavailable in capability reporting.
+### Remaining v1.9.0 work
 
-Non-goals for v1.9.0: no in-browser git churn/hotspot metrics or heavy tooling; provide a backend escape hatch for very large repos or git-based analysis.
+- Publish the `tokmd-wasm` bundle through one pinned distribution path for the runner to consume repeatably.
+- Add browser guardrails such as caching, authenticated fetch options, and better rate-limit/progress handling.
+- Broaden browser analysis only where the preset can stay rootless and capability-honest.
+
+### Non-goals for v1.9.0
+
+- No browser-side git-history churn/hotspot metrics or other heavy host tooling.
+- No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy.
