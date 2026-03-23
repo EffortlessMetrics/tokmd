@@ -46,8 +46,8 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         "total",
         totals.comments,
         totals.code + totals.comments,
-        group_ratio(&parents, |r| r.lang.clone(), |r| (r.comments, r.code)),
-        group_ratio(&parents, |r| r.module.clone(), |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| r.lang.as_str(), |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| r.module.as_str(), |r| (r.comments, r.code)),
     );
 
     let whitespace = build_ratio_report(
@@ -56,12 +56,12 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         totals.code + totals.comments,
         group_ratio(
             &parents,
-            |r| r.lang.clone(),
+            |r| r.lang.as_str(),
             |r| (r.blanks, r.code + r.comments),
         ),
         group_ratio(
             &parents,
-            |r| r.module.clone(),
+            |r| r.module.as_str(),
             |r| (r.blanks, r.code + r.comments),
         ),
     );
@@ -70,8 +70,8 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         "total",
         totals.bytes,
         totals.lines,
-        group_rate(&parents, |r| r.lang.clone(), |r| (r.bytes, r.lines)),
-        group_rate(&parents, |r| r.module.clone(), |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| r.lang.as_str(), |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| r.module.as_str(), |r| (r.bytes, r.lines)),
     );
 
     let file_stats = build_file_stats(&parents);
@@ -248,16 +248,19 @@ fn group_ratio<FKey, FVals>(
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
+    FKey: for<'a> Fn(&'a FileRow) -> &'a str,
     FVals: Fn(&FileRow) -> (usize, usize),
 {
     let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for row in rows {
-        let key = key_fn(row);
         let (numer, denom_part) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom_part;
+        let key = key_fn(row);
+        if let Some(entry) = map.get_mut(key) {
+            entry.0 += numer;
+            entry.1 += denom_part;
+        } else {
+            map.insert(key.to_owned(), (numer, denom_part));
+        }
     }
     map
 }
@@ -268,16 +271,19 @@ fn group_rate<FKey, FVals>(
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
+    FKey: for<'a> Fn(&'a FileRow) -> &'a str,
     FVals: Fn(&FileRow) -> (usize, usize),
 {
     let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for row in rows {
-        let key = key_fn(row);
         let (numer, denom) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom;
+        let key = key_fn(row);
+        if let Some(entry) = map.get_mut(key) {
+            entry.0 += numer;
+            entry.1 += denom;
+        } else {
+            map.insert(key.to_owned(), (numer, denom));
+        }
     }
     map
 }
@@ -364,8 +370,17 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
     let mut by_module: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
 
     for row in rows {
-        let entry = by_module.entry(row.module.clone()).or_default();
-        *entry.entry(row.lang.clone()).or_insert(0) += row.lines;
+        if let Some(entry) = by_module.get_mut(row.module.as_str()) {
+            if let Some(lines) = entry.get_mut(row.lang.as_str()) {
+                *lines += row.lines;
+            } else {
+                entry.insert(row.lang.clone(), row.lines);
+            }
+        } else {
+            let mut entry = BTreeMap::new();
+            entry.insert(row.lang.clone(), row.lines);
+            by_module.insert(row.module.clone(), entry);
+        }
     }
 
     let mut out = Vec::new();

@@ -1,0 +1,82 @@
+# PR Glass Cockpit
+
+Make review boring. Make truth cheap.
+
+## 💡 Summary
+
+Reduce owned `String` allocations in hot aggregation loops by
+switching `tokmd-model` and `tokmd-analysis-derived` to borrowed-key
+lookups and allocating only on insert misses.
+
+## 🎯 Why / Threat model
+
+`tokmd` walks large file sets, then repeatedly groups by language and
+module while building receipts. `BTreeMap::entry(key.clone())`
+forces an owned `String` allocation for every row, even when the key
+is already present, which is the common case in these aggregation
+loops.
+
+## 🔎 Finding (evidence)
+
+- `crates/tokmd-model/src/lib.rs`: `create_lang_report_from_rows`
+  and `create_module_report_from_rows` cloned owned language and
+  module keys on every row update.
+- `crates/tokmd-analysis-derived/src/lib.rs`: `group_ratio`,
+  `group_rate`, and `build_lang_purity_report` can reuse borrowed
+  `lang` and `module` keys during lookups and allocate only when
+  inserting new entries.
+
+## 🧭 Options considered
+
+### Option A (recommended)
+
+- Replace unconditional `entry(key.clone()).or_default()` updates
+  with borrowed-key `get_mut(...)` checks and allocate only when a
+  new key must be inserted.
+- Why it fits this repo: It keeps the public data model unchanged
+  while removing avoidable allocations from the hot path.
+- Trade-offs: Slightly more verbose loop bodies.
+
+### Option B
+
+- Push borrowed keys and lifetimes through the wider report types
+  and helpers.
+- Why it fits this repo: It could remove even more allocations.
+- Trade-offs: Much broader refactor with more coordination cost
+  than this lane needs.
+
+## ✅ Decision
+
+Option A. Keep the PR scoped to local hot-loop improvements and make
+the claimed allocation reduction true in both crates.
+
+## 🧱 Changes made (SRP)
+
+- Refactored language/module aggregation in `crates/tokmd-model/src/lib.rs`
+  to reuse borrowed keys on existing map entries.
+- Refactored ratio/rate grouping and language purity aggregation in
+  `crates/tokmd-analysis-derived/src/lib.rs` to borrow keys for
+  lookups and allocate only on misses.
+- Added the matching `.jules/bolt` envelope, run log, and ledger
+  entry for this lane.
+
+## 🧪 Verification receipts
+
+- `cargo fmt-fix`
+- `cargo test -q -p tokmd-model -p tokmd-analysis-derived`
+- `cargo clippy -q -p tokmd-model -p tokmd-analysis-derived -- -D warnings`
+
+## 🧭 Telemetry
+
+- Change shape: structural performance refactor
+- Blast radius: internal aggregation helpers only; output ordering
+  and receipt shape unchanged
+- Risk class: low
+- Merge-confidence gates: targeted tests, targeted clippy, formatting
+
+## 🗂️ .jules updates
+
+- Added `.jules/bolt/envelopes/3eaaed8a-553d-46e7-aea7-9e7b44e684e9.json`
+- Added `.jules/bolt/runs/2026-03-22.md`
+- Added `.jules/bolt/runs/current_run_id.txt`
+- Appended `.jules/bolt/ledger.json`
