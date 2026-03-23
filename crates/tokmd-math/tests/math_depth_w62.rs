@@ -300,8 +300,8 @@ mod property_tests {
             let mut sorted = data.clone();
             sorted.sort();
             let p = percentile(&sorted, pct);
-            let min = *sorted.first().unwrap() as f64;
-            let max = *sorted.last().unwrap() as f64;
+            let min = sorted.first().copied().unwrap_or(0) as f64;
+            let max = sorted.last().copied().unwrap_or(0) as f64;
             prop_assert!(p >= min && p <= max,
                 "percentile {p} outside [{min}, {max}]");
         }

@@ -52,8 +52,8 @@ fuzz_target!(|data: &[u8]| {
 
     let pct = (data[0] as f64) / 255.0;
     let p = percentile(&values, pct);
-    assert!(p >= *values.first().unwrap() as f64);
-    assert!(p <= *values.last().unwrap() as f64);
+    assert!(p >= values.first().copied().unwrap_or(0) as f64);
+    assert!(p <= values.last().copied().unwrap_or(0) as f64);
     assert_eq!(p, percentile(&values, pct));
 
     let gini = gini_coefficient(&values);

@@ -156,8 +156,8 @@ proptest! {
     ) {
         let sum: f64 = values.iter().map(|v| *v as f64).sum();
         let mean = sum / values.len() as f64;
-        let min_val = *values.iter().min().unwrap() as f64;
-        let max_val = *values.iter().max().unwrap() as f64;
+        let min_val = values.iter().min().copied().unwrap_or(0) as f64;
+        let max_val = values.iter().max().copied().unwrap_or(0) as f64;
         prop_assert!(mean >= min_val, "mean {mean} < min {min_val}");
         prop_assert!(mean <= max_val, "mean {mean} > max {max_val}");
     }

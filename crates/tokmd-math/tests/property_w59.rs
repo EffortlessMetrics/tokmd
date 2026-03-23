@@ -59,8 +59,8 @@ proptest! {
     ) {
         data.sort();
         let p = percentile(&data, pct);
-        let min = *data.first().unwrap() as f64;
-        let max = *data.last().unwrap() as f64;
+        let min = data.first().copied().unwrap_or(0) as f64;
+        let max = data.last().copied().unwrap_or(0) as f64;
         prop_assert!(p >= min, "percentile {p} < min {min}");
         prop_assert!(p <= max, "percentile {p} > max {max}");
     }
@@ -71,7 +71,7 @@ proptest! {
     ) {
         data.sort();
         let p = percentile(&data, 0.0);
-        prop_assert_eq!(p, *data.first().unwrap() as f64);
+        prop_assert_eq!(p, data.first().copied().unwrap_or(0) as f64);
     }
 
     #[test]
@@ -80,7 +80,7 @@ proptest! {
     ) {
         data.sort();
         let p = percentile(&data, 1.0);
-        prop_assert_eq!(p, *data.last().unwrap() as f64);
+        prop_assert_eq!(p, data.last().copied().unwrap_or(0) as f64);
     }
 
     #[test]
