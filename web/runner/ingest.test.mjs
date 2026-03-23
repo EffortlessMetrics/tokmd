@@ -37,7 +37,16 @@ test("parseGitHubRepo accepts owner/repo and GitHub URLs", () => {
         owner: "EffortlessMetrics",
         repo: "tokmd",
     });
+    assert.deepEqual(parseGitHubRepo("https://github.com/EffortlessMetrics/tokmd?tab=readme"), {
+        owner: "EffortlessMetrics",
+        repo: "tokmd",
+    });
+    assert.deepEqual(parseGitHubRepo("https://github.com/EffortlessMetrics/tokmd.git/"), {
+        owner: "EffortlessMetrics",
+        repo: "tokmd",
+    });
     assert.throws(() => parseGitHubRepo("tokmd"), /owner\/repo/);
+    assert.throws(() => parseGitHubRepo("git@github.com:EffortlessMetrics/tokmd.git"), /owner\/repo/);
 });
 
 test("selectGitHubTreeEntries filters vendor, binary, and oversized files deterministically", () => {
@@ -55,11 +64,12 @@ test("selectGitHubTreeEntries filters vendor, binary, and oversized files determ
 
     assert.deepEqual(
         result.selected.map((entry) => entry.path),
-        ["README.md", "src/lib.rs"]
+        ["README.md", "src/lib.rs", "_fix.py"]
     );
     assert.equal(result.stats.skippedVendor, 1);
     assert.equal(result.stats.skippedBinaryPath, 1);
     assert.equal(result.stats.skippedTooLarge, 1);
+    assert.equal(result.stats.skippedFileLimit, 0);
 });
 
 test("fetchGitHubRepoInputs materializes ordered inputs and reuses the in-memory cache", async () => {
@@ -116,6 +126,80 @@ test("fetchGitHubRepoInputs materializes ordered inputs and reuses the in-memory
     assert.equal(first.source.strategy, "github-tree-contents");
     assert.equal(calls.length, 3);
     assert.equal(second, first);
+});
+
+test("fetchGitHubRepoInputs backfills after early fetch-time skips", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [
+                    { path: "src/a.txt", size: 8, type: "blob" },
+                    { path: "src/b.txt", size: 8, type: "blob" },
+                    { path: "src/c.txt", size: 8, type: "blob" },
+                ],
+            });
+        }
+
+        if (url.includes("/contents/src/a.txt")) {
+            return new Response(new Uint8Array([0, 1, 2]).buffer, {
+                status: 200,
+                headers: { "content-type": "application/octet-stream" },
+            });
+        }
+
+        if (url.includes("/contents/src/b.txt")) {
+            return textResponse("alpha\n");
+        }
+
+        if (url.includes("/contents/src/c.txt")) {
+            return textResponse("beta\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        maxFiles: 2,
+        maxBytes: 128,
+        maxFileBytes: 64,
+    });
+
+    assert.deepEqual(
+        result.inputs.map((entry) => entry.path),
+        ["src/b.txt", "src/c.txt"]
+    );
+    assert.equal(result.ingest.loadedFiles, 2);
+    assert.equal(result.ingest.skippedBinaryContent, 1);
+});
+
+test("fetchGitHubRepoInputs rejects truncated tree listings", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                truncated: true,
+                tree: [{ path: "src/lib.rs", size: 32, type: "blob" }],
+            });
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    await assert.rejects(
+        () =>
+            fetchGitHubRepoInputs({
+                repo: "EffortlessMetrics/tokmd",
+                ref: "main",
+                fetchImpl,
+            }),
+        /truncated/
+    );
 });
 
 test("fetchGitHubRepoInputs fails cleanly when nothing browser-safe remains", async () => {

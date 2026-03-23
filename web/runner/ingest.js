@@ -82,6 +82,7 @@ const SECONDARY_PREFIXES = [
 ];
 
 const repoCache = new Map();
+const GITHUB_SEGMENT_PATTERN = /^[A-Za-z0-9_.-]+$/;
 
 function normalizePath(value) {
     return value.replaceAll("\\", "/");
@@ -194,7 +195,13 @@ async function fetchRepositoryTree(fetchImpl, owner, repo, ref) {
     const response = await fetchWithRateLimitMessage(fetchImpl, url, {
         headers: githubJsonHeaders(),
     });
-    return response.json();
+    const payload = await response.json();
+    if (payload?.truncated) {
+        throw new Error(
+            "GitHub tree listing was truncated; browser runner refuses partial repo loads"
+        );
+    }
+    return payload;
 }
 
 async function fetchFileBytes(fetchImpl, owner, repo, ref, path) {
@@ -216,25 +223,44 @@ export function parseGitHubRepo(value) {
         throw new Error("GitHub repository must be a string like owner/repo");
     }
 
-    let normalized = value.trim();
+    const normalized = value.trim();
     if (!normalized) {
         throw new Error("GitHub repository must not be empty");
     }
 
-    normalized = normalized
-        .replace(/^https?:\/\/github\.com\//i, "")
-        .replace(/\.git$/i, "")
-        .replace(/\/+$/g, "");
+    const fromSegments = (segments) => {
+        if (segments.length !== 2) {
+            throw new Error("GitHub repository must look like owner/repo");
+        }
 
-    const segments = normalized.split("/").filter(Boolean);
-    if (segments.length !== 2) {
+        const owner = segments[0];
+        const repo = segments[1].replace(/\.git$/i, "");
+
+        if (!owner || !repo) {
+            throw new Error("GitHub repository must look like owner/repo");
+        }
+
+        if (!GITHUB_SEGMENT_PATTERN.test(owner) || !GITHUB_SEGMENT_PATTERN.test(repo)) {
+            throw new Error("GitHub repository must look like owner/repo");
+        }
+
+        return { owner, repo };
+    };
+
+    if (/^https?:\/\//i.test(normalized)) {
+        const url = new URL(normalized);
+        if (!["github.com", "www.github.com"].includes(url.hostname.toLowerCase())) {
+            throw new Error("GitHub repository URL must point to github.com");
+        }
+
+        return fromSegments(url.pathname.split("/").filter(Boolean));
+    }
+
+    if (normalized.includes(":") || normalized.includes("?") || normalized.includes("#")) {
         throw new Error("GitHub repository must look like owner/repo");
     }
 
-    return {
-        owner: segments[0],
-        repo: segments[1],
-    };
+    return fromSegments(normalized.replace(/\/+$/g, "").split("/").filter(Boolean));
 }
 
 export function selectGitHubTreeEntries(entries, options = {}) {
@@ -277,11 +303,6 @@ export function selectGitHubTreeEntries(entries, options = {}) {
             continue;
         }
 
-        if (selected.length >= limits.maxFiles) {
-            stats.skippedFileLimit += 1;
-            continue;
-        }
-
         selected.push({
             path,
             size: typeof entry.size === "number" ? entry.size : null,
@@ -318,7 +339,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
         let skippedBinaryContent = 0;
         let skippedBudget = 0;
 
-        for (const entry of selection.selected) {
+        for (const [index, entry] of selection.selected.entries()) {
             const bytes = await fetchFileBytes(fetchImpl, owner, repo, ref, entry.path);
 
             if (bytes.length > limits.maxFileBytes) {
@@ -342,6 +363,11 @@ export async function fetchGitHubRepoInputs(options = {}) {
                 path: entry.path,
                 text,
             });
+
+            if (inputs.length >= limits.maxFiles) {
+                selection.stats.skippedFileLimit = selection.selected.length - index - 1;
+                break;
+            }
         }
 
         if (inputs.length === 0) {
