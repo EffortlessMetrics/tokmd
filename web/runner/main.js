@@ -3,10 +3,14 @@ import {
     createRunMessage,
     MESSAGE_TYPES,
 } from "./messages.js";
+import { fetchGitHubRepoInputs } from "./ingest.js";
 import { isProtocolMessage } from "./runtime.js";
 
+const repoInput = document.querySelector("[data-repo]");
+const refInput = document.querySelector("[data-ref]");
 const modeInput = document.querySelector("[data-mode]");
 const argsInput = document.querySelector("[data-args]");
+const loadRepoButton = document.querySelector("[data-load-repo]");
 const runButton = document.querySelector("[data-run]");
 const cancelButton = document.querySelector("[data-cancel]");
 const downloadButton = document.querySelector("[data-download]");
@@ -82,6 +86,19 @@ function setSampleArgs(mode) {
     argsInput.value = JSON.stringify(sampleArgsForMode(mode), null, 2);
 }
 
+function currentArgsOrSample(mode) {
+    try {
+        const parsed = JSON.parse(argsInput.value);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            return parsed;
+        }
+    } catch {
+        // Fall back to the canned payload for the current mode.
+    }
+
+    return sampleArgsForMode(mode);
+}
+
 function clearDownloadUrl() {
     if (state.downloadUrl) {
         URL.revokeObjectURL(state.downloadUrl);
@@ -121,6 +138,7 @@ function renderCapabilities(message) {
         `engine.analysisSchemaVersion: ${engine?.analysisSchemaVersion ?? "n/a"}`,
         `modes: ${(capabilities.modes ?? []).join(", ")}`,
         `analyzePresets: ${(capabilities.analyzePresets ?? []).join(", ")}`,
+        "repoFetch: GitHub tree + contents",
         `wasm: ${capabilities.wasm ? "yes" : "no"}`,
         `downloads: ${capabilities.downloads ? "yes" : "no"}`,
         `zipball: ${capabilities.zipball ? "yes" : "no"}`,
@@ -198,6 +216,47 @@ worker.addEventListener("message", (event) => {
 
 worker.addEventListener("error", (event) => {
     renderStatus(`worker boot failed: ${event.message}`);
+});
+
+loadRepoButton.addEventListener("click", async () => {
+    const repo = repoInput.value.trim();
+    const ref = refInput.value.trim() || "main";
+
+    loadRepoButton.disabled = true;
+    renderStatus(`loading ${repo}@${ref} from GitHub...`);
+
+    try {
+        const result = await fetchGitHubRepoInputs({
+            repo,
+            ref,
+        });
+        const nextArgs = {
+            ...currentArgsOrSample(modeInput.value),
+            inputs: result.inputs,
+        };
+
+        if (
+            modeInput.value === "analyze" &&
+            typeof nextArgs.preset !== "string" &&
+            typeof nextArgs.analyze?.preset !== "string"
+        ) {
+            nextArgs.preset = "estimate";
+        }
+
+        argsInput.value = JSON.stringify(nextArgs, null, 2);
+        appendLog("github -> main", {
+            source: result.source,
+            ingest: result.ingest,
+            samplePaths: result.inputs.slice(0, 5).map((input) => input.path),
+        });
+        renderStatus(
+            `loaded ${result.ingest.loadedFiles} files from ${result.source.repo}@${result.source.ref}`
+        );
+    } catch (error) {
+        renderStatus(`repo load failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+        loadRepoButton.disabled = false;
+    }
 });
 
 window.addEventListener("beforeunload", () => {

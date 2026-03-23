@@ -4,9 +4,10 @@
 
 It now boots `tokmd-wasm` inside a dedicated worker and runs the in-memory
 `lang`, `module`, `export`, and rootless `analyze` (`receipt` / `estimate`)
-paths locally in the browser. GitHub zipball ingestion, filtering, progress,
-and download flows still come later, but the worker contract and wasm bootstrap
-are live now.
+paths locally in the browser. Public GitHub repo acquisition now uses the
+browser-safe GitHub tree and contents APIs to materialize ordered in-memory
+inputs before dispatching into the worker. Zipball fetch, progress, and cancel
+still come later, but the worker contract and wasm bootstrap are live now.
 
 ## Files
 
@@ -36,6 +37,10 @@ Current behavior:
 - `ready` advertises supported modes plus `receipt` / `estimate` analyze presets
   and reports the loaded `tokmd-wasm` engine version
 - `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
+- the page can fetch a public GitHub `owner/repo@ref`, filter browser-unsafe
+  files, and materialize `inputs` rows directly into the request editor
+- public repo fetches use unauthenticated browser GitHub API calls, so they are
+  subject to GitHub rate limits for anonymous requests
 - `run` validates the request shape and executes the corresponding `tokmd-wasm`
   entrypoint
 - `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
