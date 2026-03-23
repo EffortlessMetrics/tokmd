@@ -382,7 +382,7 @@ mod histogram_round2 {
         }];
         let h = generate_complexity_histogram(&files, 5);
         assert_eq!(
-            *h.counts.last().unwrap(),
+            h.counts.last().copied().unwrap_or(0),
             1,
             "huge complexity in last bucket"
         );

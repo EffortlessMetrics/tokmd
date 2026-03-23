@@ -51,5 +51,19 @@
       "clippy"
     ],
     "status": "PASS"
+  },
+  {
+    "date": "2026-03-23T12:10:16Z",
+    "lane": "scout discovery",
+    "target": "Burn down `.unwrap()` on `first()` and `last()` in tests",
+    "pr": null,
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

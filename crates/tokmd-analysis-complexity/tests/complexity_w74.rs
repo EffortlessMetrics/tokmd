@@ -63,7 +63,7 @@ fn histogram_high_complexity_clamped_to_last_bucket() {
     let hist = generate_complexity_histogram(&files, 5);
     assert_eq!(hist.total, 1);
     // Should land in the last bucket (30+)
-    assert_eq!(*hist.counts.last().unwrap(), 1);
+    assert_eq!(hist.counts.last().copied().unwrap_or(0), 1);
 }
 
 #[test]
