@@ -39,6 +39,8 @@ Current behavior:
 - `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
 - the page can fetch a public GitHub `owner/repo@ref`, filter browser-unsafe
   files, and materialize `inputs` rows directly into the request editor
+- public repo fetches use unauthenticated browser GitHub API calls, so they are
+  subject to GitHub rate limits for anonymous requests
 - `run` validates the request shape and executes the corresponding `tokmd-wasm`
   entrypoint
 - `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
