@@ -107,6 +107,16 @@ h1 {
     gap: 0.35rem;
 }
 
+.inline-fields {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.4fr);
+}
+
+.field.compact {
+    min-width: 0;
+}
+
 .field label {
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -115,6 +125,7 @@ h1 {
 }
 
 select,
+input,
 textarea,
 button,
 pre {
@@ -122,6 +133,7 @@ pre {
 }
 
 select,
+input,
 textarea {
     width: 100%;
     border: 1px solid var(--line);
@@ -214,6 +226,10 @@ pre {
 
 @media (max-width: 900px) {
     .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inline-fields {
         grid-template-columns: 1fr;
     }
 }
