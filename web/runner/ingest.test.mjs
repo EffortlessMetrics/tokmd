@@ -282,7 +282,7 @@ test("fetchGitHubRepoInputs forwards token auth and tracks auth mode", async () 
     assert.equal(result.ingest.authMode, "token");
     assert.deepEqual(
         calls.map((call) => call.authorization),
-        ["Bearer secret-token", "Bearer secret-token"]
+        ["token secret-token", "token secret-token"]
     );
 });
 

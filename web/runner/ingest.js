@@ -193,7 +193,7 @@ function buildGitHubHeaders(accept, token) {
     const headers = { Accept: accept };
 
     if (token) {
-        headers.Authorization = `Bearer ${token}`;
+        headers.Authorization = `token ${token}`;
     }
 
     return headers;
