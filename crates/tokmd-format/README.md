@@ -98,7 +98,7 @@ assert_eq!(normalized, "src/lib.rs");
 
 ## Re-exports
 
-```rust,ignore
+```rust,no_run
 pub use tokmd_redact::{redact_path, short_hash};
 ```
 

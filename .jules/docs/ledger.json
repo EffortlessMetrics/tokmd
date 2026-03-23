@@ -10,5 +10,11 @@
     "timestamp": "2026-03-22T09:47:23+00:00",
     "lane": "docs",
     "description": "Add doctest to tokmd_scan::scan"
+  },
+  {
+    "date": "2026-03-23T10:13:54Z",
+    "run_id": "55d008a4-139a-4d03-91c8-9982ad3a5e0e",
+    "action": "fix_doctest_drift",
+    "target": "README.md"
   }
 ]

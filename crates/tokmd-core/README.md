@@ -120,7 +120,7 @@ For ordered virtual inputs, pass `scan.inputs` instead of `paths`. Bindings may 
 
 For convenience, the crate re-exports:
 
-```rust,ignore
+```rust,no_run
 pub use tokmd_config as config;
 pub use tokmd_types as types;
 ```

@@ -1,0 +1,10 @@
+{
+  "run_id": "55d008a4-139a-4d03-91c8-9982ad3a5e0e",
+  "timestamp": "2026-03-23T10:13:54Z",
+  "lane": "docs",
+  "target": ["crates/tokmd-core/README.md", "crates/tokmd-format/README.md"],
+  "receipts": {
+    "test_docs_core": "cargo test -p tokmd-core --doc",
+    "test_docs_format": "cargo test -p tokmd-format --doc"
+  }
+}
