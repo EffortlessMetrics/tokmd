@@ -222,8 +222,8 @@ proptest! {
     ) {
         values.sort();
         let result = percentile(&values, pct);
-        let min = *values.first().unwrap() as f64;
-        let max = *values.last().unwrap() as f64;
+        let min = values.first().copied().unwrap_or_default() as f64;
+        let max = values.last().copied().unwrap_or_default() as f64;
         prop_assert!((min..=max).contains(&result),
             "percentile should be within [min, max]: {} not in [{}, {}]", result, min, max);
     }

@@ -1339,7 +1339,7 @@ mod histogram {
         }];
         let hist = generate_complexity_histogram(&files, 5);
         // Complexity 50 should be in last bucket (30+)
-        assert_eq!(*hist.counts.last().unwrap(), 1);
+        assert_eq!(hist.counts.last().copied().unwrap_or(0), 1);
     }
 
     #[test]

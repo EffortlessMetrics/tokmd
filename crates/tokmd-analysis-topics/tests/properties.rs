@@ -15,7 +15,7 @@ fn arb_segment() -> impl Strategy<Value = String> {
 fn arb_path() -> impl Strategy<Value = String> {
     prop::collection::vec(arb_segment(), 1..=5).prop_map(|segs| {
         let dir = segs[..segs.len().saturating_sub(1)].join("/");
-        let file = segs.last().unwrap().clone();
+        let file = segs.last().cloned().unwrap_or_default();
         if dir.is_empty() {
             format!("{file}.rs")
         } else {
