@@ -1,8 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { Worker } from "node:worker_threads";
 
 import { MESSAGE_TYPES } from "./messages.js";
+
+const HAS_REAL_WASM_BUNDLE =
+    existsSync(new URL("./vendor/tokmd-wasm/tokmd_wasm.js", import.meta.url)) &&
+    existsSync(new URL("./vendor/tokmd-wasm/tokmd_wasm_bg.wasm", import.meta.url));
 
 function onceMessage(worker) {
     return new Promise((resolve, reject) => {
@@ -74,3 +79,45 @@ test("worker forwards run messages through the runtime", async () => {
         await worker.terminate();
     }
 });
+
+test(
+    "worker boots the real tokmd-wasm bundle when it has been built",
+    async (t) => {
+        if (!HAS_REAL_WASM_BUNDLE) {
+            t.skip("built tokmd-wasm bundle not present");
+        }
+
+        const worker = new Worker(new URL("./worker.js", import.meta.url), {
+            type: "module",
+        });
+
+        try {
+            const ready = await onceMessage(worker);
+
+            assert.equal(ready.type, MESSAGE_TYPES.READY);
+            assert.equal(ready.capabilities.wasm, true);
+            assert.notEqual(ready.engine.version, "stub");
+            assert.ok(ready.engine.schemaVersion > 0);
+
+            worker.postMessage({
+                type: "run",
+                requestId: "run-real-lang",
+                mode: "lang",
+                args: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                    files: true,
+                },
+            });
+
+            const result = await onceMessage(worker);
+
+            assert.equal(result.type, MESSAGE_TYPES.RESULT);
+            assert.equal(result.requestId, "run-real-lang");
+            assert.equal(result.data.mode, "lang");
+            assert.equal(result.data.total.files, 1);
+            assert.equal(result.data.scan.paths[0], "src/lib.rs");
+        } finally {
+            await worker.terminate();
+        }
+    }
+);

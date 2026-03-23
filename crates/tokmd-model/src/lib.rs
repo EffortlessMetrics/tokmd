@@ -104,11 +104,74 @@ fn language_from_in_memory_shebang(bytes: &[u8]) -> Option<LanguageType> {
 
     let mut words = first_line.split_whitespace();
     if words.next() == Some("#!/usr/bin/env") {
-        let interpreter = words.find(|word| !word.starts_with('-') && !word.contains('='))?;
+        let interpreter = env_interpreter_token(words)?;
         return language_from_env_interpreter(interpreter);
     }
 
     None
+}
+
+fn env_interpreter_token<'a>(words: impl Iterator<Item = &'a str>) -> Option<&'a str> {
+    let mut skip_next = false;
+
+    for word in words {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+
+        if word.is_empty() {
+            continue;
+        }
+
+        if looks_like_env_assignment(word) {
+            continue;
+        }
+
+        match word {
+            "-S" | "--split-string" | "-i" | "--ignore-environment" => continue,
+            "-u" | "--unset" | "-C" | "--chdir" | "-P" | "--default-path" | "-a" | "--argv0"
+            | "--default-signal" | "--ignore-signal" | "--block-signal" => {
+                skip_next = true;
+                continue;
+            }
+            _ if word.starts_with("--unset=")
+                || word.starts_with("--chdir=")
+                || word.starts_with("--default-path=")
+                || word.starts_with("--argv0=")
+                || word.starts_with("--default-signal=")
+                || word.starts_with("--ignore-signal=")
+                || word.starts_with("--block-signal=") =>
+            {
+                continue;
+            }
+            _ if word.starts_with('-') => continue,
+            _ => return Some(word),
+        }
+    }
+
+    None
+}
+
+fn looks_like_env_assignment(word: &str) -> bool {
+    let Some((name, _)) = word.split_once('=') else {
+        return false;
+    };
+
+    if name.is_empty() {
+        return false;
+    }
+
+    let mut chars = name.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+
+    if !(first == '_' || first.is_ascii_alphabetic()) {
+        return false;
+    }
+
+    chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
 fn language_from_env_interpreter(interpreter: &str) -> Option<LanguageType> {
