@@ -6,6 +6,10 @@ It exposes thin `wasm-bindgen` bindings over `tokmd-core`'s JSON API so browser
 and worker callers can run `lang`, `module`, `export`, and `analyze` against
 ordered in-memory inputs without going through the CLI.
 
+The current browser acquisition story lives one layer up in `web/runner`, which
+materializes public GitHub repos through the tree and contents APIs before
+dispatching those ordered in-memory inputs into `tokmd-wasm`.
+
 Analyze entrypoints are intentionally narrower today: only
 `preset: "receipt"` and `preset: "estimate"` are browser-safe in the wasm
 wrapper. Richer analyze presets still depend on the filesystem-backed scan

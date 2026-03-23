@@ -28,6 +28,7 @@
 - **Derived analysis**: doc density, test density, hotspots, coupling, freshness, and effort estimation.
 - **Review workflows**: `diff`, `cockpit`, `gate`, `baseline`, and `sensor.report.v1` output.
 - **LLM workflows**: `context` packing, `handoff` bundles, token estimates, redaction, and smart excludes.
+- **Browser/WASM workflows**: `tokmd-wasm` plus `web/runner` for local browser `lang`, `module`, `export`, and `analyze` (`receipt`, `estimate`) on ordered in-memory inputs.
 - **Cross-platform behavior**: Windows/Linux/macOS-friendly outputs, release automation, and repo-native CI usage.
 
 ## Why Deterministic Matters
@@ -251,7 +252,19 @@ See the [CLI Reference](docs/reference-cli.md#configuration-file) for the full c
 - **`tokmd-core`** is the clap-free facade for embedding workflows in Rust or via FFI.
 - **Python bindings** live in `crates/tokmd-python`.
 - **Node bindings** live in `crates/tokmd-node`.
+- **`tokmd-wasm`** exposes browser/worker bindings for `lang`, `module`, `export`, and browser-safe `analyze` (`receipt`, `estimate`).
+- **`web/runner`** is the static browser shell that boots the real wasm bundle in a worker and can load public GitHub repos through the tree+contents APIs.
 - **Tool-schema output** is available through `tokmd tools` for agent/tool consumers.
+
+## Browser/WASM Status
+
+Browser support is real now, but intentionally narrower than the full native CLI surface.
+
+- Supported today: `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate` on ordered in-memory `{ path, text }` inputs.
+- Public repo acquisition uses the browser-safe GitHub tree and contents APIs, with deterministic ordering and browser-side size/file limits.
+- Unsupported today: zipball fetch as the primary browser path, git-history enrichers, broader filesystem-backed analyze presets, and real cancel/progress flows.
+
+See [crates/tokmd-wasm/README.md](crates/tokmd-wasm/README.md) and [web/runner/README.md](web/runner/README.md) for the current browser contract.
 
 ## Installation
 

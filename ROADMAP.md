@@ -32,7 +32,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, and CI fixes. |
 | **v1.7.x** | ✅ Complete | Deep test expansion across the workspace, sensor determinism, and the first `tokmd-io-port` seam. |
 | **v1.8.0** | ✅ Complete | Effort estimation, estimate preset/reporting, `tokmd-io-port` seam work, and release/devex hardening. |
-| **v1.9.0** | 🔭 Planned  | Finish WASM-ready core + browser runner: in-memory scan, wasm CI, zipball ingestion |
+| **v1.9.0** | 🚧 In progress | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 | **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
@@ -476,27 +476,37 @@ UX work is explicitly **incremental and non-breaking**:
 
 - The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
 
-## Planned: v1.9.0 — Finish WASM-Ready Core + Browser Runner
+## In Progress: v1.9.0 — Browser/WASM Productization
 
-**Goal:** Complete the in-memory/WASM execution path and provide a browser-first runner that can generate deterministic receipts locally from a fetched repo archive.
+**Goal:** Finish the browser/WASM product surface around the already-landed in-memory execution path and make the supported browser workflow explicit, repeatable, and capability-honest.
 
-### Work items
+### What has landed so far
 
-- Wire `tokmd-io-port` through scan and walk paths so scans can run entirely from a host-provided in-memory substrate.
-- Add an in-memory scan pipeline that accepts ordered `(path, bytes)` inputs and preserves deterministic output.
-- Keep CLI/Clap separation hard so lower-tier library crates stay free of OS-bound argument types.
-- Add a `wasm`/`web` feature profile and CI builds for `wasm32-unknown-unknown`, plus conformance tests against native output.
-- `tokmd-wasm` crate: expose JS-friendly APIs (via `wasm-bindgen`) for `run_lang`, `run_module`, `run_export`, and `run_analyze`.
-- Browser runner (static app): minimal web UI (repo URL + ref + Run), Web Worker execution, progress updates, cancel, and artifact download.
-- Zipball ingestion: fetch `https://api.github.com/repos/{owner}/{repo}/zipball/{ref}`, unzip in-browser, filter files, and feed `(path, bytes)` to wasm.
-- Caching & guardrails: IndexedDB cache keyed by `(repo,ref,options)`, ETag support, and hard limits for archive size, file count, and bytes read.
-- Capability reporting: outputs include a capabilities section describing what ran and what was unavailable (for example, git-history metrics).
-- Packaging & distribution: publish the WASM bundle as a pinned artifact (GitHub release / npm) for the web app to consume.
+- [x] `tokmd-io-port`, in-memory scan/model/core workflow seams, and lower-tier clap-free boundaries now keep browser/WASM execution honest.
+- [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`.
+- [x] Native-vs-wasm parity coverage now exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
+- [x] `web/runner` now boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
+- [x] Public GitHub repo acquisition now uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
+
+### Supported browser-safe surface today
+
+- Browser/WASM modes: `lang`, `module`, `export`
+- Browser/WASM analyze presets: `receipt`, `estimate`
+- Public repo acquisition strategy: GitHub tree + contents API, not zipball fetch
+- Capability reporting is explicit about unavailable host-backed enrichers and reserved protocol features
+
+### Remaining for v1.9.0
+
+- Package and publish the `tokmd-wasm` bundle through one pinned, documented distribution path.
+- Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface.
+- Add browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling.
+- Expand browser-safe analysis only where the preset can stay rootless and capability-honest.
 
 ### Non-goals for v1.9
 
-- No git-history churn/hotspot metrics in browser mode (offer backend escape hatch later).
-- No mutation testing or heavy tooling in-browser.
+- No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
+- No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
+- No mutation testing or other heavy tooling in-browser.
 
 ## Future Horizons
 

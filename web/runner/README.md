@@ -1,13 +1,14 @@
 # Browser Runner
 
-`web/runner` is the first browser-facing slice for `tokmd` `1.9.0`.
+`web/runner` is the browser-facing `tokmd` slice for the current `1.9.0` lane.
 
 It now boots `tokmd-wasm` inside a dedicated worker and runs the in-memory
 `lang`, `module`, `export`, and rootless `analyze` (`receipt` / `estimate`)
 paths locally in the browser. Public GitHub repo acquisition now uses the
 browser-safe GitHub tree and contents APIs to materialize ordered in-memory
-inputs before dispatching into the worker. Zipball fetch, progress, and cancel
-still come later, but the worker contract and wasm bootstrap are live now.
+inputs before dispatching into the worker. Zipball fetch remains out of the
+current browser contract, and progress/cancel are still later work, but the
+worker contract and wasm bootstrap are live now.
 
 ## Files
 
@@ -41,6 +42,8 @@ Current behavior:
   files, and materialize `inputs` rows directly into the request editor
 - public repo fetches use unauthenticated browser GitHub API calls, so they are
   subject to GitHub rate limits for anonymous requests
+- analyze presets beyond `receipt` / `estimate` are intentionally rejected in
+  browser mode instead of degrading silently
 - `run` validates the request shape and executes the corresponding `tokmd-wasm`
   entrypoint
 - `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
