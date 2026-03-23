@@ -118,6 +118,7 @@ const runnerReady = loadTokmdRunner()
             createReadyMessage({
                 capabilities: {
                     wasm: true,
+                    downloads: true,
                 },
                 engine: loadedRunner.engine,
             })

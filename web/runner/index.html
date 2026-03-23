@@ -47,8 +47,16 @@
         </section>
 
         <section class="panel">
-          <h2>Capabilities</h2>
+          <div class="panel-header">
+            <h2>Capabilities</h2>
+          </div>
           <pre data-capabilities>{}</pre>
+
+          <div class="panel-header">
+            <h2>Latest Result</h2>
+            <button class="secondary ghost" type="button" data-download disabled>Download JSON</button>
+          </div>
+          <pre data-result>waiting for first result...</pre>
 
           <h2>Protocol Log</h2>
           <div class="log" data-log></div>

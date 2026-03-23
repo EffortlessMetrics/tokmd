@@ -39,6 +39,10 @@ Current behavior:
 - `run` validates the request shape and executes the corresponding `tokmd-wasm`
   entrypoint
 - `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
+- the page renders the capability block explicitly instead of leaving it as raw
+  worker noise
+- the latest successful result is shown in a dedicated artifact pane and can be
+  downloaded as JSON from the browser
 
 ## Build The Browser Bundle
 

@@ -42,6 +42,7 @@ test("worker publishes ready on boot", async () => {
 
         assert.equal(message.type, MESSAGE_TYPES.READY);
         assert.equal(message.capabilities.cancel, false);
+        assert.equal(message.capabilities.downloads, true);
         assert.equal(message.capabilities.wasm, true);
         assert.equal(message.engine.version, "stub");
     } finally {
@@ -116,6 +117,25 @@ test(
             assert.equal(result.data.mode, "lang");
             assert.equal(result.data.total.files, 1);
             assert.equal(result.data.scan.paths[0], "src/lib.rs");
+
+            worker.postMessage({
+                type: "run",
+                requestId: "run-real-estimate",
+                mode: "analyze",
+                args: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                    preset: "estimate",
+                },
+            });
+
+            const analyze = await onceMessage(worker);
+
+            assert.equal(analyze.type, MESSAGE_TYPES.RESULT);
+            assert.equal(analyze.requestId, "run-real-estimate");
+            assert.equal(analyze.data.mode, "analysis");
+            assert.equal(analyze.data.args.preset, "estimate");
+            assert.equal(analyze.data.source.inputs[0], "src/lib.rs");
+            assert.equal(analyze.data.effort.model, "cocomo81-basic");
         } finally {
             await worker.terminate();
         }
