@@ -49,5 +49,19 @@
       "cargo clippy -p tokmd-node -p tokmd-python -- -D warnings",
       "cargo fmt -- --check"
     ]
+  },
+  {
+    "run_id": "9ce74cba-4438-4a7d-8cf1-502e69ab10b5",
+    "date": "2026-03-23T11:56:39Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "xtask",
+    "action": "remove unused dependencies console, indicatif, and serde",
+    "receipts": [
+      "cargo machete output identifying unused dependencies in xtask",
+      "cargo check -p xtask completed successfully",
+      "cargo clippy -p xtask -- -D warnings completed successfully",
+      "cargo fmt --manifest-path xtask/Cargo.toml -- --check completed successfully"
+    ]
   }
 ]
