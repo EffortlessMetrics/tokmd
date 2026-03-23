@@ -9,15 +9,20 @@ const modeInput = document.querySelector("[data-mode]");
 const argsInput = document.querySelector("[data-args]");
 const runButton = document.querySelector("[data-run]");
 const cancelButton = document.querySelector("[data-cancel]");
+const downloadButton = document.querySelector("[data-download]");
 const statusOutput = document.querySelector("[data-status]");
 const capabilitiesOutput = document.querySelector("[data-capabilities]");
+const resultOutput = document.querySelector("[data-result]");
 const logOutput = document.querySelector("[data-log]");
 
 const state = {
     nextRequestId: 1,
     activeRequestId: null,
+    downloadUrl: null,
+    latestResult: null,
     capabilities: {
         cancel: false,
+        downloads: false,
     },
 };
 
@@ -47,7 +52,14 @@ function sampleArgsForMode(mode) {
             };
         case "module":
         case "export":
+            return {
+                inputs: sampleInputs(),
+            };
         case "analyze":
+            return {
+                inputs: sampleInputs(),
+                preset: "estimate",
+            };
         default:
             return {
                 inputs: sampleInputs(),
@@ -70,14 +82,78 @@ function setSampleArgs(mode) {
     argsInput.value = JSON.stringify(sampleArgsForMode(mode), null, 2);
 }
 
+function clearDownloadUrl() {
+    if (state.downloadUrl) {
+        URL.revokeObjectURL(state.downloadUrl);
+        state.downloadUrl = null;
+    }
+
+    delete downloadButton.dataset.filename;
+}
+
+function updateDownloadButtonState() {
+    downloadButton.disabled = !(
+        state.capabilities.downloads &&
+        state.downloadUrl &&
+        state.latestResult
+    );
+}
+
+function artifactFileName(data) {
+    if (!data || typeof data !== "object") {
+        return "tokmd-result.json";
+    }
+
+    if (data.mode === "analysis") {
+        const preset = data.args?.preset ?? data.preset ?? "receipt";
+        return `tokmd-analysis-${preset}.json`;
+    }
+
+    const mode = typeof data.mode === "string" ? data.mode : "result";
+    return `tokmd-${mode}.json`;
+}
+
+function renderCapabilities(message) {
+    const { capabilities = {}, engine = null } = message;
+    const lines = [
+        `engine.version: ${engine?.version ?? "unknown"}`,
+        `engine.schemaVersion: ${engine?.schemaVersion ?? "n/a"}`,
+        `engine.analysisSchemaVersion: ${engine?.analysisSchemaVersion ?? "n/a"}`,
+        `modes: ${(capabilities.modes ?? []).join(", ")}`,
+        `analyzePresets: ${(capabilities.analyzePresets ?? []).join(", ")}`,
+        `wasm: ${capabilities.wasm ? "yes" : "no"}`,
+        `downloads: ${capabilities.downloads ? "yes" : "no"}`,
+        `zipball: ${capabilities.zipball ? "yes" : "no"}`,
+        `progress: ${capabilities.progress ? "yes" : "no"}`,
+        `cancel: ${capabilities.cancel ? "yes" : "no"}`,
+    ];
+    capabilitiesOutput.textContent = lines.join("\n");
+}
+
+function renderLatestResult(data) {
+    state.latestResult = data;
+    clearDownloadUrl();
+    resultOutput.textContent = JSON.stringify(data, null, 2);
+
+    if (!state.capabilities.downloads) {
+        updateDownloadButtonState();
+        return;
+    }
+
+    const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], {
+        type: "application/json",
+    });
+    state.downloadUrl = URL.createObjectURL(blob);
+    downloadButton.dataset.filename = artifactFileName(data);
+    updateDownloadButtonState();
+}
+
 function setCapabilities(message) {
     state.capabilities = {
         ...message.capabilities,
     };
-    capabilitiesOutput.textContent = JSON.stringify({
-        capabilities: message.capabilities,
-        engine: message.engine ?? null,
-    }, null, 2);
+    renderCapabilities(message);
+    updateDownloadButtonState();
     cancelButton.disabled = true;
 }
 
@@ -104,6 +180,7 @@ worker.addEventListener("message", (event) => {
                 state.activeRequestId = null;
             }
             cancelButton.disabled = true;
+            renderLatestResult(message.data);
             renderStatus(`completed ${message.requestId}`);
             break;
         case MESSAGE_TYPES.ERROR:
@@ -121,6 +198,10 @@ worker.addEventListener("message", (event) => {
 
 worker.addEventListener("error", (event) => {
     renderStatus(`worker boot failed: ${event.message}`);
+});
+
+window.addEventListener("beforeunload", () => {
+    clearDownloadUrl();
 });
 
 modeInput.addEventListener("change", () => {
@@ -161,6 +242,19 @@ cancelButton.addEventListener("click", () => {
     const message = createCancelMessage(state.activeRequestId);
     appendLog("main -> worker", message);
     worker.postMessage(message);
+});
+
+downloadButton.addEventListener("click", () => {
+    if (!state.downloadUrl || !state.latestResult) {
+        renderStatus("no result to download yet");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.href = state.downloadUrl;
+    link.download = downloadButton.dataset.filename || "tokmd-result.json";
+    link.click();
+    renderStatus(`downloaded ${link.download}`);
 });
 
 renderStatus("starting worker...");

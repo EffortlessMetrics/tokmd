@@ -78,6 +78,13 @@ h1 {
     padding: 1.25rem;
 }
 
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
 .panel h2 {
     margin: 0 0 0.75rem;
     font-size: 1rem;
@@ -171,6 +178,10 @@ button:disabled {
     color: var(--ink);
 }
 
+.ghost {
+    padding: 0.65rem 0.95rem;
+}
+
 .status {
     padding: 0.85rem 1rem;
     border-radius: 14px;
@@ -185,6 +196,9 @@ pre {
     border-radius: 14px;
     background: rgba(38, 31, 24, 0.97);
     color: #f9f3e7;
+    white-space: pre-wrap;
+    word-break: normal;
+    overflow-wrap: anywhere;
 }
 
 .log {
