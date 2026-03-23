@@ -4957,11 +4957,8 @@ dependencies = [
  "cargo_metadata",
  "chrono",
  "clap",
- "console 0.16.3",
- "indicatif",
  "petgraph",
  "semver",
- "serde",
  "serde_json",
  "toml 1.0.7+spec-1.1.0",
 ]
