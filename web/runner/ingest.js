@@ -145,66 +145,314 @@ function decodeText(bytes) {
     }
 }
 
+function normalizePositiveLimit(name, value, fallback) {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+        throw new Error(`${name} must be a positive number`);
+    }
+
+    return Math.floor(numeric);
+}
+
 function normalizeLimits(options = {}) {
     return {
-        maxFiles: options.maxFiles ?? DEFAULT_LIMITS.maxFiles,
-        maxBytes: options.maxBytes ?? DEFAULT_LIMITS.maxBytes,
-        maxFileBytes: options.maxFileBytes ?? DEFAULT_LIMITS.maxFileBytes,
+        maxFiles: normalizePositiveLimit("maxFiles", options.maxFiles, DEFAULT_LIMITS.maxFiles),
+        maxBytes: normalizePositiveLimit("maxBytes", options.maxBytes, DEFAULT_LIMITS.maxBytes),
+        maxFileBytes: normalizePositiveLimit(
+            "maxFileBytes",
+            options.maxFileBytes,
+            DEFAULT_LIMITS.maxFileBytes
+        ),
     };
 }
 
-function buildCacheKey({ owner, repo, ref, limits }) {
+function normalizeToken(value) {
+    if (typeof value !== "string") {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+}
+
+function buildCacheKey({ owner, repo, ref, limits, token }) {
     return JSON.stringify({
         owner,
         repo,
         ref,
+        auth: token ? `token:${token}` : "anonymous",
         ...limits,
     });
 }
 
-function rawContentHeaders() {
+function buildGitHubHeaders(accept, token) {
+    const headers = { Accept: accept };
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+}
+
+function rawContentHeaders(token) {
+    return buildGitHubHeaders("application/vnd.github.raw+json", token);
+}
+
+function githubJsonHeaders(token) {
+    return buildGitHubHeaders("application/vnd.github+json", token);
+}
+
+function createIngestError(code, message, extra = {}) {
+    const error = new Error(message);
+    error.code = code;
+    return Object.assign(error, extra);
+}
+
+function createAbortError() {
+    return createIngestError("repo_load_aborted", "GitHub repo load was canceled", {
+        name: "AbortError",
+    });
+}
+
+function normalizeAbortReason(error, signal) {
+    if (
+        signal?.aborted ||
+        error?.name === "AbortError" ||
+        error?.code === "ABORT_ERR"
+    ) {
+        return createAbortError();
+    }
+
+    return error;
+}
+
+function throwIfAborted(signal) {
+    if (signal?.aborted) {
+        throw createAbortError();
+    }
+}
+
+function withAbortSignal(promise, signal) {
+    if (!signal) {
+        return promise;
+    }
+
+    throwIfAborted(signal);
+
+    return new Promise((resolve, reject) => {
+        const onAbort = () => {
+            cleanup();
+            reject(createAbortError());
+        };
+        const cleanup = () => {
+            signal.removeEventListener("abort", onAbort);
+        };
+
+        signal.addEventListener("abort", onAbort, { once: true });
+
+        promise.then(
+            (value) => {
+                cleanup();
+                resolve(value);
+            },
+            (error) => {
+                cleanup();
+                reject(normalizeAbortReason(error, signal));
+            }
+        );
+    });
+}
+
+function parseRetryAfterSeconds(headers) {
+    const raw = headers.get("retry-after");
+    if (!raw) {
+        return null;
+    }
+
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function parseRateLimitResetAt(headers) {
+    const raw = headers.get("x-ratelimit-reset");
+    if (!raw) {
+        return null;
+    }
+
+    const epochSeconds = Number(raw);
+    return Number.isFinite(epochSeconds) && epochSeconds > 0
+        ? new Date(epochSeconds * 1000).toISOString()
+        : null;
+}
+
+async function readResponseMessage(response) {
+    try {
+        const text = await response.text();
+        if (!text) {
+            return "";
+        }
+
+        try {
+            const parsed = JSON.parse(text);
+            return typeof parsed?.message === "string" ? parsed.message : text;
+        } catch {
+            return text;
+        }
+    } catch {
+        return "";
+    }
+}
+
+function emitProgress(callback, update) {
+    if (typeof callback === "function") {
+        callback(update);
+    }
+}
+
+function withCacheHit(result) {
     return {
-        Accept: "application/vnd.github.raw+json",
+        ...result,
+        ingest: {
+            ...result.ingest,
+            cache: {
+                ...result.ingest.cache,
+                hit: true,
+            },
+        },
     };
 }
 
-function githubJsonHeaders() {
-    return {
-        Accept: "application/vnd.github+json",
-    };
+function buildPartialReasons({
+    treeTruncated,
+    skippedTooLarge,
+    skippedBudget,
+    skippedFileLimit,
+}) {
+    const reasons = [];
+
+    if (treeTruncated) {
+        reasons.push({
+            code: "tree_truncated",
+            message: "GitHub truncated the recursive tree listing; only part of the repo may be loaded.",
+        });
+    }
+
+    if (skippedTooLarge > 0) {
+        reasons.push({
+            code: "too_large_files",
+            message: `${skippedTooLarge} file(s) exceeded the per-file byte limit and were skipped.`,
+        });
+    }
+
+    if (skippedBudget > 0) {
+        reasons.push({
+            code: "byte_budget",
+            message: `${skippedBudget} file(s) were skipped after the total byte budget was reached.`,
+        });
+    }
+
+    if (skippedFileLimit > 0) {
+        reasons.push({
+            code: "file_limit",
+            message: `${skippedFileLimit} candidate file(s) were not loaded after reaching the file limit.`,
+        });
+    }
+
+    return reasons;
 }
 
 async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
-    const response = await fetchImpl(url, options);
+    throwIfAborted(options.signal);
+
+    const response = await withAbortSignal(fetchImpl(url, options), options.signal);
     if (response.ok) {
         return response;
     }
 
+    const authMode = options.authMode ?? "anonymous";
+    const message = await readResponseMessage(response);
     const remaining = response.headers.get("x-ratelimit-remaining");
-    if (response.status === 403 && remaining === "0") {
-        throw new Error("GitHub API rate limit reached for unauthenticated browser fetches");
+    const retryAfterSeconds = parseRetryAfterSeconds(response.headers);
+    const resetAt = parseRateLimitResetAt(response.headers);
+    const secondaryLimited =
+        response.status === 429 ||
+        retryAfterSeconds !== null ||
+        /secondary rate limit/i.test(message);
+
+    if (response.status === 401) {
+        throw createIngestError(
+            "github_auth_required",
+            authMode === "token"
+                ? "GitHub rejected the supplied token for this repo load."
+                : "GitHub repo access requires a token or a public repository.",
+            { status: response.status }
+        );
     }
 
-    throw new Error(`GitHub request failed: ${response.status} ${response.statusText}`);
+    if (response.status === 404) {
+        throw createIngestError(
+            "github_repo_unavailable",
+            authMode === "token"
+                ? "GitHub repo or ref was not found for the supplied token."
+                : "GitHub repo or ref was not found, or it requires a token.",
+            { status: response.status }
+        );
+    }
+
+    if (response.status === 403 && remaining === "0") {
+        throw createIngestError(
+            "github_primary_rate_limit",
+            resetAt
+                ? `GitHub API rate limit reached. Try again after ${resetAt}.`
+                : "GitHub API rate limit reached for browser repo fetches.",
+            {
+                status: response.status,
+                resetAt,
+            }
+        );
+    }
+
+    if (secondaryLimited) {
+        throw createIngestError(
+            "github_secondary_rate_limit",
+            retryAfterSeconds !== null
+                ? `GitHub asked the browser runner to slow down. Retry after ${retryAfterSeconds}s.`
+                : message || "GitHub temporarily rate-limited this browser repo load.",
+            {
+                status: response.status,
+                retryAfterSeconds,
+            }
+        );
+    }
+
+    throw createIngestError(
+        "github_request_failed",
+        `GitHub request failed: ${response.status} ${response.statusText}`,
+        {
+            status: response.status,
+            responseMessage: message,
+        }
+    );
 }
 
-async function fetchRepositoryTree(fetchImpl, owner, repo, ref) {
+async function fetchRepositoryTree(fetchImpl, owner, repo, ref, token, signal) {
     const url =
         `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}` +
         `/git/trees/${encodeURIComponent(ref)}?recursive=1`;
     const response = await fetchWithRateLimitMessage(fetchImpl, url, {
-        headers: githubJsonHeaders(),
+        authMode: token ? "token" : "anonymous",
+        headers: githubJsonHeaders(token),
+        signal,
     });
-    const payload = await response.json();
-    if (payload?.truncated) {
-        throw new Error(
-            "GitHub tree listing was truncated; browser runner refuses partial repo loads"
-        );
-    }
-    return payload;
+    return await withAbortSignal(response.json(), signal);
 }
 
-async function fetchFileBytes(fetchImpl, owner, repo, ref, path) {
+async function fetchFileBytes(fetchImpl, owner, repo, ref, path, token, signal) {
     const encodedPath = normalizePath(path)
         .split("/")
         .map((segment) => encodeURIComponent(segment))
@@ -213,9 +461,11 @@ async function fetchFileBytes(fetchImpl, owner, repo, ref, path) {
         `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}` +
         `/contents/${encodedPath}?ref=${encodeURIComponent(ref)}`;
     const response = await fetchWithRateLimitMessage(fetchImpl, url, {
-        headers: rawContentHeaders(),
+        authMode: token ? "token" : "anonymous",
+        headers: rawContentHeaders(token),
+        signal,
     });
-    return new Uint8Array(await response.arrayBuffer());
+    return new Uint8Array(await withAbortSignal(response.arrayBuffer(), signal));
 }
 
 export function parseGitHubRepo(value) {
@@ -325,22 +575,65 @@ export async function fetchGitHubRepoInputs(options = {}) {
     const ref = typeof options.ref === "string" && options.ref.trim() ? options.ref.trim() : "main";
     const limits = normalizeLimits(options);
     const fetchImpl = options.fetchImpl ?? fetch;
-    const cacheKey = buildCacheKey({ owner, repo, ref, limits });
+    const token = normalizeToken(options.token);
+    const signal = options.signal;
+    const onProgress = options.onProgress;
+    const cacheKey = buildCacheKey({ owner, repo, ref, limits, token });
+
+    throwIfAborted(signal);
 
     if (repoCache.has(cacheKey)) {
-        return repoCache.get(cacheKey);
+        const cached = withCacheHit(await withAbortSignal(repoCache.get(cacheKey), signal));
+        emitProgress(onProgress, {
+            phase: "cache",
+            current: 1,
+            total: 1,
+            message: `Using in-memory cache for ${owner}/${repo}@${ref}`,
+        });
+        emitProgress(onProgress, {
+            phase: "complete",
+            current: cached.ingest.loadedFiles,
+            total: cached.ingest.loadedFiles,
+            loadedFiles: cached.ingest.loadedFiles,
+            message: `Loaded ${cached.ingest.loadedFiles} file(s) from ${owner}/${repo}@${ref} (cache)`,
+        });
+        return cached;
     }
 
     const loadPromise = (async () => {
-        const tree = await fetchRepositoryTree(fetchImpl, owner, repo, ref);
+        emitProgress(onProgress, {
+            phase: "tree",
+            current: 0,
+            total: 1,
+            message: `Fetching GitHub tree for ${owner}/${repo}@${ref}`,
+        });
+        const tree = await fetchRepositoryTree(fetchImpl, owner, repo, ref, token, signal);
         const selection = selectGitHubTreeEntries(tree.tree, limits);
         const inputs = [];
         let bytesRead = 0;
         let skippedBinaryContent = 0;
         let skippedBudget = 0;
+        const treeTruncated = Boolean(tree?.truncated);
+
+        emitProgress(onProgress, {
+            phase: "files",
+            current: 0,
+            total: selection.selected.length,
+            loadedFiles: 0,
+            message: `Loading candidate files for ${owner}/${repo}@${ref}`,
+        });
 
         for (const [index, entry] of selection.selected.entries()) {
-            const bytes = await fetchFileBytes(fetchImpl, owner, repo, ref, entry.path);
+            throwIfAborted(signal);
+            emitProgress(onProgress, {
+                phase: "files",
+                current: index + 1,
+                total: selection.selected.length,
+                loadedFiles: inputs.length,
+                message: `Loading ${entry.path}`,
+            });
+
+            const bytes = await fetchFileBytes(fetchImpl, owner, repo, ref, entry.path, token, signal);
 
             if (bytes.length > limits.maxFileBytes) {
                 selection.stats.skippedTooLarge += 1;
@@ -370,9 +663,44 @@ export async function fetchGitHubRepoInputs(options = {}) {
             }
         }
 
+        const partialReasons = buildPartialReasons({
+            treeTruncated,
+            skippedTooLarge: selection.stats.skippedTooLarge,
+            skippedBudget,
+            skippedFileLimit: selection.stats.skippedFileLimit,
+        });
+        const ingest = {
+            bytesRead,
+            loadedFiles: inputs.length,
+            skippedBinaryContent,
+            skippedBudget,
+            partial: partialReasons.length > 0,
+            partialReasons,
+            treeEntriesTruncated: treeTruncated,
+            cache: {
+                scope: "memory",
+                hit: false,
+            },
+            authMode: token ? "token" : "anonymous",
+            ...selection.stats,
+            ...limits,
+        };
+
         if (inputs.length === 0) {
-            throw new Error("No browser-safe text files remained after GitHub filtering and limits");
+            throw createIngestError(
+                "no_browser_safe_text",
+                "No browser-safe text files remained after GitHub filtering and limits",
+                { ingest }
+            );
         }
+
+        emitProgress(onProgress, {
+            phase: "complete",
+            current: inputs.length,
+            total: inputs.length,
+            loadedFiles: inputs.length,
+            message: `Loaded ${inputs.length} file(s) from ${owner}/${repo}@${ref}`,
+        });
 
         return {
             inputs,
@@ -381,14 +709,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
                 ref,
                 strategy: "github-tree-contents",
             },
-            ingest: {
-                bytesRead,
-                loadedFiles: inputs.length,
-                skippedBinaryContent,
-                skippedBudget,
-                ...selection.stats,
-                ...limits,
-            },
+            ingest,
         };
     })();
 

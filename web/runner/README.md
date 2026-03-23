@@ -7,8 +7,8 @@ It now boots `tokmd-wasm` inside a dedicated worker and runs the in-memory
 paths locally in the browser. Public GitHub repo acquisition now uses the
 browser-safe GitHub tree and contents APIs to materialize ordered in-memory
 inputs before dispatching into the worker. Zipball fetch remains out of the
-current browser contract, and progress/cancel are still later work, but the
-worker contract and wasm bootstrap are live now.
+current browser contract. Repo-load progress and cancel now exist in the main
+thread loader, but worker run cancel still remains intentionally unavailable.
 
 ## Files
 
@@ -40,13 +40,16 @@ Current behavior:
 - `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
 - the page can fetch a public GitHub `owner/repo@ref`, filter browser-unsafe
   files, and materialize `inputs` rows directly into the request editor
-- public repo fetches use unauthenticated browser GitHub API calls, so they are
-  subject to GitHub rate limits for anonymous requests
+- public repo fetches default to unauthenticated browser GitHub API calls, but
+  the page also accepts an optional token for higher limits or private access
+- repo ingestion surfaces memory-cache hits, partial-load reasons, tree
+  truncation, and primary/secondary rate-limit failures explicitly
 - analyze presets beyond `receipt` / `estimate` are intentionally rejected in
   browser mode instead of degrading silently
 - `run` validates the request shape and executes the corresponding `tokmd-wasm`
   entrypoint
-- `cancel` is reserved in the protocol but returns `cancel_unavailable` for now
+- repo-load cancel uses `AbortController`; worker `cancel` is still reserved in
+  the protocol and returns `cancel_unavailable`
 - the page renders the capability block explicitly instead of leaving it as raw
   worker noise
 - the latest successful result is shown in a dedicated artifact pane and can be
