@@ -66,6 +66,24 @@ This is a one-time setup. Two hooks are provided:
 
 You can bypass hooks with `git commit --no-verify` or `git push --no-verify` in emergencies.
 
+## Branch Naming
+
+Branch prefixes are descriptive hints, not a policy boundary. The repo currently
+has a mix of human-created and tool-created prefixes, and we do not require a
+single canonical style before a branch can merge.
+
+Common prefixes in current use:
+
+- `feat/` for feature work
+- `fix/` for bug fixes
+- `docs/` for documentation-only changes
+- `feature/` on some older or tool-generated branches
+
+Prefer short, lowercase branch names that describe the change area, for example
+`feat/browser-runner-packaging` or `fix/nix-source-filter`. The merge bar is the
+same regardless of prefix: focused changes, passing checks, and an accurate PR
+description.
+
 ## Project Structure
 
 The codebase uses a tiered microcrate architecture:
