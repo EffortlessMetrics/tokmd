@@ -86,6 +86,7 @@ test(
     async (t) => {
         if (!HAS_REAL_WASM_BUNDLE) {
             t.skip("built tokmd-wasm bundle not present");
+            return;
         }
 
         const worker = new Worker(new URL("./worker.js", import.meta.url), {

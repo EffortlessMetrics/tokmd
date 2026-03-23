@@ -14,8 +14,9 @@
         <p>
           This page boots <code>tokmd-wasm</code> inside a dedicated Worker and
           exercises the current browser-safe in-memory modes. Public GitHub repo
-          fetch now uses browser-safe tree and contents APIs; zipball fetch,
-          progress, and cancel still land in later PRs.
+          fetch now uses browser-safe tree and contents APIs. Repo-load progress
+          and cancel are wired in the main thread, while worker run-cancel stays
+          explicitly unavailable.
         </p>
       </section>
 
@@ -32,6 +33,11 @@
               <div class="field compact">
                 <label for="ref">Ref</label>
                 <input id="ref" data-ref type="text" value="main" spellcheck="false">
+              </div>
+
+              <div class="field">
+                <label for="token">GitHub Token</label>
+                <input id="token" data-token type="password" value="" placeholder="Optional PAT for higher limits" autocomplete="off" spellcheck="false">
               </div>
             </div>
 
@@ -52,19 +58,41 @@
 
             <div class="actions">
               <button class="secondary" type="button" data-load-repo>Load GitHub Repo</button>
+              <button class="secondary" type="button" data-cancel-load disabled>Cancel Repo Load</button>
               <button class="primary" type="button" data-run>Send Run</button>
               <button class="secondary" type="button" data-cancel disabled>Send Cancel</button>
             </div>
 
-            <div class="status" data-status></div>
+            <div class="status-stack">
+              <div class="status" data-load-status></div>
+              <div class="status" data-run-status></div>
+            </div>
+
+            <div class="progress-panel" data-load-progress-panel hidden>
+              <div class="panel-header compact">
+                <h2>Repo Load Progress</h2>
+                <span class="progress-copy" data-load-progress-text></span>
+              </div>
+              <progress data-load-progress max="1" value="0"></progress>
+            </div>
           </div>
         </section>
 
         <section class="panel">
           <div class="panel-header">
-            <h2>Capabilities</h2>
+            <h2>Worker Capabilities</h2>
           </div>
-          <pre data-capabilities>{}</pre>
+          <pre data-worker-capabilities>{}</pre>
+
+          <div class="panel-header">
+            <h2>Repo Load Surface</h2>
+          </div>
+          <pre data-repo-capabilities>{}</pre>
+
+          <div class="panel-header">
+            <h2>Latest Repo Ingest</h2>
+          </div>
+          <div class="summary-card" data-ingest-summary></div>
 
           <div class="panel-header">
             <h2>Latest Result</h2>
