@@ -1,0 +1,23 @@
+{
+  "commands": [
+    {
+      "cmd": "cargo fmt-fix",
+      "exit": "0",
+      "status": "PASS",
+      "result_snippet": "[1/1] cargo fmt\\nlint-fix: clippy skipped (--no-clippy)\\nlint-fix: all steps passed"
+    },
+    {
+      "cmd": "cargo test -q -p tokmd-model -p tokmd-analysis-derived",
+      "exit": "0",
+      "status": "PASS",
+      "result_snippet": "all doctests ran in 0.64s; merged doctests compilation took 0.57s"
+    },
+    {
+      "cmd": "cargo clippy -q -p tokmd-model -p tokmd-analysis-derived -- -D warnings",
+      "exit": "0",
+      "status": "PASS",
+      "result_snippet": ""
+    }
+  ],
+  "results": []
+}
