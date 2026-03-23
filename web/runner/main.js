@@ -87,6 +87,16 @@ function clearDownloadUrl() {
         URL.revokeObjectURL(state.downloadUrl);
         state.downloadUrl = null;
     }
+
+    delete downloadButton.dataset.filename;
+}
+
+function updateDownloadButtonState() {
+    downloadButton.disabled = !(
+        state.capabilities.downloads &&
+        state.downloadUrl &&
+        state.latestResult
+    );
 }
 
 function artifactFileName(data) {
@@ -125,12 +135,17 @@ function renderLatestResult(data) {
     clearDownloadUrl();
     resultOutput.textContent = JSON.stringify(data, null, 2);
 
+    if (!state.capabilities.downloads) {
+        updateDownloadButtonState();
+        return;
+    }
+
     const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], {
         type: "application/json",
     });
     state.downloadUrl = URL.createObjectURL(blob);
-    downloadButton.disabled = false;
     downloadButton.dataset.filename = artifactFileName(data);
+    updateDownloadButtonState();
 }
 
 function setCapabilities(message) {
@@ -138,6 +153,7 @@ function setCapabilities(message) {
         ...message.capabilities,
     };
     renderCapabilities(message);
+    updateDownloadButtonState();
     cancelButton.disabled = true;
 }
 
