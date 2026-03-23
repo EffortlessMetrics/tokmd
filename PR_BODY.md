@@ -1,42 +1,55 @@
+---
+# PR Glass Cockpit
+
+Make review boring. Make truth cheap.
+
 ## 💡 Summary
-Added a doctest to `pub fn scan` in `crates/tokmd-scan/src/lib.rs` to demonstrate typical library usage of setting up mock source files, applying `ScanOptions`, and checking the resulting code count metrics.
+Converted `rust,ignore` codeblocks to `rust,no_run` in the core and format crates' README files. This forces `cargo test` to compile the examples and ensure the syntax remains valid over time.
 
 ## 🎯 Why / Threat model
-Improves library usability for downstream developers by documenting the usage pattern of the core scanning function inline, ensuring the documentation does not silently drift since it runs during `cargo test`.
+Documentation codeblocks often drift from the actual code base. By compiling them, we prevent users from encountering broken examples when they copy-paste them from the README or docs.rs.
 
 ## 🔎 Finding (evidence)
-* `crates/tokmd-scan/src/lib.rs` lacked a doctest on its core `pub fn scan` method.
+- `crates/tokmd-core/README.md` and `crates/tokmd-format/README.md`
+- Both had `rust,ignore` blocks containing valid Rust code that can be statically checked.
+- We confirmed the blocks compile successfully using `rust,no_run`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add a doctest explicitly constructing mock `ScanOptions` and demonstrating the scan.
-- Why it fits this repo: This repository values doctests as a truth mechanism to prevent documentation drift.
-- Trade-offs: Increases CI runtime slightly but adds strong verification guarantees.
+- Replace `rust,ignore` with `rust,no_run` in `tokmd-core` and `tokmd-format` README files.
+- Why it fits this repo: This ensures examples are compiled and correctly verified against current types/traits without requiring runtime setups. Prevents example drift.
+- Trade-offs: Increases compilation overhead during `cargo test --doc` but the impact is minimal.
 
 ### Option B
-- Document the behavior implicitly using `README.md` examples.
-- When to choose it instead: If the setup logic involves non-trivial mock environment generation that makes the doctest noisy.
-- Trade-offs: Documentation examples get stale, reducing trust in the API reference over time.
+- Add missing doctest coverage for an untested usage pattern.
+- When to choose it instead: If the existing README blocks were entirely pseudo-code and could not be compiled.
 
 ## ✅ Decision
-Option A was selected to enforce truth and trust via a verified doctest directly on the function signature.
+Option A was chosen. It immediately prevents documentation drift by utilizing Cargo's existing compiler checks, with zero new code required.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-scan/src/lib.rs`: Added a doctest demonstrating `scan` functionality.
+- Changed `rust,ignore` to `rust,no_run` in `crates/tokmd-core/README.md`.
+- Changed `rust,ignore` to `rust,no_run` in `crates/tokmd-format/README.md`.
 
 ## 🧪 Verification receipts
 ```json
-[
-  "running 1 test\ntest crates/tokmd-scan/src/lib.rs - scan (line 80) ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\nall doctests ran in 2.66s; merged doctests compilation took 2.55s\n    Compiling tokmd-scan v1.8.1 (/app/crates/tokmd-scan)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.42s\n   Doc-tests tokmd_scan\n"
-]
+{
+  "test_docs_core": "cargo test -p tokmd-core --doc",
+  "test_docs_format": "cargo test -p tokmd-format --doc"
+}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation addition
-- Blast radius: Isolated to documentation rendering and testing; no changes to production code logic.
-- Risk class: Negligible
-- Rollback: Revert commit
-- Merge-confidence gates: `cargo fmt -- --check`, `cargo test -p tokmd-scan`
+- Change shape: Simple text replacement across two markdown files.
+- Blast radius (API / IO / config / schema / concurrency): Negligible. Only affects `cargo test --doc` coverage.
+- Risk class + why: Lowest risk. Purely docs/test configurations.
+- Rollback: Revert the PR.
+- Merge-confidence gates: `cargo test --doc` runs for `tokmd-core` and `tokmd-format`, plus full repo `cargo test` and `cargo build`.
 
 ## 🗂️ .jules updates
-Created run envelope `.jules/docs/envelopes/20260322T093657Z.json` and appended the run context to `.jules/docs/ledger.json`.
+- Updated `.jules/docs/ledger.json` with a new `fix_doctest_drift` run log.
+- Generated an envelope `.jules/docs/envelopes/55d008a4-139a-4d03-91c8-9982ad3a5e0e.json` containing run details.
+- Generated run notes at `.jules/docs/runs/2026-03-23.md`.
+
+## 📝 Notes (freeform)
+Using `rust,no_run` enforces compilation but prevents actual execution. This avoids panics or runtime failures (like missing files or permissions issues) when `cargo test` runs, while still ensuring the code's semantic correctness against the latest project API.
