@@ -29,7 +29,16 @@ Inputs are ordered `{ path, text | base64 }` rows.
 
 ## Distribution
 
-The browser runner consumes a release tarball named `tokmd-wasm-<tag>.tar.gz` and extracts it into `web/runner/vendor/tokmd-wasm/`.
+`tokmd-wasm` is intended to be consumed from a stable, versioned artifact in CI and releases, not from a mutable local directory.
+
+The current release path is:
+
+- GitHub release asset: `tokmd-wasm-<tag>.tar.gz` such as `tokmd-wasm-v1.9.0.tar.gz`
+- Extract contents into `web/runner/vendor/tokmd-wasm/`
+
+The runner expects the `web/runner/vendor/tokmd-wasm` layout with `tokmd_wasm.js` and `tokmd_wasm_bg.wasm` present, plus the `wasm-pack` companion files.
+
+Use `schemaVersion()` only for core receipt families. Browser callers that consume `runAnalyze()` should read `analysisSchemaVersion()` instead.
 
 ## Go deeper
 
