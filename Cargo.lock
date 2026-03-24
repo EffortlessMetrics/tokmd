@@ -3172,7 +3172,6 @@ name = "tokmd-analysis"
 version = "1.8.1"
 dependencies = [
  "anyhow",
- "blake3",
  "proptest",
  "serde",
  "serde_json",
@@ -3196,7 +3195,6 @@ dependencies = [
  "tokmd-analysis-topics",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
- "tokmd-content",
  "tokmd-git",
  "tokmd-types",
  "tokmd-walk",

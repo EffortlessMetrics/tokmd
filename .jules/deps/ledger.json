@@ -63,5 +63,19 @@
       "cargo clippy -p xtask -- -D warnings completed successfully",
       "cargo fmt --manifest-path xtask/Cargo.toml -- --check completed successfully"
     ]
+  },
+  {
+    "run_id": "20260324T121348Z",
+    "date": "2026-03-24T12:13:48Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-analysis",
+    "action": "remove unused test-dependencies blake3 and tokmd-content",
+    "receipts": [
+      "cargo machete output identifying unused dependencies blake3 and tokmd-content in tokmd-analysis",
+      "cargo test -p tokmd-analysis --all-features completed successfully",
+      "cargo test -p tokmd-analysis --no-default-features completed successfully",
+      "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully"
+    ]
   }
 ]

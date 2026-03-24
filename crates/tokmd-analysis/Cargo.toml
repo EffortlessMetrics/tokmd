@@ -80,6 +80,4 @@ tokmd-analysis-effort = { workspace = true, optional = true }
 tempfile = "3.27.0"
 proptest = "1.10.0"
 uselesskey.workspace = true
-tokmd-content.workspace = true
-blake3.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }
