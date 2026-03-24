@@ -253,7 +253,7 @@ pub fn build_import_report(
         map.insert(key, row);
     }
 
-    let mut edges: BTreeMap<(String, String), usize> = BTreeMap::new();
+    let mut edges: BTreeMap<(&str, String), usize> = BTreeMap::new();
     let mut total_bytes = 0u64;
     let max_total = limits.max_bytes;
     let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES) as usize;
@@ -281,19 +281,23 @@ pub fn build_import_report(
             continue;
         }
         let source = match granularity {
-            ImportGranularity::Module => row.module.clone(),
-            ImportGranularity::File => row.path.clone(),
+            ImportGranularity::Module => row.module.as_str(),
+            ImportGranularity::File => row.path.as_str(),
         };
         for import in imports {
             let target = tokmd_analysis_imports::normalize_import_target(&import);
-            let key = (source.clone(), target);
+            let key = (source, target);
             *edges.entry(key).or_insert(0) += 1;
         }
     }
 
     let mut edge_rows: Vec<ImportEdge> = edges
         .into_iter()
-        .map(|((from, to), count)| ImportEdge { from, to, count })
+        .map(|((from, to), count)| ImportEdge {
+            from: from.to_string(),
+            to,
+            count,
+        })
         .collect();
     edge_rows.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.from.cmp(&b.from)));
 
