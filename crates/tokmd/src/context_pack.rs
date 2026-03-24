@@ -1111,7 +1111,10 @@ mod tests {
 
         // All selected files must be parent files
         for ctx_row in &result {
-            let original = rows.iter().find(|r| r.path == ctx_row.path).expect("original row should exist");
+            let original = rows
+                .iter()
+                .find(|r| r.path == ctx_row.path)
+                .expect("original row should exist");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1136,7 +1139,10 @@ mod tests {
         let result = pack_spread(&rows, 1000, ValueMetric::Code, None);
 
         for ctx_row in &result {
-            let original = rows.iter().find(|r| r.path == ctx_row.path).expect("original row should exist");
+            let original = rows
+                .iter()
+                .find(|r| r.path == ctx_row.path)
+                .expect("original row should exist");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1723,7 +1729,12 @@ mod tests {
             readme_entry.is_some(),
             "README.md should be in selected files"
         );
-        assert_eq!(readme_entry.expect("README.md should be in selected files").rank_reason, "spine");
+        assert_eq!(
+            readme_entry
+                .expect("README.md should be in selected files")
+                .rank_reason,
+            "spine"
+        );
     }
 
     #[test]
@@ -1765,7 +1776,13 @@ mod tests {
         assert_eq!(result.selected[0].rank_reason, "code");
         assert_eq!(result.rank_by_effective, "code");
         assert!(result.fallback_reason.is_some());
-        assert!(result.fallback_reason.as_ref().expect("should have fallback reason").contains("hotspot"));
+        assert!(
+            result
+                .fallback_reason
+                .as_ref()
+                .expect("should have fallback reason")
+                .contains("hotspot")
+        );
     }
 
     #[test]
@@ -1914,7 +1931,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[]);
         assert_eq!(policy, InclusionPolicy::HeadTail);
         assert!(reason.is_some());
-        assert!(reason.expect("reason should be present").contains("head+tail"));
+        assert!(
+            reason
+                .expect("reason should be present")
+                .contains("head+tail")
+        );
     }
 
     #[test]
@@ -1922,7 +1943,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.is_some());
-        assert!(reason.expect("reason should be present").contains("generated"));
+        assert!(
+            reason
+                .expect("reason should be present")
+                .contains("generated")
+        );
     }
 
     #[test]
@@ -1960,7 +1985,12 @@ mod tests {
         let resolved = resolve_metric(ValueMetric::Hotspot, None);
         assert_eq!(resolved.effective, ValueMetric::Code);
         assert!(resolved.fallback_reason.is_some());
-        assert!(resolved.fallback_reason.expect("reason should be present").contains("hotspot"));
+        assert!(
+            resolved
+                .fallback_reason
+                .expect("reason should be present")
+                .contains("hotspot")
+        );
     }
 
     #[test]
@@ -1968,7 +1998,12 @@ mod tests {
         let resolved = resolve_metric(ValueMetric::Churn, None);
         assert_eq!(resolved.effective, ValueMetric::Code);
         assert!(resolved.fallback_reason.is_some());
-        assert!(resolved.fallback_reason.expect("reason should be present").contains("churn"));
+        assert!(
+            resolved
+                .fallback_reason
+                .expect("reason should be present")
+                .contains("churn")
+        );
     }
 
     #[test]
@@ -2008,7 +2043,11 @@ mod tests {
         assert_eq!(result.selected.len(), 2);
 
         // big.rs should have HeadTail policy
-        let big = result.selected.iter().find(|f| f.path == "big.rs").expect("big.rs should be selected");
+        let big = result
+            .selected
+            .iter()
+            .find(|f| f.path == "big.rs")
+            .expect("big.rs should be selected");
         assert_eq!(big.policy, InclusionPolicy::HeadTail);
         assert!(big.effective_tokens.is_some());
         assert!(big.effective_tokens.expect("should have effective tokens") <= 16_000);
@@ -2017,7 +2056,8 @@ mod tests {
         let small = result
             .selected
             .iter()
-            .find(|f| f.path == "small.rs").expect("small.rs should be selected");
+            .find(|f| f.path == "small.rs")
+            .expect("small.rs should be selected");
         assert_eq!(small.policy, InclusionPolicy::Full);
         assert!(small.effective_tokens.is_none());
     }
