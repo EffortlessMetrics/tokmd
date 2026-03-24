@@ -146,6 +146,21 @@ pub fn lang_workflow_from_inputs(
 /// # Returns
 ///
 /// A `ModuleReceipt` containing the module breakdown.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{module_workflow, settings::{ScanSettings, ModuleSettings}};
+///
+/// let scan = ScanSettings::current_dir();
+/// let module = ModuleSettings {
+///     module_depth: 2,
+///     ..Default::default()
+/// };
+///
+/// let receipt = module_workflow(&scan, &module).expect("Module scan failed");
+/// assert!(receipt.report.rows.len() > 0);
+/// ```
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
@@ -200,6 +215,18 @@ pub fn module_workflow_from_inputs(
 /// # Returns
 ///
 /// An `ExportReceipt` containing file-level data.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{export_workflow, settings::{ScanSettings, ExportSettings}};
+///
+/// let scan = ScanSettings::current_dir();
+/// let export = ExportSettings::default();
+///
+/// let receipt = export_workflow(&scan, &export).expect("Export scan failed");
+/// assert!(receipt.data.rows.len() > 0);
+/// ```
 pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
@@ -265,6 +292,21 @@ pub fn export_workflow_from_inputs(
 /// # Returns
 ///
 /// A `DiffReceipt` showing changes between the two states.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{diff_workflow, settings::DiffSettings};
+///
+/// let settings = DiffSettings {
+///     from: ".".to_string(), // compare current dir to itself as a quick test
+///     to: ".".to_string(),
+///     ..Default::default()
+/// };
+///
+/// let receipt = diff_workflow(&settings).expect("Diff failed");
+/// assert!(receipt.totals.delta_code == 0); // delta is zero
+/// ```
 pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
     // Load or scan the "from" state
     let from_report = load_lang_report(&settings.from)?;
@@ -287,6 +329,21 @@ pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
 /// Analyze workflow (requires `analysis` feature).
 ///
 /// Runs export + analysis workflows and returns an `AnalysisReceipt`.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{analyze_workflow, settings::{ScanSettings, AnalyzeSettings}};
+///
+/// let scan = ScanSettings::current_dir();
+/// let analyze = AnalyzeSettings {
+///     preset: "receipt".to_string(),
+///     ..Default::default()
+/// };
+///
+/// let receipt = analyze_workflow(&scan, &analyze).expect("Analyze scan failed");
+/// assert!(receipt.derived.is_some());
+/// ```
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow(
     scan: &ScanSettings,
