@@ -1,0 +1,1 @@
+{"run_id":"36a12d57-d1b7-4a61-8258-dd6dee75b0de","timestamp_utc":"2026-03-24T12:31:32.745505+00:00","lane":"scout","target":"Burn down .unwrap() in crates/tokmd/src/context_pack.rs","commands":[{"cmd":"cargo test -p tokmd --lib context_pack","exit":0,"result":"PASS","logs":"104 tests passed."},{"cmd":"cargo clippy -- -D warnings","exit":0,"result":"PASS","logs":"No warnings."}]}

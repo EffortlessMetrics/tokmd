@@ -1,15 +1,18 @@
-1. **Remove unwraps from `xtask/src/tasks/publish.rs`**:
-   - In `xtask/src/tasks/publish.rs`, there's a `.unwrap()` around line 254: `let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();`. I will change it to return an error properly using `context` or `ok_or_else`.
-   - In `xtask/src/tasks/publish.rs` tests (around line 1180), change `.unwrap()` to `expect("...")`.
+1. **Explore the codebase and `.jules/` directory.**
+   - Verified the existence of `.jules/policy/scheduled_tasks.json`, `.jules/runbooks/PR_GLASS_COCKPIT.md`, `.jules/security/ledger.json`, etc.
+   - Identified the target of the run: burn down 31 `.unwrap()` calls in `crates/tokmd/src/context_pack.rs` tests.
 
-2. **Remove unwraps from `xtask/src/tasks/bump.rs`**:
-   - Change `.unwrap()` in tests in `xtask/src/tasks/bump.rs` to `.expect("...")`.
+2. **Refactor `.unwrap()` calls.**
+   - Changed test method signatures in `test_parse_budget*` to return `anyhow::Result<()>`.
+   - Replaced `.unwrap()` calls with `?` in parsing tests.
+   - Replaced `x.unwrap()` with `x.expect("...")` on `find()` iterators and structured option properties.
+   - Completed execution by applying Python scripting safely over AST boundary brackets.
 
-3. **Verify tests and format**:
-   - Run `cargo test -p xtask`
-   - Run `cargo fmt`
-   - Run `cargo clippy -p xtask`
+3. **Verify the changes using strict quality gates.**
+   - Ran `cargo test -p tokmd --lib context_pack`, `cargo clippy`, and `cargo fmt`.
 
-4. **Complete Pre-commit Steps**: Ensure proper testing, verification, review, and reflection are done using `pre_commit_instructions`.
+4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
+   - Call the `pre_commit_instructions` tool to run the pre-commit checklist.
 
-5. **Commit and Submit**: Update envelope and ledger, then submit PR.
+5. **Commit the changes with a Glass Cockpit PR template.**
+   - Create a commit using the `submit` tool with a descriptive PR body matching the `.jules` outline.
