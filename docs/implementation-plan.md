@@ -326,7 +326,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 1. **Feature profile**: `wasm` / `web`
 2. **Crate**: `tokmd-wasm`
-3. **Runner**: static browser app using a Worker, repo zipball ingestion, caching, and artifact download
+3. **Runner**: static browser app using a Worker, repo tree + contents ingestion, caching, and artifact download
 
 ### Work Items
 
@@ -340,7 +340,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 - Parity tests: native vs wasm receipt equivalence on fixture repos
 - Integration tests: in-memory scan path using `MemFs`
-- Browser smoke tests: worker execution and zipball ingestion
+- Browser smoke tests: worker execution and tree + contents ingestion
 
 ---
 
