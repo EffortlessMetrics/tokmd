@@ -16,5 +16,16 @@
     "run_id": "55d008a4-139a-4d03-91c8-9982ad3a5e0e",
     "action": "fix_doctest_drift",
     "target": "README.md"
+  },
+  {
+    "run_id": "8c5336e0-48d5-466e-95e3-1eda2bd963db",
+    "timestamp": "2026-03-24T10:07:59Z",
+    "lane": "docs",
+    "action": "add_doctests",
+    "target": "crates/tokmd-core/src/lib.rs",
+    "description": "Added doctest examples for core workflow functions: module_workflow, export_workflow, diff_workflow, analyze_workflow",
+    "receipts": [
+      "cargo test -p tokmd-core --doc --all-features"
+    ]
   }
 ]
