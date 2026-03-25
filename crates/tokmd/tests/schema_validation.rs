@@ -16,7 +16,6 @@ use tempfile::tempdir;
 const SCHEMA_JSON: &str = include_str!("../schemas/schema.json");
 
 /// Embedded JSON schema for handoff manifests (from schemas/handoff.schema.json)
-#[cfg(feature = "git")]
 const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json");
 
 /// Embedded JSON schema for sensor.report.v1 envelope (from schemas/sensor.report.v1.schema.json)
@@ -28,7 +27,6 @@ fn load_schema() -> Result<Value> {
 }
 
 /// Load the handoff JSON schema from embedded content
-#[cfg(feature = "git")]
 fn load_handoff_schema() -> Result<Value> {
     serde_json::from_str(HANDOFF_SCHEMA_JSON)
         .context("Failed to parse embedded handoff.schema.json")
@@ -509,17 +507,19 @@ fn test_cockpit_receipt_validates_against_schema() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn test_handoff_manifest_validates_against_schema() -> Result<()> {
     let schema = load_handoff_schema()?;
     let validator = jsonschema::validator_for(&schema)
         .map_err(|e| anyhow::anyhow!("Failed to compile handoff schema: {}", e))?;
 
     let dir = tempdir()?;
+    std::fs::write(dir.path().join("lib.rs"), "pub fn demo() {}\n")?;
     let out_dir = dir.path().join("handoff_out");
 
     let output = tokmd_cmd()
+        .current_dir(dir.path())
         .arg("handoff")
+        .arg("--no-git")
         .arg("--out-dir")
         .arg(&out_dir)
         .output()?;
@@ -543,6 +543,21 @@ fn test_handoff_manifest_validates_against_schema() -> Result<()> {
             serde_json::to_string_pretty(&json).unwrap_or_default()
         );
     }
+
+    assert_eq!(json["schema_version"], 5);
+    assert_eq!(json["mode"], "handoff");
+    assert!(
+        json["capabilities"]
+            .as_array()
+            .map(|capabilities| {
+                capabilities.iter().any(|cap| {
+                    cap["name"].as_str() == Some("git")
+                        && cap["status"].as_str() == Some("skipped")
+                })
+            })
+            .unwrap_or(false),
+        "handoff should record git as skipped when run with --no-git"
+    );
     Ok(())
 }
 
