@@ -269,18 +269,45 @@ mod tests {
     fn render_midi_deterministic_overlap() {
         // Creates two notes on different channels that start and end at the exact same tick
         let notes1 = vec![
-            MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 0 },
-            MidiNote { key: 64, velocity: 100, start: 0, duration: 480, channel: 1 },
+            MidiNote {
+                key: 60,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 0,
+            },
+            MidiNote {
+                key: 64,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 1,
+            },
         ];
         let notes2 = vec![
-            MidiNote { key: 64, velocity: 100, start: 0, duration: 480, channel: 1 },
-            MidiNote { key: 60, velocity: 100, start: 0, duration: 480, channel: 0 },
+            MidiNote {
+                key: 64,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 1,
+            },
+            MidiNote {
+                key: 60,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 0,
+            },
         ];
 
         let result1 = render_midi(&notes1, 120).unwrap();
         let result2 = render_midi(&notes2, 120).unwrap();
 
-        assert_eq!(result1, result2, "Output must be deterministic regardless of input note order");
+        assert_eq!(
+            result1, result2,
+            "Output must be deterministic regardless of input note order"
+        );
     }
 
     #[test]
