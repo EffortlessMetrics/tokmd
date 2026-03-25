@@ -18,6 +18,8 @@ pub enum Commands {
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
     Docs(DocsArgs),
+    /// Verify all release-facing version surfaces are in sync
+    VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
@@ -40,6 +42,9 @@ pub struct DocsArgs {
     #[arg(long)]
     pub update: bool,
 }
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct VersionConsistencyArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct PublishArgs {

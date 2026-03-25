@@ -108,7 +108,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-pack
@@ -197,6 +197,15 @@ jobs:
         env:
           CI: true
 
+  version-consistency:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Check release metadata alignment
+        run: cargo xtask version-consistency
+
   docs-check:
     name: Docs Check
     runs-on: ubuntu-latest
@@ -234,7 +243,7 @@ jobs:
         run: nix flake check --no-build --accept-flake-config
 
       - name: Build package
-        run: nix build
+        run: nix build -L
 
   mutation:
     name: Mutation Testing (Required)
@@ -329,6 +338,7 @@ jobs:
       - typos
       - proptest-smoke
       - publish-plan
+      - version-consistency
       - docs-check
       - nix
       - mutation

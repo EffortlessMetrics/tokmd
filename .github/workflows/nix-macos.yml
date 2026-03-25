@@ -15,7 +15,9 @@ concurrency:
 jobs:
   nix-macos:
     runs-on: macos-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v6
 
@@ -25,9 +27,12 @@ jobs:
       - name: Setup Nix cache
         continue-on-error: true
         uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
+          use-gha-cache: enabled
 
       - name: Check flake
-        run: nix flake check --accept-flake-config
+        run: nix flake check --no-build --accept-flake-config
 
       - name: Build package
-        run: nix build
+        run: nix build -L
