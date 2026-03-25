@@ -74,9 +74,65 @@ jobs:
           name: ${{ matrix.name }}
           path: ${{ matrix.name }}
 
+  build-wasm:
+    name: Build tokmd-wasm Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
+      - name: Build tokmd-wasm bundle
+        run: npm --prefix web/runner run build:wasm
+      - name: Package reproducible tokmd-wasm artifact
+        run: |
+          mkdir -p artifacts
+          tar --sort=name \
+            --owner=0 --group=0 --numeric-owner \
+            --mtime='UTC 1970-01-01' \
+            -czf "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.tar.gz" \
+            -C web/runner/vendor/tokmd-wasm .
+          sha256sum "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.tar.gz" > "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.sha256"
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tokmd-wasm-${{ github.ref_name }}
+          path: |
+            artifacts/tokmd-wasm-${{ github.ref_name }}.tar.gz
+            artifacts/tokmd-wasm-${{ github.ref_name }}.sha256
+
+  release-dry-run:
+    name: Release packaging dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check version alignment
+        run: cargo xtask version-consistency
+      - name: Validate Rust package manifests
+        run: cargo xtask publish --dry-run --skip-tests
+      - name: Validate Node package pack
+        run: npm --prefix crates/tokmd-node/npm pack
+      - name: Validate browser wasm bundle build
+        run: npm --prefix web/runner run build:wasm
+
   create-release:
     name: Create GitHub Release
-    needs: build-release
+    needs:
+      - build-release
+      - build-wasm
+      - release-dry-run
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -98,6 +154,8 @@ jobs:
             artifacts/tokmd-macos-amd64/tokmd-macos-amd64
             artifacts/tokmd-macos-arm64/tokmd-macos-arm64
             artifacts/tokmd-windows-amd64.exe/tokmd-windows-amd64.exe
+            artifacts/tokmd-wasm-${{ github.ref_name }}/tokmd-wasm-${{ github.ref_name }}.tar.gz
+            artifacts/tokmd-wasm-${{ github.ref_name }}/tokmd-wasm-${{ github.ref_name }}.sha256
 
       - name: Generate shell completions
         run: |

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Draft: 1.9.0
+
+### Added
+
+- Browser/WASM runner hardening: deterministic `tokmd-wasm` bootstrap, missing-export detection, and explicit capability reporting
+- Release guardrails for version consistency and case-insensitive tracked-path collisions
+
+### Changed
+
+- Browser/WASM packaging and release metadata alignment across workspace and npm surfaces
+- CI/release workflows now include explicit release-metadata checks and dry-run packaging steps
+
+### Fixed
+
+- Browser worker mode and preset mismatches now fail with actionable structured errors instead of opaque runtime crashes
+
 ## [1.8.1] - 2026-03-20
 
 ### Changed

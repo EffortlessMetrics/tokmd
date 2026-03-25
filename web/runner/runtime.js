@@ -9,6 +9,24 @@ import {
     isRunMessage,
 } from "./messages.js";
 
+function asStringArray(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter((entry) => typeof entry === "string");
+}
+
+function resolveSupportedList(values, fallback) {
+    const configured = asStringArray(values);
+
+    return configured.length > 0 || Array.isArray(values) ? configured : fallback;
+}
+
+function formatSupportedList(values) {
+    return values.length > 0 ? values.join(", ") : "no supported entries";
+}
+
 function formatRunnerError(error) {
     if (error instanceof Error && typeof error.message === "string") {
         return error.message;
@@ -37,7 +55,11 @@ async function invokeRunner(runner, mode, args) {
 }
 
 export async function handleRunnerMessage(message, options = {}) {
-    const { runner = null, bootError = null } = options;
+    const {
+        runner = null,
+        bootError = null,
+        runnerCapabilities = null,
+    } = options;
 
     if (isCancelMessage(message)) {
         return createErrorMessage(
@@ -55,32 +77,40 @@ export async function handleRunnerMessage(message, options = {}) {
         );
     }
 
-    if (!SUPPORTED_MODES.includes(message.mode)) {
-        return createErrorMessage(
-            message.requestId,
-            "unsupported_mode",
-            `browser runner supports only ${SUPPORTED_MODES.join(", ")}; got ${JSON.stringify(message.mode)}`
-        );
-    }
-
-    if (message.mode === "analyze") {
-        const preset = normalizeAnalyzePreset(message.args);
-
-        if (!SUPPORTED_ANALYZE_PRESETS.includes(preset)) {
-            return createErrorMessage(
-                message.requestId,
-                "unsupported_preset",
-                `browser runner supports analyze only with preset="receipt" or preset="estimate"; got ${JSON.stringify(preset)}`
-            );
-        }
-    }
-
     if (bootError) {
         return createErrorMessage(
             message.requestId,
             "wasm_boot_failed",
             `browser runner failed to initialize tokmd-wasm: ${formatRunnerError(bootError)}`
         );
+    }
+
+    const hasExplicitRunnerCapabilities = runnerCapabilities !== null;
+    const supportedModes = hasExplicitRunnerCapabilities
+        ? resolveSupportedList(runnerCapabilities?.modes, [])
+        : SUPPORTED_MODES;
+    const supportedPresets = hasExplicitRunnerCapabilities
+        ? resolveSupportedList(runnerCapabilities?.analyzePresets, [])
+        : SUPPORTED_ANALYZE_PRESETS;
+
+    if (!supportedModes.includes(message.mode)) {
+        return createErrorMessage(
+            message.requestId,
+            "unsupported_mode",
+            `browser runner supports only ${formatSupportedList(supportedModes)}; got ${JSON.stringify(message.mode)}`
+        );
+    }
+
+    if (message.mode === "analyze") {
+        const preset = normalizeAnalyzePreset(message.args);
+
+        if (!supportedPresets.includes(preset)) {
+            return createErrorMessage(
+                message.requestId,
+                "unsupported_preset",
+                `browser runner supports analyze with ${formatSupportedList(supportedPresets)}; got ${JSON.stringify(preset)}`
+            );
+        }
     }
 
     if (!runner) {

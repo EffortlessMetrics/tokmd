@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.8.0` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.8.1` and the active `1.9.0` browser/WASM buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -312,7 +312,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)
+## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0) ✅ In Progress
 
 **Goal**: Turn the new host-abstraction seam into a real in-memory/WASM execution path and ship a browser-first runner.
 
@@ -326,7 +326,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 1. **Feature profile**: `wasm` / `web`
 2. **Crate**: `tokmd-wasm`
-3. **Runner**: static browser app using a Worker, repo zipball ingestion, caching, and artifact download
+3. **Runner**: static browser app using a Worker, repo tree + contents ingestion, caching, and artifact download
 
 ### Work Items
 
@@ -340,7 +340,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 - Parity tests: native vs wasm receipt equivalence on fixture repos
 - Integration tests: in-memory scan path using `MemFs`
-- Browser smoke tests: worker execution and zipball ingestion
+- Browser smoke tests: worker execution and tree + contents ingestion
 
 ---
 

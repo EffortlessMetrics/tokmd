@@ -287,9 +287,15 @@ Host-backed enrichers remain explicit capability misses in browser mode. Git-his
 
 ### Remaining v1.9.0 work
 
-- Publish the `tokmd-wasm` bundle through one pinned distribution path for the runner to consume repeatably.
+- Host the `tokmd-wasm` browser bundle as a versioned release artifact (see `web/runner` docs) and consume it from `web/runner/vendor/tokmd-wasm` so browser boot is deterministic across environments.
 - Add browser guardrails such as caching, authenticated fetch options, and better rate-limit/progress handling.
 - Broaden browser analysis only where the preset can stay rootless and capability-honest.
+
+### v1.9.0 status
+
+- Browser runner now reports mode/preset capabilities from actual wasm exports.
+- Runtime rejects unsupported modes/presets up front and sends clear structured errors.
+- Release artifact naming in docs is aligned with workspace release tags.
 
 ### Non-goals for v1.9.0
 

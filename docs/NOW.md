@@ -1,12 +1,12 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the `1.8.0` release.
+> One-screen operational truth during `1.9.0` release readiness.
 
 ## NOW (active)
 
-- **Release aftermath is closed**: `1.8.0` is out, the release pipeline proved green end-to-end, and `main` is back to the normal development lane.
+- **Release aftermath is closed** for `1.8.1` and `1.9.0` readiness is now the active stabilization focus while keeping `main` on the normal development lane.
 - **Main must stay boring**: keep CI green, keep `--no-default-features` builds honest, and avoid reintroducing release-only branch noise or operator caveats.
-- **Docs and operator surfaces should match reality**: keep roadmap, release instructions, architecture docs, and repo-native commands aligned with what actually shipped in `1.8.0`.
+- **Docs and operator surfaces should match reality**: keep roadmap, release instructions, architecture docs, and repo-native commands aligned with the `1.9.0` browser/WASM lane that is being prepared to ship.
 
 ## NEXT (short horizon)
 
