@@ -113,7 +113,7 @@ Every receipt includes:
 | `generated_at_ms` | `integer` | Unix timestamp (milliseconds) when the scan ran. |
 | `tool` | `object` | Information about the tool version. |
 | `tool.name` | `string` | Always `"tokmd"`. |
-| `tool.version` | `string` | The version of tokmd used (e.g., `"1.8.0"`). |
+| `tool.version` | `string` | The version of tokmd used (e.g., `"1.8.1"`). |
 | `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, `"analysis"`, or `"cockpit"`. |
 | `status` | `string` | Scan status: `"complete"` or `"partial"`. |
 | `warnings` | `array` | Array of warning strings generated during the scan. |
@@ -146,7 +146,7 @@ Produced by `tokmd --format json` or `tokmd lang --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.8.0" },
+  "tool": { "name": "tokmd", "version": "1.8.1" },
   "mode": "lang",
   "status": "complete",
   "warnings": [],
@@ -227,7 +227,7 @@ Produced by `tokmd module --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.8.0" },
+  "tool": { "name": "tokmd", "version": "1.8.1" },
   "mode": "module",
   "status": "complete",
   "warnings": [],
@@ -310,7 +310,7 @@ JSONL output consists of a **Meta Record** (first line) followed by **Data Rows*
   "type": "meta",
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.8.0" },
+  "tool": { "name": "tokmd", "version": "1.8.1" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -354,7 +354,7 @@ When using `--format json`, the output is a single JSON object:
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.8.0" },
+  "tool": { "name": "tokmd", "version": "1.8.1" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -444,7 +444,7 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 {
   "schema_version": 9,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.8.0" },
+  "tool": { "name": "tokmd", "version": "1.8.1" },
   "mode": "analysis",
   "status": "complete",
   "warnings": [],
@@ -802,7 +802,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.8.0",
+    "version": "1.8.1",
     "mode": "cockpit"
   },
   "generated_at": "2024-01-27T10:30:00Z",
