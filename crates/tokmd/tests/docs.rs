@@ -14,6 +14,102 @@ fn tokmd() -> Command {
 }
 
 #[test]
+fn recipe_badge_generation() {
+    let tmp = tempfile::tempdir().unwrap();
+
+    // "tokmd badge --metric lines --output badge-lines.svg"
+    let badge_lines_path = tmp.path().join("badge-lines.svg");
+    tokmd()
+        .arg("badge")
+        .arg("--metric")
+        .arg("lines")
+        .arg("--output")
+        .arg(&badge_lines_path)
+        .assert()
+        .success();
+    assert!(badge_lines_path.exists());
+
+    // "tokmd badge --metric hotspot --preset risk --output badge-hotspot.svg"
+    let badge_hotspot_path = tmp.path().join("badge-hotspot.svg");
+    tokmd()
+        .arg("badge")
+        .arg("--metric")
+        .arg("hotspot")
+        .arg("--preset")
+        .arg("risk")
+        .arg("--output")
+        .arg(&badge_hotspot_path)
+        .assert()
+        .success();
+    assert!(badge_hotspot_path.exists());
+}
+
+#[test]
+fn recipe_analyze_presets() {
+    // "tokmd analyze --preset receipt --format md"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("md")
+        .assert()
+        .success();
+
+    // "tokmd analyze --preset risk --format md"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("risk")
+        .arg("--format")
+        .arg("md")
+        .assert()
+        .success();
+
+    // "tokmd analyze --preset estimate --effort-layer headline --format md"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("estimate")
+        .arg("--effort-layer")
+        .arg("headline")
+        .arg("--format")
+        .arg("md")
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_tools_export_schemas() {
+    // "tokmd tools --format openai --pretty"
+    tokmd()
+        .arg("tools")
+        .arg("--format")
+        .arg("openai")
+        .arg("--pretty")
+        .assert()
+        .success();
+
+    // "tokmd tools --format anthropic --pretty"
+    tokmd()
+        .arg("tools")
+        .arg("--format")
+        .arg("anthropic")
+        .arg("--pretty")
+        .assert()
+        .success();
+
+    // "tokmd tools --format jsonschema --pretty"
+    tokmd()
+        .arg("tools")
+        .arg("--format")
+        .arg("jsonschema")
+        .arg("--pretty")
+        .assert()
+        .success();
+}
+
+#[test]
 fn recipe_default_map() {
     // "tokmd module --top 20"
     tokmd()
