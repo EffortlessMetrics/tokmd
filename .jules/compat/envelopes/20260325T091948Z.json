@@ -1,0 +1,8 @@
+{
+  "id": "20260325T091948Z",
+  "status": "PASS",
+  "receipts": [
+    "cargo test -p tokmd --no-default-features --test schema_validation",
+    "cargo check --workspace --no-default-features"
+  ]
+}
