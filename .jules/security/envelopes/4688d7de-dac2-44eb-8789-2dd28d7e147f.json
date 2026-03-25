@@ -1,0 +1,22 @@
+{
+  "run_id": "4688d7de-dac2-44eb-8789-2dd28d7e147f",
+  "timestamp_utc": "2026-03-25T12:20:36Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/export_bundle.rs and crates/tokmd/src/commands/sensor.rs tests unwrap burn-down",
+  "commands": [
+    {
+      "cmd": "cargo fmt -- --check && cargo clippy -- -D warnings",
+      "status": "PASS",
+      "summary": "Passed cleanly"
+    },
+    {
+      "cmd": "CI=true cargo test -p tokmd --verbose",
+      "status": "PASS",
+      "summary": "Tests passed"
+    }
+  ],
+  "results": {
+    "status": "SUCCESS",
+    "files_changed": ["crates/tokmd/src/export_bundle.rs", "crates/tokmd/src/commands/sensor.rs"]
+  }
+}

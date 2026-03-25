@@ -65,5 +65,19 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-25T12:20:36Z",
+    "lane": "scout",
+    "target": "unwrap burn-down in tokmd crate tests",
+    "pr_link": "pending",
+    "status": "PASS",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
   }
 ]

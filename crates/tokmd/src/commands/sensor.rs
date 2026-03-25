@@ -465,7 +465,7 @@ mod tests {
     };
 
     #[test]
-    fn render_sensor_md_includes_findings_and_gates() {
+    fn render_sensor_md_includes_findings_and_gates() -> anyhow::Result<()> {
         let mut report = SensorReport::new(
             ToolMeta::tokmd("1.0.0", "sensor"),
             "2024-01-01T00:00:00Z".to_string(),
@@ -488,7 +488,7 @@ mod tests {
             vec![GateItem::new("mutation", Verdict::Warn).with_source("computed")],
         );
         report = report.with_data(serde_json::json!({
-            "gates": serde_json::to_value(gates).unwrap(),
+            "gates": serde_json::to_value(gates)?,
         }));
 
         let md = render_sensor_md(&report);
@@ -497,6 +497,8 @@ mod tests {
         assert!(md.contains("risk.hotspot"));
         assert!(md.contains("### Gates (warn)"));
         assert!(md.contains("mutation"));
+
+        Ok(())
     }
 
     #[cfg(feature = "git")]
