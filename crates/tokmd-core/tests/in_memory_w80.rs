@@ -1,8 +1,11 @@
 use anyhow::Result;
+#[cfg(feature = "analysis")]
 use std::env;
 use std::fs;
 use std::path::Path;
+#[cfg(feature = "analysis")]
 use std::path::PathBuf;
+#[cfg(feature = "analysis")]
 use std::sync::{Mutex, OnceLock};
 
 use tempfile::TempDir;
@@ -35,16 +38,20 @@ fn auto_scan_options() -> ScanOptions {
     }
 }
 
+#[cfg(feature = "analysis")]
 static CWD_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
+#[cfg(feature = "analysis")]
 struct RestoreCurrentDir(PathBuf);
 
+#[cfg(feature = "analysis")]
 impl Drop for RestoreCurrentDir {
     fn drop(&mut self) {
         let _ = env::set_current_dir(&self.0);
     }
 }
 
+#[cfg(feature = "analysis")]
 fn with_current_dir<T>(path: &Path, f: impl FnOnce() -> T) -> T {
     let _lock = CWD_LOCK
         .get_or_init(|| Mutex::new(()))
