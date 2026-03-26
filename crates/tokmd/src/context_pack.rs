@@ -673,52 +673,55 @@ mod tests {
 
     #[test]
     fn test_parse_budget() {
-        assert_eq!(parse_budget("128k").unwrap(), 128_000);
-        assert_eq!(parse_budget("1m").unwrap(), 1_000_000);
-        assert_eq!(parse_budget("50000").unwrap(), 50_000);
-        assert_eq!(parse_budget("1.5k").unwrap(), 1_500);
+        assert_eq!(parse_budget("128k").expect("should exist"), 128_000);
+        assert_eq!(parse_budget("1m").expect("should exist"), 1_000_000);
+        assert_eq!(parse_budget("50000").expect("should exist"), 50_000);
+        assert_eq!(parse_budget("1.5k").expect("should exist"), 1_500);
     }
 
     #[test]
     fn test_parse_budget_g_suffix() {
-        assert_eq!(parse_budget("1g").unwrap(), 1_000_000_000);
-        assert_eq!(parse_budget("0.5g").unwrap(), 500_000_000);
-        assert_eq!(parse_budget("2G").unwrap(), 2_000_000_000);
+        assert_eq!(parse_budget("1g").expect("should exist"), 1_000_000_000);
+        assert_eq!(parse_budget("0.5g").expect("should exist"), 500_000_000);
+        assert_eq!(parse_budget("2G").expect("should exist"), 2_000_000_000);
     }
 
     #[test]
     fn test_parse_budget_unlimited() {
-        assert_eq!(parse_budget("unlimited").unwrap(), usize::MAX);
-        assert_eq!(parse_budget("max").unwrap(), usize::MAX);
-        assert_eq!(parse_budget("UNLIMITED").unwrap(), usize::MAX);
-        assert_eq!(parse_budget("MAX").unwrap(), usize::MAX);
-        assert_eq!(parse_budget("  unlimited  ").unwrap(), usize::MAX);
+        assert_eq!(parse_budget("unlimited").expect("should exist"), usize::MAX);
+        assert_eq!(parse_budget("max").expect("should exist"), usize::MAX);
+        assert_eq!(parse_budget("UNLIMITED").expect("should exist"), usize::MAX);
+        assert_eq!(parse_budget("MAX").expect("should exist"), usize::MAX);
+        assert_eq!(
+            parse_budget("  unlimited  ").expect("should exist"),
+            usize::MAX
+        );
     }
 
     #[test]
     fn test_parse_budget_with_whitespace() {
-        assert_eq!(parse_budget("  10k  ").unwrap(), 10_000);
-        assert_eq!(parse_budget(" 5m ").unwrap(), 5_000_000);
+        assert_eq!(parse_budget("  10k  ").expect("should exist"), 10_000);
+        assert_eq!(parse_budget(" 5m ").expect("should exist"), 5_000_000);
     }
 
     #[test]
     fn test_parse_budget_case_insensitive() {
-        assert_eq!(parse_budget("10K").unwrap(), 10_000);
-        assert_eq!(parse_budget("2M").unwrap(), 2_000_000);
+        assert_eq!(parse_budget("10K").expect("should exist"), 10_000);
+        assert_eq!(parse_budget("2M").expect("should exist"), 2_000_000);
     }
 
     #[test]
     fn test_parse_budget_multiplication_k() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2k").unwrap(), 2_000);
-        assert_eq!(parse_budget("0.5k").unwrap(), 500);
+        assert_eq!(parse_budget("2k").expect("should exist"), 2_000);
+        assert_eq!(parse_budget("0.5k").expect("should exist"), 500);
     }
 
     #[test]
     fn test_parse_budget_multiplication_m() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2m").unwrap(), 2_000_000);
-        assert_eq!(parse_budget("0.5m").unwrap(), 500_000);
+        assert_eq!(parse_budget("2m").expect("should exist"), 2_000_000);
+        assert_eq!(parse_budget("0.5m").expect("should exist"), 500_000);
     }
 
     #[test]
@@ -1104,7 +1107,10 @@ mod tests {
 
         // All selected files must be parent files
         for ctx_row in &result {
-            let original = rows.iter().find(|r| r.path == ctx_row.path).unwrap();
+            let original = rows
+                .iter()
+                .find(|r| r.path == ctx_row.path)
+                .expect("should exist");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1129,7 +1135,10 @@ mod tests {
         let result = pack_spread(&rows, 1000, ValueMetric::Code, None);
 
         for ctx_row in &result {
-            let original = rows.iter().find(|r| r.path == ctx_row.path).unwrap();
+            let original = rows
+                .iter()
+                .find(|r| r.path == ctx_row.path)
+                .expect("should exist");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1711,7 +1720,7 @@ mod tests {
             readme_entry.is_some(),
             "README.md should be in selected files"
         );
-        assert_eq!(readme_entry.unwrap().rank_reason, "spine");
+        assert_eq!(readme_entry.expect("should exist").rank_reason, "spine");
     }
 
     #[test]
@@ -1753,7 +1762,13 @@ mod tests {
         assert_eq!(result.selected[0].rank_reason, "code");
         assert_eq!(result.rank_by_effective, "code");
         assert!(result.fallback_reason.is_some());
-        assert!(result.fallback_reason.as_ref().unwrap().contains("hotspot"));
+        assert!(
+            result
+                .fallback_reason
+                .as_ref()
+                .expect("should exist")
+                .contains("hotspot")
+        );
     }
 
     #[test]
@@ -1902,7 +1917,7 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[]);
         assert_eq!(policy, InclusionPolicy::HeadTail);
         assert!(reason.is_some());
-        assert!(reason.unwrap().contains("head+tail"));
+        assert!(reason.expect("should exist").contains("head+tail"));
     }
 
     #[test]
@@ -1910,7 +1925,7 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.is_some());
-        assert!(reason.unwrap().contains("generated"));
+        assert!(reason.expect("should exist").contains("generated"));
     }
 
     #[test]
@@ -1948,7 +1963,12 @@ mod tests {
         let resolved = resolve_metric(ValueMetric::Hotspot, None);
         assert_eq!(resolved.effective, ValueMetric::Code);
         assert!(resolved.fallback_reason.is_some());
-        assert!(resolved.fallback_reason.unwrap().contains("hotspot"));
+        assert!(
+            resolved
+                .fallback_reason
+                .expect("should exist")
+                .contains("hotspot")
+        );
     }
 
     #[test]
@@ -1956,7 +1976,12 @@ mod tests {
         let resolved = resolve_metric(ValueMetric::Churn, None);
         assert_eq!(resolved.effective, ValueMetric::Code);
         assert!(resolved.fallback_reason.is_some());
-        assert!(resolved.fallback_reason.unwrap().contains("churn"));
+        assert!(
+            resolved
+                .fallback_reason
+                .expect("should exist")
+                .contains("churn")
+        );
     }
 
     #[test]
@@ -1996,17 +2021,21 @@ mod tests {
         assert_eq!(result.selected.len(), 2);
 
         // big.rs should have HeadTail policy
-        let big = result.selected.iter().find(|f| f.path == "big.rs").unwrap();
+        let big = result
+            .selected
+            .iter()
+            .find(|f| f.path == "big.rs")
+            .expect("should exist");
         assert_eq!(big.policy, InclusionPolicy::HeadTail);
         assert!(big.effective_tokens.is_some());
-        assert!(big.effective_tokens.unwrap() <= 16_000);
+        assert!(big.effective_tokens.expect("should exist") <= 16_000);
 
         // small.rs should have Full policy
         let small = result
             .selected
             .iter()
             .find(|f| f.path == "small.rs")
-            .unwrap();
+            .expect("should exist");
         assert_eq!(small.policy, InclusionPolicy::Full);
         assert!(small.effective_tokens.is_none());
     }

@@ -400,11 +400,21 @@ mod tests {
         let bundle = load_export_from_inputs(&[dir.path().to_path_buf()], &GlobalArgs::default())?;
         assert_eq!(bundle.export.rows.len(), 1);
         assert_eq!(
-            bundle.export_path.as_ref().unwrap().file_name().unwrap(),
+            bundle
+                .export_path
+                .as_ref()
+                .expect("should exist")
+                .file_name()
+                .expect("should have name"),
             "export.jsonl"
         );
         assert_eq!(
-            bundle.entry_point.as_ref().unwrap().file_name().unwrap(),
+            bundle
+                .entry_point
+                .as_ref()
+                .expect("should exist")
+                .file_name()
+                .expect("should have name"),
             "receipt.json"
         );
         Ok(())

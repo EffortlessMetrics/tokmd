@@ -488,7 +488,7 @@ mod tests {
             vec![GateItem::new("mutation", Verdict::Warn).with_source("computed")],
         );
         report = report.with_data(serde_json::json!({
-            "gates": serde_json::to_value(gates).unwrap(),
+            "gates": serde_json::to_value(gates).expect("should serialize"),
         }));
 
         let md = render_sensor_md(&report);
@@ -682,7 +682,7 @@ mod tests {
             .items
             .iter()
             .find(|g| g.id == "diff_coverage")
-            .expect("diff gate");
+            .expect("diff_coverage gate should exist in GateResults");
         assert_eq!(diff_gate.threshold, Some(0.8));
         assert_eq!(diff_gate.actual, Some(0.5));
 
@@ -690,7 +690,7 @@ mod tests {
             .items
             .iter()
             .find(|g| g.id == "contracts")
-            .expect("contracts gate");
+            .expect("contracts gate should exist in GateResults");
         assert_eq!(
             contracts_gate.reason.as_deref(),
             Some("2 sub-gate(s) failed")
@@ -720,14 +720,14 @@ mod tests {
             .findings
             .iter()
             .find(|f| f.code == findings::risk::HOTSPOT)
-            .expect("hotspot finding");
+            .expect("hotspot finding should be in report.findings");
         assert!(hotspot.location.is_some());
 
         let bus_factor = report
             .findings
             .iter()
             .find(|f| f.code == findings::risk::BUS_FACTOR)
-            .expect("bus factor finding");
+            .expect("bus_factor finding should be in report.findings");
         assert!(bus_factor.location.is_some());
     }
 
