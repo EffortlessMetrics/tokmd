@@ -3,7 +3,7 @@ source: crates/tokmd/tests/cli_snapshot_golden.rs
 assertion_line: 219
 expression: normalize(&stdout)
 ---
-`tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`
+tokmd — code awareness for AI contexts
 
 Usage: tokmd [OPTIONS] [PATH]... [COMMAND]
 
