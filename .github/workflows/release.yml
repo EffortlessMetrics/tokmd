@@ -74,44 +74,9 @@ jobs:
           name: ${{ matrix.name }}
           path: ${{ matrix.name }}
 
-  build-wasm:
-    name: Build tokmd-wasm Artifact
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-      - uses: actions/setup-node@v4
-      - name: Install wasm-pack
-        uses: taiki-e/install-action@v2
-        with:
-          tool: wasm-pack
-      - name: Build tokmd-wasm bundle
-        run: npm --prefix web/runner run build:wasm
-      - name: Package reproducible tokmd-wasm artifact
-        run: |
-          mkdir -p artifacts
-          tar --sort=name \
-            --owner=0 --group=0 --numeric-owner \
-            --mtime='UTC 1970-01-01' \
-            -czf "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.tar.gz" \
-            -C web/runner/vendor/tokmd-wasm .
-          sha256sum "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.tar.gz" > "artifacts/tokmd-wasm-${GITHUB_REF_NAME}.sha256"
-      - name: Upload wasm artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: tokmd-wasm-${{ github.ref_name }}
-          path: |
-            artifacts/tokmd-wasm-${{ github.ref_name }}.tar.gz
-            artifacts/tokmd-wasm-${{ github.ref_name }}.sha256
-
   create-release:
     name: Create GitHub Release
-    needs:
-      - build-release
-      - build-wasm
+    needs: build-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -133,8 +98,6 @@ jobs:
             artifacts/tokmd-macos-amd64/tokmd-macos-amd64
             artifacts/tokmd-macos-arm64/tokmd-macos-arm64
             artifacts/tokmd-windows-amd64.exe/tokmd-windows-amd64.exe
-            artifacts/tokmd-wasm-${{ github.ref_name }}/tokmd-wasm-${{ github.ref_name }}.tar.gz
-            artifacts/tokmd-wasm-${{ github.ref_name }}/tokmd-wasm-${{ github.ref_name }}.sha256
 
       - name: Generate shell completions
         run: |
