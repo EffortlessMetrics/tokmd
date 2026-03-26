@@ -55,6 +55,122 @@ test("runtime rejects run messages without valid inputs", async () => {
     assert.equal(message.error.code, "invalid_message");
 });
 
+test("runtime uses runner-provided mode capabilities", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-mode-cap",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        {
+            runner: createStubRunner(),
+            runnerCapabilities: {
+                modes: ["export"],
+            },
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unsupported_mode");
+    assert.match(message.error.message, /supports only export/);
+});
+
+test("runtime treats explicit empty mode capabilities as no supported modes", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-mode-empty-cap",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        {
+            runner: createStubRunner(),
+            runnerCapabilities: {
+                modes: [],
+            },
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unsupported_mode");
+    assert.match(message.error.message, /no supported entries/);
+});
+
+test("runtime uses runner-provided analyze preset capabilities", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-preset-cap",
+            mode: "analyze",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                preset: "health",
+            },
+        }),
+        {
+            runner: createStubRunner(),
+            runnerCapabilities: {
+                modes: ["analyze"],
+                analyzePresets: ["receipt"],
+            },
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unsupported_preset");
+    assert.match(message.error.message, /receipt/);
+});
+
+test("runtime treats explicit empty analyze preset capabilities as unsupported", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-preset-empty-cap",
+            mode: "analyze",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                preset: "receipt",
+            },
+        }),
+        {
+            runner: createStubRunner(),
+            runnerCapabilities: {
+                modes: ["analyze"],
+                analyzePresets: [],
+            },
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unsupported_preset");
+    assert.match(message.error.message, /no supported entries/);
+});
+
+test("runtime reports boot failures before capability checks", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-boot-error",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        {
+            runner: createStubRunner(),
+            runnerCapabilities: {
+                modes: ["analyze", "export"],
+                analyzePresets: ["receipt", "estimate"],
+            },
+            bootError: new Error("deterministic boot failure"),
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "wasm_boot_failed");
+    assert.match(message.error.message, /deterministic boot failure/);
+});
+
 test("runtime reserves cancel without promising it", async () => {
     const message = await handleRunnerMessage(createCancelMessage("run-7"));
 
