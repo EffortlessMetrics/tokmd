@@ -66,7 +66,7 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         }
     }
 
-    files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
+    files.sort();
     Ok(files)
 }
 
@@ -88,7 +88,7 @@ pub fn list_files_from_memfs(
         .filter_map(|path| memfs_relative_path(path, &normalized_root))
         .collect();
 
-    files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
+    files.sort();
 
     if let Some(limit) = max_files
         && files.len() > limit
@@ -119,8 +119,8 @@ pub fn license_candidates(files: &[PathBuf]) -> LicenseCandidates {
         }
     }
 
-    license_files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
-    metadata_files.sort_by(|a, b| a.to_string_lossy().cmp(&b.to_string_lossy()));
+    license_files.sort();
+    metadata_files.sort();
 
     LicenseCandidates {
         license_files,
@@ -324,6 +324,38 @@ mod tests {
         }
         let files = list_files(dir.path(), Some(3)).unwrap();
         assert!(files.len() <= 3);
+    }
+
+    #[test]
+    fn test_list_files_deterministic_sort() {
+        let dir = tempfile::tempdir().unwrap();
+        // Create .git dir so git_ls_files returns Some
+        fs::create_dir_all(dir.path().join(".git")).unwrap();
+        fs::create_dir_all(dir.path().join("foo")).unwrap();
+        fs::write(dir.path().join("foo/bar"), "content").unwrap();
+        fs::write(dir.path().join("foo/bar.rs"), "content").unwrap();
+        fs::write(dir.path().join("foo.rs"), "content").unwrap();
+
+        let files = list_files(dir.path(), None).unwrap();
+        // The resulting paths are relative to root
+        // Expected sort: foo.rs, foo/bar, foo/bar.rs
+        // rather than lossy string sort which puts foo/bar before foo.rs
+        let expected = vec![
+            PathBuf::from("foo/bar"),
+            PathBuf::from("foo/bar.rs"),
+            PathBuf::from("foo.rs"),
+        ];
+        // Only checking that our added test files are sorted identically
+        // Note: git_ls_files relies on git, so we filter out .git
+        let actual: Vec<PathBuf> = files
+            .into_iter()
+            .filter(|p| {
+                let s = p.to_string_lossy();
+                s.starts_with("foo")
+            })
+            .collect();
+        // They should already be sorted correctly, but if they aren't, the test will fail
+        assert_eq!(actual, expected);
     }
 }
 
