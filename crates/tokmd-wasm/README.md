@@ -52,5 +52,18 @@ use the same JSON shape that the Node and Python bindings already accept:
 fixed-mode helpers unwrap that envelope and return the `data` payload as a
 plain JavaScript object, throwing on upstream errors.
 
+## Distribution artifact
+
+`tokmd-wasm` is intended to be consumed from a stable, versioned artifact in
+CI and releases, not from a mutable local directory.
+
+The current release path is:
+
+- GitHub release asset: `tokmd-wasm-<tag>.tar.gz` (for example `tokmd-wasm-v1.9.0.tar.gz`)
+- Extract contents into `web/runner/vendor/tokmd-wasm/`
+
+The runner expects the `web/runner/vendor/tokmd-wasm` layout with `tokmd_wasm.js`
+and `tokmd_wasm_bg.wasm` present (plus wasm-pack generated companion files).
+
 Use `schemaVersion()` only for core receipt families. Browser callers that
 consume `runAnalyze()` should read `analysisSchemaVersion()` instead.

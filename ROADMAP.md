@@ -497,7 +497,6 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### Remaining for v1.9.0
 
-- Package and publish the `tokmd-wasm` bundle through one pinned, documented distribution path.
 - Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface.
 - Add browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling.
 - Expand browser-safe analysis only where the preset can stay rootless and capability-honest.
