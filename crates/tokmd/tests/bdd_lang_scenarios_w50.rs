@@ -142,7 +142,7 @@ fn given_project_with_embedded_code_when_children_collapse_then_mode_recorded() 
     // And: no row should have "(embedded)" in the lang name
     let rows = json["rows"].as_array().expect("rows should be array");
     for row in rows {
-        let lang = row["lang"].as_str().unwrap_or_default();
+        let lang = row["lang"].as_str().expect("lang should be a string");
         assert!(
             !lang.contains("(embedded)"),
             "collapse mode should not have (embedded) rows, found: {lang}"

@@ -12,6 +12,19 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-03-26T12:56:31Z",
+      "lane": "scout",
+      "target": "Refactor unwrap_or_default in json assertions to prevent silent test failures",
+      "pr_link": "test: replace unwrap_or_default in json assertions to prevent silent failures 🎨 Palette",
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
     }
   ]
 }

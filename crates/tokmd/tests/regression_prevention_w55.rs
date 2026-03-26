@@ -506,7 +506,7 @@ fn no_backslash_in_any_json_path() {
     let json = run_json(&["export", "--format", "json"]);
     let rows = json["rows"].as_array().unwrap();
     for row in rows {
-        let path = row["path"].as_str().unwrap_or_default();
+        let path = row["path"].as_str().expect("path should be a string");
         assert!(!path.contains('\\'), "backslash in export path: {path}");
     }
 }
@@ -516,7 +516,7 @@ fn module_keys_never_start_with_slash() {
     let json = run_json(&["module", "--format", "json"]);
     let rows = json["rows"].as_array().unwrap();
     for row in rows {
-        let module = row["module"].as_str().unwrap_or_default();
+        let module = row["module"].as_str().expect("module should be a string");
         assert!(!module.starts_with('/'), "module starts with /: {module}");
     }
 }
