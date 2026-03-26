@@ -35,6 +35,7 @@ fn auto_scan_options() -> ScanOptions {
     }
 }
 
+#[cfg(feature = "analysis")]
 static CWD_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 struct RestoreCurrentDir(PathBuf);

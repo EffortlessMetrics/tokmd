@@ -82,10 +82,7 @@ fn check_workspace_dependency_versions(expected: &str) -> Result<()> {
                 continue;
             }
 
-            let Some(dep_version) = dep_table
-                .get("version")
-                .and_then(TomlValue::as_str)
-            else {
+            let Some(dep_version) = dep_table.get("version").and_then(TomlValue::as_str) else {
                 continue;
             };
 
@@ -103,7 +100,10 @@ fn check_workspace_dependency_versions(expected: &str) -> Result<()> {
         );
     }
 
-    println!("  ✓ Cargo workspace dependency versions match {}.", expected);
+    println!(
+        "  ✓ Cargo workspace dependency versions match {}.",
+        expected
+    );
     Ok(())
 }
 
@@ -192,13 +192,13 @@ fn read_tracked_paths() -> Result<Vec<String>> {
         bail!("`git ls-files -z` failed: {}", stderr.trim());
     }
 
-    Ok(output
+    output
         .stdout
         .split(|byte| *byte == 0)
         .filter(|entry| !entry.is_empty())
         .map(|entry| String::from_utf8(entry.to_vec()))
         .collect::<std::result::Result<Vec<_>, _>>()
-        .context("`git ls-files -z` produced non-UTF-8 output")?)
+        .context("`git ls-files -z` produced non-UTF-8 output")
 }
 
 fn detect_case_insensitive_collisions(paths: Vec<String>) -> Vec<Vec<String>> {
@@ -331,8 +331,11 @@ mod tests {
             }
         });
 
-        let mismatches =
-            find_internal_node_dependency_mismatches("crates/tokmd-node/package.json", &manifest, "1.9.0");
+        let mismatches = find_internal_node_dependency_mismatches(
+            "crates/tokmd-node/package.json",
+            &manifest,
+            "1.9.0",
+        );
 
         assert_eq!(
             mismatches,

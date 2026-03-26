@@ -14,6 +14,7 @@ fn assert_error(result: &str) -> Value {
     parsed["error"].clone()
 }
 
+#[cfg(feature = "analysis")]
 fn analyze_inputs_json() -> Vec<Value> {
     vec![
         json!({
