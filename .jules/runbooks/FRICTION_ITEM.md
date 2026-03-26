@@ -1,17 +1,9 @@
----
-# Friction item
-
-id: FRIC-YYYYMMDD-###
-tags: [bolt, perf]
+# Friction Item
 
 ## Pain
-What hurts, in one paragraph.
 
 ## Evidence
-- file paths
-- commands / outputs
-- benchmarks/timings (if any)
 
-## Done when
-- [ ] acceptance criteria
----
+## Done When
+
+## Tags

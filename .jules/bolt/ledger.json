@@ -21,21 +21,5 @@
     "pr_link": "",
     "gates": "fmt-fix, test(tokmd-model,tokmd-analysis-derived), clippy(tokmd-model,tokmd-analysis-derived)",
     "friction_ids": []
-  },
-  {
-    "timestamp_utc": "2026-03-24T12:33:23Z",
-    "lane": "scout",
-    "target": "crates/tokmd-analysis-content/src/content.rs",
-    "proof_method": "cargo bench -p tokmd-analysis-content",
-    "pr_link": "Pending",
-    "gates": [
-      "build",
-      "fmt",
-      "test",
-      "clippy",
-      "bench"
-    ],
-    "gates_status": "PASS",
-    "friction_ids": []
   }
 ]
