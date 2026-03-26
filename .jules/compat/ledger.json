@@ -12,11 +12,5 @@
   {
     "run_id": "13bf324d-a8ad-4e74-9d27-673789e16269",
     "status": "PASS"
-  },
-  {
-    "run_id": "20260326T094853Z",
-    "timestamp": "2026-03-26T10:14:29Z",
-    "description": "Fix dead code warnings when running tests with --no-default-features in tokmd-core",
-    "status": "PASS"
   }
 ]
