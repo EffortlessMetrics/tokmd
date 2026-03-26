@@ -123,7 +123,25 @@ pub fn render_midi(notes: &[MidiNote], tempo_bpm: u16) -> Result<Vec<u8>> {
         ));
     }
 
-    events.sort_by_key(|e| e.0);
+    events.sort_by(|a, b| {
+        a.0.cmp(&b.0).then_with(|| {
+            let rank = |k: &TrackEventKind| -> (u8, u8, u8) {
+                match k {
+                    TrackEventKind::Meta(_) => (0, 0, 0),
+                    TrackEventKind::Midi {
+                        channel,
+                        message: MidiMessage::NoteOff { key, .. },
+                    } => (1, (*channel).into(), (*key).into()),
+                    TrackEventKind::Midi {
+                        channel,
+                        message: MidiMessage::NoteOn { key, .. },
+                    } => (2, (*channel).into(), (*key).into()),
+                    _ => (3, 0, 0),
+                }
+            };
+            rank(&a.1).cmp(&rank(&b.1))
+        })
+    });
 
     let mut track: Vec<TrackEvent> = Vec::new();
     let mut last_time = 0u32;
@@ -247,6 +265,51 @@ mod tests {
     }
 
     // ── render_midi ───────────────────────────────────────────────────
+    #[test]
+    fn render_midi_deterministic_overlap() {
+        // Creates two notes on different channels that start and end at the exact same tick
+        let notes1 = vec![
+            MidiNote {
+                key: 60,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 0,
+            },
+            MidiNote {
+                key: 64,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 1,
+            },
+        ];
+        let notes2 = vec![
+            MidiNote {
+                key: 64,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 1,
+            },
+            MidiNote {
+                key: 60,
+                velocity: 100,
+                start: 0,
+                duration: 480,
+                channel: 0,
+            },
+        ];
+
+        let result1 = render_midi(&notes1, 120).unwrap();
+        let result2 = render_midi(&notes2, 120).unwrap();
+
+        assert_eq!(
+            result1, result2,
+            "Output must be deterministic regardless of input note order"
+        );
+    }
+
     #[test]
     fn render_midi_empty_notes() {
         let result = render_midi(&[], 120).unwrap();
