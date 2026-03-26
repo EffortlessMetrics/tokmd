@@ -29,7 +29,11 @@ pub use tokmd_types::{
     TableFormat,
 };
 
-/// `tokmd` — a small, cross-platform, chat-friendly wrapper around `tokei`.
+/// tokmd — code awareness for AI contexts
+///
+/// A small, chat-friendly wrapper around tokei for extracting, summarizing, and shaping code telemetry.
+/// Run `tokmd` in any directory to get a high-level summary of the code.
+/// Use `tokmd [COMMAND] --help` for detailed help.
 ///
 /// Default mode (no subcommand) prints a language summary.
 #[derive(Parser, Debug)]
