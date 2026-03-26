@@ -111,7 +111,7 @@ mod tests {
             2,
             None,
         )
-        .unwrap();
+        .expect("build substrate");
 
         assert!(!substrate.files.is_empty());
         assert!(substrate.lang_summary.contains_key("Rust"));
@@ -132,8 +132,8 @@ mod tests {
             insertions: 5,
             deletions: 2,
         };
-        let substrate =
-            build_substrate(manifest_dir, &ScanOptions::default(), &[], 2, Some(diff)).unwrap();
+        let substrate = build_substrate(manifest_dir, &ScanOptions::default(), &[], 2, Some(diff))
+            .expect("build substrate with diff");
 
         assert!(substrate.diff_range.is_some());
         let diff_files: Vec<&str> = substrate

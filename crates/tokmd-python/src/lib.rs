@@ -548,8 +548,8 @@ mod tests {
     fn extract_envelope_returns_data_when_ok() {
         with_py(|py| {
             let dict = PyDict::new(py);
-            dict.set_item("ok", true).unwrap();
-            dict.set_item("data", "ok").unwrap();
+            dict.set_item("ok", true).expect("set item");
+            dict.set_item("data", "ok").expect("set item");
             let obj = extract_envelope(py, dict.as_any()).expect("extract data");
             let value: String = obj.extract(py).expect("extract string");
             assert_eq!(value, "ok");
@@ -560,10 +560,10 @@ mod tests {
     fn extract_envelope_returns_envelope_when_data_missing() {
         with_py(|py| {
             let dict = PyDict::new(py);
-            dict.set_item("ok", true).unwrap();
+            dict.set_item("ok", true).expect("set item");
             let obj = extract_envelope(py, dict.as_any()).expect("extract envelope");
             let out = obj.downcast_bound::<PyDict>(py).expect("dict");
-            assert!(out.get_item("data").unwrap().is_none());
+            assert!(out.get_item("data").expect("get item").is_none());
         });
     }
 
@@ -571,7 +571,7 @@ mod tests {
     fn extract_envelope_returns_unknown_error_when_error_missing() {
         with_py(|py| {
             let dict = PyDict::new(py);
-            dict.set_item("ok", false).unwrap();
+            dict.set_item("ok", false).expect("set item");
             let err = extract_envelope(py, dict.as_any()).unwrap_err();
             assert!(err.to_string().contains("Unknown error"));
         });
@@ -581,8 +581,8 @@ mod tests {
     fn extract_envelope_returns_unknown_error_when_error_not_dict() {
         with_py(|py| {
             let dict = PyDict::new(py);
-            dict.set_item("ok", false).unwrap();
-            dict.set_item("error", "boom").unwrap();
+            dict.set_item("ok", false).expect("set item");
+            dict.set_item("error", "boom").expect("set item");
             let err = extract_envelope(py, dict.as_any()).unwrap_err();
             assert!(err.to_string().contains("Unknown error"));
         });
@@ -593,9 +593,9 @@ mod tests {
         with_py(|py| {
             let dict = PyDict::new(py);
             let err_dict = PyDict::new(py);
-            dict.set_item("ok", false).unwrap();
-            err_dict.set_item("message", "boom").unwrap();
-            dict.set_item("error", err_dict).unwrap();
+            dict.set_item("ok", false).expect("set item");
+            err_dict.set_item("message", "boom").expect("set item");
+            dict.set_item("error", err_dict).expect("set item");
             let err = extract_envelope(py, dict.as_any()).unwrap_err();
             assert!(err.to_string().contains("unknown"));
         });
@@ -606,9 +606,9 @@ mod tests {
         with_py(|py| {
             let dict = PyDict::new(py);
             let err_dict = PyDict::new(py);
-            dict.set_item("ok", false).unwrap();
-            err_dict.set_item("code", "E").unwrap();
-            dict.set_item("error", err_dict).unwrap();
+            dict.set_item("ok", false).expect("set item");
+            err_dict.set_item("code", "E").expect("set item");
+            dict.set_item("error", err_dict).expect("set item");
             let err = extract_envelope(py, dict.as_any()).unwrap_err();
             assert!(err.to_string().contains("Unknown error"));
         });
@@ -627,11 +627,16 @@ mod tests {
     fn build_args_sets_defaults_and_options() {
         with_py(|py| {
             let args = build_args(py, None, 0, None, false);
-            let paths: Vec<String> = args.get_item("paths").unwrap().unwrap().extract().unwrap();
+            let paths: Vec<String> = args
+                .get_item("paths")
+                .expect("get paths")
+                .expect("some paths")
+                .extract()
+                .expect("extract item");
             assert_eq!(paths, vec!["."]);
-            assert!(args.get_item("top").unwrap().is_none());
-            assert!(args.get_item("excluded").unwrap().is_none());
-            assert!(args.get_item("hidden").unwrap().is_none());
+            assert!(args.get_item("top").expect("get item").is_none());
+            assert!(args.get_item("excluded").expect("get item").is_none());
+            assert!(args.get_item("hidden").expect("get item").is_none());
 
             let args = build_args(
                 py,
@@ -640,13 +645,18 @@ mod tests {
                 Some(vec!["target".to_string()]),
                 true,
             );
-            let top: i64 = args.get_item("top").unwrap().unwrap().extract().unwrap();
+            let top: i64 = args
+                .get_item("top")
+                .expect("get top")
+                .expect("some top")
+                .extract()
+                .expect("extract item");
             assert_eq!(top, 3);
-            assert!(args.get_item("excluded").unwrap().is_some());
-            assert!(args.get_item("hidden").unwrap().is_some());
+            assert!(args.get_item("excluded").expect("get item").is_some());
+            assert!(args.get_item("hidden").expect("get item").is_some());
 
             let args = build_args(py, Some(vec!["src".to_string()]), 0, Some(vec![]), false);
-            assert!(args.get_item("excluded").unwrap().is_none());
+            assert!(args.get_item("excluded").expect("get item").is_none());
         });
     }
 
@@ -728,10 +738,10 @@ mod tests {
             assert_eq!(
                 lang_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "lang"
             );
 
@@ -753,10 +763,10 @@ mod tests {
             assert_eq!(
                 module_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "module"
             );
 
@@ -780,10 +790,10 @@ mod tests {
             assert_eq!(
                 export_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "export"
             );
         });
@@ -810,10 +820,10 @@ mod tests {
             assert_eq!(
                 lang_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "lang"
             );
 
@@ -835,10 +845,10 @@ mod tests {
             assert_eq!(
                 module_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "module"
             );
 
@@ -862,10 +872,10 @@ mod tests {
             assert_eq!(
                 export_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "export"
             );
 
@@ -888,10 +898,10 @@ mod tests {
             assert_eq!(
                 analysis_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "analysis"
             );
         });
@@ -921,10 +931,10 @@ mod tests {
             assert_eq!(
                 analysis_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "analysis"
             );
         });
@@ -943,10 +953,10 @@ mod tests {
             assert_eq!(
                 diff_dict
                     .get_item("mode")
-                    .unwrap()
-                    .unwrap()
+                    .expect("get item")
+                    .expect("some")
                     .extract::<String>()
-                    .unwrap(),
+                    .expect("extract item"),
                 "diff"
             );
         });
@@ -991,7 +1001,7 @@ mod tests {
     #[test]
     fn core_run_json_unknown_mode_returns_error() {
         let result = tokmd_core::ffi::run_json("bogus", "{}");
-        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&result).expect("parse json");
         assert_eq!(v["ok"], false);
         assert_eq!(v["error"]["code"].as_str(), Some("unknown_mode"));
     }
@@ -1000,7 +1010,7 @@ mod tests {
     fn extract_data_json_valid_success_envelope() {
         let envelope = r#"{"ok":true,"data":{"mode":"lang"}}"#;
         let data = extract_data_json(envelope).expect("should extract data");
-        let v: serde_json::Value = serde_json::from_str(&data).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&data).expect("parse json");
         assert_eq!(v["mode"].as_str(), Some("lang"));
     }
 

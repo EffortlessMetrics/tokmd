@@ -43,7 +43,7 @@
 //! use tokmd_core::ffi::run_json;
 //!
 //! let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
-//! let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+//! let parsed: serde_json::Value = serde_json::from_str(&result).expect("parse json");
 //! assert_eq!(parsed["ok"], true);
 //! ```
 
@@ -1149,9 +1149,9 @@ mod tests {
     #[cfg(feature = "analysis")]
     fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
+            fs::create_dir_all(parent).expect("create parent dirs");
         }
-        fs::write(path, contents).unwrap();
+        fs::write(path, contents).expect("write file contents");
     }
 
     #[cfg(feature = "analysis")]

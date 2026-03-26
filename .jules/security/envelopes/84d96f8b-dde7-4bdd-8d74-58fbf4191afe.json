@@ -1,0 +1,25 @@
+{
+  "run_id": "84d96f8b-dde7-4bdd-8d74-58fbf4191afe",
+  "timestamp_utc": "2026-03-26T12:22:07Z",
+  "lane": "scout",
+  "target": "Burn down test unwraps in language bindings (tokmd-node, tokmd-python) and tokmd-core",
+  "commands": [],
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo test --verbose",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS"
+    }
+  ]
+}

@@ -513,7 +513,7 @@ mod tests {
     #[test]
     fn core_run_json_unknown_mode_returns_error() {
         let result = tokmd_core::ffi::run_json("bogus", "{}");
-        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&result).expect("parse json");
         assert_eq!(v["ok"], false);
         assert_eq!(v["error"]["code"].as_str(), Some("unknown_mode"));
     }

@@ -65,5 +65,19 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-26T12:29:57Z",
+    "lane": "scout",
+    "target": "Burn down test unwraps in language bindings (tokmd-node, tokmd-python) and tokmd-core",
+    "pr_link": "PENDING",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]
