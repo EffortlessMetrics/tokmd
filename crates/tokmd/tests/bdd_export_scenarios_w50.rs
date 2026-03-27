@@ -159,7 +159,7 @@ fn given_project_when_export_redact_paths_then_no_real_paths() {
 
     let known_filenames = ["main.rs", "script.js", "large.rs", "README.md", "mixed.md"];
     for row in rows {
-        let path = row["path"].as_str().unwrap_or_default();
+        let path = row["path"].as_str().expect("path should be a string");
         for name in &known_filenames {
             assert!(
                 !path.contains(name),
