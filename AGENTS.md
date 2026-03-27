@@ -234,3 +234,25 @@ cargo +nightly fuzz list  # List all targets
 - `ROADMAP.md`: Current status and future plans
 - `CHANGELOG.md`: Version history
 - `CONTRIBUTING.md`: Development setup, testing, and publishing guide
+
+## PR Triage Rules
+
+### Jules provenance is intentional repo state
+- Treat `.jules/**` logs, ledgers, envelopes, runbooks, and friction notes as intentional provenance unless a repo owner explicitly says otherwise.
+- Do not close, trim, or reject a PR merely because it includes `.jules/**` files.
+- If a Jules PR is merge-worthy, keep the `.jules/**` updates with it.
+- Do not split `.jules/**` updates out into a second PR just to shrink the visible diff; keep the provenance attached to the substantive change.
+- If a Jules PR is not ready, the reason must be the actual code issue: correctness, scope, stacking, validation, or launch relevance.
+
+### When a Jules PR is bad
+- Do not close a Jules PR because it has provenance files.
+- Close, defer, or restack only for substantive reasons such as:
+  - unrelated non-`.jules/**` changes are stacked into the branch
+  - the code is incorrect
+  - required validation fails
+  - the change is not worth merging in the current phase
+
+### Release-prep queue discipline
+- During prep or RC hardening, every open PR must either be a real blocker/improvement worth finishing now or remain explicitly parked for later.
+- “Not for prep” does not automatically mean “close now”.
+- If a PR may still be worth keeping, leave it open or restack it; do not churn the queue without a concrete reason.
