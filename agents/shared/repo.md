@@ -14,7 +14,8 @@ Common commands:
 cargo build
 cargo build --release
 cargo test --workspace
-cargo fmt
+cargo fmt-fix
+cargo fmt-check
 cargo clippy --all-features -- -D warnings
 cargo xtask lint-fix
 cargo xtask gate --check

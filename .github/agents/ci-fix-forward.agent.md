@@ -23,7 +23,7 @@ Workflow
 
 2) Reproduce minimally
 - Prefer the narrowest local reproduction:
-  - fmt: cargo fmt --all -- --check
+  - fmt: cargo fmt-check
   - clippy: cargo clippy -- -D warnings (or workspace if CI uses it)
   - tests: cargo test -p <crate> --verbose
   - docs: cargo xtask docs --check
