@@ -1,52 +1,41 @@
 # tokmd-gate
 
-Policy evaluation engine for tokmd analysis receipts. Enables CI gating based on code metrics.
+Evaluate JSON Pointer policies against tokmd receipts.
 
-## Usage
+## Problem
 
-```rust
-use tokmd_gate::{PolicyConfig, evaluate_policy};
-use serde_json::Value;
+CI needs explicit pass/fail rules over structured receipts, not ad hoc scripts.
 
-let receipt: Value = serde_json::from_str(receipt_json)?;
-let policy = PolicyConfig::from_file("policy.toml")?;
-let result = evaluate_policy(&receipt, &policy)?;
+## What it gives you
 
-if !result.passed {
-    eprintln!("Policy check failed: {} errors, {} warnings", result.errors, result.warnings);
-}
-```
+- `PolicyConfig`, `PolicyRule`, `RuleOperator`, `RuleLevel`
+- `evaluate_policy` for receipt checks
+- `evaluate_ratchet_policy` for trend gates
+- `resolve_pointer` for JSON Pointer lookup
 
-## Policy File Format
+## Quick use / integration notes
 
 ```toml
-fail_fast = false
-
 [[rules]]
 name = "max_tokens"
 pointer = "/derived/totals/tokens"
 op = "<="
 value = 500000
 level = "error"
-message = "Codebase exceeds token budget"
-
-[[rules]]
-name = "min_doc_density"
-pointer = "/derived/doc_density/total/ratio"
-op = ">="
-value = 0.1
-level = "warn"
-message = "Documentation below 10%"
 ```
 
-## Supported Operators
+Supported operators: `>`, `>=`, `<`, `<=`, `==`, `!=`, `in`, `contains`, and `exists`.
 
-- `>`, `>=`, `<`, `<=`: Numeric comparisons
-- `==`, `!=`: Equality checks
-- `in`: Value is in a list
-- `contains`: String/array contains value
-- `exists`: JSON pointer exists
+## Go deeper
 
-## License
+### How-to
 
-MIT OR Apache-2.0
+- `../../docs/reference-cli.md`
+
+### Reference
+
+- `src/lib.rs`
+
+### Explanation
+
+- `../../docs/explanation.md`

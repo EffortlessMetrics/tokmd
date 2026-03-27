@@ -1,101 +1,36 @@
 # Browser Runner
 
-`web/runner` is the browser-facing `tokmd` slice for the current `1.9.0` lane.
+Browser-facing tokmd entrypoint for the web and WASM lane.
 
-It now boots `tokmd-wasm` inside a dedicated worker and runs the in-memory
-`lang`, `module`, `export`, and rootless `analyze` (`receipt` / `estimate`)
-paths locally in the browser. Public GitHub repo acquisition now uses the
-browser-safe GitHub tree and contents APIs to materialize ordered in-memory
-inputs before dispatching into the worker. Zipball fetch remains out of the
-current browser contract. Repo-load progress and cancel now exist in the main
-thread loader, but worker run cancel still remains intentionally unavailable.
+## Problem
 
-## Files
+Use this project when you want `tokmd` inside a browser worker, backed by
+`tokmd-wasm`, without widening the browser contract to the full native CLI.
 
-- `index.html`: static browser shell
-- `main.js`: main-thread wiring, sample requests, and log surface
-- `worker.js`: dedicated Worker entrypoint
-- `runtime.js`: request validation plus mode dispatch into the wasm runner
-- `messages.js`: protocol constants and helpers
-- `*.test.mjs`: Node smoke tests for protocol and runtime behavior
-- `package.json`: repeatable local scripts for building the browser wasm bundle
+## What it gives you
 
-## Protocol
+- a static browser shell in `index.html`
+- main-thread wiring in `main.js`
+- a dedicated worker in `worker.js`
+- runtime validation and protocol handling in `runtime.js`
+- public GitHub repo ingestion through browser-safe tree + contents APIs
+- `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate`
+- `cancel` reserved in the protocol but not wired yet
+- live result panes with downloadable JSON artifacts
 
-Worker -> main:
-
-- `ready`
-- `result`
-- `error`
-
-Main -> worker:
-
-- `run`
-- `cancel`
-
-Current behavior:
-
-- `ready` advertises supported modes plus `receipt` / `estimate` analyze presets
-  and reports the loaded `tokmd-wasm` engine version
-- `run` currently requires ordered in-memory `inputs` rows with `{ path, text }`
-- the page can fetch a public GitHub `owner/repo@ref`, filter browser-unsafe
-  files, and materialize `inputs` rows directly into the request editor
-- public repo fetches default to unauthenticated browser GitHub API calls, but
-  the page also accepts an optional token for higher limits or private access
-- repo ingestion surfaces memory-cache hits, partial-load reasons, tree
-  truncation, and primary/secondary rate-limit failures explicitly
-- analyze presets beyond `receipt` / `estimate` are intentionally rejected in
-  browser mode instead of degrading silently
-- `run` validates the request shape and executes the corresponding `tokmd-wasm`
-  entrypoint
-- repo-load cancel uses `AbortController`; worker `cancel` is still reserved in
-  the protocol and returns `cancel_unavailable`
-- the page renders the capability block explicitly instead of leaving it as raw
-  worker noise
-- the latest successful result is shown in a dedicated artifact pane and can be
-  downloaded as JSON from the browser
-
-## Build The Browser Bundle
+## Quick use / integration notes
 
 ```bash
 npm --prefix web/runner run build:wasm
-```
-
-## Distribution artifact
-
-For repeatable deployments, consume a versioned release artifact from GitHub
-and extract it into:
-
-```text
-web/runner/vendor/tokmd-wasm/
-```
-
-The release asset is named:
-
-```text
-tokmd-wasm-<tag>.tar.gz
-```
-
-(`v1.9.0` becomes `tokmd-wasm-v1.9.0.tar.gz`).
-Extracting this archive into `vendor/tokmd-wasm` gives the exact layout expected by
-`web/runner/worker.js` without rebuilding from source.
-
-## Local Smoke Test
-
-```bash
 npm --prefix web/runner test
 ```
 
-## Local Preview
+The browser bundle loads `web/runner/vendor/tokmd-wasm` and expects the wasm
+package layout produced by the build script.
 
-Build the browser bundle, then serve the repo root with any static file server
-and open `/web/runner/`.
+## Go deeper
 
-Examples:
-
-```bash
-npm --prefix web/runner run build:wasm
-python -m http.server 8080
-# or
-npx serve .
-```
+Tutorial: [Root README](../../README.md)
+How-to: [package.json](package.json)
+Reference: [worker.js](worker.js) and [runtime.js](runtime.js)
+Explanation: [main.js](main.js)

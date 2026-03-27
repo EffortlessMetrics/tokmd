@@ -1,14 +1,33 @@
 # tokmd-tool-schema
 
-Single-responsibility microcrate for generating AI tool schemas from a clap command tree.
+Generate AI tool schemas from clap command trees.
 
-## What it does
+## Problem
 
-- Builds a deterministic command/argument schema model from `clap::Command`.
-- Renders the model as OpenAI, Anthropic, JSON Schema, or raw clap JSON.
-- Provides a shared `ToolSchemaFormat` enum for CLI argument wiring.
+AI agents need stable tool definitions from the same CLI tree humans use.
 
-## API
+## What it gives you
 
-- `build_tool_schema(cmd: &clap::Command) -> ToolSchemaOutput`
-- `render_output(schema: &ToolSchemaOutput, format: ToolSchemaFormat, pretty: bool) -> anyhow::Result<String>`
+- `build_tool_schema(&Command) -> ToolSchemaOutput`
+- `render_output(..., ToolSchemaFormat, pretty) -> Result<String>`
+- `ToolSchemaFormat::{Openai, Anthropic, Jsonschema, Clap}`
+
+## Quick use / integration notes
+
+`build_tool_schema` walks the root command and subcommands, skips generated `help` and `version` args, and captures defaults plus enum values.
+
+`render_output` can serialize the same schema as `openai`, `anthropic`, `jsonschema`, or raw `clap`.
+
+## Go deeper
+
+### How-to
+
+- `../../docs/reference-cli.md`
+
+### Reference
+
+- `src/lib.rs`
+
+### Explanation
+
+- `../../docs/explanation.md`

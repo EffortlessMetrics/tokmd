@@ -1,18 +1,31 @@
 # tokmd-analysis-fun
 
-Microcrate for novelty/enrichment computations used by `tokmd-analysis`.
+Novelty enrichments for tokmd analysis receipts.
 
-## Current Responsibility
+## Problem
 
-- Compute the `FunReport` eco-label in `build_fun_report`.
+You want optional novelty signals, such as eco-labels, without tying them to
+the core analysis orchestrator.
 
-## API
+## What it gives you
 
-```rust
-pub fn build_fun_report(derived: &DerivedReport) -> FunReport;
-```
+- `build_fun_report`
+- `EcoLabel` output on the analysis receipt
 
-## Notes
+## Integration notes
 
-- Keeps novelty logic in a separate crate behind the `fun` feature in `tokmd-analysis`.
-- This crate has no formatting/rendering dependencies.
+- Consumes a `DerivedReport` and emits `FunReport`.
+- Currently centers on the size-based eco-label path used by `AnalysisPreset::Fun`.
+- Keeps novelty output isolated so it can evolve independently.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+- [Analysis types](../tokmd-analysis-types/README.md)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)

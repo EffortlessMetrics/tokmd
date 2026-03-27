@@ -1,14 +1,33 @@
 # tokmd-analysis-explain
 
-Single-responsibility microcrate for analysis metric/finding explanation lookup.
+Metric and finding explanation catalog for tokmd analysis receipts.
 
-## What it does
+## Problem
 
-- Normalizes user-provided metric keys and aliases.
-- Resolves a key to a concise explanation string.
-- Emits a deterministic catalog of available explanation keys.
+You need stable human-readable explanations for metric keys and findings
+without pulling in the full analysis orchestrator.
 
-## API
+## What it gives you
 
-- `lookup(key: &str) -> Option<String>`
-- `catalog() -> String`
+- `lookup`
+- `catalog`
+
+## Integration notes
+
+- Normalizes metric keys and supports alias lookup.
+- Returns a deterministic catalog order for stable docs and tests.
+- Keeps the explanation surface separate from receipt generation.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+- [Schema](../../docs/SCHEMA.md)
+- [Schema JSON](../../docs/schema.json)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Design](../../docs/design.md)
+- [Philosophy](../../docs/explanation.md)

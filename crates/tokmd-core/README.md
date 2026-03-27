@@ -1,137 +1,48 @@
 # tokmd-core
 
-Clap-free library facade for embedding `tokmd` workflows in Rust or through FFI-friendly JSON calls.
+Primary library facade for embedding tokmd workflows.
 
-## Overview
+## Problem
 
-This is the **Tier 4** crate that exposes the binding-friendly workflow layer. Use it when you want deterministic receipts without depending on the CLI crate or on lower-tier scan/model internals directly.
+You want tokmd receipts from Rust or FFI without depending on clap or the CLI binary.
 
-## Installation
+## What it gives you
 
-For core receipt workflows only:
+- Settings-based workflows: `lang_workflow`, `module_workflow`, `export_workflow`, `diff_workflow`, `analyze_workflow`, `cockpit_workflow`
+- Ordered in-memory variants: `*_workflow_from_inputs`
+- Shared JSON entrypoint: `ffi::run_json`
+- Convenience re-exports: `config`, `types`, `InMemoryFile`
+
+## Quick use / integration notes
+
+Add only the features you need:
 
 ```toml
 [dependencies]
-tokmd-core = "1.8"
+tokmd-core = { version = "1", features = ["analysis", "cockpit"] }
 ```
 
-If you also want analysis or cockpit workflows, enable the corresponding features:
+`run_json` supports these modes: `lang`, `module`, `export`, `analyze`, `diff`, `cockpit`, and `version`.
 
-```toml
-[dependencies]
-tokmd-core = { version = "1.8", features = ["analysis", "cockpit"] }
-```
+For browser-safe in-memory inputs, pass ordered `scan.inputs` rows with `{ path, text | base64 }`.
 
-## Rust Workflow Example
+## Go deeper
 
-```rust,no_run
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-use tokmd_core::settings::{LangSettings, ScanSettings};
-use tokmd_core::lang_workflow;
+### Tutorial
 
-let scan = ScanSettings::current_dir();
-let lang = LangSettings {
-    top: 10,
-    files: true,
-    ..Default::default()
-};
+- `../../docs/tutorial.md`
 
-let receipt = lang_workflow(&scan, &lang)?;
-assert!(!receipt.report.rows.is_empty());
-# Ok(())
-# }
-```
+### How-to
 
-With the `analysis` feature enabled, the same facade can drive the effort-aware analysis path:
+- `../../docs/recipes.md`
 
-```rust,no_run
-# #[cfg(feature = "analysis")]
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-use tokmd_core::settings::{AnalyzeSettings, ScanSettings};
-use tokmd_core::analyze_workflow;
+### Reference
 
-let scan = ScanSettings::current_dir();
-let analyze = AnalyzeSettings {
-    preset: "estimate".to_string(),
-    ..Default::default()
-};
+- `src/lib.rs`
+- `src/ffi.rs`
+- `../../docs/SCHEMA.md`
 
-let receipt = analyze_workflow(&scan, &analyze)?;
-assert!(receipt.effort.is_some());
-# Ok(())
-# }
-# #[cfg(not(feature = "analysis"))]
-# fn main() {}
-```
+### Explanation
 
-## Main Workflows
-
-- `lang_workflow(scan, lang) -> LangReceipt`
-- `lang_workflow_from_inputs(inputs, scan_opts, lang) -> LangReceipt`
-- `module_workflow(scan, module) -> ModuleReceipt`
-- `module_workflow_from_inputs(inputs, scan_opts, module) -> ModuleReceipt`
-- `export_workflow(scan, export) -> ExportReceipt`
-- `export_workflow_from_inputs(inputs, scan_opts, export) -> ExportReceipt`
-- `diff_workflow(settings) -> DiffReceipt`
-- `analyze_workflow(scan, analyze) -> AnalysisReceipt` with `analysis` feature
-- `analyze_workflow_from_inputs(inputs, scan_opts, analyze) -> AnalysisReceipt` with `analysis` feature
-- `cockpit_workflow(settings) -> CockpitReceipt` with `cockpit` feature
-
-All workflows use pure settings types from `tokmd_core::settings`, so they stay free of clap-specific argument structures. For ordered virtual inputs, build `tokmd_core::InMemoryFile` values and use the `*_workflow_from_inputs` variants instead of filesystem paths. Those in-memory workflows ignore ambient `tokei.toml` / `.tokeirc` discovery and clamp scan config loading to `none` so the same input set produces the same receipt regardless of host cwd.
-
-## FFI JSON API
-
-`tokmd-core` also exposes a single JSON entrypoint for bindings:
-
-```rust,no_run
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-use tokmd_core::ffi::run_json;
-
-let envelope = run_json("lang", r#"{"paths":["."],"top":5}"#);
-let parsed: serde_json::Value = serde_json::from_str(&envelope)?;
-
-assert_eq!(parsed["ok"], true);
-assert_eq!(parsed["data"]["mode"], "lang");
-# Ok(())
-# }
-```
-
-Supported `run_json` modes are `lang`, `module`, `export`, `analyze`, `diff`, `cockpit`, and `version`.
-
-Response shape:
-
-- Success: `{"ok": true, "data": {...}}`
-- Error: `{"ok": false, "error": {"code": "...", "message": "..."}}`
-
-For ordered virtual inputs, pass `scan.inputs` instead of `paths`. Bindings may also send top-level `inputs` for backwards-compatible flat request shapes. Each entry supplies a logical `path` plus exactly one of `text` or `base64`:
-
-```json
-{
-  "scan": {
-    "inputs": [
-      { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" },
-      { "path": "tests/basic.py", "base64": "cHJpbnQoJ29rJykK" }
-    ]
-  }
-}
-```
-
-## Re-exports
-
-For convenience, the crate re-exports:
-
-```rust,no_run
-pub use tokmd_config as config;
-pub use tokmd_types as types;
-```
-
-## When to Use
-
-- Embedding `tokmd` in another Rust tool
-- Reusing the receipt workflows without the CLI
-- Driving the JSON envelope API from Python, Node, or another FFI layer
-- Accessing `estimate` analysis or cockpit workflows from Rust with explicit feature flags
-
-## License
-
-MIT OR Apache-2.0
+- `../../docs/architecture.md`
+- `../../docs/design.md`

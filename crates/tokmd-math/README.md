@@ -1,16 +1,23 @@
 # tokmd-math
 
-Single-responsibility microcrate for deterministic numeric helpers used across tokmd analysis crates.
+Deterministic numeric helpers for tokmd analysis crates.
 
-## API
+## Problem
+Analysis metrics should round, divide, and rank the same way every time.
 
-- `round_f64(value, decimals)` - deterministic decimal rounding helper
-- `safe_ratio(numer, denom)` - zero-safe ratio helper (4 decimal places)
-- `percentile(sorted, pct)` - percentile lookup over sorted integer values
-- `gini_coefficient(sorted)` - inequality coefficient for sorted integer values
+## What it gives you
+- `round_f64(value, decimals)`
+- `safe_ratio(numer, denom)`
+- `percentile(sorted, pct)`
+- `gini_coefficient(sorted)`
 
-## Guarantees
+## API / usage notes
+- Use these helpers for presentation and report math, not for ad hoc business rules.
+- They are designed for stable outputs on identical inputs.
+- See `src/lib.rs` for the exact rounding and percentile behavior.
 
-- deterministic for identical inputs
-- no allocation for core operations
-- no unsafe code
+## Go deeper
+- Tutorial: [tokmd README](../../README.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md)
+- Explanation: [Design](../../docs/design.md)

@@ -1,19 +1,23 @@
 # tokmd-analysis-effort
 
-Deterministic effort-estimation support for `tokmd` analysis receipts.
+Effort estimation scaffolding and outputs for analysis receipts.
 
-This crate builds `tokmd_analysis_types::EffortEstimateReport` values from
-repository inventory data plus optional analysis enrichers. The model is
-receipt-driven and local-only: it uses repository files and already-computed
-analysis reports, and it does not call external services.
+## Problem
+You need an effort model that stays receipt-driven instead of pulling in a separate estimation service.
 
-The effort pipeline is intentionally layered:
+## What it gives you
+- `build_effort_report`
+- `build_size_basis`, `build_drivers`, `build_delta`
+- `apply_monte_carlo`, `apply_uncertainty`
+- `EffortRequest`, `EffortModelKind`, `EffortLayer`, `DeltaInput`
 
-- build an authored-vs-total size basis
-- run a deterministic baseline model over authored KLOC
-- widen or narrow the estimate using observed repository signals
-- explain the result with drivers and confidence reasons
-- optionally attach a base/head delta estimate
+## Integration notes
+- No default features.
+- Optional `git` support adds commit-history context for effort layers and delta estimates.
+- The output contract lives in `tokmd-analysis-types` as `EffortEstimateReport`.
 
-Primary consumers are `tokmd-analysis` and downstream renderers that need a
-stable effort semantics layer.
+## Go deeper
+- Tutorial: [Tutorial](../../docs/tutorial.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md), [Root README](../../README.md)
+- Explanation: [Explanation](../../docs/explanation.md)

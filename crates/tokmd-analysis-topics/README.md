@@ -1,13 +1,29 @@
 # tokmd-analysis-topics
 
-Tiered microcrate for topic-cloud enrichment used by analysis receipts.
+Topic-cloud enrichment for analysis receipts.
 
-## What it does
+## Problem
 
-- Tokenizes file paths into lightweight terms.
-- Computes weighted TF-like per-module topic scores.
-- Emits module-level and overall top-k topic lists.
+You want path-based topic signals without coupling the score-building logic to
+the main analysis orchestrator.
 
-## API
+## What it gives you
 
-- `build_topic_clouds(export: &ExportData) -> TopicClouds`
+- `build_topic_clouds`
+
+## Integration notes
+
+- Builds per-module and overall topic clouds from `ExportData`.
+- Uses token weights, stopwords, and deterministic TF-IDF-style scoring.
+- Keeps topic enrichment isolated so preset orchestration stays small.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)

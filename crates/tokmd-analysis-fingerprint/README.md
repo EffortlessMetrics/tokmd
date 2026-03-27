@@ -1,29 +1,22 @@
 # tokmd-analysis-fingerprint
 
-This microcrate computes corporate fingerprint enrichment from commit metadata.
-It belongs to the `tokmd-analysis` family as a small, stable adapter crate so the
-fingerprint logic can evolve without forcing broader analysis changes.
+Corporate fingerprint enrichment from git history.
 
-## Overview
+## Problem
+You need an org-signal summary from commit history without coupling to the full analysis orchestrator.
 
-`tokmd-analysis-fingerprint` exposes a single API:
+## What it gives you
+- `build_corporate_fingerprint`
+- `CorporateFingerprint`
+- Domain-level commit concentration signals
 
-- `build_corporate_fingerprint(commits: &[tokmd_git::GitCommit]) -> CorporateFingerprint`
+## Integration notes
+- No feature flags.
+- Depends on `tokmd-git` commit metadata.
+- Designed for the `identity` analysis preset.
 
-## Usage
-
-```rust
-use tokmd_analysis_fingerprint::build_corporate_fingerprint;
-use tokmd_git::GitCommit;
-
-let commits = vec![GitCommit {
-    timestamp: 0,
-    author: "alice@acme.com".to_string(),
-    hash: None,
-    subject: String::new(),
-    files: vec!["src/main.rs".to_string()],
-}];
-
-let fingerprint = build_corporate_fingerprint(&commits);
-assert!(!fingerprint.domains.is_empty());
-```
+## Go deeper
+- Tutorial: [Tutorial](../../docs/tutorial.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md), [Root README](../../README.md)
+- Explanation: [Explanation](../../docs/explanation.md)

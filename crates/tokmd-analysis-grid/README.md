@@ -1,20 +1,23 @@
 # tokmd-analysis-grid
 
-This microcrate owns the analysis preset matrix and feature-gate warning
-catalog used by `tokmd-analysis`.
+Preset and feature-gate metadata for analysis orchestration.
 
-## Purpose
+## Problem
+You need one source of truth for preset composition and feature warnings.
 
-- Keep preset-to-component mapping centralized.
-- Keep disabled-feature warning messages consistent.
-- Make the BDD-style feature matrix explicit and easy to audit.
-- Keep feature-gated behavior interoperable across crates.
+## What it gives you
+- `PresetKind`, `PRESET_KINDS`
+- `PresetPlan`, `PRESET_GRID`
+- `preset_plan_for`, `preset_plan_for_name`
+- `DisabledFeature`
 
-## API
+## Integration notes
+- Pure data and serialization, with deterministic ordering at the type boundary.
+- Central source of preset plans and disabled-feature warnings.
+- `halstead` depends on `content` and `walk`; the other preset features are independent gates.
 
-- `PresetKind` - preset identifiers.
-- `PresetPlan` - enabled analysis components for one preset.
-- `preset_plan_for` - retrieve plan by `PresetKind`.
-- `preset_plan_for_name` - retrieve plan by preset name.
-- `PRESET_GRID` - canonical BDD-style matrix table.
-- `DisabledFeature::warning()` - stable disabled-gate messages.
+## Go deeper
+- Tutorial: [Tutorial](../../docs/tutorial.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md), [Schema](../../docs/SCHEMA.md), [Schema JSON](../../docs/schema.json)
+- Explanation: [Explanation](../../docs/explanation.md)

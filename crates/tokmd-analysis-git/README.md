@@ -1,11 +1,31 @@
 # tokmd-analysis-git
 
-Git-focused enrichment for `tokmd-analysis`.
+Git-history enrichments for tokmd analysis presets.
 
-Includes:
+## Problem
 
-- Hotspot/coupling/freshness/git activity reports
-- Predictive churn trend analysis
+You need churn, freshness, and coupling signals from git history without
+mixing them into the core scan or format layers.
 
-The crate is dependency-free with respect to `tokmd-analysis` internals so it can evolve
-independently while keeping orchestration in `tokmd-analysis`.
+## What it gives you
+
+- `build_git_report`
+- `build_predictive_churn_report`
+
+## Integration notes
+
+- Consumes git-derived inputs and produces analysis-side enrichment reports.
+- Keeps history-based heuristics separate from the receipt model and renderer.
+- Deterministic ordering is preserved through the shared analysis types.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+- [Churn implementation](src/churn.rs)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)

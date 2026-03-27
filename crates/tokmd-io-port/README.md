@@ -1,18 +1,23 @@
 # tokmd-io-port
 
-I/O port traits for host-abstracted file access.
+Read-only file access ports for tokmd.
 
-Provides `ReadFs` – a trait that abstracts read-only filesystem operations so
-that `tokmd-scan` (and other crates) can work against in-memory data when
-compiled for WASM targets.
+## Problem
+Scan and model code should work against disk and in-memory inputs, including WASM, without changing call sites.
 
-## Implementations
+## What it gives you
+- `ReadFs`
+- `HostFs`
+- `MemFs`
+- `MemFsError`
 
-| Struct   | Purpose                            |
-|----------|------------------------------------|
-| `HostFs` | Delegates to `std::fs` (default)   |
-| `MemFs`  | In-memory store for tests and WASM |
+## API / usage notes
+- Use `HostFs` for production filesystem access.
+- Use `MemFs` in tests and browser/WASM code.
+- This crate stays read-only by design.
 
-## License
-
-MIT OR Apache-2.0
+## Go deeper
+- Tutorial: [tokmd README](../../README.md)
+- How-to: [tokmd-scan](../tokmd-scan/README.md)
+- Reference: [Architecture](../../docs/architecture.md)
+- Explanation: [Design](../../docs/design.md)

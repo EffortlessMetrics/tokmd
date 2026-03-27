@@ -1,15 +1,32 @@
 # tokmd-analysis-maintainability
 
-This microcrate owns maintainability-index scoring rules and Halstead-based
-maintainability updates for `tokmd` analysis receipts.
+Maintainability scoring helpers for tokmd analysis receipts.
 
-## Purpose
+## Problem
 
-- Keep SEI maintainability math in one place.
-- Keep letter-grade thresholds stable (`A` / `B` / `C`).
-- Keep Halstead-to-maintainability integration behavior deterministic.
+You want maintainability metrics derived from complexity and size without
+re-implementing the scoring math in the caller.
 
-## API
+## What it gives you
 
-- `compute_maintainability_index` - compute simplified or full SEI MI.
-- `attach_halstead_metrics` - attach Halstead metrics and refresh MI when valid.
+- `compute_maintainability_index`
+- `attach_halstead_metrics`
+
+## Integration notes
+
+- Uses the simplified or full SEI-style formula depending on Halstead volume.
+- Recomputes the index only when the existing complexity report already has a
+  maintainability slot and Halstead volume is positive.
+- Keeps the Halstead merge logic local to the analysis layer.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+- [tokmd-analysis-halstead](../tokmd-analysis-halstead/README.md)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)

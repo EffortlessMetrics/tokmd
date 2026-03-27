@@ -1,69 +1,22 @@
 # tokmd-analysis-types
 
-Analysis receipt contracts for tokmd.
+Analysis receipt contracts and shared report types.
 
-## Overview
+## Problem
+You need a stable analysis schema without pulling in orchestration or rendering code.
 
-This is a **Tier 0** crate defining pure data structures for analysis receipts. It contains no I/O or business logic - only type definitions and serialization.
+## What it gives you
+- `ANALYSIS_SCHEMA_VERSION`
+- `AnalysisReceipt`, `AnalysisSource`, `AnalysisArgsMeta`
+- Shared report and finding structs used by the analysis presets
 
-## Installation
+## Integration notes
+- Pure data and serialization, with deterministic ordering at the type boundary.
+- `ANALYSIS_SCHEMA_VERSION = 9`.
+- Includes the optional sections used by the analysis preset matrix.
 
-```toml
-[dependencies]
-tokmd-analysis-types = "1.3"
-```
-
-## Key Types
-
-### Core Receipt
-```rust
-pub struct AnalysisReceipt {
-    pub schema_version: u32,
-    pub archetype: Option<Archetype>,
-    pub topics: Option<TopicClouds>,
-    pub entropy: Option<EntropyReport>,
-    pub derived: Option<DerivedReport>,
-    pub git: Option<GitReport>,
-    // ... and more optional sections
-}
-```
-
-### Analysis Result Types
-
-| Type | Purpose |
-|------|---------|
-| `Archetype` | Project kind detection (CLI, library, web app) |
-| `TopicClouds` | Semantic topic extraction with TF-IDF scores |
-| `EntropyReport` | High-entropy file detection |
-| `PredictiveChurnReport` | Git-based change trend prediction |
-| `CorporateFingerprint` | Author domain statistics |
-| `LicenseReport` | SPDX license detection |
-| `DerivedReport` | Core metrics (density, distribution, COCOMO) |
-| `AssetReport` | Non-code file categorization |
-| `GitReport` | Hotspots, bus factor, freshness, coupling |
-| `ImportReport` | Module dependency graph |
-| `DuplicateReport` | Content duplication detection |
-| `FunReport` | Eco-label and novelty outputs |
-
-## Schema Version
-
-```rust
-pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;
-```
-
-v4 added cognitive complexity, nesting depth, and function-level details.
-v5 added Halstead metrics, maintainability index, complexity histogram, technical debt ratio, duplication density, and code age distribution.
-v6 added API surface enricher.
-v7 added coupling normalization (Jaccard/Lift), commit intent classification, and near-duplicate detection.
-v8 added near-dup clusters, selection metadata, max_pairs guardrail, runtime stats.
-v9 added effort estimation report.
-
-## Design Principles
-
-- All analysis sections are `Option<T>` to support preset-based inclusion
-- Uses `BTreeMap` for deterministic key ordering
-- No I/O operations - pure data definitions
-
-## License
-
-MIT OR Apache-2.0
+## Go deeper
+- Tutorial: [Tutorial](../../docs/tutorial.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md), [Schema](../../docs/SCHEMA.md), [Schema JSON](../../docs/schema.json)
+- Explanation: [Explanation](../../docs/explanation.md)

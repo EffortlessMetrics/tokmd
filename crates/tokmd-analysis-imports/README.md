@@ -1,16 +1,31 @@
 # tokmd-analysis-imports
 
-Single-responsibility microcrate for language-aware import extraction used by
-`tokmd-analysis-content`.
+Language-aware import parsing and target normalization for tokmd analysis.
 
-## What it does
+## Problem
 
-- Detects whether a language is supported for import extraction.
-- Extracts import targets from Rust, JavaScript/TypeScript, Python, and Go.
-- Normalizes import targets into deterministic dependency roots.
+You need import extraction and normalization without dragging in filesystem or
+receipt orchestration.
 
-## API
+## What it gives you
 
-- `supports_language(lang: &str) -> bool`
-- `parse_imports(lang: &str, lines: &[impl AsRef<str>]) -> Vec<String>`
-- `normalize_import_target(target: &str) -> String`
+- `supports_language`
+- `parse_imports`
+- `normalize_import_target`
+
+## Integration notes
+
+- Supports Rust, JavaScript, TypeScript, Python, and Go.
+- Relative targets collapse to `local`.
+- Keeps the parser logic small and deterministic for higher-tier enrichers.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)
