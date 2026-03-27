@@ -1,0 +1,14 @@
+{
+  "run_id": "cc7116df-c51d-4482-8f10-396b45b56bc7",
+  "timestamp_utc": "2026-03-27T12:45:39Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs: reduce String allocations in create_lang_report_from_rows",
+  "proof_method": "structural",
+  "commands": ["cargo build --verbose", "CI=true cargo test -p tokmd -p tokmd-model --verbose", "cargo fmt -- --check", "cargo clippy -- -D warnings"],
+  "results": [
+    {"cmd": "cargo build --verbose", "status": "PASS", "summary": "Successfully compiled tokmd-model"},
+    {"cmd": "CI=true cargo test -p tokmd -p tokmd-model --verbose", "status": "PASS", "summary": "All tests passed for tokmd and tokmd-model"},
+    {"cmd": "cargo fmt -- --check", "status": "PASS", "summary": "Code format is correct"},
+    {"cmd": "cargo clippy -- -D warnings", "status": "PASS", "summary": "No clippy warnings"}
+  ]
+}
