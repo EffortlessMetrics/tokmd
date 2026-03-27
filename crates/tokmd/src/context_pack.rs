@@ -101,8 +101,9 @@ pub fn parse_budget(budget: &str) -> anyhow::Result<usize> {
 
     let n: f64 = num_str.parse().map_err(|_| {
         anyhow::anyhow!(
-            "Invalid budget '{}': expected <number>[k|m|g] or 'unlimited' (examples: 128k, 1m, 1g, unlimited)",
-            budget.trim()
+            "Invalid budget '{}': '{}' is not a valid number. Expected format: <number>[k|m|g] or 'unlimited' (examples: 128k, 1.5m, 1g, unlimited)",
+            budget.trim(),
+            num_str
         )
     })?;
 
@@ -1401,7 +1402,7 @@ mod tests {
 
     #[test]
     fn test_parse_budget_invalid_alpha() {
-        let err = parse_budget("abc").unwrap_err();
+        let err = parse_budget("abc").expect_err("should return an error for invalid alpha");
         let msg = err.to_string();
         assert!(
             msg.contains("Invalid budget"),
@@ -1415,7 +1416,7 @@ mod tests {
 
     #[test]
     fn test_parse_budget_invalid_suffix() {
-        let err = parse_budget("1x").unwrap_err();
+        let err = parse_budget("1x").expect_err("should return an error for invalid suffix");
         let msg = err.to_string();
         assert!(
             msg.contains("Invalid budget"),
@@ -1438,7 +1439,7 @@ mod tests {
     #[test]
     fn test_parse_budget_overflow() {
         // 999999999999g = ~1e21, which overflows u64-sized usize
-        let err = parse_budget("999999999999g").unwrap_err();
+        let err = parse_budget("999999999999g").expect_err("should return an error for overflow");
         let msg = err.to_string();
         assert!(
             msg.contains("overflows"),

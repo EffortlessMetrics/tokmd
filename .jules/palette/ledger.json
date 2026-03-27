@@ -25,6 +25,22 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "run_id": "70729584-922f-404b-8b8d-65aac25e4d39",
+      "timestamp": "2026-03-27T12:37:41Z",
+      "lane": "scout",
+      "target": "Burn down unwrap() calls in context tests and replace unwrap_err() in parse_budget tests",
+      "status": "PASS",
+      "friction_ids": []
+    },
+    {
+      "run_id": "70729584-922f-404b-8b8d-65aac25e4d39",
+      "timestamp": "2026-03-27T12:47:57Z",
+      "lane": "scout",
+      "target": "Improve error message UX in parse_budget function",
+      "status": "PASS",
+      "friction_ids": []
     }
   ]
 }

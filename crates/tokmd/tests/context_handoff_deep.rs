@@ -31,7 +31,7 @@ fn context_json_receipt_has_all_required_fields() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).expect("should succeed");
 
     // Top-level fields
     assert_eq!(parsed["schema_version"].as_u64(), Some(4));
@@ -52,13 +52,13 @@ fn context_json_file_rows_have_complete_fields() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     assert!(output.status.success());
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let files = parsed["files"].as_array().unwrap();
+    let files = parsed["files"].as_array().expect("should succeed");
     assert!(!files.is_empty());
 
     for file in files {
@@ -78,14 +78,14 @@ fn context_json_file_paths_use_forward_slashes() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let files = parsed["files"].as_array().unwrap();
+    let files = parsed["files"].as_array().expect("should succeed");
     for file in files {
-        let path = file["path"].as_str().unwrap();
+        let path = file["path"].as_str().expect("should succeed");
         assert!(
             !path.contains('\\'),
             "path should use forward slashes: {path}"
@@ -102,14 +102,14 @@ fn context_budget_is_respected_with_small_budget() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--budget", "500"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     assert!(output.status.success());
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let budget = parsed["budget_tokens"].as_u64().unwrap();
-    let used = parsed["used_tokens"].as_u64().unwrap();
+    let budget = parsed["budget_tokens"].as_u64().expect("should succeed");
+    let used = parsed["used_tokens"].as_u64().expect("should succeed");
 
     assert_eq!(budget, 500);
     assert!(
@@ -123,14 +123,14 @@ fn context_budget_is_respected_with_large_budget() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--budget", "1m"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     assert!(output.status.success());
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let budget = parsed["budget_tokens"].as_u64().unwrap();
-    let used = parsed["used_tokens"].as_u64().unwrap();
+    let budget = parsed["budget_tokens"].as_u64().expect("should succeed");
+    let used = parsed["used_tokens"].as_u64().expect("should succeed");
 
     assert_eq!(budget, 1_000_000);
     assert!(used <= budget);
@@ -141,14 +141,14 @@ fn context_utilization_pct_is_consistent() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--budget", "10000"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let budget = parsed["budget_tokens"].as_f64().unwrap();
-    let used = parsed["used_tokens"].as_f64().unwrap();
-    let pct = parsed["utilization_pct"].as_f64().unwrap();
+    let budget = parsed["budget_tokens"].as_f64().expect("should succeed");
+    let used = parsed["used_tokens"].as_f64().expect("should succeed");
+    let pct = parsed["utilization_pct"].as_f64().expect("should succeed");
 
     if budget > 0.0 {
         let expected_pct = (used / budget) * 100.0;
@@ -165,7 +165,7 @@ fn context_utilization_pct_is_consistent() {
 
 #[test]
 fn context_bundle_dir_creates_manifest_and_bundle() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let bundle_dir = dir.path().join("ctx_bundle");
 
     tokmd_cmd()
@@ -180,7 +180,7 @@ fn context_bundle_dir_creates_manifest_and_bundle() {
 
 #[test]
 fn context_bundle_manifest_has_valid_schema() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let bundle_dir = dir.path().join("ctx_schema");
 
     tokmd_cmd()
@@ -189,8 +189,8 @@ fn context_bundle_manifest_has_valid_schema() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
     assert_eq!(parsed["schema_version"].as_u64(), Some(2));
     assert!(parsed["generated_at_ms"].is_number());
@@ -204,7 +204,7 @@ fn context_bundle_manifest_has_valid_schema() {
 
 #[test]
 fn context_bundle_included_files_match_file_count() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let bundle_dir = dir.path().join("ctx_count");
 
     tokmd_cmd()
@@ -213,11 +213,11 @@ fn context_bundle_included_files_match_file_count() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let file_count = parsed["file_count"].as_u64().unwrap();
-    let included_files = parsed["included_files"].as_array().unwrap();
+    let file_count = parsed["file_count"].as_u64().expect("should succeed");
+    let included_files = parsed["included_files"].as_array().expect("should succeed");
     assert_eq!(
         file_count,
         included_files.len() as u64,
@@ -227,7 +227,7 @@ fn context_bundle_included_files_match_file_count() {
 
 #[test]
 fn context_bundle_budget_respected() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let bundle_dir = dir.path().join("ctx_budget");
 
     tokmd_cmd()
@@ -237,11 +237,11 @@ fn context_bundle_budget_respected() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(bundle_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let budget = parsed["budget_tokens"].as_u64().unwrap();
-    let used = parsed["used_tokens"].as_u64().unwrap();
+    let budget = parsed["budget_tokens"].as_u64().expect("should succeed");
+    let used = parsed["used_tokens"].as_u64().expect("should succeed");
     assert!(used <= budget);
 }
 
@@ -251,7 +251,7 @@ fn context_bundle_budget_respected() {
 
 #[test]
 fn handoff_manifest_has_all_required_fields() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_fields");
 
     tokmd_cmd()
@@ -260,8 +260,8 @@ fn handoff_manifest_has_all_required_fields() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
     assert_eq!(parsed["schema_version"].as_u64(), Some(5));
     assert!(parsed["generated_at_ms"].is_number());
@@ -283,7 +283,7 @@ fn handoff_manifest_has_all_required_fields() {
 
 #[test]
 fn handoff_artifacts_have_expected_names() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_artifacts");
 
     tokmd_cmd()
@@ -292,13 +292,13 @@ fn handoff_artifacts_have_expected_names() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let artifacts = parsed["artifacts"].as_array().unwrap();
+    let artifacts = parsed["artifacts"].as_array().expect("should succeed");
     let names: Vec<&str> = artifacts
         .iter()
-        .map(|a| a["name"].as_str().unwrap())
+        .map(|a| a["name"].as_str().expect("should succeed"))
         .collect();
 
     assert!(names.contains(&"map"), "should have map artifact");
@@ -311,7 +311,7 @@ fn handoff_artifacts_have_expected_names() {
 
 #[test]
 fn handoff_artifact_map_has_blake3_hash() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_hash");
 
     tokmd_cmd()
@@ -320,21 +320,26 @@ fn handoff_artifact_map_has_blake3_hash() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let artifacts = parsed["artifacts"].as_array().unwrap();
-    let map_artifact = artifacts.iter().find(|a| a["name"] == "map").unwrap();
+    let artifacts = parsed["artifacts"].as_array().expect("should succeed");
+    let map_artifact = artifacts
+        .iter()
+        .find(|a| a["name"] == "map")
+        .expect("should succeed");
 
     assert_eq!(map_artifact["hash"]["algo"].as_str(), Some("blake3"));
-    let hash = map_artifact["hash"]["hash"].as_str().unwrap();
+    let hash = map_artifact["hash"]["hash"]
+        .as_str()
+        .expect("should succeed");
     assert!(!hash.is_empty(), "hash should not be empty");
     assert_eq!(hash.len(), 64, "blake3 hex hash should be 64 chars");
 }
 
 #[test]
 fn handoff_produces_all_four_files() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_files");
 
     tokmd_cmd()
@@ -351,7 +356,7 @@ fn handoff_produces_all_four_files() {
 
 #[test]
 fn handoff_map_jsonl_lines_are_valid_json() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_jsonl");
 
     tokmd_cmd()
@@ -360,7 +365,7 @@ fn handoff_map_jsonl_lines_are_valid_json() {
         .assert()
         .success();
 
-    let map = fs::read_to_string(out_dir.join("map.jsonl")).unwrap();
+    let map = fs::read_to_string(out_dir.join("map.jsonl")).expect("should succeed");
     for (i, line) in map.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
@@ -372,7 +377,7 @@ fn handoff_map_jsonl_lines_are_valid_json() {
 
 #[test]
 fn handoff_budget_enforcement() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_budget");
 
     tokmd_cmd()
@@ -382,11 +387,11 @@ fn handoff_budget_enforcement() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let budget = parsed["budget_tokens"].as_u64().unwrap();
-    let used = parsed["used_tokens"].as_u64().unwrap();
+    let budget = parsed["budget_tokens"].as_u64().expect("should succeed");
+    let used = parsed["used_tokens"].as_u64().expect("should succeed");
     assert!(
         used <= budget,
         "used ({used}) must not exceed budget ({budget})"
@@ -395,7 +400,7 @@ fn handoff_budget_enforcement() {
 
 #[test]
 fn handoff_included_files_paths_use_forward_slashes() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_paths");
 
     tokmd_cmd()
@@ -404,12 +409,12 @@ fn handoff_included_files_paths_use_forward_slashes() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let included = parsed["included_files"].as_array().unwrap();
+    let included = parsed["included_files"].as_array().expect("should succeed");
     for file in included {
-        let path = file["path"].as_str().unwrap();
+        let path = file["path"].as_str().expect("should succeed");
         assert!(
             !path.contains('\\'),
             "path should use forward slashes: {path}"
@@ -427,15 +432,15 @@ fn context_json_determinism_same_file_selection() {
         let output = tokmd_cmd()
             .args(["context", "--mode", "json", "--budget", "5000"])
             .output()
-            .unwrap();
+            .expect("should succeed");
 
         let parsed: serde_json::Value =
-            serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+            serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-        let files = parsed["files"].as_array().unwrap().clone();
+        let files = parsed["files"].as_array().expect("should succeed").clone();
         let paths: Vec<String> = files
             .iter()
-            .map(|f| f["path"].as_str().unwrap().to_string())
+            .map(|f| f["path"].as_str().expect("should succeed").to_string())
             .collect();
         paths
     };
@@ -451,13 +456,13 @@ fn context_json_determinism_same_token_counts() {
         let output = tokmd_cmd()
             .args(["context", "--mode", "json", "--budget", "10000"])
             .output()
-            .unwrap();
+            .expect("should succeed");
 
         let parsed: serde_json::Value =
-            serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+            serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-        let used = parsed["used_tokens"].as_u64().unwrap();
-        let file_count = parsed["file_count"].as_u64().unwrap();
+        let used = parsed["used_tokens"].as_u64().expect("should succeed");
+        let file_count = parsed["file_count"].as_u64().expect("should succeed");
         (used, file_count)
     };
 
@@ -470,7 +475,7 @@ fn context_json_determinism_same_token_counts() {
 #[test]
 fn handoff_determinism_same_manifest_structure() {
     let get_manifest = || {
-        let dir = tempdir().unwrap();
+        let dir = tempdir().expect("should succeed");
         let out_dir = dir.path().join("hoff_det");
 
         tokmd_cmd()
@@ -480,17 +485,17 @@ fn handoff_determinism_same_manifest_structure() {
             .assert()
             .success();
 
-        let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+        let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
         let files: Vec<String> = parsed["included_files"]
             .as_array()
-            .unwrap()
+            .expect("should succeed")
             .iter()
-            .map(|f| f["path"].as_str().unwrap().to_string())
+            .map(|f| f["path"].as_str().expect("should succeed").to_string())
             .collect();
 
-        let used = parsed["used_tokens"].as_u64().unwrap();
+        let used = parsed["used_tokens"].as_u64().expect("should succeed");
         (files, used)
     };
 
@@ -512,10 +517,10 @@ fn context_greedy_strategy_records_strategy_field() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--strategy", "greedy"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
     assert_eq!(parsed["strategy"].as_str(), Some("greedy"));
 }
 
@@ -524,16 +529,16 @@ fn context_spread_strategy_records_strategy_field() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--strategy", "spread"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
     assert_eq!(parsed["strategy"].as_str(), Some("spread"));
 }
 
 #[test]
 fn handoff_greedy_strategy_records_strategy_field() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_greedy");
 
     tokmd_cmd()
@@ -543,8 +548,8 @@ fn handoff_greedy_strategy_records_strategy_field() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
     assert_eq!(parsed["strategy"].as_str(), Some("greedy"));
 }
 
@@ -565,18 +570,18 @@ fn context_with_very_small_budget_respects_limit() {
     let output = tokmd_cmd()
         .args(["context", "--mode", "json", "--budget", "1"])
         .output()
-        .unwrap();
+        .expect("should succeed");
 
     let parsed: serde_json::Value =
-        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("should succeed");
 
-    let used = parsed["used_tokens"].as_u64().unwrap();
+    let used = parsed["used_tokens"].as_u64().expect("should succeed");
     assert!(used <= 1, "used_tokens ({used}) should be ≤ 1");
 }
 
 #[test]
 fn handoff_with_no_git_flag_succeeds_and_marks_capability() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_nogit");
 
     tokmd_cmd()
@@ -586,17 +591,20 @@ fn handoff_with_no_git_flag_succeeds_and_marks_capability() {
         .assert()
         .success();
 
-    let manifest = fs::read_to_string(out_dir.join("manifest.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+    let manifest = fs::read_to_string(out_dir.join("manifest.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&manifest).expect("should succeed");
 
-    let caps = parsed["capabilities"].as_array().unwrap();
-    let git_cap = caps.iter().find(|c| c["name"] == "git").unwrap();
+    let caps = parsed["capabilities"].as_array().expect("should succeed");
+    let git_cap = caps
+        .iter()
+        .find(|c| c["name"] == "git")
+        .expect("should succeed");
     assert_eq!(git_cap["status"].as_str(), Some("skipped"));
 }
 
 #[test]
 fn context_output_to_file_writes_valid_json() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_file = dir.path().join("ctx_out.json");
 
     tokmd_cmd()
@@ -605,14 +613,14 @@ fn context_output_to_file_writes_valid_json() {
         .assert()
         .success();
 
-    let content = fs::read_to_string(&out_file).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+    let content = fs::read_to_string(&out_file).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&content).expect("should succeed");
     assert_eq!(parsed["schema_version"].as_u64(), Some(4));
 }
 
 #[test]
 fn handoff_force_flag_allows_overwrite() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_force");
 
     // First run
@@ -653,7 +661,7 @@ fn context_bundle_mode_outputs_to_stdout() {
 
 #[test]
 fn handoff_intelligence_json_has_expected_fields() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_intel");
 
     tokmd_cmd()
@@ -662,8 +670,8 @@ fn handoff_intelligence_json_has_expected_fields() {
         .assert()
         .success();
 
-    let intel = fs::read_to_string(out_dir.join("intelligence.json")).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&intel).unwrap();
+    let intel = fs::read_to_string(out_dir.join("intelligence.json")).expect("should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&intel).expect("should succeed");
 
     // Intelligence fields
     assert!(parsed["tree"].is_string());
@@ -677,7 +685,7 @@ fn handoff_intelligence_json_has_expected_fields() {
 
 #[test]
 fn handoff_code_txt_contains_file_markers() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should succeed");
     let out_dir = dir.path().join("hoff_code");
 
     tokmd_cmd()
@@ -686,7 +694,7 @@ fn handoff_code_txt_contains_file_markers() {
         .assert()
         .success();
 
-    let code = fs::read_to_string(out_dir.join("code.txt")).unwrap();
+    let code = fs::read_to_string(out_dir.join("code.txt")).expect("should succeed");
     assert!(
         code.contains("// ==="),
         "code.txt should contain file separator markers"

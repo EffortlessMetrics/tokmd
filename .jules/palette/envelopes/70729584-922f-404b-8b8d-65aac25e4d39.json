@@ -1,0 +1,15 @@
+{
+  "run_id": "70729584-922f-404b-8b8d-65aac25e4d39",
+  "timestamp_utc": "2026-03-27T12:25:56Z",
+  "lane": "scout",
+  "target": "improve parse_budget error message UX",
+  "commands": [],
+  "results": [
+    {
+      "cmd": "cargo test -p tokmd",
+      "exit": 0,
+      "summary": "PASS",
+      "output": "test result: ok. 18 passed; 0 failed"
+    }
+  ]
+}
