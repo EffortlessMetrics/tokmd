@@ -48,10 +48,10 @@ if rc != 0:
     log("FAILED to clone")
     sys.exit(1)
 
-# Run cargo fmt
-rc, _ = run("cargo fmt", cwd=CLONE_DIR, timeout=300)
+# Run repo-native formatter
+rc, _ = run("cargo fmt-fix", cwd=CLONE_DIR, timeout=300)
 if rc != 0:
-    log("FAILED cargo fmt")
+    log("FAILED cargo fmt-fix")
     sys.exit(1)
 
 # Check and fix typos
