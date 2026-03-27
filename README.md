@@ -1,6 +1,6 @@
 # tokmd
 
-> **Deterministic code receipts, analysis, and review artifacts for humans, CI, and LLM workflows.**
+> Deterministic repo receipts, analysis, and review artifacts for humans, CI, and LLM workflows.
 
 [![Crates.io](https://img.shields.io/crates/v/tokmd)](https://crates.io/crates/tokmd)
 [![GitHub Release](https://img.shields.io/github/v/release/EffortlessMetrics/tokmd?display_name=tag)](https://github.com/EffortlessMetrics/tokmd/releases)
@@ -9,309 +9,165 @@
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 
-`tokmd` turns a source tree into deterministic receipts you can diff, analyze, pack for LLMs, and gate in CI. It starts with [`tokei`](https://github.com/XAMPPRocky/tokei) counting, then adds stable artifact generation, derived analysis, review surfaces, and automation-friendly outputs that hold up across runs and operating systems.
+`tokmd` turns a source tree into stable receipts you can diff, analyze, archive, gate, and pack for downstream automation. It starts with code inventory, then keeps going: saved artifacts, derived metrics, PR review surfaces, policy checks, sensor outputs, and browser-safe context bundles.
 
-## Choose a Lane
+## The Problem
+
+Raw LOC counts are easy to produce and hard to reuse.
+
+- Terminal output is awkward to diff and archive.
+- CI needs artifacts and gates, not screenshots of a table.
+- LLM workflows need bounded, deterministic context instead of pasted summaries.
+- Review workflows need stable before/after surfaces, not one-off shell output.
+
+`tokmd` exists to turn repository shape into repeatable, machine-friendly truth.
+
+## What `tokmd` Gives You
+
+- Deterministic receipts for `lang`, `module`, `export`, `run`, `diff`, and `analyze`.
+- Review surfaces such as `cockpit`, `gate`, `baseline`, and `sensor`.
+- Saved artifacts in Markdown, JSON, JSONL, CSV, CycloneDX, HTML, SVG, Mermaid, and tree formats.
+- LLM-oriented workflows through `context`, `handoff`, redaction, token budgeting, and tool-schema generation.
+- Multiple product surfaces: CLI, Rust facade, Python bindings, Node bindings, and a browser/WASM slice.
+
+## Start Here
+
+Install:
+
+```bash
+cargo install tokmd --locked
+# or
+nix run github:EffortlessMetrics/tokmd -- --version
+```
+
+Run the common paths:
+
+```bash
+# Summarize the current repo
+tokmd --format md --top 8
+
+# Save a deterministic run directory for CI or later diffing
+tokmd run --analysis receipt --output-dir .runs/current
+
+# Compare two states
+tokmd diff main HEAD
+
+# Generate a risk-oriented analysis view
+tokmd analyze --preset risk --format md
+
+# Pack code for an LLM budget
+tokmd context --budget 128k --mode bundle --output context.txt
+```
+
+## Choose a Path
 
 | If you need to... | Start with... | Typical output |
 | :---------------- | :------------ | :------------- |
 | summarize a repo or PR | `tokmd`, `diff`, `cockpit` | Markdown summary, diff tables, review plan |
 | save deterministic artifacts | `run`, `export` | JSON/JSONL/CSV/CycloneDX receipts |
 | analyze code health or risk | `analyze` | Markdown, JSON, HTML, SVG, Mermaid |
-| estimate effort | `analyze --preset estimate` | effort report with optional base/head delta |
-| pack code for an LLM | `context`, `handoff` | bundle text, JSON receipts, handoff directory |
-| automate policy or multi-sensor CI | `gate`, `baseline`, `sensor` | ratchet checks, `sensor.report.v1`, policy results |
-
-## What You Get
-
-- **Deterministic receipts**: Markdown, JSON, JSONL, CSV, CycloneDX, HTML, tree, and more.
-- **Derived analysis**: doc density, test density, hotspots, coupling, freshness, and effort estimation.
-- **Review workflows**: `diff`, `cockpit`, `gate`, `baseline`, and `sensor.report.v1` output.
-- **LLM workflows**: `context` packing, `handoff` bundles, token estimates, redaction, and smart excludes.
-- **Browser/WASM workflows**: `tokmd-wasm` plus `web/runner` for local browser `lang`, `module`, `export`, and `analyze` (`receipt`, `estimate`) on ordered in-memory inputs.
-- **Cross-platform behavior**: Windows/Linux/macOS-friendly outputs, release automation, and repo-native CI usage.
-
-## Why Deterministic Matters
-
-- **Readable diffs**: stable ordering and normalized paths keep repo summaries comparable across runs.
-- **CI-friendly artifacts**: saved receipts can be diffed, gated, archived, and reused instead of scraped from ad-hoc terminal output.
-- **LLM-friendly context**: structured exports and bounded bundles are easier to feed into agents than pasted tables.
-- **One scan, many surfaces**: summaries, badges, review plans, and policy results come from the same underlying receipt graph.
-
-## Quickstart
-
-```bash
-# Install quickly
-nix run github:EffortlessMetrics/tokmd -- --version
-# or
-cargo install tokmd --locked
-
-# 1. High-signal repo summary for a PR or issue
-tokmd --format md --top 8 > summary.md
-
-# 2. Save full receipts for later diffing
-tokmd run --analysis receipt --output-dir .runs/current
-
-# 3. Pack code for an LLM within a budget
-tokmd context --budget 128k --mode bundle --output context.txt
-
-# 4. Estimate effort between two refs
-tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md
-
-# 5. Generate a review-friendly risk report
-tokmd analyze --preset risk --format md
-
-# 6. Emit a generated badge
-tokmd badge --metric hotspot --preset risk --output hotspot.svg
-
-# 7. Diff two states deterministically
-tokmd diff main HEAD
-```
+| estimate effort between refs | `analyze --preset estimate` | effort report with optional base/head delta |
+| gate policy in CI | `gate`, `baseline`, `sensor` | policy verdicts, ratchets, `sensor.report.v1` |
+| pack context for an LLM | `context`, `handoff` | bounded bundle text, JSON receipts, handoff directory |
 
 ## What It Looks Like
 
-These are checked-in example SVG badges generated by `tokmd badge` from this repository:
+These are live GitHub Actions badges from this repository:
 
-![Example Lines Badge](docs/assets/readme-badge-lines.svg)
-![Example Hotspot Badge](docs/assets/readme-badge-hotspot.svg)
+[![CI](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml)
+[![Release Workflow](https://github.com/EffortlessMetrics/tokmd/actions/workflows/release.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/release.yml)
 
-The source SVGs live under `docs/assets/` as checked-in documentation assets. They are real generated badge files, not screenshots and not remote badge-service URLs.
-
-Example summary output:
+Example summary output from this repository:
 
 ```md
 |Lang|Code|Lines|Bytes|Tokens|
 |---|---:|---:|---:|---:|
-|Rust|373655|466093|15200310|3799662|
-|JSON|5395|5395|283670|70912|
-|Markdown|2977|16757|540759|135143|
-|TOML|1867|2284|68871|17197|
-|Other|2216|2973|86971|21730|
-|**Total**|386110|493502|16180581|4044644|
+|Rust|377263|470341|15334354|3833170|
+|JSON|5405|5405|284012|70997|
+|Markdown|3067|17273|567919|141930|
+|JavaScript|1979|2233|64463|16111|
+|TOML|1947|2387|71514|17855|
+|Other|1978|2758|78806|19691|
+|**Total**|391639|500397|16401068|4099754|
 ```
-
-## Common Paths
-
-### PR and Review Summaries
-
-```bash
-tokmd --format md --top 10
-tokmd diff main HEAD
-tokmd cockpit
-```
-
-Use this path when you want a stable repo-shape summary, a before/after diff, and a review-plan surface instead of raw `tokei` output.
-
-### Saved Runs and Diffs
-
-```bash
-tokmd run --analysis receipt --output-dir .runs/base
-tokmd run --analysis receipt --output-dir .runs/current
-tokmd diff .runs/base .runs/current
-```
-
-Use this path when you want durable receipts on disk for later comparison, release prep, or CI artifact retention.
-
-### LLM Context and Handoff
-
-```bash
-tokmd context --budget 128k --mode bundle --output context.txt
-tokmd context --budget 200k --strategy spread --mode json
-tokmd handoff --preset risk --budget 128k --out-dir .handoff
-```
-
-Use `context` when you just need selected files inside a token budget. Use `handoff` when you want a fuller bundle with manifest, inventory, and intelligence artifacts.
-
-### Analysis and Effort
-
-```bash
-tokmd analyze --preset receipt --format md
-tokmd analyze --preset risk --format md
-tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md
-```
-
-`estimate` is the effort-focused preset, built around the `tokmd-analysis-effort` engine and diff-aware effort deltas.
-
-### Policy and Sensor Integration
-
-```bash
-tokmd gate --policy policy.toml --preset health .
-tokmd sensor --base main --head HEAD --output artifacts/tokmd/report.json
-```
-
-These are the automation-facing paths for CI pipelines, sensor fleets, and ratchet-style guardrails.
-
-## Command Surface
-
-| Command              | Purpose |
-| :------------------- | :------ |
-| `tokmd lang`         | Language summary for a repo or path set. |
-| `tokmd module`       | Group stats by module roots such as `crates/` or `packages/`. |
-| `tokmd export`       | File-level dataset for downstream pipelines (`jsonl`, `csv`, `cyclonedx`). |
-| `tokmd run`          | Save a full receipt set to a run directory, optionally with analysis. |
-| `tokmd analyze`      | Derived metrics and enrichments in formats including `md`, `json`, `html`, `svg`, and `mermaid`. |
-| `tokmd badge`        | Render SVG badges for `lines`, `tokens`, `bytes`, `doc`, `blank`, or `hotspot`. |
-| `tokmd diff`         | Compare two runs, receipts, or refs deterministically. |
-| `tokmd context`      | Pack code into an LLM context window inside a token budget. |
-| `tokmd handoff`      | Build an LLM handoff bundle with manifest, code bundle, and intelligence files. |
-| `tokmd cockpit`      | PR-review metrics with risk, evidence gates, and review-plan output. |
-| `tokmd gate`         | Evaluate TOML policy rules and optional ratchet baselines. |
-| `tokmd baseline`     | Capture a complexity baseline for later ratchet comparisons. |
-| `tokmd sensor`       | Emit a conforming `sensor.report.v1` envelope for multi-sensor pipelines. |
-| `tokmd tools`        | Generate tool definitions for OpenAI, Anthropic, and JSON Schema consumers. |
-| `tokmd init`         | Generate a `.tokeignore` template. |
-| `tokmd check-ignore` | Explain why a path is being ignored. |
-| `tokmd completions`  | Generate shell completions. |
-
-## Analysis Presets
-
-`tokmd analyze` ships focused preset bundles:
-
-| Preset         | What You Get |
-| :------------- | :----------- |
-| `receipt`      | Totals, density, distribution, COCOMO, context-window fit |
-| `estimate`     | Effort-focused view with effort model selection and base/head delta support |
-| `health`       | `receipt` + TODO/FIXME density, complexity, Halstead |
-| `risk`         | `health` + hotspots, coupling, freshness, git-derived risk signals |
-| `supply`       | Assets and dependency-lockfile inventory |
-| `architecture` | Import/dependency graph analysis |
-| `topics`       | Semantic topic clouds |
-| `security`     | License and high-entropy scanning |
-| `identity`     | Archetype detection and corporate fingerprinting |
-| `git`          | Predictive churn and advanced git metrics |
-| `deep`         | Everything except `fun` |
-| `fun`          | Novelty outputs such as eco-labels |
 
 ## Generated Badges
 
-The badge row at the very top of this README is release/project metadata from external services. The example badges shown above and the badges produced by `tokmd badge` are repo-local SVG files generated from your code data:
+The badges above are GitHub-hosted workflow badges. `tokmd badge` produces repo-local SVG badges from your own code data:
 
 ```bash
-# Lines-of-code badge
 tokmd badge --metric lines --output badge-lines.svg
-
-# Risk-oriented hotspot badge
 tokmd badge --metric hotspot --preset risk --output badge-hotspot.svg
 ```
 
-Embed the generated SVG in your own README:
+Embed them in your own README:
 
 ```markdown
 ![Lines of Code](badge-lines.svg)
 ![Hotspot](badge-hotspot.svg)
 ```
 
-## Why `tokmd` over `tokei`?
+## Command Surface
 
-| Feature                 | `tokei`                 | `tokmd` |
-| :---------------------- | :---------------------- | :------ |
-| Core value              | Fast counting           | Counting + analysis + workflow artifacts |
-| Output                  | Terminal tables         | Receipts, badges, HTML, diagrams, bundles |
-| Stability               | CLI-oriented output     | Schema-versioned, deterministic receipts |
-| Diff/review surface     | Minimal                 | `diff`, `cockpit`, `gate`, `sensor` |
-| LLM workflow support    | None                    | Context packing, handoff bundles, token estimates |
-| Git/risk analysis       | None                    | Hotspots, freshness, coupling, churn |
-| Effort estimation       | None                    | `estimate` preset with effort deltas |
+| Command | Purpose |
+| :------ | :------ |
+| `tokmd` | Language summary for a repo or path set |
+| `tokmd module` | Group stats by module roots such as `crates/` or `packages/` |
+| `tokmd export` | File-level dataset for downstream pipelines |
+| `tokmd run` | Save a full receipt set to a run directory |
+| `tokmd analyze` | Derived metrics and enrichments |
+| `tokmd badge` | Render SVG badges from receipt metrics |
+| `tokmd diff` | Compare two runs, receipts, or refs deterministically |
+| `tokmd context` | Pack code into an LLM context window |
+| `tokmd handoff` | Build an LLM handoff bundle |
+| `tokmd cockpit` | PR-review metrics with risk and evidence gates |
+| `tokmd gate` | Evaluate TOML policy rules and ratchets |
+| `tokmd baseline` | Capture a baseline for later ratchet comparisons |
+| `tokmd sensor` | Emit a `sensor.report.v1` envelope |
+| `tokmd tools` | Generate tool definitions for OpenAI, Anthropic, and JSON Schema consumers |
+| `tokmd init` | Generate a `.tokeignore` template |
+| `tokmd check-ignore` | Explain why a path is being ignored |
+| `tokmd completions` | Generate shell completions |
+
+## Browser And WASM
+
+`tokmd-wasm` and `web/runner` expose a narrower browser-safe slice of the product.
+
+- Supported today: `lang`, `module`, `export`, and browser-safe `analyze` presets on ordered in-memory inputs.
+- Public repo ingestion uses GitHub tree and contents APIs, not zipball-first fetches.
+- Git-history enrichers and full native filesystem flows remain native-first.
 
 ## What `tokmd` Is Not
 
-`tokmd` is deliberately not trying to be every code-quality tool:
+- It is not a formatter, linter, or build system.
+- It is not a developer-scoring tool.
+- It is not a vulnerability database or SAST replacement.
+- It does not ask you to trust prose where a receipt can be emitted instead.
 
-- It does not format or lint code.
-- It does not replace vulnerability scanners or advisory databases.
-- It does not try to score developers or turn LOC into performance theater.
-- It does not require you to trust prose when a receipt can be emitted instead.
+## Go Deeper
 
-## Configuration
+### Tutorial
 
-Persist settings in `tokmd.toml` in a project root or home directory:
+- [Tutorial](docs/tutorial.md) for first-run setup and basic workflows
 
-```toml
-[view.llm]
-format = "jsonl"
-redact = "paths"
-min_code = 10
-max_rows = 500
+### How-To
 
-[export]
-format = "jsonl"
-```
+- [Recipes](docs/recipes.md) for practical usage patterns
+- [Troubleshooting](docs/troubleshooting.md) for common problems and fixes
+- [Contributing](CONTRIBUTING.md) for local development and release work
 
-Use profiles with `--profile`:
+### Reference
 
-```bash
-tokmd export --profile llm > context.jsonl
-```
+- [CLI Reference](docs/reference-cli.md) for flags, formats, and config
+- [Schema](docs/SCHEMA.md) for receipt contracts
+- [tokmd responsibilities](tokmd-role.md) for the wider sensor/receipt stack
 
-See the [CLI Reference](docs/reference-cli.md#configuration-file) for the full configuration model.
+### Explanation
 
-## Library and Bindings
-
-`tokmd` is not only a CLI:
-
-- **`tokmd-core`** is the clap-free facade for embedding workflows in Rust or via FFI.
-- **Python bindings** live in `crates/tokmd-python`.
-- **Node bindings** live in `crates/tokmd-node`.
-- **`tokmd-wasm`** exposes browser/worker bindings for `lang`, `module`, `export`, and browser-safe `analyze` (`receipt`, `estimate`).
-- **`web/runner`** is the static browser shell that boots the real wasm bundle in a worker and can load public GitHub repos through the tree+contents APIs.
-- **Tool-schema output** is available through `tokmd tools` for agent/tool consumers.
-
-## Browser/WASM Status
-
-Browser support is real now, but intentionally narrower than the full native CLI surface.
-
-- Supported today: `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate` on ordered in-memory `{ path, text }` inputs.
-- Public repo acquisition uses the browser-safe GitHub tree and contents APIs, with deterministic ordering and browser-side size/file limits.
-- Unsupported today: zipball fetch as the primary browser path, git-history enrichers, broader filesystem-backed analyze presets, and real cancel/progress flows.
-
-See [crates/tokmd-wasm/README.md](crates/tokmd-wasm/README.md) and [web/runner/README.md](web/runner/README.md) for the current browser contract.
-
-## Installation
-
-### Nix
-
-```bash
-nix run github:EffortlessMetrics/tokmd -- --version
-nix profile install github:EffortlessMetrics/tokmd
-nix build
-```
-
-### crates.io
-
-```bash
-cargo install tokmd --locked
-```
-
-### GitHub Action
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    paths: "."
-```
-
-### Additional Channels
-
-Package-manager channels outside crates.io and Nix can drift independently. This README only documents the install paths verified in this repo and release flow; if you publish or restore Homebrew, Scoop, WinGet, or AUR support later, add them back with a verification pass.
-
-### Language Bindings (Build from Source)
-
-Native FFI bindings are available from source today:
-
-- **Python**: `cd crates/tokmd-python && maturin develop`
-- **Node.js**: `cd crates/tokmd-node && npm run build`
-
-## Documentation
-
-- [Tutorial](docs/tutorial.md) — getting started
-- [Recipes](docs/recipes.md) — real-world usage patterns
-- [CLI Reference](docs/reference-cli.md) — flags and formats
-- [Schema](docs/SCHEMA.md) — receipt contracts
-- [Troubleshooting](docs/troubleshooting.md) — common issues and fixes
-- [Philosophy](docs/explanation.md) — design stance
-- [tokmd responsibilities](tokmd-role.md) — where tokmd sits in the wider sensor/receipt stack
-- [Contributing](CONTRIBUTING.md) — development and publishing workflow
-- [Roadmap](ROADMAP.md) — current milestone and future direction
+- [Philosophy](docs/explanation.md) for the design stance
+- [Architecture](docs/architecture.md) for the crate graph and boundaries
+- [Design](docs/design.md) for system concepts and invariants
+- [Roadmap](ROADMAP.md) for the active horizon
 
 ## License
 

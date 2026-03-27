@@ -1,12 +1,22 @@
 # tokmd-exclude
 
-Single-responsibility microcrate for deterministic exclude-pattern handling.
+Deterministic exclude-pattern normalization and matching.
 
-## API
+## Problem
+Exclude lists drift quickly when paths are compared in different forms or are added more than once.
 
-- `normalize_exclude_pattern(root, path)` - normalize path separators, strip `./`,
-  and make absolute paths root-relative when possible.
-- `has_exclude_pattern(existing, pattern)` - membership check with normalized
-  matching (slash and `./` insensitive).
-- `add_exclude_pattern(existing, pattern)` - push only when the normalized pattern
-  is non-empty and not already present.
+## What it gives you
+- `normalize_exclude_pattern(root, path)`
+- `has_exclude_pattern(existing, pattern)`
+- `add_exclude_pattern(existing, pattern)`
+
+## API / usage notes
+- Normalize patterns before storing or comparing them.
+- The helpers keep slash handling and `./` prefixes consistent across platforms.
+- Use `src/lib.rs` for the full matching behavior.
+
+## Go deeper
+- Tutorial: [tokmd README](../../README.md)
+- How-to: [Troubleshooting](../../docs/troubleshooting.md)
+- Reference: [Architecture](../../docs/architecture.md)
+- Explanation: [Design](../../docs/design.md)

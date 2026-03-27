@@ -1,13 +1,34 @@
 # tokmd-analysis-html
 
-Single-responsibility microcrate for rendering `AnalysisReceipt` values as a self-contained HTML report.
+HTML rendering for tokmd analysis receipts.
 
-## What it does
+## Problem
 
-- Produces a static HTML report from analysis receipts.
-- Renders metric cards, top-file table rows, and embedded treemap JSON payload.
-- Applies HTML and JSON escaping for browser-safe output.
+You need a self-contained HTML report without mixing rendering concerns into
+the analysis data model.
 
-## API
+## What it gives you
 
-- `render(receipt: &AnalysisReceipt) -> String`
+- `render`
+
+## Integration notes
+
+- Renders a complete `AnalysisReceipt` into a single HTML document.
+- Escapes embedded HTML and JSON so the output is browser-safe.
+- Uses the bundled template in `src/templates/report.html`.
+
+## Go deeper
+
+### Reference
+
+- [Source](src/lib.rs)
+- [Template](src/templates/report.html)
+
+### How-to
+
+- [Recipes](../../docs/recipes.md)
+
+### Explanation
+
+- [Architecture](../../docs/architecture.md)
+- [Philosophy](../../docs/explanation.md)

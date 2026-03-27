@@ -1,65 +1,24 @@
 # tokmd-settings
 
-**Tier 0 (Pure Settings)** -- Clap-free configuration types for tokmd.
+Clap-free settings and TOML config for tokmd workflows.
 
-Provides scan and workflow settings plus TOML config parsing types so lower-tier
-crates can consume configuration without pulling in `clap`. This is the boundary
-between the CLI layer and the library internals.
+## Problem
+Lower-tier crates need one config shape without depending on Clap or the CLI layer.
 
-## Public API
+## What it gives you
+- Scan inputs: `ScanOptions`, `ScanSettings`
+- Workflow settings: `LangSettings`, `ModuleSettings`, `ExportSettings`, `AnalyzeSettings`, `CockpitSettings`, `DiffSettings`
+- TOML config types: `TomlConfig`, `ScanConfig`, `ModuleConfig`, `ExportConfig`, `AnalyzeConfig`, `ContextConfig`, `BadgeConfig`, `GateConfig`, `ViewProfile`
+- Convenience re-exports: `ChildIncludeMode`, `ChildrenMode`, `ConfigMode`, `ExportFormat`, `RedactMode`
 
-### Workflow Settings
+## API / usage notes
+- `ScanOptions` mirrors the scan-relevant CLI flags without the Clap dependency.
+- `ScanSettings::current_dir()` and `ScanSettings::for_paths(...)` cover the common library entry points.
+- `TomlConfig::from_file(...)` is the only I/O convenience; the rest of the crate is pure data and serde.
+- `src/lib.rs` is the canonical source for defaults, flattening, and TOML shapes.
 
-| Type              | Purpose                                          |
-| :---------------- | :----------------------------------------------- |
-| `ScanOptions`     | Excludes, ignore flags, hidden-file toggle       |
-| `ScanSettings`    | Paths + `ScanOptions` (flattened for serde)      |
-| `LangSettings`    | Top-N, files flag, children mode, redact mode    |
-| `ModuleSettings`  | Module roots, depth, children mode, redact mode  |
-| `ExportSettings`  | Format, min-code, max-rows, redact, meta, strip  |
-| `AnalyzeSettings` | Preset, window, git, max-files/bytes/commits     |
-| `DiffSettings`    | From/to references                               |
-
-### TOML Config Types
-
-| Type              | Purpose                                          |
-| :---------------- | :----------------------------------------------- |
-| `TomlConfig`      | Root `tokmd.toml` structure                      |
-| `ScanConfig`      | `[scan]` section                                 |
-| `ModuleConfig`    | `[module]` section                               |
-| `ExportConfig`    | `[export]` section                               |
-| `AnalyzeConfig`   | `[analyze]` section                              |
-| `ContextConfig`   | `[context]` section                              |
-| `BadgeConfig`     | `[badge]` section                                |
-| `GateConfig`      | `[gate]` section (rules, ratchet, baseline)      |
-| `ViewProfile`     | `[view.<name>]` named profiles                   |
-
-### Re-exports
-
-Types re-exported from `tokmd-types` for convenience:
-
-- `ChildIncludeMode`
-- `ChildrenMode`
-- `ConfigMode`
-- `ExportFormat`
-- `RedactMode`
-
-## Usage
-
-```rust
-use tokmd_settings::{ScanSettings, LangSettings};
-
-// Library consumer: scan the current directory with defaults
-let scan = ScanSettings::current_dir();
-let lang = LangSettings::default();
-```
-
-## Design Rules
-
-- **No `clap` dependency** -- lower-tier crates (scan, format, model) depend on
-  this instead of `tokmd-config`.
-- **Pure data + serde** -- all types derive `Serialize` and `Deserialize`.
-- **No I/O** -- `TomlConfig::from_file` is the only I/O convenience; everything
-  else is pure data.
-
-See the [root README](../../README.md) for full documentation.
+## Go deeper
+- Tutorial: [tokmd README](../../README.md)
+- How-to: [Configuration file reference](../../docs/reference-cli.md#configuration-file)
+- Reference: [src/lib.rs](src/lib.rs)
+- Explanation: [Architecture](../../docs/architecture.md)

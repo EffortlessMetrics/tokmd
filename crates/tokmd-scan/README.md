@@ -1,58 +1,26 @@
 # tokmd-scan
 
-Source code scanning adapter for tokmd.
+Tokei-backed scan adapter for tokmd.
 
-## Overview
+## Problem
+Raw scanning and config translation should live behind one boundary instead of leaking into model or formatting code.
 
-This is a **Tier 1** crate that wraps the [tokei](https://github.com/XAMPPRocky/tokei) library, isolating this dependency to a single location. It handles configuration mapping and scan execution.
+## What it gives you
+- `scan`
+- `scan_in_memory`
+- `config_from_scan_options`
+- `normalize_in_memory_paths`
+- `InMemoryFile`
+- `MaterializedScan`
 
-## Installation
+## API / usage notes
+- `scan` wraps `tokei` and returns a `Languages` map for host paths.
+- `scan_in_memory` writes logical inputs into a temporary root and keeps the logical paths alive for downstream model code.
+- `config_from_scan_options` maps `ScanOptions` into `tokei::Config`.
+- `src/lib.rs` and its tests are the canonical reference for path validation and ignore handling.
 
-```toml
-[dependencies]
-tokmd-scan = "1.3"
-```
-
-## Usage
-
-```rust
-use tokmd_scan::scan;
-use tokmd_config::GlobalArgs;
-use std::path::PathBuf;
-
-let args = GlobalArgs::default();
-let paths = vec![PathBuf::from(".")];
-
-let languages = scan(&paths, &args)?;
-// Returns tokei::Languages with code statistics
-```
-
-## Configuration Mapping
-
-Maps `GlobalArgs` fields to tokei configuration:
-
-| Arg | Effect |
-|-----|--------|
-| `hidden` | Include hidden files/directories |
-| `no_ignore` | Skip all ignore files |
-| `no_ignore_dot` | Skip .ignore files |
-| `no_ignore_parent` | Skip parent ignore files |
-| `no_ignore_vcs` | Skip .gitignore |
-| `treat_doc_strings_as_comments` | Count doc strings as comments |
-| `config` | Config file loading strategy |
-
-## Error Handling
-
-- Returns error for non-existent paths (as of v1.3.0)
-- Propagates tokei configuration errors
-- Empty `Languages` for valid but empty directories
-
-## Dependencies
-
-- `tokei` - Core line counting
-- `tokmd-config` - GlobalArgs definition
-- `tokmd-types` - ConfigMode enum
-
-## License
-
-MIT OR Apache-2.0
+## Go deeper
+- Tutorial: [tokmd README](../../README.md)
+- How-to: [Troubleshooting](../../docs/troubleshooting.md)
+- Reference: [src/lib.rs](src/lib.rs)
+- Explanation: [Architecture](../../docs/architecture.md)

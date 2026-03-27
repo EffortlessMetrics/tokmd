@@ -1,145 +1,23 @@
 # tokmd-analysis
 
-Analysis logic and enrichers for tokmd receipts.
+Orchestrates analysis presets and enrichers for tokmd receipts.
 
-## Overview
+## Problem
+You need one analysis entrypoint that can assemble receipt enrichments without wiring every leaf crate yourself.
 
-This is a **Tier 3** orchestration crate that computes derived metrics and optional enrichments from code inventories. It coordinates multiple analysis modules based on preset configuration.
+## What it gives you
+- `analyze`
+- `AnalysisContext`, `AnalysisRequest`, `AnalysisPreset`
+- `ImportGranularity`
+- Re-exports of `AnalysisLimits`, `NearDupScope`, and `normalize_root`
 
-## Installation
+## Integration notes
+- Default features: `fun`, `topics`, `archetype`, `effort`.
+- Optional features: `git`, `walk`, `content`, `halstead`, `effort`, `fun`, `topics`, `archetype`.
+- Use this crate when you want preset-driven orchestration; use the leaf crates directly when you only need one report.
 
-```toml
-[dependencies]
-tokmd-analysis = "1.4"
-
-# Enable optional features
-[dependencies.tokmd-analysis]
-version = "1.4"
-features = ["git", "walk", "content", "fun", "topics", "archetype"]
-```
-
-## Usage
-
-```rust,no_run
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-use std::path::PathBuf;
-use tokmd_analysis::{
-    analyze, AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest,
-    ImportGranularity, NearDupScope,
-};
-use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
-use tokmd_types::{ChildIncludeMode, ExportData};
-
-let context = AnalysisContext {
-    export: ExportData {
-        rows: vec![],
-        module_roots: vec![],
-        module_depth: 1,
-        children: ChildIncludeMode::Separate,
-    },
-    root: PathBuf::from("."),
-    source: AnalysisSource {
-        inputs: vec![".".into()],
-        export_path: None,
-        base_receipt_path: None,
-        export_schema_version: None,
-        export_generated_at_ms: None,
-        base_signature: None,
-        module_roots: vec![],
-        module_depth: 1,
-        children: "separate".into(),
-    },
-};
-
-let request = AnalysisRequest {
-    preset: AnalysisPreset::Risk,
-    args: AnalysisArgsMeta {
-        preset: "risk".into(),
-        format: "json".into(),
-        window_tokens: None,
-        git: None,
-        max_files: None,
-        max_bytes: None,
-        max_commits: None,
-        max_commit_files: None,
-        max_file_bytes: None,
-        import_granularity: "module".into(),
-    },
-    limits: AnalysisLimits::default(),
-    #[cfg(feature = "effort")]
-    effort: None,
-    window_tokens: None,
-    git: None,
-    import_granularity: ImportGranularity::Module,
-    detail_functions: false,
-    near_dup: false,
-    near_dup_threshold: 0.8,
-    near_dup_max_files: 500,
-    near_dup_scope: NearDupScope::Module,
-    near_dup_max_pairs: None,
-    near_dup_exclude: vec![],
-};
-
-let receipt = analyze(context, request)?;
-# Ok(())
-# }
-```
-
-## Analysis Presets
-
-| Preset | Includes |
-|--------|----------|
-| `Receipt` | Core derived metrics (density, distribution, COCOMO) |
-| `Health` | + TODO density |
-| `Risk` | + Git hotspots, coupling, freshness |
-| `Supply` | + Assets, dependency lockfiles |
-| `Architecture` | + Import graph |
-| `Topics` | Semantic topic clouds (TF-IDF) |
-| `Security` | License radar, entropy profiling |
-| `Identity` | Archetype detection, corporate fingerprint |
-| `Git` | Predictive churn, advanced git metrics |
-| `Deep` | Everything (except fun) |
-| `Fun` | Eco-label, novelty outputs |
-
-## Analysis Modules
-
-| Module | Feature | Purpose |
-|--------|---------|---------|
-| `archetype` | archetype | Project kind detection |
-| `derived` | - | Core metrics |
-| `topics` | topics | Semantic keyword extraction |
-| `entropy` | content+walk | High-entropy file detection |
-| `license` | content+walk | License radar scanning |
-| `fingerprint` | git | Corporate domain analysis |
-| `churn` | git | Git-based change prediction |
-| `assets` | walk | Asset categorization |
-| `git` | git | Hotspots, bus factor, freshness |
-| `content` | content | TODOs, duplicates, imports |
-
-## Feature Flags
-
-```toml
-[features]
-git = ["tokmd-git"]       # Git history analysis
-walk = ["tokmd-walk"]     # Asset discovery
-content = ["tokmd-analysis-content", "tokmd-analysis-complexity", "tokmd-analysis-entropy"]  # Content-derived enrichers
-topics = ["tokmd-analysis-topics"] # Topic-cloud extraction
-archetype = ["tokmd-analysis-archetype"] # Archetype detection
-fun = ["tokmd-analysis-fun"]  # Fun/novelty report enrichers
-```
-
-## Key Types
-
-```rust
-pub struct AnalysisLimits {
-    pub max_files: Option<usize>,
-    pub max_bytes: Option<u64>,
-    pub max_commits: Option<usize>,
-    pub max_commit_files: Option<usize>,
-    pub max_file_bytes: Option<u64>,
-}
-```
-
-## License
-
-MIT OR Apache-2.0
+## Go deeper
+- Tutorial: [Tutorial](../../docs/tutorial.md)
+- How-to: [Recipes](../../docs/recipes.md)
+- Reference: [Architecture](../../docs/architecture.md), [CLI reference](../../docs/reference-cli.md)
+- Explanation: [Explanation](../../docs/explanation.md)
