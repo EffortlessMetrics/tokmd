@@ -47,11 +47,11 @@ lint:
 
 # Format code
 fmt:
-    cargo fmt
+    cargo fmt-fix
 
 # Check formatting without modifying
 fmt-check:
-    cargo fmt -- --check
+    cargo fmt-check
 
 # Run all checks (fmt, lint, test)
 check: fmt-check lint test
