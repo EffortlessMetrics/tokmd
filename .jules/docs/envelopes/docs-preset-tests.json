@@ -1,0 +1,7 @@
+{
+  "id": "docs-preset-tests",
+  "status": "PASS",
+  "receipts": [
+    "cargo test -p tokmd --test docs\n\nrunning 13 tests\ntest recipe_ci_workflow_snippet ... ok\ntest recipe_default_map ... ok\ntest recipe_export_map_jsonl ... ok\ntest recipe_export_full_json ... ok\ntest recipe_generate_baseline ... ok\ntest recipe_badge_generation ... ok\ntest recipe_handoff_bundle ... ok\ntest recipe_gate_with_baseline ... ok\ntest recipe_module_summary_markdown ... ok\ntest recipe_sensor_json ... ok\ntest recipe_simple_lang_summary ... ok\ntest recipe_tools_export_schemas ... ok\ntest recipe_analyze_presets ... ok\n\ntest result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s"
+  ]
+}

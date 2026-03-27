@@ -77,6 +77,31 @@ fn recipe_analyze_presets() {
         .arg("md")
         .assert()
         .success();
+
+    // "tokmd analyze --preset deep --format json --output-dir analysis/"
+    let tmp = tempfile::tempdir().unwrap();
+    let analysis_dir = tmp.path().join("analysis");
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("deep")
+        .arg("--format")
+        .arg("json")
+        .arg("--output-dir")
+        .arg(&analysis_dir)
+        .assert()
+        .success();
+    assert!(analysis_dir.exists());
+
+    // "tokmd analyze --preset fun --format json"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("fun")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success();
 }
 
 #[test]

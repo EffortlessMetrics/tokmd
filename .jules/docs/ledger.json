@@ -31,5 +31,13 @@
   {
     "run_id": "0ff363bd-f129-45fb-a4b4-e5437f5b7a41",
     "status": "PASS"
+  },
+  {
+    "run_id": "docs-preset-tests",
+    "timestamp": "2026-03-27T00:00:00Z",
+    "lane": "docs",
+    "action": "add_doctests",
+    "target": "crates/tokmd/tests/docs.rs",
+    "description": "Added doctests for deep and fun analysis presets in crates/tokmd/tests/docs.rs to prevent documentation drift from docs/recipes.md"
   }
 ]
