@@ -561,36 +561,36 @@ fn lang_totals_match_row_sums() {
 
     let sum_code: u64 = rows
         .iter()
-        .map(|r| r["code"].as_u64().expect("code field must be a u64"))
+        .map(|r| r["code"].as_u64().expect("code field must be u64"))
         .sum();
     let sum_lines: u64 = rows
         .iter()
-        .map(|r| r["lines"].as_u64().expect("lines field must be a u64"))
+        .map(|r| r["lines"].as_u64().expect("lines field must be u64"))
         .sum();
     let sum_files: u64 = rows
         .iter()
-        .map(|r| r["files"].as_u64().expect("files field must be a u64"))
+        .map(|r| r["files"].as_u64().expect("files field must be u64"))
         .sum();
 
     assert_eq!(
         sum_code,
         total["code"]
             .as_u64()
-            .expect("total code field must be a u64"),
+            .expect("total code field must be u64"),
         "code total"
     );
     assert_eq!(
         sum_lines,
         total["lines"]
             .as_u64()
-            .expect("total lines field must be a u64"),
+            .expect("total lines field must be u64"),
         "lines total"
     );
     assert_eq!(
         sum_files,
         total["files"]
             .as_u64()
-            .expect("total files field must be a u64"),
+            .expect("total files field must be u64"),
         "files total"
     );
 }
