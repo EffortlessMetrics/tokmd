@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "release/**" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    - cron: "22 3 * * *"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -218,10 +220,10 @@ jobs:
         env:
           CI: true
 
-  nix:
-    name: Nix Build
+  nix-pr:
+    name: Nix PR Package Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 60
     permissions:
       contents: read
     env:
@@ -243,7 +245,38 @@ jobs:
         run: nix flake check --no-build --accept-flake-config
 
       - name: Build package
-        run: nix build -L
+        run: nix build -L .#tokmd
+
+  nix-full:
+    name: Nix Full Validation
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        continue-on-error: true
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
+          use-gha-cache: enabled
+
+      - name: Check flake
+        run: nix flake check --accept-flake-config
+
+      - name: Build default package
+        run: nix build -L .#tokmd
+
+      - name: Build alias package
+        run: nix build -L .#tokmd-with-alias
 
   mutation:
     name: Mutation Testing (Required)
@@ -340,7 +373,7 @@ jobs:
       - publish-plan
       - version-consistency
       - docs-check
-      - nix
+      - nix-pr
       - mutation
       - feature-boundaries
     steps:
