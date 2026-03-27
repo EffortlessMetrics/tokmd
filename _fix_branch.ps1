@@ -20,10 +20,10 @@ Set-Location $PSScriptRoot
 $branch = git rev-parse --abbrev-ref HEAD 2>&1
 Write-Host "Branch: $branch"
 
-# Run cargo fmt
-Write-Host "Running cargo fmt..."
-cargo fmt 2>&1
-Write-Host "Cargo fmt exit: $LASTEXITCODE"
+# Run cargo fmt-fix
+Write-Host "Running cargo fmt-fix..."
+cargo fmt-fix 2>&1
+Write-Host "Cargo fmt-fix exit: $LASTEXITCODE"
 
 # Add changes
 Write-Host "Running git add..."
@@ -37,7 +37,7 @@ Write-Host "Changed files: $diff"
 
 if ($diff) {
     Write-Host "Committing..."
-    git -c core.fsmonitor=false commit --no-verify -m "style: cargo fmt" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>" 2>&1
+    git -c core.fsmonitor=false commit --no-verify -m "style: cargo fmt-fix" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>" 2>&1
     Write-Host "Commit exit: $LASTEXITCODE"
     
     Write-Host "Pushing..."
