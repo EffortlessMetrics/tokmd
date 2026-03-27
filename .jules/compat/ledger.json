@@ -12,5 +12,10 @@
   {
     "run_id": "13bf324d-a8ad-4e74-9d27-673789e16269",
     "status": "PASS"
+  },
+  {
+    "run_id": "37650a63-683c-4dda-9ed6-9c5f825929ae",
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

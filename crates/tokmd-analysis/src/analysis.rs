@@ -93,10 +93,10 @@ fn preset_plan(preset: AnalysisPreset) -> PresetPlan {
     preset_plan_for(preset)
 }
 
-#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+#[cfg(any(feature = "walk", feature = "content"))]
 const ROOTLESS_FILE_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping file-backed enrichers";
-#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+#[cfg(feature = "git")]
 const ROOTLESS_GIT_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping git-backed enrichers";
 
