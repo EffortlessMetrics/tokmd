@@ -106,17 +106,25 @@
             strictDeps = true;
           };
 
-          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+          tokmdArtifacts = craneLib.buildDepsOnly (commonArgs // {
+            cargoExtraArgs = "--locked -p tokmd";
+            doCheck = false;
+          });
+
+          tokmdAliasArtifacts = craneLib.buildDepsOnly (commonArgs // {
+            cargoExtraArgs = "--locked -p tokmd --features alias-tok";
+            doCheck = false;
+          });
 
           tokmd = craneLib.buildPackage (commonArgs // {
-            inherit cargoArtifacts;
-            cargoExtraArgs = "-p tokmd";
+            cargoArtifacts = tokmdArtifacts;
+            cargoExtraArgs = "--locked -p tokmd";
             doCheck = false;
           });
 
           tokmdWithAlias = craneLib.buildPackage (commonArgs // {
-            inherit cargoArtifacts;
-            cargoExtraArgs = "-p tokmd --features alias-tok";
+            cargoArtifacts = tokmdAliasArtifacts;
+            cargoExtraArgs = "--locked -p tokmd --features alias-tok";
             doCheck = false;
           });
         in
