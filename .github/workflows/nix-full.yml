@@ -1,0 +1,47 @@
+name: Nix Full Validation
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [ "main" ]
+  schedule:
+    - cron: "23 4 * * *"
+
+concurrency:
+  group: nix-full-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  nix-full:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        continue-on-error: true
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
+          use-gha-cache: enabled
+
+      - name: Check flake (full)
+        run: nix flake check --accept-flake-config
+
+      - name: Build default package
+        run: nix build -L .#tokmd
+
+      - name: Build alias package
+        run: nix build -L .#tokmd-with-alias

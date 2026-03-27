@@ -5,8 +5,6 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron: "23 4 * * *"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -246,37 +244,6 @@ jobs:
 
       - name: Build package
         run: nix build -L .#tokmd
-
-  nix-full:
-    name: Nix Full Validation
-    if: github.event_name == 'push' || github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    permissions:
-      contents: read
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v21
-
-      - name: Setup Nix cache
-        continue-on-error: true
-        uses: DeterminateSystems/magic-nix-cache-action@v13
-        with:
-          use-flakehub: false
-          use-gha-cache: enabled
-
-      - name: Check flake (full)
-        run: nix flake check --accept-flake-config
-
-      - name: Build default package
-        run: nix build -L .#tokmd
-
-      - name: Build alias package
-        run: nix build -L .#tokmd-with-alias
 
   mutation:
     name: Mutation Testing (Required)
