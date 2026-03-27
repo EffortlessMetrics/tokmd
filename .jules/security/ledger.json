@@ -65,5 +65,14 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "run_id": "870d5eb5-ff84-4897-aec7-23fd9b25ef81",
+    "timestamp_utc": "2026-03-27T12:20:55Z",
+    "lane": "scout",
+    "target": "crates/tokmd/tests/determinism.rs unwrap burn-down",
+    "status": "PASS",
+    "friction_ids": [],
+    "pr_link": "pending"
   }
 ]
