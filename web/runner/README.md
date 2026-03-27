@@ -28,6 +28,22 @@ npm --prefix web/runner test
 The browser bundle loads `web/runner/vendor/tokmd-wasm` and expects the wasm
 package layout produced by the build script.
 
+## Distribution artifact
+
+For repeatable deployments, consume a versioned release artifact from GitHub and extract it into:
+
+```text
+web/runner/vendor/tokmd-wasm/
+```
+
+The release asset is named:
+
+```text
+tokmd-wasm-<tag>.tar.gz
+```
+
+`v1.9.0` becomes `tokmd-wasm-v1.9.0.tar.gz`. Extracting this archive into `vendor/tokmd-wasm` gives the exact layout expected by `web/runner/worker.js` without rebuilding from source.
+
 ## Go deeper
 
 Tutorial: [Root README](../../README.md)
