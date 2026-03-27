@@ -1,0 +1,9 @@
+{
+  "run_id": "20260326T124928Z",
+  "timestamp_utc": "20260326T124928Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs",
+  "proof_method": "structural proof / benchmark",
+  "commands": [],
+  "results": []
+}

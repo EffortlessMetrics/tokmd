@@ -22,5 +22,26 @@
       "status": "PASS"
     }
   ],
-  "results": []
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo]"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "status": "PASS",
+      "output": "test result: ok. 195 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in X.XXs"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "output": "Checked all files"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo]"
+    }
+  ]
 }
