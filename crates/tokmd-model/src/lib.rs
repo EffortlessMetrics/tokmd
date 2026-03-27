@@ -340,61 +340,28 @@ pub fn create_lang_report_from_rows(
         entry.1 += row.lines;
     }
 
-    let mut by_lang: BTreeMap<String, LangAgg> = BTreeMap::new();
-    let mut lang_files: BTreeMap<String, BTreeSet<&str>> = BTreeMap::new();
+    let mut by_lang: BTreeMap<String, (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
 
     for row in file_rows {
         match (children, row.kind) {
             (ChildrenMode::Collapse, FileKind::Parent) => {
-                if let Some(entry) = by_lang.get_mut(row.lang.as_str()) {
-                    entry.code += row.code;
-                    entry.lines += row.lines;
-                    entry.bytes += row.bytes;
-                    entry.tokens += row.tokens;
-                } else {
-                    by_lang.insert(
-                        row.lang.clone(),
-                        LangAgg {
-                            code: row.code,
-                            lines: row.lines,
-                            bytes: row.bytes,
-                            tokens: row.tokens,
-                        },
-                    );
-                }
-
-                if let Some(files) = lang_files.get_mut(row.lang.as_str()) {
-                    files.insert(row.path.as_str());
-                } else {
-                    let mut files = BTreeSet::new();
-                    files.insert(row.path.as_str());
-                    lang_files.insert(row.lang.clone(), files);
-                }
+                let entry = by_lang
+                    .entry(row.lang.clone())
+                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                entry.0.code += row.code;
+                entry.0.lines += row.lines;
+                entry.0.bytes += row.bytes;
+                entry.0.tokens += row.tokens;
+                entry.1.insert(row.path.as_str());
             }
             (ChildrenMode::Collapse, FileKind::Child) => {
                 if !parent_lang_by_path.contains_key(row.path.as_str()) {
-                    if let Some(entry) = by_lang.get_mut(row.lang.as_str()) {
-                        entry.code += row.code;
-                        entry.lines += row.lines;
-                    } else {
-                        by_lang.insert(
-                            row.lang.clone(),
-                            LangAgg {
-                                code: row.code,
-                                lines: row.lines,
-                                bytes: 0,
-                                tokens: 0,
-                            },
-                        );
-                    }
-
-                    if let Some(files) = lang_files.get_mut(row.lang.as_str()) {
-                        files.insert(row.path.as_str());
-                    } else {
-                        let mut files = BTreeSet::new();
-                        files.insert(row.path.as_str());
-                        lang_files.insert(row.lang.clone(), files);
-                    }
+                    let entry = by_lang
+                        .entry(row.lang.clone())
+                        .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                    entry.0.code += row.code;
+                    entry.0.lines += row.lines;
+                    entry.1.insert(row.path.as_str());
                 }
             }
             (ChildrenMode::Separate, FileKind::Parent) => {
@@ -403,77 +370,42 @@ pub fn create_lang_report_from_rows(
                     .copied()
                     .unwrap_or((0, 0));
 
-                if let Some(entry) = by_lang.get_mut(row.lang.as_str()) {
-                    entry.code += row.code.saturating_sub(child_code);
-                    entry.lines += row.lines.saturating_sub(child_lines);
-                    entry.bytes += row.bytes;
-                    entry.tokens += row.tokens;
-                } else {
-                    by_lang.insert(
-                        row.lang.clone(),
-                        LangAgg {
-                            code: row.code.saturating_sub(child_code),
-                            lines: row.lines.saturating_sub(child_lines),
-                            bytes: row.bytes,
-                            tokens: row.tokens,
-                        },
-                    );
-                }
-
-                if let Some(files) = lang_files.get_mut(row.lang.as_str()) {
-                    files.insert(row.path.as_str());
-                } else {
-                    let mut files = BTreeSet::new();
-                    files.insert(row.path.as_str());
-                    lang_files.insert(row.lang.clone(), files);
-                }
+                let entry = by_lang
+                    .entry(row.lang.clone())
+                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                entry.0.code += row.code.saturating_sub(child_code);
+                entry.0.lines += row.lines.saturating_sub(child_lines);
+                entry.0.bytes += row.bytes;
+                entry.0.tokens += row.tokens;
+                entry.1.insert(row.path.as_str());
             }
             (ChildrenMode::Separate, FileKind::Child) => {
-                let lang = format!("{} (embedded)", row.lang);
-                if let Some(entry) = by_lang.get_mut(lang.as_str()) {
-                    entry.code += row.code;
-                    entry.lines += row.lines;
-                } else {
-                    by_lang.insert(
-                        lang.clone(),
-                        LangAgg {
-                            code: row.code,
-                            lines: row.lines,
-                            bytes: 0,
-                            tokens: 0,
-                        },
-                    );
-                }
-
-                if let Some(files) = lang_files.get_mut(lang.as_str()) {
-                    files.insert(row.path.as_str());
-                } else {
-                    let mut files = BTreeSet::new();
-                    files.insert(row.path.as_str());
-                    lang_files.insert(lang, files);
-                }
+                let entry = by_lang
+                    .entry(format!("{} (embedded)", row.lang))
+                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                entry.0.code += row.code;
+                entry.0.lines += row.lines;
+                entry.1.insert(row.path.as_str());
             }
         }
     }
 
-    let mut rows: Vec<LangRow> = by_lang
-        .into_iter()
-        .filter_map(|(lang, agg)| {
-            if agg.code == 0 {
-                return None;
-            }
-            let files = lang_files.get(&lang).map(|paths| paths.len()).unwrap_or(0);
-            Some(LangRow {
-                lang,
-                code: agg.code,
-                lines: agg.lines,
-                files,
-                bytes: agg.bytes,
-                tokens: agg.tokens,
-                avg_lines: avg(agg.lines, files),
-            })
-        })
-        .collect();
+    let mut rows: Vec<LangRow> = Vec::with_capacity(by_lang.len());
+    for (lang, (agg, files_set)) in by_lang {
+        if agg.code == 0 {
+            continue;
+        }
+        let files = files_set.len();
+        rows.push(LangRow {
+            lang: lang.to_string(),
+            code: agg.code,
+            lines: agg.lines,
+            files,
+            bytes: agg.bytes,
+            tokens: agg.tokens,
+            avg_lines: avg(agg.lines, files),
+        });
+    }
 
     rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
@@ -559,7 +491,7 @@ pub fn create_module_report_from_rows(
         tokens: usize,
     }
 
-    let mut by_module: BTreeMap<String, Agg> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, (Agg, BTreeSet<&str>)> = BTreeMap::new();
     let mut total_code = 0;
     let mut total_lines = 0;
     let mut total_bytes = 0;
@@ -571,40 +503,24 @@ pub fn create_module_report_from_rows(
         total_bytes += r.bytes;
         total_tokens += r.tokens;
 
-        if let Some(entry) = by_module.get_mut(r.module.as_str()) {
-            entry.code += r.code;
-            entry.lines += r.lines;
-            entry.bytes += r.bytes;
-            entry.tokens += r.tokens;
-        } else {
-            by_module.insert(
-                r.module.clone(),
-                Agg {
-                    code: r.code,
-                    lines: r.lines,
-                    bytes: r.bytes,
-                    tokens: r.tokens,
-                },
-            );
+        let entry = by_module
+            .entry(r.module.as_str())
+            .or_insert_with(|| (Agg::default(), BTreeSet::new()));
+        entry.0.code += r.code;
+        entry.0.lines += r.lines;
+        entry.0.bytes += r.bytes;
+        entry.0.tokens += r.tokens;
+
+        if r.kind == FileKind::Parent {
+            entry.1.insert(r.path.as_str());
         }
     }
 
-    let mut module_files: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for row in file_rows.iter().filter(|row| row.kind == FileKind::Parent) {
-        if let Some(files) = module_files.get_mut(row.module.as_str()) {
-            files.insert(row.path.clone());
-        } else {
-            let mut files = BTreeSet::new();
-            files.insert(row.path.clone());
-            module_files.insert(row.module.clone(), files);
-        }
-    }
-
-    let mut rows: Vec<ModuleRow> = Vec::new();
-    for (module, agg) in by_module {
-        let files = module_files.get(&module).map(|s| s.len()).unwrap_or(0);
+    let mut rows: Vec<ModuleRow> = Vec::with_capacity(by_module.len());
+    for (module, (agg, files_set)) in by_module {
+        let files = files_set.len();
         rows.push(ModuleRow {
-            module,
+            module: module.to_string(),
             code: agg.code,
             lines: agg.lines,
             files,

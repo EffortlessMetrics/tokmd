@@ -21,5 +21,19 @@
     "pr_link": "",
     "gates": "fmt-fix, test(tokmd-model,tokmd-analysis-derived), clippy(tokmd-model,tokmd-analysis-derived)",
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-26T12:56:00Z",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs",
+    "proof_method": "structural proof / benchmark",
+    "pr_link": null,
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
   }
 ]
