@@ -22,4 +22,3 @@ tokmd-types.workspace = true
 proptest = "1.10.0"
 serde_json = "1"
 tempfile = "3.27.0"
-uselesskey.workspace = true

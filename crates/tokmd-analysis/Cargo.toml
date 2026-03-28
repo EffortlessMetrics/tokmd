@@ -79,5 +79,4 @@ tokmd-analysis-effort = { workspace = true, optional = true }
 [dev-dependencies]
 tempfile = "3.27.0"
 proptest = "1.10.0"
-uselesskey.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }
