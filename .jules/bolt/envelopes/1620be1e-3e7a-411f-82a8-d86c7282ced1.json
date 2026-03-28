@@ -1,0 +1,47 @@
+{
+  "run_id": "1620be1e-3e7a-411f-82a8-d86c7282ced1",
+  "timestamp_utc": "2026-03-28T12:44:12Z",
+  "lane": "scout",
+  "target": "crates/tokmd-model/src/lib.rs - lang_workflow",
+  "proof_method": "structural proof (eliminates String::clone() over file_rows)",
+  "commands": [
+    {
+      "cmd": "cargo check",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo test -p tokmd-model",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS"
+    }
+  ],
+  "results": [
+    {
+      "cmd": "cargo check",
+      "status": "PASS",
+      "output": "    Checking tokmd v1.9.0 (/app/crates/tokmd)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.51s"
+    },
+    {
+      "cmd": "cargo test -p tokmd-model",
+      "status": "PASS",
+      "output": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nall doctests ran in 0.62s; merged doctests compilation took 0.60s"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s"
+    }
+  ]
+}

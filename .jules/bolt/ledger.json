@@ -35,5 +35,33 @@
       "clippy"
     ],
     "friction_ids": []
+  },
+  {
+    "date": "2026-03-28T12:36:26Z",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs lang_workflow",
+    "proof_method": "structural",
+    "pr_link": "pending",
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
+  },
+  {
+    "date": "2026-03-28T12:44:46Z",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs lang_workflow",
+    "proof_method": "structural proof (eliminates String::clone() over file_rows)",
+    "pr_link": "pending",
+    "gates": [
+      "check",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
   }
 ]
