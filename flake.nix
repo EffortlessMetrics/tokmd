@@ -90,16 +90,21 @@
           || (baseName == ".gitignore");
       };
 
-      # Package dependency builds only need Cargo metadata plus the small
-      # non-Cargo inputs that affect vendored path overrides.
-      mkPackageDummySrc = craneLib: src: craneLib.mkDummySrc {
-        inherit src;
-        extraDummyScript = ''
+      # Package dependency builds only need workspace dummy crates plus the
+      # real vendored `home` patch source used by Cargo's path override.
+      mkPackageDummySrc = pkgs: craneLib: src:
+        let
+          dummyBase = craneLib.mkDummySrc { inherit src; };
+        in
+        pkgs.runCommand "tokmd-package-dummy-src" { } ''
+          mkdir -p "$out"
+          cp -R ${dummyBase}/. "$out"
+          chmod -R u+w "$out"
           mkdir -p "$out/.cargo" "$out/vendor"
           install -Dm644 ${./.cargo/config.toml} "$out/.cargo/config.toml"
+          rm -rf "$out/vendor/home-0.5.12"
           cp -R ${./vendor/home-0.5.12} "$out/vendor/home-0.5.12"
         '';
-      };
     in
     {
       packages = forAllSystems (system:
@@ -107,7 +112,7 @@
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
           src = mkBuildSrc craneLib;
-          dummySrc = mkPackageDummySrc craneLib src;
+          dummySrc = mkPackageDummySrc pkgs craneLib src;
 
           commonArgs = {
             pname = "tokmd";
