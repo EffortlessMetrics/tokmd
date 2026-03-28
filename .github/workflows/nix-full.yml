@@ -2,6 +2,9 @@ name: Nix Full Validation
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
   workflow_run:
     workflows: ["CI"]
     types: [completed]
@@ -25,6 +28,8 @@ jobs:
       id-token: write
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Set the repository variable `NIX_USE_FLAKEHUB_CACHE=true` once the
+      # trusted FlakeHub Cache path is provisioned for this repo.
       USE_FLAKEHUB_CACHE: ${{ vars.NIX_USE_FLAKEHUB_CACHE }}
     steps:
       - uses: actions/checkout@v6
@@ -43,7 +48,7 @@ jobs:
         id: flakehub-cache
         if: env.USE_FLAKEHUB_CACHE == 'true'
         continue-on-error: true
-        uses: DeterminateSystems/flakehub-cache-action@main
+        uses: DeterminateSystems/flakehub-cache-action@v3
 
       - name: Setup Nix cache
         if: env.USE_FLAKEHUB_CACHE != 'true' || steps.flakehub-cache.outcome != 'success'
