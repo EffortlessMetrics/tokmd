@@ -12,9 +12,11 @@ WORKDIR /build
 
 # Copy workspace manifest and all crate manifests first for better layer caching
 COPY Cargo.toml Cargo.lock ./
+COPY vendor/ vendor/
 COPY crates/ crates/
 COPY fuzz/ fuzz/
 COPY xtask/ xtask/
+COPY vendor/ vendor/
 
 # Build the release binary
 RUN cargo build --release --bin tokmd --locked
