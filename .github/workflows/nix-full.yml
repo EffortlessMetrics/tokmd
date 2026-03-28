@@ -22,17 +22,31 @@ jobs:
     timeout-minutes: 180
     permissions:
       contents: read
+      id-token: write
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      USE_FLAKEHUB_CACHE: ${{ vars.NIX_USE_FLAKEHUB_CACHE }}
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Install Nix
+        if: env.USE_FLAKEHUB_CACHE != 'true'
         uses: DeterminateSystems/nix-installer-action@v21
 
+      - name: Install Nix with FlakeHub support
+        if: env.USE_FLAKEHUB_CACHE == 'true'
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Setup FlakeHub cache
+        id: flakehub-cache
+        if: env.USE_FLAKEHUB_CACHE == 'true'
+        continue-on-error: true
+        uses: DeterminateSystems/flakehub-cache-action@main
+
       - name: Setup Nix cache
+        if: env.USE_FLAKEHUB_CACHE != 'true' || steps.flakehub-cache.outcome != 'success'
         continue-on-error: true
         uses: DeterminateSystems/magic-nix-cache-action@v13
         with:
