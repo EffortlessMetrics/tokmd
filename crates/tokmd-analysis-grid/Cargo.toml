@@ -20,7 +20,12 @@ git = []
 walk = []
 content = []
 halstead = ["content", "walk"]
-fun = []
-topics = []
-archetype = []
+fun = ["dep:tokmd-analysis-fun"]
+topics = ["dep:tokmd-analysis-topics"]
+archetype = ["dep:tokmd-analysis-archetype"]
+
+[dependencies]
+tokmd-analysis-fun = { workspace = true, optional = true }
+tokmd-analysis-topics = { workspace = true, optional = true }
+tokmd-analysis-archetype = { workspace = true, optional = true }
 

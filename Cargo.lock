@@ -3373,6 +3373,9 @@ name = "tokmd-analysis-grid"
 version = "1.8.1"
 dependencies = [
  "proptest",
+ "tokmd-analysis-archetype",
+ "tokmd-analysis-fun",
+ "tokmd-analysis-topics",
 ]
 
 [[package]]
