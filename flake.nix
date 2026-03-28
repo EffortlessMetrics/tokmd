@@ -73,7 +73,7 @@
           # Keep docs directory (directory entry must pass filter for contents to be evaluated)
           || (type == "directory" && pkgs.lib.hasSuffix "/docs" p)
           # Keep root markdown files (CHANGELOG.md, CLAUDE.md used by tests)
-          || (baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
+          || (baseName == "README.md" || baseName == "CHANGELOG.md" || baseName == "CLAUDE.md")
           # Keep vendored crate patches used by Cargo path overrides
           || (builtins.match ".*/vendor(/.*)?$" p != null)
           # Keep crate README.md files (include_str! in lib.rs #[doc] attributes)
