@@ -151,9 +151,9 @@
           src = mkCheckSrc craneLib pkgs;
           checkArgs = {
             inherit src;
-            # Keep checks aligned with the package build when vendored path
-            # patches are in use.
-            dummySrc = mkPackageDummySrc craneLib src;
+            # Keep the broad check lane on the real filtered source. The
+            # package-only dummy source is only for the release package builds.
+            dummySrc = src;
             strictDeps = true;
           };
           clippyCargoArtifacts = craneLib.buildDepsOnly (checkArgs // {
