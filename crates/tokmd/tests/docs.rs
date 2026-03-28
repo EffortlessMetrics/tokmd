@@ -190,6 +190,72 @@ fn recipe_generate_baseline() {
 }
 
 #[test]
+fn recipe_context_bundle() {
+    let tmp = tempfile::tempdir().unwrap();
+
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    let context_txt1 = tmp.path().join("context1.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_txt1)
+        .assert()
+        .success();
+    assert!(context_txt1.exists());
+
+    // "tokmd context --budget 128k --strategy spread --mode bundle --output context.txt"
+    let context_txt2 = tmp.path().join("context2.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--strategy")
+        .arg("spread")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_txt2)
+        .assert()
+        .success();
+    assert!(context_txt2.exists());
+
+    // "tokmd context --budget 128k --mode bundle --compress --output context.txt"
+    let context_txt3 = tmp.path().join("context3.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--compress")
+        .arg("--output")
+        .arg(&context_txt3)
+        .assert()
+        .success();
+    assert!(context_txt3.exists());
+
+    // "tokmd context --budget 128k --module-roots crates,src --strategy spread --output context.txt"
+    let context_txt4 = tmp.path().join("context4.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--module-roots")
+        .arg("crates,src")
+        .arg("--strategy")
+        .arg("spread")
+        .arg("--output")
+        .arg(&context_txt4)
+        .assert()
+        .success();
+    assert!(context_txt4.exists());
+}
+
+#[test]
 fn recipe_handoff_bundle() {
     // "tokmd handoff --out-dir .handoff"
     let tmp = tempfile::tempdir().unwrap();

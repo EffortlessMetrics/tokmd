@@ -1,0 +1,7 @@
+{
+  "run_id": "ac2bab79-3fe3-42d8-862c-f8cce7098cf4",
+  "status": "started",
+  "receipts": [
+    "\nrunning 1 test\ntest recipe_context_bundle ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.14s\n\nDocumentation is up to date.\n[1/4] fmt\n   ✅ Step 1 (fmt) passed\n[2/4] check (warm graph)\n   ✅ Step 2 (check (warm graph)) passed\n[3/4] clippy\n   ✅ Step 3 (clippy) passed\n[4/4] test (compile-only)\n   ✅ Step 4 (test (compile-only)) passed\n\ngate result: 4/4 steps passed\n\nrunning 1 test\ntest recipe_context_bundle ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.14s\n\nDocumentation is up to date.\n[1/4] fmt\n   ✅ Step 1 (fmt) passed\n[2/4] check (warm graph)\n   ✅ Step 2 (check (warm graph)) passed\n[3/4] clippy\n   ✅ Step 3 (clippy) passed\n[4/4] test (compile-only)\n   ✅ Step 4 (test (compile-only)) passed\n\ngate result: 4/4 steps passed"
+  ]
+}
