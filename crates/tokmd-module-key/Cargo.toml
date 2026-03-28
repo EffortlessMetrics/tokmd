@@ -12,4 +12,4 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-module-key"
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true

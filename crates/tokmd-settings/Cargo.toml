@@ -12,11 +12,11 @@ categories = ["development-tools", "config"]
 documentation = "https://docs.rs/tokmd-settings"
 
 [dependencies]
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+serde.workspace = true
+serde_json.workspace = true
 toml = "1.0"
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+tempfile.workspace = true

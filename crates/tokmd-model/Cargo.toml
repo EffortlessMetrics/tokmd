@@ -12,13 +12,13 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-model"
 
 [dependencies]
-serde = { version = "1.0.228", features = ["derive"] }
+serde.workspace = true
 tokei = { version = "14.0.0", default-features = false }
 tokmd-module-key.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
 insta = { workspace = true }
-proptest = "1.10.0"
-serde_json = "1.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true

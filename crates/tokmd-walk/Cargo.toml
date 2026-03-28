@@ -12,10 +12,10 @@ categories = ["development-tools", "filesystem"]
 documentation = "https://docs.rs/tokmd-walk"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 ignore = "0.4.25"
 tokmd-io-port.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+tempfile.workspace = true

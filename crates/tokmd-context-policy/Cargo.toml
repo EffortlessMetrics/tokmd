@@ -16,4 +16,4 @@ tokmd-path.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true

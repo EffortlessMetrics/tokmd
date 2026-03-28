@@ -12,7 +12,7 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-git"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-math.workspace = true
@@ -20,5 +20,5 @@ tokmd-git.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true
 serde_json.workspace = true

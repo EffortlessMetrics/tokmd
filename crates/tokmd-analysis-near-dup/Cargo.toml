@@ -12,14 +12,14 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-near-dup"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 globset = "0.4.18"
 rustc-hash = "2"
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
-serde_json = "1"
-tempfile = "3.27.0"
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
 

@@ -47,8 +47,8 @@ topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
 archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
 
 [dependencies]
-anyhow = "1.0.101"
-serde_json = "1.0.149"
+anyhow.workspace = true
+serde_json.workspace = true
 
 # Core contracts
 tokmd-analysis-derived.workspace = true
@@ -77,7 +77,7 @@ tokmd-analysis-maintainability = { workspace = true, optional = true }
 tokmd-analysis-effort = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.27.0"
-proptest = "1.10.0"
+tempfile.workspace = true
+proptest.workspace = true
 uselesskey.workspace = true
-serde = { version = "1.0.228", features = ["derive"] }
+serde.workspace = true

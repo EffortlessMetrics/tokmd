@@ -15,5 +15,5 @@ documentation = "https://docs.rs/tokmd-redact"
 blake3.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true
 

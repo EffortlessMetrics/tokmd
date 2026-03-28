@@ -12,7 +12,7 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis-license"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 serde_json.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
@@ -20,5 +20,5 @@ tokmd-content.workspace = true
 tokmd-walk.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+tempfile.workspace = true
