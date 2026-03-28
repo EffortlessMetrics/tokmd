@@ -16,11 +16,11 @@ default = ["git"]
 git = ["dep:tokmd-git"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 blake3.workspace = true
 ignore = "0.4.23"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+serde.workspace = true
+serde_json.workspace = true
 time = { version = "0.3.41", features = ["formatting"] }
 tokmd-analysis-types.workspace = true
 tokmd-envelope.workspace = true
@@ -31,6 +31,6 @@ tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta = { workspace = true }
-proptest = "1.10.0"
-serde_json = "1.0.149"
-tempfile = "3.27.0"
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true

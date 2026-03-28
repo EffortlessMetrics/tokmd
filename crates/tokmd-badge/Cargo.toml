@@ -15,4 +15,4 @@ categories = ["command-line-utilities"]
 
 [dev-dependencies]
 insta = { workspace = true }
-proptest = "1.10.0"
+proptest.workspace = true

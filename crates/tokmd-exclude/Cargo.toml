@@ -15,4 +15,4 @@ documentation = "https://docs.rs/tokmd-exclude"
 tokmd-path.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true

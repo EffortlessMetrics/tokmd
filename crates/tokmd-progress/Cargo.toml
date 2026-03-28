@@ -19,4 +19,4 @@ ui = ["dep:indicatif"]
 indicatif = { version = "0.18.4", optional = true }
 
 [dev-dependencies]
-proptest = "1"
+proptest.workspace = true

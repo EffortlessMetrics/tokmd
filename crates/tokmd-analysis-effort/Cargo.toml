@@ -16,11 +16,11 @@ default = []
 git = ["dep:tokmd-git"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
 tokmd-analysis-util.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.27.0"
+tempfile.workspace = true

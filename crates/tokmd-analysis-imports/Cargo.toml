@@ -13,4 +13,4 @@ documentation = "https://docs.rs/tokmd-analysis-imports"
 
 [dev-dependencies]
 insta = { workspace = true }
-proptest = "1.10.0"
+proptest.workspace = true

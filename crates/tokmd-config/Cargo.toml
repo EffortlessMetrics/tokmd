@@ -13,15 +13,15 @@ documentation = "https://docs.rs/tokmd-config"
 
 [dependencies]
 clap = { version = "4.6.0", features = ["derive"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+serde.workspace = true
+serde_json.workspace = true
 tokmd-settings.workspace = true
 tokmd-tool-schema.workspace = true
 tokmd-types = { workspace = true, features = ["clap"] }
 
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+tempfile.workspace = true
 toml = "1.0"
 tokmd-settings.workspace = true

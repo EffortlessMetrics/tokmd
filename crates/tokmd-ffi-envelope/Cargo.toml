@@ -15,5 +15,5 @@ documentation = "https://docs.rs/tokmd-ffi-envelope"
 serde_json.workspace = true
 
 [dev-dependencies]
-proptest = "1.10.0"
+proptest.workspace = true
 tokmd-core.workspace = true

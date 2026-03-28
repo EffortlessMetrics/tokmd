@@ -14,5 +14,5 @@ documentation = "https://docs.rs/tokmd-io-port"
 [dependencies]
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3"
+proptest.workspace = true
+tempfile.workspace = true

@@ -12,11 +12,11 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-content"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow.workspace = true
 blake3.workspace = true
 regex = "1.12.3"
 
 [dev-dependencies]
-proptest = "1.10.0"
-tempfile = "3.27.0"
+proptest.workspace = true
+tempfile.workspace = true
 
