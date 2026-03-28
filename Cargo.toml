@@ -54,6 +54,7 @@ members = [
     "crates/tokmd-sensor",
     "crates/tokmd-settings",
     "crates/tokmd-substrate",
+    "crates/tokmd-test-support",
     "crates/tokmd-tokeignore",
     "crates/tokmd-tool-schema",
     "crates/tokmd-types",
@@ -110,6 +111,7 @@ default-members = [
     "crates/tokmd-sensor",
     "crates/tokmd-settings",
     "crates/tokmd-substrate",
+    "crates/tokmd-test-support",
     "crates/tokmd-tokeignore",
     "crates/tokmd-tool-schema",
     "crates/tokmd-types",
@@ -185,6 +187,7 @@ tokmd-scan-args = { path = "crates/tokmd-scan-args", version = "1.9.0" }
 tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.9.0" }
 tokmd-substrate = { path = "crates/tokmd-substrate", version = "1.9.0" }
 tokmd-settings = { path = "crates/tokmd-settings", version = "1.9.0" }
+tokmd-test-support = { path = "crates/tokmd-test-support", version = "1.9.0" }
 tokmd-tokeignore = { path = "crates/tokmd-tokeignore", version = "1.9.0" }
 tokmd-tool-schema = { path = "crates/tokmd-tool-schema", version = "1.9.0" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.9.0" }

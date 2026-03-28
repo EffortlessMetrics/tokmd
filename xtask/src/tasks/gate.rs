@@ -1,4 +1,6 @@
+use crate::cli::FixtureBlobsCheckArgs;
 use crate::cli::GateArgs;
+use crate::tasks::fixture_blobs_check;
 use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
 use std::process::Command;
@@ -117,6 +119,7 @@ fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
 
 pub fn run(args: GateArgs) -> Result<()> {
     ensure_no_tracked_agent_runtime_state()?;
+    fixture_blobs_check::run(FixtureBlobsCheckArgs::default())?;
 
     let total = STEPS.len();
     let mut failures = Vec::new();
