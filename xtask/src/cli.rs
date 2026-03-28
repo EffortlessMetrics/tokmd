@@ -22,6 +22,8 @@ pub enum Commands {
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
+    /// Reject committed crypto fixture blobs outside approved paths
+    FixtureBlobsCheck(FixtureBlobsCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
     Gate(GateArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
@@ -155,6 +157,9 @@ pub struct BumpArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct BoundariesCheckArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct FixtureBlobsCheckArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct GateArgs {

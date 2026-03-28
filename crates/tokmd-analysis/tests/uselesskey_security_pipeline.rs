@@ -1,6 +1,5 @@
 #![cfg(all(feature = "content", feature = "walk"))]
 
-use std::fs;
 use std::path::Path;
 
 use tokmd_analysis::{
@@ -8,14 +7,8 @@ use tokmd_analysis::{
     NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, EntropyClass};
+use tokmd_test_support::crypto;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-
-mod generated_fixtures {
-    pub const SECURITY_PRIVATE_KEY_PK8: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/fixtures/generated/private-key.pk8"
-    ));
-}
 
 fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
     AnalysisRequest {
@@ -89,21 +82,9 @@ fn export_for_private_key_fixture(path: &str) -> ExportData {
 #[test]
 fn security_preset_detects_uselesskey_generated_private_key() {
     let dir = tempfile::tempdir().expect("tempdir should be created");
-    let relative_path = "fixtures/generated/private-key.pk8";
-    let output_path = dir
-        .path()
-        .join("fixtures")
-        .join("generated")
-        .join("private-key.pk8");
-    fs::create_dir_all(
-        output_path
-            .parent()
-            .expect("generated fixture file should have a parent directory"),
-    )
-    .expect("fixture directory should be created");
-
-    fs::write(&output_path, generated_fixtures::SECURITY_PRIVATE_KEY_PK8)
-        .expect("materialized rsa fixture bytes should be written");
+    let relative_path = crypto::GENERATED_PRIVATE_KEY_RELATIVE_PATH;
+    crypto::write_generated_private_key(dir.path(), crypto::label::SECURITY_SUSPECT)
+        .expect("rsa fixture bytes should be written");
 
     let receipt = analyze(
         make_context(dir.path(), export_for_private_key_fixture(relative_path)),

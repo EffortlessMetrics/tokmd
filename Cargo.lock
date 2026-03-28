@@ -2577,6 +2577,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-git",
+ "tokmd-test-support",
  "tokmd-types",
  "tokmd-walk",
 ]
@@ -2687,6 +2688,7 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
+ "tokmd-test-support",
  "tokmd-types",
 ]
 
@@ -3221,6 +3223,14 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "tokmd-test-support"
+version = "1.9.0"
+dependencies = [
+ "tempfile",
+ "uselesskey",
 ]
 
 [[package]]
@@ -4015,6 +4025,7 @@ dependencies = [
  "petgraph",
  "semver",
  "serde_json",
+ "tempfile",
  "toml 1.1.2+spec-1.1.0",
 ]
 

@@ -1,30 +1,11 @@
-use std::fs;
 use std::path::PathBuf;
 
 use tempfile::tempdir;
 use tokmd_analysis_entropy::build_entropy_report;
 use tokmd_analysis_types::EntropyClass;
 use tokmd_analysis_util::AnalysisLimits;
+use tokmd_test_support::crypto;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-
-mod generated_fixtures {
-    pub const ENTROPY_FIXTURE_PRIMARY: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/fixtures/generated/entropy-fixture.pk8"
-    ));
-    pub const ENTROPY_FIXTURE_DUPLICATE: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/fixtures/generated/entropy-fixture-copy.pk8"
-    ));
-    pub const ENTROPY_FIXTURE_ALT: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/fixtures/generated/entropy-fixture-alt.pk8"
-    ));
-    pub const ENTROPY_REPORT_PRIVATE_KEY_PK8: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/fixtures/generated/private-key.pk8"
-    ));
-}
 
 fn export_for_paths(paths: &[&str]) -> ExportData {
     let rows = paths
@@ -56,38 +37,21 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
 }
 
 #[test]
-fn materialized_rsa_der_fixtures_are_reproducible() {
-    assert_eq!(
-        generated_fixtures::ENTROPY_FIXTURE_PRIMARY,
-        generated_fixtures::ENTROPY_FIXTURE_DUPLICATE
-    );
-    assert_ne!(
-        generated_fixtures::ENTROPY_FIXTURE_PRIMARY,
-        generated_fixtures::ENTROPY_FIXTURE_ALT
-    );
+fn uselesskey_generates_reproducible_rsa_der_fixtures() {
+    let first = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_PRIMARY);
+    let second = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_PRIMARY);
+    let different = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_ALTERNATE);
+
+    assert_eq!(first, second);
+    assert_ne!(first, different);
 }
 
 #[test]
 fn entropy_report_detects_uselesskey_generated_private_key_der() {
     let dir = tempdir().expect("tempdir should be created");
-    let relative_path = "fixtures/generated/private-key.pk8";
-    let output_path = dir
-        .path()
-        .join("fixtures")
-        .join("generated")
-        .join("private-key.pk8");
-    fs::create_dir_all(
-        output_path
-            .parent()
-            .expect("generated fixture file should have a parent directory"),
-    )
-    .expect("fixture directory should be created");
-
-    fs::write(
-        &output_path,
-        generated_fixtures::ENTROPY_REPORT_PRIVATE_KEY_PK8,
-    )
-    .expect("materialized rsa fixture bytes should be written");
+    let relative_path = crypto::GENERATED_PRIVATE_KEY_RELATIVE_PATH;
+    crypto::write_generated_private_key(dir.path(), crypto::label::ENTROPY_REPORT)
+        .expect("rsa fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];
