@@ -89,6 +89,17 @@
           # Keep gitignore files (used by tests)
           || (baseName == ".gitignore");
       };
+
+      # Package dependency builds only need Cargo metadata plus the small
+      # non-Cargo inputs that affect vendored path overrides.
+      mkPackageDummySrc = craneLib: src: craneLib.mkDummySrc {
+        inherit src;
+        extraDummyScript = ''
+          mkdir -p "$out/.cargo" "$out/vendor"
+          install -Dm644 ${./.cargo/config.toml} "$out/.cargo/config.toml"
+          cp -R ${./vendor/home-0.5.12} "$out/vendor/home-0.5.12"
+        '';
+      };
     in
     {
       packages = forAllSystems (system:
@@ -96,13 +107,12 @@
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
           src = mkBuildSrc craneLib;
+          dummySrc = mkPackageDummySrc craneLib src;
 
           commonArgs = {
             pname = "tokmd";
             inherit version src;
-            # buildDepsOnly's manifest-only dummy source breaks the vendored
-            # `home` path patch because etcetera needs the real crate API.
-            dummySrc = src;
+            inherit dummySrc;
             strictDeps = true;
           };
 
@@ -139,23 +149,30 @@
           pkgs = mkPkgs system;
           craneLib = mkCraneLib system;
           src = mkCheckSrc craneLib pkgs;
-          commonArgs = {
+          checkArgs = {
             inherit src;
             # Keep checks aligned with the package build when vendored path
             # patches are in use.
-            dummySrc = src;
+            dummySrc = mkPackageDummySrc craneLib src;
             strictDeps = true;
           };
-          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+          clippyCargoArtifacts = craneLib.buildDepsOnly (checkArgs // {
+            cargoExtraArgs = "--locked";
+            doCheck = false;
+          });
+          testCargoArtifacts = craneLib.buildDepsOnly (checkArgs // {
+            cargoExtraArgs = "--locked";
+            doCheck = true;
+          });
         in
         {
-          clippy = craneLib.cargoClippy (commonArgs // {
-            inherit cargoArtifacts;
+          clippy = craneLib.cargoClippy (checkArgs // {
+            cargoArtifacts = clippyCargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
           });
           fmt = craneLib.cargoFmt { inherit src; };
-          test = craneLib.cargoTest (commonArgs // {
-            inherit cargoArtifacts;
+          test = craneLib.cargoTest (checkArgs // {
+            cargoArtifacts = testCargoArtifacts;
             nativeBuildInputs = [ pkgs.git ];
           });
         });
