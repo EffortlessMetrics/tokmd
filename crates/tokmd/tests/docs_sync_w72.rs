@@ -6,27 +6,10 @@
 mod common;
 
 use assert_cmd::Command;
-use std::path::PathBuf;
 
-/// Workspace root (two levels above the crate manifest).
-fn workspace_root() -> PathBuf {
-    let mut current = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    loop {
-        let has_root_markers = current.join("README.md").is_file()
-            && current.join("docs").join("reference-cli.md").is_file()
-            && current.join("Cargo.toml").is_file();
-        if has_root_markers {
-            return current;
-        }
-        if !current.pop() {
-            break;
-        }
-    }
-    panic!(
-        "Could not locate workspace root from {}",
-        env!("CARGO_MANIFEST_DIR")
-    );
-}
+const README_MD: &str = include_str!("../../../README.md");
+const REFERENCE_CLI_MD: &str = include_str!("../../../docs/reference-cli.md");
+const ROOT_CARGO_TOML: &str = include_str!("../../../Cargo.toml");
 
 /// Build a `tokmd` command pointed at the test fixtures.
 fn tokmd_cmd() -> Command {
@@ -121,12 +104,10 @@ fn every_help_subcommand_is_in_readme() {
         "Failed to parse subcommands from --help"
     );
 
-    let readme =
-        std::fs::read_to_string(workspace_root().join("README.md")).expect("README.md must exist");
-
     for cmd in &subcommands {
         let pattern = format!("tokmd {cmd}");
-        let found = readme.contains(&pattern) || (cmd == "lang" && readme.contains("| `tokmd`"));
+        let found =
+            README_MD.contains(&pattern) || (cmd == "lang" && README_MD.contains("| `tokmd`"));
         assert!(
             found,
             "Subcommand `{cmd}` from --help is not documented in README.md"
@@ -143,14 +124,11 @@ fn every_help_subcommand_is_in_reference_cli() {
     let help = String::from_utf8_lossy(&output.stdout);
     let subcommands = parse_help_subcommands(&help);
 
-    let ref_cli = std::fs::read_to_string(workspace_root().join("docs/reference-cli.md"))
-        .expect("docs/reference-cli.md must exist");
-
     for cmd in &subcommands {
         let pattern = format!("tokmd {cmd}");
         let default_pattern = "tokmd` (Default";
-        let found =
-            ref_cli.contains(&pattern) || (cmd == "lang" && ref_cli.contains(default_pattern));
+        let found = REFERENCE_CLI_MD.contains(&pattern)
+            || (cmd == "lang" && REFERENCE_CLI_MD.contains(default_pattern));
         assert!(
             found,
             "Subcommand `{cmd}` from --help is not in docs/reference-cli.md"
@@ -163,9 +141,7 @@ fn every_help_subcommand_is_in_reference_cli() {
 // ===========================================================================
 
 fn cargo_toml_version() -> String {
-    let content = std::fs::read_to_string(workspace_root().join("Cargo.toml"))
-        .expect("Cargo.toml must exist");
-    for line in content.lines() {
+    for line in ROOT_CARGO_TOML.lines() {
         let trimmed = line.trim();
         if trimmed.starts_with("version = \"") && trimmed.ends_with('"') {
             return trimmed
