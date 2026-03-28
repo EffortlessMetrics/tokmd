@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashSet},
     fs,
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -18,15 +18,16 @@ const NODE_PACKAGE_MANIFESTS: &[&str] = &[
 ];
 
 pub fn run(_args: VersionConsistencyArgs) -> Result<()> {
-    let workspace_version = load_workspace_version()?;
+    let workspace_root = find_workspace_root()?;
+    let workspace_version = load_workspace_version(&workspace_root)?;
 
     println!("Checking version consistency against workspace version {workspace_version}\n");
 
-    let metadata = load_workspace_metadata()?;
+    let metadata = load_workspace_metadata(&workspace_root)?;
     check_cargo_versions(&metadata, &workspace_version)?;
-    check_workspace_dependency_versions(&workspace_version)?;
-    check_node_manifest_versions(&workspace_version)?;
-    check_case_insensitive_path_collisions()?;
+    check_workspace_dependency_versions(&workspace_root, &workspace_version)?;
+    check_node_manifest_versions(&workspace_root, &workspace_version)?;
+    check_case_insensitive_path_collisions(&workspace_root)?;
 
     println!("Version consistency checks passed.");
     Ok(())
@@ -64,8 +65,8 @@ fn check_cargo_versions(metadata: &Metadata, expected: &str) -> Result<()> {
     Ok(())
 }
 
-fn check_workspace_dependency_versions(expected: &str) -> Result<()> {
-    let manifest = read_toml("Cargo.toml")?;
+fn check_workspace_dependency_versions(workspace_root: &Path, expected: &str) -> Result<()> {
+    let manifest = read_toml(&workspace_root.join("Cargo.toml"))?;
     let workspace = manifest
         .get("workspace")
         .and_then(TomlValue::as_table)
@@ -107,11 +108,12 @@ fn check_workspace_dependency_versions(expected: &str) -> Result<()> {
     Ok(())
 }
 
-fn check_node_manifest_versions(expected: &str) -> Result<()> {
+fn check_node_manifest_versions(workspace_root: &Path, expected: &str) -> Result<()> {
     let mut mismatches = Vec::new();
 
     for path in NODE_PACKAGE_MANIFESTS {
-        let manifest = read_package_manifest(path).with_context(|| format!("Reading {path}"))?;
+        let manifest = read_package_manifest(workspace_root, path)
+            .with_context(|| format!("Reading {path}"))?;
         let actual = manifest_package_version(&manifest, path)?;
         if actual != expected {
             mismatches.push(format!("{path} ({actual})"));
@@ -134,8 +136,8 @@ fn check_node_manifest_versions(expected: &str) -> Result<()> {
     Ok(())
 }
 
-fn check_case_insensitive_path_collisions() -> Result<()> {
-    let tracked_paths = read_tracked_paths()?;
+fn check_case_insensitive_path_collisions(workspace_root: &Path) -> Result<()> {
+    let tracked_paths = read_tracked_paths(workspace_root)?;
     let collisions = detect_case_insensitive_collisions(tracked_paths);
 
     if !collisions.is_empty() {
@@ -155,8 +157,25 @@ fn check_case_insensitive_path_collisions() -> Result<()> {
     Ok(())
 }
 
-fn load_workspace_version() -> Result<String> {
-    let manifest = read_toml("Cargo.toml")?;
+fn find_workspace_root() -> Result<PathBuf> {
+    let mut dir = std::env::current_dir()?;
+    loop {
+        let cargo_toml = dir.join("Cargo.toml");
+        if cargo_toml.exists() {
+            let content = fs::read_to_string(&cargo_toml)
+                .with_context(|| format!("Failed to read {}", cargo_toml.display()))?;
+            if content.contains("[workspace]") {
+                return Ok(dir);
+            }
+        }
+        if !dir.pop() {
+            bail!("Could not find workspace root (Cargo.toml with [workspace])");
+        }
+    }
+}
+
+fn load_workspace_version(workspace_root: &Path) -> Result<String> {
+    let manifest = read_toml(&workspace_root.join("Cargo.toml"))?;
     let workspace = manifest
         .get("workspace")
         .and_then(TomlValue::as_table)
@@ -174,16 +193,18 @@ fn load_workspace_version() -> Result<String> {
     Ok(version)
 }
 
-fn load_workspace_metadata() -> Result<Metadata> {
+fn load_workspace_metadata(workspace_root: &Path) -> Result<Metadata> {
     MetadataCommand::new()
+        .manifest_path(workspace_root.join("Cargo.toml"))
         .no_deps()
         .exec()
         .context("Failed to load cargo metadata")
 }
 
-fn read_tracked_paths() -> Result<Vec<String>> {
+fn read_tracked_paths(workspace_root: &Path) -> Result<Vec<String>> {
     let output = Command::new("git")
         .args(["ls-files", "-z"])
+        .current_dir(workspace_root)
         .output()
         .context("Failed to run `git ls-files -z`")?;
 
@@ -221,13 +242,14 @@ fn detect_case_insensitive_collisions(paths: Vec<String>) -> Vec<Vec<String>> {
         .collect()
 }
 
-fn read_package_manifest(path: &str) -> Result<JsonValue> {
-    let package_path = Path::new(path);
+fn read_package_manifest(workspace_root: &Path, path: &str) -> Result<JsonValue> {
+    let package_path = workspace_root.join(path);
     if !package_path.exists() {
         bail!("Missing package manifest: {path}");
     }
 
-    let raw = fs::read_to_string(package_path).with_context(|| format!("Failed to read {path}"))?;
+    let raw =
+        fs::read_to_string(&package_path).with_context(|| format!("Failed to read {path}"))?;
     serde_json::from_str(&raw).with_context(|| format!("Failed to parse JSON in {path}"))
 }
 
@@ -271,9 +293,10 @@ fn find_internal_node_dependency_mismatches(
     mismatches
 }
 
-fn read_toml(path: &str) -> Result<TomlValue> {
-    let raw = fs::read_to_string(path).with_context(|| format!("Failed to read {path}"))?;
-    toml::from_str(&raw).with_context(|| format!("Failed to parse TOML in {path}"))
+fn read_toml(path: &Path) -> Result<TomlValue> {
+    let raw =
+        fs::read_to_string(path).with_context(|| format!("Failed to read {}", path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("Failed to parse TOML in {}", path.display()))
 }
 
 #[cfg(test)]
@@ -282,13 +305,16 @@ mod tests {
 
     #[test]
     fn test_parse_workspace_version() {
-        let version = load_workspace_version().expect("workspace version should parse");
+        let workspace_root = find_workspace_root().expect("workspace root should parse");
+        let version =
+            load_workspace_version(&workspace_root).expect("workspace version should parse");
         assert!(!version.is_empty());
     }
 
     #[test]
     fn test_read_package_manifest_errors() {
-        assert!(read_package_manifest("no-such-file.json").is_err());
+        let workspace_root = find_workspace_root().expect("workspace root should parse");
+        assert!(read_package_manifest(&workspace_root, "no-such-file.json").is_err());
     }
 
     #[test]

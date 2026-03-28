@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-27
+
+### Added
+
+- Browser/WASM product surface for `tokmd` via the new `tokmd-wasm` crate and `web/runner` browser runner
+- In-browser `lang`, `module`, `export`, and rootless `analyze` support for ordered in-memory inputs
+- Public GitHub repo ingestion in the browser through tree + contents APIs with explicit progress, caching, and partial-load reporting
+
+### Changed
+
+- Browser runner deployments now consume a versioned `tokmd-wasm-<tag>.tar.gz` release artifact unpacked into `web/runner/vendor/tokmd-wasm`
+- Release prep and publish metadata are aligned on `1.9.0` across Cargo and Node package surfaces
+
+### Fixed
+
+- Hardened browser runner boot and wasm export guardrails so unsupported bundles fail explicitly instead of degrading silently
+- Locked the post-`#807` release-prep lane to a single re-anchored proof chain from current `origin/main`
+
 ## [1.8.1] - 2026-03-20
 
 ### Changed

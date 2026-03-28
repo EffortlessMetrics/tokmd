@@ -9,6 +9,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
+use serde_json::Value as JsonValue;
 
 use crate::cli::BumpArgs;
 
@@ -62,6 +63,11 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
     },
 ];
 
+const NODE_PACKAGE_MANIFESTS: &[&str] = &[
+    "crates/tokmd-node/package.json",
+    "crates/tokmd-node/npm/package.json",
+];
+
 /// Run the version bump task.
 pub fn run(args: BumpArgs) -> Result<()> {
     // Validate version format
@@ -99,6 +105,12 @@ pub fn run(args: BumpArgs) -> Result<()> {
     // 2. Update [workspace.dependencies] internal crate versions
     let (final_content, dep_changes) = update_workspace_dependencies(&new_content, &args.version)?;
     changes.extend(dep_changes);
+
+    // 3. Update Node package manifest versions and internal @tokmd/* dependency versions.
+    let node_manifest_updates = plan_node_manifest_updates(&workspace_root, &args.version)?;
+    for update in &node_manifest_updates {
+        changes.extend(update.changes.iter().cloned());
+    }
 
     // Print planned changes
     println!("Planned changes:");
@@ -139,6 +151,13 @@ pub fn run(args: BumpArgs) -> Result<()> {
     fs::write(&cargo_toml_path, &final_content).context("Failed to write root Cargo.toml")?;
     println!("\nWrote: {}", cargo_toml_path.display());
 
+    for update in &node_manifest_updates {
+        let manifest_path = workspace_root.join(&update.path);
+        fs::write(&manifest_path, &update.updated_content)
+            .with_context(|| format!("Failed to write {}", update.path))?;
+        println!("Wrote: {}", manifest_path.display());
+    }
+
     // Apply schema version updates if specified
     if let Some(schema_bumps) = &args.schema {
         for bump in schema_bumps {
@@ -152,7 +171,7 @@ pub fn run(args: BumpArgs) -> Result<()> {
     println!("Version bumped: {} -> {}", current_version, args.version);
     println!(
         "Files modified: {}",
-        1 + args.schema.as_ref().map(|s| s.len()).unwrap_or(0)
+        1 + node_manifest_updates.len() + args.schema.as_ref().map(|s| s.len()).unwrap_or(0)
     );
 
     println!("\nNext steps:");
@@ -165,6 +184,13 @@ pub fn run(args: BumpArgs) -> Result<()> {
     println!("  4. Publish: cargo xtask publish --plan");
 
     Ok(())
+}
+
+#[derive(Debug, Clone)]
+struct NodeManifestUpdate {
+    path: String,
+    updated_content: String,
+    changes: Vec<String>,
 }
 
 /// Find the workspace root by looking for Cargo.toml with [workspace].
@@ -345,6 +371,155 @@ fn replace_version_in_dep_line(line: &str, old_version: &str, new_version: &str)
     line.replace(&pattern, &replacement)
 }
 
+fn plan_node_manifest_updates(
+    workspace_root: &Path,
+    new_version: &str,
+) -> Result<Vec<NodeManifestUpdate>> {
+    let mut updates = Vec::new();
+
+    for path in NODE_PACKAGE_MANIFESTS {
+        let manifest_path = workspace_root.join(path);
+        let content =
+            fs::read_to_string(&manifest_path).with_context(|| format!("Failed to read {path}"))?;
+        let (updated_content, changes) = update_node_manifest_versions(&content, path, new_version)
+            .with_context(|| format!("Failed to update {path}"))?;
+
+        if !changes.is_empty() {
+            updates.push(NodeManifestUpdate {
+                path: path.to_string(),
+                updated_content,
+                changes,
+            });
+        }
+    }
+
+    Ok(updates)
+}
+
+fn update_node_manifest_versions(
+    content: &str,
+    path: &str,
+    new_version: &str,
+) -> Result<(String, Vec<String>)> {
+    let mut result = String::with_capacity(content.len());
+    let mut changes = Vec::new();
+    let mut root_version_updated = false;
+    let mut current_section: Option<&str> = None;
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        if let Some(section) = current_section {
+            if trimmed.starts_with('}') {
+                current_section = None;
+                result.push_str(line);
+                result.push('\n');
+                continue;
+            }
+
+            if trimmed.starts_with("\"@tokmd/") {
+                let dependency_name = extract_json_key(trimmed)
+                    .with_context(|| format!("Missing dependency name in {path}: {trimmed}"))?;
+                let old_version = extract_json_string_value(trimmed)
+                    .with_context(|| format!("Missing dependency version in {path}: {trimmed}"))?;
+
+                if old_version != new_version {
+                    changes.push(format!(
+                        "{path}: {section}.{dependency_name} = \"{old_version}\" -> \"{new_version}\""
+                    ));
+                    result.push_str(&replace_json_string_value(line, new_version)?);
+                    result.push('\n');
+                    continue;
+                }
+            }
+
+            result.push_str(line);
+            result.push('\n');
+            continue;
+        }
+
+        if !root_version_updated && trimmed.starts_with("\"version\":") {
+            let old_version = extract_json_string_value(trimmed)
+                .with_context(|| format!("Missing top-level version in {path}: {trimmed}"))?;
+
+            if old_version != new_version {
+                changes.push(format!(
+                    "{path}: version = \"{old_version}\" -> \"{new_version}\""
+                ));
+                result.push_str(&replace_json_string_value(line, new_version)?);
+                result.push('\n');
+                root_version_updated = true;
+                continue;
+            }
+
+            root_version_updated = true;
+        }
+
+        if matches!(
+            trimmed,
+            "\"dependencies\": {" | "\"optionalDependencies\": {" | "\"peerDependencies\": {"
+        ) {
+            current_section = Some(extract_json_key(trimmed).with_context(|| {
+                format!("Missing dependency section name in {path}: {trimmed}")
+            })?);
+        }
+
+        result.push_str(line);
+        result.push('\n');
+    }
+
+    if !content.ends_with('\n') && result.ends_with('\n') {
+        result.pop();
+    }
+
+    if !root_version_updated {
+        bail!("Failed to find top-level version in {path}");
+    }
+
+    let _: JsonValue = serde_json::from_str(&result)
+        .with_context(|| format!("Updated {path} is not valid JSON"))?;
+
+    Ok((result, changes))
+}
+
+fn extract_json_key(line: &str) -> Option<&str> {
+    let trimmed = line.trim();
+    let remainder = trimmed.strip_prefix('"')?;
+    let key_end = remainder.find('"')?;
+    Some(&remainder[..key_end])
+}
+
+fn extract_json_string_value(line: &str) -> Option<String> {
+    let colon_index = line.find(':')?;
+    let value_part = &line[colon_index + 1..];
+    let quote_start = value_part.find('"')? + 1;
+    let remainder = &value_part[quote_start..];
+    let quote_end = remainder.find('"')?;
+    Some(remainder[..quote_end].to_string())
+}
+
+fn replace_json_string_value(line: &str, new_value: &str) -> Result<String> {
+    let colon_index = line
+        .find(':')
+        .with_context(|| format!("Expected ':' in JSON line: {line}"))?;
+    let value_start = line[colon_index + 1..]
+        .find('"')
+        .with_context(|| format!("Expected opening quote in JSON line: {line}"))?
+        + colon_index
+        + 2;
+    let value_end = line[value_start..]
+        .find('"')
+        .with_context(|| format!("Expected closing quote in JSON line: {line}"))?
+        + value_start;
+
+    Ok(format!(
+        "{}{}{}",
+        &line[..value_start],
+        new_value,
+        &line[value_end..]
+    ))
+}
+
 /// Parse a schema bump argument like "SCHEMA_VERSION=3" or "ANALYSIS_SCHEMA_VERSION=5".
 fn parse_schema_bump(bump: &str) -> Result<(String, u32)> {
     let parts: Vec<&str> = bump.split('=').collect();
@@ -514,5 +689,35 @@ edition = "2021"
     fn test_parse_schema_bump_invalid() {
         assert!(parse_schema_bump("SCHEMA_VERSION").is_err());
         assert!(parse_schema_bump("SCHEMA_VERSION=abc").is_err());
+    }
+
+    #[test]
+    fn updates_node_manifest_versions_in_place() {
+        let content = r#"{
+  "name": "@tokmd/core",
+  "version": "1.8.1",
+  "optionalDependencies": {
+    "@tokmd/core-win32-x64-msvc": "1.8.1",
+    "@tokmd/core-linux-x64-gnu": "1.8.1",
+    "chalk": "^5.0.0"
+  }
+}"#;
+
+        let (updated, changes) =
+            update_node_manifest_versions(content, "crates/tokmd-node/package.json", "1.9.0")
+                .expect("node manifest should update");
+
+        assert!(updated.contains("\"version\": \"1.9.0\""));
+        assert!(updated.contains("\"@tokmd/core-win32-x64-msvc\": \"1.9.0\""));
+        assert!(updated.contains("\"@tokmd/core-linux-x64-gnu\": \"1.9.0\""));
+        assert!(updated.contains("\"chalk\": \"^5.0.0\""));
+        assert_eq!(changes.len(), 3);
+    }
+
+    #[test]
+    fn replace_json_string_value_preserves_json_line_shape() {
+        let line = r#"    "@tokmd/core-linux-x64-gnu": "1.8.1","#;
+        let updated = replace_json_string_value(line, "1.9.0").expect("value should replace");
+        assert_eq!(updated, r#"    "@tokmd/core-linux-x64-gnu": "1.9.0","#);
     }
 }
