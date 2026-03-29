@@ -1,46 +1,37 @@
 ## 💡 Summary
-Added usage examples as Rust doctests for the four main workflow APIs in `tokmd-core`. This helps library consumers understand how to embed the `lang`, `module`, `export`, `diff`, and `analyze` engines directly.
+Eliminated `O(N)` string allocations within hot analysis loop reductions by switching `BTreeMap<String, T>` to `BTreeMap<&str, T>` via zero-cost borrows across `tokmd-model`, `tokmd-analysis-content`, and `tokmd-analysis-derived`.
 
-## 🎯 Why / Threat model
-The core library facade lacked executable documentation for its highest-traffic methods. Writing them as doctests ensures they can never silently drift out of sync with the actual API surface.
+## 🎯 Why (perf bottleneck)
+Iterating over thousands (or millions) of discovered file rows forced a `row.lang.clone()` and `row.module.clone()` for every single entry lookup or insertion in tracking collections. This incurred heavy string allocations inside very hot inner loops.
 
-## 🔎 Finding (evidence)
-- `crates/tokmd-core/src/lib.rs` lacked `/// ```rust` blocks for its public `*_workflow` functions.
+## 📊 Proof (before/after)
+- **Structural proof**: `entry(row.lang.clone())` changed to `entry(row.lang.as_str())`. Since the original `file_rows` vector owns the strings and outlives the map generation step, we can borrow the references safely without duplicating string payloads.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add standard `#[test]` unit tests that happen to be readable.
-- This is fine, but doesn't show up in `rustdoc` or IDE hover cards.
+- Use `&str` for intermediate map keys, mapping to `String` only during final vector creation (which is bounded by distinct key counts, not file counts).
+- Trade-offs: Zero-cost structure at the minor expense of adding a small `by_lang_embedded` in `tokmd-model` since dynamic formats couldn't borrow.
 
 ### Option B
-- Write inline `/// ```rust` doctests on the public functions.
-- Why it fits: The `tokmd-core` crate is a library intended for embedding, and users will look directly at the Rustdoc for these functions.
-- Trade-offs: Doctests run sequentially by default, but these are small and fast.
+- Rely on `Cow<str>`.
+- Trade-offs: Overhead for every check if it's owned vs borrowed, whereas pure borrows inside the loop cleanly avoid checking completely.
 
 ## ✅ Decision
-Option B. We want the examples visible directly on the trait/function definitions.
+Option A strictly minimizes allocation cost and relies purely on standard lifetimes without runtime branching.
 
 ## 🧱 Changes made (SRP)
-- Added doctests to `module_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `export_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `diff_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `analyze_workflow` in `crates/tokmd-core/src/lib.rs`.
+- `crates/tokmd-model/src/lib.rs`: Switched `by_lang` to `BTreeMap<&str, ...>`.
+- `crates/tokmd-analysis-content/src/content.rs`: Switched `path_to_module` and `module_bytes` to `&str`, removed `.clone()`.
+- `crates/tokmd-analysis-derived/src/lib.rs`: Used `&str` for `by_module` and `by_lang` reduction passes.
 
 ## 🧪 Verification receipts
-```
-cargo test -p tokmd-core --doc --all-features
-```
+- `cargo test -p tokmd-model -p tokmd-analysis-content -p tokmd-analysis-derived` (PASS)
+- `cargo xtask gate --check` (PASS)
+- `cargo check --all-features` (PASS)
+- `cargo bench` correctly compiles
 
 ## 🧭 Telemetry
-- Change shape: Documentation additions.
-- Blast radius: Rustdoc and `cargo test --doc` execution.
-- Risk class: Very low. Only comments were touched.
-- Rollback: Revert the PR.
-- Merge-confidence gates: `cargo build`, `cargo fmt`, `cargo clippy`, `cargo test -p tokmd-core`.
+- Risk class: Low (Standard safe Rust borrow checker handles it, no logic mutations).
 
 ## 🗂️ .jules updates
-- Wrote run envelope to `.jules/docs/envelopes/`.
-- Appended run ID to `.jules/docs/ledger.json`.
-
-## 📝 Notes (freeform)
-All doctests are self-contained and use the `current_dir()` defaults to avoid needing test fixtures.
+- Updated Bolt run envelopes.

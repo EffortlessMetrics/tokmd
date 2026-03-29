@@ -35,5 +35,20 @@
       "clippy"
     ],
     "friction_ids": []
+  },
+  {
+    "run_id": "2573fba2-959f-41a0-81e7-3781dac255ed",
+    "timestamp_utc": "2026-03-29T12:58:39Z",
+    "lane": "scout",
+    "target": "avoid allocations in model loops",
+    "proof_method": "structural",
+    "gates_run": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": [],
+    "status": "PASS"
   }
 ]
