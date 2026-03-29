@@ -4,51 +4,53 @@
 Make review boring. Make truth cheap.
 
 ## 💡 Summary
-1–4 sentences. What changed.
+Replaces generic `.expect("should exist")` assertions with specific, context-aware error messages in `context_pack.rs` and `export_bundle.rs` to improve developer experience.
 
-## 🎯 Why (perf bottleneck)
-What was wasteful and where it showed up (runtime/allocations/CPU/IO/compile time).
+## 🎯 Why (user/dev pain)
+Generic `expect("should exist")` strings provide no actionable context when tests fail or assertions trigger, making it harder for developers to debug why an invariant was violated. Specific messages clarify *what* went wrong.
 
-## 📊 Proof (before/after)
-Prefer one:
-- benchmark output (cargo bench / criterion / existing harness)
-- runtime timing using repo-provided fixtures/examples
-- structural proof (work eliminated) + why it matters
-If unmeasured, say so and explain why.
+## 🔎 Evidence (before/after)
+File paths affected:
+- `crates/tokmd/src/context_pack.rs`
+- `crates/tokmd/src/export_bundle.rs`
+Before: `.expect("should exist")`
+After: e.g., `.expect("Valid 128k budget should parse correctly")`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is
-- Why it fits this repo
-- Trade-offs: Structure / Velocity / Governance
+- Update `.expect` calls with descriptive string literals.
+- Why it fits: Aligns with project guidelines to avoid generic expect strings.
+- Trade-offs: Simple and minimally invasive, preserves test structure.
 
 ### Option B
-- What it is
-- When to choose it instead
-- Trade-offs
+- Refactor test functions to return `anyhow::Result<()>` and use the `?` operator.
+- When to choose: Useful for cascading errors.
+- Trade-offs: Changes test signatures, can swallow exact line numbers in some runners.
 
 ## ✅ Decision
-State the decision and why.
+Option A was chosen as it strictly adheres to the provided repo rules about descriptive panic messages without altering test function signatures.
 
 ## 🧱 Changes made (SRP)
-Bullets with file paths.
+- Refactored `expect` messages in `crates/tokmd/src/context_pack.rs`.
+- Refactored `expect` messages in `crates/tokmd/src/export_bundle.rs`.
 
 ## 🧪 Verification receipts
-Copy from the run envelope. Commands + results.
+- `cargo test -p tokmd --no-default-features`: PASS
+- `cargo clippy -p tokmd -- -D warnings`: PASS
+- `cargo xtask gate`: PASS
 
 ## 🧭 Telemetry
-- Change shape
-- Blast radius (API / IO / format stability / concurrency)
-- Risk class + why
-- Rollback
-- Merge-confidence gates (what ran)
+- Blast radius: localized to tests and unwrapping logic in two files.
+- Risk class: Low (Error message strings only).
+- Rollback: Safe to revert.
+- Merge-confidence gates: `cargo xtask gate --check`
 
 ## 🗂️ .jules updates
-What changed in .jules and why.
+Added run envelope and log for `2026-03-29`. Updated `.jules/palette/ledger.json`.
 
 ## 📝 Notes (freeform)
-Optional. Extra context for future runs or reviewers.
+N/A
 
 ## 🔜 Follow-ups
-If anything remains, create friction items and link them.
+N/A
 ---
