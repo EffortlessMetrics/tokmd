@@ -340,13 +340,14 @@ pub fn create_lang_report_from_rows(
         entry.1 += row.lines;
     }
 
-    let mut by_lang: BTreeMap<String, (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
+    let mut by_lang: BTreeMap<&str, (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
+    let mut by_lang_embedded: BTreeMap<String, (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
 
     for row in file_rows {
         match (children, row.kind) {
             (ChildrenMode::Collapse, FileKind::Parent) => {
                 let entry = by_lang
-                    .entry(row.lang.clone())
+                    .entry(row.lang.as_str())
                     .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                 entry.0.code += row.code;
                 entry.0.lines += row.lines;
@@ -357,7 +358,7 @@ pub fn create_lang_report_from_rows(
             (ChildrenMode::Collapse, FileKind::Child) => {
                 if !parent_lang_by_path.contains_key(row.path.as_str()) {
                     let entry = by_lang
-                        .entry(row.lang.clone())
+                        .entry(row.lang.as_str())
                         .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                     entry.0.code += row.code;
                     entry.0.lines += row.lines;
@@ -371,7 +372,7 @@ pub fn create_lang_report_from_rows(
                     .unwrap_or((0, 0));
 
                 let entry = by_lang
-                    .entry(row.lang.clone())
+                    .entry(row.lang.as_str())
                     .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                 entry.0.code += row.code.saturating_sub(child_code);
                 entry.0.lines += row.lines.saturating_sub(child_lines);
@@ -380,7 +381,7 @@ pub fn create_lang_report_from_rows(
                 entry.1.insert(row.path.as_str());
             }
             (ChildrenMode::Separate, FileKind::Child) => {
-                let entry = by_lang
+                let entry = by_lang_embedded
                     .entry(format!("{} (embedded)", row.lang))
                     .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                 entry.0.code += row.code;
@@ -390,7 +391,7 @@ pub fn create_lang_report_from_rows(
         }
     }
 
-    let mut rows: Vec<LangRow> = Vec::with_capacity(by_lang.len());
+    let mut rows: Vec<LangRow> = Vec::with_capacity(by_lang.len() + by_lang_embedded.len());
     for (lang, (agg, files_set)) in by_lang {
         if agg.code == 0 {
             continue;
@@ -398,6 +399,21 @@ pub fn create_lang_report_from_rows(
         let files = files_set.len();
         rows.push(LangRow {
             lang: lang.to_string(),
+            code: agg.code,
+            lines: agg.lines,
+            files,
+            bytes: agg.bytes,
+            tokens: agg.tokens,
+            avg_lines: avg(agg.lines, files),
+        });
+    }
+    for (lang, (agg, files_set)) in by_lang_embedded {
+        if agg.code == 0 {
+            continue;
+        }
+        let files = files_set.len();
+        rows.push(LangRow {
+            lang,
             code: agg.code,
             lines: agg.lines,
             files,

@@ -1,52 +1,37 @@
 ## 💡 Summary
-Replaced generic `.unwrap()` calls with context-specific `.expect()` messages in `crates/tokmd/tests/json_output.rs` and `crates/tokmd/tests/regression_suite_w52.rs`.
+Eliminated `O(N)` string allocations within hot analysis loop reductions by switching `BTreeMap<String, T>` to `BTreeMap<&str, T>` via zero-cost borrows across `tokmd-model`, `tokmd-analysis-content`, and `tokmd-analysis-derived`.
 
-## 🎯 Why (user/dev pain)
-During test failures, generic `.unwrap()` calls cause panic messages with no context, forcing developers to look up the exact line of code. Clear `.expect()` messages provide immediate diagnostic context.
+## 🎯 Why (perf bottleneck)
+Iterating over thousands (or millions) of discovered file rows forced a `row.lang.clone()` and `row.module.clone()` for every single entry lookup or insertion in tracking collections. This incurred heavy string allocations inside very hot inner loops.
 
-## 🔎 Evidence (before/after)
-- `crates/tokmd/tests/json_output.rs`
-- `crates/tokmd/tests/regression_suite_w52.rs`
-- Before: `let rows = json["rows"].as_array().unwrap();`
-- After: `let rows = json["rows"].as_array().expect("output JSON should contain a 'rows' array");`
+## 📊 Proof (before/after)
+- **Structural proof**: `entry(row.lang.clone())` changed to `entry(row.lang.as_str())`. Since the original `file_rows` vector owns the strings and outlives the map generation step, we can borrow the references safely without duplicating string payloads.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Context-specific `.expect()` replacements in test files.
-- Why it fits this repo: Aligns with `.jules/palette/` DX focus on diagnostic improvements and memory guidelines explicitly stating to use specific context for `.unwrap()` replacements.
-- Trade-offs: Minor increase in verbosity for significant test DX improvement.
+- Use `&str` for intermediate map keys, mapping to `String` only during final vector creation (which is bounded by distinct key counts, not file counts).
+- Trade-offs: Zero-cost structure at the minor expense of adding a small `by_lang_embedded` in `tokmd-model` since dynamic formats couldn't borrow.
 
 ### Option B
-- What it is: Ignore `.unwrap()` in tests and look for CLI error messages.
-- When to choose it instead: If the test suite already has excellent DX.
-- Trade-offs: Leaves low-hanging fruit in the test suite unfixed.
+- Rely on `Cow<str>`.
+- Trade-offs: Overhead for every check if it's owned vs borrowed, whereas pure borrows inside the loop cleanly avoid checking completely.
 
 ## ✅ Decision
-Option A. It's an easy-to-review SRP win that directly improves test suite diagnostics.
+Option A strictly minimizes allocation cost and relies purely on standard lifetimes without runtime branching.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/tests/json_output.rs`: Replaced 3 `.unwrap()` calls with `.expect()`.
-- `crates/tokmd/tests/regression_suite_w52.rs`: Replaced 17 `.unwrap()` calls with `.expect()`.
+- `crates/tokmd-model/src/lib.rs`: Switched `by_lang` to `BTreeMap<&str, ...>`.
+- `crates/tokmd-analysis-content/src/content.rs`: Switched `path_to_module` and `module_bytes` to `&str`, removed `.clone()`.
+- `crates/tokmd-analysis-derived/src/lib.rs`: Used `&str` for `by_module` and `by_lang` reduction passes.
 
 ## 🧪 Verification receipts
-- `cargo fmt -- --check`: PASS
-- `cargo clippy -p tokmd -- -D warnings`: PASS
-- `cargo test -p tokmd`: PASS
+- `cargo test -p tokmd-model -p tokmd-analysis-content -p tokmd-analysis-derived` (PASS)
+- `cargo xtask gate --check` (PASS)
+- `cargo check --all-features` (PASS)
+- `cargo bench` correctly compiles
 
 ## 🧭 Telemetry
-- Change shape: Refactor
-- Blast radius: Only test files. No production code changes.
-- Risk class: Low.
-- Rollback: `git revert`
-- Merge-confidence gates: fmt, clippy, test.
+- Risk class: Low (Standard safe Rust borrow checker handles it, no logic mutations).
 
 ## 🗂️ .jules updates
-- Appended run envelope to `.jules/palette/ledger.json`.
-- Logged run in `.jules/palette/runs/`.
-- Created note in `.jules/palette/notes/` about `.expect()` vs `.unwrap()` pattern.
-
-## 📝 Notes (freeform)
-N/A
-
-## 🔜 Follow-ups
-None.
+- Updated Bolt run envelopes.
