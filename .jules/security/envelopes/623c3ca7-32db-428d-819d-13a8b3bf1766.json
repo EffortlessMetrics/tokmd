@@ -1,0 +1,20 @@
+{
+  "run_id": "623c3ca7-32db-428d-819d-13a8b3bf1766",
+  "timestamp_utc": "2026-03-29T12:33:09Z",
+  "lane": "scout",
+  "target": "Burn down .unwrap() in tokmd BDD tests",
+  "commands": [
+    "refactor crates/tokmd/tests/bdd_analyze_scenarios_w50.rs to return Result",
+    "cargo fmt",
+    "CI=true cargo test --verbose -p tokmd --test bdd_analyze_scenarios_w50",
+    "cargo build --verbose",
+    "cargo clippy -- -D warnings"
+  ],
+  "results": [
+    { "command": "refactoring and formatting", "status": "PASS", "summary": "Replaced unwrap() with ? in bdd_analyze_scenarios_w50.rs." },
+    { "command": "cargo test", "status": "PASS", "summary": "All tests passed successfully." },
+    { "command": "cargo build", "status": "PASS", "summary": "Build succeeded." },
+    { "command": "cargo clippy", "status": "PASS", "summary": "Clippy found no issues." },
+    { "command": "gates", "status": "PASS", "summary": "All gates passed" }
+  ]
+}

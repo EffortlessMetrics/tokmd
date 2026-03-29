@@ -20,7 +20,7 @@ fn tokmd_cmd() -> Command {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_receipt_then_derived_metrics_present() {
+fn given_project_when_analyze_receipt_then_derived_metrics_present() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with `receipt` preset and JSON format
     let output = tokmd_cmd()
@@ -34,13 +34,14 @@ fn given_project_when_analyze_receipt_then_derived_metrics_present() {
         "analyze should succeed: {:?}",
         output.status
     );
-    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
-    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+    let stdout = String::from_utf8(output.stdout)?;
+    let json: Value = serde_json::from_str(&stdout)?;
 
     assert_eq!(json["mode"], "analysis", "mode should be 'analysis'");
 
     // The derived section should be present
     assert!(json.get("source").is_some(), "should have source section");
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,7 @@ fn given_project_when_analyze_receipt_then_derived_metrics_present() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_json_then_has_schema_version() {
+fn given_project_when_analyze_json_then_has_schema_version() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with `receipt` preset and JSON format
     let output = tokmd_cmd()
@@ -58,7 +59,7 @@ fn given_project_when_analyze_json_then_has_schema_version() {
 
     // Then: output has schema_version matching ANALYSIS_SCHEMA_VERSION
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout)?)?;
     assert_eq!(
         json["schema_version"], 9,
         "analysis schema_version should be 9"
@@ -67,6 +68,7 @@ fn given_project_when_analyze_json_then_has_schema_version() {
         json["generated_at_ms"].is_number(),
         "should have generated_at_ms"
     );
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +76,7 @@ fn given_project_when_analyze_json_then_has_schema_version() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_xml_then_valid_xml_structure() {
+fn given_project_when_analyze_xml_then_valid_xml_structure() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with `receipt` preset and XML format
     let output = tokmd_cmd()
@@ -84,12 +86,13 @@ fn given_project_when_analyze_xml_then_valid_xml_structure() {
 
     // Then: output is non-empty and contains XML angle brackets
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     assert!(!stdout.trim().is_empty(), "XML output should not be empty");
     assert!(
         stdout.contains('<') && stdout.contains('>'),
         "XML output should contain angle brackets"
     );
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -97,9 +100,9 @@ fn given_project_when_analyze_xml_then_valid_xml_structure() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_with_output_dir_then_file_created() {
+fn given_project_when_analyze_with_output_dir_then_file_created() -> anyhow::Result<()> {
     // Given: a project and a temporary output directory
-    let dir = tempdir().unwrap();
+    let dir = tempdir()?;
 
     // When: I analyze with --output-dir
     let output = tokmd_cmd()
@@ -121,9 +124,10 @@ fn given_project_when_analyze_with_output_dir_then_file_created() {
     let path = dir.path().join("analysis.json");
     assert!(path.exists(), "analysis.json should be created");
 
-    let content = std::fs::read_to_string(&path).expect("read analysis.json");
-    let json: Value = serde_json::from_str(&content).expect("analysis.json should be valid JSON");
+    let content = std::fs::read_to_string(&path)?;
+    let json: Value = serde_json::from_str(&content)?;
     assert_eq!(json["mode"], "analysis");
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -131,7 +135,7 @@ fn given_project_when_analyze_with_output_dir_then_file_created() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_json_then_has_args_metadata() {
+fn given_project_when_analyze_json_then_has_args_metadata() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with JSON format
     let output = tokmd_cmd()
@@ -141,8 +145,9 @@ fn given_project_when_analyze_json_then_has_args_metadata() {
 
     // Then: output has args metadata
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout)?)?;
     assert!(json.get("args").is_some(), "should have args metadata");
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -150,7 +155,7 @@ fn given_project_when_analyze_json_then_has_args_metadata() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_md_then_markdown_table() {
+fn given_project_when_analyze_md_then_markdown_table() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with markdown format
     let output = tokmd_cmd()
@@ -160,11 +165,12 @@ fn given_project_when_analyze_md_then_markdown_table() {
 
     // Then: output contains markdown table
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout)?;
     let has_table = stdout
         .lines()
         .any(|line| line.contains("|---") || line.contains("|:--"));
     assert!(has_table, "analyze markdown output should contain a table");
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +178,7 @@ fn given_project_when_analyze_md_then_markdown_table() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn given_project_when_analyze_fun_then_eco_label_present() {
+fn given_project_when_analyze_fun_then_eco_label_present() -> anyhow::Result<()> {
     // Given: a project with source files
     // When: I analyze with `fun` preset and JSON format
     let output = tokmd_cmd()
@@ -182,7 +188,7 @@ fn given_project_when_analyze_fun_then_eco_label_present() {
 
     // Then: eco_label metadata is present
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout)?)?;
     let eco_label = json["fun"]["eco_label"]
         .as_object()
         .expect("eco_label should be object");
@@ -194,4 +200,5 @@ fn given_project_when_analyze_fun_then_eco_label_present() {
         eco_label.get("score").is_some(),
         "eco_label should have score"
     );
+    Ok(())
 }
