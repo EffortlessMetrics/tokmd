@@ -80,6 +80,57 @@ fn recipe_analyze_presets() {
 }
 
 #[test]
+fn recipe_context_bundle() {
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    let tmp = tempfile::tempdir().unwrap();
+    let context_path = tmp.path().join("context.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_path)
+        .assert()
+        .success();
+    assert!(context_path.exists());
+}
+
+#[test]
+fn recipe_diff_states() {
+    // We can't trivially do `tokmd diff main HEAD` in CI safely across forks,
+    // so we'll test diffing two receipts which is semantically equivalent
+    // for the CLI's codepath.
+    let tmp = tempfile::tempdir().unwrap();
+
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(tmp.path().join("r1"))
+        .assert()
+        .success();
+
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(tmp.path().join("r2"))
+        .assert()
+        .success();
+
+    tokmd()
+        .arg("diff")
+        .arg(tmp.path().join("r1"))
+        .arg(tmp.path().join("r2"))
+        .assert()
+        .success();
+}
+
+#[test]
 fn recipe_tools_export_schemas() {
     // "tokmd tools --format openai --pretty"
     tokmd()

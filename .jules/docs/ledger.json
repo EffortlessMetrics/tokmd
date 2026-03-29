@@ -31,5 +31,19 @@
   {
     "run_id": "0ff363bd-f129-45fb-a4b4-e5437f5b7a41",
     "status": "PASS"
+  },
+  {
+    "run_id": "635f33f0-4907-49ca-85cc-d0f4a12d3ae6",
+    "timestamp": "2026-03-29T09:56:00Z",
+    "lane": "docs",
+    "action": "add_doctests",
+    "target": "crates/tokmd/tests/docs.rs",
+    "description": "Added doctest examples for common usage patterns to prevent README drift",
+    "status": "PASS",
+    "friction_ids": [],
+    "receipts": [
+      "cargo test -p tokmd --test docs",
+      "cargo xtask gate"
+    ]
   }
 ]

@@ -1,0 +1,7 @@
+{
+  "id": "635f33f0-4907-49ca-85cc-d0f4a12d3ae6",
+  "status": "PASS",
+  "receipts": [
+    "\nrunning 15 tests\ntest recipe_ci_workflow_snippet ... ok\ntest recipe_context_bundle ... ok\ntest recipe_default_map ... ok\ntest recipe_export_full_json ... ok\ntest recipe_export_map_jsonl ... ok\ntest recipe_badge_generation ... ok\ntest recipe_diff_states ... ok\ntest recipe_generate_baseline ... ok\ntest recipe_analyze_presets ... ok\ntest recipe_handoff_bundle ... ok\ntest recipe_gate_with_baseline ... ok\ntest recipe_module_summary_markdown ... ok\ntest recipe_sensor_json ... ok\ntest recipe_simple_lang_summary ... ok\ntest recipe_tools_export_schemas ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n[1/4] fmt\n   ✅ Step 1 (fmt) passed\n[2/4] check (warm graph)\n   ✅ Step 2 (check (warm graph)) passed\n[3/4] clippy\n   ✅ Step 3 (clippy) passed\n[4/4] test (compile-only)\n   ✅ Step 4 (test (compile-only)) passed\n\ngate result: 4/4 steps passed"
+  ]
+}
