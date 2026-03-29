@@ -9,12 +9,6 @@ use tokmd_analysis::{
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, EntropyClass};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
-
-fn deterministic_factory() -> Factory {
-    let seed = Seed::from_env_value(module_path!()).expect("module path should be a valid seed");
-    Factory::deterministic(seed)
-}
 
 fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
     AnalysisRequest {
@@ -85,8 +79,21 @@ fn export_for_private_key_fixture(path: &str) -> ExportData {
     }
 }
 
+// Generates pseudo-random bytes to simulate a high-entropy file (e.g. RSA DER private key).
+fn generate_static_high_entropy_fixture(len: usize) -> Vec<u8> {
+    let mut data = Vec::with_capacity(len);
+    let mut state: u32 = 0x12345678;
+    for _ in 0..len {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        data.push((state & 0xFF) as u8);
+    }
+    data
+}
+
 #[test]
-fn security_preset_detects_uselesskey_generated_private_key() {
+fn security_preset_detects_static_high_entropy_blob() {
     let dir = tempfile::tempdir().expect("tempdir should be created");
     let relative_path = "fixtures/generated/private-key.pk8";
     let output_path = dir
@@ -101,9 +108,8 @@ fn security_preset_detects_uselesskey_generated_private_key() {
     )
     .expect("fixture directory should be created");
 
-    let fixture = deterministic_factory().rsa("security-preset-fixture", RsaSpec::rs256());
-    fs::write(&output_path, fixture.private_key_pkcs8_der())
-        .expect("rsa fixture bytes should be written");
+    let fixture_bytes = generate_static_high_entropy_fixture(2048);
+    fs::write(&output_path, fixture_bytes).expect("static fixture bytes should be written");
 
     let receipt = analyze(
         make_context(dir.path(), export_for_private_key_fixture(relative_path)),

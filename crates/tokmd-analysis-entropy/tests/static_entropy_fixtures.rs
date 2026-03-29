@@ -6,7 +6,6 @@ use tokmd_analysis_entropy::build_entropy_report;
 use tokmd_analysis_types::EntropyClass;
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
 
 fn export_for_paths(paths: &[&str]) -> ExportData {
     let rows = paths
@@ -37,34 +36,21 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
     }
 }
 
-fn deterministic_factory() -> Factory {
-    let seed = Seed::from_env_value(module_path!()).expect("module path should be a valid seed");
-    Factory::deterministic(seed)
+// Generates pseudo-random bytes to simulate a high-entropy file (e.g. RSA DER private key).
+fn generate_static_high_entropy_fixture(len: usize) -> Vec<u8> {
+    let mut data = Vec::with_capacity(len);
+    let mut state: u32 = 0x12345678;
+    for _ in 0..len {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        data.push((state & 0xFF) as u8);
+    }
+    data
 }
 
 #[test]
-fn uselesskey_generates_reproducible_rsa_der_fixtures() {
-    let first_factory = deterministic_factory();
-    let second_factory = deterministic_factory();
-
-    let first = first_factory.rsa("entropy-fixture", RsaSpec::rs256());
-    let second = second_factory.rsa("entropy-fixture", RsaSpec::rs256());
-
-    assert_eq!(
-        first.private_key_pkcs8_der(),
-        second.private_key_pkcs8_der()
-    );
-
-    let different = first_factory.rsa("entropy-fixture-alt", RsaSpec::rs256());
-
-    assert_ne!(
-        first.private_key_pkcs8_der(),
-        different.private_key_pkcs8_der()
-    );
-}
-
-#[test]
-fn entropy_report_detects_uselesskey_generated_private_key_der() {
+fn entropy_report_detects_static_high_entropy_blob() {
     let dir = tempdir().expect("tempdir should be created");
     let relative_path = "fixtures/generated/private-key.pk8";
     let output_path = dir
@@ -79,9 +65,9 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     )
     .expect("fixture directory should be created");
 
-    let fixture = deterministic_factory().rsa("entropy-report-fixture", RsaSpec::rs256());
-    fs::write(&output_path, fixture.private_key_pkcs8_der())
-        .expect("rsa fixture bytes should be written");
+    // Replace dynamic uselesskey generation with a static blob
+    let fixture_bytes = generate_static_high_entropy_fixture(2048);
+    fs::write(&output_path, fixture_bytes).expect("static fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];
@@ -95,7 +81,7 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     assert_eq!(suspect.module, "fixtures/generated");
     assert!(
         suspect.entropy_bits_per_byte > 7.0,
-        "generated DER fixture should be strongly entropic, got {}",
+        "generated fixture should be strongly entropic, got {}",
         suspect.entropy_bits_per_byte
     );
     assert_eq!(suspect.class, EntropyClass::High);
