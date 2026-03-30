@@ -147,9 +147,9 @@ fn export_json_no_backslash_in_path_or_module() {
     let rows = json["rows"].as_array().expect("rows");
 
     for (i, row) in rows.iter().enumerate() {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         assert!(!path.contains('\\'), "row[{i}].path has backslash: {path}");
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(
             !module.contains('\\'),
             "row[{i}].module has backslash: {module}"
@@ -167,7 +167,7 @@ fn module_json_no_backslash_in_module_keys() {
     let rows = json["rows"].as_array().expect("rows");
 
     for (i, row) in rows.iter().enumerate() {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(
             !module.contains('\\'),
             "row[{i}].module has backslash: {module}"
@@ -348,10 +348,10 @@ fn lang_rows_descending_code_ascending_name() {
     let rows = json["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["lang"].as_str().unwrap();
-        let b_name = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
@@ -370,10 +370,10 @@ fn module_rows_descending_code_ascending_module() {
     let rows = json["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_mod = pair[0]["module"].as_str().unwrap();
-        let b_mod = pair[1]["module"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_mod = pair[0]["module"].as_str().expect("row field should be a string");
+        let b_mod = pair[1]["module"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_mod <= b_mod),
@@ -392,10 +392,10 @@ fn export_rows_descending_code_ascending_path() {
     let rows = json["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
@@ -599,7 +599,7 @@ fn module_keys_deterministic_across_runs() {
             .as_array()
             .expect("rows")
             .iter()
-            .map(|r| r["module"].as_str().unwrap().to_string())
+            .map(|r| r["module"].as_str().expect("row field should be a string").to_string())
             .collect::<Vec<_>>()
     };
 
@@ -621,7 +621,7 @@ fn export_module_keys_match_module_command() {
             .as_array()
             .expect("rows")
             .iter()
-            .map(|r| r["module"].as_str().unwrap().to_string())
+            .map(|r| r["module"].as_str().expect("row field should be a string").to_string())
             .collect();
         mods.sort();
         mods.dedup();
@@ -638,7 +638,7 @@ fn export_module_keys_match_module_command() {
             .as_array()
             .expect("rows")
             .iter()
-            .map(|r| r["module"].as_str().unwrap().to_string())
+            .map(|r| r["module"].as_str().expect("row field should be a string").to_string())
             .collect();
         mods.sort();
         mods.dedup();

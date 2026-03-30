@@ -305,10 +305,10 @@ fn w51_export_paths_sorted_lexicographically_on_forward_slash() {
 
     // Within same code-line bucket, paths must be in ascending lex order
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
 
         if a_code == b_code {
             assert!(
@@ -338,8 +338,8 @@ fn w51_lang_rows_sorted_by_code_desc() {
     assert!(!rows.is_empty(), "lang must produce at least one row");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
         assert!(
             a_code >= b_code,
             "lang rows not sorted by code descending: {} < {}",
@@ -360,11 +360,11 @@ fn w51_lang_rows_tiebreak_by_name_asc() {
     let rows = json["rows"].as_array().expect("rows array");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
         if a_code == b_code {
-            let a_name = pair[0]["lang"].as_str().unwrap();
-            let b_name = pair[1]["lang"].as_str().unwrap();
+            let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+            let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
             assert!(
                 a_name <= b_name,
                 "lang tie-break must be ascending by name: {a_name} > {b_name}"
@@ -385,8 +385,8 @@ fn w51_module_rows_sorted_by_code_desc() {
     assert!(!rows.is_empty(), "module must produce at least one row");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
         assert!(
             a_code >= b_code,
             "module rows not sorted by code descending: {} < {}",
@@ -409,10 +409,10 @@ fn w51_export_rows_deterministic_order() {
 
     // Export rows must be sorted by code desc, then path asc
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
@@ -434,23 +434,23 @@ fn w51_lang_totals_equal_row_sums() {
     let rows = json["rows"].as_array().expect("rows array");
     let total = &json["total"];
 
-    let sum_code: u64 = rows.iter().map(|r| r["code"].as_u64().unwrap()).sum();
-    let sum_lines: u64 = rows.iter().map(|r| r["lines"].as_u64().unwrap()).sum();
-    let sum_files: u64 = rows.iter().map(|r| r["files"].as_u64().unwrap()).sum();
+    let sum_code: u64 = rows.iter().map(|r| r["code"].as_u64().expect("code row should be a u64 number")).sum();
+    let sum_lines: u64 = rows.iter().map(|r| r["lines"].as_u64().expect("code row should be a u64 number")).sum();
+    let sum_files: u64 = rows.iter().map(|r| r["files"].as_u64().expect("code row should be a u64 number")).sum();
 
     assert_eq!(
         sum_code,
-        total["code"].as_u64().unwrap(),
+        total["code"].as_u64().expect("code row should be a u64 number"),
         "code total mismatch"
     );
     assert_eq!(
         sum_lines,
-        total["lines"].as_u64().unwrap(),
+        total["lines"].as_u64().expect("code row should be a u64 number"),
         "lines total mismatch"
     );
     assert_eq!(
         sum_files,
-        total["files"].as_u64().unwrap(),
+        total["files"].as_u64().expect("code row should be a u64 number"),
         "files total mismatch"
     );
 }
@@ -658,11 +658,11 @@ fn w51_module_tiebreak_by_name_asc() {
     let rows = json["rows"].as_array().expect("rows array");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
         if a_code == b_code {
-            let a_mod = pair[0]["module"].as_str().unwrap();
-            let b_mod = pair[1]["module"].as_str().unwrap();
+            let a_mod = pair[0]["module"].as_str().expect("row field should be a string");
+            let b_mod = pair[1]["module"].as_str().expect("row field should be a string");
             assert!(
                 a_mod <= b_mod,
                 "module tie-break must be ascending by name: {a_mod} > {b_mod}"

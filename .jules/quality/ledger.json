@@ -10,6 +10,13 @@
       "run_id": "3499475a-2ff1-49e1-b620-913909a040a8",
       "timestamp": "2026-03-22T10:25:31Z",
       "description": "test: lock deterministic ordering for outputs 🧪 Gatekeeper"
+    },
+    {
+      "run_id": "53b384a0-1d6f-4f34-99da-22dd7017939c",
+      "timestamp": "2026-03-30T10:16:19Z",
+      "description": "test: replace unwrap with descriptive expect in determinism tests 🧪 Gatekeeper",
+      "status": "PASS",
+      "friction_ids": []
     }
   ]
 }

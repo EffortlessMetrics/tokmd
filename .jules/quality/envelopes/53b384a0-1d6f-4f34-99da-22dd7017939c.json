@@ -1,0 +1,5 @@
+{
+  "run_id": "53b384a0-1d6f-4f34-99da-22dd7017939c",
+  "task": "Replace unwrap with expect in determinism tests",
+  "command": "cargo test -p tokmd --test determinism*"
+}

@@ -161,10 +161,10 @@ fn lang_rows_sorted_desc_code_asc_name() {
     assert!(!rows.is_empty(), "must have at least one row");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["lang"].as_str().unwrap();
-        let b_name = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
             "lang sort violated: {a_name}({a_code}) before {b_name}({b_code})"
@@ -183,10 +183,10 @@ fn module_rows_sorted_consistently() {
     assert!(!rows.is_empty(), "must have at least one row");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_mod = pair[0]["module"].as_str().unwrap();
-        let b_mod = pair[1]["module"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_mod = pair[0]["module"].as_str().expect("row field should be a string");
+        let b_mod = pair[1]["module"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_mod <= b_mod),
             "module sort violated: {a_mod}({a_code}) before {b_mod}({b_code})"
@@ -205,10 +205,10 @@ fn file_rows_sorted_consistently() {
     assert!(!rows.is_empty(), "must have at least one row");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
             "file sort violated: {a_path}({a_code}) before {b_path}({b_code})"
@@ -230,12 +230,12 @@ fn all_paths_use_forward_slashes_in_export() {
     let rows = json["rows"].as_array().expect("rows");
 
     for (i, row) in rows.iter().enumerate() {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         assert!(
             !path.contains('\\'),
             "row[{i}].path contains backslash: {path}"
         );
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(
             !module.contains('\\'),
             "row[{i}].module contains backslash: {module}"
@@ -344,7 +344,7 @@ fn lang_names_deterministic_across_runs() {
             .as_array()
             .expect("rows")
             .iter()
-            .map(|r| r["lang"].as_str().unwrap().to_string())
+            .map(|r| r["lang"].as_str().expect("row field should be a string").to_string())
             .collect::<Vec<_>>()
     };
     let a = get_names();
@@ -365,7 +365,7 @@ fn export_file_kinds_deterministic() {
             .as_array()
             .expect("rows")
             .iter()
-            .map(|r| r["kind"].as_str().unwrap().to_string())
+            .map(|r| r["kind"].as_str().expect("row field should be a string").to_string())
             .collect::<Vec<_>>()
     };
     let a = get_kinds();

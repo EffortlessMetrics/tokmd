@@ -219,10 +219,10 @@ fn w70_lang_rows_sorted_desc_code_then_name() {
     assert!(rows.len() >= 2, "need at least 2 lang rows for sort check");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["lang"].as_str().unwrap();
-        let b_name = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
             "lang sort violated: {a_name}({a_code}) before {b_name}({b_code})"
@@ -249,10 +249,10 @@ fn w70_module_rows_sorted_desc_code_then_name() {
     );
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["module"].as_str().unwrap();
-        let b_name = pair[1]["module"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["module"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["module"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
             "module sort violated: {a_name}({a_code}) before {b_name}({b_code})"
@@ -273,7 +273,7 @@ fn w70_export_json_paths_use_forward_slashes() {
     assert!(out.status.success());
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         assert!(
             !path.contains('\\'),
             "backslash in export JSON path: {path}"
@@ -326,7 +326,7 @@ fn w70_module_json_paths_use_forward_slashes() {
     assert!(out.status.success());
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(!module.contains('\\'), "backslash in module path: {module}");
     }
 }
@@ -442,7 +442,7 @@ fn w70_unicode_filenames_forward_slashes() {
     assert!(out.status.success());
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         assert!(!path.contains('\\'), "backslash in Unicode path: {path}");
     }
 }
@@ -525,7 +525,7 @@ fn w70_nested_dirs_forward_slashes_in_module_names() {
     assert!(out.status.success());
     let v: Value = serde_json::from_slice(&out.stdout).expect("parse");
     for row in v["rows"].as_array().expect("rows") {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(
             !module.contains('\\'),
             "backslash in nested module path: {module}"
@@ -549,10 +549,10 @@ fn w70_nested_dirs_export_sort_stable() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
             "nested export sort violated: {a_path}({a_code}) before {b_path}({b_code})"
@@ -609,10 +609,10 @@ fn w70_mixed_languages_sorted_correctly() {
     assert!(rows.len() >= 2, "need multiple languages for sort check");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["lang"].as_str().unwrap();
-        let b_name = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
             "mixed-case lang sort violated: {a_name}({a_code}) before {b_name}({b_code})"

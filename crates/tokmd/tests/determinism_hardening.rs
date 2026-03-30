@@ -234,10 +234,10 @@ fn hardening_lang_rows_sorted_desc_code_then_asc_name() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["lang"].as_str().unwrap();
-        let b_name = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["lang"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["lang"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
@@ -256,10 +256,10 @@ fn hardening_module_rows_sorted_desc_code_then_asc_name() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_name = pair[0]["module"].as_str().unwrap();
-        let b_name = pair[1]["module"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_name = pair[0]["module"].as_str().expect("row field should be a string");
+        let b_name = pair[1]["module"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
@@ -278,10 +278,10 @@ fn hardening_export_rows_sorted_desc_code_then_asc_path() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code row should be a u64 number");
+        let b_code = pair[1]["code"].as_u64().expect("code row should be a u64 number");
+        let a_path = pair[0]["path"].as_str().expect("row field should be a string");
+        let b_path = pair[1]["path"].as_str().expect("row field should be a string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
@@ -304,10 +304,10 @@ fn hardening_export_json_no_backslash_in_paths() {
     let rows = v["rows"].as_array().expect("rows");
 
     for row in rows {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         assert!(!path.contains('\\'), "backslash in export path: {path}");
 
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(
             !module.contains('\\'),
             "backslash in export module: {module}"
@@ -325,7 +325,7 @@ fn hardening_module_json_no_backslash_in_modules() {
     let rows = v["rows"].as_array().expect("rows");
 
     for row in rows {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"].as_str().expect("row field should be a string");
         assert!(!module.contains('\\'), "backslash in module name: {module}");
     }
 }
@@ -393,7 +393,7 @@ fn hardening_redact_produces_deterministic_output() {
     let rows = v["rows"].as_array().expect("rows");
     assert!(!rows.is_empty(), "redacted export must have rows");
     for row in rows {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("row field should be a string");
         // Redacted paths are hex hashes, not readable source paths
         assert!(
             !path.starts_with("src/") && !path.starts_with("script"),
