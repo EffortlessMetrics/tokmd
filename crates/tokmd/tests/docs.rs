@@ -275,3 +275,55 @@ max_increase_pct = 10.0
         .assert()
         .success();
 }
+
+#[test]
+fn recipe_context_bundle() {
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    let tmp = tempfile::tempdir().unwrap();
+    let context_path = tmp.path().join("context.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_path)
+        .assert()
+        .success();
+    assert!(context_path.exists());
+}
+
+#[test]
+fn recipe_diff_receipts() {
+    // "tokmd diff run_a run_b"
+    let tmp = tempfile::tempdir().unwrap();
+    let a_dir = tmp.path().join("run_a");
+    let b_dir = tmp.path().join("run_b");
+
+    // generate a base receipt directory
+    tokmd()
+        .arg("run")
+        .arg("--output-dir")
+        .arg(&a_dir)
+        .assert()
+        .success();
+
+    // generate another receipt directory with an exclusion so it differs
+    tokmd()
+        .arg("run")
+        .arg("--output-dir")
+        .arg(&b_dir)
+        .arg("--exclude")
+        .arg("*.rs")
+        .assert()
+        .success();
+
+    // diff them
+    tokmd()
+        .arg("diff")
+        .arg(&a_dir)
+        .arg(&b_dir)
+        .assert()
+        .success();
+}
