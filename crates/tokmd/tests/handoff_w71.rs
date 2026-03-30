@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! W71 deep handoff CLI integration tests.
 //!
 //! Tests cover: rank-by variants, preset deep, max-file-pct/max-file-tokens,
