@@ -1,0 +1,11 @@
+{
+  "run_id": "'$UUID'",
+  "persona": "Auditor",
+  "lane": "scout",
+  "target": "uselesskey",
+  "action": "replace dynamic RSA generation in tests with static fixtures to drop uselesskey",
+  "receipts": [
+    "cargo test -p tokmd-analysis-entropy -p tokmd-analysis passed",
+    "cargo check -p tokmd passed"
+  ]
+}

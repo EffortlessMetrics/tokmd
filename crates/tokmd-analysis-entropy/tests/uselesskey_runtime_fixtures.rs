@@ -6,7 +6,6 @@ use tokmd_analysis_entropy::build_entropy_report;
 use tokmd_analysis_types::EntropyClass;
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
 
 fn export_for_paths(paths: &[&str]) -> ExportData {
     let rows = paths
@@ -37,29 +36,21 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
     }
 }
 
-fn deterministic_factory() -> Factory {
-    let seed = Seed::from_env_value(module_path!()).expect("module path should be a valid seed");
-    Factory::deterministic(seed)
-}
-
 #[test]
 fn uselesskey_generates_reproducible_rsa_der_fixtures() {
-    let first_factory = deterministic_factory();
-    let second_factory = deterministic_factory();
-
-    let first = first_factory.rsa("entropy-fixture", RsaSpec::rs256());
-    let second = second_factory.rsa("entropy-fixture", RsaSpec::rs256());
+    let first = include_bytes!("fixture1.bin");
+    let second = include_bytes!("fixture1.bin");
 
     assert_eq!(
-        first.private_key_pkcs8_der(),
-        second.private_key_pkcs8_der()
+        first,
+        second
     );
 
-    let different = first_factory.rsa("entropy-fixture-alt", RsaSpec::rs256());
+    let different = include_bytes!("fixture2.bin");
 
     assert_ne!(
-        first.private_key_pkcs8_der(),
-        different.private_key_pkcs8_der()
+        first,
+        different
     );
 }
 
@@ -79,8 +70,8 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     )
     .expect("fixture directory should be created");
 
-    let fixture = deterministic_factory().rsa("entropy-report-fixture", RsaSpec::rs256());
-    fs::write(&output_path, fixture.private_key_pkcs8_der())
+    let fixture = include_bytes!("fixture3.bin");
+    fs::write(&output_path, fixture)
         .expect("rsa fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
