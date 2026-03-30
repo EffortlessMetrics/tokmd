@@ -41,17 +41,11 @@ fn uselesskey_generates_reproducible_rsa_der_fixtures() {
     let first = include_bytes!("fixture1.bin");
     let second = include_bytes!("fixture1.bin");
 
-    assert_eq!(
-        first,
-        second
-    );
+    assert_eq!(first, second);
 
     let different = include_bytes!("fixture2.bin");
 
-    assert_ne!(
-        first,
-        different
-    );
+    assert_ne!(first, different);
 }
 
 #[test]
@@ -71,8 +65,7 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     .expect("fixture directory should be created");
 
     let fixture = include_bytes!("fixture3.bin");
-    fs::write(&output_path, fixture)
-        .expect("rsa fixture bytes should be written");
+    fs::write(&output_path, fixture).expect("rsa fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];
