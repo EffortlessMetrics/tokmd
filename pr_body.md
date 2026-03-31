@@ -1,46 +1,42 @@
 ## 💡 Summary
-Added usage examples as Rust doctests for the four main workflow APIs in `tokmd-core`. This helps library consumers understand how to embed the `lang`, `module`, `export`, `diff`, and `analyze` engines directly.
+Added missing integration tests in `crates/tokmd/tests/docs.rs` to verify the examples provided in the `tokmd` README (`tokmd run`, `tokmd diff`, and `tokmd context`).
 
-## 🎯 Why / Threat model
-The core library facade lacked executable documentation for its highest-traffic methods. Writing them as doctests ensures they can never silently drift out of sync with the actual API surface.
+## 🎯 Why (perf bottleneck)
+The README provides examples for core CLI workflows but these were not actively covered by integration tests in the "docs as tests" file `crates/tokmd/tests/docs.rs`. Adding these tests prevents silent drift and ensures the README examples remain functional.
 
-## 🔎 Finding (evidence)
-- `crates/tokmd-core/src/lib.rs` lacked `/// ```rust` blocks for its public `*_workflow` functions.
+## 📊 Proof (before/after)
+Added three new test blocks to `docs.rs`: `recipe_run_analysis_receipt`, `recipe_diff_runs` and `recipe_context_budget`. No existing tests failed.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add standard `#[test]` unit tests that happen to be readable.
-- This is fine, but doesn't show up in `rustdoc` or IDE hover cards.
+- Add deterministic test cases for the missing README commands directly to `crates/tokmd/tests/docs.rs` utilizing `tokmd()` function and temp directories for isolated execution paths.
 
 ### Option B
-- Write inline `/// ```rust` doctests on the public functions.
-- Why it fits: The `tokmd-core` crate is a library intended for embedding, and users will look directly at the Rustdoc for these functions.
-- Trade-offs: Doctests run sequentially by default, but these are small and fast.
+- Continue without testing the README examples.
+- Does not adhere to the project's strategy to maintain documentation drift via actionable testing.
 
 ## ✅ Decision
-Option B. We want the examples visible directly on the trait/function definitions.
+Option A was chosen as it aligns perfectly with the "docs as tests" philosophy, preventing future API drift against documented usage.
 
 ## 🧱 Changes made (SRP)
-- Added doctests to `module_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `export_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `diff_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `analyze_workflow` in `crates/tokmd-core/src/lib.rs`.
+- `crates/tokmd/tests/docs.rs`: Added tests for `run`, `diff` and `context` using isolated tmp paths to guarantee deterministic receipt outcomes independent of local git states.
 
 ## 🧪 Verification receipts
-```
-cargo test -p tokmd-core --doc --all-features
+```bash
+cargo test -p tokmd --test docs -- recipe_run_analysis_receipt recipe_diff_runs recipe_context_budget
+cargo test -p tokmd
+cargo xtask gate
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation additions.
-- Blast radius: Rustdoc and `cargo test --doc` execution.
-- Risk class: Very low. Only comments were touched.
-- Rollback: Revert the PR.
-- Merge-confidence gates: `cargo build`, `cargo fmt`, `cargo clippy`, `cargo test -p tokmd-core`.
+- Change shape: New tests added in `docs.rs`.
+- Blast radius: Isolated to the test suite; zero runtime impact.
+- Risk class: Low risk; adds testing for existing commands.
+- Rollback: Safe to revert the added tests.
+- Merge-confidence gates: `cargo xtask gate` passed cleanly.
 
 ## 🗂️ .jules updates
-- Wrote run envelope to `.jules/docs/envelopes/`.
-- Appended run ID to `.jules/docs/ledger.json`.
+- Updated `.jules/docs/ledger.json` to record this documentation coverage run.
 
 ## 📝 Notes (freeform)
-All doctests are self-contained and use the `current_dir()` defaults to avoid needing test fixtures.
+N/A

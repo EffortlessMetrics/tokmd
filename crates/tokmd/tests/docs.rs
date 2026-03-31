@@ -45,6 +45,71 @@ fn recipe_badge_generation() {
 }
 
 #[test]
+fn recipe_run_analysis_receipt() {
+    let tmp = tempfile::tempdir().unwrap();
+    let run_dir = tmp.path().join(".runs").join("current");
+    // "tokmd run --analysis receipt --output-dir .runs/current"
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(&run_dir)
+        .assert()
+        .success();
+    assert!(run_dir.exists());
+    assert!(run_dir.join("lang.json").exists());
+}
+
+#[test]
+fn recipe_diff_runs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let run_a = tmp.path().join("run_a");
+    let run_b = tmp.path().join("run_b");
+
+    // Create two deterministic run states
+    tokmd()
+        .arg("run")
+        .arg("--output-dir")
+        .arg(&run_a)
+        .assert()
+        .success();
+    tokmd()
+        .arg("run")
+        .arg("--output-dir")
+        .arg(&run_b)
+        .assert()
+        .success();
+
+    // "tokmd diff main HEAD" conceptually, but we diff two runs here to avoid git ref dependency
+    tokmd()
+        .arg("diff")
+        .arg(&run_a)
+        .arg(&run_b)
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_context_budget() {
+    let tmp = tempfile::tempdir().unwrap();
+    let context_txt = tmp.path().join("context.txt");
+
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_txt)
+        .assert()
+        .success();
+    assert!(context_txt.exists());
+}
+
+#[test]
 fn recipe_analyze_presets() {
     // "tokmd analyze --preset receipt --format md"
     tokmd()
