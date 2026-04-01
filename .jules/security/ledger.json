@@ -79,5 +79,14 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "run_id": "run-01",
+    "date": "2026-04-01T12:20:46Z",
+    "lane": "scout",
+    "target": "unwrap/expect/panic burndown in tests",
+    "gates": "build,test,fmt,clippy",
+    "status": "PASS",
+    "friction_ids": []
   }
 ]
