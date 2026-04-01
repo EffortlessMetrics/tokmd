@@ -49,8 +49,5 @@ tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]
-anyhow.workspace = true
 proptest.workspace = true
-serde_json.workspace = true
 tempfile.workspace = true
-tokmd-format.workspace = true

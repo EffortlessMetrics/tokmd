@@ -32,5 +32,4 @@ tokmd-git = { workspace = true, optional = true }
 [dev-dependencies]
 insta = { workspace = true }
 proptest.workspace = true
-serde_json.workspace = true
 tempfile.workspace = true
