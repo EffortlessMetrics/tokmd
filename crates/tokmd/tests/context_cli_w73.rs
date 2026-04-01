@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! CLI integration tests for context and handoff commands (W73).
 
 mod common;

@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep round-2 context and handoff CLI integration tests (W51).
 
 mod common;

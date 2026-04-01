@@ -1,0 +1,21 @@
+{
+  "run_id": "7f01a488-bd28-48f6-a479-a3639b1e9043",
+  "receipts": [
+    {
+      "command": "cargo test --no-default-features -p tokmd",
+      "output": ""
+    },
+    {
+      "command": "cargo test --all-features -p tokmd",
+      "output": ""
+    },
+    {
+      "command": "cargo test --no-default-features -p tokmd",
+      "output": "test global_exclude_applies_to_module ... ok\ntest init_print_mono_profile ... ok\ntest init_non_interactive_creates_file ... ok\ntest global_exclude_applies_to_lang ... ok\ntest init_print_node_profile ... ok\ntest init_print_rust_profile ... ok\ntest init_refuses_overwrite_without_force ... ok\ntest lang_help_shows_format_flag ... ok\ntest lang_children_separate_json ... ok\ntest lang_json_output_is_valid ... ok\ntest lang_children_collapse_json ... ok\ntest lang_top_limits_rows ... ok\ntest module_help_shows_depth_flag ... ok\ntest tools_invalid_format_fails ... ok\ntest module_children_separate_json ... ok\ntest module_json_has_schema_version ... ok\ntest module_depth_zero_json ... ok\ntest tools_jsonschema_has_tool_descriptions ... ok\ntest verbose_flag_on_module ... ok\ntest verbose_flag_accepted ... ok\ntest version_flag_prints_version ... ok\n\ntest result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s\n\n     Running tests/tok_integration.rs (target/debug/deps/tok_integration-87760116720ca991)\n\nrunning 1 test\ntest tok_default_lang_output ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s\n\n     Running tests/tools_integration.rs (target/debug/deps/tools_integration-9b89f67134e48585)\n\nrunning 7 tests\ntest test_tools_contains_known_commands ... ok\ntest test_tools_clap_format ... ok\ntest test_tools_export_formats_enum ... ok\ntest test_tools_anthropic_format ... ok\ntest test_tools_jsonschema_output_parses ... ok\ntest test_tools_openai_format ... ok\ntest test_tools_pretty_output ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s\n\n   Doc-tests tokmd\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    },
+    {
+      "command": "cargo test --all-features -p tokmd",
+      "output": "test help_flag_lists_subcommands ... ok\ntest init_non_interactive_creates_file ... ok\ntest init_print_mono_profile ... ok\ntest init_print_rust_profile ... ok\ntest init_print_node_profile ... ok\ntest global_exclude_applies_to_module ... ok\ntest init_refuses_overwrite_without_force ... ok\ntest lang_help_shows_format_flag ... ok\ntest lang_children_collapse_json ... ok\ntest lang_top_limits_rows ... ok\ntest lang_json_output_is_valid ... ok\ntest lang_children_separate_json ... ok\ntest module_help_shows_depth_flag ... ok\ntest tools_invalid_format_fails ... ok\ntest module_children_separate_json ... ok\ntest module_depth_zero_json ... ok\ntest module_json_has_schema_version ... ok\ntest tools_jsonschema_has_tool_descriptions ... ok\ntest version_flag_prints_version ... ok\ntest verbose_flag_accepted ... ok\ntest verbose_flag_on_module ... ok\n\ntest result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s\n\n     Running tests/tok_integration.rs (target/debug/deps/tok_integration-209faf1c17921aa0)\n\nrunning 1 test\ntest tok_default_lang_output ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/tools_integration.rs (target/debug/deps/tools_integration-7415e69536e02f1f)\n\nrunning 7 tests\ntest test_tools_export_formats_enum ... ok\ntest test_tools_clap_format ... ok\ntest test_tools_anthropic_format ... ok\ntest test_tools_contains_known_commands ... ok\ntest test_tools_openai_format ... ok\ntest test_tools_jsonschema_output_parses ... ok\ntest test_tools_pretty_output ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n   Doc-tests tokmd\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    }
+  ]
+}

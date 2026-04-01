@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep CLI integration tests for complex commands: context, handoff, sensor,
 //! baseline, diff.
 
