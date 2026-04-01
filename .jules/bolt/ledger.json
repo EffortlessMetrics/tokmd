@@ -35,5 +35,20 @@
       "clippy"
     ],
     "friction_ids": []
+  },
+  {
+    "date": "2026-04-01T12:39:29Z",
+    "run_id": "adfc7f3b-ee7e-486d-a7d7-20d9a87eb431",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs: remove String allocations from BTreeMap in create_lang_report_from_rows using (&str, bool)",
+    "proof_method": "structural proof / timing",
+    "pr_link": null,
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
   }
 ]
