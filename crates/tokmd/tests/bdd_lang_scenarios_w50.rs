@@ -65,7 +65,7 @@ fn given_rust_project_when_lang_json_then_valid_json_with_schema_and_sorted_rows
 #[test]
 fn given_empty_directory_when_lang_then_zero_totals() {
     // Given: an empty directory
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     std::fs::create_dir_all(dir.path().join(".git")).expect("create .git marker");
 
     // When: I run `tokmd lang --format json`

@@ -18,7 +18,7 @@ fn tokmd_cmd() -> Command {
 
 /// Helper: run baseline and return parsed JSON.
 fn run_baseline(extra: &[&str]) -> serde_json::Value {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let out_file = dir.path().join("baseline.json");
 
     let mut cmd = tokmd_cmd();
@@ -32,8 +32,8 @@ fn run_baseline(extra: &[&str]) -> serde_json::Value {
     }
     cmd.assert().success();
 
-    let content = fs::read_to_string(&out_file).unwrap();
-    serde_json::from_str(&content).unwrap()
+    let content = fs::read_to_string(&out_file).expect("should read output file");
+    serde_json::from_str(&content).expect("should parse output JSON")
 }
 
 // ===========================================================================
@@ -47,7 +47,10 @@ fn baseline_metrics_has_total_files() {
     assert!(total.is_some(), "metrics should have total_files");
     // When directory walking is disabled under --no-default-features, empty metrics are valid.
     #[cfg(feature = "walk")]
-    assert!(total.unwrap() > 0, "fixture should have at least one file");
+    assert!(
+        total.expect("should have total files") > 0,
+        "fixture should have at least one file"
+    );
 }
 
 #[test]
@@ -98,7 +101,7 @@ fn baseline_custom_output_path() -> Result<(), Box<dyn std::error::Error>> {
     let custom_path = dir.path().join("subdir").join("my_baseline.json");
 
     // Parent dir must exist for the command to write
-    fs::create_dir_all(custom_path.parent().unwrap())?;
+    fs::create_dir_all(custom_path.parent().expect("should have parent directory"))?;
 
     tokmd_cmd()
         .arg("--no-progress")
@@ -126,7 +129,7 @@ fn baseline_custom_output_path() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn baseline_without_force_on_existing_file_fails() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let out_file = dir.path().join("baseline.json");
 
     // First run with --force
@@ -158,7 +161,7 @@ fn baseline_without_force_on_existing_file_fails() {
 
 #[test]
 fn baseline_force_overwrites_existing() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let out_file = dir.path().join("baseline.json");
 
     // First run
@@ -222,10 +225,10 @@ fn baseline_has_commit_field() {
 
 #[test]
 fn baseline_empty_project() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let empty = dir.path().join("empty_proj");
-    fs::create_dir_all(&empty).unwrap();
-    fs::create_dir_all(empty.join(".git")).unwrap();
+    fs::create_dir_all(&empty).expect("should create empty project directory");
+    fs::create_dir_all(empty.join(".git")).expect("should create .git marker");
 
     let out_file = dir.path().join("empty_baseline.json");
 
@@ -240,8 +243,9 @@ fn baseline_empty_project() {
         .assert()
         .success();
 
-    let content = fs::read_to_string(&out_file).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+    let content = fs::read_to_string(&out_file).expect("should read output file");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&content).expect("should parse output JSON");
     assert_eq!(parsed["baseline_version"].as_u64(), Some(1));
     assert_eq!(parsed["metrics"]["total_files"].as_u64(), Some(0));
 }
@@ -284,7 +288,9 @@ fn baseline_determinism_flag_source_hash_format() -> Result<(), Box<dyn std::err
         .expect("determinism section should be present");
 
     // source_hash should be 64 hex chars (BLAKE3)
-    let hash = det["source_hash"].as_str().unwrap();
+    let hash = det["source_hash"]
+        .as_str()
+        .expect("source hash should be string");
     assert_eq!(hash.len(), 64);
     assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
 
@@ -298,7 +304,7 @@ fn baseline_determinism_flag_source_hash_format() -> Result<(), Box<dyn std::err
 #[cfg(feature = "git")]
 fn baseline_determinism_flag_deterministic_hash() {
     let get_hash = || {
-        let dir = tempdir().unwrap();
+        let dir = tempdir().expect("should create temp dir");
         let out_file = dir.path().join("det.json");
 
         tokmd_cmd()
@@ -311,11 +317,12 @@ fn baseline_determinism_flag_deterministic_hash() {
             .assert()
             .success();
 
-        let content = fs::read_to_string(&out_file).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+        let content = fs::read_to_string(&out_file).expect("should read output file");
+        let parsed: serde_json::Value =
+            serde_json::from_str(&content).expect("should parse output JSON");
         parsed["determinism"]["source_hash"]
             .as_str()
-            .unwrap()
+            .expect("should succeed")
             .to_string()
     };
 

@@ -33,7 +33,7 @@ fn run_receipt(output_dir: &std::path::Path) {
 #[test]
 fn given_two_receipts_when_diff_then_diff_output_produced() {
     // Given: two JSON receipt files from separate runs
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let run1 = dir.path().join("run1");
     let run2 = dir.path().join("run2");
     run_receipt(&run1);
@@ -59,7 +59,7 @@ fn given_two_receipts_when_diff_then_diff_output_produced() {
 #[test]
 fn given_identical_receipts_when_diff_then_no_changes() {
     // Given: two identical receipt files (same run)
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let run_dir = dir.path().join("run_same");
     run_receipt(&run_dir);
 
@@ -99,7 +99,7 @@ fn given_identical_receipts_when_diff_then_no_changes() {
 #[test]
 fn given_receipts_when_diff_json_then_valid_json() {
     // Given: receipt files
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let run_dir = dir.path().join("run_json");
     run_receipt(&run_dir);
 
@@ -128,7 +128,7 @@ fn given_receipts_when_diff_json_then_valid_json() {
 #[test]
 fn given_receipts_when_diff_compact_then_summary_table() {
     // Given: receipt files
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let run_dir = dir.path().join("run_compact");
     run_receipt(&run_dir);
 
@@ -155,7 +155,7 @@ fn given_receipts_when_diff_compact_then_summary_table() {
 #[test]
 fn given_receipts_when_diff_full_then_shows_loc_lines_files() {
     // Given: receipt files
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let run_dir = dir.path().join("run_full");
     run_receipt(&run_dir);
 
