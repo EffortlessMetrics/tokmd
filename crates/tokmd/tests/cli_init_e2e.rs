@@ -19,7 +19,7 @@ fn tokmd_cmd() -> Command {
 
 #[test]
 fn init_creates_tokeignore_in_temp_dir() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temporary directory for test");
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
         .args(["init", "--non-interactive"])
@@ -30,15 +30,16 @@ fn init_creates_tokeignore_in_temp_dir() {
         dir.path().join(".tokeignore").exists(),
         ".tokeignore should be created"
     );
-    let content = std::fs::read_to_string(dir.path().join(".tokeignore")).unwrap();
+    let content =
+        std::fs::read_to_string(dir.path().join(".tokeignore")).expect("Failed to read test file");
     assert!(!content.is_empty(), ".tokeignore should not be empty");
 }
 
 #[test]
 fn init_with_dir_flag_creates_tokeignore_in_target() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temporary directory for test");
     let target = dir.path().join("project");
-    std::fs::create_dir_all(&target).unwrap();
+    std::fs::create_dir_all(&target).expect("Failed to create test directory");
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.args(["init", "--non-interactive", "--dir"])
@@ -58,9 +59,9 @@ fn init_with_dir_flag_creates_tokeignore_in_target() {
 
 #[test]
 fn init_does_not_overwrite_existing_tokeignore() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temporary directory for test");
     let existing = dir.path().join(".tokeignore");
-    std::fs::write(&existing, "# my custom rules\n").unwrap();
+    std::fs::write(&existing, "# my custom rules\n").expect("Failed to write to test file");
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -68,15 +69,15 @@ fn init_does_not_overwrite_existing_tokeignore() {
         .assert()
         .failure();
 
-    let content = std::fs::read_to_string(&existing).unwrap();
+    let content = std::fs::read_to_string(&existing).expect("Failed to read test file");
     assert_eq!(content, "# my custom rules\n", "file should be untouched");
 }
 
 #[test]
 fn init_force_overwrites_existing_tokeignore() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temporary directory for test");
     let existing = dir.path().join(".tokeignore");
-    std::fs::write(&existing, "# old rules\n").unwrap();
+    std::fs::write(&existing, "# old rules\n").expect("Failed to write to test file");
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -84,7 +85,7 @@ fn init_force_overwrites_existing_tokeignore() {
         .assert()
         .success();
 
-    let content = std::fs::read_to_string(&existing).unwrap();
+    let content = std::fs::read_to_string(&existing).expect("Failed to read test file");
     assert_ne!(content, "# old rules\n", "file should be overwritten");
     assert!(!content.is_empty());
 }
@@ -104,7 +105,7 @@ fn init_print_outputs_template_to_stdout() {
 
 #[test]
 fn init_print_does_not_create_file() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temporary directory for test");
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
         .args(["init", "--print", "--non-interactive"])
