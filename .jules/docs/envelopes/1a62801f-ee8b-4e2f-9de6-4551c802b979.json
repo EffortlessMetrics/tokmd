@@ -1,0 +1,9 @@
+{
+  "run_id": "1a62801f-ee8b-4e2f-9de6-4551c802b979",
+  "status": "PASS",
+  "receipts": [
+    "cargo test -p tokmd --test docs",
+    "cargo fmt",
+    "cargo clippy -- -D warnings"
+  ]
+}

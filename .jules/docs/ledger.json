@@ -31,5 +31,16 @@
   {
     "run_id": "0ff363bd-f129-45fb-a4b4-e5437f5b7a41",
     "status": "PASS"
+  },
+  {
+    "run_id": "1a62801f-ee8b-4e2f-9de6-4551c802b979",
+    "action": "add_doctests_and_docs_rs_tests",
+    "target": "crates/tokmd/tests/docs.rs",
+    "description": "Add integration tests in crates/tokmd/tests/docs.rs for 'context' and 'diff' CLI commands to verify tutorial instructions.",
+    "receipts": [
+      "cargo test -p tokmd --test docs"
+    ],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

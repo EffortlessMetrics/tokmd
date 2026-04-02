@@ -275,3 +275,46 @@ max_increase_pct = 10.0
         .assert()
         .success();
 }
+
+#[test]
+fn recipe_context_bundle() {
+    let tmp = tempfile::tempdir().unwrap();
+    let context_path = tmp.path().join("context.txt");
+
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&context_path)
+        .assert()
+        .success();
+    assert!(context_path.exists());
+}
+
+#[test]
+fn recipe_run_and_diff() {
+    let tmp = tempfile::tempdir().unwrap();
+    let run_a = tmp.path().join("run_a");
+
+    // "tokmd run --analysis receipt --output-dir .runs/current"
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(&run_a)
+        .assert()
+        .success();
+
+    // "tokmd diff main HEAD" (using deterministic directories instead of git refs for CI stability)
+    tokmd()
+        .arg("diff")
+        .arg(&run_a)
+        .arg(&run_a) // Compare against itself to just verify the CLI codepath works
+        .assert()
+        .success();
+}
