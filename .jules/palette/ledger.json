@@ -25,6 +25,19 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-02T12:37:07Z",
+      "lane": "scout",
+      "target": "tests-unwrap-cleanups",
+      "pr_link": null,
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
     }
   ]
 }

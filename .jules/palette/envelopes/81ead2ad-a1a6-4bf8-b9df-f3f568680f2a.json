@@ -1,0 +1,34 @@
+{
+  "run_id": "81ead2ad-a1a6-4bf8-b9df-f3f568680f2a",
+  "timestamp_utc": "20260402T121318Z",
+  "lane": "scout",
+  "target": "tests-unwrap-cleanups",
+  "commands": [
+    "cargo build --verbose",
+    "cargo test --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "results": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "output": "Build succeeded"
+    },
+    {
+      "cmd": "cargo test --verbose",
+      "status": "PASS",
+      "output": "Tests passed"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "output": "Format check passed"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output": "Clippy check passed"
+    }
+  ]
+}
