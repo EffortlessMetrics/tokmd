@@ -25,6 +25,15 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "run_id": "f97633f3-ba19-484b-adce-40108ced64d1",
+      "timestamp_utc": "2026-04-02T12:00:00Z",
+      "lane": "scout",
+      "target": "Improve generic .expect(\"should exist\") messages in crates/tokmd/src/context_pack.rs tests",
+      "pr_link": "Pending",
+      "status": "PASS",
+      "friction_ids": []
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "run_id": "f97633f3-ba19-484b-adce-40108ced64d1",
+  "timestamp_utc": "2026-04-02T12:06:17Z",
+  "lane": "scout",
+  "target": "Improve generic .expect(\"should exist\") messages in crates/tokmd/src/context_pack.rs tests",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd --verbose",
+      "status": 0,
+      "summary": "PASS",
+      "details": "test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": 0,
+      "summary": "PASS",
+      "details": "Finished dev profile [unoptimized + debuginfo] target(s) in 34.97s"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": 0,
+      "summary": "PASS",
+      "details": "Formatted code cleanly"
+    }
+  ],
+  "results": []
+}

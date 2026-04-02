@@ -673,55 +673,114 @@ mod tests {
 
     #[test]
     fn test_parse_budget() {
-        assert_eq!(parse_budget("128k").expect("should exist"), 128_000);
-        assert_eq!(parse_budget("1m").expect("should exist"), 1_000_000);
-        assert_eq!(parse_budget("50000").expect("should exist"), 50_000);
-        assert_eq!(parse_budget("1.5k").expect("should exist"), 1_500);
+        assert_eq!(
+            parse_budget("128k").expect("parse_budget should successfully parse valid suffix 'k'"),
+            128_000
+        );
+        assert_eq!(
+            parse_budget("1m").expect("parse_budget should successfully parse valid suffix 'm'"),
+            1_000_000
+        );
+        assert_eq!(
+            parse_budget("50000")
+                .expect("parse_budget should successfully parse integer format without suffix"),
+            50_000
+        );
+        assert_eq!(
+            parse_budget("1.5k").expect(
+                "parse_budget should successfully parse valid floating point input with suffix 'k'"
+            ),
+            1_500
+        );
     }
 
     #[test]
     fn test_parse_budget_g_suffix() {
-        assert_eq!(parse_budget("1g").expect("should exist"), 1_000_000_000);
-        assert_eq!(parse_budget("0.5g").expect("should exist"), 500_000_000);
-        assert_eq!(parse_budget("2G").expect("should exist"), 2_000_000_000);
+        assert_eq!(
+            parse_budget("1g").expect("parse_budget should successfully parse valid suffix 'g'"),
+            1_000_000_000
+        );
+        assert_eq!(
+            parse_budget("0.5g").expect(
+                "parse_budget should successfully parse valid floating point input with suffix 'g'"
+            ),
+            500_000_000
+        );
+        assert_eq!(
+            parse_budget("2G").expect("parse_budget should successfully parse valid suffix 'G'"),
+            2_000_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_unlimited() {
-        assert_eq!(parse_budget("unlimited").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("max").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("UNLIMITED").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("MAX").expect("should exist"), usize::MAX);
         assert_eq!(
-            parse_budget("  unlimited  ").expect("should exist"),
+            parse_budget("unlimited")
+                .expect("parse_budget should successfully parse unlimited options"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("max").expect("parse_budget should successfully parse unlimited options"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("UNLIMITED")
+                .expect("parse_budget should successfully parse unlimited options"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("MAX").expect("parse_budget should successfully parse unlimited options"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("  unlimited  ")
+                .expect("parse_budget should successfully parse unlimited options"),
             usize::MAX
         );
     }
 
     #[test]
     fn test_parse_budget_with_whitespace() {
-        assert_eq!(parse_budget("  10k  ").expect("should exist"), 10_000);
-        assert_eq!(parse_budget(" 5m ").expect("should exist"), 5_000_000);
+        assert_eq!(
+            parse_budget("  10k  ").expect(
+                "parse_budget should successfully parse valid padded inputs with suffix 'k'"
+            ),
+            10_000
+        );
+        assert_eq!(
+            parse_budget(" 5m ").expect(
+                "parse_budget should successfully parse valid padded inputs with suffix 'm'"
+            ),
+            5_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_case_insensitive() {
-        assert_eq!(parse_budget("10K").expect("should exist"), 10_000);
-        assert_eq!(parse_budget("2M").expect("should exist"), 2_000_000);
+        assert_eq!(
+            parse_budget("10K")
+                .expect("parse_budget should successfully parse uppercase suffix 'K'"),
+            10_000
+        );
+        assert_eq!(
+            parse_budget("2M")
+                .expect("parse_budget should successfully parse uppercase suffix 'M'"),
+            2_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_multiplication_k() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2k").expect("should exist"), 2_000);
-        assert_eq!(parse_budget("0.5k").expect("should exist"), 500);
+        assert_eq!(parse_budget("2k").expect("parse_budget should successfully parse valid suffix 'k' with explicit factor multiplication logic"), 2_000);
+        assert_eq!(parse_budget("0.5k").expect("parse_budget should successfully parse floating points multiplying suffix 'k' correctly"), 500);
     }
 
     #[test]
     fn test_parse_budget_multiplication_m() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2m").expect("should exist"), 2_000_000);
-        assert_eq!(parse_budget("0.5m").expect("should exist"), 500_000);
+        assert_eq!(parse_budget("2m").expect("parse_budget should successfully parse valid suffix 'm' with explicit factor multiplication logic"), 2_000_000);
+        assert_eq!(parse_budget("0.5m").expect("parse_budget should successfully parse floating points multiplying suffix 'm' correctly"), 500_000);
     }
 
     #[test]
@@ -1110,7 +1169,7 @@ mod tests {
             let original = rows
                 .iter()
                 .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+                .expect("expected original context row to be found among generated paths");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1138,7 +1197,7 @@ mod tests {
             let original = rows
                 .iter()
                 .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+                .expect("expected original context row to be found among generated paths");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1720,7 +1779,12 @@ mod tests {
             readme_entry.is_some(),
             "README.md should be in selected files"
         );
-        assert_eq!(readme_entry.expect("should exist").rank_reason, "spine");
+        assert_eq!(
+            readme_entry
+                .expect("readme_entry should be populated for repository spine")
+                .rank_reason,
+            "spine"
+        );
     }
 
     #[test]
@@ -1766,7 +1830,7 @@ mod tests {
             result
                 .fallback_reason
                 .as_ref()
-                .expect("should exist")
+                .expect("expected fallback reason string to be populated")
                 .contains("hotspot")
         );
     }
@@ -1917,7 +1981,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[]);
         assert_eq!(policy, InclusionPolicy::HeadTail);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("head+tail"));
+        assert!(
+            reason
+                .expect("expected explicit rank_reason string to be populated")
+                .contains("head+tail")
+        );
     }
 
     #[test]
@@ -1925,7 +1993,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("generated"));
+        assert!(
+            reason
+                .expect("expected explicit rank_reason string to be populated")
+                .contains("generated")
+        );
     }
 
     #[test]
@@ -1966,7 +2038,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("expected fallback reason string to be populated")
                 .contains("hotspot")
         );
     }
@@ -1979,7 +2051,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("expected fallback reason string to be populated")
                 .contains("churn")
         );
     }
@@ -2025,17 +2097,21 @@ mod tests {
             .selected
             .iter()
             .find(|f| f.path == "big.rs")
-            .expect("should exist");
+            .expect("expected big.rs item to exist in context pack");
         assert_eq!(big.policy, InclusionPolicy::HeadTail);
         assert!(big.effective_tokens.is_some());
-        assert!(big.effective_tokens.expect("should exist") <= 16_000);
+        assert!(
+            big.effective_tokens
+                .expect("expected effective_tokens count to be populated")
+                <= 16_000
+        );
 
         // small.rs should have Full policy
         let small = result
             .selected
             .iter()
             .find(|f| f.path == "small.rs")
-            .expect("should exist");
+            .expect("expected small.rs item to exist in context pack");
         assert_eq!(small.policy, InclusionPolicy::Full);
         assert!(small.effective_tokens.is_none());
     }
