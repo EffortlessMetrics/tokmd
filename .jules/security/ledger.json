@@ -77,5 +77,20 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "run_id": "7d373e3b-4ab2-4182-8dc0-be2d829777f2",
+    "date_time": "2026-04-02T12:48:12+00:00",
+    "lane": "scout",
+    "target": "crates/tokmd-core/tests/error_w70.rs",
+    "pr_link": "pending",
+    "gates_run": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "status": "PASS",
+    "friction_ids": []
   }
 ]
