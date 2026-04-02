@@ -38,6 +38,19 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "run_id": "a9a1a098-dccd-413f-8fac-e1e8bd45f4af",
+      "date": "2026-04-02T12:37:44Z",
+      "lane": "scout",
+      "target": "Cleanup unwrap/expect in bdd_export_scenarios_w50.rs",
+      "pr_link": "test: improve expect diagnostics in export BDD tests 🎨 Palette",
+      "status": "PASS",
+      "gates": [
+        "test",
+        "gate"
+      ],
+      "friction_ids": []
     }
   ]
 }
