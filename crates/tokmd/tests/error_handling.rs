@@ -114,8 +114,9 @@ fn unknown_subcommand_fails() {
 
 #[test]
 fn lang_empty_directory_succeeds_with_zero_totals() {
-    let dir = tempdir().unwrap();
-    std::fs::create_dir_all(dir.path().join(".git")).unwrap();
+    let dir = tempdir().expect("failed to create temporary directory for test");
+    std::fs::create_dir_all(dir.path().join(".git"))
+        .expect("failed to create dummy .git directory");
 
     tokmd_cmd()
         .arg("lang")
@@ -127,8 +128,9 @@ fn lang_empty_directory_succeeds_with_zero_totals() {
 
 #[test]
 fn module_empty_directory_succeeds_with_zero_totals() {
-    let dir = tempdir().unwrap();
-    std::fs::create_dir_all(dir.path().join(".git")).unwrap();
+    let dir = tempdir().expect("failed to create temporary directory for test");
+    std::fs::create_dir_all(dir.path().join(".git"))
+        .expect("failed to create dummy .git directory");
 
     tokmd_cmd()
         .arg("module")
@@ -140,8 +142,9 @@ fn module_empty_directory_succeeds_with_zero_totals() {
 
 #[test]
 fn export_empty_directory_succeeds_with_meta_only() {
-    let dir = tempdir().unwrap();
-    std::fs::create_dir_all(dir.path().join(".git")).unwrap();
+    let dir = tempdir().expect("failed to create temporary directory for test");
+    std::fs::create_dir_all(dir.path().join(".git"))
+        .expect("failed to create dummy .git directory");
 
     // JSONL export should emit only the meta record and no data rows
     let output = tokmd_cmd()
@@ -203,9 +206,9 @@ fn unknown_flag_fails() {
 
 #[test]
 fn gate_nonexistent_receipt_file_fails() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("failed to create temporary directory for test");
     let policy = dir.path().join("policy.json");
-    std::fs::write(&policy, r#"{"rules":[]}"#).unwrap();
+    std::fs::write(&policy, r#"{"rules":[]}"#).expect("failed to write dummy policy.json");
 
     tokmd_cmd()
         .arg("gate")

@@ -1,0 +1,27 @@
+{
+  "run_id": "f2671d77-0c88-4670-96d5-5abc84b7e1f5",
+  "timestamp_utc": "2026-04-02T12:52:15Z",
+  "lane": "scout",
+  "target": "crates/tokmd/tests/error_handling.rs",
+  "commands": [
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": 0,
+      "summary": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo clippy -p tokmd -- -D warnings",
+      "status": 0,
+      "summary": "PASS",
+      "output": "Finished  profile"
+    },
+    {
+      "cmd": "cargo test -p tokmd --test error_handling",
+      "status": 0,
+      "summary": "PASS",
+      "output": "test result: ok. 16 passed"
+    }
+  ],
+  "results": "All merge-confidence gates passed successfully."
+}

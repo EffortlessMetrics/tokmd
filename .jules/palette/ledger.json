@@ -38,6 +38,18 @@
         "test"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-02T12:57:28Z",
+      "lane": "scout",
+      "target": "crates/tokmd/tests/error_handling.rs",
+      "pr_link": "pending",
+      "gates": [
+        "fmt",
+        "clippy",
+        "test"
+      ],
+      "friction_ids": []
     }
   ]
 }
