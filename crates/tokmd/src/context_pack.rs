@@ -673,55 +673,55 @@ mod tests {
 
     #[test]
     fn test_parse_budget() {
-        assert_eq!(parse_budget("128k").expect("should exist"), 128_000);
-        assert_eq!(parse_budget("1m").expect("should exist"), 1_000_000);
-        assert_eq!(parse_budget("50000").expect("should exist"), 50_000);
-        assert_eq!(parse_budget("1.5k").expect("should exist"), 1_500);
+        assert_eq!(parse_budget("128k").expect("failed to parse explicit token budget from CLI string"), 128_000);
+        assert_eq!(parse_budget("1m").expect("failed to parse explicit token budget from CLI string"), 1_000_000);
+        assert_eq!(parse_budget("50000").expect("failed to parse explicit token budget from CLI string"), 50_000);
+        assert_eq!(parse_budget("1.5k").expect("failed to parse explicit token budget from CLI string"), 1_500);
     }
 
     #[test]
     fn test_parse_budget_g_suffix() {
-        assert_eq!(parse_budget("1g").expect("should exist"), 1_000_000_000);
-        assert_eq!(parse_budget("0.5g").expect("should exist"), 500_000_000);
-        assert_eq!(parse_budget("2G").expect("should exist"), 2_000_000_000);
+        assert_eq!(parse_budget("1g").expect("failed to parse explicit token budget from CLI string"), 1_000_000_000);
+        assert_eq!(parse_budget("0.5g").expect("failed to parse explicit token budget from CLI string"), 500_000_000);
+        assert_eq!(parse_budget("2G").expect("failed to parse explicit token budget from CLI string"), 2_000_000_000);
     }
 
     #[test]
     fn test_parse_budget_unlimited() {
-        assert_eq!(parse_budget("unlimited").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("max").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("UNLIMITED").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("MAX").expect("should exist"), usize::MAX);
+        assert_eq!(parse_budget("unlimited").expect("failed to parse explicit token budget from CLI string"), usize::MAX);
+        assert_eq!(parse_budget("max").expect("failed to parse explicit token budget from CLI string"), usize::MAX);
+        assert_eq!(parse_budget("UNLIMITED").expect("failed to parse explicit token budget from CLI string"), usize::MAX);
+        assert_eq!(parse_budget("MAX").expect("failed to parse explicit token budget from CLI string"), usize::MAX);
         assert_eq!(
-            parse_budget("  unlimited  ").expect("should exist"),
+            parse_budget("  unlimited  ").expect("failed to parse explicit token budget from CLI string"),
             usize::MAX
         );
     }
 
     #[test]
     fn test_parse_budget_with_whitespace() {
-        assert_eq!(parse_budget("  10k  ").expect("should exist"), 10_000);
-        assert_eq!(parse_budget(" 5m ").expect("should exist"), 5_000_000);
+        assert_eq!(parse_budget("  10k  ").expect("failed to parse explicit token budget from CLI string"), 10_000);
+        assert_eq!(parse_budget(" 5m ").expect("failed to parse explicit token budget from CLI string"), 5_000_000);
     }
 
     #[test]
     fn test_parse_budget_case_insensitive() {
-        assert_eq!(parse_budget("10K").expect("should exist"), 10_000);
-        assert_eq!(parse_budget("2M").expect("should exist"), 2_000_000);
+        assert_eq!(parse_budget("10K").expect("failed to parse explicit token budget from CLI string"), 10_000);
+        assert_eq!(parse_budget("2M").expect("failed to parse explicit token budget from CLI string"), 2_000_000);
     }
 
     #[test]
     fn test_parse_budget_multiplication_k() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2k").expect("should exist"), 2_000);
-        assert_eq!(parse_budget("0.5k").expect("should exist"), 500);
+        assert_eq!(parse_budget("2k").expect("failed to parse explicit token budget from CLI string"), 2_000);
+        assert_eq!(parse_budget("0.5k").expect("failed to parse explicit token budget from CLI string"), 500);
     }
 
     #[test]
     fn test_parse_budget_multiplication_m() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2m").expect("should exist"), 2_000_000);
-        assert_eq!(parse_budget("0.5m").expect("should exist"), 500_000);
+        assert_eq!(parse_budget("2m").expect("failed to parse explicit token budget from CLI string"), 2_000_000);
+        assert_eq!(parse_budget("0.5m").expect("failed to parse explicit token budget from CLI string"), 500_000);
     }
 
     #[test]
@@ -1110,7 +1110,7 @@ mod tests {
             let original = rows
                 .iter()
                 .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+                .expect("original row should exist in pre-sorted dataset");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1138,7 +1138,7 @@ mod tests {
             let original = rows
                 .iter()
                 .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+                .expect("original row should exist in pre-sorted dataset");
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1720,7 +1720,7 @@ mod tests {
             readme_entry.is_some(),
             "README.md should be in selected files"
         );
-        assert_eq!(readme_entry.expect("should exist").rank_reason, "spine");
+        assert_eq!(readme_entry.expect("expected README.md to be present in selection").rank_reason, "spine");
     }
 
     #[test]
@@ -1766,7 +1766,7 @@ mod tests {
             result
                 .fallback_reason
                 .as_ref()
-                .expect("should exist")
+                .expect("expected fallback reason to be populated when capacity is constrained")
                 .contains("hotspot")
         );
     }
@@ -1917,7 +1917,7 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[]);
         assert_eq!(policy, InclusionPolicy::HeadTail);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("head+tail"));
+        assert!(reason.expect("expected inclusion reason to be generated for head+tail policy").contains("head+tail"));
     }
 
     #[test]
@@ -1925,7 +1925,7 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("generated"));
+        assert!(reason.expect("expected inclusion reason to be populated for generated code skip policy").contains("generated"));
     }
 
     #[test]
@@ -1966,7 +1966,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("expected fallback reason to be set when falling back to hotspot ranking")
                 .contains("hotspot")
         );
     }
@@ -1979,7 +1979,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("expected fallback reason to be set when falling back to churn ranking")
                 .contains("churn")
         );
     }
@@ -2025,17 +2025,17 @@ mod tests {
             .selected
             .iter()
             .find(|f| f.path == "big.rs")
-            .expect("should exist");
+            .expect("expected 'big.rs' to be included in packed selection");
         assert_eq!(big.policy, InclusionPolicy::HeadTail);
         assert!(big.effective_tokens.is_some());
-        assert!(big.effective_tokens.expect("should exist") <= 16_000);
+        assert!(big.effective_tokens.expect("expected effective tokens to be calculated for head/tail policy") <= 16_000);
 
         // small.rs should have Full policy
         let small = result
             .selected
             .iter()
             .find(|f| f.path == "small.rs")
-            .expect("should exist");
+            .expect("expected 'small.rs' to be included in packed selection");
         assert_eq!(small.policy, InclusionPolicy::Full);
         assert!(small.effective_tokens.is_none());
     }

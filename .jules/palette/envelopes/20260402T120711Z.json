@@ -1,0 +1,49 @@
+{
+  "run_id": "20260402T120711Z",
+  "timestamp_utc": "2026-04-02T12:07:11Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/context_pack.rs crates/tokmd/src/export_bundle.rs",
+  "commands": [],
+  "results": [
+    {
+      "command": "cargo build",
+      "status": "PASS",
+      "output_excerpt": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.75s"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output_excerpt": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s"
+    },
+    {
+      "command": "cargo test -p tokmd",
+      "status": "PASS",
+      "output_excerpt": "test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "status": "PASS",
+      "output_excerpt": "No formatting errors found."
+    },
+    {
+      "command": "cargo build",
+      "status": "PASS",
+      "output_excerpt": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.75s"
+    },
+    {
+      "command": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output_excerpt": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s"
+    },
+    {
+      "command": "cargo test -p tokmd",
+      "status": "PASS",
+      "output_excerpt": "test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s"
+    },
+    {
+      "command": "cargo fmt -- --check",
+      "status": "PASS",
+      "output_excerpt": "No formatting errors found."
+    }
+  ]
+}

@@ -403,18 +403,18 @@ mod tests {
             bundle
                 .export_path
                 .as_ref()
-                .expect("should exist")
+                .expect("expected export_path to be populated on successful bundle creation")
                 .file_name()
-                .expect("should have name"),
+                .expect("expected export_path to have a valid file name"),
             "export.jsonl"
         );
         assert_eq!(
             bundle
                 .entry_point
                 .as_ref()
-                .expect("should exist")
+                .expect("expected entry_point to be populated on successful bundle creation")
                 .file_name()
-                .expect("should have name"),
+                .expect("expected entry_point to have a valid file name"),
             "receipt.json"
         );
         Ok(())

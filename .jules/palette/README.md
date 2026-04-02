@@ -1,9 +1,6 @@
-# Palette Persona
-
-Palette focuses on developer experience (UX/DX) in tokmd.
-Areas of focus:
-- Error messages and diagnostics
-- CLI help/usage
+# Palette checks in tokmd
+- error messages and diagnostics
+- CLI help/usage (if a binary exists)
 - README/examples correctness
-- Public API docs and ergonomics
-- Predictable output and sharp edges in docs/tests
+- public API docs and ergonomics
+- predictable output and sharp edges in docs/tests
