@@ -74,27 +74,27 @@ fn export_args(format: ExportFormat) -> ExportArgs {
 fn render_lang(report: &LangReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
     let args = lang_args(format);
-    write_lang_report_to(&mut buf, report, &global(), &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_lang_report_to(&mut buf, report, &global(), &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_module(report: &ModuleReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
     let args = module_args(format);
-    write_module_report_to(&mut buf, report, &global(), &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_module_report_to(&mut buf, report, &global(), &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 /// Normalise non-deterministic JSON fields for snapshot stability.
 fn normalise_json(raw: &str) -> String {
-    let mut v: serde_json::Value = serde_json::from_str(raw).unwrap();
+    let mut v: serde_json::Value = serde_json::from_str(raw).expect("operation must succeed");
     if v.get("generated_at_ms").is_some() {
         v["generated_at_ms"] = serde_json::json!(0);
     }
     if v.pointer("/tool/version").is_some() {
         v["tool"]["version"] = serde_json::json!("0.0.0");
     }
-    serde_json::to_string_pretty(&v).unwrap()
+    serde_json::to_string_pretty(&v).expect("must serialize JSON")
 }
 
 // ===========================================================================
@@ -168,8 +168,9 @@ fn snapshot_lang_json_embedded_rows() {
         files: true,
         children: ChildrenMode::Separate,
     };
-    write_lang_report_to(&mut buf, &embedded_lang_report(), &global(), &args).unwrap();
-    let pretty = normalise_json(&String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &embedded_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let pretty = normalise_json(&String::from_utf8(buf).expect("output must be valid UTF-8"));
     insta::assert_snapshot!("deep_lang_json_embedded", pretty);
 }
 
@@ -467,8 +468,8 @@ fn determinism_export_csv_identical_across_calls() {
     let args = export_args(ExportFormat::Csv);
     let render = || {
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &data, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -582,8 +583,8 @@ fn snapshot_module_json_many() {
         module_depth: 2,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &report, &global(), &args).unwrap();
-    let pretty = normalise_json(&String::from_utf8(buf).unwrap());
+    write_module_report_to(&mut buf, &report, &global(), &args).expect("operation must succeed");
+    let pretty = normalise_json(&String::from_utf8(buf).expect("output must be valid UTF-8"));
     insta::assert_snapshot!("deep_module_json_many", pretty);
 }
 
@@ -653,8 +654,9 @@ fn snapshot_export_csv_with_children() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &export_args(ExportFormat::Csv)).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &export_args(ExportFormat::Csv))
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("deep_export_csv_children", output);
 }
 
@@ -673,8 +675,8 @@ fn snapshot_export_jsonl_with_children() {
         &global(),
         &export_args(ExportFormat::Jsonl),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("deep_export_jsonl_children", output);
 }
 
@@ -687,10 +689,11 @@ fn snapshot_export_json_with_children() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, &data, &global(), &export_args(ExportFormat::Json)).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&raw).unwrap();
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    write_export_json_to(&mut buf, &data, &global(), &export_args(ExportFormat::Json))
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("deep_export_json_children", pretty);
 }
 
@@ -732,8 +735,9 @@ fn snapshot_export_csv_special_chars() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &export_args(ExportFormat::Csv)).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &export_args(ExportFormat::Csv))
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("deep_export_csv_special_chars", output);
 }
 
@@ -768,11 +772,11 @@ fn snapshot_cyclonedx_redacted() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("1970-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["metadata"]["tools"][0]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("deep_cyclonedx_redacted", pretty);
 }
 
@@ -792,11 +796,11 @@ fn snapshot_cyclonedx_with_children() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("1970-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["metadata"]["tools"][0]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("deep_cyclonedx_children", pretty);
 }
 
@@ -925,8 +929,8 @@ fn snapshot_lang_md_with_files_separate() {
     args.children = ChildrenMode::Separate;
     let report = embedded_lang_report();
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &global(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("deep_lang_md_with_files_separate", output);
 }
 
@@ -952,8 +956,8 @@ fn snapshot_export_jsonl_empty() {
         &global(),
         &export_args(ExportFormat::Jsonl),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("deep_export_jsonl_empty", output);
 }
 
@@ -966,10 +970,10 @@ fn snapshot_export_json_empty() {
         &global(),
         &export_args(ExportFormat::Json),
     )
-    .unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&raw).unwrap();
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("deep_export_json_empty", pretty);
 }
 
@@ -983,11 +987,11 @@ fn snapshot_cyclonedx_empty() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("1970-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["metadata"]["tools"][0]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("deep_cyclonedx_empty", pretty);
 }
 
@@ -1056,8 +1060,8 @@ fn snapshot_export_csv_redact_all() {
     let mut args = export_args(ExportFormat::Csv);
     args.redact = RedactMode::All;
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Redacted output should not contain original paths
     assert!(
         !output.contains("src/lib.rs"),
@@ -1107,8 +1111,8 @@ fn snapshot_lang_md_many_with_files() {
     let mut buf = Vec::new();
     let mut args = lang_args(TableFormat::Md);
     args.files = true;
-    write_lang_report_to(&mut buf, &report, &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &global(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Verify Files and Avg columns are present
     assert!(
         output.contains("|Files|"),

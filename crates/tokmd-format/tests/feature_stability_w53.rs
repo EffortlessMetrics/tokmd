@@ -164,8 +164,8 @@ fn markdown_lang_empty_data() {
         &default_scan_options(),
         &md_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Empty report produces output (may be header-only or empty)
     // The key assertion: no panic, valid UTF-8
     let _ = output;
@@ -180,8 +180,8 @@ fn markdown_lang_with_data() {
         &default_scan_options(),
         &md_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Rust"));
 }
 
@@ -194,8 +194,8 @@ fn markdown_module_empty_data() {
         &default_scan_options(),
         &md_module_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Empty report produces output (may be header-only or empty)
     let _ = output;
 }
@@ -211,8 +211,8 @@ fn tsv_lang_empty_data() {
         &default_scan_options(),
         &tsv_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // TSV output should have header with tab separators
     assert!(output.contains('\t'));
 }
@@ -226,8 +226,8 @@ fn tsv_lang_with_data() {
         &default_scan_options(),
         &tsv_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Rust"));
     assert!(output.contains('\t'));
 }
@@ -243,9 +243,9 @@ fn json_lang_empty_data() {
         &default_scan_options(),
         &json_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let parsed: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert!(parsed.is_object());
 }
 
@@ -258,9 +258,9 @@ fn json_lang_with_data() {
         &default_scan_options(),
         &json_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let parsed: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert!(parsed.is_object());
 }
 
@@ -269,8 +269,9 @@ fn json_lang_with_data() {
 #[test]
 fn csv_export_empty_data() {
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &empty_export_data(), &csv_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &empty_export_data(), &csv_export_args())
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // CSV should at least produce a header line
     assert!(output.contains("path"));
 }
@@ -284,8 +285,8 @@ fn jsonl_export_empty_data() {
         &default_scan_options(),
         &jsonl_export_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Empty data produces no JSONL lines
     assert!(output.is_empty());
 }
@@ -299,11 +300,12 @@ fn json_export_empty_data() {
         &default_scan_options(),
         &json_export_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Empty export may produce empty string or valid JSON
     if !output.is_empty() {
-        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        let parsed: serde_json::Value =
+            serde_json::from_str(&output).expect("must parse valid JSON");
         assert!(parsed.is_object() || parsed.is_array());
     }
 }

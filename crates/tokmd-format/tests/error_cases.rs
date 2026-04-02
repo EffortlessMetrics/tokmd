@@ -75,7 +75,7 @@ fn format_empty_lang_report_md() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Should produce a valid table with header + totals even with no rows
     assert!(output.contains("Total"));
 }
@@ -114,9 +114,9 @@ fn format_empty_lang_report_json() {
     let mut buf = Vec::new();
     let result = write_lang_report_to(&mut buf, &report, &default_scan_options(), &args);
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Should be valid JSON
-    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert!(parsed.is_object());
 }
 
@@ -207,7 +207,7 @@ fn format_lang_report_with_very_long_name() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains(&long_name));
 }
 
@@ -281,7 +281,7 @@ fn format_lang_report_with_unicode_name() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("日本語コード"));
 }
 
@@ -317,7 +317,7 @@ fn format_lang_report_with_emoji_name() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("🦀 Rust"));
 }
 
@@ -442,8 +442,8 @@ fn format_lang_report_json_with_large_values() {
     let mut buf = Vec::new();
     let result = write_lang_report_to(&mut buf, &report, &default_scan_options(), &args);
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let parsed: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert!(parsed.is_object());
 }
 
@@ -598,7 +598,7 @@ fn format_single_language_report() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Rust"));
 }
 
@@ -654,7 +654,7 @@ fn format_multiple_languages_report() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Rust"));
     assert!(output.contains("Python"));
     assert!(output.contains("TOML"));
@@ -705,7 +705,7 @@ fn format_lang_report_with_special_chars() {
         &default_lang_args(),
     );
     assert!(result.is_ok());
-    let output = String::from_utf8(buf).unwrap();
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("C#"));
     assert!(output.contains("Objective-C++"));
 }

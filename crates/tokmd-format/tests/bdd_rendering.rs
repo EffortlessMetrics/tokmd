@@ -545,7 +545,12 @@ fn given_tsv_then_consistent_column_count() {
     let output =
         render_to_string(|buf| write_lang_report_to(buf, &report, &default_scan_options(), &args));
 
-    let expected_tabs = output.lines().next().unwrap().matches('\t').count();
+    let expected_tabs = output
+        .lines()
+        .next()
+        .expect("output must have at least one line")
+        .matches('\t')
+        .count();
     for line in output.lines() {
         assert_eq!(
             line.matches('\t').count(),
@@ -578,13 +583,14 @@ fn given_json_output_then_has_schema_version() {
     let output =
         render_to_string(|buf| write_lang_report_to(buf, &report, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     let sv = parsed
         .get("schema_version")
         .expect("should have schema_version");
     assert!(sv.is_number(), "schema_version should be a number");
     assert_eq!(
-        sv.as_u64().unwrap(),
+        sv.as_u64().expect("must be a JSON integer"),
         u64::from(tokmd_types::SCHEMA_VERSION),
         "schema_version should match SCHEMA_VERSION constant"
     );
@@ -597,7 +603,8 @@ fn given_json_output_then_has_metadata() {
     let output =
         render_to_string(|buf| write_lang_report_to(buf, &report, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
     // Required envelope fields
     assert!(
@@ -615,7 +622,10 @@ fn given_json_output_then_has_metadata() {
     );
 
     // Mode should be "lang"
-    assert_eq!(parsed["mode"].as_str().unwrap(), "lang");
+    assert_eq!(
+        parsed["mode"].as_str().expect("must be a JSON string"),
+        "lang"
+    );
 
     // generated_at_ms should be a positive number
     let ts = parsed["generated_at_ms"]
@@ -631,12 +641,19 @@ fn given_json_output_then_report_contains_rows() {
     let output =
         render_to_string(|buf| write_lang_report_to(buf, &report, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     // report is #[serde(flatten)]ed — rows live at top level
     let rows = parsed["rows"].as_array().expect("rows should be an array");
     assert_eq!(rows.len(), 2, "should have 2 language rows");
-    assert_eq!(rows[0]["lang"].as_str().unwrap(), "Rust");
-    assert_eq!(rows[1]["lang"].as_str().unwrap(), "TOML");
+    assert_eq!(
+        rows[0]["lang"].as_str().expect("must be a JSON string"),
+        "Rust"
+    );
+    assert_eq!(
+        rows[1]["lang"].as_str().expect("must be a JSON string"),
+        "TOML"
+    );
 }
 
 #[test]
@@ -646,12 +663,19 @@ fn given_json_output_then_total_is_present() {
     let output =
         render_to_string(|buf| write_lang_report_to(buf, &report, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     // report is #[serde(flatten)]ed — total lives at top level
     let total = &parsed["total"];
-    assert_eq!(total["code"].as_u64().unwrap(), 5200);
-    assert_eq!(total["lines"].as_u64().unwrap(), 6460);
-    assert_eq!(total["files"].as_u64().unwrap(), 47);
+    assert_eq!(
+        total["code"].as_u64().expect("must be a JSON integer"),
+        5200
+    );
+    assert_eq!(
+        total["lines"].as_u64().expect("must be a JSON integer"),
+        6460
+    );
+    assert_eq!(total["files"].as_u64().expect("must be a JSON integer"), 47);
 }
 
 // ===========================================================================
@@ -716,9 +740,9 @@ fn given_nested_modules_then_proper_hierarchy() {
     );
 
     // Rows appear in order (src before src/api before src/api/v2)
-    let src_pos = output.find("|src|").unwrap();
-    let api_pos = output.find("|src/api|").unwrap();
-    let v2_pos = output.find("|src/api/v2|").unwrap();
+    let src_pos = output.find("|src|").expect("operation must succeed");
+    let api_pos = output.find("|src/api|").expect("operation must succeed");
+    let v2_pos = output.find("|src/api/v2|").expect("operation must succeed");
     assert!(src_pos < api_pos, "src should appear before src/api");
     assert!(api_pos < v2_pos, "src/api should appear before src/api/v2");
 }
@@ -731,15 +755,19 @@ fn given_module_receipt_when_rendered_as_json_then_has_module_metadata() {
         write_module_report_to(buf, &report, &default_scan_options(), &args)
     });
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    assert_eq!(parsed["mode"].as_str().unwrap(), "module");
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    assert_eq!(
+        parsed["mode"].as_str().expect("must be a JSON string"),
+        "module"
+    );
     // report is #[serde(flatten)]ed — rows live at top level
     assert!(
         parsed.get("rows").is_some(),
         "should have rows (flattened from report)"
     );
 
-    let module_rows = parsed["rows"].as_array().unwrap();
+    let module_rows = parsed["rows"].as_array().expect("must be a JSON array");
     assert_eq!(module_rows.len(), 3, "should have 3 module rows");
 }
 
@@ -751,7 +779,10 @@ fn given_module_receipt_when_rendered_as_tsv_then_tab_separated() {
         write_module_report_to(buf, &report, &default_scan_options(), &args)
     });
 
-    let header = output.lines().next().unwrap();
+    let header = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert!(
         header.starts_with("Module\t"),
         "TSV header should start with Module"
@@ -796,9 +827,10 @@ fn given_export_jsonl_with_meta_then_first_line_is_meta() {
         .lines()
         .next()
         .expect("should have at least one line");
-    let parsed: serde_json::Value = serde_json::from_str(first_line).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(first_line).expect("operation must succeed");
     assert_eq!(
-        parsed["type"].as_str().unwrap(),
+        parsed["type"].as_str().expect("must be a JSON string"),
         "meta",
         "first JSONL line should be meta"
     );
@@ -817,9 +849,9 @@ fn given_export_jsonl_then_data_rows_have_type_row() {
 
     // Skip meta line, check data rows
     for line in output.lines().skip(1) {
-        let parsed: serde_json::Value = serde_json::from_str(line).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(line).expect("operation must succeed");
         assert_eq!(
-            parsed["type"].as_str().unwrap(),
+            parsed["type"].as_str().expect("must be a JSON string"),
             "row",
             "non-meta lines should have type=row"
         );
@@ -890,7 +922,12 @@ fn given_export_csv_then_consistent_column_count() {
     let args = export_args(ExportFormat::Csv);
     let output = render_to_string(|buf| write_export_csv_to(buf, &data, &args));
 
-    let expected = output.lines().next().unwrap().matches(',').count();
+    let expected = output
+        .lines()
+        .next()
+        .expect("output must have at least one line")
+        .matches(',')
+        .count();
     for (i, line) in output.lines().enumerate() {
         assert_eq!(
             line.matches(',').count(),
@@ -911,7 +948,8 @@ fn given_export_json_with_meta_then_has_envelope() {
     let output =
         render_to_string(|buf| write_export_json_to(buf, &data, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(
         parsed.get("schema_version").is_some(),
         "should have schema_version"
@@ -931,7 +969,8 @@ fn given_export_json_then_data_rows_are_array() {
     let output =
         render_to_string(|buf| write_export_json_to(buf, &data, &default_scan_options(), &args));
 
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     // data is #[serde(flatten)]ed — rows live at top level
     let rows = parsed["rows"]
         .as_array()

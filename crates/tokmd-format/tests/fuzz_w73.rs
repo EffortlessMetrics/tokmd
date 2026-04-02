@@ -23,7 +23,7 @@ use tokmd_types::{
 // ---------------------------------------------------------------------------
 
 fn arb_unicode_string() -> impl Strategy<Value = String> {
-    prop::string::string_regex(".{0,100}").unwrap()
+    prop::string::string_regex(".{0,100}").expect("operation must succeed")
 }
 
 fn arb_lang_row_unicode() -> impl Strategy<Value = LangRow> {

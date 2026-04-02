@@ -68,8 +68,9 @@ fn markdown_contains_header_markers() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Md);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.contains("|Lang|"), "should contain |Lang| header");
     assert!(output.contains("|---|"), "should contain separator row");
@@ -89,8 +90,9 @@ fn markdown_without_files_omits_files_column() {
     let mut args = lang_args(TableFormat::Md);
     args.files = false;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(
         !output.contains("|Files|"),
@@ -108,8 +110,9 @@ fn tsv_has_tab_separators() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Tsv);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.contains('\t'), "TSV output must contain tabs");
     // Header should be tab-separated
@@ -133,15 +136,17 @@ fn json_contains_schema_version() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(
         output.contains("\"schema_version\""),
         "JSON output must contain schema_version key"
     );
     // Parse and verify the value
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert_eq!(json["schema_version"], 2);
 }
 
@@ -154,9 +159,11 @@ fn json_contains_mode_field() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
     assert_eq!(json["mode"], "lang");
 }
@@ -170,8 +177,9 @@ fn markdown_contains_data_values() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Md);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.contains("Rust"), "should contain language name Rust");
     assert!(output.contains("500"), "should contain code count 500");
@@ -190,8 +198,9 @@ fn tsv_total_row_present() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Tsv);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.contains("Total\t"), "TSV should have a Total row");
 }
@@ -205,9 +214,11 @@ fn json_includes_tool_info() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
     assert_eq!(json["tool"]["name"], "tokmd");
     assert!(json["tool"]["version"].is_string());
@@ -222,8 +233,9 @@ fn markdown_line_count() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Md);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let line_count = output.lines().count();
     // header + separator + 2 data rows + total = 5
@@ -242,10 +254,12 @@ fn json_rows_length_matches() {
     let report = sample_lang_report(true);
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
-    let rows = json["rows"].as_array().unwrap();
+    let rows = json["rows"].as_array().expect("must be a JSON array");
     assert_eq!(rows.len(), 2, "should have 2 language rows");
 }

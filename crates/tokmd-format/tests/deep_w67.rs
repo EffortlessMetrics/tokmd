@@ -190,7 +190,8 @@ fn lang_md_without_files_header() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|Lang|Code|Lines|Bytes|Tokens|"));
     assert!(!output.contains("|Files|"));
@@ -202,7 +203,8 @@ fn lang_md_with_files_header() {
         let report = sample_lang_report(true);
         let mut args = default_lang_args(TableFormat::Md);
         args.files = true;
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|"));
 }
@@ -212,7 +214,8 @@ fn lang_md_contains_rust_row() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|Rust|1000|1200|50000|2500|"));
 }
@@ -222,7 +225,8 @@ fn lang_md_contains_total_row() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|**Total**|1050|1260|51000|2625|"));
 }
@@ -232,7 +236,8 @@ fn lang_md_has_separator_row() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|---|---:|---:|---:|---:|"));
 }
@@ -246,7 +251,8 @@ fn lang_tsv_tab_separated_header() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Tsv);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.starts_with("Lang\tCode\tLines\tBytes\tTokens\n"));
 }
@@ -256,7 +262,8 @@ fn lang_tsv_rows_use_tabs() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Tsv);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("Rust\t1000\t1200\t50000\t2500"));
 }
@@ -267,7 +274,8 @@ fn lang_tsv_with_files_has_extra_columns() {
         let report = sample_lang_report(true);
         let mut args = default_lang_args(TableFormat::Tsv);
         args.files = true;
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.starts_with("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
 }
@@ -277,7 +285,8 @@ fn module_tsv_tab_separated() {
     let output = render_to_string(|buf| {
         let report = sample_module_report();
         let args = default_module_args(TableFormat::Tsv);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.starts_with("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n"));
     assert!(output.contains("crates/foo\t800\t950\t8\t40000\t2000\t119"));
@@ -292,7 +301,8 @@ fn lang_json_is_valid_json() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Json);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("valid JSON");
     assert!(parsed.is_object());
@@ -303,9 +313,11 @@ fn lang_json_has_schema_version() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Json);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(parsed["schema_version"].is_number());
 }
 
@@ -314,9 +326,11 @@ fn lang_json_has_rows_field() {
     let output = render_to_string(|buf| {
         let report = sample_lang_report(false);
         let args = default_lang_args(TableFormat::Json);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     // LangReport is #[serde(flatten)]'d so rows appear at top level
     assert!(
         parsed["rows"].is_array(),
@@ -329,7 +343,8 @@ fn module_json_is_valid() {
     let output = render_to_string(|buf| {
         let report = sample_module_report();
         let args = default_module_args(TableFormat::Json);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("valid JSON");
     // ModuleReport is #[serde(flatten)]'d so rows appear at top level
@@ -345,9 +360,12 @@ fn csv_has_header_row() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Csv);
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
-    let first_line = output.lines().next().unwrap();
+    let first_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(
         first_line,
         "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"
@@ -359,7 +377,7 @@ fn csv_row_count_matches_data() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Csv);
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
     // header + 2 data rows
     let line_count = output.lines().count();
@@ -371,7 +389,7 @@ fn csv_contains_file_paths() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Csv);
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
     assert!(output.contains("src/lib.rs"));
     assert!(output.contains("tests/test.rs"));
@@ -386,7 +404,8 @@ fn jsonl_each_line_is_valid_json() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Jsonl);
-        write_export_jsonl_to(buf, &data, &default_scan_options(), &args).unwrap();
+        write_export_jsonl_to(buf, &data, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     for line in output.lines() {
         let _: serde_json::Value = serde_json::from_str(line).expect("each line must be JSON");
@@ -398,9 +417,16 @@ fn jsonl_first_line_is_meta() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Jsonl);
-        write_export_jsonl_to(buf, &data, &default_scan_options(), &args).unwrap();
+        write_export_jsonl_to(buf, &data, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
-    let first: serde_json::Value = serde_json::from_str(output.lines().next().unwrap()).unwrap();
+    let first: serde_json::Value = serde_json::from_str(
+        output
+            .lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert_eq!(first["type"], "meta");
 }
 
@@ -409,10 +435,11 @@ fn jsonl_data_rows_have_type_row() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Jsonl);
-        write_export_jsonl_to(buf, &data, &default_scan_options(), &args).unwrap();
+        write_export_jsonl_to(buf, &data, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     for line in output.lines().skip(1) {
-        let v: serde_json::Value = serde_json::from_str(line).unwrap();
+        let v: serde_json::Value = serde_json::from_str(line).expect("operation must succeed");
         assert_eq!(v["type"], "row");
     }
 }
@@ -426,7 +453,8 @@ fn json_export_is_valid() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Json);
-        write_export_json_to(buf, &data, &default_scan_options(), &args).unwrap();
+        write_export_json_to(buf, &data, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("valid JSON");
     // ExportData is #[serde(flatten)]'d so rows appear at top level
@@ -438,9 +466,11 @@ fn json_export_has_schema_version() {
     let output = render_to_string(|buf| {
         let data = sample_export_data();
         let args = default_export_args(ExportFormat::Json);
-        write_export_json_to(buf, &data, &default_scan_options(), &args).unwrap();
+        write_export_json_to(buf, &data, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
-    let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(parsed["schema_version"].is_number());
 }
 
@@ -466,7 +496,8 @@ fn empty_lang_report_renders_without_panic() {
     };
     let output = render_to_string(|buf| {
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|**Total**|0|0|0|0|"));
 }
@@ -497,7 +528,8 @@ fn single_row_lang_report() {
     };
     let output = render_to_string(|buf| {
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|Go|42|50|200|50|"));
 }
@@ -512,7 +544,7 @@ fn empty_export_csv() {
     };
     let output = render_to_string(|buf| {
         let args = default_export_args(ExportFormat::Csv);
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
     // Only header line
     assert_eq!(output.lines().count(), 1);
@@ -537,7 +569,8 @@ fn empty_module_report_renders() {
     };
     let output = render_to_string(|buf| {
         let args = default_module_args(TableFormat::Md);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|**Total**|0|0|0|0|0|0|"));
 }
@@ -572,7 +605,8 @@ fn unicode_lang_name_in_md() {
     };
     let output = render_to_string(|buf| {
         let args = default_lang_args(TableFormat::Md);
-        write_lang_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_lang_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|C++|100|120|5000|250|"));
 }
@@ -604,7 +638,8 @@ fn special_chars_in_module_name() {
     };
     let output = render_to_string(|buf| {
         let args = default_module_args(TableFormat::Tsv);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("crates/my-lib\t50\t60\t1\t2000\t100\t60"));
 }
@@ -619,10 +654,10 @@ fn lang_md_deterministic() {
     let global = default_scan_options();
     let args = default_lang_args(TableFormat::Md);
     let out1 = render_to_string(|buf| {
-        write_lang_report_to(buf, &report, &global, &args).unwrap();
+        write_lang_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     let out2 = render_to_string(|buf| {
-        write_lang_report_to(buf, &report, &global, &args).unwrap();
+        write_lang_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     assert_eq!(out1, out2, "same input must produce identical output");
 }
@@ -633,10 +668,10 @@ fn lang_tsv_deterministic() {
     let global = default_scan_options();
     let args = default_lang_args(TableFormat::Tsv);
     let out1 = render_to_string(|buf| {
-        write_lang_report_to(buf, &report, &global, &args).unwrap();
+        write_lang_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     let out2 = render_to_string(|buf| {
-        write_lang_report_to(buf, &report, &global, &args).unwrap();
+        write_lang_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     assert_eq!(out1, out2);
 }
@@ -646,10 +681,10 @@ fn csv_deterministic() {
     let data = sample_export_data();
     let args = default_export_args(ExportFormat::Csv);
     let out1 = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
     let out2 = render_to_string(|buf| {
-        write_export_csv_to(buf, &data, &args).unwrap();
+        write_export_csv_to(buf, &data, &args).expect("operation must succeed");
     });
     assert_eq!(out1, out2);
 }
@@ -660,10 +695,10 @@ fn module_md_deterministic() {
     let global = default_scan_options();
     let args = default_module_args(TableFormat::Md);
     let out1 = render_to_string(|buf| {
-        write_module_report_to(buf, &report, &global, &args).unwrap();
+        write_module_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     let out2 = render_to_string(|buf| {
-        write_module_report_to(buf, &report, &global, &args).unwrap();
+        write_module_report_to(buf, &report, &global, &args).expect("operation must succeed");
     });
     assert_eq!(out1, out2);
 }
@@ -677,7 +712,8 @@ fn module_md_has_correct_header() {
     let output = render_to_string(|buf| {
         let report = sample_module_report();
         let args = default_module_args(TableFormat::Md);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|Module|Code|Lines|Files|Bytes|Tokens|Avg|"));
 }
@@ -687,7 +723,8 @@ fn module_md_contains_data_rows() {
     let output = render_to_string(|buf| {
         let report = sample_module_report();
         let args = default_module_args(TableFormat::Md);
-        write_module_report_to(buf, &report, &default_scan_options(), &args).unwrap();
+        write_module_report_to(buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
     });
     assert!(output.contains("|crates/foo|800|950|8|40000|2000|119|"));
     assert!(output.contains("|crates/bar|200|250|2|10000|500|125|"));

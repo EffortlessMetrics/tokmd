@@ -180,35 +180,37 @@ fn sample_file_row(path: &str, lang: &str, code: usize) -> FileRow {
 
 fn render_lang(report: &LangReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, report, &globals(), &lang_args(format)).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_lang_report_to(&mut buf, report, &globals(), &lang_args(format))
+        .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_module(report: &ModuleReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, report, &globals(), &module_args(format)).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_module_report_to(&mut buf, report, &globals(), &module_args(format))
+        .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_export_csv(data: &ExportData) -> String {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, data, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_export_csv_to(&mut buf, data, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_export_jsonl(data: &ExportData) -> String {
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
-    write_export_jsonl_to(&mut buf, data, &globals(), &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_export_jsonl_to(&mut buf, data, &globals(), &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_export_json(data: &ExportData) -> String {
     let args = export_args(ExportFormat::Json);
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, data, &globals(), &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_export_json_to(&mut buf, data, &globals(), &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 // ============================================================================
@@ -233,8 +235,8 @@ fn snapshot_lang_md_without_files() {
     let mut args = lang_args(TableFormat::Md);
     args.files = false;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &globals(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &globals(), &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 #[test]
@@ -260,7 +262,10 @@ fn snapshot_lang_tsv_multi_row() {
 fn lang_tsv_has_tab_separated_header() {
     let report = lang_report(vec![rust_row(100)], true);
     let output = render_lang(&report, TableFormat::Tsv);
-    let first_line = output.lines().next().unwrap();
+    let first_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert!(first_line.contains('\t'));
     assert!(first_line.contains("Lang"));
     assert!(first_line.contains("Code"));
@@ -299,7 +304,7 @@ fn module_tsv_empty_rows() {
 fn lang_json_valid_and_has_schema_version() {
     let report = lang_report(vec![rust_row(500)], true);
     let output = render_lang(&report, TableFormat::Json);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(v.get("schema_version").is_some());
     assert_eq!(v["mode"], "lang");
 }
@@ -308,7 +313,8 @@ fn lang_json_valid_and_has_schema_version() {
 fn snapshot_lang_json_single_row() {
     let report = lang_report(vec![rust_row(250)], true);
     let output = render_lang(&report, TableFormat::Json);
-    let mut v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let mut v: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0-test");
     insta::assert_json_snapshot!(v);
@@ -318,7 +324,7 @@ fn snapshot_lang_json_single_row() {
 fn module_json_valid_and_has_schema_version() {
     let report = module_report(vec![sample_module_row("src", 300)]);
     let output = render_module(&report, TableFormat::Json);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(v.get("schema_version").is_some());
     assert_eq!(v["mode"], "module");
 }
@@ -327,8 +333,8 @@ fn module_json_valid_and_has_schema_version() {
 fn lang_json_empty_rows() {
     let report = lang_report(vec![], true);
     let output = render_lang(&report, TableFormat::Json);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    let rows = v["rows"].as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    let rows = v["rows"].as_array().expect("must be a JSON array");
     assert!(rows.is_empty());
 }
 
@@ -346,9 +352,9 @@ fn snapshot_export_jsonl_multi_file() {
     // Stabilise dynamic fields
     let lines: Vec<&str> = output.lines().collect();
     assert!(lines.len() >= 3, "meta + 2 rows");
-    let meta: serde_json::Value = serde_json::from_str(lines[0]).unwrap();
+    let meta: serde_json::Value = serde_json::from_str(lines[0]).expect("operation must succeed");
     assert_eq!(meta["type"], "meta");
-    let row1: serde_json::Value = serde_json::from_str(lines[1]).unwrap();
+    let row1: serde_json::Value = serde_json::from_str(lines[1]).expect("operation must succeed");
     assert_eq!(row1["type"], "row");
 }
 
@@ -378,7 +384,10 @@ fn snapshot_export_csv_multi_file() {
 fn export_csv_has_correct_header() {
     let data = export_data(vec![sample_file_row("a.rs", "Rust", 10)]);
     let output = render_export_csv(&data);
-    let header = output.lines().next().unwrap();
+    let header = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert!(header.contains("path"));
     assert!(header.contains("module"));
     assert!(header.contains("lang"));
@@ -402,10 +411,10 @@ fn export_csv_empty_rows() {
 fn export_json_valid_with_meta() {
     let data = export_data(vec![sample_file_row("src/lib.rs", "Rust", 200)]);
     let output = render_export_json(&data);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(v.get("schema_version").is_some());
     assert_eq!(v["mode"], "export");
-    let rows = v["rows"].as_array().unwrap();
+    let rows = v["rows"].as_array().expect("must be a JSON array");
     assert_eq!(rows.len(), 1);
 }
 
@@ -427,8 +436,8 @@ fn snapshot_cyclonedx_multi_file() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("2024-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 #[test]
@@ -442,10 +451,10 @@ fn cyclonedx_empty_rows() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("2024-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    let components = v["components"].as_array().unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    let components = v["components"].as_array().expect("must be a JSON array");
     assert!(components.is_empty());
 }
 
@@ -494,8 +503,8 @@ fn diff_json_receipt_has_schema_version() {
     let rows = compute_diff_rows(&from, &to);
     let totals = compute_diff_totals(&rows);
     let receipt = create_diff_receipt("v1", "v2", rows, totals);
-    let json = serde_json::to_string(&receipt).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let v: serde_json::Value = serde_json::from_str(&json).expect("must parse valid JSON");
     assert!(v.get("schema_version").is_some());
 }
 
@@ -680,8 +689,10 @@ fn special_chars_unicode_lang_json() {
     };
     let report = lang_report(vec![row], true);
     let output = render_lang(&report, TableFormat::Json);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    let lang = v["rows"][0]["lang"].as_str().unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    let lang = v["rows"][0]["lang"]
+        .as_str()
+        .expect("must be a JSON string");
     assert_eq!(lang, "日本語");
 }
 
@@ -696,8 +707,8 @@ fn snapshot_lang_md_top1() {
     let mut args = lang_args(TableFormat::Md);
     args.top = 1;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &globals(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &globals(), &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 #[test]
@@ -735,7 +746,7 @@ fn children_mode_in_json_envelope() {
     let mut report = lang_report(rows, true);
     report.children = ChildrenMode::Separate;
     let output = render_lang(&report, TableFormat::Json);
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert_eq!(v["args"]["children"], "separate");
 }
 
@@ -746,9 +757,9 @@ fn children_include_mode_in_module_json() {
     let mut args = module_args(TableFormat::Json);
     args.children = ChildIncludeMode::ParentsOnly;
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &globals(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    write_module_report_to(&mut buf, &report, &globals(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert_eq!(v["args"]["children"], "parents-only");
 }
 
@@ -795,7 +806,10 @@ fn diff_language_removed() {
     let from = lang_report(vec![rust_row(500), python_row(200)], true);
     let to = lang_report(vec![rust_row(600)], true);
     let rows = compute_diff_rows(&from, &to);
-    let python_row = rows.iter().find(|r| r.lang == "Python").unwrap();
+    let python_row = rows
+        .iter()
+        .find(|r| r.lang == "Python")
+        .expect("operation must succeed");
     assert_eq!(python_row.new_code, 0);
     assert!(python_row.delta_code < 0);
 }
@@ -833,7 +847,7 @@ fn export_csv_redact_paths() {
     let mut args = export_args(ExportFormat::Csv);
     args.redact = RedactMode::Paths;
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(!output.contains("src/secret.rs"), "path should be redacted");
 }

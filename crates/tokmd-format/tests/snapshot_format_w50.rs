@@ -222,8 +222,9 @@ fn snapshot_lang_md_five_languages() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 2. Module with nested modules (Markdown) ─────────────────────────
@@ -240,8 +241,9 @@ fn snapshot_module_md_nested() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_module_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 3. TSV output for lang ───────────────────────────────────────────
@@ -257,8 +259,9 @@ fn snapshot_lang_tsv_five_languages() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 4. Export CSV header line ────────────────────────────────────────
@@ -280,8 +283,8 @@ fn snapshot_export_csv_header() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 5. JSON envelope with metadata ───────────────────────────────────
@@ -303,9 +306,10 @@ fn snapshot_export_json_envelope() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, &data, &default_scan_options(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_export_json_to(&mut buf, &data, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     insta::assert_json_snapshot!(v);
 }
 
@@ -322,8 +326,9 @@ fn snapshot_lang_md_top3_with_other() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 7. JSONL export ──────────────────────────────────────────────────
@@ -345,8 +350,9 @@ fn snapshot_export_jsonl() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_jsonl_to(&mut buf, &data, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_export_jsonl_to(&mut buf, &data, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 8. Module TSV output ─────────────────────────────────────────────
@@ -363,8 +369,9 @@ fn snapshot_module_tsv_nested() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_module_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 9. Module JSON output ────────────────────────────────────────────
@@ -381,9 +388,10 @@ fn snapshot_module_json_nested() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_module_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0-test");
     insta::assert_json_snapshot!(v);
@@ -468,8 +476,9 @@ fn snapshot_lang_md_no_files() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── 12. Export CSV with min_code filter ──────────────────────────────
@@ -491,6 +500,6 @@ fn snapshot_export_csv_min_code() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }

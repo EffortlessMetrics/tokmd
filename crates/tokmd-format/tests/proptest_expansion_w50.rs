@@ -224,8 +224,8 @@ proptest! {
         let global = default_scan_options();
         let args = default_lang_args(TableFormat::Md);
         let mut buf = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         // Markdown table always starts with a header row and separator
         prop_assert!(output.starts_with('|'));
         prop_assert!(output.contains("|---|"));
@@ -236,8 +236,8 @@ proptest! {
         let global = default_scan_options();
         let args = default_module_args(TableFormat::Md);
         let mut buf = Vec::new();
-        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         prop_assert!(output.starts_with('|'));
         prop_assert!(output.contains("|---|"));
     }
@@ -269,8 +269,8 @@ proptest! {
         let global = default_scan_options();
         let args = default_lang_args(TableFormat::Tsv);
         let mut buf = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
             let header_cols = lines[0].split('\t').count();
@@ -290,8 +290,8 @@ proptest! {
         let global = default_scan_options();
         let args = default_module_args(TableFormat::Tsv);
         let mut buf = Vec::new();
-        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
             let header_cols = lines[0].split('\t').count();
@@ -317,9 +317,9 @@ proptest! {
         let global = default_scan_options();
         let args = default_lang_args(TableFormat::Json);
         let mut buf = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+        let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
         prop_assert!(parsed.is_object());
         prop_assert!(parsed.get("schema_version").is_some());
     }
@@ -329,9 +329,9 @@ proptest! {
         let global = default_scan_options();
         let args = default_module_args(TableFormat::Json);
         let mut buf = Vec::new();
-        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+        let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
         prop_assert!(parsed.is_object());
         prop_assert!(parsed.get("schema_version").is_some());
     }
@@ -341,9 +341,9 @@ proptest! {
         let global = default_scan_options();
         let args = default_lang_args(TableFormat::Json);
         let mut buf = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+        let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
         // Row count in JSON must match input
         if let Some(rows) = parsed.get("rows").and_then(|v| v.as_array()) {
             prop_assert_eq!(rows.len(), report.rows.len());
@@ -355,9 +355,9 @@ proptest! {
         let global = default_scan_options();
         let args = default_module_args(TableFormat::Json);
         let mut buf = Vec::new();
-        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+        let parsed: serde_json::Value = serde_json::from_str(output.trim()).expect("must parse valid JSON");
         if let Some(rows) = parsed.get("rows").and_then(|v| v.as_array()) {
             prop_assert_eq!(rows.len(), report.rows.len());
         }
@@ -371,8 +371,8 @@ proptest! {
 
     #[test]
     fn export_data_json_roundtrip(data in arb_export_data()) {
-        let json = serde_json::to_string(&data).unwrap();
-        let round: ExportData = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&data).expect("operation must succeed");
+        let round: ExportData = serde_json::from_str(&json).expect("must parse valid JSON");
         prop_assert_eq!(round.rows.len(), data.rows.len());
         prop_assert_eq!(round.module_roots, data.module_roots);
         prop_assert_eq!(round.module_depth, data.module_depth);
@@ -380,22 +380,22 @@ proptest! {
 
     #[test]
     fn file_row_json_roundtrip(row in arb_file_row()) {
-        let json = serde_json::to_string(&row).unwrap();
-        let round: FileRow = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&row).expect("operation must succeed");
+        let round: FileRow = serde_json::from_str(&json).expect("must parse valid JSON");
         prop_assert_eq!(round, row);
     }
 
     #[test]
     fn lang_row_json_roundtrip(row in arb_lang_row()) {
-        let json = serde_json::to_string(&row).unwrap();
-        let round: LangRow = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&row).expect("operation must succeed");
+        let round: LangRow = serde_json::from_str(&json).expect("must parse valid JSON");
         prop_assert_eq!(round, row);
     }
 
     #[test]
     fn module_row_json_roundtrip(row in arb_module_row()) {
-        let json = serde_json::to_string(&row).unwrap();
-        let round: ModuleRow = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&row).expect("operation must succeed");
+        let round: ModuleRow = serde_json::from_str(&json).expect("must parse valid JSON");
         prop_assert_eq!(round, row);
     }
 }

@@ -104,23 +104,23 @@ fn render_lang(report: &LangReport, format: TableFormat) -> String {
     let global = default_global();
     let args = lang_args(format);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, report, &global, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_lang_report_to(&mut buf, report, &global, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_module(report: &ModuleReport, format: TableFormat) -> String {
     let global = default_global();
     let args = module_args(format);
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, report, &global, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_module_report_to(&mut buf, report, &global, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_csv(export: &ExportData) -> String {
     let args = export_args_csv();
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, export, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_export_csv_to(&mut buf, export, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn two_lang_rows() -> Vec<LangRow> {
@@ -295,8 +295,8 @@ fn lang_md_tie_break_preserves_input_order() {
     ];
     let report = lang_report_with_rows(rows, true);
     let output = render_lang(&report, TableFormat::Md);
-    let alpha_pos = output.find("Alpha").unwrap();
-    let beta_pos = output.find("Beta").unwrap();
+    let alpha_pos = output.find("Alpha").expect("operation must succeed");
+    let beta_pos = output.find("Beta").expect("operation must succeed");
     assert!(alpha_pos < beta_pos, "Alpha should appear before Beta");
 }
 
@@ -324,8 +324,8 @@ fn lang_tsv_tie_break_preserves_input_order() {
     ];
     let report = lang_report_with_rows(rows, true);
     let output = render_lang(&report, TableFormat::Tsv);
-    let zebra_pos = output.find("Zebra").unwrap();
-    let apple_pos = output.find("Apple").unwrap();
+    let zebra_pos = output.find("Zebra").expect("operation must succeed");
+    let apple_pos = output.find("Apple").expect("operation must succeed");
     assert!(zebra_pos < apple_pos, "Zebra should appear before Apple");
 }
 
@@ -353,8 +353,8 @@ fn module_md_tie_break_preserves_input_order() {
     ];
     let report = module_report_with_rows(rows);
     let output = render_module(&report, TableFormat::Md);
-    let z_pos = output.find("z_mod").unwrap();
-    let a_pos = output.find("a_mod").unwrap();
+    let z_pos = output.find("z_mod").expect("operation must succeed");
+    let a_pos = output.find("a_mod").expect("operation must succeed");
     assert!(z_pos < a_pos, "z_mod should appear before a_mod");
 }
 
@@ -368,10 +368,11 @@ fn lang_json_top_level_keys_sorted() {
     let global = default_global();
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    let map = json.as_object().unwrap();
+    write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    let map = json.as_object().expect("must be a JSON object");
     let keys: Vec<&String> = map.keys().collect();
     let mut sorted = keys.clone();
     sorted.sort();
@@ -393,10 +394,11 @@ fn module_json_top_level_keys_sorted() {
     let global = default_global();
     let args = module_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
-    let map = json.as_object().unwrap();
+    write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
+    let map = json.as_object().expect("must be a JSON object");
     let keys: Vec<&String> = map.keys().collect();
     let mut sorted = keys.clone();
     sorted.sort();
@@ -409,16 +411,17 @@ fn lang_json_row_keys_sorted() {
     let global = default_global();
     let args = lang_args(TableFormat::Json);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     if let Some(rows) = json
         .get("report")
         .and_then(|r| r.get("rows"))
         .and_then(|v| v.as_array())
     {
         for (i, row) in rows.iter().enumerate() {
-            let map = row.as_object().unwrap();
+            let map = row.as_object().expect("must be a JSON object");
             let keys: Vec<&String> = map.keys().collect();
             let mut sorted = keys.clone();
             sorted.sort();
