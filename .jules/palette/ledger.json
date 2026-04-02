@@ -51,6 +51,19 @@
         "gate"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-02T12:29:54Z",
+      "lane": "scout",
+      "target": "Improve error context in context_pack.rs",
+      "pr_link": null,
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
     }
   ]
 }

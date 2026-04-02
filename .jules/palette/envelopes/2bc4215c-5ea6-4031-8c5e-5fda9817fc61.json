@@ -1,0 +1,8 @@
+{
+  "run_id": "2bc4215c-5ea6-4031-8c5e-5fda9817fc61",
+  "timestamp_utc": "2026-04-02T12:05:48Z",
+  "lane": "scout discovery",
+  "target": "Improve error context in context_pack.rs",
+  "commands": [],
+  "results_summary": []
+}
