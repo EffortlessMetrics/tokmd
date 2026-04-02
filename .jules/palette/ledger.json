@@ -64,6 +64,14 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "run_id": "57275ee4-9594-4e3d-b490-66bb61f70074",
+      "timestamp_utc": "2026-04-02T12:20:59Z",
+      "lane": "scout",
+      "target": "tokmd-analysis-license tests: replace unwrap() with expect()",
+      "status": "PASS",
+      "friction_ids": []
     }
   ]
 }
