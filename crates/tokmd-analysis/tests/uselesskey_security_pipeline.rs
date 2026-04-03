@@ -96,8 +96,7 @@ fn security_preset_detects_uselesskey_generated_private_key() {
     .expect("fixture directory should be created");
 
     let fixture_bytes = include_bytes!("fixtures/generated/private-key.pk8");
-    fs::write(&output_path, fixture_bytes)
-        .expect("rsa fixture bytes should be written");
+    fs::write(&output_path, fixture_bytes).expect("rsa fixture bytes should be written");
 
     let receipt = analyze(
         make_context(dir.path(), export_for_private_key_fixture(relative_path)),

@@ -53,8 +53,7 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     .expect("fixture directory should be created");
 
     let fixture_bytes = include_bytes!("fixtures/generated/private-key.pk8");
-    fs::write(&output_path, fixture_bytes)
-        .expect("rsa fixture bytes should be written");
+    fs::write(&output_path, fixture_bytes).expect("rsa fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];
