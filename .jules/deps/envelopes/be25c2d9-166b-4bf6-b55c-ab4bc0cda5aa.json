@@ -1,0 +1,10 @@
+{
+  "run_id": "be25c2d9-166b-4bf6-b55c-ab4bc0cda5aa",
+  "date": "2026-04-03",
+  "target": "remove uselesskey dev-dependency",
+  "receipts": [{
+  "command": "cargo test -p tokmd-analysis-entropy -p tokmd-analysis",
+  "exit_code": 0,
+  "stdout": "(omitted for brevity, all tests passed)"
+}]
+}
