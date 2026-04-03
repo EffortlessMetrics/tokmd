@@ -1,46 +1,52 @@
 ## 💡 Summary
-Added usage examples as Rust doctests for the four main workflow APIs in `tokmd-core`. This helps library consumers understand how to embed the `lang`, `module`, `export`, `diff`, and `analyze` engines directly.
+Replaced generic `.unwrap()` calls with context-specific `.expect()` messages in `crates/tokmd/tests/json_output.rs` and `crates/tokmd/tests/regression_suite_w52.rs`.
 
-## 🎯 Why / Threat model
-The core library facade lacked executable documentation for its highest-traffic methods. Writing them as doctests ensures they can never silently drift out of sync with the actual API surface.
+## 🎯 Why (user/dev pain)
+During test failures, generic `.unwrap()` calls cause panic messages with no context, forcing developers to look up the exact line of code. Clear `.expect()` messages provide immediate diagnostic context.
 
-## 🔎 Finding (evidence)
-- `crates/tokmd-core/src/lib.rs` lacked `/// ```rust` blocks for its public `*_workflow` functions.
+## 🔎 Evidence (before/after)
+- `crates/tokmd/tests/json_output.rs`
+- `crates/tokmd/tests/regression_suite_w52.rs`
+- Before: `let rows = json["rows"].as_array().unwrap();`
+- After: `let rows = json["rows"].as_array().expect("output JSON should contain a 'rows' array");`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add standard `#[test]` unit tests that happen to be readable.
-- This is fine, but doesn't show up in `rustdoc` or IDE hover cards.
+- What it is: Context-specific `.expect()` replacements in test files.
+- Why it fits this repo: Aligns with `.jules/palette/` DX focus on diagnostic improvements and memory guidelines explicitly stating to use specific context for `.unwrap()` replacements.
+- Trade-offs: Minor increase in verbosity for significant test DX improvement.
 
 ### Option B
-- Write inline `/// ```rust` doctests on the public functions.
-- Why it fits: The `tokmd-core` crate is a library intended for embedding, and users will look directly at the Rustdoc for these functions.
-- Trade-offs: Doctests run sequentially by default, but these are small and fast.
+- What it is: Ignore `.unwrap()` in tests and look for CLI error messages.
+- When to choose it instead: If the test suite already has excellent DX.
+- Trade-offs: Leaves low-hanging fruit in the test suite unfixed.
 
 ## ✅ Decision
-Option B. We want the examples visible directly on the trait/function definitions.
+Option A. It's an easy-to-review SRP win that directly improves test suite diagnostics.
 
 ## 🧱 Changes made (SRP)
-- Added doctests to `module_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `export_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `diff_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `analyze_workflow` in `crates/tokmd-core/src/lib.rs`.
+- `crates/tokmd/tests/json_output.rs`: Replaced 3 `.unwrap()` calls with `.expect()`.
+- `crates/tokmd/tests/regression_suite_w52.rs`: Replaced 17 `.unwrap()` calls with `.expect()`.
 
 ## 🧪 Verification receipts
-```
-cargo test -p tokmd-core --doc --all-features
-```
+- `cargo fmt -- --check`: PASS
+- `cargo clippy -p tokmd -- -D warnings`: PASS
+- `cargo test -p tokmd`: PASS
 
 ## 🧭 Telemetry
-- Change shape: Documentation additions.
-- Blast radius: Rustdoc and `cargo test --doc` execution.
-- Risk class: Very low. Only comments were touched.
-- Rollback: Revert the PR.
-- Merge-confidence gates: `cargo build`, `cargo fmt`, `cargo clippy`, `cargo test -p tokmd-core`.
+- Change shape: Refactor
+- Blast radius: Only test files. No production code changes.
+- Risk class: Low.
+- Rollback: `git revert`
+- Merge-confidence gates: fmt, clippy, test.
 
 ## 🗂️ .jules updates
-- Wrote run envelope to `.jules/docs/envelopes/`.
-- Appended run ID to `.jules/docs/ledger.json`.
+- Appended run envelope to `.jules/palette/ledger.json`.
+- Logged run in `.jules/palette/runs/`.
+- Created note in `.jules/palette/notes/` about `.expect()` vs `.unwrap()` pattern.
 
 ## 📝 Notes (freeform)
-All doctests are self-contained and use the `current_dir()` defaults to avoid needing test fixtures.
+N/A
+
+## 🔜 Follow-ups
+None.
