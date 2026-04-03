@@ -1,0 +1,69 @@
+ Downloading crates ...
+  Downloaded unindent v0.2.4
+  Downloaded pyo3-macros v0.24.2
+  Downloaded target-lexicon v0.13.5
+  Downloaded indoc v2.0.7
+  Downloaded pyo3-build-config v0.24.2
+  Downloaded pyo3 v0.24.2
+  Downloaded memoffset v0.9.1
+  Downloaded pyo3-ffi v0.24.2
+  Downloaded pyo3-macros-backend v0.24.2
+    Checking tokmd-types v1.9.0 (/app/crates/tokmd-types)
+    Checking tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+    Checking tokmd-content v1.9.0 (/app/crates/tokmd-content)
+    Checking tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+    Checking tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+    Checking tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+   Compiling target-lexicon v0.13.5
+   Compiling once_cell v1.21.4
+   Compiling memoffset v0.9.1
+   Compiling indoc v2.0.7
+    Checking unindent v0.2.4
+    Checking tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+   Compiling pyo3-build-config v0.24.2
+    Checking xtask v1.9.0 (/app/xtask)
+    Checking tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+    Checking tokmd-git v1.9.0 (/app/crates/tokmd-git)
+    Checking tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+    Checking tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+    Checking tokmd-model v1.9.0 (/app/crates/tokmd-model)
+    Checking tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+    Checking tokmd-config v1.9.0 (/app/crates/tokmd-config)
+    Checking tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+    Checking tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+   Compiling pyo3-ffi v0.24.2
+    Checking tokmd-format v1.9.0 (/app/crates/tokmd-format)
+   Compiling pyo3-macros-backend v0.24.2
+   Compiling pyo3 v0.24.2
+    Checking tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+    Checking tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+    Checking tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+    Checking tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+    Checking tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+    Checking tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+    Checking tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+    Checking tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+    Checking tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+    Checking tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+    Checking tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+    Checking tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+    Checking tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+    Checking tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+    Checking tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+    Checking tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+    Checking tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+    Checking tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+    Checking tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+    Checking tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+    Checking tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+    Checking tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+    Checking tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+    Checking tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+    Checking tokmd-core v1.9.0 (/app/crates/tokmd-core)
+    Checking tokmd v1.9.0 (/app/crates/tokmd)
+   Compiling pyo3-macros v0.24.2
+    Checking tokmd-fuzz v0.0.0 (/app/fuzz)
+    Checking tokmd-node v1.9.0 (/app/crates/tokmd-node)
+    Checking tokmd-wasm v1.9.0 (/app/crates/tokmd-wasm)
+    Checking tokmd-python v1.9.0 (/app/crates/tokmd-python)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.95s

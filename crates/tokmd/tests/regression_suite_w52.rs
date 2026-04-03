@@ -129,7 +129,10 @@ fn all_receipts_include_tool_version() {
         let version = &json["tool"]["version"];
         assert!(version.is_string(), "{name} missing tool.version");
         assert!(
-            !version.as_str().expect("version should be a string").is_empty(),
+            !version
+                .as_str()
+                .expect("version should be a string")
+                .is_empty(),
             "{name} tool.version is empty"
         );
     }
@@ -162,7 +165,12 @@ fn empty_dir_produces_valid_receipt_with_zero_values() {
     let json: Value = serde_json::from_slice(&output.stdout).expect("not valid JSON");
     assert_eq!(json["total"]["code"], 0);
     assert_eq!(json["total"]["files"], 0);
-    assert!(json["rows"].as_array().expect("output JSON should contain a 'rows' array").is_empty());
+    assert!(
+        json["rows"]
+            .as_array()
+            .expect("output JSON should contain a 'rows' array")
+            .is_empty()
+    );
 }
 
 // ===========================================================================
@@ -288,8 +296,12 @@ fn export_rows_sorted_by_code_desc_then_path() {
     let json = run_json(&["export", "--format", "json"]);
     let rows = json["rows"].as_array().expect("rows is not an array");
     for window in rows.windows(2) {
-        let code_a = window[0]["code"].as_u64().expect("code should be a valid u64");
-        let code_b = window[1]["code"].as_u64().expect("code should be a valid u64");
+        let code_a = window[0]["code"]
+            .as_u64()
+            .expect("code should be a valid u64");
+        let code_b = window[1]["code"]
+            .as_u64()
+            .expect("code should be a valid u64");
         let path_a = window[0]["path"].as_str().expect("path should be a string");
         let path_b = window[1]["path"].as_str().expect("path should be a string");
         assert!(
@@ -339,7 +351,10 @@ fn file_lines_gte_code_plus_comments_plus_blanks() {
 #[test]
 fn no_negative_values_in_any_numeric_field() {
     let json = run_json(&["lang", "--format", "json"]);
-    for row in json["rows"].as_array().expect("output JSON should contain a 'rows' array") {
+    for row in json["rows"]
+        .as_array()
+        .expect("output JSON should contain a 'rows' array")
+    {
         for field in ["code", "lines", "files", "bytes", "tokens"] {
             assert!(
                 row[field].as_u64().is_some(),
@@ -362,25 +377,36 @@ fn no_negative_values_in_any_numeric_field() {
 fn top_n_other_row_preserves_remaining_totals() {
     // Get full results first
     let full = run_json(&["lang", "--format", "json"]);
-    let full_rows = full["rows"].as_array().expect("full output JSON should contain a 'rows' array");
+    let full_rows = full["rows"]
+        .as_array()
+        .expect("full output JSON should contain a 'rows' array");
     if full_rows.len() <= 1 {
         // Not enough languages to test top-N
         return;
     }
 
     let top = run_json(&["lang", "--format", "json", "--top", "1"]);
-    let top_rows = top["rows"].as_array().expect("top output JSON should contain a 'rows' array");
-    let top_total = top["total"]["code"].as_u64().expect("top total code should be a valid u64");
+    let top_rows = top["rows"]
+        .as_array()
+        .expect("top output JSON should contain a 'rows' array");
+    let top_total = top["total"]["code"]
+        .as_u64()
+        .expect("top total code should be a valid u64");
 
     // Sum of all top rows (including potential "Other") should equal total
-    let top_sum: u64 = top_rows.iter().map(|r| r["code"].as_u64().expect("code should be a valid u64")).sum();
+    let top_sum: u64 = top_rows
+        .iter()
+        .map(|r| r["code"].as_u64().expect("code should be a valid u64"))
+        .sum();
     assert_eq!(
         top_sum, top_total,
         "top-1 rows sum ({top_sum}) != total ({top_total})"
     );
 
     // Total should match full scan total
-    let full_total = full["total"]["code"].as_u64().expect("full total code should be a valid u64");
+    let full_total = full["total"]["code"]
+        .as_u64()
+        .expect("full total code should be a valid u64");
     assert_eq!(top_total, full_total, "top-1 total differs from full total");
 }
 
@@ -448,7 +474,9 @@ fn flatten_puts_report_fields_at_top_level() {
     );
 
     let module = run_json(&["module", "--format", "json"]);
-    let mobj = module.as_object().expect("module output should be a JSON object");
+    let mobj = module
+        .as_object()
+        .expect("module output should be a JSON object");
     assert!(mobj.contains_key("rows"), "module rows not at top level");
     assert!(mobj.contains_key("total"), "module total not at top level");
     assert!(
@@ -457,7 +485,9 @@ fn flatten_puts_report_fields_at_top_level() {
     );
 
     let export = run_json(&["export", "--format", "json"]);
-    let eobj = export.as_object().expect("export output should be a JSON object");
+    let eobj = export
+        .as_object()
+        .expect("export output should be a JSON object");
     assert!(eobj.contains_key("rows"), "export rows not at top level");
     assert!(
         !eobj.contains_key("data"),
