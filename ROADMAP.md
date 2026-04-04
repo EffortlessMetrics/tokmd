@@ -497,15 +497,45 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### Remaining for v1.9.0
 
-- Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface.
-- Add browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling.
-- Expand browser-safe analysis only where the preset can stay rootless and capability-honest.
+- [ ] Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface
+- [ ] **Document WASM limitations explicitly** — Create browser/WASM capability matrix showing which commands/presets are supported, which enrichers are unavailable, and why (rootless constraints, no filesystem access, no git subprocess)
+- [ ] Browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling
+- [ ] Expand browser-safe analysis only where the preset can stay rootless and capability-honest
 
 ### Non-goals for v1.9
 
 - No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
 - No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
 - No mutation testing or other heavy tooling in-browser.
+
+## Between v1.9 and v2.0 — Code Quality Initiative
+
+### Unwrap Burn-down: Zero Panic Goal
+
+_Goal: Eliminate all `.unwrap()` calls from the entire codebase, including tests, achieving true zero panic paths._
+
+**Current state:** 19,462 unwrap() calls (concentrated in tests, CLI, and some library code)  
+**Target state:** Zero unwrap() calls — every fallible operation returns `Result` with proper error propagation
+
+**Scope:**
+- [ ] **Tier 0-1 crates (core libraries)** — Eliminate unwrap from `tokmd-types`, `tokmd-scan`, `tokmd-model`, `tokmd-math`, `tokmd-path` — these must be panic-free
+- [ ] **Tier 2-3 crates (adapters/orchestration)** — Convert unwrap to proper error handling in `tokmd-analysis-*`, `tokmd-format`, `tokmd-walk`
+- [ ] **Tier 4-5 (facades/products)** — CLI and bindings can use `.expect()` with descriptive messages where truly unrecoverable
+- [ ] **Test code** — Replace all `unwrap()` with `?` propagation; tests should return `Result<(), Box<dyn std::error::Error>>`
+- [ ] **Benchmarks and fuzz targets** — Audit for panic paths
+
+**Mechanics:**
+- Enforce via CI lint: `#![deny(clippy::unwrap_used)]` per crate (opt-in, tier-by-tier)
+- Use `anyhow::Context` for error enrichment: `.context("failed to parse config")?`
+- Prefer `expect()` over `unwrap()` during transition, with descriptive "why this shouldn't fail" messages
+- Track progress with `cargo grep unwrap | wc -l` in CI metrics
+
+**Rationale:**
+- Deterministic error handling aligns with tokmd's "receipt-grade" philosophy
+- Panic-free libraries enable panic-free downstream consumers (WASM, FFI, Python/Node)
+- Tests that propagate errors are clearer about what failed
+
+---
 
 ## Future Horizons
 
@@ -564,6 +594,15 @@ _Goal: Extensible enrichers without core changes._
 - WASM plugin interface for custom analyzers
 - Plugin discovery from `~/.tokmd/plugins/`
 - Schema for plugin metadata and capabilities
+
+#### E. Analysis Engine Performance
+
+_Goal: Reduce analysis latency and I/O overhead for large repositories._
+
+- **Enricher parallelization** — Execute independent enrichers concurrently (complexity, imports, content scanning can run in parallel)
+- **Inter-enricher file content caching** — Cache file contents in memory during analysis pass to eliminate redundant reads across enrichers
+- Streaming JSONL output for memory-bounded processing
+- Progress reporting via stderr for long-running analysis
 
 ### v2.1 — Intelligence Features
 
@@ -627,9 +666,11 @@ _Goal: Accurate parsing for precise metrics. This is a significant undertaking r
 
 - `tokmd-treesitter` crate with multi-language AST parsing
 - Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
+- **AST-aware complexity metrics** — Replace keyword-based heuristics with actual control-flow analysis for cyclomatic/cognitive complexity
 - Accurate function boundary detection
 - Nested scope analysis for cognitive complexity
 - Call graph extraction for coupling analysis
+- Precise import resolution (vs. regex-based parsing)
 
 ---
 
