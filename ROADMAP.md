@@ -476,37 +476,103 @@ UX work is explicitly **incremental and non-breaking**:
 
 - The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
 
-## In Progress: v1.9.0 — Browser/WASM Productization
+## In Progress: v1.9.x — Browser/WASM Productization
 
 **Goal:** Finish the browser/WASM product surface around the already-landed in-memory execution path and make the supported browser workflow explicit, repeatable, and capability-honest.
 
-### What has landed so far
+### v1.9.0 — WASM Foundation & Parity
 
-- [x] `tokmd-io-port`, in-memory scan/model/core workflow seams, and lower-tier clap-free boundaries now keep browser/WASM execution honest.
-- [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`.
-- [x] Native-vs-wasm parity coverage now exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
-- [x] `web/runner` now boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
-- [x] Public GitHub repo acquisition now uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
+**Theme:** Core WASM build-out and parity coverage.
 
-### Supported browser-safe surface today
+#### Completed
+- [x] `tokmd-io-port` landed with `ReadFs`, `HostFs`, and `MemFs` host-abstracted file access boundary
+- [x] In-memory scan/model/core workflow seams and lower-tier clap-free boundaries for browser/WASM execution
+- [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`
+- [x] Native-vs-wasm parity coverage for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`
+- [x] `web/runner` boots real `tokmd-wasm` bundle in dedicated worker with capability reporting
+- [x] Public GitHub repo acquisition via browser-safe tree + contents APIs (not zipball)
 
-- Browser/WASM modes: `lang`, `module`, `export`
-- Browser/WASM analyze presets: `receipt`, `estimate`
-- Public repo acquisition strategy: GitHub tree + contents API, not zipball fetch
-- Capability reporting is explicit about unavailable host-backed enrichers and reserved protocol features
+#### v1.9.0 Remaining
+- [ ] **Docs truth pass** — README and architecture docs match shipped browser/WASM surface
+- [ ] **Document WASM limitations explicitly** — Browser/WASM capability matrix (supported commands/presets, unavailable enrichers, rootless constraints)
 
-### Remaining for v1.9.0
+### v1.9.1 — Browser UX Hardening
 
-- [ ] Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface
-- [ ] **Document WASM limitations explicitly** — Create browser/WASM capability matrix showing which commands/presets are supported, which enrichers are unavailable, and why (rootless constraints, no filesystem access, no git subprocess)
-- [ ] Browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling
-- [ ] Expand browser-safe analysis only where the preset can stay rootless and capability-honest
+**Theme:** Production-ready browser experience with guardrails and performance.
 
-### Non-goals for v1.9
+- [ ] **In-browser caching layer** — Cache parsed repo trees and receipt outputs in IndexedDB
+- [ ] **Progress indicators** — Visual progress for large repo ingestion and analysis
+- [ ] **Rate-limit handling** — Exponential backoff for GitHub API limits with user-facing messages
+- [ ] **Authenticated fetch options** — Support for private repos via GitHub token input
+- [ ] **Error boundary hardening** — Graceful degradation when WASM panics or fetch fails
+- [ ] **Mobile viewport optimization** — Responsive layout for phone/tablet usage
 
-- No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
-- No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
-- No mutation testing or other heavy tooling in-browser.
+### v1.9.2 — Analysis Expansion
+
+**Theme:** Expand browser-safe analysis where presets can stay rootless.
+
+- [ ] **Additional analyze presets** — `health`, `supply` presets if they can operate without host-backed enrichers
+- [ ] **Content scanning in-browser** — Entropy detection, TODO/FIXME scanning on in-memory content
+- [ ] **Import graph analysis** — Parse imports from in-memory source (no filesystem needed)
+- [ ] **Badge generation in-browser** — SVG badge rendering client-side
+- [ ] **Export formats** — JSONL, CSV export from browser runner
+
+### v1.9.3 — Integration & Tooling
+
+**Theme:** Developer experience and ecosystem integration.
+
+- [ ] **Embed API** — Documented JS API for embedding tokmd-wasm in other web apps
+- [ ] **npm package publish** — `@tokmd/wasm` or `@tokmd/browser` package
+- [ ] **TypeScript definitions** — Full type coverage for browser API
+- [ ] **vite/webpack integration guide** — Bundler configuration examples
+- [ ] **Playground/sandbox** — Interactive demo site with preset code samples
+
+### v1.9.4 — Advanced Browser Features
+
+**Theme:** Power-user features and enterprise readiness.
+
+- [ ] **Local file drop** — Drag-and-drop local repo analysis (with caveats about .git availability)
+- [ ] **Diff mode** — Compare two GitHub refs in-browser
+- [ ] **Context packing** — `tokmd context` equivalent for LLM prompt assembly
+- [ ] **Offline support** — Service worker for offline capability
+- [ ] **Analytics/telemetry** — Optional usage telemetry (opt-in) to guide future development
+
+### Supported Browser-Safe Surface (v1.9.x)
+
+| Mode | Status | Notes |
+|------|--------|-------|
+| `lang` | ✅ | Full parity with native |
+| `module` | ✅ | Full parity with native |
+| `export` | ✅ | Full parity with native |
+| `analyze receipt` | ✅ | Core derived metrics only |
+| `analyze estimate` | ✅ | COCOMO effort estimation |
+| `analyze health` | 🚧 v1.9.2 | If content scanning lands |
+| `analyze supply` | 🚧 v1.9.2 | If asset detection lands |
+| `badge` | 🚧 v1.9.2 | Client-side SVG generation |
+| `diff` | 🚧 v1.9.4 | Cross-ref comparison |
+| `context` | 🚧 v1.9.4 | LLM context packing |
+
+### Capability Constraints (Documented)
+
+**Unavailable in browser (by design):**
+- Git history analysis (hotspot, churn, coupling) — requires `git log` subprocess
+- Filesystem walking — requires host filesystem access
+- Content scanning that touches disk — requires file reads outside memory
+- Mutation testing, heavy analysis — performance constraints
+
+**Rootless constraints:**
+- All inputs must be provided in-memory or via HTTP fetch
+- No shelling out to external tools
+- Deterministic timestamps (0) instead of system time on bare WASM
+
+### Non-Goals for v1.9.x
+
+- No browser-side git-history metrics (keep as explicit capability miss)
+- No zipball ingestion as primary path (tree+contents is supported)
+- No mutation testing or heavy tooling in-browser
+- No full AST analysis (waits for v3.0 Tree-sitter integration)
+
+[190 more lines in file. Use offset=510 to continue.]
 
 ## Between v1.9 and v2.0 — Code Quality Initiative
 
