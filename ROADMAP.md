@@ -752,9 +752,39 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 
 ---
 
-## v1.12.x — BDD Coverage Initiative
+## v1.12.x — Ambient Churn & Maintenance Release
 
-### v1.12.0 — BDD Scenario Foundation
+_Real-world sprints generate unexpected work: bug fixes, refactors, responding to issues, agent feedback. v1.12.x captures this ambient churn between the focused quality sprints._
+
+### v1.12.0 — Post-Sprint Stabilization
+
+**Goal:** Ship a stable release after the v1.10.x and v1.11.x sprint work, incorporating fixes from real-world usage.
+
+**Expected Ambient Work:**
+- [ ] **Bug fixes from unwrap changes** — Edge cases discovered after removing panic paths
+- [ ] **Performance regressions** — Optimization work sometimes creates new bottlenecks
+- [ ] **Agent feedback integration** — Background agents report issues from the 30+ PRs
+- [ ] **CI/CD hardening** — New lint rules (deny unwrap) may need tuning
+- [ ] **Documentation drift fixes** — Code changes outpace docs, catch-up needed
+- [ ] **Integration issues** — Cross-crate changes reveal coupling problems
+
+**Mechanics:**
+- No new features — stabilization only
+- Fast-follow releases: v1.12.1, v1.12.2 as issues discovered
+- Extended testing period before declaring v1.12.x stable
+- Monitor error telemetry (if any) for new panic sites
+
+**Rationale:**
+- Major refactors (unwrap removal) need bake time
+- Real-world usage surfaces issues synthetic tests miss
+- Gives users a stable release between major quality pushes
+- Acknowledges: sprints are messy, not clean isolated phases
+
+---
+
+## v1.13.x — BDD Coverage Initiative
+
+### v1.13.0 — BDD Scenario Foundation
 
 **Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
 
