@@ -262,7 +262,7 @@ fn progress_double_finish() {
 fn progress_drop_without_finish() {
     let p = Progress::new(false);
     p.set_message("working...");
-    drop(p);
+    let _ = p;
 }
 
 #[test]
@@ -380,7 +380,7 @@ fn progress_bar_double_finish() {
 fn progress_bar_drop_without_finish() {
     let pb = ProgressBarWithEta::new(false, 10, "drop");
     pb.inc_by(3);
-    drop(pb);
+    let _ = pb;
 }
 
 // ---- Multiple progress bars ----

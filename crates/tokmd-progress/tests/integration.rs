@@ -99,7 +99,7 @@ fn noop_spinner_all_methods_are_safe() {
     p.finish_and_clear();
     // double-finish
     p.finish_and_clear();
-    drop(p);
+    let _ = p;
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn noop_bar_all_methods_are_safe() {
     // double-finish
     b.finish_with_message("again");
     b.finish_and_clear();
-    drop(b);
+    let _ = b;
 }
 
 // ── Enabled mode in non-TTY (CI) ──────────────────────────────────────────

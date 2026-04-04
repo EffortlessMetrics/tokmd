@@ -57,7 +57,7 @@ fn spinner_message_after_finish() {
 fn spinner_drop_is_safe() {
     let p = Progress::new(false);
     p.set_message("about to drop");
-    drop(p);
+    let _ = p;
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn spinner_enabled_nontty_does_not_panic() {
 fn spinner_enabled_nontty_drop() {
     let p = Progress::new(true);
     p.set_message("will drop");
-    drop(p);
+    let _ = p;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -187,7 +187,7 @@ fn bar_ops_after_finish() {
 fn bar_drop_is_safe() {
     let b = ProgressBarWithEta::new(false, 10, "t");
     b.inc_by(3);
-    drop(b);
+    let _ = b;
 }
 
 #[test]
@@ -221,7 +221,7 @@ fn bar_enabled_nontty_does_not_panic() {
 fn bar_enabled_nontty_drop() {
     let b = ProgressBarWithEta::new(true, 50, "scan");
     b.inc_by(10);
-    drop(b);
+    let _ = b;
 }
 
 // ═══════════════════════════════════════════════════════════════════════

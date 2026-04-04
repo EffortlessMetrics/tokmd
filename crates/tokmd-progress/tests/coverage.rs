@@ -88,7 +88,7 @@ fn given_many_spinners_when_created_and_dropped_rapidly_then_no_leak() {
     for _ in 0..100 {
         let p = Progress::new(false);
         p.set_message("ephemeral");
-        drop(p);
+        let _ = p;
     }
 }
 
@@ -97,6 +97,6 @@ fn given_many_bars_when_created_and_dropped_rapidly_then_no_leak() {
     for i in 0..100u64 {
         let b = ProgressBarWithEta::new(false, i + 1, "ephemeral");
         b.inc();
-        drop(b);
+        let _ = b;
     }
 }
