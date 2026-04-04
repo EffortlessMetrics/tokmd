@@ -576,7 +576,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 ## v1.10.x — Code Quality Initiative: Unwrap Burn-down
 
-**Unbranded Reality:** Agent infrastructure hardening. The 30+ background agents need panic-free operation to work autonomously. Unwrap removal is reliability engineering for autonomous systems.
+**Why:** Reliability and delegated trust. Panic-free operation is essential for autonomous development workflows — whether tokmd's own 30+ background agents or external consumers delegating software development.
 
 ### v1.10.0 — Unwrap Burn-down Sprint 1
 
@@ -642,7 +642,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.11.x — Dead Code Elimination
 
-**Unbranded Reality:** Agent maintainability. Dead code creates cognitive load for agents navigating the codebase. Clean boundaries help agents generate correct changes autonomously.
+**Why:** Agent maintainability. Clean boundaries and reduced cognitive load enable autonomous agents to navigate the codebase and generate correct changes reliably.
 
 ### v1.11.0 — Dead Code Elimination Sprint
 
@@ -669,7 +669,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.12.x — Dependency Audit and Pruning
 
-**Unbranded Reality:** Agent supply chain security. Agents need predictable, auditable dependencies to generate safe code. Dependency clarity reduces agent confusion about what's available to use.
+**Why:** Supply chain integrity. Predictable, auditable dependencies are essential for secure autonomous workflows.
 
 ### v1.12.0 — Dependency Audit Sprint
 
@@ -696,7 +696,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.13.x — Documentation Completeness
 
-**Unbranded Reality:** Agent context and grounding. Good docs are training data for agents. Module-level docs help agents understand boundaries; API docs help them generate correct calls.
+**Why:** Context and grounding. Comprehensive documentation serves as the contract between humans and agents, enabling reliable autonomous operation.
 
 ### v1.13.0 — Documentation Sprint
 
@@ -724,7 +724,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.14.x — Test Coverage Gap Closure
 
-**Unbranded Reality:** Agent verification infrastructure. High coverage with property tests gives agents confidence to refactor. Mutation testing ensures tests actually catch bugs, not just exist.
+**Why:** Verification infrastructure. High coverage with property tests provides the confidence necessary for autonomous refactoring and development.
 
 ### v1.14.0 — Test Coverage Sprint
 
@@ -751,7 +751,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.15.x — Performance Hot-Path Optimization
 
-**Unbranded Reality:** Agent efficiency and scale. Fast feedback loops let agents iterate quicker. Memory-bounded operations let agents handle larger repos without hitting limits.
+**Why:** Agent efficiency. Fast feedback loops and memory-bounded operations let autonomous systems iterate quickly and handle larger repositories.
 
 ### v1.15.0 — Performance Sprint
 
@@ -839,7 +839,7 @@ _Real-world sprints expose systemic issues. v1.16.x is fundamental quality assur
 
 **Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
 
-**Unbranded Reality:** This enables reliable agent operation — both tokmd's 30+ background agents and external consumers. BDD specs are the contract that lets agents verify behavior without human review.
+**Why:** Reliable agent operation. BDD specs serve as the contract that enables both tokmd's internal agents and external consumers to verify behavior autonomously.
 
 **Scope:******
 - [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
