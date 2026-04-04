@@ -638,11 +638,7 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ---
 
-## v1.11.x — Code Quality Sprints (Ongoing)
-
-_Following the unwrap burn-down, additional code quality initiatives will be staged in 1.11.x and beyond._
-
-Each sprint targets a specific quality dimension with measurable outcomes.
+## v1.11.x — Dead Code Elimination
 
 ### v1.11.0 — Dead Code Elimination Sprint
 
@@ -665,7 +661,11 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - Faster compile times (less code to check)
 - Clearer API boundaries (only exported what is used)
 
-### v1.11.1 — Dependency Audit and Pruning
+---
+
+## v1.12.x — Dependency Audit and Pruning
+
+### v1.12.0 — Dependency Audit Sprint
 
 **Goal:** Audit dependency tree for risk, duplication, and freshness.
 
@@ -686,7 +686,11 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - Build reproducibility (lockfile hygiene)
 - Supply chain risk (understand every dependency)
 
-### v1.11.2 — Documentation Completeness Pass
+---
+
+## v1.13.x — Documentation Completeness
+
+### v1.13.0 — Documentation Sprint
 
 **Goal:** Every public API has rustdoc, every module has module-level docs.
 
@@ -708,7 +712,11 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - API discoverability (rustdoc is the contract)
 - Long-term maintenance (docs explain *why*, not just *what*)
 
-### v1.11.3 — Test Coverage Gap Closure
+---
+
+## v1.14.x — Test Coverage Gap Closure
+
+### v1.14.0 — Test Coverage Sprint
 
 **Goal:** Identify and fill critical test gaps.
 
@@ -729,7 +737,11 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - Bug prevention (edge cases documented as test cases)
 - Release readiness (high coverage = lower risk)
 
-### v1.11.4 — Performance Hot-Path Optimization
+---
+
+## v1.15.x — Performance Hot-Path Optimization
+
+### v1.15.0 — Performance Sprint
 
 **Goal:** Profile and optimize critical paths identified in v1.9.x and v1.10.x work.
 
@@ -752,11 +764,11 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 
 ---
 
-## v1.12.x — Fundamental QA: Operational Hardening
+## v1.16.x — Fundamental QA: Operational Hardening
 
-_Real-world sprints expose systemic issues. v1.12.x isn't bug patches—it's fundamental quality assurance that changes how tokmd operates: reliability patterns, failure modes, and operational guarantees._
+_Real-world sprints expose systemic issues. v1.16.x is fundamental quality assurance that changes how tokmd operates: reliability patterns, failure modes, and operational guarantees._
 
-### v1.12.0 — Panic-Free Architecture Validation
+### v1.16.0 — Panic-Free Architecture Validation
 
 **Goal:** Validate the panic-free guarantees from v1.10.x with systemic testing and hardening.
 
@@ -773,7 +785,7 @@ _Real-world sprints expose systemic issues. v1.12.x isn't bug patches—it's fun
 - Before: All-or-nothing operations
 - After: Partial success with detailed reporting
 
-### v1.12.1 — Determinism Verification
+### v1.16.1 — Determinism Verification
 
 **Goal:** Harden the deterministic guarantees that are tokmd's core contract.
 
@@ -790,7 +802,7 @@ _Real-world sprints expose systemic issues. v1.12.x isn't bug patches—it's fun
 - Before: Platform differences acceptable
 - After: Byte-identical receipts are the standard
 
-### v1.12.2 — Reliability Engineering
+### v1.16.2 — Reliability Engineering
 
 **Goal:** Build operational reliability for production CI/CD usage.
 
@@ -809,13 +821,13 @@ _Real-world sprints expose systemic issues. v1.12.x isn't bug patches—it's fun
 
 ---
 
-## v1.13.x — BDD Coverage Initiative
+## v1.17.x — BDD Coverage Initiative
 
-### v1.13.0 — BDD Scenario Foundation
+### v1.17.0 — BDD Scenario Foundation
 
 **Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
 
-**Scope:**
+**Scope:****
 - [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
 - [ ] **scenario completeness** — All public workflows covered: scan → model → analyze → format
 - [ ] **Gherkin-style specs** — Convert ad-hoc tests to Given/When/Then format where readable
