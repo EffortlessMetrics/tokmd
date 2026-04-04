@@ -750,9 +750,13 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - Cost efficiency (less CPU time in CI)
 - Scalability (can handle larger repos without degradation)
 
-### v1.11.5 — BDD Coverage Sprint
+---
 
-**Goal:** Expand behavior-driven development test coverage across all analysis crates.
+## v1.12.x — BDD Coverage Initiative
+
+### v1.12.0 — BDD Scenario Foundation
+
+**Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
 
 **Scope:**
 - [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
