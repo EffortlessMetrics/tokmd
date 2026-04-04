@@ -576,6 +576,8 @@ UX work is explicitly **incremental and non-breaking**:
 
 ## v1.10.x — Code Quality Initiative: Unwrap Burn-down
 
+**Unbranded Reality:** Agent infrastructure hardening. The 30+ background agents need panic-free operation to work autonomously. Unwrap removal is reliability engineering for autonomous systems.
+
 ### v1.10.0 — Unwrap Burn-down Sprint 1
 
 _Goal: Eliminate all `.unwrap()` calls from core libraries (Tier 0-1), achieving panic-free foundation._
@@ -640,6 +642,8 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.11.x — Dead Code Elimination
 
+**Unbranded Reality:** Agent maintainability. Dead code creates cognitive load for agents navigating the codebase. Clean boundaries help agents generate correct changes autonomously.
+
 ### v1.11.0 — Dead Code Elimination Sprint
 
 **Goal:** Remove unused code, dependencies, and exports across the workspace.
@@ -665,6 +669,8 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.12.x — Dependency Audit and Pruning
 
+**Unbranded Reality:** Agent supply chain security. Agents need predictable, auditable dependencies to generate safe code. Dependency clarity reduces agent confusion about what's available to use.
+
 ### v1.12.0 — Dependency Audit Sprint
 
 **Goal:** Audit dependency tree for risk, duplication, and freshness.
@@ -689,6 +695,8 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 ---
 
 ## v1.13.x — Documentation Completeness
+
+**Unbranded Reality:** Agent context and grounding. Good docs are training data for agents. Module-level docs help agents understand boundaries; API docs help them generate correct calls.
 
 ### v1.13.0 — Documentation Sprint
 
@@ -716,6 +724,8 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 ## v1.14.x — Test Coverage Gap Closure
 
+**Unbranded Reality:** Agent verification infrastructure. High coverage with property tests gives agents confidence to refactor. Mutation testing ensures tests actually catch bugs, not just exist.
+
 ### v1.14.0 — Test Coverage Sprint
 
 **Goal:** Identify and fill critical test gaps.
@@ -740,6 +750,8 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 ---
 
 ## v1.15.x — Performance Hot-Path Optimization
+
+**Unbranded Reality:** Agent efficiency and scale. Fast feedback loops let agents iterate quicker. Memory-bounded operations let agents handle larger repos without hitting limits.
 
 ### v1.15.0 — Performance Sprint
 
