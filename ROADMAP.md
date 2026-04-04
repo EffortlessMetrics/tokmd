@@ -752,33 +752,60 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 
 ---
 
-## v1.12.x — Ambient Churn & Maintenance Release
+## v1.12.x — Fundamental QA: Operational Hardening
 
-_Real-world sprints generate unexpected work: bug fixes, refactors, responding to issues, agent feedback. v1.12.x captures this ambient churn between the focused quality sprints._
+_Real-world sprints expose systemic issues. v1.12.x isn't bug patches—it's fundamental quality assurance that changes how tokmd operates: reliability patterns, failure modes, and operational guarantees._
 
-### v1.12.0 — Post-Sprint Stabilization
+### v1.12.0 — Panic-Free Architecture Validation
 
-**Goal:** Ship a stable release after the v1.10.x and v1.11.x sprint work, incorporating fixes from real-world usage.
+**Goal:** Validate the panic-free guarantees from v1.10.x with systemic testing and hardening.
 
-**Expected Ambient Work:**
-- [ ] **Bug fixes from unwrap changes** — Edge cases discovered after removing panic paths
-- [ ] **Performance regressions** — Optimization work sometimes creates new bottlenecks
-- [ ] **Agent feedback integration** — Background agents report issues from the 30+ PRs
-- [ ] **CI/CD hardening** — New lint rules (deny unwrap) may need tuning
-- [ ] **Documentation drift fixes** — Code changes outpace docs, catch-up needed
-- [ ] **Integration issues** — Cross-crate changes reveal coupling problems
+**Scope:**
+- [ ] **Panic path enumeration** — Exhaustive audit of every `?` branch, ensure graceful degradation
+- [ ] **Error type taxonomy** — Structured error hierarchy: `TokmdError::Input`, `::Io`, `::Parse`, `::Limit`
+- [ ] **Error context enrichment** — Every error carries source location, input sample, suggested fix
+- [ ] **Recovery patterns** — Partial success modes (e.g., scan 95% of files despite 1 permission error)
+- [ ] **WASM error propagation** — JS boundary errors with structured JSON, not opaque strings
 
-**Mechanics:**
-- No new features — stabilization only
-- Fast-follow releases: v1.12.1, v1.12.2 as issues discovered
-- Extended testing period before declaring v1.12.x stable
-- Monitor error telemetry (if any) for new panic sites
+**Changes How Things Work:**
+- Before: "Operation failed" opaque errors
+- After: Structured, actionable, recoverable error flows
+- Before: All-or-nothing operations
+- After: Partial success with detailed reporting
 
-**Rationale:**
-- Major refactors (unwrap removal) need bake time
-- Real-world usage surfaces issues synthetic tests miss
-- Gives users a stable release between major quality pushes
-- Acknowledges: sprints are messy, not clean isolated phases
+### v1.12.1 — Determinism Verification
+
+**Goal:** Harden the deterministic guarantees that are tokmd's core contract.
+
+**Scope:**
+- [ ] **Determinism regression suite** — Byte-identical outputs across platforms (Linux/macOS/Windows)
+- [ ] **Ordering verification** — BTreeMap/BTreeSet usage audited, no HashMap in receipt paths
+- [ ] **Timestamp stability** — Explicit test for WASM deterministic timestamps (0 vs. system time)
+- [ ] **Path normalization** — Cross-platform path handling produces identical receipts
+- [ ] **Git integration determinism** — Same commit produces identical analysis across machines
+
+**Changes How Things Work:**
+- Before: Assumed determinism, tested ad-hoc
+- After: Verified, measured, contractual determinism
+- Before: Platform differences acceptable
+- After: Byte-identical receipts are the standard
+
+### v1.12.2 — Reliability Engineering
+
+**Goal:** Build operational reliability for production CI/CD usage.
+
+**Scope:**
+- [ ] **Retry logic** — Transient failures (network, git, IO) with exponential backoff
+- [ ] **Circuit breakers** — Graceful degradation when git remote is unavailable
+- [ ] **Resource limits** — Memory caps, file handle limits, timeout enforcement
+- [ ] **Progress guarantees** — Never hang silently, always report progress or timeout
+- [ ] **Telemetry hooks** — Structured logging for operational monitoring (optional, off by default)
+
+**Changes How Things Work:**
+- Before: Best-effort, fail fast
+- After: Resilient, observable, bounded
+- Before: CI failures require human investigation
+- After: Self-healing or self-reporting with clear diagnostics
 
 ---
 
