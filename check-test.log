@@ -1,0 +1,4238 @@
+   Compiling tokmd v1.9.0 (/app/crates/tokmd)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 20s
+     Running unittests src/lib.rs (target/debug/deps/tokmd-e0fafbbddcc90932)
+
+running 206 tests
+test analysis_utils::tests::test_analysis_output_filename ... ok
+test analysis_utils::tests::test_child_include_to_string_parents_only ... ok
+test analysis_utils::tests::test_child_include_to_string_separate ... ok
+test analysis_utils::tests::test_granularity_to_string ... ok
+test analysis_utils::tests::test_map_granularity ... ok
+test analysis_utils::tests::test_format_to_string_all_variants ... ok
+test analysis_utils::tests::test_map_preset_all_variants ... ok
+test analysis_utils::tests::test_preset_to_string_all_variants ... ok
+test commands::check_ignore::tests::check_path_reports_not_found ... ok
+test commands::check_ignore::tests::check_tokeignore_matches_parent_dir ... ok
+test commands::check_ignore::tests::matches_glob_handles_double_star ... ok
+test commands::check_ignore::tests::matches_glob_handles_negation ... ok
+test commands::check_ignore::tests::matches_glob_handles_single_star ... ok
+test commands::cockpit::tests::determinism_gate_errors_on_invalid_baseline_json ... ok
+test commands::cockpit::tests::determinism_gate_errors_on_non_baseline_json_shape ... ok
+test commands::cockpit::tests::determinism_gate_skips_cockpit_receipt_baseline ... ok
+test commands::cockpit::tests::signed_float_formatting ... ok
+test commands::cockpit::tests::sparkline_empty ... ok
+test commands::cockpit::tests::sparkline_flat ... ok
+test commands::cockpit::tests::sparkline_rises ... ok
+test commands::cockpit::tests::trend_direction_labels_are_stable ... ok
+test commands::handoff::tests::test_build_simple_complexity_empty ... ok
+test commands::handoff::tests::test_build_simple_derived_empty ... ok
+test commands::handoff::tests::test_build_tree_depth_limit_and_no_file_leaves ... ok
+test commands::handoff::tests::test_build_tree_empty ... ok
+test commands::handoff::tests::test_count_functions_simple_python ... ok
+test commands::handoff::tests::test_count_functions_simple_rust ... ok
+test commands::handoff::tests::test_estimate_cyclomatic_simple_rust ... ok
+test commands::handoff::tests::test_is_analyzable_lang ... ok
+test commands::handoff::tests::test_normalize_path ... ok
+test commands::handoff::tests::test_round_f64 ... ok
+test commands::sensor::tests::build_summary_formats_expected_fields ... ok
+test commands::sensor::tests::emit_complexity_findings_is_capped ... ok
+test commands::sensor::tests::emit_contract_findings_emits_all_flags ... ok
+test commands::sensor::tests::emit_gate_findings_emits_failures ... ok
+test commands::sensor::tests::emit_risk_findings_emits_hotspots_and_bus_factor ... ok
+test commands::sensor::tests::map_gates_includes_optional_items_and_reasons ... ok
+test commands::sensor::tests::map_verdict_covers_all_gate_statuses ... ok
+test commands::sensor::tests::render_sensor_md_includes_findings_and_gates ... ok
+test context_pack::tests::test_assign_policy_over_cap_data_blob_is_skip ... ok
+test context_pack::tests::test_assign_policy_over_cap_fixture_is_head_tail ... ok
+test context_pack::tests::test_assign_policy_over_cap_generated_is_skip ... ok
+test context_pack::tests::test_assign_policy_over_cap_normal_is_head_tail ... ok
+test context_pack::tests::test_assign_policy_over_cap_vendored_is_skip ... ok
+test context_pack::tests::test_assign_policy_under_cap_is_full ... ok
+test context_pack::tests::test_budget_invariant_greedy ... ok
+test context_pack::tests::test_budget_invariant_spread ... ok
+test context_pack::tests::test_budget_uses_effective_tokens ... ok
+test context_pack::tests::test_churn_metric_formula ... ok
+test context_pack::tests::test_classify_dense_blob ... ok
+test context_pack::tests::test_classify_fixture ... ok
+test context_pack::tests::test_classify_generated ... ok
+test context_pack::tests::test_classify_generated_pb_rs ... ok
+test context_pack::tests::test_classify_lockfile ... ok
+test context_pack::tests::test_classify_minified ... ok
+test context_pack::tests::test_classify_nested_lockfile ... ok
+test context_pack::tests::test_classify_normal_file ... ok
+test context_pack::tests::test_classify_sourcemap ... ok
+test context_pack::tests::test_classify_vendored ... ok
+test context_pack::tests::test_compute_file_cap_custom ... ok
+test context_pack::tests::test_compute_file_cap_default ... ok
+test context_pack::tests::test_compute_file_cap_small_budget ... ok
+test context_pack::tests::test_compute_file_cap_unlimited_budget ... ok
+test context_pack::tests::test_determinism_greedy ... ok
+test context_pack::tests::test_determinism_spread ... ok
+test context_pack::tests::test_generated_over_cap_excluded_by_policy ... ok
+test context_pack::tests::test_get_value_churn_formula_exact ... ok
+test context_pack::tests::test_get_value_churn_with_git ... ok
+test context_pack::tests::test_get_value_churn_without_git ... ok
+test context_pack::tests::test_get_value_code_metric ... ok
+test context_pack::tests::test_get_value_hotspot_with_git ... ok
+test context_pack::tests::test_get_value_hotspot_without_git ... ok
+test context_pack::tests::test_get_value_tokens_metric ... ok
+test context_pack::tests::test_greedy_picks_highest_value_first ... ok
+test context_pack::tests::test_hotspot_metric_multiplication ... ok
+test context_pack::tests::test_is_smart_excluded_lockfiles ... ok
+test context_pack::tests::test_is_smart_excluded_minified ... ok
+test context_pack::tests::test_is_smart_excluded_normal_files ... ok
+test context_pack::tests::test_is_smart_excluded_sourcemaps ... ok
+test commands::baseline::tests::test_capture_git_commit_returns_none_for_non_repo ... ok
+test context_pack::tests::test_is_spine_file ... ok
+test context_pack::tests::test_normalize_path ... ok
+test context_pack::tests::test_normalize_path_not_xyzzy ... ok
+test context_pack::tests::test_normalize_path_preserves_forward_slashes ... ok
+test context_pack::tests::test_normalize_path_with_backslash ... ok
+test context_pack::tests::test_pack_greedy_accumulates_tokens ... ok
+test context_pack::tests::test_pack_greedy_all_children_empty ... ok
+test context_pack::tests::test_pack_greedy_budget_boundary ... ok
+test context_pack::tests::test_pack_greedy_budget_exceeded ... ok
+test context_pack::tests::test_pack_greedy_empty_rows ... ok
+test context_pack::tests::test_pack_greedy_filters_child_rows ... ok
+test context_pack::tests::test_pack_greedy_respects_token_budget ... ok
+test context_pack::tests::test_pack_greedy_selects_by_value ... ok
+test context_pack::tests::test_pack_greedy_tiebreaker_by_path_explicit ... ok
+test context_pack::tests::test_pack_greedy_skips_files_that_dont_fit ... ok
+test commands::baseline::tests::test_capture_git_commit_returns_sha_in_repo ... ok
+test context_pack::tests::test_pack_spread_70_percent_exact ... ok
+test context_pack::tests::test_pack_spread_71_percent_needs_greedy ... ok
+test context_pack::tests::test_pack_spread_all_children_empty ... ok
+test context_pack::tests::test_pack_spread_distributes_across_groups ... ok
+test context_pack::tests::test_pack_spread_empty_rows ... ok
+test context_pack::tests::test_pack_spread_filters_child_rows ... ok
+test context_pack::tests::test_pack_spread_module_first_avoids_language_bias ... ok
+test context_pack::tests::test_pack_spread_greedy_fills_remaining_30_percent ... ok
+test context_pack::tests::test_pack_spread_round_robin_fills_70_percent ... ok
+test context_pack::tests::test_pack_spread_skips_large_files_in_spread_phase ... ok
+test context_pack::tests::test_parent_only_invariant_greedy ... ok
+test context_pack::tests::test_parent_only_invariant_spread ... ok
+test context_pack::tests::test_parse_budget ... ok
+test context_pack::tests::test_parse_budget_case_insensitive ... ok
+test context_pack::tests::test_parse_budget_g_suffix ... ok
+test context_pack::tests::test_parse_budget_invalid_alpha ... ok
+test context_pack::tests::test_parse_budget_invalid_empty ... ok
+test context_pack::tests::test_parse_budget_invalid_suffix ... ok
+test context_pack::tests::test_parse_budget_invalid_suffix_only ... ok
+test context_pack::tests::test_parse_budget_multiplication_k ... ok
+test context_pack::tests::test_parse_budget_multiplication_m ... ok
+test context_pack::tests::test_parse_budget_overflow ... ok
+test context_pack::tests::test_parse_budget_unlimited ... ok
+test context_pack::tests::test_parse_budget_with_whitespace ... ok
+test context_pack::tests::test_resolve_metric_churn_falls_back ... ok
+test context_pack::tests::test_resolve_metric_code_no_fallback ... ok
+test context_pack::tests::test_resolve_metric_hotspot_falls_back ... ok
+test context_pack::tests::test_resolve_metric_hotspot_with_git_no_fallback ... ok
+test context_pack::tests::test_select_files_greedy_strategy ... ok
+test context_pack::tests::test_select_files_greedy_with_git_scores ... ok
+test context_pack::tests::test_select_files_non_empty_when_budget_allows ... ok
+test context_pack::tests::test_select_files_routes_to_correct_strategy ... ok
+test context_pack::tests::test_select_files_spread_strategy ... ok
+test context_pack::tests::test_select_files_spread_with_git_scores ... ok
+test context_pack::tests::test_select_files_with_options_no_smart_exclude ... ok
+test context_pack::tests::test_select_files_with_options_rank_reason ... ok
+test context_pack::tests::test_select_files_with_options_rank_reason_hotspot_fallback ... ok
+test context_pack::tests::test_select_files_with_options_rank_reason_hotspot_with_git ... ok
+test context_pack::tests::test_select_files_with_options_smart_exclude ... ok
+test context_pack::tests::test_select_files_with_options_spine_reservation ... ok
+test context_pack::tests::test_spread_70_percent_allocation ... ok
+test context_pack::tests::test_spread_distributes_before_greedy_fill ... ok
+test context_pack::tests::test_tiebreaker_by_path ... ok
+test context_pack::tests::test_to_context_row_fields ... ok
+test context_pack::tests::test_to_context_row_preserves_all_fields ... ok
+test context_pack::tests::test_to_context_row_value_churn ... ok
+test context_pack::tests::test_to_context_row_value_from_tokens_metric ... ok
+test context_pack::tests::test_to_context_row_value_hotspot ... ok
+test error_hints::tests::format_includes_hints_section ... ok
+test error_hints::tests::suggests_for_missing_diff_source ... ok
+test context_pack::tests::test_pack_spread_no_duplicates ... ok
+test error_hints::tests::suggests_for_missing_path ... ok
+test error_hints::tests::suggests_for_missing_git ... ok
+test error_hints::tests::suggests_for_unknown_explain_key ... ok
+test export_bundle::tests::load_export_json_content_with_raw_rows ... ok
+test export_bundle::tests::load_export_from_inputs_prefers_receipt_in_dir ... ok
+test export_bundle::tests::load_export_json_content_with_receipt ... ok
+test export_bundle::tests::load_export_jsonl_content_parses_meta_and_rows ... ok
+test interactive::tty::tests::test_inner_all_blocking_conditions_returns_false ... ok
+test interactive::tty::tests::test_inner_all_true_returns_true ... ok
+test interactive::tty::tests::test_inner_ci_set_returns_false ... ok
+test interactive::tty::tests::test_inner_non_interactive_env_returns_false ... ok
+test interactive::tty::tests::test_inner_both_tty_false_returns_false ... ok
+test interactive::tty::tests::test_inner_stdin_not_tty_returns_false ... ok
+test interactive::tty::tests::test_should_be_interactive ... ok
+test interactive::tty::tests::test_inner_stdout_not_tty_returns_false ... ok
+test interactive::wizard::tests::test_as_str_cpp ... ok
+test interactive::wizard::tests::test_as_str_mono ... ok
+test commands::check_ignore::tests::check_path_honors_exclude_flag ... ok
+test interactive::wizard::tests::test_as_str_go ... ok
+test interactive::wizard::tests::test_as_str_node ... ok
+test interactive::wizard::tests::test_as_str_not_empty ... ok
+test interactive::wizard::tests::test_as_str_not_xyzzy ... ok
+test interactive::wizard::tests::test_as_str_other ... ok
+test interactive::wizard::tests::test_as_str_python ... ok
+test interactive::wizard::tests::test_default_roots_cpp ... ok
+test interactive::wizard::tests::test_default_roots_mono ... ok
+test interactive::wizard::tests::test_as_str_rust ... ok
+test interactive::wizard::tests::test_default_roots_node ... ok
+test interactive::wizard::tests::test_default_roots_go ... ok
+test export_bundle::tests::load_export_from_inputs_scans_non_json_file ... ok
+test interactive::wizard::tests::test_default_roots_not_empty ... ok
+test interactive::wizard::tests::test_default_roots_other ... ok
+test interactive::wizard::tests::test_default_roots_python ... ok
+test interactive::wizard::tests::test_default_roots_not_xyzzy ... ok
+test interactive::wizard::tests::test_default_roots_rust ... ok
+test interactive::wizard::tests::test_index_to_project_type_cpp ... ok
+test interactive::wizard::tests::test_index_to_project_type_go ... ok
+test interactive::wizard::tests::test_index_to_project_type_mono ... ok
+test interactive::wizard::tests::test_index_to_project_type_node ... ok
+test interactive::wizard::tests::test_index_to_project_type_none_returns_none ... ok
+test interactive::wizard::tests::test_index_to_project_type_other ... ok
+test interactive::wizard::tests::test_index_to_project_type_out_of_bounds_returns_other ... ok
+test interactive::wizard::tests::test_index_to_project_type_python ... ok
+test interactive::wizard::tests::test_index_to_project_type_rust ... ok
+test interactive::wizard::tests::test_profile_cpp ... ok
+test interactive::wizard::tests::test_profile_go ... ok
+test interactive::wizard::tests::test_profile_mono ... ok
+test interactive::wizard::tests::test_generate_config ... ok
+test interactive::wizard::tests::test_profile_node ... ok
+test interactive::wizard::tests::test_profile_other_maps_to_default ... ok
+test interactive::wizard::tests::test_profile_python ... ok
+test interactive::wizard::tests::test_profile_rust ... ok
+test interactive::wizard::tests::test_project_type_defaults ... ok
+test interactive::wizard::tests::test_wizard_result_happy_path ... ok
+test interactive::wizard::tests::test_wizard_result_no_files_to_write_returns_none ... ok
+test interactive::wizard::tests::test_wizard_result_none_project_type_returns_none ... ok
+test interactive::wizard::tests::test_wizard_result_only_config_returns_some ... ok
+test interactive::wizard::tests::test_wizard_result_only_tokeignore_returns_some ... ok
+test interactive::wizard::tests::test_wizard_result_preserves_all_fields ... ok
+
+test result: ok. 206 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running unittests src/bin/tokmd.rs (target/debug/deps/tokmd-57f86b014372ad52)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/analyze_integration.rs (target/debug/deps/analyze_integration-0fc761a7173c5e5c)
+
+running 7 tests
+test analyze_explain_unknown_metric_fails ... ok
+test analyze_explain_known_metric ... ok
+test analyze_explain_list ... ok
+test analyze_fun_preset_returns_eco_label ... ok
+test analyze_topics_preset_returns_topic_cloud ... ok
+test analyze_receipt_preset_json_smoke ... ok
+test analyze_writes_json_to_output_dir ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/badge_integration.rs (target/debug/deps/badge_integration-67ac492b811b4d23)
+
+running 2 tests
+test badge_writes_to_file ... ok
+test badge_lines_svg_stdout ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/baseline_integration.rs (target/debug/deps/baseline_integration-c11ca9f1d9d70b65)
+
+running 3 tests
+test baseline_with_determinism_flag ... ok
+test baseline_generates_output_file ... ok
+test baseline_without_determinism_flag_has_no_determinism ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/baseline_w71.rs (target/debug/deps/baseline_w71-4e21a683c7605a93)
+
+running 15 tests
+test baseline_determinism_flag_source_hash_format ... ok
+test baseline_custom_output_path ... ok
+test baseline_empty_project ... ok
+test baseline_deterministic_metrics ... ok
+test baseline_determinism_flag_deterministic_hash ... ok
+test baseline_has_commit_field ... ok
+test baseline_force_overwrites_existing ... ok
+test baseline_metrics_has_avg_cyclomatic ... ok
+test baseline_metrics_avg_le_max_cyclomatic ... ok
+test baseline_metrics_has_function_count ... ok
+test baseline_metrics_has_max_cyclomatic ... ok
+test baseline_metrics_values_non_negative ... ok
+test baseline_metrics_has_total_files ... ok
+test baseline_version_is_one ... ok
+test baseline_without_force_on_existing_file_fails ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running tests/bdd_analyze_scenarios_w50.rs (target/debug/deps/bdd_analyze_scenarios_w50-882f64a764e8cc30)
+
+running 7 tests
+test given_project_when_analyze_fun_then_eco_label_present ... ok
+test given_project_when_analyze_md_then_markdown_table ... ok
+test given_project_when_analyze_json_then_has_schema_version ... ok
+test given_project_when_analyze_json_then_has_args_metadata ... ok
+test given_project_when_analyze_receipt_then_derived_metrics_present ... ok
+test given_project_when_analyze_xml_then_valid_xml_structure ... ok
+test given_project_when_analyze_with_output_dir_then_file_created ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/bdd_diff_scenarios_w50.rs (target/debug/deps/bdd_diff_scenarios_w50-9955837a1f50220c)
+
+running 5 tests
+test given_receipts_when_diff_compact_then_summary_table ... ok
+test given_receipts_when_diff_json_then_valid_json ... ok
+test given_identical_receipts_when_diff_then_no_changes ... ok
+test given_receipts_when_diff_full_then_shows_loc_lines_files ... ok
+test given_two_receipts_when_diff_then_diff_output_produced ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/bdd_export_scenarios_w50.rs (target/debug/deps/bdd_export_scenarios_w50-c1c0fc5f90237429)
+
+running 8 tests
+test given_empty_dir_when_export_json_then_empty_rows ... ok
+test given_project_when_export_csv_then_rows_have_consistent_columns ... ok
+test given_project_when_export_csv_then_header_matches_expected_columns ... ok
+test given_project_when_export_json_then_has_mode_and_schema ... ok
+test given_project_when_export_json_then_rows_have_path_and_language ... ok
+test given_project_when_export_jsonl_then_each_line_is_valid_json ... ok
+test given_project_when_export_redact_paths_then_no_real_paths ... ok
+test given_project_when_export_jsonl_then_meta_has_schema_version ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/bdd_lang_scenarios_w50.rs (target/debug/deps/bdd_lang_scenarios_w50-2536768d0da40a04)
+
+running 10 tests
+test given_empty_directory_when_lang_then_zero_totals ... ok
+test given_mixed_language_project_when_top_2_then_at_most_3_rows ... ok
+test given_project_when_children_separate_then_mode_recorded ... ok
+test given_project_when_lang_json_then_has_tool_and_args_metadata ... ok
+test given_project_when_lang_md_then_markdown_table_output ... ok
+test given_project_when_lang_tsv_then_tab_separated_with_header ... ok
+test given_project_with_embedded_code_when_children_collapse_then_mode_recorded ... ok
+test given_project_when_lang_json_then_rows_have_expected_fields ... ok
+test given_rust_project_when_lang_json_then_rust_detected ... ok
+test given_rust_project_when_lang_json_then_valid_json_with_schema_and_sorted_rows ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/bdd_module_scenarios_w50.rs (target/debug/deps/bdd_module_scenarios_w50-2f4f4d65cad613f6)
+
+running 7 tests
+test given_project_when_module_children_separate_then_mode_recorded ... ok
+test given_project_when_module_json_then_has_mode_and_total ... ok
+test given_nested_dirs_when_module_json_then_keys_use_forward_slashes ... ok
+test given_project_when_depth_0_then_only_top_level_modules ... ok
+test given_single_file_project_when_module_then_one_entry ... ok
+test given_project_when_module_json_then_rows_have_expected_fields ... ok
+test given_project_when_module_tsv_then_tab_separated ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/bdd_scenarios_w71.rs (target/debug/deps/bdd_scenarios_w71-0a4a868eea9ffc96)
+
+running 38 tests
+test given_empty_dir_when_init_then_tokeignore_created ... ok
+test given_bash_shell_when_completions_then_outputs_script ... ok
+test given_check_ignore_with_exclude_when_file_matches_then_reports_match ... ok
+test given_check_ignore_when_file_excluded_then_explains_why ... ok
+test given_empty_dir_when_lang_then_empty_receipt ... ok
+test given_exclude_flag_when_scan_then_exclusion_applied ... ok
+test given_exclude_tests_when_lang_then_test_files_excluded ... ok
+test given_exclude_wildcard_when_lang_json_then_language_absent ... ok
+test given_format_json_when_export_then_has_schema_version ... ok
+test given_format_json_when_export_then_valid_json ... ok
+test given_format_json_when_lang_then_valid_json ... ok
+test given_format_json_when_analyze_then_has_schema_version ... ok
+test given_format_json_when_analyze_then_valid_json ... ok
+test given_format_json_when_lang_then_has_schema_version ... ok
+test given_gitignore_when_scan_then_gitignored_files_excluded ... ok
+test given_format_json_when_module_then_has_schema_version ... ok
+test given_format_json_when_module_then_valid_json ... ok
+test given_gitignored_file_when_no_ignore_vcs_then_file_visible ... ok
+test given_init_print_when_run_then_prints_template_without_file ... ok
+test given_hidden_files_when_scan_default_then_hidden_excluded ... ok
+test given_lang_json_when_run_then_mode_is_lang ... ok
+test given_large_repo_when_export_csv_then_all_files_listed ... ok
+test given_lang_tsv_when_run_then_tab_separated ... ok
+test given_json_receipt_when_diff_then_changes_shown ... ok
+test given_multi_language_when_lang_json_then_all_languages_present ... ok
+test given_module_json_when_run_then_has_total ... ok
+test given_multiple_excludes_when_lang_then_all_patterns_applied ... ok
+test given_nested_modules_when_module_depth1_then_top_level_grouping ... ok
+test given_project_when_export_json_then_has_rows_array ... ok
+test given_project_when_export_jsonl_then_every_line_valid_json ... ok
+test given_project_when_module_default_then_markdown_table ... ok
+test given_rust_project_when_lang_then_shows_rust ... ok
+test given_project_when_badge_then_outputs_svg ... ok
+test given_tools_openai_when_run_then_valid_function_schema ... ok
+test given_project_when_analyze_receipt_then_has_derived_metrics ... ok
+test given_same_input_when_run_twice_then_identical_output ... ok
+test given_version_flag_when_run_then_shows_semver ... ok
+test given_unicode_filenames_when_scan_then_paths_normalized ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/bdd_scenarios_w75.rs (target/debug/deps/bdd_scenarios_w75-3519e75b285b4d71)
+
+running 31 tests
+test given_empty_dir_when_init_then_tokeignore_created ... ok
+test given_bash_shell_when_completions_then_script_output ... ok
+test given_exclude_flag_when_export_then_excluded_files_absent ... ok
+test given_empty_dir_when_lang_json_then_empty_rows ... ok
+test given_exclude_when_check_ignore_then_explains_ignored ... ok
+test given_files_when_context_list_then_outputs_file_paths ... ok
+test given_files_when_export_json_then_rows_have_path_and_code ... ok
+test given_gitignored_file_when_no_ignore_vcs_then_visible ... ok
+test given_hidden_file_when_default_scan_then_hidden_excluded ... ok
+test given_multi_lang_project_when_lang_json_then_all_languages_present_sorted_desc ... ok
+test given_multiple_excludes_when_lang_then_all_patterns_applied ... ok
+test given_multiple_files_when_export_jsonl_then_each_line_valid_json_with_fields ... ok
+test given_nested_dirs_when_module_depth1_then_modules_listed ... ok
+test given_project_when_context_json_then_has_utilization_pct ... ok
+test given_project_when_context_tight_budget_then_used_le_budget ... ok
+test given_project_when_export_json_then_has_schema_version ... ok
+test given_project_when_lang_json_then_has_schema_version ... ok
+test given_project_when_lang_json_then_mode_is_lang ... ok
+test given_project_when_module_json_then_total_has_code ... ok
+test given_project_when_analyze_json_then_schema_version_is_number ... ok
+test given_project_when_lang_tsv_then_tab_separated_header ... ok
+test given_rust_only_when_lang_json_then_no_other_languages ... ok
+test given_rust_project_when_lang_json_then_receipt_has_rust_with_code_gt_zero ... ok
+test given_small_project_when_context_json_budget_then_tokens_within_budget ... ok
+test given_same_input_when_lang_json_twice_then_rows_identical ... ok
+test given_source_when_badge_tokens_then_svg ... ok
+test given_tools_openai_when_run_then_valid_schema_json ... ok
+test given_source_code_when_badge_then_valid_svg_output ... ok
+test given_version_flag_when_run_then_semver_shown ... ok
+test given_unicode_filename_when_export_then_path_normalized ... ok
+test given_source_when_analyze_receipt_then_derived_metrics_present ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/boundary_verification.rs (target/debug/deps/boundary_verification-fe19e65ffca8d7de)
+
+running 9 tests
+test no_upward_dependency_violations ... ok
+test git_feature_only_in_expected_crates ... ok
+test content_feature_only_in_expected_crates ... ok
+test tier0_contracts_clap_only_behind_feature_flag ... ok
+test tier0_contracts_have_no_required_clap ... ok
+test tier0_crates_never_depend_on_scan_or_higher ... ok
+test walk_feature_only_in_expected_crates ... ok
+test schema_version_constants_are_public ... ok
+test schema_version_constants_are_unique ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.64s
+
+     Running tests/cli_badge_e2e.rs (target/debug/deps/cli_badge_e2e-2c98af540522e444)
+
+running 8 tests
+test badge_invalid_metric_fails ... ok
+test badge_missing_metric_flag_fails ... ok
+test badge_doc_metric_produces_svg_with_label ... ok
+test badge_blank_metric_produces_svg_with_label ... ok
+test badge_lines_svg_contains_xmlns_attribute ... ok
+test badge_out_flag_writes_valid_svg_file ... ok
+test badge_out_to_nested_dir_creates_file ... ok
+test badge_tokens_svg_is_well_formed ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/cli_completions_e2e.rs (target/debug/deps/cli_completions_e2e-3ff0332fcac3b4df)
+
+running 11 tests
+test completions_bash_contains_tokmd_reference ... ok
+test completions_bash_contains_complete_keyword ... ok
+test completions_elvish_produces_non_empty_output ... ok
+test completions_elvish_references_tokmd ... ok
+test completions_invalid_shell_fails ... ok
+test completions_powershell_contains_register ... ok
+test completions_fish_contains_complete_command ... ok
+test completions_fish_references_tokmd ... ok
+test completions_powershell_references_tokmd ... ok
+test completions_zsh_contains_compdef_or_arguments ... ok
+test completions_zsh_contains_tokmd_reference ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/cli_comprehensive.rs (target/debug/deps/cli_comprehensive-c62dc79038e0c89d)
+
+running 78 tests
+test analyze_invalid_preset_fails ... ok
+test analyze_invalid_format_fails ... ok
+test analyze_help_shows_preset ... ok
+test analyze_health_preset_json ... ok
+test badge_bytes_metric_outputs_svg ... ok
+test analyze_receipt_markdown_contains_heading ... ok
+test badge_help_shows_metric ... ok
+test analyze_receipt_json_has_derived_metrics ... ok
+test badge_tokens_metric_outputs_svg ... ok
+test badge_lines_metric_outputs_svg ... ok
+test badge_out_flag_writes_file ... ok
+test check_ignore_nonexistent_file_exits_nonzero ... ok
+test baseline_generates_valid_json_output ... ok
+test check_ignore_with_excluded_file_reports_ignored ... ok
+test completions_bash_produces_script ... ok
+test completions_elvish_produces_script ... ok
+test completions_fish_produces_script ... ok
+test completions_powershell_produces_script ... ok
+test context_help_shows_mode ... ok
+test completions_zsh_produces_script ... ok
+test context_default_mode_lists_files ... ok
+test context_json_mode_produces_valid_json ... ok
+test context_list_mode_includes_source_file ... ok
+test default_command_format_json ... ok
+test default_command_format_md ... ok
+test diff_missing_args_fails ... ok
+test default_command_produces_markdown ... ok
+test default_command_format_tsv ... ok
+test diff_nonexistent_files_fails ... ok
+test export_csv_has_header_and_rows ... ok
+test exclude_flag_removes_rust_from_lang ... ok
+test export_empty_dir_produces_meta_only ... ok
+test export_help_shows_format ... ok
+test export_invalid_format_fails ... ok
+test diff_between_identical_runs_shows_no_changes ... ok
+test export_json_has_envelope ... ok
+test export_jsonl_each_line_valid_json ... ok
+test export_jsonl_first_line_is_meta ... ok
+test help_flag_lists_all_subcommands ... ok
+test help_text_contains_usage_section ... ok
+test init_non_interactive_creates_tokeignore_file ... ok
+test export_max_rows_limits_output ... ok
+test init_print_node_template_contains_node_modules ... ok
+test init_print_outputs_tokeignore_template ... ok
+test init_print_rust_template_contains_target ... ok
+test invalid_subcommand_fails ... ok
+test init_refuses_overwrite_without_force ... ok
+test lang_empty_dir_succeeds_with_zero_totals ... ok
+test lang_children_collapse_records_mode ... ok
+test gate_missing_args_fails ... ok
+test lang_invalid_children_mode_fails ... ok
+test lang_help_shows_format ... ok
+test lang_children_separate_records_mode ... ok
+test lang_invalid_format_fails ... ok
+test lang_json_has_schema_version_and_rows ... ok
+test lang_top_flag_limits_rows ... ok
+test lang_json_has_total ... ok
+test lang_md_renders_table ... ok
+test module_help_shows_depth ... ok
+test module_empty_dir_succeeds_with_zero_totals ... ok
+test module_invalid_format_fails ... ok
+test lang_tsv_has_header_and_data ... ok
+test module_depth_zero_produces_top_level_only ... ok
+test module_md_renders_table ... ok
+test module_json_has_rows_and_total ... ok
+test module_tsv_has_tabs ... ok
+test module_json_has_schema_version ... ok
+test tools_invalid_format_fails ... ok
+test no_progress_flag_accepted ... ok
+test tools_anthropic_format_has_tools ... ok
+test run_generates_receipt_and_artifacts ... ok
+test unknown_flag_on_lang_fails ... ok
+test tools_jsonschema_format_has_schema_version ... ok
+test tools_openai_format_has_functions ... ok
+test version_flag_prints_semver ... ok
+test verbose_flag_accepted_on_lang ... ok
+test tools_pretty_flag_adds_whitespace ... ok
+test verbose_flag_accepted_on_module ... ok
+
+test result: ok. 78 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s
+
+     Running tests/cli_determinism_e2e_w54.rs (target/debug/deps/cli_determinism_e2e_w54-fb604b38bb68f37c)
+
+running 29 tests
+test analyze_json_all_keys_recursively_sorted ... ok
+test children_collapse_deterministic ... ok
+test analyze_json_top_level_keys_sorted ... ok
+test export_csv_deterministic ... ok
+test children_separate_deterministic ... ok
+test analyze_receipt_json_deterministic ... ok
+test export_json_keys_are_sorted ... ok
+test export_json_deterministic ... ok
+test export_rows_sorted_desc_code_asc_path ... ok
+test export_json_only_timestamps_vary ... ok
+test export_row_count_stable ... ok
+test export_jsonl_deterministic ... ok
+test lang_json_keys_are_sorted ... ok
+test lang_json_only_timestamps_vary ... ok
+test lang_row_count_stable ... ok
+test lang_md_deterministic ... ok
+test lang_rows_sorted_desc_code_asc_name ... ok
+test lang_json_deterministic ... ok
+test lang_totals_equal_sum_of_rows ... ok
+test module_json_keys_are_sorted ... ok
+test lang_tsv_deterministic ... ok
+test module_json_only_timestamps_vary ... ok
+test module_row_count_stable ... ok
+test module_md_deterministic ... ok
+test module_json_deterministic ... ok
+test module_rows_sorted_desc_code_asc_name ... ok
+test module_tsv_deterministic ... ok
+test run_default_deterministic ... ok
+test redacted_export_deterministic ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.84s
+
+     Running tests/cli_e2e.rs (target/debug/deps/cli_e2e-29616345f2338dc1)
+
+running 19 tests
+test given_bash_when_completions_then_outputs_script ... ok
+test given_powershell_when_completions_then_outputs_script ... ok
+test given_openai_when_tools_then_valid_json ... ok
+test given_anthropic_when_tools_then_valid_json ... ok
+test given_repo_when_badge_bytes_metric_then_svg_contains_bytes ... ok
+test given_repo_when_badge_then_outputs_svg ... ok
+test given_repo_when_analyze_receipt_json_then_has_derived ... ok
+test given_repo_when_badge_tokens_metric_then_svg_contains_tokens ... ok
+test given_repo_when_export_csv_then_has_header_and_rows ... ok
+test given_repo_when_lang_default_then_markdown_table ... ok
+test given_repo_when_export_jsonl_then_each_line_valid ... ok
+test given_repo_when_lang_json_then_rows_have_code_field ... ok
+test given_repo_when_lang_tsv_then_tab_separated ... ok
+test given_repo_when_lang_json_then_valid_json_with_schema ... ok
+test given_repo_when_module_json_then_has_rows ... ok
+test given_repo_when_module_default_then_markdown_table ... ok
+test given_when_init_print_then_generates_tokeignore ... ok
+test given_version_flag_then_shows_semver ... ok
+test given_repo_when_module_json_then_total_present ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/cli_e2e_w42.rs (target/debug/deps/cli_e2e_w42-7cbfeac5a7321ebd)
+
+running 47 tests
+test analyze_receipt_markdown_contains_header ... ok
+test badge_bytes_metric_contains_bytes ... ok
+test badge_out_file_creates_svg_file ... ok
+test analyze_receipt_json_has_derived_metrics ... ok
+test completions_bash_produces_output ... ok
+test completions_fish_produces_output ... ok
+test completions_powershell_produces_output ... ok
+test completions_zsh_produces_output ... ok
+test empty_dir_export_handles_gracefully ... ok
+test badge_tokens_metric_contains_tokens ... ok
+test badge_produces_svg ... ok
+test empty_dir_module_handles_gracefully ... ok
+test empty_dir_handles_gracefully ... ok
+test default_command_is_lang ... ok
+test export_help_shows_format_flag ... ok
+test export_csv_has_header_and_rows ... ok
+test export_json_has_envelope_fields ... ok
+test export_jsonl_produces_valid_lines ... ok
+test export_jsonl_first_line_is_meta ... ok
+test init_creates_tokeignore_in_tempdir ... ok
+test help_shows_subcommands ... ok
+test export_max_rows_limits_output ... ok
+test init_print_outputs_to_stdout ... ok
+test init_refuses_overwrite_without_force ... ok
+test global_exclude_removes_rust_from_lang ... ok
+test lang_help_shows_format_flag ... ok
+test lang_children_collapse_recorded_in_json ... ok
+test lang_invalid_format_exits_nonzero ... ok
+test lang_default_produces_markdown_output ... ok
+test lang_json_produces_valid_json ... ok
+test lang_json_rows_have_code_field ... ok
+test lang_json_total_has_code_and_lines ... ok
+test lang_top_limits_rows ... ok
+test module_help_shows_depth_flag ... ok
+test lang_tsv_produces_tab_separated_output ... ok
+test module_default_produces_output ... ok
+test module_depth_zero_produces_top_level_only ... ok
+test module_json_produces_valid_json ... ok
+test module_json_total_present ... ok
+test tools_anthropic_produces_valid_json ... ok
+test run_generates_all_artifacts ... ok
+test tools_invalid_format_fails ... ok
+test run_produces_receipt_json ... ok
+test tools_jsonschema_produces_valid_json ... ok
+test version_shows_semver ... ok
+test tools_openai_produces_valid_json_with_functions ... ok
+test verbose_flag_accepted_on_lang ... ok
+
+test result: ok. 47 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running tests/cli_e2e_w58.rs (target/debug/deps/cli_e2e_w58-547bdb9d8d6838a0)
+
+running 63 tests
+test analyze_preset_supply_succeeds ... ok
+test badge_metric_tokens_produces_svg ... ok
+test analyze_preset_health_succeeds ... ok
+test default_lang_produces_markdown ... ok
+test badge_metric_bytes_produces_svg ... ok
+test err_analyze_invalid_format ... ok
+test err_analyze_nonexistent_path ... ok
+test err_analyze_invalid_preset ... ok
+test err_badge_invalid_metric ... ok
+test err_completely_unknown_subcommand ... ok
+test err_badge_missing_metric ... ok
+test err_completions_missing_shell ... ok
+test err_export_invalid_format ... ok
+test err_context_nonexistent_path ... ok
+test default_module_produces_markdown ... ok
+test err_diff_no_refs ... ok
+test err_invalid_subcommand_shows_suggestion ... ok
+test err_export_nonexistent_path ... ok
+test err_lang_invalid_children_mode ... ok
+test err_lang_nonexistent_path ... ok
+test err_lang_invalid_format ... ok
+test err_module_invalid_children_mode ... ok
+test err_module_invalid_format ... ok
+test err_module_nonexistent_path ... ok
+test err_run_nonexistent_path ... ok
+test flag_exclude_nonexistent_pattern_still_succeeds ... ok
+test flag_export_children_separate ... ok
+test flag_export_children_parents_only ... ok
+test flag_lang_children_collapse ... ok
+test flag_exclude_reduces_output ... ok
+test flag_lang_children_separate ... ok
+test flag_lang_top_limits_rows ... ok
+test flag_module_children_separate ... ok
+test flag_lang_top_zero_shows_all ... ok
+test flag_module_children_parents_only ... ok
+test flag_module_depth_1 ... ok
+test flag_module_top_limits_rows ... ok
+test flag_module_depth_large_succeeds ... ok
+test flag_multiple_excludes ... ok
+test fmt_export_csv_consistent_columns ... ok
+test fmt_export_csv_has_header_row ... ok
+test fmt_analyze_json_has_derived ... ok
+test fmt_export_json_envelope ... ok
+test fmt_export_json_rows_have_path ... ok
+test fmt_export_jsonl_each_line_valid_json ... ok
+test fmt_analyze_markdown_contains_headers ... ok
+test fmt_export_jsonl_meta_has_schema ... ok
+test fmt_lang_json_has_total ... ok
+test fmt_lang_json_valid_with_schema_version ... ok
+test fmt_lang_json_rows_non_empty ... ok
+test fmt_lang_tsv_tab_separated_with_header ... ok
+test fmt_lang_markdown_contains_headers ... ok
+test fmt_module_json_rows_have_module_field ... ok
+test fmt_module_json_valid_with_mode ... ok
+test fmt_tools_anthropic_valid_json ... ok
+test fmt_module_tsv_has_tab_columns ... ok
+test fmt_tools_openai_valid_json ... ok
+test fmt_module_markdown_contains_table ... ok
+test help_mentions_subcommands ... ok
+test version_contains_semver ... ok
+test json_envelope_has_args_metadata_lang ... ok
+test json_envelope_has_args_metadata_module ... ok
+test json_envelope_has_args_metadata_export ... ok
+
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/cli_e2e_w65.rs (target/debug/deps/cli_e2e_w65-4212448a7a0994ad)
+
+running 99 tests
+test analyze_health_preset_succeeds ... ok
+test badge_lines_metric_produces_svg ... ok
+test analyze_receipt_preset_json_valid ... ok
+test analyze_default_preset_succeeds ... ok
+test check_ignore_help_shows_usage ... ok
+test completions_bash_produces_output ... ok
+test bare_invocation_produces_output ... ok
+test completions_powershell_produces_output ... ok
+test bare_invocation_matches_lang ... ok
+test completions_zsh_produces_output ... ok
+test badge_tokens_metric_produces_svg ... ok
+test err_analyze_invalid_format ... ok
+test err_analyze_invalid_preset ... ok
+test config_auto_succeeds ... ok
+test err_badge_invalid_metric_fails ... ok
+test config_none_succeeds ... ok
+test err_badge_missing_metric_fails ... ok
+test err_completions_missing_shell ... ok
+test err_diff_no_refs_fails ... ok
+test err_invalid_children_mode ... ok
+test err_invalid_format_for_export ... ok
+test err_invalid_format_for_lang ... ok
+test err_invalid_format_for_module ... ok
+test err_nonexistent_path_export ... ok
+test err_nonexistent_path_lang ... ok
+test err_nonexistent_path_analyze ... ok
+test err_nonexistent_path_module ... ok
+test err_unknown_subcommand_fails ... ok
+test err_typo_subcommand_fails ... ok
+test export_help_shows_format_options ... ok
+test export_csv_has_header_and_data ... ok
+test export_csv_rows_have_consistent_column_count ... ok
+test export_json_is_valid_array ... ok
+test export_jsonl_meta_false_skips_meta ... ok
+test export_jsonl_first_line_is_meta ... ok
+test export_jsonl_meta_true_has_meta_line ... ok
+test export_jsonl_produces_valid_lines ... ok
+test export_jsonl_deterministic_across_runs ... ok
+test export_max_rows_limits_output ... ok
+test failure_exit_code_is_nonzero ... ok
+test export_redact_none_shows_paths ... ok
+test export_min_code_filter_works ... ok
+test global_format_json_works ... ok
+test export_with_explicit_path_arg ... ok
+test help_flag_shows_global_options ... ok
+test help_flag_shows_subcommands ... ok
+test init_help_shows_usage ... ok
+test global_format_tsv_works ... ok
+test hidden_flag_succeeds ... ok
+test lang_children_collapse_succeeds ... ok
+test lang_children_separate_succeeds ... ok
+test lang_all_formats_report_same_total_code ... ok
+test lang_default_produces_markdown ... ok
+test lang_children_collapse_vs_separate_differ_in_json ... ok
+test lang_exclude_multiple_patterns ... ok
+test lang_exclude_filters_files ... ok
+test lang_format_json_is_valid ... ok
+test lang_files_flag_adds_file_info ... ok
+test lang_format_md_produces_markdown_table ... ok
+test lang_help_shows_expected_flags ... ok
+test lang_format_tsv_is_tab_separated ... ok
+test lang_json_has_envelope_metadata ... ok
+test lang_json_files_total_equals_sum ... ok
+test lang_json_lines_total_equals_sum ... ok
+test lang_json_no_duplicate_languages ... ok
+test lang_json_rows_have_expected_fields ... ok
+test lang_json_deterministic_across_runs ... ok
+test lang_json_rows_sorted_by_code_descending ... ok
+test lang_json_total_equals_sum_of_rows ... ok
+test lang_json_schema_version_is_positive ... ok
+test lang_json_total_has_code_field ... ok
+test lang_md_has_separator_line ... ok
+test lang_top_1_limits_rows_in_json ... ok
+test lang_md_deterministic_across_runs ... ok
+test lang_tsv_header_contains_expected_columns ... ok
+test lang_top_0_shows_all_rows ... ok
+test lang_tsv_deterministic_across_runs ... ok
+test lang_with_explicit_path_arg ... ok
+test module_default_produces_markdown ... ok
+test module_depth_1_produces_output ... ok
+test module_depth_3_produces_output ... ok
+test module_format_json_valid ... ok
+test module_help_shows_depth_option ... ok
+test module_format_md_contains_table_markers ... ok
+test module_format_tsv_has_tabs ... ok
+test module_json_rows_have_module_field ... ok
+test module_json_total_equals_sum_of_rows ... ok
+test module_md_has_separator_line ... ok
+test module_tsv_header_contains_module ... ok
+test module_json_deterministic_across_runs ... ok
+test no_ignore_flag_succeeds ... ok
+test module_with_explicit_path_arg ... ok
+test no_progress_flag_succeeds ... ok
+test success_exit_code_is_zero ... ok
+test tools_openai_produces_json ... ok
+test version_flag_shows_tokmd ... ok
+test version_flag_matches_semver ... ok
+test treat_doc_strings_as_comments_succeeds ... ok
+test verbose_flag_succeeds ... ok
+
+test result: ok. 99 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s
+
+     Running tests/cli_e2e_w69.rs (target/debug/deps/cli_e2e_w69-95defdccf5b4632a)
+
+running 53 tests
+test w69_completions_bash_produces_output ... ok
+test w69_completions_fish_produces_output ... ok
+test w69_completions_powershell_produces_output ... ok
+test w69_error_invalid_format_for_export ... ok
+test w69_error_invalid_format_for_lang ... ok
+test w69_completions_zsh_produces_output ... ok
+test w69_error_nonexistent_directory ... ok
+test w69_error_unknown_subcommand ... ok
+test w69_exclude_md_removes_markdown ... ok
+test w69_exclude_rs_removes_rust ... ok
+test w69_export_csv_has_header_and_rows ... ok
+test w69_export_csv_consistent_column_count ... ok
+test w69_export_help_shows_format_option ... ok
+test w69_export_csv_header_has_columns ... ok
+test w69_export_csv_rows_are_comma_separated ... ok
+test w69_export_jsonl_data_rows_have_path ... ok
+test w69_export_jsonl_each_line_valid_json ... ok
+test w69_export_jsonl_has_meta_record ... ok
+test w69_help_contains_usage_section ... ok
+test w69_export_jsonl_meta_has_tool_info ... ok
+test w69_help_lists_all_subcommands ... ok
+test w69_init_print_generates_tokeignore ... ok
+test w69_init_print_contains_ignore_patterns ... ok
+test w69_export_jsonl_deterministic_across_runs ... ok
+test w69_lang_help_shows_options ... ok
+test w69_lang_default_format_is_markdown_table ... ok
+test w69_lang_json_generated_at_present ... ok
+test w69_lang_json_has_args ... ok
+test w69_lang_json_has_total ... ok
+test w69_lang_json_deterministic_across_runs ... ok
+test w69_lang_json_rows_have_required_fields ... ok
+test w69_lang_json_schema_version_is_positive ... ok
+test w69_lang_json_rows_sorted_by_code_descending ... ok
+test w69_lang_minimal_dir_succeeds ... ok
+test w69_lang_json_valid_with_schema_version ... ok
+test w69_lang_mixed_dir_detects_at_least_three_languages ... ok
+test w69_lang_mixed_dir_detects_javascript ... ok
+test w69_lang_mixed_dir_detects_python ... ok
+test w69_lang_mixed_dir_detects_rust ... ok
+test w69_lang_tsv_contains_tabs ... ok
+test w69_lang_tsv_has_header_row ... ok
+test w69_lang_tsv_multiple_rows ... ok
+test w69_module_default_format_is_markdown_table ... ok
+test w69_module_depth_1_json_valid ... ok
+test w69_module_depth_1_limits_output ... ok
+test w69_module_default_has_module_column ... ok
+test w69_module_help_shows_depth_option ... ok
+test w69_module_json_has_rows ... ok
+test w69_module_json_rows_have_module_field ... ok
+test w69_version_contains_tokmd ... ok
+test w69_module_json_total_present ... ok
+test w69_version_shows_semver ... ok
+test w69_module_json_schema_version_matches_lang ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/cli_error_help_w73.rs (target/debug/deps/cli_error_help_w73-b3b3bbf21560fa4d)
+
+running 30 tests
+test error_completions_invalid_shell ... ok
+test error_diff_no_args ... ok
+test error_export_nonexistent_path ... ok
+test error_analyze_invalid_preset ... ok
+test error_lang_invalid_format ... ok
+test error_module_invalid_format ... ok
+test error_unknown_flag ... ok
+test help_analyze_mentions_preset ... ok
+test help_badge_exists ... ok
+test help_baseline_exists ... ok
+test help_cockpit_exists ... ok
+test help_completions_mentions_shell_types ... ok
+test help_check_ignore_exists ... ok
+test help_context_mentions_mode_and_budget ... ok
+test help_diff_mentions_from_and_to ... ok
+test help_export_mentions_format_variants ... ok
+test help_handoff_mentions_preset ... ok
+test help_gate_mentions_policy ... ok
+test help_init_exists ... ok
+test help_module_mentions_depth_and_format ... ok
+test help_root_contains_subcommands ... ok
+test help_lang_mentions_format_and_children ... ok
+test help_run_exists ... ok
+test help_root_mentions_version_flag ... ok
+test error_gate_nonexistent_policy ... ok
+test help_tools_exists ... ok
+test help_sensor_exists ... ok
+test version_short_flag_matches_cargo ... ok
+test version_long_flag_matches_cargo ... ok
+test version_long_and_short_agree ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/cli_error_paths_w51.rs (target/debug/deps/cli_error_paths_w51-2b658602fdd2afd8)
+
+running 22 tests
+test cockpit_subcommand_responds_to_help ... ok
+test analyze_nonexistent_path_fails ... ok
+test analyze_help_lists_presets ... ok
+test analyze_invalid_preset_fails ... ok
+test completions_help_mentions_shells ... ok
+test diff_no_arguments_fails ... ok
+test export_invalid_format_fails ... ok
+test export_nonexistent_path_fails ... ok
+test context_budget_zero_succeeds_with_zero_tokens ... ok
+test help_flag_succeeds_with_usage ... ok
+test invalid_format_on_default_command_fails ... ok
+test diff_nonexistent_before_after_fails ... ok
+test lang_help_succeeds ... ok
+test module_negative_depth_fails ... ok
+test lang_nonexistent_path_fails ... ok
+test negative_top_value_fails ... ok
+test module_nonexistent_path_fails ... ok
+test run_subcommand_responds_to_help ... ok
+test version_flag_succeeds_with_version ... ok
+test unknown_subcommand_fails ... ok
+test known_subcommands_respond_to_help ... ok
+test gate_no_arguments_fails ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+     Running tests/cli_errors_w66.rs (target/debug/deps/cli_errors_w66-88ba55e9b2966a74)
+
+running 24 tests
+test analyze_invalid_preset_value_produces_error ... ok
+test analyze_with_nonexistent_path_produces_error ... ok
+test badge_invalid_metric_fails ... ok
+test completions_invalid_shell_fails ... ok
+test cockpit_with_nonexistent_base_ref_fails ... ok
+test empty_string_subcommand_fails_or_defaults ... ok
+test diff_without_required_args_fails ... ok
+test diff_with_nonexistent_files_produces_error ... ok
+test export_with_nonexistent_path_produces_error ... ok
+test invalid_format_value_for_export_produces_error ... ok
+test invalid_format_value_for_lang_produces_error ... ok
+test lang_with_nonexistent_path_produces_error ... ok
+test invalid_format_value_for_module_produces_error ... ok
+test module_non_numeric_depth_fails ... ok
+test module_with_nonexistent_path_produces_error ... ok
+test negative_top_flag_fails ... ok
+test non_numeric_top_flag_fails ... ok
+test root_help_mentions_subcommands ... ok
+test run_with_nonexistent_path_produces_error ... ok
+test unknown_global_flag_fails ... ok
+test version_flag_contains_tokmd_and_semver ... ok
+test unknown_subcommand_produces_helpful_error ... ok
+test help_flag_for_all_subcommands ... ok
+test gate_without_required_args_fails ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s
+
+     Running tests/cli_init_e2e.rs (target/debug/deps/cli_init_e2e-ecdf3f519b149612)
+
+running 10 tests
+test init_does_not_overwrite_existing_tokeignore ... ok
+test init_print_cpp_template_produces_output ... ok
+test init_force_overwrites_existing_tokeignore ... ok
+test init_print_does_not_create_file ... ok
+test init_print_go_template_contains_vendor ... ok
+test init_creates_tokeignore_in_temp_dir ... ok
+test init_print_outputs_template_to_stdout ... ok
+test init_print_mono_template_produces_output ... ok
+test init_print_python_template_contains_venv ... ok
+test init_with_dir_flag_creates_tokeignore_in_target ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/cli_output_formats.rs (target/debug/deps/cli_output_formats-a3f428063117da69)
+
+running 13 tests
+test export_csv_rows_have_consistent_column_count ... ok
+test export_json_envelope_has_mode_export ... ok
+test export_json_rows_have_code_and_language ... ok
+test export_csv_header_contains_path_and_language ... ok
+test export_jsonl_meta_line_has_schema_version ... ok
+test lang_json_has_schema_version_field ... ok
+test export_jsonl_data_rows_have_path_field ... ok
+test lang_json_has_args_metadata ... ok
+test lang_tsv_header_contains_expected_columns ... ok
+test lang_tsv_data_rows_have_same_column_count_as_header ... ok
+test module_json_has_mode_field ... ok
+test lang_json_rows_sorted_descending_by_code ... ok
+test module_json_rows_have_module_field ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/cli_output_formats_w66.rs (target/debug/deps/cli_output_formats_w66-36f3e5b3589873e0)
+
+running 20 tests
+test context_json_parses ... ok
+test analyze_json_parses_as_valid_json ... ok
+test context_list_mode_produces_output ... ok
+test badge_produces_valid_svg ... ok
+test export_csv_has_header_and_consistent_columns ... ok
+test export_json_parses_and_has_mode_export ... ok
+test export_jsonl_each_line_is_valid_json ... ok
+test analyze_markdown_produces_readable_output ... ok
+test export_output_flag_writes_to_file ... ok
+test lang_markdown_contains_table_markers ... ok
+test lang_json_has_required_envelope_fields ... ok
+test lang_json_parses_as_valid_json ... ok
+test handoff_writes_to_output_dir ... ok
+test lang_tsv_has_header_and_consistent_columns ... ok
+test module_markdown_contains_table ... ok
+test module_tsv_has_consistent_columns ... ok
+test module_json_parses_and_has_rows ... ok
+test verbose_flag_does_not_break_output ... ok
+test no_progress_flag_suppresses_spinners ... ok
+test no_progress_with_json_produces_clean_output ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/cli_pipeline_e2e_w54.rs (target/debug/deps/cli_pipeline_e2e_w54-1b18b6324483d697)
+
+running 53 tests
+test badge_bytes_metric_produces_svg ... ok
+test analyze_default_format_outputs_markdown ... ok
+test analyze_health_preset_json_has_derived ... ok
+test check_ignore_with_path_runs ... ok
+test completions_bash_outputs_script ... ok
+test analyze_receipt_preset_json_has_derived ... ok
+test completions_powershell_outputs_script ... ok
+test completions_fish_outputs_script ... ok
+test completions_zsh_outputs_script ... ok
+test badge_tokens_metric_produces_svg ... ok
+test badge_lines_metric_produces_svg ... ok
+test export_csv_has_header_and_data_rows ... ok
+test export_csv_columns_consistent ... ok
+test export_invalid_format_fails ... ok
+test export_exclude_js_filters_files ... ok
+test diff_between_two_lang_receipts ... ok
+test export_json_has_envelope_and_rows ... ok
+test help_analyze_shows_usage ... ok
+test export_jsonl_each_line_is_valid_json ... ok
+test export_jsonl_first_line_is_meta_record ... ok
+test export_paths_always_use_forward_slashes ... ok
+test help_badge_shows_usage ... ok
+test help_diff_shows_usage ... ok
+test help_lang_shows_usage ... ok
+test help_export_shows_usage ... ok
+test help_module_shows_usage ... ok
+test help_root_shows_usage ... ok
+test help_run_shows_usage ... ok
+test init_print_generates_tokeignore_content ... ok
+test invalid_format_flag_fails ... ok
+test invalid_path_fails_gracefully ... ok
+test invalid_subcommand_fails ... ok
+test lang_children_collapse_succeeds ... ok
+test lang_children_separate_may_have_embedded_rows ... ok
+test lang_children_separate_succeeds ... ok
+test lang_default_outputs_markdown_table ... ok
+test lang_json_outputs_valid_json_with_rows ... ok
+test lang_json_has_total_section ... ok
+test lang_json_rows_have_required_fields ... ok
+test lang_exclude_rust_reduces_rows ... ok
+test module_children_parents_only_succeeds ... ok
+test lang_tsv_has_tabs_and_header ... ok
+test module_default_outputs_markdown ... ok
+test module_json_has_rows_and_total ... ok
+test module_keys_always_use_forward_slashes ... ok
+test module_json_rows_have_module_field ... ok
+test module_depth_1_reduces_nesting ... ok
+test module_tsv_has_tabs ... ok
+test run_default_succeeds ... ok
+test version_flag_shows_semver ... ok
+test run_with_output_dir_creates_artifacts ... ok
+test pipeline_lang_and_module_same_total_files ... ok
+test pipeline_lang_then_export_file_count_consistent ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+
+     Running tests/cli_scan_options_w66.rs (target/debug/deps/cli_scan_options_w66-a7d7ea834aad9c49)
+
+running 20 tests
+test exclude_all_files_produces_zero_rows ... ok
+test export_children_separate_succeeds ... ok
+test exclude_multiple_patterns ... ok
+test export_empty_directory_succeeds ... ok
+test exclude_pattern_reduces_output ... ok
+test lang_children_invalid_value_fails ... ok
+test export_exclude_filters_files ... ok
+test hidden_flag_succeeds ... ok
+test lang_children_collapse_succeeds ... ok
+test lang_children_separate_succeeds ... ok
+test module_depth_one_groups_at_top_level ... ok
+test module_empty_directory_succeeds ... ok
+test module_children_separate_succeeds ... ok
+test module_depth_large_value_succeeds ... ok
+test no_ignore_flag_succeeds ... ok
+test scan_empty_directory_succeeds_with_zero_results ... ok
+test top_zero_shows_all_languages ... ok
+test top_flag_limits_output ... ok
+test self_scan_finds_rust_language ... ok
+test self_scan_succeeds ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.17s
+
+     Running tests/cli_snapshot_golden.rs (target/debug/deps/cli_snapshot_golden-474a0df1d5fa992d)
+
+running 12 tests
+test snapshot_export_json ... ok
+test snapshot_export_csv ... ok
+test snapshot_export_jsonl ... ok
+test snapshot_help ... ok
+test snapshot_lang_markdown ... ok
+test snapshot_lang_json_structure ... ok
+test snapshot_lang_tsv ... ok
+test snapshot_lang_json ... ok
+test snapshot_module_markdown ... ok
+test snapshot_version ... ok
+test snapshot_module_tsv ... ok
+test snapshot_module_json ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/cli_tools_e2e.rs (target/debug/deps/cli_tools_e2e-e457e9a31ed2acd8)
+
+running 8 tests
+test tools_invalid_format_fails ... ok
+test tools_anthropic_contains_module_and_analyze ... ok
+test tools_clap_format_has_tools_with_parameters ... ok
+test tools_anthropic_each_tool_has_name_and_input_schema ... ok
+test tools_jsonschema_contains_context_and_gate ... ok
+test tools_jsonschema_has_name_and_tools_array ... ok
+test tools_openai_contains_lang_and_export ... ok
+test tools_openai_each_function_has_name_and_description ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/cockpit_cli_w71.rs (target/debug/deps/cockpit_cli_w71-85ae21a466250f61)
+
+running 14 tests
+test cockpit_help_shows_expected_flags ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpTLmEzm/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpulKQfj/.git/
+Initialized empty Git repository in /tmp/.tmpxBFqtz/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpNBKCXc/.git/
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[feature bd59a1a] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+[feature 88ec804] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/new_module.rs
+[feature d6441af] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature d6441af] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_json_has_change_surface ... ok
+test cockpit_json_has_code_health ... ok
+test cockpit_base_from_env_var ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpflpWD0/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp9SSrLT/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpyT46NI/.git/
+test cockpit_change_surface_files_changed_matches ... ok
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpzwS8Yk/.git/
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[feature d6441af] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature d6441af] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature d6441af] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) a66af08] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 44cb89a] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/new.rs
+test cockpit_json_has_evidence_gates ... ok
+test cockpit_json_has_contracts ... ok
+test cockpit_json_has_composition ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpgLUFeA/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpZamkls/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpAQh9e6/.git/
+test cockpit_json_has_review_plan ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpOVubyJ/.git/
+[main (root-commit) a65b297] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/main.rs
+Switched to a new branch 'feature'
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[feature fb5876d] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Switched to a new branch 'feature'
+[feature 576bd93] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_md_has_expected_sections ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp94IfxF/.git/
+[main (root-commit) c5cd902] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/app.rs
+Switched to a new branch 'feature'
+[feature bc19f9f] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_json_has_risk_section ... ok
+test cockpit_sections_has_markers ... ok
+test cockpit_json_has_schema_version_and_mode ... ok
+test cockpit_output_file_creates_json ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.28s
+
+     Running tests/cockpit_cli_w75.rs (target/debug/deps/cockpit_cli_w75-7adf893358db0d14)
+
+running 14 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp0i7G9G/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpcwbCvy/.git/
+Initialized empty Git repository in /tmp/.tmphJ5tdD/.git/
+Initialized empty Git repository in /tmp/.tmpjtRGiL/.git/
+[main (root-commit) 367cfb4] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[feature 3eb9b65] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature 82edb97] Feature changes
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/extra.rs
+test cockpit_change_surface_counts_new_file ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpiLLhuQ/.git/
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_composition_has_code_pct ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpsm3HCr/.git/
+test cockpit_change_surface_detects_modification ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpEwxXcw/.git/
+test cockpit_code_health_grade_valid ... ok
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Initialized empty Git repository in /tmp/.tmpUIWGTV/.git/
+Switched to a new branch 'feature'
+[feature effd7c0] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) 25ee60d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+test cockpit_env_var_base_ref ... ok
+[feature 293a369] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpCmDpQO/.git/
+[main (root-commit) 74930db] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 4fd1a41] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_evidence_has_overall_status ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp5CWqPA/.git/
+test cockpit_evidence_mutation_gate_present ... ok
+[main (root-commit) eced409] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpMJhTIr/.git/
+Switched to a new branch 'feature'
+[feature d6c7314] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) eced409] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 8a41620] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_explicit_head_flag ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpVUCRib/.git/
+test cockpit_json_top_level_keys ... ok
+[main (root-commit) eced409] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpmZezwD/.git/
+[feature d07f7b0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/new.rs
+[main (root-commit) eced409] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 8a41620] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_markdown_format_has_sections ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp3IU2SZ/.git/
+test cockpit_output_flag_writes_file ... ok
+[main (root-commit) eced409] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 8a41620] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test cockpit_review_plan_is_array ... ok
+test cockpit_risk_level_is_valid_string ... ok
+test cockpit_sections_format_has_markers ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.95s
+
+     Running tests/cockpit_integration.rs (target/debug/deps/cockpit_integration-ad74c15ac3749610)
+
+running 12 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: call:
+hint: to use in all of your new repositories, which will suppress this warning,
+hint:
+hint: call:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint:
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint:
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 	git branch -m <name>
+hint:
+hint:
+hint: 	git branch -m <name>
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpqOBfvk/.git/
+Initialized empty Git repository in /tmp/.tmpzdto8g/.git/
+Initialized empty Git repository in /tmp/.tmpWkPEUU/.git/
+test test_cockpit_help ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpFIdLAz/.git/
+[main (root-commit) ee088c1] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 main.rs
+[main (root-commit) 10f14b2] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 code.rs
+[main (root-commit) 9f453a6] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'diverse'
+Switched to a new branch 'feature'
+Switched to a new branch 'test'
+[main (root-commit) ee088c1] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 main.rs
+[feature a7c0dde] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+[diverse f861174] Add diverse files
+ 4 files changed, 4 insertions(+)
+ create mode 100644 Cargo.toml
+ create mode 100644 README.md
+ create mode 100644 lib.rs
+ create mode 100644 tests/test.rs
+[test f552a44] New
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+Switched to a new branch 'feature'
+[feature 96d9b6a] Add test
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.rs
+test test_cockpit_json_format ... ok
+test test_cockpit_artifacts_dir ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpUFUrB9/.git/
+test test_cockpit_not_in_git_repo ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmprZDfnn/.git/
+test test_cockpit_md_format ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpr3k348/.git/
+[main (root-commit) ee088c1] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 main.rs
+Switched to a new branch 'feature'
+[main (root-commit) 10f14b2] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 code.rs
+Switched to a new branch 'test'
+[feature 93a980a] Add feature
+ 1 file changed, 1 insertion(+)
+ create mode 100644 feature.rs
+[main (root-commit) bbc9adb] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 app.rs
+Switched to a new branch 'dev'
+[test f552a44] New
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+[dev 59530dc] Add module
+ 1 file changed, 1 insertion(+)
+ create mode 100644 mod.rs
+test test_cockpit_output_file ... ok
+test test_cockpit_file_classification ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp3D7AhT/.git/
+Initialized empty Git repository in /tmp/.tmpE9mIkA/.git/
+test test_cockpit_md_includes_summary_comparison_with_baseline ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpSMf2o9/.git/
+[main (root-commit) c87f613] Initial
+ 1 file changed, 7 insertions(+)
+ create mode 100644 Cargo.toml
+[main (root-commit) 32c3e95] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[feature b79ddb2] Add code without tests
+ 2 files changed, 2 insertions(+)
+ create mode 100644 more.rs
+ create mode 100644 new.rs
+[feature 7c04365] Add dependencies
+ 1 file changed, 2 insertions(+)
+[main (root-commit) 5b9f886] Initial
+ 3 files changed, 3 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 lib.rs
+ create mode 100644 tests/test.rs
+Switched to a new branch 'feature'
+[feature a4040ce] Add feature
+ 2 files changed, 2 insertions(+)
+ create mode 100644 new.rs
+ create mode 100644 tests/new_test.rs
+test test_evidence_gates_fail_coverage ... ok
+test test_evidence_gates_fail_supply_chain ... ok
+test test_evidence_gates_pass_all ... ok
+test test_cockpit_sections_format ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/completions_integration.rs (target/debug/deps/completions_integration-888eed26e0975ff7)
+
+running 3 tests
+test completions_bash_include_dynamic_preset_values ... ok
+test completions_bash_output_contains_command ... ok
+test completions_bash_include_dynamic_format_values ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/config_resolution.rs (target/debug/deps/config_resolution-e4507a6417159f0d)
+
+running 4 tests
+test test_resolve_lang_cli_overrides_profile ... ok
+test test_resolve_lang_no_args_no_profile ... ok
+test test_resolve_lang_profile_overrides_default ... ok
+test test_resolve_lang_partial_overrides ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/context_cli_w73.rs (target/debug/deps/context_cli_w73-b3e0e42e8d8a91f8)
+
+running 10 tests
+test w73_context_json_has_required_structure ... ok
+test w73_context_budget_respected ... ok
+test w73_context_budget_unlimited ... ok
+test w73_context_json_file_rows_have_fields ... ok
+test w73_context_list_includes_all_source_files ... ok
+test w73_context_list_on_temp_dir ... ok
+test w73_handoff_manifest_json_structure ... ok
+test w73_handoff_artifacts_have_integrity_hashes ... ok
+test w73_handoff_preset_in_manifest ... ok
+test w73_handoff_preset_minimal_output ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/context_e2e.rs (target/debug/deps/context_e2e-8139cd0f5a9b91ce)
+
+running 11 tests
+test test_context_bundle_mode ... ok
+test test_context_default_mode_is_list ... ok
+test test_context_bundle_dir_creates_artifacts ... ok
+test test_context_budget_limiting ... ok
+test test_context_list_mode ... ok
+test test_context_json_file_rows_have_required_fields ... ok
+test test_context_json_mode ... ok
+test test_context_output_to_file_json ... ok
+test test_context_output_to_file_list ... ok
+test test_context_strategy_spread ... ok
+test test_context_strategy_greedy ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/context_handoff_deep.rs (target/debug/deps/context_handoff_deep-e8a647ec26999797)
+
+running 31 tests
+test context_bundle_budget_respected ... ok
+test context_budget_is_respected_with_large_budget ... ok
+test context_budget_is_respected_with_small_budget ... ok
+test context_bundle_dir_creates_manifest_and_bundle ... ok
+test context_bundle_manifest_has_valid_schema ... ok
+test context_bundle_included_files_match_file_count ... ok
+test context_bundle_mode_outputs_to_stdout ... ok
+test context_greedy_strategy_records_strategy_field ... ok
+test context_json_file_paths_use_forward_slashes ... ok
+test context_json_file_rows_have_complete_fields ... ok
+test context_json_determinism_same_file_selection ... ok
+test context_json_determinism_same_token_counts ... ok
+test context_json_receipt_has_all_required_fields ... ok
+test context_output_to_file_writes_valid_json ... ok
+test context_spread_strategy_records_strategy_field ... ok
+test context_with_very_small_budget_respects_limit ... ok
+test context_utilization_pct_is_consistent ... ok
+test context_with_very_small_budget_still_succeeds ... ok
+test handoff_artifact_map_has_blake3_hash ... ok
+test handoff_artifacts_have_expected_names ... ok
+test handoff_budget_enforcement ... ok
+test handoff_code_txt_contains_file_markers ... ok
+test handoff_included_files_paths_use_forward_slashes ... ok
+test handoff_greedy_strategy_records_strategy_field ... ok
+test handoff_intelligence_json_has_expected_fields ... ok
+test handoff_determinism_same_manifest_structure ... ok
+test handoff_force_flag_allows_overwrite ... ok
+test handoff_manifest_has_all_required_fields ... ok
+test handoff_map_jsonl_lines_are_valid_json ... ok
+test handoff_produces_all_four_files ... ok
+test handoff_with_no_git_flag_succeeds_and_marks_capability ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/context_w71.rs (target/debug/deps/context_w71-36576af4b4ce2aff)
+
+running 20 tests
+test context_empty_directory_succeeds ... ok
+test context_budget_plain_number ... ok
+test context_budget_m_suffix ... ok
+test context_invalid_rank_by_rejected ... ok
+test context_empty_directory_zero_files ... ok
+test context_compress_bundle_mode ... ok
+test context_log_flag_creates_logfile ... ok
+test context_max_file_pct_accepted ... ok
+test context_file_ordering_deterministic ... ok
+test context_max_file_tokens_accepted ... ok
+test context_max_file_tokens_limits_individual_files ... ok
+test context_module_depth_accepted ... ok
+test context_no_git_flag_succeeds ... ok
+test context_no_git_json_still_has_required_fields ... ok
+test context_no_smart_exclude_accepted ... ok
+test context_output_bundle_to_file ... ok
+test context_rank_by_churn_no_git_fallback ... ok
+test context_rank_by_code ... ok
+test context_rank_by_tokens ... ok
+test context_rank_by_hotspot_no_git_fallback ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/cross_crate_integration_w50.rs (target/debug/deps/cross_crate_integration_w50-201835cbb760e7a8)
+
+running 28 tests
+test analysis_derived_report_has_totals ... ok
+test analysis_density_is_valid_ratio ... ok
+test analysis_integrity_hash_present ... ok
+test analysis_cocomo_estimates_positive ... ok
+test config_parse_minimal_toml ... ok
+test config_exclude_pattern_honored ... ok
+test config_exclude_does_not_affect_other_langs ... ok
+test determinism_no_backslash_in_paths ... ok
+test determinism_module_report_stable ... ok
+test determinism_export_identical_across_runs ... ok
+test determinism_identical_json_across_runs ... ok
+test determinism_sort_stability_with_tiebreak ... ok
+test export_all_paths_use_forward_slashes ... ok
+test receipt_export_flatten_data_at_top_level ... ok
+test receipt_lang_flatten_rows_at_top_level ... ok
+test receipt_lang_serialize_has_schema_version ... ok
+test receipt_module_flatten_rows_at_top_level ... ok
+test export_csv_has_header_and_rows ... ok
+test export_deterministic_sort_order ... ok
+test export_jsonl_one_object_per_line ... ok
+test receipts_implement_clone_debug_serde ... ok
+test scan_model_format_collapse_children_mode_tag ... ok
+test scan_model_format_json_has_schema_version ... ok
+test scan_model_format_json_total_consistency ... ok
+test scan_model_format_markdown_has_table_header ... ok
+test scan_model_format_tsv_column_count ... ok
+test scan_model_format_separate_children_mode_tag ... ok
+test scan_model_format_separate_has_more_or_equal_rows ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/cross_crate_w58.rs (target/debug/deps/cross_crate_w58-ead2cdb21b463101)
+
+running 37 tests
+test analysis_derived_context_window ... ok
+test analysis_derived_cocomo_positive ... ok
+test analysis_derived_from_tempdir_has_totals ... ok
+test analysis_derived_doc_density_valid ... ok
+test analysis_derived_integrity_hash_present ... ok
+test children_collapse_no_embedded_label ... ok
+test children_include_mode_parents_only_no_child_kind ... ok
+test children_collapse_tag_preserved ... ok
+test children_separate_has_separate_tag ... ok
+test children_separate_ge_collapse_rows ... ok
+test determinism_export_data_three_runs ... ok
+test determinism_derived_integrity_hash ... ok
+test exclude_pattern_preserves_other_langs ... ok
+test determinism_lang_report_three_runs ... ok
+test exclude_pattern_filters_language ... ok
+test export_rows_sorted_code_desc_path_asc ... ok
+test determinism_module_report_three_runs ... ok
+test export_data_rows_only_contain_known_kinds ... ok
+test lang_json_flattened_no_report_key ... ok
+test lang_json_schema_version_matches_constant ... ok
+test lang_report_totals_equal_row_sums ... ok
+test module_json_schema_version_matches_constant ... ok
+test lang_rows_sorted_code_desc_name_asc ... ok
+test normalize_path_forward_slashes_on_backslash_input ... ok
+test normalize_path_strips_dot_prefix ... ok
+test module_report_totals_code_consistent ... ok
+test module_rows_sorted_code_desc_module_asc ... ok
+test module_key_consistent_model_vs_export ... ok
+test paths_use_forward_slashes_in_collect_file_rows ... ok
+test paths_use_forward_slashes_in_export ... ok
+test scan_model_format_export_json_roundtrip ... ok
+test scan_model_format_lang_md_contains_table ... ok
+test scan_model_format_lang_json_roundtrip ... ok
+test scan_model_format_lang_tsv_columns ... ok
+test scan_model_format_module_md_contains_table ... ok
+test scan_model_format_module_json_roundtrip ... ok
+test top_n_truncates_lang_rows ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/cross_crate_w66.rs (target/debug/deps/cross_crate_w66-0021c1c7bd873de9)
+
+running 20 tests
+test lang_md_output_is_nonempty ... ok
+test lang_md_includes_all_languages ... ok
+test lang_json_rows_match_original_report ... ok
+test lang_json_has_correct_schema_version ... ok
+test lang_to_md_has_table_header_and_total ... ok
+test module_json_has_correct_schema_version ... ok
+test module_to_tsv_has_correct_columns ... ok
+test module_json_rows_match_original_report ... ok
+test module_tsv_header_is_correct ... ok
+test module_tsv_output_is_nonempty ... ok
+test synthetic_lang_md_produces_valid_table ... ok
+test synthetic_lang_totals_match_row_sums ... ok
+test synthetic_module_totals_match_row_sums ... ok
+test synthetic_module_tsv_roundtrip_values ... ok
+test scan_produces_nonempty_lang_report ... ok
+test scan_produces_nonempty_module_report ... ok
+test totals_consistent_between_md_and_json_lang ... ok
+test totals_consistent_between_md_and_json_module ... ok
+test totals_consistent_between_md_and_tsv_lang ... ok
+test totals_consistent_between_md_and_tsv_module ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/cyclonedx_integration.rs (target/debug/deps/cyclonedx_integration-135f649eb27667ef)
+
+running 7 tests
+test test_cyclonedx_component_structure ... ok
+test test_cyclonedx_metadata ... ok
+test test_cyclonedx_has_components ... ok
+test test_cyclonedx_export_valid_json ... ok
+test test_cyclonedx_serial_number ... ok
+test test_cyclonedx_to_file ... ok
+test test_cyclonedx_spec_version ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.94s
+
+     Running tests/deep_cli_complex_w48.rs (target/debug/deps/deep_cli_complex_w48-e42c68f7e457d4ae)
+
+running 40 tests
+test baseline_help_exits_zero ... ok
+test all_complex_commands_accept_help ... ok
+test baseline_json_output_is_parseable ... ok
+test baseline_generates_valid_json_file ... ok
+test context_budget_respects_token_limit ... ok
+test baseline_output_has_expected_metrics ... ok
+test context_help_exits_zero ... ok
+test context_invalid_mode_produces_error ... ok
+test baseline_force_overwrites_existing ... ok
+test baseline_without_determinism_has_no_determinism_field ... ok
+test context_invalid_strategy_fails_gracefully ... ok
+test context_bundle_mode_produces_output ... ok
+test context_json_mode_produces_valid_json_with_schema_version ... ok
+test context_json_files_have_path_and_tokens ... ok
+test context_json_output_is_parseable ... ok
+test diff_help_exits_zero ... ok
+test context_json_utilization_within_bounds ... ok
+test diff_invalid_format_produces_error ... ok
+test context_list_mode_produces_file_paths ... ok
+test diff_no_args_shows_error ... ok
+test diff_compact_mode_works ... ok
+test diff_json_format_produces_valid_json ... ok
+test handoff_help_exits_zero ... ok
+test diff_same_receipt_twice_shows_zero_diff ... ok
+test handoff_budget_respects_token_limits ... ok
+test handoff_invalid_preset_produces_error ... ok
+test handoff_intelligence_json_is_parseable ... ok
+test handoff_map_jsonl_each_line_valid_json ... ok
+test handoff_manifest_is_valid_json ... ok
+test handoff_force_flag_allows_overwrite ... ok
+test handoff_preset_minimal_works ... ok
+test handoff_preset_standard_works ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpEOkaWp/.git/
+test sensor_tests::sensor_help_exits_zero ... ok
+test handoff_produces_manifest_and_artifacts ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpK8Obxb/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpleGrj7/.git/
+test handoff_without_force_on_existing_dir_fails ... ok
+[main (root-commit) 08bf221] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpCdvT6S/.git/
+Switched to a new branch 'feature'
+[main (root-commit) 08bf221] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) 08bf221] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 1675ea0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+Switched to a new branch 'feature'
+[main (root-commit) 08bf221] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 1675ea0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+[feature 1675ea0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+[feature 1675ea0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+test sensor_tests::sensor_artifacts_include_receipt_and_cockpit ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpS8dcGf/.git/
+[main (root-commit) 08bf221] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+test sensor_tests::sensor_output_is_valid_json ... ok
+test sensor_tests::sensor_produces_report_v1_envelope ... ok
+test sensor_tests::sensor_md_format_produces_markdown ... ok
+[feature 1675ea0] Feature changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+test sensor_tests::sensor_report_has_required_envelope_fields ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+
+     Running tests/deep_cli_formats_w49.rs (target/debug/deps/deep_cli_formats_w49-8d71eb81181bd62c)
+
+running 42 tests
+test analyze_health_json_exits_zero ... ok
+test analyze_health_md_exits_zero ... ok
+test analyze_json_exits_zero_and_valid ... ok
+test analyze_md_contains_markdown_headers ... ok
+test analyze_json_has_schema_version ... ok
+test analyze_md_exits_zero_and_nonempty ... ok
+test export_children_separate_vs_parents_only_differ ... ok
+test analyze_xml_has_xml_structure ... ok
+test analyze_xml_exits_zero_and_nonempty ... ok
+test all_json_outputs_include_schema_version ... ok
+test export_csv_has_commas ... ok
+test export_csv_consistent_column_count ... ok
+test export_csv_header_has_path_column ... ok
+test export_csv_exits_zero_and_nonempty ... ok
+test export_json_exits_zero_and_valid ... ok
+test export_json_has_schema_version ... ok
+test export_json_has_rows_array ... ok
+test export_jsonl_each_line_is_valid_json ... ok
+test export_jsonl_meta_has_schema_version ... ok
+test export_jsonl_exits_zero_and_nonempty ... ok
+test export_redact_paths_json_hides_real_filenames ... ok
+test export_redact_paths_jsonl_meta_indicates_redaction ... ok
+test lang_json_exits_zero_and_valid ... ok
+test lang_json_has_rows_and_total ... ok
+test lang_json_has_schema_version ... ok
+test lang_children_collapse_vs_separate_differ ... ok
+test lang_md_contains_markdown_headers ... ok
+test lang_top_1_limits_rows_plus_other ... ok
+test lang_md_exits_zero_and_nonempty ... ok
+test lang_top_2_limits_rows_plus_other ... ok
+test lang_tsv_consistent_column_count ... ok
+test lang_tsv_has_tab_characters ... ok
+test lang_tsv_exits_zero_and_nonempty ... ok
+test module_json_exits_zero_and_valid ... ok
+test module_json_has_schema_version ... ok
+test module_json_rows_have_module_field ... ok
+test module_md_contains_markdown_elements ... ok
+test module_md_exits_zero_and_nonempty ... ok
+test module_tsv_consistent_column_count ... ok
+test module_tsv_exits_zero_and_nonempty ... ok
+test module_top_1_limits_rows_plus_other ... ok
+test module_tsv_has_tab_characters ... ok
+
+test result: ok. 42 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/deep_context_handoff_w51.rs (target/debug/deps/deep_context_handoff_w51-a78c73769f6b062c)
+
+running 14 tests
+test context_budget_limits_tokens ... ok
+test context_json_has_required_fields ... ok
+test context_budget_k_suffix_works ... ok
+test context_exclude_filter_reduces_output ... ok
+test context_json_mode_produces_valid_json ... ok
+test context_json_has_schema_version ... ok
+test context_list_mode_contains_file_paths ... ok
+test context_list_mode_succeeds ... ok
+test handoff_creates_manifest_json ... ok
+test handoff_manifest_has_artifacts_list ... ok
+test handoff_manifest_mode_is_handoff ... ok
+test handoff_no_git_flag_accepted ... ok
+test handoff_minimal_preset_succeeds ... ok
+test handoff_standard_preset_succeeds ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/deep_run_cockpit_w52.rs (target/debug/deps/deep_run_cockpit_w52-bf64cec709856ada)
+
+running 26 tests
+test badge_invalid_metric_fails ... ok
+test badge_lines_produces_svg ... ok
+test badge_contains_metric_label ... ok
+test cockpit_handles_no_git_history_gracefully ... ok
+test badge_output_to_file ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp4SOqcP/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpltIMFI/.git/
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+test badge_svg_is_valid_xml ... ok
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpMgSQjm/.git/
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+test cockpit_json_has_change_surface ... ok
+test cockpit_json_has_code_health ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpcyzPMg/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpFY0qUm/.git/
+test cockpit_json_has_composition ... ok
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpQqeanv/.git/
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+test badge_different_metrics_succeed ... ok
+Switched to a new branch 'feature'
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpacird6/.git/
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+Switched to a new branch 'feature'
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+test cockpit_json_has_evidence_and_risk ... ok
+[main (root-commit) 18a3a80] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+[feature 4717106] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+test cockpit_json_has_review_plan ... ok
+test cockpit_json_has_schema_version ... ok
+test run_export_jsonl_has_lines ... ok
+test run_determinism_two_runs_identical ... ok
+test cockpit_md_has_expected_sections ... ok
+test run_includes_lang_module_export_references ... ok
+test run_on_empty_dir_produces_valid_receipt ... ok
+test run_lang_json_has_languages ... ok
+test run_module_json_is_valid_json ... ok
+test run_receipt_generated_at_ms_is_present ... ok
+test run_produces_output_directory_with_artifacts ... ok
+test run_output_dir_creates_specified_directory ... ok
+test run_receipt_has_schema_version ... ok
+test run_redact_paths_hides_raw_paths ... ok
+test run_receipt_is_valid_json ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running tests/determinism.rs (target/debug/deps/determinism-6874b34595c3c162)
+
+running 29 tests
+test export_json_keys_are_sorted ... ok
+test export_csv_consistent_column_count ... ok
+test export_csv_is_deterministic ... ok
+test export_jsonl_all_lines_valid_json ... ok
+test export_json_receipt_has_required_envelope_fields ... ok
+test export_json_is_deterministic ... ok
+test export_paths_use_forward_slashes ... ok
+test export_modules_use_forward_slashes ... ok
+test export_jsonl_meta_record_is_deterministic ... ok
+test export_rows_sorted_by_code_desc_then_path_asc ... ok
+test export_jsonl_is_deterministic ... ok
+test lang_json_keys_are_sorted ... ok
+test export_row_count_is_stable ... ok
+test lang_receipt_has_required_envelope_fields ... ok
+test lang_md_is_deterministic ... ok
+test lang_rows_sorted_by_code_desc_then_name_asc ... ok
+test lang_row_count_is_stable ... ok
+test lang_totals_match_row_sums ... ok
+test lang_json_is_deterministic ... ok
+test module_json_keys_use_forward_slashes ... ok
+test lang_tsv_is_deterministic ... ok
+test module_receipt_has_required_envelope_fields ... ok
+test module_md_is_deterministic ... ok
+test module_rows_sorted_by_code_desc_then_name_asc ... ok
+test module_json_is_deterministic ... ok
+test schema_version_constants_match_expected ... ok
+test redacted_paths_are_hashed_not_plaintext ... ok
+test module_tsv_is_deterministic ... ok
+test redacted_export_is_deterministic ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/determinism_hardening.rs (target/debug/deps/determinism_hardening-98401dde783883dd)
+
+running 16 tests
+test hardening_export_json_keys_recursively_sorted ... ok
+test hardening_export_csv_no_backslash_in_paths ... ok
+test hardening_export_json_no_backslash_in_paths ... ok
+test hardening_export_tsv_no_backslash_in_paths ... ok
+test hardening_export_rows_sorted_desc_code_then_asc_path ... ok
+test hardening_export_no_silent_truncation ... ok
+test hardening_export_row_counts_agree_across_formats ... ok
+test hardening_lang_json_keys_recursively_sorted ... ok
+test hardening_lang_rows_sorted_desc_code_then_asc_name ... ok
+test hardening_module_json_keys_recursively_sorted ... ok
+test hardening_module_json_no_backslash_in_modules ... ok
+test hardening_five_run_export_json_byte_stable ... ok
+test hardening_five_run_lang_json_byte_stable ... ok
+test hardening_module_rows_sorted_desc_code_then_asc_name ... ok
+test hardening_five_run_module_json_byte_stable ... ok
+test hardening_redact_produces_deterministic_output ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/determinism_hardening_w51.rs (target/debug/deps/determinism_hardening_w51-e61ce4ce83abea90)
+
+running 30 tests
+test w51_analyze_schema_version_is_9 ... ok
+test w51_analyze_paths_use_forward_slashes ... ok
+test w51_analyze_mode_field_is_analysis ... ok
+test w51_export_csv_column_count_stable ... ok
+test w51_export_file_paths_use_forward_slashes ... ok
+test w51_export_csv_output_stable ... ok
+test w51_core_receipts_schema_version_is_2 ... ok
+test w51_export_jsonl_every_line_is_valid_json ... ok
+test w51_analyze_receipt_json_output_stable ... ok
+test w51_export_paths_sorted_lexicographically_on_forward_slash ... ok
+test w51_export_json_output_stable ... ok
+test w51_export_rows_deterministic_order ... ok
+test w51_export_row_count_matches_across_formats ... ok
+test w51_json_output_contains_no_backslashes_in_paths ... ok
+test w51_export_jsonl_output_stable ... ok
+test w51_json_keys_are_sorted_in_all_commands ... ok
+test w51_lang_md_output_stable ... ok
+test w51_json_output_has_args_metadata ... ok
+test w51_lang_json_output_stable ... ok
+test w51_lang_rows_sorted_by_code_desc ... ok
+test w51_lang_rows_tiebreak_by_name_asc ... ok
+test w51_lang_totals_equal_row_sums ... ok
+test w51_module_keys_use_forward_slashes ... ok
+test w51_lang_tsv_output_stable ... ok
+test w51_module_rows_sorted_by_code_desc ... ok
+test w51_module_tiebreak_by_name_asc ... ok
+test w51_module_json_output_stable ... ok
+test w51_timestamp_is_consistent_format ... ok
+test w51_tool_version_present_and_nonempty ... ok
+test w51_schema_version_is_number_not_string ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
+
+     Running tests/determinism_regression.rs (target/debug/deps/determinism_regression-59553741e1e93209)
+
+running 26 tests
+test analyze_json_no_backslash_in_path_fields ... ok
+test analyze_receipt_has_stable_top_level_keys ... ok
+test analyze_derived_keys_stable_and_sorted ... ok
+test analyze_receipt_json_byte_identical_across_runs ... ok
+test export_csv_byte_identical ... ok
+test analyze_receipt_markdown_deterministic ... ok
+test export_json_no_backslash_in_path_or_module ... ok
+test export_module_keys_match_module_command ... ok
+test export_jsonl_line_count_stable ... ok
+test export_jsonl_byte_identical_across_runs ... ok
+test export_rows_descending_code_ascending_path ... ok
+test analyze_timestamp_is_only_nondeterministic_field ... ok
+test lang_csv_byte_identical ... ok
+test export_timestamp_is_only_nondeterministic_field ... ok
+test lang_json_no_backslash_in_path_fields ... ok
+test lang_rows_descending_code_ascending_name ... ok
+test json_keys_alphabetically_sorted_in_receipt_rows ... ok
+test lang_json_byte_identical_across_runs ... ok
+test lang_timestamp_is_only_nondeterministic_field ... ok
+test module_json_no_backslash_in_module_keys ... ok
+test module_rows_descending_code_ascending_module ... ok
+test module_keys_deterministic_across_runs ... ok
+test module_json_byte_identical_across_runs ... ok
+test module_timestamp_is_only_nondeterministic_field ... ok
+test module_tsv_byte_identical ... ok
+test row_counts_stable_across_all_commands ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running tests/determinism_w40.rs (target/debug/deps/determinism_w40-5fdaa006c88857f7)
+
+running 19 tests
+test all_paths_use_forward_slashes_in_export ... ok
+test export_json_top_level_keys_sorted ... ok
+test export_file_kinds_deterministic ... ok
+test export_csv_header_deterministic ... ok
+test file_rows_sorted_consistently ... ok
+test lang_json_top_level_keys_sorted ... ok
+test export_jsonl_line_order_deterministic ... ok
+test lang_rows_sorted_desc_code_asc_name ... ok
+test lang_names_deterministic_across_runs ... ok
+test export_json_five_runs_identical ... ok
+test module_json_top_level_keys_sorted ... ok
+test module_rows_sorted_consistently ... ok
+test no_os_path_separators_in_csv_output ... ok
+test no_os_path_separators_in_markdown_output ... ok
+test lang_json_five_runs_identical ... ok
+test no_os_path_separators_in_tsv_output ... ok
+test module_json_five_runs_identical ... ok
+test timestamps_are_only_nondeterministic_field_lang ... ok
+test top_truncation_is_deterministic ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/determinism_w70.rs (target/debug/deps/determinism_w70-bf8b887014e44291)
+
+running 33 tests
+test w70_export_csv_paths_use_forward_slashes ... ok
+test w70_export_csv_twice_identical ... ok
+test w70_empty_dir_determinism ... ok
+test w70_cross_format_row_count_consistency ... ok
+test w70_export_json_keys_alphabetically_ordered ... ok
+test w70_export_json_paths_use_forward_slashes ... ok
+test w70_export_json_determinism ... ok
+test w70_export_jsonl_keys_sorted ... ok
+test w70_export_jsonl_paths_use_forward_slashes ... ok
+test w70_lang_json_keys_alphabetically_ordered ... ok
+test w70_lang_json_no_random_values ... ok
+test w70_export_jsonl_twice_identical ... ok
+test w70_lang_rows_sorted_desc_code_then_name ... ok
+test w70_lang_md_determinism ... ok
+test w70_lang_tsv_no_timestamp_leakage ... ok
+test w70_mixed_languages_sorted_correctly ... ok
+test w70_mixed_languages_module_determinism ... ok
+test w70_module_json_keys_alphabetically_ordered ... ok
+test w70_module_json_paths_use_forward_slashes ... ok
+test w70_module_md_no_timestamp_leakage ... ok
+test w70_mixed_languages_determinism ... ok
+test w70_module_json_twice_identical ... ok
+test w70_module_rows_sorted_desc_code_then_name ... ok
+test w70_nested_dirs_export_sort_stable ... ok
+test w70_module_tsv_determinism ... ok
+test w70_nested_dirs_export_determinism ... ok
+test w70_nested_dirs_forward_slashes_in_module_names ... ok
+test w70_unicode_filenames_forward_slashes ... ok
+test w70_nested_dirs_module_determinism ... ok
+test w70_single_file_determinism ... ok
+test w70_lang_json_10_runs_identical ... ok
+test w70_unicode_filenames_stable_export ... ok
+test w70_unicode_filenames_lang_determinism ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+
+     Running tests/diff_deep_w77.rs (target/debug/deps/diff_deep_w77-0cb7578ccab12906)
+
+running 22 tests
+test diff_changed_counts_negative_shrink ... ok
+test diff_changed_counts_positive_growth ... ok
+test diff_added_language_totals_reflect_addition ... ok
+test diff_added_language_appears_with_positive_delta ... ok
+test diff_invalid_json_file_fails ... ok
+test diff_from_files_via_positional_args ... ok
+test diff_from_directory_loads_lang_json ... ok
+test diff_json_diff_row_fields_complete ... ok
+test diff_md_color_never_has_no_ansi ... ok
+test diff_json_output_has_required_envelope_fields ... ok
+test diff_md_compact_produces_summary_table ... ok
+test diff_md_output_contains_header_and_table ... ok
+test diff_missing_both_args_fails ... ok
+test diff_mixed_changes_across_languages ... ok
+test diff_only_from_no_to_fails ... ok
+test diff_removed_language_appears_with_negative_delta ... ok
+test diff_from_live_runs ... ok
+test diff_removed_language_totals_reflect_removal ... ok
+test diff_nonexistent_file_fails ... ok
+test diff_same_receipt_each_row_delta_is_zero ... ok
+test diff_same_receipt_json_all_deltas_zero ... ok
+test diff_schema_version_matches_types_constant ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/diff_w71.rs (target/debug/deps/diff_w71-891d5373a3cce479)
+
+running 24 tests
+test diff_color_never_no_ansi ... ok
+test diff_compact_mode_excludes_language_breakdown ... ok
+test diff_color_always_emits_ansi_escapes ... ok
+test diff_completely_different_languages ... ok
+test diff_from_to_json_produces_valid_receipt ... ok
+test diff_from_to_md_produces_markdown ... ok
+test diff_empty_receipts_produces_zero_totals ... ok
+test diff_from_empty_to_populated ... ok
+test diff_identical_receipts_json_zero_deltas ... ok
+test diff_json_has_from_source_and_to_source ... ok
+test diff_identical_receipts_md_has_header ... ok
+test diff_json_diff_rows_have_all_metric_fields ... ok
+test diff_missing_both_args_fails ... ok
+test diff_language_removed_shows_negative_delta ... ok
+test diff_language_added_shows_positive_delta ... ok
+test diff_json_totals_have_all_metric_fields ... ok
+test diff_missing_from_fails ... ok
+test diff_multi_language_md_mentions_language_movement ... ok
+test diff_multi_language_growth ... ok
+test diff_positional_args_work ... ok
+test diff_single_positional_arg_fails ... ok
+test diff_positional_json_format ... ok
+test diff_via_directory_resolves_to_lang_json ... ok
+test diff_via_receipt_json_resolves_to_sibling_lang_json ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/docs.rs (target/debug/deps/docs-a8917acc45b45d23)
+
+running 13 tests
+test recipe_ci_workflow_snippet ... ok
+test recipe_default_map ... ok
+test recipe_export_map_jsonl ... ok
+test recipe_export_full_json ... ok
+test recipe_generate_baseline ... ok
+test recipe_badge_generation ... ok
+test recipe_handoff_bundle ... ok
+test recipe_module_summary_markdown ... ok
+test recipe_gate_with_baseline ... ok
+test recipe_simple_lang_summary ... ok
+test recipe_sensor_json ... ok
+test recipe_tools_export_schemas ... ok
+test recipe_analyze_presets ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/docs_sync_w72.rs (target/debug/deps/docs_sync_w72-d23eb738702d48f6)
+
+running 16 tests
+test completions_subcommand_help_works ... ok
+test badge_subcommand_help_works ... ok
+test context_subcommand_help_works ... ok
+test analyze_subcommand_help_works ... ok
+test every_help_subcommand_is_in_readme ... ok
+test every_help_subcommand_is_in_reference_cli ... ok
+test export_subcommand_help_works ... ok
+test gate_subcommand_help_works ... ok
+test help_output_contains_usage_line ... ok
+test help_output_has_about_text ... ok
+test help_output_mentions_all_documented_subcommands ... ok
+test init_subcommand_help_works ... ok
+test lang_subcommand_help_works ... ok
+test tools_subcommand_help_works ... ok
+test version_output_matches_cargo_toml ... ok
+test module_subcommand_help_works ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/e2e_extended.rs (target/debug/deps/e2e_extended-dfecef7357835b19)
+
+running 36 tests
+test completions_bash_generates_output ... ok
+test completions_elvish_generates_output ... ok
+test completions_fish_generates_output ... ok
+test completions_powershell_generates_output ... ok
+test completions_zsh_generates_output ... ok
+test default_invocation_runs_successfully_with_output ... ok
+test badge_outputs_svg ... ok
+test analyze_receipt_json_has_derived ... ok
+test export_format_csv_has_header_and_rows ... ok
+test export_csv_uses_commas_not_tabs ... ok
+test deterministic_lang_json_output ... ok
+test deterministic_module_json_output ... ok
+test export_format_json_produces_valid_json ... ok
+test help_flag_shows_help_text ... ok
+test init_print_generates_tokeignore_template ... ok
+test export_format_jsonl_produces_valid_jsonl ... ok
+test lang_children_collapse_works ... ok
+test lang_files_flag_accepted ... ok
+test lang_children_separate_works ... ok
+test lang_format_json_produces_valid_json ... ok
+test lang_help_shows_subcommand_help ... ok
+test lang_format_tsv_contains_tabs ... ok
+test lang_json_has_schema_version ... ok
+test lang_produces_markdown_output ... ok
+test lang_top_limits_output_rows ... ok
+test lang_with_explicit_path_works ... ok
+test module_format_json_produces_valid_json ... ok
+test module_format_tsv_contains_tabs ... ok
+test nonexistent_subcommand_fails ... ok
+test module_json_has_schema_version ... ok
+test module_produces_output ... ok
+test tools_format_anthropic_produces_valid_json ... ok
+test tools_default_produces_json_schema ... ok
+test run_produces_artifacts ... ok
+test version_flag_shows_semver ... ok
+test tools_format_openai_produces_valid_json ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/edge_cases_cli_w50.rs (target/debug/deps/edge_cases_cli_w50-4e83b7d3216cc6b6)
+
+running 11 tests
+test cli_lang_help_mentions_format ... ok
+test cli_invalid_format_fails ... ok
+test cli_help_contains_expected_sections ... ok
+test cli_nonexistent_path_fails ... ok
+test cli_export_min_code_max ... ok
+test cli_module_depth_zero ... ok
+test cli_no_arguments_defaults_to_lang ... ok
+test cli_version_is_nonempty ... ok
+test cli_very_long_path_argument ... ok
+test cli_top_with_format_json ... ok
+test cli_top_zero_shows_all ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/error_handling.rs (target/debug/deps/error_handling-5adec6b6349db208)
+
+running 16 tests
+test badge_invalid_preset_fails ... ok
+test diff_missing_args_fails ... ok
+test analyze_invalid_preset_fails ... ok
+test analyze_invalid_format_fails ... ok
+test export_invalid_format_fails ... ok
+test diff_nonexistent_files_fails ... ok
+test gate_nonexistent_receipt_file_fails ... ok
+test export_empty_directory_succeeds_with_meta_only ... ok
+test lang_invalid_children_mode_fails ... ok
+test lang_empty_directory_succeeds_with_zero_totals ... ok
+test lang_invalid_format_fails ... ok
+test module_invalid_format_fails ... ok
+test unknown_flag_fails ... ok
+test unknown_subcommand_fails ... ok
+test module_empty_directory_succeeds_with_zero_totals ... ok
+test gate_missing_receipt_arg_fails ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s
+
+     Running tests/error_handling_w70.rs (target/debug/deps/error_handling_w70-71b1147390a27aa7)
+
+running 25 tests
+test context_nonexistent_path_fails ... ok
+test analyze_invalid_preset_bogus_produces_stderr_error ... ok
+test badge_with_invalid_metric_fails ... ok
+test analyze_nonexistent_path_fails_with_nonzero_exit ... ok
+test error_messages_go_to_stderr_for_nonexistent_path ... ok
+test diff_missing_required_args_fails ... ok
+test error_messages_go_to_stderr_for_unknown_subcommand ... ok
+test error_messages_go_to_stderr_not_stdout_for_invalid_format ... ok
+test exit_code_is_nonzero_for_invalid_subcommand ... ok
+test export_invalid_format_parquet_produces_stderr_error ... ok
+test export_nonexistent_path_fails_with_nonzero_exit ... ok
+test export_with_conflicting_invalid_format_fails ... ok
+test gate_with_nonexistent_receipt_file_fails ... ok
+test lang_invalid_format_yaml_produces_stderr_error ... ok
+test lang_top_flag_with_non_numeric_value_fails ... ok
+test lang_nonexistent_path_fails_with_nonzero_exit ... ok
+test lang_top_flag_with_negative_value_fails ... ok
+test module_depth_flag_with_non_numeric_value_fails ... ok
+test module_invalid_format_xml_produces_stderr_error ... ok
+test module_nonexistent_path_fails_with_nonzero_exit ... ok
+test multiple_invalid_flags_still_produces_error ... ok
+test run_nonexistent_path_fails_with_nonzero_exit ... ok
+test lang_with_empty_exclude_flag_does_not_crash ... ok
+test unknown_subcommand_fails_with_stderr ... ok
+test gate_with_nonexistent_policy_file_fails ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/feature_gate_cli_w53.rs (target/debug/deps/feature_gate_cli_w53-0b27681a3ad6d31d)
+
+running 16 tests
+test analyze_help_text_mentions_preset ... ok
+test analyze_receipt_json_has_schema_version ... ok
+test analyze_receipt_json_has_status_field ... ok
+test analyze_with_unknown_preset_shows_error ... ok
+test analyze_receipt_json_has_tool_field ... ok
+test analyze_receipt_json_has_warnings_field ... ok
+test cockpit_help_mentions_base_and_head ... ok
+test export_help_text_exits_successfully ... ok
+test help_text_exits_successfully ... ok
+test help_text_mentions_analyze ... ok
+test lang_help_text_exits_successfully ... ok
+test module_help_text_exits_successfully ... ok
+test export_json_produces_valid_json ... ok
+test version_flag_exits_successfully ... ok
+test module_json_output_has_schema_version ... ok
+test lang_json_output_has_schema_version ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/feature_gates_w71.rs (target/debug/deps/feature_gates_w71-2d4bc05d3863bfde)
+
+running 14 tests
+test analyze_deep_json_tool_name ... ok
+test analyze_deep_includes_available_features ... ok
+test analyze_deep_json_has_schema_and_derived ... ok
+test analyze_help_lists_preset_values ... ok
+test analyze_help_mentions_format_option ... ok
+test analyze_help_mentions_git_flag ... ok
+test analyze_invalid_preset_fails ... ok
+test analyze_deep_no_git_flag_suppresses_git ... ok
+test analyze_health_json_has_warnings ... ok
+test analyze_receipt_always_succeeds ... ok
+test analyze_receipt_json_includes_status_field ... ok
+test analyze_receipt_json_includes_warnings_array ... ok
+test receipt_json_excludes_optional_sections ... ok
+test all_presets_produce_valid_json_envelope ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/full_pipeline_w55.rs (target/debug/deps/full_pipeline_w55-98e375d47c412dcb)
+
+running 45 tests
+test badge_from_scan_data_produces_svg ... ok
+test analysis_derived_from_export_data ... ok
+test analysis_integrity_hash_present ... ok
+test analysis_density_ratio_bounded ... ok
+test cli_analyze_receipt_json_pipeline ... ok
+test cli_analyze_without_git_range_succeeds ... ok
+test cli_badge_produces_svg ... ok
+test cli_analyze_health_json_pipeline ... ok
+test cli_help_succeeds ... ok
+test cli_lang_help_succeeds ... ok
+test cli_export_json_full_pipeline ... ok
+test cli_export_csv_full_pipeline ... ok
+test cli_export_jsonl_full_pipeline ... ok
+test config_toml_parse_roundtrip ... ok
+test diff_identical_reports_produces_no_rows ... ok
+test config_exclude_filters_languages ... ok
+test diff_receipt_has_correct_structure ... ok
+test diff_totals_zero_for_identical ... ok
+test diff_receipt_serializes_to_valid_json ... ok
+test export_rows_sorted_by_code_desc_then_path_asc ... ok
+test file_row_fields_preserved_through_export ... ok
+test lang_row_fields_preserved_through_pipeline ... ok
+test lang_rows_sorted_by_code_desc ... ok
+test cli_lang_json_full_pipeline ... ok
+test pipeline_deterministic_markdown_output ... ok
+test pipeline_export_csv_consistent_column_count ... ok
+test pipeline_export_csv_has_header_and_data ... ok
+test cli_module_json_full_pipeline ... ok
+test pipeline_export_forward_slash_paths ... ok
+test pipeline_deterministic_json_output ... ok
+test pipeline_export_json_bare_is_array ... ok
+test pipeline_export_json_with_meta_is_valid_receipt ... ok
+test pipeline_export_jsonl_valid_objects ... ok
+test pipeline_lang_json_has_schema_version ... ok
+test pipeline_lang_separate_children_has_embedded ... ok
+test pipeline_lang_markdown_produces_table ... ok
+test pipeline_lang_top_limits_rows ... ok
+test pipeline_lang_total_equals_row_sum ... ok
+test pipeline_lang_tsv_has_correct_columns ... ok
+test pipeline_lang_with_files_includes_avg ... ok
+test pipeline_module_json_has_schema_version ... ok
+test pipeline_module_custom_depth_changes_granularity ... ok
+test pipeline_module_markdown_produces_table ... ok
+test types_flow_scan_to_model_to_format ... ok
+test totals_consistent_model_to_json ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/gate_integration.rs (target/debug/deps/gate_integration-01ec2081a6a929dc)
+
+running 15 tests
+test test_gate_combined_policy_and_ratchet ... ok
+test test_gate_invalid_policy_file ... ok
+test test_gate_failing_policy ... ok
+test test_gate_json_output ... ok
+test test_gate_operators ... ok
+test test_gate_negate ... ok
+test test_gate_passing_policy ... ok
+test test_gate_ratchet_failing_max_value ... ok
+test test_gate_ratchet_failing_percentage ... ok
+test test_gate_ratchet_no_baseline ... ok
+test test_gate_ratchet_json_output ... ok
+test test_gate_ratchet_passing ... ok
+test test_gate_ratchet_warn_level ... ok
+test test_gate_warn_level ... ok
+test test_gate_requires_policy ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+     Running tests/handoff_integration.rs (target/debug/deps/handoff_integration-63ae2a0e1c489eb7)
+
+running 15 tests
+test test_handoff_code_txt_has_content ... ok
+test test_handoff_creates_expected_files ... ok
+test test_handoff_budget_enforcement ... ok
+test test_handoff_excludes_output_dir_from_scan ... ok
+test test_handoff_directory_already_exists_without_force ... ok
+test test_handoff_compress_strips_blanks ... ok
+test test_handoff_graceful_no_git ... ok
+test test_handoff_intelligence_valid_json ... ok
+test test_handoff_force_overwrites ... ok
+test test_handoff_manifest_valid_json ... ok
+test test_handoff_map_jsonl_format ... ok
+test test_handoff_preset_minimal ... ok
+test test_handoff_strategy_greedy ... ok
+test test_handoff_preset_standard ... ok
+test test_handoff_strategy_spread ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/handoff_w71.rs (target/debug/deps/handoff_w71-584a1ce9aeaab22c)
+
+running 20 tests
+test handoff_invalid_preset_rejected ... ok
+test handoff_manifest_has_total_and_bundled_files ... ok
+test handoff_included_files_rows_have_expected_fields ... ok
+test handoff_compress_with_deep_preset ... ok
+test handoff_manifest_records_deep_preset ... ok
+test handoff_manifest_records_intelligence_preset ... ok
+test handoff_manifest_tool_has_version ... ok
+test handoff_manifest_utilization_pct_consistent ... ok
+test handoff_max_file_pct_accepted ... ok
+test handoff_max_file_tokens_accepted ... ok
+test handoff_module_depth_accepted ... ok
+test handoff_no_smart_exclude_accepted ... ok
+test handoff_preset_deep_succeeds ... ok
+test handoff_preset_deep_intelligence_has_derived ... ok
+test handoff_rank_by_churn_no_git_fallback ... ok
+test handoff_rank_by_code ... ok
+test handoff_rank_by_tokens ... ok
+test handoff_rank_by_hotspot_no_git_fallback ... ok
+test handoff_smart_excluded_files_field_present ... ok
+test handoff_rank_by_code_deterministic ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/init_cli_w76.rs (target/debug/deps/init_cli_w76-9ec09798bdc79174)
+
+running 11 tests
+test check_ignore_nonexistent_path_reports_not_ignored ... ok
+test init_default_stderr_contains_template_hint ... ok
+test init_into_nonexistent_dir_fails_gracefully ... ok
+test init_force_switches_template_on_existing_file ... ok
+test init_non_default_template_omits_hint ... ok
+test init_print_node_contains_node_modules ... ok
+test init_print_rust_contains_target ... ok
+test check_ignore_verbose_shows_detail ... ok
+test init_refuses_overwrite_with_error_message ... ok
+test init_stderr_contains_initialized_message ... ok
+test init_stderr_contains_ready_message ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/integration.rs (target/debug/deps/integration-59e16355d92232ca)
+
+running 77 tests
+test test_check_ignore_not_ignored ... ok
+test test_check_ignore_with_exclude_flag ... ok
+test test_check_ignore_verbose_shows_source ... ok
+test test_children_stats_integrity ... ok
+test test_children_separate ... ok
+test test_context_bundle_dir ... ok
+test test_context_bundle_dir_non_empty_requires_force ... ok
+test test_context_force_overwrites ... ok
+test test_context_out_and_bundle_dir_conflict ... ok
+test test_context_out_flag ... ok
+test test_analyze_html_format ... ok
+test test_context_log_append ... ok
+test test_context_out_requires_force ... ok
+test test_context_size_warning ... ok
+test test_csv_escaping ... ok
+test test_default_lang_output ... ok
+test test_default_ignores_vcs ... ok
+test test_default_paths_are_relative ... ok
+test test_exclude_glob ... ok
+test test_empty_file_handling ... ok
+test test_export_cyclonedx_format ... ok
+test test_export_jsonl ... ok
+test test_export_meta_false ... ok
+test test_export_format_json ... ok
+test test_export_out_file ... ok
+test test_export_redaction ... ok
+test test_filter_all_rows ... ok
+test test_format_csv ... ok
+test test_generated_timestamp_validity ... ok
+test test_filter_min_code ... ok
+test test_golden_module_json ... ok
+test test_golden_export_redacted ... ok
+test test_golden_lang_json ... ok
+test test_golden_export_jsonl ... ok
+test test_init_command ... ok
+test test_init_creates_file ... ok
+test test_ignore_override ... ok
+test test_ignore_vcs_explicit ... ok
+test test_ignore_file_respected ... ok
+test test_init_print_bdd ... ok
+test test_init_profiles ... ok
+test test_init_force ... ok
+test test_lang_fold_math ... ok
+test test_lang_format_json ... ok
+test test_lang_files_flag ... ok
+test test_lang_format_tsv ... ok
+test test_lang_stats_math ... ok
+test test_lang_top_limit ... ok
+test test_limit_max_rows ... ok
+test test_limit_top_files ... ok
+test test_mixed_args_precedence ... ok
+test test_module_custom_roots_miss ... ok
+test test_module_custom_roots ... ok
+test test_module_fold_math ... ok
+test test_module_depth_overflow ... ok
+test test_module_format_tsv ... ok
+test test_module_top_exact ... ok
+test test_module_output ... ok
+test test_module_parents_only ... ok
+test test_non_existent_path ... ok
+test test_partial_non_existent_path ... ok
+test test_module_top_limit ... ok
+test test_no_ignore_implies_vcs ... ok
+test test_no_ignore_dot ... ok
+test test_path_with_spaces ... ok
+test test_redact_all ... ok
+test test_paths_redacted_hash ... ok
+test test_redaction_all_mode_hides_modules ... ok
+test test_redaction_excludes_patterns ... ok
+test test_redaction_leaks_in_meta ... ok
+test test_redaction_meta_leak_regression_jsonl ... ok
+test test_redaction_meta_leak_regression_json ... ok
+test test_redaction_no_raw_paths_anywhere ... ok
+test test_redaction_strip_prefix ... ok
+test test_treat_doc_strings_as_comments ... ok
+test test_strip_prefix ... ok
+test test_verbose_flag ... ok
+
+test result: ok. 77 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.97s
+
+     Running tests/integration_w40.rs (target/debug/deps/integration_w40-bcc1f9cd9703d7e7)
+
+running 24 tests
+test badge_lines_outputs_svg ... ok
+test badge_tokens_outputs_svg ... ok
+test analyze_receipt_json_has_derived ... ok
+test analyze_receipt_markdown ... ok
+test completions_bash_produces_script ... ok
+test completions_powershell_produces_script ... ok
+test completions_zsh_produces_script ... ok
+test export_csv_has_header_and_data ... ok
+test init_print_produces_tokeignore ... ok
+test export_jsonl_each_line_valid_json ... ok
+test export_json_format_valid ... ok
+test lang_default_produces_markdown_table ... ok
+test lang_explicit_produces_markdown_table ... ok
+test export_jsonl_idempotent ... ok
+test lang_json_is_valid ... ok
+test lang_json_idempotent ... ok
+test lang_json_rows_have_required_fields ... ok
+test lang_tsv_contains_tabs ... ok
+test module_default_markdown ... ok
+test lang_json_total_present ... ok
+test module_depth_1_json ... ok
+test version_flag_shows_semver ... ok
+test module_json_has_correct_depth ... ok
+test module_json_idempotent ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/integration_w70.rs (target/debug/deps/integration_w70-5429b3d42bd9400b)
+
+running 35 tests
+test w70_children_separate_has_embedded_tag ... ok
+test w70_cli_exclude_flag_propagates_to_scan_options ... ok
+test w70_badge_tokens_from_temp_project ... ok
+test w70_children_collapse_vs_separate_differ ... ok
+test w70_cli_exclude_removes_files_from_export ... ok
+test w70_empty_dir_export_json_valid ... ok
+test w70_empty_dir_lang_json_valid_with_zero_rows ... ok
+test w70_empty_dir_module_json_valid ... ok
+test w70_badge_lines_from_temp_project ... ok
+test w70_cli_exclude_removes_language_from_lang ... ok
+test w70_export_csv_has_header_and_data_rows ... ok
+test w70_export_json_schema_version_matches_constant ... ok
+test w70_export_json_roundtrip_has_file_rows ... ok
+test w70_export_jsonl_each_line_valid_json ... ok
+test w70_export_jsonl_meta_line_has_schema_version ... ok
+test w70_export_json_deterministic_across_two_runs ... ok
+test w70_lang_json_roundtrip_preserves_rows ... ok
+test w70_lang_json_schema_version_matches_constant ... ok
+test w70_lib_config_parse_exclude_affects_scan ... ok
+test w70_lib_exclude_removes_language_from_scan ... ok
+test w70_lang_rows_sorted_descending_by_code ... ok
+test w70_lib_lang_receipt_schema_version_matches ... ok
+test w70_module_depth_0_json_field_matches ... ok
+test w70_lang_json_deterministic_across_three_runs ... ok
+test w70_module_depth_2_allows_nested_keys ... ok
+test w70_module_depth_1_produces_shallow_keys ... ok
+test w70_module_json_schema_version_matches_constant ... ok
+test w70_module_rows_sorted_descending_by_code ... ok
+test w70_module_json_roundtrip_preserves_structure ... ok
+test w70_scan_model_format_json_roundtrips_totals ... ok
+test w70_scan_model_format_md_contains_table_header ... ok
+test w70_scan_model_format_md_includes_all_detected_languages ... ok
+test w70_sort_order_consistent_between_md_and_json ... ok
+test w70_sort_order_consistent_between_tsv_and_json ... ok
+test w70_module_json_deterministic_across_two_runs ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/json_output.rs (target/debug/deps/json_output-bda6401270c31286)
+
+running 15 tests
+test json_output_export_json_has_rows ... ok
+test json_output_export_json_is_valid ... ok
+test json_output_badge_produces_svg ... ok
+test json_output_analyze_receipt_is_valid ... ok
+test json_output_analyze_receipt_has_derived ... ok
+test json_output_export_jsonl_data_rows_have_path ... ok
+test json_output_export_jsonl_lines_are_valid ... ok
+test json_output_lang_rows_have_expected_fields ... ok
+test json_output_lang_is_valid_json ... ok
+test json_output_lang_contains_rust ... ok
+test json_output_lang_total_present ... ok
+test json_output_module_is_valid_json ... ok
+test json_output_module_has_root ... ok
+test json_output_module_rows_have_expected_fields ... ok
+test json_output_module_total_present ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/markdown_output.rs (target/debug/deps/markdown_output-dcd262fceb2e3641)
+
+running 12 tests
+test badge_code_metric_svg_has_content ... ok
+test analyze_receipt_markdown_has_sections ... ok
+test badge_code_metric_produces_svg ... ok
+test analyze_receipt_markdown_has_derived_metrics ... ok
+test lang_markdown_has_separator_line ... ok
+test lang_markdown_has_data_rows ... ok
+test lang_markdown_has_table_header ... ok
+test lang_markdown_has_total_row ... ok
+test module_markdown_has_root_row ... ok
+test module_markdown_has_separator_line ... ok
+test module_markdown_has_src_row ... ok
+test module_markdown_has_table_header ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/output_formats_w76.rs (target/debug/deps/output_formats_w76-a4d2eb9a9901300d)
+
+running 35 tests
+test analyze_format_json_has_schema_version ... ok
+test analyze_format_json_has_mode_field ... ok
+test analyze_format_markdown_is_non_empty_with_structure ... ok
+test analyze_format_json_is_parseable ... ok
+test badge_svg_contains_metric_value ... ok
+test analyze_format_markdown_mentions_metrics ... ok
+test badge_default_output_is_svg ... ok
+test context_mode_bundle_concatenates_content ... ok
+test context_mode_bundle_is_not_json ... ok
+test context_mode_json_has_schema_and_files ... ok
+test context_mode_json_has_budget_fields ... ok
+test badge_svg_is_non_empty_and_has_namespace ... ok
+test context_mode_json_is_parseable ... ok
+test context_mode_list_produces_file_paths ... ok
+test context_mode_list_is_not_json ... ok
+test export_format_csv_has_comma_separated_header ... ok
+test export_format_csv_rows_have_consistent_columns ... ok
+test export_format_json_is_parseable_with_envelope ... ok
+test export_format_json_rows_have_file_fields ... ok
+test export_format_jsonl_data_rows_have_path_and_lang ... ok
+test export_format_jsonl_each_line_is_valid_json ... ok
+test lang_format_json_has_envelope_fields ... ok
+test lang_format_json_is_parseable ... ok
+test lang_format_markdown_contains_expected_columns ... ok
+test lang_format_json_rows_contain_expected_fields ... ok
+test lang_format_markdown_has_pipes_and_separator ... ok
+test lang_format_markdown_has_data_rows ... ok
+test lang_format_tsv_contains_expected_headers ... ok
+test lang_format_tsv_has_tabs_and_consistent_columns ... ok
+test module_format_json_rows_have_module_key ... ok
+test module_format_json_is_parseable_with_mode ... ok
+test module_format_markdown_has_table_structure ... ok
+test module_format_markdown_shows_directories ... ok
+test module_format_tsv_has_consistent_columns ... ok
+test module_format_tsv_header_has_module_field ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/properties.rs (target/debug/deps/properties-06d2c18e7a2216cf)
+
+running 18 tests
+test avg_function::rounds_correctly ... ok
+test avg_function::zero_lines_returns_zero ... ok
+test avg_function::zero_files_returns_zero ... ok
+test avg_function::exact_division ... ok
+test module_key::no_backslash_in_result ... ok
+test module_key::deterministic ... ok
+test module_key::matching_root_respects_depth ... ok
+test module_key::non_root_dir_returns_first_segment ... ok
+test module_key::never_crashes ... ok
+test module_key::root_file_is_root ... ok
+test module_key::normalized_input_equivalence ... ok
+test path_normalization::always_forward_slash ... ok
+test path_normalization::idempotent ... ok
+test path_normalization::backslash_to_forward_preserves_segments ... ok
+test path_normalization::never_crashes ... ok
+test path_normalization::no_leading_slash ... ok
+test path_normalization::strips_leading_dot_slash ... ok
+test path_normalization::prefix_stripping_works ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/receipt_contracts_w72.rs (target/debug/deps/receipt_contracts_w72-2cc1175b5195962e)
+
+running 35 tests
+test w72_analysis_receipt_schema_version_matches ... ok
+test w72_all_json_commands_produce_valid_json ... ok
+test w72_all_json_envelopes_have_timestamp ... ok
+test w72_all_json_envelopes_contain_tool_name_tokmd ... ok
+test w72_analyze_json_keys_sorted ... ok
+test w72_analyze_receipt_args_preset ... ok
+test w72_analyze_receipt_has_schema_version ... ok
+test w72_analyze_receipt_has_derived_section ... ok
+test w72_analyze_receipt_has_required_envelope ... ok
+test w72_export_json_is_valid_envelope ... ok
+test w72_export_json_keys_sorted ... ok
+test w72_analyze_receipt_non_null_required_fields ... ok
+test w72_analyze_receipt_tool_metadata ... ok
+test w72_export_json_rows_have_file_fields ... ok
+test w72_export_json_non_null_required_fields ... ok
+test w72_core_receipts_share_schema_version ... ok
+test w72_export_jsonl_all_lines_valid_json ... ok
+test w72_export_jsonl_data_rows_have_required_fields ... ok
+test w72_export_jsonl_meta_has_schema_version ... ok
+test w72_export_row_numeric_fields_non_negative ... ok
+test w72_lang_json_has_tool_metadata ... ok
+test w72_lang_json_has_required_envelope_fields ... ok
+test w72_lang_json_has_schema_version ... ok
+test w72_lang_json_has_total ... ok
+test w72_lang_json_keys_sorted ... ok
+test w72_lang_json_non_null_required_fields ... ok
+test w72_lang_json_rows_have_required_fields ... ok
+test w72_lang_row_numeric_fields_non_negative ... ok
+test w72_module_json_has_required_envelope_fields ... ok
+test w72_module_json_has_root_module ... ok
+test w72_module_json_has_schema_version ... ok
+test w72_module_json_has_total ... ok
+test w72_module_json_keys_sorted ... ok
+test w72_module_json_non_null_required_fields ... ok
+test w72_module_json_rows_have_required_fields ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running tests/regression_prevention_w55.rs (target/debug/deps/regression_prevention_w55-e16e72ac68aca99b)
+
+running 45 tests
+test analysis_schema_version_is_9 ... ok
+test badge_svg_produces_valid_svg ... ok
+test analyze_command_exists ... ok
+test cli_analyze_json_schema_version_matches_constant ... ok
+test context_bundle_schema_version_is_2 ... ok
+test context_schema_version_is_4 ... ok
+test badge_command_exists ... ok
+test create_lang_report_produces_report ... ok
+test create_export_data_produces_data ... ok
+test create_module_report_produces_report ... ok
+test diff_receipt_api_not_removed ... ok
+test derive_report_api_not_removed ... ok
+test analyze_json_has_required_keys ... ok
+test cli_lang_json_schema_version_matches_constant ... ok
+test empty_dir_produces_empty_report ... ok
+test export_command_exists ... ok
+test handoff_schema_version_is_5 ... ok
+test export_csv_has_header_line ... ok
+test format_write_functions_accept_writers ... ok
+test invalid_path_produces_error_or_empty ... ok
+test invalid_format_flag_fails ... ok
+test export_json_has_required_keys ... ok
+test invalid_preset_flag_fails ... ok
+test invalid_subcommand_fails_with_help ... ok
+test json_output_parseable_as_serde_value ... ok
+test lang_command_exists ... ok
+test lang_json_has_required_keys ... ok
+test model_utility_functions_work ... ok
+test lang_markdown_has_table_headers ... ok
+test lang_receipt_deserialize_roundtrip ... ok
+test lang_tsv_has_header_line ... ok
+test module_command_exists ... ok
+test module_keys_never_start_with_slash ... ok
+test module_json_has_required_keys ... ok
+test no_backslash_in_any_json_path ... ok
+test receipt_generated_at_ms_present ... ok
+test receipt_tool_field_has_name_and_version ... ok
+test scan_args_in_receipt_has_correct_structure ... ok
+test schema_version_is_2 ... ok
+test scan_function_accepts_paths_and_options ... ok
+test rows_sorted_descending_by_code_in_lang ... ok
+test total_code_equals_sum_of_rows ... ok
+test totals_nonnegative ... ok
+test total_files_equals_sum_of_rows ... ok
+test receipt_mode_field_present_and_correct ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running tests/regression_suite_w52.rs (target/debug/deps/regression_suite_w52-b89825f7a7d18b87)
+
+running 26 tests
+test csv_consistent_column_count ... ok
+test empty_dir_produces_valid_receipt_with_zero_values ... ok
+test analysis_json_receipt_has_required_keys ... ok
+test export_json_receipt_has_required_keys ... ok
+test export_paths_are_relative ... ok
+test export_rows_sorted_by_code_desc_then_path ... ok
+test file_lines_gte_code_plus_comments_plus_blanks ... ok
+test json_top_level_has_expected_keys ... ok
+test all_receipts_include_tool_version ... ok
+test jsonl_each_line_is_valid_json ... ok
+test all_schema_versions_are_numeric ... ok
+test lang_json_receipt_has_required_keys ... ok
+test flatten_puts_report_fields_at_top_level ... ok
+test lang_receipt_roundtrips_through_json ... ok
+test markdown_output_starts_with_header_or_table ... ok
+test module_json_receipt_has_required_keys ... ok
+test module_keys_never_start_with_slash ... ok
+test no_negative_values_in_any_numeric_field ... ok
+test no_backslash_paths_in_json_output ... ok
+test total_code_equals_sum_of_lang_code ... ok
+test totals_values_are_non_negative ... ok
+test unknown_format_does_not_crash ... ok
+test top_n_other_row_preserves_remaining_totals ... ok
+test tsv_first_line_is_header ... ok
+test xml_output_has_valid_root_element ... ok
+test receipt_enums_serialize_to_expected_strings ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/run_diff.rs (target/debug/deps/run_diff-a44eb7d9eb165257)
+
+running 18 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp4szGzV/repo/.git/
+[master (root-commit) 3adfe34] initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[master 93cd537] add b
+ 1 file changed, 1 insertion(+)
+test test_diff_compact_mode ... ok
+test test_diff_color_always_emits_ansi ... ok
+test test_diff_full_mode_shows_summary_comparison_rows ... ok
+test test_run_default_output_creates_local_runs_dir ... ok
+test test_run_generates_artifacts ... ok
+test test_run_redact_all_hashes_modules_too ... ok
+test test_run_redact_all_no_raw_paths_anywhere ... ok
+test test_run_redact_consistency_across_artifacts ... ok
+test test_run_redact_excluded_patterns_in_lang_json ... ok
+test test_diff_identical_runs ... ok
+test test_diff_git_refs ... ok
+test test_run_redact_excluded_patterns_in_module_json ... ok
+test test_run_redact_lang_json_paths_redacted ... ok
+test test_run_redact_module_json_scan_paths_redacted ... ok
+test test_run_redact_with_absolute_paths ... ok
+test test_run_redact_paths_vs_all_difference ... ok
+test test_run_without_redact_shows_raw_paths ... ok
+test test_run_with_redact_flag ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/schema_doc_sync.rs (target/debug/deps/schema_doc_sync-44f49c7c2b82118f)
+
+running 6 tests
+test reference_cli_help_blocks_reference_real_subcommands ... ok
+test schema_json_contains_all_receipt_definitions ... ok
+test schema_md_version_table_matches_code_constants ... ok
+test reference_cli_has_sections_for_all_subcommands ... ok
+test schema_json_version_consts_match_code_constants ... ok
+test schema_json_is_valid_json_schema_draft7 ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/schema_sync.rs (target/debug/deps/schema_sync-72b176514fbe9132)
+
+running 22 tests
+test embedded_schema_json_matches_docs_schema_json ... ok
+test changelog_documents_core_schema_version ... ok
+test changelog_documents_analysis_schema_version ... ok
+test reference_cli_lang_help_matches_actual ... ok
+test schema_json_analysis_receipt_version_matches_code ... ok
+test schema_json_cockpit_receipt_version_matches_code ... ok
+test schema_json_context_bundle_version_matches_code ... ok
+test export_json_output_has_all_required_fields ... ok
+test schema_json_context_receipt_version_matches_code ... ok
+test schema_json_export_receipt_version_matches_code ... ok
+test schema_json_lang_receipt_version_matches_code ... ok
+test lang_json_output_has_all_required_fields ... ok
+test module_json_output_has_all_required_fields ... ok
+test schema_md_cockpit_version_matches_code ... ok
+test schema_md_analysis_version_matches_code ... ok
+test schema_json_handoff_manifest_version_matches_code ... ok
+test schema_md_context_bundle_version_matches_code ... ok
+test schema_md_context_version_matches_code ... ok
+test schema_md_code_references_point_to_existing_files ... ok
+test schema_md_handoff_version_matches_code ... ok
+test schema_md_core_version_matches_code ... ok
+test schema_json_module_receipt_version_matches_code ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/schema_validation.rs (target/debug/deps/schema_validation-bd23e273dd906221)
+
+running 18 tests
+test test_analysis_receipt_supply_preset_validates ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpYz4g9f/.git/
+test test_analysis_receipt_health_preset_validates ... ok
+test test_envelope_output_determinism ... ok
+test test_envelope_struct_validates_against_sensor_report_v1 ... ok
+[main (root-commit) 337fb3e] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lib.rs
+Switched to a new branch 'feature'
+test test_analysis_receipt_with_context_window_validates ... ok
+[feature 5aa02a1] Add new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 new.rs
+test test_analysis_receipt_validates_against_schema ... ok
+test test_export_meta_validates_against_schema ... ok
+test test_export_receipt_validates_against_schema ... ok
+test test_cockpit_receipt_validates_against_schema ... ok
+test test_export_row_validates_against_schema ... ok
+test test_schema_copies_in_sync ... ok
+test test_handoff_manifest_validates_against_schema ... ok
+test test_sensor_report_example_fail_validates ... ok
+test test_schema_version_matches_constant ... ok
+test test_sensor_report_example_pass_validates ... ok
+test test_sensor_report_schema_is_valid_json_schema ... ok
+test test_lang_receipt_validates_against_schema ... ok
+test test_module_receipt_validates_against_schema ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+     Running tests/sensor_cli_w71.rs (target/debug/deps/sensor_cli_w71-e06adb35f3d85fa4)
+
+running 14 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpPsJF6q/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpaUuvnB/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpbuQttx/.git/
+Initialized empty Git repository in /tmp/.tmpSpCQ59/.git/
+[main (root-commit) 55277cd] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) 55277cd] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[main (root-commit) 56c0322] Initial commit
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 src/lib.rs
+[main (root-commit) 55277cd] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[feature e44d1a3] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature 8ad8b0a] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature 182c2eb] Feature changes
+ 1 file changed, 2 insertions(+)
+[feature e44d1a3] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_docs_only_change_produces_skip_verdict ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpLmyFjt/.git/
+[main (root-commit) 55277cd] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 8ad8b0a] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_data_section_has_gates ... ok
+test sensor_gates_contain_mutation_gate ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmphttxMg/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpxrA9uf/.git/
+test sensor_creates_report_and_sidecar_files ... ok
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpi5MMby/.git/
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_json_artifacts_list_has_expected_ids ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpxeJ3Z7/.git/
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_json_has_capabilities_or_null ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmp4fRHp5/.git/
+test sensor_json_has_generated_at_timestamp ... ok
+test sensor_json_has_findings_array ... ok
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpK4Q27f/.git/
+Switched to a new branch 'feature'
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpFLC1DD/.git/
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature 8217c57] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_json_has_summary_string ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpJ2XzVd/.git/
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_json_has_tool_metadata ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpkLa5Vf/.git/
+test sensor_json_has_verdict ... ok
+test sensor_json_schema_is_report_v1 ... ok
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature ec0f205] Feature changes
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_md_produces_markdown_report ... ok
+test sensor_on_disk_report_matches_stdout ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+
+     Running tests/sensor_integration.rs (target/debug/deps/sensor_integration-053f24324f7b80da)
+
+running 7 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpRWghhM/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpCEEq31/.git/
+Initialized empty Git repository in /tmp/.tmpSPigJQ/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmplD9AsY/.git/
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[main (root-commit) df068cb] Initial commit
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+Switched to a new branch 'feature'
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+[feature 68e7f79] Add changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/extra.rs
+[feature f6b5f37] Update docs
+ 1 file changed, 2 insertions(+)
+Switched to a new branch 'feature'
+[feature 1b9edab] Update
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[feature dd39c85] Add 4 high-complexity files
+ 4 files changed, 76 insertions(+)
+ create mode 100644 src/complex_1.rs
+ create mode 100644 src/complex_2.rs
+ create mode 100644 src/complex_3.rs
+ create mode 100644 src/complex_4.rs
+test scenario_docs_only_change_verdict_pass ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpT54dwT/.git/
+test scenario_four_high_complexity_files_verdict_fail ... ok
+[main (root-commit) 3552fc6] Initial
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpl29Tob/.git/
+Switched to a new branch 'feature'
+[feature 2a72bcf] Update
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[main (root-commit) 129dc18] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature a65ee6e] Add changes
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 src/new.rs
+test sensor_envelope_verdict_aggregation ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /tmp/.tmpMaczij/.git/
+test sensor_json_outputs_artifacts_and_data ... ok
+[main (root-commit) 9b9445d] Initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 src/lib.rs
+Switched to a new branch 'feature'
+[feature 5a76ee2] Add complex code
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+test sensor_md_outputs_markdown ... ok
+test sensor_report_with_contract_changes ... ok
+test sensor_report_with_risk_findings ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+
+     Running tests/smoke_e2e.rs (target/debug/deps/smoke_e2e-027d9e940dee09b7)
+
+running 43 tests
+test analyze_markdown_contains_header ... ok
+test badge_blank_metric_svg ... ok
+test badge_doc_metric_svg ... ok
+test analyze_receipt_json_has_schema_version ... ok
+test check_ignore_gitignored_file ... ok
+test badge_svg_is_well_formed ... ok
+test badge_out_file_creates_svg ... ok
+test check_ignore_multiple_files ... ok
+test check_ignore_nonexistent_file_succeeds ... ok
+test badge_tokens_metric_svg ... ok
+test completions_fish_mentions_tokmd ... ok
+test completions_elvish_produces_output ... ok
+test completions_fish_produces_output ... ok
+test completions_powershell_produces_output ... ok
+test completions_zsh_mentions_tokmd ... ok
+test completions_zsh_produces_output ... ok
+test export_help_shows_format_flag ... ok
+test export_csv_has_header ... ok
+test export_json_has_envelope ... ok
+test export_jsonl_meta_line_first ... ok
+test help_flag_lists_subcommands ... ok
+test global_exclude_applies_to_lang ... ok
+test export_max_rows_limits_output ... ok
+test init_non_interactive_creates_file ... ok
+test init_print_mono_profile ... ok
+test global_exclude_applies_to_module ... ok
+test init_print_node_profile ... ok
+test init_print_rust_profile ... ok
+test init_refuses_overwrite_without_force ... ok
+test lang_help_shows_format_flag ... ok
+test lang_children_separate_json ... ok
+test lang_top_limits_rows ... ok
+test lang_children_collapse_json ... ok
+test lang_json_output_is_valid ... ok
+test module_help_shows_depth_flag ... ok
+test tools_invalid_format_fails ... ok
+test module_json_has_schema_version ... ok
+test module_depth_zero_json ... ok
+test module_children_separate_json ... ok
+test version_flag_prints_version ... ok
+test tools_jsonschema_has_tool_descriptions ... ok
+test verbose_flag_accepted ... ok
+test verbose_flag_on_module ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests/tok_integration.rs (target/debug/deps/tok_integration-d9e9eb5e77f63006)
+
+running 1 test
+test tok_default_lang_output ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/tools_integration.rs (target/debug/deps/tools_integration-0a6ca93ce2bd7899)
+
+running 7 tests
+test test_tools_clap_format ... ok
+test test_tools_contains_known_commands ... ok
+test test_tools_anthropic_format ... ok
+test test_tools_export_formats_enum ... ok
+test test_tools_openai_format ... ok
+test test_tools_pretty_output ... ok
+test test_tools_jsonschema_output_parses ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests tokmd
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

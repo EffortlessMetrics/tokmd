@@ -1,0 +1,1371 @@
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded colorchoice v1.0.5
+  Downloaded anstyle v1.0.14
+  Downloaded anstream v1.0.0
+  Downloaded equivalent v1.0.2
+  Downloaded clap_lex v1.1.0
+  Downloaded heck v0.5.0
+  Downloaded cargo-platform v0.3.2
+  Downloaded anstyle-query v1.1.5
+  Downloaded utf8parse v0.2.2
+  Downloaded serde_spanned v1.0.4
+  Downloaded fixedbitset v0.5.7
+  Downloaded itoa v1.0.18
+  Downloaded zmij v1.0.21
+  Downloaded toml_parser v1.0.10+spec-1.1.0
+  Downloaded proc-macro2 v1.0.106
+  Downloaded unicode-ident v1.0.24
+  Downloaded serde v1.0.228
+  Downloaded memchr v2.8.0
+  Downloaded indexmap v2.13.0
+  Downloaded hashbrown v0.16.1
+  Downloaded serde_json v1.0.149
+  Downloaded winnow v1.0.0
+  Downloaded clap_builder v4.6.0
+  Downloaded chrono v0.4.44
+  Downloaded hashbrown v0.15.5
+  Downloaded toml v1.0.7+spec-1.1.0
+  Downloaded serde_derive v1.0.228
+  Downloaded syn v2.0.117
+  Downloaded serde_core v1.0.228
+  Downloaded num-traits v0.2.19
+  Downloaded clap v4.6.0
+  Downloaded thiserror-impl v2.0.18
+  Downloaded iana-time-zone v0.1.65
+  Downloaded clap_derive v4.6.0
+  Downloaded cargo_metadata v0.23.1
+  Downloaded camino v1.2.2
+  Downloaded anyhow v1.0.102
+  Downloaded anstyle-parse v1.0.0
+  Downloaded toml_writer v1.0.7+spec-1.1.0
+  Downloaded toml_datetime v1.0.1+spec-1.1.0
+  Downloaded thiserror v2.0.18
+  Downloaded semver v1.0.27
+  Downloaded quote v1.0.45
+  Downloaded foldhash v0.1.5
+  Downloaded autocfg v1.5.0
+  Downloaded strsim v0.11.1
+  Downloaded is_terminal_polyfill v1.70.2
+  Downloaded petgraph v0.8.3
+   Compiling proc-macro2 v1.0.106
+   Compiling serde_core v1.0.228
+   Compiling quote v1.0.45
+   Compiling unicode-ident v1.0.24
+   Compiling autocfg v1.5.0
+   Compiling zmij v1.0.21
+   Compiling utf8parse v0.2.2
+   Compiling num-traits v0.2.19
+   Compiling anstyle v1.0.14
+   Compiling anstyle-parse v1.0.0
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling thiserror v2.0.18
+   Compiling serde v1.0.228
+   Compiling camino v1.2.2
+   Compiling serde_json v1.0.149
+   Compiling anstream v1.0.0
+   Compiling syn v2.0.117
+   Compiling foldhash v0.1.5
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.0
+   Compiling strsim v0.11.1
+   Compiling equivalent v1.0.2
+   Compiling winnow v1.0.0
+   Compiling anyhow v1.0.102
+   Compiling heck v0.5.0
+   Compiling hashbrown v0.16.1
+   Compiling clap_lex v1.1.0
+   Compiling clap_builder v4.6.0
+   Compiling toml_parser v1.0.10+spec-1.1.0
+   Compiling indexmap v2.13.0
+   Compiling toml_datetime v1.0.1+spec-1.1.0
+   Compiling semver v1.0.27
+   Compiling serde_spanned v1.0.4
+   Compiling cargo-platform v0.3.2
+   Compiling hashbrown v0.15.5
+   Compiling thiserror-impl v2.0.18
+   Compiling serde_derive v1.0.228
+   Compiling clap_derive v4.6.0
+   Compiling fixedbitset v0.5.7
+   Compiling toml_writer v1.0.7+spec-1.1.0
+   Compiling iana-time-zone v0.1.65
+   Compiling toml v1.0.7+spec-1.1.0
+   Compiling chrono v0.4.44
+   Compiling clap v4.6.0
+   Compiling petgraph v0.8.3
+   Compiling cargo_metadata v0.23.1
+   Compiling xtask v1.9.0 (/app/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.84s
+     Running `target/debug/xtask gate --check`
+[1/4] fmt
+   ✅ Step 1 (fmt) passed
+[2/4] check (warm graph)
+ Downloading crates ...
+  Downloaded arrayvec v0.7.6
+  Downloaded block-buffer v0.10.4
+  Downloaded clap-cargo v0.18.3
+  Downloaded pest_generator v2.8.6
+  Downloaded phf v0.11.3
+  Downloaded phf_shared v0.11.3
+  Downloaded powerfmt v0.2.0
+  Downloaded toml_datetime v0.6.11
+  Downloaded wasm-bindgen-shared v0.2.114
+  Downloaded wasm-bindgen-macro v0.2.114
+  Downloaded zeroize v1.8.2
+  Downloaded toml v0.8.23
+  Downloaded wasm-bindgen-macro-support v0.2.114
+  Downloaded typenum v1.19.0
+  Downloaded unicode-segmentation v1.12.0
+  Downloaded tera v1.20.1
+  Downloaded deunicode v1.6.2
+  Downloaded portable-atomic v1.13.1
+  Downloaded regex v1.12.3
+  Downloaded winnow v0.7.15
+  Downloaded rayon v1.11.0
+  Downloaded time v0.3.47
+  Downloaded libm v0.2.16
+  Downloaded unicode-width v0.2.2
+  Downloaded zerocopy v0.8.47
+  Downloaded bstr v1.12.1
+  Downloaded futures-util v0.3.32
+  Downloaded blake3 v1.8.3
+  Downloaded regex-syntax v0.8.10
+  Downloaded chrono-tz v0.9.0
+  Downloaded pest v2.8.6
+  Downloaded rustix v1.1.4
+  Downloaded hashbrown v0.14.5
+  Downloaded toml_edit v0.22.27
+  Downloaded rayon-core v1.13.0
+  Downloaded rand v0.8.5
+  Downloaded napi v3.8.3
+  Downloaded libfuzzer-sys v0.4.12
+  Downloaded itertools v0.11.0
+  Downloaded bumpalo v3.20.2
+  Downloaded aho-corasick v1.1.4
+  Downloaded wasm-bindgen v0.2.114
+  Downloaded uuid v1.22.0
+  Downloaded regex-automata v0.4.14
+  Downloaded tokei v14.0.0
+  Downloaded socket2 v0.6.3
+  Downloaded ryu v1.0.23
+  Downloaded mio v1.1.1
+  Downloaded js-sys v0.3.91
+  Downloaded crossbeam-channel v0.5.15
+  Downloaded cc v1.2.57
+  Downloaded libc v0.2.183
+  Downloaded bytes v1.11.1
+  Downloaded tempfile v3.27.0
+  Downloaded spin v0.9.8
+  Downloaded csv v1.4.0
+  Downloaded tokio v1.50.0
+  Downloaded smallvec v1.15.1
+  Downloaded sha2 v0.10.9
+  Downloaded pest_meta v2.8.6
+  Downloaded parse-zoneinfo v0.3.1
+  Downloaded napi-derive-backend v5.0.2
+  Downloaded indicatif v0.18.4
+  Downloaded grep-searcher v0.1.16
+  Downloaded getrandom v0.2.17
+  Downloaded colored v2.2.0
+  Downloaded clap_complete v4.6.0
+  Downloaded ucd-trie v0.1.7
+  Downloaded time-macros v0.2.27
+  Downloaded thiserror-impl v1.0.69
+  Downloaded thiserror v1.0.69
+  Downloaded slab v0.4.12
+  Downloaded shlex v1.3.0
+  Downloaded scopeguard v1.2.0
+  Downloaded rustversion v1.0.22
+  Downloaded rustc-hash v2.1.1
+  Downloaded rand_core v0.10.0
+  Downloaded rand_core v0.6.4
+  Downloaded ppv-lite86 v0.2.21
+  Downloaded parking_lot v0.12.5
+  Downloaded log v0.4.29
+  Downloaded ignore v0.4.25
+  Downloaded encoding_rs v0.8.35
+  Downloaded getrandom v0.4.2
+  Downloaded futures-channel v0.3.32
+  Downloaded futures v0.3.32
+  Downloaded dialoguer v0.12.0
+  Downloaded crossbeam-utils v0.8.21
+  Downloaded crossbeam-epoch v0.9.18
+  Downloaded const-oid v0.9.6
+  Downloaded allocator-api2 v0.2.21
+  Downloaded walkdir v2.5.0
+  Downloaded version_check v0.9.5
+  Downloaded unit-prefix v0.5.2
+  Downloaded toml_write v0.1.2
+  Downloaded term_size v0.3.2
+  Downloaded slug v0.1.6
+  Downloaded serde_spanned v0.6.9
+  Downloaded same-file v1.0.6
+  Downloaded rand_chacha v0.3.1
+  Downloaded parking_lot_core v0.9.12
+  Downloaded once_cell v1.21.4
+  Downloaded midly v0.5.3
+  Downloaded memmap2 v0.9.10
+  Downloaded libloading v0.9.0
+  Downloaded jobserver v0.1.34
+  Downloaded globset v0.4.18
+  Downloaded futures-executor v0.3.32
+  Downloaded futures-core v0.3.32
+  Downloaded foldhash v0.2.0
+  Downloaded fastrand v2.3.0
+  Downloaded encoding_rs_io v0.1.7
+  Downloaded either v1.15.0
+  Downloaded dashmap v6.1.0
+  Downloaded csv-core v0.1.13
+  Downloaded crossbeam-deque v0.8.6
+  Downloaded convert_case v0.11.0
+  Downloaded constant_time_eq v0.4.2
+  Downloaded console v0.16.3
+  Downloaded cfg-if v1.0.4
+  Downloaded bitflags v2.11.0
+  Downloaded time-core v0.1.8
+  Downloaded table_formatter v0.6.1
+  Downloaded siphasher v1.0.2
+  Downloaded shell-words v1.1.1
+  Downloaded percent-encoding v2.3.2
+  Downloaded option-ext v0.2.0
+  Downloaded napi-sys v3.2.1
+  Downloaded napi-derive v3.5.2
+  Downloaded napi-build v2.3.1
+  Downloaded lock_api v0.4.14
+  Downloaded lazy_static v1.5.0
+  Downloaded grep-matcher v0.1.8
+  Downloaded generic-array v0.14.7
+  Downloaded futures-task v0.3.32
+  Downloaded dirs-sys v0.5.0
+  Downloaded digest v0.10.7
+  Downloaded deranged v0.5.8
+  Downloaded crypto-common v0.1.7
+  Downloaded cpufeatures v0.2.17
+  Downloaded chrono-tz-build v0.3.0
+  Downloaded pin-project-lite v0.2.17
+  Downloaded nohash-hasher v0.2.0
+  Downloaded etcetera v0.8.0
+  Downloaded dirs v6.0.0
+  Downloaded arbitrary v1.4.2
+  Downloaded pest_derive v2.8.6
+  Downloaded futures-io v0.3.32
+  Downloaded find-msvc-tools v0.1.9
+  Downloaded dtor-proc-macro v0.0.6
+  Downloaded dtor v0.1.1
+  Downloaded derive_arbitrary v1.4.2
+  Downloaded ctor-proc-macro v0.0.7
+  Downloaded ctor v0.6.3
+  Downloaded phf_generator v0.11.3
+  Downloaded phf_codegen v0.11.3
+  Downloaded humansize v2.1.3
+  Downloaded globwalk v0.9.1
+  Downloaded futures-sink v0.3.32
+  Downloaded futures-macro v0.3.32
+  Downloaded base64 v0.22.1
+  Downloaded num-conv v0.2.0
+  Downloaded errno v0.3.14
+  Downloaded json5 v0.4.1
+  Downloaded arrayref v0.3.9
+  Downloaded linux-raw-sys v0.12.1
+ Downloading crates ...
+  Downloaded assert_cmd v2.2.0
+ Downloading crates ...
+  Downloaded insta v1.47.0
+ Downloading crates ...
+  Downloaded jsonschema v0.45.0
+ Downloading crates ...
+  Downloaded predicates v3.1.4
+ Downloading crates ...
+  Downloaded proptest v1.11.0
+   Compiling libc v0.2.183
+   Compiling serde_core v1.0.228
+    Checking memchr v2.8.0
+   Compiling syn v2.0.117
+   Compiling serde v1.0.228
+    Checking cfg-if v1.0.4
+    Checking utf8parse v0.2.2
+    Checking anstyle-parse v1.0.0
+    Checking anstyle-query v1.1.5
+    Checking anstyle v1.0.14
+    Checking is_terminal_polyfill v1.70.2
+    Checking colorchoice v1.0.5
+    Checking anstream v1.0.0
+    Checking strsim v0.11.1
+    Checking clap_lex v1.1.0
+    Checking itoa v1.0.18
+    Checking zmij v1.0.21
+    Checking clap_builder v4.6.0
+   Compiling jobserver v0.1.34
+    Checking serde_json v1.0.149
+   Compiling shlex v1.3.0
+   Compiling find-msvc-tools v0.1.9
+   Compiling cc v1.2.57
+    Checking arrayvec v0.7.6
+    Checking arrayref v0.3.9
+    Checking constant_time_eq v0.4.2
+    Checking cpufeatures v0.2.17
+    Checking anyhow v1.0.102
+   Compiling crossbeam-utils v0.8.21
+    Checking aho-corasick v1.1.4
+   Compiling blake3 v1.8.3
+    Checking regex-syntax v0.8.10
+   Compiling zerocopy v0.8.47
+   Compiling serde_derive v1.0.228
+   Compiling clap_derive v4.6.0
+    Checking regex-automata v0.4.14
+    Checking clap v4.6.0
+   Compiling getrandom v0.2.17
+    Checking tokmd-types v1.9.0 (/app/crates/tokmd-types)
+    Checking tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+    Checking crossbeam-epoch v0.9.18
+    Checking crossbeam-deque v0.8.6
+   Compiling rand_core v0.6.4
+   Compiling siphasher v1.0.2
+   Compiling phf_shared v0.11.3
+    Checking bstr v1.12.1
+    Checking log v0.4.29
+    Checking regex v1.12.3
+    Checking tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+   Compiling ucd-trie v0.1.7
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.3.1
+   Compiling rand v0.8.5
+   Compiling parse-zoneinfo v0.3.1
+   Compiling pest v2.8.6
+   Compiling phf_generator v0.11.3
+   Compiling phf_codegen v0.11.3
+    Checking globset v0.4.18
+   Compiling phf v0.11.3
+    Checking same-file v1.0.6
+    Checking tokmd-math v1.9.0 (/app/crates/tokmd-math)
+    Checking winnow v1.0.0
+   Compiling chrono-tz-build v0.3.0
+    Checking toml_parser v1.0.10+spec-1.1.0
+   Compiling pest_meta v2.8.6
+    Checking walkdir v2.5.0
+    Checking tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+    Checking toml_datetime v1.0.1+spec-1.1.0
+    Checking serde_spanned v1.0.4
+   Compiling rayon-core v1.13.0
+    Checking toml_writer v1.0.7+spec-1.1.0
+   Compiling unicode-segmentation v1.12.0
+   Compiling libm v0.2.16
+    Checking either v1.15.0
+    Checking toml v1.0.7+spec-1.1.0
+   Compiling pest_generator v2.8.6
+    Checking ignore v0.4.25
+   Compiling chrono-tz v0.9.0
+   Compiling num-traits v0.2.19
+    Checking hashbrown v0.16.1
+    Checking equivalent v1.0.2
+   Compiling iana-time-zone v0.1.65
+    Checking once_cell v1.21.4
+   Compiling pest_derive v2.8.6
+    Checking indexmap v2.13.0
+   Compiling chrono v0.4.44
+   Compiling parking_lot_core v0.9.12
+   Compiling getrandom v0.4.2
+   Compiling deunicode v1.6.2
+   Compiling bitflags v2.11.0
+   Compiling slug v0.1.6
+   Compiling globwalk v0.9.1
+   Compiling humansize v2.1.3
+    Checking rayon v1.11.0
+    Checking tokmd-content v1.9.0 (/app/crates/tokmd-content)
+   Compiling thiserror v1.0.69
+   Compiling percent-encoding v2.3.2
+    Checking smallvec v1.15.1
+    Checking scopeguard v1.2.0
+   Compiling lazy_static v1.5.0
+    Checking lock_api v0.4.14
+   Compiling json5 v0.4.1
+    Checking tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+    Checking tokmd-git v1.9.0 (/app/crates/tokmd-git)
+    Checking serde_spanned v0.6.9
+    Checking toml_datetime v0.6.11
+   Compiling thiserror-impl v1.0.69
+   Compiling derive_arbitrary v1.4.2
+    Checking encoding_rs v0.8.35
+   Compiling tera v1.20.1
+    Checking toml_write v0.1.2
+   Compiling num-conv v0.2.0
+   Compiling rustix v1.1.4
+    Checking winnow v0.7.15
+   Compiling time-core v0.1.8
+    Checking powerfmt v0.2.0
+   Compiling time-macros v0.2.27
+    Checking deranged v0.5.8
+    Checking encoding_rs_io v0.1.7
+    Checking colored v2.2.0
+    Checking arbitrary v1.4.2
+    Checking itertools v0.11.0
+    Checking toml_edit v0.22.27
+    Checking memmap2 v0.9.10
+    Checking grep-matcher v0.1.8
+    Checking home v0.5.12 (/app/vendor/home-0.5.12)
+    Checking tokmd-path v1.9.0 (/app/crates/tokmd-path)
+    Checking linux-raw-sys v0.12.1
+    Checking hashbrown v0.14.5
+    Checking time v0.3.47
+    Checking toml v0.8.23
+    Checking dashmap v6.1.0
+    Checking table_formatter v0.6.1
+    Checking etcetera v0.8.0
+    Checking grep-searcher v0.1.16
+   Compiling tokei v14.0.0
+    Checking parking_lot v0.12.5
+    Checking clap-cargo v0.18.3
+    Checking crossbeam-channel v0.5.15
+    Checking term_size v0.3.2
+    Checking fastrand v2.3.0
+    Checking tokmd-io-port v1.9.0 (/app/crates/tokmd-io-port)
+    Checking tokmd-walk v1.9.0 (/app/crates/tokmd-walk)
+    Checking rustc-hash v2.1.1
+    Checking tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+    Checking tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+    Checking tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+    Checking tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
+    Checking csv-core v0.1.13
+    Checking tokmd-module-key v1.9.0 (/app/crates/tokmd-module-key)
+    Checking ryu v1.0.23
+    Checking tempfile v3.27.0
+    Checking tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports)
+    Checking csv v1.4.0
+    Checking tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+    Checking tokmd-config v1.9.0 (/app/crates/tokmd-config)
+    Checking tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+    Checking tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+    Checking tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+    Checking tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+    Checking tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+    Checking tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+    Checking tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+    Checking tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+    Checking tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+    Checking uuid v1.22.0
+    Checking tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+    Checking tokmd-model v1.9.0 (/app/crates/tokmd-model)
+    Checking tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+    Checking tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+    Checking tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+    Checking tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+    Checking tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+    Checking tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+    Checking tokmd-analysis-grid v1.9.0 (/app/crates/tokmd-analysis-grid)
+    Checking tokmd-format v1.9.0 (/app/crates/tokmd-format)
+    Checking tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+    Checking tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+    Checking tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+    Checking tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude)
+    Checking tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+    Checking tokmd-badge v1.9.0 (/app/crates/tokmd-badge)
+    Checking base64 v0.22.1
+   Compiling libfuzzer-sys v0.4.12
+    Checking tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+   Compiling wasm-bindgen-shared v0.2.114
+    Checking tokmd-core v1.9.0 (/app/crates/tokmd-core)
+   Compiling portable-atomic v1.13.1
+   Compiling dtor-proc-macro v0.0.6
+   Compiling rustversion v1.0.22
+    Checking unicode-width v0.2.2
+    Checking futures-core v0.3.32
+   Compiling napi-build v2.3.1
+    Checking console v0.16.3
+    Checking pin-project-lite v0.2.17
+    Checking futures-sink v0.3.32
+    Checking futures-channel v0.3.32
+    Checking midly v0.5.3
+   Compiling futures-macro v0.3.32
+    Checking futures-task v0.3.32
+    Checking unit-prefix v0.5.2
+    Checking slab v0.4.12
+   Compiling bumpalo v3.20.2
+   Compiling ctor-proc-macro v0.0.7
+    Checking futures-io v0.3.32
+    Checking option-ext v0.2.0
+   Compiling wasm-bindgen-macro-support v0.2.114
+    Checking futures-util v0.3.32
+    Checking dirs-sys v0.5.0
+    Checking tokmd-fun v1.9.0 (/app/crates/tokmd-fun)
+    Checking indicatif v0.18.4
+   Compiling wasm-bindgen v0.2.114
+    Checking tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+    Checking zeroize v1.8.2
+    Checking shell-words v1.1.1
+    Checking unicode-ident v1.0.24
+    Checking dialoguer v0.12.0
+    Checking tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+    Checking tokmd-progress v1.9.0 (/app/crates/tokmd-progress)
+    Checking dirs v6.0.0
+   Compiling napi v3.8.3
+    Checking dtor v0.1.1
+    Checking tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+    Checking tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+   Compiling convert_case v0.11.0
+    Checking futures-executor v0.3.32
+    Checking clap_complete v4.6.0
+   Compiling thiserror-impl v2.0.18
+    Checking libloading v0.9.0
+    Checking tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain)
+   Compiling semver v1.0.27
+    Checking foldhash v0.1.5
+    Checking hashbrown v0.15.5
+    Checking thiserror v2.0.18
+   Compiling napi-derive-backend v5.0.2
+    Checking tokmd v1.9.0 (/app/crates/tokmd)
+   Compiling wasm-bindgen-macro v0.2.114
+    Checking napi-sys v3.2.1
+    Checking futures v0.3.32
+   Compiling ctor v0.6.3
+    Checking camino v1.2.2
+   Compiling tokmd-node v1.9.0 (/app/crates/tokmd-node)
+    Checking tokio v1.50.0
+    Checking cargo-platform v0.3.2
+    Checking fixedbitset v0.5.7
+    Checking nohash-hasher v0.2.0
+   Compiling napi-derive v3.5.2
+    Checking petgraph v0.8.3
+    Checking cargo_metadata v0.23.1
+    Checking js-sys v0.3.91
+    Checking tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+    Checking tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+    Checking xtask v1.9.0 (/app/xtask)
+    Checking tokmd-wasm v1.9.0 (/app/crates/tokmd-wasm)
+    Checking tokmd-fuzz v0.0.0 (/app/fuzz)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 03s
+   ✅ Step 2 (check (warm graph)) passed
+[3/4] clippy
+ Downloading crates ...
+  Downloaded atomic-waker v1.1.2
+  Downloaded ahash v0.8.12
+  Downloaded async-trait v0.1.89
+  Downloaded borrow-or-share v0.2.4
+  Downloaded bit-set v0.8.0
+  Downloaded crypto-common v0.2.1
+  Downloaded cpufeatures v0.3.0
+  Downloaded difflib v0.4.0
+  Downloaded tower-service v0.3.3
+  Downloaded num v0.4.3
+  Downloaded http-body v1.0.1
+  Downloaded tokio-rustls v0.26.4
+  Downloaded stable_deref_trait v1.2.1
+  Downloaded ref-cast-impl v1.0.25
+  Downloaded try-lock v0.2.5
+  Downloaded rustls-native-certs v0.8.3
+  Downloaded zerofrom-derive v0.1.6
+  Downloaded termtree v0.5.1
+  Downloaded uuid-simd v0.8.0
+  Downloaded yoke-derive v0.8.1
+  Downloaded zerofrom v0.1.6
+  Downloaded wasm-bindgen-test-shared v0.2.114
+  Downloaded wait-timeout v0.2.1
+  Downloaded zerovec-derive v0.11.2
+  Downloaded writeable v0.6.2
+  Downloaded wasm-bindgen-test v0.3.64
+  Downloaded zerotrie v0.2.3
+  Downloaded uselesskey v0.5.1
+  Downloaded tower-http v0.6.8
+  Downloaded zerovec v0.11.5
+  Downloaded tokio-util v0.7.18
+  Downloaded crypto-bigint v0.7.3
+  Downloaded tower v0.5.3
+  Downloaded url v2.5.8
+  Downloaded rustls v0.23.37
+  Downloaded unicode-general-category v1.1.0
+  Downloaded tracing-core v0.1.36
+  Downloaded subtle v2.6.1
+  Downloaded spki v0.8.0-rc.4
+  Downloaded spin v0.10.0
+  Downloaded h2 v0.4.13
+  Downloaded crypto-primes v0.7.0
+  Downloaded wasm-bindgen-futures v0.4.64
+  Downloaded uselesskey-rsa v0.5.1
+  Downloaded uselesskey-core-sink v0.5.1
+  Downloaded uselesskey-core-seed v0.5.1
+  Downloaded uselesskey-core-negative-pem v0.5.1
+  Downloaded tracing v0.1.44
+  Downloaded uselesskey-core-keypair-material v0.5.1
+  Downloaded uselesskey-core-id v0.5.1
+  Downloaded uselesskey-core-cache v0.5.1
+  Downloaded spki v0.7.3
+  Downloaded reqwest v0.13.2
+  Downloaded yoke v0.8.1
+  Downloaded vsimd v0.8.0
+  Downloaded utf8_iter v1.0.4
+  Downloaded uselesskey-core-negative v0.5.1
+  Downloaded uselesskey-core v0.5.1
+  Downloaded tinystr v0.8.2
+  Downloaded iri-string v0.7.10
+  Downloaded idna v1.1.0
+  Downloaded icu_properties_data v2.1.2
+  Downloaded hyper v1.8.1
+  Downloaded uselesskey-core-factory v0.5.1
+  Downloaded num-bigint-dig v0.8.6
+  Downloaded wasm-bindgen-test-macro v0.3.64
+  Downloaded http v1.4.0
+  Downloaded want v0.3.1
+  Downloaded uselesskey-core-negative-der v0.5.1
+  Downloaded rsa v0.10.0-rc.17
+  Downloaded rand v0.10.0
+  Downloaded rand v0.9.2
+  Downloaded num-bigint v0.4.6
+  Downloaded icu_normalizer v2.1.1
+  Downloaded hyper-util v0.1.20
+  Downloaded fancy-regex v0.17.0
+  Downloaded der v0.8.0
+  Downloaded uselesskey-core-kid v0.5.1
+  Downloaded uselesskey-core-hash v0.5.1
+  Downloaded unarray v0.1.4
+  Downloaded rustls-webpki v0.103.10
+  Downloaded rsa v0.9.10
+  Downloaded icu_normalizer_data v2.1.1
+  Downloaded icu_locale_core v2.1.1
+  Downloaded icu_collections v2.1.1
+  Downloaded getrandom v0.3.4
+  Downloaded fraction v0.15.3
+  Downloaded der v0.7.10
+  Downloaded referencing v0.45.0
+  Downloaded litemap v0.8.1
+  Downloaded icu_provider v2.1.1
+  Downloaded icu_properties v2.1.2
+  Downloaded httparse v1.10.1
+  Downloaded fluent-uri v0.4.1
+  Downloaded similar v2.7.0
+  Downloaded sha2 v0.11.0
+  Downloaded serdect v0.4.2
+  Downloaded rustls-platform-verifier v0.6.2
+  Downloaded ring v0.17.14
+  Downloaded rustls-pki-types v1.14.0
+  Downloaded pkcs1 v0.8.0-rc.4
+  Downloaded pkcs1 v0.7.5
+  Downloaded pem-rfc7468 v1.0.0
+  Downloaded hyper-rustls v0.27.7
+  Downloaded hybrid-array v0.4.8
+  Downloaded form_urlencoded v1.2.2
+  Downloaded const-oid v0.10.2
+  Downloaded untrusted v0.9.0
+  Downloaded tower-layer v0.3.3
+  Downloaded sync_wrapper v1.0.2
+  Downloaded rusty-fork v0.3.1
+  Downloaded quick-error v1.2.3
+  Downloaded pkcs8 v0.11.0-rc.11
+  Downloaded num-complex v0.4.6
+  Downloaded nu-ansi-term v0.50.3
+  Downloaded data-encoding v2.10.0
+  Downloaded cmov v0.5.2
+  Downloaded bytecount v0.6.9
+  Downloaded ref-cast v1.0.25
+  Downloaded rand_core v0.9.5
+  Downloaded rand_chacha v0.10.0
+  Downloaded rand_chacha v0.9.0
+  Downloaded pkcs8 v0.10.2
+  Downloaded pem-rfc7468 v0.7.0
+  Downloaded oorandom v11.1.5
+  Downloaded num-rational v0.4.2
+  Downloaded num-integer v0.1.46
+  Downloaded normalize-line-endings v0.3.0
+  Downloaded ipnet v2.12.0
+  Downloaded http-body-util v0.1.3
+  Downloaded predicates-core v1.0.10
+  Downloaded potential_utf v0.1.4
+  Downloaded base16ct v1.0.0
+  Downloaded signature v3.0.0-rc.10
+  Downloaded predicates-tree v1.0.13
+  Downloaded openssl-probe v0.2.1
+  Downloaded num-iter v0.1.45
+  Downloaded idna_adapter v1.2.1
+  Downloaded email_address v0.2.9
+  Downloaded displaydoc v0.2.5
+  Downloaded digest v0.11.2
+  Downloaded ctutils v0.4.0
+  Downloaded cast v0.3.0
+  Downloaded base64ct v1.8.3
+  Downloaded synstructure v0.13.2
+  Downloaded signature v2.2.0
+  Downloaded rand_xorshift v0.4.0
+  Downloaded pin-utils v0.1.0
+  Downloaded outref v0.5.2
+  Downloaded num-cmp v0.1.0
+  Downloaded fnv v1.0.7
+  Downloaded float-cmp v0.10.0
+  Downloaded bit-vec v0.8.0
+  Downloaded block-buffer v0.12.0
+  Downloaded cpubits v0.1.0
+    Checking rand_core v0.10.0
+   Compiling libm v0.2.16
+   Compiling zerocopy v0.8.47
+   Compiling getrandom v0.4.2
+   Compiling num-traits v0.2.19
+   Compiling getrandom v0.3.4
+    Checking tempfile v3.27.0
+    Checking fnv v1.0.7
+    Checking bit-vec v0.8.0
+    Checking rand_core v0.9.5
+    Checking bit-set v0.8.0
+    Checking wait-timeout v0.2.1
+    Checking quick-error v1.2.3
+    Checking rand_xorshift v0.4.0
+    Checking rusty-fork v0.3.1
+    Checking rand v0.9.2
+    Checking unarray v0.1.4
+   Compiling serde v1.0.228
+   Compiling serde_json v1.0.149
+    Checking regex-automata v0.4.14
+    Checking tokmd-types v1.9.0 (/app/crates/tokmd-types)
+    Checking tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+    Checking tokmd-math v1.9.0 (/app/crates/tokmd-math)
+    Checking similar v2.7.0
+    Checking insta v1.47.0
+    Checking regex v1.12.3
+    Checking ppv-lite86 v0.2.21
+    Checking bstr v1.12.1
+    Checking tokmd-path v1.9.0 (/app/crates/tokmd-path)
+    Checking rand_chacha v0.9.0
+    Checking tokmd-content v1.9.0 (/app/crates/tokmd-content)
+    Checking proptest v1.11.0
+    Checking globset v0.4.18
+    Checking smallvec v1.15.1
+    Checking tokmd-module-key v1.9.0 (/app/crates/tokmd-module-key)
+    Checking ignore v0.4.25
+    Checking parking_lot_core v0.9.12
+    Checking spin v0.9.8
+    Checking lazy_static v1.5.0
+    Checking tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
+    Checking dashmap v6.1.0
+    Checking tokmd-io-port v1.9.0 (/app/crates/tokmd-io-port)
+    Checking allocator-api2 v0.2.21
+    Checking foldhash v0.2.0
+    Checking tokmd-walk v1.9.0 (/app/crates/tokmd-walk)
+    Checking hashbrown v0.16.1
+    Checking tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+    Checking tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+    Checking tokmd-git v1.9.0 (/app/crates/tokmd-git)
+    Checking indexmap v2.13.0
+    Checking tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+   Compiling chrono v0.4.44
+   Compiling humansize v2.1.3
+    Checking parking_lot v0.12.5
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking toml_edit v0.22.27
+    Checking colored v2.2.0
+    Checking grep-searcher v0.1.16
+    Checking table_formatter v0.6.1
+   Compiling rand_chacha v0.3.1
+    Checking tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports)
+    Checking tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+   Compiling rand v0.8.5
+    Checking tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+    Checking tokmd-analysis-grid v1.9.0 (/app/crates/tokmd-analysis-grid)
+    Checking tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+    Checking tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+    Checking toml v0.8.23
+    Checking tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+    Checking tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+    Checking tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+    Checking tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+    Checking tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+   Compiling phf_generator v0.11.3
+    Checking tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+    Checking tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+    Checking tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+   Compiling phf_codegen v0.11.3
+    Checking tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+    Checking tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+    Checking tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+    Checking tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+   Compiling chrono-tz-build v0.3.0
+    Checking tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+    Checking tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+    Checking tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+    Checking tokmd-config v1.9.0 (/app/crates/tokmd-config)
+    Checking uuid v1.22.0
+    Checking tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+    Checking tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+   Compiling chrono-tz v0.9.0
+    Checking tokmd-format v1.9.0 (/app/crates/tokmd-format)
+    Checking tokmd-badge v1.9.0 (/app/crates/tokmd-badge)
+    Checking tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+    Checking tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+    Checking tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude)
+    Checking getrandom v0.2.17
+   Compiling version_check v0.9.5
+    Checking tokmd-fun v1.9.0 (/app/crates/tokmd-fun)
+    Checking num-integer v0.1.46
+    Checking subtle v2.6.1
+    Checking tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+    Checking tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+    Checking futures-core v0.3.32
+    Checking num-iter v0.1.45
+    Checking futures-sink v0.3.32
+   Compiling synstructure v0.13.2
+    Checking tokmd-progress v1.9.0 (/app/crates/tokmd-progress)
+    Checking slab v0.4.12
+    Checking bytes v1.11.1
+    Checking futures-channel v0.3.32
+    Checking tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+    Checking stable_deref_trait v1.2.1
+    Checking futures-util v0.3.32
+   Compiling zerofrom-derive v0.1.6
+   Compiling yoke-derive v0.8.1
+    Checking socket2 v0.6.3
+    Checking zerofrom v0.1.6
+    Checking yoke v0.8.1
+    Checking mio v1.1.1
+    Checking tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain)
+    Checking tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+    Checking tokio v1.50.0
+   Compiling zerovec-derive v0.11.2
+   Compiling tera v1.20.1
+   Compiling displaydoc v0.2.5
+    Checking zerovec v0.11.5
+   Compiling ring v0.17.14
+    Checking tinystr v0.8.2
+    Checking http v1.4.0
+    Checking writeable v0.6.2
+    Checking litemap v0.8.1
+    Checking icu_locale_core v2.1.1
+    Checking potential_utf v0.1.4
+    Checking zerotrie v0.2.3
+    Checking rustls-pki-types v1.14.0
+   Compiling icu_normalizer_data v2.1.1
+   Compiling icu_properties_data v2.1.2
+    Checking untrusted v0.9.0
+    Checking icu_provider v2.1.1
+    Checking icu_collections v2.1.1
+    Checking http-body v1.0.1
+    Checking tracing-core v0.1.36
+   Compiling rustls v0.23.37
+    Checking percent-encoding v2.3.2
+   Compiling httparse v1.10.1
+    Checking tracing v0.1.44
+    Checking tokio-util v0.7.18
+    Checking tower-service v0.3.3
+    Checking atomic-waker v1.1.2
+    Checking try-lock v0.2.5
+    Checking want v0.3.1
+   Compiling tokei v14.0.0
+    Checking icu_properties v2.1.2
+    Checking h2 v0.4.13
+    Checking icu_normalizer v2.1.1
+    Checking pin-utils v0.1.0
+   Compiling ref-cast v1.0.25
+    Checking idna_adapter v1.2.1
+    Checking sync_wrapper v1.0.2
+    Checking num-bigint v0.4.6
+    Checking tokmd-model v1.9.0 (/app/crates/tokmd-model)
+    Checking tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+   Compiling ahash v0.8.12
+   Compiling ref-cast-impl v1.0.25
+    Checking hyper v1.8.1
+    Checking ipnet v2.12.0
+    Checking openssl-probe v0.2.1
+    Checking utf8_iter v1.0.4
+    Checking rustls-webpki v0.103.10
+    Checking tower-layer v0.3.3
+    Checking dialoguer v0.12.0
+    Checking tower v0.5.3
+    Checking idna v1.1.0
+    Checking hyper-util v0.1.20
+    Checking rustls-native-certs v0.8.3
+    Checking num-rational v0.4.2
+    Checking form_urlencoded v1.2.2
+    Checking num-complex v0.4.6
+    Checking predicates-core v1.0.10
+    Checking borrow-or-share v0.2.4
+   Compiling unicode-general-category v1.1.0
+    Checking iri-string v0.7.10
+    Checking num v0.4.3
+    Checking fluent-uri v0.4.1
+    Checking url v2.5.8
+    Checking http-body-util v0.1.3
+    Checking float-cmp v0.10.0
+   Compiling assert_cmd v2.2.0
+    Checking outref v0.5.2
+    Checking tower-http v0.6.8
+    Checking normalize-line-endings v0.3.0
+    Checking vsimd v0.8.0
+    Checking termtree v0.5.1
+    Checking difflib v0.4.0
+    Checking predicates-tree v1.0.13
+    Checking predicates v3.1.4
+    Checking referencing v0.45.0
+    Checking uuid-simd v0.8.0
+    Checking fraction v0.15.3
+    Checking tokmd v1.9.0 (/app/crates/tokmd)
+    Checking tokio-rustls v0.26.4
+    Checking rustls-platform-verifier v0.6.2
+    Checking hyper-rustls v0.27.7
+    Checking fancy-regex v0.17.0
+    Checking email_address v0.2.9
+    Checking reqwest v0.13.2
+    Checking data-encoding v2.10.0
+    Checking num-cmp v0.1.0
+    Checking bytecount v0.6.9
+    Checking tokmd-core v1.9.0 (/app/crates/tokmd-core)
+    Checking tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+   Compiling typenum v1.19.0
+    Checking base64ct v1.8.3
+    Checking jsonschema v0.45.0
+    Checking uselesskey-core-hash v0.5.1
+    Checking const-oid v0.10.2
+    Checking const-oid v0.9.6
+   Compiling generic-array v0.14.7
+    Checking rand_chacha v0.10.0
+    Checking pem-rfc7468 v0.7.0
+    Checking uselesskey-core-seed v0.5.1
+    Checking pem-rfc7468 v1.0.0
+    Checking rand_core v0.6.4
+    Checking der v0.8.0
+    Checking uselesskey-core-id v0.5.1
+    Checking der v0.7.10
+    Checking hybrid-array v0.4.8
+    Checking crypto-common v0.2.1
+    Checking block-buffer v0.12.0
+    Checking spin v0.10.0
+    Checking cmov v0.5.2
+    Checking ctutils v0.4.0
+    Checking digest v0.11.2
+    Checking uselesskey-core-cache v0.5.1
+    Checking spki v0.7.3
+    Checking spki v0.8.0-rc.4
+    Checking crypto-common v0.1.7
+    Checking uselesskey-core-negative-pem v0.5.1
+    Checking uselesskey-core-negative-der v0.5.1
+    Checking rand v0.10.0
+   Compiling num-bigint-dig v0.8.6
+    Checking cpubits v0.1.0
+    Checking uselesskey-core-negative v0.5.1
+    Checking crypto-bigint v0.7.3
+    Checking digest v0.10.7
+    Checking pkcs8 v0.10.2
+    Checking uselesskey-core-sink v0.5.1
+    Checking cpufeatures v0.3.0
+    Checking sha2 v0.11.0
+    Checking uselesskey-core-factory v0.5.1
+    Checking uselesskey-core v0.5.1
+    Checking pkcs1 v0.7.5
+    Checking signature v2.2.0
+    Checking pkcs8 v0.11.0-rc.11
+    Checking pkcs1 v0.8.0-rc.4
+    Checking signature v3.0.0-rc.10
+    Checking uselesskey-core-kid v0.5.1
+    Checking tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+    Checking uselesskey-core-keypair-material v0.5.1
+    Checking petgraph v0.8.3
+    Checking rsa v0.9.10
+    Checking tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+    Checking cargo_metadata v0.23.1
+    Checking futures-executor v0.3.32
+    Checking futures v0.3.32
+   Compiling tokmd-node v1.9.0 (/app/crates/tokmd-node)
+    Checking crypto-primes v0.7.0
+    Checking napi v3.8.3
+    Checking wasm-bindgen-futures v0.4.64
+   Compiling async-trait v0.1.89
+   Compiling wasm-bindgen-test-macro v0.3.64
+    Checking wasm-bindgen-test-shared v0.2.114
+    Checking oorandom v11.1.5
+    Checking cast v0.3.0
+    Checking rsa v0.10.0-rc.17
+    Checking nu-ansi-term v0.50.3
+    Checking xtask v1.9.0 (/app/xtask)
+    Checking wasm-bindgen-test v0.3.64
+    Checking uselesskey-rsa v0.5.1
+    Checking uselesskey v0.5.1
+    Checking tokmd-wasm v1.9.0 (/app/crates/tokmd-wasm)
+    Checking tokmd-fuzz v0.0.0 (/app/fuzz)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 03s
+   ✅ Step 3 (clippy) passed
+[4/4] test (compile-only)
+   Compiling cfg-if v1.0.4
+   Compiling once_cell v1.21.4
+   Compiling libc v0.2.183
+   Compiling rand_core v0.10.0
+   Compiling libm v0.2.16
+   Compiling regex-syntax v0.8.10
+   Compiling bitflags v2.11.0
+   Compiling zerocopy v0.8.47
+   Compiling getrandom v0.4.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling fastrand v2.3.0
+   Compiling num-traits v0.2.19
+   Compiling rustix v1.1.4
+   Compiling getrandom v0.3.4
+   Compiling fnv v1.0.7
+   Compiling unicode-ident v1.0.24
+   Compiling proc-macro2 v1.0.106
+   Compiling tempfile v3.27.0
+   Compiling quote v1.0.45
+   Compiling rand_core v0.9.5
+   Compiling bit-vec v0.8.0
+   Compiling syn v2.0.117
+   Compiling wait-timeout v0.2.1
+   Compiling bit-set v0.8.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling quick-error v1.2.3
+   Compiling rand v0.9.2
+   Compiling rusty-fork v0.3.1
+   Compiling rand_chacha v0.9.0
+   Compiling rand_xorshift v0.4.0
+   Compiling unarray v0.1.4
+   Compiling serde_core v1.0.228
+   Compiling memchr v2.8.0
+   Compiling proptest v1.11.0
+   Compiling jobserver v0.1.34
+   Compiling cc v1.2.57
+   Compiling serde_json v1.0.149
+   Compiling blake3 v1.8.3
+   Compiling arrayvec v0.7.6
+   Compiling constant_time_eq v0.4.2
+   Compiling cpufeatures v0.2.17
+   Compiling arrayref v0.3.9
+   Compiling aho-corasick v1.1.4
+   Compiling unicode-width v0.2.2
+   Compiling console v0.16.3
+   Compiling serde_derive v1.0.228
+   Compiling clap_derive v4.6.0
+   Compiling regex-automata v0.4.14
+   Compiling crossbeam-utils v0.8.21
+   Compiling similar v2.7.0
+   Compiling clap v4.6.0
+   Compiling log v0.4.29
+   Compiling crossbeam-epoch v0.9.18
+   Compiling crossbeam-deque v0.8.6
+   Compiling serde_spanned v1.0.4
+   Compiling toml_datetime v1.0.1+spec-1.1.0
+   Compiling serde v1.0.228
+   Compiling toml v1.0.7+spec-1.1.0
+   Compiling tokmd-math v1.9.0 (/app/crates/tokmd-math)
+   Compiling same-file v1.0.6
+   Compiling tokmd-types v1.9.0 (/app/crates/tokmd-types)
+   Compiling tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+   Compiling regex v1.12.3
+   Compiling insta v1.47.0
+   Compiling bstr v1.12.1
+   Compiling globset v0.4.18
+   Compiling tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+   Compiling walkdir v2.5.0
+   Compiling tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+   Compiling ignore v0.4.25
+   Compiling tokmd-path v1.9.0 (/app/crates/tokmd-path)
+   Compiling tokmd-content v1.9.0 (/app/crates/tokmd-content)
+   Compiling getrandom v0.2.17
+   Compiling tokmd-git v1.9.0 (/app/crates/tokmd-git)
+   Compiling smallvec v1.15.1
+   Compiling rand_core v0.6.4
+   Compiling either v1.15.0
+   Compiling rayon-core v1.13.0
+   Compiling scopeguard v1.2.0
+   Compiling tokmd-module-key v1.9.0 (/app/crates/tokmd-module-key)
+   Compiling rayon v1.11.0
+   Compiling lock_api v0.4.14
+   Compiling tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+   Compiling parking_lot_core v0.9.12
+   Compiling spin v0.9.8
+   Compiling tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
+   Compiling lazy_static v1.5.0
+   Compiling hashbrown v0.14.5
+   Compiling time-core v0.1.8
+   Compiling powerfmt v0.2.0
+   Compiling num-conv v0.2.0
+   Compiling deranged v0.5.8
+   Compiling time-macros v0.2.27
+   Compiling dashmap v6.1.0
+   Compiling tokmd-io-port v1.9.0 (/app/crates/tokmd-io-port)
+   Compiling allocator-api2 v0.2.21
+   Compiling time v0.3.47
+   Compiling foldhash v0.2.0
+   Compiling tokmd-walk v1.9.0 (/app/crates/tokmd-walk)
+   Compiling hashbrown v0.16.1
+   Compiling rand_chacha v0.3.1
+   Compiling indexmap v2.13.0
+   Compiling percent-encoding v2.3.2
+   Compiling rand v0.8.5
+   Compiling pest v2.8.6
+   Compiling phf_generator v0.11.3
+   Compiling tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+   Compiling phf_codegen v0.11.3
+   Compiling pest_meta v2.8.6
+   Compiling parse-zoneinfo v0.3.1
+   Compiling chrono-tz-build v0.3.0
+   Compiling pest_generator v2.8.6
+   Compiling chrono v0.4.44
+   Compiling chrono-tz v0.9.0
+   Compiling pest_derive v2.8.6
+   Compiling humansize v2.1.3
+   Compiling globwalk v0.9.1
+   Compiling json5 v0.4.1
+   Compiling parking_lot v0.12.5
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling thiserror-impl v1.0.69
+   Compiling encoding_rs v0.8.35
+   Compiling toml_write v0.1.2
+   Compiling winnow v0.7.15
+   Compiling thiserror v1.0.69
+   Compiling encoding_rs_io v0.1.7
+   Compiling tera v1.20.1
+   Compiling colored v2.2.0
+   Compiling tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+   Compiling itertools v0.11.0
+   Compiling derive_arbitrary v1.4.2
+   Compiling toml_edit v0.22.27
+   Compiling grep-matcher v0.1.8
+   Compiling memmap2 v0.9.10
+   Compiling home v0.5.12 (/app/vendor/home-0.5.12)
+   Compiling etcetera v0.8.0
+   Compiling table_formatter v0.6.1
+   Compiling grep-searcher v0.1.16
+   Compiling arbitrary v1.4.2
+   Compiling clap-cargo v0.18.3
+   Compiling crossbeam-channel v0.5.15
+   Compiling toml v0.8.23
+   Compiling term_size v0.3.2
+   Compiling tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports)
+   Compiling rustc-hash v2.1.1
+   Compiling tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+   Compiling tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+   Compiling tokei v14.0.0
+   Compiling tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+   Compiling tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+   Compiling tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+   Compiling tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+   Compiling tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+   Compiling tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+   Compiling tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+   Compiling tokmd-model v1.9.0 (/app/crates/tokmd-model)
+   Compiling tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+   Compiling tokmd-analysis-grid v1.9.0 (/app/crates/tokmd-analysis-grid)
+   Compiling tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+   Compiling tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+   Compiling tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+   Compiling tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+   Compiling tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+   Compiling tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+   Compiling tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+   Compiling tokmd-config v1.9.0 (/app/crates/tokmd-config)
+   Compiling tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+   Compiling tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+   Compiling base64 v0.22.1
+   Compiling csv-core v0.1.13
+   Compiling ryu v1.0.23
+   Compiling csv v1.4.0
+   Compiling uuid v1.22.0
+   Compiling tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+   Compiling tokmd-format v1.9.0 (/app/crates/tokmd-format)
+   Compiling zeroize v1.8.2
+   Compiling midly v0.5.3
+   Compiling tokmd-fun v1.9.0 (/app/crates/tokmd-fun)
+   Compiling num-integer v0.1.46
+   Compiling subtle v2.6.1
+   Compiling tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+   Compiling tokmd-badge v1.9.0 (/app/crates/tokmd-badge)
+   Compiling num-iter v0.1.45
+   Compiling tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+   Compiling tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+   Compiling pin-project-lite v0.2.17
+   Compiling portable-atomic v1.13.1
+   Compiling futures-core v0.3.32
+   Compiling unit-prefix v0.5.2
+   Compiling indicatif v0.18.4
+   Compiling tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+   Compiling futures-sink v0.3.32
+   Compiling tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude)
+   Compiling synstructure v0.13.2
+   Compiling tokmd-progress v1.9.0 (/app/crates/tokmd-progress)
+   Compiling tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+   Compiling slab v0.4.12
+   Compiling futures-channel v0.3.32
+   Compiling bytes v1.11.1
+   Compiling zerofrom-derive v0.1.6
+   Compiling yoke-derive v0.8.1
+   Compiling futures-macro v0.3.32
+   Compiling futures-io v0.3.32
+   Compiling futures-task v0.3.32
+   Compiling stable_deref_trait v1.2.1
+   Compiling tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain)
+   Compiling futures-util v0.3.32
+   Compiling tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+   Compiling zerofrom v0.1.6
+   Compiling yoke v0.8.1
+   Compiling zerovec-derive v0.11.2
+   Compiling socket2 v0.6.3
+   Compiling mio v1.1.1
+   Compiling tokio v1.50.0
+   Compiling displaydoc v0.2.5
+   Compiling zerovec v0.11.5
+   Compiling ring v0.17.14
+   Compiling tinystr v0.8.2
+   Compiling http v1.4.0
+   Compiling writeable v0.6.2
+   Compiling litemap v0.8.1
+   Compiling icu_locale_core v2.1.1
+   Compiling potential_utf v0.1.4
+   Compiling zerotrie v0.2.3
+   Compiling rustls-pki-types v1.14.0
+   Compiling untrusted v0.9.0
+   Compiling icu_provider v2.1.1
+   Compiling icu_collections v2.1.1
+   Compiling http-body v1.0.1
+   Compiling tracing-core v0.1.36
+   Compiling tokio-util v0.7.18
+   Compiling tracing v0.1.44
+   Compiling icu_properties_data v2.1.2
+   Compiling icu_normalizer_data v2.1.1
+   Compiling try-lock v0.2.5
+   Compiling atomic-waker v1.1.2
+   Compiling tower-service v0.3.3
+   Compiling h2 v0.4.13
+   Compiling want v0.3.1
+   Compiling icu_normalizer v2.1.1
+   Compiling rustls v0.23.37
+   Compiling icu_properties v2.1.2
+   Compiling httparse v1.10.1
+   Compiling option-ext v0.2.0
+   Compiling pin-utils v0.1.0
+   Compiling dirs-sys v0.5.0
+   Compiling sync_wrapper v1.0.2
+   Compiling num-bigint v0.4.6
+   Compiling rustls-webpki v0.103.10
+   Compiling hyper v1.8.1
+   Compiling idna_adapter v1.2.1
+   Compiling ref-cast-impl v1.0.25
+   Compiling shell-words v1.1.1
+   Compiling ipnet v2.12.0
+   Compiling openssl-probe v0.2.1
+   Compiling utf8_iter v1.0.4
+   Compiling tower-layer v0.3.3
+   Compiling tower v0.5.3
+   Compiling hyper-util v0.1.20
+   Compiling idna v1.1.0
+   Compiling rustls-native-certs v0.8.3
+   Compiling dialoguer v0.12.0
+   Compiling ref-cast v1.0.25
+   Compiling num-rational v0.4.2
+   Compiling dirs v6.0.0
+   Compiling form_urlencoded v1.2.2
+   Compiling clap_complete v4.6.0
+   Compiling num-complex v0.4.6
+   Compiling tokio-rustls v0.26.4
+   Compiling borrow-or-share v0.2.4
+   Compiling predicates-core v1.0.10
+   Compiling iri-string v0.7.10
+   Compiling hyper-rustls v0.27.7
+   Compiling fluent-uri v0.4.1
+   Compiling num v0.4.3
+   Compiling rustls-platform-verifier v0.6.2
+   Compiling url v2.5.8
+   Compiling ahash v0.8.12
+   Compiling http-body-util v0.1.3
+   Compiling tower-http v0.6.8
+   Compiling float-cmp v0.10.0
+   Compiling difflib v0.4.0
+   Compiling outref v0.5.2
+   Compiling normalize-line-endings v0.3.0
+   Compiling termtree v0.5.1
+   Compiling vsimd v0.8.0
+   Compiling predicates-tree v1.0.13
+   Compiling predicates v3.1.4
+   Compiling uuid-simd v0.8.0
+   Compiling reqwest v0.13.2
+   Compiling referencing v0.45.0
+   Compiling fraction v0.15.3
+   Compiling unicode-general-category v1.1.0
+   Compiling tokmd v1.9.0 (/app/crates/tokmd)
+   Compiling email_address v0.2.9
+   Compiling fancy-regex v0.17.0
+   Compiling data-encoding v2.10.0
+   Compiling num-cmp v0.1.0
+   Compiling bytecount v0.6.9
+   Compiling assert_cmd v2.2.0
+   Compiling jsonschema v0.45.0
+   Compiling thiserror-impl v2.0.18
+   Compiling thiserror v2.0.18
+   Compiling tokmd-core v1.9.0 (/app/crates/tokmd-core)
+   Compiling typenum v1.19.0
+   Compiling base64ct v1.8.3
+   Compiling uselesskey-core-hash v0.5.1
+   Compiling const-oid v0.10.2
+   Compiling const-oid v0.9.6
+   Compiling hybrid-array v0.4.8
+   Compiling rand_chacha v0.10.0
+   Compiling uselesskey-core-seed v0.5.1
+   Compiling pem-rfc7468 v0.7.0
+   Compiling pem-rfc7468 v1.0.0
+   Compiling generic-array v0.14.7
+   Compiling der v0.8.0
+   Compiling der v0.7.10
+   Compiling crypto-common v0.2.1
+   Compiling block-buffer v0.12.0
+   Compiling uselesskey-core-id v0.5.1
+   Compiling cmov v0.5.2
+   Compiling spin v0.10.0
+   Compiling digest v0.11.2
+   Compiling uselesskey-core-cache v0.5.1
+   Compiling spki v0.8.0-rc.4
+   Compiling ctutils v0.4.0
+   Compiling spki v0.7.3
+   Compiling crypto-common v0.1.7
+   Compiling uselesskey-core-negative-der v0.5.1
+   Compiling uselesskey-core-negative-pem v0.5.1
+   Compiling rand v0.10.0
+   Compiling cpubits v0.1.0
+   Compiling crypto-bigint v0.7.3
+   Compiling uselesskey-core-negative v0.5.1
+   Compiling digest v0.10.7
+   Compiling pkcs8 v0.10.2
+   Compiling uselesskey-core-factory v0.5.1
+   Compiling uselesskey-core-sink v0.5.1
+   Compiling cpufeatures v0.3.0
+   Compiling uselesskey-core v0.5.1
+   Compiling num-bigint-dig v0.8.6
+   Compiling sha2 v0.11.0
+   Compiling pkcs1 v0.7.5
+   Compiling signature v2.2.0
+   Compiling pkcs8 v0.11.0-rc.11
+   Compiling pkcs1 v0.8.0-rc.4
+   Compiling signature v3.0.0-rc.10
+   Compiling uselesskey-core-kid v0.5.1
+   Compiling rsa v0.9.10
+   Compiling uselesskey-core-keypair-material v0.5.1
+   Compiling tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+   Compiling tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+   Compiling tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+   Compiling camino v1.2.2
+   Compiling semver v1.0.27
+   Compiling crypto-primes v0.7.0
+   Compiling cargo-platform v0.3.2
+   Compiling petgraph v0.8.3
+   Compiling cargo_metadata v0.23.1
+   Compiling rsa v0.10.0-rc.17
+   Compiling uselesskey-rsa v0.5.1
+   Compiling uselesskey v0.5.1
+   Compiling wasm-bindgen-shared v0.2.114
+   Compiling dtor v0.1.1
+   Compiling ctor v0.6.3
+   Compiling futures-executor v0.3.32
+   Compiling wasm-bindgen-macro-support v0.2.114
+   Compiling wasm-bindgen-test-macro v0.3.64
+   Compiling async-trait v0.1.89
+   Compiling libloading v0.9.0
+   Compiling cast v0.3.0
+   Compiling oorandom v11.1.5
+   Compiling nu-ansi-term v0.50.3
+   Compiling wasm-bindgen-test-shared v0.2.114
+   Compiling napi-derive-backend v5.0.2
+   Compiling napi-sys v3.2.1
+   Compiling futures v0.3.32
+   Compiling nohash-hasher v0.2.0
+   Compiling napi v3.8.3
+   Compiling xtask v1.9.0 (/app/xtask)
+   Compiling wasm-bindgen-macro v0.2.114
+   Compiling wasm-bindgen v0.2.114
+   Compiling napi-derive v3.5.2
+   Compiling js-sys v0.3.91
+   Compiling tokmd-node v1.9.0 (/app/crates/tokmd-node)
+   Compiling wasm-bindgen-futures v0.4.64
+   Compiling wasm-bindgen-test v0.3.64
+   Compiling tokmd-wasm v1.9.0 (/app/crates/tokmd-wasm)
