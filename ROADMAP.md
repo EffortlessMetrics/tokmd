@@ -827,7 +827,9 @@ _Real-world sprints expose systemic issues. v1.16.x is fundamental quality assur
 
 **Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
 
-**Scope:****
+**Unbranded Reality:** This enables reliable agent operation — both tokmd's 30+ background agents and external consumers. BDD specs are the contract that lets agents verify behavior without human review.
+
+**Scope:******
 - [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
 - [ ] **scenario completeness** — All public workflows covered: scan → model → analyze → format
 - [ ] **Gherkin-style specs** — Convert ad-hoc tests to Given/When/Then format where readable
