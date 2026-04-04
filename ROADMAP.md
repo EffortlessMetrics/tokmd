@@ -642,12 +642,113 @@ _Goal: Clean up Tier 4-5 (facades and products) and test code._
 
 _Following the unwrap burn-down, additional code quality initiatives will be staged in 1.11.x and beyond._
 
-Examples (not yet scoped):
-- Dead code elimination
-- Dependency audit and pruning
-- Documentation completeness pass
-- Test coverage gap closure
-- Performance hot-path optimization
+Each sprint targets a specific quality dimension with measurable outcomes.
+
+### v1.11.0 — Dead Code Elimination Sprint
+
+**Goal:** Remove unused code, dependencies, and exports across the workspace.
+
+**Scope:**
+- [ ] **cargo-udeps sweep** — Identify unused crate dependencies in all 61 crates
+- [ ] **pub-visibility audit** — Mark truly internal items as `pub(crate)` instead of `pub`
+- [ ] **unused-feature flags** — Remove features with zero consumers
+- [ ] **dead code in tests** — Remove test helpers copied between crates, consolidate to `tokmd-test-helpers`
+- [ ] **script cleanup** — Audit and archive one-off Python/Shell scripts in repo root
+
+**Mechanics:**
+- Run `cargo udeps` in CI (nightly) with fail-on-warning for new deps
+- Use `cargo-public-api` to track API surface changes
+- Before/after binary size comparison for CLI and WASM
+
+**Rationale:**
+- Smaller binaries (WASM bundle size matters for browser)
+- Faster compile times (less code to check)
+- Clearer API boundaries (only exported what is used)
+
+### v1.11.1 — Dependency Audit and Pruning
+
+**Goal:** Audit dependency tree for risk, duplication, and freshness.
+
+**Scope:**
+- [ ] **cargo-deny audit** — License compliance, security advisories, banned crates
+- [ ] **duplicate dependency cleanup** — Use `cargo tree -d` to find and consolidate duplicates
+- [ ] **version bump sweep** — Update deps that are >1 year old
+- [ ] **feature unification** — Ensure same crate version used across workspace (via workspace deps)
+- [ ] **vendor policy review** — Document why each vendored crate exists (e.g., `home` fork)
+
+**Mechanics:**
+- `cargo deny check` in CI (already present, ensure strict mode)
+- Weekly `cargo update` PRs with automated testing
+- Dependency decision log in `docs/dependencies.md`
+
+**Rationale:**
+- Security posture (fast response to RUSTSEC advisories)
+- Build reproducibility (lockfile hygiene)
+- Supply chain risk (understand every dependency)
+
+### v1.11.2 — Documentation Completeness Pass
+
+**Goal:** Every public API has rustdoc, every module has module-level docs.
+
+**Scope:**
+- [ ] **rustdoc coverage** — `#[deny(missing_docs)]` on all Tier 0-3 crates
+- [ ] **module-level documentation** — Every `lib.rs` explains the crate's purpose and boundaries
+- [ ] **README freshness** — All 61 crates have current README with usage example
+- [ ] **doc-link checking** — `cargo doc` with no broken intra-doc links
+- [ ] **tutorial refresh** — `docs/tutorial.md` tested against latest CLI
+- [ ] **recipes expansion** — Add 5+ new practical recipes to `docs/recipes.md`
+
+**Mechanics:**
+- CI job: `cargo doc --no-deps` with warnings-as-errors
+- doctest execution: `cargo test --doc` passes for all crates
+- "Documentation debt" metric: count of `// TODO: document this`
+
+**Rationale:**
+- Onboarding friction (new contributors need good docs)
+- API discoverability (rustdoc is the contract)
+- Long-term maintenance (docs explain *why*, not just *what*)
+
+### v1.11.3 — Test Coverage Gap Closure
+
+**Goal:** Identify and fill critical test gaps.
+
+**Scope:**
+- [ ] **coverage analysis** — Run `cargo llvm-cov` across workspace, identify <80% files
+- [ ] **error path testing** — Every `?` and `match` branch has test case
+- [ ] **property test expansion** — Add proptest to 10 more crates (currently 14)
+- [ ] **fuzz target addition** — 3 new fuzz targets (currently 3)
+- [ ] **mutation testing gate** — Ensure cargo-mutants survival rate >95%
+
+**Mechanics:**
+- Coverage reporting in CI (codecov or similar)
+- Mutation testing as merge gate (not just informational)
+- "Coverage delta" check on PRs (cannot drop coverage)
+
+**Rationale:**
+- Confidence in refactors (tests catch behavior changes)
+- Bug prevention (edge cases documented as test cases)
+- Release readiness (high coverage = lower risk)
+
+### v1.11.4 — Performance Hot-Path Optimization
+
+**Goal:** Profile and optimize critical paths identified in v1.9.x and v1.10.x work.
+
+**Scope:**
+- [ ] **benchmark baselines** — Establish `cargo bench` suite for key operations
+- [ ] **memory profiling** — Heap analysis for large repo scans (>10k files)
+- [ ] **allocation reduction** — Target allocations in `tokmd-format` and `tokmd-analysis`
+- [ ] **parallelization review** — Where can rayon or async improve throughput?
+- [ ] **WASM bundle optimization** — Size and runtime performance in browser
+
+**Mechanics:**
+- `criterion` benchmarks in CI with performance regression detection
+- Flamegraph generation for analysis workflows
+- Size budgets: WASM bundle must stay under 5MB (gzipped)
+
+**Rationale:**
+- User experience (fast feedback in CLI and browser)
+- Cost efficiency (less CPU time in CI)
+- Scalability (can handle larger repos without degradation)
 
 ---
 
