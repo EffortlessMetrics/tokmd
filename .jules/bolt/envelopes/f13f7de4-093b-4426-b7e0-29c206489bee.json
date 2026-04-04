@@ -1,0 +1,9 @@
+{
+  "run_id": "f13f7de4-093b-4426-b7e0-29c206489bee",
+  "timestamp_utc": "2026-04-04T12:30:32Z",
+  "lane": "scout",
+  "target": "crates/tokmd-fun/src/lib.rs render_obj performance",
+  "proof_method": "runtime timing via isolated cargo run test harness",
+  "commands": [],
+  "results": []
+}
