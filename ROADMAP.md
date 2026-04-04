@@ -476,36 +476,397 @@ UX work is explicitly **incremental and non-breaking**:
 
 - The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
 
-## In Progress: v1.9.0 — Browser/WASM Productization
+## In Progress: v1.9.x — Browser/WASM Productization
 
 **Goal:** Finish the browser/WASM product surface around the already-landed in-memory execution path and make the supported browser workflow explicit, repeatable, and capability-honest.
 
-### What has landed so far
+### v1.9.0 — WASM Foundation & Parity
 
-- [x] `tokmd-io-port`, in-memory scan/model/core workflow seams, and lower-tier clap-free boundaries now keep browser/WASM execution honest.
-- [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`.
-- [x] Native-vs-wasm parity coverage now exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
-- [x] `web/runner` now boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
-- [x] Public GitHub repo acquisition now uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
+**Theme:** Core WASM build-out and parity coverage.
 
-### Supported browser-safe surface today
+#### Completed
+- [x] `tokmd-io-port` landed with `ReadFs`, `HostFs`, and `MemFs` host-abstracted file access boundary
+- [x] In-memory scan/model/core workflow seams and lower-tier clap-free boundaries for browser/WASM execution
+- [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`
+- [x] Native-vs-wasm parity coverage for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`
+- [x] `web/runner` boots real `tokmd-wasm` bundle in dedicated worker with capability reporting
+- [x] Public GitHub repo acquisition via browser-safe tree + contents APIs (not zipball)
 
-- Browser/WASM modes: `lang`, `module`, `export`
-- Browser/WASM analyze presets: `receipt`, `estimate`
-- Public repo acquisition strategy: GitHub tree + contents API, not zipball fetch
-- Capability reporting is explicit about unavailable host-backed enrichers and reserved protocol features
+#### v1.9.0 Remaining
+- [ ] **Docs truth pass** — README and architecture docs match shipped browser/WASM surface
+- [ ] **Document WASM limitations explicitly** — Browser/WASM capability matrix (supported commands/presets, unavailable enrichers, rootless constraints)
 
-### Remaining for v1.9.0
+### v1.9.1 — Browser UX Hardening
 
-- Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface.
-- Add browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling.
-- Expand browser-safe analysis only where the preset can stay rootless and capability-honest.
+**Theme:** Production-ready browser experience with guardrails and performance.
 
-### Non-goals for v1.9
+- [ ] **In-browser caching layer** — Cache parsed repo trees and receipt outputs in IndexedDB
+- [ ] **Progress indicators** — Visual progress for large repo ingestion and analysis
+- [ ] **Rate-limit handling** — Exponential backoff for GitHub API limits with user-facing messages
+- [ ] **Authenticated fetch options** — Support for private repos via GitHub token input
+- [ ] **Error boundary hardening** — Graceful degradation when WASM panics or fetch fails
+- [ ] **Mobile viewport optimization** — Responsive layout for phone/tablet usage
 
-- No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
-- No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
-- No mutation testing or other heavy tooling in-browser.
+### v1.9.2 — Analysis Expansion
+
+**Theme:** Expand browser-safe analysis where presets can stay rootless.
+
+- [ ] **Additional analyze presets** — `health`, `supply` presets if they can operate without host-backed enrichers
+- [ ] **Content scanning in-browser** — Entropy detection, TODO/FIXME scanning on in-memory content
+- [ ] **Import graph analysis** — Parse imports from in-memory source (no filesystem needed)
+- [ ] **Badge generation in-browser** — SVG badge rendering client-side
+- [ ] **Export formats** — JSONL, CSV export from browser runner
+
+### v1.9.3 — Integration & Tooling
+
+**Theme:** Developer experience and ecosystem integration.
+
+- [ ] **Embed API** — Documented JS API for embedding tokmd-wasm in other web apps
+- [ ] **npm package publish** — `@tokmd/wasm` or `@tokmd/browser` package
+- [ ] **TypeScript definitions** — Full type coverage for browser API
+- [ ] **vite/webpack integration guide** — Bundler configuration examples
+- [ ] **Playground/sandbox** — Interactive demo site with preset code samples
+
+### v1.9.4 — Advanced Browser Features
+
+**Theme:** Power-user features and enterprise readiness.
+
+- [ ] **Local file drop** — Drag-and-drop local repo analysis (with caveats about .git availability)
+- [ ] **Diff mode** — Compare two GitHub refs in-browser
+- [ ] **Context packing** — `tokmd context` equivalent for LLM prompt assembly
+- [ ] **Offline support** — Service worker for offline capability
+- [ ] **Analytics/telemetry** — Optional usage telemetry (opt-in) to guide future development
+
+### Supported Browser-Safe Surface (v1.9.x)
+
+| Mode | Status | Notes |
+|------|--------|-------|
+| `lang` | ✅ | Full parity with native |
+| `module` | ✅ | Full parity with native |
+| `export` | ✅ | Full parity with native |
+| `analyze receipt` | ✅ | Core derived metrics only |
+| `analyze estimate` | ✅ | COCOMO effort estimation |
+| `analyze health` | 🚧 v1.9.2 | If content scanning lands |
+| `analyze supply` | 🚧 v1.9.2 | If asset detection lands |
+| `badge` | 🚧 v1.9.2 | Client-side SVG generation |
+| `diff` | 🚧 v1.9.4 | Cross-ref comparison |
+| `context` | 🚧 v1.9.4 | LLM context packing |
+
+### Capability Constraints (Documented)
+
+**Unavailable in browser (by design):**
+- Git history analysis (hotspot, churn, coupling) — requires `git log` subprocess
+- Filesystem walking — requires host filesystem access
+- Content scanning that touches disk — requires file reads outside memory
+- Mutation testing, heavy analysis — performance constraints
+
+**Rootless constraints:**
+- All inputs must be provided in-memory or via HTTP fetch
+- No shelling out to external tools
+- Deterministic timestamps (0) instead of system time on bare WASM
+
+### Non-Goals for v1.9.x
+
+- No browser-side git-history metrics (keep as explicit capability miss)
+- No zipball ingestion as primary path (tree+contents is supported)
+- No mutation testing or heavy tooling in-browser
+- No full AST analysis (waits for v3.x Tree-sitter integration)
+
+[190 more lines in file. Use offset=510 to continue.]
+
+## v1.10.x — Code Quality Initiative: Unwrap Burn-down
+
+**Why:** Reliability and delegated trust. Panic-free operation is essential for autonomous development workflows — whether tokmd's own 30+ background agents or external consumers delegating software development.
+
+### v1.10.0 — Unwrap Burn-down Sprint 1
+
+_Goal: Eliminate all `.unwrap()` calls from core libraries (Tier 0-1), achieving panic-free foundation._
+
+**Current state:** 19,462 unwrap() calls (concentrated in tests, CLI, and some library code)  
+**Target state:** Zero unwrap() calls in Tier 0-1 — every fallible operation returns `Result`
+
+**Scope (Tier 0-1 crates):**
+- [ ] `tokmd-types` — Contract types, zero panics
+- [ ] `tokmd-analysis-types` — Analysis contract types
+- [ ] `tokmd-settings` — Settings types
+- [ ] `tokmd-scan` — Core scanning logic
+- [ ] `tokmd-model` — Aggregation logic
+- [ ] `tokmd-math` — Deterministic math helpers
+- [ ] `tokmd-path` — Path normalization
+- [ ] `tokmd-module-key` — Module key derivation
+- [ ] `tokmd-exclude` — Exclude pattern handling
+- [ ] `tokmd-redact` — BLAKE3 redaction
+- [ ] `tokmd-scan-args` — Scan arguments
+- [ ] `tokmd-tokeignore` — Ignore template generation
+- [ ] `tokmd-sensor` — Sensor trait and builder
+
+**Mechanics:**
+- Enforce via CI lint: `#![deny(clippy::unwrap_used)]` per crate (opt-in, tier-by-tier)
+- Use `anyhow::Context` for error enrichment: `.context("failed to parse config")?`
+- Prefer `expect()` over `unwrap()` during transition, with descriptive "why this shouldn't fail" messages
+- Track progress with `cargo grep unwrap | wc -l` in CI metrics
+
+**Rationale:**
+- Deterministic error handling aligns with tokmd's "receipt-grade" philosophy
+- Panic-free libraries enable panic-free downstream consumers (WASM, FFI, Python/Node)
+- Foundation must be solid before higher-tier cleanup
+
+### v1.10.1 — Unwrap Burn-down Sprint 2
+
+_Goal: Clean up Tier 2-3 crates (adapters and orchestration)._
+
+**Scope:**
+- [ ] `tokmd-analysis-*` crates — All 20+ analysis enrichers
+- [ ] `tokmd-format` — Output formatting
+- [ ] `tokmd-walk` — Filesystem traversal
+- [ ] `tokmd-content` — Content scanning
+- [ ] `tokmd-git` — Git history analysis
+- [ ] `tokmd-cockpit` — PR review metrics
+- [ ] `tokmd-gate` — Policy evaluation
+
+### v1.10.2 — Unwrap Burn-down Sprint 3
+
+_Goal: Clean up Tier 4-5 (facades and products) and test code._
+
+**Scope:**
+- [ ] `tokmd-core` — Library facade
+- [ ] `tokmd-config` — Configuration loading
+- [ ] `tokmd` — CLI binary (can use `.expect()` for truly unrecoverable)
+- [ ] `tokmd-python` — Python bindings
+- [ ] `tokmd-node` — Node.js bindings
+- [ ] `tokmd-wasm` — WASM bindings
+- [ ] **Test code** — Replace all `unwrap()` with `?` propagation; tests return `Result<(), Box<dyn std::error::Error>>`
+- [ ] **Benchmarks and fuzz targets** — Audit for panic paths
+
+---
+
+## v1.11.x — Dead Code Elimination
+
+**Why:** Agent maintainability. Clean boundaries and reduced cognitive load enable autonomous agents to navigate the codebase and generate correct changes reliably.
+
+### v1.11.0 — Dead Code Elimination Sprint
+
+**Goal:** Remove unused code, dependencies, and exports across the workspace.
+
+**Scope:**
+- [ ] **cargo-udeps sweep** — Identify unused crate dependencies in all 61 crates
+- [ ] **pub-visibility audit** — Mark truly internal items as `pub(crate)` instead of `pub`
+- [ ] **unused-feature flags** — Remove features with zero consumers
+- [ ] **dead code in tests** — Remove test helpers copied between crates, consolidate to `tokmd-test-helpers`
+- [ ] **script cleanup** — Audit and archive one-off Python/Shell scripts in repo root
+
+**Mechanics:**
+- Run `cargo udeps` in CI (nightly) with fail-on-warning for new deps
+- Use `cargo-public-api` to track API surface changes
+- Before/after binary size comparison for CLI and WASM
+
+**Rationale:**
+- Smaller binaries (WASM bundle size matters for browser)
+- Faster compile times (less code to check)
+- Clearer API boundaries (only exported what is used)
+
+---
+
+## v1.12.x — Dependency Audit and Pruning
+
+**Why:** Supply chain integrity. Predictable, auditable dependencies are essential for secure autonomous workflows.
+
+### v1.12.0 — Dependency Audit Sprint
+
+**Goal:** Audit dependency tree for risk, duplication, and freshness.
+
+**Scope:**
+- [ ] **cargo-deny audit** — License compliance, security advisories, banned crates
+- [ ] **duplicate dependency cleanup** — Use `cargo tree -d` to find and consolidate duplicates
+- [ ] **version bump sweep** — Update deps that are >1 year old
+- [ ] **feature unification** — Ensure same crate version used across workspace (via workspace deps)
+- [ ] **vendor policy review** — Document why each vendored crate exists (e.g., `home` fork)
+
+**Mechanics:**
+- `cargo deny check` in CI (already present, ensure strict mode)
+- Weekly `cargo update` PRs with automated testing
+- Dependency decision log in `docs/dependencies.md`
+
+**Rationale:**
+- Security posture (fast response to RUSTSEC advisories)
+- Build reproducibility (lockfile hygiene)
+- Supply chain risk (understand every dependency)
+
+---
+
+## v1.13.x — Documentation Completeness
+
+**Why:** Context and grounding. Comprehensive documentation serves as the contract between humans and agents, enabling reliable autonomous operation.
+
+### v1.13.0 — Documentation Sprint
+
+**Goal:** Every public API has rustdoc, every module has module-level docs.
+
+**Scope:**
+- [ ] **rustdoc coverage** — `#[deny(missing_docs)]` on all Tier 0-3 crates
+- [ ] **module-level documentation** — Every `lib.rs` explains the crate's purpose and boundaries
+- [ ] **README freshness** — All 61 crates have current README with usage example
+- [ ] **doc-link checking** — `cargo doc` with no broken intra-doc links
+- [ ] **tutorial refresh** — `docs/tutorial.md` tested against latest CLI
+- [ ] **recipes expansion** — Add 5+ new practical recipes to `docs/recipes.md`
+
+**Mechanics:**
+- CI job: `cargo doc --no-deps` with warnings-as-errors
+- doctest execution: `cargo test --doc` passes for all crates
+- "Documentation debt" metric: count of `// TODO: document this`
+
+**Rationale:**
+- Onboarding friction (new contributors need good docs)
+- API discoverability (rustdoc is the contract)
+- Long-term maintenance (docs explain *why*, not just *what*)
+
+---
+
+## v1.14.x — Test Coverage Gap Closure
+
+**Why:** Verification infrastructure. High coverage with property tests provides the confidence necessary for autonomous refactoring and development.
+
+### v1.14.0 — Test Coverage Sprint
+
+**Goal:** Identify and fill critical test gaps.
+
+**Scope:**
+- [ ] **coverage analysis** — Run `cargo llvm-cov` across workspace, identify <80% files
+- [ ] **error path testing** — Every `?` and `match` branch has test case
+- [ ] **property test expansion** — Add proptest to 10 more crates (currently 14)
+- [ ] **fuzz target addition** — 3 new fuzz targets (currently 3)
+- [ ] **mutation testing gate** — Ensure cargo-mutants survival rate >95%
+
+**Mechanics:**
+- Coverage reporting in CI (codecov or similar)
+- Mutation testing as merge gate (not just informational)
+- "Coverage delta" check on PRs (cannot drop coverage)
+
+**Rationale:**
+- Confidence in refactors (tests catch behavior changes)
+- Bug prevention (edge cases documented as test cases)
+- Release readiness (high coverage = lower risk)
+
+---
+
+## v1.15.x — Performance Hot-Path Optimization
+
+**Why:** Agent efficiency. Fast feedback loops and memory-bounded operations let autonomous systems iterate quickly and handle larger repositories.
+
+### v1.15.0 — Performance Sprint
+
+**Goal:** Profile and optimize critical paths identified in v1.9.x and v1.10.x work.
+
+**Scope:**
+- [ ] **benchmark baselines** — Establish `cargo bench` suite for key operations
+- [ ] **memory profiling** — Heap analysis for large repo scans (>10k files)
+- [ ] **allocation reduction** — Target allocations in `tokmd-format` and `tokmd-analysis`
+- [ ] **parallelization review** — Where can rayon or async improve throughput?
+- [ ] **WASM bundle optimization** — Size and runtime performance in browser
+
+**Mechanics:**
+- `criterion` benchmarks in CI with performance regression detection
+- Flamegraph generation for analysis workflows
+- Size budgets: WASM bundle must stay under 5MB (gzipped)
+
+**Rationale:**
+- User experience (fast feedback in CLI and browser)
+- Cost efficiency (less CPU time in CI)
+- Scalability (can handle larger repos without degradation)
+
+---
+
+## v1.16.x — Fundamental QA: Operational Hardening
+
+_Real-world sprints expose systemic issues. v1.16.x is fundamental quality assurance that changes how tokmd operates: reliability patterns, failure modes, and operational guarantees._
+
+### v1.16.0 — Panic-Free Architecture Validation
+
+**Goal:** Validate the panic-free guarantees from v1.10.x with systemic testing and hardening.
+
+**Scope:**
+- [ ] **Panic path enumeration** — Exhaustive audit of every `?` branch, ensure graceful degradation
+- [ ] **Error type taxonomy** — Structured error hierarchy: `TokmdError::Input`, `::Io`, `::Parse`, `::Limit`
+- [ ] **Error context enrichment** — Every error carries source location, input sample, suggested fix
+- [ ] **Recovery patterns** — Partial success modes (e.g., scan 95% of files despite 1 permission error)
+- [ ] **WASM error propagation** — JS boundary errors with structured JSON, not opaque strings
+
+**Changes How Things Work:**
+- Before: "Operation failed" opaque errors
+- After: Structured, actionable, recoverable error flows
+- Before: All-or-nothing operations
+- After: Partial success with detailed reporting
+
+### v1.16.1 — Determinism Verification
+
+**Goal:** Harden the deterministic guarantees that are tokmd's core contract.
+
+**Scope:**
+- [ ] **Determinism regression suite** — Byte-identical outputs across platforms (Linux/macOS/Windows)
+- [ ] **Ordering verification** — BTreeMap/BTreeSet usage audited, no HashMap in receipt paths
+- [ ] **Timestamp stability** — Explicit test for WASM deterministic timestamps (0 vs. system time)
+- [ ] **Path normalization** — Cross-platform path handling produces identical receipts
+- [ ] **Git integration determinism** — Same commit produces identical analysis across machines
+
+**Changes How Things Work:**
+- Before: Assumed determinism, tested ad-hoc
+- After: Verified, measured, contractual determinism
+- Before: Platform differences acceptable
+- After: Byte-identical receipts are the standard
+
+### v1.16.2 — Reliability Engineering
+
+**Goal:** Build operational reliability for production CI/CD usage.
+
+**Scope:**
+- [ ] **Retry logic** — Transient failures (network, git, IO) with exponential backoff
+- [ ] **Circuit breakers** — Graceful degradation when git remote is unavailable
+- [ ] **Resource limits** — Memory caps, file handle limits, timeout enforcement
+- [ ] **Progress guarantees** — Never hang silently, always report progress or timeout
+- [ ] **Telemetry hooks** — Structured logging for operational monitoring (optional, off by default)
+
+**Changes How Things Work:**
+- Before: Best-effort, fail fast
+- After: Resilient, observable, bounded
+- Before: CI failures require human investigation
+- After: Self-healing or self-reporting with clear diagnostics
+
+---
+
+## v1.17.x — BDD Coverage Initiative
+
+### v1.17.0 — BDD Scenario Foundation
+
+**Goal:** Establish comprehensive behavior-driven development test coverage across all analysis crates.
+
+**Why:** Reliable agent operation. BDD specs serve as the contract that enables both tokmd's internal agents and external consumers to verify behavior autonomously.
+
+**Scope:******
+- [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
+- [ ] **scenario completeness** — All public workflows covered: scan → model → analyze → format
+- [ ] **Gherkin-style specs** — Convert ad-hoc tests to Given/When/Then format where readable
+- [ ] **integration BDD** — Cross-crate scenario tests (e.g., scan output feeds analysis correctly)
+- [ ] **error scenario BDD** — Malformed inputs, missing files, permission errors have scenarios
+- [ ] **WASM parity BDD** — Browser-safe workflows have identical behavior tests to native
+
+**Mechanics:**
+- `cucumber` or custom BDD framework integration
+- Scenario discovery: run `tokmd` commands, capture scenarios that aren't tested
+- CI job: "BDD coverage report" — scenarios defined vs. scenarios implemented
+- Link BDD scenarios to user-facing documentation (recipes should have corresponding tests)
+
+**Rationale:**
+- Spec-as-test: BDD scenarios are living documentation of expected behavior
+- Regression safety: Behavior changes require explicit scenario updates
+- Agent collaboration: BDD specs enable background agents to verify behavior without human review
+- Onboarding: New contributors understand behavior by reading scenarios
+
+**Current State:**
+- Multiple `tokmd-analysis-*` crates have `tests/bdd.rs` with varying coverage
+- Goal: Uniform high-coverage BDD across all 20+ analysis crates
+- Stretch: BDD scenarios drive tutorial and recipe documentation
+
+---
 
 ## Future Horizons
 
@@ -565,6 +926,15 @@ _Goal: Extensible enrichers without core changes._
 - Plugin discovery from `~/.tokmd/plugins/`
 - Schema for plugin metadata and capabilities
 
+#### E. Analysis Engine Performance
+
+_Goal: Reduce analysis latency and I/O overhead for large repositories._
+
+- **Enricher parallelization** — Execute independent enrichers concurrently (complexity, imports, content scanning can run in parallel)
+- **Inter-enricher file content caching** — Cache file contents in memory during analysis pass to eliminate redundant reads across enrichers
+- Streaming JSONL output for memory-bounded processing
+- Progress reporting via stderr for long-running analysis
+
 ### v2.1 — Intelligence Features
 
 #### E. Smart Suggestions
@@ -623,13 +993,29 @@ _Goal: Historical tracking and team insights._
 
 _Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap._
 
-#### K. Tree-sitter AST Parsing
+#### K. AST Foundation
 
 - `tokmd-treesitter` crate with multi-language AST parsing
-- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
+- Language support: Rust, TypeScript, Python, Go, C, C++, Java, C#
+- Basic AST traversal and node extraction
 - Accurate function boundary detection
-- Nested scope analysis for cognitive complexity
-- Call graph extraction for coupling analysis
+
+### v3.1 — AST-Aware Metrics
+
+_Goal: Leverage AST for precise metric calculation._
+
+- **Cyclomatic complexity** — Control-flow analysis instead of keyword counting
+- **Cognitive complexity** — Nested scope analysis using actual scopes
+- **Import resolution** — Precise parsing vs. regex-based
+- **Function-level detail** — Accurate boundaries for all supported languages
+
+### v3.2 — Advanced AST Features
+
+_Goal: Rich code intelligence from AST._
+
+- **Call graph extraction** — Cross-function dependency analysis
+- **Data flow analysis** — Basic taint tracking for security analysis
+- **Refactoring detection** — Identify extracted methods, renamed variables across commits
 
 ---
 
@@ -641,7 +1027,7 @@ These are explicitly out of scope for tokmd:
 - **Dependency vulnerability scanning** — tokmd delegates to external tools (cargo-audit, npm audit) when available; it does not maintain its own advisory database
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
-- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.0 aspiration)
+- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.x aspiration)
 
 ---
 
