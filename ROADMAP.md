@@ -750,6 +750,35 @@ Each sprint targets a specific quality dimension with measurable outcomes.
 - Cost efficiency (less CPU time in CI)
 - Scalability (can handle larger repos without degradation)
 
+### v1.11.5 — BDD Coverage Sprint
+
+**Goal:** Expand behavior-driven development test coverage across all analysis crates.
+
+**Scope:**
+- [ ] **BDD scenario audit** — Every `tokmd-analysis-*` crate has comprehensive `tests/bdd.rs`
+- [ ] **scenario completeness** — All public workflows covered: scan → model → analyze → format
+- [ ] **Gherkin-style specs** — Convert ad-hoc tests to Given/When/Then format where readable
+- [ ] **integration BDD** — Cross-crate scenario tests (e.g., scan output feeds analysis correctly)
+- [ ] **error scenario BDD** — Malformed inputs, missing files, permission errors have scenarios
+- [ ] **WASM parity BDD** — Browser-safe workflows have identical behavior tests to native
+
+**Mechanics:**
+- `cucumber` or custom BDD framework integration
+- Scenario discovery: run `tokmd` commands, capture scenarios that aren't tested
+- CI job: "BDD coverage report" — scenarios defined vs. scenarios implemented
+- Link BDD scenarios to user-facing documentation (recipes should have corresponding tests)
+
+**Rationale:**
+- Spec-as-test: BDD scenarios are living documentation of expected behavior
+- Regression safety: Behavior changes require explicit scenario updates
+- Agent collaboration: BDD specs enable background agents to verify behavior without human review
+- Onboarding: New contributors understand behavior by reading scenarios
+
+**Current State:**
+- Multiple `tokmd-analysis-*` crates have `tests/bdd.rs` with varying coverage
+- Goal: Uniform high-coverage BDD across all 20+ analysis crates
+- Stretch: BDD scenarios drive tutorial and recipe documentation
+
 ---
 
 ## Future Horizons
