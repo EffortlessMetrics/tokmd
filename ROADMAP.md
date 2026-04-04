@@ -570,25 +570,33 @@ UX work is explicitly **incremental and non-breaking**:
 - No browser-side git-history metrics (keep as explicit capability miss)
 - No zipball ingestion as primary path (tree+contents is supported)
 - No mutation testing or heavy tooling in-browser
-- No full AST analysis (waits for v3.0 Tree-sitter integration)
+- No full AST analysis (waits for v3.x Tree-sitter integration)
 
 [190 more lines in file. Use offset=510 to continue.]
 
-## Between v1.9 and v2.0 — Code Quality Initiative
+## v1.10.x — Code Quality Initiative: Unwrap Burn-down
 
-### Unwrap Burn-down: Zero Panic Goal
+### v1.10.0 — Unwrap Burn-down Sprint 1
 
-_Goal: Eliminate all `.unwrap()` calls from the entire codebase, including tests, achieving true zero panic paths._
+_Goal: Eliminate all `.unwrap()` calls from core libraries (Tier 0-1), achieving panic-free foundation._
 
 **Current state:** 19,462 unwrap() calls (concentrated in tests, CLI, and some library code)  
-**Target state:** Zero unwrap() calls — every fallible operation returns `Result` with proper error propagation
+**Target state:** Zero unwrap() calls in Tier 0-1 — every fallible operation returns `Result`
 
-**Scope:**
-- [ ] **Tier 0-1 crates (core libraries)** — Eliminate unwrap from `tokmd-types`, `tokmd-scan`, `tokmd-model`, `tokmd-math`, `tokmd-path` — these must be panic-free
-- [ ] **Tier 2-3 crates (adapters/orchestration)** — Convert unwrap to proper error handling in `tokmd-analysis-*`, `tokmd-format`, `tokmd-walk`
-- [ ] **Tier 4-5 (facades/products)** — CLI and bindings can use `.expect()` with descriptive messages where truly unrecoverable
-- [ ] **Test code** — Replace all `unwrap()` with `?` propagation; tests should return `Result<(), Box<dyn std::error::Error>>`
-- [ ] **Benchmarks and fuzz targets** — Audit for panic paths
+**Scope (Tier 0-1 crates):**
+- [ ] `tokmd-types` — Contract types, zero panics
+- [ ] `tokmd-analysis-types` — Analysis contract types
+- [ ] `tokmd-settings` — Settings types
+- [ ] `tokmd-scan` — Core scanning logic
+- [ ] `tokmd-model` — Aggregation logic
+- [ ] `tokmd-math` — Deterministic math helpers
+- [ ] `tokmd-path` — Path normalization
+- [ ] `tokmd-module-key` — Module key derivation
+- [ ] `tokmd-exclude` — Exclude pattern handling
+- [ ] `tokmd-redact` — BLAKE3 redaction
+- [ ] `tokmd-scan-args` — Scan arguments
+- [ ] `tokmd-tokeignore` — Ignore template generation
+- [ ] `tokmd-sensor` — Sensor trait and builder
 
 **Mechanics:**
 - Enforce via CI lint: `#![deny(clippy::unwrap_used)]` per crate (opt-in, tier-by-tier)
@@ -599,7 +607,47 @@ _Goal: Eliminate all `.unwrap()` calls from the entire codebase, including tests
 **Rationale:**
 - Deterministic error handling aligns with tokmd's "receipt-grade" philosophy
 - Panic-free libraries enable panic-free downstream consumers (WASM, FFI, Python/Node)
-- Tests that propagate errors are clearer about what failed
+- Foundation must be solid before higher-tier cleanup
+
+### v1.10.1 — Unwrap Burn-down Sprint 2
+
+_Goal: Clean up Tier 2-3 crates (adapters and orchestration)._
+
+**Scope:**
+- [ ] `tokmd-analysis-*` crates — All 20+ analysis enrichers
+- [ ] `tokmd-format` — Output formatting
+- [ ] `tokmd-walk` — Filesystem traversal
+- [ ] `tokmd-content` — Content scanning
+- [ ] `tokmd-git` — Git history analysis
+- [ ] `tokmd-cockpit` — PR review metrics
+- [ ] `tokmd-gate` — Policy evaluation
+
+### v1.10.2 — Unwrap Burn-down Sprint 3
+
+_Goal: Clean up Tier 4-5 (facades and products) and test code._
+
+**Scope:**
+- [ ] `tokmd-core` — Library facade
+- [ ] `tokmd-config` — Configuration loading
+- [ ] `tokmd` — CLI binary (can use `.expect()` for truly unrecoverable)
+- [ ] `tokmd-python` — Python bindings
+- [ ] `tokmd-node` — Node.js bindings
+- [ ] `tokmd-wasm` — WASM bindings
+- [ ] **Test code** — Replace all `unwrap()` with `?` propagation; tests return `Result<(), Box<dyn std::error::Error>>`
+- [ ] **Benchmarks and fuzz targets** — Audit for panic paths
+
+---
+
+## v1.11.x — Code Quality Sprints (Ongoing)
+
+_Following the unwrap burn-down, additional code quality initiatives will be staged in 1.11.x and beyond._
+
+Examples (not yet scoped):
+- Dead code elimination
+- Dependency audit and pruning
+- Documentation completeness pass
+- Test coverage gap closure
+- Performance hot-path optimization
 
 ---
 
@@ -728,15 +776,29 @@ _Goal: Historical tracking and team insights._
 
 _Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap._
 
-#### K. Tree-sitter AST Parsing
+#### K. AST Foundation
 
 - `tokmd-treesitter` crate with multi-language AST parsing
-- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
-- **AST-aware complexity metrics** — Replace keyword-based heuristics with actual control-flow analysis for cyclomatic/cognitive complexity
+- Language support: Rust, TypeScript, Python, Go, C, C++, Java, C#
+- Basic AST traversal and node extraction
 - Accurate function boundary detection
-- Nested scope analysis for cognitive complexity
-- Call graph extraction for coupling analysis
-- Precise import resolution (vs. regex-based parsing)
+
+### v3.1 — AST-Aware Metrics
+
+_Goal: Leverage AST for precise metric calculation._
+
+- **Cyclomatic complexity** — Control-flow analysis instead of keyword counting
+- **Cognitive complexity** — Nested scope analysis using actual scopes
+- **Import resolution** — Precise parsing vs. regex-based
+- **Function-level detail** — Accurate boundaries for all supported languages
+
+### v3.2 — Advanced AST Features
+
+_Goal: Rich code intelligence from AST._
+
+- **Call graph extraction** — Cross-function dependency analysis
+- **Data flow analysis** — Basic taint tracking for security analysis
+- **Refactoring detection** — Identify extracted methods, renamed variables across commits
 
 ---
 
@@ -748,7 +810,7 @@ These are explicitly out of scope for tokmd:
 - **Dependency vulnerability scanning** — tokmd delegates to external tools (cargo-audit, npm audit) when available; it does not maintain its own advisory database
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
-- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.0 aspiration)
+- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.x aspiration)
 
 ---
 
