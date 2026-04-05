@@ -6,15 +6,14 @@ Make review boring. Make truth cheap.
 ## 💡 Summary
 1–4 sentences. What changed.
 
-## 🎯 Why (perf bottleneck)
-What was wasteful and where it showed up (runtime/allocations/CPU/IO/compile time).
+## 🎯 Why / Threat model
+High level impact. No exploit steps.
 
-## 📊 Proof (before/after)
-Prefer one:
-- benchmark output (cargo bench / criterion / existing harness)
-- runtime timing using repo-provided fixtures/examples
-- structural proof (work eliminated) + why it matters
-If unmeasured, say so and explain why.
+## 🔎 Finding (evidence)
+Minimal proof:
+- file path(s)
+- observed behavior
+- test/command demonstrating it
 
 ## 🧭 Options considered
 ### Option A (recommended)
@@ -38,7 +37,7 @@ Copy from the run envelope. Commands + results.
 
 ## 🧭 Telemetry
 - Change shape
-- Blast radius (API / IO / format stability / concurrency)
+- Blast radius (API / IO / config / schema / concurrency)
 - Risk class + why
 - Rollback
 - Merge-confidence gates (what ran)

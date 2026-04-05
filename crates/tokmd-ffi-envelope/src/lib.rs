@@ -40,7 +40,7 @@ impl std::error::Error for EnvelopeExtractError {}
 /// ```
 /// use tokmd_ffi_envelope::parse_envelope;
 ///
-/// let val = parse_envelope(r#"{"ok": true, "data": 42}"#).unwrap();
+/// let val = parse_envelope(r#"{"ok": true, "data": 42}"#).expect("valid JSON envelope should parse");
 /// assert_eq!(val["ok"], true);
 /// assert_eq!(val["data"], 42);
 ///
@@ -102,7 +102,7 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
 /// use serde_json::json;
 ///
 /// let envelope = json!({"ok": true, "data": {"count": 5}});
-/// let data = extract_data(envelope).unwrap();
+/// let data = extract_data(envelope).expect("valid OK envelope should extract data");
 /// assert_eq!(data["count"], 5);
 ///
 /// // An error envelope returns Err
@@ -135,7 +135,7 @@ pub fn extract_data(envelope: Value) -> Result<Value, EnvelopeExtractError> {
 /// use tokmd_ffi_envelope::extract_data_from_json;
 ///
 /// let json_str = r#"{"ok": true, "data": {"mode": "lang"}}"#;
-/// let data = extract_data_from_json(json_str).unwrap();
+/// let data = extract_data_from_json(json_str).expect("valid JSON should extract successfully");
 /// assert_eq!(data["mode"], "lang");
 /// ```
 pub fn extract_data_from_json(result_json: &str) -> Result<Value, EnvelopeExtractError> {
@@ -151,8 +151,8 @@ pub fn extract_data_from_json(result_json: &str) -> Result<Value, EnvelopeExtrac
 /// use tokmd_ffi_envelope::extract_data_json;
 ///
 /// let input = r#"{"ok": true, "data": {"v": 1}}"#;
-/// let json_out = extract_data_json(input).unwrap();
-/// let parsed: serde_json::Value = serde_json::from_str(&json_out).unwrap();
+/// let json_out = extract_data_json(input).expect("valid JSON should extract successfully");
+/// let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("serialized JSON should parse");
 /// assert_eq!(parsed["v"], 1);
 /// ```
 pub fn extract_data_json(result_json: &str) -> Result<String, EnvelopeExtractError> {
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn parse_envelope_invalid_json_errors() {
-        let err = parse_envelope("{").unwrap_err();
+        let err = parse_envelope("{").expect_err("invalid JSON should fail to parse");
         assert!(matches!(err, EnvelopeExtractError::JsonParse(_)));
         assert!(err.to_string().contains("JSON parse error"));
     }
@@ -178,7 +178,7 @@ mod tests {
             "ok": true,
             "data": { "mode": "version" }
         });
-        let data = extract_data(envelope).unwrap();
+        let data = extract_data(envelope).expect("valid envelope should extract data");
         assert_eq!(data["mode"], "version");
     }
 
@@ -188,7 +188,7 @@ mod tests {
             "ok": true,
             "mode": "version"
         });
-        let data = extract_data(envelope.clone()).unwrap();
+        let data = extract_data(envelope.clone()).expect("valid envelope without data should return itself");
         assert_eq!(data, envelope);
     }
 
@@ -198,7 +198,7 @@ mod tests {
             "ok": false,
             "error": { "code": "unknown_mode", "message": "Unknown mode: nope" }
         });
-        let err = extract_data(envelope).unwrap_err();
+        let err = extract_data(envelope).expect_err("error envelope should fail to extract data");
         assert_eq!(
             err,
             EnvelopeExtractError::Upstream("[unknown_mode] Unknown mode: nope".to_string())
@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn extract_data_non_object_is_invalid_format() {
-        let err = extract_data(json!(["not", "an", "envelope"])).unwrap_err();
+        let err = extract_data(json!(["not", "an", "envelope"])).expect_err("non-object JSON should fail to extract data");
         assert_eq!(err, EnvelopeExtractError::InvalidResponseFormat);
     }
 
@@ -228,8 +228,8 @@ mod tests {
             "ok": true,
             "data": { "a": 1, "b": true }
         });
-        let encoded = extract_data_json(&envelope.to_string()).unwrap();
-        let parsed: Value = serde_json::from_str(&encoded).unwrap();
+        let encoded = extract_data_json(&envelope.to_string()).expect("valid JSON should encode successfully");
+        let parsed: Value = serde_json::from_str(&encoded).expect("encoded JSON should parse");
         assert_eq!(parsed["a"], 1);
         assert_eq!(parsed["b"], true);
     }
