@@ -26,7 +26,7 @@ fn progress_finish_and_clear_disabled_is_noop() {
 fn progress_drop_does_not_panic() {
     let p = Progress::new(false);
     p.set_message("about to drop");
-    let _ = p;
+    drop(p);
 }
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ fn bar_finish_and_clear_disabled_is_noop() {
 fn bar_drop_does_not_panic() {
     let b = ProgressBarWithEta::new(false, 10, "drop-test");
     b.inc_by(3);
-    let _ = b;
+    drop(b);
 }
 
 #[test]

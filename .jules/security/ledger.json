@@ -67,18 +67,6 @@
     "friction_ids": []
   },
   {
-    "date": "2026-04-05T12:27:25Z",
-    "lane": "scout",
-    "target": "crates/tokmd-ffi-envelope/src/lib.rs",
-    "pr_link": "PENDING",
-    "gates": [
-      "test",
-      "clippy"
-    ],
-    "status": "PASS",
-    "friction_ids": []
-  },
-  {
     "run_id": "7d373e3b-4ab2-4182-8dc0-be2d829777f2",
     "date_time": "2026-04-02T12:48:12+00:00",
     "lane": "scout",

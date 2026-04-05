@@ -40,7 +40,7 @@ fn scenario_spinner_drop_cleans_up() {
     spinner.set_message("working");
 
     // When the spinner is dropped
-    let _ = spinner;
+    drop(spinner);
 
     // Then no panic occurs during cleanup
 }
@@ -52,7 +52,7 @@ fn scenario_spinner_finish_then_drop_is_safe() {
     spinner.finish_and_clear();
 
     // When it is also dropped
-    let _ = spinner;
+    drop(spinner);
 
     // Then double-finish does not panic
 }
@@ -199,7 +199,7 @@ fn scenario_bar_drop_without_finish() {
     bar.inc_by(10);
 
     // When it is dropped
-    let _ = bar;
+    drop(bar);
 
     // Then Drop impl cleans up without panic
 }
