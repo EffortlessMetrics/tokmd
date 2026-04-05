@@ -36,7 +36,7 @@ fn hermetic_dir() -> tempfile::TempDir {
 
 /// Write a minimal Rust source file.
 fn write_rs(dir: &std::path::Path, name: &str, body: &str) {
-    std::fs::write(dir.join(name), body).unwrap();
+    std::fs::write(dir.join(name), body).expect("failed to write rs file");
 }
 
 // ===========================================================================
@@ -72,8 +72,9 @@ fn given_multi_language_when_lang_json_then_all_languages_present() {
     // Given: files in multiple languages
     let dir = hermetic_dir();
     write_rs(dir.path(), "main.rs", "fn main() {}");
-    std::fs::write(dir.path().join("app.py"), "print('hello')").unwrap();
-    std::fs::write(dir.path().join("index.js"), "console.log('hi');").unwrap();
+    std::fs::write(dir.path().join("app.py"), "print('hello')").expect("failed to write app.py");
+    std::fs::write(dir.path().join("index.js"), "console.log('hi');")
+        .expect("failed to write index.js");
 
     // When: `tokmd lang --format json`
     let output = tokmd()
@@ -84,7 +85,8 @@ fn given_multi_language_when_lang_json_then_all_languages_present() {
 
     // Then: every language appears in the rows
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     let rows = json["rows"].as_array().expect("rows array");
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(langs.contains(&"Rust"), "should contain Rust: {langs:?}");
@@ -116,9 +118,12 @@ fn given_empty_dir_when_lang_then_empty_receipt() {
 
     // Then: valid JSON with zero or empty rows
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert!(json["rows"].is_array());
-    let rows = json["rows"].as_array().unwrap();
+    let rows = json["rows"]
+        .as_array()
+        .expect("expected rows to be an array");
     assert!(rows.is_empty(), "empty dir should produce empty rows");
 }
 
@@ -131,19 +136,19 @@ fn given_exclude_tests_when_lang_then_test_files_excluded() {
     // Given: a project with both lib and test files
     let dir = hermetic_dir();
     let src = dir.path().join("src");
-    std::fs::create_dir_all(&src).unwrap();
+    std::fs::create_dir_all(&src).expect("failed to create src dir");
     std::fs::write(
         src.join("lib.rs"),
         "pub fn add(a: i32, b: i32) -> i32 { a + b }",
     )
-    .unwrap();
+    .expect("failed to write lib.rs");
     let tests = dir.path().join("tests");
-    std::fs::create_dir_all(&tests).unwrap();
+    std::fs::create_dir_all(&tests).expect("failed to create tests dir");
     std::fs::write(
         tests.join("test_add.rs"),
         "fn test() { assert_eq!(2, 1+1); }",
     )
-    .unwrap();
+    .expect("failed to write test_add.rs");
 
     // When: `tokmd --exclude tests export --format json`
     let output = tokmd()
@@ -172,8 +177,8 @@ fn given_nested_modules_when_module_depth1_then_top_level_grouping() {
     let dir = hermetic_dir();
     let src = dir.path().join("src");
     let lib = dir.path().join("lib");
-    std::fs::create_dir_all(&src).unwrap();
-    std::fs::create_dir_all(&lib).unwrap();
+    std::fs::create_dir_all(&src).expect("failed to create src dir");
+    std::fs::create_dir_all(&lib).expect("failed to create lib dir");
     write_rs(&src, "main.rs", "fn main() { let x = 1; }");
     write_rs(&lib, "util.rs", "pub fn helper() { let y = 2; }");
     write_rs(dir.path(), "build.rs", "fn build() { let z = 3; }");
@@ -187,7 +192,8 @@ fn given_nested_modules_when_module_depth1_then_top_level_grouping() {
 
     // Then: modules are grouped at top level
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     let rows = json["rows"].as_array().expect("rows array");
     let modules: Vec<&str> = rows.iter().filter_map(|r| r["module"].as_str()).collect();
     assert!(
@@ -242,7 +248,7 @@ fn given_json_receipt_when_diff_then_changes_shown() {
     let dir = hermetic_dir();
     write_rs(dir.path(), "lib.rs", "fn one() {}");
 
-    let tmp = tempdir().unwrap();
+    let tmp = tempdir().expect("failed to create temp dir");
     let run1 = tmp.path().join("run1");
     let run2 = tmp.path().join("run2");
 
@@ -282,7 +288,8 @@ fn given_json_receipt_when_diff_then_changes_shown() {
 
     // Then: valid JSON diff receipt is produced
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert_eq!(json["mode"], "diff");
 }
 
@@ -295,7 +302,8 @@ fn given_exclude_flag_when_scan_then_exclusion_applied() {
     // Given: a project with Rust and Python files
     let dir = hermetic_dir();
     write_rs(dir.path(), "main.rs", "fn main() { let x = 1; }");
-    std::fs::write(dir.path().join("script.py"), "print('hello')").unwrap();
+    std::fs::write(dir.path().join("script.py"), "print('hello')")
+        .expect("failed to write script.py");
 
     // When: `tokmd --exclude *.py export --format json`
     let output = tokmd()
@@ -322,7 +330,8 @@ fn given_exclude_flag_when_scan_then_exclusion_applied() {
 fn given_unicode_filenames_when_scan_then_paths_normalized() {
     // Given: a file with a Unicode name
     let dir = hermetic_dir();
-    std::fs::write(dir.path().join("café.rs"), "fn greet() { let x = 1; }").unwrap();
+    std::fs::write(dir.path().join("café.rs"), "fn greet() { let x = 1; }")
+        .expect("failed to write cafe.rs");
 
     // When: `tokmd export --format json`
     let output = tokmd()
@@ -443,7 +452,8 @@ fn given_format_json_when_lang_then_has_schema_version() {
         .args(["lang", "--format", "json"])
         .output()
         .expect("run");
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert!(
         json["schema_version"].is_number(),
         "lang JSON should have schema_version"
@@ -512,10 +522,11 @@ fn given_same_input_when_run_twice_then_identical_output() {
             .output()
             .expect("run tokmd");
         assert!(output.status.success());
-        let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let json: Value =
+            serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
         // Strip volatile fields (generated_at_ms, tool version)
         let rows = &json["rows"];
-        serde_json::to_string(rows).unwrap()
+        serde_json::to_string(rows).expect("failed to serialize rows")
     };
 
     let first = run(1);
@@ -638,7 +649,8 @@ fn given_tools_openai_when_run_then_valid_function_schema() {
         .expect("run");
 
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert!(json.get("functions").is_some(), "should have functions key");
 }
 
@@ -665,7 +677,7 @@ fn given_version_flag_when_run_then_shows_semver() {
         .arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::is_match(r"\d+\.\d+\.\d+").unwrap());
+        .stdout(predicate::str::is_match(r"\d+\.\d+\.\d+").expect("failed to compile regex"));
 }
 
 // ===========================================================================
@@ -676,7 +688,7 @@ fn given_version_flag_when_run_then_shows_semver() {
 fn given_project_when_module_default_then_markdown_table() {
     let dir = hermetic_dir();
     let src = dir.path().join("src");
-    std::fs::create_dir_all(&src).unwrap();
+    std::fs::create_dir_all(&src).expect("failed to create src dir");
     write_rs(&src, "lib.rs", "pub fn f() { let x = 1; }");
 
     tokmd()
@@ -700,7 +712,8 @@ fn given_project_when_analyze_receipt_then_has_derived_metrics() {
         .expect("run");
 
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert!(json["derived"].is_object(), "should have derived metrics");
 }
 
@@ -719,8 +732,11 @@ fn given_exclude_wildcard_when_lang_json_then_language_absent() {
 
     // Then: Rust should not appear but other languages should remain
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
-    let rows = json["rows"].as_array().unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
+    let rows = json["rows"]
+        .as_array()
+        .expect("expected rows to be an array");
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(
         !langs.contains(&"Rust"),
@@ -749,7 +765,8 @@ fn given_project_when_export_json_then_has_rows_array() {
         .expect("run");
 
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     let rows = json["rows"].as_array().expect("rows should be array");
     assert!(!rows.is_empty(), "should have at least one file row");
     for row in rows {
@@ -769,7 +786,8 @@ fn given_lang_json_when_run_then_mode_is_lang() {
         .output()
         .expect("run");
 
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert_eq!(json["mode"], "lang");
 }
 
@@ -784,7 +802,8 @@ fn given_module_json_when_run_then_has_total() {
         .output()
         .expect("run");
 
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
     assert!(json["total"].is_object(), "should have total");
     assert!(
         json["total"]["code"].is_number(),
@@ -850,8 +869,11 @@ fn given_multiple_excludes_when_lang_then_all_patterns_applied() {
 
     // Then: neither Rust nor JavaScript should appear
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
-    let rows = json["rows"].as_array().unwrap();
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
+    let rows = json["rows"]
+        .as_array()
+        .expect("expected rows to be an array");
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(
         !langs.contains(&"Rust"),
