@@ -1,0 +1,793 @@
+bitflags v2.11.0
+└── globwalk v0.9.1
+    └── tera v1.20.1
+        [build-dependencies]
+        └── tokei v14.0.0
+            ├── tokmd-model v1.9.0 (/app/crates/tokmd-model)
+            │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+            │   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core)
+            │   │   [dev-dependencies]
+            │   │   └── tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+            │   └── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+            │   [dev-dependencies]
+            │   └── tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+            │       ├── tokmd v1.9.0 (/app/crates/tokmd)
+            │       ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+            │       └── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+            └── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+
+bitflags v2.11.0
+├── proptest v1.11.0
+│   [dev-dependencies]
+│   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   [dev-dependencies]
+│   │   └── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+│   │       └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │   [dev-dependencies]
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   ├── tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-grid v1.9.0 (/app/crates/tokmd-analysis-grid)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   ├── tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+│   │   └── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   ├── tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports)
+│   │   └── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   ├── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+│   │   └── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   ├── tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+│   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │   ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│   │   ├── tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype) (*)
+│   │   ├── tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets) (*)
+│   │   ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   │   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   │   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   │   ├── tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+│   │   │   └── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │   ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│   │   ├── tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint) (*)
+│   │   ├── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   │   ├── tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun) (*)
+│   │   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   │   ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   │   ├── tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html) (*)
+│   │   ├── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+│   │   ├── tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability) (*)
+│   │   ├── tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup) (*)
+│   │   ├── tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics) (*)
+│   │   ├── tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+│   │   │   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │   │   ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│   │   │   ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   │   │   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   │   │   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   │   │   ├── tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort) (*)
+│   │   │   ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│   │   │   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   │   │   ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   │   │   └── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+│   │   └── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+│   │       └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util) (*)
+│   ├── tokmd-badge v1.9.0 (/app/crates/tokmd-badge)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   ├── tokmd-config v1.9.0 (/app/crates/tokmd-config)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   │   └── tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+│   │       └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-content v1.9.0 (/app/crates/tokmd-content)
+│   │   ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│   │   ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   │   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   │   ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│   │   ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   │   └── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+│   ├── tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   ├── tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   ├── tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types) (*)
+│   │   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   │   └── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   ├── tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   └── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   ├── tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+│   ├── tokmd-format v1.9.0 (/app/crates/tokmd-format)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   └── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   │   [dev-dependencies]
+│   │   └── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   ├── tokmd-fun v1.9.0 (/app/crates/tokmd-fun)
+│   │   └── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   ├── tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-git v1.9.0 (/app/crates/tokmd-git)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │   ├── tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort) (*)
+│   │   ├── tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint) (*)
+│   │   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   │   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   │   └── tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git) (*)
+│   ├── tokmd-math v1.9.0 (/app/crates/tokmd-math)
+│   │   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   │   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   │   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   │   └── tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util) (*)
+│   ├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│   ├── tokmd-module-key v1.9.0 (/app/crates/tokmd-module-key)
+│   │   └── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│   │   [dev-dependencies]
+│   │   └── tokmd-types v1.9.0 (/app/crates/tokmd-types)
+│   │       ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │       ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   │       ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│   │       ├── tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype) (*)
+│   │       ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   │       ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   │       ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   │       ├── tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort) (*)
+│   │       ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│   │       ├── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   │       ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   │       ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   │       ├── tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup) (*)
+│   │       ├── tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics) (*)
+│   │       ├── tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types) (*)
+│   │       ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   │       ├── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│   │       ├── tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git) (*)
+│   │       ├── tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy) (*)
+│   │       ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   │       ├── tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree) (*)
+│   │       ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   │       ├── tokmd-git v1.9.0 (/app/crates/tokmd-git) (*)
+│   │       ├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│   │       ├── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+│   │       ├── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+│   │       │   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   │       │   └── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   │       ├── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   │       └── tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+│   │           ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │           ├── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│   │           ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   │           ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   │           ├── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+│   │           ├── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args) (*)
+│   │           └── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   │           [dev-dependencies]
+│   │           └── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│   │       [dev-dependencies]
+│   │       └── tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html) (*)
+│   ├── tokmd-path v1.9.0 (/app/crates/tokmd-path)
+│   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   │   ├── tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git) (*)
+│   │   ├── tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy) (*)
+│   │   ├── tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude) (*)
+│   │   └── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args) (*)
+│   │   [dev-dependencies]
+│   │   └── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+│   ├── tokmd-progress v1.9.0 (/app/crates/tokmd-progress)
+│   │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
+│   │   ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   │   └── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args) (*)
+│   │   [dev-dependencies]
+│   │   └── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+│   ├── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+│   ├── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args) (*)
+│   ├── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   ├── tokmd-settings v1.9.0 (/app/crates/tokmd-settings) (*)
+│   ├── tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+│   │   └── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   ├── tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore) (*)
+│   ├── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+│   └── tokmd-walk v1.9.0 (/app/crates/tokmd-walk)
+│       ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│       ├── tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets) (*)
+│       └── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+├── rustix v1.1.4
+│   └── tempfile v3.27.0
+│       ├── dialoguer v0.12.0
+│       │   └── tokmd v1.9.0 (/app/crates/tokmd)
+│       ├── insta v1.47.0
+│       │   [dev-dependencies]
+│       │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│       │   ├── tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain) (*)
+│       │   ├── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│       │   ├── tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun) (*)
+│       │   ├── tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html) (*)
+│       │   ├── tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports) (*)
+│       │   ├── tokmd-badge v1.9.0 (/app/crates/tokmd-badge) (*)
+│       │   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│       │   ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│       │   ├── tokmd-fun v1.9.0 (/app/crates/tokmd-fun) (*)
+│       │   ├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│       │   ├── tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore) (*)
+│       │   ├── tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+│       │   │   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│       │   │   └── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│       │   └── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+│       ├── proptest v1.11.0 (*)
+│       ├── rusty-fork v0.3.1
+│       │   └── proptest v1.11.0 (*)
+│       ├── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+│       └── uselesskey-core-sink v0.5.1
+│           └── uselesskey-core v0.5.1
+│               ├── uselesskey v0.5.1
+│               │   [dev-dependencies]
+│               │   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│               │   └── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│               ├── uselesskey-core-keypair-material v0.5.1
+│               │   └── uselesskey-rsa v0.5.1
+│               │       └── uselesskey v0.5.1 (*)
+│               └── uselesskey-rsa v0.5.1 (*)
+│       [dev-dependencies]
+│       ├── tokmd v1.9.0 (/app/crates/tokmd)
+│       ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│       ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│       ├── tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets) (*)
+│       ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│       ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│       ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│       ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│       ├── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+│       ├── tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup) (*)
+│       ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│       ├── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│       ├── tokmd-content v1.9.0 (/app/crates/tokmd-content) (*)
+│       ├── tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git) (*)
+│       ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│       ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│       ├── tokmd-gate v1.9.0 (/app/crates/tokmd-gate) (*)
+│       ├── tokmd-git v1.9.0 (/app/crates/tokmd-git) (*)
+│       ├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│       ├── tokmd-scan v1.9.0 (/app/crates/tokmd-scan) (*)
+│       ├── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│       ├── tokmd-settings v1.9.0 (/app/crates/tokmd-settings) (*)
+│       ├── tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore) (*)
+│       └── tokmd-walk v1.9.0 (/app/crates/tokmd-walk) (*)
+└── tower-http v0.6.8
+    └── reqwest v0.13.2
+        └── jsonschema v0.45.0
+            [dev-dependencies]
+            └── tokmd v1.9.0 (/app/crates/tokmd)
+
+block-buffer v0.10.4
+└── digest v0.10.7
+    └── sha2 v0.10.9
+        [build-dependencies]
+        └── pest_meta v2.8.6
+            └── pest_generator v2.8.6
+                └── pest_derive v2.8.6 (proc-macro)
+                    ├── json5 v0.4.1
+                    │   [build-dependencies]
+                    │   └── tokei v14.0.0 (*)
+                    └── tera v1.20.1 (*)
+
+block-buffer v0.12.0
+└── digest v0.11.2
+    ├── rsa v0.10.0-rc.17
+    │   └── uselesskey-rsa v0.5.1 (*)
+    ├── sha2 v0.11.0
+    │   └── rsa v0.10.0-rc.17 (*)
+    └── signature v3.0.0-rc.10
+        └── rsa v0.10.0-rc.17 (*)
+
+const-oid v0.9.6
+├── der v0.7.10
+│   ├── pkcs1 v0.7.5
+│   │   └── rsa v0.9.10
+│   │       └── uselesskey-rsa v0.5.1 (*)
+│   ├── pkcs8 v0.10.2
+│   │   ├── pkcs1 v0.7.5 (*)
+│   │   └── rsa v0.9.10 (*)
+│   └── spki v0.7.3
+│       ├── pkcs1 v0.7.5 (*)
+│       ├── pkcs8 v0.10.2 (*)
+│       └── rsa v0.9.10 (*)
+├── digest v0.10.7
+│   ├── rsa v0.9.10 (*)
+│   └── signature v2.2.0
+│       └── rsa v0.9.10 (*)
+└── rsa v0.9.10 (*)
+
+const-oid v0.10.2
+├── der v0.8.0
+│   ├── pkcs1 v0.8.0-rc.4
+│   │   └── rsa v0.10.0-rc.17 (*)
+│   ├── pkcs8 v0.11.0-rc.11
+│   │   └── rsa v0.10.0-rc.17 (*)
+│   └── spki v0.8.0-rc.4
+│       ├── pkcs1 v0.8.0-rc.4 (*)
+│       ├── pkcs8 v0.11.0-rc.11 (*)
+│       └── rsa v0.10.0-rc.17 (*)
+├── digest v0.11.2 (*)
+└── rsa v0.10.0-rc.17 (*)
+
+cpufeatures v0.2.17
+├── blake3 v1.8.3
+│   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   ├── tokmd-content v1.9.0 (/app/crates/tokmd-content) (*)
+│   ├── tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope) (*)
+│   ├── tokmd-redact v1.9.0 (/app/crates/tokmd-redact) (*)
+│   ├── uselesskey-core-hash v0.5.1
+│   │   ├── uselesskey-core-id v0.5.1
+│   │   │   ├── uselesskey-core v0.5.1 (*)
+│   │   │   ├── uselesskey-core-cache v0.5.1
+│   │   │   │   ├── uselesskey-core v0.5.1 (*)
+│   │   │   │   └── uselesskey-core-factory v0.5.1
+│   │   │   │       └── uselesskey-core v0.5.1 (*)
+│   │   │   └── uselesskey-core-factory v0.5.1 (*)
+│   │   ├── uselesskey-core-negative-der v0.5.1
+│   │   │   └── uselesskey-core-negative v0.5.1
+│   │   │       └── uselesskey-core v0.5.1 (*)
+│   │   └── uselesskey-core-negative-pem v0.5.1
+│   │       └── uselesskey-core-negative v0.5.1 (*)
+│   ├── uselesskey-core-kid v0.5.1
+│   │   └── uselesskey-core-keypair-material v0.5.1 (*)
+│   └── uselesskey-core-seed v0.5.1
+│       └── uselesskey-core-id v0.5.1 (*)
+└── sha2 v0.10.9 (*)
+
+cpufeatures v0.3.0
+└── sha2 v0.11.0 (*)
+
+crypto-common v0.1.7
+└── digest v0.10.7 (*)
+
+crypto-common v0.1.7
+└── digest v0.10.7 (*)
+
+crypto-common v0.2.1
+└── digest v0.11.2 (*)
+
+der v0.7.10 (*)
+
+der v0.8.0 (*)
+
+digest v0.10.7 (*)
+
+digest v0.10.7 (*)
+
+digest v0.11.2 (*)
+
+getrandom v0.2.17
+├── rand_core v0.6.4
+│   ├── rand v0.8.5
+│   │   ├── phf_generator v0.11.3
+│   │   │   └── phf_codegen v0.11.3
+│   │   │       └── chrono-tz-build v0.3.0
+│   │   │           [build-dependencies]
+│   │   │           └── chrono-tz v0.9.0
+│   │   │               └── tera v1.20.1 (*)
+│   │   └── tera v1.20.1 (*)
+│   ├── rand v0.8.5
+│   │   └── num-bigint-dig v0.8.6
+│   │       └── rsa v0.9.10 (*)
+│   ├── rand_chacha v0.3.1
+│   │   ├── rand v0.8.5 (*)
+│   │   └── uselesskey-rsa v0.5.1 (*)
+│   ├── rand_chacha v0.3.1
+│   │   └── rand v0.8.5 (*)
+│   ├── rsa v0.9.10 (*)
+│   ├── signature v2.2.0 (*)
+│   └── uselesskey-rsa v0.5.1 (*)
+└── ring v0.17.14
+    ├── rustls v0.23.37
+    │   ├── hyper-rustls v0.27.7
+    │   │   └── reqwest v0.13.2 (*)
+    │   ├── jsonschema v0.45.0 (*)
+    │   ├── reqwest v0.13.2 (*)
+    │   ├── rustls-platform-verifier v0.6.2
+    │   │   └── reqwest v0.13.2 (*)
+    │   └── tokio-rustls v0.26.4
+    │       ├── hyper-rustls v0.27.7 (*)
+    │       └── reqwest v0.13.2 (*)
+    └── rustls-webpki v0.103.10
+        ├── rustls v0.23.37 (*)
+        └── rustls-platform-verifier v0.6.2 (*)
+
+getrandom v0.3.4
+├── ahash v0.8.12
+│   ├── jsonschema v0.45.0 (*)
+│   └── referencing v0.45.0
+│       └── jsonschema v0.45.0 (*)
+└── rand_core v0.9.5
+    ├── rand v0.9.2
+    │   └── proptest v1.11.0 (*)
+    ├── rand_chacha v0.9.0
+    │   └── proptest v1.11.0 (*)
+    └── rand_xorshift v0.4.0
+        └── proptest v1.11.0 (*)
+
+getrandom v0.4.2
+├── rand v0.10.0
+│   └── uselesskey-core-factory v0.5.1 (*)
+├── tempfile v3.27.0 (*)
+└── uuid v1.22.0
+    └── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+
+hashbrown v0.14.5
+└── dashmap v6.1.0
+    ├── tokei v14.0.0 (*)
+    └── uselesskey-core-cache v0.5.1 (*)
+
+hashbrown v0.16.1
+├── indexmap v2.13.0
+│   ├── h2 v0.4.13
+│   │   ├── hyper v1.8.1
+│   │   │   ├── hyper-rustls v0.27.7 (*)
+│   │   │   ├── hyper-util v0.1.20
+│   │   │   │   ├── hyper-rustls v0.27.7 (*)
+│   │   │   │   └── reqwest v0.13.2 (*)
+│   │   │   └── reqwest v0.13.2 (*)
+│   │   └── reqwest v0.13.2 (*)
+│   └── toml_edit v0.22.27
+│       └── toml v0.8.23
+│           └── tokei v14.0.0 (*)
+└── referencing v0.45.0 (*)
+
+lazy_static v1.5.0
+└── tera v1.20.1 (*)
+
+lazy_static v1.5.0
+├── colored v2.2.0
+│   └── table_formatter v0.6.1
+│       └── tokei v14.0.0 (*)
+├── fraction v0.15.3
+│   └── jsonschema v0.45.0 (*)
+└── num-bigint-dig v0.8.6 (*)
+
+libc v0.2.183
+└── rand v0.8.5 (*)
+
+libc v0.2.183
+├── console v0.16.3
+│   ├── dialoguer v0.12.0 (*)
+│   ├── indicatif v0.18.4
+│   │   └── tokmd-progress v1.9.0 (/app/crates/tokmd-progress) (*)
+│   ├── insta v1.47.0 (*)
+│   └── tokmd v1.9.0 (/app/crates/tokmd)
+├── dirs-sys v0.5.0
+│   └── dirs v6.0.0
+│       └── tokmd v1.9.0 (/app/crates/tokmd)
+├── getrandom v0.2.17 (*)
+├── getrandom v0.3.4 (*)
+├── getrandom v0.4.2 (*)
+├── hyper-util v0.1.20 (*)
+├── memmap2 v0.9.10
+│   └── grep-searcher v0.1.16
+│       └── tokei v14.0.0 (*)
+├── mio v1.1.1
+│   └── tokio v1.50.0
+│       ├── h2 v0.4.13 (*)
+│       ├── hyper v1.8.1 (*)
+│       ├── hyper-rustls v0.27.7 (*)
+│       ├── hyper-util v0.1.20 (*)
+│       ├── reqwest v0.13.2 (*)
+│       ├── tokio-rustls v0.26.4 (*)
+│       ├── tokio-util v0.7.18
+│       │   └── h2 v0.4.13 (*)
+│       └── tower v0.5.3
+│           ├── reqwest v0.13.2 (*)
+│           └── tower-http v0.6.8 (*)
+├── parking_lot_core v0.9.12
+│   ├── dashmap v6.1.0 (*)
+│   └── parking_lot v0.12.5
+│       ├── referencing v0.45.0 (*)
+│       └── tokei v14.0.0 (*)
+├── socket2 v0.6.3
+│   ├── hyper-util v0.1.20 (*)
+│   └── tokio v1.50.0 (*)
+├── term_size v0.3.2
+│   └── tokei v14.0.0 (*)
+├── tokio v1.50.0 (*)
+└── wait-timeout v0.2.1
+    ├── assert_cmd v2.2.0
+    │   [dev-dependencies]
+    │   └── tokmd v1.9.0 (/app/crates/tokmd)
+    └── rusty-fork v0.3.1 (*)
+
+num-traits v0.2.19
+└── chrono v0.4.44
+    ├── chrono-tz v0.9.0 (*)
+    └── tera v1.20.1 (*)
+
+num-traits v0.2.19
+├── crypto-bigint v0.7.3
+│   ├── crypto-primes v0.7.0
+│   │   └── rsa v0.10.0-rc.17 (*)
+│   └── rsa v0.10.0-rc.17 (*)
+├── float-cmp v0.10.0
+│   └── predicates v3.1.4
+│       └── assert_cmd v2.2.0 (*)
+│       [dev-dependencies]
+│       └── tokmd v1.9.0 (/app/crates/tokmd)
+├── jsonschema v0.45.0 (*)
+├── num v0.4.3
+│   └── fraction v0.15.3 (*)
+├── num-bigint v0.4.6
+│   ├── num v0.4.3 (*)
+│   └── num-rational v0.4.2
+│       └── num v0.4.3 (*)
+├── num-bigint-dig v0.8.6 (*)
+├── num-complex v0.4.6
+│   └── num v0.4.3 (*)
+├── num-integer v0.1.46
+│   ├── num v0.4.3 (*)
+│   ├── num-bigint v0.4.6 (*)
+│   ├── num-bigint-dig v0.8.6 (*)
+│   ├── num-iter v0.1.45
+│   │   ├── num v0.4.3 (*)
+│   │   └── num-bigint-dig v0.8.6 (*)
+│   ├── num-rational v0.4.2 (*)
+│   └── rsa v0.9.10 (*)
+├── num-iter v0.1.45 (*)
+├── num-rational v0.4.2 (*)
+├── proptest v1.11.0 (*)
+└── rsa v0.9.10 (*)
+
+pem-rfc7468 v0.7.0
+└── der v0.7.10 (*)
+
+pem-rfc7468 v1.0.0
+└── der v0.8.0 (*)
+
+pkcs1 v0.7.5 (*)
+
+pkcs1 v0.8.0-rc.4 (*)
+
+pkcs8 v0.10.2 (*)
+
+pkcs8 v0.11.0-rc.11 (*)
+
+rand v0.8.5 (*)
+
+rand v0.8.5 (*)
+
+rand v0.9.2 (*)
+
+rand v0.10.0 (*)
+
+rand_chacha v0.3.1 (*)
+
+rand_chacha v0.3.1 (*)
+
+rand_chacha v0.9.0 (*)
+
+rand_chacha v0.10.0
+├── uselesskey-core-seed v0.5.1 (*)
+└── uselesskey-rsa v0.5.1 (*)
+
+rand_core v0.6.4 (*)
+
+rand_core v0.9.5 (*)
+
+rand_core v0.10.0
+├── crypto-bigint v0.7.3 (*)
+├── crypto-primes v0.7.0 (*)
+├── getrandom v0.4.2 (*)
+├── rand v0.10.0 (*)
+├── rand_chacha v0.10.0 (*)
+├── rsa v0.10.0-rc.17 (*)
+├── signature v3.0.0-rc.10 (*)
+├── uselesskey-core-seed v0.5.1 (*)
+└── uselesskey-rsa v0.5.1 (*)
+
+rsa v0.9.10 (*)
+
+rsa v0.10.0-rc.17 (*)
+
+serde v1.0.228
+├── ahash v0.8.12 (*)
+├── dashmap v6.1.0 (*)
+├── email_address v0.2.9
+│   └── jsonschema v0.45.0 (*)
+├── fluent-uri v0.4.1
+│   └── referencing v0.45.0 (*)
+├── insta v1.47.0 (*)
+├── jsonschema v0.45.0 (*)
+├── reqwest v0.13.2 (*)
+├── serde_spanned v0.6.9
+│   ├── toml v0.8.23 (*)
+│   └── toml_edit v0.22.27 (*)
+├── tokei v14.0.0 (*)
+├── tokmd v1.9.0 (/app/crates/tokmd)
+├── tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types) (*)
+├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+├── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+├── tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope) (*)
+├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+├── tokmd-gate v1.9.0 (/app/crates/tokmd-gate) (*)
+├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+├── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+├── tokmd-settings v1.9.0 (/app/crates/tokmd-settings) (*)
+├── tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate) (*)
+├── tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema) (*)
+├── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+├── toml v0.8.23 (*)
+├── toml_datetime v0.6.11
+│   ├── toml v0.8.23 (*)
+│   └── toml_edit v0.22.27 (*)
+└── toml_edit v0.22.27 (*)
+[dev-dependencies]
+└── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+
+serde v1.0.228
+├── json5 v0.4.1 (*)
+└── tera v1.20.1 (*)
+
+serde_core v1.0.228
+├── csv v1.4.0
+│   └── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+├── serde v1.0.228 (*)
+├── serde_json v1.0.149
+│   ├── jsonschema v0.45.0 (*)
+│   ├── referencing v0.45.0 (*)
+│   ├── reqwest v0.13.2 (*)
+│   ├── tera v1.20.1 (*)
+│   ├── tokei v14.0.0 (*)
+│   ├── tokmd v1.9.0 (/app/crates/tokmd)
+│   ├── tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis) (*)
+│   ├── tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets) (*)
+│   ├── tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format) (*)
+│   ├── tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html) (*)
+│   ├── tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license) (*)
+│   ├── tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types) (*)
+│   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   ├── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+│   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   ├── tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope) (*)
+│   ├── tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+│   ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   ├── tokmd-gate v1.9.0 (/app/crates/tokmd-gate) (*)
+│   ├── tokmd-settings v1.9.0 (/app/crates/tokmd-settings) (*)
+│   └── tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema) (*)
+│   [build-dependencies]
+│   └── tokei v14.0.0 (*)
+│   [dev-dependencies]
+│   ├── tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface) (*)
+│   ├── tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype) (*)
+│   ├── tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity) (*)
+│   ├── tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content) (*)
+│   ├── tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived) (*)
+│   ├── tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy) (*)
+│   ├── tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint) (*)
+│   ├── tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun) (*)
+│   ├── tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git) (*)
+│   ├── tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+│   ├── tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability) (*)
+│   ├── tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup) (*)
+│   ├── tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics) (*)
+│   ├── tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit) (*)
+│   ├── tokmd-core v1.9.0 (/app/crates/tokmd-core) (*)
+│   ├── tokmd-format v1.9.0 (/app/crates/tokmd-format) (*)
+│   ├── tokmd-model v1.9.0 (/app/crates/tokmd-model) (*)
+│   ├── tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args) (*)
+│   ├── tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+│   ├── tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate) (*)
+│   └── tokmd-types v1.9.0 (/app/crates/tokmd-types) (*)
+├── serde_spanned v1.0.4
+│   └── toml v1.0.7+spec-1.1.0
+│       ├── tokmd v1.9.0 (/app/crates/tokmd)
+│       ├── tokmd-gate v1.9.0 (/app/crates/tokmd-gate) (*)
+│       └── tokmd-settings v1.9.0 (/app/crates/tokmd-settings) (*)
+│       [dev-dependencies]
+│       ├── tokmd v1.9.0 (/app/crates/tokmd)
+│       └── tokmd-config v1.9.0 (/app/crates/tokmd-config) (*)
+├── toml v1.0.7+spec-1.1.0 (*)
+└── toml_datetime v1.0.1+spec-1.1.0
+    └── toml v1.0.7+spec-1.1.0 (*)
+
+serde_core v1.0.228
+└── serde v1.0.228 (*)
+
+serde_spanned v0.6.9 (*)
+
+serde_spanned v1.0.4 (*)
+
+sha2 v0.10.9 (*)
+
+sha2 v0.11.0 (*)
+
+signature v2.2.0 (*)
+
+signature v3.0.0-rc.10 (*)
+
+spin v0.9.8
+└── lazy_static v1.5.0 (*)
+
+spin v0.10.0
+└── uselesskey-core-cache v0.5.1 (*)
+
+spki v0.7.3 (*)
+
+spki v0.8.0-rc.4 (*)
+
+thiserror v1.0.69
+└── table_formatter v0.6.1 (*)
+
+thiserror v2.0.18
+└── uselesskey-core v0.5.1 (*)
+
+thiserror-impl v1.0.69 (proc-macro)
+└── thiserror v1.0.69 (*)
+
+thiserror-impl v2.0.18 (proc-macro)
+└── thiserror v2.0.18 (*)
+
+toml v0.8.23 (*)
+
+toml v1.0.7+spec-1.1.0 (*)
+
+toml_datetime v0.6.11 (*)
+
+toml_datetime v1.0.1+spec-1.1.0 (*)
+
+typenum v1.19.0
+└── crypto-common v0.1.7 (*)
+
+typenum v1.19.0
+├── crypto-common v0.1.7 (*)
+├── generic-array v0.14.7
+│   ├── block-buffer v0.10.4 (*)
+│   ├── crypto-common v0.1.7 (*)
+│   └── crypto-common v0.1.7 (*)
+└── hybrid-array v0.4.8
+    ├── block-buffer v0.12.0 (*)
+    └── crypto-common v0.2.1 (*)
+
+winnow v0.7.15
+└── toml_edit v0.22.27 (*)
+
+winnow v1.0.0
+├── toml v1.0.7+spec-1.1.0 (*)
+└── toml_parser v1.0.10+spec-1.1.0
+    └── toml v1.0.7+spec-1.1.0 (*)

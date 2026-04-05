@@ -3366,7 +3366,6 @@ version = "1.9.0"
 dependencies = [
  "anyhow",
  "proptest",
- "serde",
  "serde_json",
  "tempfile",
  "tokmd-analysis-api-surface",

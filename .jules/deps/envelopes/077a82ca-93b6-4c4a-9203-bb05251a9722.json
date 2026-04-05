@@ -1,0 +1,9 @@
+{
+  "run_id": "077a82ca-93b6-4c4a-9203-bb05251a9722",
+  "date": "2026-04-05T11:49:38Z",
+  "persona": "Auditor",
+  "lane": "scout",
+  "target": "tokmd-analysis",
+  "action": "remove unused dev-dependency serde",
+  "receipts": []
+}
