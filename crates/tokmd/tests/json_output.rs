@@ -231,7 +231,9 @@ fn json_output_export_json_has_rows() {
     let json: Value = serde_json::from_str(&stdout).expect("output is not valid JSON");
 
     assert!(json["rows"].is_array(), "rows array should be present");
-    let rows = json["rows"].as_array().unwrap();
+    let rows = json["rows"]
+        .as_array()
+        .expect("output JSON should contain a 'rows' array");
     assert!(!rows.is_empty(), "should have at least one file row");
 
     let first = &rows[0];
@@ -269,7 +271,8 @@ fn json_output_export_jsonl_lines_are_valid() {
     }
 
     // First line is the meta record
-    let meta: Value = serde_json::from_str(lines[0]).unwrap();
+    let meta: Value = serde_json::from_str(lines[0])
+        .expect("first line of JSONL output should be valid JSON metadata");
     assert_eq!(
         meta["mode"], "export",
         "meta record should have mode=export"
@@ -294,7 +297,7 @@ fn json_output_export_jsonl_data_rows_have_path() {
 
     // Data rows (skip meta)
     for line in lines.iter().skip(1) {
-        let row: Value = serde_json::from_str(line).unwrap();
+        let row: Value = serde_json::from_str(line).expect("JSONL row should be valid JSON");
         assert!(row["path"].is_string(), "data row should have a path field");
     }
 }
