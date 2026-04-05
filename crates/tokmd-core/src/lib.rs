@@ -1147,27 +1147,28 @@ mod tests {
     }
 
     #[cfg(feature = "analysis")]
-    fn write_file(path: &Path, contents: &str) {
+    fn write_file(path: &Path, contents: &str) -> Result<(), std::io::Error> {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, contents).unwrap();
+        fs::write(path, contents)?;
+        Ok(())
     }
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
+    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() -> Result<(), Box<dyn std::error::Error>> {
         let root = mk_temp_dir("tokmd-core-estimate-preset");
         let _guard = TempDirGuard(root.clone());
-        write_file(&root.join("src/main.rs"), "fn main() {}\n");
+        write_file(&root.join("src/main.rs"), "fn main() {}\n")?;
         write_file(
             &root.join("target/generated/bundle.min.js"),
             "console.log(1);\n",
-        );
+        )?;
         write_file(
             &root.join("vendor/lib/external.rs"),
             "pub fn external() {}\n",
-        );
+        )?;
 
         let scan = settings::ScanSettings::for_paths(vec![root.display().to_string()]);
         let analyze = AnalyzeSettings {
@@ -1193,6 +1194,7 @@ mod tests {
             effort.size_basis.generated_lines + effort.size_basis.vendored_lines > 0,
             "expected deterministic generated or vendored lines"
         );
+        Ok(())
     }
 }
 

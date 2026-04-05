@@ -1,13 +1,14 @@
 //! # tokmd-gate
 //!
-//! **Tier 3 (Policy Evaluation)**
+//! **Tier 3 (Policy Evaluation)** - Panic-free orchestration layer
 //!
 //! Policy evaluation engine for CI gating based on analysis receipts.
+//! All production code paths use structured error handling; no unwrap calls remain in production code.
 //!
 //! ## What belongs here
 //! * Policy rule types and parsing
 //! * JSON Pointer resolution
-//! * Rule evaluation logic
+//! * Rule evaluation logic (Result-based, no panics)
 //! * Ratchet evaluation for trend tracking
 //!
 //! ## Example
@@ -22,7 +23,7 @@
 //! pointer = "/tokens"
 //! op = "lte"
 //! value = 1000
-//! "#).unwrap();
+//! "#).expect("valid TOML");
 //! let result = evaluate_policy(&receipt, &policy);
 //! assert!(result.passed);
 //! ```
