@@ -3877,6 +3877,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-import"
+version = "1.9.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "tokmd-io-port"
 version = "1.9.0"
 dependencies = [
@@ -3925,6 +3932,13 @@ dependencies = [
  "tokio",
  "tokmd-core",
  "tokmd-ffi-envelope",
+]
+
+[[package]]
+name = "tokmd-parsing"
+version = "1.9.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]
