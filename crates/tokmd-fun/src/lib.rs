@@ -30,57 +30,52 @@ pub struct ObjBuilding {
 }
 
 pub fn render_obj(buildings: &[ObjBuilding]) -> String {
-    let mut out = String::new();
+    use std::fmt::Write;
+    let mut out = String::with_capacity(buildings.len() * 320 + 20);
     out.push_str("# tokmd code city\n");
     let mut vertex_index = 1usize;
 
     for b in buildings {
-        out.push_str(&format!("o {}\n", sanitize_name(&b.name)));
+        out.push_str("o ");
+        for c in b.name.chars() {
+            if c.is_ascii_alphanumeric() {
+                out.push(c);
+            } else {
+                out.push('_');
+            }
+        }
+        out.push('\n');
+
         let (x, y, z) = (b.x, b.y, 0.0f32);
         let (w, d, h) = (b.w, b.d, b.h);
 
-        let v = [
-            (x, y, z),
-            (x + w, y, z),
-            (x + w, y + d, z),
-            (x, y + d, z),
-            (x, y, z + h),
-            (x + w, y, z + h),
-            (x + w, y + d, z + h),
-            (x, y + d, z + h),
-        ];
-        for (vx, vy, vz) in v {
-            out.push_str(&format!("v {} {} {}\n", vx, vy, vz));
-        }
+        let x_w = x + w;
+        let y_d = y + d;
+        let z_h = z + h;
 
-        let faces = [
-            [1, 2, 3, 4],
-            [5, 6, 7, 8],
-            [1, 2, 6, 5],
-            [2, 3, 7, 6],
-            [3, 4, 8, 7],
-            [4, 1, 5, 8],
-        ];
-        for face in faces {
-            out.push_str(&format!(
-                "f {} {} {} {}\n",
-                vertex_index + face[0] - 1,
-                vertex_index + face[1] - 1,
-                vertex_index + face[2] - 1,
-                vertex_index + face[3] - 1,
-            ));
-        }
+        let _ = write!(
+            out,
+            "v {x} {y} {z}\nv {x_w} {y} {z}\nv {x_w} {y_d} {z}\nv {x} {y_d} {z}\nv {x} {y} {z_h}\nv {x_w} {y} {z_h}\nv {x_w} {y_d} {z_h}\nv {x} {y_d} {z_h}\n"
+        );
+
+        let v1 = vertex_index;
+        let v2 = vertex_index + 1;
+        let v3 = vertex_index + 2;
+        let v4 = vertex_index + 3;
+        let v5 = vertex_index + 4;
+        let v6 = vertex_index + 5;
+        let v7 = vertex_index + 6;
+        let v8 = vertex_index + 7;
+
+        let _ = write!(
+            out,
+            "f {v1} {v2} {v3} {v4}\nf {v5} {v6} {v7} {v8}\nf {v1} {v2} {v6} {v5}\nf {v2} {v3} {v7} {v6}\nf {v3} {v4} {v8} {v7}\nf {v4} {v1} {v5} {v8}\n"
+        );
 
         vertex_index += 8;
     }
 
     out
-}
-
-fn sanitize_name(name: &str) -> String {
-    name.chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-        .collect()
 }
 
 #[derive(Debug, Clone)]
@@ -175,24 +170,6 @@ pub fn render_midi(notes: &[MidiNote], tempo_bpm: u16) -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ── sanitize_name ─────────────────────────────────────────────────
-    #[test]
-    fn sanitize_name_replaces_non_alphanumeric() {
-        assert_eq!(sanitize_name("hello world"), "hello_world");
-        assert_eq!(sanitize_name("src/main.rs"), "src_main_rs");
-        assert_eq!(sanitize_name("foo-bar_baz"), "foo_bar_baz");
-    }
-
-    #[test]
-    fn sanitize_name_preserves_alphanumeric() {
-        assert_eq!(sanitize_name("abc123"), "abc123");
-    }
-
-    #[test]
-    fn sanitize_name_empty() {
-        assert_eq!(sanitize_name(""), "");
-    }
 
     // ── render_obj ────────────────────────────────────────────────────
     #[test]
