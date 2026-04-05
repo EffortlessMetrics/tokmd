@@ -76,22 +76,6 @@ fn commit_file(dir: &Path, name: &str, content: &str, msg: &str) {
     git_in(dir).args(["commit", "-m", msg]).output().unwrap();
 }
 
-fn commit_file_at(dir: &Path, name: &str, content: &str, msg: &str, timestamp: u64) {
-    let parent = dir.join(name);
-    if let Some(p) = parent.parent() {
-        fs::create_dir_all(p).ok();
-    }
-    fs::write(dir.join(name), content).unwrap();
-    git_in(dir).args(["add", name]).output().unwrap();
-    let date = format!("{} +0000", timestamp);
-    git_in(dir)
-        .env("GIT_AUTHOR_DATE", &date)
-        .env("GIT_COMMITTER_DATE", &date)
-        .args(["commit", "-m", msg])
-        .output()
-        .unwrap();
-}
-
 // ===========================================================================
 // 1. Git log parsing / commit counting
 // ===========================================================================
@@ -223,8 +207,10 @@ fn collect_history_timestamps_monotonic() {
         Some(r) => r,
         None => return,
     };
-    commit_file_at(&repo.path, "a.txt", "a", "first", 2000000000);
-    commit_file_at(&repo.path, "b.txt", "b", "second", 2000000010);
+    commit_file(&repo.path, "a.txt", "a", "first");
+    // Small delay to ensure distinct timestamps
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    commit_file(&repo.path, "b.txt", "b", "second");
 
     let commits = collect_history(&repo.path, None, None).unwrap();
     // Most recent first

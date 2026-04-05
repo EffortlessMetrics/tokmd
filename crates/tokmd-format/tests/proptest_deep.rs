@@ -405,10 +405,10 @@ proptest! {
         let rows = compute_diff_rows(&from, &to);
         let totals = compute_diff_totals(&rows);
 
-        prop_assert_eq!(totals.old_code, from.total.code);
-        prop_assert_eq!(totals.new_code, to.total.code);
-        prop_assert_eq!(totals.old_lines, from.total.lines);
-        prop_assert_eq!(totals.new_lines, to.total.lines);
+        prop_assert_eq!(totals.old_code as usize, from.total.code);
+        prop_assert_eq!(totals.new_code as usize, to.total.code);
+        prop_assert_eq!(totals.old_lines as usize, from.total.lines);
+        prop_assert_eq!(totals.new_lines as usize, to.total.lines);
     }
 }
 
