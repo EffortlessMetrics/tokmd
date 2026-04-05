@@ -1,6 +1,0 @@
-{
-    "run_id": "a336c1c0-7b5e-49d9-a24d-9c93d0833014",
-    "status": "PASS",
-    "friction_ids": [],
-    "commands": ["cargo tree --workspace --duplicates", "sed -i 's/ignore = \"0.4.23\"/ignore = \"0.4.25\"/g' crates/tokmd-cockpit/Cargo.toml", "sed -i 's/time = { version = \"0.3.41\", features = [\"formatting\"] }/time = { version = \"0.3.47\", features = [\"formatting\"] }/g' crates/tokmd-cockpit/Cargo.toml"]
-}
