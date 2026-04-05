@@ -1,0 +1,33 @@
+{
+  "run_id": "d538eeac-6583-4a88-994b-85c2b2da0d2d",
+  "timestamp_utc": "2026-04-05T12:10:06Z",
+  "lane": "scout",
+  "target": "tokmd-core error_w70.rs unwrap_or_default() removal",
+  "commands": [],
+  "results": [
+    {
+      "cmd": "cargo build",
+      "status": "0",
+      "result": "PASS",
+      "snippet": "   Compiling tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)    Compiling tokmd-core v1.9.0 (/app/crates/tokmd-core)    Compiling tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)    Compiling tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.45s "
+    },
+    {
+      "cmd": "CI=true cargo test -p tokmd-core",
+      "status": "0",
+      "result": "PASS",
+      "snippet": "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s "
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "0",
+      "result": "PASS",
+      "snippet": ""
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-core -- -D warnings",
+      "status": "0",
+      "result": "PASS",
+      "snippet": "    Checking tokmd-format v1.9.0 (/app/crates/tokmd-format)     Checking tokmd-model v1.9.0 (/app/crates/tokmd-model)     Checking tokmd-scan v1.9.0 (/app/crates/tokmd-scan)     Checking tokmd-core v1.9.0 (/app/crates/tokmd-core)     Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.89s "
+    }
+  ]
+}

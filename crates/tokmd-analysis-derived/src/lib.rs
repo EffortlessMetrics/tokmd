@@ -326,12 +326,12 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall = empty_file_row();
     }
 
-    let mut by_lang: BTreeMap<String, FileStatRow> = BTreeMap::new();
-    let mut by_module: BTreeMap<String, FileStatRow> = BTreeMap::new();
+    let mut by_lang: BTreeMap<&str, FileStatRow> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, FileStatRow> = BTreeMap::new();
 
     for row in rows {
         by_lang
-            .entry(row.lang.clone())
+            .entry(row.lang.as_str())
             .and_modify(|existing| {
                 if row.lines > existing.lines
                     || (row.lines == existing.lines && row.path < existing.path)
@@ -342,7 +342,7 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
             .or_insert_with(|| row.clone());
 
         by_module
-            .entry(row.module.clone())
+            .entry(row.module.as_str())
             .and_modify(|existing| {
                 if row.lines > existing.lines
                     || (row.lines == existing.lines && row.path < existing.path)
@@ -357,11 +357,17 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall,
         by_lang: by_lang
             .into_iter()
-            .map(|(key, file)| MaxFileRow { key, file })
+            .map(|(key, file)| MaxFileRow {
+                key: key.to_string(),
+                file,
+            })
             .collect(),
         by_module: by_module
             .into_iter()
-            .map(|(key, file)| MaxFileRow { key, file })
+            .map(|(key, file)| MaxFileRow {
+                key: key.to_string(),
+                file,
+            })
             .collect(),
     }
 }
@@ -426,13 +432,13 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
 
     let mut total_depth = 0usize;
     let mut max_depth = 0usize;
-    let mut by_module: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
 
     for row in rows {
         total_depth += row.depth;
         max_depth = max_depth.max(row.depth);
         by_module
-            .entry(row.module.clone())
+            .entry(row.module.as_str())
             .or_default()
             .push(row.depth);
     }
@@ -449,7 +455,7 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
             round_f64(sum as f64 / depths.len() as f64, 2)
         };
         module_rows.push(NestingRow {
-            key: module,
+            key: module.to_string(),
             max,
             avg,
         });

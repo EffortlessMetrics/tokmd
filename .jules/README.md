@@ -1,4 +1,8 @@
-# .jules
+# .jules/
 
-This directory contains the compounding knowledge base and state for Jules agents.
-Rules: "written = real".
+State lives on disk. Written = real.
+
+- `policy/`: knobs and rules
+- `runbooks/`: templates for tasks, PRs
+- `friction/`: task queue
+- `bolt/`: performance persona state
