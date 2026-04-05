@@ -87,8 +87,9 @@ fn test_cyclonedx_component_structure() {
     let parsed: Value =
         serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
-    let components = parsed["components"]
-        .as_array()
+    let components = parsed
+        .get("components")
+        .and_then(|v| v.as_array())
         .expect("components field should be a valid JSON array");
 
     // If there are components, check their structure
