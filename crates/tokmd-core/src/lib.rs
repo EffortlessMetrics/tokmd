@@ -1156,6 +1156,8 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[test]
+    #[cfg(feature = "analysis")]
+    #[test]
     fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
         let root = mk_temp_dir("tokmd-core-estimate-preset");
         let _guard = TempDirGuard(root.clone());
