@@ -12,14 +12,5 @@
   {
     "run_id": "13bf324d-a8ad-4e74-9d27-673789e16269",
     "status": "PASS"
-  },
-  {
-    "run_id": "e027a2e8-3d26-418e-8c64-bcb3f60376ad",
-    "timestamp": "2026-04-04T10:16:43Z",
-    "persona": "compat",
-    "status": "PASS",
-    "friction_ids": [],
-    "target": "Fix clippy drop_non_drop warning on no-default-features build in tokmd-progress",
-    "resolution": "Replaced explicit drop() calls with let _ = to satisfy drop_non_drop clippy lint cleanly."
   }
 ]

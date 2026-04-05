@@ -556,7 +556,7 @@ struct CycloneDxComponent {
 
 #[derive(Debug, Clone, Serialize)]
 struct CycloneDxProperty {
-    name: &'static str,
+    name: String,
     value: String,
 }
 
@@ -584,42 +584,41 @@ fn write_export_cyclonedx_impl<W: Write>(
     // Apply redaction to rows before generating components
     let components: Vec<CycloneDxComponent> = redact_rows(&export.rows, redact)
         .map(|row| {
-            let mut buffer = itoa::Buffer::new();
             let mut properties = vec![
                 CycloneDxProperty {
-                    name: "tokmd:lang",
+                    name: "tokmd:lang".to_string(),
                     value: row.lang.clone(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:code",
-                    value: buffer.format(row.code).to_owned(),
+                    name: "tokmd:code".to_string(),
+                    value: row.code.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:comments",
-                    value: buffer.format(row.comments).to_owned(),
+                    name: "tokmd:comments".to_string(),
+                    value: row.comments.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:blanks",
-                    value: buffer.format(row.blanks).to_owned(),
+                    name: "tokmd:blanks".to_string(),
+                    value: row.blanks.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:lines",
-                    value: buffer.format(row.lines).to_owned(),
+                    name: "tokmd:lines".to_string(),
+                    value: row.lines.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:bytes",
-                    value: buffer.format(row.bytes).to_owned(),
+                    name: "tokmd:bytes".to_string(),
+                    value: row.bytes.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:tokens",
-                    value: buffer.format(row.tokens).to_owned(),
+                    name: "tokmd:tokens".to_string(),
+                    value: row.tokens.to_string(),
                 },
             ];
 
             // Add kind if it's a child
             if row.kind == FileKind::Child {
                 properties.push(CycloneDxProperty {
-                    name: "tokmd:kind",
+                    name: "tokmd:kind".to_string(),
                     value: "child".to_string(),
                 });
             }

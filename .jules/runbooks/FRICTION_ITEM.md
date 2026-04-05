@@ -1,13 +1,17 @@
-# Friction Item
+---
+# Friction item
 
-## Pain / Symptom
-[What is the specific pain point, bug, or missing feature?]
+id: FRIC-YYYYMMDD-###
+tags: [palette, dx]
 
-## Evidence / Context
-[How do we know this is a problem? Logs, test failures, or UX observations.]
+## Pain
+What hurts, in one paragraph.
 
-## Done When
-[What specific condition must be met for this to be considered resolved?]
+## Evidence
+- file paths
+- commands / outputs
+- screenshots (if relevant)
 
-## Tags
-[e.g., security, docs, dx, testing]
+## Done when
+- [ ] acceptance criteria
+---
