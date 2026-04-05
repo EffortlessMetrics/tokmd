@@ -37,7 +37,7 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
 }
 
 #[test]
-fn entropy_report_detects_uselesskey_generated_private_key_der() {
+fn entropy_report_detects_generated_private_key_der() {
     let dir = tempdir().expect("tempdir should be created");
     let relative_path = "fixtures/generated/private-key.pk8";
     let output_path = dir

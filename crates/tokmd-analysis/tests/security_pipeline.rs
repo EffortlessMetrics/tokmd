@@ -80,7 +80,7 @@ fn export_for_private_key_fixture(path: &str) -> ExportData {
 }
 
 #[test]
-fn security_preset_detects_uselesskey_generated_private_key() {
+fn security_preset_detects_generated_private_key() {
     let dir = tempfile::tempdir().expect("tempdir should be created");
     let relative_path = "fixtures/generated/private-key.pk8";
     let output_path = dir
