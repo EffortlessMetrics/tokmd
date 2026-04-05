@@ -86,6 +86,17 @@ fn commit(dir: &Path, msg: &str) {
     git_in(dir).args(["commit", "-m", msg]).output().unwrap();
 }
 
+fn commit_at(dir: &Path, msg: &str, timestamp: u64) {
+    git_in(dir).args(["add", "."]).output().unwrap();
+    let date = format!("{} +0000", timestamp);
+    git_in(dir)
+        .env("GIT_AUTHOR_DATE", &date)
+        .env("GIT_COMMITTER_DATE", &date)
+        .args(["commit", "-m", msg])
+        .output()
+        .unwrap();
+}
+
 fn commit_as(dir: &Path, msg: &str, email: &str, name: &str) {
     git_in(dir).args(["add", "."]).output().unwrap();
     git_in(dir)
@@ -276,11 +287,10 @@ fn test_freshness_latest_commit_has_greatest_timestamp() {
     let repo = make_repo("fresh").expect("repo");
 
     std::fs::write(repo.path.join("f.txt"), "1").unwrap();
-    commit(&repo.path, "c1");
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    commit_at(&repo.path, "c1", 2000000000);
 
     std::fs::write(repo.path.join("f.txt"), "2").unwrap();
-    commit(&repo.path, "c2");
+    commit_at(&repo.path, "c2", 2000000010);
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     // git log returns newest first
@@ -295,12 +305,10 @@ fn test_freshness_per_file() {
     let repo = make_repo("freshfile").expect("repo");
 
     std::fs::write(repo.path.join("old.txt"), "old").unwrap();
-    commit(&repo.path, "add old");
-
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    commit_at(&repo.path, "add old", 2000000000);
 
     std::fs::write(repo.path.join("new.txt"), "new").unwrap();
-    commit(&repo.path, "add new");
+    commit_at(&repo.path, "add new", 2000000010);
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     let mut file_last_touch: BTreeMap<&str, i64> = BTreeMap::new();
@@ -988,12 +996,11 @@ fn test_history_reverse_chronological() {
 
     for i in 1..=5 {
         std::fs::write(repo.path.join("f.txt"), format!("{i}")).unwrap();
-        commit(&repo.path, &format!("c{i}"));
-        // Small sleep to ensure distinct timestamps
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        commit_at(&repo.path, &format!("c{i}"), 2000000000 + (i * 10));
     }
 
     let commits = collect_history(&repo.path, None, None).expect("history");
+
     for w in commits.windows(2) {
         assert!(
             w[0].timestamp >= w[1].timestamp,

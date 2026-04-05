@@ -80,6 +80,17 @@ fn commit(dir: &Path, msg: &str) {
     git_in(dir).args(["commit", "-m", msg]).output().unwrap();
 }
 
+fn commit_at(dir: &Path, msg: &str, timestamp: u64) {
+    git_in(dir).args(["add", "."]).output().unwrap();
+    let date = format!("{} +0000", timestamp);
+    git_in(dir)
+        .env("GIT_AUTHOR_DATE", &date)
+        .env("GIT_COMMITTER_DATE", &date)
+        .args(["commit", "-m", msg])
+        .output()
+        .unwrap();
+}
+
 fn commit_as(dir: &Path, msg: &str, email: &str, name: &str) {
     git_in(dir).args(["add", "."]).output().unwrap();
     git_in(dir)
@@ -547,10 +558,9 @@ fn freshness_newest_commit_is_first_in_log() {
     };
 
     std::fs::write(repo.path.join("old.txt"), "old").unwrap();
-    commit(&repo.path, "old commit");
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    commit_at(&repo.path, "old commit", 2000000000);
     std::fs::write(repo.path.join("new.txt"), "new").unwrap();
-    commit(&repo.path, "new commit");
+    commit_at(&repo.path, "new commit", 2000000010);
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     assert!(
@@ -567,10 +577,9 @@ fn freshness_per_file_last_touch_tracking() {
     };
 
     std::fs::write(repo.path.join("stale.rs"), "stale").unwrap();
-    commit(&repo.path, "add stale");
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    commit_at(&repo.path, "add stale", 2000000000);
     std::fs::write(repo.path.join("fresh.rs"), "fresh").unwrap();
-    commit(&repo.path, "add fresh");
+    commit_at(&repo.path, "add fresh", 2000000010);
 
     let commits = collect_history(&repo.path, None, None).expect("history");
     let mut last_touch: BTreeMap<&str, i64> = BTreeMap::new();
