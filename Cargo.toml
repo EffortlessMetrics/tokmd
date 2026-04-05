@@ -2,6 +2,8 @@
 resolver = "2"
 members = [
     "crates/tokmd-badge",
+    "crates/tokmd-parsing",
+    "crates/tokmd-import",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-imports",
@@ -65,6 +67,8 @@ members = [
 ]
 default-members = [
     "crates/tokmd-badge",
+    "crates/tokmd-parsing",
+    "crates/tokmd-import",
     "crates/tokmd",
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-imports",
@@ -137,6 +141,8 @@ name = "tokmd-workspace"
 # Internal crates - centralized for "bump once" version management
 tokmd = { path = "crates/tokmd", version = "1.9.0" }
 tokmd-badge = { path = "crates/tokmd-badge", version = "1.9.0" }
+tokmd-parsing = { path = "crates/tokmd-parsing", version = "1.9.0" }
+tokmd-import = { path = "crates/tokmd-import", version = "1.9.0" }
 tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.9.0" }
 tokmd-analysis-imports = { path = "crates/tokmd-analysis-imports", version = "1.9.0" }
 tokmd-analysis-explain = { path = "crates/tokmd-analysis-explain", version = "1.9.0" }
