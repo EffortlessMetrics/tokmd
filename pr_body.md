@@ -1,4 +1,3 @@
-## 💡 Summary
 Refactored `create_lang_report_from_rows` in `crates/tokmd-model` to eliminate `String` allocations within the hot path of its core iteration loop. Replaced the `BTreeMap<String, ...>` key with a `(&str, bool)` tuple, deferring the ownership and dynamic `format!()` construction until the final mapping pass.
 
 ## 🎯 Why (perf bottleneck)

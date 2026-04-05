@@ -78,7 +78,7 @@ fn spinner_finish_after_messages() {
 fn spinner_drop_without_finish() {
     let p = Progress::new(false);
     p.set_message("about to drop");
-    let _ = p;
+    drop(p);
 }
 
 #[test]
@@ -225,7 +225,7 @@ fn bar_finish_idempotent() {
 fn bar_drop_without_finish() {
     let bar = ProgressBarWithEta::new(false, 10, "will drop");
     bar.inc_by(3);
-    let _ = bar;
+    drop(bar);
 }
 
 #[test]
