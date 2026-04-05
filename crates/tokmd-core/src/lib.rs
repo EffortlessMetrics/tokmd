@@ -1147,12 +1147,12 @@ mod tests {
     }
 
     #[cfg(feature = "analysis")]
-    fn write_file(path: &Path, contents: &str) {
+    fn write_file(path: &Path, contents: &str) -> Result<(), std::io::Error> {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)
-                .expect("failed to create parent directories for analysis output");
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, contents).expect("failed to write analysis output file");
+        fs::write(path, contents)?;
+        Ok(())
     }
 
     #[cfg(feature = "analysis")]
@@ -1160,15 +1160,15 @@ mod tests {
     fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() {
         let root = mk_temp_dir("tokmd-core-estimate-preset");
         let _guard = TempDirGuard(root.clone());
-        write_file(&root.join("src/main.rs"), "fn main() {}\n");
+        write_file(&root.join("src/main.rs"), "fn main() {}\n").unwrap();
         write_file(
             &root.join("target/generated/bundle.min.js"),
             "console.log(1);\n",
-        );
+        ).unwrap();
         write_file(
             &root.join("vendor/lib/external.rs"),
             "pub fn external() {}\n",
-        );
+        ).unwrap();
 
         let scan = settings::ScanSettings::for_paths(vec![root.display().to_string()]);
         let analyze = AnalyzeSettings {
