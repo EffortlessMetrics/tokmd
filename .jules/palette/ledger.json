@@ -25,6 +25,32 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-05T12:13:32Z",
+      "lane": "scout",
+      "target": "tokmd-core error_w70.rs unwrap_or_default() removal",
+      "pr_link": "test: replace unwrap_or_default in json assertions to prevent silent failures 🎨 Palette",
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
+    },
+    {
+      "run_id": "a9a1a098-dccd-413f-8fac-e1e8bd45f4af",
+      "date": "2026-04-02T12:37:44Z",
+      "lane": "scout",
+      "target": "Cleanup unwrap/expect in bdd_export_scenarios_w50.rs",
+      "pr_link": "test: improve expect diagnostics in export BDD tests 🎨 Palette",
+      "status": "PASS",
+      "gates": [
+        "test",
+        "gate"
+      ],
+      "friction_ids": []
     }
   ]
 }

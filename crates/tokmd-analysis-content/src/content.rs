@@ -84,7 +84,7 @@ pub fn build_duplicate_report(
     export: &ExportData,
     limits: &ContentLimits,
 ) -> Result<DuplicateReport> {
-    let mut by_size: BTreeMap<u64, Vec<PathBuf>> = BTreeMap::new();
+    let mut by_size: BTreeMap<u64, Vec<&PathBuf>> = BTreeMap::new();
     let size_limit = limits.max_file_bytes;
 
     for rel in files {
@@ -94,19 +94,15 @@ pub fn build_duplicate_report(
         if size_limit.is_some_and(|limit| size > limit) {
             continue;
         }
-        by_size.entry(size).or_default().push(rel.clone());
+        by_size.entry(size).or_default().push(rel);
     }
 
-    let mut path_to_module: BTreeMap<String, String> = BTreeMap::new();
-    let mut module_bytes: BTreeMap<String, u64> = BTreeMap::new();
+    let mut path_to_module: BTreeMap<String, &str> = BTreeMap::new();
+    let mut module_bytes: BTreeMap<&str, u64> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let normalized = normalize_path(&row.path, root);
-        path_to_module.insert(normalized, row.module.clone());
-        if let Some(val) = module_bytes.get_mut(&row.module) {
-            *val += row.bytes as u64;
-        } else {
-            module_bytes.insert(row.module.clone(), row.bytes as u64);
-        }
+        path_to_module.insert(normalized, row.module.as_str());
+        *module_bytes.entry(row.module.as_str()).or_insert(0) += row.bytes as u64;
     }
 
     let mut groups: Vec<DuplicateGroup> = Vec::new();
@@ -125,7 +121,7 @@ pub fn build_duplicate_report(
         }
         let mut by_hash: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for rel in paths {
-            let path = root.join(&rel);
+            let path = root.join(rel);
             if let Ok(hash) = hash_file_full(&path) {
                 by_hash
                     .entry(hash)
@@ -141,33 +137,30 @@ pub fn build_duplicate_report(
             wasted_bytes += (files.len() as u64 - 1) * size;
 
             for (idx, file) in files.iter().enumerate() {
-                let module = path_to_module
-                    .get(file)
-                    .cloned()
-                    .unwrap_or_else(|| "(unknown)".to_string());
-                if let Some(val) = module_duplicate_files.get_mut(&module) {
+                let module = path_to_module.get(file).copied().unwrap_or("(unknown)");
+                if let Some(val) = module_duplicate_files.get_mut(module) {
                     *val += 1;
                 } else {
-                    module_duplicate_files.insert(module.clone(), 1);
+                    module_duplicate_files.insert(module.to_string(), 1);
                 }
-                if let Some(val) = module_duplicated_bytes.get_mut(&module) {
+                if let Some(val) = module_duplicated_bytes.get_mut(module) {
                     *val += size;
                 } else {
-                    module_duplicated_bytes.insert(module.clone(), size);
+                    module_duplicated_bytes.insert(module.to_string(), size);
                 }
                 duplicate_files += 1;
                 duplicated_bytes += size;
 
                 if idx > 0 {
-                    if let Some(val) = module_wasted_files.get_mut(&module) {
+                    if let Some(val) = module_wasted_files.get_mut(module) {
                         *val += 1;
                     } else {
-                        module_wasted_files.insert(module.clone(), 1);
+                        module_wasted_files.insert(module.to_string(), 1);
                     }
-                    if let Some(val) = module_wasted_bytes.get_mut(&module) {
+                    if let Some(val) = module_wasted_bytes.get_mut(module) {
                         *val += size;
                     } else {
-                        module_wasted_bytes.insert(module.clone(), size);
+                        module_wasted_bytes.insert(module.to_string(), size);
                     }
                 }
             }
@@ -193,7 +186,7 @@ pub fn build_duplicate_report(
             let wasted_files = module_wasted_files.get(&module).copied().unwrap_or(0);
             let duplicated_bytes = module_duplicated_bytes.get(&module).copied().unwrap_or(0);
             let wasted_bytes = module_wasted_bytes.get(&module).copied().unwrap_or(0);
-            let module_total = module_bytes.get(&module).copied().unwrap_or(0);
+            let module_total = module_bytes.get(module.as_str()).copied().unwrap_or(0);
             let density = if module_total == 0 {
                 0.0
             } else {

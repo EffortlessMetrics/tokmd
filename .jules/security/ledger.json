@@ -65,47 +65,5 @@
     ],
     "status": "PASS",
     "friction_ids": []
-  },
-  {
-    "date": "2026-04-03T12:29:33Z",
-    "lane": "scout",
-    "target": "crates/tokmd/tests/cyclonedx_integration.rs",
-    "pr_link": "TBD",
-    "gates": [
-      "build",
-      "test",
-      "fmt",
-      "clippy"
-    ],
-    "status": "PASS",
-    "friction_ids": []
-  },
-  {
-    "date": "2026-04-05T23:19:56Z",
-    "lane": "scout",
-    "target": "crates/tokmd/tests/cyclonedx_integration.rs",
-    "pr_link": "TBD",
-    "gates": [
-      "build",
-      "test",
-      "fmt",
-      "clippy"
-    ],
-    "status": "PASS",
-    "friction_ids": []
-  },
-  {
-    "date": "2026-04-05T23:23:24Z",
-    "lane": "scout",
-    "target": "crates/tokmd/tests/cyclonedx_integration.rs",
-    "pr_link": "TBD",
-    "gates": [
-      "build",
-      "test",
-      "fmt",
-      "clippy"
-    ],
-    "status": "PASS",
-    "friction_ids": []
   }
 ]
