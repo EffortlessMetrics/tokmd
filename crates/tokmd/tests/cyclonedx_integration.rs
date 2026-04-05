@@ -43,7 +43,8 @@ fn test_cyclonedx_spec_version() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: Value =
+        serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
     // Check spec version is 1.6
     assert_eq!(parsed["specVersion"], "1.6", "specVersion should be 1.6");
@@ -59,7 +60,8 @@ fn test_cyclonedx_has_components() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: Value =
+        serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
     // Should have components array
     assert!(
@@ -82,9 +84,13 @@ fn test_cyclonedx_component_structure() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: Value =
+        serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
-    let components = parsed["components"].as_array().unwrap();
+    let components = parsed
+        .get("components")
+        .and_then(|v| v.as_array())
+        .expect("components field should be a valid JSON array");
 
     // If there are components, check their structure
     if !components.is_empty() {
@@ -106,7 +112,8 @@ fn test_cyclonedx_metadata() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: Value =
+        serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
     // Should have metadata
     assert!(
@@ -127,7 +134,7 @@ fn test_cyclonedx_metadata() {
 
 #[test]
 fn test_cyclonedx_to_file() {
-    let dir = TempDir::new().unwrap();
+    let dir = TempDir::new().expect("Failed to create temporary directory for test output");
     let output_path = dir.path().join("bom.json");
 
     tokmd()
@@ -136,7 +143,7 @@ fn test_cyclonedx_to_file() {
             "--format",
             "cyclonedx",
             "--out",
-            output_path.to_str().unwrap(),
+            output_path.to_str().expect("Path should be valid UTF-8"),
             ".",
         ])
         .assert()
@@ -145,7 +152,8 @@ fn test_cyclonedx_to_file() {
     // Verify file was created and is valid
     assert!(output_path.exists(), "Output file should exist");
 
-    let content = fs::read_to_string(&output_path).unwrap();
+    let content =
+        fs::read_to_string(&output_path).expect("Failed to read generated CycloneDX output file");
     let parsed: Value = serde_json::from_str(&content).expect("File should contain valid JSON");
 
     assert_eq!(parsed["bomFormat"], "CycloneDX");
@@ -161,11 +169,14 @@ fn test_cyclonedx_serial_number() {
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: Value = serde_json::from_str(&stdout).unwrap();
+    let parsed: Value =
+        serde_json::from_str(&stdout).expect("Failed to parse CycloneDX output as JSON");
 
     // serialNumber should be a URN UUID if present
     if let Some(serial) = parsed.get("serialNumber") {
-        let serial_str = serial.as_str().unwrap();
+        let serial_str = serial
+            .as_str()
+            .expect("serialNumber field should be a string");
         assert!(
             serial_str.starts_with("urn:uuid:"),
             "serialNumber should be a URN UUID"
