@@ -188,7 +188,8 @@ mod tests {
             "ok": true,
             "mode": "version"
         });
-        let data = extract_data(envelope.clone()).expect("valid envelope without data should return itself");
+        let data = extract_data(envelope.clone())
+            .expect("valid envelope without data should return itself");
         assert_eq!(data, envelope);
     }
 
@@ -207,7 +208,8 @@ mod tests {
 
     #[test]
     fn extract_data_non_object_is_invalid_format() {
-        let err = extract_data(json!(["not", "an", "envelope"])).expect_err("non-object JSON should fail to extract data");
+        let err = extract_data(json!(["not", "an", "envelope"]))
+            .expect_err("non-object JSON should fail to extract data");
         assert_eq!(err, EnvelopeExtractError::InvalidResponseFormat);
     }
 
@@ -228,7 +230,8 @@ mod tests {
             "ok": true,
             "data": { "a": 1, "b": true }
         });
-        let encoded = extract_data_json(&envelope.to_string()).expect("valid JSON should encode successfully");
+        let encoded = extract_data_json(&envelope.to_string())
+            .expect("valid JSON should encode successfully");
         let parsed: Value = serde_json::from_str(&encoded).expect("encoded JSON should parse");
         assert_eq!(parsed["a"], 1);
         assert_eq!(parsed["b"], true);
