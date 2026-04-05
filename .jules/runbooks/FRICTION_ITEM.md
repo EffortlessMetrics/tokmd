@@ -1,17 +1,13 @@
----
-# Friction item
+# Friction Item
 
-id: FRIC-YYYYMMDD-###
-tags: [bolt, perf]
+## Pain / Symptom
+[What is the specific pain point, bug, or missing feature?]
 
-## Pain
-What hurts, in one paragraph.
+## Evidence / Context
+[How do we know this is a problem? Logs, test failures, or UX observations.]
 
-## Evidence
-- file paths
-- commands / outputs
-- benchmarks/timings (if any)
+## Done When
+[What specific condition must be met for this to be considered resolved?]
 
-## Done when
-- [ ] acceptance criteria
----
+## Tags
+[e.g., security, docs, dx, testing]
