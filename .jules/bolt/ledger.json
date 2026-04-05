@@ -49,5 +49,19 @@
       "clippy"
     ],
     "friction_ids": []
+  },
+  {
+    "date": "2026-04-03T12:21:58Z",
+    "run_id": "b2d12673-068e-4631-93eb-2762f180afec",
+    "lane": "scout",
+    "target": "crates/tokmd-core/src/ffi.rs",
+    "proof_method": "structural",
+    "pr_link": null,
+    "gates": [
+      "fmt",
+      "clippy",
+      "test"
+    ],
+    "friction_ids": []
   }
 ]

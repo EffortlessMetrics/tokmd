@@ -364,7 +364,7 @@ fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, Tok
 fn parse_children_mode(args: &Value, default: ChildrenMode) -> Result<ChildrenMode, TokmdError> {
     match args.get("children") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<ChildrenMode>(v.clone())
+        Some(v) => serde::Deserialize::deserialize(v)
             .map_err(|_| TokmdError::invalid_field("children", "'collapse' or 'separate'")),
     }
 }
@@ -376,7 +376,7 @@ fn parse_child_include_mode(
 ) -> Result<ChildIncludeMode, TokmdError> {
     match args.get("children") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<ChildIncludeMode>(v.clone())
+        Some(v) => serde::Deserialize::deserialize(v)
             .map_err(|_| TokmdError::invalid_field("children", "'separate' or 'parents-only'")),
     }
 }
@@ -385,7 +385,7 @@ fn parse_child_include_mode(
 fn parse_redact_mode(args: &Value, default: RedactMode) -> Result<RedactMode, TokmdError> {
     match args.get("redact") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
+        Some(v) => serde::Deserialize::deserialize(v)
             .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
     }
 }
@@ -429,7 +429,7 @@ fn parse_effort_layer(args: &Value, field: &str) -> Result<Option<String>, Tokmd
 fn parse_optional_redact_mode(args: &Value) -> Result<Option<RedactMode>, TokmdError> {
     match args.get("redact") {
         None => Ok(None),
-        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
+        Some(v) => serde::Deserialize::deserialize(v)
             .map(Some)
             .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
     }
@@ -439,7 +439,7 @@ fn parse_optional_redact_mode(args: &Value) -> Result<Option<RedactMode>, TokmdE
 fn parse_config_mode(args: &Value, default: ConfigMode) -> Result<ConfigMode, TokmdError> {
     match args.get("config") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<ConfigMode>(v.clone())
+        Some(v) => serde::Deserialize::deserialize(v)
             .map_err(|_| TokmdError::invalid_field("config", "'auto' or 'none'")),
     }
 }
@@ -448,7 +448,7 @@ fn parse_config_mode(args: &Value, default: ConfigMode) -> Result<ConfigMode, To
 fn parse_export_format(args: &Value, default: ExportFormat) -> Result<ExportFormat, TokmdError> {
     match args.get("format") {
         None => Ok(default),
-        Some(v) => serde_json::from_value::<ExportFormat>(v.clone()).map_err(|_| {
+        Some(v) => serde::Deserialize::deserialize(v).map_err(|_| {
             TokmdError::invalid_field("format", "'csv', 'jsonl', 'json', or 'cyclonedx'")
         }),
     }
