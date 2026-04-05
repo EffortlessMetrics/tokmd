@@ -1,47 +1,15 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.29s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.77s
      Running `target/debug/xtask gate --check`
 [1/4] fmt
    ✅ Step 1 (fmt) passed
 [2/4] check (warm graph)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.44s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.20s
    ✅ Step 2 (check (warm graph)) passed
 [3/4] clippy
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.81s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.00s
    ✅ Step 3 (clippy) passed
 [4/4] test (compile-only)
-   Compiling tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
-   Compiling tokmd-types v1.9.0 (/app/crates/tokmd-types)
-   Compiling tokmd-module-key v1.9.0 (/app/crates/tokmd-module-key)
-   Compiling tokmd-git v1.9.0 (/app/crates/tokmd-git)
-   Compiling tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
-   Compiling tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
-   Compiling tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
-   Compiling tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
-   Compiling tokmd-content v1.9.0 (/app/crates/tokmd-content)
-   Compiling tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
-   Compiling tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
-   Compiling tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
-   Compiling tokmd-path v1.9.0 (/app/crates/tokmd-path)
-   Compiling tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
-   Compiling tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
-   Compiling tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
-   Compiling tokmd-exclude v1.9.0 (/app/crates/tokmd-exclude)
-   Compiling tokmd-math v1.9.0 (/app/crates/tokmd-math)
-   Compiling tokmd-badge v1.9.0 (/app/crates/tokmd-badge)
-   Compiling tokmd-analysis-imports v1.9.0 (/app/crates/tokmd-analysis-imports)
-   Compiling tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
-   Compiling tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
-   Compiling tokmd-analysis-explain v1.9.0 (/app/crates/tokmd-analysis-explain)
-   Compiling tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
-   Compiling tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
-   Compiling tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
-   Compiling tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
-   Compiling tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
-   Compiling tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
-   Compiling tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
-   Compiling tokmd-analysis-grid v1.9.0 (/app/crates/tokmd-analysis-grid)
-   Compiling tokmd-io-port v1.9.0 (/app/crates/tokmd-io-port)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 28s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.65s
   Executable unittests src/lib.rs (target/debug/deps/tokmd-8acea1f2a52526dd)
   Executable unittests src/bin/tok.rs (target/debug/deps/tok-8447f70c98626d32)
   Executable unittests src/bin/tokmd.rs (target/debug/deps/tokmd-183d63baed87901b)

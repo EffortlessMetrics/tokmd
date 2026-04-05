@@ -12,13 +12,6 @@
       "description": "test: lock deterministic ordering for outputs 🧪 Gatekeeper"
     },
     {
-      "run_id": "50f63594-011d-4163-8fb4-a288f74e4ef5",
-      "timestamp": "2026-04-02T10:02:26Z",
-      "status": "PASS",
-      "description": "test: lock deterministic ordering for git commits 🧪 Gatekeeper",
-      "friction_ids": []
-    },
-    {
       "run_id": "e2f2c2ee-2f02-4c09-bc31-db76fb0c8c88",
       "status": "PASS",
       "friction_ids": [],
