@@ -39,7 +39,11 @@ fn run_json_unknown_mode_returns_error_envelope() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "unknown_mode");
 }
 
@@ -49,7 +53,11 @@ fn run_json_empty_mode_returns_error_envelope() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "unknown_mode");
 }
 
@@ -75,7 +83,11 @@ fn run_json_malformed_json_returns_invalid_json_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_json");
 }
 
@@ -129,7 +141,11 @@ fn error_message_is_nonempty_string() {
     let parsed = assert_err(&result);
     let message = parsed["error"]["message"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.message must be a string");
+=======
+        .expect("expected error message to be a string");
+>>>>>>> pr-869
     assert!(!message.is_empty(), "error message must not be empty");
 }
 
@@ -140,7 +156,7 @@ fn success_envelope_has_no_error_field() {
     // error field should be absent or null in success responses
     let error = parsed.get("error");
     assert!(
-        error.is_none() || error.unwrap().is_null(),
+        error.is_none() || error.expect("error field must exist if checked").is_null(),
         "success envelope should not have error field"
     );
 }
@@ -155,7 +171,11 @@ fn run_json_lang_with_non_boolean_hidden_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
@@ -165,7 +185,11 @@ fn run_json_lang_with_non_integer_top_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
@@ -175,7 +199,11 @@ fn run_json_lang_with_invalid_children_mode_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
@@ -185,7 +213,11 @@ fn run_json_export_with_invalid_format_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
@@ -195,7 +227,11 @@ fn run_json_lang_with_non_array_paths_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
@@ -205,7 +241,11 @@ fn run_json_lang_with_non_string_in_paths_array_returns_error() {
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"]
         .as_str()
+<<<<<<< HEAD
         .expect("error.code must be a string");
+=======
+        .expect("expected error code to be a string");
+>>>>>>> pr-869
     assert_eq!(code, "invalid_settings");
 }
 
