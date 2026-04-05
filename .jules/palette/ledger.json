@@ -25,19 +25,6 @@
         "clippy"
       ],
       "friction_ids": []
-    },
-    {
-      "run_id": "999a6728-2dfa-4901-844e-f39f62e2dea1",
-      "date": "2026-04-03T12:20:47Z",
-      "lane": "scout",
-      "target": "crates/tokmd/tests/json_output.rs and crates/tokmd/tests/regression_suite_w52.rs",
-      "pr_link": "PENDING",
-      "gates": [
-        "fmt",
-        "clippy",
-        "test"
-      ],
-      "friction_ids": []
     }
   ]
 }
