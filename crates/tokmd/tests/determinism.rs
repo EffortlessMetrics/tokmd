@@ -217,10 +217,14 @@ fn lang_rows_sorted_by_code_desc_then_name_asc() {
         .expect("rows array");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_lang = pair[0]["lang"].as_str().unwrap();
-        let b_lang = pair[1]["lang"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code must be a valid u64");
+        let b_code = pair[1]["code"].as_u64().expect("code must be a valid u64");
+        let a_lang = pair[0]["lang"]
+            .as_str()
+            .expect("lang must be a valid string");
+        let b_lang = pair[1]["lang"]
+            .as_str()
+            .expect("lang must be a valid string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_lang <= b_lang),
@@ -243,10 +247,14 @@ fn module_rows_sorted_by_code_desc_then_name_asc() {
         .expect("rows array");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_mod = pair[0]["module"].as_str().unwrap();
-        let b_mod = pair[1]["module"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code must be a valid u64");
+        let b_code = pair[1]["code"].as_u64().expect("code must be a valid u64");
+        let a_mod = pair[0]["module"]
+            .as_str()
+            .expect("module must be a valid string");
+        let b_mod = pair[1]["module"]
+            .as_str()
+            .expect("module must be a valid string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_mod <= b_mod),
@@ -269,10 +277,14 @@ fn export_rows_sorted_by_code_desc_then_path_asc() {
         .expect("rows array");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().unwrap();
-        let b_code = pair[1]["code"].as_u64().unwrap();
-        let a_path = pair[0]["path"].as_str().unwrap();
-        let b_path = pair[1]["path"].as_str().unwrap();
+        let a_code = pair[0]["code"].as_u64().expect("code must be a valid u64");
+        let b_code = pair[1]["code"].as_u64().expect("code must be a valid u64");
+        let a_path = pair[0]["path"]
+            .as_str()
+            .expect("path must be a valid string");
+        let b_path = pair[1]["path"]
+            .as_str()
+            .expect("path must be a valid string");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
@@ -354,7 +366,7 @@ fn export_paths_use_forward_slashes() {
         .expect("rows array");
 
     for row in rows {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("path must be a valid string");
         assert!(!path.contains('\\'), "path contains backslash: {path}");
     }
 }
@@ -372,7 +384,9 @@ fn export_modules_use_forward_slashes() {
         .expect("rows array");
 
     for row in rows {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"]
+            .as_str()
+            .expect("module must be a valid string");
         assert!(
             !module.contains('\\'),
             "module key contains backslash: {module}"
@@ -483,7 +497,7 @@ fn redacted_paths_are_hashed_not_plaintext() {
         .expect("rows array");
 
     for row in rows {
-        let path = row["path"].as_str().unwrap();
+        let path = row["path"].as_str().expect("path must be a valid string");
         // Redacted paths should not contain directory separators
         assert!(
             !path.contains('/') || path.starts_with('('),
@@ -529,13 +543,40 @@ fn lang_totals_match_row_sums() {
     let rows = json["rows"].as_array().expect("rows array");
     let total = &json["total"];
 
-    let sum_code: u64 = rows.iter().map(|r| r["code"].as_u64().unwrap()).sum();
-    let sum_lines: u64 = rows.iter().map(|r| r["lines"].as_u64().unwrap()).sum();
-    let sum_files: u64 = rows.iter().map(|r| r["files"].as_u64().unwrap()).sum();
+    let sum_code: u64 = rows
+        .iter()
+        .map(|r| r["code"].as_u64().expect("code must be a valid u64"))
+        .sum();
+    let sum_lines: u64 = rows
+        .iter()
+        .map(|r| r["lines"].as_u64().expect("lines must be a valid u64"))
+        .sum();
+    let sum_files: u64 = rows
+        .iter()
+        .map(|r| r["files"].as_u64().expect("files must be a valid u64"))
+        .sum();
 
-    assert_eq!(sum_code, total["code"].as_u64().unwrap(), "code total");
-    assert_eq!(sum_lines, total["lines"].as_u64().unwrap(), "lines total");
-    assert_eq!(sum_files, total["files"].as_u64().unwrap(), "files total");
+    assert_eq!(
+        sum_code,
+        total["code"]
+            .as_u64()
+            .expect("total code must be a valid u64"),
+        "code total"
+    );
+    assert_eq!(
+        sum_lines,
+        total["lines"]
+            .as_u64()
+            .expect("total lines must be a valid u64"),
+        "lines total"
+    );
+    assert_eq!(
+        sum_files,
+        total["files"]
+            .as_u64()
+            .expect("total files must be a valid u64"),
+        "files total"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -555,7 +596,9 @@ fn module_json_keys_use_forward_slashes() {
         .expect("rows array");
 
     for row in rows {
-        let module = row["module"].as_str().unwrap();
+        let module = row["module"]
+            .as_str()
+            .expect("module must be a valid string");
         assert!(
             !module.contains('\\'),
             "module key contains backslash: {module}"
