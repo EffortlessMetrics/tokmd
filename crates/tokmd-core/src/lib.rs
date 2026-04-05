@@ -1157,7 +1157,8 @@ mod tests {
 
     #[cfg(feature = "analysis")]
     #[test]
-    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown() -> Result<(), Box<dyn std::error::Error>> {
+    fn analyze_workflow_estimate_preset_populates_effort_and_size_basis_breakdown()
+    -> Result<(), Box<dyn std::error::Error>> {
         let root = mk_temp_dir("tokmd-core-estimate-preset");
         let _guard = TempDirGuard(root.clone());
         write_file(&root.join("src/main.rs"), "fn main() {}\n")?;
