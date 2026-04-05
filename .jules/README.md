@@ -1,3 +1,8 @@
-# .jules
-This directory stores state, compounding knowledge, policies, runbooks, and persona-specific data for automated runs.
-Written = real. Ensure structure and data format conventions are maintained.
+# .jules/
+
+State lives on disk. Written = real.
+
+- `policy/`: knobs and rules
+- `runbooks/`: templates for tasks, PRs
+- `friction/`: task queue
+- `bolt/`: performance persona state
