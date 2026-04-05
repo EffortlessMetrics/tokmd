@@ -1,0 +1,12 @@
+{
+  "run_id": "20260405095857",
+  "persona": "Librarian",
+  "lane": "scout discovery",
+  "target": "missing doctest coverage for a common usage pattern",
+  "status": "completed",
+  "receipts": [
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd -- -D warnings",
+    "cargo test -p tokmd --test docs"
+  ]
+}
