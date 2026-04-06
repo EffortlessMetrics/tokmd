@@ -1,0 +1,20 @@
+{
+  "outcome": "learning_pr",
+  "title": "jules: record gatekeeper learning on core-pipeline tests ✅",
+  "summary": "Explored tokmd-types determinism and schema validation tests and found them robust, requiring no modifications.",
+  "target_paths": [
+    "crates/tokmd-types/tests/**"
+  ],
+  "proof_summary": "Tests for schema validation, docs synchronization, and deterministic proptests passed locally.",
+  "gates_run": [
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd-types -- -D warnings",
+    "cargo test -p tokmd-types"
+  ],
+  "friction_items_created": [
+    "test_robustness_acknowledged"
+  ],
+  "persona_notes_created": [],
+  "rollback": "No rollback needed, no production changes made.",
+  "follow_ups": []
+}
