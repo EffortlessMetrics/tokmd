@@ -147,7 +147,9 @@ mod grade_bands_w66 {
     #[test]
     fn zero_bytes_produces_grade_a() {
         let r = build_fun_report(&derived_with_bytes(0));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "A");
         assert_eq!(eco.score, 95.0);
     }
@@ -155,7 +157,9 @@ mod grade_bands_w66 {
     #[test]
     fn one_byte_produces_grade_a() {
         let r = build_fun_report(&derived_with_bytes(1));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "A");
     }
 
@@ -163,7 +167,9 @@ mod grade_bands_w66 {
     fn exactly_1mb_produces_grade_a() {
         let bytes = 1024 * 1024;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "A");
         assert_eq!(eco.score, 95.0);
     }
@@ -172,7 +178,9 @@ mod grade_bands_w66 {
     fn just_over_1mb_produces_grade_b() {
         let bytes = 1024 * 1024 + 1;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "B");
         assert_eq!(eco.score, 80.0);
     }
@@ -181,7 +189,9 @@ mod grade_bands_w66 {
     fn exactly_10mb_produces_grade_b() {
         let bytes = 10 * 1024 * 1024;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "B");
     }
 
@@ -189,7 +199,9 @@ mod grade_bands_w66 {
     fn just_over_10mb_produces_grade_c() {
         let bytes = 10 * 1024 * 1024 + 1;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "C");
         assert_eq!(eco.score, 65.0);
     }
@@ -198,7 +210,9 @@ mod grade_bands_w66 {
     fn exactly_50mb_produces_grade_c() {
         let bytes = 50 * 1024 * 1024;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "C");
     }
 
@@ -206,7 +220,9 @@ mod grade_bands_w66 {
     fn just_over_50mb_produces_grade_d() {
         let bytes = 50 * 1024 * 1024 + 1;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "D");
         assert_eq!(eco.score, 45.0);
     }
@@ -215,7 +231,9 @@ mod grade_bands_w66 {
     fn exactly_200mb_produces_grade_d() {
         let bytes = 200 * 1024 * 1024;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "D");
     }
 
@@ -223,7 +241,9 @@ mod grade_bands_w66 {
     fn just_over_200mb_produces_grade_e() {
         let bytes = 200 * 1024 * 1024 + 1;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.label, "E");
         assert_eq!(eco.score, 30.0);
     }
@@ -237,23 +257,35 @@ mod notes_formatting_w66 {
     #[test]
     fn notes_contain_mb_unit() {
         let r = build_fun_report(&derived_with_bytes(5 * 1024 * 1024));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert!(eco.notes.contains("MB"));
     }
 
     #[test]
     fn notes_contain_size_based_prefix() {
         let r = build_fun_report(&derived_with_bytes(1024));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert!(eco.notes.starts_with("Size-based eco label"));
     }
 
     #[test]
     fn notes_mb_value_rounds_to_two_decimals() {
         let r = build_fun_report(&derived_with_bytes(1536));
-        let eco = r.eco_label.unwrap();
-        let paren_start = eco.notes.find('(').unwrap();
-        let paren_end = eco.notes.find(')').unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
+        let paren_start = eco
+            .notes
+            .find('(')
+            .expect("notes must contain an opening parenthesis");
+        let paren_end = eco
+            .notes
+            .find(')')
+            .expect("notes must contain a closing parenthesis");
         let inner = &eco.notes[paren_start + 1..paren_end];
         assert!(inner.ends_with("MB"));
     }
@@ -262,7 +294,9 @@ mod notes_formatting_w66 {
     fn eco_label_bytes_matches_input() {
         let bytes = 42 * 1024;
         let r = build_fun_report(&derived_with_bytes(bytes));
-        let eco = r.eco_label.unwrap();
+        let eco = r
+            .eco_label
+            .expect("eco_label must be present for this test case");
         assert_eq!(eco.bytes, bytes as u64);
     }
 }
@@ -278,8 +312,8 @@ mod determinism_w66 {
         let r1 = build_fun_report(&derived);
         let r2 = build_fun_report(&derived);
         assert_eq!(
-            serde_json::to_string(&r1).unwrap(),
-            serde_json::to_string(&r2).unwrap(),
+            serde_json::to_string(&r1).expect("Failed to serialize FunReport r1"),
+            serde_json::to_string(&r2).expect("Failed to serialize FunReport r2"),
         );
     }
 
@@ -307,7 +341,9 @@ mod determinism_w66 {
     fn score_is_always_positive() {
         for bytes in [0, 1, 1024 * 1024 * 1024] {
             let r = build_fun_report(&derived_with_bytes(bytes));
-            let eco = r.eco_label.unwrap();
+            let eco = r
+                .eco_label
+                .expect("eco_label must be present for this test case");
             assert!(
                 eco.score > 0.0,
                 "score should be positive for bytes={bytes}"
@@ -326,7 +362,9 @@ mod determinism_w66 {
             300 * 1024 * 1024,
         ] {
             let r = build_fun_report(&derived_with_bytes(bytes));
-            let eco = r.eco_label.unwrap();
+            let eco = r
+                .eco_label
+                .expect("eco_label must be present for this test case");
             assert_eq!(eco.label.len(), 1);
             assert!(eco.label.chars().all(|c| c.is_ascii_uppercase()));
         }
@@ -362,21 +400,21 @@ mod property_tests_w66 {
             let r_small = build_fun_report(&derived_with_bytes(small));
             let r_large = build_fun_report(&derived_with_bytes(large));
             prop_assert!(
-                r_small.eco_label.unwrap().score >= r_large.eco_label.unwrap().score,
+                r_small.eco_label.expect("eco_label must be present for this test case").score >= r_large.eco_label.expect("eco_label must be present for this test case").score,
             );
         }
 
         #[test]
         fn label_is_valid_grade(bytes in 0usize..1_000_000_000) {
             let r = build_fun_report(&derived_with_bytes(bytes));
-            let label = &r.eco_label.unwrap().label;
+            let label = &r.eco_label.expect("eco_label must be present for this test case").label;
             prop_assert!(["A", "B", "C", "D", "E"].contains(&label.as_str()));
         }
 
         #[test]
         fn bytes_field_matches_input(bytes in 0usize..1_000_000_000) {
             let r = build_fun_report(&derived_with_bytes(bytes));
-            prop_assert_eq!(r.eco_label.unwrap().bytes, bytes as u64);
+            prop_assert_eq!(r.eco_label.expect("eco_label must be present for this test case").bytes, bytes as u64);
         }
     }
 }

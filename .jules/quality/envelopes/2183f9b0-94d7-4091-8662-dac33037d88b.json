@@ -1,0 +1,8 @@
+{
+  "run_id": "2183f9b0-94d7-4091-8662-dac33037d88b",
+  "timestamp": "2026-04-05T10:29:45Z",
+  "description": "test: clarify test panics in bdd scenarios 🧪 Gatekeeper",
+  "lane": "discovery",
+  "target": "bdd_scenarios_w71.rs",
+  "receipts": []
+}

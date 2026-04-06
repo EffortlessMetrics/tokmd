@@ -29,7 +29,7 @@ jobs:
 
       - name: Install Nix
         if: env.USE_FLAKEHUB_CACHE != 'true'
-        uses: DeterminateSystems/nix-installer-action@v21
+        uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Install Nix with FlakeHub support
         if: env.USE_FLAKEHUB_CACHE == 'true'

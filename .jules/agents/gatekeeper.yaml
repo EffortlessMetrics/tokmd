@@ -1,0 +1,16 @@
+id: gatekeeper
+adapter: jules
+shared_role: agents/shared/roles/gatekeeper.md
+mission: Improve test coverage and output determinism.
+max_concerns: 1
+may_touch:
+  - "crates/**"
+must_not_touch:
+  - "CHANGELOG.md"
+  - "ROADMAP.md"
+handoff:
+  requires:
+    - summary
+    - files_changed
+    - commands_run
+    - determinism_rationale

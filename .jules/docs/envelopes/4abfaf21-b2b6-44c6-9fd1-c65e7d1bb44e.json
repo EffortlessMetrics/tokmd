@@ -1,0 +1,1 @@
+{"receipts": ["cargo test -p tokmd --test docs", "cargo clippy -p tokmd -- -D warnings"]}

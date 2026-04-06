@@ -33,7 +33,7 @@ tokmd --version
 For first-time setup, run the interactive wizard to configure tokmd for your project:
 
 ```bash
-tokmd init --interactive
+tokmd init
 ```
 
 The wizard will:

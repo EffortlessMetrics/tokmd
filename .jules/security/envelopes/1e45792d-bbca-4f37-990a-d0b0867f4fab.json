@@ -1,0 +1,12 @@
+{
+  "run_id": "1e45792d-bbca-4f37-990a-d0b0867f4fab",
+  "timestamp_utc": "2026-04-04T12:13:20Z",
+  "lane": "scout",
+  "target": "crates/tokmd-analysis-fun",
+  "commands": [],
+  "results_summary": [
+    "cargo fmt: PASS",
+    "cargo clippy: PASS",
+    "cargo test: PASS"
+  ]
+}
