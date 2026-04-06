@@ -1,3 +1,0 @@
-perf: remove allocation on file aggregation loop ⚡ Bolt
-
-This change replaces `String` keys with `Cow<'_, str>` in the `BTreeMap` used for language aggregation (`lang_workflow` in `tokmd-model`). This eliminates a `row.lang.clone()` call for every file row being processed while keeping the ability to format `" (embedded)"` child row keys efficiently as owned Cows.
