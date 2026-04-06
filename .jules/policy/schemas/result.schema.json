@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://effortlessmetrics.example/jules/result.schema.json",
+  "title": "Jules Run Result",
+  "type": "object",
+  "required": [
+    "run_id",
+    "prompt_id",
+    "persona",
+    "style",
+    "primary_shard",
+    "outcome_type",
+    "title",
+    "summary",
+    "target_paths",
+    "problem_statement",
+    "proof_summary",
+    "gates_run",
+    "risk",
+    "rollback",
+    "friction_items_created",
+    "notes_created",
+    "follow_ups"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "prompt_id": {
+      "type": "string"
+    },
+    "persona": {
+      "type": "string"
+    },
+    "style": {
+      "type": "string"
+    },
+    "primary_shard": {
+      "type": "string"
+    },
+    "outcome_type": {
+      "enum": [
+        "patch",
+        "proof_patch",
+        "learning_pr"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "target_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "problem_statement": {
+      "type": "string"
+    },
+    "proof_summary": {
+      "type": "object",
+      "required": [
+        "mode",
+        "claim",
+        "measured"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "benchmark",
+            "timing",
+            "structural",
+            "contract",
+            "scenario",
+            "mutation",
+            "property",
+            "fuzz",
+            "docs",
+            "dependency",
+            "compatibility",
+            "security",
+            "governance"
+          ]
+        },
+        "claim": {
+          "type": "string"
+        },
+        "measured": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "gates_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "profile",
+          "cmd",
+          "status"
+        ],
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "cmd": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "N/A"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "risk": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "rollback": {
+      "type": "string"
+    },
+    "friction_items_created": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes_created": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "follow_ups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://effortlessmetrics.example/jules/receipt.schema.json",
+  "title": "Jules Receipt Line",
+  "type": "object",
+  "required": [
+    "ts_utc",
+    "phase",
+    "cmd",
+    "status",
+    "summary"
+  ],
+  "properties": {
+    "ts_utc": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string"
+    },
+    "cwd": {
+      "type": "string"
+    },
+    "cmd": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "N/A"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "key_lines": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
