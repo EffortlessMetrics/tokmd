@@ -124,36 +124,5 @@
     ],
     "status": "PASS",
     "friction_ids": []
-  },
-  {
-    "run_id": "20260326T125015Z",
-    "timestamp_utc": "20260326T125015Z",
-    "lane": "scout",
-    "target": "Reduce allocations in CycloneDx JSON exports",
-    "proof_method": "structural",
-    "commands": [
-      {
-        "cmd": "cargo bench -p tokmd-format",
-        "status": "PASS"
-      },
-      {
-        "cmd": "cargo test -p tokmd-format",
-        "status": "PASS"
-      }
-    ],
-    "results": [
-      {
-        "cmd": "cargo bench -p tokmd-format",
-        "status": "PASS",
-        "output": "cyclonedx_itoa is faster than cyclonedx_to_string"
-      },
-      {
-        "cmd": "cargo test -p tokmd-format",
-        "status": "PASS",
-        "output": "test result: ok"
-      }
-    ],
-    "status": "PASS",
-    "friction_ids": []
   }
 ]
