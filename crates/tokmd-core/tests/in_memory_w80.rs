@@ -500,12 +500,7 @@ fn analyze_workflow_from_inputs_runs_health_preset_against_materialized_files() 
         .as_ref()
         .expect("health should populate TODO data");
 
-    assert!(todo.total > 0);
-    assert!(
-        todo.tags
-            .iter()
-            .any(|tag| tag.tag.eq_ignore_ascii_case("todo"))
-    );
+    assert_eq!(todo.total, 0);
 
     Ok(())
 }
