@@ -1,0 +1,18 @@
+{
+  "outcome_type": "patch",
+  "title": "specsmith: add BDD integration test for cockpit JSON schema 🧪",
+  "summary": "Added a new BDD scenario test `given_git_repo_with_changes_when_cockpit_json_then_valid_schema` to lock in integration coverage for `tokmd cockpit` JSON output structure, properly failing on git/execution errors.",
+  "target_paths": [
+    "crates/tokmd/tests/bdd_scenarios_w75.rs"
+  ],
+  "proof_summary": "Added BDD scenario and verified it passed via `cargo test -p tokmd --test bdd_scenarios_w75`.",
+  "gates_run": [
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd -- -D warnings",
+    "cargo test -p tokmd"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git reset --hard HEAD",
+  "follow_ups": []
+}

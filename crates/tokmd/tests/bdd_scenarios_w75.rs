@@ -772,3 +772,51 @@ fn given_project_when_context_json_then_has_utilization_pct() {
         "utilization_pct should be 0..100, got {pct}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 39: Cockpit JSON output has correct structure
+// ---------------------------------------------------------------------------
+
+#[test]
+#[cfg(feature = "git")]
+fn given_git_repo_with_changes_when_cockpit_json_then_valid_schema() {
+    // Given: A git repository with code changes
+    let dir = tempdir().unwrap();
+    if !common::init_git_repo(dir.path()) {
+        panic!("git init failed");
+    }
+
+    std::fs::write(dir.path().join("lib.rs"), "fn main() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial commit") {
+        panic!("git commit failed");
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status()
+        .expect("git checkout failed");
+
+    std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Add new file") {
+        panic!("second git commit failed");
+    }
+
+    // When: I run `tokmd cockpit --format json`
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .args(["cockpit", "--base", "main", "--head", "HEAD", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd cockpit");
+
+    assert!(output.status.success(), "tokmd cockpit failed: {}", String::from_utf8_lossy(&output.stderr));
+
+    // Then: It outputs valid JSON with the expected schema version
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: Value = serde_json::from_str(&stdout).expect("valid JSON");
+
+    assert!(json.get("schema_version").is_some());
+    assert!(json.get("change_surface").is_some());
+    assert!(json.get("composition").is_some());
+}
