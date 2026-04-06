@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "runs": [
+    {
+      "date": "2026-04-06T09:27:49Z",
+      "lane": "B - scout discovery",
+      "target": "crates/tokmd-python/Cargo.toml"
+    }
+  ]
+}

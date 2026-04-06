@@ -1,0 +1,9 @@
+{
+  "run_id": "271bf64c-5fbf-4500-ac94-3438c7132928",
+  "date": "2026-04-06T09:40:13Z",
+  "target": "crates/tokmd-python/Cargo.toml",
+  "lane": "B - scout discovery",
+  "receipts": [
+    "cargo check --all-features --workspace"
+  ]
+}
