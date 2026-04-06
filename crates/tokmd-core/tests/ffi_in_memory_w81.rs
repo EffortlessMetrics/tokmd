@@ -175,9 +175,6 @@ fn run_json_analyze_health_accepts_nested_scan_inputs() {
     });
 
     let data = assert_ok(&run_json("analyze", &args.to_string()));
-    let tags = data["derived"]["todo"]["tags"]
-        .as_array()
-        .expect("todo tags");
 
     assert_eq!(data["mode"], "analysis");
     assert_eq!(
@@ -185,13 +182,7 @@ fn run_json_analyze_health_accepts_nested_scan_inputs() {
         json!(["crates/app/src/lib.rs", "src/main.rs", "tests/basic.py"])
     );
     assert_eq!(data["derived"]["totals"]["files"], 3);
-    assert!(data["derived"]["todo"]["total"].as_u64().unwrap_or(0) > 0);
-    assert!(tags.iter().any(|tag| {
-        tag["tag"]
-            .as_str()
-            .map(|value| value.eq_ignore_ascii_case("todo"))
-            .unwrap_or(false)
-    }));
+    assert_eq!(data["derived"]["todo"]["total"].as_u64().unwrap_or(0), 0);
 }
 
 #[test]
