@@ -1,10 +1,10 @@
+#![cfg(feature = "git")]
 mod common;
 
 use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
 use std::fs;
-#[cfg(feature = "git")]
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 
@@ -283,7 +283,6 @@ fn test_run_with_redact_flag() {
     }
 }
 
-#[cfg(feature = "git")]
 fn git_available() -> bool {
     ProcessCommand::new("git")
         .arg("--version")
@@ -294,7 +293,6 @@ fn git_available() -> bool {
         .unwrap_or(false)
 }
 
-#[cfg(feature = "git")]
 fn git_cmd(dir: &std::path::Path, args: &[&str]) {
     let status = ProcessCommand::new("git")
         .args(args)
@@ -856,7 +854,6 @@ fn test_run_redact_with_absolute_paths() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn test_diff_git_refs() {
     if !git_available() {
         return;

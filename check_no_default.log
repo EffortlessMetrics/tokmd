@@ -1,0 +1,131 @@
+   Compiling libc v0.2.183
+   Compiling syn v2.0.117
+   Compiling serde_json v1.0.149
+   Compiling num-traits v0.2.19
+   Compiling chrono v0.4.44
+   Compiling jobserver v0.1.34
+   Compiling cc v1.2.57
+   Compiling getrandom v0.2.17
+   Compiling once_cell v1.21.4
+   Compiling rand_core v0.6.4
+   Compiling pyo3-build-config v0.24.2
+   Compiling rand_chacha v0.3.1
+   Compiling blake3 v1.8.3
+   Compiling rand v0.8.5
+    Checking futures-core v0.3.32
+    Checking futures-sink v0.3.32
+    Checking pin-project-lite v0.2.17
+    Checking futures-channel v0.3.32
+   Compiling wasm-bindgen-shared v0.2.114
+   Compiling phf_generator v0.11.3
+   Compiling pest_generator v2.8.6
+   Compiling phf_codegen v0.11.3
+   Compiling chrono-tz-build v0.3.0
+    Checking tokmd-content v1.9.0 (/app/crates/tokmd-content)
+    Checking tokmd-redact v1.9.0 (/app/crates/tokmd-redact)
+   Compiling pyo3-ffi v0.24.2
+   Compiling pyo3-macros-backend v0.24.2
+    Checking futures-task v0.3.32
+   Compiling serde_derive v1.0.228
+   Compiling clap_derive v4.6.0
+   Compiling chrono-tz v0.9.0
+   Compiling pest_derive v2.8.6
+    Checking serde v1.0.228
+    Checking tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+    Checking clap v4.6.0
+    Checking tokmd-types v1.9.0 (/app/crates/tokmd-types)
+    Checking toml_datetime v0.6.11
+   Compiling json5 v0.4.1
+    Checking serde_spanned v0.6.9
+   Compiling thiserror-impl v1.0.69
+    Checking toml_edit v0.22.27
+    Checking thiserror v1.0.69
+   Compiling derive_arbitrary v1.4.2
+    Checking arbitrary v1.4.2
+    Checking toml v0.8.23
+    Checking tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+    Checking tokmd-settings v1.9.0 (/app/crates/tokmd-settings)
+    Checking tokmd-git v1.9.0 (/app/crates/tokmd-git)
+    Checking table_formatter v0.6.1
+   Compiling tera v1.20.1
+    Checking clap-cargo v0.18.3
+    Checking dashmap v6.1.0
+    Checking tokmd-export-tree v1.9.0 (/app/crates/tokmd-export-tree)
+    Checking tokmd-tool-schema v1.9.0 (/app/crates/tokmd-tool-schema)
+    Checking tokmd-scan-args v1.9.0 (/app/crates/tokmd-scan-args)
+    Checking tokmd-config v1.9.0 (/app/crates/tokmd-config)
+    Checking tokmd-format v1.9.0 (/app/crates/tokmd-format)
+   Compiling futures-macro v0.3.32
+    Checking tokmd-analysis-util v1.9.0 (/app/crates/tokmd-analysis-util)
+    Checking tokmd-analysis-maintainability v1.9.0 (/app/crates/tokmd-analysis-maintainability)
+    Checking tokmd-analysis-assets v1.9.0 (/app/crates/tokmd-analysis-assets)
+    Checking tokmd-analysis-derived v1.9.0 (/app/crates/tokmd-analysis-derived)
+    Checking tokmd-analysis-content v1.9.0 (/app/crates/tokmd-analysis-content)
+    Checking tokmd-analysis-effort v1.9.0 (/app/crates/tokmd-analysis-effort)
+    Checking tokmd-analysis-complexity v1.9.0 (/app/crates/tokmd-analysis-complexity)
+    Checking tokmd-analysis-halstead v1.9.0 (/app/crates/tokmd-analysis-halstead)
+    Checking tokmd-analysis-git v1.9.0 (/app/crates/tokmd-analysis-git)
+    Checking tokmd-analysis-api-surface v1.9.0 (/app/crates/tokmd-analysis-api-surface)
+    Checking tokmd-analysis-license v1.9.0 (/app/crates/tokmd-analysis-license)
+    Checking tokmd-analysis-entropy v1.9.0 (/app/crates/tokmd-analysis-entropy)
+    Checking tokmd-analysis-archetype v1.9.0 (/app/crates/tokmd-analysis-archetype)
+    Checking tokmd-analysis-fingerprint v1.9.0 (/app/crates/tokmd-analysis-fingerprint)
+    Checking tokmd-analysis-fun v1.9.0 (/app/crates/tokmd-analysis-fun)
+    Checking tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+    Checking tokmd-analysis-topics v1.9.0 (/app/crates/tokmd-analysis-topics)
+    Checking futures-io v0.3.32
+    Checking slab v0.4.12
+    Checking tokmd-cockpit v1.9.0 (/app/crates/tokmd-cockpit)
+    Checking tokmd-analysis v1.9.0 (/app/crates/tokmd-analysis)
+    Checking futures-util v0.3.32
+   Compiling wasm-bindgen-macro-support v0.2.114
+    Checking unicode-ident v1.0.24
+   Compiling tokei v14.0.0
+    Checking futures-executor v0.3.32
+    Checking tokmd-analysis-html v1.9.0 (/app/crates/tokmd-analysis-html)
+   Compiling thiserror-impl v2.0.18
+   Compiling wasm-bindgen-macro v0.2.114
+    Checking dtor v0.1.1
+   Compiling pyo3 v0.24.2
+    Checking tokmd-ffi-envelope v1.9.0 (/app/crates/tokmd-ffi-envelope)
+    Checking libloading v0.9.0
+    Checking foldhash v0.1.5
+    Checking napi-sys v3.2.1
+    Checking hashbrown v0.15.5
+   Compiling napi-derive-backend v5.0.2
+    Checking tokmd-scan v1.9.0 (/app/crates/tokmd-scan)
+    Checking tokmd-model v1.9.0 (/app/crates/tokmd-model)
+   Compiling pyo3-macros v0.24.2
+   Compiling ctor v0.6.3
+    Checking tokmd-core v1.9.0 (/app/crates/tokmd-core)
+    Checking thiserror v2.0.18
+    Checking wasm-bindgen v0.2.114
+    Checking tokmd-analysis-format v1.9.0 (/app/crates/tokmd-analysis-format)
+    Checking futures v0.3.32
+    Checking memoffset v0.9.1
+    Checking camino v1.2.2
+    Checking tokmd-tokeignore v1.9.0 (/app/crates/tokmd-tokeignore)
+    Checking tokmd-context-git v1.9.0 (/app/crates/tokmd-context-git)
+    Checking tokmd-context-policy v1.9.0 (/app/crates/tokmd-context-policy)
+    Checking clap_complete v4.6.0
+    Checking tokmd-gate v1.9.0 (/app/crates/tokmd-gate)
+    Checking tokio v1.50.0
+    Checking cargo-platform v0.3.2
+    Checking semver v1.0.27
+    Checking iana-time-zone v0.1.65
+    Checking nohash-hasher v0.2.0
+    Checking unindent v0.2.4
+    Checking fixedbitset v0.5.7
+   Compiling napi-derive v3.5.2
+    Checking petgraph v0.8.3
+    Checking napi v3.8.3
+    Checking tokmd v1.9.0 (/app/crates/tokmd)
+    Checking cargo_metadata v0.23.1
+    Checking js-sys v0.3.91
+    Checking tokmd-substrate v1.9.0 (/app/crates/tokmd-substrate)
+    Checking tokmd-sensor v1.9.0 (/app/crates/tokmd-sensor)
+    Checking xtask v1.9.0 (/app/xtask)
+    Checking tokmd-python v1.9.0 (/app/crates/tokmd-python)
+    Checking tokmd-node v1.9.0 (/app/crates/tokmd-node)
+    Checking tokmd-wasm v1.9.0 (/app/crates/tokmd-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 01s

@@ -12,5 +12,10 @@
   {
     "run_id": "13bf324d-a8ad-4e74-9d27-673789e16269",
     "status": "PASS"
+  },
+  {
+    "run_id": "b2ba044e-893b-4117-8507-bba537f06de6",
+    "timestamp": "2026-04-06T07:39:24Z",
+    "description": "Fix pyo3 extension module linking error during all-features test"
   }
 ]

@@ -1,6 +1,7 @@
 //! Deep CLI integration tests for `tokmd run`, `tokmd cockpit`, and
 //! `tokmd badge` commands.
 
+#![cfg(feature = "git")]
 mod common;
 
 use assert_cmd::Command;
@@ -256,7 +257,6 @@ fn run_receipt_generated_at_ms_is_present() {
 
 /// Helper: create a minimal git repo with two branches for cockpit tests.
 /// Returns the tempdir (caller must keep it alive).
-#[cfg(feature = "git")]
 fn setup_cockpit_repo() -> Option<tempfile::TempDir> {
     if !common::git_available() {
         return None;
@@ -291,7 +291,6 @@ fn setup_cockpit_repo() -> Option<tempfile::TempDir> {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_schema_version() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -323,7 +322,6 @@ fn cockpit_json_has_schema_version() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_composition() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -351,7 +349,6 @@ fn cockpit_json_has_composition() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_code_health() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -379,7 +376,6 @@ fn cockpit_json_has_code_health() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_change_surface() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -407,7 +403,6 @@ fn cockpit_json_has_change_surface() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_evidence_and_risk() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -436,7 +431,6 @@ fn cockpit_json_has_evidence_and_risk() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_md_has_expected_sections() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -469,7 +463,6 @@ fn cockpit_md_has_expected_sections() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_json_has_review_plan() {
     let dir = match setup_cockpit_repo() {
         Some(d) => d,
@@ -497,7 +490,6 @@ fn cockpit_json_has_review_plan() {
 }
 
 #[test]
-#[cfg(feature = "git")]
 fn cockpit_handles_no_git_history_gracefully() {
     if !common::git_available() {
         return;
