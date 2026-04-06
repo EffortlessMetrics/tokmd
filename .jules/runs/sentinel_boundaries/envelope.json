@@ -1,0 +1,19 @@
+{
+  "prompt_id": "sentinel_boundaries",
+  "persona": "Sentinel 🛡️",
+  "style": "Builder",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "security-boundary",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
+}
