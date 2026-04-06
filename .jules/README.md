@@ -6,3 +6,4 @@ State lives on disk. Written = real.
 - `runbooks/`: templates for tasks, PRs
 - `friction/`: task queue
 - `bolt/`: performance persona state
+
