@@ -275,3 +275,15 @@ max_increase_pct = 10.0
         .assert()
         .success();
 }
+
+#[test]
+fn recipe_init_non_interactive() {
+    let tmp = tempfile::tempdir().unwrap();
+    tokmd()
+        .arg("init")
+        .arg("--non-interactive")
+        .arg("--dir")
+        .arg(tmp.path())
+        .assert()
+        .success();
+}
