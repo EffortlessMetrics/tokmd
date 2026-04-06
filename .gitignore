@@ -42,7 +42,6 @@ mutants.out.old/
 # Jules runtime state
 .jules/settings.local.json
 .jules/worktrees/
-.jules/runs/
 .jules/cache/
 .jules/transcripts/
 .jules/runtime/
