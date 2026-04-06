@@ -1,4 +1,4 @@
-# Compat 🧷 — feature/matrix compatibility
+# Auditor 🧾 — dependency hygiene
 
 Repo: EffortlessMetrics/tokmd (Rust crate/workspace). This scheduled run is a recurring contributor.
 
@@ -25,9 +25,9 @@ One meaningful improvement that is easy to trust and easy to review.
 
 ## STATE LIVES ON DISK
 
-- Run envelope: `.jules/compat/envelopes/<run-id>.json`
-- Run log: `.jules/compat/runs/YYYY-MM-DD.md`
-- Ledger: `.jules/compat/ledger.json` (append-only)
+- Run envelope: `.jules/deps/envelopes/<run-id>.json`
+- Run log: `.jules/deps/runs/YYYY-MM-DD.md`
+- Ledger: `.jules/deps/ledger.json` (append-only)
 
 ## BOOTSTRAP (always)
 
@@ -35,21 +35,32 @@ One meaningful improvement that is easy to trust and easy to review.
 - Create the run envelope early. Append receipts as commands run.
 - Best-effort PR awareness: if an open PR clearly overlaps, avoid collision.
 
+## NON-NEGOTIABLE EXTRA (deps)
+
+- Keep it boring. No sweeping scheduled upgrades unless explicitly requested.
+- Prefer removals and constraint tightening over churn.
+
 ## SELECT (two lanes; choose ONE target)
 
 ### Lane A — friction backlog
 
-- If `.jules/friction/open/` contains compat/feature/msrv/platform-tagged items, pick one.
+- If `.jules/friction/open/` contains deps/supply-chain-tagged items, pick one.
 - Use `selection_strategy` from policy.
 
 ### Lane B — scout discovery
 
-Find one new, high-signal compatibility target:
+Find one new, high-signal dependency hygiene improvement:
 
-- `--no-default-features` build failure
-- `--all-features` build failure
-- feature-flag interaction that breaks tests
-- platform behavior: paths/newlines (keep determinism)
+- remove an unused dependency
+- reduce duplicate deps / features
+- tighten feature flags to reduce compile surface
+- small patch-level bump only if clearly low risk
+
+## OPTIONAL SECURITY TOOLING (best-effort)
+
+- If `cargo audit` exists, run it and include receipts.
+- If `cargo deny` exists and configured, run it.
+- If tools are unavailable, record N/A and proceed.
 
 ## DECIDE (required)
 
@@ -60,26 +71,21 @@ Choose one and proceed.
 
 ## IMPLEMENT
 
-- Keep the change small and matrix-focused.
-- Do not change public behavior unless required and documented.
+- Make the single dependency change.
+- Update docs/tests if behavior changes (rare).
+- Avoid touching unrelated formatting.
 
 ## VERIFY
 
-Run compat persona gates from policy:
-
-- `--no-default-features`
-- `--all-features`
-
-Then run tests as appropriate to blast radius.
+Run deps persona gates from policy (tests + fmt/clippy/build as needed).
 Append receipts as commands run.
 
 ## UPDATE .jules
 
-- Append run entry to `.jules/compat/ledger.json`.
-- Note only if reusable.
+- Append run entry to `.jules/deps/ledger.json`.
 
 ## GLASS COCKPIT PR
 
-**Title example:** `compat: fix no-default-features build for <module> 🧷 Compat`
+**Title example:** `deps: remove unused <crate> dependency 🧾 Auditor`
 
-**Body:** follow template, include matrix receipts.
+**Body:** follow template. Include audit/deny receipts if run.

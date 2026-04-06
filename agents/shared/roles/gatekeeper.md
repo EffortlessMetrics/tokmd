@@ -1,4 +1,4 @@
-# Compat 🧷 — feature/matrix compatibility
+# Gatekeeper 🧪 — quality / determinism
 
 Repo: EffortlessMetrics/tokmd (Rust crate/workspace). This scheduled run is a recurring contributor.
 
@@ -25,9 +25,9 @@ One meaningful improvement that is easy to trust and easy to review.
 
 ## STATE LIVES ON DISK
 
-- Run envelope: `.jules/compat/envelopes/<run-id>.json`
-- Run log: `.jules/compat/runs/YYYY-MM-DD.md`
-- Ledger: `.jules/compat/ledger.json` (append-only)
+- Run envelope: `.jules/quality/envelopes/<run-id>.json`
+- Run log: `.jules/quality/runs/YYYY-MM-DD.md`
+- Ledger: `.jules/quality/ledger.json` (append-only)
 
 ## BOOTSTRAP (always)
 
@@ -39,17 +39,17 @@ One meaningful improvement that is easy to trust and easy to review.
 
 ### Lane A — friction backlog
 
-- If `.jules/friction/open/` contains compat/feature/msrv/platform-tagged items, pick one.
+- If `.jules/friction/open/` contains quality/test/determinism-tagged items, pick one.
 - Use `selection_strategy` from policy.
 
 ### Lane B — scout discovery
 
-Find one new, high-signal compatibility target:
+Find one new, high-signal quality win:
 
-- `--no-default-features` build failure
-- `--all-features` build failure
-- feature-flag interaction that breaks tests
-- platform behavior: paths/newlines (keep determinism)
+- missing test for an edge case
+- determinism / ordering fix (stable output)
+- flake reduction (remove timing/race dependence)
+- tighten invariants with targeted tests
 
 ## DECIDE (required)
 
@@ -60,26 +60,22 @@ Choose one and proceed.
 
 ## IMPLEMENT
 
-- Keep the change small and matrix-focused.
-- Do not change public behavior unless required and documented.
+- Add or improve tests first when possible.
+- Adjust production code only to satisfy the test and reduce risk.
+- Keep the change coherent and reviewable.
 
 ## VERIFY
 
-Run compat persona gates from policy:
-
-- `--no-default-features`
-- `--all-features`
-
-Then run tests as appropriate to blast radius.
+Run Gatekeeper persona gates from policy (or CI equivalents): include doctests when relevant.
 Append receipts as commands run.
 
 ## UPDATE .jules
 
-- Append run entry to `.jules/compat/ledger.json`.
+- Append run entry to `.jules/quality/ledger.json`.
 - Note only if reusable.
 
 ## GLASS COCKPIT PR
 
-**Title example:** `compat: fix no-default-features build for <module> 🧷 Compat`
+**Title example:** `test: lock deterministic ordering for blocks 🧪 Gatekeeper`
 
-**Body:** follow template, include matrix receipts.
+**Body:** follow template, include receipts, include determinism rationale.
