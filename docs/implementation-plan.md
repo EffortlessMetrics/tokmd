@@ -312,6 +312,32 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
+
+---
+
+## Phase 4f: Language Bindings (FFI) ✅ Complete
+
+**Goal**: Native integration in CI pipelines and tooling ecosystems via PyO3 and napi-rs.
+
+### Python (PyPI: `tokmd`)
+
+1. **Crate**: `tokmd-python/`
+2. **API**: `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
+3. **Distribution**: Wheels for Linux, macOS, Windows via maturin
+
+### Node.js (npm: `@tokmd/core`)
+
+1. **Crate**: `tokmd-node/`
+2. **API**: `lang()`, `module()`, `export()`, `analyze()`, `diff()`
+3. **Distribution**: Prebuilds for major platforms via napi-rs
+
+### Work Items
+
+- [x] Create `tokmd-ffi-envelope` for shared serialization
+- [x] Implement PyO3 bindings in `tokmd-python`
+- [x] Implement napi-rs bindings in `tokmd-node`
+- [x] Add GitHub Actions release workflows for PyPI and npm
+
 ## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)
 
 **Goal**: Turn the new host-abstraction seam into a real in-memory/WASM execution path and ship a browser-first runner.
@@ -330,10 +356,10 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [ ] Route scan and walk through host-provided I/O traits
-- [ ] Add wasm CI builds and parity checks against native output
-- [ ] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
-- [ ] Build a browser runner with progress, cancel, and download flows
+- [x] Route scan and walk through host-provided I/O traits
+- [x] Add wasm CI builds and parity checks against native output
+- [x] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
+- [x] Build a browser runner with progress, cancel, and download flows
 - [ ] Add cache/guardrail policy for archive size, file count, and bytes read
 
 ### Tests
