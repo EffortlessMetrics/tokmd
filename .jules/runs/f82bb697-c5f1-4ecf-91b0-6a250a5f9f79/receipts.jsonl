@@ -1,0 +1,5 @@
+{"command": "grep -A 20 -B 5 \"tokmd context\" docs/reference-cli.md"}
+{"command": "grep -A 20 -B 5 \"tokmd gate\" docs/reference-cli.md"}
+{"command": "cargo fmt -- --check"}
+{"command": "cargo clippy -p tokmd -- -D warnings"}
+{"command": "cargo test -p tokmd"}

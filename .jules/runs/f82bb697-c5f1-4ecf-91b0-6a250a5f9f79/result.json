@@ -1,0 +1,8 @@
+{
+  "summary": "Added doctest examples for `tokmd context` and `tokmd gate` CLI subcommands.",
+  "outcome": "proof-improvement patch",
+  "files_modified": [
+    "crates/tokmd/tests/docs.rs"
+  ],
+  "reasoning": "The 'Interfaces' shard and Librarian persona focus on ensuring accurate, executable documentation. Option A was selected as it complies with 'Docs as tests' rules explicitly laid out in the codebase instructions. Tests for 'tokmd context' and 'tokmd gate' were appended matching the `reference-cli.md` explicitly read from the repo."
+}

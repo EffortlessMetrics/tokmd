@@ -80,6 +80,151 @@ fn recipe_analyze_presets() {
 }
 
 #[test]
+fn recipe_context_list() {
+    // "tokmd context --budget 128k"
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_context_bundle() {
+    // "tokmd context --budget 128k --mode bundle --output context.txt"
+    let tmp = tempfile::tempdir().unwrap();
+    let bundle_path = tmp.path().join("context.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&bundle_path)
+        .assert()
+        .success();
+    assert!(bundle_path.exists());
+}
+
+#[test]
+fn recipe_context_spread() {
+    // "tokmd context --budget 200k --strategy spread"
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("200k")
+        .arg("--strategy")
+        .arg("spread")
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_context_bundle_compress() {
+    // "tokmd context --budget 100k --mode bundle --compress --output bundle.txt"
+    let tmp = tempfile::tempdir().unwrap();
+    let bundle_path = tmp.path().join("bundle.txt");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("100k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--compress")
+        .arg("--output")
+        .arg(&bundle_path)
+        .assert()
+        .success();
+    assert!(bundle_path.exists());
+}
+
+#[test]
+fn recipe_context_json() {
+    // "tokmd context --budget 128k --mode json --output selection.json"
+    let tmp = tempfile::tempdir().unwrap();
+    let json_path = tmp.path().join("selection.json");
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("json")
+        .arg("--output")
+        .arg(&json_path)
+        .assert()
+        .success();
+    assert!(json_path.exists());
+}
+
+#[test]
+fn recipe_gate_default() {
+    // "tokmd gate" (Requires a policy to succeed in tests, simulating inline config)
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(&policy_path, r#"
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 5000000
+"#).unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_gate_json() {
+    // "tokmd gate --format json"
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(&policy_path, r#"
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 5000000
+"#).unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--format")
+        .arg("json")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_gate_fail_fast() {
+    // "tokmd gate --fail-fast"
+    let tmp = tempfile::tempdir().unwrap();
+    let policy_path = tmp.path().join("policy.toml");
+    std::fs::write(&policy_path, r#"
+[[rules]]
+name = "max_tokens"
+pointer = "/derived/totals/tokens"
+op = "lte"
+value = 5000000
+"#).unwrap();
+
+    tokmd()
+        .arg("gate")
+        .arg("--fail-fast")
+        .arg("--policy")
+        .arg(&policy_path)
+        .assert()
+        .success();
+}
+
+#[test]
 fn recipe_tools_export_schemas() {
     // "tokmd tools --format openai --pretty"
     tokmd()
