@@ -806,11 +806,17 @@ fn given_git_repo_with_changes_when_cockpit_json_then_valid_schema() {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     let output = cmd
         .current_dir(dir.path())
-        .args(["cockpit", "--base", "main", "--head", "HEAD", "--format", "json"])
+        .args([
+            "cockpit", "--base", "main", "--head", "HEAD", "--format", "json",
+        ])
         .output()
         .expect("failed to execute tokmd cockpit");
 
-    assert!(output.status.success(), "tokmd cockpit failed: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "tokmd cockpit failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 
     // Then: It outputs valid JSON with the expected schema version
     let stdout = String::from_utf8(output.stdout).unwrap();
