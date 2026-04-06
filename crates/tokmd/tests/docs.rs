@@ -163,13 +163,17 @@ fn recipe_gate_default() {
     // "tokmd gate" (Requires a policy to succeed in tests, simulating inline config)
     let tmp = tempfile::tempdir().unwrap();
     let policy_path = tmp.path().join("policy.toml");
-    std::fs::write(&policy_path, r#"
+    std::fs::write(
+        &policy_path,
+        r#"
 [[rules]]
 name = "max_tokens"
 pointer = "/derived/totals/tokens"
 op = "lte"
 value = 5000000
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     tokmd()
         .arg("gate")
@@ -184,13 +188,17 @@ fn recipe_gate_json() {
     // "tokmd gate --format json"
     let tmp = tempfile::tempdir().unwrap();
     let policy_path = tmp.path().join("policy.toml");
-    std::fs::write(&policy_path, r#"
+    std::fs::write(
+        &policy_path,
+        r#"
 [[rules]]
 name = "max_tokens"
 pointer = "/derived/totals/tokens"
 op = "lte"
 value = 5000000
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     tokmd()
         .arg("gate")
@@ -207,13 +215,17 @@ fn recipe_gate_fail_fast() {
     // "tokmd gate --fail-fast"
     let tmp = tempfile::tempdir().unwrap();
     let policy_path = tmp.path().join("policy.toml");
-    std::fs::write(&policy_path, r#"
+    std::fs::write(
+        &policy_path,
+        r#"
 [[rules]]
 name = "max_tokens"
 pointer = "/derived/totals/tokens"
 op = "lte"
 value = 5000000
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     tokmd()
         .arg("gate")
