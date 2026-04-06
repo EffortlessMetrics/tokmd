@@ -1,6 +1,6 @@
-id: docs
+id: librarian
 adapter: jules
-shared_role: agents/shared/roles/docs.md
+shared_role: agents/shared/roles/librarian.md
 mission: Keep READMEs and reference docs aligned with reality.
 max_concerns: 1
 may_touch:

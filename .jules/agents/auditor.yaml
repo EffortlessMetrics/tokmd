@@ -1,6 +1,6 @@
-id: deps
+id: auditor
 adapter: jules
-shared_role: agents/shared/roles/deps.md
+shared_role: agents/shared/roles/auditor.md
 mission: Keep dependency surfaces narrow and honest.
 max_concerns: 1
 may_touch:
