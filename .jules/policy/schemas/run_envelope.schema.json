@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://effortlessmetrics.example/jules/run_envelope.schema.json",
+  "title": "Jules Run Envelope",
+  "type": "object",
+  "required": [
+    "run_id",
+    "prompt_id",
+    "persona",
+    "style",
+    "primary_shard",
+    "allowed_paths",
+    "adjacent_paths_allowed",
+    "gate_profile",
+    "allowed_outcomes",
+    "status",
+    "truth_sources",
+    "options",
+    "artifacts",
+    "commands"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "prompt_id": {
+      "type": "string"
+    },
+    "persona": {
+      "type": "string"
+    },
+    "style": {
+      "type": "string"
+    },
+    "primary_shard": {
+      "type": "string"
+    },
+    "allowed_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "adjacent_paths_allowed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gate_profile": {
+      "type": "string"
+    },
+    "allowed_outcomes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "patch",
+          "proof_patch",
+          "learning_pr"
+        ]
+      }
+    },
+    "status": {
+      "enum": [
+        "planning",
+        "implementing",
+        "verifying",
+        "completed"
+      ]
+    },
+    "truth_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "options": {
+      "type": "object",
+      "required": [
+        "a",
+        "b",
+        "selected",
+        "decision_rationale"
+      ],
+      "properties": {
+        "a": {
+          "$ref": "#/$defs/option"
+        },
+        "b": {
+          "$ref": "#/$defs/option"
+        },
+        "selected": {
+          "enum": [
+            "a",
+            "b"
+          ]
+        },
+        "decision_rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "decision_md",
+        "receipts_jsonl",
+        "result_json",
+        "pr_body_md"
+      ],
+      "properties": {
+        "decision_md": {
+          "type": "string"
+        },
+        "receipts_jsonl": {
+          "type": "string"
+        },
+        "result_json": {
+          "type": "string"
+        },
+        "pr_body_md": {
+          "type": "string"
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "phase",
+          "cmd",
+          "status"
+        ],
+        "properties": {
+          "phase": {
+            "type": "string"
+          },
+          "cmd": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "N/A",
+              "PLANNED"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "option": {
+      "type": "object",
+      "required": [
+        "summary"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "pros": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

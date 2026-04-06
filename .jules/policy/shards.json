@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "shards": {
+    "core-pipeline": {
+      "primary_paths": [
+        "crates/tokmd-types/**",
+        "crates/tokmd-scan/**",
+        "crates/tokmd-model/**",
+        "crates/tokmd-format/**"
+      ],
+      "adjacent_paths": [
+        "docs/schema.json",
+        "docs/SCHEMA.md",
+        "crates/tokmd/tests/**"
+      ],
+      "notes": "Core data, scan, model, and formatting pipeline."
+    },
+    "analysis-stack": {
+      "primary_paths": [
+        "crates/tokmd-analysis*/**",
+        "crates/tokmd-fun/**",
+        "crates/tokmd-gate/**"
+      ],
+      "adjacent_paths": [
+        "crates/tokmd-core/**",
+        "crates/tokmd/tests/**",
+        "docs/**"
+      ],
+      "notes": "Derived analysis, fun outputs, gate logic."
+    },
+    "interfaces": {
+      "primary_paths": [
+        "crates/tokmd-config/**",
+        "crates/tokmd-core/**",
+        "crates/tokmd/**"
+      ],
+      "adjacent_paths": [
+        "docs/reference-cli.md",
+        "docs/tutorial.md",
+        "crates/tokmd/tests/**"
+      ],
+      "notes": "Config, core facade, and CLI interfaces."
+    },
+    "bindings-targets": {
+      "primary_paths": [
+        "crates/tokmd-python/**",
+        "crates/tokmd-node/**",
+        "crates/tokmd-wasm/**",
+        "web/runner/**"
+      ],
+      "adjacent_paths": [
+        "crates/tokmd-core/**",
+        "docs/**"
+      ],
+      "notes": "Python/Node/Wasm/browser-runner interfaces and target-specific behavior."
+    },
+    "tooling-governance": {
+      "primary_paths": [
+        "xtask/**",
+        ".github/workflows/**",
+        "docs/**",
+        "ROADMAP.md",
+        "CHANGELOG.md",
+        "Cargo.toml",
+        "Cargo.lock"
+      ],
+      "adjacent_paths": [
+        "crates/**/Cargo.toml",
+        ".cargo/**"
+      ],
+      "notes": "Workspace tooling, workflows, docs, release metadata, manifests."
+    },
+    "workspace-wide": {
+      "primary_paths": [
+        "**"
+      ],
+      "adjacent_paths": [],
+      "notes": "Whole-workspace structural or meta work. Landing must still be one coherent reviewer story."
+    }
+  }
+}
