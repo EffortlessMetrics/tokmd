@@ -1,0 +1,4 @@
+{
+  "outcome": "PR-ready patch",
+  "story": "tokmd gate command no longer silently swallows errors for explicitly requested missing/invalid policy files. It correctly fails to load and reports the error path."
+}

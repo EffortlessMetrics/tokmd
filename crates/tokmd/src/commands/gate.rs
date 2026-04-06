@@ -43,7 +43,7 @@ pub(crate) fn handle(
     let receipt = load_or_compute_receipt(&args, global)?;
 
     // Load policy from file, CLI args, or config (may be None if only ratchet is used)
-    let policy = load_policy(&args, resolved).ok();
+    let policy = load_policy(&args, resolved)?;
 
     // Load baseline if provided
     let baseline = load_baseline(&args, resolved)?;
@@ -136,11 +136,12 @@ fn combine_results(
 }
 
 /// Load policy from file or config.
-fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<PolicyConfig> {
+fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<Option<PolicyConfig>> {
     // 1. CLI --policy flag takes precedence
     if let Some(policy_path) = &args.policy {
-        return PolicyConfig::from_file(policy_path)
-            .with_context(|| format!("Failed to load policy from {}", policy_path.display()));
+        let config = PolicyConfig::from_file(policy_path)
+            .with_context(|| format!("Failed to load policy from {}", policy_path.display()))?;
+        return Ok(Some(config));
     }
 
     // 2. Check tokmd.toml [gate] section for inline rules or policy path
@@ -150,8 +151,9 @@ fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<Pol
         // Check for policy path in config
         if let Some(policy_path) = &gate_config.policy {
             let path = std::path::PathBuf::from(policy_path);
-            return PolicyConfig::from_file(&path)
-                .with_context(|| format!("Failed to load policy from {}", path.display()));
+            let config = PolicyConfig::from_file(&path)
+                .with_context(|| format!("Failed to load policy from {}", path.display()))?;
+            return Ok(Some(config));
         }
 
         // Check for inline rules
@@ -163,16 +165,16 @@ fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<Pol
                 .map(convert_gate_rule)
                 .collect::<Result<Vec<_>>>()?;
 
-            return Ok(PolicyConfig {
+            return Ok(Some(PolicyConfig {
                 rules: policy_rules,
                 fail_fast: gate_config.fail_fast.unwrap_or(false),
                 allow_missing: false,
-            });
+            }));
         }
     }
 
     // No policy found
-    bail!("No policy specified")
+    Ok(None)
 }
 
 /// Load baseline receipt for ratchet comparison.

@@ -1,0 +1,4 @@
+{"cmd": "cargo run --bin tokmd -- gate . --policy does_not_exist.json", "output": "Error: No policy or ratchet rules specified...", "status": 1}
+{"cmd": "patch crates/tokmd/src/commands/gate.rs < test.diff", "status": 0}
+{"cmd": "cargo run --bin tokmd -- gate . --policy does_not_exist.json", "output": "Error: Failed to load policy from does_not_exist.json: Failed to read policy file: No such file or directory (os error 2)", "status": 1}
+{"cmd": "patch crates/tokmd-gate/src/types.rs < format.diff", "status": 0}

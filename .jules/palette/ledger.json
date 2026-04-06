@@ -1,0 +1,12 @@
+{
+  "runs": [
+    {
+      "date": "2026-04-06",
+      "lane": "interfaces",
+      "target": "Palette DX improvement: explicit gate policy error",
+      "pr_link": "local",
+      "gates": "core-rust",
+      "friction_ids": []
+    }
+  ]
+}

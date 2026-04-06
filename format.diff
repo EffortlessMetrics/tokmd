@@ -1,0 +1,39 @@
+<<<<<<< SEARCH
+impl std::fmt::Display for GateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::IoError(e) => write!(f, "Failed to read policy file: {e}"),
+            Self::TomlError(e) => write!(f, "Failed to parse policy TOML: {e}"),
+            Self::InvalidPointer(p) => write!(f, "Invalid JSON pointer: {p}"),
+            Self::TypeMismatch { expected, actual } => {
+                write!(f, "Type mismatch: expected {expected}, got {actual}")
+            }
+            Self::InvalidOperator { op, value_type } => {
+                write!(f, "Invalid operator '{op}' for type '{value_type}'")
+            }
+            Self::MissingField { name, field } => {
+                write!(f, "Rule '{name}' missing required field: {field}")
+            }
+        }
+    }
+}
+=======
+impl std::fmt::Display for GateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::IoError(_) => write!(f, "Failed to read policy file"),
+            Self::TomlError(_) => write!(f, "Failed to parse policy TOML"),
+            Self::InvalidPointer(p) => write!(f, "Invalid JSON pointer: {p}"),
+            Self::TypeMismatch { expected, actual } => {
+                write!(f, "Type mismatch: expected {expected}, got {actual}")
+            }
+            Self::InvalidOperator { op, value_type } => {
+                write!(f, "Invalid operator '{op}' for type '{value_type}'")
+            }
+            Self::MissingField { name, field } => {
+                write!(f, "Rule '{name}' missing required field: {field}")
+            }
+        }
+    }
+}
+>>>>>>> REPLACE
