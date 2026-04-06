@@ -1,0 +1,39 @@
+[
+  {
+    "run_id": "1773924536",
+    "timestamp": "2026-03-19T12:49:09Z"
+  },
+  {
+    "date": "2026-03-21T14:08:30Z",
+    "lane": "scout",
+    "target": "crates/tokmd-analysis-effort/src/delta.rs: replace String cloning and BTreeSets with BTreeSet<&str> / Option<&str> in build_delta",
+    "proof_method": "structural",
+    "pr_link": "",
+    "gates": "build, test, fmt, clippy",
+    "friction_ids": []
+  },
+  {
+    "date": "2026-03-22T13:03:37Z",
+    "run_id": "3eaaed8a-553d-46e7-aea7-9e7b44e684e9",
+    "lane": "scout",
+    "target": "Reduce String allocations in tokmd-model and tokmd-analysis-derived hot aggregation loops",
+    "proof_method": "structural",
+    "pr_link": "",
+    "gates": "fmt-fix, test(tokmd-model,tokmd-analysis-derived), clippy(tokmd-model,tokmd-analysis-derived)",
+    "friction_ids": []
+  },
+  {
+    "date": "2026-03-26T12:56:00Z",
+    "lane": "scout",
+    "target": "crates/tokmd-model/src/lib.rs",
+    "proof_method": "structural proof / benchmark",
+    "pr_link": null,
+    "gates": [
+      "build",
+      "test",
+      "fmt",
+      "clippy"
+    ],
+    "friction_ids": []
+  }
+]

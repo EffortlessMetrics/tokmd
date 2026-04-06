@@ -37,5 +37,18 @@ Bullets with file paths.
 Copy from the run envelope. Commands + results.
 
 ## 🧭 Telemetry
+- Change shape
+- Blast radius (API / IO / format stability / concurrency)
+- Risk class + why
+- Rollback
+- Merge-confidence gates (what ran)
 
-[20 more lines in file. Use offset=51 to continue.]
+## 🗂️ .jules updates
+What changed in .jules and why.
+
+## 📝 Notes (freeform)
+Optional. Extra context for future runs or reviewers.
+
+## 🔜 Follow-ups
+If anything remains, create friction items and link them.
+---

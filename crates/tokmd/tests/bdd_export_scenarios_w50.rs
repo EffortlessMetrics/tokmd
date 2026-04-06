@@ -26,11 +26,11 @@ fn given_project_when_export_jsonl_then_each_line_is_valid_json() {
     let output = tokmd_cmd()
         .args(["export", "--format", "jsonl"])
         .output()
-        .expect("tokmd export JSONL command should succeed");
+        .expect("failed to execute tokmd export --format jsonl");
 
     // Then: each line is valid JSON
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).expect("tokmd output should be valid UTF-8");
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let lines: Vec<&str> = stdout.lines().filter(|l| !l.trim().is_empty()).collect();
     assert!(
         lines.len() >= 2,
@@ -54,17 +54,16 @@ fn given_project_when_export_jsonl_then_meta_has_schema_version() {
     let output = tokmd_cmd()
         .args(["export", "--format", "jsonl"])
         .output()
-        .expect("tokmd export JSONL command should succeed");
+        .expect("failed to execute tokmd export --format jsonl");
 
     // Then: the first line (meta) has schema_version
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).expect("tokmd output should be valid UTF-8");
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let first_line = stdout
         .lines()
         .next()
-        .expect("JSONL output should have at least one line for metadata");
-    let meta: Value =
-        serde_json::from_str(first_line).expect("JSONL meta line should be valid JSON");
+        .expect("should have at least one line");
+    let meta: Value = serde_json::from_str(first_line).expect("meta line should be valid JSON");
     assert!(
         meta["schema_version"].is_number(),
         "meta line should have schema_version"
@@ -82,15 +81,12 @@ fn given_project_when_export_csv_then_header_matches_expected_columns() {
     let output = tokmd_cmd()
         .args(["export", "--format", "csv"])
         .output()
-        .expect("tokmd export CSV command should succeed");
+        .expect("failed to execute tokmd export --format csv");
 
     // Then: header row has expected columns
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).expect("tokmd output should be valid UTF-8");
-    let header = stdout
-        .lines()
-        .next()
-        .expect("CSV output should have a header line");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let header = stdout.lines().next().expect("should have header line");
 
     assert!(
         header.contains("path") || header.contains("file"),
@@ -117,11 +113,11 @@ fn given_project_when_export_csv_then_rows_have_consistent_columns() {
     let output = tokmd_cmd()
         .args(["export", "--format", "csv"])
         .output()
-        .expect("tokmd export CSV command should succeed");
+        .expect("failed to execute tokmd export --format csv");
 
     // Then: all data rows have the same column count as the header
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).expect("tokmd output should be valid UTF-8");
+    let stdout = String::from_utf8(output.stdout).unwrap();
     let lines: Vec<&str> = stdout.lines().collect();
     assert!(lines.len() >= 2, "need header + at least one data row");
 
@@ -153,22 +149,17 @@ fn given_project_when_export_redact_paths_then_no_real_paths() {
     let output = tokmd_cmd()
         .args(["export", "--format", "json", "--redact", "paths"])
         .output()
-        .expect("tokmd export with path redaction command should succeed");
+        .expect("failed to execute tokmd export --redact paths");
 
     // Then: no real file paths appear in output
     assert!(output.status.success());
-    let json: Value =
-        serde_json::from_slice(&output.stdout).expect("tokmd output should be valid JSON");
-    let rows = json["rows"]
-        .as_array()
-        .expect("JSON output rows field should be an array");
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let rows = json["rows"].as_array().expect("rows should be array");
     assert!(!rows.is_empty(), "should have rows");
 
     let known_filenames = ["main.rs", "script.js", "large.rs", "README.md", "mixed.md"];
     for row in rows {
-        let path = row["path"]
-            .as_str()
-            .expect("JSON row path field should be a string");
+        let path = row["path"].as_str().expect("path should be a string");
         for name in &known_filenames {
             assert!(
                 !path.contains(name),
@@ -189,12 +180,11 @@ fn given_project_when_export_json_then_has_mode_and_schema() {
     let output = tokmd_cmd()
         .args(["export", "--format", "json"])
         .output()
-        .expect("tokmd export JSON command should succeed");
+        .expect("failed to execute tokmd export --format json");
 
     // Then: output has mode="export" and schema_version
     assert!(output.status.success());
-    let json: Value =
-        serde_json::from_slice(&output.stdout).expect("tokmd output should be valid JSON");
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(json["mode"], "export", "mode should be 'export'");
     assert!(
         json["schema_version"].is_number(),
@@ -213,15 +203,12 @@ fn given_project_when_export_json_then_rows_have_path_and_language() {
     let output = tokmd_cmd()
         .args(["export", "--format", "json"])
         .output()
-        .expect("tokmd export JSON command should succeed");
+        .expect("failed to execute tokmd export --format json");
 
     // Then: each row has path and language fields
     assert!(output.status.success());
-    let json: Value =
-        serde_json::from_slice(&output.stdout).expect("tokmd output should be valid JSON");
-    let rows = json["rows"]
-        .as_array()
-        .expect("JSON output rows field should be an array");
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let rows = json["rows"].as_array().expect("rows should be array");
     assert!(!rows.is_empty());
 
     for row in rows {
@@ -238,7 +225,7 @@ fn given_project_when_export_json_then_rows_have_path_and_language() {
 #[test]
 fn given_empty_dir_when_export_json_then_empty_rows() {
     // Given: an empty directory
-    let dir = tempdir().expect("creation of temporary directory for empty dir test should succeed");
+    let dir = tempdir().unwrap();
     std::fs::create_dir_all(dir.path().join(".git")).expect("create .git marker");
 
     // When: I export as JSON
@@ -247,14 +234,11 @@ fn given_empty_dir_when_export_json_then_empty_rows() {
         .current_dir(dir.path())
         .args(["export", "--format", "json"])
         .output()
-        .expect("tokmd export command on empty directory should succeed");
+        .expect("failed to execute tokmd export on empty dir");
 
     // Then: rows array is empty
     assert!(output.status.success());
-    let json: Value =
-        serde_json::from_slice(&output.stdout).expect("tokmd output should be valid JSON");
-    let rows = json["rows"]
-        .as_array()
-        .expect("JSON output rows field should be an array");
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let rows = json["rows"].as_array().expect("rows should be array");
     assert!(rows.is_empty(), "empty dir should produce no export rows");
 }

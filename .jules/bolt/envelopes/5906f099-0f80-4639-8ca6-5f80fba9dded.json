@@ -1,1 +1,0 @@
-{"run_id":"5906f099-0f80-4639-8ca6-5f80fba9dded","timestamp_utc":"2026-04-02T12:29:16Z","lane":"scout discovery","target":"Reduce allocations in CycloneDx JSON exports","proof_method":"microbenchmark","commands":["cargo test -p tokmd-format"],"results_summary":["cyclonedx_itoa is faster than cyclonedx_to_string"]}
