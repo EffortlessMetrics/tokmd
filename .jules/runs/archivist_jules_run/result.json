@@ -1,0 +1,34 @@
+{
+  "run_id": "archivist_jules_run",
+  "prompt_id": "archivist_jules",
+  "persona": "Archivist",
+  "style": "Builder",
+  "primary_shard": "workspace-wide",
+  "outcome_type": "patch",
+  "title": "archivist: deduplicate persona notes boilerplate into shared guidance 🗃️",
+  "summary": "Moved duplicated `## Notes` section from all persona READMEs into neutral shared guidance in `.jules/README.md`.",
+  "target_paths": [
+    ".jules/README.md",
+    ".jules/personas/*/README.md"
+  ],
+  "problem_statement": "Sixteen different persona READMEs contained identical boilerplate explaining how to use their respective `notes/` directories.",
+  "proof_summary": {
+    "mode": "governance",
+    "claim": "Consolidates persona documentation and reduces repetitive boilerplate.",
+    "measured": true,
+    "notes": "Verified by diffing the readmes and checking the updated `.jules/README.md`."
+  },
+  "gates_run": [
+    {
+      "profile": "governance-release",
+      "cmd": "cargo xtask gate --check",
+      "status": "PASS",
+      "summary": "Full quality gate"
+    }
+  ],
+  "risk": "low",
+  "rollback": "git reset --hard && git clean -fd (excluding needed run data)",
+  "friction_items_created": [],
+  "notes_created": [],
+  "follow_ups": []
+}

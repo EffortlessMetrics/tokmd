@@ -17,6 +17,3 @@ State the invariant explicitly. Add deterministic reproductions when useful.
 ## Anti-drift rules
 Do not add arbitrary proptests without a clearly stated invariant.
 
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.
