@@ -1,1 +1,0 @@
-{"cmd": "cargo test -p tokmd --test bdd_scenarios_w75", "status": "success", "summary": "Verified the new BDD integration test passes and checks the schema output of the cockpit command."}
