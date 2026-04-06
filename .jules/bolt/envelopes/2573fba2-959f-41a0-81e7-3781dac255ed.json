@@ -1,9 +1,0 @@
-{
-  "run_id": "2573fba2-959f-41a0-81e7-3781dac255ed",
-  "timestamp_utc": "2026-03-29T12:49:20Z",
-  "lane": "scout",
-  "target": "Avoid unnecessary allocations/cloning in hot paths iterating over FileRows",
-  "proof_method": "structural",
-  "commands": [],
-  "results": []
-}

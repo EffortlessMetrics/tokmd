@@ -1,8 +1,0 @@
-{
-  "run_id": "e2f2c2ee-2f02-4c09-bc31-db76fb0c8c88",
-  "status": "PASS",
-  "receipts": [
-    "cargo test --test determinism -> ok"
-  ],
-  "friction_ids": []
-}

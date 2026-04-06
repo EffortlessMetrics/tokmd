@@ -1,1 +1,0 @@
-{"id":"20260321T121351Z","receipts":["cargo test -p tokmd-gate -p tokmd-ffi-envelope","cargo check","cargo clippy -p tokmd-gate -p tokmd-ffi-envelope -- -D warnings"]}
