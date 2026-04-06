@@ -1,0 +1,6 @@
+{
+  "lane": "scout",
+  "target": "Refactor unwrap_or_default in assertions to use Some() or unwrap() with context",
+  "commands": [],
+  "results": []
+}
