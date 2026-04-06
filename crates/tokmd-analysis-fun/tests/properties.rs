@@ -154,30 +154,30 @@ proptest! {
     #[test]
     fn bytes_field_matches_input(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
         let report = build_fun_report(&derived_with_bytes(bytes));
-        let eco = report.eco_label.unwrap();
+        let eco = report.eco_label.expect("eco_label must be present for this test case");
         prop_assert_eq!(eco.bytes, bytes as u64);
     }
 
     /// Score is always in [0, 100].
     #[test]
     fn score_in_valid_range(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.expect("eco_label must be present for this test case");
         prop_assert!(eco.score >= 0.0 && eco.score <= 100.0);
     }
 
     /// Label is always a single uppercase ASCII letter.
     #[test]
     fn label_is_single_uppercase_letter(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.expect("eco_label must be present for this test case");
         prop_assert_eq!(eco.label.len(), 1);
-        let ch = eco.label.chars().next().unwrap();
+        let ch = eco.label.chars().next().expect("label string must not be empty");
         prop_assert!(ch.is_ascii_uppercase(), "label was: {}", eco.label);
     }
 
     /// Label is one of the five known grades.
     #[test]
     fn label_is_known_grade(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.expect("eco_label must be present for this test case");
         prop_assert!(
             ["A", "B", "C", "D", "E"].contains(&eco.label.as_str()),
             "unexpected label: {}",
@@ -188,7 +188,7 @@ proptest! {
     /// Notes always contain "MB" suffix.
     #[test]
     fn notes_contain_mb_suffix(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.expect("eco_label must be present for this test case");
         prop_assert!(eco.notes.contains("MB"), "notes missing MB: {}", eco.notes);
     }
 
@@ -196,8 +196,8 @@ proptest! {
     #[test]
     fn deterministic_output(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
         let d = derived_with_bytes(bytes);
-        let e1 = build_fun_report(&d).eco_label.unwrap();
-        let e2 = build_fun_report(&d).eco_label.unwrap();
+        let e1 = build_fun_report(&d).eco_label.expect("eco_label must be present for this test case");
+        let e2 = build_fun_report(&d).eco_label.expect("eco_label must be present for this test case");
         prop_assert_eq!(&e1.label, &e2.label);
         prop_assert_eq!(e1.score, e2.score);
         prop_assert_eq!(e1.bytes, e2.bytes);
@@ -211,8 +211,8 @@ proptest! {
         b in 0usize..=(1024 * 1024 * 1024),
     ) {
         let (lo, hi) = if a <= b { (a, b) } else { (b, a) };
-        let s_lo = build_fun_report(&derived_with_bytes(lo)).eco_label.unwrap().score;
-        let s_hi = build_fun_report(&derived_with_bytes(hi)).eco_label.unwrap().score;
+        let s_lo = build_fun_report(&derived_with_bytes(lo)).eco_label.expect("eco_label must be present for this test case").score;
+        let s_hi = build_fun_report(&derived_with_bytes(hi)).eco_label.expect("eco_label must be present for this test case").score;
         prop_assert!(
             s_lo >= s_hi,
             "score for {} bytes ({}) should be >= score for {} bytes ({})",
@@ -223,7 +223,7 @@ proptest! {
     /// Notes start with a fixed human-readable prefix.
     #[test]
     fn notes_have_fixed_prefix(bytes in 0usize..=(2 * 1024 * 1024 * 1024)) {
-        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.unwrap();
+        let eco = build_fun_report(&derived_with_bytes(bytes)).eco_label.expect("eco_label must be present for this test case");
         prop_assert!(
             eco.notes.starts_with("Size-based eco label"),
             "unexpected prefix: {}",
