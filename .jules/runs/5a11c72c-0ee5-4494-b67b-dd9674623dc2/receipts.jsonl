@@ -1,0 +1,2 @@
+{"command": "replace_with_git_merge_diff", "target": "crates/tokmd/tests/docs.rs"}
+{"command": "run_in_bash_session", "target": "cargo fmt -- --check && cargo clippy -p tokmd -- -D warnings && cargo test -p tokmd"}

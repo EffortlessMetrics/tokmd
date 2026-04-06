@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_type": "docs-test",
+  "summary": "Added test coverage for tokmd analyze --preset estimate variants with --effort-base-ref and --monte-carlo flags to prevent docs silent drift.",
+  "files_changed": [
+    "crates/tokmd/tests/docs.rs"
+  ]
+}
