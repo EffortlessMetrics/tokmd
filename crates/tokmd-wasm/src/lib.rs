@@ -168,7 +168,7 @@ mod tests {
             },
             {
                 "path": "tests/basic.py",
-                "text": "# TODO: keep smoke\nprint('ok')\n"
+                "text": "# Smoke test file\nprint('ok')\n"
             }
         ])
     }

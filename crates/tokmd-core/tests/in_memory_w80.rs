@@ -82,7 +82,7 @@ fn fixture_dir() -> TempDir {
     write_file(
         dir.path(),
         "tests/basic.py",
-        "# TODO: keep smoke\nprint('ok')\n",
+        "# Smoke test file\nprint('ok')\n",
     );
     dir
 }
@@ -91,7 +91,7 @@ fn fixture_inputs() -> Vec<InMemoryFile> {
     vec![
         InMemoryFile::new("crates/app/src/lib.rs", "pub fn alpha() -> usize { 1 }\n"),
         InMemoryFile::new("src/main.rs", "fn main() {}\n"),
-        InMemoryFile::new("tests/basic.py", "# TODO: keep smoke\nprint('ok')\n"),
+        InMemoryFile::new("tests/basic.py", "# Smoke test file\nprint('ok')\n"),
     ]
 }
 

@@ -27,7 +27,7 @@ fn analyze_inputs_json() -> Vec<Value> {
         }),
         json!({
             "path": "tests/basic.py",
-            "text": "# TODO: keep smoke\nprint('ok')\n"
+            "text": "# Smoke test file\nprint('ok')\n"
         }),
     ]
 }
