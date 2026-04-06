@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "runs": [
+    {
+      "date": "2026-04-06",
+      "lane": "B",
+      "target": "determinism_unwrap",
+      "pr_link": "",
+      "gates": [
+        "fmt",
+        "clippy",
+        "test"
+      ],
+      "friction_ids": [
+        "determinism_unwrap"
+      ]
+    }
+  ]
+}
