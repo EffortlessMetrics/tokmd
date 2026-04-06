@@ -171,14 +171,17 @@ fn md_lang_has_header_separator_and_total() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let lines: Vec<&str> = out.lines().collect();
     assert!(lines[0].starts_with("|Lang|"), "first line is header");
     assert!(lines[1].contains("---"), "second line is separator");
     assert!(
-        lines.last().unwrap().contains("**Total**"),
+        lines
+            .last()
+            .expect("operation must succeed")
+            .contains("**Total**"),
         "last line is total"
     );
 }
@@ -193,10 +196,13 @@ fn md_lang_with_files_has_seven_columns() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     // |Lang|Code|Lines|Files|Bytes|Tokens|Avg| → 7 data columns, 8 pipes
     assert_eq!(header.matches('|').count(), 8, "7 columns = 8 pipes");
 }
@@ -211,10 +217,13 @@ fn md_lang_without_files_has_five_columns() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     // |Lang|Code|Lines|Bytes|Tokens| → 5 data columns, 6 pipes
     assert_eq!(header.matches('|').count(), 6, "5 columns = 6 pipes");
 }
@@ -229,10 +238,13 @@ fn md_module_has_seven_columns() {
         &default_scan(),
         &module_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(header.matches('|').count(), 8, "7 columns = 8 pipes");
     assert!(header.starts_with("|Module|"));
 }
@@ -252,8 +264,8 @@ fn md_row_count_matches_data_plus_header_sep_total() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // header + separator + 3 data rows + total = 6
     assert_eq!(out.lines().count(), 6);
@@ -273,8 +285,8 @@ fn tsv_lang_uses_tab_delimiters() {
         &default_scan(),
         &lang_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     for line in out.lines() {
         assert!(line.contains('\t'), "each TSV line has tabs: {line}");
@@ -291,10 +303,13 @@ fn tsv_lang_header_columns_match() {
         &default_scan(),
         &lang_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     let cols: Vec<&str> = header.split('\t').collect();
     assert_eq!(cols, vec!["Lang", "Code", "Lines", "Bytes", "Tokens"]);
 }
@@ -305,10 +320,14 @@ fn tsv_lang_with_files_header_has_seven_columns() {
     let mut buf = Vec::new();
     let mut args = lang_args(TableFormat::Tsv);
     args.files = true;
-    write_lang_report_to(&mut buf, &report, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan(), &args)
+        .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     let cols: Vec<&str> = header.split('\t').collect();
     assert_eq!(
         cols,
@@ -326,10 +345,13 @@ fn tsv_module_header_columns_match() {
         &default_scan(),
         &module_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     let cols: Vec<&str> = header.split('\t').collect();
     assert_eq!(
         cols,
@@ -351,10 +373,10 @@ fn json_lang_output_is_valid_json() {
         &default_scan(),
         &lang_args(TableFormat::Json),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert!(v.is_object(), "JSON output is an object");
     assert!(v["schema_version"].is_number());
     assert_eq!(v["mode"], "lang");
@@ -370,10 +392,10 @@ fn json_module_output_is_valid_json() {
         &default_scan(),
         &module_args(TableFormat::Json),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert!(v.is_object());
     assert_eq!(v["mode"], "module");
 }
@@ -389,11 +411,11 @@ fn json_lang_contains_rows_and_total() {
         &default_scan(),
         &lang_args(TableFormat::Json),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    let json_rows = v["rows"].as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    let json_rows = v["rows"].as_array().expect("must be a JSON array");
     assert_eq!(json_rows.len(), 2);
     assert!(v["total"].is_object());
 }
@@ -412,8 +434,8 @@ fn jsonl_line_count_equals_row_count() {
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // meta=false → only data rows
     assert_eq!(out.lines().count(), 2);
@@ -429,8 +451,8 @@ fn jsonl_each_line_parses_as_json() {
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     for (i, line) in out.lines().enumerate() {
         assert!(
@@ -456,10 +478,13 @@ fn csv_header_row_present() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert!(header.contains("path"), "CSV header has path column");
     assert!(header.contains("lang"), "CSV header has lang column");
     assert!(header.contains("code"), "CSV header has code column");
@@ -477,11 +502,11 @@ fn csv_quotes_fields_with_commas() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // The path field with a comma should be quoted
-    let data_line = out.lines().nth(1).unwrap();
+    let data_line = out.lines().nth(1).expect("operation must succeed");
     assert!(
         data_line.contains("\"src/a,b.rs\""),
         "field with comma must be quoted: {data_line}"
@@ -500,8 +525,8 @@ fn csv_escapes_quotes_in_fields() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // Embedded quotes should be escaped as ""
     assert!(
@@ -519,8 +544,8 @@ fn csv_column_count_consistent() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let lines: Vec<&str> = out.lines().collect();
     let header_cols = lines[0].split(',').count();
@@ -530,7 +555,11 @@ fn csv_column_count_consistent() {
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(false)
             .from_reader(line.as_bytes());
-        let record = rdr.records().next().unwrap().unwrap();
+        let record = rdr
+            .records()
+            .next()
+            .expect("operation must succeed")
+            .expect("operation must succeed");
         assert_eq!(record.len(), header_cols, "line {i} column count mismatch");
     }
 }
@@ -549,8 +578,8 @@ fn format_selection_md_produces_pipe_tables() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(out.contains('|'), "Md format uses pipe tables");
     assert!(!out.contains('\t'), "Md format has no tabs");
 }
@@ -565,8 +594,8 @@ fn format_selection_tsv_produces_tabs() {
         &default_scan(),
         &lang_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(out.contains('\t'), "TSV format uses tabs");
 }
 
@@ -580,8 +609,8 @@ fn format_selection_json_produces_json() {
         &default_scan(),
         &lang_args(TableFormat::Json),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         serde_json::from_str::<serde_json::Value>(out.trim()).is_ok(),
         "JSON format produces valid JSON"
@@ -602,8 +631,8 @@ fn md_with_zero_rows_still_has_header_and_total() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let lines: Vec<&str> = out.lines().collect();
     // header + separator + total = 3
@@ -620,8 +649,8 @@ fn tsv_with_zero_rows_still_has_header_and_total() {
         &default_scan(),
         &lang_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let lines: Vec<&str> = out.lines().collect();
     // header + total = 2
@@ -638,8 +667,8 @@ fn single_row_lang_report_md() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert_eq!(out.lines().count(), 4, "header + sep + 1 row + total");
     assert!(out.contains("Rust"));
@@ -658,8 +687,8 @@ fn many_rows_lang_report_md() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // header + sep + 50 rows + total = 53
     assert_eq!(out.lines().count(), 53);
@@ -671,8 +700,8 @@ fn jsonl_with_zero_rows_produces_empty() {
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &default_scan(), &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(out.trim().is_empty(), "zero rows → empty JSONL: {out:?}");
 }
@@ -683,8 +712,8 @@ fn csv_with_zero_rows_has_only_header() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let lines: Vec<&str> = out.lines().collect();
     assert_eq!(lines.len(), 1, "zero rows: header only");
@@ -696,11 +725,11 @@ fn json_export_with_zero_rows_no_meta_is_empty_array() {
     let args = export_args(ExportFormat::Json);
     let mut buf = Vec::new();
 
-    write_export_json_to(&mut buf, &data, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_json_to(&mut buf, &data, &default_scan(), &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    let arr = v.as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    let arr = v.as_array().expect("must be a JSON array");
     assert!(arr.is_empty(), "zero rows without meta → empty array");
 }
 
@@ -717,10 +746,10 @@ fn json_export_with_meta_is_object() {
     args.meta = true;
     let mut buf = Vec::new();
 
-    write_export_json_to(&mut buf, &data, &default_scan(), &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_json_to(&mut buf, &data, &default_scan(), &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert!(v.is_object(), "with meta → receipt object");
     assert!(v["schema_version"].is_number());
 }
@@ -739,10 +768,13 @@ fn md_lang_header_order_without_files() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(header, "|Lang|Code|Lines|Bytes|Tokens|");
 }
 
@@ -756,10 +788,13 @@ fn md_lang_header_order_with_files() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(header, "|Lang|Code|Lines|Files|Bytes|Tokens|Avg|");
 }
 
@@ -773,10 +808,13 @@ fn md_module_header_order() {
         &default_scan(),
         &module_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(header, "|Module|Code|Lines|Files|Bytes|Tokens|Avg|");
 }
 
@@ -794,8 +832,8 @@ fn md_unicode_language_name() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(out.contains("日本語"), "unicode name preserved");
 }
@@ -810,8 +848,8 @@ fn tsv_unicode_language_name() {
         &default_scan(),
         &lang_args(TableFormat::Tsv),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(out.contains("Ñoño"), "unicode name preserved in TSV");
 }
@@ -827,8 +865,8 @@ fn md_very_long_language_name() {
         &default_scan(),
         &lang_args(TableFormat::Md),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(out.contains(&long_name), "long language name not truncated");
 }
@@ -843,11 +881,11 @@ fn json_unicode_roundtrip() {
         &default_scan(),
         &lang_args(TableFormat::Json),
     )
-    .unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    let rows = v["rows"].as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    let rows = v["rows"].as_array().expect("must be a JSON array");
     assert_eq!(rows[0]["lang"], "中文");
 }
 
@@ -863,8 +901,8 @@ fn csv_unicode_file_path() {
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let out = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let out = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(out.contains("données"), "unicode path preserved in CSV");
 }

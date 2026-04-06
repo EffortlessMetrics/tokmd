@@ -142,8 +142,8 @@ fn lang_report_empty_rows_produces_header_and_total() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Lang"), "should have header");
     assert!(output.contains("Total"), "should have total row");
 }
@@ -165,8 +165,8 @@ fn module_report_empty_rows_produces_header_and_total() {
         &default_scan_options(),
         &default_module_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Module"), "should have header");
     assert!(output.contains("Total"), "should have total row");
 }
@@ -180,8 +180,8 @@ fn export_csv_empty_rows_produces_header_only() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("path"), "CSV header should include path");
     let lines: Vec<&str> = output.lines().collect();
     assert_eq!(lines.len(), 1, "only header line for empty export");
@@ -202,8 +202,8 @@ fn export_jsonl_empty_rows_produces_nothing() {
         &default_scan_options(),
         &default_export_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.trim().is_empty(),
         "JSONL with no rows should be empty"
@@ -237,8 +237,8 @@ fn lang_report_single_row_md() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("Rust"), "should contain lang name");
     assert!(
         output.contains("1,000") || output.contains("1000"),
@@ -270,8 +270,8 @@ fn module_report_single_row_md() {
         &default_scan_options(),
         &default_module_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("src"), "should contain module name");
 }
 
@@ -302,8 +302,8 @@ fn lang_report_unicode_language_name_md() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("\u{65E5}\u{672C}\u{8A9E}"),
         "Japanese chars must survive rendering"
@@ -329,8 +329,9 @@ fn lang_report_unicode_language_name_tsv() {
     let mut args = default_lang_args();
     args.format = TableFormat::Tsv;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("donn\u{00E9}es"),
         "French accented chars must survive TSV rendering"
@@ -361,8 +362,8 @@ fn module_report_unicode_module_name() {
         &default_scan_options(),
         &default_module_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("\u{00FC}ber"),
         "German chars must survive rendering"
@@ -378,8 +379,8 @@ fn export_csv_unicode_path() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("\u{65E5}\u{672C}\u{8A9E}"),
         "Unicode path must appear in CSV"
@@ -406,8 +407,8 @@ fn lang_report_all_zero_counts() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("EmptyLang"),
         "zero-count lang should appear"
@@ -423,8 +424,8 @@ fn export_csv_zero_code_file() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("empty.txt"), "zero-code file must appear");
 }
 
@@ -456,8 +457,8 @@ fn lang_report_large_counts_md() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(output.contains("BigLang"), "large count rendering succeeds");
 }
 
@@ -481,9 +482,10 @@ fn lang_report_large_counts_json() {
     let mut args = default_lang_args();
     args.format = TableFormat::Json;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert_eq!(v["rows"][0]["code"], big, "large code count in JSON");
 }
 
@@ -514,8 +516,8 @@ fn lang_md_table_has_separator_row() {
         &default_scan_options(),
         &default_lang_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let has_separator = output.lines().any(|l| l.contains("---"));
     assert!(has_separator, "Markdown table must have separator row");
 }
@@ -544,8 +546,8 @@ fn module_md_table_has_pipe_columns() {
         &default_scan_options(),
         &default_module_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     for line in output.lines() {
         if !line.is_empty() {
             assert!(
@@ -579,8 +581,9 @@ fn lang_tsv_tab_separated_columns() {
     let mut args = default_lang_args();
     args.format = TableFormat::Tsv;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     for line in output.lines() {
         if !line.is_empty() {
             assert!(line.contains('\t'), "TSV line should have tabs: {line}");
@@ -607,8 +610,9 @@ fn lang_tsv_no_pipe_separators() {
     let mut args = default_lang_args();
     args.format = TableFormat::Tsv;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(!output.contains('|'), "TSV should not contain pipe chars");
 }
 
@@ -638,11 +642,12 @@ fn lang_json_rows_are_array() {
     let mut args = default_lang_args();
     args.format = TableFormat::Json;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert!(v["rows"].is_array(), "rows must be a JSON array");
-    assert_eq!(v["rows"].as_array().unwrap().len(), 2);
+    assert_eq!(v["rows"].as_array().expect("must be a JSON array").len(), 2);
 }
 
 #[test]
@@ -664,9 +669,10 @@ fn lang_json_row_has_expected_keys() {
     let mut args = default_lang_args();
     args.format = TableFormat::Json;
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     let row = &v["rows"][0];
     for key in &["lang", "code", "lines", "files", "bytes", "tokens"] {
         assert!(!row[key].is_null(), "row should have key: {key}");
@@ -686,8 +692,8 @@ fn csv_quotes_path_with_comma() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     assert!(
         output.contains("\"src/hello,world.rs\""),
         "CSV must quote paths containing commas"
@@ -703,8 +709,8 @@ fn csv_quotes_path_with_double_quote() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // CSV escapes quotes by doubling them
     assert!(
         output.contains("\"\""),
@@ -721,8 +727,8 @@ fn csv_quotes_path_with_newline() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     // The path with newline should be quoted in CSV
     assert!(
         output.contains("\"src/line1\nline2.rs\""),
@@ -745,12 +751,13 @@ fn export_json_single_row() {
     let mut args = default_export_args();
     args.format = ExportFormat::Json;
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, &export, &default_scan_options(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_json_to(&mut buf, &export, &default_scan_options(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     // Without meta, export JSON is an array of file rows
     assert!(v.is_array(), "JSON export without meta must be an array");
-    assert_eq!(v.as_array().unwrap().len(), 1);
+    assert_eq!(v.as_array().expect("must be a JSON array").len(), 1);
 }
 
 #[test]
@@ -768,11 +775,11 @@ fn export_jsonl_single_row_is_one_line() {
         &default_scan_options(),
         &default_export_args(),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let non_empty: Vec<&str> = output.lines().filter(|l| !l.is_empty()).collect();
     assert_eq!(non_empty.len(), 1, "one row = one JSONL line");
-    let v: serde_json::Value = serde_json::from_str(non_empty[0]).unwrap();
+    let v: serde_json::Value = serde_json::from_str(non_empty[0]).expect("operation must succeed");
     assert_eq!(v["path"], "main.rs");
 }
 
@@ -789,8 +796,8 @@ fn export_csv_multiple_rows_line_count() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &default_export_args()).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &default_export_args()).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
     assert_eq!(lines.len(), 4, "header + 3 data rows");
 }
@@ -815,9 +822,9 @@ fn cyclonedx_valid_json_structure() {
         Some("urn:uuid:test-serial".to_string()),
         Some("2024-01-01T00:00:00Z".to_string()),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert_eq!(v["bomFormat"], "CycloneDX");
     assert!(v["components"].is_array());
 }
@@ -838,10 +845,16 @@ fn cyclonedx_empty_export() {
         Some("urn:uuid:test".to_string()),
         Some("2024-01-01T00:00:00Z".to_string()),
     )
-    .unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
-    assert_eq!(v["components"].as_array().unwrap().len(), 0);
+    .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
+    assert_eq!(
+        v["components"]
+            .as_array()
+            .expect("must be a JSON array")
+            .len(),
+        0
+    );
 }
 
 #[test]
@@ -860,7 +873,7 @@ fn cyclonedx_with_redact_mode() {
         Some("urn:uuid:a".to_string()),
         Some("2024-01-01T00:00:00Z".to_string()),
     )
-    .unwrap();
+    .expect("operation must succeed");
     let mut buf_redact = Vec::new();
     write_export_cyclonedx_with_options(
         &mut buf_redact,
@@ -869,9 +882,9 @@ fn cyclonedx_with_redact_mode() {
         Some("urn:uuid:b".to_string()),
         Some("2024-01-01T00:00:00Z".to_string()),
     )
-    .unwrap();
-    let out_none = String::from_utf8(buf_none).unwrap();
-    let out_redact = String::from_utf8(buf_redact).unwrap();
+    .expect("operation must succeed");
+    let out_none = String::from_utf8(buf_none).expect("operation must succeed");
+    let out_redact = String::from_utf8(buf_redact).expect("operation must succeed");
     assert!(out_none.contains("secret/path.rs"));
     assert!(
         !out_redact.contains("secret/path.rs"),

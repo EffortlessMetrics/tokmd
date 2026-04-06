@@ -350,7 +350,7 @@ fn json_lang_receipt_has_tool_info() {
     let out = render_to_string(|buf| {
         write_lang_report_to(buf, &report, &globals(), &lang_args(TableFormat::Json))
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert!(v["tool"]["name"].is_string());
     assert!(v["tool"]["version"].is_string());
 }
@@ -361,10 +361,10 @@ fn json_export_receipt_has_data_array() {
     let out = render_to_string(|buf| {
         write_export_json_to(buf, &data, &globals(), &export_args(ExportFormat::Json))
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     // ExportData is #[serde(flatten)] so rows are at top level
     assert!(v["rows"].is_array());
-    assert_eq!(v["rows"].as_array().unwrap().len(), 1);
+    assert_eq!(v["rows"].as_array().expect("must be a JSON array").len(), 1);
 }
 
 #[test]
@@ -378,7 +378,7 @@ fn json_export_no_meta_is_array() {
             &export_args_no_meta(ExportFormat::Json),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert!(v.is_array(), "without meta should be a bare array");
 }
 
@@ -407,7 +407,12 @@ fn jsonl_first_line_is_meta() {
     let out = render_to_string(|buf| {
         write_export_jsonl_to(buf, &data, &globals(), &export_args(ExportFormat::Jsonl))
     });
-    let first: serde_json::Value = serde_json::from_str(out.lines().next().unwrap()).unwrap();
+    let first: serde_json::Value = serde_json::from_str(
+        out.lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert_eq!(first["type"], "meta");
 }
 
@@ -421,7 +426,7 @@ fn jsonl_row_lines_have_type_row() {
         write_export_jsonl_to(buf, &data, &globals(), &export_args(ExportFormat::Jsonl))
     });
     for line in out.lines().skip(1) {
-        let v: serde_json::Value = serde_json::from_str(line).unwrap();
+        let v: serde_json::Value = serde_json::from_str(line).expect("operation must succeed");
         assert_eq!(v["type"], "row");
     }
 }
@@ -439,7 +444,12 @@ fn jsonl_no_meta_skips_first_line() {
     });
     // Only row lines, no meta
     assert_eq!(out.lines().count(), 1);
-    let v: serde_json::Value = serde_json::from_str(out.lines().next().unwrap()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(
+        out.lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert_eq!(v["type"], "row");
 }
 
@@ -465,7 +475,10 @@ fn csv_header_columns() {
     let data = export_data(vec![make_file_row("a.rs", "Rust", 10)]);
     let out =
         render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
-    let header = out.lines().next().unwrap();
+    let header = out
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(
         header,
         "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"
@@ -490,7 +503,7 @@ fn csv_commas_in_path_are_quoted() {
     let out =
         render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
     // CSV lib should quote the field containing a comma
-    let data_line = out.lines().nth(1).unwrap();
+    let data_line = out.lines().nth(1).expect("operation must succeed");
     assert!(
         data_line.contains("\"src/hello,world.rs\""),
         "path with comma should be quoted: {}",
@@ -515,7 +528,7 @@ fn csv_quotes_in_path_are_escaped() {
     let data = export_data(vec![row]);
     let out =
         render_to_string(|buf| write_export_csv_to(buf, &data, &export_args(ExportFormat::Csv)));
-    let data_line = out.lines().nth(1).unwrap();
+    let data_line = out.lines().nth(1).expect("operation must succeed");
     // CSV escapes double-quotes by doubling them
     assert!(
         data_line.contains("\"\""),
@@ -580,7 +593,7 @@ fn cyclonedx_bom_format_field() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["bomFormat"], "CycloneDX");
     assert_eq!(v["specVersion"], "1.6");
     assert_eq!(v["version"], 1);
@@ -598,7 +611,7 @@ fn cyclonedx_serial_number_present() {
             Some("2024-06-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["serialNumber"], "urn:uuid:abc-123");
 }
 
@@ -618,8 +631,14 @@ fn cyclonedx_components_match_rows() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    assert_eq!(v["components"].as_array().unwrap().len(), 2);
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    assert_eq!(
+        v["components"]
+            .as_array()
+            .expect("must be a JSON array")
+            .len(),
+        2
+    );
 }
 
 #[test]
@@ -634,7 +653,7 @@ fn cyclonedx_component_type_is_file() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["components"][0]["type"], "file");
 }
 
@@ -652,14 +671,16 @@ fn cyclonedx_child_kind_property() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    let props = v["components"][0]["properties"].as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    let props = v["components"][0]["properties"]
+        .as_array()
+        .expect("must be a JSON array");
     let kind_prop = props.iter().find(|p| p["name"] == "tokmd:kind");
     assert!(
         kind_prop.is_some(),
         "child rows should have tokmd:kind property"
     );
-    assert_eq!(kind_prop.unwrap()["value"], "child");
+    assert_eq!(kind_prop.expect("operation must succeed")["value"], "child");
 }
 
 #[test]
@@ -674,8 +695,10 @@ fn cyclonedx_parent_no_kind_property() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    let props = v["components"][0]["properties"].as_array().unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    let props = v["components"][0]["properties"]
+        .as_array()
+        .expect("must be a JSON array");
     let kind_prop = props.iter().find(|p| p["name"] == "tokmd:kind");
     assert!(
         kind_prop.is_none(),
@@ -695,7 +718,7 @@ fn cyclonedx_metadata_timestamp() {
             Some("2024-12-25T12:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["metadata"]["timestamp"], "2024-12-25T12:00:00Z");
 }
 
@@ -711,7 +734,7 @@ fn cyclonedx_tool_vendor() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["metadata"]["tools"][0]["vendor"], "tokmd");
     assert_eq!(v["metadata"]["tools"][0]["name"], "tokmd");
 }
@@ -946,8 +969,13 @@ fn empty_lang_json() {
     let out = render_to_string(|buf| {
         write_lang_report_to(buf, &report, &globals(), &lang_args(TableFormat::Json))
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    assert!(v["rows"].as_array().unwrap().is_empty());
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    assert!(
+        v["rows"]
+            .as_array()
+            .expect("must be a JSON array")
+            .is_empty()
+    );
 }
 
 #[test]
@@ -994,8 +1022,13 @@ fn empty_export_json() {
     let out = render_to_string(|buf| {
         write_export_json_to(buf, &data, &globals(), &export_args(ExportFormat::Json))
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    assert!(v["rows"].as_array().unwrap().is_empty());
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    assert!(
+        v["rows"]
+            .as_array()
+            .expect("must be a JSON array")
+            .is_empty()
+    );
 }
 
 #[test]
@@ -1010,8 +1043,13 @@ fn empty_cyclonedx() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-    assert!(v["components"].as_array().unwrap().is_empty());
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+    assert!(
+        v["components"]
+            .as_array()
+            .expect("must be a JSON array")
+            .is_empty()
+    );
 }
 
 #[test]
@@ -1061,7 +1099,7 @@ fn unicode_lang_name_json() {
     let out = render_to_string(|buf| {
         write_lang_report_to(buf, &report, &globals(), &lang_args(TableFormat::Json))
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     // LangReport is #[serde(flatten)] so rows are at top level
     assert_eq!(v["rows"][0]["lang"], "中文");
 }
@@ -1120,7 +1158,7 @@ fn unicode_path_cyclonedx() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["components"][0]["name"], "src/λ/μ.rs");
     assert_eq!(v["components"][0]["group"], "src/λ");
 }
@@ -1160,7 +1198,7 @@ fn long_path_jsonl_preserves_full() {
             &export_args_no_meta(ExportFormat::Jsonl),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     assert_eq!(v["path"], long_path);
 }
 
@@ -1387,8 +1425,8 @@ proptest! {
                 Some("2024-01-01T00:00:00Z".into()),
             )
         });
-        let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
-        prop_assert_eq!(v["components"].as_array().unwrap().len(), n);
+        let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
+        prop_assert_eq!(v["components"].as_array().expect("must be a JSON array").len(), n);
     }
 }
 
@@ -1538,7 +1576,7 @@ fn cyclonedx_empty_module_omits_group() {
             Some("2024-01-01T00:00:00Z".into()),
         )
     });
-    let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(out.trim()).expect("operation must succeed");
     // Empty module → group should be null/absent
     assert!(
         v["components"][0]["group"].is_null(),

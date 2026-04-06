@@ -167,8 +167,9 @@ mod given_lang_report_without_files {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         assert!(output.contains("|Lang|Code|Lines|Bytes|Tokens|"));
         assert!(!output.contains("|Files|"));
@@ -192,8 +193,9 @@ mod given_lang_report_with_files {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         assert!(output.contains("|Lang|Code|Lines|Files|Bytes|Tokens|Avg|"));
         assert!(output.contains("|Rust|500|600|5|25000|1250|120|"));
@@ -210,8 +212,9 @@ mod given_lang_report_with_files {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         assert!(output.contains("Lang\tCode\tLines\tFiles\tBytes\tTokens\tAvg"));
         assert!(output.contains("Rust\t500\t600\t5\t25000\t1250\t120"));
@@ -228,10 +231,12 @@ mod given_lang_report_with_files {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-        let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        let v: serde_json::Value =
+            serde_json::from_str(output.trim()).expect("must parse valid JSON");
         assert!(v.get("schema_version").is_some());
         assert_eq!(v["mode"], "lang");
         // report is #[serde(flatten)], so rows appear at top level
@@ -261,8 +266,9 @@ mod given_module_report {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         assert!(output.contains("|Module|Code|Lines|Files|Bytes|Tokens|Avg|"));
         assert!(output.contains("|src|400|500|4|20000|1000|125|"));
@@ -281,10 +287,12 @@ mod given_module_report {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_scan_options(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_scan_options(), &args)
+            .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-        let v: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+        let v: serde_json::Value =
+            serde_json::from_str(output.trim()).expect("must parse valid JSON");
         assert_eq!(v["mode"], "module");
     }
 }
@@ -531,8 +539,8 @@ mod given_export_data {
         let export = sample_export_data();
         let args = default_export_args();
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &export, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_csv_to(&mut buf, &export, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         assert!(
             output.starts_with("path,module,lang,kind,code,comments,blanks,lines,bytes,tokens")
@@ -551,8 +559,8 @@ mod given_export_data {
         };
         let args = default_export_args();
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &export, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_csv_to(&mut buf, &export, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         assert_eq!(lines.len(), 1, "empty export should have only header");
@@ -569,11 +577,16 @@ mod given_export_data {
             Some("urn:uuid:test-123".to_string()),
             Some("2024-01-01T00:00:00Z".to_string()),
         )
-        .unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        .expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-        let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
         assert_eq!(v["bomFormat"], "CycloneDX");
-        assert!(!v["components"].as_array().unwrap().is_empty());
+        assert!(
+            !v["components"]
+                .as_array()
+                .expect("must be a JSON array")
+                .is_empty()
+        );
     }
 }

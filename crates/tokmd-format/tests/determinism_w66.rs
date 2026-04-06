@@ -208,9 +208,11 @@ fn lang_md_output_is_byte_stable() {
     let global = default_scan_options();
     let args = lang_args_md();
     let mut buf1 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2, "Markdown lang output not byte-stable");
 }
 
@@ -226,9 +228,11 @@ fn lang_md_no_files_output_is_byte_stable() {
         ..lang_args_md()
     };
     let mut buf1 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2);
 }
 
@@ -240,9 +244,11 @@ fn lang_tsv_output_is_byte_stable() {
     let global = default_scan_options();
     let args = lang_args_tsv();
     let mut buf1 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2, "TSV lang output not byte-stable");
 }
 
@@ -254,9 +260,11 @@ fn module_md_output_is_byte_stable() {
     let global = default_scan_options();
     let args = module_args_md();
     let mut buf1 = Vec::new();
-    tokmd_format::write_module_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_module_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_module_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_module_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2, "Markdown module output not byte-stable");
 }
 
@@ -268,9 +276,11 @@ fn module_tsv_output_is_byte_stable() {
     let global = default_scan_options();
     let args = module_args_tsv();
     let mut buf1 = Vec::new();
-    tokmd_format::write_module_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_module_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_module_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_module_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2, "TSV module output not byte-stable");
 }
 
@@ -281,9 +291,9 @@ fn export_csv_output_is_byte_stable() {
     let data = sample_export_data();
     let args = export_args_csv();
     let mut buf1 = Vec::new();
-    tokmd_format::write_export_csv_to(&mut buf1, &data, &args).unwrap();
+    tokmd_format::write_export_csv_to(&mut buf1, &data, &args).expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_export_csv_to(&mut buf2, &data, &args).unwrap();
+    tokmd_format::write_export_csv_to(&mut buf2, &data, &args).expect("operation must succeed");
     assert_eq!(buf1, buf2, "CSV export not byte-stable");
 }
 
@@ -295,9 +305,11 @@ fn export_jsonl_no_meta_output_is_byte_stable() {
     let global = default_scan_options();
     let args = export_args_jsonl();
     let mut buf1 = Vec::new();
-    tokmd_format::write_export_jsonl_to(&mut buf1, &data, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buf1, &data, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_export_jsonl_to(&mut buf2, &data, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buf2, &data, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2, "JSONL export (no meta) not byte-stable");
 }
 
@@ -326,8 +338,8 @@ fn diff_rows_are_deterministic() {
     };
     let rows1 = compute_diff_rows(&from, &to);
     let rows2 = compute_diff_rows(&from, &to);
-    let json1 = serde_json::to_string(&rows1).unwrap();
-    let json2 = serde_json::to_string(&rows2).unwrap();
+    let json1 = serde_json::to_string(&rows1).expect("operation must succeed");
+    let json2 = serde_json::to_string(&rows2).expect("operation must succeed");
     assert_eq!(json1, json2, "diff rows not deterministic");
 }
 
@@ -375,8 +387,8 @@ fn diff_totals_are_deterministic() {
     ];
     let t1 = compute_diff_totals(&rows);
     let t2 = compute_diff_totals(&rows);
-    let json1 = serde_json::to_string(&t1).unwrap();
-    let json2 = serde_json::to_string(&t2).unwrap();
+    let json1 = serde_json::to_string(&t1).expect("operation must succeed");
+    let json2 = serde_json::to_string(&t2).expect("operation must succeed");
     assert_eq!(json1, json2, "diff totals not deterministic");
 }
 
@@ -429,9 +441,11 @@ fn empty_lang_report_md_is_byte_stable() {
     let global = default_scan_options();
     let args = lang_args_md();
     let mut buf1 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2);
 }
 
@@ -456,9 +470,11 @@ fn single_row_lang_report_is_stable() {
     let global = default_scan_options();
     let args = lang_args_md();
     let mut buf1 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args)
+        .expect("operation must succeed");
     let mut buf2 = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args)
+        .expect("operation must succeed");
     assert_eq!(buf1, buf2);
 }
 
@@ -471,8 +487,8 @@ fn diff_no_changes_produces_empty_deterministic() {
     let rows2 = compute_diff_rows(&report, &report);
     assert!(rows1.is_empty());
     assert_eq!(
-        serde_json::to_string(&rows1).unwrap(),
-        serde_json::to_string(&rows2).unwrap()
+        serde_json::to_string(&rows1).expect("operation must succeed"),
+        serde_json::to_string(&rows2).expect("operation must succeed")
     );
 }
 
@@ -483,9 +499,12 @@ fn csv_header_order_is_deterministic() {
     let data = sample_export_data();
     let args = export_args_csv();
     let mut buf = Vec::new();
-    tokmd_format::write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let csv_str = String::from_utf8(buf).unwrap();
-    let header = csv_str.lines().next().unwrap();
+    tokmd_format::write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let csv_str = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let header = csv_str
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(
         header,
         "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"
@@ -502,7 +521,8 @@ fn repeated_md_formatting_100_times_is_stable() {
     let outputs: Vec<Vec<u8>> = (0..100)
         .map(|_| {
             let mut buf = Vec::new();
-            tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
+            tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args)
+                .expect("operation must succeed");
             buf
         })
         .collect();
@@ -534,8 +554,9 @@ fn markdown_rows_maintain_input_order() {
     let global = default_scan_options();
     let args = lang_args_md();
     let mut buf = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
     assert!(lines.len() >= 6);
     assert!(lines[2].contains("Rust"));
@@ -551,8 +572,9 @@ fn tsv_rows_maintain_input_order() {
     let global = default_scan_options();
     let args = lang_args_tsv();
     let mut buf = Vec::new();
-    tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    tokmd_format::write_lang_report_to(&mut buf, &report, &global, &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
     assert!(lines[1].starts_with("Rust"));
     assert!(lines[2].starts_with("Python"));
@@ -567,8 +589,9 @@ fn module_tsv_rows_maintain_input_order() {
     let global = default_scan_options();
     let args = module_args_tsv();
     let mut buf = Vec::new();
-    tokmd_format::write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    tokmd_format::write_module_report_to(&mut buf, &report, &global, &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
     assert!(lines[1].starts_with("crates/tokmd"));
     assert!(lines[2].starts_with("src"));
@@ -602,9 +625,9 @@ proptest! {
         let global = default_scan_options();
         let args = lang_args_md();
         let mut buf1 = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf1, &report, &global, &args).expect("operation must succeed");
         let mut buf2 = Vec::new();
-        tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).unwrap();
+        tokmd_format::write_lang_report_to(&mut buf2, &report, &global, &args).expect("operation must succeed");
         prop_assert_eq!(buf1, buf2);
     }
 
@@ -635,8 +658,8 @@ proptest! {
         };
         let rows1 = compute_diff_rows(&from, &to);
         let rows2 = compute_diff_rows(&from, &to);
-        let json1 = serde_json::to_string(&rows1).unwrap();
-        let json2 = serde_json::to_string(&rows2).unwrap();
+        let json1 = serde_json::to_string(&rows1).expect("operation must succeed");
+        let json2 = serde_json::to_string(&rows2).expect("operation must succeed");
         prop_assert_eq!(json1, json2);
     }
 }

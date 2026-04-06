@@ -176,8 +176,8 @@ proptest! {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
@@ -204,8 +204,8 @@ proptest! {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
@@ -232,14 +232,14 @@ proptest! {
     #[test]
     fn lang_json_is_valid_json(report in arb_lang_report()) {
         // Render as JSON by serializing the report directly
-        let json = serde_json::to_string(&report).unwrap();
+        let json = serde_json::to_string(&report).expect("operation must succeed");
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(&json);
         prop_assert!(parsed.is_ok(), "LangReport JSON is not valid");
     }
 
     #[test]
     fn module_json_is_valid_json(report in arb_module_report()) {
-        let json = serde_json::to_string(&report).unwrap();
+        let json = serde_json::to_string(&report).expect("operation must succeed");
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(&json);
         prop_assert!(parsed.is_ok(), "ModuleReport JSON is not valid");
     }
@@ -265,8 +265,8 @@ proptest! {
             redact: RedactMode::None,
             meta: false,
             strip_prefix: None,
-        }).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        }).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
         prop_assert!(parsed.is_ok(), "Export JSON is not valid JSON");
@@ -290,8 +290,8 @@ proptest! {
             children: ChildrenMode::Collapse,
         };
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
@@ -318,8 +318,8 @@ proptest! {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
@@ -441,8 +441,8 @@ proptest! {
             strip_prefix: None,
         };
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &data, &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
@@ -509,8 +509,8 @@ proptest! {
             strip_prefix: None,
         };
         let mut buf = Vec::new();
-        write_export_jsonl_to(&mut buf, &data, &default_global(), &args).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_jsonl_to(&mut buf, &data, &default_global(), &args).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
         for (i, line) in output.lines().enumerate() {
             if !line.trim().is_empty() {

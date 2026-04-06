@@ -344,20 +344,23 @@ fn export_args(format: ExportFormat) -> ExportArgs {
 
 fn render_lang(report: &LangReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, report, &default_scan(), &lang_args(format)).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_lang_report_to(&mut buf, report, &default_scan(), &lang_args(format))
+        .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_module(report: &ModuleReport, format: TableFormat) -> String {
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, report, &default_scan(), &module_args(format)).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_module_report_to(&mut buf, report, &default_scan(), &module_args(format))
+        .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_export_csv(data: &ExportData) -> String {
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, data, &export_args(ExportFormat::Csv)).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_export_csv_to(&mut buf, data, &export_args(ExportFormat::Csv))
+        .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_export_jsonl(data: &ExportData) -> String {
@@ -368,12 +371,12 @@ fn render_export_jsonl(data: &ExportData) -> String {
         &default_scan(),
         &export_args(ExportFormat::Jsonl),
     )
-    .unwrap();
-    String::from_utf8(buf).unwrap()
+    .expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn normalize_json(raw: &str) -> String {
-    let mut v: serde_json::Value = serde_json::from_str(raw).unwrap();
+    let mut v: serde_json::Value = serde_json::from_str(raw).expect("operation must succeed");
     if let Some(obj) = v.as_object_mut() {
         obj.insert("generated_at_ms".into(), serde_json::json!(0));
         obj.insert(
@@ -382,7 +385,7 @@ fn normalize_json(raw: &str) -> String {
         );
         obj.remove("scan");
     }
-    serde_json::to_string_pretty(&v).unwrap()
+    serde_json::to_string_pretty(&v).expect("must serialize JSON")
 }
 
 // ===========================================================================

@@ -189,16 +189,16 @@ proptest! {
     #[test]
     fn lang_md_starts_with_pipe(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         prop_assert!(output.starts_with('|'), "Lang MD should start with pipe");
     }
 
     #[test]
     fn module_md_starts_with_pipe(report in arb_module_report()) {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         prop_assert!(output.starts_with('|'), "Module MD should start with pipe");
     }
 }
@@ -213,8 +213,8 @@ proptest! {
     #[test]
     fn lang_tsv_consistent_columns(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Tsv)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Tsv)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
             let header_tabs = lines[0].matches('\t').count();
@@ -228,8 +228,8 @@ proptest! {
     #[test]
     fn module_tsv_consistent_columns(report in arb_module_report()) {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Tsv)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Tsv)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
             let header_tabs = lines[0].matches('\t').count();
@@ -251,8 +251,8 @@ proptest! {
     #[test]
     fn lang_json_always_valid(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Json)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Json)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(output.trim());
         prop_assert!(parsed.is_ok(), "Lang JSON must be valid: {:?}", parsed.err());
     }
@@ -260,8 +260,8 @@ proptest! {
     #[test]
     fn module_json_always_valid(report in arb_module_report()) {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Json)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Json)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(output.trim());
         prop_assert!(parsed.is_ok(), "Module JSON must be valid: {:?}", parsed.err());
     }
@@ -275,8 +275,8 @@ proptest! {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_export_json_to(&mut buf, &data, &default_global(), &default_export_args(ExportFormat::Json)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_json_to(&mut buf, &data, &default_global(), &default_export_args(ExportFormat::Json)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(&output);
         prop_assert!(parsed.is_ok(), "Export JSON must be valid: {:?}", parsed.err());
     }
@@ -294,7 +294,7 @@ proptest! {
         let args = default_lang_args(TableFormat::Md);
         let render = |r: &LangReport| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_lang_report_to(&mut buf, r, &default_global(), &args).unwrap();
+            write_lang_report_to(&mut buf, r, &default_global(), &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&report), render(&report));
@@ -305,7 +305,7 @@ proptest! {
         let args = default_lang_args(TableFormat::Tsv);
         let render = |r: &LangReport| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_lang_report_to(&mut buf, r, &default_global(), &args).unwrap();
+            write_lang_report_to(&mut buf, r, &default_global(), &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&report), render(&report));
@@ -316,7 +316,7 @@ proptest! {
         let args = default_module_args(TableFormat::Md);
         let render = |r: &ModuleReport| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_module_report_to(&mut buf, r, &default_global(), &args).unwrap();
+            write_module_report_to(&mut buf, r, &default_global(), &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&report), render(&report));
@@ -327,7 +327,7 @@ proptest! {
         let args = default_module_args(TableFormat::Tsv);
         let render = |r: &ModuleReport| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_module_report_to(&mut buf, r, &default_global(), &args).unwrap();
+            write_module_report_to(&mut buf, r, &default_global(), &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&report), render(&report));
@@ -344,7 +344,7 @@ proptest! {
         let args = default_export_args(ExportFormat::Csv);
         let render = |d: &ExportData| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_export_csv_to(&mut buf, d, &args).unwrap();
+            write_export_csv_to(&mut buf, d, &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&data), render(&data));
@@ -361,8 +361,8 @@ proptest! {
     #[test]
     fn lang_md_pipe_balance(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         if !lines.is_empty() {
             let expected = lines[0].matches('|').count();
@@ -383,8 +383,8 @@ proptest! {
     #[test]
     fn lang_md_line_count(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let expected = report.rows.len() + 3; // header + separator + total
         prop_assert_eq!(output.lines().count(), expected);
     }
@@ -406,8 +406,8 @@ proptest! {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_export_jsonl_to(&mut buf, &data, &default_global(), &default_export_args(ExportFormat::Jsonl)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_jsonl_to(&mut buf, &data, &default_global(), &default_export_args(ExportFormat::Jsonl)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         for (i, line) in output.lines().enumerate() {
             if line.trim().is_empty() {
                 continue;
@@ -435,8 +435,8 @@ proptest! {
             children: ChildIncludeMode::Separate,
         };
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &data, &default_export_args(ExportFormat::Csv)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_export_csv_to(&mut buf, &data, &default_export_args(ExportFormat::Csv)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         let lines: Vec<&str> = output.lines().collect();
         prop_assert_eq!(lines.len(), n + 1, "CSV should have header + {} data rows", n);
     }
@@ -513,16 +513,16 @@ proptest! {
     #[test]
     fn lang_md_contains_separator(report in arb_lang_report()) {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_lang_report_to(&mut buf, &report, &default_global(), &default_lang_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         prop_assert!(output.contains("---"), "Markdown should contain separator dashes");
     }
 
     #[test]
     fn module_md_contains_separator(report in arb_module_report()) {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Md)).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        write_module_report_to(&mut buf, &report, &default_global(), &default_module_args(TableFormat::Md)).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         prop_assert!(output.contains("---"), "Module MD should contain separator dashes");
     }
 }
@@ -560,8 +560,8 @@ proptest! {
             redact: RedactMode::None,
             meta: false,
             strip_prefix: None,
-        }).unwrap();
-        let output = String::from_utf8(buf).unwrap();
+        }).expect("operation must succeed");
+        let output = String::from_utf8(buf).expect("output must be valid UTF-8");
         for row in &rows {
             prop_assert!(output.contains(&row.path), "missing path {}", row.path);
         }
@@ -586,7 +586,7 @@ proptest! {
         let args = default_export_args(ExportFormat::Jsonl);
         let render = |d: &ExportData| -> Vec<u8> {
             let mut buf = Vec::new();
-            write_export_jsonl_to(&mut buf, d, &default_global(), &args).unwrap();
+            write_export_jsonl_to(&mut buf, d, &default_global(), &args).expect("operation must succeed");
             buf
         };
         prop_assert_eq!(render(&data), render(&data));

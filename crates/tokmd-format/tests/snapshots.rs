@@ -162,8 +162,9 @@ fn snapshot_lang_md_without_files() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_md_no_files", output);
 }
 
@@ -177,8 +178,9 @@ fn snapshot_lang_md_with_files() {
         files: true,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &lang_report(true), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &lang_report(true), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_md_with_files", output);
 }
 
@@ -196,8 +198,9 @@ fn snapshot_lang_tsv_without_files() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_tsv_no_files", output);
 }
 
@@ -211,8 +214,9 @@ fn snapshot_lang_tsv_with_files() {
         files: true,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &lang_report(true), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &lang_report(true), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_tsv_with_files", output);
 }
 
@@ -230,13 +234,14 @@ fn snapshot_lang_json() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_lang_report_to(&mut buf, &lang_report(false), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     // Normalise non-deterministic fields
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("lang_json", pretty);
 }
 
@@ -255,8 +260,9 @@ fn snapshot_module_md() {
         module_depth: 2,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &module_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_module_report_to(&mut buf, &module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("module_md", output);
 }
 
@@ -275,8 +281,9 @@ fn snapshot_module_tsv() {
         module_depth: 2,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &module_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_module_report_to(&mut buf, &module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("module_tsv", output);
 }
 
@@ -295,12 +302,13 @@ fn snapshot_module_json() {
         module_depth: 2,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &module_report(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_module_report_to(&mut buf, &module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("module_json", pretty);
 }
 
@@ -324,8 +332,8 @@ fn snapshot_export_csv() {
         meta: false,
         strip_prefix: None,
     };
-    write_export_csv_to(&mut buf, &export_data(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export_data(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("export_csv", output);
 }
 
@@ -349,8 +357,9 @@ fn snapshot_export_jsonl_no_meta() {
         meta: false,
         strip_prefix: None,
     };
-    write_export_jsonl_to(&mut buf, &export_data(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &export_data(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("export_jsonl_no_meta", output);
 }
 
@@ -374,10 +383,11 @@ fn snapshot_export_json_no_meta() {
         meta: false,
         strip_prefix: None,
     };
-    write_export_json_to(&mut buf, &export_data(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&raw).unwrap();
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    write_export_json_to(&mut buf, &export_data(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("export_json_no_meta", pretty);
 }
 
@@ -395,12 +405,12 @@ fn snapshot_export_cyclonedx() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".into()),
         Some("1970-01-01T00:00:00Z".into()),
     )
-    .unwrap();
-    let raw = String::from_utf8(buf).unwrap();
+    .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Normalise tool version
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["metadata"]["tools"][0]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("export_cyclonedx", pretty);
 }
 
@@ -515,11 +525,11 @@ fn snapshot_diff_json() {
     let rows = compute_diff_rows(&from, &to);
     let totals = compute_diff_totals(&rows);
     let receipt = create_diff_receipt("v1.0.0", "v2.0.0", rows, totals);
-    let raw = serde_json::to_string(&receipt).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let raw = serde_json::to_string(&receipt).expect("operation must succeed");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("diff_json", pretty);
 }
 
@@ -576,8 +586,9 @@ fn snapshot_lang_md_empty() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_md_empty", output);
 }
 
@@ -591,8 +602,9 @@ fn snapshot_lang_tsv_empty() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_tsv_empty", output);
 }
 
@@ -606,12 +618,13 @@ fn snapshot_lang_json_empty() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_lang_report_to(&mut buf, &empty_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("lang_json_empty", pretty);
 }
 
@@ -626,8 +639,9 @@ fn snapshot_module_md_empty() {
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("module_md_empty", output);
 }
 
@@ -642,8 +656,9 @@ fn snapshot_module_tsv_empty() {
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("module_tsv_empty", output);
 }
 
@@ -658,12 +673,13 @@ fn snapshot_module_json_empty() {
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_module_report_to(&mut buf, &empty_module_report(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("module_json_empty", pretty);
 }
 
@@ -689,8 +705,8 @@ fn snapshot_export_csv_empty() {
         meta: false,
         strip_prefix: None,
     };
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("export_csv_empty", output);
 }
 
@@ -733,8 +749,9 @@ fn snapshot_lang_md_single() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_md_single", output);
 }
 
@@ -748,8 +765,9 @@ fn snapshot_lang_tsv_single() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_tsv_single", output);
 }
 
@@ -763,12 +781,13 @@ fn snapshot_lang_json_single() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_lang_report_to(&mut buf, &single_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("lang_json_single", pretty);
 }
 
@@ -878,8 +897,9 @@ fn snapshot_lang_md_many() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_md_many", output);
 }
 
@@ -893,8 +913,9 @@ fn snapshot_lang_tsv_many() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("lang_tsv_many", output);
 }
 
@@ -908,12 +929,13 @@ fn snapshot_lang_json_many() {
         files: false,
         children: ChildrenMode::Collapse,
     };
-    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_lang_report_to(&mut buf, &many_lang_report(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("lang_json_many", pretty);
 }
 
@@ -967,8 +989,8 @@ fn snapshot_export_jsonl_single_file() {
         meta: false,
         strip_prefix: None,
     };
-    write_export_jsonl_to(&mut buf, &data, &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &global(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("export_jsonl_single_file", output);
 }
 
@@ -992,8 +1014,9 @@ fn snapshot_export_jsonl_with_meta() {
         meta: true,
         strip_prefix: None,
     };
-    write_export_jsonl_to(&mut buf, &export_data(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &export_data(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Normalise non-deterministic meta fields
     let normalised = raw
         .lines()
@@ -1005,7 +1028,7 @@ fn snapshot_export_jsonl_with_meta() {
                 if v.pointer("/tool/version").is_some() {
                     v["tool"]["version"] = serde_json::json!("0.0.0");
                 }
-                serde_json::to_string(&v).unwrap()
+                serde_json::to_string(&v).expect("must serialize JSON")
             } else {
                 line.to_string()
             }
@@ -1035,16 +1058,17 @@ fn snapshot_export_json_with_meta() {
         meta: true,
         strip_prefix: None,
     };
-    write_export_json_to(&mut buf, &export_data(), &global(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_export_json_to(&mut buf, &export_data(), &global(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     if v.get("generated_at_ms").is_some() {
         v["generated_at_ms"] = serde_json::json!(0);
     }
     if v.pointer("/tool/version").is_some() {
         v["tool"]["version"] = serde_json::json!("0.0.0");
     }
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!("export_json_with_meta", pretty);
 }
 
@@ -1086,8 +1110,8 @@ fn snapshot_module_md_single() {
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
-    write_module_report_to(&mut buf, &report, &global(), &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_module_report_to(&mut buf, &report, &global(), &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     insta::assert_snapshot!("module_md_single", output);
 }
 

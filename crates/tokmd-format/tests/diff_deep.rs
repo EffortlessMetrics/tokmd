@@ -169,13 +169,22 @@ fn mixed_diff_deltas_correct() {
         make_lang_row("Go", 100, 150, 3),
     ]);
     let rows = compute_diff_rows(&from, &to);
-    let rust_row = rows.iter().find(|r| r.lang == "Rust").unwrap();
+    let rust_row = rows
+        .iter()
+        .find(|r| r.lang == "Rust")
+        .expect("operation must succeed");
     assert_eq!(rust_row.delta_code, 100);
 
-    let python_row = rows.iter().find(|r| r.lang == "Python").unwrap();
+    let python_row = rows
+        .iter()
+        .find(|r| r.lang == "Python")
+        .expect("operation must succeed");
     assert_eq!(python_row.delta_code, -200);
 
-    let go_row = rows.iter().find(|r| r.lang == "Go").unwrap();
+    let go_row = rows
+        .iter()
+        .find(|r| r.lang == "Go")
+        .expect("operation must succeed");
     assert_eq!(go_row.delta_code, 100);
 }
 
@@ -281,8 +290,8 @@ fn diff_receipt_json_valid() {
     let rows = compute_diff_rows(&from, &to);
     let totals = compute_diff_totals(&rows);
     let receipt = create_diff_receipt("from.json", "to.json", rows, totals);
-    let json_str = serde_json::to_string_pretty(&receipt).unwrap();
-    let val: Value = serde_json::from_str(&json_str).unwrap();
+    let json_str = serde_json::to_string_pretty(&receipt).expect("operation must succeed");
+    let val: Value = serde_json::from_str(&json_str).expect("operation must succeed");
 
     assert_eq!(val["schema_version"], SCHEMA_VERSION);
     assert_eq!(val["mode"], "diff");
@@ -294,7 +303,7 @@ fn diff_receipt_json_valid() {
 #[test]
 fn diff_receipt_json_has_all_required_keys() {
     let receipt = create_diff_receipt("a", "b", vec![], DiffTotals::default());
-    let val: Value = serde_json::to_value(receipt).unwrap();
+    let val: Value = serde_json::to_value(receipt).expect("operation must succeed");
     for key in &[
         "schema_version",
         "generated_at_ms",
@@ -376,8 +385,8 @@ fn diff_row_serde_roundtrip() {
         new_tokens: 300,
         delta_tokens: 50,
     };
-    let json = serde_json::to_string(&row).unwrap();
-    let back: DiffRow = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&row).expect("operation must succeed");
+    let back: DiffRow = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back, row);
 }
 
@@ -411,8 +420,8 @@ fn diff_totals_serde_roundtrip() {
         new_tokens: 1800,
         delta_tokens: 300,
     };
-    let json = serde_json::to_string(&t).unwrap();
-    let back: DiffTotals = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&t).expect("operation must succeed");
+    let back: DiffTotals = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back, t);
 }
 
@@ -428,8 +437,8 @@ fn diff_receipt_serde_roundtrip() {
     let totals = compute_diff_totals(&rows);
     let receipt = create_diff_receipt("from.json", "to.json", rows, totals);
 
-    let json_str = serde_json::to_string(&receipt).unwrap();
-    let back: DiffReceipt = serde_json::from_str(&json_str).unwrap();
+    let json_str = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: DiffReceipt = serde_json::from_str(&json_str).expect("operation must succeed");
     assert_eq!(back.schema_version, receipt.schema_version);
     assert_eq!(back.mode, receipt.mode);
     assert_eq!(back.from_source, receipt.from_source);

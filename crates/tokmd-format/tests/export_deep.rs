@@ -80,8 +80,8 @@ fn jsonl_each_line_is_valid_json_with_meta() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     for (i, line) in output.lines().enumerate() {
         assert!(
@@ -99,14 +99,14 @@ fn jsonl_without_meta_has_only_data_rows() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
 
     // No meta line → all lines are data rows
     assert_eq!(lines.len(), 3);
     for line in &lines {
-        let v: serde_json::Value = serde_json::from_str(line).unwrap();
+        let v: serde_json::Value = serde_json::from_str(line).expect("operation must succeed");
         assert_eq!(v["type"], "row");
     }
 }
@@ -118,10 +118,13 @@ fn jsonl_with_meta_first_line_is_meta() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let first_line = output.lines().next().unwrap();
-    let v: serde_json::Value = serde_json::from_str(first_line).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let first_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let v: serde_json::Value = serde_json::from_str(first_line).expect("operation must succeed");
 
     assert_eq!(v["type"], "meta");
     assert!(v["schema_version"].is_number());
@@ -137,8 +140,8 @@ fn jsonl_row_count_equals_data_rows() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert_eq!(output.lines().count(), expected);
 }
@@ -150,8 +153,8 @@ fn jsonl_ends_with_newline() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.ends_with('\n'), "JSONL must end with newline");
 }
@@ -166,9 +169,12 @@ fn csv_first_line_is_header() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let header = output.lines().next().unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let header = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
 
     assert_eq!(
         header,
@@ -182,8 +188,8 @@ fn csv_column_count_consistent_across_all_rows() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let expected_cols = 10;
     for (i, line) in output.lines().enumerate() {
@@ -203,8 +209,8 @@ fn csv_escapes_commas_in_path() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // CSV library should quote fields containing commas
     assert!(
@@ -226,8 +232,8 @@ fn csv_escapes_quotes_in_path() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // CSV escapes double-quotes by doubling them inside a quoted field
     assert!(
@@ -246,8 +252,8 @@ fn csv_includes_child_file_kind() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.contains(",parent,"));
     assert!(output.contains(",child,"));
@@ -262,10 +268,10 @@ fn cyclonedx_output_is_valid_json() {
     let data = export_data(sample_rows());
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
     assert_eq!(v["bomFormat"], "CycloneDX");
     assert_eq!(v["specVersion"], "1.6");
 }
@@ -277,11 +283,17 @@ fn cyclonedx_component_count_matches_rows() {
     let data = export_data(rows);
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    assert_eq!(v["components"].as_array().unwrap().len(), expected);
+    assert_eq!(
+        v["components"]
+            .as_array()
+            .expect("must be a JSON array")
+            .len(),
+        expected
+    );
 }
 
 #[test]
@@ -289,15 +301,18 @@ fn cyclonedx_components_have_required_properties() {
     let data = export_data(sample_rows());
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    for comp in v["components"].as_array().unwrap() {
+    for comp in v["components"].as_array().expect("must be a JSON array") {
         assert_eq!(comp["type"], "file");
         assert!(comp["name"].is_string());
-        let props = comp["properties"].as_array().unwrap();
-        let prop_names: Vec<&str> = props.iter().map(|p| p["name"].as_str().unwrap()).collect();
+        let props = comp["properties"].as_array().expect("must be a JSON array");
+        let prop_names: Vec<&str> = props
+            .iter()
+            .map(|p| p["name"].as_str().expect("must be a JSON string"))
+            .collect();
         assert!(prop_names.contains(&"tokmd:lang"));
         assert!(prop_names.contains(&"tokmd:code"));
         assert!(prop_names.contains(&"tokmd:lines"));
@@ -314,27 +329,29 @@ fn cyclonedx_child_kind_property_only_on_children() {
     let data = export_data(rows);
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    let components = v["components"].as_array().unwrap();
+    let components = v["components"].as_array().expect("must be a JSON array");
 
     // Parent should NOT have tokmd:kind
     let parent_props: Vec<&str> = components[0]["properties"]
         .as_array()
-        .unwrap()
+        .expect("operation must succeed")
         .iter()
-        .map(|p| p["name"].as_str().unwrap())
+        .map(|p| p["name"].as_str().expect("must be a JSON string"))
         .collect();
     assert!(!parent_props.contains(&"tokmd:kind"));
 
     // Child should have tokmd:kind = "child"
-    let child_props = components[1]["properties"].as_array().unwrap();
+    let child_props = components[1]["properties"]
+        .as_array()
+        .expect("must be a JSON array");
     let kind_prop = child_props
         .iter()
         .find(|p| p["name"] == "tokmd:kind")
-        .unwrap();
+        .expect("operation must succeed");
     assert_eq!(kind_prop["value"], "child");
 }
 
@@ -352,11 +369,11 @@ fn cyclonedx_with_fixed_serial_and_timestamp_is_deterministic() {
         Some(serial.clone()),
         Some(ts.clone()),
     )
-    .unwrap();
+    .expect("operation must succeed");
 
     let mut buf2 = Vec::new();
     write_export_cyclonedx_with_options(&mut buf2, &data, RedactMode::None, Some(serial), Some(ts))
-        .unwrap();
+        .expect("operation must succeed");
 
     assert_eq!(
         buf1, buf2,
@@ -369,12 +386,12 @@ fn cyclonedx_redact_paths_hashes_component_names() {
     let data = export_data(sample_rows());
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::Paths).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::Paths).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    for comp in v["components"].as_array().unwrap() {
-        let name = comp["name"].as_str().unwrap();
+    for comp in v["components"].as_array().expect("must be a JSON array") {
+        let name = comp["name"].as_str().expect("must be a JSON string");
         // Redacted paths should NOT contain the original path segments
         assert!(
             !name.starts_with("src/"),
@@ -388,11 +405,13 @@ fn cyclonedx_metadata_contains_tool_info() {
     let data = export_data(sample_rows());
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    let tools = v["metadata"]["tools"].as_array().unwrap();
+    let tools = v["metadata"]["tools"]
+        .as_array()
+        .expect("must be a JSON array");
     assert!(!tools.is_empty());
     assert_eq!(tools[0]["name"], "tokmd");
 }
@@ -408,12 +427,12 @@ fn jsonl_empty_data_with_meta_produces_only_meta_line() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
 
     assert_eq!(lines.len(), 1, "empty data with meta = 1 line");
-    let v: serde_json::Value = serde_json::from_str(lines[0]).unwrap();
+    let v: serde_json::Value = serde_json::from_str(lines[0]).expect("operation must succeed");
     assert_eq!(v["type"], "meta");
 }
 
@@ -425,8 +444,8 @@ fn jsonl_empty_data_without_meta_produces_no_output() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     assert!(output.is_empty(), "empty data without meta = no output");
 }
@@ -437,8 +456,8 @@ fn csv_empty_data_produces_only_header() {
     let args = default_args(ExportFormat::Csv);
     let mut buf = Vec::new();
 
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
 
     assert_eq!(lines.len(), 1, "empty data CSV = header only");
@@ -452,12 +471,12 @@ fn json_empty_data_with_meta_produces_valid_envelope() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_json_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_json_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
     assert!(v["schema_version"].is_number());
-    assert_eq!(v["rows"].as_array().unwrap().len(), 0);
+    assert_eq!(v["rows"].as_array().expect("must be a JSON array").len(), 0);
 }
 
 #[test]
@@ -468,12 +487,12 @@ fn json_empty_data_without_meta_produces_empty_array() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_json_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_json_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
     assert!(v.is_array());
-    assert_eq!(v.as_array().unwrap().len(), 0);
+    assert_eq!(v.as_array().expect("must be a JSON array").len(), 0);
 }
 
 #[test]
@@ -481,12 +500,18 @@ fn cyclonedx_empty_data_produces_valid_bom_with_no_components() {
     let data = export_data(vec![]);
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
     assert_eq!(v["bomFormat"], "CycloneDX");
-    assert_eq!(v["components"].as_array().unwrap().len(), 0);
+    assert_eq!(
+        v["components"]
+            .as_array()
+            .expect("must be a JSON array")
+            .len(),
+        0
+    );
 }
 
 // ===========================================================================
@@ -499,10 +524,10 @@ fn csv_output_is_deterministic() {
     let args = default_args(ExportFormat::Csv);
 
     let mut buf1 = Vec::new();
-    write_export_csv_to(&mut buf1, &data, &args).unwrap();
+    write_export_csv_to(&mut buf1, &data, &args).expect("operation must succeed");
 
     let mut buf2 = Vec::new();
-    write_export_csv_to(&mut buf2, &data, &args).unwrap();
+    write_export_csv_to(&mut buf2, &data, &args).expect("operation must succeed");
 
     assert_eq!(buf1, buf2, "CSV output must be deterministic");
 }
@@ -515,10 +540,10 @@ fn jsonl_without_meta_is_deterministic() {
     let scan = default_scan();
 
     let mut buf1 = Vec::new();
-    write_export_jsonl_to(&mut buf1, &data, &scan, &args).unwrap();
+    write_export_jsonl_to(&mut buf1, &data, &scan, &args).expect("operation must succeed");
 
     let mut buf2 = Vec::new();
-    write_export_jsonl_to(&mut buf2, &data, &scan, &args).unwrap();
+    write_export_jsonl_to(&mut buf2, &data, &scan, &args).expect("operation must succeed");
 
     assert_eq!(buf1, buf2, "JSONL (no meta) output must be deterministic");
 }
@@ -535,10 +560,16 @@ fn jsonl_rows_contain_all_file_row_fields() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let first: serde_json::Value = serde_json::from_str(output.lines().next().unwrap()).unwrap();
+    let first: serde_json::Value = serde_json::from_str(
+        output
+            .lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert!(first["path"].is_string());
     assert!(first["module"].is_string());
     assert!(first["lang"].is_string());
@@ -560,10 +591,16 @@ fn jsonl_row_values_match_input_data() {
     let scan = default_scan();
     let mut buf = Vec::new();
 
-    write_export_jsonl_to(&mut buf, &data, &scan, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &scan, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let v: serde_json::Value = serde_json::from_str(output.lines().next().unwrap()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(
+        output
+            .lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert_eq!(v["path"], "src/lib.rs");
     assert_eq!(v["lang"], "Rust");
     assert_eq!(v["code"], 100);
@@ -580,9 +617,9 @@ fn cyclonedx_empty_module_omits_group_field() {
     let data = export_data(rows);
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
     let comp = &v["components"][0];
     assert!(comp.get("group").is_none() || comp["group"].is_null());
@@ -594,9 +631,9 @@ fn cyclonedx_nonempty_module_includes_group_field() {
     let data = export_data(rows);
     let mut buf = Vec::new();
 
-    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
-    let output = String::from_utf8(buf).unwrap();
-    let v: serde_json::Value = serde_json::from_str(&output).unwrap();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let v: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
     let comp = &v["components"][0];
     assert_eq!(comp["group"], "src");

@@ -251,8 +251,8 @@ fn render_lang(fmt: TableFormat) -> String {
     let global = default_scan_options();
     let args = lang_args(fmt);
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 fn render_module(fmt: TableFormat) -> String {
@@ -260,8 +260,8 @@ fn render_module(fmt: TableFormat) -> String {
     let global = default_scan_options();
     let args = module_args(fmt);
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-    String::from_utf8(buf).unwrap()
+    write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    String::from_utf8(buf).expect("output must be valid UTF-8")
 }
 
 // ========================================================================
@@ -271,8 +271,8 @@ fn render_module(fmt: TableFormat) -> String {
 #[test]
 fn json_roundtrip_lang_receipt() {
     let receipt = make_lang_receipt(&sample_lang_report());
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: LangReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: LangReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back.schema_version, receipt.schema_version);
     assert_eq!(back.mode, receipt.mode);
     assert_eq!(back.report.rows.len(), receipt.report.rows.len());
@@ -285,8 +285,8 @@ fn json_roundtrip_lang_receipt() {
 #[test]
 fn json_roundtrip_module_receipt() {
     let receipt = make_module_receipt(&sample_module_report());
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: ModuleReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: ModuleReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back.schema_version, receipt.schema_version);
     assert_eq!(back.mode, receipt.mode);
     assert_eq!(back.report.rows.len(), receipt.report.rows.len());
@@ -299,8 +299,8 @@ fn json_roundtrip_module_receipt() {
 #[test]
 fn json_roundtrip_export_receipt() {
     let receipt = make_export_receipt(&sample_export_data());
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: ExportReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: ExportReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back.schema_version, receipt.schema_version);
     assert_eq!(back.mode, receipt.mode);
     assert_eq!(back.data.rows.len(), receipt.data.rows.len());
@@ -326,8 +326,8 @@ fn json_roundtrip_empty_rows() {
         top: 0,
     };
     let receipt = make_lang_receipt(&report);
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: LangReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: LangReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert!(back.report.rows.is_empty());
     assert_eq!(back.report.total.code, 0);
 }
@@ -357,8 +357,8 @@ fn json_roundtrip_max_field_values() {
         top: 0,
     };
     let receipt = make_lang_receipt(&report);
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: LangReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: LangReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back.report.rows[0].code, usize::MAX);
     assert_eq!(back.report.total.code, usize::MAX);
 }
@@ -388,16 +388,16 @@ fn json_roundtrip_special_characters_in_lang() {
         top: 0,
     };
     let receipt = make_lang_receipt(&report);
-    let json = serde_json::to_string(&receipt).unwrap();
-    let back: LangReceipt = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&receipt).expect("operation must succeed");
+    let back: LangReceipt = serde_json::from_str(&json).expect("must parse valid JSON");
     assert_eq!(back.report.rows[0].lang, "C++ (embedded)");
 }
 
 #[test]
 fn json_deterministic_output() {
     let receipt = make_lang_receipt(&sample_lang_report());
-    let json1 = serde_json::to_string(&receipt).unwrap();
-    let json2 = serde_json::to_string(&receipt).unwrap();
+    let json1 = serde_json::to_string(&receipt).expect("operation must succeed");
+    let json2 = serde_json::to_string(&receipt).expect("operation must succeed");
     assert_eq!(
         json1, json2,
         "same input must produce identical JSON strings"
@@ -407,12 +407,15 @@ fn json_deterministic_output() {
 #[test]
 fn json_nested_structure_correctness() {
     let receipt = make_lang_receipt(&sample_lang_report());
-    let val: serde_json::Value = serde_json::to_value(&receipt).unwrap();
+    let val: serde_json::Value = serde_json::to_value(&receipt).expect("must serialize JSON");
 
     assert_eq!(val["schema_version"], SCHEMA_VERSION);
     assert_eq!(val["mode"], "lang");
     assert!(val["rows"].is_array());
-    assert_eq!(val["rows"].as_array().unwrap().len(), 2);
+    assert_eq!(
+        val["rows"].as_array().expect("must be a JSON array").len(),
+        2
+    );
     assert_eq!(val["rows"][0]["lang"], "Rust");
     assert!(val["total"].is_object());
     assert_eq!(val["total"]["code"], 1050);
@@ -442,8 +445,12 @@ fn lang_row_count_consistent_across_formats() {
     assert_eq!(tsv_data_rows, n);
 
     // JSON: parse and count rows array
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
-    assert_eq!(val["rows"].as_array().unwrap().len(), n);
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
+    assert_eq!(
+        val["rows"].as_array().expect("must be a JSON array").len(),
+        n
+    );
 }
 
 #[test]
@@ -461,8 +468,12 @@ fn module_row_count_consistent_across_formats() {
     let tsv_data_rows = tsv.lines().count() - 2;
     assert_eq!(tsv_data_rows, n);
 
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
-    assert_eq!(val["rows"].as_array().unwrap().len(), n);
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
+    assert_eq!(
+        val["rows"].as_array().expect("must be a JSON array").len(),
+        n
+    );
 }
 
 #[test]
@@ -472,21 +483,40 @@ fn total_code_lines_consistent_across_formats() {
 
     // Markdown – totals row
     let md = render_lang(TableFormat::Md);
-    let total_line = md.lines().last().unwrap();
-    let total_code_md: usize = total_line.split('|').nth(2).unwrap().parse().unwrap();
+    let total_line = md
+        .lines()
+        .last()
+        .expect("output must have at least one line");
+    let total_code_md: usize = total_line
+        .split('|')
+        .nth(2)
+        .expect("operation must succeed")
+        .parse()
+        .expect("must parse value");
     assert_eq!(total_code_md, expected_code);
 
     // TSV – totals row
     let tsv = render_lang(TableFormat::Tsv);
-    let total_line = tsv.lines().last().unwrap();
-    let total_code_tsv: usize = total_line.split('\t').nth(1).unwrap().parse().unwrap();
+    let total_line = tsv
+        .lines()
+        .last()
+        .expect("output must have at least one line");
+    let total_code_tsv: usize = total_line
+        .split('\t')
+        .nth(1)
+        .expect("operation must succeed")
+        .parse()
+        .expect("must parse value");
     assert_eq!(total_code_tsv, expected_code);
 
     // JSON
     let json_str = render_lang(TableFormat::Json);
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
     assert_eq!(
-        val["total"]["code"].as_u64().unwrap() as usize,
+        val["total"]["code"]
+            .as_u64()
+            .expect("must be a JSON integer") as usize,
         expected_code
     );
 }
@@ -502,7 +532,7 @@ fn language_ordering_consistent_across_formats() {
         .lines()
         .skip(2)
         .filter(|l| !l.contains("**Total**"))
-        .map(|l| l.split('|').nth(1).unwrap())
+        .map(|l| l.split('|').nth(1).expect("operation must succeed"))
         .collect();
 
     // Extract from TSV (skip header, totals)
@@ -510,16 +540,22 @@ fn language_ordering_consistent_across_formats() {
         .lines()
         .skip(1)
         .filter(|l| !l.starts_with("Total\t"))
-        .map(|l| l.split('\t').next().unwrap())
+        .map(|l| l.split('\t').next().expect("operation must succeed"))
         .collect();
 
     // Extract from JSON
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
     let json_langs: Vec<String> = val["rows"]
         .as_array()
-        .unwrap()
+        .expect("operation must succeed")
         .iter()
-        .map(|r| r["lang"].as_str().unwrap().to_string())
+        .map(|r| {
+            r["lang"]
+                .as_str()
+                .expect("must be a JSON string")
+                .to_string()
+        })
         .collect();
 
     assert_eq!(md_langs, tsv_langs);
@@ -542,23 +578,26 @@ fn top_n_produces_same_count_in_all_formats() {
 
     let mut md_buf = Vec::new();
     let md_args = lang_args(TableFormat::Md);
-    write_lang_report_to(&mut md_buf, &report, &global, &md_args).unwrap();
-    let md = String::from_utf8(md_buf).unwrap();
+    write_lang_report_to(&mut md_buf, &report, &global, &md_args).expect("operation must succeed");
+    let md = String::from_utf8(md_buf).expect("operation must succeed");
 
     let mut tsv_buf = Vec::new();
     let tsv_args = lang_args(TableFormat::Tsv);
-    write_lang_report_to(&mut tsv_buf, &report, &global, &tsv_args).unwrap();
-    let tsv = String::from_utf8(tsv_buf).unwrap();
+    write_lang_report_to(&mut tsv_buf, &report, &global, &tsv_args)
+        .expect("operation must succeed");
+    let tsv = String::from_utf8(tsv_buf).expect("operation must succeed");
 
     let mut json_buf = Vec::new();
     let json_args = lang_args(TableFormat::Json);
-    write_lang_report_to(&mut json_buf, &report, &global, &json_args).unwrap();
-    let json_str = String::from_utf8(json_buf).unwrap();
+    write_lang_report_to(&mut json_buf, &report, &global, &json_args)
+        .expect("operation must succeed");
+    let json_str = String::from_utf8(json_buf).expect("operation must succeed");
 
     let md_data = md.lines().count() - 3; // header, sep, total
     let tsv_data = tsv.lines().count() - 2; // header, total
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
-    let json_data = val["rows"].as_array().unwrap().len();
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
+    let json_data = val["rows"].as_array().expect("must be a JSON array").len();
 
     assert_eq!(md_data, 1);
     assert_eq!(tsv_data, 1);
@@ -571,18 +610,40 @@ fn module_total_code_consistent_across_formats() {
     let expected = report.total.code;
 
     let md = render_module(TableFormat::Md);
-    let total_line = md.lines().last().unwrap();
-    let md_code: usize = total_line.split('|').nth(2).unwrap().parse().unwrap();
+    let total_line = md
+        .lines()
+        .last()
+        .expect("output must have at least one line");
+    let md_code: usize = total_line
+        .split('|')
+        .nth(2)
+        .expect("operation must succeed")
+        .parse()
+        .expect("must parse value");
     assert_eq!(md_code, expected);
 
     let tsv = render_module(TableFormat::Tsv);
-    let total_line = tsv.lines().last().unwrap();
-    let tsv_code: usize = total_line.split('\t').nth(1).unwrap().parse().unwrap();
+    let total_line = tsv
+        .lines()
+        .last()
+        .expect("output must have at least one line");
+    let tsv_code: usize = total_line
+        .split('\t')
+        .nth(1)
+        .expect("operation must succeed")
+        .parse()
+        .expect("must parse value");
     assert_eq!(tsv_code, expected);
 
     let json_str = render_module(TableFormat::Json);
-    let val: serde_json::Value = serde_json::from_str(json_str.trim()).unwrap();
-    assert_eq!(val["total"]["code"].as_u64().unwrap() as usize, expected);
+    let val: serde_json::Value =
+        serde_json::from_str(json_str.trim()).expect("must parse valid JSON");
+    assert_eq!(
+        val["total"]["code"]
+            .as_u64()
+            .expect("must be a JSON integer") as usize,
+        expected
+    );
 }
 
 // ========================================================================
@@ -610,9 +671,12 @@ fn csv_header_has_expected_columns() {
     let data = sample_export_data();
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let csv = String::from_utf8(buf).unwrap();
-    let header = csv.lines().next().unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let csv = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let header = csv
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     for col in [
         "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
     ] {
@@ -626,8 +690,8 @@ fn jsonl_each_line_is_valid_json() {
     let global = default_scan_options();
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
-    write_export_jsonl_to(&mut buf, &data, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     for (i, line) in output.lines().enumerate() {
         assert!(
@@ -643,17 +707,20 @@ fn json_export_is_valid_with_schema_version() {
     let global = default_scan_options();
     let args = export_args(ExportFormat::Json);
     let mut buf = Vec::new();
-    write_export_json_to(&mut buf, &data, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_json_to(&mut buf, &data, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
-    let val: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let val: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
     assert!(val.is_object(), "JSON export must be an object");
     assert!(
         val.get("schema_version").is_some(),
         "JSON export must have schema_version"
     );
     assert_eq!(
-        val["schema_version"].as_u64().unwrap() as u32,
+        val["schema_version"]
+            .as_u64()
+            .expect("must be a JSON integer") as u32,
         SCHEMA_VERSION
     );
 }
@@ -661,7 +728,10 @@ fn json_export_is_valid_with_schema_version() {
 #[test]
 fn markdown_totals_row_is_last() {
     let md = render_lang(TableFormat::Md);
-    let last = md.lines().last().unwrap();
+    let last = md
+        .lines()
+        .last()
+        .expect("output must have at least one line");
     assert!(
         last.contains("**Total**"),
         "last Markdown row must be the totals row"
@@ -674,8 +744,8 @@ fn csv_line_count_equals_header_plus_data() {
     let n = data.rows.len();
     let args = export_args(ExportFormat::Csv);
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    let csv = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    let csv = String::from_utf8(buf).expect("output must be valid UTF-8");
     // CSV: header + N data rows
     let line_count = csv.lines().count();
     assert_eq!(
@@ -691,22 +761,31 @@ fn jsonl_line_count_matches_meta_plus_data() {
     let global = default_scan_options();
     let args = export_args(ExportFormat::Jsonl);
     let mut buf = Vec::new();
-    write_export_jsonl_to(&mut buf, &data, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_jsonl_to(&mut buf, &data, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     // With meta=true: 1 meta line + N data lines
     let n = data.rows.len();
     assert_eq!(output.lines().count(), n + 1);
 
     // First line should be meta
-    let first: serde_json::Value = serde_json::from_str(output.lines().next().unwrap()).unwrap();
+    let first: serde_json::Value = serde_json::from_str(
+        output
+            .lines()
+            .next()
+            .expect("output must have at least one line"),
+    )
+    .expect("operation must succeed");
     assert_eq!(first["type"], "meta");
 }
 
 #[test]
 fn module_markdown_totals_row_is_last() {
     let md = render_module(TableFormat::Md);
-    let last = md.lines().last().unwrap();
+    let last = md
+        .lines()
+        .last()
+        .expect("output must have at least one line");
     assert!(
         last.contains("**Total**"),
         "last module Markdown row must be the totals row"

@@ -523,9 +523,9 @@ fn test_write_export_csv_format() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_csv_to(&mut buffer, &export, &args).unwrap();
+    tokmd_format::write_export_csv_to(&mut buffer, &export, &args).expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
 
     // Verify CSV structure
     assert!(output.contains("path,module,lang,kind,code,comments,blanks,lines,bytes,tokens"));
@@ -576,9 +576,10 @@ fn test_write_export_jsonl_with_meta() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
 
     // Should have meta line and row line
@@ -626,9 +627,10 @@ fn test_write_export_jsonl_without_meta() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
     let lines: Vec<&str> = output.lines().collect();
 
     // Should have only row lines, no meta
@@ -679,9 +681,10 @@ fn test_write_export_json_with_redaction() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
 
     // Path should be redacted (not contain original)
     assert!(!output.contains("src/secret.rs"));
@@ -734,9 +737,10 @@ fn test_write_export_cyclonedx_structure() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
 
     // Verify CycloneDX structure (pretty-printed JSON has spaces after colons)
     assert!(output.contains("\"bomFormat\": \"CycloneDX\""));
@@ -773,17 +777,18 @@ fn test_cyclonedx_empty_module_no_group() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
 
     // Should not have a "group" field for empty module
     // The component should exist but group should be null/missing
     assert!(output.contains("standalone.rs"));
 
     // Parse and verify
-    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
-    let components = json["components"].as_array().unwrap();
+    let json: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
+    let components = json["components"].as_array().expect("must be a JSON array");
     assert_eq!(components.len(), 1);
 
     // group should be null (not present) for empty module
@@ -834,13 +839,19 @@ fn test_jsonl_generated_at_ms_is_reasonable() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let meta_line = output.lines().next().unwrap();
-    let meta: serde_json::Value = serde_json::from_str(meta_line).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let meta_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let meta: serde_json::Value = serde_json::from_str(meta_line).expect("operation must succeed");
 
-    let generated_at_ms = meta["generated_at_ms"].as_u64().unwrap();
+    let generated_at_ms = meta["generated_at_ms"]
+        .as_u64()
+        .expect("must be a JSON integer");
 
     // Jan 1, 2020 00:00:00 UTC in milliseconds = 1577836800000
     // This kills the mutant that replaces now_ms with 0 or 1
@@ -893,12 +904,15 @@ fn test_json_generated_at_ms_is_reasonable() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    let generated_at_ms = json["generated_at_ms"].as_u64().unwrap();
+    let generated_at_ms = json["generated_at_ms"]
+        .as_u64()
+        .expect("must be a JSON integer");
 
     // Jan 1, 2020 00:00:00 UTC in milliseconds = 1577836800000
     const JAN_1_2020_MS: u64 = 1_577_836_800_000;
@@ -1045,11 +1059,15 @@ fn test_jsonl_strip_prefix_redacted_with_paths_mode() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let meta_line = output.lines().next().unwrap();
-    let meta: serde_json::Value = serde_json::from_str(meta_line).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let meta_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let meta: serde_json::Value = serde_json::from_str(meta_line).expect("operation must succeed");
 
     // strip_prefix_redacted must be true (kills && → || mutant)
     assert_eq!(
@@ -1058,7 +1076,9 @@ fn test_jsonl_strip_prefix_redacted_with_paths_mode() {
     );
 
     // strip_prefix must be redacted (16 char hash, not "src")
-    let sp = meta["args"]["strip_prefix"].as_str().unwrap();
+    let sp = meta["args"]["strip_prefix"]
+        .as_str()
+        .expect("must be a JSON string");
     assert_ne!(sp, "src", "strip_prefix should be redacted, not literal");
     assert_eq!(sp.len(), 16, "redacted strip_prefix should be 16 chars");
 }
@@ -1103,11 +1123,15 @@ fn test_jsonl_strip_prefix_redacted_with_all_mode() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let meta_line = output.lines().next().unwrap();
-    let meta: serde_json::Value = serde_json::from_str(meta_line).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let meta_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let meta: serde_json::Value = serde_json::from_str(meta_line).expect("operation must succeed");
 
     // strip_prefix_redacted must be true
     assert_eq!(
@@ -1116,7 +1140,9 @@ fn test_jsonl_strip_prefix_redacted_with_all_mode() {
     );
 
     // strip_prefix must be redacted
-    let sp = meta["args"]["strip_prefix"].as_str().unwrap();
+    let sp = meta["args"]["strip_prefix"]
+        .as_str()
+        .expect("must be a JSON string");
     assert_ne!(sp, "prefix", "strip_prefix should be redacted");
     assert_eq!(sp.len(), 16, "redacted strip_prefix should be 16 chars");
 }
@@ -1161,11 +1187,15 @@ fn test_jsonl_strip_prefix_redacted_false_when_no_strip_prefix() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let meta_line = output.lines().next().unwrap();
-    let meta: serde_json::Value = serde_json::from_str(meta_line).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let meta_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let meta: serde_json::Value = serde_json::from_str(meta_line).expect("operation must succeed");
 
     // strip_prefix_redacted must be false/omitted (kills || mutant - would be true with ||)
     // The field is skipped during serialization when false, so it will be null in the JSON
@@ -1223,11 +1253,15 @@ fn test_jsonl_no_redaction_with_none_mode() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_jsonl_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let meta_line = output.lines().next().unwrap();
-    let meta: serde_json::Value = serde_json::from_str(meta_line).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let meta_line = output
+        .lines()
+        .next()
+        .expect("output must have at least one line");
+    let meta: serde_json::Value = serde_json::from_str(meta_line).expect("operation must succeed");
 
     // strip_prefix_redacted must be false/omitted
     // The field is skipped during serialization when false, so it will be null in the JSON
@@ -1240,7 +1274,9 @@ fn test_jsonl_no_redaction_with_none_mode() {
 
     // strip_prefix should be literal "src", not redacted
     assert_eq!(
-        meta["args"]["strip_prefix"].as_str().unwrap(),
+        meta["args"]["strip_prefix"]
+            .as_str()
+            .expect("must be a JSON string"),
         "src",
         "strip_prefix should be literal when redact=None"
     );
@@ -1285,17 +1321,21 @@ fn test_json_strip_prefix_redacted_with_paths_mode() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
     assert_eq!(
         json["args"]["strip_prefix_redacted"], true,
         "strip_prefix_redacted must be true when redact=Paths and strip_prefix is set"
     );
 
-    let sp = json["args"]["strip_prefix"].as_str().unwrap();
+    let sp = json["args"]["strip_prefix"]
+        .as_str()
+        .expect("must be a JSON string");
     assert_ne!(sp, "src");
     assert_eq!(sp.len(), 16);
 }
@@ -1338,10 +1378,12 @@ fn test_json_no_redaction_with_none_mode() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args).unwrap();
+    tokmd_format::write_export_json_to(&mut buffer, &export, &global, &args)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(output.trim()).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value =
+        serde_json::from_str(output.trim()).expect("must parse valid JSON");
 
     // strip_prefix_redacted must be false/omitted
     // The field is skipped during serialization when false, so it will be null in the JSON
@@ -1353,7 +1395,9 @@ fn test_json_no_redaction_with_none_mode() {
     );
 
     assert_eq!(
-        json["args"]["strip_prefix"].as_str().unwrap(),
+        json["args"]["strip_prefix"]
+            .as_str()
+            .expect("must be a JSON string"),
         "myprefix",
         "strip_prefix should be literal when redact=None"
     );
@@ -1604,16 +1648,19 @@ fn test_cyclonedx_parent_has_no_kind_property() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    let components = json["components"].as_array().unwrap();
+    let components = json["components"].as_array().expect("must be a JSON array");
     assert_eq!(components.len(), 1);
 
     // Parent should NOT have tokmd:kind property
-    let properties = components[0]["properties"].as_array().unwrap();
+    let properties = components[0]["properties"]
+        .as_array()
+        .expect("must be a JSON array");
     let has_kind = properties
         .iter()
         .any(|p| p["name"].as_str() == Some("tokmd:kind"));
@@ -1647,16 +1694,19 @@ fn test_cyclonedx_child_has_kind_property() {
     };
 
     let mut buffer = Cursor::new(Vec::new());
-    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None).unwrap();
+    tokmd_format::write_export_cyclonedx_to(&mut buffer, &export, RedactMode::None)
+        .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
 
-    let components = json["components"].as_array().unwrap();
+    let components = json["components"].as_array().expect("must be a JSON array");
     assert_eq!(components.len(), 1);
 
     // Child should have tokmd:kind = "child" property
-    let properties = components[0]["properties"].as_array().unwrap();
+    let properties = components[0]["properties"]
+        .as_array()
+        .expect("must be a JSON array");
     let kind_prop = properties
         .iter()
         .find(|p| p["name"].as_str() == Some("tokmd:kind"));
@@ -1664,7 +1714,7 @@ fn test_cyclonedx_child_has_kind_property() {
         kind_prop.is_some(),
         "Child files should have tokmd:kind property"
     );
-    assert_eq!(kind_prop.unwrap()["value"], "child");
+    assert_eq!(kind_prop.expect("operation must succeed")["value"], "child");
 }
 
 // ============================================================================
@@ -1798,11 +1848,11 @@ fn test_cyclonedx_snapshot_deterministic() {
         serial,
         timestamp,
     )
-    .unwrap();
+    .expect("operation must succeed");
 
-    let output = String::from_utf8(buffer.into_inner()).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&output).unwrap();
-    let pretty = serde_json::to_string_pretty(&json).unwrap();
+    let output = String::from_utf8(buffer.into_inner()).expect("output must be valid UTF-8");
+    let json: serde_json::Value = serde_json::from_str(&output).expect("must parse valid JSON");
+    let pretty = serde_json::to_string_pretty(&json).expect("operation must succeed");
 
     insta::assert_snapshot!(pretty);
 }

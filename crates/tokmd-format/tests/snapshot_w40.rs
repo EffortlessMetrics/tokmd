@@ -109,8 +109,9 @@ fn snapshot_lang_md_table() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── lang TSV ──────────────────────────────────────────────────────────
@@ -126,8 +127,9 @@ fn snapshot_lang_tsv() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── lang JSON envelope ────────────────────────────────────────────────
@@ -143,10 +145,11 @@ fn snapshot_lang_json_envelope() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
     // Re-parse and re-serialize to normalize dynamic fields (generated_at_ms, version)
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0-test");
     insta::assert_json_snapshot!(v);
@@ -166,6 +169,7 @@ fn snapshot_module_md_breakdown() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }

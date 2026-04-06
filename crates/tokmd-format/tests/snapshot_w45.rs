@@ -180,8 +180,9 @@ fn snapshot_module_tsv_single() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── module JSON single row ────────────────────────────────────────────
@@ -198,9 +199,10 @@ fn snapshot_module_json_single() {
         children: ChildIncludeMode::Separate,
     };
     let mut buf = Vec::new();
-    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    let raw = String::from_utf8(buf).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    write_module_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    let raw = String::from_utf8(buf).expect("output must be valid UTF-8");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0-test");
     insta::assert_json_snapshot!(v);
@@ -225,8 +227,8 @@ fn snapshot_export_csv_single_file() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── export CSV multi-file ─────────────────────────────────────────────
@@ -248,8 +250,8 @@ fn snapshot_export_csv_multi_file() {
         strip_prefix: None,
     };
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &data, &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_export_csv_to(&mut buf, &data, &args).expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── export CycloneDX single file ──────────────────────────────────────
@@ -265,8 +267,8 @@ fn snapshot_export_cyclonedx_single_file() {
         Some("urn:uuid:00000000-0000-0000-0000-000000000000".to_string()),
         Some("2024-01-01T00:00:00Z".to_string()),
     )
-    .unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── diff JSON no changes ──────────────────────────────────────────────
@@ -298,11 +300,11 @@ fn snapshot_diff_json_no_changes() {
     let rows = compute_diff_rows(&report, &report);
     let totals = compute_diff_totals(&rows);
     let receipt = create_diff_receipt("v1.0.0", "v1.0.0", rows, totals);
-    let raw = serde_json::to_string(&receipt).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let raw = serde_json::to_string(&receipt).expect("operation must succeed");
+    let mut v: serde_json::Value = serde_json::from_str(&raw).expect("must parse valid JSON");
     v["generated_at_ms"] = serde_json::json!(0);
     v["tool"]["version"] = serde_json::json!("0.0.0-test");
-    let pretty = serde_json::to_string_pretty(&v).unwrap();
+    let pretty = serde_json::to_string_pretty(&v).expect("must serialize JSON");
     insta::assert_snapshot!(pretty);
 }
 
@@ -319,8 +321,9 @@ fn snapshot_lang_md_top2() {
         children: ChildrenMode::Collapse,
     };
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args).unwrap();
-    insta::assert_snapshot!(String::from_utf8(buf).unwrap());
+    write_lang_report_to(&mut buf, &report, &ScanOptions::default(), &args)
+        .expect("operation must succeed");
+    insta::assert_snapshot!(String::from_utf8(buf).expect("output must be valid UTF-8"));
 }
 
 // ── diff md with new language added ───────────────────────────────────

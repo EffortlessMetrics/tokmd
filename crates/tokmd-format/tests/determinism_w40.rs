@@ -199,8 +199,8 @@ fn lang_md_rendering_is_deterministic() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -218,8 +218,8 @@ fn module_md_rendering_is_deterministic() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -239,8 +239,8 @@ fn lang_tsv_rendering_is_deterministic() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -256,8 +256,8 @@ fn module_tsv_rendering_is_deterministic() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -276,8 +276,8 @@ fn lang_json_key_order_is_stable() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let output = render();
     let json: serde_json::Value = serde_json::from_str(output.trim()).expect("valid JSON");
@@ -315,22 +315,23 @@ fn module_json_key_order_is_stable() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_module_report_to(&mut buf, &report, &global, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_module_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
 
     // Normalize timestamps for comparison by parsing as JSON and zeroing the field
     let normalize = |s: &str| -> String {
-        let mut v: serde_json::Value = serde_json::from_str(s.trim()).unwrap();
+        let mut v: serde_json::Value =
+            serde_json::from_str(s.trim()).expect("operation must succeed");
         if let Some(map) = v.as_object_mut() {
             map.insert(
                 "generated_at_ms".to_string(),
                 serde_json::Value::Number(0.into()),
             );
         }
-        serde_json::to_string(&v).unwrap()
+        serde_json::to_string(&v).expect("must serialize JSON")
     };
     assert_eq!(
         normalize(&a),
@@ -350,8 +351,8 @@ fn csv_column_order_is_stable() {
 
     let render = || {
         let mut buf = Vec::new();
-        write_export_csv_to(&mut buf, &export, &args).unwrap();
-        String::from_utf8(buf).unwrap()
+        write_export_csv_to(&mut buf, &export, &args).expect("operation must succeed");
+        String::from_utf8(buf).expect("output must be valid UTF-8")
     };
     let a = render();
     let b = render();
@@ -360,7 +361,10 @@ fn csv_column_order_is_stable() {
     assert_eq!(b, c, "CSV must be byte-identical (2 vs 3)");
 
     // Verify header has expected columns in expected order
-    let header = a.lines().next().unwrap();
+    let header = a
+        .lines()
+        .next()
+        .expect("output must have at least one line");
     assert_eq!(
         header, "path,module,lang,kind,code,comments,blanks,lines,bytes,tokens",
         "CSV header column order must match expected"
@@ -373,8 +377,8 @@ fn csv_row_count_matches_input() {
     let args = export_args_csv();
 
     let mut buf = Vec::new();
-    write_export_csv_to(&mut buf, &export, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_export_csv_to(&mut buf, &export, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
     let line_count = output.lines().count();
 
     // 1 header + 3 data rows
@@ -393,8 +397,8 @@ fn md_preserves_row_order_for_equal_code_rows() {
 
     // Python and JavaScript both have code=300
     let mut buf = Vec::new();
-    write_lang_report_to(&mut buf, &report, &global, &args).unwrap();
-    let output = String::from_utf8(buf).unwrap();
+    write_lang_report_to(&mut buf, &report, &global, &args).expect("operation must succeed");
+    let output = String::from_utf8(buf).expect("output must be valid UTF-8");
 
     let js_pos = output.find("JavaScript").expect("JavaScript present");
     let py_pos = output.find("Python").expect("Python present");
