@@ -234,10 +234,18 @@ fn hardening_lang_rows_sorted_desc_code_then_asc_name() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().expect("missing 'code' field for a");
-        let b_code = pair[1]["code"].as_u64().expect("missing 'code' field for b");
-        let a_name = pair[0]["lang"].as_str().expect("missing 'lang' field for a");
-        let b_name = pair[1]["lang"].as_str().expect("missing 'lang' field for b");
+        let a_code = pair[0]["code"]
+            .as_u64()
+            .expect("missing 'code' field for a");
+        let b_code = pair[1]["code"]
+            .as_u64()
+            .expect("missing 'code' field for b");
+        let a_name = pair[0]["lang"]
+            .as_str()
+            .expect("missing 'lang' field for a");
+        let b_name = pair[1]["lang"]
+            .as_str()
+            .expect("missing 'lang' field for b");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
@@ -256,10 +264,18 @@ fn hardening_module_rows_sorted_desc_code_then_asc_name() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().expect("missing 'code' field for a");
-        let b_code = pair[1]["code"].as_u64().expect("missing 'code' field for b");
-        let a_name = pair[0]["module"].as_str().expect("missing 'module' field for a");
-        let b_name = pair[1]["module"].as_str().expect("missing 'module' field for b");
+        let a_code = pair[0]["code"]
+            .as_u64()
+            .expect("missing 'code' field for a");
+        let b_code = pair[1]["code"]
+            .as_u64()
+            .expect("missing 'code' field for b");
+        let a_name = pair[0]["module"]
+            .as_str()
+            .expect("missing 'module' field for a");
+        let b_name = pair[1]["module"]
+            .as_str()
+            .expect("missing 'module' field for b");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_name <= b_name),
@@ -278,10 +294,18 @@ fn hardening_export_rows_sorted_desc_code_then_asc_path() {
     let rows = v["rows"].as_array().expect("rows");
 
     for pair in rows.windows(2) {
-        let a_code = pair[0]["code"].as_u64().expect("missing 'code' field for a");
-        let b_code = pair[1]["code"].as_u64().expect("missing 'code' field for b");
-        let a_path = pair[0]["path"].as_str().expect("missing 'path' field for a");
-        let b_path = pair[1]["path"].as_str().expect("missing 'path' field for b");
+        let a_code = pair[0]["code"]
+            .as_u64()
+            .expect("missing 'code' field for a");
+        let b_code = pair[1]["code"]
+            .as_u64()
+            .expect("missing 'code' field for b");
+        let a_path = pair[0]["path"]
+            .as_str()
+            .expect("missing 'path' field for a");
+        let b_path = pair[1]["path"]
+            .as_str()
+            .expect("missing 'path' field for b");
 
         assert!(
             a_code > b_code || (a_code == b_code && a_path <= b_path),
