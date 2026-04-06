@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn detects_metadata_license() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir().expect("Failed to create tempdir for metadata test");
         let cargo = dir.path().join("Cargo.toml");
         fs::write(
             &cargo,
@@ -285,10 +285,11 @@ name = "demo"
 license = "MIT"
 "#,
         )
-        .unwrap();
+        .expect("Failed to write mock Cargo.toml");
 
         let files = vec![PathBuf::from("Cargo.toml")];
-        let report = build_license_report(dir.path(), &files, &AnalysisLimits::default()).unwrap();
+        let report = build_license_report(dir.path(), &files, &AnalysisLimits::default())
+            .expect("Failed to build license report for metadata");
         assert!(
             report
                 .findings
@@ -299,16 +300,17 @@ license = "MIT"
 
     #[test]
     fn detects_text_license() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir().expect("Failed to create tempdir for text test");
         let license = dir.path().join("LICENSE");
         fs::write(
             &license,
             "Permission is hereby granted, free of charge, to any person obtaining a copy of this software. The software is provided \"as is\".",
         )
-        .unwrap();
+        .expect("Failed to write mock LICENSE file");
 
         let files = vec![PathBuf::from("LICENSE")];
-        let report = build_license_report(dir.path(), &files, &AnalysisLimits::default()).unwrap();
+        let report = build_license_report(dir.path(), &files, &AnalysisLimits::default())
+            .expect("Failed to build license report for text");
         assert!(
             report
                 .findings
