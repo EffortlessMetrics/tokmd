@@ -100,6 +100,40 @@ pub struct LangRow {
     pub avg_lines: usize,
 }
 
+/// A report detailing language statistics.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::{LangReport, LangRow, Totals, ChildrenMode};
+///
+/// let report = LangReport {
+///     rows: vec![
+///         LangRow {
+///             lang: "Rust".to_string(),
+///             code: 5000,
+///             lines: 6500,
+///             files: 42,
+///             bytes: 180_000,
+///             tokens: 45_000,
+///             avg_lines: 154,
+///         }
+///     ],
+///     total: Totals {
+///         code: 5000,
+///         lines: 6500,
+///         files: 42,
+///         bytes: 180_000,
+///         tokens: 45_000,
+///         avg_lines: 154,
+///     },
+///     with_files: false,
+///     children: ChildrenMode::Collapse,
+///     top: 10,
+/// };
+/// assert_eq!(report.rows.len(), 1);
+/// assert_eq!(report.total.files, 42);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LangReport {
     pub rows: Vec<LangRow>,
@@ -193,6 +227,34 @@ pub struct FileRow {
     pub tokens: usize,
 }
 
+/// Detailed export data containing individual file statistics.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd_types::{ExportData, FileRow, FileKind, ChildIncludeMode};
+///
+/// let data = ExportData {
+///     rows: vec![
+///         FileRow {
+///             path: "src/main.rs".to_string(),
+///             module: "src".to_string(),
+///             lang: "Rust".to_string(),
+///             kind: FileKind::Parent,
+///             code: 120,
+///             comments: 30,
+///             blanks: 20,
+///             lines: 170,
+///             bytes: 4_800,
+///             tokens: 1_200,
+///         }
+///     ],
+///     module_roots: vec![],
+///     module_depth: 1,
+///     children: ChildIncludeMode::Separate,
+/// };
+/// assert_eq!(data.rows.len(), 1);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportData {
     pub rows: Vec<FileRow>,
