@@ -43,7 +43,7 @@ fn analyze_receipt_preset_json_smoke() {
 
 #[test]
 fn analyze_writes_json_to_output_dir() {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
     let out = dir.path();
 
     let output = tokmd_cmd()

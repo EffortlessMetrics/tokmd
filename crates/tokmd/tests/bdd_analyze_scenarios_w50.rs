@@ -58,7 +58,10 @@ fn given_project_when_analyze_json_then_has_schema_version() {
 
     // Then: output has schema_version matching ANALYSIS_SCHEMA_VERSION
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as UTF-8");
     assert_eq!(
         json["schema_version"], 9,
         "analysis schema_version should be 9"
@@ -84,7 +87,7 @@ fn given_project_when_analyze_xml_then_valid_xml_structure() {
 
     // Then: output is non-empty and contains XML angle brackets
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout).expect("should decode stdout as UTF-8");
     assert!(!stdout.trim().is_empty(), "XML output should not be empty");
     assert!(
         stdout.contains('<') && stdout.contains('>'),
@@ -99,7 +102,7 @@ fn given_project_when_analyze_xml_then_valid_xml_structure() {
 #[test]
 fn given_project_when_analyze_with_output_dir_then_file_created() {
     // Given: a project and a temporary output directory
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("should create temp dir");
 
     // When: I analyze with --output-dir
     let output = tokmd_cmd()
@@ -141,7 +144,10 @@ fn given_project_when_analyze_json_then_has_args_metadata() {
 
     // Then: output has args metadata
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as UTF-8");
     assert!(json.get("args").is_some(), "should have args metadata");
 }
 
@@ -160,7 +166,7 @@ fn given_project_when_analyze_md_then_markdown_table() {
 
     // Then: output contains markdown table
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = String::from_utf8(output.stdout).expect("should decode stdout as UTF-8");
     let has_table = stdout
         .lines()
         .any(|line| line.contains("|---") || line.contains("|:--"));
@@ -182,7 +188,10 @@ fn given_project_when_analyze_fun_then_eco_label_present() {
 
     // Then: eco_label metadata is present
     assert!(output.status.success());
-    let json: Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as UTF-8");
     let eco_label = json["fun"]["eco_label"]
         .as_object()
         .expect("eco_label should be object");
