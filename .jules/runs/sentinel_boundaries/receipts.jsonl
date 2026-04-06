@@ -1,7 +1,0 @@
-{"command": "replace_with_git_merge_diff", "target": "crates/tokmd/src/commands/diff.rs"}
-{"command": "replace_with_git_merge_diff", "target": "crates/tokmd/src/commands/baseline.rs"}
-{"command": "replace_with_git_merge_diff", "target": "crates/tokmd/src/commands/handoff.rs"}
-{"command": "replace_with_git_merge_diff", "target": "crates/tokmd/src/commands/check_ignore.rs"}
-{"command": "cargo fmt -- --check", "target": "tokmd"}
-{"command": "cargo clippy -p tokmd -- -D warnings", "target": "tokmd"}
-{"command": "cargo test -p tokmd", "target": "tokmd"}

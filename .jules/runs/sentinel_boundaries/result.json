@@ -1,6 +1,0 @@
-{
-  "status": "success",
-  "chosen_option": "A",
-  "reasoning": "Replaced bare Command::new(\"git\") calls with tokmd_git::git_cmd() across the interface boundary commands (diff, baseline, handoff, check_ignore) to ensure execution environment explicitly strips out sensitive/overriding vars like GIT_DIR and GIT_WORK_TREE. Tests passed.",
-  "patch_type": "code"
-}
