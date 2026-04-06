@@ -1,1 +1,0 @@
-{"ts_utc": "2024-04-10T00:00:00Z", "phase": "investigation", "cwd": ".", "cmd": "cargo test -p tokmd-types", "status": "success", "summary": "All tests passed successfully for tokmd-types", "artifacts": []}
