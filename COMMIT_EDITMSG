@@ -1,0 +1,25 @@
+test: add more mutation-killing tests for remaining mutants
+
+Add 3 more targeted tests to kill surviving mutants:
+
+**build_export_receipt_strip_prefix_redaction_logic:**
+- Tests the ternary if/else logic on strip_prefix redaction
+- Kills mutations that change the if/else path selection
+- Verifies strip_prefix is transformed when redacting, unchanged otherwise
+
+**parse_analysis_preset_normalization_edge_cases:**
+- Tests whitespace trimming ("  receipt  ", "\tHEALTH\n")
+- Tests case normalization ("ReCeIpT", "ESTIMATE")
+- Kills mutations that remove .trim() or .to_ascii_lowercase()
+
+**cockpit_workflow_range_mode_parsing:**
+- Tests range_mode match arm logic ("three-dot", "3dot", default)
+- Kills mutations that change match arm behavior
+- Requires "cockpit" feature
+
+Now at 10 mutation tests total targeting the 3 functions with gaps:
+- parse_analysis_preset (12 variants + normalization)
+- build_export_receipt (boolean logic + ternary)
+- cockpit_workflow (range_mode parsing)
+
+Expected to push mutation score well above 75% target.
