@@ -1,6 +1,0 @@
-{
-  "status": "success",
-  "patch_applied": true,
-  "tests_passed": true,
-  "summary": "Fixed structural leakage in tokmd-format when exporting data under RedactMode::All by securely hashing module roots."
-}
