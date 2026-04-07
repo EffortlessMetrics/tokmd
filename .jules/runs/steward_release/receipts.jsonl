@@ -1,0 +1,5 @@
+{"command": "cargo xtask docs --check", "status": 0, "output": "Documentation is up to date."}
+{"command": "cargo xtask version-consistency", "status": 0, "output": "Version consistency checks passed."}
+{"command": "cargo xtask publish --plan --verbose", "status": 0, "output": "=== Publish Plan ===\nWorkspace version: 1.9.0\nPublish order (57 crates)..."}
+{"command": "cargo xtask gate --check", "status": 1, "output": "Tracked agent runtime state detected: - .jules/runs/.gitkeep"}
+{"command": "cargo deny --all-features check", "status": 0, "output": "advisories ok, bans ok, licenses ok, sources ok... [Multiple warnings about duplicate versions]"}
