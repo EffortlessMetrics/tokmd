@@ -3946,6 +3946,7 @@ dependencies = [
 name = "tokmd-python"
 version = "1.9.0"
 dependencies = [
+ "proptest",
  "pyo3",
  "pyo3-build-config",
  "serde_json",
