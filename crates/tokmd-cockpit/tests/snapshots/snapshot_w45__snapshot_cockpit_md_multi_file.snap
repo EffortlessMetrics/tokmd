@@ -1,5 +1,6 @@
 ---
 source: crates/tokmd-cockpit/tests/snapshot_w45.rs
+assertion_line: 113
 expression: md
 ---
 ## Glass Cockpit
@@ -67,11 +68,11 @@ expression: md
   - Reason: 60 lines changed
   - Complexity: 1
   - Lines changed: 60
-- **README.md** (priority: 3)
-  - Reason: 25 lines changed
-  - Complexity: 1
-  - Lines changed: 25
 - **Cargo.toml** (priority: 3)
   - Reason: 7 lines changed
   - Complexity: 1
   - Lines changed: 7
+- **README.md** (priority: 3)
+  - Reason: 25 lines changed
+  - Complexity: 1
+  - Lines changed: 25

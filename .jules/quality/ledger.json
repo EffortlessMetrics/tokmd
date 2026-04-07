@@ -1,0 +1,8 @@
+[
+  {
+    "id": "6fb606c1-4206-4cc0-bce1-4e6443c03714",
+    "date": "2026-04-07T20:12:25Z",
+    "type": "determinism",
+    "description": "Fix non-deterministic sorts in tokmd-cockpit ReviewItem and change_surface"
+  }
+]
