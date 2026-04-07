@@ -60,7 +60,7 @@ members = [
     "crates/tokmd-walk",
     "crates/tokmd-io-port",
     "fuzz",
-    "xtask", "test_anyhow",
+    "xtask",
 ]
 default-members = [
     "crates/tokmd-badge",
