@@ -18,5 +18,5 @@ This patch applies boundary hardening to structurally verify and apply `tokmd_re
 * Addressed leakage securely directly at the formatting edge boundary, ensuring no unexpected traces leak via output logs.
 
 ## Verification
-- Added explicit unit test (`test_export_json_redact_all_hides_module_roots`) to verify raw values `src/secret` do not appear in `RedactMode::All` outputs.
+
 - Confirmed stability via local workspace checks.
