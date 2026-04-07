@@ -1204,30 +1204,31 @@ mod tests {
 #[cfg(test)]
 mod mutation_tests {
     use super::*;
-    use tokmd_types::export::{ExportArgsMeta, ExportData, ExportReceipt, ExportStatus};
-    use tokmd_types::{RedactMode, ToolInfo};
+    use tokmd_types::ExportData;
+    use tokmd_types::RedactMode;
     use tokmd_settings::ExportSettings;
     
     // Helper to create minimal ExportData
     fn empty_export_data() -> ExportData {
         ExportData {
-            files: vec![],
-            languages: vec![],
-            total_files: 0,
-            total_bytes: 0,
-            excluded: vec![],
+            rows: vec![],
+            module_roots: vec![],
+            module_depth: 3,
+            children: tokmd_types::ChildIncludeMode::Separate,
         }
     }
 
     // Helper to create minimal ScanOptions
     fn minimal_scan_opts() -> ScanOptions {
         ScanOptions {
-            paths: vec![PathBuf::from(".")],
+            excluded: vec![],
+            config: tokmd_types::ConfigMode::Auto,
             hidden: false,
             no_ignore: false,
             no_ignore_parent: false,
             no_ignore_dot: false,
             no_ignore_vcs: false,
+            treat_doc_strings_as_comments: false,
         }
     }
 
@@ -1237,7 +1238,7 @@ mod mutation_tests {
             format: tokmd_settings::ExportFormat::Json,
             module_roots: vec![],
             module_depth: 3,
-            children: tokmd_settings::ChildIncludeMode::All,
+            children: tokmd_types::ChildIncludeMode::Separate,
             min_code: 1,
             max_rows: 1000,
             redact,
