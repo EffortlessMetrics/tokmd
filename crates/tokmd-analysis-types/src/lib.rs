@@ -1235,18 +1235,18 @@ impl ComplexityBaseline {
     pub fn from_analysis(receipt: &AnalysisReceipt) -> Self {
         let generated_at = chrono_timestamp_iso8601(receipt.generated_at_ms);
 
-        let (metrics, files, complexity) = if let Some(ref complexity_report) = receipt.complexity {
-            let total_code_lines = receipt
-                .derived
-                .as_ref()
-                .map(|d| d.totals.code as u64)
-                .unwrap_or(0);
-            let total_files = receipt
-                .derived
-                .as_ref()
-                .map(|d| d.totals.files as u64)
-                .unwrap_or(0);
+        let total_code_lines = receipt
+            .derived
+            .as_ref()
+            .map(|d| d.totals.code as u64)
+            .unwrap_or(0);
+        let total_files = receipt
+            .derived
+            .as_ref()
+            .map(|d| d.totals.files as u64)
+            .unwrap_or(0);
 
+        let (metrics, files, complexity) = if let Some(ref complexity_report) = receipt.complexity {
             let metrics = BaselineMetrics {
                 total_code_lines,
                 total_files,
@@ -1290,7 +1290,12 @@ impl ComplexityBaseline {
 
             (metrics, files, Some(complexity_section))
         } else {
-            (BaselineMetrics::default(), Vec::new(), None)
+            let fallback_metrics = BaselineMetrics {
+                total_code_lines,
+                total_files,
+                ..Default::default()
+            };
+            (fallback_metrics, Vec::new(), None)
         };
 
         Self {

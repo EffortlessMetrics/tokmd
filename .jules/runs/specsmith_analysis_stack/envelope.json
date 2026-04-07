@@ -1,0 +1,17 @@
+{
+  "prompt_id": "specsmith_analysis_stack",
+  "persona": "Specsmith \ud83e\uddea",
+  "style": "Builder",
+  "primary_shard": "analysis-stack",
+  "allowed_paths": [
+    "crates/tokmd-analysis*/**",
+    "crates/tokmd-fun/**",
+    "crates/tokmd-gate/**"
+  ],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "proof-improvement patch",
+    "learning PR"
+  ]
+}
