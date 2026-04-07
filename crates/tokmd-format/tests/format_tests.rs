@@ -1856,3 +1856,43 @@ fn test_cyclonedx_snapshot_deterministic() {
 
     insta::assert_snapshot!(pretty);
 }
+
+#[test]
+fn test_export_json_redact_all_hides_module_roots() {
+    use tokmd_format::{write_export_json_to};
+    use tokmd_types::{ExportData, ExportArgs, ExportFormat, RedactMode, ChildIncludeMode};
+    use tokmd_settings::ScanOptions;
+    use std::path::PathBuf;
+
+    let data = ExportData {
+        rows: vec![],
+        module_roots: vec!["src/secret".to_string(), "crates/internal".to_string()],
+        module_depth: 2,
+        children: ChildIncludeMode::ParentsOnly,
+    };
+
+    let args = ExportArgs {
+        format: ExportFormat::Json,
+        paths: vec![PathBuf::from("src/secret")],
+        children: ChildIncludeMode::ParentsOnly,
+        min_code: 0,
+        max_rows: 0,
+        redact: RedactMode::All, // Full redaction
+        meta: true,
+        strip_prefix: None,
+        module_depth: 2,
+        module_roots: vec!["src/secret".to_string(), "crates/internal".to_string()],
+        output: None,
+    };
+
+    let global = ScanOptions::default();
+
+    let mut buf = Vec::new();
+    write_export_json_to(&mut buf, &data, &global, &args).expect("must succeed");
+
+    let output = String::from_utf8(buf).expect("must be utf8");
+
+    // The output should NOT contain the raw module roots
+    assert!(!output.contains("src/secret"), "Should not contain raw module root");
+    assert!(!output.contains("crates/internal"), "Should not contain raw module root");
+}
