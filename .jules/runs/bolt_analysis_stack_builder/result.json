@@ -1,0 +1,7 @@
+{
+  "run_id": "bolt_analysis_stack_builder",
+  "status": "success",
+  "outcome": "learning-pr",
+  "justification": "I initially attempted a fake determinism fix that added sorting overhead instead of improving performance. I reverted it. I am now emitting a learning PR since I could not isolate a verifiable performance fix.",
+  "gates_run": []
+}

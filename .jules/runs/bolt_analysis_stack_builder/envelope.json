@@ -1,0 +1,16 @@
+{
+  "prompt_id": "bolt_analysis_stack_builder",
+  "persona": "Bolt",
+  "style": "Builder",
+  "primary_shard": "analysis-stack",
+  "allowed_paths": [
+    "crates/tokmd-analysis*/**",
+    "crates/tokmd-fun/**",
+    "crates/tokmd-gate/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/tests/**",
+    "docs/**"
+  ],
+  "gate_profile": "perf-proof",
+  "allowed_outcomes": ["pr-ready-patch", "learning-pr"]
+}
