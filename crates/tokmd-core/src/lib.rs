@@ -369,13 +369,12 @@ pub fn analyze_workflow(
 /// # Example
 ///
 /// ```rust
-/// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}};
-/// use tokmd_model::InMemoryFile;
+/// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}, InMemoryFile};
 ///
 /// let inputs = vec![
 ///     InMemoryFile {
 ///         path: "src/main.rs".into(),
-///         content: "fn main() { println!(\"hello world\"); }".into(),
+///         bytes: b"fn main() { println!(\"hello world\"); }".to_vec(),
 ///     }
 /// ];
 ///
