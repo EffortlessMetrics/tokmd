@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep integration tests for context and handoff CLI pipelines.
 //!
 //! Covers: context JSON receipt structure, bundle assembly, handoff manifest

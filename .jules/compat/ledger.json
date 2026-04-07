@@ -12,5 +12,12 @@
   {
     "run_id": "13bf324d-a8ad-4e74-9d27-673789e16269",
     "status": "PASS"
+  },
+  {
+    "run_id": "603479bb-c34d-4cba-b1ee-66f0b633ccf1",
+    "timestamp": "2026-04-07T10:23:02Z",
+    "description": "Add `#[cfg(feature = \"git\")]` to context integration tests for `--no-default-features` compatibility",
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

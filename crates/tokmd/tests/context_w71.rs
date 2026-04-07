@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! W71 deep context CLI integration tests.
 //!
 //! Tests cover: rank-by variants, no-git fallback, compress flag, max-file-pct,

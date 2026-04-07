@@ -1,0 +1,9 @@
+{
+  "run_id": "603479bb-c34d-4cba-b1ee-66f0b633ccf1",
+  "status": "PASS",
+  "friction_ids": [],
+  "receipts": [
+    "cargo test -p tokmd --no-default-features",
+    "cargo test -p tokmd --all-features"
+  ]
+}
