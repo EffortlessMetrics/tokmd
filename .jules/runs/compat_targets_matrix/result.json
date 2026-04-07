@@ -1,0 +1,9 @@
+{
+  "outcome": "success",
+  "patch_type": "PR-ready patch",
+  "shard": "bindings-targets",
+  "metrics": {
+    "files_changed": 1,
+    "gate_profile": "compat-matrix"
+  }
+}
