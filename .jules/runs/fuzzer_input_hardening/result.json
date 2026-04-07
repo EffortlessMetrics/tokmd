@@ -1,0 +1,6 @@
+{
+  "gate_profile": "fuzz",
+  "status": "success",
+  "action": "proof-improvement",
+  "summary": "Fixed broken rustdoc links and replaced raw libfuzzer targets for parser invariants with proptests to enable reproducible, CI-friendly fuzzing validations."
+}
