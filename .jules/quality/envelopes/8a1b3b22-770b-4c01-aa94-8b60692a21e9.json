@@ -1,0 +1,12 @@
+{
+  "commands": [
+    {
+      "command": "cargo build --verbose",
+      "result": "Finished `dev` profile [unoptimized + debuginfo] target(s)"
+    },
+    {
+      "command": "cargo test -p tokmd-analysis-content --test properties",
+      "result": "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s"
+    }
+  ]
+}
