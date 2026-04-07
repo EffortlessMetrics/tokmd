@@ -1,0 +1,17 @@
+{
+  "run_id": "f7023959-81d6-4e0f-a195-97a95f17455d",
+  "timestamp_utc": "2026-04-07T20:02:08Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/commands/sensor.rs:491",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd -- test_sensor",
+      "exit_status": 0,
+      "summary": "PASS",
+      "details": "test result: ok. 3 passed; 0 failed"
+    }
+  ],
+  "results_summary": [
+    "Successfully refactored render_sensor_md_includes_findings_and_gates to use ? instead of unwrap() and verified test execution passed."
+  ]
+}
