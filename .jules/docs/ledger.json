@@ -1,0 +1,8 @@
+[
+  {
+    "id": "d7a12037-c68b-4715-8121-18b39fb4a06d",
+    "target": "crates/tokmd/README.md",
+    "persona": "Librarian",
+    "action": "fix README example drift to use --output flag"
+  }
+]
