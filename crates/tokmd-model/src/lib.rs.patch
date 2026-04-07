@@ -1,0 +1,166 @@
+<<<<<<< SEARCH
+pub fn collect_file_rows(
+    languages: &Languages,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    strip_prefix: Option<&Path>,
+) -> Vec<FileRow> {
+    let mut map: BTreeMap<Key<'_>, (String /*module*/, Agg)> = BTreeMap::new();
+
+    // Create an arena to hold paths so we can hand out shared references safely.
+    let mut all_reports = Vec::new();
+    for (_lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            all_reports.push(&report.name);
+        }
+        if children == ChildIncludeMode::Separate {
+            for (_child_type, reports) in &lang.children {
+                for report in reports {
+                    all_reports.push(&report.name);
+                }
+            }
+        }
+    }
+    all_reports.sort();
+    all_reports.dedup();
+
+    let mut path_cache: HashMap<&Path, String> = HashMap::with_capacity(all_reports.len());
+    for path in all_reports {
+        path_cache.insert(path.as_path(), normalize_path(path, strip_prefix));
+    }
+
+    // Parent reports
+    for (lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+            let module = module_key_from_normalized(path_ref, module_roots, module_depth);
+            let st = report.stats.summarise();
+            let (bytes, tokens) = get_file_metrics(&report.name);
+            insert_row(
+                &mut map,
+                Key {
+                    path: path_ref.as_str(),
+                    lang: lang_type.name(),
+                    kind: FileKind::Parent,
+                },
+                module,
+                &st,
+                bytes,
+                tokens,
+            );
+        }
+    }
+
+    if children == ChildIncludeMode::Separate {
+        for (_lang_type, lang) in languages.iter() {
+            for (child_type, reports) in &lang.children {
+                for report in reports {
+                    let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+                    let module = module_key_from_normalized(path_ref, module_roots, module_depth);
+                    let st = report.stats.summarise();
+                    insert_row(
+                        &mut map,
+                        Key {
+                            path: path_ref.as_str(),
+                            lang: child_type.name(),
+                            kind: FileKind::Child,
+                        },
+                        module,
+                        &st,
+                        0,
+                        0,
+                    );
+                }
+            }
+        }
+    }
+
+    rows_from_map(map)
+}
+=======
+pub fn collect_file_rows(
+    languages: &Languages,
+    module_roots: &[String],
+    module_depth: usize,
+    children: ChildIncludeMode,
+    strip_prefix: Option<&Path>,
+) -> Vec<FileRow> {
+    let mut map: BTreeMap<Key<'_>, (String /*module*/, Agg)> = BTreeMap::new();
+
+    // We create a single cache for the normalized paths so that each file is
+    // normalized only once, and we can safely borrow the strings for our `Key`s.
+    let mut path_cache: HashMap<&Path, String> = HashMap::new();
+
+    // In a first pass, populate the path cache to avoid borrow checker issues
+    // when looking up the cache during the BTreeMap inserts.
+    for (_lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            path_cache
+                .entry(report.name.as_path())
+                .or_insert_with(|| normalize_path(&report.name, strip_prefix));
+        }
+        if children == ChildIncludeMode::Separate {
+            for (_child_type, reports) in &lang.children {
+                for report in reports {
+                    path_cache
+                        .entry(report.name.as_path())
+                        .or_insert_with(|| normalize_path(&report.name, strip_prefix));
+                }
+            }
+        }
+    }
+
+    // Parent reports
+    for (lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+            let module = module_key_from_normalized(path_ref, module_roots, module_depth);
+            let st = report.stats.summarise();
+            let (bytes, tokens) = get_file_metrics(&report.name);
+            insert_row(
+                &mut map,
+                Key {
+                    path: path_ref.as_str(),
+                    lang: lang_type.name(),
+                    kind: FileKind::Parent,
+                },
+                module,
+                &st,
+                bytes,
+                tokens,
+            );
+        }
+    }
+
+    if children == ChildIncludeMode::Separate {
+        for (_lang_type, lang) in languages.iter() {
+            for (child_type, reports) in &lang.children {
+                for report in reports {
+                    let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+                    let module = module_key_from_normalized(path_ref, module_roots, module_depth);
+                    let st = report.stats.summarise();
+                    insert_row(
+                        &mut map,
+                        Key {
+                            path: path_ref.as_str(),
+                            lang: child_type.name(),
+                            kind: FileKind::Child,
+                        },
+                        module,
+                        &st,
+                        0,
+                        0,
+                    );
+                }
+            }
+        }
+    }
+
+    rows_from_map(map)
+}
+>>>>>>> REPLACE

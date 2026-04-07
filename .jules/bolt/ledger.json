@@ -35,5 +35,23 @@
       "clippy"
     ],
     "friction_ids": []
+  },
+  {
+    "run_id": "0d6f0122-2ed5-4e14-aa91-6312d56da6d7",
+    "timestamp_utc": "2026-03-30T00:00:00Z",
+    "lane": "scout",
+    "target": "tokmd-model collect_file_rows Key allocations",
+    "proof_method": "bench",
+    "status": "PASS",
+    "friction_ids": []
+  },
+  {
+    "run_id": "0d6f0122-2ed5-4e14-aa91-6312d56da6d7",
+    "timestamp_utc": "2026-03-30T00:00:00Z",
+    "lane": "scout",
+    "target": "tokmd-model collect_file_rows Key allocations",
+    "proof_method": "bench",
+    "status": "PASS",
+    "friction_ids": []
   }
 ]

@@ -17,7 +17,7 @@
 //! * Tokei interaction (use tokmd-scan)
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -41,9 +41,9 @@ struct Agg {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct Key {
-    path: String,
-    lang: String,
+struct Key<'a> {
+    path: &'a str,
+    lang: &'a str,
     kind: FileKind,
 }
 
@@ -208,9 +208,9 @@ fn detect_in_memory_language(
         .or_else(|| language_from_in_memory_shebang(bytes))
 }
 
-fn insert_row(
-    map: &mut BTreeMap<Key, (String, Agg)>,
-    key: Key,
+fn insert_row<'a>(
+    map: &mut BTreeMap<Key<'a>, (String, Agg)>,
+    key: Key<'a>,
     module: String,
     stats: &CodeStats,
     bytes: usize,
@@ -224,14 +224,14 @@ fn insert_row(
     entry.1.tokens += tokens;
 }
 
-fn rows_from_map(map: BTreeMap<Key, (String, Agg)>) -> Vec<FileRow> {
+fn rows_from_map(map: BTreeMap<Key<'_>, (String, Agg)>) -> Vec<FileRow> {
     map.into_iter()
         .map(|(key, (module, agg))| {
             let lines = agg.code + agg.comments + agg.blanks;
             FileRow {
-                path: key.path,
+                path: key.path.to_string(),
                 module,
-                lang: key.lang,
+                lang: key.lang.to_string(),
                 kind: key.kind,
                 code: agg.code,
                 comments: agg.comments,
@@ -255,16 +255,20 @@ pub fn collect_in_memory_file_rows(
     children: ChildIncludeMode,
     config: &Config,
 ) -> Vec<FileRow> {
-    let mut map: BTreeMap<Key, (String, Agg)> = BTreeMap::new();
+    let mut map: BTreeMap<Key<'_>, (String, Agg)> = BTreeMap::new();
 
+    let mut paths: Vec<String> = Vec::with_capacity(inputs.len());
     for input in inputs {
+        paths.push(normalize_path(input.logical_path, None));
+    }
+
+    for (input, path) in inputs.iter().zip(paths.iter()) {
         let Some(lang_type) = detect_in_memory_language(input.logical_path, input.bytes, config)
         else {
             continue;
         };
 
-        let path = normalize_path(input.logical_path, None);
-        let module = module_key_from_normalized(&path, module_roots, module_depth);
+        let module = module_key_from_normalized(path, module_roots, module_depth);
         let stats = lang_type.parse_from_slice(input.bytes, config);
         let summary = stats.summarise();
         let (bytes, tokens) = metrics_from_bytes(input.bytes);
@@ -272,8 +276,8 @@ pub fn collect_in_memory_file_rows(
         insert_row(
             &mut map,
             Key {
-                path: path.clone(),
-                lang: lang_type.name().to_string(),
+                path: path.as_str(),
+                lang: lang_type.name(),
                 kind: FileKind::Parent,
             },
             module.clone(),
@@ -288,8 +292,8 @@ pub fn collect_in_memory_file_rows(
                 insert_row(
                     &mut map,
                     Key {
-                        path: path.clone(),
-                        lang: child_type.name().to_string(),
+                        path: path.as_str(),
+                        lang: child_type.name(),
                         kind: FileKind::Child,
                     },
                     module.clone(),
@@ -649,20 +653,44 @@ pub fn collect_file_rows(
     children: ChildIncludeMode,
     strip_prefix: Option<&Path>,
 ) -> Vec<FileRow> {
-    let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
+    let mut map: BTreeMap<Key<'_>, (String /*module*/, Agg)> = BTreeMap::new();
+
+    // We create a single cache for the normalized paths so that each file is
+    // normalized only once, and we can safely borrow the strings for our `Key`s.
+    let mut path_cache: HashMap<&Path, String> = HashMap::new();
+
+    // In a first pass, populate the path cache to avoid borrow checker issues
+    // when looking up the cache during the BTreeMap inserts.
+    for (_lang_type, lang) in languages.iter() {
+        for report in &lang.reports {
+            path_cache
+                .entry(report.name.as_path())
+                .or_insert_with(|| normalize_path(&report.name, strip_prefix));
+        }
+        if children == ChildIncludeMode::Separate {
+            for reports in lang.children.values() {
+                for report in reports {
+                    path_cache
+                        .entry(report.name.as_path())
+                        .or_insert_with(|| normalize_path(&report.name, strip_prefix));
+                }
+            }
+        }
+    }
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
         for report in &lang.reports {
-            let path = normalize_path(&report.name, strip_prefix);
-            let module = module_key_from_normalized(&path, module_roots, module_depth);
+            let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+            let module = module_key_from_normalized(path_ref, module_roots, module_depth);
             let st = report.stats.summarise();
             let (bytes, tokens) = get_file_metrics(&report.name);
             insert_row(
                 &mut map,
                 Key {
-                    path,
-                    lang: lang_type.name().to_string(),
+                    path: path_ref.as_str(),
+                    lang: lang_type.name(),
                     kind: FileKind::Parent,
                 },
                 module,
@@ -677,14 +705,15 @@ pub fn collect_file_rows(
         for (_lang_type, lang) in languages.iter() {
             for (child_type, reports) in &lang.children {
                 for report in reports {
-                    let path = normalize_path(&report.name, strip_prefix);
-                    let module = module_key_from_normalized(&path, module_roots, module_depth);
+                    let path_ref = path_cache.get(report.name.as_path()).unwrap();
+
+                    let module = module_key_from_normalized(path_ref, module_roots, module_depth);
                     let st = report.stats.summarise();
                     insert_row(
                         &mut map,
                         Key {
-                            path,
-                            lang: child_type.name().to_string(),
+                            path: path_ref.as_str(),
+                            lang: child_type.name(),
                             kind: FileKind::Child,
                         },
                         module,
