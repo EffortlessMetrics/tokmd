@@ -1,0 +1,34 @@
+{
+  "run_id": "4f44466f-954a-46ce-bd45-91d6ab68cfd6",
+  "timestamp_utc": "2026-04-07T10:15:55Z",
+  "lane": "scout",
+  "target": "Burn down error swallowing in boundary verification and schema validation tests",
+  "commands": [
+    {
+      "cmd": "cargo build",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo build",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo test",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo clippy",
+      "exit_status": "0",
+      "summary": "PASS"
+    },
+    {
+      "cmd": "cargo fmt",
+      "exit_status": "0",
+      "summary": "PASS"
+    }
+  ],
+  "results_summary": []
+}

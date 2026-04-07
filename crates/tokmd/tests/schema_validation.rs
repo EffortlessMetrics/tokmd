@@ -80,7 +80,8 @@ fn test_lang_receipt_validates_against_schema() -> Result<()> {
         panic!(
             "LangReceipt validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -108,7 +109,8 @@ fn test_module_receipt_validates_against_schema() -> Result<()> {
         panic!(
             "ModuleReceipt validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -136,7 +138,8 @@ fn test_export_receipt_validates_against_schema() -> Result<()> {
         panic!(
             "ExportReceipt validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -167,7 +170,8 @@ fn test_export_meta_validates_against_schema() -> Result<()> {
         panic!(
             "ExportMeta validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -202,7 +206,8 @@ fn test_export_row_validates_against_schema() -> Result<()> {
                 "ExportRow validation failed on row {}:\n{}\n\nOutput:\n{}",
                 i + 1,
                 error_messages.join("\n"),
-                serde_json::to_string_pretty(&json).unwrap_or_default()
+                serde_json::to_string_pretty(&json)
+                    .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
             );
         }
     }
@@ -234,7 +239,8 @@ fn test_analysis_receipt_validates_against_schema() -> Result<()> {
         panic!(
             "AnalysisReceipt validation failed (preset=receipt):\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -265,7 +271,8 @@ fn test_analysis_receipt_health_preset_validates() -> Result<()> {
         panic!(
             "AnalysisReceipt validation failed (preset=health):\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -296,7 +303,8 @@ fn test_analysis_receipt_supply_preset_validates() -> Result<()> {
         panic!(
             "AnalysisReceipt validation failed (preset=supply):\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -329,7 +337,8 @@ fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
         panic!(
             "AnalysisReceipt validation failed (with --window):\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
 
@@ -493,7 +502,8 @@ fn test_cockpit_receipt_validates_against_schema() -> Result<()> {
         panic!(
             "CockpitReceipt validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
 
@@ -537,7 +547,8 @@ fn test_handoff_manifest_validates_against_schema() -> Result<()> {
         panic!(
             "Handoff manifest validation failed:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())
@@ -654,7 +665,8 @@ fn test_envelope_struct_validates_against_sensor_report_v1() -> Result<()> {
         panic!(
             "SensorReport struct does not validate against schema:\n{}\n\nOutput:\n{}",
             error_messages.join("\n"),
-            serde_json::to_string_pretty(&json).unwrap_or_default()
+            serde_json::to_string_pretty(&json)
+                .unwrap_or_else(|_| "<failed to serialize json output>".to_string())
         );
     }
     Ok(())

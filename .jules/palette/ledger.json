@@ -25,6 +25,19 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-07T10:39:08Z",
+      "lane": "scout",
+      "target": "Burn down error swallowing in tests",
+      "pr_link": "test: fail loudly on file read and schema validation errors 🎨 Palette",
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
     }
   ]
 }

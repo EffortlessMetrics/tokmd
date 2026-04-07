@@ -403,18 +403,18 @@ mod tests {
             bundle
                 .export_path
                 .as_ref()
-                .expect("should exist")
+                .unwrap()
                 .file_name()
-                .expect("should have name"),
+                .unwrap(),
             "export.jsonl"
         );
         assert_eq!(
             bundle
                 .entry_point
                 .as_ref()
-                .expect("should exist")
+                .unwrap()
                 .file_name()
-                .expect("should have name"),
+                .unwrap(),
             "receipt.json"
         );
         Ok(())

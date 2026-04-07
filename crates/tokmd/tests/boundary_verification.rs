@@ -412,7 +412,8 @@ fn schema_version_constants_are_unique() {
         let mut found_in: Vec<String> = Vec::new();
 
         visit_rs_files(&crates_dir, &mut |path| {
-            let content = fs::read_to_string(path).unwrap_or_default();
+            let content = fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
             if content.contains(&pattern) {
                 found_in.push(
                     path.strip_prefix(&root)
@@ -461,7 +462,8 @@ fn schema_version_constants_are_public() {
             if path_str.contains("tests") || path_str.contains("test") {
                 return;
             }
-            let content = fs::read_to_string(path).unwrap_or_default();
+            let content = fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
             for line in content.lines() {
                 let trimmed = line.trim();
                 if trimmed.starts_with("//") {
