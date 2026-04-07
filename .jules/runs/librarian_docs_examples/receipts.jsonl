@@ -1,0 +1,2 @@
+{"cmd": "cargo xtask docs --check", "status": "success", "summary": "Checked docs", "artifacts": []}
+{"cmd": "python3 fix_docs_precise.py", "status": "success", "summary": "Updated docs/reference-cli.md tables correctly", "artifacts": ["docs/reference-cli.md"]}
