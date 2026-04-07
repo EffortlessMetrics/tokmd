@@ -1,2 +1,0 @@
-{"ts_utc": "2024-04-07T16:00:00Z", "phase": "patch", "cwd": ".jules", "cmd": "write_file PERSONA_TEMPLATE.md", "status": "success", "summary": "Created shared persona template"}
-{"ts_utc": "2024-04-07T16:01:00Z", "phase": "gates", "cwd": ".", "cmd": "cargo xtask version-consistency && cargo xtask docs --check && cargo fmt -- --check", "status": "success", "summary": "Checked versions, docs, and format"}
