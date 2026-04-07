@@ -197,7 +197,11 @@ fn build_coupling(
                 } else {
                     (right, left)
                 };
-                *pairs.entry(key).or_insert(0) += 1;
+                if let Some(v) = pairs.get_mut(&key) {
+                    *v += 1;
+                } else {
+                    pairs.insert(key, 1);
+                }
             }
         }
     }
@@ -258,7 +262,13 @@ fn build_intent_report(
             }
         }
         for module in modules {
-            by_module_counts.entry(module).or_default().increment(kind);
+            if let Some(v) = by_module_counts.get_mut(&module) {
+                v.increment(kind);
+            } else {
+                let mut c = CommitIntentCounts::default();
+                c.increment(kind);
+                by_module_counts.insert(module, c);
+            }
         }
     }
 

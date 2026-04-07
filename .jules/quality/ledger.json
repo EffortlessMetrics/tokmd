@@ -1,0 +1,17 @@
+[
+  {
+    "run_id": "c534ae11-abfe-4d1d-ab8f-008f391bb7ca",
+    "persona": "Gatekeeper",
+    "timestamp": "2026-04-07T20:14:59Z",
+    "lane": "B",
+    "target": "Determinism / Performance",
+    "rationale": "Eliminating BTreeMap::entry(key.clone()) calls inside tight loops across tokmd crates saves unnecessary allocations when keys already exist.",
+    "receipts": [
+      {
+        "command": "cargo xtask gate",
+        "status": "passed",
+        "note": "4/4 steps passed including clippy and tests"
+      }
+    ]
+  }
+]

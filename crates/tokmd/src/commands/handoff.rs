@@ -851,7 +851,11 @@ fn build_simple_derived(export: &ExportData) -> HandoffDerived {
     // Count languages
     let mut lang_counts: BTreeMap<String, usize> = BTreeMap::new();
     for row in &parents {
-        *lang_counts.entry(row.lang.clone()).or_insert(0) += row.code;
+        if let Some(v) = lang_counts.get_mut(&row.lang) {
+            *v += row.code;
+        } else {
+            lang_counts.insert(row.lang.clone(), row.code);
+        }
     }
     let lang_count = lang_counts.len();
 

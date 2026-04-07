@@ -316,8 +316,11 @@ pub fn pack_spread(
     // Group by module (module-first spread)
     let mut groups: BTreeMap<String, Vec<&FileRow>> = BTreeMap::new();
     for row in &parents {
-        let key = row.module.clone();
-        groups.entry(key).or_default().push(row);
+        if let Some(v) = groups.get_mut(&row.module) {
+            v.push(row);
+        } else {
+            groups.insert(row.module.clone(), vec![row]);
+        }
     }
 
     // Sort each group by value descending
@@ -340,7 +343,12 @@ pub fn pack_spread(
     while made_progress && used_tokens < spread_budget {
         made_progress = false;
         for (key, group) in &groups {
-            let idx = group_indices.entry(key.clone()).or_insert(0);
+            let idx = if let Some(i) = group_indices.get_mut(key) {
+                i
+            } else {
+                group_indices.insert(key.clone(), 0);
+                group_indices.get_mut(key).unwrap()
+            };
             if *idx < group.len() {
                 let row = group[*idx];
                 if used_tokens + row.tokens <= spread_budget {
