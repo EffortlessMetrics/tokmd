@@ -1,0 +1,4 @@
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "mkdir -p .jules/runs/palette_runtime_dx"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "write envelope.json"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test -p tokmd"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo run --bin tokmd -- foo"}
