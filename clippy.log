@@ -1,0 +1,112 @@
+    Checking serde_json v1.0.149
+    Checking tokmd-types v1.8.0 (/app/crates/tokmd-types)
+   Compiling getrandom v0.2.17
+    Checking tokmd-math v1.8.0 (/app/crates/tokmd-math)
+   Compiling rand_core v0.6.4
+   Compiling rand_chacha v0.3.1
+    Checking tokmd-envelope v1.8.0 (/app/crates/tokmd-envelope)
+   Compiling rand v0.8.5
+   Compiling phf_generator v0.11.3
+    Checking tokmd-content v1.8.0 (/app/crates/tokmd-content)
+    Checking tokmd-path v1.8.0 (/app/crates/tokmd-path)
+   Compiling phf_codegen v0.11.3
+    Checking tokmd-tool-schema v1.8.0 (/app/crates/tokmd-tool-schema)
+   Compiling chrono-tz-build v0.3.0
+    Checking tokmd-walk v1.8.0 (/app/crates/tokmd-walk)
+    Checking tokmd-redact v1.8.0 (/app/crates/tokmd-redact)
+    Checking tokmd-module-key v1.8.0 (/app/crates/tokmd-module-key)
+    Checking tokmd-analysis-imports v1.8.0 (/app/crates/tokmd-analysis-imports)
+    Checking tokmd-fun v1.8.0 (/app/crates/tokmd-fun)
+    Checking tokmd-analysis-grid v1.8.0 (/app/crates/tokmd-analysis-grid)
+   Compiling chrono-tz v0.9.0
+    Checking tokmd-progress v1.8.0 (/app/crates/tokmd-progress)
+    Checking tokmd-gate v1.8.0 (/app/crates/tokmd-gate)
+    Checking tokmd-exclude v1.8.0 (/app/crates/tokmd-exclude)
+    Checking tokmd-analysis-explain v1.8.0 (/app/crates/tokmd-analysis-explain)
+    Checking tokmd-badge v1.8.0 (/app/crates/tokmd-badge)
+    Checking tokmd-substrate v1.8.0 (/app/crates/tokmd-substrate)
+    Checking tokmd-ffi-envelope v1.8.0 (/app/crates/tokmd-ffi-envelope)
+    Checking tokmd-analysis-types v1.8.0 (/app/crates/tokmd-analysis-types)
+    Checking tokmd-settings v1.8.0 (/app/crates/tokmd-settings)
+    Checking tokmd-git v1.8.0 (/app/crates/tokmd-git)
+    Checking tokmd-export-tree v1.8.0 (/app/crates/tokmd-export-tree)
+    Checking tokmd-context-git v1.8.0 (/app/crates/tokmd-context-git)
+    Checking tokmd-context-policy v1.8.0 (/app/crates/tokmd-context-policy)
+   Compiling tera v1.20.1
+    Checking tokmd-config v1.8.0 (/app/crates/tokmd-config)
+    Checking tokmd-scan-args v1.8.0 (/app/crates/tokmd-scan-args)
+    Checking tokmd-format v1.8.0 (/app/crates/tokmd-format)
+    Checking tokmd-tokeignore v1.8.0 (/app/crates/tokmd-tokeignore)
+   Compiling tokei v14.0.0
+    Checking tokmd-analysis-util v1.8.0 (/app/crates/tokmd-analysis-util)
+    Checking tokmd-analysis-maintainability v1.8.0 (/app/crates/tokmd-analysis-maintainability)
+    Checking tokmd-analysis-assets v1.8.0 (/app/crates/tokmd-analysis-assets)
+    Checking tokmd-analysis-topics v1.8.0 (/app/crates/tokmd-analysis-topics)
+    Checking tokmd-analysis-entropy v1.8.0 (/app/crates/tokmd-analysis-entropy)
+    Checking tokmd-analysis-git v1.8.0 (/app/crates/tokmd-analysis-git)
+    Checking tokmd-analysis-derived v1.8.0 (/app/crates/tokmd-analysis-derived)
+    Checking tokmd-analysis-content v1.8.0 (/app/crates/tokmd-analysis-content)
+    Checking tokmd-analysis-effort v1.8.0 (/app/crates/tokmd-analysis-effort)
+    Checking tokmd-analysis-complexity v1.8.0 (/app/crates/tokmd-analysis-complexity)
+    Checking tokmd-analysis-license v1.8.0 (/app/crates/tokmd-analysis-license)
+    Checking tokmd-analysis-api-surface v1.8.0 (/app/crates/tokmd-analysis-api-surface)
+    Checking tokmd-analysis-fingerprint v1.8.0 (/app/crates/tokmd-analysis-fingerprint)
+    Checking tokmd-analysis-archetype v1.8.0 (/app/crates/tokmd-analysis-archetype)
+    Checking tokmd-analysis-fun v1.8.0 (/app/crates/tokmd-analysis-fun)
+    Checking tokmd-analysis-html v1.8.0 (/app/crates/tokmd-analysis-html)
+    Checking tokmd-analysis-near-dup v1.8.0 (/app/crates/tokmd-analysis-near-dup)
+    Checking tokmd-cockpit v1.8.0 (/app/crates/tokmd-cockpit)
+    Checking tokmd-analysis-format v1.8.0 (/app/crates/tokmd-analysis-format)
+    Checking tokmd-analysis v1.8.0 (/app/crates/tokmd-analysis)
+    Checking tokmd-analysis-halstead v1.8.0 (/app/crates/tokmd-analysis-halstead)
+    Checking tokmd-scan v1.8.0 (/app/crates/tokmd-scan)
+    Checking tokmd-model v1.8.0 (/app/crates/tokmd-model)
+    Checking tokmd v1.8.0 (/app/crates/tokmd)
+    Checking tokmd-core v1.8.0 (/app/crates/tokmd-core)
+    Checking tokmd-sensor v1.8.0 (/app/crates/tokmd-sensor)
+error: using `write!()` with a format string that ends in a single newline
+   --> crates/tokmd/src/commands/context.rs:355:13
+    |
+355 |     let _ = write!(out, "Budget: {} tokens\n", budget);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#write_with_newline
+    = note: `-D clippy::write-with-newline` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::write_with_newline)]`
+help: use `writeln!` instead
+    |
+355 -     let _ = write!(out, "Budget: {} tokens\n", budget);
+355 +     let _ = writeln!(out, "Budget: {} tokens", budget);
+    |
+
+error: using `write!()` with a format string that ends in a single newline
+   --> crates/tokmd/src/commands/context.rs:356:13
+    |
+356 |       let _ = write!(out, "Used: {} tokens ({:.1}%)\n", used_tokens, ut...
+    |  _____________^
+357 | |     );
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#write_with_newline
+help: use `writeln!` instead
+    |
+356 -     let _ = write!(out, "Used: {} tokens ({:.1}%)\n", used_tokens, utilization
+356 +     let _ = writeln!(out, "Used: {} tokens ({:.1}%)", used_tokens, utilization
+    |
+
+error: using `write!()` with a format string that ends in a single newline
+   --> crates/tokmd/src/commands/context.rs:363:17
+    |
+363 |   ...   let _ = write!(out, "|{}|{}|{}|{}|{}|\n", file.path, file.modul...
+    |  _______________^
+364 | | ...   );
+    | |_______^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#write_with_newline
+help: use `writeln!` instead
+    |
+363 -         let _ = write!(out, "|{}|{}|{}|{}|{}|\n", file.path, file.module, file.lang, file.tokens, file.code
+363 +         let _ = writeln!(out, "|{}|{}|{}|{}|{}|", file.path, file.module, file.lang, file.tokens, file.code
+    |
+
+error: could not compile `tokmd` (lib) due to 3 previous errors

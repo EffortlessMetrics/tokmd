@@ -4,6 +4,7 @@
 //! function detail extraction, cognitive/nesting depth patterns,
 //! multi-language patterns, and deterministic output guarantees.
 
+use std::fmt::Write;
 use std::fs;
 use std::path::PathBuf;
 
@@ -573,7 +574,7 @@ fn simple(x: i32) -> i32 {
         // Generate code with many functions to push function_count > 50
         let mut code = String::new();
         for i in 0..55 {
-            code.push_str(&format!("fn f{i}() {{ let x = 1; }}\n"));
+            let _ = writeln!(code, "fn f{i}() {{ let x = 1; }}");
         }
         let report = analyze(&[("lib.rs", "Rust", &code)], false);
         assert!(
@@ -1400,7 +1401,7 @@ fn deep(x: i32) {
     fn many_functions_file() {
         let mut code = String::new();
         for i in 0..30 {
-            code.push_str(&format!("fn func_{i}() {{ let x = {i}; }}\n"));
+            let _ = writeln!(code, "fn func_{i}() {{ let x = {i}; }}");
         }
         let report = analyze(&[("many.rs", "Rust", &code)], false);
         assert!(report.total_functions >= 20);

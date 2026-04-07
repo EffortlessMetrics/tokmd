@@ -1,0 +1,29 @@
+Diff in /app/crates/tokmd/src/commands/context.rs:1:
+[32m+use std::fmt::Write as _;
+[m use std::fs::{self, File, OpenOptions};
+ use std::io::{BufRead, BufReader, Read, Write};
+[31m-use std::fmt::Write as _;
+[m use std::path::{Path, PathBuf};
+ use std::time::{SystemTime, UNIX_EPOCH};
+
+Diff in /app/crates/tokmd/src/commands/context.rs:353:
+     let mut out = String::new();
+     out.push_str("# Context Pack\n\n");
+     let _ = write!(out, "Budget: {} tokens\n", budget);
+[31m-    let _ = write!(out, "Used: {} tokens ({:.1}%)\n", used_tokens, utilization
+[m[31m-    );
+[m[32m+    let _ = write!(out, "Used: {} tokens ({:.1}%)\n", used_tokens, utilization);
+[m     out.push_str(&format!("Files: {}\n", selected.len()));
+     let _ = write!(out, "Strategy: {:?}\n\n", strategy);
+     out.push_str("|Path|Module|Lang|Tokens|Code|\n");
+Diff in /app/crates/tokmd/src/commands/context.rs:361:
+     out.push_str("|---|---|---|---:|---:|\n");
+     for file in selected {
+[31m-        let _ = write!(out, "|{}|{}|{}|{}|{}|\n", file.path, file.module, file.lang, file.tokens, file.code
+[m[32m+        let _ = write!(
+[m[32m+            out,
+[m[32m+            "|{}|{}|{}|{}|{}|\n",
+[m[32m+            file.path, file.module, file.lang, file.tokens, file.code
+[m         );
+     }
+     out

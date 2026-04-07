@@ -18,6 +18,7 @@
 
 use anyhow::Result;
 use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, TrackEvent, TrackEventKind};
+use std::fmt::Write;
 
 #[derive(Debug, Clone)]
 pub struct ObjBuilding {
@@ -50,7 +51,7 @@ pub fn render_obj(buildings: &[ObjBuilding]) -> String {
             (x, y + d, z + h),
         ];
         for (vx, vy, vz) in v {
-            out.push_str(&format!("v {} {} {}\n", vx, vy, vz));
+            let _ = writeln!(out, "v {} {} {}", vx, vy, vz);
         }
 
         let faces = [
@@ -62,13 +63,14 @@ pub fn render_obj(buildings: &[ObjBuilding]) -> String {
             [4, 1, 5, 8],
         ];
         for face in faces {
-            out.push_str(&format!(
-                "f {} {} {} {}\n",
+            let _ = writeln!(
+                out,
+                "f {} {} {} {}",
                 vertex_index + face[0] - 1,
                 vertex_index + face[1] - 1,
                 vertex_index + face[2] - 1,
                 vertex_index + face[3] - 1,
-            ));
+            );
         }
 
         vertex_index += 8;

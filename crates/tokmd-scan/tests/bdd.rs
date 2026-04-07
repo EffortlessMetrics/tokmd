@@ -4,6 +4,7 @@
 //! temporary) filesystem tree so that configuration flags, error paths, and
 //! result-processing invariants are covered end-to-end.
 
+use std::fmt::Write;
 use std::fs;
 use std::path::PathBuf;
 
@@ -362,7 +363,7 @@ fn given_large_rust_file_when_scanned_then_all_lines_counted() -> Result<()> {
     let tmp = TempDir::new()?;
     let mut content = String::new();
     for i in 0..200 {
-        content.push_str(&format!("fn func_{i}() {{}}\n"));
+        let _ = writeln!(content, "fn func_{i}() {{}}");
     }
     write_file(&tmp, "big.rs", &content);
 

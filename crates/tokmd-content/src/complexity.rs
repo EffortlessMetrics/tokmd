@@ -35,6 +35,7 @@
 //! - Keywords in strings/comments may be counted (fast but imperfect)
 
 use regex::Regex;
+
 use std::sync::LazyLock;
 
 /// Metrics about functions in a source file.
@@ -1307,6 +1308,7 @@ fn detect_indent_unit(lines: &[&str]) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fmt::Write;
 
     // ========================
     // Rust tests
@@ -1730,7 +1732,7 @@ fn longer() {
         // Create a function with >100 lines
         let mut code = String::from("fn very_long() {\n");
         for i in 0..105 {
-            code.push_str(&format!("    line{};\n", i));
+            let _ = writeln!(code, "    line{};", i);
         }
         code.push_str("}\n");
 

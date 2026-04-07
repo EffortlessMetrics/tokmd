@@ -14,6 +14,7 @@
 //! * Formatting logic (use tokmd-analysis-format)
 //! * File I/O operations
 
+use std::fmt::Write;
 pub mod findings;
 
 use std::collections::BTreeMap;
@@ -1157,7 +1158,7 @@ impl ComplexityHistogram {
             };
             let bar_len = (*count as f64 / max_count as f64 * width as f64) as usize;
             let bar = "\u{2588}".repeat(bar_len);
-            output.push_str(&format!("{} |{} {}\n", label, bar, count));
+            let _ = writeln!(output, "{} |{} {}", label, bar, count);
         }
         output
     }

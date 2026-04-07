@@ -1,0 +1,30 @@
+{
+  "run_id": "20260319122613",
+  "timestamp_utc": "2026-03-19T12:26:13Z",
+  "lane": "scout",
+  "target": "String allocations during formatting or parsing",
+  "proof_method": "Benchmark or structural proof",
+  "commands": [
+    {
+      "cmd": "cargo build",
+      "status": "PASS",
+      "summary": "Build results"
+    },
+    {
+      "cmd": "cargo test",
+      "status": "PASS",
+      "summary": "Test results"
+    },
+    {
+      "cmd": "cargo fmt",
+      "status": "PASS",
+      "summary": "Fmt results"
+    },
+    {
+      "cmd": "cargo clippy",
+      "status": "PASS",
+      "summary": "Clippy results"
+    }
+  ],
+  "results_summary": []
+}

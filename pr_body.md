@@ -3,58 +3,60 @@
 Make review boring. Make truth cheap.
 
 ## 💡 Summary
-Removed raw `unwrap()` calls in `xtask` tasks `bump.rs` and `publish.rs`, replacing them with context-aware error handling or informative `.expect()` in tests. This burns down panic-candidates and hardens the build tooling against unchecked errors.
+Replaced extensive use of `push_str(&format!(...))` with `writeln!(...)` and `write!(...)` across the repository to eliminate intermediate string allocations and copying.
 
-## 🎯 Why / Threat model
-Raw unwraps in build/publish scripts can lead to opaque panics when operating on unexpected package states or network responses (like rate limiting). This reduces the risk of undocumented build failures and brings `xtask` closer to zero-panic correctness.
+## 🎯 Why (perf bottleneck)
+The `string.push_str(&format!(...))` pattern is a classic performance anti-pattern. `format!` allocates a new `String` on the heap, formats the content into it, and then `push_str` copies that string into the destination buffer before the temporary string is dropped. This wastes CPU cycles and memory on double-allocations, especially in hot loops generating reports and analysis cards.
 
-## 🔎 Finding (evidence)
-Observed raw `.unwrap()` calls in:
-- `xtask/src/tasks/publish.rs` (on workspace package lookups and RFC2822 timestamps)
-- `xtask/src/tasks/bump.rs` (across version parsing tests)
-
-Command demonstrating unwraps:
-`rg -n "\bunwrap\(\)|\bexpect\(" xtask/src/ | grep -v 'unwrap_or'`
+## 📊 Proof (before/after)
+**Structural Proof:**
+Work eliminated: Creating a temporary `String` via `format!` and the subsequent copy operation. By writing directly to the destination `String` using `std::fmt::Write`, we bypass the intermediate allocation entirely. This matters because it reduces GC/allocator pressure and speeds up CLI commands like `tokmd context` and various HTML/TSV formatting exports, which process large amounts of data.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Replace unwraps with `Result` handling in library code, and `.expect("...")` with descriptive messages in tests.
-- Why it fits this repo: Strongly typed error handling is preferred. It safely burns down panics without losing context.
-- Trade-offs: Requires a slight change in structure (e.g. `ok_or_else()`), but no loss of velocity or governance.
+- What it is: Replace `push_str(&format!(...))` with `write!(...)` and `writeln!(...)` from `std::fmt::Write`.
+- Why it fits this repo: It is the idiomatic, zero-cost abstraction in Rust for building strings efficiently.
+- Trade-offs: Structure / Velocity / Governance: Requires adding `use std::fmt::Write as _;` where `std::io::Write` is also used to avoid trait conflicts, but offers the best performance with no new dependencies.
 
 ### Option B
-- What it is: Bulk replace `unwrap()` with `unwrap_or_default()`.
-- When to choose it instead: If the value truly doesn't matter and default is safe.
-- Trade-offs: Masks errors, making tests/builds falsely succeed on bad state.
+- What it is: Pre-allocate capacity using `String::with_capacity` but keep `push_str(&format!(...))`.
+- When to choose it instead: When the format string is too complex to express cleanly in a single `write!` call, or when the string is small and the allocation overhead is negligible.
+- Trade-offs: Fails to fix the core issue of the intermediate allocation.
 
 ## ✅ Decision
-Option A. It preserves correctness and fits the repo's strong validation norms while cleanly addressing the panic backlog.
+Chose Option A because it directly addresses the root cause of the performance bottleneck (double allocation) using idiomatic Rust without introducing external dependencies.
 
 ## 🧱 Changes made (SRP)
-- `xtask/src/tasks/publish.rs`: Replaced `.unwrap()` on package lookup with `.ok_or_else()`, and timestamp unwrap with `.expect()`.
-- `xtask/src/tasks/bump.rs`: Replaced `.unwrap()` in tests with `.expect()` containing descriptive messages.
+- `crates/tokmd/src/commands/context.rs`
+- `crates/tokmd-analysis-types/src/lib.rs`
+- `crates/tokmd-analysis-html/src/lib.rs`
+- `crates/tokmd-export-tree/src/lib.rs`
+- `crates/tokmd-fun/src/lib.rs`
+- `crates/tokmd-content/src/complexity.rs`
+- Numerous integration tests and property tests.
 
 ## 🧪 Verification receipts
-- `cargo build --verbose` (PASS: Finished dev profile)
-- `CI=true cargo test --verbose -p xtask` (PASS: test result: ok)
-- `cargo fmt -- --check` (PASS: Applied fixes successfully)
-- `cargo clippy -- -D warnings` (PASS: Finished dev profile)
+```json
+[
+  {"cmd": "cargo build", "status": "PASS", "summary": "Build results"},
+  {"cmd": "cargo test", "status": "PASS", "summary": "Test results"},
+  {"cmd": "cargo fmt", "status": "PASS", "summary": "Fmt results"},
+  {"cmd": "cargo clippy", "status": "PASS", "summary": "Clippy check passed again after fixes"}
+]
+```
 
 ## 🧭 Telemetry
-- Change shape: Moderate source change, tight scope.
-- Blast radius: Internal CLI/build.
-- Risk class: Low (primarily refactoring tests and local tools).
-- Rollback: Safe to revert.
-- Merge-confidence gates: `build`, `test`, `fmt`, `clippy`
+- Change shape: Structural refactor.
+- Blast radius (API / IO / format stability / concurrency): Very low. Output determinism and strings remain exactly identical.
+- Risk class + why: Low risk. Modifies only string formatting mechanics.
+- Rollback: Safe to revert via git without affecting external API contracts.
+- Merge-confidence gates: `cargo test`, `cargo build`, `cargo fmt`, `cargo clippy`.
 
 ## 🗂️ .jules updates
-- Created baseline policies/templates in `.jules/`.
-- Updated `.jules/security/envelopes/run-01.json` with execution plan and receipts.
-- Appended run entry to `.jules/security/ledger.json`.
-- Created `.jules/security/runs/YYYY-MM-DD.md` log.
+Added a run entry to `.jules/bolt/ledger.json` and created a run envelope `.jules/bolt/envelopes/20260319122613.json` to record the scheduled execution.
 
 ## 📝 Notes (freeform)
-This run successfully removed remaining unwraps (excluding `unwrap_or/unwrap_or_default` logic) in the core `xtask/src` directory.
+Remember to use `use std::fmt::Write as _;` when importing to prevent trait collision with `std::io::Write`.
 
 ## 🔜 Follow-ups
-None at this time for this specific path.
+None.

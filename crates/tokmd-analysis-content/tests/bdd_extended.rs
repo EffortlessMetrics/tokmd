@@ -3,6 +3,7 @@
 //! Additional coverage for TODO density, duplicate density metrics,
 //! and import report edge cases.
 
+use std::fmt::Write;
 use std::path::PathBuf;
 
 use tokmd_analysis_content::{
@@ -116,7 +117,7 @@ fn given_10_todos_and_10000_code_lines_when_building_todo_report_then_density_is
 
     let mut content = String::new();
     for i in 0..10 {
-        content.push_str(&format!("// TODO: item {}\n", i));
+        let _ = writeln!(content, "// TODO: item {}", i);
     }
     content.push_str("fn main() {}\n");
     std::fs::write(root.join("big.rs"), &content).unwrap();

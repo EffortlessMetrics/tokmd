@@ -4,6 +4,7 @@
 //! every supported format, classification edge cases, report generation
 //! with mixed types, deterministic ordering, and serde roundtrips.
 
+use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
@@ -574,9 +575,10 @@ fn pnpm_lock_many_packages() {
     let tmp = TempDir::new().unwrap();
     let mut content = String::from("lockfileVersion: 5.4\n\npackages:\n");
     for i in 0..20 {
-        content.push_str(&format!(
-            "  /pkg-{i}/1.0.{i}:\n    resolution: {{integrity: sha512-xxx}}\n"
-        ));
+        let _ = writeln!(
+            content,
+            "  /pkg-{i}/1.0.{i}:\n    resolution: {{integrity: sha512-xxx}}"
+        );
     }
     let rel = write_file(tmp.path(), "pnpm-lock.yaml", content.as_bytes());
     let report = build_dependency_report(tmp.path(), &[rel]).unwrap();

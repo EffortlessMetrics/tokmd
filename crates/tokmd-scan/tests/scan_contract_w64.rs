@@ -3,6 +3,7 @@
 //! Covers scan execution, language detection, line counting accuracy,
 //! config flag mapping, embedded-language handling, and edge cases.
 
+use std::fmt::Write;
 use std::fs;
 use std::path::PathBuf;
 
@@ -571,7 +572,7 @@ fn scan_very_large_file() -> Result<()> {
     let dir = TempDir::new()?;
     let mut content = String::with_capacity(100_000);
     for i in 0..1000 {
-        content.push_str(&format!("x_{i} = {i}\n"));
+        let _ = writeln!(content, "x_{i} = {i}");
     }
     write_file(&dir, "big.py", &content);
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;

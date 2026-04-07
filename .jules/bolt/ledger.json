@@ -1,0 +1,8 @@
+[
+  {
+    "date": "2026-03-19T13:14:31Z",
+    "lane": "scout",
+    "target": "String allocations during formatting or parsing",
+    "proof_method": "Benchmark or structural proof"
+  }
+]

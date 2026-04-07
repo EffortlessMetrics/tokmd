@@ -5,6 +5,7 @@
 
 use std::fs::File;
 use std::io::Write;
+
 use tokmd_content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,

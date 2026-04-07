@@ -4,6 +4,7 @@
 //! children/embedded handling, sort order, determinism, exclude patterns,
 //! and property-based invariants.
 
+use std::fmt::Write;
 use std::fs;
 use std::path::PathBuf;
 
@@ -604,7 +605,7 @@ fn large_file_counts_correctly() -> Result<()> {
     let dir = tempfile::tempdir()?;
     let mut code = String::new();
     for i in 0..200 {
-        code.push_str(&format!("fn f{i}() {{}}\n"));
+        let _ = writeln!(code, "fn f{i}() {{}}");
     }
     fs::write(dir.path().join("big.rs"), &code)?;
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
@@ -642,7 +643,7 @@ mod properties {
             let dir = tempfile::tempdir().unwrap();
             let mut code = String::new();
             for i in 0..lines {
-                code.push_str(&format!("fn f{i}() {{}}\n"));
+                let _ = writeln!(code, "fn f{i}() {{}}");
             }
             for _ in 0..blanks {
                 code.push('\n');
@@ -663,7 +664,7 @@ mod properties {
             let dir = tempfile::tempdir().unwrap();
             let mut code = String::new();
             for i in 0..n {
-                code.push_str(&format!("fn f{i}() {{}}\n"));
+                let _ = writeln!(code, "fn f{i}() {{}}");
             }
             fs::write(dir.path().join("gen.rs"), &code).unwrap();
             let opts = default_opts();
@@ -682,7 +683,7 @@ mod properties {
             let dir = tempfile::tempdir().unwrap();
             let mut src = String::new();
             for i in 0..n {
-                src.push_str(&format!("// comment {i}\nfn f{i}() {{}}\n\n"));
+                let _ = writeln!(src, "// comment {i}\nfn f{i}() {{}}\n");
             }
             fs::write(dir.path().join("gen.rs"), &src).unwrap();
             let langs = scan(&[dir.path().to_path_buf()], &default_opts()).unwrap();
@@ -699,7 +700,7 @@ mod properties {
             let dir = tempfile::tempdir().unwrap();
             let mut src = String::new();
             for i in 0..n {
-                src.push_str(&format!("fn f{i}() {{}}\n"));
+                let _ = writeln!(src, "fn f{i}() {{}}");
             }
             fs::write(dir.path().join("gen.rs"), &src).unwrap();
             let langs = scan(&[dir.path().to_path_buf()], &default_opts()).unwrap();

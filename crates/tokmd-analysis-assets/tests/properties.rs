@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::path::PathBuf;
 
 use proptest::prelude::*;
@@ -294,9 +295,7 @@ proptest! {
         let mut content = String::new();
         for i in 0..n {
             // Each module has a source line + go.mod line; only source should count
-            content.push_str(&format!(
-                "example.com/mod{i} v1.0.0 h1:abc=\nexample.com/mod{i} v1.0.0/go.mod h1:def=\n"
-            ));
+            let _ = writeln!(content, "example.com/mod{i} v1.0.0 h1:abc=\nexample.com/mod{i} v1.0.0/go.mod h1:def=");
         }
         let path = tmp.path().join("go.sum");
         std::fs::write(&path, &content).unwrap();
