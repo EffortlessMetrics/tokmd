@@ -31,3 +31,4 @@ pyo3-build-config = "0.24"
 
 [dev-dependencies]
 tempfile.workspace = true
+proptest.workspace = true
