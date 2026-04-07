@@ -36,6 +36,16 @@ pub use tokmd_types::{
 /// Use `tokmd [COMMAND] --help` for detailed help.
 ///
 /// Default mode (no subcommand) prints a language summary.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd_config::Cli;
+///
+/// let args = Cli::parse_from(&["tokmd", "diff", "--format", "json"]);
+/// assert!(args.command.is_some());
+/// ```
 #[derive(Parser, Debug)]
 #[command(name = "tokmd", version, long_about = None)]
 pub struct Cli {

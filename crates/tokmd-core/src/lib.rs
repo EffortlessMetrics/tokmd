@@ -365,6 +365,30 @@ pub fn analyze_workflow(
 /// and do not borrow the host repository as a fake root. Richer presets still
 /// materialize a temporary scan root until the remaining analysis seams are
 /// moved off the filesystem.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}};
+/// use tokmd_model::InMemoryFile;
+///
+/// let inputs = vec![
+///     InMemoryFile {
+///         path: "src/main.rs".into(),
+///         content: "fn main() { println!(\"hello world\"); }".into(),
+///     }
+/// ];
+///
+/// let scan_opts = ScanOptions::default();
+/// let analyze_opts = AnalyzeSettings {
+///     preset: "receipt".to_string(),
+///     ..Default::default()
+/// };
+///
+/// let receipt = analyze_workflow_from_inputs(&inputs, &scan_opts, &analyze_opts)
+///     .expect("analyze_workflow_from_inputs failed");
+/// assert!(receipt.derived.is_some());
+/// ```
 #[cfg(feature = "analysis")]
 pub fn analyze_workflow_from_inputs(
     inputs: &[InMemoryFile],

@@ -20,7 +20,7 @@
 
 mod analysis_utils;
 mod commands;
-mod config;
+pub mod config;
 mod context_pack;
 mod error_hints;
 mod export_bundle;
