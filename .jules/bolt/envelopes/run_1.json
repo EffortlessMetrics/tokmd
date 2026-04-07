@@ -1,0 +1,35 @@
+{
+  "run_id": "run_1",
+  "timestamp_utc": "2025-04-05T12:00:00Z",
+  "lane": "scout",
+  "target": "tokmd-content/src/complexity.rs - detect_*_functions",
+  "proof_method": "timing against fixtures",
+  "commands": [
+    {
+      "cmd": "cargo test -p tokmd-content",
+      "status": 0,
+      "summary": "PASS",
+      "key_lines": "test result: ok. 4 passed; 0 failed; 0 ignored;"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": 0,
+      "summary": "PASS",
+      "key_lines": ""
+    },
+    {
+      "cmd": "cargo clippy -p tokmd-content -- -D warnings",
+      "status": 0,
+      "summary": "PASS",
+      "key_lines": "Finished `dev` profile"
+    }
+  ],
+  "results": [
+    {
+      "proof_method": "timing script",
+      "baseline": "Python Regex Time: 379ms",
+      "improvement": "Python Regex + Pre-filter Time: 139ms",
+      "result": "3x faster for language with frequent non-matches"
+    }
+  ]
+}
