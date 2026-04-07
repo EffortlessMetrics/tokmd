@@ -155,7 +155,7 @@ fn lang_report_from_git_ref(revision: &str, global: &cli::GlobalArgs) -> Result<
         &languages,
         0,
         false,
-        cli::ChildrenMode::Collapse,
+        tokmd_types::ChildrenMode::Collapse,
     ))
 }
 

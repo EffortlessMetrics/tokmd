@@ -10,8 +10,8 @@
 use std::collections::BTreeMap;
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, ChildrenMode, ColorMode, ConfigMode, DiffFormat, ExportFormat,
-    GlobalArgs, InitProfile, Profile, RedactMode, TableFormat, TomlConfig, UserConfig, ViewProfile,
+    AnalysisPreset, BadgeMetric, CliChildrenMode, ColorMode, CliConfigMode, DiffFormat, CliExportFormat,
+    GlobalArgs, InitProfile, Profile, CliRedactMode, CliTableFormat, TomlConfig, UserConfig, ViewProfile,
 };
 
 // ============================================================================
@@ -200,7 +200,7 @@ mod given_user_config {
             "llm_safe".to_string(),
             Profile {
                 format: Some("json".to_string()),
-                redact: Some(RedactMode::All),
+                redact: Some(CliRedactMode::All),
                 top: Some(10),
                 ..Default::default()
             },
@@ -264,7 +264,7 @@ mod given_global_args {
             no_ignore_dot: true,
             no_ignore_vcs: true,
             treat_doc_strings_as_comments: true,
-            config: ConfigMode::None,
+            config: CliConfigMode::None,
             ..Default::default()
         };
         let opts: ScanOptions = (&args).into();
@@ -276,7 +276,7 @@ mod given_global_args {
         assert!(opts.no_ignore_dot);
         assert!(opts.no_ignore_vcs);
         assert!(opts.treat_doc_strings_as_comments);
-        assert_eq!(opts.config, ConfigMode::None);
+        assert_eq!(opts.config, tokmd_types::ConfigMode::None);
     }
 }
 
@@ -317,30 +317,30 @@ mod given_config_enums {
 
     #[test]
     fn when_table_format_variants_checked_then_all_exist() {
-        let _md = TableFormat::Md;
-        let _tsv = TableFormat::Tsv;
-        let _json = TableFormat::Json;
+        let _md = CliTableFormat::Md;
+        let _tsv = CliTableFormat::Tsv;
+        let _json = CliTableFormat::Json;
     }
 
     #[test]
     fn when_export_format_variants_checked_then_all_exist() {
-        let _csv = ExportFormat::Csv;
-        let _jsonl = ExportFormat::Jsonl;
-        let _json = ExportFormat::Json;
-        let _cdx = ExportFormat::Cyclonedx;
+        let _csv = CliExportFormat::Csv;
+        let _jsonl = CliExportFormat::Jsonl;
+        let _json = CliExportFormat::Json;
+        let _cdx = CliExportFormat::Cyclonedx;
     }
 
     #[test]
     fn when_redact_mode_variants_checked_then_all_exist() {
-        let _none = RedactMode::None;
-        let _paths = RedactMode::Paths;
-        let _all = RedactMode::All;
+        let _none = CliRedactMode::None;
+        let _paths = CliRedactMode::Paths;
+        let _all = CliRedactMode::All;
     }
 
     #[test]
     fn when_children_mode_variants_checked_then_all_exist() {
-        let _collapse = ChildrenMode::Collapse;
-        let _separate = ChildrenMode::Separate;
+        let _collapse = CliChildrenMode::Collapse;
+        let _separate = CliChildrenMode::Separate;
     }
 
     #[test]
@@ -376,8 +376,8 @@ mod given_config_enums {
 
     #[test]
     fn when_config_mode_variants_checked_then_all_exist() {
-        let _auto = ConfigMode::Auto;
-        let _none = ConfigMode::None;
+        let _auto = CliConfigMode::Auto;
+        let _none = CliConfigMode::None;
     }
 
     #[test]

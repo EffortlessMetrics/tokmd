@@ -11,7 +11,7 @@ pub(crate) struct ExportMetaLite {
     pub(crate) generated_at_ms: Option<u128>,
     pub(crate) module_roots: Vec<String>,
     pub(crate) module_depth: usize,
-    pub(crate) children: cli::ChildIncludeMode,
+    pub(crate) children: tokmd_types::ChildIncludeMode,
 }
 
 impl Default for ExportMetaLite {
@@ -22,7 +22,7 @@ impl Default for ExportMetaLite {
             // Expanded defaults to cover standard project structures for ad-hoc scans
             module_roots: vec!["crates".into(), "packages".into(), "src".into()],
             module_depth: 2,
-            children: cli::ChildIncludeMode::Separate,
+            children: tokmd_types::ChildIncludeMode::Separate,
         }
     }
 }

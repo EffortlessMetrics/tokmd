@@ -240,9 +240,9 @@ pub fn resolve_lang(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::TableFormat::Md),
+            .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -253,9 +253,9 @@ pub fn resolve_lang(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildrenMode::Collapse),
+            .unwrap_or(cli::CliChildrenMode::Collapse).into(),
     }
 }
 
@@ -274,9 +274,9 @@ pub fn resolve_lang_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::TableFormat::Md),
+            .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         files: cli_args.files || resolved.files().unwrap_or(false),
         children: cli_args
@@ -284,9 +284,9 @@ pub fn resolve_lang_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildrenMode::Collapse),
+            .unwrap_or(cli::CliChildrenMode::Collapse).into(),
     }
 }
 
@@ -304,9 +304,9 @@ pub fn resolve_module(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::TableFormat::Md),
+            .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -325,9 +325,9 @@ pub fn resolve_module(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
     }
 }
 
@@ -346,9 +346,9 @@ pub fn resolve_module_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::TableFormat::Md),
+            .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         module_roots: cli_args
             .module_roots
@@ -364,9 +364,9 @@ pub fn resolve_module_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
     }
 }
 
@@ -384,9 +384,9 @@ pub fn resolve_export(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ExportFormat::Jsonl),
+            .unwrap_or(cli::CliExportFormat::Jsonl).into(),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -402,9 +402,9 @@ pub fn resolve_export(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
         min_code: cli_args
             .min_code
             .or(profile.and_then(|p| p.min_code))
@@ -416,7 +416,7 @@ pub fn resolve_export(
         redact: cli_args
             .redact
             .or(profile.and_then(|p| p.redact))
-            .unwrap_or(cli::RedactMode::None),
+            .unwrap_or(cli::CliRedactMode::None).into(),
         meta: cli_args
             .meta
             .or(profile.and_then(|p| p.meta))
@@ -440,15 +440,15 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.format.as_deref())
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ExportFormat::Jsonl),
+            .unwrap_or(cli::CliExportFormat::Jsonl).into(),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -464,15 +464,15 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
         min_code: cli_args.min_code.or(resolved.min_code()).unwrap_or(0),
         max_rows: cli_args.max_rows.or(resolved.max_rows()).unwrap_or(0),
         redact: cli_args
@@ -480,9 +480,9 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .redact()
-                    .and_then(|s| cli::RedactMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliRedactMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::RedactMode::None),
+            .unwrap_or(cli::CliRedactMode::None).into(),
         meta: cli_args.meta.or(resolved.meta()).unwrap_or(true),
         strip_prefix: cli_args.strip_prefix.clone(),
     }

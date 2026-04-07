@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_ready": true,
+  "metrics": {
+    "files_touched": 14,
+    "crates_touched": 3
+  }
+}
