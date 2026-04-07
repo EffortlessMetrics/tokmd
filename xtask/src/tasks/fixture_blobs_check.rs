@@ -1,10 +1,11 @@
 use crate::cli::FixtureBlobsCheckArgs;
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
 
 const ALLOWLIST_PREFIXES: &[&str] = &[".claude/", ".jules/", "vendor/"];
+const ALLOWLIST_PATHS: &[&str] = &["xtask/src/tasks/fixture_blobs_check.rs"];
 const FORBIDDEN_EXTENSIONS: &[&str] = &[
     "cer", "crt", "der", "jwk", "jwks", "key", "p12", "p8", "pem", "pfx", "pk8",
 ];
@@ -23,6 +24,10 @@ struct Violation {
 }
 
 fn is_allowlisted(path: &str) -> bool {
+    if ALLOWLIST_PATHS.contains(&path) {
+        return true;
+    }
+
     ALLOWLIST_PREFIXES
         .iter()
         .any(|prefix| path.starts_with(prefix))
@@ -161,6 +166,16 @@ mod tests {
 
         assert_eq!(violation.path, "docs/example.md");
         assert!(violation.reason.contains("BEGIN PRIVATE KEY"));
+    }
+
+    #[test]
+    fn allows_checker_source_file() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), "xtask/src/tasks/fixture_blobs_check.rs")
+            .expect("check");
+
+        assert!(violation.is_none());
     }
 
     #[test]
