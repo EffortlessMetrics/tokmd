@@ -1,7 +1,7 @@
 //! Wave-49 deep tests for tokmd-tokeignore: template generation, pattern
 //! validation, custom exclusion rules, property tests, and edge cases.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
@@ -344,7 +344,7 @@ fn refuse_overwrite_preserves_original_content() {
 
 #[test]
 fn all_profiles_produce_unique_content() {
-    let mut seen = HashSet::new();
+    let mut seen = BTreeSet::new();
     for profile in ALL_PROFILES {
         let content = write_template(profile);
         assert!(
