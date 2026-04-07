@@ -41,12 +41,9 @@ Options:
 
       --config <MODE>
           Whether to load scan config files (`tokei.toml` / `.tokeirc`)
-
-          Possible values:
-          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
-          - none: Ignore config files
           
           [default: auto]
+          [possible values: auto, none]
 
       --hidden
           Count hidden files and directories
@@ -79,10 +76,7 @@ Options:
       --format <FORMAT>
           Output format [default: md]
 
-          Possible values:
-          - md:   Markdown table (great for pasting into ChatGPT)
-          - tsv:  Tab-separated values (good for piping to other tools)
-          - json: JSON (compact)
+          [possible values: md, tsv, json]
 
       --top <TOP>
           Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows
@@ -93,9 +87,7 @@ Options:
       --children <CHILDREN>
           How to handle embedded languages (tokei "children" / blobs) [default: collapse]
 
-          Possible values:
-          - collapse: Merge embedded content into the parent language totals
-          - separate: Show embedded languages as separate "(embedded)" rows
+          [possible values: collapse, separate]
 
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")

@@ -236,11 +236,11 @@ pub fn resolve_lang(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args
@@ -249,11 +249,11 @@ pub fn resolve_lang(
             .unwrap_or(0),
         files: cli_args.files || profile.and_then(|p| p.files).unwrap_or(false),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildrenMode::Collapse).into(),
     }
@@ -270,21 +270,21 @@ pub fn resolve_lang_with_config(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         files: cli_args.files || resolved.files().unwrap_or(false),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildrenMode::Collapse).into(),
     }
@@ -300,11 +300,11 @@ pub fn resolve_module(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args
@@ -321,11 +321,11 @@ pub fn resolve_module(
             .or_else(|| profile.and_then(|p| p.module_depth))
             .unwrap_or(2),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
     }
@@ -342,11 +342,11 @@ pub fn resolve_module_with_config(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliTableFormat::Md).into(),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
@@ -360,11 +360,11 @@ pub fn resolve_module_with_config(
             .or(resolved.module_depth())
             .unwrap_or(2),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
     }
@@ -380,11 +380,11 @@ pub fn resolve_export(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliExportFormat::Jsonl).into(),
         output: cli_args.output.clone(),
@@ -398,11 +398,11 @@ pub fn resolve_export(
             .or_else(|| profile.and_then(|p| p.module_depth))
             .unwrap_or(2),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
         min_code: cli_args
@@ -414,7 +414,7 @@ pub fn resolve_export(
             .or(profile.and_then(|p| p.max_rows))
             .unwrap_or(0),
         redact: cli_args
-            .redact
+        .redact.map(Into::into)
             .or(profile.and_then(|p| p.redact))
             .unwrap_or(cli::CliRedactMode::None).into(),
         meta: cli_args
@@ -436,17 +436,17 @@ pub fn resolve_export_with_config(
             .clone()
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
-            .format
+        .format.map(Into::into)
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok()).map(Into::into)
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.format.as_deref())
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliExportFormat::Jsonl).into(),
         output: cli_args.output.clone(),
@@ -460,27 +460,27 @@ pub fn resolve_export_with_config(
             .or(resolved.module_depth())
             .unwrap_or(2),
         children: cli_args
-            .children
+        .children.map(Into::into)
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok()).map(Into::into)
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliChildIncludeMode::Separate).into(),
         min_code: cli_args.min_code.or(resolved.min_code()).unwrap_or(0),
         max_rows: cli_args.max_rows.or(resolved.max_rows()).unwrap_or(0),
         redact: cli_args
-            .redact
+        .redact.map(Into::into)
             .or_else(|| {
                 resolved
                     .redact()
-                    .and_then(|s| cli::CliRedactMode::from_str(s, true).ok())
+                    .and_then(|s| cli::CliRedactMode::from_str(s, true).ok()).map(Into::into)
             })
             .unwrap_or(cli::CliRedactMode::None).into(),
         meta: cli_args.meta.or(resolved.meta()).unwrap_or(true),

@@ -65,7 +65,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     // Get redact mode - applies to scan args in all receipts (lang.json, module.json, export.jsonl)
     let redact_mode = args.redact.map(Into::into).unwrap_or(tokmd_types::RedactMode::None);
-    let scan_args = format::scan_args(&args.paths, &scan_opts, Some(redact_mode));
+    let scan_args = format::scan_args(&args.paths, &scan_opts, Some(redact_mode.into()));
 
     // 4. Write artifacts using tokmd-format for consistency
     progress.set_message("Writing artifacts...");

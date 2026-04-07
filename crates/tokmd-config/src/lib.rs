@@ -1037,7 +1037,7 @@ impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
     fn from(g: &GlobalArgs) -> Self {
         Self {
             excluded: g.excluded.clone(),
-            config: g.config.into(),
+            config: tokmd_types::ConfigMode::from(g.config),
             hidden: g.hidden,
             no_ignore: g.no_ignore,
             no_ignore_parent: g.no_ignore_parent,
@@ -1085,7 +1085,7 @@ mod tests {
     fn global_args_default() {
         let g = GlobalArgs::default();
         assert!(g.excluded.is_empty());
-        assert_eq!(<CliConfigMode as Into<tokmd_types::ConfigMode>>::into(g.config), tokmd_types::ConfigMode::Auto);
+        assert_eq!(tokmd_types::ConfigMode::from(g.config), tokmd_types::ConfigMode::Auto);
         assert!(!g.hidden);
         assert!(!g.no_ignore);
         assert_eq!(g.verbose, 0);
@@ -1260,7 +1260,7 @@ mod tests {
         };
         let opts: tokmd_settings::ScanOptions = (&g).into();
         assert_eq!(opts.excluded, vec!["target"]);
-        assert_eq!(opts.config, tokmd_settings::ConfigMode::None);
+        assert_eq!(opts.config, tokmd_types::ConfigMode::None);
         assert!(opts.hidden);
         assert!(opts.no_ignore);
         assert!(opts.treat_doc_strings_as_comments);

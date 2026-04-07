@@ -4,11 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliTableFormat {
-    /// Markdown table (great for pasting into ChatGPT)
     Md,
-    /// Tab-separated values (good for piping to other tools)
     Tsv,
-    /// JSON (compact)
     Json,
 }
 
@@ -45,10 +42,8 @@ impl From<CliExportFormat> for tokmd_types::ExportFormat {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliConfigMode {
-    /// Read scan config files (`tokei.toml` / `.tokeirc`) if present
     #[default]
     Auto,
-    /// Ignore config files
     None,
 }
 
@@ -64,9 +59,7 @@ impl From<CliConfigMode> for tokmd_types::ConfigMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliChildrenMode {
-    /// Merge embedded content into the parent language totals
     Collapse,
-    /// Show embedded languages as separate "(embedded)" rows
     Separate,
 }
 
