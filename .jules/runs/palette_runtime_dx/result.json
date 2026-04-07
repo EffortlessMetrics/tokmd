@@ -1,7 +1,0 @@
-{
-  "outcome": "success",
-  "patch_type": "code",
-  "files_modified": [
-    "crates/tokmd/src/error_hints.rs"
-  ]
-}
