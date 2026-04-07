@@ -1,0 +1,15 @@
+{
+  "outcome_type": "patch",
+  "title": "surveyor: fix workspace test link errors for bindings \ud83e\udded",
+  "summary": "Set `test = false` on python and node extension crates to prevent PyO3/napi linker errors when running `cargo test --all-features --workspace`.",
+  "target_paths": [
+    "crates/tokmd-python/Cargo.toml",
+    "crates/tokmd-node/Cargo.toml"
+  ],
+  "proof_summary": "Linker errors vanish and test runners skip trying to build native bindings as standard rust unit tests.",
+  "gates_run": ["cargo build", "cargo test"],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git restore crates/tokmd-python/Cargo.toml crates/tokmd-node/Cargo.toml",
+  "follow_ups": []
+}

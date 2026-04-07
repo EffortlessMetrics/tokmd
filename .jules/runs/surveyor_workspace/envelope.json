@@ -1,0 +1,20 @@
+{
+  "prompt_id": "surveyor_workspace",
+  "persona": "Surveyor",
+  "style": "Explorer",
+  "primary_shard": "workspace-wide",
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["patch", "learning_pr"],
+  "options_considered": {
+    "A": "Set test = false on the bindings extension crates to fix link errors during full workspace testing.",
+    "B": "Leave it alone and report friction for broken full-workspace test commands."
+  },
+  "selected_option": "A",
+  "artifact_paths": [
+    ".jules/runs/surveyor_workspace/envelope.json",
+    ".jules/runs/surveyor_workspace/decision.md",
+    ".jules/runs/surveyor_workspace/receipts.jsonl",
+    ".jules/runs/surveyor_workspace/result.json",
+    ".jules/runs/surveyor_workspace/pr_body.md"
+  ]
+}
