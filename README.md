@@ -144,7 +144,7 @@ These are the automation-facing paths for CI pipelines, sensor fleets, and ratch
 
 | Command              | Purpose |
 | :------------------- | :------ |
-| `tokmd` / `lang`     | Language summary for a repo or path set. |
+| `tokmd lang`         | Language summary for a repo or path set. |
 | `tokmd module`       | Group stats by module roots such as `crates/` or `packages/`. |
 | `tokmd export`       | File-level dataset for downstream pipelines (`jsonl`, `csv`, `cyclonedx`). |
 | `tokmd run`          | Save a full receipt set to a run directory, optionally with analysis. |
