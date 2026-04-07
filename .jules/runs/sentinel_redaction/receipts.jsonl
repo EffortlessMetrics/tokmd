@@ -1,0 +1,5 @@
+{"command": "python3 patch.py", "outcome": "Success, applied redaction to module_roots"}
+{"command": "cargo build -p tokmd-format", "outcome": "Success, compiles without errors"}
+{"command": "cd crates/tokmd-format && cargo test", "outcome": "Success, all tests passed"}
+{"command": "cargo fmt -- --check", "outcome": "Success"}
+{"command": "cargo clippy -p tokmd-format -- -D warnings", "outcome": "Success"}

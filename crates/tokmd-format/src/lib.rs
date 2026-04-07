@@ -407,7 +407,11 @@ fn write_export_jsonl<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: export.module_roots.clone(),
+                module_roots: if args.redact == RedactMode::All {
+                    export.module_roots.iter().map(|s| short_hash(s)).collect()
+                } else {
+                    export.module_roots.clone()
+                },
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -458,7 +462,11 @@ fn write_export_json<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: export.module_roots.clone(),
+                module_roots: if args.redact == RedactMode::All {
+                    export.module_roots.iter().map(|s| short_hash(s)).collect()
+                } else {
+                    export.module_roots.clone()
+                },
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -479,7 +487,11 @@ fn write_export_json<W: Write>(
                 rows: redact_rows(&export.rows, args.redact)
                     .map(|c| c.into_owned())
                     .collect(),
-                module_roots: export.module_roots.clone(),
+                module_roots: if args.redact == RedactMode::All {
+                    export.module_roots.iter().map(|s| short_hash(s)).collect()
+                } else {
+                    export.module_roots.clone()
+                },
                 module_depth: export.module_depth,
                 children: export.children,
             },
