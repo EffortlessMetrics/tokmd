@@ -1,0 +1,1 @@
+{"command": "cargo test --all-features -p tokmd-python", "result": "error: could not compile tokmd-python (lib test) due to 1 previous error. undefined symbol: PyErr_NewExceptionWithDoc"}
