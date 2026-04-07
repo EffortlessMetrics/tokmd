@@ -1,0 +1,7 @@
+{
+  "type": "bolt",
+  "title": "perf: reuse string buffer in handoff loop ⚡ Bolt",
+  "description": "Optimized handoff file reading by hoisting format! and reusing a String buffer via read_line to reduce allocations.",
+  "receipts": ["Measured improvement: baseline ~1.17s to ~848ms for 1M lines"],
+  "status": "completed"
+}

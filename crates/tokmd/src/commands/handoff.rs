@@ -922,14 +922,27 @@ fn write_code_bundle(
                 if compress {
                     let f = File::open(&file_path)
                         .with_context(|| format!("Failed to open file: {}", file_path.display()))?;
-                    let reader = BufReader::new(f);
-                    for line in reader.lines() {
-                        let line = line.with_context(|| {
-                            format!("Failed to read file: {}", file_path.display())
-                        })?;
-                        if !line.trim().is_empty() {
-                            writeln!(writer, "{}", line)?;
-                            bytes += line.len() as u64 + 1;
+                    let mut reader = BufReader::new(f);
+                    let error_msg = format!("Failed to read file: {}", file_path.display());
+                    let mut line_buf = String::new();
+                    loop {
+                        line_buf.clear();
+                        match reader.read_line(&mut line_buf) {
+                            Ok(0) => break,
+                            Ok(_) => {
+                                if !line_buf.trim().is_empty() {
+                                    let mut line = line_buf.as_str();
+                                    if line.ends_with('\n') {
+                                        line = &line[..line.len() - 1];
+                                    }
+                                    if line.ends_with('\r') {
+                                        line = &line[..line.len() - 1];
+                                    }
+                                    writeln!(writer, "{}", line)?;
+                                    bytes += line.len() as u64 + 1;
+                                }
+                            }
+                            Err(e) => anyhow::bail!("{}: {}", error_msg, e),
                         }
                     }
                     writeln!(writer)?;
