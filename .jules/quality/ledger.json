@@ -10,6 +10,11 @@
       "run_id": "3499475a-2ff1-49e1-b620-913909a040a8",
       "timestamp": "2026-03-22T10:25:31Z",
       "description": "test: lock deterministic ordering for outputs 🧪 Gatekeeper"
+    },
+    {
+      "run_id": "d657338a-caa9-4ccf-93a1-4733ada7154c",
+      "status": "PASS",
+      "friction_ids": []
     }
   ]
 }

@@ -1,0 +1,444 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling serde_core v1.0.228
+   Compiling num-traits v0.2.19
+   Compiling getrandom v0.4.2
+   Compiling aho-corasick v1.1.4
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling syn v2.0.117
+   Compiling regex-automata v0.4.14
+   Compiling serde_json v1.0.149
+   Compiling bstr v1.12.1
+   Compiling rusty-fork v0.3.1
+   Compiling serde_derive v1.0.228
+   Compiling globset v0.4.18
+   Compiling rand_chacha v0.9.0
+   Compiling proptest v1.11.0
+   Compiling serde v1.0.228
+   Compiling tokmd-envelope v1.9.0 (/app/crates/tokmd-envelope)
+   Compiling tokmd-types v1.9.0 (/app/crates/tokmd-types)
+   Compiling tokmd-analysis-types v1.9.0 (/app/crates/tokmd-analysis-types)
+   Compiling tokmd-analysis-near-dup v1.9.0 (/app/crates/tokmd-analysis-near-dup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.46s
+     Running unittests src/lib.rs (target/debug/deps/tokmd_analysis_near_dup-7b114143a0a8dab5)
+
+running 17 tests
+test tests::algorithm_constants_match ... ok
+test tests::build_clusters_empty ... ok
+test tests::build_clusters_merged_component ... ok
+test tests::build_clusters_representative_most_connected ... ok
+test tests::build_clusters_single_pair ... ok
+test tests::build_clusters_two_components ... ok
+test tests::disjoint_sets_find_self ... ok
+test tests::clusters_complete_despite_truncation ... ok
+test tests::disjoint_sets_idempotent_union ... ok
+test tests::disjoint_sets_union_and_find ... ok
+test tests::jaccard_of_identical_is_one ... ok
+test tests::pair_sort_deterministic_with_right_tiebreak ... ok
+test tests::self_pair_guard_skips_same_index ... ok
+test tests::tokenize_basic ... ok
+test tests::winnow_short_text_returns_empty ... ok
+test tests::identical_texts_have_same_fingerprints ... ok
+test tests::winnow_produces_fingerprints ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bdd.rs (target/debug/deps/bdd-c145674d79de0fc0)
+
+running 25 tests
+test empty_inputs::given_no_files_then_empty_report ... ok
+test empty_inputs::given_files_too_short_for_winnowing_then_no_pairs ... ok
+test empty_inputs::given_single_file_then_no_pairs ... ok
+test completely_different_files::given_two_unrelated_files_then_no_pairs ... ok
+test exclude_patterns::given_no_exclude_patterns_then_excluded_by_pattern_is_none ... ok
+test file_kind_filtering::given_child_kind_files_then_excluded_from_analysis ... ok
+test limits::given_custom_max_file_bytes_then_respected ... ok
+test exclude_patterns::given_exclude_pattern_then_matching_files_excluded ... ok
+test identical_files::given_two_identical_files_then_detected_as_near_duplicates ... ok
+test identical_files::given_three_identical_files_then_three_pairs_one_cluster ... ok
+test limits::given_max_file_bytes_then_large_files_excluded ... ok
+test report_metadata::given_no_truncation_then_truncated_is_false ... ok
+test report_metadata::given_report_then_algorithm_constants_present ... ok
+test limits::given_max_files_smaller_than_eligible_then_files_skipped ... ok
+test report_metadata::given_report_then_params_reflect_inputs ... ok
+test pair_ordering::given_multiple_pairs_then_sorted_by_similarity_desc ... ok
+test limits::given_max_pairs_then_pairs_truncated_but_clusters_complete ... ok
+test scope_partitioning::given_global_scope_then_files_across_modules_compared ... ok
+test report_metadata::given_report_with_pairs_then_stats_present ... ok
+test scope_partitioning::given_module_scope_then_files_in_different_modules_not_compared ... ok
+test scope_partitioning::given_lang_scope_then_files_in_different_langs_not_compared ... ok
+test slightly_different_files::given_files_sharing_most_tokens_then_not_detected_at_high_threshold ... ok
+test slightly_different_files::given_files_sharing_most_tokens_then_detected_above_threshold ... ok
+test threshold_behaviour::given_threshold_zero_then_all_candidate_pairs_emitted ... ok
+test threshold_behaviour::given_threshold_one_then_only_exact_duplicates ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/deep.rs (target/debug/deps/deep-f08fd3958195bd9d)
+
+running 13 tests
+test file_selection_prefers_highest_code_lines ... ok
+test fingerprint_counts_are_consistent_for_identical_files ... ok
+test different_sized_files_have_different_fingerprint_counts ... ok
+test cluster_representative_with_asymmetric_star_topology ... ok
+test lang_scope_isolates_identical_files_with_different_languages ... ok
+test global_scope_finds_cross_module_and_cross_lang_pairs ... ok
+test module_scope_isolates_identical_files_in_different_modules ... ok
+test four_identical_files_produce_six_pairs ... ok
+test pair_paths_have_left_less_than_or_equal_to_right ... ok
+test multiple_exclude_patterns_all_applied ... ok
+test similarity_degrades_with_increasing_divergence ... ok
+test ten_files_max_three_yields_seven_skipped ... ok
+test threshold_boundary_includes_equal_similarity ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/deep2.rs (target/debug/deps/deep2-e37084dd62590300)
+
+running 25 tests
+test algorithm_constants_recorded_in_params ... ok
+test cluster_serialization_roundtrip ... ok
+test child_rows_excluded_from_analysis ... ok
+test clusters_present_when_pairs_exist ... ok
+test empty_export_produces_empty_report ... ok
+test eligible_files_tracked_before_cap ... ok
+test disjoint_identical_sets_produce_separate_clusters ... ok
+test files_exceeding_max_file_bytes_excluded ... ok
+test exclude_pattern_count_tracked ... ok
+test high_threshold_excludes_low_similarity ... ok
+test identical_files_have_similarity_one ... ok
+test lang_scope_pairs_same_language_files ... ok
+test near_dup_scope_serialization_roundtrip ... ok
+test pair_row_serialization_roundtrip ... ok
+test max_pairs_larger_than_actual_no_truncation ... ok
+test params_threshold_and_max_files_recorded ... ok
+test near_dup_report_serialization_roundtrip ... ok
+test max_pairs_truncation_sets_flag ... ok
+test scope_field_preserved_in_params ... ok
+test pairs_sorted_by_similarity_descending ... ok
+test shared_fingerprints_bounded_by_min_count ... ok
+test single_file_produces_no_pairs ... ok
+test stats_field_is_populated ... ok
+test similarity_bounded_zero_to_one ... ok
+test threshold_zero_captures_all_pairs ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/deep_neardup_round2_w51.rs (target/debug/deps/deep_neardup_round2_w51-7be219d49972f429)
+
+running 12 tests
+test cluster_props::cluster_min_size_two ... ok
+test completely_different::disjoint_content_no_pairs_at_high_threshold ... ok
+test cluster_props::cluster_files_sorted_alphabetically ... ok
+test identical_files::identical_files_shared_fingerprints_equals_total ... ok
+test completely_different::many_unique_files_no_clusters ... ok
+test identical_files::four_identical_files_form_single_cluster ... ok
+test identical_files::two_identical_files_similarity_near_one ... ok
+test slightly_different::medium_overlap_has_moderate_similarity ... ok
+test slightly_different::high_overlap_detected_above_threshold ... ok
+test threshold_behavior::analyzed_plus_skipped_equals_eligible ... ok
+test threshold_behavior::threshold_zero_includes_all_pairs ... ok
+test threshold_behavior::higher_threshold_fewer_pairs ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/deep_neardup_w47.rs (target/debug/deps/deep_neardup_w47-fc5d72e78a2757bf)
+
+running 15 tests
+test edge_cases::no_files_empty_report ... ok
+test edge_cases::empty_files_no_fingerprints ... ok
+test edge_cases::very_short_files_below_kgram ... ok
+test edge_cases::single_file_no_pairs ... ok
+test different::completely_different_files_no_pairs_above_threshold ... ok
+test identical::identical_files_detected_as_duplicates ... ok
+test edge_cases::max_pairs_truncation ... ok
+test identical::three_identical_files_form_cluster ... ok
+test scope::global_scope_crosses_modules ... ok
+test scope::module_scope_isolates_modules ... ok
+test similar::partially_overlapping_files ... ok
+test similar::similarity_degrades_monotonically ... ok
+test prop_similarity_in_unit_range ... ok
+test prop_files_analyzed_le_input ... ok
+test prop_pairs_sorted_by_similarity_desc ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/deep_w38.rs (target/debug/deps/deep_w38-8df3a793bbfa178f)
+
+running 31 tests
+test child_files_excluded_from_analysis ... ok
+test cluster_files_sorted_alphabetically ... ok
+test cluster_representative_is_most_connected ... ok
+test completely_different_files_no_pairs ... ok
+test empty_export_produces_empty_report ... ok
+test glob_exclude_all_files ... ok
+test clusters_two_disjoint_groups ... ok
+test eligible_files_count_is_set ... ok
+test glob_excludes_matching_files ... ok
+test limits_custom_values_stored ... ok
+test limits_default_has_no_caps ... ok
+test limits_max_file_bytes_excludes_large_files ... ok
+test glob_no_patterns_means_no_exclusion ... ok
+test identical_files_detected_as_duplicates ... ok
+test max_files_truncation ... ok
+test pairs_sorted_by_similarity_desc ... ok
+test max_pairs_truncation_sets_truncated_flag ... ok
+test partially_overlapping_files_detected ... ok
+test report_params_reflect_inputs ... ok
+test report_is_deterministic ... ok
+test scope_global_compares_across_modules ... ok
+test report_stats_present ... ok
+test scope_lang_finds_same_language_pairs ... ok
+test scope_lang_partitions_by_language ... ok
+test scope_module_does_not_compare_across_modules ... ok
+test threshold_one_accepts_identical ... ok
+test scope_module_finds_intra_module_pairs ... ok
+test threshold_one_requires_perfect_match ... ok
+test winnow_short_files_produce_no_fingerprints ... ok
+test threshold_zero_accepts_all_candidate_pairs ... ok
+test clusters_with_many_files_chain ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/deep_w42.rs (target/debug/deps/deep_w42-8d4303c8999e9bb8)
+
+running 14 tests
+test child_rows_excluded ... ok
+test empty_files_no_pairs ... ok
+test exact_duplicates_similarity_near_one ... ok
+test global_scope_finds_cross_module_dups ... ok
+test high_threshold_filters_moderate_duplicates ... ok
+test exclude_patterns_filter_files ... ok
+test lang_scope_groups_by_language ... ok
+test module_scope_isolates_comparisons ... ok
+test low_threshold_catches_moderate_duplicates ... ok
+test near_dup_report_serde_roundtrip ... ok
+test one_line_files_too_short_for_fingerprinting ... ok
+test max_pairs_truncates_output ... ok
+test unique_files_no_pairs ... ok
+test pairs_sorted_by_similarity_desc ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/deep_w68.rs (target/debug/deps/deep_w68-1d7bf4e1097acec4)
+
+running 15 tests
+test child_rows_excluded ... ok
+test empty_export_empty_report ... ok
+test different_files_no_pairs ... ok
+test clusters_formed_from_identical_files ... ok
+test deterministic_across_runs ... ok
+test exclude_patterns_filter_files ... ok
+test large_files_excluded_by_byte_limit ... ok
+test identical_files_detected ... ok
+test lang_scope_isolates ... ok
+test max_files_caps_analysis ... ok
+test max_pairs_truncates ... ok
+test single_file_no_pairs ... ok
+test module_scope_isolates ... ok
+test pairs_sorted_by_similarity_desc ... ok
+test threshold_at_one_requires_perfect_match ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/determinism.rs (target/debug/deps/determinism-81e97a1c0795471f)
+
+running 9 tests
+test cluster_completeness::given_identical_files_then_cluster_files_are_sorted_alphabetically ... ok
+test cluster_completeness::given_two_separate_groups_then_two_clusters_sorted_by_max_similarity ... ok
+test determinism::given_files_with_different_code_order_then_pairs_are_deterministic ... ok
+test determinism::given_same_input_when_run_three_times_then_all_outputs_identical ... ok
+test eligible_files::given_all_files_eligible_then_eligible_equals_analyzed ... ok
+test stats_validation::given_empty_input_then_stats_has_zero_bytes ... ok
+test eligible_files::given_some_files_oversized_then_eligible_less_than_total_rows ... ok
+test stats_validation::given_report_then_stats_timing_is_present_and_non_negative ... ok
+test eligible_files::given_max_files_caps_then_eligible_greater_than_analyzed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/near_dup_depth_w56.rs (target/debug/deps/near_dup_depth_w56-080bcfb9db31bc86)
+
+running 30 tests
+test child_rows_are_excluded ... ok
+test clusters_none_when_no_pairs ... ok
+test clusters_group_related_files ... ok
+test cluster_files_are_sorted_alphabetically ... ok
+test completely_different_files_not_paired ... ok
+test empty_export_returns_no_pairs ... ok
+test empty_files_produce_no_fingerprints ... ok
+test files_exceeding_max_file_bytes_excluded ... ok
+test eligible_files_tracked_before_cap ... ok
+test global_scope_compares_across_modules ... ok
+test exclude_patterns_filter_files ... ok
+test deterministic_across_runs ... ok
+test lang_scope_only_compares_within_language ... ok
+test identical_files_detected_as_duplicates ... ok
+test max_files_caps_analysis ... ok
+test higher_threshold_yields_fewer_pairs ... ok
+test missing_files_on_disk_are_skipped_gracefully ... ok
+test module_scope_only_compares_within_module ... ok
+test max_pairs_truncates_output ... ok
+test no_truncation_when_under_max_pairs ... ok
+test params_capture_algorithm_constants ... ok
+test pairs_sorted_by_similarity_desc_then_paths ... ok
+test short_files_below_kgram_threshold_not_paired ... ok
+test serde_roundtrip_preserves_report ... ok
+test shared_fingerprints_consistent_with_similarity ... ok
+test similarity_is_between_zero_and_one ... ok
+test single_file_returns_no_pairs ... ok
+test similarity_rounded_to_four_decimals ... ok
+test slightly_modified_files_detected_with_low_threshold ... ok
+test stats_are_populated ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/neardup_contract_w65.rs (target/debug/deps/neardup_contract_w65-13f01ec4a3835ff3)
+
+running 36 tests
+test clustering::cluster_contains_all_pair_files ... ok
+test clustering::cluster_files_sorted_alphabetically ... ok
+test clustering::clusters_present_when_pairs_found ... ok
+test clustering::cluster_representative_is_in_files ... ok
+test clustering::no_clusters_when_no_pairs ... ok
+test different::completely_different_files_no_pairs ... ok
+test determinism::pairs_sorted_by_similarity_desc ... ok
+test determinism::report_deterministic_across_runs ... ok
+test edge_cases::child_rows_excluded_from_analysis ... ok
+test edge_cases::empty_export_yields_empty_report ... ok
+test different::different_files_with_low_threshold_may_match ... ok
+test edge_cases::short_files_below_kgram_produce_no_fingerprints ... ok
+test edge_cases::single_file_no_pairs ... ok
+test exclusion::no_exclusion_yields_none ... ok
+test edge_cases::max_files_caps_analysis ... ok
+test exclusion::glob_pattern_excludes_files ... ok
+test params::algorithm_constants_recorded ... ok
+test identical::two_identical_files_detected ... ok
+test identical::three_identical_files_multiple_pairs ... ok
+test params::params_reflect_inputs ... ok
+test identical::identical_similarity_near_one ... ok
+test params::stats_present_in_report ... ok
+test partial_overlap::high_overlap_detected ... ok
+test partial_overlap::similarity_score_bounded ... ok
+test scope::global_scope_finds_cross_language ... ok
+test scope::lang_scope_separates_languages ... ok
+test scope::module_scope_finds_same_module_dups ... ok
+test scope::module_scope_separates_modules ... ok
+test serialization::report_serializes_to_json ... ok
+test threshold::high_threshold_filters_low_similarity ... ok
+test threshold::threshold_one_only_exact_matches ... ok
+test truncation::max_pairs_truncates_output ... ok
+test truncation::no_truncation_when_under_limit ... ok
+test properties::shared_fingerprints_le_min_individual ... ok
+test properties::similarity_always_in_unit_interval ... ok
+test properties::files_analyzed_le_eligible ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.91s
+
+     Running tests/neardup_depth_w62.rs (target/debug/deps/neardup_depth_w62-5446f5c9d67b5895)
+
+running 41 tests
+test algorithm_params_recorded ... ok
+test child_rows_filtered_out ... ok
+test cluster_representative_most_connected ... ok
+test cluster_files_sorted ... ok
+test eligible_files_reflects_pre_cap_count ... ok
+test determinism_same_clusters ... ok
+test empty_export_no_pairs ... ok
+test determinism_same_pairs ... ok
+test determinism_serialization_stable ... ok
+test empty_files_no_fingerprints ... ok
+test exact_dup_shared_fingerprints_equal_total ... ok
+test exact_duplicates_two_files ... ok
+test exclude_patterns_reduce_analyzed ... ok
+test exact_duplicates_similarity_is_one ... ok
+test exact_duplicates_three_files_form_one_cluster ... ok
+test global_scope_finds_cross_module_dups ... ok
+test lang_scope_isolates_languages ... ok
+test lang_scope_finds_dups_within_same_lang ... ok
+test max_file_bytes_excludes_large_files ... ok
+test higher_threshold_fewer_or_equal_pairs ... ok
+test missing_file_on_disk_graceful ... ok
+test max_files_limits_analysis ... ok
+test max_pairs_truncation ... ok
+test moderate_similarity_detected_at_low_threshold ... ok
+test params_recorded_in_report ... ok
+test module_scope_finds_dups_within_same_module ... ok
+test module_scope_isolates_modules ... ok
+test many_unique_files_no_pairs ... ok
+test prop_identical_similarity_is_one ... ok
+test prop_cluster_file_count_ge_pair_files ... ok
+test single_file_no_pairs ... ok
+test single_file_with_module_scope ... ok
+test prop_similarity_in_0_1 ... ok
+test prop_pairs_sorted_by_similarity_desc ... ok
+test stats_timing_populated ... ok
+test threshold_1_only_exact_matches ... ok
+test threshold_0_catches_all_pairs ... ok
+test whitespace_only_files_no_pairs ... ok
+test very_short_files_below_kgram ... ok
+test twenty_identical_files ... ok
+test prop_similarity_symmetric ... ok
+
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/neardup_w74.rs (target/debug/deps/neardup_w74-37e996e27c7388ee)
+
+running 10 tests
+test default_limits_are_none ... ok
+test empty_export_yields_no_pairs ... ok
+test files_exceeding_max_file_bytes_are_excluded ... ok
+test report_not_truncated_when_under_limit ... ok
+test scope_global_is_default_variant ... ok
+test report_params_reflect_inputs ... ok
+test scope_lang_variant_exists ... ok
+test scope_module_variant_exists ... ok
+test single_file_yields_no_pairs ... ok
+test exclude_patterns_filter_files ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/properties.rs (target/debug/deps/properties-bf10188a90aca036)
+
+running 9 tests
+test clusters_have_at_least_two_files ... ok
+test cluster_files_sorted ... ok
+test analyzed_plus_skipped_equals_eligible ... ok
+test higher_threshold_fewer_or_equal_pairs ... ok
+test report_never_errors ... ok
+test pairs_sorted_descending ... ok
+test shared_fingerprints_bounded ... ok
+test idempotent_report ... ok
+test similarity_in_unit_range ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/unit.rs (target/debug/deps/unit-eefd20e6d6e03ef6)
+
+running 17 tests
+test empty_export_produces_empty_report ... ok
+test child_file_rows_are_excluded ... ok
+test exclude_patterns_filter_files ... ok
+test dissimilar_files_produce_no_pairs ... ok
+test clustering_groups_connected_files ... ok
+test identical_files_are_detected ... ok
+test max_file_bytes_filters_large_files ... ok
+test lang_scope_partitions_by_language ... ok
+test max_files_caps_file_count ... ok
+test module_scope_partitions_files ... ok
+test report_params_reflect_configuration ... ok
+test output_is_deterministic ... ok
+test short_files_produce_no_pairs ... ok
+test single_file_produces_no_pairs ... ok
+test max_pairs_truncates_and_sets_flag ... ok
+test pairs_sorted_by_similarity_desc_then_path ... ok
+test slightly_different_files_pair_above_threshold ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests tokmd_analysis_near_dup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

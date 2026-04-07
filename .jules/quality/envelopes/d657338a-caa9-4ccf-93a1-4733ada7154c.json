@@ -2,6 +2,7 @@
   "run_id": "d657338a-caa9-4ccf-93a1-4733ada7154c",
   "timestamp": "2026-03-19T09:59:03Z",
   "receipts": [
-    "git diff crates/tokmd-analysis-git/src/git.rs\n--- a/crates/tokmd-analysis-git/src/git.rs\n+++ b/crates/tokmd-analysis-git/src/git.rs\n@@ -126,7 +126,11 @@\n         if days > threshold_days {\n             stale_files += 1;\n         }\n-        by_module.entry(module.clone()).or_default().push(days);\n+        if let Some(list) = by_module.get_mut(module) {\n+            list.push(days);\n+        } else {\n+            by_module.insert(module.clone(), vec![days]);\n+        }\n     }"
+    "git diff crates/tokmd-analysis-git/src/git.rs\n--- a/crates/tokmd-analysis-git/src/git.rs\n+++ b/crates/tokmd-analysis-git/src/git.rs\n@@ -126,7 +126,11 @@\n         if days > threshold_days {\n             stale_files += 1;\n         }\n-        by_module.entry(module.clone()).or_default().push(days);\n+        if let Some(list) = by_module.get_mut(module) {\n+            list.push(days);\n+        } else {\n+            by_module.insert(module.clone(), vec![days]);\n+        }\n     }",
+    "Replaced FxHasher with blake3::Hasher for cross-platform determinism in tokmd-analysis-near-dup"
   ]
 }

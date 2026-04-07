@@ -1,46 +1,34 @@
 ## 💡 Summary
-Added usage examples as Rust doctests for the four main workflow APIs in `tokmd-core`. This helps library consumers understand how to embed the `lang`, `module`, `export`, `diff`, and `analyze` engines directly.
+Replaced `FxHasher` with `blake3::Hasher` in `tokmd-analysis-near-dup` for k-gram hashing.
 
-## 🎯 Why / Threat model
-The core library facade lacked executable documentation for its highest-traffic methods. Writing them as doctests ensures they can never silently drift out of sync with the actual API surface.
+## 🎯 Why (perf bottleneck)
+`FxHasher` uses architecture-dependent `usize` internal state, breaking cross-platform determinism (32-bit vs 64-bit systems) in the near-duplicate winnowing algorithm.
 
-## 🔎 Finding (evidence)
-- `crates/tokmd-core/src/lib.rs` lacked `/// ```rust` blocks for its public `*_workflow` functions.
+## 📊 Proof (before/after)
+N/A - Determinism fix.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add standard `#[test]` unit tests that happen to be readable.
-- This is fine, but doesn't show up in `rustdoc` or IDE hover cards.
+- Use workspace `blake3` dependency.
+- Guarantees byte-stable output across all platforms without cargo-culting external hashes.
+- Trade-offs: Minor speed bump for hashing strings, but `blake3` is extremely fast.
 
 ### Option B
-- Write inline `/// ```rust` doctests on the public functions.
-- Why it fits: The `tokmd-core` crate is a library intended for embedding, and users will look directly at the Rustdoc for these functions.
-- Trade-offs: Doctests run sequentially by default, but these are small and fast.
+- Continue using `FxHash` but try seeding it manually. Still architecture dependent due to `usize`.
 
 ## ✅ Decision
-Option B. We want the examples visible directly on the trait/function definitions.
+Option A was chosen.
 
 ## 🧱 Changes made (SRP)
-- Added doctests to `module_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `export_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `diff_workflow` in `crates/tokmd-core/src/lib.rs`.
-- Added doctests to `analyze_workflow` in `crates/tokmd-core/src/lib.rs`.
+- `crates/tokmd-analysis-near-dup/Cargo.toml`
+- `crates/tokmd-analysis-near-dup/src/lib.rs`
 
 ## 🧪 Verification receipts
-```
-cargo test -p tokmd-core --doc --all-features
-```
+- `cargo test -p tokmd-analysis-near-dup --no-default-features`
+- `cargo clippy -p tokmd-analysis-near-dup --all-features`
 
 ## 🧭 Telemetry
-- Change shape: Documentation additions.
-- Blast radius: Rustdoc and `cargo test --doc` execution.
-- Risk class: Very low. Only comments were touched.
-- Rollback: Revert the PR.
-- Merge-confidence gates: `cargo build`, `cargo fmt`, `cargo clippy`, `cargo test -p tokmd-core`.
+- Blast radius: Near Duplicate algorithm fingerprints.
 
 ## 🗂️ .jules updates
-- Wrote run envelope to `.jules/docs/envelopes/`.
-- Appended run ID to `.jules/docs/ledger.json`.
-
-## 📝 Notes (freeform)
-All doctests are self-contained and use the `current_dir()` defaults to avoid needing test fixtures.
+- Updated `quality/ledger.json` and envelope.
