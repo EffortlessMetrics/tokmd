@@ -314,9 +314,9 @@ pub fn pack_spread(
     let parents: Vec<_> = rows.iter().filter(|r| r.kind == FileKind::Parent).collect();
 
     // Group by module (module-first spread)
-    let mut groups: BTreeMap<String, Vec<&FileRow>> = BTreeMap::new();
+    let mut groups: BTreeMap<&str, Vec<&FileRow>> = BTreeMap::new();
     for row in &parents {
-        let key = row.module.clone();
+        let key = row.module.as_str();
         groups.entry(key).or_default().push(row);
     }
 
@@ -334,13 +334,13 @@ pub fn pack_spread(
     let spread_budget = (budget as f64 * 0.7) as usize; // 70% for spread
 
     // Round-robin selection
-    let mut group_indices: BTreeMap<String, usize> = BTreeMap::new();
+    let mut group_indices: BTreeMap<&str, usize> = BTreeMap::new();
     let mut made_progress = true;
 
     while made_progress && used_tokens < spread_budget {
         made_progress = false;
         for (key, group) in &groups {
-            let idx = group_indices.entry(key.clone()).or_insert(0);
+            let idx = group_indices.entry(key).or_insert(0);
             if *idx < group.len() {
                 let row = group[*idx];
                 if used_tokens + row.tokens <= spread_budget {

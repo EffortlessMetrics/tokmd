@@ -1,0 +1,8 @@
+{
+  "performance": {
+    "before_ms": 75.318,
+    "after_ms": 72.234,
+    "improvement_percent": 4.1,
+    "change": "Replaced String allocations with &str references in BTreeMap keys within the context_pack module's hot loop."
+  }
+}
