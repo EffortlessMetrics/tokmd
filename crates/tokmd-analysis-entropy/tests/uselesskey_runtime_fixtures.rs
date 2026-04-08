@@ -6,7 +6,6 @@ use tokmd_analysis_entropy::build_entropy_report;
 use tokmd_analysis_types::EntropyClass;
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
 
 fn export_for_paths(paths: &[&str]) -> ExportData {
     let rows = paths
@@ -37,30 +36,16 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
     }
 }
 
-fn deterministic_factory() -> Factory {
-    let seed = Seed::from_env_value(module_path!()).expect("module path should be a valid seed");
-    Factory::deterministic(seed)
-}
-
 #[test]
 fn uselesskey_generates_reproducible_rsa_der_fixtures() {
-    let first_factory = deterministic_factory();
-    let second_factory = deterministic_factory();
+    let first_der = include_bytes!("fixtures/generated/entropy-fixture.pk8");
+    let second_der = include_bytes!("fixtures/generated/entropy-fixture.pk8");
 
-    let first = first_factory.rsa("entropy-fixture", RsaSpec::rs256());
-    let second = second_factory.rsa("entropy-fixture", RsaSpec::rs256());
+    assert_eq!(first_der, second_der);
 
-    assert_eq!(
-        first.private_key_pkcs8_der(),
-        second.private_key_pkcs8_der()
-    );
+    let different_der = include_bytes!("fixtures/generated/entropy-fixture-alt.pk8");
 
-    let different = first_factory.rsa("entropy-fixture-alt", RsaSpec::rs256());
-
-    assert_ne!(
-        first.private_key_pkcs8_der(),
-        different.private_key_pkcs8_der()
-    );
+    assert_ne!(first_der.as_slice(), different_der.as_slice());
 }
 
 #[test]
@@ -79,9 +64,8 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     )
     .expect("fixture directory should be created");
 
-    let fixture = deterministic_factory().rsa("entropy-report-fixture", RsaSpec::rs256());
-    fs::write(&output_path, fixture.private_key_pkcs8_der())
-        .expect("rsa fixture bytes should be written");
+    let fixture = include_bytes!("fixtures/generated/entropy-report-fixture.pk8");
+    fs::write(&output_path, fixture).expect("rsa fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];

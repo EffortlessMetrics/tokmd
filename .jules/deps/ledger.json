@@ -1,0 +1,94 @@
+[
+  {
+    "run_id": "6e1b6f31-fc3d-468f-91eb-24db4170e6a7",
+    "date": "2026-03-06T13:00:20Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-gate",
+    "action": "remove unused dependency tokmd-analysis-types",
+    "receipts": [
+      "cargo machete output identifying unused tokmd-analysis-types in tokmd-gate",
+      "cargo test -p tokmd-gate completed successfully after removal"
+    ]
+  },
+  {
+    "run_id": "fcedf7ca-4c68-42ad-b9f3-1d762ed7d569",
+    "date": "2026-03-19T11:56:38Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-analysis",
+    "action": "move test-only deps and remove tokmd-content from the content feature",
+    "receipts": [
+      "cargo machete flagged tokmd-content as unused in tokmd-analysis",
+      "cargo test -p tokmd-analysis --all-features completed successfully after the manifest cleanup",
+      "cargo test -p tokmd-analysis --no-default-features completed successfully after the manifest cleanup",
+      "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully",
+      "cargo fmt --manifest-path crates/tokmd-analysis/Cargo.toml -- --check completed successfully"
+    ]
+  },
+  {
+    "id": "20260321T121351Z",
+    "action": "Removed thiserror dependency",
+    "crates": [
+      "tokmd-gate",
+      "tokmd-ffi-envelope"
+    ],
+    "timestamp": "2026-03-21T12:13:51Z"
+  },
+  {
+    "run_id": "a7ce1a10-9e79-474e-adf4-8338096356f8",
+    "date": "2026-03-22T12:00:09Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-node and tokmd-python",
+    "action": "remove unused dependencies tokmd-analysis-types and tokmd-types",
+    "receipts": [
+      "cargo machete output identifying unused dependencies in tokmd-node and tokmd-python",
+      "cargo test -p tokmd-node",
+      "cargo test -p tokmd-python --no-default-features",
+      "cargo clippy -p tokmd-node -p tokmd-python -- -D warnings",
+      "cargo fmt -- --check"
+    ]
+  },
+  {
+    "run_id": "9ce74cba-4438-4a7d-8cf1-502e69ab10b5",
+    "date": "2026-03-23T11:56:39Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "xtask",
+    "action": "remove unused dependencies console, indicatif, and serde",
+    "receipts": [
+      "cargo machete output identifying unused dependencies in xtask",
+      "cargo check -p xtask completed successfully",
+      "cargo clippy -p xtask -- -D warnings completed successfully",
+      "cargo fmt --manifest-path xtask/Cargo.toml -- --check completed successfully"
+    ]
+  },
+  {
+    "run_id": "20260324T121348Z",
+    "date": "2026-03-24T12:13:48Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-analysis",
+    "action": "remove unused test-dependencies blake3 and tokmd-content",
+    "receipts": [
+      "cargo machete output identifying unused dependencies blake3 and tokmd-content in tokmd-analysis",
+      "cargo test -p tokmd-analysis --all-features completed successfully",
+      "cargo test -p tokmd-analysis --no-default-features completed successfully",
+      "cargo clippy -p tokmd-analysis --all-features -- -D warnings completed successfully"
+    ]
+  },
+  {
+    "run_id": "c0dffc07-dcbc-4e39-a828-85a6c1b71e24",
+    "date": "2026-04-08T11:42:08Z",
+    "persona": "Auditor",
+    "lane": "scout",
+    "target": "tokmd-analysis and tokmd-analysis-entropy",
+    "action": "replace dynamic test-data generation with static binary fixtures to remove uselesskey dev-dependency",
+    "receipts": [
+      "cargo run -p fixture_gen completed successfully to build static fixtures",
+      "cargo test -p tokmd-analysis-entropy completed successfully using static fixtures",
+      "cargo test -p tokmd-analysis --test uselesskey_security_pipeline --all-features completed successfully using static fixtures"
+    ]
+  }
+]
