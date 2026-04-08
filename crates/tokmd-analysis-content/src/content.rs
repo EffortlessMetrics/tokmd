@@ -292,7 +292,12 @@ pub fn build_import_report(
             count,
         })
         .collect();
-    edge_rows.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.from.cmp(&b.from)));
+    edge_rows.sort_by(|a, b| {
+        b.count
+            .cmp(&a.count)
+            .then_with(|| a.from.cmp(&b.from))
+            .then_with(|| a.to.cmp(&b.to))
+    });
 
     Ok(ImportReport {
         granularity: match granularity {
