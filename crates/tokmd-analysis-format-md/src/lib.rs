@@ -1181,7 +1181,7 @@ mod tests {
 
     #[test]
     fn fmt_f64_output_format() {
-        assert_eq!(fmt_f64(3.14159, 2), "3.14");
+        assert_eq!(fmt_f64(std::f64::consts::PI, 2), "3.14");
         assert_eq!(fmt_f64(1.0, 4), "1.0000");
     }
 }

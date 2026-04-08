@@ -253,7 +253,6 @@ fn render_html(receipt: &AnalysisReceipt) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeMap;
     use tokmd_analysis_types::*;
 
     fn minimal_receipt() -> AnalysisReceipt {
@@ -1702,6 +1701,7 @@ mod tests {
     }
 
     /// Markdown rendering.
+    #[allow(dead_code)]
     fn test_derived_report_for_effort(code_lines: usize) -> DerivedReport {
         let ratio_zero = RatioReport {
             total: RatioRow {
