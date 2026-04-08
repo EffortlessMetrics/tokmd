@@ -1,0 +1,10 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd-analysis-effort/Cargo.toml",
+    "crates/tokmd-analysis-effort/tests/proptest_models.rs"
+  ],
+  "gates_run": [
+    "cargo test -p tokmd-analysis-effort"
+  ]
+}
