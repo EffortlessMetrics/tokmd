@@ -185,7 +185,6 @@ fn compute_determinism_baseline(root: &Path, file_paths: &[String]) -> Result<De
 ///
 /// Returns `Some(sha)` if the path is inside a git repository,
 /// `None` otherwise or if git is not available.
-#[cfg(feature = "git")]
 fn capture_git_commit(path: &Path) -> Option<String> {
     let output = tokmd_git::git_cmd()
         .arg("-C")
@@ -202,11 +201,6 @@ fn capture_git_commit(path: &Path) -> Option<String> {
         }
     }
 
-    None
-}
-
-#[cfg(not(feature = "git"))]
-fn capture_git_commit(_path: &Path) -> Option<String> {
     None
 }
 
