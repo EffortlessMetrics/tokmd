@@ -1,7 +1,6 @@
 use crate::cli::GateArgs;
 use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
-use std::collections::BTreeSet;
 use std::process::Command;
 
 struct Step {
@@ -72,48 +71,31 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".claude/transcripts",
     ".claude/runtime",
     ".jules/worktrees",
-    // Root-level `.jules/runs/*` scaffolding such as `.gitkeep` is runtime state.
-    ".jules/runs/.gitkeep",
+    // Root `.jules/runs/` is runtime state; curated `.jules/deps/**` history is allowed.
+    ".jules/runs",
     ".jules/cache",
     ".jules/transcripts",
     ".jules/runtime",
     ".jules/tmp",
 ];
 
-fn tracked_git_paths(paths: &[&str]) -> Result<Vec<String>> {
+fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
     let output = Command::new("git")
         .arg("ls-files")
         .arg("--")
-        .args(paths)
+        .args(TRACKED_AGENT_RUNTIME_PATHS)
         .output()?;
 
     if !output.status.success() {
         bail!("failed to query tracked agent runtime state with git ls-files");
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout)
+    let tracked: Vec<String> = String::from_utf8_lossy(&output.stdout)
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty())
         .map(ToOwned::to_owned)
-        .collect())
-}
-
-fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
-    let mut tracked: BTreeSet<String> = tracked_git_paths(TRACKED_AGENT_RUNTIME_PATHS)?
-        .into_iter()
         .collect();
-
-    tracked.extend(
-        tracked_git_paths(&[".jules/runs"])?
-            .into_iter()
-            .filter(|path| {
-                path == ".jules/runs/.gitkeep"
-                    || path
-                        .strip_prefix(".jules/runs/")
-                        .is_some_and(|suffix| !suffix.contains('/'))
-            }),
-    );
 
     if tracked.is_empty() {
         return Ok(());
@@ -125,9 +107,7 @@ fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
     }
     println!();
     println!("Remove these paths from the Git index and re-run the gate.");
-    println!(
-        "Committed `.jules/runs/<run-id>/**` packets and curated `.jules/deps/**` history are allowed."
-    );
+    println!("Curated `.jules/deps/**` history is allowed and intentionally excluded.");
 
     bail!(
         "tracked agent runtime state found in {} path(s)",

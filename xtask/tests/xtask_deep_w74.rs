@@ -356,16 +356,11 @@ fn gate_check_flag_exists_in_cli() {
 fn gate_runtime_guard_keeps_curated_jules_deps_history() {
     let src = read_source("xtask/src/tasks/gate.rs");
     assert!(
-        src.contains("\".jules/runs/.gitkeep\""),
-        "gate should still reject root .jules/runs scaffolding like .gitkeep"
+        src.contains("\".jules/runs\""),
+        "gate should treat root .jules/runs as runtime state"
     );
     assert!(
-        src.contains("Committed `.jules/runs/<run-id>/**` packets"),
-        "gate should allow committed per-run packets under .jules/runs/<run-id>/"
-    );
-    assert!(
-        src.contains("curated `.jules/deps/**` history are allowed")
-            || src.contains("curated `.jules/deps/**` history is allowed"),
+        src.contains("Curated `.jules/deps/**` history is allowed"),
         "gate should document the curated .jules/deps allowance"
     );
 }

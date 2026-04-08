@@ -1252,7 +1252,9 @@ mod mutation_tests {
     // =============================================================================
 
     #[test]
+    #[cfg(feature = "analysis")]
     fn parse_analysis_preset_all_twelve_variants() {
+        #[cfg(feature = "analysis")]
         use tokmd_analysis::AnalysisPreset;
 
         let variants = [
@@ -1299,6 +1301,7 @@ mod mutation_tests {
     }
 
     #[test]
+    #[cfg(feature = "analysis")]
     fn parse_analysis_preset_invalid_variants_fail() {
         let invalid = [
             "unknown",
@@ -1449,6 +1452,7 @@ mod mutation_tests {
     }
 
     #[test]
+    #[cfg(feature = "analysis")]
     fn parse_analysis_preset_normalization_edge_cases() {
         // Kills mutations that remove .trim() or .to_ascii_lowercase()
 
