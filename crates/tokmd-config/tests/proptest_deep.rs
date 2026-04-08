@@ -5,8 +5,9 @@
 
 use proptest::prelude::*;
 use tokmd_config::{
-    CliAnalysisFormat, AnalysisPreset, BadgeMetric, CliChildIncludeMode, CliChildrenMode, CliConfigMode,
-    CliExportFormat, ImportGranularity, InitProfile, CliRedactMode, Shell, CliTableFormat,
+    AnalysisPreset, BadgeMetric, CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode,
+    CliConfigMode, CliExportFormat, CliRedactMode, CliTableFormat, ImportGranularity, InitProfile,
+    Shell,
 };
 
 // =========================================================================
@@ -31,12 +32,20 @@ macro_rules! double_roundtrip_test {
 double_roundtrip_test!(
     table_format_double_rt,
     CliTableFormat,
-    vec![CliTableFormat::Md, CliTableFormat::Tsv, CliTableFormat::Json]
+    vec![
+        CliTableFormat::Md,
+        CliTableFormat::Tsv,
+        CliTableFormat::Json
+    ]
 );
 double_roundtrip_test!(
     export_format_double_rt,
     CliExportFormat,
-    vec![CliExportFormat::Csv, CliExportFormat::Jsonl, CliExportFormat::Json]
+    vec![
+        CliExportFormat::Csv,
+        CliExportFormat::Jsonl,
+        CliExportFormat::Json
+    ]
 );
 double_roundtrip_test!(
     config_mode_double_rt,
@@ -51,12 +60,19 @@ double_roundtrip_test!(
 double_roundtrip_test!(
     child_include_mode_double_rt,
     CliChildIncludeMode,
-    vec![CliChildIncludeMode::Separate, CliChildIncludeMode::ParentsOnly]
+    vec![
+        CliChildIncludeMode::Separate,
+        CliChildIncludeMode::ParentsOnly
+    ]
 );
 double_roundtrip_test!(
     redact_mode_double_rt,
     CliRedactMode,
-    vec![CliRedactMode::None, CliRedactMode::Paths, CliRedactMode::All]
+    vec![
+        CliRedactMode::None,
+        CliRedactMode::Paths,
+        CliRedactMode::All
+    ]
 );
 
 double_roundtrip_test!(

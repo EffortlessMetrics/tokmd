@@ -1,0 +1,3 @@
+{"command": "cargo fmt", "result": "passed"}
+{"command": "cargo clippy --fix", "result": "passed"}
+{"command": "python script to fix remaining clippy warnings", "result": "passed"}

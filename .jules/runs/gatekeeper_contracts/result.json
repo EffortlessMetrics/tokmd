@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed `cargo fmt` and `cargo clippy` violations in `tokmd-core` and `tokmd-python`.",
+  "outcome": "PR-ready patch"
+}

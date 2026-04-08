@@ -10,8 +10,9 @@
 use std::collections::BTreeMap;
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CliChildrenMode, ColorMode, CliConfigMode, DiffFormat, CliExportFormat,
-    GlobalArgs, InitProfile, Profile, CliRedactMode, CliTableFormat, TomlConfig, UserConfig, ViewProfile,
+    AnalysisPreset, BadgeMetric, CliChildrenMode, CliConfigMode, CliExportFormat, CliRedactMode,
+    CliTableFormat, ColorMode, DiffFormat, GlobalArgs, InitProfile, Profile, TomlConfig,
+    UserConfig, ViewProfile,
 };
 
 // ============================================================================

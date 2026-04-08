@@ -116,7 +116,11 @@ mod tests {
         let err = anyhow!("Path not found: does-not-exist");
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("input path exists")));
-        assert!(hints.iter().any(|h| h.contains("subcommand, it is not recognized")));
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("subcommand, it is not recognized"))
+        );
     }
 
     #[test]

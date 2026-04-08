@@ -4,9 +4,9 @@
 
 use proptest::prelude::*;
 use tokmd_config::{
-    CliAnalysisFormat, AnalysisPreset, BadgeMetric, CliChildIncludeMode, CliChildrenMode, CockpitFormat,
-    CliConfigMode, CliExportFormat, HandoffPreset, ImportGranularity, InitProfile, CliRedactMode, Shell,
-    CliTableFormat,
+    AnalysisPreset, BadgeMetric, CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode,
+    CliConfigMode, CliExportFormat, CliRedactMode, CliTableFormat, CockpitFormat, HandoffPreset,
+    ImportGranularity, InitProfile, Shell,
 };
 
 /// Macro to generate round-trip tests for enums that implement Serialize + Deserialize + PartialEq
@@ -24,19 +24,32 @@ macro_rules! roundtrip_test {
 }
 
 // All variants for each enum
-const TABLE_FORMATS: [CliTableFormat; 3] = [CliTableFormat::Md, CliTableFormat::Tsv, CliTableFormat::Json];
+const TABLE_FORMATS: [CliTableFormat; 3] = [
+    CliTableFormat::Md,
+    CliTableFormat::Tsv,
+    CliTableFormat::Json,
+];
 
-const EXPORT_FORMATS: [CliExportFormat; 3] =
-    [CliExportFormat::Csv, CliExportFormat::Jsonl, CliExportFormat::Json];
+const EXPORT_FORMATS: [CliExportFormat; 3] = [
+    CliExportFormat::Csv,
+    CliExportFormat::Jsonl,
+    CliExportFormat::Json,
+];
 
 const CONFIG_MODES: [CliConfigMode; 2] = [CliConfigMode::Auto, CliConfigMode::None];
 
 const CHILDREN_MODES: [CliChildrenMode; 2] = [CliChildrenMode::Collapse, CliChildrenMode::Separate];
 
-const CHILD_INCLUDE_MODES: [CliChildIncludeMode; 2] =
-    [CliChildIncludeMode::Separate, CliChildIncludeMode::ParentsOnly];
+const CHILD_INCLUDE_MODES: [CliChildIncludeMode; 2] = [
+    CliChildIncludeMode::Separate,
+    CliChildIncludeMode::ParentsOnly,
+];
 
-const REDACT_MODES: [CliRedactMode; 3] = [CliRedactMode::None, CliRedactMode::Paths, CliRedactMode::All];
+const REDACT_MODES: [CliRedactMode; 3] = [
+    CliRedactMode::None,
+    CliRedactMode::Paths,
+    CliRedactMode::All,
+];
 
 const ANALYSIS_FORMATS: [CliAnalysisFormat; 10] = [
     CliAnalysisFormat::Md,
@@ -97,7 +110,11 @@ const SHELLS: [Shell; 5] = [
 ];
 
 // Generate round-trip tests
-roundtrip_test!(table_format_roundtrip, CliTableFormat, TABLE_FORMATS.to_vec());
+roundtrip_test!(
+    table_format_roundtrip,
+    CliTableFormat,
+    TABLE_FORMATS.to_vec()
+);
 roundtrip_test!(
     export_format_roundtrip,
     CliExportFormat,

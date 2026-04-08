@@ -1085,7 +1085,10 @@ mod tests {
     fn global_args_default() {
         let g = GlobalArgs::default();
         assert!(g.excluded.is_empty());
-        assert_eq!(tokmd_types::ConfigMode::from(g.config), tokmd_types::ConfigMode::Auto);
+        assert_eq!(
+            tokmd_types::ConfigMode::from(g.config),
+            tokmd_types::ConfigMode::Auto
+        );
         assert!(!g.hidden);
         assert!(!g.no_ignore);
         assert_eq!(g.verbose, 0);
