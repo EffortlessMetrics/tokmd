@@ -6,10 +6,10 @@ Make review boring. Make truth cheap.
 ## 💡 Summary
 1–4 sentences. What changed.
 
-## 🎯 Why (user/dev pain)
-What friction existed and what is now easier/clearer.
+## 🎯 Why / Threat model
+High level impact. No exploit steps.
 
-## 🔎 Evidence (before/after)
+## 🔎 Finding (evidence)
 Minimal proof:
 - file path(s)
 - observed behavior
@@ -37,7 +37,7 @@ Copy from the run envelope. Commands + results.
 
 ## 🧭 Telemetry
 - Change shape
-- Blast radius (API / IO / docs / schema / concurrency)
+- Blast radius (API / IO / config / schema / concurrency)
 - Risk class + why
 - Rollback
 - Merge-confidence gates (what ran)
