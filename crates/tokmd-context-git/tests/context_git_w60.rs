@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep tests (w60) for tokmd-context-git: git-based file prioritization,
 //! change frequency computation, combining git metrics with context data,
 //! determinism properties, and BDD-style scenarios.

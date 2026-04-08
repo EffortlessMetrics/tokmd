@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Wave 49: Deep tests for `tokmd-context-git`.
 //!
 //! Covers:

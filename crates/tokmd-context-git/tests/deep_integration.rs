@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep integration tests exercising `compute_git_scores` end-to-end.
 //!
 //! Covers: multi-file repos, subdirectories, scoring correctness,

@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 #[cfg(feature = "git")]
 use std::process::Command;
 use tokmd_analysis::{

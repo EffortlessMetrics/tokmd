@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 #[cfg(feature = "git")]
 mod git_tests {
     use std::process::Command;

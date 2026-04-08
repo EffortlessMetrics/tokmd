@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! W71 deep baseline CLI integration tests.
 //!
 //! Tests cover: metrics field validation, custom output paths, error cases,

@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Integration tests for the `tokmd cockpit` command.
 
 #![cfg(feature = "git")]

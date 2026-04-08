@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Wave-66 deep tests for tokmd-cockpit.
 //!
 //! Coverage targets:

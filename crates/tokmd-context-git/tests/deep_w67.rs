@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep tests for tokmd-context-git (w67).
 //!
 //! Covers: GitScores construction, BTreeMap invariants, scoring logic,

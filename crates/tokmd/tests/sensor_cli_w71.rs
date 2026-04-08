@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep CLI tests for `tokmd sensor` – conforming sensor producing
 //! `sensor.report.v1` envelope.
 //!

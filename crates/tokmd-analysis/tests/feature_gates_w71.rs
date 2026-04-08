@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Feature gate correctness and "no green by omission" boundary tests.
 //!
 //! Verifies that the analysis pipeline never silently succeeds when optional

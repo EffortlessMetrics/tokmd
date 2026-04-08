@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! CLI feature-gate boundary tests.
 //!
 //! Verifies that the tokmd CLI degrades gracefully when optional features

@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep CLI tests for `tokmd cockpit` – PR change-surface analysis.
 //!
 //! All tests require the `git` feature flag and a working `git` binary.

@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! Deep tests for tokmd-context-git: git scoring for context ranking.
 //!
 //! Tests cover: GitScores construction, scoring invariants, path

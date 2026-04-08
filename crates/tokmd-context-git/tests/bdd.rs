@@ -1,3 +1,4 @@
+#![cfg(feature = "git")]
 //! BDD-style scenario tests for git-based context selection.
 //!
 //! Each test follows the Given-When-Then naming convention to document
