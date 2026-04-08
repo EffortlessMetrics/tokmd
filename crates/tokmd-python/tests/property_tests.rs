@@ -34,13 +34,15 @@ fn boolean_field_strategy() -> impl Strategy<Value = String> {
     )
 }
 
-/// Strategy for generating field names that accept numeric values
-fn numeric_field_strategy() -> impl Strategy<Value = String> {
+/// Strategy for generating mode/field pairs for numeric settings that are
+/// actually validated by that mode's JSON interface.
+fn numeric_field_strategy() -> impl Strategy<Value = (String, String)> {
     prop_oneof!(
-        Just("top".to_string()),
-        Just("max_rows".to_string()),
-        Just("min_code".to_string()),
-        Just("module_depth".to_string()),
+        Just(("lang".to_string(), "top".to_string())),
+        Just(("module".to_string(), "top".to_string())),
+        Just(("module".to_string(), "module_depth".to_string())),
+        Just(("export".to_string(), "min_code".to_string())),
+        Just(("export".to_string(), "max_rows".to_string())),
     )
 }
 
@@ -199,18 +201,18 @@ proptest! {
     /// Test that invalid numeric field type produces error.
     #[test]
     fn prop_strict_parsing_invalid_numeric_type_produces_error(
-        field in numeric_field_strategy(),
+        (mode, field) in numeric_field_strategy(),
         invalid_value in proptest::string::string_regex("[a-z]+").unwrap()
     ) {
         let args = format!(r#"{{"{}": "{}"}}"#, field, invalid_value);
-        let result = run_json("lang", &args);
+        let result = run_json(&mode, &args);
         let envelope: Value = serde_json::from_str(&result).unwrap();
 
         // Invalid type should produce error
         prop_assert!(
             envelope["ok"] == false,
-            "Invalid numeric type for '{}' should produce error",
-            field
+            "Invalid numeric type for '{}.{}' should produce error",
+            mode, field
         );
 
         let code = envelope["error"]["code"].as_str().unwrap_or("");
