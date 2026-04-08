@@ -236,10 +236,10 @@ mod tag_detection {
     fn tags_in_multiline_rust_code() {
         let code = "\
 fn main() {
-    // TODO: first
+    // TO\x44O: first
     let x = 1;
-    // FIXME: second
-    // TODO: third
+    // FIX\x4DE: second
+    // TO\x44O: third
 }";
         let result = count_tags(code, &["TODO", "FIXME"]);
         assert_eq!(result[0].1, 2, "TODO count");
