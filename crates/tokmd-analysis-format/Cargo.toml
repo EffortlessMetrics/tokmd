@@ -19,6 +19,7 @@ fun = ["dep:tokmd-fun"]
 [dependencies]
 anyhow.workspace = true
 serde_json.workspace = true
+tokmd-analysis-format-md.workspace = true
 tokmd-analysis-html.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
