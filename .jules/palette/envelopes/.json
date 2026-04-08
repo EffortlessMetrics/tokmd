@@ -1,0 +1,35 @@
+{
+  "run_id": "",
+  "timestamp_utc": "2026-04-08T11:01:03Z",
+  "lane": "scout",
+  "target": "crates/tokmd/src/context_pack.rs",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "exit_status": 0,
+      "result": "PASS",
+      "summary": "Built successfully without panics"
+    },
+    {
+      "cmd": "CI=true cargo test --verbose",
+      "exit_status": 0,
+      "result": "PASS",
+      "summary": "All tests passed with new context messages"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "exit_status": 0,
+      "result": "PASS",
+      "summary": "Formatting correctly maintained"
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "exit_status": 0,
+      "result": "PASS",
+      "summary": "No clippy warnings"
+    }
+  ],
+  "results": [
+    "Replaced generic expect messages with contextual ones"
+  ]
+}

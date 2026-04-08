@@ -25,6 +25,19 @@
         "clippy"
       ],
       "friction_ids": []
+    },
+    {
+      "date": "2026-04-08T11:01:19Z",
+      "lane": "scout",
+      "target": "context_pack.rs expect panics",
+      "pr_link": null,
+      "gates": [
+        "build",
+        "test",
+        "fmt",
+        "clippy"
+      ],
+      "friction_ids": []
     }
   ]
 }
