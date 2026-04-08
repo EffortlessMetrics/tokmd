@@ -1,0 +1,4 @@
+{"command": "cargo tree -e features -p tokmd-format", "status": "success"}
+{"command": "sed -i 's/features = \\[\"v4\", \"js\"\\]/features = \\[\"v4\"\\]/' crates/tokmd-format/Cargo.toml", "status": "success"}
+{"command": "cargo build -p tokmd-format", "status": "success"}
+{"command": "cargo test -p tokmd-format", "status": "success"}
