@@ -4052,7 +4052,6 @@ dependencies = [
 name = "tokmd-types"
 version = "1.9.0"
 dependencies = [
- "clap",
  "insta",
  "proptest",
  "serde",

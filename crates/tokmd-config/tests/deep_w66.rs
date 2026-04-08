@@ -274,7 +274,7 @@ fn profile_default_all_none() {
 fn global_args_default_values() {
     let g = GlobalArgs::default();
     assert!(g.excluded.is_empty());
-    assert_eq!(g.config, ConfigMode::Auto);
+    assert_eq!(g.config, tokmd_config::CliConfigMode::Auto);
     assert!(!g.hidden);
     assert!(!g.no_ignore);
     assert!(!g.no_ignore_parent);

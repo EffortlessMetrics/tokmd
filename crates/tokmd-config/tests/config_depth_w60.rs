@@ -11,9 +11,9 @@
 //! - Property tests for config determinism
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, ConfigMode, ContextOutput,
+    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, CliConfigMode, ContextOutput,
     ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
-    ImportGranularity, NearDupScope, Profile, RedactMode, SensorFormat, TomlConfig, UserConfig,
+    ImportGranularity, NearDupScope, Profile, CliRedactMode, SensorFormat, TomlConfig, UserConfig,
     ValueMetric, ViewProfile,
 };
 
@@ -315,7 +315,7 @@ fn given_user_config_with_profiles_then_profiles_accessible() {
         Profile {
             format: Some("json".into()),
             top: Some(10),
-            redact: Some(RedactMode::All),
+            redact: Some(CliRedactMode::All),
             ..Profile::default()
         },
     );
@@ -350,7 +350,7 @@ fn given_profile_with_all_fields_then_serde_roundtrip() {
         module_depth: Some(3),
         min_code: Some(5),
         max_rows: Some(1000),
-        redact: Some(RedactMode::Paths),
+        redact: Some(CliRedactMode::Paths),
         meta: Some(true),
         children: Some("collapse".into()),
     };
@@ -384,7 +384,7 @@ fn given_global_args_with_defaults_when_converted_then_scan_options_defaults() {
 fn given_global_args_with_custom_values_when_converted_then_all_propagated() {
     let g = GlobalArgs {
         excluded: vec!["target".into(), "vendor".into()],
-        config: ConfigMode::None,
+        config: CliConfigMode::None,
         hidden: true,
         no_ignore: true,
         no_ignore_parent: true,
@@ -396,7 +396,7 @@ fn given_global_args_with_custom_values_when_converted_then_all_propagated() {
     };
     let opts: tokmd_settings::ScanOptions = (&g).into();
     assert_eq!(opts.excluded.len(), 2);
-    assert_eq!(opts.config, ConfigMode::None);
+    assert_eq!(opts.config, tokmd_types::ConfigMode::None);
     assert!(opts.hidden);
     assert!(opts.no_ignore);
     assert!(opts.no_ignore_parent);
@@ -409,7 +409,7 @@ fn given_global_args_with_custom_values_when_converted_then_all_propagated() {
 fn given_global_args_owned_when_converted_then_same_as_borrowed() {
     let g = GlobalArgs {
         excluded: vec!["node_modules".into()],
-        config: ConfigMode::Auto,
+        config: CliConfigMode::Auto,
         hidden: false,
         no_ignore: false,
         no_ignore_parent: false,
@@ -656,7 +656,7 @@ fn user_config_full_roundtrip() {
             format: Some("json".into()),
             top: Some(5),
             files: Some(true),
-            redact: Some(RedactMode::Paths),
+            redact: Some(CliRedactMode::Paths),
             ..Profile::default()
         },
     );
@@ -664,7 +664,7 @@ fn user_config_full_roundtrip() {
         "llm".into(),
         Profile {
             format: Some("md".into()),
-            redact: Some(RedactMode::All),
+            redact: Some(CliRedactMode::All),
             ..Profile::default()
         },
     );

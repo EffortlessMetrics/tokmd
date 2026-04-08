@@ -8,7 +8,7 @@ use std::io::Write;
 use tempfile::NamedTempFile;
 use tokmd_config::{
     AnalysisPreset, BadgeMetric, CliLangArgs, CockpitFormat, ColorMode, ContextOutput,
-    ContextStrategy, DiffFormat, DiffRangeMode, ExportFormat, GateFormat, GlobalArgs,
+    ContextStrategy, DiffFormat, DiffRangeMode, CliExportFormat, GateFormat, GlobalArgs,
     HandoffPreset, ImportGranularity, InitProfile, NearDupScope, Profile, SensorFormat, Shell,
     TomlConfig, UserConfig, ValueMetric, ViewProfile,
 };
@@ -1049,7 +1049,7 @@ fn user_config_json_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
             module_depth: Some(2),
             min_code: Some(1),
             max_rows: Some(50),
-            redact: Some(tokmd_config::RedactMode::Paths),
+            redact: Some(tokmd_config::CliRedactMode::Paths),
             meta: Some(false),
             children: Some("collapse".into()),
         },
@@ -1068,7 +1068,7 @@ fn user_config_json_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(p.module_depth, Some(2));
     assert_eq!(p.min_code, Some(1));
     assert_eq!(p.max_rows, Some(50));
-    assert_eq!(p.redact, Some(tokmd_config::RedactMode::Paths));
+    assert_eq!(p.redact, Some(tokmd_config::CliRedactMode::Paths));
     assert_eq!(p.meta, Some(false));
     assert_eq!(p.children, Some("collapse".into()));
     assert_eq!(back.repos["org/repo"], "ci");
@@ -1083,7 +1083,7 @@ fn user_config_json_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
 fn global_args_defaults() -> Result<(), Box<dyn std::error::Error>> {
     let g = GlobalArgs::default();
     assert!(g.excluded.is_empty());
-    assert_eq!(g.config, tokmd_config::ConfigMode::Auto);
+    assert_eq!(g.config, tokmd_config::CliConfigMode::Auto);
     assert!(!g.hidden);
     assert!(!g.no_ignore);
     assert!(!g.no_ignore_parent);
@@ -1103,7 +1103,7 @@ fn global_args_defaults() -> Result<(), Box<dyn std::error::Error>> {
 fn global_args_to_scan_options_all_fields() -> Result<(), Box<dyn std::error::Error>> {
     let g = GlobalArgs {
         excluded: vec!["a".into(), "b".into()],
-        config: tokmd_config::ConfigMode::None,
+        config: tokmd_config::CliConfigMode::None,
         hidden: true,
         no_ignore: true,
         no_ignore_parent: true,
@@ -1115,7 +1115,7 @@ fn global_args_to_scan_options_all_fields() -> Result<(), Box<dyn std::error::Er
     };
     let opts: tokmd_settings::ScanOptions = (&g).into();
     assert_eq!(opts.excluded, vec!["a", "b"]);
-    assert_eq!(opts.config, tokmd_config::ConfigMode::None);
+    assert_eq!(opts.config, tokmd_types::ConfigMode::None);
     assert!(opts.hidden);
     assert!(opts.no_ignore);
     assert!(opts.no_ignore_parent);
@@ -1288,13 +1288,13 @@ fn all_analysis_presets_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn all_export_formats_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
     for v in [
-        ExportFormat::Jsonl,
-        ExportFormat::Csv,
-        ExportFormat::Json,
-        ExportFormat::Cyclonedx,
+        CliExportFormat::Jsonl,
+        CliExportFormat::Csv,
+        CliExportFormat::Json,
+        CliExportFormat::Cyclonedx,
     ] {
         let json = serde_json::to_string(&v)?;
-        let back: ExportFormat = serde_json::from_str(&json)?;
+        let back: CliExportFormat = serde_json::from_str(&json)?;
         assert_eq!(v, back);
     }
     Ok(())

@@ -42,7 +42,7 @@ fn user_config_with_profiles_roundtrip() {
             module_depth: Some(2),
             min_code: Some(5),
             max_rows: Some(100),
-            redact: Some(tokmd_config::RedactMode::Paths),
+            redact: Some(tokmd_config::CliRedactMode::Paths),
             meta: Some(true),
             children: Some("collapse".to_string()),
         },

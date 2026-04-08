@@ -269,19 +269,6 @@ pub fn collect_in_memory_file_rows(
         let summary = stats.summarise();
         let (bytes, tokens) = metrics_from_bytes(input.bytes);
 
-        insert_row(
-            &mut map,
-            Key {
-                path: path.clone(),
-                lang: lang_type.name().to_string(),
-                kind: FileKind::Parent,
-            },
-            module.clone(),
-            &summary,
-            bytes,
-            tokens,
-        );
-
         if children == ChildIncludeMode::Separate {
             for (child_type, child_stats) in &stats.blobs {
                 let child_summary = child_stats.summarise();
@@ -299,6 +286,19 @@ pub fn collect_in_memory_file_rows(
                 );
             }
         }
+
+        insert_row(
+            &mut map,
+            Key {
+                path,
+                lang: lang_type.name().to_string(),
+                kind: FileKind::Parent,
+            },
+            module,
+            &summary,
+            bytes,
+            tokens,
+        );
     }
 
     rows_from_map(map)

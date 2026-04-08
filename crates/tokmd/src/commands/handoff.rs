@@ -73,7 +73,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         &languages,
         &module_roots,
         module_depth,
-        cli::ChildIncludeMode::ParentsOnly,
+        tokmd_types::ChildIncludeMode::ParentsOnly,
         None,
         0, // no min_code filter
         0, // no max_rows limit
@@ -275,7 +275,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     let mut capabilities = Vec::new();
 
     // Check git availability
-    let git_available = std::process::Command::new("git")
+    let git_available = tokmd_git::git_cmd()
         .arg("--version")
         .output()
         .map(|o| o.status.success())
@@ -305,7 +305,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     #[cfg(feature = "git")]
     let in_repo = tokmd_git::repo_root(root).is_some();
     #[cfg(not(feature = "git"))]
-    let in_repo = std::process::Command::new("git")
+    let in_repo = tokmd_git::git_cmd()
         .args(["rev-parse", "--git-dir"])
         .current_dir(root)
         .output()
@@ -333,7 +333,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     }
 
     // Check for shallow clone
-    let shallow = std::process::Command::new("git")
+    let shallow = tokmd_git::git_cmd()
         .args(["rev-parse", "--is-shallow-repository"])
         .current_dir(root)
         .output()
@@ -1042,7 +1042,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let tree = tokmd_export_tree::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
         assert!(tree.is_empty());
@@ -1065,7 +1065,7 @@ mod tests {
             }],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let tree = tokmd_export_tree::render_handoff_tree(&export, 1);
         assert!(tree.contains("a/"));
@@ -1079,7 +1079,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let derived = build_simple_derived(&export);
         assert_eq!(derived.total_files, 0);
@@ -1093,7 +1093,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let complexity = build_simple_complexity(&export);
         assert_eq!(complexity.total_functions, 0);
