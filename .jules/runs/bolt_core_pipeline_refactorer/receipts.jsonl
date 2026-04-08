@@ -1,2 +1,0 @@
-{"command": "cargo clippy -p tokmd-model -- -D warnings", "outcome": "Passed"}
-{"command": "cargo test -p tokmd-model", "outcome": "Passed"}

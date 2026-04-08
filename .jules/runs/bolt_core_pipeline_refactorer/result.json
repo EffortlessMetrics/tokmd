@@ -1,5 +1,0 @@
-{
-  "outcome": "PR-ready patch",
-  "reason": "Eliminated cloning on hot paths in model loading by reordering insertions.",
-  "perf_proof": "Eliminated two calls to `.clone()` per file scanned, verified structurally by code review and unit tests showing functional parity without allocating duplicate Strings."
-}
