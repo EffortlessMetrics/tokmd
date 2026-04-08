@@ -1,5 +1,3 @@
 {"command": "mkdir -p .jules/runs/gatekeeper_determinism", "status": "success"}
-{"command": "grep -rn \"BTreeMap\" crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format docs | grep \".sort_by(\"", "status": "success"}
-{"command": "grep -rn \"\\.keys().collect()\" crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format docs", "status": "success"}
-{"command": "grep -rn \"ImportEdge\" crates", "status": "success"}
-{"command": "grep -rn \"TodoTagRow\" crates", "status": "success"}
+{"command": "cargo test -p tokmd-format --test snapshots", "status": "success"}
+{"command": "cargo clippy --workspace -- -D warnings", "status": "success"}

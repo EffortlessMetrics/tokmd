@@ -1,5 +1,5 @@
 {
-  "summary": "Created a learning PR regarding explicit multi-key deterministic BTreeMap sorting in out-of-scope crates.",
-  "outcome": "learning PR",
-  "files_changed": []
+  "summary": "Replaced non-deterministic Duration unwraps in tokmd-format core.",
+  "outcome": "proof-improvement patch",
+  "files_changed": ["crates/tokmd-format/src/lib.rs"]
 }

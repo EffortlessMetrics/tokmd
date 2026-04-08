@@ -1,15 +1,16 @@
 # Decision
 
 ## Option A (recommended)
-Do not modify code. Create a learning PR to document that the core pipeline already enforces explicit BTreeMap sorting correctly.
-- **What it is:** Instead of modifying code out-of-bounds, generate a learning PR detailing that `crates/tokmd-analysis-content` is outside the allowed `core-pipeline` shard, but lacks explicit multi-key BTreeMap sorting for deterministic serialization. Record this as an open friction item.
-- **Why it fits this repo and this shard:** It strictly adheres to the Gatekeeper persona constraints ("If the strongest target you find is outside the shard, record it as friction instead of chasing it.").
-- **Trade-offs:** Slower immediate fix for the analysis formatting out-of-shard, but correctly follows system policy.
+Fix deterministic BTreeMap ordering across tests and core crates. The `Prover` persona focuses on improving determinism, tests, and proof surfaces. BTreeMap iterators return entries sorted by key ascending, but testing determinism across platforms and environments often requires specific, predictable multi-key sorting (like code descending, then language ascending) for deterministic serialization.
+
+- **Why it fits this repo and this shard:** The problem of output stability and deterministic testing maps directly to the `Gatekeeper` persona in the `core-pipeline` shard.
+- **Trade-offs:** Better test robustness and regression prevention vs slightly more verbose code.
 
 ## Option B
-Fix the formatting bug out of bounds anyway.
-- **When to choose it instead:** When the policy allows cross-shard operations.
-- **Trade-offs:** Fails to comply with strict prompt instructions.
+Create a learning PR to track unwrap panics in CLI execution tests and improve parsing boundaries.
 
-## ✅ Decision
-Option A. Create a learning PR and record the missing deterministic sorts as friction for the `Surveyor` or `Specsmith` persona depending on the target shard assignment.
+- **When to choose it instead:** If there was a specific input/output test panic causing immediate upstream issues.
+- **Trade-offs:** We haven't identified critical new parsing panics in the target crates, and the explicit BTreeMap key determinism rule was discovered missing in several places in memory.
+
+## Decision
+Choose Option A. Implement explicit `BTreeMap` entry sorting across test and model code as specified by the deterministic sorting rule to lock in ordering.
