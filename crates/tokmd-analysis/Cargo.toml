@@ -79,5 +79,4 @@ tokmd-analysis-effort = { workspace = true, optional = true }
 [dev-dependencies]
 tempfile.workspace = true
 proptest.workspace = true
-uselesskey.workspace = true
 serde.workspace = true

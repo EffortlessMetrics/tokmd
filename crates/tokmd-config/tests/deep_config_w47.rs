@@ -10,8 +10,8 @@ use std::io::Write;
 use proptest::prelude::*;
 use tempfile::{NamedTempFile, TempDir};
 use tokmd_config::{
-    CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode, CliConfigMode, CliExportFormat, Profile, CliRedactMode,
-    ScanConfig, CliTableFormat, TomlConfig, UserConfig, ViewProfile,
+    CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode, CliConfigMode, CliExportFormat,
+    CliRedactMode, CliTableFormat, Profile, ScanConfig, TomlConfig, UserConfig, ViewProfile,
 };
 
 // =========================================================================
@@ -610,7 +610,11 @@ fn empty_file_on_disk_parses_ok() {
 
 #[test]
 fn export_format_serde_roundtrip_all_variants() {
-    for variant in [CliExportFormat::Csv, CliExportFormat::Jsonl, CliExportFormat::Json] {
+    for variant in [
+        CliExportFormat::Csv,
+        CliExportFormat::Jsonl,
+        CliExportFormat::Json,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: CliExportFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -619,7 +623,11 @@ fn export_format_serde_roundtrip_all_variants() {
 
 #[test]
 fn table_format_serde_roundtrip_all_variants() {
-    for variant in [CliTableFormat::Md, CliTableFormat::Tsv, CliTableFormat::Json] {
+    for variant in [
+        CliTableFormat::Md,
+        CliTableFormat::Tsv,
+        CliTableFormat::Json,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: CliTableFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -667,7 +675,10 @@ fn children_mode_collapse_and_separate() {
 
 #[test]
 fn child_include_mode_variants() {
-    for variant in [CliChildIncludeMode::Separate, CliChildIncludeMode::ParentsOnly] {
+    for variant in [
+        CliChildIncludeMode::Separate,
+        CliChildIncludeMode::ParentsOnly,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: CliChildIncludeMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
@@ -1061,7 +1072,11 @@ fn redact_mode_variants_in_export_and_view() {
 
 #[test]
 fn redact_mode_enum_serde() {
-    for variant in [CliRedactMode::None, CliRedactMode::Paths, CliRedactMode::All] {
+    for variant in [
+        CliRedactMode::None,
+        CliRedactMode::Paths,
+        CliRedactMode::All,
+    ] {
         let json = serde_json::to_string(&variant).unwrap();
         let back: CliRedactMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
