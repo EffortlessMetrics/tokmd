@@ -17,6 +17,4 @@ tokmd-analysis-types.workspace = true
 
 [dev-dependencies]
 insta = { workspace = true }
-tokmd-analysis.workspace = true
-tokmd-analysis-format.workspace = true
 tokmd-types.workspace = true
