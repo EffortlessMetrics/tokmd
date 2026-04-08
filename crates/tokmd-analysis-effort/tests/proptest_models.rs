@@ -1,8 +1,8 @@
 use proptest::prelude::*;
 use tokmd_analysis_effort::cocomo2::{cocomo2_baseline, cocomo2_effort_pm};
 use tokmd_analysis_effort::cocomo81::{cocomo81_baseline, cocomo81_effort_pm};
-use tokmd_analysis_types::{EffortConfidence, EffortConfidenceLevel, EffortResults};
 use tokmd_analysis_effort::uncertainty::apply_uncertainty;
+use tokmd_analysis_types::{EffortConfidence, EffortConfidenceLevel, EffortResults};
 
 proptest! {
     #[test]
