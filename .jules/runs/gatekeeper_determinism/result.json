@@ -1,5 +1,0 @@
-{
-  "summary": "Created a learning PR regarding explicit multi-key deterministic BTreeMap sorting in out-of-scope crates.",
-  "outcome": "learning PR",
-  "files_changed": []
-}
