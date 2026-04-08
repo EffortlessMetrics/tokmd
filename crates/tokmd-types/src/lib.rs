@@ -587,7 +587,6 @@ pub struct DiffReceipt {
 // -----------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum TableFormat {
     /// Markdown table (great for pasting into ChatGPT).
@@ -599,7 +598,6 @@ pub enum TableFormat {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum ExportFormat {
     /// CSV with a header row.
@@ -613,7 +611,6 @@ pub enum ExportFormat {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum ConfigMode {
     /// Read scan config files (`tokei.toml` / `.tokeirc`) if present.
@@ -624,7 +621,6 @@ pub enum ConfigMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum ChildrenMode {
     /// Merge embedded content into the parent language totals.
@@ -634,7 +630,6 @@ pub enum ChildrenMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum ChildIncludeMode {
     /// Include embedded languages as separate contributions.
@@ -644,7 +639,6 @@ pub enum ChildIncludeMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum RedactMode {
     /// Do not redact.
@@ -656,7 +650,6 @@ pub enum RedactMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 #[serde(rename_all = "kebab-case")]
 pub enum AnalysisFormat {
     Md,

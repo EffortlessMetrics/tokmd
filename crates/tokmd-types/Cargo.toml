@@ -12,11 +12,9 @@ categories = ["development-tools", "data-structures"]
 documentation = "https://docs.rs/tokmd-types"
 
 [features]
-clap = ["dep:clap"]
 
 [dependencies]
 serde.workspace = true
-clap = { version = "4.6.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
 proptest.workspace = true

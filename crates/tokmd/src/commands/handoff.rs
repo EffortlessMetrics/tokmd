@@ -73,7 +73,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         &languages,
         &module_roots,
         module_depth,
-        cli::ChildIncludeMode::ParentsOnly,
+        tokmd_types::ChildIncludeMode::ParentsOnly,
         None,
         0, // no min_code filter
         0, // no max_rows limit
@@ -1042,7 +1042,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let tree = tokmd_export_tree::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
         assert!(tree.is_empty());
@@ -1065,7 +1065,7 @@ mod tests {
             }],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let tree = tokmd_export_tree::render_handoff_tree(&export, 1);
         assert!(tree.contains("a/"));
@@ -1079,7 +1079,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let derived = build_simple_derived(&export);
         assert_eq!(derived.total_files, 0);
@@ -1093,7 +1093,7 @@ mod tests {
             rows: vec![],
             module_roots: vec![],
             module_depth: 2,
-            children: cli::ChildIncludeMode::ParentsOnly,
+            children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
         let complexity = build_simple_complexity(&export);
         assert_eq!(complexity.total_functions, 0);

@@ -409,7 +409,7 @@ fn global_args_default_excluded_empty() {
 #[test]
 fn global_args_default_config_auto() {
     let g = GlobalArgs::default();
-    assert_eq!(g.config, tokmd_config::ConfigMode::Auto);
+    assert_eq!(g.config, tokmd_config::CliConfigMode::Auto);
 }
 
 #[test]

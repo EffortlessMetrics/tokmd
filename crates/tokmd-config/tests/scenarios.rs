@@ -97,21 +97,21 @@ mod scan_options_conversion {
 
     #[test]
     fn config_mode_is_forwarded() {
-        use tokmd_config::ConfigMode;
+        use tokmd_config::CliConfigMode;
 
         let args = GlobalArgs {
-            config: ConfigMode::None,
+            config: CliConfigMode::None,
             ..Default::default()
         };
         let opts: ScanOptions = (&args).into();
-        assert_eq!(opts.config, ConfigMode::None);
+        assert_eq!(opts.config, tokmd_types::ConfigMode::None);
 
         let args2 = GlobalArgs {
-            config: ConfigMode::Auto,
+            config: CliConfigMode::Auto,
             ..Default::default()
         };
         let opts2: ScanOptions = (&args2).into();
-        assert_eq!(opts2.config, ConfigMode::Auto);
+        assert_eq!(opts2.config, tokmd_types::ConfigMode::Auto);
     }
 }
 
@@ -130,7 +130,7 @@ mod user_config_profiles {
             "llm_safe".to_string(),
             Profile {
                 format: Some("json".to_string()),
-                redact: Some(tokmd_config::RedactMode::All),
+                redact: Some(tokmd_config::CliRedactMode::All),
                 top: Some(10),
                 ..Default::default()
             },
@@ -405,7 +405,7 @@ mod cli_parsing {
         let cli = Cli::try_parse_from(["tokmd", "lang", "--format", "json"]).expect("parse");
         match cli.command {
             Some(tokmd_config::Commands::Lang(args)) => {
-                assert_eq!(args.format, Some(tokmd_config::TableFormat::Json));
+                assert_eq!(args.format, Some(tokmd_config::CliTableFormat::Json));
             }
             other => panic!("expected Lang, got {:?}", other),
         }
@@ -451,10 +451,10 @@ mod cli_parsing {
         .expect("parse");
         match cli.command {
             Some(tokmd_config::Commands::Export(args)) => {
-                assert_eq!(args.format, Some(tokmd_config::ExportFormat::Csv));
+                assert_eq!(args.format, Some(tokmd_config::CliExportFormat::Csv));
                 assert_eq!(args.min_code, Some(5));
                 assert_eq!(args.max_rows, Some(100));
-                assert_eq!(args.redact, Some(tokmd_config::RedactMode::Paths));
+                assert_eq!(args.redact, Some(tokmd_config::CliRedactMode::Paths));
             }
             other => panic!("expected Export, got {:?}", other),
         }
@@ -607,7 +607,7 @@ mod cli_parsing {
     #[test]
     fn config_mode_none_flag() {
         let cli = Cli::try_parse_from(["tokmd", "--config", "none"]).expect("parse");
-        assert_eq!(cli.global.config, tokmd_config::ConfigMode::None);
+        assert_eq!(cli.global.config, tokmd_config::CliConfigMode::None);
     }
 }
 

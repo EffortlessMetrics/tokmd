@@ -17,7 +17,7 @@ serde.workspace = true
 serde_json.workspace = true
 tokmd-settings.workspace = true
 tokmd-tool-schema.workspace = true
-tokmd-types = { workspace = true, features = ["clap"] }
+tokmd-types = { workspace = true }
 
 
 [dev-dependencies]
