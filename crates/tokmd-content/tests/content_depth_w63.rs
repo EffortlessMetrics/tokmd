@@ -127,14 +127,14 @@ fn count_tags_basic() {
 #[test]
 fn count_tags_case_insensitive() {
     let text = "// todo: lowercase\n// Todo: mixed\n// TO\x44O: upper\n";
-    let tags = count_tags(text, &["TO\\x44O"]);
+    let tags = count_tags(text, &["TO\x44O"]);
     assert_eq!(tags[0].1, 3);
 }
 
 #[test]
 fn count_tags_multiple_on_same_line() {
     let text = "// TO\x44O TO\x44O TO\x44O\n";
-    let tags = count_tags(text, &["TO\\x44O"]);
+    let tags = count_tags(text, &["TO\x44O"]);
     assert_eq!(tags[0].1, 3);
 }
 
@@ -163,7 +163,7 @@ fn count_tags_empty_tag_list() {
 #[test]
 fn count_tags_tag_in_string_literal() {
     let text = "let s = \"TO\x44O: this is in a string\";";
-    let tags = count_tags(text, &["TO\\x44O"]);
+    let tags = count_tags(text, &["TO\x44O"]);
     // count_tags doesn't distinguish strings — it counts all occurrences
     assert_eq!(tags[0].1, 1);
 }
@@ -181,7 +181,7 @@ fn count_tags_custom_markers() {
 fn count_tags_partial_match_counted() {
     // "TO\x44OLIST" contains "TO\x44O"
     let text = "TO\x44OLIST is not a real tag\n";
-    let tags = count_tags(text, &["TO\\x44O"]);
+    let tags = count_tags(text, &["TO\x44O"]);
     // Substring match — "TO\x44O" appears in "TO\x44OLIST"
     assert_eq!(tags[0].1, 1);
 }
