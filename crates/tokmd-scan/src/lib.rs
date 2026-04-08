@@ -294,7 +294,7 @@ mod tests {
         assert!(
             result
                 .expect_err("should have failed")
-                .to_string()
+                .to_owned()
                 .contains("Path not found")
         );
         Ok(())

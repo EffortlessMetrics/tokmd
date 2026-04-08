@@ -483,10 +483,10 @@ mod tests {
     fn cockpit_receipt_serde_roundtrip() {
         let receipt = CockpitReceipt {
             schema_version: COCKPIT_SCHEMA_VERSION,
-            mode: "cockpit".to_string(),
+            mode: "cockpit".to_owned(),
             generated_at_ms: 1000,
-            base_ref: "main".to_string(),
-            head_ref: "HEAD".to_string(),
+            base_ref: "main".to_owned(),
+            head_ref: "HEAD".to_owned(),
             change_surface: ChangeSurface {
                 commits: 1,
                 files_changed: 2,
@@ -505,7 +505,7 @@ mod tests {
             },
             code_health: CodeHealth {
                 score: 85,
-                grade: "B".to_string(),
+                grade: "B".to_owned(),
                 large_files_touched: 0,
                 avg_file_size: 100,
                 complexity_indicator: ComplexityIndicator::Low,

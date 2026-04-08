@@ -73,12 +73,12 @@ pub fn write_lang_report_to<W: Write>(
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: ToolInfo::current(),
-                mode: "lang".to_string(),
+                mode: "lang".to_owned(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: LangArgsMeta {
-                    format: "json".to_string(),
+                    format: "json".to_owned(),
                     top: report.top,
                     with_files: report.with_files,
                     children: report.children,
@@ -211,12 +211,12 @@ pub fn write_module_report_to<W: Write>(
                 schema_version: tokmd_types::SCHEMA_VERSION,
                 generated_at_ms: now_ms(),
                 tool: ToolInfo::current(),
-                mode: "module".to_string(),
+                mode: "module".to_owned(),
                 status: ScanStatus::Complete,
                 warnings: vec![],
                 scan: scan_args(&args.paths, global, None),
                 args: ModuleArgsMeta {
-                    format: "json".to_string(),
+                    format: "json".to_owned(),
                     top: report.top,
                     module_roots: report.module_roots.clone(),
                     module_depth: report.module_depth,
@@ -401,7 +401,7 @@ fn write_export_jsonl<W: Write>(
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: ToolInfo::current(),
-            mode: "export".to_string(),
+            mode: "export".to_owned(),
             status: ScanStatus::Complete,
             warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
@@ -452,7 +452,7 @@ fn write_export_json<W: Write>(
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
             tool: ToolInfo::current(),
-            mode: "export".to_string(),
+            mode: "export".to_owned(),
             status: ScanStatus::Complete,
             warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
@@ -578,7 +578,7 @@ fn write_export_cyclonedx_impl<W: Write>(
     let timestamp = timestamp.unwrap_or_else(|| {
         OffsetDateTime::now_utc()
             .format(&Rfc3339)
-            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
+            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_owned())
     });
 
     // Apply redaction to rows before generating components
@@ -586,31 +586,31 @@ fn write_export_cyclonedx_impl<W: Write>(
         .map(|row| {
             let mut properties = vec![
                 CycloneDxProperty {
-                    name: "tokmd:lang".to_string(),
+                    name: "tokmd:lang".to_owned(),
                     value: row.lang.clone(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:code".to_string(),
+                    name: "tokmd:code".to_owned(),
                     value: row.code.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:comments".to_string(),
+                    name: "tokmd:comments".to_owned(),
                     value: row.comments.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:blanks".to_string(),
+                    name: "tokmd:blanks".to_owned(),
                     value: row.blanks.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:lines".to_string(),
+                    name: "tokmd:lines".to_owned(),
                     value: row.lines.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:bytes".to_string(),
+                    name: "tokmd:bytes".to_owned(),
                     value: row.bytes.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:tokens".to_string(),
+                    name: "tokmd:tokens".to_owned(),
                     value: row.tokens.to_string(),
                 },
             ];
@@ -618,8 +618,8 @@ fn write_export_cyclonedx_impl<W: Write>(
             // Add kind if it's a child
             if row.kind == FileKind::Child {
                 properties.push(CycloneDxProperty {
-                    name: "tokmd:kind".to_string(),
-                    value: "child".to_string(),
+                    name: "tokmd:kind".to_owned(),
+                    value: "child".to_owned(),
                 });
             }
 
@@ -647,7 +647,7 @@ fn write_export_cyclonedx_impl<W: Write>(
             tools: vec![CycloneDxTool {
                 vendor: "tokmd",
                 name: "tokmd",
-                version: env!("CARGO_PKG_VERSION").to_string(),
+                version: env!("CARGO_PKG_VERSION").to_owned(),
             }],
         },
         components,
@@ -676,7 +676,7 @@ pub fn write_lang_json_to_file(
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
-        mode: "lang".to_string(),
+        mode: "lang".to_owned(),
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
@@ -703,7 +703,7 @@ pub fn write_module_json_to_file(
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
-        mode: "module".to_string(),
+        mode: "module".to_owned(),
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
@@ -734,7 +734,7 @@ pub fn write_export_jsonl_to_file(
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
-        mode: "export".to_string(),
+        mode: "export".to_owned(),
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
@@ -1186,9 +1186,9 @@ pub fn create_diff_receipt(
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
-        mode: "diff".to_string(),
-        from_source: from_source.to_string(),
-        to_source: to_source.to_string(),
+        mode: "diff".to_owned(),
+        from_source: from_source.to_owned(),
+        to_source: to_source.to_owned(),
         diff_rows: rows,
         totals,
     }

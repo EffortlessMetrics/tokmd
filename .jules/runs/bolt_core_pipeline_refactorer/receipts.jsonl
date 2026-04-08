@@ -1,0 +1,1 @@
+{"command": "cargo test -p tokmd-types -p tokmd-scan -p tokmd-model -p tokmd-format", "status": "success"}

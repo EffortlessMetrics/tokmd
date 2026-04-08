@@ -78,7 +78,7 @@ pub struct Totals {
 /// use tokmd_types::LangRow;
 ///
 /// let row = LangRow {
-///     lang: "Rust".to_string(),
+///     lang: "Rust".to_owned(),
 ///     code: 5000,
 ///     lines: 6500,
 ///     files: 42,
@@ -110,7 +110,7 @@ pub struct LangRow {
 /// let report = LangReport {
 ///     rows: vec![
 ///         LangRow {
-///             lang: "Rust".to_string(),
+///             lang: "Rust".to_owned(),
 ///             code: 5000,
 ///             lines: 6500,
 ///             files: 42,
@@ -151,7 +151,7 @@ pub struct LangReport {
 /// use tokmd_types::ModuleRow;
 ///
 /// let row = ModuleRow {
-///     module: "crates/tokmd-types".to_string(),
+///     module: "crates/tokmd-types".to_owned(),
 ///     code: 800,
 ///     lines: 1100,
 ///     files: 3,
@@ -198,9 +198,9 @@ pub enum FileKind {
 /// use tokmd_types::{FileRow, FileKind};
 ///
 /// let row = FileRow {
-///     path: "src/main.rs".to_string(),
-///     module: "src".to_string(),
-///     lang: "Rust".to_string(),
+///     path: "src/main.rs".to_owned(),
+///     module: "src".to_owned(),
+///     lang: "Rust".to_owned(),
 ///     kind: FileKind::Parent,
 ///     code: 120,
 ///     comments: 30,
@@ -237,9 +237,9 @@ pub struct FileRow {
 /// let data = ExportData {
 ///     rows: vec![
 ///         FileRow {
-///             path: "src/main.rs".to_string(),
-///             module: "src".to_string(),
-///             lang: "Rust".to_string(),
+///             path: "src/main.rs".to_owned(),
+///             module: "src".to_owned(),
+///             lang: "Rust".to_owned(),
 ///             kind: FileKind::Parent,
 ///             code: 120,
 ///             comments: 30,
@@ -311,8 +311,8 @@ pub struct ToolInfo {
 impl ToolInfo {
     pub fn current() -> Self {
         Self {
-            name: "tokmd".to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            name: "tokmd".to_owned(),
+            version: env!("CARGO_PKG_VERSION").to_owned(),
         }
     }
 }
@@ -509,7 +509,7 @@ pub struct ContextFileRow {
 /// use tokmd_types::DiffRow;
 ///
 /// let row = DiffRow {
-///     lang: "Rust".to_string(),
+///     lang: "Rust".to_owned(),
 ///     old_code: 1000, new_code: 1200, delta_code: 200,
 ///     old_lines: 1500, new_lines: 1800, delta_lines: 300,
 ///     old_files: 10,   new_files: 12,   delta_files: 2,

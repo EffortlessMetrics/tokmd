@@ -273,7 +273,7 @@ pub fn collect_in_memory_file_rows(
             &mut map,
             Key {
                 path: path.clone(),
-                lang: lang_type.name().to_string(),
+                lang: lang_type.name().to_owned(),
                 kind: FileKind::Parent,
             },
             module.clone(),
@@ -289,7 +289,7 @@ pub fn collect_in_memory_file_rows(
                     &mut map,
                     Key {
                         path: path.clone(),
-                        lang: child_type.name().to_string(),
+                        lang: child_type.name().to_owned(),
                         kind: FileKind::Child,
                     },
                     module.clone(),
@@ -400,7 +400,7 @@ pub fn create_lang_report_from_rows(
             lang: if is_embedded {
                 format!("{} (embedded)", lang)
             } else {
-                lang.to_string()
+                lang.to_owned()
             },
             code: agg.code,
             lines: agg.lines,
@@ -459,7 +459,7 @@ fn fold_other_lang(rows: &[LangRow]) -> LangRow {
     }
 
     LangRow {
-        lang: "Other".to_string(),
+        lang: "Other".to_owned(),
         code,
         lines,
         files,
@@ -524,7 +524,7 @@ pub fn create_module_report_from_rows(
     for (module, (agg, files_set)) in by_module {
         let files = files_set.len();
         rows.push(ModuleRow {
-            module: module.to_string(),
+            module: module.to_owned(),
             code: agg.code,
             lines: agg.lines,
             files,
@@ -580,7 +580,7 @@ fn fold_other_module(rows: &[ModuleRow]) -> ModuleRow {
     }
 
     ModuleRow {
-        module: "Other".to_string(),
+        module: "Other".to_owned(),
         code,
         lines,
         files,
@@ -666,7 +666,7 @@ pub fn collect_file_rows(
                 &mut map,
                 Key {
                     path,
-                    lang: lang_type.name().to_string(),
+                    lang: lang_type.name().to_owned(),
                     kind: FileKind::Parent,
                 },
                 module,
@@ -688,7 +688,7 @@ pub fn collect_file_rows(
                         &mut map,
                         Key {
                             path,
-                            lang: child_type.name().to_string(),
+                            lang: child_type.name().to_owned(),
                             kind: FileKind::Child,
                         },
                         module,
@@ -821,7 +821,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     if slice.len() == s.len() {
         s.into_owned()
     } else {
-        slice.to_string()
+        slice.to_owned()
     }
 }
 
@@ -837,7 +837,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// ```
 /// use tokmd_model::module_key;
 ///
-/// let roots = vec!["crates".to_string()];
+/// let roots = vec!["crates".to_owned()];
 /// assert_eq!(module_key("crates/foo/src/lib.rs", &roots, 2), "crates/foo");
 /// assert_eq!(module_key("src/lib.rs", &roots, 2), "src");
 /// assert_eq!(module_key("Cargo.toml", &roots, 2), "(root)");
