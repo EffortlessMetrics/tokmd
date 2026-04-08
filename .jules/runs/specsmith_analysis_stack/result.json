@@ -1,12 +1,10 @@
 {
-  "outcome": "PR-ready patch",
-  "files_modified": [
-    "crates/tokmd-analysis-types/src/lib.rs",
-    "crates/tokmd-analysis-types/tests/baseline_fallback.rs"
-  ],
-  "gates_run": [
-    "cargo test -p tokmd-analysis-types",
-    "cargo fmt",
-    "cargo clippy"
-  ]
+  "summary": "Caught previously missed mutants in tokmd-analysis-content by adding tests for boundary conditions, zero conditions, and mathematical operator regressions.",
+  "proof_improvement": true,
+  "telemetry": {
+    "change_shape": "Added integration tests (mutants_w77.rs)",
+    "blast_radius": "tests",
+    "risk_class": "low",
+    "gates_run": "cargo test, cargo mutants"
+  }
 }

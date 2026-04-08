@@ -1,45 +1,66 @@
 ## 💡 Summary
-Ensure structural metrics (`total_files`, `total_code_lines`) are correctly extracted in `ComplexityBaseline::from_analysis` even when the `complexity` feature is missing from the receipt.
+Added targeted integration tests in `crates/tokmd-analysis-content/tests/mutants_w77.rs` to close 5 mutation gaps in `content.rs`. This provides behavior-level proofs against math operator regressions and boundary condition changes.
 
 ## 🎯 Why
-When aggregating metrics in `tokmd-analysis-types` (e.g., `ComplexityBaseline::from_analysis`), fallback logic must extract structural counts from `receipt.derived` if optional feature-specific reports (like `receipt.complexity`) are `None` due to `--no-default-features` builds or scan toggles. Previously, these were zeroed out, masking the correct baseline totals.
+Running `cargo mutants` on `tokmd-analysis-content` revealed uncovered mutations:
+- `replace * with +` at the byte limit boundary (`128 * 1024`)
+- `replace > with >=` on file size limits
+- `replace == with !=` on `module_total == 0`
+- `replace / with %` and `replace / with *` on wasted density calculations
+
+These missing tests risked silent regressions on how large files are ignored and how duplication statistics are aggregated into percentages. By locking in these boundaries and exact mathematical expectations, we increase scenario reliability.
 
 ## 🔎 Evidence
-- **File**: `crates/tokmd-analysis-types/src/lib.rs`
-- **Finding**: The variables `total_code_lines` and `total_files` were nested inside the `if let Some(ref complexity_report) = receipt.complexity` block.
-- **Proof**: Created `crates/tokmd-analysis-types/tests/baseline_fallback.rs` with `receipt.complexity = None` and validated that metrics are properly extracted. Ran `cargo test -p tokmd-analysis-types`.
+The `cargo mutants -p tokmd-analysis-content --in-place` receipt before changes showed 5 missed mutants. After changes, there were 0 missed mutants (100% viable coverage).
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Extracted `total_code_lines` and `total_files` outside the complexity feature check so they can be captured unconditionally.
-- **Why it fits**: Directly addresses the regression risk where complexity being toggled off loses basic structural counts for the baseline contract. Fits Specsmith's mission to improve scenario coverage and regression coverage.
-- **Trade-offs**: Increases robustness without deep structural refactoring; highly compliant with baseline semantics.
+- Add a new integration test file `mutants_w77.rs` that explicitly models edge cases matching the escaped mutants.
+- This creates strong scenario regressions without leaking implementation details or relying on assertion noise.
+- Trade-offs: Increases test count slightly, but strictly adheres to Specsmith target of behavior-level coverage.
 
 ### Option B
-- Change the CLI and scan engine to always include a stub `ComplexityReport` populated with just the `derived` metrics when complexity analysis fails or is turned off.
-- **When to choose it**: If we wanted the schema to strictly enforce that all baselines originate from a formally completed complexity scan report.
-- **Trade-offs**: Unnecessarily couples two independent systems in the core logic. Requires much deeper refactoring across `tokmd-scan` and `tokmd-types`.
+- Refactor the codebase to make math less likely to mutate (e.g. wrapper functions).
+- Creates unnecessary indirection and abstraction without actually proving the desired logic.
 
 ## ✅ Decision
-**Option A**. It's the most correct, targeted structural solution that ensures baseline logic properly respects gracefully degraded `AnalysisReceipt` structures. We've written a concrete test case mimicking the degraded receipt to guarantee it behaves properly.
+Proceed with Option A to create a targeted proof-improvement patch.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis-types/src/lib.rs`
-- `crates/tokmd-analysis-types/tests/baseline_fallback.rs`
+- Added `crates/tokmd-analysis-content/tests/mutants_w77.rs` with 6 explicit tests:
+  - `test_build_duplicate_report_size_limit_boundary`
+  - `test_duplicate_report_wasted_bytes_three_files`
+  - `test_duplicate_report_wasted_bytes_three_files_catch_mul_mutant`
+  - `test_density_wasted_pct_of_codebase`
+  - `test_density_wasted_pct_of_codebase_catch_div_mutant`
+  - `test_todo_report_max_bytes_edge_cases`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis-types
-cargo fmt -- --check
-cargo clippy -p tokmd-analysis-types -- -D warnings
+cargo test -p tokmd-analysis-content
+...
+test test_build_duplicate_report_size_limit_boundary ... ok
+test test_density_module_total_zero_codebase ... ok
+test test_density_module_density_calc ... ok
+test test_density_wasted_pct_of_codebase ... ok
+test test_density_wasted_pct_of_codebase_catch_div_mutant ... ok
+test test_duplicate_report_wasted_bytes_three_files ... ok
+test test_duplicate_report_wasted_bytes_three_files_catch_mul_mutant ... ok
+test test_todo_report_max_bytes_edge_cases ... ok
+
+cargo mutants -p tokmd-analysis-content --in-place
+Found 68 mutants to test
+ok       Unmutated baseline in 0s build + 0s test
+68 mutants tested in 3m: 65 caught, 3 unviable
+  INFO Auto-set test timeout to 20s
 ```
 
 ## 🧭 Telemetry
-- **Change shape**: Feature fix + tests
-- **Blast radius**: Low. Restricted to `tokmd-analysis-types` metric aggregation.
-- **Risk class**: Low, logic only executes under edge-case conditions (missing complexity metrics).
-- **Rollback**: Trivial revert.
-- **Gates run**: `cargo test -p tokmd-analysis-types`, `cargo fmt`, `cargo clippy`.
+- Change shape: Added integration tests (mutants_w77.rs)
+- Blast radius: tests
+- Risk class: low (only touches tests)
+- Rollback: `git checkout HEAD crates/tokmd-analysis-content/tests/`
+- Gates run: `cargo test, cargo mutants`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_analysis_stack/envelope.json`
