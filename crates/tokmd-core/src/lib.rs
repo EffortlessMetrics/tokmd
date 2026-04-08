@@ -1204,10 +1204,10 @@ mod tests {
 #[cfg(test)]
 mod mutation_tests {
     use super::*;
+    use tokmd_settings::ExportSettings;
     use tokmd_types::ExportData;
     use tokmd_types::RedactMode;
-    use tokmd_settings::ExportSettings;
-    
+
     // Helper to create minimal ExportData
     fn empty_export_data() -> ExportData {
         ExportData {
@@ -1254,7 +1254,7 @@ mod mutation_tests {
     #[test]
     fn parse_analysis_preset_all_twelve_variants() {
         use tokmd_analysis::AnalysisPreset;
-        
+
         let variants = [
             ("receipt", AnalysisPreset::Receipt),
             ("estimate", AnalysisPreset::Estimate),
@@ -1280,13 +1280,21 @@ mod mutation_tests {
             let upper = input.to_uppercase();
             let (preset, normalized) = parse_analysis_preset(&upper).unwrap();
             assert_eq!(preset, *expected, "Uppercase match failed for: {}", upper);
-            assert_eq!(normalized, *input, "Uppercase normalization failed for: {}", upper);
+            assert_eq!(
+                normalized, *input,
+                "Uppercase normalization failed for: {}",
+                upper
+            );
 
             // Test mixed case with whitespace (normalization)
             let mixed = format!("  {}  ", input);
             let (preset, normalized) = parse_analysis_preset(&mixed).unwrap();
             assert_eq!(preset, *expected, "Mixed case match failed for: {}", mixed);
-            assert_eq!(normalized, *input, "Mixed case normalization failed for: {}", mixed);
+            assert_eq!(
+                normalized, *input,
+                "Mixed case normalization failed for: {}",
+                mixed
+            );
         }
     }
 
@@ -1296,15 +1304,18 @@ mod mutation_tests {
             "unknown",
             "invalid",
             "",
-            "receipts", // typo
-            "healthh",  // typo
-            "ARCH",     // partial match
+            "receipts",         // typo
+            "healthh",          // typo
+            "ARCH",             // partial match
             "receipt_estimate", // combined
         ];
 
         for input in &invalid {
-            assert!(parse_analysis_preset(input).is_err(),
-                "Should fail for invalid input: {}", input);
+            assert!(
+                parse_analysis_preset(input).is_err(),
+                "Should fail for invalid input: {}",
+                input
+            );
         }
     }
 
@@ -1322,8 +1333,10 @@ mod mutation_tests {
 
         // strip_prefix_redacted = should_redact && strip_prefix.is_some()
         // = true && true = true
-        assert!(receipt.args.strip_prefix_redacted,
-            "strip_prefix_redacted should be true when redact=Paths and strip_prefix=Some");
+        assert!(
+            receipt.args.strip_prefix_redacted,
+            "strip_prefix_redacted should be true when redact=Paths and strip_prefix=Some"
+        );
     }
 
     #[test]
@@ -1337,8 +1350,10 @@ mod mutation_tests {
         // strip_prefix_redacted = should_redact && strip_prefix.is_some()
         // = true && false = false
         // This kills the && → || mutation (|| would give true)
-        assert!(!receipt.args.strip_prefix_redacted,
-            "strip_prefix_redacted should be false when strip_prefix=None (kills &&→||)");
+        assert!(
+            !receipt.args.strip_prefix_redacted,
+            "strip_prefix_redacted should be false when strip_prefix=None (kills &&→||)"
+        );
     }
 
     #[test]
@@ -1351,8 +1366,10 @@ mod mutation_tests {
 
         // strip_prefix_redacted = should_redact && strip_prefix.is_some()
         // = false && true = false
-        assert!(!receipt.args.strip_prefix_redacted,
-            "strip_prefix_redacted should be false when redact=None");
+        assert!(
+            !receipt.args.strip_prefix_redacted,
+            "strip_prefix_redacted should be false when redact=None"
+        );
     }
 
     #[test]
@@ -1365,8 +1382,10 @@ mod mutation_tests {
 
         // strip_prefix_redacted = should_redact && strip_prefix.is_some()
         // = true && true = true (All also triggers should_redact)
-        assert!(receipt.args.strip_prefix_redacted,
-            "strip_prefix_redacted should be true when redact=All and strip_prefix=Some");
+        assert!(
+            receipt.args.strip_prefix_redacted,
+            "strip_prefix_redacted should be true when redact=All and strip_prefix=Some"
+        );
     }
 
     #[test]
@@ -1380,66 +1399,89 @@ mod mutation_tests {
         // strip_prefix_redacted = should_redact && strip_prefix.is_some()
         // = true && false = false
         // This kills the && → || mutation
-        assert!(!receipt.args.strip_prefix_redacted,
-            "strip_prefix_redacted should be false when strip_prefix=None (kills &&→||)");
+        assert!(
+            !receipt.args.strip_prefix_redacted,
+            "strip_prefix_redacted should be false when strip_prefix=None (kills &&→||)"
+        );
     }
 
     #[test]
     fn build_export_receipt_strip_prefix_redaction_logic() {
         // Test the ternary logic: strip_prefix redaction in ExportArgsMeta
         // Kills mutations that change the if/else logic on strip_prefix
-        
+
         // Case 1: redact=Paths → strip_prefix should be redacted
         let settings = export_settings(RedactMode::Paths, Some("/project".to_string()));
         let data = empty_export_data();
         let paths = vec![PathBuf::from("/project/src/main.rs")];
         let receipt = build_export_receipt(&paths, &minimal_scan_opts(), &settings, data);
-        
+
         // When redacted, strip_prefix should be transformed (not the original)
         assert!(receipt.args.strip_prefix.is_some());
-        assert_ne!(receipt.args.strip_prefix, Some("/project".to_string()),
-            "strip_prefix should be redacted/transformed when redact=Paths");
-        
+        assert_ne!(
+            receipt.args.strip_prefix,
+            Some("/project".to_string()),
+            "strip_prefix should be redacted/transformed when redact=Paths"
+        );
+
         // Case 2: redact=None → strip_prefix should pass through unchanged
         let settings = export_settings(RedactMode::None, Some("/project".to_string()));
         let data = empty_export_data();
         let receipt = build_export_receipt(&paths, &minimal_scan_opts(), &settings, data);
-        
-        assert_eq!(receipt.args.strip_prefix, Some("/project".to_string()),
-            "strip_prefix should pass through unchanged when redact=None");
-        
+
+        assert_eq!(
+            receipt.args.strip_prefix,
+            Some("/project".to_string()),
+            "strip_prefix should pass through unchanged when redact=None"
+        );
+
         // Case 3: redact=All → strip_prefix should be redacted
         let settings = export_settings(RedactMode::All, Some("/project".to_string()));
         let data = empty_export_data();
         let receipt = build_export_receipt(&paths, &minimal_scan_opts(), &settings, data);
-        
+
         assert!(receipt.args.strip_prefix.is_some());
-        assert_ne!(receipt.args.strip_prefix, Some("/project".to_string()),
-            "strip_prefix should be redacted when redact=All");
+        assert_ne!(
+            receipt.args.strip_prefix,
+            Some("/project".to_string()),
+            "strip_prefix should be redacted when redact=All"
+        );
     }
 
     #[test]
     fn parse_analysis_preset_normalization_edge_cases() {
         // Kills mutations that remove .trim() or .to_ascii_lowercase()
-        
+
         // Test trim removal
         let (preset, _) = parse_analysis_preset("  receipt  ").unwrap();
-        assert_eq!(preset, tokmd_analysis::AnalysisPreset::Receipt,
-            "Leading/trailing whitespace should be trimmed");
-        
+        assert_eq!(
+            preset,
+            tokmd_analysis::AnalysisPreset::Receipt,
+            "Leading/trailing whitespace should be trimmed"
+        );
+
         let (preset, _) = parse_analysis_preset("\tHEALTH\n").unwrap();
-        assert_eq!(preset, tokmd_analysis::AnalysisPreset::Health,
-            "Tabs and newlines should be trimmed, case normalized");
-        
+        assert_eq!(
+            preset,
+            tokmd_analysis::AnalysisPreset::Health,
+            "Tabs and newlines should be trimmed, case normalized"
+        );
+
         // Test to_ascii_lowercase removal
         let (preset, _) = parse_analysis_preset("ReCeIpT").unwrap();
-        assert_eq!(preset, tokmd_analysis::AnalysisPreset::Receipt,
-            "Mixed case should be normalized to lowercase");
-        
+        assert_eq!(
+            preset,
+            tokmd_analysis::AnalysisPreset::Receipt,
+            "Mixed case should be normalized to lowercase"
+        );
+
         let (preset, _) = parse_analysis_preset("ESTIMATE").unwrap();
-        assert_eq!(preset, tokmd_analysis::AnalysisPreset::Estimate,
-            "Uppercase should be normalized");
-        
+        assert_eq!(
+            preset,
+            tokmd_analysis::AnalysisPreset::Estimate,
+            "Uppercase should be normalized"
+        );
+
         // Test combined trim + lowercase
         let (preset, normalized) = parse_analysis_preset("  DeEp  ").unwrap();
         assert_eq!(preset, tokmd_analysis::AnalysisPreset::Deep);
@@ -1454,19 +1496,22 @@ mod mutation_tests {
     #[test]
     fn cockpit_workflow_range_mode_parsing() {
         use tokmd_settings::CockpitSettings;
-        
+
         // This tests the range_mode match logic that was flagged as untested
         // We can't fully test cockpit_workflow without a git repo, but we can
         // at least verify the range_mode parsing logic directly
-        
+
         let test_cases = [
             ("three-dot", "three-dot matches GitRangeMode::ThreeDot"),
             ("3dot", "3dot matches GitRangeMode::ThreeDot"),
             ("two-dot", "two-dot falls through to GitRangeMode::TwoDot"),
             ("", "empty string falls through to GitRangeMode::TwoDot"),
-            ("invalid", "invalid string falls through to GitRangeMode::TwoDot"),
+            (
+                "invalid",
+                "invalid string falls through to GitRangeMode::TwoDot",
+            ),
         ];
-        
+
         for (mode, _description) in &test_cases {
             let settings = CockpitSettings {
                 base: "HEAD~1".to_string(),
@@ -1474,7 +1519,7 @@ mod mutation_tests {
                 range_mode: mode.to_string(),
                 baseline: None,
             };
-            
+
             // Verify the match arms don't panic
             let _ = settings.range_mode.as_str();
         }
