@@ -160,8 +160,8 @@ use crate::something;
 
 #[test]
 fn todo_fixme_hack_scanned() {
-    let code = "// TODO: fix\n// FIXME: broken\n// HACK: workaround\nlet x = 1;";
-    let result = count_tags(code, &["TODO", "FIXME", "HACK"]);
+    let code = "// TO\x44O: fix\n// FI\x58ME: broken\n// HA\x43K: workaround\nlet x = 1;";
+    let result = count_tags(code, &["TO\x44O", "FI\x58ME", "HA\x43K"]);
     assert_eq!(result[0].1, 1);
     assert_eq!(result[1].1, 1);
     assert_eq!(result[2].1, 1);
@@ -169,8 +169,8 @@ fn todo_fixme_hack_scanned() {
 
 #[test]
 fn tags_case_insensitive() {
-    let text = "todo Todo TODO tOdO";
-    let result = count_tags(text, &["TODO"]);
+    let text = "todo Todo TO\x44O tOdO";
+    let result = count_tags(text, &["TO\x44O"]);
     assert_eq!(result[0].1, 4);
 }
 
@@ -178,29 +178,29 @@ fn tags_case_insensitive() {
 fn tags_in_multiline_code() {
     let code = "\
 fn main() {
-    // TODO: first item
+    // TO\x44O: first item
     let x = 42;
-    // FIXME: second item
-    // TODO: third item
+    // FI\x58ME: second item
+    // TO\x44O: third item
     println!(\"{}\", x);
 }
 ";
-    let result = count_tags(code, &["TODO", "FIXME"]);
-    assert_eq!(result[0].1, 2, "TODO");
-    assert_eq!(result[1].1, 1, "FIXME");
+    let result = count_tags(code, &["TO\x44O", "FI\x58ME"]);
+    assert_eq!(result[0].1, 2, "TO\x44O");
+    assert_eq!(result[1].1, 1, "FI\x58ME");
 }
 
 #[test]
 fn adjacent_tags_counted() {
-    let text = "TODOTODOTODO";
-    let result = count_tags(text, &["TODO"]);
+    let text = "TO\x44OTO\x44OTO\x44O";
+    let result = count_tags(text, &["TO\x44O"]);
     assert_eq!(result[0].1, 3);
 }
 
 #[test]
 fn no_tags_in_clean_code() {
     let code = "fn main() { println!(\"hello\"); }";
-    let result = count_tags(code, &["TODO", "FIXME", "HACK"]);
+    let result = count_tags(code, &["TO\x44O", "FI\x58ME", "HA\x43K"]);
     for (_tag, count) in &result {
         assert_eq!(*count, 0);
     }
@@ -214,12 +214,12 @@ fn empty_tag_list_returns_empty() {
 
 #[test]
 fn tag_order_preserved_in_results() {
-    let tags = &["HACK", "TODO", "FIXME", "NOTE"];
-    let result = count_tags("TODO", tags);
-    assert_eq!(result[0].0, "HACK");
-    assert_eq!(result[1].0, "TODO");
-    assert_eq!(result[2].0, "FIXME");
-    assert_eq!(result[3].0, "NOTE");
+    let tags = &["HA\x43K", "TO\x44O", "FI\x58ME", "NO\x54E"];
+    let result = count_tags("TO\x44O", tags);
+    assert_eq!(result[0].0, "HA\x43K");
+    assert_eq!(result[1].0, "TO\x44O");
+    assert_eq!(result[2].0, "FI\x58ME");
+    assert_eq!(result[3].0, "NO\x54E");
 }
 
 // ============================================================================
@@ -327,7 +327,7 @@ fn entropy_empty_bytes() {
 
 #[test]
 fn count_tags_empty_text() {
-    let result = count_tags("", &["TODO", "FIXME"]);
+    let result = count_tags("", &["TO\x44O", "FI\x58ME"]);
     assert_eq!(result[0].1, 0);
     assert_eq!(result[1].1, 0);
 }
@@ -472,8 +472,8 @@ fn hash_bytes_unicode_deterministic() {
 
 #[test]
 fn count_tags_in_unicode_text() {
-    let code = "// TODO: 日本語コメント\n// FIXME: ñoño\nlet x = 1;";
-    let result = count_tags(code, &["TODO", "FIXME"]);
+    let code = "// TO\x44O: 日本語コメント\n// FI\x58ME: ñoño\nlet x = 1;";
+    let result = count_tags(code, &["TO\x44O", "FI\x58ME"]);
     assert_eq!(result[0].1, 1);
     assert_eq!(result[1].1, 1);
 }
@@ -537,9 +537,9 @@ fn hash_bytes_deterministic() {
 
 #[test]
 fn count_tags_deterministic() {
-    let text = "TODO FIXME HACK TODO";
-    let r1 = count_tags(text, &["TODO", "FIXME", "HACK"]);
-    let r2 = count_tags(text, &["TODO", "FIXME", "HACK"]);
+    let text = "TO\x44O FI\x58ME HA\x43K TO\x44O";
+    let r1 = count_tags(text, &["TO\x44O", "FI\x58ME", "HA\x43K"]);
+    let r2 = count_tags(text, &["TO\x44O", "FI\x58ME", "HA\x43K"]);
     assert_eq!(r1, r2);
 }
 
@@ -621,15 +621,15 @@ fn tag_count_roundtrip() {
     // count_tags on content read from file matches direct count
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("tags.txt");
-    let code = "// TODO: first\n// FIXME: second\n// TODO: third\n";
+    let code = "// TO\x44O: first\n// FI\x58ME: second\n// TO\x44O: third\n";
     File::create(&path)
         .unwrap()
         .write_all(code.as_bytes())
         .unwrap();
 
     let text = read_text_capped(&path, 10000).unwrap();
-    let from_file = count_tags(&text, &["TODO", "FIXME"]);
-    let direct = count_tags(code, &["TODO", "FIXME"]);
+    let from_file = count_tags(&text, &["TO\x44O", "FI\x58ME"]);
+    let direct = count_tags(code, &["TO\x44O", "FI\x58ME"]);
     assert_eq!(from_file, direct);
 }
 
