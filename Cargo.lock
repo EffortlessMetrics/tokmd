@@ -3172,9 +3172,21 @@ dependencies = [
  "proptest",
  "serde_json",
  "tokmd-analysis",
+ "tokmd-analysis-format-md",
  "tokmd-analysis-html",
  "tokmd-analysis-types",
  "tokmd-fun",
+ "tokmd-types",
+]
+
+[[package]]
+name = "tokmd-analysis-format-md"
+version = "1.9.0"
+dependencies = [
+ "insta",
+ "tokmd-analysis",
+ "tokmd-analysis-format",
+ "tokmd-analysis-types",
  "tokmd-types",
 ]
 
