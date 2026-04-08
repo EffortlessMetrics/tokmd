@@ -168,10 +168,16 @@ mod tests {
     fn test_format_to_string_all_variants() {
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Md), "md");
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Json), "json");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Jsonld), "jsonld");
+        assert_eq!(
+            format_to_string(tokmd_types::AnalysisFormat::Jsonld),
+            "jsonld"
+        );
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Xml), "xml");
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Svg), "svg");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Mermaid), "mermaid");
+        assert_eq!(
+            format_to_string(tokmd_types::AnalysisFormat::Mermaid),
+            "mermaid"
+        );
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Obj), "obj");
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Midi), "midi");
         assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Tree), "tree");

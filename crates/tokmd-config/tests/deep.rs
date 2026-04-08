@@ -7,8 +7,8 @@
 use std::io::Write;
 use tempfile::NamedTempFile;
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CliLangArgs, CockpitFormat, ColorMode, ContextOutput,
-    ContextStrategy, DiffFormat, DiffRangeMode, CliExportFormat, GateFormat, GlobalArgs,
+    AnalysisPreset, BadgeMetric, CliExportFormat, CliLangArgs, CockpitFormat, ColorMode,
+    ContextOutput, ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs,
     HandoffPreset, ImportGranularity, InitProfile, NearDupScope, Profile, SensorFormat, Shell,
     TomlConfig, UserConfig, ValueMetric, ViewProfile,
 };

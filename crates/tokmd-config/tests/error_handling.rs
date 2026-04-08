@@ -3,7 +3,7 @@
 //! Tests graceful handling of malformed input, missing fields,
 //! invalid field types, and edge cases in config deserialization.
 
-use tokmd_config::{Profile, CliRedactMode, UserConfig};
+use tokmd_config::{CliRedactMode, Profile, UserConfig};
 
 // =============================================================================
 // UserConfig deserialization errors
@@ -121,7 +121,11 @@ fn redact_mode_invalid_string_returns_error() {
 
 #[test]
 fn redact_mode_valid_variants_roundtrip() {
-    for mode in [CliRedactMode::None, CliRedactMode::Paths, CliRedactMode::All] {
+    for mode in [
+        CliRedactMode::None,
+        CliRedactMode::Paths,
+        CliRedactMode::All,
+    ] {
         let json = serde_json::to_string(&mode).unwrap();
         let back: CliRedactMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, mode);
