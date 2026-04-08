@@ -18,7 +18,7 @@ crate-type = ["cdylib"]
 test = false
 
 [dependencies]
-pyo3 = { version = "0.24", features = ["abi3-py39"] }
+pyo3 = { version = "0.28", features = ["abi3-py39"] }
 serde_json.workspace = true
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-ffi-envelope.workspace = true
