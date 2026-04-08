@@ -673,55 +673,109 @@ mod tests {
 
     #[test]
     fn test_parse_budget() {
-        assert_eq!(parse_budget("128k").expect("should exist"), 128_000);
-        assert_eq!(parse_budget("1m").expect("should exist"), 1_000_000);
-        assert_eq!(parse_budget("50000").expect("should exist"), 50_000);
-        assert_eq!(parse_budget("1.5k").expect("should exist"), 1_500);
+        assert_eq!(
+            parse_budget("128k").expect("invalid budget value: 128k"),
+            128_000
+        );
+        assert_eq!(
+            parse_budget("1m").expect("invalid budget value: 1m"),
+            1_000_000
+        );
+        assert_eq!(
+            parse_budget("50000").expect("invalid budget value: 50000"),
+            50_000
+        );
+        assert_eq!(
+            parse_budget("1.5k").expect("invalid budget value: 1.5k"),
+            1_500
+        );
     }
 
     #[test]
     fn test_parse_budget_g_suffix() {
-        assert_eq!(parse_budget("1g").expect("should exist"), 1_000_000_000);
-        assert_eq!(parse_budget("0.5g").expect("should exist"), 500_000_000);
-        assert_eq!(parse_budget("2G").expect("should exist"), 2_000_000_000);
+        assert_eq!(
+            parse_budget("1g").expect("invalid budget value: 1g"),
+            1_000_000_000
+        );
+        assert_eq!(
+            parse_budget("0.5g").expect("invalid budget value: 0.5g"),
+            500_000_000
+        );
+        assert_eq!(
+            parse_budget("2G").expect("invalid budget value: 2G"),
+            2_000_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_unlimited() {
-        assert_eq!(parse_budget("unlimited").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("max").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("UNLIMITED").expect("should exist"), usize::MAX);
-        assert_eq!(parse_budget("MAX").expect("should exist"), usize::MAX);
         assert_eq!(
-            parse_budget("  unlimited  ").expect("should exist"),
+            parse_budget("unlimited").expect("invalid budget value: unlimited"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("max").expect("invalid budget value: max"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("UNLIMITED").expect("invalid budget value: UNLIMITED"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("MAX").expect("invalid budget value: MAX"),
+            usize::MAX
+        );
+        assert_eq!(
+            parse_budget("  unlimited  ").expect("invalid budget value: unlimited"),
             usize::MAX
         );
     }
 
     #[test]
     fn test_parse_budget_with_whitespace() {
-        assert_eq!(parse_budget("  10k  ").expect("should exist"), 10_000);
-        assert_eq!(parse_budget(" 5m ").expect("should exist"), 5_000_000);
+        assert_eq!(
+            parse_budget("  10k  ").expect("invalid budget value: 10k"),
+            10_000
+        );
+        assert_eq!(
+            parse_budget(" 5m ").expect("invalid budget value: 5m"),
+            5_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_case_insensitive() {
-        assert_eq!(parse_budget("10K").expect("should exist"), 10_000);
-        assert_eq!(parse_budget("2M").expect("should exist"), 2_000_000);
+        assert_eq!(
+            parse_budget("10K").expect("invalid budget value: 10K"),
+            10_000
+        );
+        assert_eq!(
+            parse_budget("2M").expect("invalid budget value: 2M"),
+            2_000_000
+        );
     }
 
     #[test]
     fn test_parse_budget_multiplication_k() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2k").expect("should exist"), 2_000);
-        assert_eq!(parse_budget("0.5k").expect("should exist"), 500);
+        assert_eq!(parse_budget("2k").expect("invalid budget value: 2k"), 2_000);
+        assert_eq!(
+            parse_budget("0.5k").expect("invalid budget value: 0.5k"),
+            500
+        );
     }
 
     #[test]
     fn test_parse_budget_multiplication_m() {
         // Ensure multiplication is correct (not addition or division)
-        assert_eq!(parse_budget("2m").expect("should exist"), 2_000_000);
-        assert_eq!(parse_budget("0.5m").expect("should exist"), 500_000);
+        assert_eq!(
+            parse_budget("2m").expect("invalid budget value: 2m"),
+            2_000_000
+        );
+        assert_eq!(
+            parse_budget("0.5m").expect("invalid budget value: 0.5m"),
+            500_000
+        );
     }
 
     #[test]
@@ -1107,10 +1161,9 @@ mod tests {
 
         // All selected files must be parent files
         for ctx_row in &result {
-            let original = rows
-                .iter()
-                .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+            let original = rows.iter().find(|r| r.path == ctx_row.path).expect(
+                "original row corresponding to selected context row must exist in input rows",
+            );
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1135,10 +1188,9 @@ mod tests {
         let result = pack_spread(&rows, 1000, ValueMetric::Code, None);
 
         for ctx_row in &result {
-            let original = rows
-                .iter()
-                .find(|r| r.path == ctx_row.path)
-                .expect("should exist");
+            let original = rows.iter().find(|r| r.path == ctx_row.path).expect(
+                "original row corresponding to selected context row must exist in input rows",
+            );
             assert_eq!(
                 original.kind,
                 FileKind::Parent,
@@ -1720,7 +1772,12 @@ mod tests {
             readme_entry.is_some(),
             "README.md should be in selected files"
         );
-        assert_eq!(readme_entry.expect("should exist").rank_reason, "spine");
+        assert_eq!(
+            readme_entry
+                .expect("README.md must be in selected files")
+                .rank_reason,
+            "spine"
+        );
     }
 
     #[test]
@@ -1766,7 +1823,7 @@ mod tests {
             result
                 .fallback_reason
                 .as_ref()
-                .expect("should exist")
+                .expect("fallback_reason must be populated when fallback engages")
                 .contains("hotspot")
         );
     }
@@ -1917,7 +1974,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[]);
         assert_eq!(policy, InclusionPolicy::HeadTail);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("head+tail"));
+        assert!(
+            reason
+                .expect("reason should be provided for HeadTail policy")
+                .contains("head+tail")
+        );
     }
 
     #[test]
@@ -1925,7 +1986,11 @@ mod tests {
         let (policy, reason) = assign_policy(20_000, 16_000, &[FileClassification::Generated]);
         assert_eq!(policy, InclusionPolicy::Skip);
         assert!(reason.is_some());
-        assert!(reason.expect("should exist").contains("generated"));
+        assert!(
+            reason
+                .expect("reason should be provided when skipping generated files")
+                .contains("generated")
+        );
     }
 
     #[test]
@@ -1966,7 +2031,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("fallback reason should be populated when metric falls back to code")
                 .contains("hotspot")
         );
     }
@@ -1979,7 +2044,7 @@ mod tests {
         assert!(
             resolved
                 .fallback_reason
-                .expect("should exist")
+                .expect("fallback reason should be populated when metric falls back to code")
                 .contains("churn")
         );
     }
@@ -2025,17 +2090,21 @@ mod tests {
             .selected
             .iter()
             .find(|f| f.path == "big.rs")
-            .expect("should exist");
+            .expect("big.rs should be selected");
         assert_eq!(big.policy, InclusionPolicy::HeadTail);
         assert!(big.effective_tokens.is_some());
-        assert!(big.effective_tokens.expect("should exist") <= 16_000);
+        assert!(
+            big.effective_tokens
+                .expect("effective_tokens should be calculated for HeadTail policy")
+                <= 16_000
+        );
 
         // small.rs should have Full policy
         let small = result
             .selected
             .iter()
             .find(|f| f.path == "small.rs")
-            .expect("should exist");
+            .expect("small.rs should be selected");
         assert_eq!(small.policy, InclusionPolicy::Full);
         assert!(small.effective_tokens.is_none());
     }

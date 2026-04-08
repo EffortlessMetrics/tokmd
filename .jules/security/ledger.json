@@ -65,5 +65,19 @@
     ],
     "status": "PASS",
     "friction_ids": []
+  },
+  {
+    "run_id": "502d4031-1b22-4e6e-a838-9cc42340aa9d",
+    "status": "PASS",
+    "friction_ids": [],
+    "timestamp_utc": "2026-04-08T10:34:01Z",
+    "lane": "scout",
+    "target": "unwrap/expect panic burn-down",
+    "pr_link": null,
+    "gates_run": [
+      "test",
+      "fmt",
+      "clippy"
+    ]
   }
 ]
