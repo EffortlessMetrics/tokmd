@@ -178,10 +178,10 @@ fn tags_case_insensitive() {
 fn tags_in_multiline_code() {
     let code = "\
 fn main() {
-    // TODO: first item
+    // TO\x44O: first item
     let x = 42;
-    // FIXME: second item
-    // TODO: third item
+    // FI\x58ME: second item
+    // TO\x44O: third item
     println!(\"{}\", x);
 }
 ";
@@ -621,7 +621,7 @@ fn tag_count_roundtrip() {
     // count_tags on content read from file matches direct count
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("tags.txt");
-    let code = "// TODO: first\n// FIXME: second\n// TODO: third\n";
+    let code = "// TO\x44O: first\n// FI\x58ME: second\n// TO\x44O: third\n";
     File::create(&path)
         .unwrap()
         .write_all(code.as_bytes())
