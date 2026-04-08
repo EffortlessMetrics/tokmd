@@ -1,3 +1,0 @@
-{"command": "cargo check --workspace --all-features", "status": "success", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.02s"}
-{"command": "cargo test --workspace --all-features --no-run", "status": "success", "output": "Executable unittests src/lib.rs ..."}
-{"command": "cargo xtask gate", "status": "success", "output": "gate result: 4/4 steps passed"}
