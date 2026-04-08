@@ -54,7 +54,7 @@ The primary truth for any run is the **per-run packet** under:
 ### Agents may write
 - unique per-run packet files
 - friction items under `.jules/friction/open/`
-- persona-local notes under `.jules/personas/<persona>/notes/`
+- persona-local notes under `.jules/personas/<persona>/notes/` (Use this directory ONLY for reusable learnings that later runs can benefit from. Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.)
 
 ### Agents must not write
 - shared append-only ledgers as primary truth
