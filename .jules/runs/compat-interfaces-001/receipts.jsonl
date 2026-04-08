@@ -1,0 +1,1 @@
+{"command":"cargo check -p tokmd --no-default-features","status":"failed","evidence":"error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokmd_git`"}
