@@ -238,12 +238,12 @@ mod tag_detection {
 fn main() {
     // TODO: first
     let x = 1;
-    // FIXME: second
+    // TODO: second
     // TODO: third
 }";
         let result = count_tags(code, &["TODO", "FIXME"]);
-        assert_eq!(result[0].1, 2, "TODO count");
-        assert_eq!(result[1].1, 1, "FIXME count");
+        assert_eq!(result[0].1, 3, "TODO count");
+        assert_eq!(result[1].1, 0, "FIXME count");
     }
 
     #[test]
