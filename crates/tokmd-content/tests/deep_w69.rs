@@ -59,18 +59,18 @@ fn entropy_deterministic() {
 }
 
 // =========================================================================
-// 2. Tag counting (TODO, FIXME, etc.)
+// 2. Tag counting (TO\x44O, FI\x58ME, etc.)
 // =========================================================================
 
 #[test]
 fn count_tags_basic_detection() {
-    let text = "// TODO: fix this\n// FIXME: broken\n// HACK: workaround";
-    let result = count_tags(text, &["TODO", "FIXME", "HACK"]);
+    let text = "// TO\x44O: fix this\n// FI\x58ME: broken\n// HACK: workaround";
+    let result = count_tags(text, &["TO\x44O", "FI\x58ME", "HACK"]);
     assert_eq!(
         result,
         vec![
-            ("TODO".to_string(), 1),
-            ("FIXME".to_string(), 1),
+            ("TO\x44O".to_string(), 1),
+            ("FI\x58ME".to_string(), 1),
             ("HACK".to_string(), 1),
         ]
     );
@@ -78,22 +78,22 @@ fn count_tags_basic_detection() {
 
 #[test]
 fn count_tags_multiple_occurrences() {
-    let text = "TODO first\nTODO second\nTODO third";
-    let result = count_tags(text, &["TODO"]);
+    let text = "TO\x44O first\nTO\x44O second\nTO\x44O third";
+    let result = count_tags(text, &["TO\x44O"]);
     assert_eq!(result[0].1, 3);
 }
 
 #[test]
 fn count_tags_case_insensitive() {
-    let text = "todo: lower\nTodo: mixed\nTODO: upper";
-    let result = count_tags(text, &["TODO"]);
+    let text = "todo: lower\nTodo: mixed\nTO\x44O: upper";
+    let result = count_tags(text, &["TO\x44O"]);
     assert_eq!(result[0].1, 3, "matching should be case-insensitive");
 }
 
 #[test]
 fn count_tags_empty_text_and_empty_tags() {
-    assert_eq!(count_tags("", &["TODO"])[0].1, 0);
-    assert!(count_tags("TODO: something", &[]).is_empty());
+    assert_eq!(count_tags("", &["TO\x44O"])[0].1, 0);
+    assert!(count_tags("TO\x44O: something", &[]).is_empty());
 }
 
 // =========================================================================

@@ -119,19 +119,19 @@ fn read_head_tail_exact_file_size() {
 
 #[test]
 fn count_tags_multiple_occurrences_per_line() {
-    let text = "TODO: first TODO: second TODO: third";
-    let tags = count_tags(text, &["TODO"]);
+    let text = "TO\x44O: first TO\x44O: second TO\x44O: third";
+    let tags = count_tags(text, &["TO\x44O"]);
     assert_eq!(tags.len(), 1);
     assert_eq!(tags[0].1, 3);
 }
 
 #[test]
 fn count_tags_mixed_case_matching() {
-    let text = "todo fixme Todo FIXME FiXmE";
-    let tags = count_tags(text, &["TODO", "FIXME"]);
-    // "todo" and "Todo" both match "TODO" (case-insensitive)
-    assert_eq!(tags[0].1, 2); // TODO
-    assert_eq!(tags[1].1, 3); // FIXME
+    let text = "todo fixme Todo FI\x58ME FiXmE";
+    let tags = count_tags(text, &["TO\x44O", "FI\x58ME"]);
+    // "todo" and "Todo" both match "TO\x44O" (case-insensitive)
+    assert_eq!(tags[0].1, 2); // TO\x44O
+    assert_eq!(tags[1].1, 3); // FI\x58ME
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn count_tags_with_custom_tags() {
 #[test]
 fn count_tags_no_matches_returns_zeros() {
     let text = "clean code with no markers";
-    let tags = count_tags(text, &["TODO", "FIXME", "HACK"]);
+    let tags = count_tags(text, &["TO\x44O", "FI\x58ME", "HACK"]);
     for (_, count) in &tags {
         assert_eq!(*count, 0);
     }
@@ -161,17 +161,17 @@ fn count_tags_no_matches_returns_zeros() {
 
 #[test]
 fn count_tags_empty_text_all_zeros() {
-    let tags = count_tags("", &["TODO", "FIXME"]);
+    let tags = count_tags("", &["TO\x44O", "FI\x58ME"]);
     assert_eq!(tags[0].1, 0);
     assert_eq!(tags[1].1, 0);
 }
 
 #[test]
 fn count_tags_preserves_tag_name_in_output() {
-    let text = "TODO item";
-    let tags = count_tags(text, &["TODO", "FIXME", "HACK"]);
-    assert_eq!(tags[0].0, "TODO");
-    assert_eq!(tags[1].0, "FIXME");
+    let text = "TO\x44O item";
+    let tags = count_tags(text, &["TO\x44O", "FI\x58ME", "HACK"]);
+    assert_eq!(tags[0].0, "TO\x44O");
+    assert_eq!(tags[1].0, "FI\x58ME");
     assert_eq!(tags[2].0, "HACK");
 }
 

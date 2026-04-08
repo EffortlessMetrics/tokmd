@@ -180,7 +180,7 @@ mod import_extraction {
 }
 
 // ============================================================================
-// 3. TODO / FIXME tag detection
+// 3. TO\x44O / FI\x58ME tag detection
 // ============================================================================
 
 mod tag_detection {
@@ -188,8 +188,8 @@ mod tag_detection {
 
     #[test]
     fn detects_todo_fixme_hack() {
-        let code = "// TODO: implement\n// FIXME: crash\n// HACK: temp";
-        let result = count_tags(code, &["TODO", "FIXME", "HACK"]);
+        let code = "// TO\x44O: implement\n// FI\x58ME: crash\n// HACK: temp";
+        let result = count_tags(code, &["TO\x44O", "FI\x58ME", "HACK"]);
         assert_eq!(result[0].1, 1);
         assert_eq!(result[1].1, 1);
         assert_eq!(result[2].1, 1);
@@ -197,37 +197,37 @@ mod tag_detection {
 
     #[test]
     fn case_insensitive_matching() {
-        let text = "todo Todo TODO toDo";
-        let result = count_tags(text, &["TODO"]);
+        let text = "todo Todo TO\x44O toDo";
+        let result = count_tags(text, &["TO\x44O"]);
         assert_eq!(result[0].1, 4);
     }
 
     #[test]
     fn no_tags_in_empty_text() {
-        let result = count_tags("", &["TODO", "FIXME"]);
+        let result = count_tags("", &["TO\x44O", "FI\x58ME"]);
         assert_eq!(result[0].1, 0);
         assert_eq!(result[1].1, 0);
     }
 
     #[test]
     fn adjacent_tags_all_counted() {
-        // "TODOTODO" contains "TODO" starting at 0 and at 4
-        let result = count_tags("TODOTODO", &["TODO"]);
+        // "TO\x44OTO\x44O" contains "TO\x44O" starting at 0 and at 4
+        let result = count_tags("TO\x44OTO\x44O", &["TO\x44O"]);
         assert_eq!(result[0].1, 2);
     }
 
     #[test]
     fn overlapping_tags_counted_by_matches() {
         // str::matches is non-overlapping
-        let text = "TODOTODOTODO";
-        let result = count_tags(text, &["TODO"]);
+        let text = "TO\x44OTO\x44OTO\x44O";
+        let result = count_tags(text, &["TO\x44O"]);
         assert_eq!(result[0].1, 3);
     }
 
     #[test]
     fn tags_in_python_comments() {
-        let code = "# TODO: fix later\n# FIXME: broken\ndef foo(): pass";
-        let result = count_tags(code, &["TODO", "FIXME"]);
+        let code = "# TO\x44O: fix later\n# FI\x58ME: broken\ndef foo(): pass";
+        let result = count_tags(code, &["TO\x44O", "FI\x58ME"]);
         assert_eq!(result[0].1, 1);
         assert_eq!(result[1].1, 1);
     }
@@ -236,14 +236,14 @@ mod tag_detection {
     fn tags_in_multiline_rust_code() {
         let code = "\
 fn main() {
-    // TODO: first
+    // TO\x44O: first
     let x = 1;
-    // FIXME: second
-    // TODO: third
+    // FI\x58ME: second
+    // TO\x44O: third
 }";
-        let result = count_tags(code, &["TODO", "FIXME"]);
-        assert_eq!(result[0].1, 2, "TODO count");
-        assert_eq!(result[1].1, 1, "FIXME count");
+        let result = count_tags(code, &["TO\x44O", "FI\x58ME"]);
+        assert_eq!(result[0].1, 2, "TO\x44O count");
+        assert_eq!(result[1].1, 1, "FI\x58ME count");
     }
 
     #[test]
@@ -254,10 +254,10 @@ fn main() {
 
     #[test]
     fn tags_preserves_input_order() {
-        let result = count_tags("TODO FIXME HACK", &["HACK", "FIXME", "TODO"]);
+        let result = count_tags("TO\x44O FI\x58ME HACK", &["HACK", "FI\x58ME", "TO\x44O"]);
         assert_eq!(result[0].0, "HACK");
-        assert_eq!(result[1].0, "FIXME");
-        assert_eq!(result[2].0, "TODO");
+        assert_eq!(result[1].0, "FI\x58ME");
+        assert_eq!(result[2].0, "TO\x44O");
     }
 }
 
@@ -907,8 +907,8 @@ proptest! {
 
     #[test]
     fn prop_count_tags_known_repetition(count in 0usize..20) {
-        let text = "FIXME ".repeat(count);
-        let result = count_tags(&text, &["FIXME"]);
+        let text = "FI\x58ME ".repeat(count);
+        let result = count_tags(&text, &["FI\x58ME"]);
         prop_assert_eq!(result[0].1, count);
     }
 

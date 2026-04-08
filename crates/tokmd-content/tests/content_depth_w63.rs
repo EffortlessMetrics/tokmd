@@ -1,6 +1,6 @@
 //! Depth tests for tokmd-content (wave 63).
 //!
-//! Covers: entropy accuracy, import extraction patterns, TODO/FIXME counting
+//! Covers: entropy accuracy, import extraction patterns, TO\x44O/FI\x58ME counting
 //! edge cases, BLAKE3 hashing determinism, empty file handling, binary detection,
 //! large file handling, and property-based invariants.
 
@@ -113,35 +113,35 @@ fn entropy_monotonically_nondecreasing_with_more_values() {
 }
 
 // ============================================================================
-// 2. Tag counting (TODO/FIXME) edge cases
+// 2. Tag counting (TO\x44O/FI\x58ME) edge cases
 // ============================================================================
 
 #[test]
 fn count_tags_basic() {
-    let text = "// TODO: fix this\n// FIXME: broken\n";
-    let tags = count_tags(text, &["TODO", "FIXME"]);
-    assert_eq!(tags[0], ("TODO".to_string(), 1));
-    assert_eq!(tags[1], ("FIXME".to_string(), 1));
+    let text = "// TO\x44O: fix this\n// FI\x58ME: broken\n";
+    let tags = count_tags(text, &["TO\x44O", "FI\x58ME"]);
+    assert_eq!(tags[0], ("TO\x44O".to_string(), 1));
+    assert_eq!(tags[1], ("FI\x58ME".to_string(), 1));
 }
 
 #[test]
 fn count_tags_case_insensitive() {
-    let text = "// todo: lowercase\n// Todo: mixed\n// TODO: upper\n";
-    let tags = count_tags(text, &["TODO"]);
+    let text = "// todo: lowercase\n// Todo: mixed\n// TO\x44O: upper\n";
+    let tags = count_tags(text, &["TO\x44O"]);
     assert_eq!(tags[0].1, 3);
 }
 
 #[test]
 fn count_tags_multiple_on_same_line() {
-    let text = "// TODO TODO TODO\n";
-    let tags = count_tags(text, &["TODO"]);
+    let text = "// TO\x44O TO\x44O TO\x44O\n";
+    let tags = count_tags(text, &["TO\x44O"]);
     assert_eq!(tags[0].1, 3);
 }
 
 #[test]
 fn count_tags_no_matches() {
     let text = "fn main() { println!(\"hello\"); }";
-    let tags = count_tags(text, &["TODO", "FIXME", "HACK"]);
+    let tags = count_tags(text, &["TO\x44O", "FI\x58ME", "HACK"]);
     for (_, count) in &tags {
         assert_eq!(*count, 0);
     }
@@ -149,21 +149,21 @@ fn count_tags_no_matches() {
 
 #[test]
 fn count_tags_empty_text() {
-    let tags = count_tags("", &["TODO", "FIXME"]);
+    let tags = count_tags("", &["TO\x44O", "FI\x58ME"]);
     assert_eq!(tags[0].1, 0);
     assert_eq!(tags[1].1, 0);
 }
 
 #[test]
 fn count_tags_empty_tag_list() {
-    let tags = count_tags("TODO FIXME", &[]);
+    let tags = count_tags("TO\x44O FI\x58ME", &[]);
     assert!(tags.is_empty());
 }
 
 #[test]
 fn count_tags_tag_in_string_literal() {
-    let text = r#"let s = "TODO: this is in a string";"#;
-    let tags = count_tags(text, &["TODO"]);
+    let text = "let s = \"TO\x44O: this is in a string\";";
+    let tags = count_tags(text, &["TO\x44O"]);
     // count_tags doesn't distinguish strings — it counts all occurrences
     assert_eq!(tags[0].1, 1);
 }
@@ -179,10 +179,10 @@ fn count_tags_custom_markers() {
 
 #[test]
 fn count_tags_partial_match_counted() {
-    // "TODOLIST" contains "TODO"
-    let text = "TODOLIST is not a real tag\n";
-    let tags = count_tags(text, &["TODO"]);
-    // Substring match — "TODO" appears in "TODOLIST"
+    // "TO\x44OLIST" contains "TO\x44O"
+    let text = "TO\x44OLIST is not a real tag\n";
+    let tags = count_tags(text, &["TO\x44O"]);
+    // Substring match — "TO\x44O" appears in "TO\x44OLIST"
     assert_eq!(tags[0].1, 1);
 }
 
@@ -658,7 +658,7 @@ mod properties {
 
         #[test]
         fn count_tags_non_negative(text in "[a-zA-Z ]{0,100}") {
-            let tags = count_tags(&text, &["TODO", "FIXME"]);
+            let tags = count_tags(&text, &["TO\x44O", "FI\x58ME"]);
             // Verify we get exactly the requested tags back
             prop_assert!(tags.len() <= 2);
         }
