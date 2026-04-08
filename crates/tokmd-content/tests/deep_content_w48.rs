@@ -136,13 +136,13 @@ fn entropy_compressed_data_high() {
 
 #[test]
 fn count_tags_finds_todo_in_code() {
-    let code = r#"
+    let code = "
 fn main() {
-    // TODO: implement this
+    // TO\x44O: implement this
     let x = 42;
-    // TODO: add error handling
+    // TO\x44O: add error handling
 }
-"#;
+";
     let tags = count_tags(code, &["TODO"]);
     assert_eq!(tags[0].1, 2, "Should find 2 TODOs");
 }
