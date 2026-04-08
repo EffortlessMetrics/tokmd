@@ -1,0 +1,22 @@
+[package]
+name = "tokmd-analysis-format-md"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Markdown formatter for tokmd analysis receipts."
+readme = "README.md"
+keywords = ["markdown", "formatting", "analysis", "receipt"]
+categories = ["development-tools", "encoding"]
+documentation = "https://docs.rs/tokmd-analysis-format-md"
+include = ["src/", "README.md", "Cargo.toml"]
+
+[dependencies]
+anyhow.workspace = true
+tokmd-analysis-types.workspace = true
+
+[dev-dependencies]
+insta = { workspace = true }
+tokmd-analysis-types = { workspace = true }
+tokmd-types = { workspace = true }

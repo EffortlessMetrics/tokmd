@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd-analysis-format/tests/snapshot_golden.rs
-assertion_line: 283
 expression: out
 ---
 # tokmd analysis
@@ -24,11 +23,6 @@ Preset: `receipt`
 |Doc density|13.8%|
 |Whitespace ratio|6.5%|
 |Bytes per line|8.06|
-
-### Doc density by language
-
-|Lang|Doc%|Comments|Code|
-|---|---:|---:|---:|
 
 ### Whitespace ratio by language
 

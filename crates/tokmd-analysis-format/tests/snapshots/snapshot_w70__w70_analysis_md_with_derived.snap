@@ -24,11 +24,6 @@ Preset: `receipt`
 |Whitespace ratio|5.6%|
 |Bytes per line|8.39|
 
-### Doc density by language
-
-|Lang|Doc%|Comments|Code|
-|---|---:|---:|---:|
-
 ### Whitespace ratio by language
 
 |Lang|Blank%|Blanks|Code+Comments|
