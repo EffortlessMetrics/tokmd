@@ -488,7 +488,7 @@ mod tests {
             vec![GateItem::new("mutation", Verdict::Warn).with_source("computed")],
         );
         report = report.with_data(serde_json::json!({
-            "gates": serde_json::to_value(gates).expect("should serialize"),
+            "gates": serde_json::to_value(gates).expect("GateResults struct must cleanly serialize to JSON Value"),
         }));
 
         let md = render_sensor_md(&report);

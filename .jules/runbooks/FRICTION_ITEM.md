@@ -2,7 +2,7 @@
 # Friction item
 
 id: FRIC-YYYYMMDD-###
-tags: [bolt, perf]
+tags: [palette, dx]
 
 ## Pain
 What hurts, in one paragraph.
@@ -10,7 +10,7 @@ What hurts, in one paragraph.
 ## Evidence
 - file paths
 - commands / outputs
-- benchmarks/timings (if any)
+- screenshots (if relevant)
 
 ## Done when
 - [ ] acceptance criteria

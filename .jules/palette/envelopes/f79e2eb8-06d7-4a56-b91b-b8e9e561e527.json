@@ -1,0 +1,29 @@
+{
+  "run_id": "f79e2eb8-06d7-4a56-b91b-b8e9e561e527",
+  "timestamp_utc": "2026-04-08T10:34:09Z",
+  "lane": "scout",
+  "target": "error messages",
+  "commands": [
+    {
+      "cmd": "cargo build --verbose",
+      "status": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.40s"
+    },
+    {
+      "cmd": "CI=true cargo test -p tokmd --verbose",
+      "status": "PASS",
+      "output": "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s"
+    },
+    {
+      "cmd": "cargo fmt -- --check",
+      "status": "PASS",
+      "output": ""
+    },
+    {
+      "cmd": "cargo clippy -- -D warnings",
+      "status": "PASS",
+      "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 29.26s"
+    }
+  ],
+  "results_summary": []
+}
