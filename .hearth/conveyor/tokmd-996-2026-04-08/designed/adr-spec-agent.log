@@ -1,0 +1,176 @@
+# ADR Spec Agent Log
+
+**Agent:** adr-spec-agent  
+**Run ID:** tokmd-996-2026-04-08  
+**Started:** 2026-04-08 21:30 EDT  
+**Gate:** designed  
+
+---
+
+## Task Summary
+
+Write Architecture Decision Record (ADR) for Phase 1 of tokmd-analysis-format tier skip violation fix. Define exact API surface for tokmd-core facade extension, specify migration path and backward compatibility, and commit to branch.
+
+---
+
+## Execution Log
+
+### 1. Read Prior Artifacts
+
+Read all previous artifacts from the conveyor pipeline:
+- ✅ issue-context.md — Problem statement and violation locations
+- ✅ research-analysis.md — Tier structure, root cause, constraints
+- ✅ initial-plan.md — Implementation approach and file changes
+- ✅ plan-review.md — Expanded scope recommendation (4 violations → 3 phases)
+- ✅ maintainer-vision.md — GO decision, 3 separate PRs, feature flag CI matrix
+
+Key decisions extracted:
+- Phase 1 scope: tokmd-analysis-format ONLY (3 other violations deferred)
+- Approach: Extend tokmd-core facade with analysis formatting API
+- 3 separate PRs, not one mega-PR
+- Feature flag CI matrix required
+
+### 2. Examined Current Codebase
+
+Read source files to understand exact API surface:
+- ✅ crates/tokmd-core/src/lib.rs — Current facade structure, analyze_workflow exists
+- ✅ crates/tokmd/src/analysis_utils.rs — Violation site, usage patterns
+- ✅ crates/tokmd/Cargo.toml — Direct dependency declarations
+- ✅ crates/tokmd-core/Cargo.toml — Current feature flags
+- ✅ crates/tokmd-analysis-format/src/lib.rs — API to re-export: `render()`, `RenderedOutput`
+- ✅ docs/architecture.md — Tier structure verification
+
+Key findings:
+- tokmd-analysis-format API is minimal: one function, one enum
+- Current usage: `analysis_format::render()` and `RenderedOutput::{Text,Binary}`
+- Feature flag interaction: `fun` enables OBJ/MIDI formats
+
+### 3. Authored ADR-001
+
+Created comprehensive Architecture Decision Record:
+
+**File:** `adr-001-analysis-format-facade.md`
+
+Contents:
+- Status: Proposed → Phase 1 of 3
+- Context: Violation description and why it exists
+- Decision: Extend tokmd-core facade (Option A)
+- Consequences: Positive, neutral, negative
+- Implementation: Phase 1 scope, file modifications, feature flag matrix
+- API reference to api-spec-analysis-format.md
+- Migration reference to migration-path.md
+- Risks and mitigations table
+- Rollback plan
+- Decision log (plan-reviewer → maintainer-vision → adr-spec-agent)
+
+### 4. Authored API Specification
+
+**File:** `api-spec-analysis-format.md`
+
+Contents:
+- Design principles (minimal surface, feature-gated, additive)
+- API Surface: Option A (direct re-export, RECOMMENDED) vs Option B (wrapped)
+- Cargo.toml changes for both tokmd-core and tokmd
+- Before/After usage examples
+- Supported analysis formats table (with fun requirement)
+- Testing requirements (unit tests, integration tests)
+- Backward compatibility statement
+- Open questions resolution table
+
+Recommendation: Direct re-export (Option A) — API is stable and wrapping adds boilerplate without benefit.
+
+### 5. Authored Migration Path
+
+**File:** `migration-path.md`
+
+Contents:
+- Migration overview (Before/After diagrams)
+- Step-by-step migration (6 steps with verification commands)
+- Detailed code changes for each file
+- Backward compatibility analysis
+- Rollback plan
+- Success criteria with verification commands
+- Remaining work summary (Phases 2-3)
+
+### 6. Commit to Branch
+
+Files written to designed/ directory:
+```
+.hearth/conveyor/tokmd-996-2026-04-08/designed/
+├── adr-001-analysis-format-facade.md
+├── api-spec-analysis-format.md
+├── migration-path.md
+└── adr-spec-agent.log (this file)
+```
+
+Pre-commit protocol:
+- cargo fmt: N/A (Markdown files)
+- cargo check: N/A (specification phase, no Rust code changes)
+- cargo clippy: N/A
+
+Commit command executed:
+```bash
+cd /home/openclaw/.openclaw/workspace/tokmd && \
+git add .hearth/conveyor/tokmd-996-2026-04-08/designed/ && \
+git commit -m "docs(adr): ADR-001, API spec, and migration path for Phase 1 tier skip fix
+
+Adds comprehensive specification for tokmd-analysis-format tier skip fix:
+- ADR-001: Architecture decision and rationale
+- api-spec-analysis-format.md: Exact facade API surface
+- migration-path.md: Step-by-step migration guide
+
+Phase 1 ONLY: tokmd-analysis-format violation
+Approach: Extend tokmd-core facade with analysis formatting re-exports
+
+Part of #996 - Phase 1 of 3"
+```
+
+**Commit result:** SUCCESS  
+**Commit hash:** `ae47ca7`
+
+---
+
+## GitHub Comment
+
+Posted to issue #996:
+
+---
+
+## Summary
+
+Successfully authored complete specification for Phase 1 tier skip fix:
+
+| Deliverable | File | Lines |
+|-------------|------|-------|
+| ADR-001 | `adr-001-analysis-format-facade.md` | ~200 |
+| API Spec | `api-spec-analysis-format.md` | ~400 |
+| Migration Path | `migration-path.md` | ~450 |
+| Agent Log | `adr-spec-agent.log` | ~150 |
+
+**Key specifications:**
+1. Direct re-export approach (not wrapped) — simpler, API is stable
+2. `analysis_facade` module in tokmd-core with `render()` and `RenderedOutput`
+3. Feature flags: `analysis` enables facade, `fun` propagates for OBJ/MIDI
+4. CI matrix required: default, fun, analysis, fun+analysis
+5. 3 separate PRs (Phases 1-3), not one mega-PR
+
+**Next gate:** `coded` — Implementation agent will apply these specifications.
+
+---
+
+## Artifacts Location
+
+All artifacts committed to branch `fix/996-tier-skip-analysis-format`:
+```
+.hearth/conveyor/tokmd-996-2026-04-08/designed/
+├── adr-001-analysis-format-facade.md
+├── api-spec-analysis-format.md
+├── migration-path.md
+└── adr-spec-agent.log
+```
+
+**Commit:** ae47ca7
+
+---
+
+*Log complete — adr-spec-agent*
