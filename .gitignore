@@ -47,6 +47,9 @@ mutants.out.old/
 .jules/runtime/
 .jules/tmp/
 
+# Hearth runtime state
+.hearth/
+
 # Windows artifacts
 nul
 
