@@ -1,0 +1,4 @@
+{
+  "status": "learning_pr",
+  "reason": "The bindings-targets crates pass compat checks, but the workspace-level `--no-default-features` exposes an issue in the `tokmd` crate outside the assigned shard."
+}

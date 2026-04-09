@@ -1,0 +1,16 @@
+{"command": "cargo check -p tokmd-wasm --no-default-features", "status": "success"}
+{"command": "cargo check -p tokmd-wasm --all-features", "status": "success"}
+{"command": "cargo check -p tokmd-python --no-default-features", "status": "success"}
+{"command": "cargo check -p tokmd-python --all-features", "status": "success"}
+{"command": "cargo check -p tokmd-node --no-default-features", "status": "success"}
+{"command": "cargo check -p tokmd-node --all-features", "status": "success"}
+{"command": "cargo test -p tokmd-wasm --no-default-features", "status": "success"}
+{"command": "cargo test -p tokmd-wasm --all-features", "status": "success"}
+{"command": "cargo test -p tokmd-python --no-default-features", "status": "success"}
+{"command": "cargo test -p tokmd-python --all-features", "status": "success"}
+{"command": "cargo test -p tokmd-node --no-default-features", "status": "success"}
+{"command": "cargo test -p tokmd-node --all-features", "status": "success"}
+{"command": "cargo test --target wasm32-unknown-unknown -p tokmd-wasm --no-default-features", "status": "success"}
+{"command": "cargo test --target wasm32-unknown-unknown -p tokmd-wasm --all-features", "status": "success"}
+{"command": "cargo check -p tokmd --no-default-features", "status": "failure", "stdout": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokmd_git`"}
+{"command": "cd web/runner && npm run test", "status": "success"}
