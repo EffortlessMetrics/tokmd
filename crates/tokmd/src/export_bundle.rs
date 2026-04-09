@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
 
@@ -253,7 +253,7 @@ fn load_export_json_content(content: &str) -> Result<(tokmd_types::ExportData, E
 mod tests {
     use super::*;
     use tempfile::tempdir;
-    use tokmd_config::GlobalArgs;
+    use tokmd_cli_args::GlobalArgs;
     use tokmd_types::{
         ChildIncludeMode, ConfigMode, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt,
         FileKind, FileRow, RedactMode, RunReceipt, ScanArgs, ScanStatus, ToolInfo,

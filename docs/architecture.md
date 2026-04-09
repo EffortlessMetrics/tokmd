@@ -34,7 +34,7 @@ Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysi
                        tokmd-analysis-near-dup, tokmd-analysis-topics, tokmd-analysis-util,
                        tokmd-cockpit, tokmd-fun, tokmd-gate
          ↓
-Tier 4 (Facade)        tokmd-config, tokmd-core, tokmd-ffi-envelope, tokmd-tool-schema
+Tier 4 (Facade)        tokmd-cli-args, tokmd-core, tokmd-ffi-envelope, tokmd-tool-schema
          ↓
 Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 ```
@@ -122,7 +122,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-config` | Clap-backed CLI/config types plus configuration loading |
+| `tokmd-cli-args` | Clap-backed CLI/config types plus configuration loading |
 | `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings |
 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
 | `tokmd-core` | Library facade with FFI layer |

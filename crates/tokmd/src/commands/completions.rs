@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::CommandFactory;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 pub(crate) fn handle(args: cli::CompletionsArgs) -> Result<()> {
     use clap_complete::generate;

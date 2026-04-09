@@ -3339,8 +3339,8 @@ dependencies = [
  "tokmd-analysis-grid",
  "tokmd-analysis-types",
  "tokmd-badge",
+ "tokmd-cli-args",
  "tokmd-cockpit",
- "tokmd-config",
  "tokmd-context-git",
  "tokmd-context-policy",
  "tokmd-envelope",
@@ -3689,6 +3689,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-cli-args"
+version = "1.9.0"
+dependencies = [
+ "clap",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokmd-settings",
+ "tokmd-tool-schema",
+ "tokmd-types",
+ "toml 1.0.7+spec-1.1.0",
+]
+
+[[package]]
 name = "tokmd-cockpit"
 version = "1.9.0"
 dependencies = [
@@ -3705,21 +3720,6 @@ dependencies = [
  "tokmd-envelope",
  "tokmd-git",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-config"
-version = "1.9.0"
-dependencies = [
- "clap",
- "proptest",
- "serde",
- "serde_json",
- "tempfile",
- "tokmd-settings",
- "tokmd-tool-schema",
- "tokmd-types",
- "toml 1.0.7+spec-1.1.0",
 ]
 
 [[package]]
@@ -3765,8 +3765,8 @@ dependencies = [
  "tempfile",
  "tokmd-analysis",
  "tokmd-analysis-types",
+ "tokmd-cli-args",
  "tokmd-cockpit",
- "tokmd-config",
  "tokmd-format",
  "tokmd-git",
  "tokmd-model",
@@ -3848,7 +3848,7 @@ dependencies = [
  "serde_json",
  "tokmd-analysis-imports",
  "tokmd-badge",
- "tokmd-config",
+ "tokmd-cli-args",
  "tokmd-content",
  "tokmd-context-policy",
  "tokmd-core",
@@ -4045,7 +4045,7 @@ dependencies = [
  "insta",
  "proptest",
  "tempfile",
- "tokmd-config",
+ "tokmd-cli-args",
 ]
 
 [[package]]

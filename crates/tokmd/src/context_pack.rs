@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::Path;
 
-use tokmd_config::{ContextStrategy, ValueMetric};
+use tokmd_cli_args::{ContextStrategy, ValueMetric};
 use tokmd_context_git::GitScores;
 use tokmd_context_policy::{
     assign_policy as assign_context_policy, classify_file as classify_context_file,

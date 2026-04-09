@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;

@@ -11,7 +11,7 @@ use std::path::PathBuf;
 #[cfg(feature = "git")]
 use anyhow::Context;
 use anyhow::{Result, bail};
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 // Re-export all cockpit types for backwards compatibility with sensor.rs
 #[cfg(feature = "git")]

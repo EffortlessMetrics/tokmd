@@ -23,7 +23,7 @@ members = [
     "crates/tokmd-analysis-format-md",
     "crates/tokmd-analysis-types",
     "crates/tokmd-analysis-effort",
-    "crates/tokmd-config",
+    "crates/tokmd-cli-args",
     "crates/tokmd-core",
     "crates/tokmd-content",
     "crates/tokmd-context-git",
@@ -83,7 +83,7 @@ default-members = [
     "crates/tokmd-analysis-format",
     "crates/tokmd-analysis-format-md",
     "crates/tokmd-analysis-types",
-    "crates/tokmd-config",
+    "crates/tokmd-cli-args",
     "crates/tokmd-core",
     "crates/tokmd-content",
     "crates/tokmd-context-git",
@@ -155,7 +155,7 @@ tokmd-analysis-maintainability = { path = "crates/tokmd-analysis-maintainability
 tokmd-analysis-assets = { path = "crates/tokmd-analysis-assets", version = "1.9.0" }
 tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.9.0" }
 tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.9.0" }
-tokmd-config = { path = "crates/tokmd-config", version = "1.9.0" }
+tokmd-cli-args = { path = "crates/tokmd-cli-args", version = "1.9.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.9.0" }
 tokmd-context-git = { path = "crates/tokmd-context-git", version = "1.9.0" }
 tokmd-context-policy = { path = "crates/tokmd-context-policy", version = "1.9.0" }

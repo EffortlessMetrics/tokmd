@@ -1,5 +1,5 @@
 use tokmd::resolve_lang;
-use tokmd_config::{CliLangArgs, Profile};
+use tokmd_cli_args::{CliLangArgs, Profile};
 
 #[test]
 fn test_resolve_lang_no_args_no_profile() {
@@ -19,7 +19,7 @@ fn test_resolve_lang_no_args_no_profile() {
 fn test_resolve_lang_cli_overrides_profile() {
     let cli = CliLangArgs {
         top: Some(50),
-        format: Some(tokmd_config::CliTableFormat::Json),
+        format: Some(tokmd_cli_args::CliTableFormat::Json),
         ..Default::default()
     };
 

@@ -29,7 +29,7 @@ mod interactive;
 
 use anyhow::Result;
 use clap::Parser;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 pub use config::{
     ConfigContext, ResolvedConfig, resolve_config, resolve_export, resolve_export_with_config,

@@ -123,7 +123,7 @@ Using `proptest` (1.9.0) across 17 crates:
 |-------|-------------------|
 | `tokmd-redact` | Hash determinism, collision resistance, path normalization |
 | `tokmd-math` | Numeric and statistical invariants |
-| `tokmd-config` | Enum roundtrip serialization |
+| `tokmd-cli-args` | Enum roundtrip serialization |
 | `tokmd-model` | Path normalization, aggregation invariants |
 | `tokmd-module-key` | Module key computation invariants |
 | `tokmd-types` | DTO serialization roundtrips |

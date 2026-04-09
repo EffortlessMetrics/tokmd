@@ -13,7 +13,7 @@ use std::io::Write;
 #[cfg(feature = "git")]
 use anyhow::Context;
 use anyhow::{Result, bail};
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 #[cfg(feature = "git")]
 use tokmd_envelope::findings;
 #[cfg(feature = "git")]

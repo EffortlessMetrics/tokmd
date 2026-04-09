@@ -9,7 +9,7 @@ use tokmd_analysis as analysis;
 #[cfg(feature = "git")]
 use tokmd_analysis_types::DeterminismBaseline;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
-use tokmd_config::{BaselineArgs, GlobalArgs};
+use tokmd_cli_args::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
 use crate::export_bundle;

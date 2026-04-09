@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use clap::CommandFactory;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_tool_schema::{build_tool_schema, render_output};
 
 /// Handle the tools command.

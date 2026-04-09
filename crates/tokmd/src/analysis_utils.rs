@@ -6,7 +6,7 @@ use tokmd_analysis as analysis;
 use tokmd_analysis_format as analysis_format;
 use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 pub(crate) fn child_include_to_string(mode: tokmd_types::ChildIncludeMode) -> String {
     match mode {

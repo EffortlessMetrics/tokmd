@@ -1,5 +1,5 @@
 use anyhow::Result;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;

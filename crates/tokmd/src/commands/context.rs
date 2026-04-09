@@ -34,7 +34,7 @@ impl<W: Write> Write for CountingWriter<W> {
         self.inner.flush()
     }
 }
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_types::{

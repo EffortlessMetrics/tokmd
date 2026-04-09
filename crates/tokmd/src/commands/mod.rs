@@ -17,7 +17,7 @@ pub(crate) mod sensor;
 pub(crate) mod tools;
 
 use anyhow::Result;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 use crate::config::ResolvedConfig;
 

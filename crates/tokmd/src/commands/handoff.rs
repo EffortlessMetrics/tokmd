@@ -14,7 +14,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_model as model;
 use tokmd_path::normalize_slashes as normalize_path;

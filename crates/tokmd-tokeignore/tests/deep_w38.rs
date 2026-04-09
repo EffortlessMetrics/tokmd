@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use tokmd_config::{InitArgs, InitProfile};
+use tokmd_cli_args::{InitArgs, InitProfile};
 use tokmd_tokeignore::init_tokeignore;
 
 fn args(profile: InitProfile, print: bool, force: bool, dir: PathBuf) -> InitArgs {

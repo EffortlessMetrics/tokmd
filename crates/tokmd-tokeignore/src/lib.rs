@@ -20,7 +20,7 @@ use std::path::PathBuf;
 
 use anyhow::{Result, bail};
 
-use tokmd_config::{InitArgs, InitProfile};
+use tokmd_cli_args::{InitArgs, InitProfile};
 
 const TEMPLATE_DEFAULT: &str = r#"# .tokeignore
 # Patterns here use gitignore syntax.

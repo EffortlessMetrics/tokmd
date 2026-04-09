@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Stdio;
 
 use anyhow::Result;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 /// Exit codes for check-ignore:
 /// - 0: Path is ignored
@@ -325,7 +325,7 @@ fn print_result(result: &CheckResult, verbose: bool) {
 mod tests {
     use super::*;
     use tempfile::tempdir;
-    use tokmd_config::GlobalArgs;
+    use tokmd_cli_args::GlobalArgs;
 
     #[test]
     fn matches_glob_handles_double_star() {

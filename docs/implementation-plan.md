@@ -47,7 +47,7 @@ This document records completed implementation phases through `1.8.0` and the ne
 
 1. **Created** `tokmd-settings` crate with pure configuration types (no clap)
 2. **Settings types**: `ScanOptions`, `ScanSettings`, `LangSettings`, `ModuleSettings`, `ExportSettings`, `AnalyzeSettings`, `DiffSettings`
-3. **Dependency chain**: `tokmd-core` depends on `tokmd-settings` (not `tokmd-config`); `tokmd-scan` accepts `&ScanOptions`
+3. **Dependency chain**: `tokmd-core` depends on `tokmd-settings` (not `tokmd-cli-args`); `tokmd-scan` accepts `&ScanOptions`
 
 ### Sensor Integration Crates ✅
 
@@ -63,8 +63,8 @@ As part of this phase, three additional Tier 0 crates were created:
 - [x] Define pure Settings types (no clap derive)
 - [x] Update tokmd-scan to accept `&ScanOptions`
 - [x] Update tokmd-core to use tokmd-settings
-- [x] Update tokmd-config to re-export or wrap
-- [x] Implement TOML parsing in tokmd-settings (moved from tokmd-config)
+- [x] Update tokmd-cli-args to re-export or wrap
+- [x] Implement TOML parsing in tokmd-settings (moved from tokmd-cli-args)
 - [x] Update bindings to use new settings directly
 
 ---

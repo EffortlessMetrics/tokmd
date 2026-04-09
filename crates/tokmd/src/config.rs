@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::ValueEnum;
-use tokmd_config as cli;
+use tokmd_cli_args as cli;
 
 /// Configuration context combining TOML config, JSON config, and resolved profile.
 #[derive(Debug, Default)]

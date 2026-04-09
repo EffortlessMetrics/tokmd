@@ -60,7 +60,7 @@ tokmd-analysis-format = { workspace = true }
 tokmd-analysis-types.workspace = true
 tokmd-analysis-grid.workspace = true
 tokmd-badge.workspace = true
-tokmd-config.workspace = true
+tokmd-cli-args.workspace = true
 tokmd-model.workspace = true
 tokmd-exclude.workspace = true
 tokmd-path.workspace = true

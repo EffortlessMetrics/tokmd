@@ -43,7 +43,7 @@ tokmd-module-key = { workspace = true, optional = true }
 tokmd-math = { workspace = true, optional = true }
 tokmd-exclude = { workspace = true, optional = true }
 tokmd-context-policy = { workspace = true, optional = true }
-tokmd-config = { workspace = true, optional = true }
+tokmd-cli-args = { workspace = true, optional = true }
 tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
@@ -85,10 +85,10 @@ exclude = ["dep:tokmd-exclude"]
 # Targets: fuzz_context_policy
 context_policy = ["dep:tokmd-context-policy", "dep:tokmd-types"]
 
-# Configuration file parsing (tokmd-config)
+# Configuration file parsing (tokmd-cli-args)
 # Targets: fuzz_toml_config
 # Needs serde_json and toml for round-trip testing
-config = ["dep:tokmd-config", "dep:serde_json", "dep:toml"]
+config = ["dep:tokmd-cli-args", "dep:serde_json", "dep:toml"]
 
 # Policy engine (tokmd-gate)
 # Targets: fuzz_policy_toml, fuzz_json_pointer, fuzz_policy_evaluate

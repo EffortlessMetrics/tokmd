@@ -63,12 +63,12 @@ pub mod ffi;
 pub mod settings;
 
 // Re-export types for convenience
-pub use tokmd_config as config;
+pub use tokmd_cli_args as config;
 pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
-use tokmd_config::GlobalArgs;
+use tokmd_cli_args::GlobalArgs;
 use tokmd_scan_args::scan_args;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{

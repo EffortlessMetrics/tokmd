@@ -1,0 +1,3 @@
+{"command": "find crates -type f -name \"*.rs\" -exec sed -i 's/tokmd_config/tokmd_cli_args/g' {} +", "status": "success"}
+{"command": "sed -i 's/name = \"tokmd-config\"/name = \"tokmd-cli-args\"/' crates/tokmd-cli-args/Cargo.toml", "status": "success"}
+{"command": "cargo check --workspace --all-targets --all-features", "status": "success"}

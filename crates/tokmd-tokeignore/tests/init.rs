@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use tempfile::TempDir;
-use tokmd_config::{InitArgs, InitProfile};
+use tokmd_cli_args::{InitArgs, InitProfile};
 use tokmd_tokeignore::init_tokeignore;
 
 fn make_args(dir: PathBuf, template: InitProfile, force: bool, print: bool) -> InitArgs {

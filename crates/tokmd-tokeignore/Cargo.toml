@@ -13,7 +13,7 @@ documentation = "https://docs.rs/tokmd-tokeignore"
 
 [dependencies]
 anyhow.workspace = true
-tokmd-config.workspace = true
+tokmd-cli-args.workspace = true
 
 [dev-dependencies]
 insta = { workspace = true }
