@@ -16,6 +16,7 @@ default = []
 analysis = [
     "tokmd-analysis-types",
     "dep:tokmd-analysis",
+    "dep:tokmd-analysis-format",
     "tokmd-analysis/git",
     "tokmd-analysis/walk",
     "tokmd-analysis/content",
@@ -26,6 +27,8 @@ analysis = [
     "tokmd-analysis/topics",
 ]
 cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
+# Feature propagation for fun formats (OBJ/MIDI)
+fun = ["tokmd-analysis-format/fun"]
 
 [dependencies]
 anyhow.workspace = true
@@ -43,6 +46,7 @@ tokmd-types.workspace = true
 # Optional analysis support
 tokmd-analysis = { workspace = true, optional = true }
 tokmd-analysis-types = { workspace = true, optional = true }
+tokmd-analysis-format = { workspace = true, optional = true }
 
 # Optional cockpit support
 tokmd-cockpit = { workspace = true, optional = true }

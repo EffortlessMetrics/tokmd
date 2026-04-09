@@ -562,6 +562,54 @@ pub fn cockpit_workflow(
 use anyhow::Context as _;
 
 // =============================================================================
+// Analysis formatting facade (requires `analysis` feature)
+// =============================================================================
+
+/// Analysis formatting re-exports for Tier 5 products.
+///
+/// This module provides Tier 4 facade access to Tier 3 analysis formatting,
+/// maintaining tier boundary compliance for tokmd CLI and other products.
+///
+/// ## Example
+///
+/// ```rust,no_run
+/// use tokmd_core::analysis_facade::{render, RenderedOutput};
+/// use tokmd_types::AnalysisFormat;
+/// use tokmd_analysis_types::AnalysisReceipt;
+///
+/// fn format_analysis(receipt: &AnalysisReceipt, format: AnalysisFormat) -> anyhow::Result<String> {
+///     match render(receipt, format)? {
+///         RenderedOutput::Text(text) => Ok(text),
+///         RenderedOutput::Binary(_) => Err(anyhow::anyhow!("Binary output not supported")),
+///     }
+/// }
+/// ```
+#[cfg(feature = "analysis")]
+pub mod analysis_facade {
+    /// Render an analysis receipt to the specified format.
+    ///
+    /// # Arguments
+    /// * `receipt` — The analysis receipt to render (from `tokmd_analysis_types`)
+    /// * `format` — Target output format (from `tokmd_types::AnalysisFormat`)
+    ///
+    /// # Returns
+    /// `RenderedOutput` enum containing either text or binary data
+    ///
+    /// # Errors
+    /// Returns error if:
+    /// - JSON/XML serialization fails
+    /// - `fun` feature is disabled but OBJ/MIDI format requested
+    pub use tokmd_analysis_format::render;
+
+    /// Output container for rendered analysis.
+    ///
+    /// ## Variants
+    /// - `Text(String)` — Textual formats: Markdown, JSON, XML, SVG, Mermaid, Tree, HTML
+    /// - `Binary(Vec<u8>)` — Binary formats: MIDI (requires `fun` feature)
+    pub use tokmd_analysis_format::RenderedOutput;
+}
+
+// =============================================================================
 // Legacy API (for backwards compatibility with CLI)
 // =============================================================================
 
