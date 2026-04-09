@@ -5,7 +5,7 @@
 //! 2. Function equivalence: facade render produces identical output
 //! 3. Feature gate correctness: facade available when analysis feature enabled
 
-#[cfg(all(test, feature = "analysis"))]
+#[cfg(feature = "analysis")]
 mod facade_tests {
     use tokmd_analysis_format::{RenderedOutput as OriginalOutput, render as original_render};
     use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisReceipt, AnalysisSource};
@@ -88,93 +88,33 @@ mod facade_tests {
         }
     }
 
-    /// Verify that facade render produces identical JSON output to original
+    /// Verify that facade render produces identical output to original for all text formats
     #[test]
-    fn function_equivalence_json_format() {
-        let receipt = minimal_receipt();
+    fn function_equivalence_all_formats() {
+        let test_cases = [
+            (AnalysisFormat::Json, "JSON"),
+            (AnalysisFormat::Xml, "XML"),
+            (AnalysisFormat::Svg, "SVG"),
+            (AnalysisFormat::Tree, "Tree"),
+            (AnalysisFormat::Md, "Markdown"),
+        ];
 
-        let facade_result =
-            facade_render(&receipt, AnalysisFormat::Json).expect("facade render failed");
-        let original_result =
-            original_render(&receipt, AnalysisFormat::Json).expect("original render failed");
+        for (format, format_name) in test_cases {
+            let receipt = minimal_receipt();
 
-        match (facade_result, original_result) {
-            (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
-                assert_eq!(f, o, "JSON output mismatch between facade and original");
+            let facade_result = facade_render(&receipt, format).expect("facade render failed");
+            let original_result =
+                original_render(&receipt, format).expect("original render failed");
+
+            match (facade_result, original_result) {
+                (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
+                    assert_eq!(
+                        f, o,
+                        "{format_name} output mismatch between facade and original"
+                    );
+                }
+                _ => panic!("Expected Text variant for {format_name} format"),
             }
-            _ => panic!("Expected Text variant for JSON format"),
-        }
-    }
-
-    /// Verify that facade render produces identical XML output to original
-    #[test]
-    fn function_equivalence_xml_format() {
-        let receipt = minimal_receipt();
-
-        let facade_result =
-            facade_render(&receipt, AnalysisFormat::Xml).expect("facade render failed");
-        let original_result =
-            original_render(&receipt, AnalysisFormat::Xml).expect("original render failed");
-
-        match (facade_result, original_result) {
-            (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
-                assert_eq!(f, o, "XML output mismatch between facade and original");
-            }
-            _ => panic!("Expected Text variant for XML format"),
-        }
-    }
-
-    /// Verify that facade render produces identical SVG output to original
-    #[test]
-    fn function_equivalence_svg_format() {
-        let receipt = minimal_receipt();
-
-        let facade_result =
-            facade_render(&receipt, AnalysisFormat::Svg).expect("facade render failed");
-        let original_result =
-            original_render(&receipt, AnalysisFormat::Svg).expect("original render failed");
-
-        match (facade_result, original_result) {
-            (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
-                assert_eq!(f, o, "SVG output mismatch between facade and original");
-            }
-            _ => panic!("Expected Text variant for SVG format"),
-        }
-    }
-
-    /// Verify that facade render produces identical Tree output to original
-    #[test]
-    fn function_equivalence_tree_format() {
-        let receipt = minimal_receipt();
-
-        let facade_result =
-            facade_render(&receipt, AnalysisFormat::Tree).expect("facade render failed");
-        let original_result =
-            original_render(&receipt, AnalysisFormat::Tree).expect("original render failed");
-
-        match (facade_result, original_result) {
-            (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
-                assert_eq!(f, o, "Tree output mismatch between facade and original");
-            }
-            _ => panic!("Expected Text variant for Tree format"),
-        }
-    }
-
-    /// Verify that facade render produces identical Markdown output to original
-    #[test]
-    fn function_equivalence_md_format() {
-        let receipt = minimal_receipt();
-
-        let facade_result =
-            facade_render(&receipt, AnalysisFormat::Md).expect("facade render failed");
-        let original_result =
-            original_render(&receipt, AnalysisFormat::Md).expect("original render failed");
-
-        match (facade_result, original_result) {
-            (FacadeOutput::Text(f), OriginalOutput::Text(o)) => {
-                assert_eq!(f, o, "Markdown output mismatch between facade and original");
-            }
-            _ => panic!("Expected Text variant for Markdown format"),
         }
     }
 
