@@ -18,13 +18,13 @@
 //!
 //! This crate should contain minimal business logic.
 
+#[cfg(feature = "analysis")]
+mod analysis_utils;
 mod commands;
 mod config;
 mod context_pack;
 mod error_hints;
 mod export_bundle;
-#[cfg(feature = "analysis")]
-mod analysis_utils;
 #[cfg(feature = "ui")]
 mod interactive;
 

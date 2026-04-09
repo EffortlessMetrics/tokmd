@@ -51,5 +51,7 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Baseline(args) => baseline::handle(args, global),
         cli::Commands::Handoff(args) => handoff::handle(args, global),
         cli::Commands::Sensor(args) => sensor::handle(args, global),
+        #[cfg(not(feature = "analysis"))]
+        _ => anyhow::bail!("analysis feature is not enabled"),
     }
 }
