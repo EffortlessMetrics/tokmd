@@ -1,0 +1,18 @@
+{
+  "summary": "Removed unused 'js' feature from 'uuid' dependency in tokmd-format",
+  "files_changed": [
+    "crates/tokmd-format/Cargo.toml"
+  ],
+  "gates_run": [
+    "cargo check -p tokmd-format",
+    "cargo test -p tokmd-format",
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd-format -- -D warnings"
+  ],
+  "telemetry": {
+    "change_shape": "Manifest modification",
+    "blast_radius": "dependencies",
+    "risk_class": "low",
+    "rollback": "revert Cargo.toml change"
+  }
+}

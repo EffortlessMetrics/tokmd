@@ -1,0 +1,6 @@
+{"command": "cargo tree -e features -p tokmd-format", "outcome": "Verified `uuid` uses `js` feature natively."}
+{"command": "patch Cargo.toml", "outcome": "Removed `js` feature from `uuid` in `crates/tokmd-format/Cargo.toml`."}
+{"command": "cargo check -p tokmd-format", "outcome": "Success. Compiled correctly."}
+{"command": "cargo test -p tokmd-format", "outcome": "Success. All 302 tests passed natively without the js feature."}
+{"command": "cargo fmt -- --check", "outcome": "Success."}
+{"command": "cargo clippy -p tokmd-format -- -D warnings", "outcome": "Success. No warnings."}
