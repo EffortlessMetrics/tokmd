@@ -1,3 +1,15 @@
+//! Analysis formatting utilities for the tokmd CLI.
+//!
+//! This module provides the bridge between analysis receipts (from `tokmd-analysis-types`)
+//! and formatted output. It uses the `tokmd_core::analysis_facade` to maintain tier
+//! boundary compliance — the CLI (Tier 5) does not directly depend on Tier 3 crates.
+//!
+//! ## Architecture Note
+//!
+//! Per ADR-001, all analysis formatting goes through the tokmd-core facade rather
+//! than directly importing tokmd-analysis-format. This ensures the product layer
+//! depends only on the facade (Tier 4) and contracts (Tier 0).
+
 use std::io::IsTerminal;
 use std::path::Path;
 
@@ -6,6 +18,8 @@ use tokmd_analysis as analysis;
 use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
+/// Re-exported from tokmd-core facade to maintain tier boundary compliance.
+/// See ADR-001 for the architectural rationale.
 use tokmd_core::analysis_facade::{RenderedOutput, render};
 
 pub(crate) fn child_include_to_string(mode: tokmd_types::ChildIncludeMode) -> String {

@@ -125,7 +125,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 | `tokmd-config` | Clap-backed CLI/config types plus configuration loading |
 | `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings |
 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
-| `tokmd-core` | Library facade with FFI layer |
+| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see ADR-001) |
 
 ### Tier 5: Products
 
@@ -140,8 +140,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 1. **Contracts MUST NOT depend on clap** — Keep `tokmd-types` and `tokmd-analysis-types` pure
 2. **Lower tiers MUST NOT depend on higher tiers** — No upward dependencies
-3. **Feature flags control optional adapters** — `git`, `walk`, `content` features
-4. **IO adapters depend on domain/contracts, never reverse**
+3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See ADR-001.
+4. **Feature flags control optional adapters** — `git`, `walk`, `content` features
+5. **IO adapters depend on domain/contracts, never reverse**
 
 ## Data Flow
 
