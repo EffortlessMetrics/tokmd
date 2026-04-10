@@ -271,15 +271,19 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
 }
 
 /// Detect available capabilities for the handoff.
+#[allow(unused_variables)]
 fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilityStatus> {
     let mut capabilities = Vec::new();
 
     // Check git availability
+    #[cfg(feature = "git")]
     let git_available = tokmd_git::git_cmd()
         .arg("--version")
         .output()
         .map(|o| o.status.success())
         .unwrap_or(false);
+    #[cfg(not(feature = "git"))]
+    let git_available = false;
 
     if args.no_git {
         capabilities.push(CapabilityStatus {
@@ -305,12 +309,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     #[cfg(feature = "git")]
     let in_repo = tokmd_git::repo_root(root).is_some();
     #[cfg(not(feature = "git"))]
-    let in_repo = tokmd_git::git_cmd()
-        .args(["rev-parse", "--git-dir"])
-        .current_dir(root)
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+    let in_repo = false;
 
     if args.no_git {
         capabilities.push(CapabilityStatus {
@@ -333,12 +332,15 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     }
 
     // Check for shallow clone
+    #[cfg(feature = "git")]
     let shallow = tokmd_git::git_cmd()
         .args(["rev-parse", "--is-shallow-repository"])
         .current_dir(root)
         .output()
         .map(|o| String::from_utf8_lossy(&o.stdout).trim() == "true")
         .unwrap_or(false);
+    #[cfg(not(feature = "git"))]
+    let shallow = false;
 
     if args.no_git || !in_repo {
         capabilities.push(CapabilityStatus {

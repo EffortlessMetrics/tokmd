@@ -1,4 +1,5 @@
 use std::path::Path;
+#[cfg(feature = "git")]
 use std::process::Stdio;
 
 use anyhow::Result;
@@ -43,6 +44,7 @@ struct CheckResult {
 
 #[derive(Clone)]
 enum IgnoreReason {
+    #[allow(dead_code)]
     Git {
         source: String,
         pattern: String,
@@ -118,6 +120,12 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
     })
 }
 
+#[cfg(not(feature = "git"))]
+fn check_git_ignore(_path: &Path, _verbose: bool) -> Option<IgnoreReason> {
+    None
+}
+
+#[cfg(feature = "git")]
 fn check_git_ignore(path: &Path, verbose: bool) -> Option<IgnoreReason> {
     // Try to use git check-ignore -v
     let output = tokmd_git::git_cmd()
@@ -175,6 +183,12 @@ fn check_git_ignore(path: &Path, verbose: bool) -> Option<IgnoreReason> {
     None
 }
 
+#[cfg(not(feature = "git"))]
+fn is_git_tracked(_path: &Path) -> bool {
+    false
+}
+
+#[cfg(feature = "git")]
 fn is_git_tracked(path: &Path) -> bool {
     tokmd_git::git_cmd()
         .args(["ls-files", "--error-unmatch", "--"])

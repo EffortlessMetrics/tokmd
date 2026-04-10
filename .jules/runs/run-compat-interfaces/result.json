@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "changed_files": [
+    "crates/tokmd/src/commands/check_ignore.rs",
+    "crates/tokmd/src/commands/handoff.rs"
+  ]
+}
