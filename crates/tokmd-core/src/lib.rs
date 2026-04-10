@@ -43,7 +43,7 @@
 //! use tokmd_core::ffi::run_json;
 //!
 //! let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
-//! let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+//! let parsed: serde_json::Value = serde_json::from_str(&result).expect("JSON response from FFI run_json must be well-formed");
 //! assert_eq!(parsed["ok"], true);
 //! ```
 
@@ -1197,9 +1197,9 @@ mod tests {
     #[cfg(feature = "analysis")]
     fn write_file(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).unwrap();
+            fs::create_dir_all(parent).expect("Test directory creation must succeed");
         }
-        fs::write(path, contents).unwrap();
+        fs::write(path, contents).expect("Test file write must succeed");
     }
 
     #[cfg(feature = "analysis")]
@@ -1322,13 +1322,15 @@ mod mutation_tests {
 
         for (input, expected) in &variants {
             // Test exact lowercase
-            let (preset, normalized) = parse_analysis_preset(input).unwrap();
+            let (preset, normalized) = parse_analysis_preset(input)
+                .expect("Test inputs to parse_analysis_preset must be statically valid presets");
             assert_eq!(preset, *expected, "Exact match failed for: {}", input);
             assert_eq!(normalized, *input, "Normalization failed for: {}", input);
 
             // Test uppercase (normalization)
             let upper = input.to_uppercase();
-            let (preset, normalized) = parse_analysis_preset(&upper).unwrap();
+            let (preset, normalized) = parse_analysis_preset(&upper)
+                .expect("Test inputs to parse_analysis_preset must be statically valid presets");
             assert_eq!(preset, *expected, "Uppercase match failed for: {}", upper);
             assert_eq!(
                 normalized, *input,
@@ -1338,7 +1340,8 @@ mod mutation_tests {
 
             // Test mixed case with whitespace (normalization)
             let mixed = format!("  {}  ", input);
-            let (preset, normalized) = parse_analysis_preset(&mixed).unwrap();
+            let (preset, normalized) = parse_analysis_preset(&mixed)
+                .expect("Test inputs to parse_analysis_preset must be statically valid presets");
             assert_eq!(preset, *expected, "Mixed case match failed for: {}", mixed);
             assert_eq!(
                 normalized, *input,
@@ -1505,14 +1508,16 @@ mod mutation_tests {
         // Kills mutations that remove .trim() or .to_ascii_lowercase()
 
         // Test trim removal
-        let (preset, _) = parse_analysis_preset("  receipt  ").unwrap();
+        let (preset, _) = parse_analysis_preset("  receipt  ")
+            .expect("Test inputs to parse_analysis_preset must be statically valid presets");
         assert_eq!(
             preset,
             tokmd_analysis::AnalysisPreset::Receipt,
             "Leading/trailing whitespace should be trimmed"
         );
 
-        let (preset, _) = parse_analysis_preset("\tHEALTH\n").unwrap();
+        let (preset, _) = parse_analysis_preset("\tHEALTH\n")
+            .expect("Test inputs to parse_analysis_preset must be statically valid presets");
         assert_eq!(
             preset,
             tokmd_analysis::AnalysisPreset::Health,
@@ -1520,14 +1525,16 @@ mod mutation_tests {
         );
 
         // Test to_ascii_lowercase removal
-        let (preset, _) = parse_analysis_preset("ReCeIpT").unwrap();
+        let (preset, _) = parse_analysis_preset("ReCeIpT")
+            .expect("Test inputs to parse_analysis_preset must be statically valid presets");
         assert_eq!(
             preset,
             tokmd_analysis::AnalysisPreset::Receipt,
             "Mixed case should be normalized to lowercase"
         );
 
-        let (preset, _) = parse_analysis_preset("ESTIMATE").unwrap();
+        let (preset, _) = parse_analysis_preset("ESTIMATE")
+            .expect("Test inputs to parse_analysis_preset must be statically valid presets");
         assert_eq!(
             preset,
             tokmd_analysis::AnalysisPreset::Estimate,
@@ -1535,7 +1542,8 @@ mod mutation_tests {
         );
 
         // Test combined trim + lowercase
-        let (preset, normalized) = parse_analysis_preset("  DeEp  ").unwrap();
+        let (preset, normalized) = parse_analysis_preset("  DeEp  ")
+            .expect("Test inputs to parse_analysis_preset must be statically valid presets");
         assert_eq!(preset, tokmd_analysis::AnalysisPreset::Deep);
         assert_eq!(normalized, "deep", "Should be trimmed and lowercased");
     }

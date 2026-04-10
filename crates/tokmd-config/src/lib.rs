@@ -1121,8 +1121,10 @@ mod tests {
             AnalysisPreset::Deep,
             AnalysisPreset::Fun,
         ] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: AnalysisPreset = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)
+                .expect("variant serialization cannot fail as it contains no complex nested state");
+            let back: AnalysisPreset = serde_json::from_str(&json)
+                .expect("Deserialization of just-serialized enum must succeed");
             assert_eq!(back, variant);
         }
     }
@@ -1135,8 +1137,10 @@ mod tests {
     #[test]
     fn diff_format_serde_roundtrip() {
         for variant in [DiffFormat::Md, DiffFormat::Json] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: DiffFormat = serde_json::from_str(&json).unwrap();
+            let json = serde_json::to_string(&variant)
+                .expect("variant serialization cannot fail as it contains no complex nested state");
+            let back: DiffFormat = serde_json::from_str(&json)
+                .expect("Deserialization of just-serialized enum must succeed");
             assert_eq!(back, variant);
         }
     }
@@ -1195,11 +1199,11 @@ mod tests {
     #[test]
     fn analysis_preset_uses_kebab_case() {
         assert_eq!(
-            serde_json::to_string(&AnalysisPreset::Receipt).unwrap(),
+            serde_json::to_string(&AnalysisPreset::Receipt).expect("AnalysisPreset::Receipt serialization cannot fail as it contains no complex nested state"),
             "\"receipt\""
         );
         assert_eq!(
-            serde_json::to_string(&AnalysisPreset::Deep).unwrap(),
+            serde_json::to_string(&AnalysisPreset::Deep).expect("AnalysisPreset::Deep serialization cannot fail as it contains no complex nested state"),
             "\"deep\""
         );
     }
@@ -1207,11 +1211,11 @@ mod tests {
     #[test]
     fn context_strategy_uses_kebab_case() {
         assert_eq!(
-            serde_json::to_string(&ContextStrategy::Greedy).unwrap(),
+            serde_json::to_string(&ContextStrategy::Greedy).expect("ContextStrategy::Greedy serialization cannot fail as it contains no complex nested state"),
             "\"greedy\""
         );
         assert_eq!(
-            serde_json::to_string(&ContextStrategy::Spread).unwrap(),
+            serde_json::to_string(&ContextStrategy::Spread).expect("ContextStrategy::Spread serialization cannot fail as it contains no complex nested state"),
             "\"spread\""
         );
     }
@@ -1219,7 +1223,7 @@ mod tests {
     #[test]
     fn value_metric_uses_kebab_case() {
         assert_eq!(
-            serde_json::to_string(&ValueMetric::Hotspot).unwrap(),
+            serde_json::to_string(&ValueMetric::Hotspot).expect("ValueMetric::Hotspot serialization cannot fail as it contains no complex nested state"),
             "\"hotspot\""
         );
     }
@@ -1239,8 +1243,10 @@ mod tests {
         );
         c.repos.insert("owner/repo".into(), "llm_safe".into());
 
-        let json = serde_json::to_string(&c).unwrap();
-        let back: UserConfig = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&c)
+            .expect("c serialization cannot fail as it contains no complex nested state");
+        let back: UserConfig = serde_json::from_str(&json)
+            .expect("Deserialization of just-serialized enum must succeed");
         assert_eq!(back.profiles.len(), 1);
         assert_eq!(back.repos.len(), 1);
         assert_eq!(back.profiles["llm_safe"].top, Some(10));

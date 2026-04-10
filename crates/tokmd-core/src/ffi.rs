@@ -58,7 +58,7 @@ use crate::{
 /// use tokmd_core::ffi::run_json;
 ///
 /// let result = run_json("lang", r#"{"paths": ["."], "top": 10}"#);
-/// let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+/// let parsed: serde_json::Value = serde_json::from_str(&result).expect("JSON response from FFI run_json must be well-formed");
 ///
 /// assert_eq!(parsed["ok"], true);
 /// assert!(parsed["data"].is_object());

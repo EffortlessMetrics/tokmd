@@ -1,0 +1,3 @@
+{"command": "python3 update_unwraps.py"}
+{"command": "cargo test -p tokmd-core -p tokmd-config"}
+{"command": "cargo xtask gate"}
