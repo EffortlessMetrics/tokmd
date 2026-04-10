@@ -1,3 +1,0 @@
-{"command": "cargo check -p tokmd --no-default-features", "status": "success"}
-{"command": "cargo test -p tokmd --all-features", "status": "success"}
-{"command": "cargo fmt -- --check", "status": "success"}

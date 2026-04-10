@@ -1,3 +1,5 @@
+#![allow(unused_imports, dead_code)]
+
 mod common;
 
 use assert_cmd::Command;
@@ -12,6 +14,7 @@ fn tokmd_cmd() -> Command {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_receipt_preset_json_smoke() {
     let output = tokmd_cmd()
         .arg("analyze")
@@ -42,6 +45,7 @@ fn analyze_receipt_preset_json_smoke() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_writes_json_to_output_dir() {
     let dir = tempdir().expect("should create temp dir");
     let out = dir.path();
@@ -73,6 +77,7 @@ fn analyze_writes_json_to_output_dir() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_explain_known_metric() {
     let output = tokmd_cmd()
         .arg("analyze")
@@ -93,6 +98,7 @@ fn analyze_explain_known_metric() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_explain_list() {
     let output = tokmd_cmd()
         .arg("analyze")
@@ -108,6 +114,7 @@ fn analyze_explain_list() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_explain_unknown_metric_fails() {
     let output = tokmd_cmd()
         .arg("analyze")
@@ -123,6 +130,7 @@ fn analyze_explain_unknown_metric_fails() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_fun_preset_returns_eco_label() {
     // Given: a fixture repository with a small baseline code footprint
     // When: analyze is run with --preset fun and json output
@@ -155,6 +163,7 @@ fn analyze_fun_preset_returns_eco_label() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn analyze_topics_preset_returns_topic_cloud() {
     // Given: the same fixture repository used by other analysis tests
     // When: analyze is run with --preset topics and json output
