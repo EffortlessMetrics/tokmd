@@ -37,9 +37,9 @@ fn hermetic_dir() -> tempfile::TempDir {
 /// Write a file into `dir`.
 fn write_file(dir: &std::path::Path, name: &str, body: &str) {
     if let Some(parent) = dir.join(name).parent() {
-        std::fs::create_dir_all(parent).unwrap();
+        std::fs::create_dir_all(parent).expect("Test fixture expectations must be infallible");
     }
-    std::fs::write(dir.join(name), body).unwrap();
+    std::fs::write(dir.join(name), body).expect("Test fixture expectations must be infallible");
 }
 
 /// Run tokmd with args, assert success, parse JSON.
@@ -426,7 +426,7 @@ fn given_same_input_when_lang_json_twice_then_rows_identical() {
     // When: run twice
     let run = || -> String {
         let json = run_json(dir.path(), &["lang", "--format", "json"]);
-        serde_json::to_string(&json["rows"]).unwrap()
+        serde_json::to_string(&json["rows"]).expect("Test fixture expectations must be infallible")
     };
 
     let first = run();
@@ -580,11 +580,10 @@ fn given_project_when_lang_tsv_then_tab_separated_header() {
 
 #[test]
 fn given_version_flag_when_run_then_semver_shown() {
-    tokmd()
-        .arg("--version")
-        .assert()
-        .success()
-        .stdout(predicate::str::is_match(r"\d+\.\d+\.\d+").unwrap());
+    tokmd().arg("--version").assert().success().stdout(
+        predicate::str::is_match(r"\d+\.\d+\.\d+")
+            .expect("Test fixture expectations must be infallible"),
+    );
 }
 
 // ===========================================================================
@@ -601,7 +600,8 @@ fn given_tools_openai_when_run_then_valid_schema_json() {
 
     // Then: valid JSON with functions key
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert!(json.get("functions").is_some(), "should have functions key");
 }
 
@@ -666,7 +666,9 @@ fn given_multiple_excludes_when_lang_then_all_patterns_applied() {
     );
 
     // Then: only JavaScript remains
-    let rows = json["rows"].as_array().unwrap();
+    let rows = json["rows"]
+        .as_array()
+        .expect("Test fixture expectations must be infallible");
     let langs: Vec<&str> = rows.iter().filter_map(|r| r["lang"].as_str()).collect();
     assert!(
         !langs.contains(&"Rust"),

@@ -30,7 +30,8 @@ fn given_nested_dirs_when_module_json_then_keys_use_forward_slashes() {
 
     // Then: module keys use forward slashes (path normalization)
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
     assert!(!rows.is_empty(), "should have at least one module");
 
@@ -58,9 +59,12 @@ fn given_project_when_depth_0_then_only_top_level_modules() {
 
     // Then: only top-level modules appear (no nested slashes)
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert_eq!(
-        json["module_depth"].as_u64().unwrap(),
+        json["module_depth"]
+            .as_u64()
+            .expect("Test fixture expectations must be infallible"),
         0,
         "module_depth should be 0"
     );
@@ -82,7 +86,7 @@ fn given_project_when_depth_0_then_only_top_level_modules() {
 #[test]
 fn given_single_file_project_when_module_then_one_entry() {
     // Given: a directory with a single source file
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Test fixture expectations must be infallible");
     std::fs::create_dir_all(dir.path().join(".git")).expect("create .git marker");
     std::fs::write(dir.path().join("main.rs"), "fn main() {}\n").expect("write main.rs");
 
@@ -96,7 +100,8 @@ fn given_single_file_project_when_module_then_one_entry() {
 
     // Then: exactly one module entry exists
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
     assert_eq!(rows.len(), 1, "single-file project should have one module");
 }
@@ -116,7 +121,8 @@ fn given_project_when_module_json_then_has_mode_and_total() {
 
     // Then: JSON has mode="module" and total object
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert_eq!(json["mode"], "module", "mode should be 'module'");
     assert!(json["total"].is_object(), "total should be present");
     assert!(
@@ -140,7 +146,8 @@ fn given_project_when_module_json_then_rows_have_expected_fields() {
 
     // Then: each row has module, code, lines fields
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
 
     for row in rows {
@@ -168,9 +175,12 @@ fn given_project_when_module_children_separate_then_mode_recorded() {
 
     // Then: the children mode is recorded in args
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert_eq!(
-        json["args"]["children"].as_str().unwrap(),
+        json["args"]["children"]
+            .as_str()
+            .expect("Test fixture expectations must be infallible"),
         "separate",
         "args should record children=separate"
     );
@@ -191,7 +201,8 @@ fn given_project_when_module_tsv_then_tab_separated() {
 
     // Then: output is tab-separated with header
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout =
+        String::from_utf8(output.stdout).expect("Test fixture expectations must be infallible");
     let lines: Vec<&str> = stdout.lines().collect();
     assert!(lines.len() >= 2, "need header + data");
 

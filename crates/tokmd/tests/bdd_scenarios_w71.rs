@@ -466,7 +466,8 @@ fn given_format_json_when_module_then_has_schema_version() {
         .args(["module", "--format", "json"])
         .output()
         .expect("run");
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert!(
         json["schema_version"].is_number(),
         "module JSON should have schema_version"
@@ -479,7 +480,8 @@ fn given_format_json_when_export_then_has_schema_version() {
         .args(["export", "--format", "json"])
         .output()
         .expect("run");
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert!(
         json["schema_version"].is_number(),
         "export JSON should have schema_version"
@@ -492,7 +494,8 @@ fn given_format_json_when_analyze_then_has_schema_version() {
         .args(["analyze", "--preset", "receipt", "--format", "json"])
         .output()
         .expect("run");
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert!(
         json["schema_version"].is_number(),
         "analyze JSON should have schema_version"

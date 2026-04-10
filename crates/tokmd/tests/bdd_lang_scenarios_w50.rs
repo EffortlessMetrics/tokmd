@@ -106,7 +106,8 @@ fn given_mixed_language_project_when_top_2_then_at_most_3_rows() {
 
     // Then: I get at most 2 primary rows plus an "Other" bucket
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
 
     assert!(!rows.is_empty(), "should have at least 1 row");
@@ -132,9 +133,12 @@ fn given_project_with_embedded_code_when_children_collapse_then_mode_recorded() 
 
     // Then: the children mode is recorded as "collapse" in args
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert_eq!(
-        json["args"]["children"].as_str().unwrap(),
+        json["args"]["children"]
+            .as_str()
+            .expect("Test fixture expectations must be infallible"),
         "collapse",
         "args should record children=collapse"
     );
@@ -165,9 +169,12 @@ fn given_project_when_children_separate_then_mode_recorded() {
 
     // Then: the children mode is recorded as "separate"
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert_eq!(
-        json["args"]["children"].as_str().unwrap(),
+        json["args"]["children"]
+            .as_str()
+            .expect("Test fixture expectations must be infallible"),
         "separate",
         "args should record children=separate"
     );
@@ -188,7 +195,8 @@ fn given_project_when_lang_tsv_then_tab_separated_with_header() {
 
     // Then: output has tab-separated columns with a header row
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout =
+        String::from_utf8(output.stdout).expect("Test fixture expectations must be infallible");
     let lines: Vec<&str> = stdout.lines().collect();
 
     assert!(lines.len() >= 2, "need header + at least one data row");
@@ -233,7 +241,8 @@ fn given_project_when_lang_json_then_rows_have_expected_fields() {
 
     // Then: each row has lang, code, lines, blanks, comments fields
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
     assert!(!rows.is_empty());
 
@@ -261,7 +270,8 @@ fn given_project_when_lang_json_then_has_tool_and_args_metadata() {
 
     // Then: output contains tool and args metadata
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     assert!(json["tool"].is_object(), "should have tool metadata");
     assert!(json["args"].is_object(), "should have args metadata");
     assert!(
@@ -285,7 +295,8 @@ fn given_project_when_lang_md_then_markdown_table_output() {
 
     // Then: output contains a markdown table with pipe delimiters
     assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout =
+        String::from_utf8(output.stdout).expect("Test fixture expectations must be infallible");
     assert!(
         stdout.contains('|'),
         "markdown output should contain pipe characters"
@@ -313,7 +324,8 @@ fn given_rust_project_when_lang_json_then_rust_detected() {
 
     // Then: Rust appears in the rows
     assert!(output.status.success());
-    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let json: Value = serde_json::from_slice(&output.stdout)
+        .expect("Test fixture expectations must be infallible");
     let rows = json["rows"].as_array().expect("rows should be array");
     let has_rust = rows.iter().any(|r| r["lang"].as_str() == Some("Rust"));
     assert!(has_rust, "should detect Rust in fixture project");
