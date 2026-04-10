@@ -1,0 +1,1 @@
+{"command": "grep -rni \"env::var\" crates/tokmd/src", "status": "success", "output": "Found multiple uses of std::env::var. However, env::var does not panic on invalid Unicode, it returns Err(NotUnicode). No honest boundary hardening targets found in shard."}
