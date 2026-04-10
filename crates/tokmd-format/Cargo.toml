@@ -24,7 +24,7 @@ tokmd-settings.workspace = true
 tokmd-types.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-uuid = { version = "1.22", features = ["js"] }
+uuid = { version = "1.22", features = ["v4", "js"] }
 
 [dev-dependencies]
 proptest.workspace = true
