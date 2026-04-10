@@ -12,7 +12,7 @@ categories = ["development-tools", "data-structures"]
 documentation = "https://docs.rs/tokmd-envelope"
 
 [dependencies]
-blake3 = "1.8.3"
+blake3 = "1.8.4"
 serde.workspace = true
 serde_json.workspace = true
 
