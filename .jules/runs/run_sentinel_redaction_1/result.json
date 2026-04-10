@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "test_results": {
+    "total_run": "cargo test -p tokmd-format",
+    "passed": true
+  },
+  "gates_run": [
+    "cargo test -p tokmd-format",
+    "cargo clippy -p tokmd-format -- -D warnings",
+    "cargo fmt"
+  ]
+}
