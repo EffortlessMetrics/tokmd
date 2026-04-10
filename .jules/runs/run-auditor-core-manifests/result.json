@@ -1,0 +1,11 @@
+{
+  "outcome": "patch",
+  "gates_run": [
+    "cargo check -p tokmd-format",
+    "cargo clippy -- -D warnings",
+    "cargo test -p tokmd-format",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
+    "cargo fmt -- --check"
+  ]
+}

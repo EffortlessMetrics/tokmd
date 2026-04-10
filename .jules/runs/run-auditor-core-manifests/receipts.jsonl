@@ -1,0 +1,8 @@
+{"command": "mkdir -p .jules/runs/run-auditor-core-manifests", "exit_code": 0}
+{"command": "cargo tree -e features -p tokmd-format", "exit_code": 0}
+{"command": "sed -i 's/\"v4\", \"js\"/\"v4\"/g' crates/tokmd-format/Cargo.toml", "exit_code": 0}
+{"command": "cargo test -p tokmd-format", "exit_code": 0}
+{"command": "cargo clippy -- -D warnings", "exit_code": 0}
+{"command": "cargo xtask version-consistency", "exit_code": 0}
+{"command": "cargo xtask publish --plan --verbose", "exit_code": 0}
+{"command": "cargo fmt -- --check", "exit_code": 0}
