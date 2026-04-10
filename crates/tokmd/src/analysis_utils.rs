@@ -1,12 +1,26 @@
+//! Analysis formatting utilities for the tokmd CLI.
+//!
+//! This module provides the bridge between analysis receipts (from `tokmd-analysis-types`)
+//! and formatted output. It uses the `tokmd_core::analysis_facade` to maintain tier
+//! boundary compliance — the CLI (Tier 5) does not directly depend on Tier 3 crates.
+//!
+//! ## Architecture Note
+//!
+//! Per ADR-001, all analysis formatting goes through the tokmd-core facade rather
+//! than directly importing tokmd-analysis-format. This ensures the product layer
+//! depends only on the facade (Tier 4) and contracts (Tier 0).
+
 use std::io::IsTerminal;
 use std::path::Path;
 
 use anyhow::Result;
 use tokmd_analysis as analysis;
-use tokmd_analysis_format as analysis_format;
 use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
+/// Re-exported from tokmd-core facade to maintain tier boundary compliance.
+/// See ADR-001 for the architectural rationale.
+use tokmd_core::analysis_facade::{RenderedOutput, render};
 
 pub(crate) fn child_include_to_string(mode: tokmd_types::ChildIncludeMode) -> String {
     match mode {
@@ -88,13 +102,13 @@ pub(crate) fn write_analysis_output(
     output_dir: &Path,
     format: tokmd_types::AnalysisFormat,
 ) -> Result<()> {
-    let rendered = analysis_format::render(receipt, format)?;
+    let rendered = render(receipt, format)?;
     let out_path = output_dir.join(analysis_output_filename(format));
     match rendered {
-        analysis_format::RenderedOutput::Text(text) => {
+        RenderedOutput::Text(text) => {
             std::fs::write(&out_path, text)?;
         }
-        analysis_format::RenderedOutput::Binary(bytes) => {
+        RenderedOutput::Binary(bytes) => {
             std::fs::write(&out_path, bytes)?;
         }
     }
@@ -105,12 +119,12 @@ pub(crate) fn write_analysis_stdout(
     receipt: &analysis_types::AnalysisReceipt,
     format: tokmd_types::AnalysisFormat,
 ) -> Result<()> {
-    let rendered = analysis_format::render(receipt, format)?;
+    let rendered = render(receipt, format)?;
     match rendered {
-        analysis_format::RenderedOutput::Text(text) => {
+        RenderedOutput::Text(text) => {
             print!("{}", text);
         }
-        analysis_format::RenderedOutput::Binary(bytes) => {
+        RenderedOutput::Binary(bytes) => {
             if std::io::stdout().is_terminal() {
                 anyhow::bail!(
                     "Refusing to write binary output (format: {:?}) to a terminal to prevent rendering garbage characters. Please redirect stdout to a file (e.g., `> output.bin`) or specify an output directory.",

@@ -26,8 +26,9 @@ exclude = [
 ]
 
 [features]
-default = ["git", "walk", "content", "ui", "fun", "topics", "archetype"]
+default = ["git", "walk", "content", "ui", "fun", "topics", "archetype", "analysis"]
 alias-tok = []
+analysis = ["tokmd-core/analysis"]
 git = [
     "tokmd-analysis/git",
     "dep:tokmd-git",
@@ -37,7 +38,7 @@ git = [
 ]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
-fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
+fun = ["tokmd-analysis/fun", "tokmd-core/fun"]
 topics = ["tokmd-analysis/topics"]
 archetype = ["tokmd-analysis/archetype"]
 ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
@@ -56,9 +57,9 @@ anyhow.workspace = true
 clap = { version = "4.6.0", features = ["derive"] }
 tokmd-analysis = { workspace = true }
 tokmd-analysis-explain.workspace = true
-tokmd-analysis-format = { workspace = true }
 tokmd-analysis-types.workspace = true
 tokmd-analysis-grid.workspace = true
+tokmd-core.workspace = true
 tokmd-badge.workspace = true
 tokmd-config.workspace = true
 tokmd-model.workspace = true

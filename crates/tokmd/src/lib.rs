@@ -18,6 +18,7 @@
 //!
 //! This crate should contain minimal business logic.
 
+#[cfg(feature = "analysis")]
 mod analysis_utils;
 mod commands;
 mod config;
