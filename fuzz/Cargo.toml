@@ -85,10 +85,10 @@ exclude = ["dep:tokmd-exclude"]
 # Targets: fuzz_context_policy
 context_policy = ["dep:tokmd-context-policy", "dep:tokmd-types"]
 
-# Configuration file parsing (tokmd-config)
+# Configuration file parsing (tokmd-settings)
 # Targets: fuzz_toml_config
 # Needs serde_json and toml for round-trip testing
-config = ["dep:tokmd-config", "dep:serde_json", "dep:toml"]
+config = ["dep:tokmd-settings", "dep:serde_json", "dep:toml"]
 
 # Policy engine (tokmd-gate)
 # Targets: fuzz_policy_toml, fuzz_json_pointer, fuzz_policy_evaluate
