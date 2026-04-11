@@ -1,3 +1,5 @@
+#![allow(clippy::single_match)]
+#![allow(clippy::assertions_on_constants)]
 //! Python bindings for tokmd.
 //!
 //! This module provides PyO3-based Python bindings for the tokmd code analysis library.
