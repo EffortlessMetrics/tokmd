@@ -1,0 +1,4 @@
+{"cmd": "cargo check -p tokmd-fuzz --features config", "result": "error: target fuzz_toml_config requires the features: config"}
+{"cmd": "cargo check -p tokmd-fuzz --features config", "result": "error: failed to resolve use tokmd_config::TomlConfig"}
+{"cmd": "sed -i ...", "result": "Updated Cargo.toml and fuzz_toml_config.rs"}
+{"cmd": "cargo check -p tokmd-fuzz --all-features", "result": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.45s"}

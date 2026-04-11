@@ -3849,7 +3849,6 @@ dependencies = [
  "serde_json",
  "tokmd-analysis-imports",
  "tokmd-badge",
- "tokmd-config",
  "tokmd-content",
  "tokmd-context-policy",
  "tokmd-core",
