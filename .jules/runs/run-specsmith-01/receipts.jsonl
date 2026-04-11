@@ -1,0 +1,2 @@
+{"command": "cargo run -- frobnicate 2> stderr.txt", "output": "Error: Path not found: frobnicate\n\nHints:\n- Verify the input path exists and is readable.\n- Use an absolute path to avoid working-directory confusion.\n- If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`."}
+{"command": "cargo test -p tokmd --test cli_error_unknown_subcommand_specsmith", "output": "running 1 test\ntest test_unknown_subcommand_exact_error_message ... ok"}

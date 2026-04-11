@@ -1,0 +1,7 @@
+{
+  "outcome": "patch",
+  "files_changed": [
+    "crates/tokmd/tests/cli_error_unknown_subcommand_specsmith.rs"
+  ],
+  "reasoning": "Adding a new integration test to lock in the exact stderr output of the unknown subcommand edge case. Since default subcommands can absorb unknown text as paths, we must verify the exact hint text handles both 'missing path' and 'typo subcommand'."
+}
