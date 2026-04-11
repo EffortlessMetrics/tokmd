@@ -1,0 +1,7 @@
+{
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    "crates/tokmd-format/Cargo.toml"
+  ],
+  "reason": "Removed unconditional 'js' feature from uuid dependency to prevent wasm-bindgen transitives on native targets, restricting it only to wasm32 targets."
+}
