@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd-analysis-api-surface/tests/properties_w60.rs"
+  ],
+  "gates_run": [
+    "cargo test -p tokmd-analysis-api-surface properties_w60"
+  ]
+}

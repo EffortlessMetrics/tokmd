@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-analysis-api-surface properties_w60", "outcome": "Success, proved extraction counts correctly sum up total and public items from generated permutations."}
+{"command": "cargo test --test properties_w60", "outcome": "Success."}
