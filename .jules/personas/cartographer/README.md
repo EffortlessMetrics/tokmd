@@ -17,7 +17,3 @@ Require factual drift or a real missing explanatory surface. Prefer updates that
 
 ## Anti-drift rules
 Do not write strategy theater.
-
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

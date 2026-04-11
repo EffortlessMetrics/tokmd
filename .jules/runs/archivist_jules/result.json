@@ -1,0 +1,17 @@
+{
+  "outcome_type": "patch",
+  "title": "archivist: consolidate duplicated notes from persona READMEs into shared root README 🗃️",
+  "summary": "Moved the identical `## Notes` section from 16 different `.jules/personas/*/README.md` files into the shared `.jules/README.md`. This removes redundant boilerplate across all personas while keeping the structural guidance intact.",
+  "target_paths": [
+    ".jules/README.md",
+    ".jules/personas/*/README.md"
+  ],
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo fmt -- --check"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Revert the commit touching .jules/ READMEs.",
+  "follow_ups": []
+}

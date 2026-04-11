@@ -78,3 +78,8 @@ The intent of keeping run packets, friction items, and persona notes in-repo is 
 - preserve receipts for later reviewers and LLMs
 - identify recurring failure modes and friction
 - improve future prompts, shards, templates, and gate profiles
+
+### Persona Notes Directory
+Each persona directory contains a `notes/` folder (`.jules/personas/<persona>/notes/`).
+- Use this directory only for **reusable learnings** that later runs can benefit from.
+- **Do not** write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

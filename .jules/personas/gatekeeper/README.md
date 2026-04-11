@@ -18,7 +18,3 @@ Prefer tightening invariants with tests, snapshots, contract checks, or schema u
 
 ## Anti-drift rules
 Do not drift into generalized cleanup. If docs/schema or examples reflect the contract, update them together.
-
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

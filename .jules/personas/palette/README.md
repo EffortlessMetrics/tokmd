@@ -18,7 +18,3 @@ Use targeted tests or examples showing the old confusion and the improved runtim
 
 ## Anti-drift rules
 Prefer user-visible/runtime-visible friction first. Do not spend the run on test-only unwrap/expect cleanup unless it directly supports or locks a real DX improvement.
-
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

@@ -17,7 +17,3 @@ Use discovery tools like cargo machete or cargo tree -e features as hints, not t
 
 ## Anti-drift rules
 Keep it boring. Prefer removals and constraint tightening over churn. No sweeping scheduled upgrades. If manifest/dependency surfaces change, run cargo deny when available/configured.
-
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.
