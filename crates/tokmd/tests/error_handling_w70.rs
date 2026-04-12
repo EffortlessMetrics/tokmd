@@ -156,7 +156,7 @@ fn unknown_subcommand_fails_with_stderr() {
         .arg("nonexistent_subcommand_w70")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found: nonexistent_subcommand_w70"));
 }
 
 // ===========================================================================
@@ -188,7 +188,7 @@ fn error_messages_go_to_stderr_for_unknown_subcommand() {
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        !stderr.is_empty(),
+        stderr.contains("Path not found: bogus_cmd_w70"),
         "stderr should contain error for unknown subcommand"
     );
 }
