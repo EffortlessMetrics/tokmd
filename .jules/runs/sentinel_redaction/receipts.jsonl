@@ -1,3 +1,0 @@
-{"command": "grep -rn 'redact' crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format", "status": "success"}
-{"command": "cat crates/tokmd-core/src/ffi.rs", "status": "success"}
-{"command": "cargo test ffi_w43", "status": "success"}
