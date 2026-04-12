@@ -1,0 +1,5 @@
+{"cmd": "grep -r -n \"\\.sort_by\" crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format crates/tokmd/tests", "exit_code": 0}
+{"cmd": "grep -n -B 2 -A 2 \"\\.then(\" crates/tokmd-model/tests/proptest_deep.rs", "exit_code": 0}
+{"cmd": "replace_with_git_merge_diff crates/tokmd-model/tests/proptest_deep.rs", "exit_code": 0}
+{"cmd": "cargo test -p tokmd-model", "exit_code": 0}
+{"cmd": "cargo clippy -p tokmd-model -- -D warnings", "exit_code": 0}
