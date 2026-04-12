@@ -1,0 +1,4 @@
+{"cmd": "grep -n \"serde_json::from_str\" crates/tokmd-core/src/ffi.rs", "status": "success", "summary": "Found that FFI json entrypoints do not verify if parsed JSON is an object."}
+{"cmd": "cargo test -p tokmd-core --test ffi_scalar_panic", "status": "success", "summary": "Reproduced that arbitrary scalars parsed from JSON without being checked."}
+{"cmd": "patch crates/tokmd-core/src/ffi.rs", "status": "success", "summary": "Added a hard validation check `args.is_object()` in `run_json_inner`."}
+{"cmd": "cargo test -p tokmd-core", "status": "success", "summary": "Ran all tests. Validated that scalar panic tests pass and correctly reject invalid inputs."}

@@ -74,6 +74,9 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Parse common scan settings from the JSON
     let args: Value = serde_json::from_str(args_json)?;
+    if !args.is_object() {
+        return Err(TokmdError::invalid_field("args", "a JSON object"));
+    }
     let inputs = parse_in_memory_inputs(&args)?;
 
     // Extract scan settings (shared by all modes)
