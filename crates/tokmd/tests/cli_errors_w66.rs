@@ -257,7 +257,9 @@ fn unknown_subcommand_produces_helpful_error() {
         .arg("not-a-real-command")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Path not found: not-a-real-command"));
+        .stderr(predicate::str::contains(
+            "Path not found: not-a-real-command",
+        ));
 }
 
 #[test]
