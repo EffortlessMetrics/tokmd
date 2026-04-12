@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc c025f594142f64c8334091935b42c6cc0d3ac71aa37816e824bd0696c7b78acc # shrinks to field = "max_rows", invalid_value = "a"
+cc 1ef6ee3eb73305c3a98a1870cf44f630e8cbefae57a37e2b6073e2c90c33d16b # shrinks to invalid_json = "0"
