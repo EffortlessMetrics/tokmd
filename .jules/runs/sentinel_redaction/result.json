@@ -1,0 +1,5 @@
+{
+  "status": "learning_pr",
+  "friction_items": ["ffi_json_scalar_panic.md"],
+  "persona_notes": ["ffi_boundary_checks.md"]
+}
