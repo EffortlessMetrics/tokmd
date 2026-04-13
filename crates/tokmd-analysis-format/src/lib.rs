@@ -1302,6 +1302,112 @@ mod tests {
 
     // Test render_md with predictive churn empty
     #[test]
+    fn test_render_md_churn_deterministic_tiebreak() {
+        use std::collections::BTreeMap;
+
+        let mut receipt = minimal_receipt();
+        let mut per_module = BTreeMap::new();
+        per_module.insert(
+            "z_module".to_string(),
+            tokmd_analysis_types::ChurnTrend {
+                slope: -0.5,
+                r2: 0.8,
+                recent_change: 5,
+                classification: tokmd_analysis_types::TrendClass::Rising,
+            },
+        );
+        per_module.insert(
+            "a_module".to_string(),
+            tokmd_analysis_types::ChurnTrend {
+                slope: -0.5,
+                r2: 0.8,
+                recent_change: 5,
+                classification: tokmd_analysis_types::TrendClass::Rising,
+            },
+        );
+        receipt.predictive_churn = Some(tokmd_analysis_types::PredictiveChurnReport { per_module });
+
+        let result = render_md(&receipt);
+        let a_idx = result.find("|a_module|-0.5000|0.80|5|Rising|").unwrap();
+        let z_idx = result.find("|z_module|-0.5000|0.80|5|Rising|").unwrap();
+        assert!(
+            a_idx < z_idx,
+            "a_module should appear before z_module for identical slopes"
+        );
+    }
+
+    #[test]
+    fn test_render_md_maintenance_deterministic_tiebreak() {
+        let mut receipt = minimal_receipt();
+        receipt.git = Some(tokmd_analysis_types::GitReport {
+            commits_scanned: 10,
+            files_seen: 10,
+            hotspots: vec![],
+            bus_factor: vec![],
+            freshness: tokmd_analysis_types::FreshnessReport {
+                threshold_days: 90,
+                stale_files: 0,
+                total_files: 0,
+                stale_pct: 0.0,
+                by_module: vec![],
+            },
+            age_distribution: None,
+            coupling: vec![],
+            intent: Some(tokmd_analysis_types::CommitIntentReport {
+                overall: tokmd_analysis_types::CommitIntentCounts::default(),
+                by_module: vec![
+                    tokmd_analysis_types::ModuleIntentRow {
+                        module: "z_module".to_string(),
+                        counts: tokmd_analysis_types::CommitIntentCounts {
+                            total: 10,
+                            feat: 0,
+                            fix: 5,
+                            refactor: 0,
+                            chore: 0,
+                            revert: 0,
+                            docs: 0,
+                            test: 0,
+                            ci: 0,
+                            build: 0,
+                            perf: 0,
+                            style: 0,
+                            other: 0,
+                        },
+                    },
+                    tokmd_analysis_types::ModuleIntentRow {
+                        module: "a_module".to_string(),
+                        counts: tokmd_analysis_types::CommitIntentCounts {
+                            total: 10,
+                            feat: 0,
+                            fix: 5,
+                            refactor: 0,
+                            chore: 0,
+                            revert: 0,
+                            docs: 0,
+                            test: 0,
+                            ci: 0,
+                            build: 0,
+                            perf: 0,
+                            style: 0,
+                            other: 0,
+                        },
+                    },
+                ],
+                unknown_pct: 0.0,
+                corrective_ratio: Some(0.0),
+            }),
+        });
+
+        let result = render_md(&receipt);
+        let a_idx = result.find("|a_module|5|10|50.0%|").unwrap();
+        let z_idx = result.find("|z_module|5|10|50.0%|").unwrap();
+        assert!(
+            a_idx < z_idx,
+            "a_module should appear before z_module for identical maintenance shares"
+        );
+    }
+
+    #[test]
     fn test_render_md_churn_empty() {
         use std::collections::BTreeMap;
         let mut receipt = minimal_receipt();
