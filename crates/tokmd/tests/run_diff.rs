@@ -691,11 +691,7 @@ fn test_run_redact_all_hides_module_roots_in_artifacts() {
 
     let proprietary_module = dir.path().join("proprietary_module");
     fs::create_dir_all(&proprietary_module).unwrap();
-    fs::write(
-        proprietary_module.join("secret.rs"),
-        "fn secret() {}\n",
-    )
-    .unwrap();
+    fs::write(proprietary_module.join("secret.rs"), "fn secret() {}\n").unwrap();
 
     let mut cmd: Command = cargo_bin_cmd!("tokmd");
     cmd.current_dir(dir.path())

@@ -359,7 +359,9 @@ fn recipe_check_ignore_verbose() {
         .arg("node_modules/lodash/index.js")
         .assert()
         .success()
-        .stdout(predicate::str::contains("node_modules/lodash/index.js: ignored"))
+        .stdout(predicate::str::contains(
+            "node_modules/lodash/index.js: ignored",
+        ))
         .stdout(predicate::str::contains(".tokeignore: node_modules/**"));
 }
 
