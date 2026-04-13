@@ -23,6 +23,34 @@ fn given_canonical_key_when_lookup_then_returns_explanation() {
 }
 
 #[test]
+fn given_key_metrics_when_lookup_then_mentions_core_concepts() {
+    let cases = [
+        ("whitespace_ratio", "blank lines"),
+        ("test_density", "test files"),
+        ("todo_density", "TODO/FIXME/HACK/XXX"),
+        ("polyglot_entropy", "Language distribution entropy"),
+        ("gini", "Inequality of file sizes"),
+        ("avg_cyclomatic", "branching complexity"),
+        ("avg_cognitive", "human understandability cost"),
+        ("maintainability_index", "maintainability score"),
+        ("predictive_churn", "Trend model of module change velocity"),
+        ("duplicate_waste", "Redundant bytes"),
+        ("imports", "dependency edges across files/modules"),
+        ("entropy_suspects", "suspiciously high entropy"),
+        ("license_radar", "Heuristic SPDX/license"),
+        ("context_window_fit", "Estimated token fit"),
+    ];
+
+    for (key, concept) in cases {
+        let text = lookup(key).expect("key should resolve");
+        assert!(
+            text.contains(concept),
+            "explanation for '{key}' should mention '{concept}', got: {text}"
+        );
+    }
+}
+
+#[test]
 fn given_every_canonical_key_when_lookup_then_all_resolve() {
     let canonical_keys = [
         "doc_density",
