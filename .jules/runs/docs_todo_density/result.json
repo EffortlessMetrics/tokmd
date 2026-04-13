@@ -1,0 +1,5 @@
+{
+  "status": "abandoned",
+  "reason": "Docstring-only wording tweak in the Node typings with no durable product or governance delta.",
+  "friction_id": "docs_todo_density"
+}

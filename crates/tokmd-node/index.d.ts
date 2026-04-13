@@ -224,7 +224,7 @@ export interface DerivedMetrics {
     team_size: number;
     cost_usd: number;
   };
-  /** Density metrics for TODOs */
+  /** TODO density metrics */
   todo_density?: {
     total_todos: number;
     density_per_kloc: number;
