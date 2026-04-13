@@ -20,3 +20,6 @@ Prefer reproducing the failing mode first and then proving the repaired mode. If
 ## Anti-drift rules
 Keep the change matrix-focused. Do not change public behavior unless required and documented.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

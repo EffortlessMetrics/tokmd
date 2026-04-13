@@ -18,3 +18,6 @@ Require factual drift, missing executable coverage, or a clearly misleading omis
 ## Anti-drift rules
 Do not land tone-only prose rewrites.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

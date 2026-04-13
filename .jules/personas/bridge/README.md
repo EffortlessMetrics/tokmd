@@ -18,3 +18,6 @@ Prefer small cross-surface proofs: one behavior, two surfaces. If the best next 
 ## Anti-drift rules
 Do not drift into generic compatibility work that belongs to Compat.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

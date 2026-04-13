@@ -19,3 +19,6 @@ Prefer benchmark or timing proof when a stable harness exists. Otherwise use exp
 ## Anti-drift rules
 Do not land cleanup without a performance story. Do not optimize trivia when a larger coherent win is available. Preserve output determinism and public behavior unless explicitly justified.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

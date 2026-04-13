@@ -18,3 +18,6 @@ Use architecture reasoning plus targeted tests/build receipts. Large focused ref
 ## Anti-drift rules
 Do not drift into generic cleanup.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

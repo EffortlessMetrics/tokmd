@@ -18,3 +18,6 @@ Use release/governance checks as receipts. Favor low-risk, high-confidence work.
 ## Anti-drift rules
 Avoid broad code changes unless directly required.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.
