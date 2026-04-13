@@ -25,6 +25,7 @@ mod config;
 mod context_pack;
 mod error_hints;
 mod export_bundle;
+mod git_support;
 #[cfg(feature = "ui")]
 mod interactive;
 
