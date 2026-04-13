@@ -504,8 +504,7 @@ fn analyze(
 ///     >>> import tokmd
 ///     >>> result = tokmd.diff(from_path="old_receipt.json", to_path="new_receipt.json")
 ///     >>> print(f"Total delta: {result['totals']['delta_code']} lines")
-#[cfg_attr(not(test), pyfunction)]
-#[pyo3(signature = (from_path=None, to_path=None))]
+#[cfg_attr(not(test), pyfunction(signature = (from_path=None, to_path=None)))]
 fn diff(py: Python<'_>, from_path: Option<&str>, to_path: Option<&str>) -> PyResult<PyObject> {
     let args = PyDict::new(py);
     if let Some(f) = from_path {
