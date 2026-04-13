@@ -85,7 +85,12 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
         .get("message")
         .and_then(Value::as_str)
         .unwrap_or("Unknown error");
-    format!("[{code}] {message}")
+
+    if let Some(details) = error_obj.get("details").and_then(Value::as_str) {
+        format!("[{code}] {message}: {details}")
+    } else {
+        format!("[{code}] {message}")
+    }
 }
 
 /// Extract `data` from an already-parsed envelope.
@@ -220,6 +225,20 @@ mod tests {
         );
         assert_eq!(format_error_message(None), "Unknown error");
         assert_eq!(format_error_message(Some(&json!("boom"))), "Unknown error");
+    }
+
+    #[test]
+    fn format_error_message_includes_string_details_when_present() {
+        let err = json!({
+            "code": "invalid_settings",
+            "message": "Invalid value for 'from': expected a string",
+            "details": "Check the spelling."
+        });
+
+        assert_eq!(
+            format_error_message(Some(&err)),
+            "[invalid_settings] Invalid value for 'from': expected a string: Check the spelling."
+        );
     }
 
     #[test]
