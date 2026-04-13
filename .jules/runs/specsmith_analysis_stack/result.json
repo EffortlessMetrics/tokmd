@@ -1,8 +1,7 @@
 {
-  "outcome": "PR-ready patch",
+  "outcome": "learning PR",
   "files_modified": [
-    "crates/tokmd-analysis-types/src/lib.rs",
-    "crates/tokmd-analysis-types/tests/baseline_fallback.rs"
+    ".jules/friction/open/specsmith_baseline_fallback_obsolete.md"
   ],
   "gates_run": [
     "cargo test -p tokmd-analysis-types",

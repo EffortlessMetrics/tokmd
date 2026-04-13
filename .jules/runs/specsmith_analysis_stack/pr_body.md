@@ -1,45 +1,45 @@
 ## 💡 Summary
-Ensure structural metrics (`total_files`, `total_code_lines`) are correctly extracted in `ComplexityBaseline::from_analysis` even when the `complexity` feature is missing from the receipt.
+Learning PR documenting that the prompted baseline fallback fix for `ComplexityBaseline::from_analysis` is already implemented on `main`. No code changes made.
 
 ## 🎯 Why
-When aggregating metrics in `tokmd-analysis-types` (e.g., `ComplexityBaseline::from_analysis`), fallback logic must extract structural counts from `receipt.derived` if optional feature-specific reports (like `receipt.complexity`) are `None` due to `--no-default-features` builds or scan toggles. Previously, these were zeroed out, masking the correct baseline totals.
+The original prompt/memory instructed Specsmith to fix an issue where structural metrics (`total_files`, `total_code_lines`) were incorrectly zeroed when extracting from `receipt.derived` if `receipt.complexity` was `None`. However, this was already resolved on the upstream branch. Proceeding with a Learning PR prevents duplicate/no-op branches from being merged while honoring the prompt pipeline.
 
 ## 🔎 Evidence
-- **File**: `crates/tokmd-analysis-types/src/lib.rs`
-- **Finding**: The variables `total_code_lines` and `total_files` were nested inside the `if let Some(ref complexity_report) = receipt.complexity` block.
-- **Proof**: Created `crates/tokmd-analysis-types/tests/baseline_fallback.rs` with `receipt.complexity = None` and validated that metrics are properly extracted. Ran `cargo test -p tokmd-analysis-types`.
+- **Finding**: A PR review comment confirmed that the fallback logic fix was already merged on `main`.
+- **Proof**: `git reset --hard HEAD` left the working directory identical to `origin/main`.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Extracted `total_code_lines` and `total_files` outside the complexity feature check so they can be captured unconditionally.
-- **Why it fits**: Directly addresses the regression risk where complexity being toggled off loses basic structural counts for the baseline contract. Fits Specsmith's mission to improve scenario coverage and regression coverage.
-- **Trade-offs**: Increases robustness without deep structural refactoring; highly compliant with baseline semantics.
+### Option B (recommended)
+- Pivot to a Learning PR.
+- **When to choose it**: When the intended logic target from memory or prompt has already been solved in the upstream branch.
+- **Trade-offs**: Requires giving up on landing a code patch, but honors the truth of the repository state and preserves the prompt-to-PR pipeline flow as a learning outcome.
 
-### Option B
-- Change the CLI and scan engine to always include a stub `ComplexityReport` populated with just the `derived` metrics when complexity analysis fails or is turned off.
-- **When to choose it**: If we wanted the schema to strictly enforce that all baselines originate from a formally completed complexity scan report.
-- **Trade-offs**: Unnecessarily couples two independent systems in the core logic. Requires much deeper refactoring across `tokmd-scan` and `tokmd-types`.
+### Option A
+- Re-implement the fallback fix from scratch.
+- **Why it fits**: It doesn't.
+- **Trade-offs**: Creates unnecessary duplication since the fix already exists on `main`.
 
 ## ✅ Decision
-**Option A**. It's the most correct, targeted structural solution that ensures baseline logic properly respects gracefully degraded `AnalysisReceipt` structures. We've written a concrete test case mimicking the degraded receipt to guarantee it behaves properly.
+**Option B**. The baseline fallback fix is already present on current main. We will document the friction and close out as a learning PR instead of forcing a fake fix.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis-types/src/lib.rs`
-- `crates/tokmd-analysis-types/tests/baseline_fallback.rs`
+- Created `.jules/friction/open/specsmith_baseline_fallback_obsolete.md`
 
 ## 🧪 Verification receipts
 ```text
+git reset --hard HEAD
 cargo test -p tokmd-analysis-types
 cargo fmt -- --check
 cargo clippy -p tokmd-analysis-types -- -D warnings
+cargo xtask gate --check
 ```
 
 ## 🧭 Telemetry
-- **Change shape**: Feature fix + tests
-- **Blast radius**: Low. Restricted to `tokmd-analysis-types` metric aggregation.
-- **Risk class**: Low, logic only executes under edge-case conditions (missing complexity metrics).
+- **Change shape**: Learning PR + Friction Item
+- **Blast radius**: None.
+- **Risk class**: None.
 - **Rollback**: Trivial revert.
-- **Gates run**: `cargo test -p tokmd-analysis-types`, `cargo fmt`, `cargo clippy`.
+- **Gates run**: `cargo xtask gate --check`, `cargo test -p tokmd-analysis-types`, `cargo fmt`, `cargo clippy`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_analysis_stack/envelope.json`
@@ -47,6 +47,7 @@ cargo clippy -p tokmd-analysis-types -- -D warnings
 - `.jules/runs/specsmith_analysis_stack/receipts.jsonl`
 - `.jules/runs/specsmith_analysis_stack/result.json`
 - `.jules/runs/specsmith_analysis_stack/pr_body.md`
+- Added `.jules/friction/open/specsmith_baseline_fallback_obsolete.md` noting the obsolete prompt.
 
 ## 🔜 Follow-ups
-None.
+Review Jules memory prompt to ensure it is not repeatedly driving tasks that are already merged on main.

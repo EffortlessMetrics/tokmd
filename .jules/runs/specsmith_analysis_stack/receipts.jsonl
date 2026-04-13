@@ -1,3 +1,4 @@
+{"command": "git reset --hard HEAD", "status": "ok"}
 {"command": "cargo test -p tokmd-analysis-types", "status": "ok"}
 {"command": "cargo fmt -- --check", "status": "ok"}
 {"command": "cargo clippy -p tokmd-analysis-types -- -D warnings", "status": "ok"}
