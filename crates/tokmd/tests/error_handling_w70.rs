@@ -156,7 +156,9 @@ fn unknown_subcommand_fails_with_stderr() {
         .arg("nonexistent_subcommand_w70")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 // ===========================================================================

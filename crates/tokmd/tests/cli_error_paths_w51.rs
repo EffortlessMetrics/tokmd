@@ -222,7 +222,9 @@ fn unknown_subcommand_fails() {
         .arg("nonexistent-subcommand")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 /// Verify that every expected subcommand responds to --help without error.

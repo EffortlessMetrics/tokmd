@@ -570,7 +570,9 @@ fn invalid_subcommand_fails() {
         .arg("not-a-real-command")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]

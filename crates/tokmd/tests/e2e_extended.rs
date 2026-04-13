@@ -270,7 +270,9 @@ fn nonexistent_subcommand_fails() {
     tokmd_cmd()
         .arg("this-subcommand-does-not-exist")
         .assert()
-        .failure();
+        .failure()
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 // ---------------------------------------------------------------------------
