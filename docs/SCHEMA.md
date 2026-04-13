@@ -22,6 +22,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
 | **Analysis** | 9 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | `COCKPIT_SCHEMA_VERSION` | `cockpit` |
+| **Tool** | 1 | `TOOL_SCHEMA_VERSION` | `tools` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 5 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
@@ -86,6 +87,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;`
 - **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
+- **Tool**: `crates/tokmd-tool-schema/src/lib.rs` - `pub const TOOL_SCHEMA_VERSION: u32 = 1;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`

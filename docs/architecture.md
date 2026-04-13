@@ -57,6 +57,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
 - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 9`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
+- Tool schemas: `TOOL_SCHEMA_VERSION = 1`
 
 ### Tier 1: Core Processing
 
