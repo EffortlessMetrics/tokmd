@@ -487,6 +487,8 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Native-vs-wasm parity coverage exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
 - [x] `web/runner` boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
 - [x] Public GitHub repo acquisition uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
+- [x] `tokmd-wasm` browser bundle is deployed as a versioned release artifact consumed directly from `web/runner/vendor/tokmd-wasm`.
+- [x] Browser runner guardrails and UX hardening landed, including caching, progress, authenticated fetch options, and rate-limit handling.
 
 ### Supported browser-safe surface today
 
@@ -497,7 +499,6 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### Current browser constraints
 
-- Browser guardrails and UX hardening still need more work, especially caching, progress, authenticated fetch options, and rate-limit handling.
 - Browser-safe analysis should expand only where the preset can stay rootless and capability-honest.
 
 ### Non-goals for v1.9.0

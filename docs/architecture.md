@@ -276,6 +276,8 @@ The browser/WASM lane is now a shipped product surface:
 - CI includes wasm compile/tests plus native-vs-wasm parity coverage for the browser-safe modes.
 - `web/runner` boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
 - Public browser repo loading uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
+- The `tokmd-wasm` browser bundle is now a versioned release artifact consumed from `web/runner/vendor/tokmd-wasm`.
+- Browser runner guardrails already landed, including caching, authenticated fetch options, and rate-limit/progress handling.
 
 ### Supported browser-safe contract today
 
@@ -288,8 +290,6 @@ Host-backed enrichers remain explicit capability misses in browser mode. Git-his
 
 ### Current browser constraints
 
-- Host the `tokmd-wasm` browser bundle as a versioned release artifact and consume it from `web/runner/vendor/tokmd-wasm` so browser boot stays deterministic across environments.
-- Add browser guardrails such as caching, authenticated fetch options, and better rate-limit/progress handling.
 - Broaden browser analysis only where the preset can stay rootless and capability-honest.
 
 ### Non-goals for v1.9.0
