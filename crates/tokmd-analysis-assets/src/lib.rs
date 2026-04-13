@@ -10,7 +10,7 @@ const ASSET_TOP_N: usize = 10;
 
 /// Build aggregate asset inventory for files produced by a walk.
 pub fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<AssetReport> {
-    let mut categories: BTreeMap<String, (usize, u64, BTreeSet<String>)> = BTreeMap::new();
+    let mut categories: BTreeMap<&str, (usize, u64, BTreeSet<String>)> = BTreeMap::new();
     let mut top_files: Vec<AssetFileRow> = Vec::new();
     let mut total_files = 0usize;
     let mut total_bytes = 0u64;
@@ -33,7 +33,7 @@ pub fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<AssetReport
         total_bytes += bytes;
 
         let entry = categories
-            .entry(category.to_string())
+            .entry(category)
             .or_insert((0, 0, BTreeSet::new()));
         entry.0 += 1;
         entry.1 += bytes;
@@ -50,7 +50,7 @@ pub fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<AssetReport
     let mut category_rows: Vec<AssetCategoryRow> = categories
         .into_iter()
         .map(|(category, (files, bytes, exts))| AssetCategoryRow {
-            category,
+            category: category.to_string(),
             files,
             bytes,
             extensions: exts.into_iter().collect(),
