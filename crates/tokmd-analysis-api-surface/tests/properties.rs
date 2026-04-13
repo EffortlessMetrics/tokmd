@@ -269,6 +269,64 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
+// Property: nested structural invariants hold
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #[test]
+    fn nested_struct_invariants_hold(
+        lines_a in prop::collection::vec(rust_item_line(), 0..20),
+        lines_b in prop::collection::vec(rust_item_line(), 0..20),
+    ) {
+        let code_a = lines_a.join("\n") + "\n";
+        let code_b = lines_b.join("\n") + "\n";
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("a")).unwrap();
+        fs::create_dir_all(dir.path().join("b")).unwrap();
+        fs::write(dir.path().join("a/lib.rs"), &code_a).unwrap();
+        fs::write(dir.path().join("b/lib.rs"), &code_b).unwrap();
+
+        let export = make_export(vec![
+            make_row("a/lib.rs", "mod_a", "Rust"),
+            make_row("b/lib.rs", "mod_b", "Rust"),
+        ]);
+        let paths = vec![PathBuf::from("a/lib.rs"), PathBuf::from("b/lib.rs")];
+        let report =
+            build_api_surface_report(dir.path(), &paths, &export, &default_limits()).unwrap();
+
+        for lang_stats in report.by_language.values() {
+            prop_assert_eq!(
+                lang_stats.total_items,
+                lang_stats.public_items + lang_stats.internal_items,
+                "language totals must sum correctly"
+            );
+            prop_assert!(
+                lang_stats.public_ratio >= 0.0 && lang_stats.public_ratio <= 1.0,
+                "language public_ratio must be in [0.0, 1.0]"
+            );
+        }
+
+        for mod_row in &report.by_module {
+            prop_assert!(
+                mod_row.public_items <= mod_row.total_items,
+                "module public items cannot exceed total items"
+            );
+            prop_assert!(
+                mod_row.public_ratio >= 0.0 && mod_row.public_ratio <= 1.0,
+                "module public_ratio must be in [0.0, 1.0]"
+            );
+        }
+
+        for exp_item in &report.top_exporters {
+            prop_assert!(
+                exp_item.public_items <= exp_item.total_items,
+                "exporter public items cannot exceed total items"
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Property: empty input always yields zero-valued report
 // ---------------------------------------------------------------------------
 
