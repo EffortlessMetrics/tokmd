@@ -75,8 +75,10 @@ export async function handleRunnerMessage(message, options = {}) {
     }
 
     if (!isRunMessage(message)) {
+        const requestId =
+            message && typeof message.requestId === "string" ? message.requestId : null;
         return createErrorMessage(
-            null,
+            requestId,
             "invalid_message",
             "expected { type: \"run\", requestId, mode, args }"
         );

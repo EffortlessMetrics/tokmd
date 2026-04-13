@@ -42,7 +42,7 @@ test("runtime rejects malformed messages", async () => {
     assert.equal(isProtocolMessage(message), true);
 });
 
-test("runtime rejects run messages without valid inputs", async () => {
+test("runtime rejects run messages without valid inputs and retains requestId", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({
             requestId: "run-2",
@@ -53,6 +53,7 @@ test("runtime rejects run messages without valid inputs", async () => {
 
     assert.equal(message.type, MESSAGE_TYPES.ERROR);
     assert.equal(message.error.code, "invalid_message");
+    assert.equal(message.requestId, "run-2");
 });
 
 test("runtime uses runner-provided mode capabilities", async () => {
