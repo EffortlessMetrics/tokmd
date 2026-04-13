@@ -41,9 +41,9 @@ struct Agg {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct Key {
+struct Key<'a> {
     path: String,
-    lang: String,
+    lang: &'a str,
     kind: FileKind,
 }
 
@@ -208,9 +208,9 @@ fn detect_in_memory_language(
         .or_else(|| language_from_in_memory_shebang(bytes))
 }
 
-fn insert_row(
-    map: &mut BTreeMap<Key, (String, Agg)>,
-    key: Key,
+fn insert_row<'a>(
+    map: &mut BTreeMap<Key<'a>, (String, Agg)>,
+    key: Key<'a>,
     module: String,
     stats: &CodeStats,
     bytes: usize,
@@ -224,14 +224,14 @@ fn insert_row(
     entry.1.tokens += tokens;
 }
 
-fn rows_from_map(map: BTreeMap<Key, (String, Agg)>) -> Vec<FileRow> {
+fn rows_from_map<'a>(map: BTreeMap<Key<'a>, (String, Agg)>) -> Vec<FileRow> {
     map.into_iter()
         .map(|(key, (module, agg))| {
             let lines = agg.code + agg.comments + agg.blanks;
             FileRow {
                 path: key.path,
                 module,
-                lang: key.lang,
+                lang: key.lang.to_string(),
                 kind: key.kind,
                 code: agg.code,
                 comments: agg.comments,
@@ -255,7 +255,7 @@ pub fn collect_in_memory_file_rows(
     children: ChildIncludeMode,
     config: &Config,
 ) -> Vec<FileRow> {
-    let mut map: BTreeMap<Key, (String, Agg)> = BTreeMap::new();
+    let mut map = BTreeMap::new();
 
     for input in inputs {
         let Some(lang_type) = detect_in_memory_language(input.logical_path, input.bytes, config)
@@ -276,7 +276,7 @@ pub fn collect_in_memory_file_rows(
                     &mut map,
                     Key {
                         path: path.clone(),
-                        lang: child_type.name().to_string(),
+                        lang: child_type.name(),
                         kind: FileKind::Child,
                     },
                     module.clone(),
@@ -291,7 +291,7 @@ pub fn collect_in_memory_file_rows(
             &mut map,
             Key {
                 path,
-                lang: lang_type.name().to_string(),
+                lang: lang_type.name(),
                 kind: FileKind::Parent,
             },
             module,
@@ -653,7 +653,7 @@ pub fn collect_file_rows(
     children: ChildIncludeMode,
     strip_prefix: Option<&Path>,
 ) -> Vec<FileRow> {
-    let mut map: BTreeMap<Key, (String /*module*/, Agg)> = BTreeMap::new();
+    let mut map = BTreeMap::new();
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
@@ -666,7 +666,7 @@ pub fn collect_file_rows(
                 &mut map,
                 Key {
                     path,
-                    lang: lang_type.name().to_string(),
+                    lang: lang_type.name(),
                     kind: FileKind::Parent,
                 },
                 module,
@@ -688,7 +688,7 @@ pub fn collect_file_rows(
                         &mut map,
                         Key {
                             path,
-                            lang: child_type.name().to_string(),
+                            lang: child_type.name(),
                             kind: FileKind::Child,
                         },
                         module,
