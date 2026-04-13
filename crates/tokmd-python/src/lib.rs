@@ -1130,8 +1130,7 @@ mod tests {
             let path_a = repo_a.path().to_string_lossy().to_string();
             let path_b = repo_b.path().to_string_lossy().to_string();
 
-            let diff_result =
-                diff(py, Some(&path_a), Some(&path_b)).expect("diff should succeed");
+            let diff_result = diff(py, Some(&path_a), Some(&path_b)).expect("diff should succeed");
             let diff_dict = diff_result.downcast_bound::<PyDict>(py).expect("diff dict");
             assert_eq!(
                 diff_dict
