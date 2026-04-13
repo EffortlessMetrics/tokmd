@@ -1,0 +1,4 @@
+{"cmd": "cargo machete crates/tokmd-types", "status": 0, "summary": "cargo-machete didn't find any unused dependencies in crates/tokmd-types. Good job!"}
+{"cmd": "cargo machete crates/tokmd-scan", "status": 0, "summary": "cargo-machete didn't find any unused dependencies in crates/tokmd-scan. Good job!"}
+{"cmd": "cargo machete crates/tokmd-model", "status": 0, "summary": "cargo-machete didn't find any unused dependencies in crates/tokmd-model. Good job!"}
+{"cmd": "cargo machete crates/tokmd-format", "status": 0, "summary": "cargo-machete didn't find any unused dependencies in crates/tokmd-format. Good job!"}
