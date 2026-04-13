@@ -18,5 +18,5 @@ tokmd-envelope.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]
+chrono = "0.4.44"
 proptest.workspace = true
-
