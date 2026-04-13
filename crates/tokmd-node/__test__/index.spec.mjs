@@ -84,6 +84,17 @@ test('diff compares paths', async (t) => {
   }
 })
 
+test('diff accepts options object', async (t) => {
+  try {
+    const { diff } = await import('../npm/index.js')
+    const result = await diff({ from: 'src', to: 'src' })
+    t.is(result.mode, 'diff')
+    t.truthy(result.totals)
+  } catch (e) {
+    t.pass('Native module not built, skipping')
+  }
+})
+
 test('lang with options', async (t) => {
   try {
     const { lang } = await import('../npm/index.js')

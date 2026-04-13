@@ -223,10 +223,21 @@ export { exportFn as export }
  */
 export function analyze(options?: AnalyzeOptions): Promise<object>
 
+export interface DiffOptions {
+  from: string
+  to: string
+}
+
 /**
  * Compare two receipts or paths and return a diff.
- * @param fromPath - Base receipt file or path to scan
- * @param toPath - Target receipt file or path to scan
+ * Backward-compatible call form:
+ * `diff(fromPath, toPath)`.
  * @returns Promise resolving to diff receipt
  */
 export function diff(fromPath: string, toPath: string): Promise<DiffReceipt>
+/**
+ * Preferred call form using an options object.
+ * @param options - Diff options
+ * @returns Promise resolving to diff receipt
+ */
+export function diff(options?: DiffOptions | null): Promise<DiffReceipt>
