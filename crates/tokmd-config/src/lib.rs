@@ -23,10 +23,11 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
-pub mod cli_enums;
-
-pub use cli_enums::*;
 pub use tokmd_tool_schema::ToolSchemaFormat;
+pub use tokmd_types::{
+    AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode,
+    TableFormat,
+};
 
 /// tokmd — code awareness for AI contexts
 ///
@@ -35,16 +36,6 @@ pub use tokmd_tool_schema::ToolSchemaFormat;
 /// Use `tokmd [COMMAND] --help` for detailed help.
 ///
 /// Default mode (no subcommand) prints a language summary.
-///
-/// # Example
-///
-/// ```rust
-/// use clap::Parser;
-/// use tokmd_config::Cli;
-///
-/// let args = Cli::parse_from(&["tokmd", "diff", "--format", "json"]);
-/// assert!(args.command.is_some());
-/// ```
 #[derive(Parser, Debug)]
 #[command(name = "tokmd", version, long_about = None)]
 pub struct Cli {
@@ -79,8 +70,8 @@ pub struct GlobalArgs {
     pub excluded: Vec<String>,
 
     /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
-    #[arg(long, value_enum, value_name = "MODE", default_value_t = CliConfigMode::Auto)]
-    pub config: CliConfigMode,
+    #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto)]
+    pub config: ConfigMode,
 
     /// Count hidden files and directories.
     #[arg(long)]
@@ -191,7 +182,7 @@ pub struct Profile {
     pub module_depth: Option<usize>,
     pub min_code: Option<usize>,
     pub max_rows: Option<usize>,
-    pub redact: Option<CliRedactMode>,
+    pub redact: Option<RedactMode>,
     pub meta: Option<bool>,
 
     // "children" can be ChildrenMode or ChildIncludeMode string
@@ -218,7 +209,7 @@ pub struct RunArgs {
 
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
     #[arg(long, value_enum)]
-    pub redact: Option<CliRedactMode>,
+    pub redact: Option<RedactMode>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -295,7 +286,7 @@ pub struct CliLangArgs {
 
     /// Output format [default: md].
     #[arg(long, value_enum)]
-    pub format: Option<CliTableFormat>,
+    pub format: Option<TableFormat>,
 
     /// Show only the top N rows (by code lines), plus an "Other" row if needed.
     /// Use 0 to show all rows.
@@ -308,7 +299,7 @@ pub struct CliLangArgs {
 
     /// How to handle embedded languages (tokei "children" / blobs) [default: collapse].
     #[arg(long, value_enum)]
-    pub children: Option<CliChildrenMode>,
+    pub children: Option<ChildrenMode>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -319,7 +310,7 @@ pub struct CliModuleArgs {
 
     /// Output format [default: md].
     #[arg(long, value_enum)]
-    pub format: Option<CliTableFormat>,
+    pub format: Option<TableFormat>,
 
     /// Show only the top N modules (by code lines), plus an "Other" row if needed.
     /// Use 0 to show all rows.
@@ -343,7 +334,7 @@ pub struct CliModuleArgs {
 
     /// Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].
     #[arg(long, value_enum)]
-    pub children: Option<CliChildIncludeMode>,
+    pub children: Option<ChildIncludeMode>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -354,7 +345,7 @@ pub struct CliExportArgs {
 
     /// Output format [default: jsonl].
     #[arg(long, value_enum)]
-    pub format: Option<CliExportFormat>,
+    pub format: Option<ExportFormat>,
 
     /// Write output to this file instead of stdout.
     #[arg(long, value_name = "PATH", visible_alias = "out")]
@@ -370,7 +361,7 @@ pub struct CliExportArgs {
 
     /// Whether to include embedded languages (tokei "children" / blobs) [default: separate].
     #[arg(long, value_enum)]
-    pub children: Option<CliChildIncludeMode>,
+    pub children: Option<ChildIncludeMode>,
 
     /// Drop rows with fewer than N code lines [default: 0].
     #[arg(long)]
@@ -386,7 +377,7 @@ pub struct CliExportArgs {
 
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs [default: none].
     #[arg(long, value_enum)]
-    pub redact: Option<CliRedactMode>,
+    pub redact: Option<RedactMode>,
 
     /// Strip this prefix from paths before output (helps when paths are absolute).
     #[arg(long, value_name = "PATH")]
@@ -405,7 +396,7 @@ pub struct CliAnalyzeArgs {
 
     /// Output format [default: md].
     #[arg(long, value_enum)]
-    pub format: Option<CliAnalysisFormat>,
+    pub format: Option<AnalysisFormat>,
 
     /// Context window size (tokens) for utilization bars.
     #[arg(long)]
@@ -1047,7 +1038,7 @@ impl From<&GlobalArgs> for tokmd_settings::ScanOptions {
     fn from(g: &GlobalArgs) -> Self {
         Self {
             excluded: g.excluded.clone(),
-            config: tokmd_types::ConfigMode::from(g.config),
+            config: g.config,
             hidden: g.hidden,
             no_ignore: g.no_ignore,
             no_ignore_parent: g.no_ignore_parent,
@@ -1095,10 +1086,7 @@ mod tests {
     fn global_args_default() {
         let g = GlobalArgs::default();
         assert!(g.excluded.is_empty());
-        assert_eq!(
-            tokmd_types::ConfigMode::from(g.config),
-            tokmd_types::ConfigMode::Auto
-        );
+        assert_eq!(g.config, ConfigMode::Auto);
         assert!(!g.hidden);
         assert!(!g.no_ignore);
         assert_eq!(g.verbose, 0);
@@ -1243,7 +1231,7 @@ mod tests {
             Profile {
                 format: Some("json".into()),
                 top: Some(10),
-                redact: Some(CliRedactMode::All),
+                redact: Some(RedactMode::All),
                 ..Profile::default()
             },
         );
@@ -1261,7 +1249,7 @@ mod tests {
     fn global_args_to_scan_options() {
         let g = GlobalArgs {
             excluded: vec!["target".into()],
-            config: CliConfigMode::None,
+            config: ConfigMode::None,
             hidden: true,
             no_ignore: true,
             no_ignore_parent: false,
@@ -1273,7 +1261,7 @@ mod tests {
         };
         let opts: tokmd_settings::ScanOptions = (&g).into();
         assert_eq!(opts.excluded, vec!["target"]);
-        assert_eq!(opts.config, tokmd_types::ConfigMode::None);
+        assert_eq!(opts.config, ConfigMode::None);
         assert!(opts.hidden);
         assert!(opts.no_ignore);
         assert!(opts.treat_doc_strings_as_comments);
@@ -1283,7 +1271,7 @@ mod tests {
     fn global_args_owned_to_scan_options() {
         let g = GlobalArgs {
             excluded: vec!["vendor".into()],
-            config: CliConfigMode::Auto,
+            config: ConfigMode::Auto,
             hidden: false,
             ..GlobalArgs::default()
         };

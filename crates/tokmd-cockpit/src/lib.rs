@@ -812,7 +812,7 @@ fn run_semver_check(repo_root: &Path) -> SemverSubGate {
 fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
     // Use two-dot syntax for comparing refs directly (per project convention)
     let range = format!("{}..{}", base, head);
-    let output = match tokmd_git::git_cmd()
+    let output = match Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .args(["diff", &range, "--", "docs/schema.json"])
@@ -1536,7 +1536,7 @@ fn is_relevant_rust_source(path: &str) -> bool {
 /// Get the current HEAD commit hash.
 #[cfg(feature = "git")]
 fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
-    let output = tokmd_git::git_cmd()
+    let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .arg("rev-parse")
@@ -1782,7 +1782,7 @@ pub fn get_file_stats(
     range_mode: tokmd_git::GitRangeMode,
 ) -> Result<Vec<FileStat>> {
     let range = range_mode.format(base, head);
-    let output = tokmd_git::git_cmd()
+    let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .args(["diff", "--numstat", &range])
@@ -1824,7 +1824,7 @@ fn compute_change_surface(
     range_mode: tokmd_git::GitRangeMode,
 ) -> Result<ChangeSurface> {
     let range = range_mode.format(base, head);
-    let output = tokmd_git::git_cmd()
+    let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
         .args(["rev-list", "--count", &range])
@@ -2707,7 +2707,7 @@ mod tests {
         std::fs::write(dir.path().join("src/lib.rs"), "fn a() {}\n").unwrap();
 
         let git = |args: &[&str]| {
-            let status = tokmd_git::git_cmd()
+            let status = Command::new("git")
                 .args(args)
                 .current_dir(dir.path())
                 .status()

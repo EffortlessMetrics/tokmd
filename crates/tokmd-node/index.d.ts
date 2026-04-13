@@ -21,16 +21,6 @@ export interface LangOptions {
 }
 
 /**
- * Options for the diff command.
- */
-export interface DiffOptions {
-  /** Base receipt file or path to scan */
-  from: string;
-  /** Target receipt file or path to scan */
-  to: string;
-}
-
-/**
  * Options for the module command.
  */
 export interface ModuleOptions {
@@ -80,8 +70,8 @@ export interface ExportOptions {
 export interface AnalyzeOptions {
   /** List of paths to scan (default: ["."]) */
   paths?: string[];
-  /** Analysis preset ("receipt", "estimate", "health", "risk", "supply", "architecture", "topics", "security", "identity", "git", "deep", "fun") */
-  preset?: "receipt" | "estimate" | "health" | "risk" | "supply" | "architecture" | "topics" | "security" | "identity" | "git" | "deep" | "fun";
+  /** Analysis preset ("receipt", "health", "risk", "supply", "architecture", "topics", "security", "identity", "git", "deep", "fun") */
+  preset?: "receipt" | "health" | "risk" | "supply" | "architecture" | "topics" | "security" | "identity" | "git" | "deep" | "fun";
   /** Context window size in tokens */
   window?: number;
   /** Force enable/disable git metrics */
@@ -439,23 +429,15 @@ export function analyze(options?: AnalyzeOptions): Promise<AnalyzeReceipt>;
 /**
  * Compare two receipts or paths and return a diff.
  *
- * Backward-compatible call form:
- * `diff(fromPath, toPath)`.
- */
-export function diff(fromPath: string, toPath: string): Promise<DiffReceipt>;
-/**
- * Preferred call form using an options object.
- *
- * @param options - Diff options
- * @param options.from - Base receipt file or path to scan
- * @param options.to - Target receipt file or path to scan
+ * @param fromPath - Base receipt file or path to scan
+ * @param toPath - Target receipt file or path to scan
  * @returns Promise resolving to diff receipt
  *
  * @example
  * ```javascript
  * import { diff } from '@tokmd/core';
- * const result = await diff({ from: "old_receipt.json", to: "new_receipt.json" });
+ * const result = await diff("old_receipt.json", "new_receipt.json");
  * console.log(`Total delta: ${result.totals.delta_code} lines`);
  * ```
  */
-export function diff(options?: DiffOptions | undefined | null): Promise<DiffReceipt>;
+export function diff(fromPath: string, toPath: string): Promise<DiffReceipt>;

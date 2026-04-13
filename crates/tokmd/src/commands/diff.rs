@@ -13,6 +13,8 @@ use tokmd_types::LangReport;
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "git")]
+use std::process::Command;
+#[cfg(feature = "git")]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()> {
@@ -153,7 +155,7 @@ fn lang_report_from_git_ref(revision: &str, global: &cli::GlobalArgs) -> Result<
         &languages,
         0,
         false,
-        tokmd_types::ChildrenMode::Collapse,
+        cli::ChildrenMode::Collapse,
     ))
 }
 
@@ -190,7 +192,7 @@ impl GitWorktree {
     fn new(repo_root: &Path, revision: &str) -> Result<Self> {
         let path = make_temp_dir("diff-worktree")?;
 
-        let status = tokmd_git::git_cmd()
+        let status = Command::new("git")
             .arg("-C")
             .arg(repo_root)
             .arg("worktree")
@@ -216,7 +218,7 @@ impl GitWorktree {
 #[cfg(feature = "git")]
 impl Drop for GitWorktree {
     fn drop(&mut self) {
-        let _ = tokmd_git::git_cmd()
+        let _ = Command::new("git")
             .arg("-C")
             .arg(&self.repo_root)
             .arg("worktree")

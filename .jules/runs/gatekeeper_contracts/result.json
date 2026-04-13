@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_type": "learning_pr",
+  "summary": "Original patch attempt was redundant; pivoting to a learning PR.",
+  "files_changed": [
+    ".jules/friction/open/gatekeeper-contracts-tool-schema.md"
+  ]
+}

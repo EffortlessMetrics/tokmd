@@ -1,5 +1,4 @@
 use crate::cli::SccacheArgs;
-use crate::tasks::build_guard::{ScopedTempDir, ensure_min_free_space};
 use anyhow::{Context, Result, bail};
 use cargo_metadata::MetadataCommand;
 use std::ffi::{OsStr, OsString};
@@ -26,18 +25,6 @@ pub fn run(args: SccacheArgs) -> Result<()> {
     let (sccache_program, _) = ensure_sccache_available()?;
     let server_port = resolved_server_port()?;
     let basedirs = resolved_basedirs(&args.basedirs)?;
-    let temp_target_dir = redirected_target_dir(
-        &args.cargo_args,
-        std::env::var_os("CARGO_TARGET_DIR").is_some(),
-    )?;
-
-    ensure_min_free_space(
-        temp_target_dir
-            .as_ref()
-            .map(ScopedTempDir::path)
-            .unwrap_or(std::path::Path::new(".")),
-        "sccache",
-    )?;
 
     let mut command = Command::new("cargo");
     command.args(&args.cargo_args);
@@ -47,12 +34,9 @@ pub fn run(args: SccacheArgs) -> Result<()> {
         command.env("SCCACHE_BASEDIRS", value);
         println!("sccache: SCCACHE_BASEDIRS={}", value.to_string_lossy());
     }
-    if let Some(target_dir) = temp_target_dir.as_ref() {
-        command.env("CARGO_TARGET_DIR", target_dir.path());
-        println!(
-            "sccache: CARGO_TARGET_DIR={} (disposable)",
-            target_dir.path().display()
-        );
+    if let Some(target_dir) = redirected_target_dir(&args.cargo_args)? {
+        command.env("CARGO_TARGET_DIR", &target_dir);
+        println!("sccache: CARGO_TARGET_DIR={}", target_dir.display());
     }
 
     let disable_incremental = should_disable_incremental(args.keep_incremental);
@@ -298,12 +282,16 @@ fn read_dir_paths(root: &Path) -> std::io::Result<Vec<PathBuf>> {
         .collect()
 }
 
-fn redirected_target_dir(args: &[String], has_target_dir: bool) -> Result<Option<ScopedTempDir>> {
-    if !should_use_ephemeral_target_dir(args, has_target_dir) {
+fn redirected_target_dir(args: &[String]) -> Result<Option<PathBuf>> {
+    if !should_isolate_xtask_tests(
+        args,
+        cfg!(windows),
+        std::env::var_os("CARGO_TARGET_DIR").is_some(),
+    ) {
         return Ok(None);
     }
 
-    Ok(Some(ScopedTempDir::new("sccache-target")?))
+    Ok(Some(workspace_root()?.join("target").join("xtask-sccache")))
 }
 
 fn default_server_port_for_key(key: &str) -> u16 {
@@ -331,15 +319,21 @@ fn workspace_root() -> Result<std::path::PathBuf> {
     Ok(metadata.workspace_root.into_std_path_buf())
 }
 
-fn should_use_ephemeral_target_dir(args: &[String], has_target_dir: bool) -> bool {
-    if has_target_dir {
+fn should_isolate_xtask_tests(args: &[String], is_windows: bool, has_target_dir: bool) -> bool {
+    if !is_windows || has_target_dir || args.first().map(String::as_str) != Some("test") {
         return false;
     }
 
-    matches!(
-        args.first().map(String::as_str),
-        Some("check" | "clippy" | "test")
-    )
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        if matches!(arg.as_str(), "-p" | "--package")
+            && iter.next().map(String::as_str) == Some("xtask")
+        {
+            return true;
+        }
+    }
+
+    false
 }
 
 fn should_disable_incremental(keep_incremental: bool) -> bool {
@@ -364,7 +358,7 @@ fn install_hint() -> &'static str {
 mod tests {
     use super::{
         compose_basedirs, default_server_port_for_key, display_cargo_args, install_hint,
-        should_disable_incremental, should_use_ephemeral_target_dir, stable_hash64,
+        should_disable_incremental, should_isolate_xtask_tests, stable_hash64,
         windows_explicit_sccache_candidates, winget_sccache_path,
     };
     use std::ffi::OsStr;
@@ -492,7 +486,7 @@ mod tests {
     }
 
     #[test]
-    fn should_use_ephemeral_target_dir_for_heavy_validation_commands() {
+    fn should_isolate_windows_xtask_test_runs() {
         let args = vec![
             "test".to_string(),
             "-p".to_string(),
@@ -500,14 +494,18 @@ mod tests {
             "--no-run".to_string(),
         ];
 
-        assert!(should_use_ephemeral_target_dir(&args, false));
-        assert!(!should_use_ephemeral_target_dir(&args, true));
+        assert!(should_isolate_xtask_tests(&args, true, false));
+        assert!(!should_isolate_xtask_tests(&args, true, true));
+        assert!(!should_isolate_xtask_tests(&args, false, false));
     }
 
     #[test]
-    fn should_not_use_ephemeral_target_dir_for_build_runs() {
-        let args = vec!["build".to_string(), "-p".to_string(), "tokmd".to_string()];
-        assert!(!should_use_ephemeral_target_dir(&args, false));
+    fn should_not_isolate_non_xtask_or_non_test_invocations() {
+        let check_args = vec!["check".to_string(), "-p".to_string(), "xtask".to_string()];
+        let other_pkg_args = vec!["test".to_string(), "-p".to_string(), "tokmd".to_string()];
+
+        assert!(!should_isolate_xtask_tests(&check_args, true, false));
+        assert!(!should_isolate_xtask_tests(&other_pkg_args, true, false));
     }
 
     fn temp_dir(label: &str) -> PathBuf {

@@ -1,0 +1,24 @@
+{"command": "cat .jules/README.md || true"}
+{"command": "cat .jules/policy/agent_profiles.json || true"}
+{"command": "cat .jules/policy/shards.json || true"}
+{"command": "cat .jules/runbooks/PR_REVIEW_PACKET.md || true"}
+{"command": "cat .jules/runbooks/FRICTION_ITEM.md || true"}
+{"command": "cat .jules/runbooks/RUN_PACKET.md || true"}
+{"command": "cat CLAUDE.md || true"}
+{"command": "cat CONTRIBUTING.md || true"}
+{"command": "cat AGENTS.md || true"}
+{"command": "mkdir -p .jules/runs/gatekeeper_contracts"}
+{"command": "grep -rn \"SCHEMA_VERSION\" crates/ || true"}
+{"command": "grep -n \"ANALYSIS_SCHEMA_VERSION\" docs/schema.json docs/SCHEMA.md docs/architecture.md README.md || true"}
+{"command": "grep -n \"SCHEMA_VERSION\" docs/schema.json docs/SCHEMA.md docs/architecture.md README.md || true"}
+{"command": "grep -rn \"pub const\" crates/ | grep \"SCHEMA_VERSION\" || true"}
+{"command": "grep -B 5 -A 5 \"Schema version\" docs/schema.json || true"}
+{"command": "grep -A 2 -n \"TOOL_SCHEMA_VERSION\" crates/tokmd-tool-schema/src/lib.rs || true"}
+{"command": "grep -rn \"TOOL_SCHEMA_VERSION\" crates/ || true"}
+{"command": "git rm --cached .jules/runs/.gitkeep || true"}
+{"command": "cargo test -p tokmd-tool-schema -- --nocapture || true"}
+{"command": "cargo xtask docs --check || true"}
+{"command": "cargo xtask gate --check > gate.log 2>&1 &"}
+{"command": "git restore --staged ."}
+{"command": "git checkout -- ."}
+{"command": "git clean -fd"}

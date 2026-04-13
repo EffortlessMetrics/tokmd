@@ -27,21 +27,16 @@ function formatSupportedList(values) {
     return values.length > 0 ? values.join(", ") : "no supported entries";
 }
 
-function extractRunnerError(error) {
-    let message = "unknown runner error";
-
+function formatRunnerError(error) {
     if (error instanceof Error && typeof error.message === "string") {
-        message = error.message;
-    } else if (typeof error === "string") {
-        message = error;
+        return error.message;
     }
 
-    const match = message.match(/^\[([^\]]+)\]\s*(.*)$/);
-    if (match) {
-        return { code: match[1], message: match[2] || message };
+    if (typeof error === "string") {
+        return error;
     }
 
-    return { code: "run_failed", message };
+    return "unknown runner error";
 }
 
 async function invokeRunner(runner, mode, args) {
@@ -75,10 +70,8 @@ export async function handleRunnerMessage(message, options = {}) {
     }
 
     if (!isRunMessage(message)) {
-        const requestId =
-            message && typeof message.requestId === "string" ? message.requestId : null;
         return createErrorMessage(
-            requestId,
+            null,
             "invalid_message",
             "expected { type: \"run\", requestId, mode, args }"
         );
@@ -88,7 +81,7 @@ export async function handleRunnerMessage(message, options = {}) {
         return createErrorMessage(
             message.requestId,
             "wasm_boot_failed",
-            `browser runner failed to initialize tokmd-wasm: ${extractRunnerError(bootError).message}`
+            `browser runner failed to initialize tokmd-wasm: ${formatRunnerError(bootError)}`
         );
     }
 
@@ -132,11 +125,10 @@ export async function handleRunnerMessage(message, options = {}) {
         const data = await invokeRunner(runner, message.mode, message.args);
         return createResultMessage(message.requestId, data);
     } catch (error) {
-        const extracted = extractRunnerError(error);
         return createErrorMessage(
             message.requestId,
-            extracted.code,
-            extracted.message
+            "run_failed",
+            formatRunnerError(error)
         );
     }
 }

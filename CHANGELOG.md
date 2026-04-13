@@ -7,16 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on `tokmd-analysis-format` (Tier 3), bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
-  - Added `analysis_facade` module in `tokmd-core` with re-exports from `tokmd-analysis-format`
-  - Removed direct `tokmd-analysis-format` dependency from `tokmd` crate
-  - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3
-  - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
-
-
-
 ## [1.9.0] - 2026-03-27
 
 ### Added

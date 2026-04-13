@@ -32,7 +32,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.2** | ✅ Complete | Near-dup enricher extraction, commit intent classification, and CI fixes. |
 | **v1.7.x** | ✅ Complete | Deep test expansion across the workspace, sensor determinism, and the first `tokmd-io-port` seam. |
 | **v1.8.0** | ✅ Complete | Effort estimation, estimate preset/reporting, `tokmd-io-port` seam work, and release/devex hardening. |
-| **v1.9.0** | ✅ Complete | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
+| **v1.9.0** | 🚧 In progress | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 | **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
@@ -476,19 +476,17 @@ UX work is explicitly **incremental and non-breaking**:
 
 - The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
 
-## v1.9.0 — Browser/WASM Productization
+## In Progress: v1.9.0 — Browser/WASM Productization
 
 **Goal:** Finish the browser/WASM product surface around the already-landed in-memory execution path and make the supported browser workflow explicit, repeatable, and capability-honest.
 
-### What shipped in v1.9.0
+### What has landed so far
 
 - [x] `tokmd-io-port`, in-memory scan/model/core workflow seams, and lower-tier clap-free boundaries now keep browser/WASM execution honest.
 - [x] `tokmd-wasm` exposes browser-friendly entrypoints for `lang`, `module`, `export`, and browser-safe `analyze`.
-- [x] Native-vs-wasm parity coverage exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
-- [x] `web/runner` boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
-- [x] Public GitHub repo acquisition uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
-- [x] `tokmd-wasm` browser bundle is deployed as a versioned release artifact consumed directly from `web/runner/vendor/tokmd-wasm`.
-- [x] Browser runner guardrails and UX hardening landed, including caching, progress, authenticated fetch options, and rate-limit handling.
+- [x] Native-vs-wasm parity coverage now exists for `lang`, `module`, `export`, `analyze receipt`, and `analyze estimate`.
+- [x] `web/runner` now boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
+- [x] Public GitHub repo acquisition now uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
 
 ### Supported browser-safe surface today
 
@@ -497,11 +495,13 @@ UX work is explicitly **incremental and non-breaking**:
 - Public repo acquisition strategy: GitHub tree + contents API, not zipball fetch
 - Capability reporting is explicit about unavailable host-backed enrichers and reserved protocol features
 
-### Current browser constraints
+### Remaining for v1.9.0
 
-- Browser-safe analysis should expand only where the preset can stay rootless and capability-honest.
+- Finish the docs truth pass so README and architecture docs match the shipped browser/WASM surface.
+- Add browser guardrails and UX hardening such as caching, progress, authenticated fetch options, and better rate-limit handling.
+- Expand browser-safe analysis only where the preset can stay rootless and capability-honest.
 
-### Non-goals for v1.9.0
+### Non-goals for v1.9
 
 - No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
 - No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.

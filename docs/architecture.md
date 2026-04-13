@@ -57,7 +57,6 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
 - Analysis receipts: `ANALYSIS_SCHEMA_VERSION = 9`
 - Cockpit receipts: `COCKPIT_SCHEMA_VERSION = 3`
-- Tool schemas: `TOOL_SCHEMA_VERSION = 1`
 
 ### Tier 1: Core Processing
 
@@ -126,7 +125,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 | `tokmd-config` | Clap-backed CLI/config types plus configuration loading |
 | `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings |
 | `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
-| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see ADR-001) |
+| `tokmd-core` | Library facade with FFI layer |
 
 ### Tier 5: Products
 
@@ -141,9 +140,8 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 1. **Contracts MUST NOT depend on clap** — Keep `tokmd-types` and `tokmd-analysis-types` pure
 2. **Lower tiers MUST NOT depend on higher tiers** — No upward dependencies
-3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See ADR-001.
-4. **Feature flags control optional adapters** — `git`, `walk`, `content` features
-5. **IO adapters depend on domain/contracts, never reverse**
+3. **Feature flags control optional adapters** — `git`, `walk`, `content` features
+4. **IO adapters depend on domain/contracts, never reverse**
 
 ## Data Flow
 
@@ -266,19 +264,17 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
 4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation
 
-## WASM & Browser Runner
+## WASM & Browser Runner (v1.9.0 in progress)
 
-### Shipped foundation and product surface
+### Landed foundation and product surface
 
-The browser/WASM lane is now a shipped product surface:
+The browser/WASM lane is no longer just seam work:
 
 - `tokmd-io-port` plus the in-memory scan/model/core workflow paths keep lower tiers host-abstracted and deterministic on ordered in-memory inputs.
-- `tokmd-wasm` exposes the browser-facing `lang`, `module`, `export`, and browser-safe `analyze` entrypoints.
+- `tokmd-wasm` now exposes the browser-facing `lang`, `module`, `export`, and browser-safe `analyze` entrypoints.
 - CI includes wasm compile/tests plus native-vs-wasm parity coverage for the browser-safe modes.
-- `web/runner` boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
-- Public browser repo loading uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
-- The `tokmd-wasm` browser bundle is now a versioned release artifact consumed from `web/runner/vendor/tokmd-wasm`.
-- Browser runner guardrails already landed, including caching, authenticated fetch options, and rate-limit/progress handling.
+- `web/runner` now boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
+- Public browser repo loading now uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
 
 ### Supported browser-safe contract today
 
@@ -289,8 +285,10 @@ The browser/WASM lane is now a shipped product surface:
 
 Host-backed enrichers remain explicit capability misses in browser mode. Git-history signals such as hotspots and churn are intentionally unavailable there today.
 
-### Current browser constraints
+### Remaining v1.9.0 work
 
+- Host the `tokmd-wasm` browser bundle as a versioned release artifact (see `web/runner` docs) and consume it from `web/runner/vendor/tokmd-wasm` so browser boot is deterministic across environments.
+- Add browser guardrails such as caching, authenticated fetch options, and better rate-limit/progress handling.
 - Broaden browser analysis only where the preset can stay rootless and capability-honest.
 
 ### Non-goals for v1.9.0

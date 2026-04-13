@@ -20,7 +20,7 @@ import { lang, analyze, diff } from '@tokmd/core';
 
 const summary = await lang({ paths: ['src'], top: 5 });
 const analysis = await analyze({ paths: ['.'], preset: 'estimate' });
-const delta = await diff({ from: '.runs/base/lang.json', to: '.runs/current/lang.json' });
+const delta = await diff('.runs/base/lang.json', '.runs/current/lang.json');
 ```
 
 The published npm package is `@tokmd/core`. Exact TypeScript shapes live in `index.d.ts`.

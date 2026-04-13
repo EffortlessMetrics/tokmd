@@ -41,14 +41,6 @@ use tokmd_types::{
 
 pub use tokmd_scan_args::{normalize_scan_input, scan_args};
 
-fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {
-    if redact == RedactMode::All {
-        roots.iter().map(|r| short_hash(r)).collect()
-    } else {
-        roots.to_vec()
-    }
-}
-
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -400,8 +392,6 @@ fn write_export_jsonl<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
         let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
@@ -417,7 +407,7 @@ fn write_export_jsonl<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -454,8 +444,6 @@ fn write_export_json<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
         let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
@@ -470,7 +458,7 @@ fn write_export_json<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -491,7 +479,7 @@ fn write_export_json<W: Write>(
                 rows: redact_rows(&export.rows, args.redact)
                     .map(|c| c.into_owned())
                     .collect(),
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
             },
@@ -508,32 +496,19 @@ fn write_export_json<W: Write>(
 }
 
 fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
-    rows.iter().map(move |r| match mode {
-        RedactMode::None => Cow::Borrowed(r),
-        RedactMode::Paths => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: r.module.clone(),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
-        RedactMode::All => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: short_hash(&r.module),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
+    rows.iter().map(move |r| {
+        if mode == RedactMode::None {
+            Cow::Borrowed(r)
+        } else {
+            let mut owned = r.clone();
+            if mode == RedactMode::Paths || mode == RedactMode::All {
+                owned.path = redact_path(&owned.path);
+            }
+            if mode == RedactMode::All {
+                owned.module = short_hash(&owned.module);
+            }
+            Cow::Owned(owned)
+        }
     })
 }
 
@@ -723,19 +698,7 @@ pub fn write_module_json_to_file(
     report: &ModuleReport,
     scan: &ScanArgs,
     args_meta: &ModuleArgsMeta,
-    redact: RedactMode,
 ) -> Result<()> {
-    let mut final_args = args_meta.clone();
-    let mut final_report = report.clone();
-
-    if redact == RedactMode::All {
-        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
-        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
-        for row in &mut final_report.rows {
-            row.module = short_hash(&row.module);
-        }
-    }
-
     let receipt = ModuleReceipt {
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
@@ -744,8 +707,8 @@ pub fn write_module_json_to_file(
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
-        args: final_args,
-        report: final_report,
+        args: args_meta.clone(),
+        report: report.clone(),
     };
     let file = File::create(path)?;
     serde_json::to_writer(file, &receipt)?;
@@ -766,9 +729,6 @@ pub fn write_export_jsonl_to_file(
     let file = File::create(path)?;
     let mut out = BufWriter::new(file);
 
-    let mut final_args = args_meta.clone();
-    final_args.module_roots = redact_module_roots(&final_args.module_roots, args_meta.redact);
-
     let meta = ExportMeta {
         ty: "meta",
         schema_version: tokmd_types::SCHEMA_VERSION,
@@ -778,7 +738,7 @@ pub fn write_export_jsonl_to_file(
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
-        args: final_args,
+        args: args_meta.clone(),
     };
     writeln!(out, "{}", serde_json::to_string(&meta)?)?;
 

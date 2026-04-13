@@ -27,7 +27,7 @@ pub use tokmd_types::CommitIntentKind;
 /// Strips `GIT_DIR` and `GIT_WORK_TREE` so that inherited environment
 /// variables cannot override the explicit `-C` path used by all
 /// functions in this crate.
-pub fn git_cmd() -> Command {
+fn git_cmd() -> Command {
     let mut cmd = Command::new("git");
     cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
     cmd

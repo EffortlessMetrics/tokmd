@@ -2,7 +2,7 @@
 //!
 //! Covers: TOML config parsing, profile resolution, settings merging,
 //! config file discovery, determinism, property-based roundtrips,
-//! edge cases, enum validation, and CliChildrenMode/CliChildIncludeMode parsing.
+//! edge cases, enum validation, and ChildrenMode/ChildIncludeMode parsing.
 
 use std::collections::BTreeMap;
 use std::io::Write;
@@ -10,8 +10,8 @@ use std::io::Write;
 use proptest::prelude::*;
 use tempfile::{NamedTempFile, TempDir};
 use tokmd_config::{
-    CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode, CliConfigMode, CliExportFormat,
-    CliRedactMode, CliTableFormat, Profile, ScanConfig, TomlConfig, UserConfig, ViewProfile,
+    AnalysisFormat, ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, Profile, RedactMode,
+    ScanConfig, TableFormat, TomlConfig, UserConfig, ViewProfile,
 };
 
 // =========================================================================
@@ -232,7 +232,7 @@ fn user_config_profile_selection_by_name() {
         "llm".to_string(),
         Profile {
             format: Some("json".into()),
-            redact: Some(CliRedactMode::All),
+            redact: Some(RedactMode::All),
             top: Some(10),
             ..Default::default()
         },
@@ -252,7 +252,7 @@ fn user_config_profile_selection_by_name() {
 
     let llm = uc.profiles.get("llm").unwrap();
     assert_eq!(llm.format, Some("json".into()));
-    assert_eq!(llm.redact, Some(CliRedactMode::All));
+    assert_eq!(llm.redact, Some(RedactMode::All));
     assert_eq!(llm.top, Some(10));
 
     let ci = uc.profiles.get("ci").unwrap();
@@ -482,7 +482,7 @@ proptest! {
     ) {
         let opts = tokmd_settings::ScanOptions {
             excluded: vec!["target".into()],
-            config: tokmd_types::ConfigMode::Auto,
+            config: ConfigMode::Auto,
             hidden,
             no_ignore,
             no_ignore_parent,
@@ -605,31 +605,23 @@ fn empty_file_on_disk_parses_ok() {
 }
 
 // =========================================================================
-// 10. CliExportFormat and CliTableFormat enum validation
+// 10. ExportFormat and TableFormat enum validation
 // =========================================================================
 
 #[test]
 fn export_format_serde_roundtrip_all_variants() {
-    for variant in [
-        CliExportFormat::Csv,
-        CliExportFormat::Jsonl,
-        CliExportFormat::Json,
-    ] {
+    for variant in [ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliExportFormat = serde_json::from_str(&json).unwrap();
+        let back: ExportFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }
 
 #[test]
 fn table_format_serde_roundtrip_all_variants() {
-    for variant in [
-        CliTableFormat::Md,
-        CliTableFormat::Tsv,
-        CliTableFormat::Json,
-    ] {
+    for variant in [TableFormat::Md, TableFormat::Tsv, TableFormat::Json] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliTableFormat = serde_json::from_str(&json).unwrap();
+        let back: TableFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }
@@ -645,25 +637,25 @@ fn export_format_strings_in_toml_config() {
 
 #[test]
 fn analysis_format_serde_roundtrip() {
-    for variant in [CliAnalysisFormat::Md, CliAnalysisFormat::Json] {
+    for variant in [AnalysisFormat::Md, AnalysisFormat::Json] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliAnalysisFormat = serde_json::from_str(&json).unwrap();
+        let back: AnalysisFormat = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }
 
 // =========================================================================
-// 11. CliChildrenMode / CliChildIncludeMode config parsing
+// 11. ChildrenMode / ChildIncludeMode config parsing
 // =========================================================================
 
 #[test]
 fn children_mode_collapse_and_separate() {
     for (val, expected) in [
-        ("collapse", CliChildrenMode::Collapse),
-        ("separate", CliChildrenMode::Separate),
+        ("collapse", ChildrenMode::Collapse),
+        ("separate", ChildrenMode::Separate),
     ] {
         let json = serde_json::to_string(&expected).unwrap();
-        let back: CliChildrenMode = serde_json::from_str(&json).unwrap();
+        let back: ChildrenMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, expected);
 
         // Also verify TOML config accepts these strings
@@ -675,12 +667,9 @@ fn children_mode_collapse_and_separate() {
 
 #[test]
 fn child_include_mode_variants() {
-    for variant in [
-        CliChildIncludeMode::Separate,
-        CliChildIncludeMode::ParentsOnly,
-    ] {
+    for variant in [ChildIncludeMode::Separate, ChildIncludeMode::ParentsOnly] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliChildIncludeMode = serde_json::from_str(&json).unwrap();
+        let back: ChildIncludeMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }
@@ -1054,7 +1043,7 @@ fn scan_config_default_all_none() {
 }
 
 // =========================================================================
-// 21. CliRedactMode variants in config
+// 21. RedactMode variants in config
 // =========================================================================
 
 #[test]
@@ -1072,13 +1061,9 @@ fn redact_mode_variants_in_export_and_view() {
 
 #[test]
 fn redact_mode_enum_serde() {
-    for variant in [
-        CliRedactMode::None,
-        CliRedactMode::Paths,
-        CliRedactMode::All,
-    ] {
+    for variant in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliRedactMode = serde_json::from_str(&json).unwrap();
+        let back: RedactMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }
@@ -1237,14 +1222,14 @@ fn profile_children_field_accepted() {
 }
 
 // =========================================================================
-// 27. CliConfigMode enum
+// 27. ConfigMode enum
 // =========================================================================
 
 #[test]
 fn config_mode_variants_serde() {
-    for variant in [CliConfigMode::Auto, CliConfigMode::None] {
+    for variant in [ConfigMode::Auto, ConfigMode::None] {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliConfigMode = serde_json::from_str(&json).unwrap();
+        let back: ConfigMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, variant);
     }
 }

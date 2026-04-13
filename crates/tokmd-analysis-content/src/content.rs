@@ -66,11 +66,10 @@ pub fn build_todo_report(
         round_f64(total as f64 / kloc, 2)
     };
 
-    let mut tags: Vec<TodoTagRow> = counts
+    let tags = counts
         .into_iter()
         .map(|(tag, count)| TodoTagRow { tag, count })
         .collect();
-    tags.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.tag.cmp(&b.tag)));
 
     Ok(TodoReport {
         total,
@@ -293,12 +292,7 @@ pub fn build_import_report(
             count,
         })
         .collect();
-    edge_rows.sort_by(|a, b| {
-        b.count
-            .cmp(&a.count)
-            .then_with(|| a.from.cmp(&b.from))
-            .then_with(|| a.to.cmp(&b.to))
-    });
+    edge_rows.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.from.cmp(&b.from)));
 
     Ok(ImportReport {
         granularity: match granularity {

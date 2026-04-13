@@ -186,7 +186,7 @@ fn compute_determinism_baseline(root: &Path, file_paths: &[String]) -> Result<De
 /// Returns `Some(sha)` if the path is inside a git repository,
 /// `None` otherwise or if git is not available.
 fn capture_git_commit(path: &Path) -> Option<String> {
-    let output = tokmd_git::git_cmd()
+    let output = std::process::Command::new("git")
         .arg("-C")
         .arg(path)
         .arg("rev-parse")

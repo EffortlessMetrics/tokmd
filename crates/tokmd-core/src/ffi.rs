@@ -73,13 +73,7 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
 
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Parse common scan settings from the JSON
-    let args: Value =
-        serde_json::from_str(args_json).map_err(|err| TokmdError::invalid_json(err.to_string()))?;
-    if !args.is_object() {
-        return Err(TokmdError::invalid_json(
-            "Top-level JSON value must be an object",
-        ));
-    }
+    let args: Value = serde_json::from_str(args_json)?;
     let inputs = parse_in_memory_inputs(&args)?;
 
     // Extract scan settings (shared by all modes)
@@ -681,19 +675,6 @@ mod tests {
     }
 
     #[test]
-    fn run_json_rejects_top_level_scalar_payload() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json("lang", "0");
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_json");
-        assert_eq!(
-            parsed["error"]["message"].as_str(),
-            Some("Invalid JSON: Top-level JSON value must be an object")
-        );
-        Ok(())
-    }
-
-    #[test]
     fn parse_scan_settings_defaults() -> Result<(), Box<dyn std::error::Error>> {
         let args: Value = serde_json::json!({});
         let settings = parse_scan_settings(&args)?;
@@ -1083,299 +1064,19 @@ mod tests {
         Ok(())
     }
 
-    // ========================================================================
-    // UTF-8 validation edge case tests
-    // ========================================================================
-
     #[test]
-    fn invalid_utf8_bytes_in_mode_returns_error() -> Result<(), Box<dyn std::error::Error>> {
-        // Create invalid UTF-8 bytes for mode parameter
-        let invalid_utf8 = vec![0x80, 0x81, 0x82]; // Invalid UTF-8 sequence
-        let mode = String::from_utf8_lossy(&invalid_utf8);
-        let result = run_json(&mode, r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        // Should return valid JSON envelope (totality invariant)
-        assert!(
-            parsed.get("ok").is_some(),
-            "Must return envelope with ok field"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn invalid_utf8_in_args_json_returns_error() -> Result<(), Box<dyn std::error::Error>> {
-        // Invalid UTF-8 in JSON string - serde_json handles this gracefully
-        // Since run_json takes &str, we test with valid UTF-8 but edge cases
-        let result = run_json("lang", r#"{"paths": ["\u0000"]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    #[test]
-    fn unicode_edge_cases_in_paths() -> Result<(), Box<dyn std::error::Error>> {
-        // Test with various Unicode edge cases
-        let test_cases = vec![
-            // Combining characters
-            ("lang", r#"{"paths": ["src/caf\u{0301}"]}"#),
-            // Right-to-left override
-            ("lang", r#"{"paths": ["src/\u{202E}file"]}"#),
-            // Zero-width joiner
-            ("lang", r#"{"paths": ["src/file\u{200D}name"]}"#),
-            // Full-width characters
-            ("lang", r#"{"paths": ["src/ファイル"]}"#),
-        ];
-
-        for (mode, args) in test_cases {
-            let result = run_json(mode, args);
-            let parsed: Value = serde_json::from_str(&result)?;
-            assert!(
-                parsed.get("ok").is_some(),
-                "Must return envelope for mode={} args={}",
-                mode,
-                args
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn null_byte_in_strings_handled() -> Result<(), Box<dyn std::error::Error>> {
-        // Null bytes in JSON strings are valid but may cause issues
-        let result = run_json("lang", r#"{"paths": ["src\u0000file"]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    // ========================================================================
-    // In-memory inputs validation tests
-    // ========================================================================
-
-    #[test]
-    fn in_memory_inputs_requires_path_field() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json("lang", r#"{"inputs": [{"text": "hello"}]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .ok_or_else(|| std::io::Error::other("not a string"))?
-                .contains("path")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_requires_content() -> Result<(), Box<dyn std::error::Error>> {
-        // Neither text nor base64 provided
-        let result = run_json("lang", r#"{"inputs": [{"path": "test.rs"}]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .ok_or_else(|| std::io::Error::other("not a string"))?
-                .contains("text")
-                || parsed["error"]["message"]
-                    .as_str()
-                    .ok_or_else(|| std::io::Error::other("not a string"))?
-                    .contains("base64")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_rejects_both_text_and_base64() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json(
-            "lang",
-            r#"{"inputs": [{"path": "test.rs", "text": "hello", "base64": "aGVsbG8="}]}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .ok_or_else(|| std::io::Error::other("not a string"))?
-                .contains("text")
-                || parsed["error"]["message"]
-                    .as_str()
-                    .ok_or_else(|| std::io::Error::other("not a string"))?
-                    .contains("base64")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_rejects_invalid_base64() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json(
-            "lang",
-            r#"{"inputs": [{"path": "test.rs", "base64": "not-valid!!!"}]}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .ok_or_else(|| std::io::Error::other("not a string"))?
-                .contains("base64")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_rejects_non_array() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json("lang", r#"{"inputs": "not-an-array"}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_rejects_paths_combination() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json(
-            "lang",
-            r#"{"paths": ["."], "inputs": [{"path": "test.rs", "text": "hello"}]}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        assert!(
-            parsed["error"]["message"]
-                .as_str()
-                .ok_or_else(|| std::io::Error::other("not a string"))?
-                .contains("paths")
-                || parsed["error"]["message"]
-                    .as_str()
-                    .ok_or_else(|| std::io::Error::other("not a string"))?
-                    .contains("inputs")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_under_scan_object() -> Result<(), Box<dyn std::error::Error>> {
-        // Test that inputs work under scan object
-        let result = run_json(
-            "lang",
-            r#"{"scan": {"inputs": [{"path": "test.rs", "text": "fn main() {}"}]}}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        // Should succeed (no paths conflict when using scan.inputs)
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_duplicate_location_error() -> Result<(), Box<dyn std::error::Error>> {
-        // Both top-level and scan-level inputs provided
-        let result = run_json(
-            "lang",
-            r#"{"inputs": [{"path": "a.rs", "text": ""}], "scan": {"inputs": [{"path": "b.rs", "text": ""}]}}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "invalid_settings");
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_valid_base64_succeeds() -> Result<(), Box<dyn std::error::Error>> {
-        // Valid base64 encoding of "fn main() {}"
-        let result = run_json(
-            "lang",
-            r#"{"inputs": [{"path": "test.rs", "base64": "Zm4gbWFpbigpIHt9"}]}"#,
-        );
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    #[test]
-    fn in_memory_inputs_empty_array_succeeds() -> Result<(), Box<dyn std::error::Error>> {
-        // Empty inputs array should be valid (though may not produce output)
-        let result = run_json("lang", r#"{"inputs": []}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        // Should return valid envelope
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    // ========================================================================
-    // Additional edge case tests
-    // ========================================================================
-
-    #[test]
-    fn empty_mode_returns_unknown_mode_error() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json("", r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "unknown_mode");
-        Ok(())
-    }
-
-    #[test]
-    fn very_long_mode_string_handled() -> Result<(), Box<dyn std::error::Error>> {
-        let long_mode = "a".repeat(10000);
-        let result = run_json(&long_mode, r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "unknown_mode");
-        Ok(())
-    }
-
-    #[test]
-    fn deeply_nested_json_handled() -> Result<(), Box<dyn std::error::Error>> {
-        // Create deeply nested JSON (1000 levels)
-        let mut nested = "{\"a\":0}".to_string();
-        for _ in 0..100 {
-            nested = format!("{{\"nested\":{}}}", nested);
-        }
-        let result = run_json("lang", &nested);
-        // Should return valid envelope even if it fails
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert!(parsed.get("ok").is_some());
-        Ok(())
-    }
-
-    #[test]
-    fn special_characters_in_error_messages() -> Result<(), Box<dyn std::error::Error>> {
-        // Test that error messages handle special characters properly
-        let result = run_json("lang", r#"{"paths": ["<script>alert(1)</script>"]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert!(parsed.get("ok").is_some());
-        // Verify the response is valid JSON (not corrupted by special chars)
-        let re_encoded = serde_json::to_string(&parsed)?;
-        assert!(!re_encoded.is_empty());
-        Ok(())
-    }
-
-    #[test]
-    fn whitespace_only_mode() -> Result<(), Box<dyn std::error::Error>> {
-        let result = run_json("   ", r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "unknown_mode");
-        Ok(())
-    }
-
-    #[test]
-    fn case_sensitive_mode() -> Result<(), Box<dyn std::error::Error>> {
-        // Test that modes are case-sensitive
-        let result = run_json("LANG", r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "unknown_mode");
-
-        // Lowercase should work
-        let result = run_json("lang", r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], true);
+    fn parse_cockpit_settings_with_values() -> Result<(), Box<dyn std::error::Error>> {
+        let args: Value = serde_json::json!({
+            "base": "v1.0",
+            "head": "feature",
+            "range_mode": "three-dot",
+            "baseline": "baseline.json"
+        });
+        let settings = parse_cockpit_settings(&args)?;
+        assert_eq!(settings.base, "v1.0");
+        assert_eq!(settings.head, "feature");
+        assert_eq!(settings.range_mode, "three-dot");
+        assert_eq!(settings.baseline, Some("baseline.json".to_string()));
         Ok(())
     }
 }

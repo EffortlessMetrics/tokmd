@@ -12,8 +12,7 @@
     { "$ref": "#/definitions/CockpitReceipt" },
     { "$ref": "#/definitions/Envelope" },
     { "$ref": "#/definitions/ComplexityBaseline" },
-    { "$ref": "#/definitions/DeterminismBaseline" },
-    { "$ref": "#/definitions/ToolSchemaOutput" }
+    { "$ref": "#/definitions/DeterminismBaseline" }
   ],
   "definitions": {
     "ScanStatus": {
@@ -2124,41 +2123,6 @@
         "excluded_by_policy": { "type": "array", "items": { "$ref": "#/definitions/PolicyExcludedFile" }, "description": "Files excluded by classification policy." },
         "token_estimation": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenEstimationMeta" }], "description": "Token estimation envelope with uncertainty bounds." },
         "bundle_audit": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/TokenAudit" }], "description": "Post-bundle audit comparing actual bundle bytes to estimates." }
-      }
-    },
-    "ToolSchemaOutput": {
-      "type": "object",
-      "description": "Top-level schema output with envelope metadata for generated AI tools.",
-      "required": ["schema_version", "name", "version", "description", "tools"],
-      "properties": {
-        "schema_version": { "type": "integer", "const": 1, "description": "Schema version for tool definitions." },
-        "name": { "type": "string", "description": "Tool name." },
-        "version": { "type": "string", "description": "Tool version." },
-        "description": { "type": "string", "description": "Tool description." },
-        "tools": { "type": "array", "items": { "$ref": "#/definitions/ToolDefinition" }, "description": "Available commands/tools." }
-      }
-    },
-    "ToolDefinition": {
-      "type": "object",
-      "description": "Definition of a single command/tool.",
-      "required": ["name", "description", "parameters"],
-      "properties": {
-        "name": { "type": "string", "description": "Command name." },
-        "description": { "type": "string", "description": "Command description." },
-        "parameters": { "type": "array", "items": { "$ref": "#/definitions/ParameterSchema" }, "description": "Parameters/arguments." }
-      }
-    },
-    "ParameterSchema": {
-      "type": "object",
-      "description": "Schema for a single parameter/argument.",
-      "required": ["name", "param_type", "required"],
-      "properties": {
-        "name": { "type": "string", "description": "Parameter name." },
-        "description": { "type": ["string", "null"], "description": "Parameter description." },
-        "param_type": { "type": "string", "description": "Parameter type." },
-        "required": { "type": "boolean", "description": "Whether the parameter is required." },
-        "default": { "type": ["string", "null"], "description": "Default value if any." },
-        "enum_values": { "type": ["array", "null"], "items": { "type": "string" }, "description": "Enum values if applicable." }
       }
     }
   }

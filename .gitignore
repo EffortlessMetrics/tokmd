@@ -44,22 +44,8 @@ mutants.out.old/
 .jules/worktrees/
 .jules/cache/
 .jules/transcripts/
-.jules/runs/
 .jules/runtime/
 .jules/tmp/
 
-# Hearth runtime state
-.hearth/
-
 # Windows artifacts
 nul
-
-# Python build artifacts
-__pycache__/
-*.py[cod]
-*.so
-*.egg-info/
-
-# Conveyor verification outputs (generated during agent runs)
-built/
-proven/

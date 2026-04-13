@@ -17,14 +17,11 @@ csv = "1.4.0"
 serde.workspace = true
 serde_json.workspace = true
 time = { version = "0.3.47", features = ["formatting"] }
-uuid = { version = "1.23", features = ["v4"] }
+uuid = { version = "1.22", features = ["v4", "js"] }
 tokmd-redact.workspace = true
 tokmd-scan-args.workspace = true
 tokmd-settings.workspace = true
 tokmd-types.workspace = true
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-uuid = { version = "1.23", features = ["v4", "js"] }
 
 [dev-dependencies]
 proptest.workspace = true

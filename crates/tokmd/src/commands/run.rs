@@ -45,30 +45,26 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
 
     // 3. Generate Reports
     progress.set_message("Generating reports...");
-    let lang_report =
-        model::create_lang_report(&languages, 0, false, tokmd_types::ChildrenMode::Collapse);
+    let lang_report = model::create_lang_report(&languages, 0, false, cli::ChildrenMode::Collapse);
     let module_report = model::create_module_report(
         &languages,
         &["crates".to_string(), "packages".to_string()],
         2,
-        tokmd_types::ChildIncludeMode::Separate,
+        cli::ChildIncludeMode::Separate,
         0,
     );
     let export_data = model::create_export_data(
         &languages,
         &["crates".to_string(), "packages".to_string()],
         2,
-        tokmd_types::ChildIncludeMode::Separate,
+        cli::ChildIncludeMode::Separate,
         None,
         0,
         0,
     );
 
     // Get redact mode - applies to scan args in all receipts (lang.json, module.json, export.jsonl)
-    let redact_mode = args
-        .redact
-        .map(Into::into)
-        .unwrap_or(tokmd_types::RedactMode::None);
+    let redact_mode = args.redact.unwrap_or(cli::RedactMode::None);
     let scan_args = format::scan_args(&args.paths, &scan_opts, Some(redact_mode));
 
     // 4. Write artifacts using tokmd-format for consistency
@@ -80,7 +76,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         format: "json".to_string(),
         top: 0,
         with_files: false,
-        children: tokmd_types::ChildrenMode::Collapse,
+        children: cli::ChildrenMode::Collapse,
     };
     format::write_lang_json_to_file(&lang_path, &lang_report, &scan_args, &lang_args_meta)
         .context("Failed to write lang.json")?;
@@ -92,24 +88,18 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         top: 0,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
         module_depth: 2,
-        children: tokmd_types::ChildIncludeMode::Separate,
+        children: cli::ChildIncludeMode::Separate,
     };
-    format::write_module_json_to_file(
-        &module_path,
-        &module_report,
-        &scan_args,
-        &module_args_meta,
-        redact_mode,
-    )
-    .context("Failed to write module.json")?;
+    format::write_module_json_to_file(&module_path, &module_report, &scan_args, &module_args_meta)
+        .context("Failed to write module.json")?;
 
     // Write export.jsonl (with redaction support)
     let export_path = output_dir.join("export.jsonl");
     let export_args_meta = tokmd_types::ExportArgsMeta {
-        format: tokmd_types::ExportFormat::Jsonl,
+        format: cli::ExportFormat::Jsonl,
         module_roots: vec!["crates".to_string(), "packages".to_string()],
         module_depth: 2,
-        children: tokmd_types::ChildIncludeMode::Separate,
+        children: cli::ChildIncludeMode::Separate,
         min_code: 0,
         max_rows: 0,
         redact: redact_mode,
@@ -186,16 +176,8 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
         };
         let receipt = analysis::analyze(ctx, request)?;
         progress.finish_and_clear();
-        analysis_utils::write_analysis_output(
-            &receipt,
-            &output_dir,
-            tokmd_types::AnalysisFormat::Md,
-        )?;
-        analysis_utils::write_analysis_output(
-            &receipt,
-            &output_dir,
-            tokmd_types::AnalysisFormat::Json,
-        )?;
+        analysis_utils::write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Md)?;
+        analysis_utils::write_analysis_output(&receipt, &output_dir, cli::AnalysisFormat::Json)?;
     }
 
     Ok(())

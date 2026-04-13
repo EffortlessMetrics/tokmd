@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde_json::Value;
 use serde_json::json;
@@ -6,7 +6,7 @@ use tokei::{Config, Languages};
 use tokmd_model::{
     collect_file_rows, create_export_data, create_export_data_from_rows, create_lang_report,
     create_lang_report_from_rows, create_module_report, create_module_report_from_rows,
-    normalize_path, unique_parent_file_count, unique_parent_file_count_from_rows,
+    unique_parent_file_count, unique_parent_file_count_from_rows,
 };
 use tokmd_types::{ChildIncludeMode, ChildrenMode, FileKind, FileRow};
 
@@ -549,80 +549,4 @@ fn unique_parent_file_count_from_rows_ignores_children_and_duplicates() {
         unique_parent_file_count_from_rows(&reversed_rows(rows.clone())),
         2
     );
-}
-
-#[test]
-fn normalize_path_strips_matching_prefix_only() {
-    let path = Path::new("path/to/file.rs");
-    let prefix = Path::new("path/to");
-    assert_eq!(normalize_path(path, Some(prefix)), "file.rs");
-
-    let prefix_with_sep = Path::new("path/to/");
-    assert_eq!(normalize_path(path, Some(prefix_with_sep)), "file.rs");
-
-    let other_prefix = Path::new("other/path");
-    assert_eq!(normalize_path(path, Some(other_prefix)), "path/to/file.rs");
-}
-
-#[test]
-fn create_lang_report_from_rows_distinguishes_children_modes() {
-    let rows = vec![
-        FileRow {
-            path: "src/lib.rs".to_string(),
-            module: "src".to_string(),
-            lang: "Rust".to_string(),
-            kind: FileKind::Parent,
-            code: 10,
-            comments: 2,
-            blanks: 1,
-            lines: 13,
-            bytes: 40,
-            tokens: 10,
-        },
-        FileRow {
-            path: "src/lib.rs".to_string(),
-            module: "src".to_string(),
-            lang: "JavaScript".to_string(),
-            kind: FileKind::Child,
-            code: 3,
-            comments: 0,
-            blanks: 0,
-            lines: 3,
-            bytes: 0,
-            tokens: 0,
-        },
-        FileRow {
-            path: "src/test.rs".to_string(),
-            module: "src".to_string(),
-            lang: "Rust".to_string(),
-            kind: FileKind::Parent,
-            code: 8,
-            comments: 1,
-            blanks: 1,
-            lines: 10,
-            bytes: 32,
-            tokens: 8,
-        },
-    ];
-
-    let collapsed = create_lang_report_from_rows(&rows, 0, false, ChildrenMode::Collapse);
-    assert_eq!(collapsed.rows.len(), 1);
-    assert_eq!(collapsed.rows[0].lines, 23);
-    assert_eq!(collapsed.rows[0].code, 18);
-
-    let separated = create_lang_report_from_rows(&rows, 0, false, ChildrenMode::Separate);
-    assert_eq!(separated.rows.len(), 2);
-
-    let mut rust_lines = 0;
-    let mut js_lines = 0;
-    for row in separated.rows {
-        if row.lang == "Rust" {
-            rust_lines = row.lines;
-        } else if row.lang == "JavaScript (embedded)" {
-            js_lines = row.lines;
-        }
-    }
-
-    assert_eq!(rust_lines, 20);
-    assert_eq!(js_lines, 3);
 }

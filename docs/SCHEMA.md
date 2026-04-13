@@ -22,7 +22,6 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Context Bundle** | 2 | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `context` bundle manifest |
 | **Analysis** | 9 | `ANALYSIS_SCHEMA_VERSION` | `analyze` |
 | **Cockpit** | 3 | `COCKPIT_SCHEMA_VERSION` | `cockpit` |
-| **Tool** | 1 | `TOOL_SCHEMA_VERSION` | `tools` |
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 5 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
@@ -87,7 +86,6 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Core**: `crates/tokmd-types/src/lib.rs` - `pub const SCHEMA_VERSION: u32 = 2;`
 - **Analysis**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;`
 - **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
-- **Tool**: `crates/tokmd-tool-schema/src/lib.rs` - `pub const TOOL_SCHEMA_VERSION: u32 = 1;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
@@ -115,7 +113,7 @@ Every receipt includes:
 | `generated_at_ms` | `integer` | Unix timestamp (milliseconds) when the scan ran. |
 | `tool` | `object` | Information about the tool version. |
 | `tool.name` | `string` | Always `"tokmd"`. |
-| `tool.version` | `string` | The version of tokmd used (e.g., `"1.9.0"`). |
+| `tool.version` | `string` | The version of tokmd used (e.g., `"1.8.0"`). |
 | `mode` | `string` | One of `"lang"`, `"module"`, `"export"`, `"analysis"`, or `"cockpit"`. |
 | `status` | `string` | Scan status: `"complete"` or `"partial"`. |
 | `warnings` | `array` | Array of warning strings generated during the scan. |
@@ -148,7 +146,7 @@ Produced by `tokmd --format json` or `tokmd lang --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.9.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "lang",
   "status": "complete",
   "warnings": [],
@@ -229,7 +227,7 @@ Produced by `tokmd module --format json`.
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.9.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "module",
   "status": "complete",
   "warnings": [],
@@ -312,7 +310,7 @@ JSONL output consists of a **Meta Record** (first line) followed by **Data Rows*
   "type": "meta",
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.9.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -356,7 +354,7 @@ When using `--format json`, the output is a single JSON object:
 {
   "schema_version": 2,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.9.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "export",
   "status": "complete",
   "warnings": [],
@@ -446,7 +444,7 @@ Analysis receipts contain derived metrics and optional enrichments. All sections
 {
   "schema_version": 9,
   "generated_at_ms": 1706350000000,
-  "tool": { "name": "tokmd", "version": "1.9.0" },
+  "tool": { "name": "tokmd", "version": "1.8.0" },
   "mode": "analysis",
   "status": "complete",
   "warnings": [],
@@ -804,7 +802,7 @@ The ecosystem envelope provides a standardized JSON format for multi-sensor inte
   "schema": "sensor.report.v1",
   "tool": {
     "name": "tokmd",
-    "version": "1.9.0",
+    "version": "1.8.0",
     "mode": "cockpit"
   },
   "generated_at": "2024-01-27T10:30:00Z",
@@ -1075,8 +1073,7 @@ Cockpit receipts provide PR-focused metrics for code review automation, includin
   "risk": { ... },
   "contracts": { ... },
   "evidence": { ... },
-  "review_plan": [ ... ],
-  "trend": { ... }
+  "review_plan": [ ... ]
 }
 ```
 
@@ -1095,7 +1092,6 @@ Cockpit receipts provide PR-focused metrics for code review automation, includin
 | `contracts` | `object` | Contract change indicators (API, CLI, schema). |
 | `evidence` | `object` | Evidence gates with pass/fail status. |
 | `review_plan` | `array` | Prioritized list of files to review. |
-| `trend` | `object\|null` | Trend comparison with baseline. |
 
 ### Change Surface (`change_surface`)
 
@@ -1482,73 +1478,6 @@ Prioritized list of files requiring review.
 | `complexity` | `integer\|null` | Estimated review complexity (1-5). |
 | `lines_changed` | `integer\|null` | Lines changed in this file. |
 
-### Trend Comparison (`trend`)
-
-Trend comparison between current state and baseline.
-
-```json
-{
-  "trend": {
-    "baseline_available": true,
-    "baseline_path": ".jules/baseline.json",
-    "baseline_generated_at_ms": 1706000000000,
-    "health": {
-      "current": 90.0,
-      "previous": 85.0,
-      "delta": 5.0,
-      "delta_pct": 5.88,
-      "direction": "improving"
-    },
-    "risk": {
-      "current": 20.0,
-      "previous": 30.0,
-      "delta": -10.0,
-      "delta_pct": -33.33,
-      "direction": "improving"
-    },
-    "complexity": {
-      "direction": "degrading",
-      "summary": "Complexity increased in 3 files",
-      "files_increased": 3,
-      "files_decreased": 1,
-      "avg_cyclomatic_delta": 2.5,
-      "avg_cognitive_delta": 1.8
-    }
-  }
-}
-```
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `baseline_available` | `boolean` | Whether a baseline was successfully loaded. |
-| `baseline_path` | `string\|null` | Path to the baseline file used. |
-| `baseline_generated_at_ms` | `integer\|null` | Timestamp of baseline generation. |
-| `health` | `object\|null` | Health score trend. |
-| `risk` | `object\|null` | Risk score trend. |
-| `complexity` | `object\|null` | Complexity trend indicator. |
-
-#### Trend Metric
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `current` | `float` | Current value. |
-| `previous` | `float` | Previous (baseline) value. |
-| `delta` | `float` | Absolute delta (current - previous). |
-| `delta_pct` | `float` | Percentage change. |
-| `direction` | `string` | Direction of change (`"improving"`, `"stable"`, `"degrading"`). |
-
-#### Trend Indicator
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `direction` | `string` | Overall trend direction (`"improving"`, `"stable"`, `"degrading"`). |
-| `summary` | `string` | Human-readable summary. |
-| `files_increased` | `integer` | Number of files that got more complex. |
-| `files_decreased` | `integer` | Number of files that got less complex. |
-| `avg_cyclomatic_delta` | `float\|null` | Average cyclomatic delta. |
-| `avg_cognitive_delta` | `float\|null` | Average cognitive delta. |
-
-
 ### Complete Cockpit Receipt Example
 
 ```json
@@ -1663,7 +1592,6 @@ Trend comparison between current state and baseline.
       "complexity": 2,
       "lines_changed": 200
     }
-  ],
-  "trend": null
+  ]
 }
 ```

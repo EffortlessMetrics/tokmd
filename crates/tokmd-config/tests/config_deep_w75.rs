@@ -329,7 +329,7 @@ fn user_config_multiple_profiles_roundtrip() {
             module_depth: Some(3),
             min_code: Some(10),
             max_rows: Some(100),
-            redact: Some(CliRedactMode::Paths),
+            redact: Some(RedactMode::Paths),
             meta: Some(true),
             children: Some("collapse".into()),
         },
@@ -356,7 +356,7 @@ fn user_config_multiple_profiles_roundtrip() {
     assert_eq!(ci.module_depth, Some(3));
     assert_eq!(ci.min_code, Some(10));
     assert_eq!(ci.max_rows, Some(100));
-    assert_eq!(ci.redact, Some(CliRedactMode::Paths));
+    assert_eq!(ci.redact, Some(RedactMode::Paths));
     assert_eq!(ci.meta, Some(true));
     assert_eq!(ci.children.as_deref(), Some("collapse"));
     assert_eq!(back.repos["org/repo-a"], "ci");
@@ -385,7 +385,7 @@ fn profile_all_fields_none_by_default() {
 fn global_args_defaults_complete() {
     let g = GlobalArgs::default();
     assert!(g.excluded.is_empty());
-    assert_eq!(g.config, CliConfigMode::Auto);
+    assert_eq!(g.config, ConfigMode::Auto);
     assert!(!g.hidden);
     assert!(!g.no_ignore);
     assert!(!g.no_ignore_parent);
@@ -402,7 +402,7 @@ fn global_args_defaults_complete() {
 fn global_args_to_scan_options_all_true() {
     let g = GlobalArgs {
         excluded: vec!["target".into(), "dist".into()],
-        config: CliConfigMode::None,
+        config: ConfigMode::None,
         hidden: true,
         no_ignore: true,
         no_ignore_parent: true,
@@ -414,7 +414,7 @@ fn global_args_to_scan_options_all_true() {
     };
     let opts: ScanOptions = (&g).into();
     assert_eq!(opts.excluded, vec!["target", "dist"]);
-    assert_eq!(opts.config, tokmd_types::ConfigMode::None);
+    assert_eq!(opts.config, ConfigMode::None);
     assert!(opts.hidden);
     assert!(opts.no_ignore);
     assert!(opts.no_ignore_parent);
@@ -429,7 +429,7 @@ fn global_args_to_scan_options_all_true() {
 fn global_args_owned_conversion_preserves_values() {
     let g = GlobalArgs {
         excluded: vec!["*.log".into()],
-        config: CliConfigMode::Auto,
+        config: ConfigMode::Auto,
         hidden: false,
         no_ignore: false,
         no_ignore_parent: true,

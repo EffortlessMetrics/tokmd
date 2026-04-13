@@ -1,5 +1,4 @@
 use crate::cli::GateArgs;
-use crate::tasks::build_guard::{ScopedTempDir, ensure_min_free_space};
 use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
 use std::process::Command;
@@ -119,14 +118,6 @@ fn ensure_no_tracked_agent_runtime_state() -> Result<()> {
 pub fn run(args: GateArgs) -> Result<()> {
     ensure_no_tracked_agent_runtime_state()?;
 
-    let ephemeral_target = if std::env::var_os("CARGO_TARGET_DIR").is_none() {
-        let dir = ScopedTempDir::new("gate-target")?;
-        println!("gate: using disposable target dir {}", dir.path().display());
-        Some(dir)
-    } else {
-        None
-    };
-
     let total = STEPS.len();
     let mut failures = Vec::new();
 
@@ -149,20 +140,8 @@ pub fn run(args: GateArgs) -> Result<()> {
                 }
             }
         } else {
-            ensure_min_free_space(
-                ephemeral_target
-                    .as_ref()
-                    .map(ScopedTempDir::path)
-                    .unwrap_or(std::path::Path::new(".")),
-                step.label,
-            )?;
-
             let mut command = Command::new(step.cmd);
             command.args(effective_args);
-            command.env("CARGO_INCREMENTAL", "0");
-            if let Some(dir) = ephemeral_target.as_ref() {
-                command.env("CARGO_TARGET_DIR", dir.path());
-            }
             if cfg!(windows) && step.label == "test (compile-only)" {
                 // Windows keeps the running xtask binary locked, so compile
                 // the rest of the workspace here and let xtask's own tests
@@ -179,10 +158,10 @@ pub fn run(args: GateArgs) -> Result<()> {
         };
 
         if exit_code != 0 {
-            println!("   ❌ Step {} ({}) failed", idx, step.label);
+            println!("   \u{274C} Step {} ({}) failed", idx, step.label);
             failures.push((step.label, exit_code));
         } else {
-            println!("   ✅ Step {} ({}) passed", idx, step.label);
+            println!("   \u{2705} Step {} ({}) passed", idx, step.label);
         }
     }
 

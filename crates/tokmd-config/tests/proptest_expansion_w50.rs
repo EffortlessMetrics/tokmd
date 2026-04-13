@@ -25,9 +25,9 @@ fn arb_profile() -> impl Strategy<Value = Profile> {
         prop::option::of(0usize..1000),
         prop::option::of(0usize..10000),
         prop::option::of(prop_oneof![
-            Just(tokmd_config::CliRedactMode::None),
-            Just(tokmd_config::CliRedactMode::Paths),
-            Just(tokmd_config::CliRedactMode::All),
+            Just(tokmd_config::RedactMode::None),
+            Just(tokmd_config::RedactMode::Paths),
+            Just(tokmd_config::RedactMode::All),
         ]),
         prop::option::of(any::<bool>()),
         prop::option::of(prop_oneof![
