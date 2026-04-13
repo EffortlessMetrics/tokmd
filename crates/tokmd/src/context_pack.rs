@@ -451,22 +451,32 @@ pub fn select_files_with_options(
     // Collect candidates back into a Vec<FileRow> (needed by pack functions)
     let candidate_rows: Vec<FileRow> = candidates.into_iter().cloned().collect();
 
+    struct FileContextMeta {
+        classifications: Vec<FileClassification>,
+        policy: InclusionPolicy,
+        policy_reason: Option<String>,
+        original_tokens: usize,
+    }
+
     // Step 2: Classify all candidates and compute file cap
     let file_cap = compute_file_cap(budget, options);
-    let mut classification_map: BTreeMap<String, Vec<FileClassification>> = BTreeMap::new();
-    let mut policy_map: BTreeMap<String, (InclusionPolicy, Option<String>)> = BTreeMap::new();
+    let mut file_meta_map: BTreeMap<String, FileContextMeta> = BTreeMap::new();
     let mut excluded_by_policy: Vec<PolicyExcludedFile> = Vec::new();
-    // Track original tokens because candidate_rows will be modified (capped) for budget accounting
-    let mut original_tokens: BTreeMap<String, usize> = BTreeMap::new();
 
     for row in candidate_rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let path = normalize_path(&row.path);
         let classes = classify_file(&path, row.tokens, row.lines, options.dense_threshold);
         let (policy, reason) = assign_policy(row.tokens, file_cap, &classes);
 
-        classification_map.insert(path.clone(), classes.clone());
-        policy_map.insert(path.clone(), (policy, reason.clone()));
-        original_tokens.insert(path.clone(), row.tokens);
+        file_meta_map.insert(
+            path.clone(),
+            FileContextMeta {
+                classifications: classes.clone(),
+                policy,
+                policy_reason: reason.clone(),
+                original_tokens: row.tokens,
+            },
+        );
 
         // Skip/Summary → move to excluded_by_policy
         if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
@@ -495,16 +505,17 @@ pub fn select_files_with_options(
         })
         .map(|r| {
             let path = normalize_path(&r.path);
-            if let Some((InclusionPolicy::HeadTail, _)) = policy_map.get(&path) {
+            if let Some(meta) = file_meta_map.get(&path)
+                && meta.policy == InclusionPolicy::HeadTail
+            {
                 // Clamp tokens for budget accounting
                 let capped = r.tokens.min(file_cap);
-                FileRow {
+                return FileRow {
                     tokens: capped,
                     ..r.clone()
-                }
-            } else {
-                r.clone()
+                };
             }
+            r.clone()
         })
         .collect();
 
@@ -580,19 +591,15 @@ pub fn select_files_with_options(
     // Step 7: Annotate each selected file with policy, classifications, effective_tokens
     for file in &mut selected {
         let path = normalize_path(&file.path);
-        if let Some(classes) = classification_map.get(&path) {
-            file.classifications = classes.clone();
-        }
-        if let Some((policy, reason)) = policy_map.get(&path) {
-            file.policy = *policy;
-            file.policy_reason = reason.clone();
-            if *policy == InclusionPolicy::HeadTail {
+        if let Some(meta) = file_meta_map.get(&path) {
+            file.classifications = meta.classifications.clone();
+            file.policy = meta.policy;
+            file.policy_reason = meta.policy_reason.clone();
+            if meta.policy == InclusionPolicy::HeadTail {
                 // effective_tokens is the capped value (file.tokens was already capped)
                 file.effective_tokens = Some(file.tokens);
                 // Restore original tokens so density calculation (tokens/line) is correct
-                if let Some(original) = original_tokens.get(&path) {
-                    file.tokens = *original;
-                }
+                file.tokens = meta.original_tokens;
             }
         }
     }
