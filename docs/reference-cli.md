@@ -2,7 +2,7 @@
 
 This document details the command-line interface for `tokmd`.
 
-## Global Arguments
+## Top-Level `tokmd` Arguments
 
 These arguments apply when you invoke `tokmd` directly without an explicit subcommand. They describe the root language-summary surface, not a universal flag set shared by every subcommand.
 
