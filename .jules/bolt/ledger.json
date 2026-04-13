@@ -35,27 +35,5 @@
       "clippy"
     ],
     "friction_ids": []
-  },
-  {
-    "date": "2025-04-05T12:00:00Z",
-    "lane": "scout",
-    "target": "tokmd-content/src/complexity.rs - detect_*_functions",
-    "proof_method": "timing script",
-    "pr_link": "",
-    "gates": [
-      {
-        "name": "cargo test -p tokmd-content",
-        "status": "PASS"
-      },
-      {
-        "name": "cargo fmt -- --check",
-        "status": "PASS"
-      },
-      {
-        "name": "cargo clippy -p tokmd-content -- -D warnings",
-        "status": "PASS"
-      }
-    ],
-    "friction_ids": []
   }
 ]

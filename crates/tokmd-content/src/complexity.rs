@@ -141,10 +141,10 @@ pub fn analyze_functions(content: &str, language: &str) -> FunctionMetrics {
     }
 
     let spans = match lang.as_str() {
-        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN, "fn"),
-        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF, "def"),
+        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN),
+        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF),
         "javascript" | "js" | "typescript" | "ts" | "jsx" | "tsx" => detect_js_functions(&lines),
-        "go" => detect_brace_functions(&lines, &GO_FUNC, "func"),
+        "go" => detect_brace_functions(&lines, &GO_FUNC),
         _ => Vec::new(),
     };
 
@@ -152,13 +152,12 @@ pub fn analyze_functions(content: &str, language: &str) -> FunctionMetrics {
 }
 
 /// Detect functions in brace-based languages (Rust, Go).
-fn detect_brace_functions(lines: &[&str], pattern: &Regex, hint: &str) -> Vec<FunctionSpan> {
+fn detect_brace_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> {
     let mut spans = Vec::new();
     let mut i = 0;
 
     while i < lines.len() {
-        let line = lines[i];
-        if line.contains(hint) && pattern.is_match(line) {
+        if pattern.is_match(lines[i]) {
             let start = i;
             if let Some(end) = find_brace_end(lines, i) {
                 spans.push(FunctionSpan {
@@ -205,15 +204,14 @@ fn find_brace_end(lines: &[&str], start_line: usize) -> Option<usize> {
 }
 
 /// Detect functions in indentation-based languages (Python).
-fn detect_indented_functions(lines: &[&str], pattern: &Regex, hint: &str) -> Vec<FunctionSpan> {
+fn detect_indented_functions(lines: &[&str], pattern: &Regex) -> Vec<FunctionSpan> {
     let mut spans = Vec::new();
     let mut i = 0;
 
     while i < lines.len() {
-        let line = lines[i];
-        if line.contains(hint) && pattern.is_match(line) {
+        if pattern.is_match(lines[i]) {
             let mut start = i;
-            let base_indent = get_indent(line);
+            let base_indent = get_indent(lines[i]);
 
             // Walk upward to include decorator lines at the same indent level.
             // Skip blank lines only tentatively; commit only if a decorator is found.
@@ -285,12 +283,6 @@ fn detect_js_functions(lines: &[&str]) -> Vec<FunctionSpan> {
 
     while i < lines.len() {
         let line = lines[i];
-
-        // Fast pre-filter for JS functions (function keyword, arrow =>, or likely method bracket {)
-        if !line.contains("function") && !line.contains("=>") && !line.contains("{") {
-            i += 1;
-            continue;
-        }
 
         // Check all JS patterns
         if JS_FUNCTION.is_match(line) || JS_ARROW.is_match(line) || JS_METHOD.is_match(line) {
@@ -442,10 +434,10 @@ pub fn estimate_cyclomatic_complexity(content: &str, language: &str) -> Cyclomat
 
     // Get function spans using existing detection
     let spans = match lang.as_str() {
-        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN, "fn"),
-        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF, "def"),
+        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN),
+        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF),
         "javascript" | "js" | "typescript" | "ts" | "jsx" | "tsx" => detect_js_functions(&lines),
-        "go" => detect_brace_functions(&lines, &GO_FUNC, "func"),
+        "go" => detect_brace_functions(&lines, &GO_FUNC),
         _ => Vec::new(),
     };
 
@@ -857,10 +849,10 @@ pub fn estimate_cognitive_complexity(content: &str, language: &str) -> Cognitive
 
     // Get function spans using existing detection
     let spans = match lang.as_str() {
-        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN, "fn"),
-        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF, "def"),
+        "rust" | "rs" => detect_brace_functions(&lines, &RUST_FN),
+        "python" | "py" => detect_indented_functions(&lines, &PYTHON_DEF),
         "javascript" | "js" | "typescript" | "ts" | "jsx" | "tsx" => detect_js_functions(&lines),
-        "go" => detect_brace_functions(&lines, &GO_FUNC, "func"),
+        "go" => detect_brace_functions(&lines, &GO_FUNC),
         "c" | "c++" | "cpp" | "java" | "c#" | "csharp" => detect_c_style_functions(&lines),
         _ => Vec::new(),
     };
