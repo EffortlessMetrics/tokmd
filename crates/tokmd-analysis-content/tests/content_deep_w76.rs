@@ -95,15 +95,17 @@ mod todo_w76 {
     }
 
     #[test]
-    fn tags_sorted_alphabetically_in_btreemap() {
+    fn tags_sorted_by_count_then_alphabetically_in_btreemap() {
         let tmp = TempDir::new().unwrap();
-        let content = "// XXX: z\n// FIXME: a\n// HACK: m\n// TODO: x\n";
+        let content = "// XXX: z\n// FIXME: a\n// HACK: m\n// TODO: x\n// TODO: y\n";
         let f = write_file(tmp.path(), "a.rs", content.as_bytes());
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
         let tag_names: Vec<&str> = r.tags.iter().map(|t| t.tag.as_str()).collect();
-        let mut sorted = tag_names.clone();
-        sorted.sort();
-        assert_eq!(tag_names, sorted, "tags should be in alphabetical order");
+        assert_eq!(
+            tag_names,
+            vec!["TODO", "FIXME", "HACK", "XXX"],
+            "tags should be sorted by count then name"
+        );
     }
 
     #[test]
