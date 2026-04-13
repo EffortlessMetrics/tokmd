@@ -28,6 +28,12 @@ pub struct LicenseCandidates {
     pub metadata_files: Vec<PathBuf>,
 }
 
+fn git_cmd() -> Command {
+    let mut cmd = Command::new("git");
+    cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
+    cmd
+}
+
 pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>> {
     // Early return for zero-file limit
     if max_files == Some(0) {
@@ -129,7 +135,7 @@ pub fn license_candidates(files: &[PathBuf]) -> LicenseCandidates {
 }
 
 fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>> {
-    let output = Command::new("git")
+    let output = git_cmd()
         .arg("-C")
         .arg(root)
         .arg("ls-files")
