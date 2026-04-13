@@ -9,11 +9,12 @@ use tokmd_analysis::{
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, EntropyClass};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
 
-fn deterministic_factory() -> Factory {
-    let seed = Seed::from_env_value(module_path!()).expect("module path should be a valid seed");
-    Factory::deterministic(seed)
+mod generated_fixtures {
+    pub const SECURITY_PRIVATE_KEY_PK8: &[u8] = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/generated/private-key.pk8"
+    ));
 }
 
 fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
@@ -101,9 +102,8 @@ fn security_preset_detects_uselesskey_generated_private_key() {
     )
     .expect("fixture directory should be created");
 
-    let fixture = deterministic_factory().rsa("security-preset-fixture", RsaSpec::rs256());
-    fs::write(&output_path, fixture.private_key_pkcs8_der())
-        .expect("rsa fixture bytes should be written");
+    fs::write(&output_path, generated_fixtures::SECURITY_PRIVATE_KEY_PK8)
+        .expect("materialized rsa fixture bytes should be written");
 
     let receipt = analyze(
         make_context(dir.path(), export_for_private_key_fixture(relative_path)),

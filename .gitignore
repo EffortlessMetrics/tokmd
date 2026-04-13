@@ -44,6 +44,7 @@ mutants.out.old/
 .jules/worktrees/
 .jules/cache/
 .jules/transcripts/
+.jules/runs/
 .jules/runtime/
 .jules/tmp/
 
@@ -62,3 +63,4 @@ __pycache__/
 # Conveyor verification outputs (generated during agent runs)
 built/
 proven/
+.jules/runs/

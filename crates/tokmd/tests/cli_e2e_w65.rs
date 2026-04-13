@@ -536,15 +536,6 @@ fn lang_exclude_multiple_patterns() {
 // ===========================================================================
 
 #[test]
-fn err_unknown_subcommand_fails() {
-    tokmd_bare()
-        .arg("frobnicate")
-        .assert()
-        .failure()
-        .stderr(predicate::str::is_empty().not());
-}
-
-#[test]
 fn err_typo_subcommand_fails() {
     tokmd_bare()
         .arg("lnag")
@@ -694,9 +685,21 @@ fn success_exit_code_is_zero() {
 }
 
 #[test]
-fn failure_exit_code_is_nonzero() {
+fn frobnicate_unknown_subcommand_has_stable_error_output() {
     let output = tokmd_bare().arg("frobnicate").output().expect("run");
-    assert_ne!(output.status.code(), Some(0));
+
+    assert!(!output.status.success());
+    assert!(output.stdout.is_empty(), "stdout should be empty");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Error: Path not found: frobnicate"),
+        "stderr should include the current path error, got: {stderr}"
+    );
+    assert!(
+        stderr.contains("Hints:"),
+        "stderr should include the stable hints block, got: {stderr}"
+    );
 }
 
 // ===========================================================================

@@ -26,6 +26,7 @@ use tokmd_types::{
 };
 
 use crate::context_pack;
+use crate::git_support::git_cmd;
 use tokmd_progress::Progress;
 
 const DEFAULT_TREE_DEPTH: usize = 4;
@@ -275,7 +276,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     let mut capabilities = Vec::new();
 
     // Check git availability
-    let git_available = tokmd_git::git_cmd()
+    let git_available = git_cmd()
         .arg("--version")
         .output()
         .map(|o| o.status.success())
@@ -305,7 +306,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     #[cfg(feature = "git")]
     let in_repo = tokmd_git::repo_root(root).is_some();
     #[cfg(not(feature = "git"))]
-    let in_repo = tokmd_git::git_cmd()
+    let in_repo = git_cmd()
         .args(["rev-parse", "--git-dir"])
         .current_dir(root)
         .output()
@@ -333,7 +334,7 @@ fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilitySt
     }
 
     // Check for shallow clone
-    let shallow = tokmd_git::git_cmd()
+    let shallow = git_cmd()
         .args(["rev-parse", "--is-shallow-repository"])
         .current_dir(root)
         .output()
