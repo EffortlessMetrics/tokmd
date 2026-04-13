@@ -265,17 +265,17 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 3. **Clap-free settings**: Lower-tier crates use `ScanOptions` from `tokmd-settings`, not `GlobalArgs`
 4. **Finding identity**: `(check_id, code)` tuples enable category-based routing for buildfix automation
 
-## WASM & Browser Runner (v1.9.0 in progress)
+## WASM & Browser Runner
 
-### Landed foundation and product surface
+### Shipped foundation and product surface
 
-The browser/WASM lane is no longer just seam work:
+The browser/WASM lane is now a shipped product surface:
 
 - `tokmd-io-port` plus the in-memory scan/model/core workflow paths keep lower tiers host-abstracted and deterministic on ordered in-memory inputs.
-- `tokmd-wasm` now exposes the browser-facing `lang`, `module`, `export`, and browser-safe `analyze` entrypoints.
+- `tokmd-wasm` exposes the browser-facing `lang`, `module`, `export`, and browser-safe `analyze` entrypoints.
 - CI includes wasm compile/tests plus native-vs-wasm parity coverage for the browser-safe modes.
-- `web/runner` now boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
-- Public browser repo loading now uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
+- `web/runner` boots the real wasm bundle in a dedicated worker, renders capabilities, shows the latest successful result, and supports JSON download.
+- Public browser repo loading uses the GitHub tree and contents APIs to materialize ordered `{ path, text }` inputs locally.
 
 ### Supported browser-safe contract today
 
@@ -286,9 +286,9 @@ The browser/WASM lane is no longer just seam work:
 
 Host-backed enrichers remain explicit capability misses in browser mode. Git-history signals such as hotspots and churn are intentionally unavailable there today.
 
-### Remaining v1.9.0 work
+### Current browser constraints
 
-- Host the `tokmd-wasm` browser bundle as a versioned release artifact (see `web/runner` docs) and consume it from `web/runner/vendor/tokmd-wasm` so browser boot is deterministic across environments.
+- Host the `tokmd-wasm` browser bundle as a versioned release artifact and consume it from `web/runner/vendor/tokmd-wasm` so browser boot stays deterministic across environments.
 - Add browser guardrails such as caching, authenticated fetch options, and better rate-limit/progress handling.
 - Broaden browser analysis only where the preset can stay rootless and capability-honest.
 
