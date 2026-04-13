@@ -287,3 +287,39 @@ fn recipe_init_non_interactive() {
         .assert()
         .success();
 }
+
+#[test]
+fn recipe_context_spread_compress() {
+    let tmp = tempfile::tempdir().unwrap();
+    let bundle_path = tmp.path().join("context.txt");
+
+    // tokmd context --budget 128k --strategy spread --mode bundle --output context.txt
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--strategy")
+        .arg("spread")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--output")
+        .arg(&bundle_path)
+        .assert()
+        .success();
+    assert!(bundle_path.exists());
+
+    let bundle_compressed_path = tmp.path().join("context_compressed.txt");
+    // tokmd context --budget 128k --mode bundle --compress --output context.txt
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--mode")
+        .arg("bundle")
+        .arg("--compress")
+        .arg("--output")
+        .arg(&bundle_compressed_path)
+        .assert()
+        .success();
+    assert!(bundle_compressed_path.exists());
+}
