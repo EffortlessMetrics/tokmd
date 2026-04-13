@@ -1,9 +1,0 @@
-Found 122 mutants to test
-ok       Unmutated baseline in 4s build + 2s test
- INFO Auto-set test timeout to 20s
-MISSED   crates/tokmd-gate/src/ratchet.rs:122:9: delete match arm (Some(bv), Some(pct)) in evaluate_ratchet in 3s build + 2s test
-MISSED   crates/tokmd-gate/src/ratchet.rs:280:9: delete match arm (Some(bv), Some(pct)) in evaluate_ratchet_with_options in 6s build + 2s test
-MISSED   crates/tokmd-gate/src/types.rs:38:9: replace <impl std::error::Error for GateError>::source -> Option<&(dyn std::error::Error +'static)> with None in 5s build + 2s test
-MISSED   crates/tokmd-gate/src/types.rs:39:13: delete match arm Self::IoError(e) in <impl std::error::Error for GateError>::source in 5s build + 2s test
-MISSED   crates/tokmd-gate/src/types.rs:40:13: delete match arm Self::TomlError(e) in <impl std::error::Error for GateError>::source in 4s build + 2s test
-122 mutants tested in 8m: 5 missed, 105 caught, 12 unviable
