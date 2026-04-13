@@ -70,6 +70,15 @@ The primary truth for any run is the **per-run packet** under:
 - `runs/` — per-run packets
 - `index/` — optional generated summaries
 
+## Persona instruction surface
+
+Prompt-critical guidance must live in the individual persona README files under
+`.jules/personas/<persona>/README.md`.
+
+Those files are the direct execution surface for persona-specific Jules runs.
+Shared docs in `.jules/README.md`, `runbooks/`, or `policy/` may summarize or
+reinforce that guidance, but they do not replace persona-local instructions.
+
 ## Learning and improvement intent
 
 The intent of keeping run packets, friction items, and persona notes in-repo is to:
