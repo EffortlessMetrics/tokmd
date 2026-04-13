@@ -41,14 +41,6 @@ use tokmd_types::{
 
 pub use tokmd_scan_args::{normalize_scan_input, scan_args};
 
-fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {
-    if redact == RedactMode::All {
-        roots.iter().map(|r| short_hash(r)).collect()
-    } else {
-        roots.to_vec()
-    }
-}
-
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -400,8 +392,6 @@ fn write_export_jsonl<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
         let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
@@ -417,7 +407,7 @@ fn write_export_jsonl<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -454,8 +444,6 @@ fn write_export_json<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
         let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
         let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
@@ -470,7 +458,7 @@ fn write_export_json<W: Write>(
             scan: scan_args(&args.paths, global, Some(args.redact)),
             args: ExportArgsMeta {
                 format: args.format,
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
                 min_code: args.min_code,
@@ -491,7 +479,7 @@ fn write_export_json<W: Write>(
                 rows: redact_rows(&export.rows, args.redact)
                     .map(|c| c.into_owned())
                     .collect(),
-                module_roots: module_roots.clone(),
+                module_roots: export.module_roots.clone(),
                 module_depth: export.module_depth,
                 children: export.children,
             },
