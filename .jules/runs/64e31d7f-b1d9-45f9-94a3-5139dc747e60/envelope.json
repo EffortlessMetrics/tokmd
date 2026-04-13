@@ -1,0 +1,1 @@
+{"prompt_id": "compat_interfaces_matrix", "persona": "Compat", "style": "Builder", "primary_shard": "interfaces", "gate_profile": "compat-matrix", "allowed_outcomes": ["learning PR"]}
