@@ -1,5 +1,6 @@
 use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
+use predicates::prelude::*;
 use std::path::PathBuf;
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
@@ -322,4 +323,81 @@ fn recipe_context_spread_compress() {
         .assert()
         .success();
     assert!(bundle_compressed_path.exists());
+}
+
+#[test]
+fn recipe_check_ignore() {
+    let tmp = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(tmp.path().join("target/debug")).unwrap();
+    std::fs::write(tmp.path().join(".tokeignore"), "target/**\n").unwrap();
+    std::fs::write(tmp.path().join("target/debug/myapp"), "binary").unwrap();
+
+    tokmd()
+        .current_dir(tmp.path())
+        .arg("check-ignore")
+        .arg("target/debug/myapp")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("target/debug/myapp: ignored"));
+}
+
+#[test]
+fn recipe_check_ignore_verbose() {
+    let tmp = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(tmp.path().join("node_modules/lodash")).unwrap();
+    std::fs::write(tmp.path().join(".tokeignore"), "node_modules/**\n").unwrap();
+    std::fs::write(
+        tmp.path().join("node_modules/lodash/index.js"),
+        "console.log('hi');",
+    )
+    .unwrap();
+
+    tokmd()
+        .current_dir(tmp.path())
+        .arg("check-ignore")
+        .arg("-v")
+        .arg("node_modules/lodash/index.js")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("node_modules/lodash/index.js: ignored"))
+        .stdout(predicate::str::contains(".tokeignore: node_modules/**"));
+}
+
+#[test]
+fn recipe_diff() {
+    let tmp = tempfile::tempdir().unwrap();
+    let baseline_dir = tmp.path().join("baseline");
+    let current_dir = tmp.path().join("current");
+    std::fs::create_dir_all(&baseline_dir).unwrap();
+    std::fs::create_dir_all(&current_dir).unwrap();
+
+    let output1 = tokmd()
+        .arg("lang")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    std::fs::write(baseline_dir.join("lang.json"), output1).unwrap();
+
+    let output2 = tokmd()
+        .arg("lang")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    std::fs::write(current_dir.join("lang.json"), output2).unwrap();
+
+    tokmd()
+        .arg("diff")
+        .arg(&baseline_dir)
+        .arg(&current_dir)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("## Diff:"));
 }
