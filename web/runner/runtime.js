@@ -27,16 +27,21 @@ function formatSupportedList(values) {
     return values.length > 0 ? values.join(", ") : "no supported entries";
 }
 
-function formatRunnerError(error) {
+function extractRunnerError(error) {
+    let message = "unknown runner error";
+
     if (error instanceof Error && typeof error.message === "string") {
-        return error.message;
+        message = error.message;
+    } else if (typeof error === "string") {
+        message = error;
     }
 
-    if (typeof error === "string") {
-        return error;
+    const match = message.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (match) {
+        return { code: match[1], message: match[2] || message };
     }
 
-    return "unknown runner error";
+    return { code: "run_failed", message };
 }
 
 async function invokeRunner(runner, mode, args) {
@@ -81,7 +86,7 @@ export async function handleRunnerMessage(message, options = {}) {
         return createErrorMessage(
             message.requestId,
             "wasm_boot_failed",
-            `browser runner failed to initialize tokmd-wasm: ${formatRunnerError(bootError)}`
+            `browser runner failed to initialize tokmd-wasm: ${extractRunnerError(bootError).message}`
         );
     }
 
@@ -125,10 +130,11 @@ export async function handleRunnerMessage(message, options = {}) {
         const data = await invokeRunner(runner, message.mode, message.args);
         return createResultMessage(message.requestId, data);
     } catch (error) {
+        const extracted = extractRunnerError(error);
         return createErrorMessage(
             message.requestId,
-            "run_failed",
-            formatRunnerError(error)
+            extracted.code,
+            extracted.message
         );
     }
 }
