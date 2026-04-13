@@ -16,7 +16,7 @@
 //!    in long-running operations.
 //!
 //! 3. **GIL Safety**: All FFI operations properly acquire and release the Python GIL.
-//!    Long-running scans release the GIL via `py.allow_threads()` to avoid blocking
+//!    Long-running scans release the GIL via `py.detach()` to avoid blocking
 //!    the Python interpreter.
 //!
 //! 4. **Error Translation**: Rust errors are converted to appropriate Python exceptions
@@ -82,12 +82,12 @@ fn schema_version() -> u32 {
 ///    preventing wasted work in long-running scans.
 ///
 /// 2. **Host Process Safety**: By validating while the GIL is still held, we ensure
-///    that any parsing errors are reported before entering the `allow_threads` block.
+///    that any parsing errors are reported before entering the `detach` block.
 ///    This guarantees the Python interpreter remains in a consistent state.
 ///
 /// # GIL Handling
 ///
-/// The GIL is released via `py.allow_threads()` during the actual scan operation.
+/// The GIL is released via `py.detach()` during the actual scan operation.
 /// This prevents tokmd from blocking other Python threads during long-running
 /// file system operations. The result is collected and returned after re-acquiring
 /// the GIL.
@@ -129,7 +129,7 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
     // Release the GIL during the potentially long-running scan.
     // SAFETY: args_json has been validated, mode is a valid &str, all inputs are safe.
     // The closure captures no mutable state that could race with other threads.
-    py.allow_threads(|| Ok(tokmd_core::ffi::run_json(mode, args_json)))
+    Ok(py.detach(|| tokmd_core::ffi::run_json(mode, args_json)))
 }
 
 fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> PyErr {
@@ -141,7 +141,7 @@ fn extract_data_json(result_json: &str) -> PyResult<String> {
 }
 
 #[cfg(test)]
-fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<PyObject> {
+fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
     let json_module = py.import("json")?;
     let envelope_json: String = json_module.call_method1("dumps", (envelope,))?.extract()?;
     let data_json = extract_data_json(&envelope_json)?;
@@ -185,7 +185,7 @@ fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<PyO
 ///     >>> result = tokmd.run("lang", {"paths": ["."], "top": 10})
 ///     >>> print(result["rows"][0]["lang"])
 #[cfg_attr(not(test), pyfunction)]
-fn run(py: Python<'_>, mode: &str, args: &Bound<'_, PyDict>) -> PyResult<PyObject> {
+fn run(py: Python<'_>, mode: &str, args: &Bound<'_, PyDict>) -> PyResult<Py<PyAny>> {
     run_with_json_module(py, mode, args, py.import("json"))
 }
 
@@ -212,7 +212,7 @@ fn run_with_json_module(
     mode: &str,
     args: &Bound<'_, PyDict>,
     json_module: PyResult<Bound<'_, PyModule>>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     // Convert Python dict to JSON string
     //
     // NOTE: Using `?` here means if `json.dumps()` raises an exception
@@ -225,7 +225,7 @@ fn run_with_json_module(
     //
     // SAFETY: args_json is a validated String (UTF-8 guaranteed), mode is a
     // valid &str. The core FFI receives only valid, owned data.
-    let result_json = py.allow_threads(|| tokmd_core::ffi::run_json(mode, &args_json));
+    let result_json = py.detach(move || tokmd_core::ffi::run_json(mode, &args_json));
 
     // Parse/extract with the shared FFI-envelope microcrate, then convert to PyObject.
     //
@@ -281,7 +281,7 @@ fn lang(
     redact: Option<&str>,
     excluded: Option<Vec<String>>,
     hidden: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     // Build base args - any PyDict failure propagates via `?`
     let args = build_args(py, paths, top, excluded, hidden)?;
 
@@ -340,7 +340,7 @@ fn module(
     redact: Option<&str>,
     excluded: Option<Vec<String>>,
     hidden: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, top, excluded, hidden)?;
     args.set_item("module_depth", module_depth)?;
     if let Some(roots) = module_roots {
@@ -399,7 +399,7 @@ fn export(
     redact: Option<&str>,
     excluded: Option<Vec<String>>,
     hidden: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, 0, excluded, hidden)?;
     args.set_item("min_code", min_code)?;
     args.set_item("max_rows", max_rows)?;
@@ -463,7 +463,7 @@ fn analyze(
     max_commits: Option<usize>,
     excluded: Option<Vec<String>>,
     hidden: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, 0, excluded, hidden)?;
     if let Some(p) = preset {
         args.set_item("preset", p)?;
@@ -505,7 +505,7 @@ fn analyze(
 ///     >>> result = tokmd.diff(from_path="old_receipt.json", to_path="new_receipt.json")
 ///     >>> print(f"Total delta: {result['totals']['delta_code']} lines")
 #[cfg_attr(not(test), pyfunction(signature = (from_path=None, to_path=None)))]
-fn diff(py: Python<'_>, from_path: Option<&str>, to_path: Option<&str>) -> PyResult<PyObject> {
+fn diff(py: Python<'_>, from_path: Option<&str>, to_path: Option<&str>) -> PyResult<Py<PyAny>> {
     let args = PyDict::new(py);
     if let Some(f) = from_path {
         args.set_item("from", f)?;
@@ -548,7 +548,7 @@ fn cockpit(
     head: Option<&str>,
     range_mode: Option<&str>,
     baseline: Option<&str>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let args = PyDict::new(py);
     if let Some(b) = base {
         args.set_item("base", b)?;
@@ -678,8 +678,8 @@ mod tests {
     use std::path::Path;
 
     fn with_py<F: FnOnce(Python<'_>)>(f: F) {
-        pyo3::prepare_freethreaded_python();
-        Python::with_gil(f);
+        Python::initialize();
+        Python::attach(f);
     }
 
     fn write_file(root: &Path, rel: &str, contents: &str) {
@@ -752,7 +752,7 @@ mod tests {
             let dict = PyDict::new(py);
             dict.set_item("ok", true).unwrap();
             let obj = extract_envelope(py, dict.as_any()).expect("extract envelope");
-            let out = obj.downcast_bound::<PyDict>(py).expect("dict");
+            let out = obj.cast_bound::<PyDict>(py).expect("dict");
             assert!(out.get_item("data").unwrap().is_none());
         });
     }
@@ -916,7 +916,7 @@ mod tests {
                 false,
             )
             .expect("lang should succeed");
-            let lang_dict = lang_result.downcast_bound::<PyDict>(py).expect("lang dict");
+            let lang_dict = lang_result.cast_bound::<PyDict>(py).expect("lang dict");
             assert_eq!(
                 lang_dict
                     .get_item("mode")
@@ -940,7 +940,7 @@ mod tests {
             )
             .expect("module should succeed");
             let module_dict = module_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("module dict");
             assert_eq!(
                 module_dict
@@ -967,7 +967,7 @@ mod tests {
             )
             .expect("export should succeed");
             let export_dict = export_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("export dict");
             assert_eq!(
                 export_dict
@@ -998,7 +998,7 @@ mod tests {
                 false,
             )
             .expect("lang should succeed");
-            let lang_dict = lang_result.downcast_bound::<PyDict>(py).expect("lang dict");
+            let lang_dict = lang_result.cast_bound::<PyDict>(py).expect("lang dict");
             assert_eq!(
                 lang_dict
                     .get_item("mode")
@@ -1022,7 +1022,7 @@ mod tests {
             )
             .expect("module should succeed");
             let module_dict = module_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("module dict");
             assert_eq!(
                 module_dict
@@ -1049,7 +1049,7 @@ mod tests {
             )
             .expect("export should succeed");
             let export_dict = export_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("export dict");
             assert_eq!(
                 export_dict
@@ -1075,7 +1075,7 @@ mod tests {
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("analysis dict");
             assert_eq!(
                 analysis_dict
@@ -1108,7 +1108,7 @@ mod tests {
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
-                .downcast_bound::<PyDict>(py)
+                .cast_bound::<PyDict>(py)
                 .expect("analysis dict");
             assert_eq!(
                 analysis_dict
@@ -1131,7 +1131,7 @@ mod tests {
             let path_b = repo_b.path().to_string_lossy().to_string();
 
             let diff_result = diff(py, Some(&path_a), Some(&path_b)).expect("diff should succeed");
-            let diff_dict = diff_result.downcast_bound::<PyDict>(py).expect("diff dict");
+            let diff_dict = diff_result.cast_bound::<PyDict>(py).expect("diff dict");
             assert_eq!(
                 diff_dict
                     .get_item("mode")
@@ -1272,7 +1272,7 @@ mod tests {
             match result {
                 Ok(obj) => {
                     // If it returns Ok, the result should indicate no files found
-                    let dict = obj.downcast_bound::<PyDict>(py).expect("should be dict");
+                    let dict = obj.cast_bound::<PyDict>(py).expect("should be dict");
                     let rows = dict.get_item("rows").unwrap();
                     assert!(rows.is_some(), "Result should have rows field");
                 }
