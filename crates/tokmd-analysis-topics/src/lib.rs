@@ -18,7 +18,7 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         .collect();
 
     let stopwords = build_stopwords(export);
-    let mut terms_by_module: BTreeMap<String, BTreeMap<String, u32>> = BTreeMap::new();
+    let mut terms_by_module: BTreeMap<&str, BTreeMap<String, u32>> = BTreeMap::new();
     let mut df_map: BTreeMap<String, u32> = BTreeMap::new();
 
     for row in parents {
@@ -27,7 +27,7 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
             continue;
         }
         let weight = weight_for_row(row);
-        let module_terms = terms_by_module.entry(row.module.clone()).or_default();
+        let module_terms = terms_by_module.entry(row.module.as_str()).or_default();
         let mut seen: BTreeSet<String> = BTreeSet::new();
         for term in terms {
             *module_terms.entry(term.clone()).or_insert(0) += weight;
@@ -63,7 +63,7 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
                 .then_with(|| a.term.cmp(&b.term))
         });
         rows.truncate(TOP_K);
-        per_module.insert(module.clone(), rows);
+        per_module.insert(module.to_string(), rows);
 
         for (term, tf) in tf_map {
             *overall_tf.entry(term.clone()).or_insert(0) += *tf;
