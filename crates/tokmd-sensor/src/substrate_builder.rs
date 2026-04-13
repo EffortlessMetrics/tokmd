@@ -50,16 +50,16 @@ pub fn build_substrate(
 
     // Convert file rows to substrate files
     let files: Vec<SubstrateFile> = file_rows
-        .iter()
+        .into_iter()
         .map(|row| SubstrateFile {
-            path: row.path.clone(),
-            lang: row.lang.clone(),
+            in_diff: changed_set.contains(row.path.as_str()),
+            path: row.path,
+            lang: row.lang,
             code: row.code,
             lines: row.lines,
             bytes: row.bytes,
             tokens: row.tokens,
-            module: row.module.clone(),
-            in_diff: changed_set.contains(row.path.as_str()),
+            module: row.module,
         })
         .collect();
 
