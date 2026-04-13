@@ -12,6 +12,4 @@
 **What it is:** The function `extract_rust_symbols` loops through lines and counts symbols. A strong invariant is that if there are `N` public rust items, the number of extracted public items should exactly be `N`.
 **Trade-offs:** We can add strong proptest.
 
-I choose Option C since it directly ties to model code (the API surface extraction logic) and verifies behavior against generated rust source combinations. Wait, maybe Option B since determinism is deeply valued in tokmd. Actually there is already a `report_is_deterministic_across_runs` unit test.
-
-Let me review `crates/tokmd-analysis-api-surface/tests/properties.rs` again.
+Decided to implement Option B. Added property tests asserting the total count exactly matches permutations from generated rust symbols, and added tests for duplicate and missing files.

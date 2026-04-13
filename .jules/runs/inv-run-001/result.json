@@ -1,10 +1,11 @@
 {
   "status": "success",
-  "outcome": "proof-improvement patch",
+  "outcome": "learning PR",
   "files_changed": [
-    "crates/tokmd-analysis-api-surface/tests/properties_w60.rs"
+    ".jules/friction/open/redundant_proptests.md"
   ],
   "gates_run": [
-    "cargo test -p tokmd-analysis-api-surface properties_w60"
+    "cargo test -p tokmd-analysis-api-surface properties_w60",
+    "cargo xtask gate --check"
   ]
 }
