@@ -939,9 +939,7 @@ mod tests {
                 false,
             )
             .expect("module should succeed");
-            let module_dict = module_result
-                .cast_bound::<PyDict>(py)
-                .expect("module dict");
+            let module_dict = module_result.cast_bound::<PyDict>(py).expect("module dict");
             assert_eq!(
                 module_dict
                     .get_item("mode")
@@ -966,9 +964,7 @@ mod tests {
                 false,
             )
             .expect("export should succeed");
-            let export_dict = export_result
-                .cast_bound::<PyDict>(py)
-                .expect("export dict");
+            let export_dict = export_result.cast_bound::<PyDict>(py).expect("export dict");
             assert_eq!(
                 export_dict
                     .get_item("mode")
@@ -1021,9 +1017,7 @@ mod tests {
                 false,
             )
             .expect("module should succeed");
-            let module_dict = module_result
-                .cast_bound::<PyDict>(py)
-                .expect("module dict");
+            let module_dict = module_result.cast_bound::<PyDict>(py).expect("module dict");
             assert_eq!(
                 module_dict
                     .get_item("mode")
@@ -1048,9 +1042,7 @@ mod tests {
                 false,
             )
             .expect("export should succeed");
-            let export_dict = export_result
-                .cast_bound::<PyDict>(py)
-                .expect("export dict");
+            let export_dict = export_result.cast_bound::<PyDict>(py).expect("export dict");
             assert_eq!(
                 export_dict
                     .get_item("mode")
