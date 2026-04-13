@@ -11,6 +11,67 @@
 
 `tokmd` turns a source tree into stable receipts you can diff, analyze, archive, gate, and pack for downstream automation. It starts with code inventory, then keeps going: saved artifacts, derived metrics, PR review surfaces, policy checks, sensor outputs, and browser-safe context bundles.
 
+## GitHub Action
+
+Use the root composite action when you want a workflow-friendly receipt and PR summary without scripting `tokmd` installation yourself.
+
+- Installs a released `tokmd` binary for the current runner.
+- Generates `tokmd-summary.md` from `tokmd module`.
+- Generates a structured receipt file from `tokmd export`.
+- Optionally uploads both files as workflow artifacts.
+- Optionally posts the summary as a pull request comment.
+
+```yaml
+name: tokmd receipt
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  receipt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: EffortlessMetrics/tokmd@v1
+        with:
+          version: '1.9.0'
+          paths: .
+          module-roots: crates,packages
+          top: '20'
+          format: json
+          artifact: 'true'
+          comment: 'true'
+```
+
+Inputs:
+
+| Input | Required | Default | Purpose |
+| :---- | :------- | :------ | :------ |
+| `version` | no | `latest` | `tokmd` release to install. Pass an explicit version if you want the action ref and binary version to stay aligned. |
+| `paths` | no | `.` | Paths to scan. |
+| `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
+| `top` | no | `20` | Number of rows shown in `tokmd-summary.md`. |
+| `format` | no | `json` | Receipt export format: `json`, `jsonl`, or `csv`. |
+| `artifact` | no | `true` | Upload `tokmd-summary.md` and the receipt as workflow artifacts. |
+| `comment` | no | `true` | Post `tokmd-summary.md` as a pull request comment when running on `pull_request` events. |
+
+Outputs:
+
+| Output | Description |
+| :----- | :---------- |
+| `receipt` | Path to the generated receipt file. |
+
+Notes:
+
+- PR commenting needs `pull-requests: write` and only runs for `pull_request` events.
+- The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
+- Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
+
 ## The Problem
 
 Raw LOC counts are easy to produce and hard to reuse.
