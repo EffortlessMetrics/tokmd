@@ -1,7 +1,0 @@
-{"command": "cargo test -p tokmd-types", "exit_code": 0}
-{"command": "cargo test -p tokmd-cockpit", "exit_code": 0}
-{"command": "cargo test -p tokmd-cockpit --test snapshot_w45 -- --nocapture", "exit_code": 0}
-{"command": "cargo test -p tokmd --test docs", "exit_code": 0}
-{"command": "cargo test -p tokmd --test docs_sync_w72", "exit_code": 0}
-{"command": "cargo test -p tokmd --test schema_doc_sync", "exit_code": 0}
-{"command": "cargo xtask gate --check", "exit_code": 0}
