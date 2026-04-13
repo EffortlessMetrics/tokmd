@@ -1,5 +1,0 @@
-{
-  "outcome": "learning PR",
-  "reason": "Evaluated .then(...) usages in sorting keys. Found that although they eagerly evaluate the secondary comparison, because cmp is pure, there is no actual determinism hazard. Decided not to hallucinate a fix and instead issue a learning PR.",
-  "paths_modified": []
-}
