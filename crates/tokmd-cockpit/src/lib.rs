@@ -19,6 +19,7 @@
 pub mod determinism;
 pub mod render;
 
+use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -1817,15 +1818,15 @@ fn compute_change_surface(
     };
 
     // Simple change concentration: what % of changes are in top 20% of files
-    let mut changes: Vec<(usize, &String)> = file_stats
+    let mut changes: Vec<usize> = file_stats
         .iter()
-        .map(|s| (s.insertions + s.deletions, &s.path))
+        .map(|s| s.insertions + s.deletions)
         .collect();
-    changes.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(b.1)));
+    changes.sort_by_key(|&c| Reverse(c));
 
     let top_count = (files_changed as f64 * 0.2).ceil() as usize;
-    let total_changes: usize = changes.iter().map(|(c, _)| c).sum();
-    let top_changes: usize = changes.iter().take(top_count).map(|(c, _)| c).sum();
+    let total_changes: usize = changes.iter().sum();
+    let top_changes: usize = changes.iter().take(top_count).sum();
 
     let change_concentration = if total_changes > 0 {
         top_changes as f64 / total_changes as f64
@@ -2066,7 +2067,7 @@ pub fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> 
         });
     }
 
-    items.sort_by(|a, b| a.priority.cmp(&b.priority).then_with(|| a.path.cmp(&b.path)));
+    items.sort_by_key(|i| i.priority);
     items
 }
 
