@@ -20,3 +20,6 @@ Use targeted tests/contracts/receipts to prove the hardening. Keep threat models
 ## Anti-drift rules
 Do not choose test-only panic cleanup unless no stronger boundary-hardening target exists in the shard.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

@@ -18,3 +18,6 @@ Prefer behavior-level tests over generic assertion cleanup. A proof-improvement 
 ## Anti-drift rules
 Do not become a generic test cleanup lane.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

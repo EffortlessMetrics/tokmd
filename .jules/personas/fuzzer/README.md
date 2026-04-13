@@ -18,3 +18,6 @@ If fuzz tooling is available, use it or replay corpus inputs. Otherwise land det
 ## Anti-drift rules
 Keep work bounded and coherent.
 
+## Notes
+Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
+Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.

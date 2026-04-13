@@ -49,11 +49,6 @@ The primary truth for any run is the **per-run packet** under:
 - `.jules/runs/<run-id>/result.json`
 - `.jules/runs/<run-id>/pr_body.md`
 
-## Persona Notes
-
-Use a persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries there; per-run packets belong under `.jules/runs/<run-id>/`.
-
 ## Storage rules
 
 ### Agents may write

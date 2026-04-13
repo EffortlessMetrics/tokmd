@@ -1,0 +1,38 @@
+{
+  "run_id": "archivist_learning_run",
+  "prompt_id": "archivist_jules",
+  "persona": "Archivist",
+  "style": "Builder",
+  "primary_shard": "workspace-wide",
+  "outcome_type": "learning_pr",
+  "title": "jules: record archivist learning on persona duplication 🗃️",
+  "summary": "Recorded a learning that persona-specific rules must stay in the persona files, even if they appear duplicated, because of how agents consume them.",
+  "target_paths": [
+    ".jules/friction/open/FRIC-20260406-001.md",
+    ".jules/personas/archivist/notes/persona_duplication.md"
+  ],
+  "problem_statement": "Persona files contain duplicated boilerplate (e.g., the `## Notes` section), which looks like a prime target for deduplication. However, deduplicating them breaks the agent's context because agents only receive their specific persona file.",
+  "proof_summary": {
+    "mode": "governance",
+    "claim": "Records the intentional duplication of persona notes to prevent future Archivist runs from trying to deduplicate them.",
+    "measured": true,
+    "notes": "Verified by reading PR comments."
+  },
+  "gates_run": [
+    {
+      "profile": "governance-release",
+      "cmd": "cargo xtask gate --check",
+      "status": "PASS",
+      "summary": "Full quality gate"
+    }
+  ],
+  "risk": "low",
+  "rollback": "git reset --hard && git clean -fd (excluding needed run data)",
+  "friction_items_created": [
+    ".jules/friction/open/FRIC-20260406-001.md"
+  ],
+  "notes_created": [
+    ".jules/personas/archivist/notes/persona_duplication.md"
+  ],
+  "follow_ups": []
+}
