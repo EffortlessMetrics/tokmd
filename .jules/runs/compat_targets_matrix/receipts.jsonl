@@ -1,7 +1,0 @@
-{"command":"cargo check -p tokmd-python --no-default-features","exit_code":0}
-{"command":"cargo test -p tokmd-python --no-default-features --test property_tests -- prop_invalid_json_returns_error_envelope","exit_code":101}
-{"command":"cargo fmt -- --check","exit_code":0}
-{"command":"cargo clippy -- -D warnings","exit_code":0}
-{"command":"cargo test -p tokmd-core","exit_code":0}
-{"command":"cargo test --workspace --all-features","exit_code":0}
-{"command":"npm test --prefix web/runner","exit_code":0}
