@@ -4,6 +4,15 @@ use clap::ValueEnum;
 use tokmd_config as cli;
 
 /// Configuration context combining TOML config, JSON config, and resolved profile.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd::config::load_config;
+///
+/// let config = load_config();
+/// // config.toml and config.json will be loaded from the environment if present
+/// ```
 #[derive(Debug, Default)]
 pub struct ConfigContext {
     /// TOML configuration (tokmd.toml)
@@ -27,7 +36,7 @@ impl ConfigContext {
 }
 
 /// Load all configuration sources.
-pub(crate) fn load_config() -> ConfigContext {
+pub fn load_config() -> ConfigContext {
     let toml_result = discover_toml_config();
     let json = load_json_config();
 

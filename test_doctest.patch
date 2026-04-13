@@ -1,0 +1,23 @@
+<<<<<<< SEARCH
+mod analysis_utils;
+mod commands;
+mod config;
+mod context_pack;
+mod error_hints;
+mod export_bundle;
+#[cfg(feature = "ui")]
+mod interactive;
+
+use anyhow::Result;
+=======
+mod analysis_utils;
+mod commands;
+pub mod config;
+mod context_pack;
+mod error_hints;
+mod export_bundle;
+#[cfg(feature = "ui")]
+mod interactive;
+
+use anyhow::Result;
+>>>>>>> REPLACE

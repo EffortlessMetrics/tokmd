@@ -1,0 +1,22 @@
+<<<<<<< SEARCH
+/// ```rust
+/// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}};
+/// use tokmd_model::InMemoryFile;
+///
+/// let inputs = vec![
+///     InMemoryFile {
+///         path: "src/main.rs".into(),
+///         content: "fn main() { println!(\"hello world\"); }".into(),
+///     }
+/// ];
+=======
+/// ```rust
+/// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}, InMemoryFile};
+///
+/// let inputs = vec![
+///     InMemoryFile {
+///         path: "src/main.rs".into(),
+///         content: b"fn main() { println!(\"hello world\"); }".to_vec(),
+///     }
+/// ];
+>>>>>>> REPLACE
