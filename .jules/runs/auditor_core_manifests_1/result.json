@@ -1,5 +1,5 @@
 {
   "status": "success",
-  "action": "removed `js` feature from `uuid` dependency in `tokmd-format`",
-  "files_changed": ["crates/tokmd-format/Cargo.toml"]
+  "action": "filed learning PR about target-scoped Wasm dependencies",
+  "files_changed": [".jules/friction/open/target_scoped_dependencies.md"]
 }

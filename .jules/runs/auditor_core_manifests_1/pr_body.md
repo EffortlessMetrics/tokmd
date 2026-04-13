@@ -1,46 +1,46 @@
 ## 💡 Summary
-Removed the unnecessary `js` feature from the `uuid` dependency in `tokmd-format`. This cleanly drops JavaScript/WASM specific transitive dependencies (like `wasm-bindgen` and `js-sys`) from the native compile graph.
+This is a learning PR. The initial attempt to blindly remove the `js` feature from the `uuid` dependency in `tokmd-format` broke the `wasm32-unknown-unknown` CI build. The correct fix (a target-scoped dependency) was already merged in #1112. Since no other obvious unused direct dependencies exist within the `core-pipeline` shard, this PR captures the friction and updates the Auditor persona notes.
 
 ## 🎯 Why
-The `tokmd-format` crate uses `uuid` to generate `v4` identifiers for some JSON export formats (specifically CycloneDX). Enabling the `js` feature natively provides WASM random number generator fallbacks, but introduces unused transitive dependencies when building natively, violating dependency hygiene goals.
+Removing the `js` feature natively provides WASM random number generator fallbacks, but introduces unused transitive dependencies when building natively, violating dependency hygiene goals. However, it is required for `wasm32-unknown-unknown` targets. Applying blanket removals of such features in the primary `[dependencies]` table without moving them to a target-specific configuration leads to cross-compilation CI breakages.
 
 ## 🔎 Evidence
 - File: `crates/tokmd-format/Cargo.toml`
-- Issue: `uuid = { version = "1.22", features = ["v4", "js"] }`
+- Error: `error: to use uuid on wasm32-unknown-unknown, specify a source of randomness using one of the js, rng-getrandom, or rng-rand features`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Remove the `js` feature from `uuid` in `tokmd-format`.
-- Why it fits this repo and shard: Directly tightens feature flags to reduce compile surface for a core crate.
+- What it is: Revert the code change and submit a learning PR documenting the friction and updating the Auditor persona notes.
+- Why it fits this repo and shard: Complies with the instruction: "If no honest code/docs/test patch is justified, finish with a learning PR instead of forcing a fake fix."
 - Trade-offs:
-  - Structure: Minor, safe Cargo manifest change.
-  - Velocity: Avoids pulling in `wasm-bindgen` build steps where not needed.
-  - Governance: High alignment with hygiene guidelines.
+  - Structure: Adds documentation to `.jules/friction/open/`.
+  - Velocity: Avoids chasing dead-end unused dependencies.
+  - Governance: Documents the finding for future agents under `.jules/personas/auditor/notes/`.
 
 ### Option B
-- What it is: Move `tempfile` to `[dev-dependencies]` in `tokmd-scan`.
-- When to choose it instead: If `tempfile` was actually unused at runtime.
-- Trade-offs: However, `tempfile` is actually used in `tokmd-scan` runtime code to hold mocked scans, so it cannot be removed from direct dependencies.
+- What it is: Search for another unused dependency.
+- When to choose it instead: If tools like `cargo machete` or `cargo tree` indicated a clear, obvious unused direct dependency in the specified crates.
+- Trade-offs: `cargo machete` found no unused dependencies in the `core-pipeline` crates. The ones available (`tempfile`, `serde_json`) are actively used by the test suites.
 
 ## ✅ Decision
-Implemented Option A. It correctly and safely reduces dependency surface area without breaking functionality.
+Implemented Option A. Reverted the breaking change and recorded the Wasm feature failure as a friction item to prevent future agents from making the same mistake.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/Cargo.toml`: Changed `uuid` features from `["v4", "js"]` to `["v4"]`.
+- Created `.jules/friction/open/target_scoped_dependencies.md`
+- Created `.jules/personas/auditor/notes/target_scoped_dependencies.md`
 
 ## 🧪 Verification receipts
 ```text
-$ sed -i 's/features = \["v4", "js"\]/features = \["v4"\]/' crates/tokmd-format/Cargo.toml
-$ cargo test -p tokmd-format
-test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+$ cargo check -p tokmd-format --target wasm32-unknown-unknown
+error: to use uuid on wasm32-unknown-unknown, specify a source of randomness using one of the js, rng-getrandom, or rng-rand features
 ```
 
 ## 🧭 Telemetry
-- Change shape: Dependency hygiene, manifest tightening.
-- Blast radius: Compilation only.
-- Risk class + why: Low. Removing an unneeded WASM generator feature has no effect on native RNG.
-- Rollback: Re-add the feature to Cargo.toml.
-- Gates run: `cargo build -p tokmd-format`, `cargo test -p tokmd-format`.
+- Change shape: Learning PR, Friction Item.
+- Blast radius: Documentation only.
+- Risk class + why: Zero risk. Reverted code change.
+- Rollback: Remove the `.jules` artifacts.
+- Gates run: `cargo check -p tokmd-format --target wasm32-unknown-unknown`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/auditor_core_manifests_1/envelope.json`
@@ -48,6 +48,8 @@ test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/auditor_core_manifests_1/receipts.jsonl`
 - `.jules/runs/auditor_core_manifests_1/result.json`
 - `.jules/runs/auditor_core_manifests_1/pr_body.md`
+- `.jules/friction/open/target_scoped_dependencies.md`
+- `.jules/personas/auditor/notes/target_scoped_dependencies.md`
 
 ## 🔜 Follow-ups
-None.
+- Target-scoped dependency fixes have been merged in #1112.
