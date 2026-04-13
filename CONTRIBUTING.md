@@ -320,14 +320,18 @@ exclude_re = ["impl.*Display", "fn main\\("]
 -   Run `cargo fmt-fix` for a fast, Windows-safe fmt-only fix.
 -   Run `cargo fmt-check` to verify formatting only.
 -   Run `cargo xtask gate --check` to verify the full quality gate locally.
+-   `cargo xtask gate --check` now uses a disposable temp `CARGO_TARGET_DIR` and forces `CARGO_INCREMENTAL=0` unless you override `CARGO_TARGET_DIR` yourself, so repeated gate runs do not leave a huge `target/` tree behind.
+-   On Unix-like systems, `cargo xtask gate --check` also refuses to start when free disk drops below the `TOKMD_MIN_FREE_GB` threshold.
 -   Run `cargo trim-target --check` to inspect reclaimable `target/debug` footprint.
 -   Run `cargo trim-target` to drop Windows PDBs and incremental state from `target/debug` without a full `cargo clean`.
 -   If you need full local symbols on Windows for a debugging session, use `$env:RUSTFLAGS='-C debuginfo=2'; cargo test ...`.
 -   Run `cargo sccache-check` to verify the optional local compiler cache.
 -   Run `cargo with-sccache test --workspace --all-features` for cache-friendly local rebuilds.
+-   `cargo with-sccache check|clippy|test ...` now uses a disposable temp `CARGO_TARGET_DIR` by default when you have not already set one, so validation runs clean up after themselves.
 -   The repo-native `sccache` wrapper uses a deterministic per-workspace `SCCACHE_SERVER_PORT`; set `SCCACHE_SERVER_PORT` yourself if you need to override it.
 -   For cross-worktree cache reuse, run `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
 -   Expect the biggest `sccache` wins on repeated library and dependency compiles; final binary and test-binary link steps still run uncached.
+-   On Unix-like systems, both wrappers refuse to start when free disk drops below the `TOKMD_MIN_FREE_GB` threshold. Override that env var if you need a different floor for a larger machine.
 
 ## Contribution Areas
 

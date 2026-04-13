@@ -1,4 +1,5 @@
 pub mod boundaries_check;
+pub mod build_guard;
 pub mod bump;
 pub mod cockpit;
 pub mod docs;

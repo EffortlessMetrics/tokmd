@@ -580,6 +580,12 @@ cargo fmt-check
 cargo gate-check
 ```
 
+`cargo gate-check` now uses a disposable temp `CARGO_TARGET_DIR` and forces
+`CARGO_INCREMENTAL=0` unless you override `CARGO_TARGET_DIR` yourself, so the
+quality gate does not leave a long-lived local build tree behind.
+On Unix-like systems, `cargo gate-check` also refuses to start when free disk
+drops below the `TOKMD_MIN_FREE_GB` threshold.
+
 This repo also defaults Windows MSVC builds to line-table debuginfo so future local builds generate much smaller symbol files than full PDB output.
 If you need full local symbols for a debugging session, use:
 ```powershell
@@ -608,6 +614,10 @@ cargo sccache-check
 cargo with-sccache test --workspace --all-features
 ```
 
+For `check`, `clippy`, and `test`, the wrapper now uses a disposable temp
+`CARGO_TARGET_DIR` when you have not already set one, so validation runs clean
+up after themselves instead of accreting under the repo-local `target/`.
+
 **2. Inspect hit rates**:
 ```bash
 cargo sccache-stats
@@ -627,6 +637,10 @@ If you want cache reuse across multiple worktrees or checkout roots, use:
 ```bash
 cargo xtask sccache --basedir <PATH> -- test --workspace --all-features
 ```
+
+On Unix-like systems, both `cargo gate-check` and `cargo with-sccache ...`
+refuse to start once free disk drops below the `TOKMD_MIN_FREE_GB` threshold,
+which defaults to `8`.
 
 The repo-native wrapper also picks a deterministic per-workspace `SCCACHE_SERVER_PORT` so it does not collide with another local `sccache` server already using the default `127.0.0.1:4226`. If you need a different port, set `SCCACHE_SERVER_PORT` explicitly before running the wrapper.
 
