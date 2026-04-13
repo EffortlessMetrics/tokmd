@@ -98,6 +98,6 @@ tempfile.workspace = true
 insta = { workspace = true }
 regex = "1.12.3"
 proptest.workspace = true
-jsonschema = { version = "0.45.0", default-features = false, features = ["resolve-http", "resolve-file", "tls-ring"] }
+jsonschema = { version = "0.45.0", default-features = false, features = ["resolve-file"] }
 toml = "1.1.2"
 tokmd-analysis-derived.workspace = true
