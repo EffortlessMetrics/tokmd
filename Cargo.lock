@@ -3181,7 +3181,6 @@ dependencies = [
  "midly",
  "proptest",
  "serde_json",
- "tokmd-analysis",
  "tokmd-analysis-format-md",
  "tokmd-analysis-html",
  "tokmd-analysis-types",
