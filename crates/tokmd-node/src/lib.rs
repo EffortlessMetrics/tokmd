@@ -240,22 +240,20 @@ pub async fn cockpit(options: Option<serde_json::Value>) -> Result<serde_json::V
 
 /// Compare two receipts or paths and return a diff.
 ///
-/// @param fromPath - Base receipt file or path to scan
-/// @param toPath - Target receipt file or path to scan
+/// @param options - Diff options
+/// @param options.from - Base receipt file or path to scan
+/// @param options.to - Target receipt file or path to scan
 /// @returns Promise resolving to diff receipt
 ///
 /// @example
 /// ```javascript
 /// import { diff } from '@tokmd/core';
-/// const result = await diff("old_receipt.json", "new_receipt.json");
+/// const result = await diff({ from: "old_receipt.json", to: "new_receipt.json" });
 /// console.log(`Total delta: ${result.totals.delta_code} lines`);
 /// ```
-#[cfg_attr(not(test), napi)]
-pub async fn diff(from_path: String, to_path: String) -> Result<serde_json::Value> {
-    let args = serde_json::json!({
-        "from": from_path,
-        "to": to_path
-    });
+#[cfg_attr(not(test), napi(ts_args_type = "options?: DiffOptions"))]
+pub async fn diff(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
+    let args = options_or_empty(options);
     run("diff".to_string(), args).await
 }
 
@@ -386,7 +384,11 @@ mod tests {
         let path_a = repo_a.path().to_string_lossy().to_string();
         let path_b = repo_b.path().to_string_lossy().to_string();
 
-        let diff_result = block_on(diff(path_a, path_b)).expect("diff should succeed");
+        let diff_result = block_on(diff(Some(json!({
+            "from": path_a,
+            "to": path_b
+        }))))
+        .expect("diff should succeed");
         assert_eq!(diff_result["mode"].as_str().unwrap_or(""), "diff");
         assert!(diff_result.get("totals").is_some());
     }

@@ -156,7 +156,14 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { version, schemaVersion, runJson, run, lang, module, export: exportFn, analyze, diff } = nativeBinding
+const { version, schemaVersion, runJson, run, lang, module, export: exportFn, analyze, diff: nativeDiff } = nativeBinding
+
+function diff(arg1, arg2) {
+  if (typeof arg1 === 'string' && typeof arg2 === 'string') {
+    return nativeDiff({ from: arg1, to: arg2 })
+  }
+  return nativeDiff(arg1 ?? {})
+}
 
 module.exports.version = version
 module.exports.schemaVersion = schemaVersion

@@ -502,13 +502,17 @@ fn analyze(
 ///
 /// Example:
 ///     >>> import tokmd
-///     >>> result = tokmd.diff("old_receipt.json", "new_receipt.json")
+///     >>> result = tokmd.diff(from_path="old_receipt.json", to_path="new_receipt.json")
 ///     >>> print(f"Total delta: {result['totals']['delta_code']} lines")
-#[cfg_attr(not(test), pyfunction)]
-fn diff(py: Python<'_>, from_path: &str, to_path: &str) -> PyResult<PyObject> {
+#[cfg_attr(not(test), pyfunction(signature = (from_path=None, to_path=None)))]
+fn diff(py: Python<'_>, from_path: Option<&str>, to_path: Option<&str>) -> PyResult<PyObject> {
     let args = PyDict::new(py);
-    args.set_item("from", from_path)?;
-    args.set_item("to", to_path)?;
+    if let Some(f) = from_path {
+        args.set_item("from", f)?;
+    }
+    if let Some(t) = to_path {
+        args.set_item("to", t)?;
+    }
     run(py, "diff", &args)
 }
 
@@ -1126,7 +1130,8 @@ mod tests {
             let path_a = repo_a.path().to_string_lossy().to_string();
             let path_b = repo_b.path().to_string_lossy().to_string();
 
-            let diff_result = diff(py, &path_a, &path_b).expect("diff should succeed");
+            let diff_result =
+                diff(py, Some(&path_a), Some(&path_b)).expect("diff should succeed");
             let diff_dict = diff_result.downcast_bound::<PyDict>(py).expect("diff dict");
             assert_eq!(
                 diff_dict
@@ -1479,7 +1484,7 @@ mod tests {
             }
 
             // diff() - should return PyResult
-            match diff(py, &temp_path, &temp_path) {
+            match diff(py, Some(&temp_path), Some(&temp_path)) {
                 Ok(_) => (),
                 Err(_) => (),
             }
