@@ -1,0 +1,16 @@
+{
+  "outcome": "learning",
+  "files_changed": [],
+  "gates_run": [
+    "cargo xtask version-consistency",
+    "cargo xtask docs --check",
+    "cargo xtask publish --plan"
+  ],
+  "friction_items_logged": 1,
+  "telemetry": {
+    "risk_class": "none",
+    "risk_reason": "No code changes made; produced learning PR",
+    "shape": "learning",
+    "blast_radius": "none"
+  }
+}

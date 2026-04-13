@@ -1,0 +1,5 @@
+{"command":"cargo xtask version-consistency","output":"Checking version consistency against workspace version 1.9.0\n  ✓ Cargo crate versions match 1.9.0.\n  ✓ Cargo workspace dependency versions match 1.9.0.\n  ✓ Node package manifest versions match 1.9.0.\n  ✓ No case-insensitive tracked-path collisions detected.\nVersion consistency checks passed.","exit_code":0}
+{"command":"cargo xtask docs --check","output":"Documentation is up to date.","exit_code":0}
+{"command":"cargo xtask publish --plan","output":"Workspace version: 1.9.0\nPublish order (58 crates): ...","exit_code":0}
+{"command":"cargo xtask boundaries-check","output":"All analysis microcrate boundaries OK","exit_code":0}
+{"command":"cargo run --bin xtask -- version-consistency","output":"error: no bin target named `xtask` in default-run packages","exit_code":1}
