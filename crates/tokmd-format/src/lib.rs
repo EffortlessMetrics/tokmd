@@ -508,19 +508,32 @@ fn write_export_json<W: Write>(
 }
 
 fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
-    rows.iter().map(move |r| {
-        if mode == RedactMode::None {
-            Cow::Borrowed(r)
-        } else {
-            let mut owned = r.clone();
-            if mode == RedactMode::Paths || mode == RedactMode::All {
-                owned.path = redact_path(&owned.path);
-            }
-            if mode == RedactMode::All {
-                owned.module = short_hash(&owned.module);
-            }
-            Cow::Owned(owned)
-        }
+    rows.iter().map(move |r| match mode {
+        RedactMode::None => Cow::Borrowed(r),
+        RedactMode::Paths => Cow::Owned(FileRow {
+            path: redact_path(&r.path),
+            module: r.module.clone(),
+            lang: r.lang.clone(),
+            kind: r.kind,
+            code: r.code,
+            comments: r.comments,
+            blanks: r.blanks,
+            lines: r.lines,
+            bytes: r.bytes,
+            tokens: r.tokens,
+        }),
+        RedactMode::All => Cow::Owned(FileRow {
+            path: redact_path(&r.path),
+            module: short_hash(&r.module),
+            lang: r.lang.clone(),
+            kind: r.kind,
+            code: r.code,
+            comments: r.comments,
+            blanks: r.blanks,
+            lines: r.lines,
+            bytes: r.bytes,
+            tokens: r.tokens,
+        }),
     })
 }
 
