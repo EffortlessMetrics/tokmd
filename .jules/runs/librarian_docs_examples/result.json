@@ -1,0 +1,16 @@
+{
+  "outcome": "patch",
+  "title": "Fix CLI argument documentation drift in reference-cli.md",
+  "summary": "Updated manual markdown tables in docs/reference-cli.md for `tokmd diff`, `tokmd module`, `tokmd export`, and `tokmd cockpit` to align with their actual `--help` command outputs.",
+  "target_paths": [
+    "docs/reference-cli.md"
+  ],
+  "proof_summary": "Manual inspection showed missing arguments like `--exclude`, `--profile`, and `--no-progress` in the markdown tables compared to CLI help output.",
+  "gates_run": [
+    "cargo xtask docs --check"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout docs/reference-cli.md",
+  "follow_ups": []
+}
