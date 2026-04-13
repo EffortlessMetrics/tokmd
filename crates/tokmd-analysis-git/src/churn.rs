@@ -30,17 +30,8 @@ pub fn build_predictive_churn_report(
             }
         }
         for module in seen {
-            let entry = if let Some(e) = series.get_mut(&module) {
-                e
-            } else {
-                series.insert(module.clone(), BTreeMap::new());
-                series.get_mut(&module).unwrap()
-            };
-            if let Some(v) = entry.get_mut(&week) {
-                *v += 1;
-            } else {
-                entry.insert(week, 1);
-            }
+            let entry = series.entry(module).or_default();
+            *entry.entry(week).or_insert(0) += 1;
         }
     }
 
