@@ -428,7 +428,7 @@ fn export(
 ///
 /// Args:
 ///     paths: List of paths to scan (default: ["."])
-///     preset: Analysis preset ("receipt", "health", "risk", "supply", "architecture",
+///     preset: Analysis preset ("receipt", "estimate", "health", "risk", "supply", "architecture",
 ///             "topics", "security", "identity", "git", "deep", "fun", default: "receipt")
 ///     window: Context window size in tokens for utilization calculation
 ///     git: Force enable/disable git metrics (None = auto-detect)
