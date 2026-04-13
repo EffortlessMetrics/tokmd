@@ -1,0 +1,12 @@
+{
+  "outcome": "learning",
+  "patch_type": "docs",
+  "files_modified": [
+    ".jules/runs/palette_runtime_dx/envelope.json",
+    ".jules/runs/palette_runtime_dx/decision.md",
+    ".jules/runs/palette_runtime_dx/receipts.jsonl",
+    ".jules/runs/palette_runtime_dx/result.json",
+    ".jules/runs/palette_runtime_dx/pr_body.md",
+    ".jules/friction/open/subcommand_typo_hint_already_present.md"
+  ]
+}
