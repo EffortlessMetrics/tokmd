@@ -330,11 +330,11 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [ ] Route scan and walk through host-provided I/O traits
-- [ ] Add wasm CI builds and parity checks against native output
-- [ ] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
-- [ ] Build a browser runner with progress, cancel, and download flows
-- [ ] Add cache/guardrail policy for archive size, file count, and bytes read
+- [x] Route scan and walk through host-provided I/O traits
+- [x] Add wasm CI builds and parity checks against native output
+- [x] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
+- [x] Build a browser runner with progress, cancel, and download flows
+- [x] Add cache/guardrail policy for archive size, file count, and bytes read
 
 ### Tests
 
