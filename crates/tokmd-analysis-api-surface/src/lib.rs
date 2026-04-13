@@ -416,10 +416,10 @@ pub fn build_api_surface_report(
     let mut documented_public = 0usize;
 
     // Per-language accumulators
-    let mut lang_totals: BTreeMap<String, (usize, usize, usize)> = BTreeMap::new(); // (total, public, internal)
+    let mut lang_totals: BTreeMap<&str, (usize, usize, usize)> = BTreeMap::new(); // (total, public, internal)
 
     // Per-module accumulators
-    let mut module_totals: BTreeMap<String, (usize, usize)> = BTreeMap::new(); // (total, public)
+    let mut module_totals: BTreeMap<&str, (usize, usize)> = BTreeMap::new(); // (total, public)
 
     // Top exporters
     let mut exporters: Vec<ApiExportItem> = Vec::new();
@@ -471,14 +471,13 @@ pub fn build_api_surface_report(
         documented_public += file_documented;
 
         // Per-language
-        let lang_key = row.lang.clone();
-        let entry = lang_totals.entry(lang_key).or_insert((0, 0, 0));
+        let entry = lang_totals.entry(row.lang.as_str()).or_insert((0, 0, 0));
         entry.0 += file_total;
         entry.1 += file_public;
         entry.2 += file_internal;
 
         // Per-module
-        let mod_entry = module_totals.entry(row.module.clone()).or_insert((0, 0));
+        let mod_entry = module_totals.entry(row.module.as_str()).or_insert((0, 0));
         mod_entry.0 += file_total;
         mod_entry.1 += file_public;
 
@@ -503,7 +502,7 @@ pub fn build_api_surface_report(
                 round_f64(public as f64 / total as f64, 4)
             };
             (
-                lang,
+                lang.to_owned(),
                 LangApiSurface {
                     total_items: total,
                     public_items: public,
@@ -524,7 +523,7 @@ pub fn build_api_surface_report(
                 round_f64(public as f64 / total as f64, 4)
             };
             ModuleApiRow {
-                module,
+                module: module.to_owned(),
                 total_items: total,
                 public_items: public,
                 public_ratio,
