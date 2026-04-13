@@ -7,7 +7,7 @@
 
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd_config::TomlConfig;
+use tokmd_settings::TomlConfig;
 
 /// Max input size to prevent pathological parse times
 const MAX_INPUT_SIZE: usize = 64 * 1024; // 64KB
