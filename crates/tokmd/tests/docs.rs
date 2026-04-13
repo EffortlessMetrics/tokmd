@@ -403,3 +403,30 @@ fn recipe_diff() {
         .success()
         .stdout(predicate::str::contains("## Diff:"));
 }
+
+#[test]
+#[cfg(feature = "git")]
+fn recipe_cockpit_format() {
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data");
+    let in_git = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&fixtures)
+        .arg("rev-parse")
+        .arg("--show-toplevel")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !in_git {
+        return;
+    }
+
+    tokmd()
+        .env("TOKMD_GIT_BASE_REF", "HEAD")
+        .arg("cockpit")
+        .arg("--format")
+        .arg("md")
+        .assert()
+        .success();
+}
