@@ -36,7 +36,7 @@ export interface ExportOptions {
 
 export interface AnalyzeOptions {
   paths?: string[]
-  preset?: 'receipt' | 'health' | 'risk' | 'supply' | 'architecture' | 'topics' | 'security' | 'identity' | 'git' | 'deep' | 'fun'
+  preset?: 'receipt' | 'estimate' | 'health' | 'risk' | 'supply' | 'architecture' | 'topics' | 'security' | 'identity' | 'git' | 'deep' | 'fun'
   window?: number
   git?: boolean
   max_files?: number

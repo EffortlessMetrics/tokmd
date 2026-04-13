@@ -70,8 +70,8 @@ export interface ExportOptions {
 export interface AnalyzeOptions {
   /** List of paths to scan (default: ["."]) */
   paths?: string[];
-  /** Analysis preset ("receipt", "health", "risk", "supply", "architecture", "topics", "security", "identity", "git", "deep", "fun") */
-  preset?: "receipt" | "health" | "risk" | "supply" | "architecture" | "topics" | "security" | "identity" | "git" | "deep" | "fun";
+  /** Analysis preset ("receipt", "estimate", "health", "risk", "supply", "architecture", "topics", "security", "identity", "git", "deep", "fun") */
+  preset?: "receipt" | "estimate" | "health" | "risk" | "supply" | "architecture" | "topics" | "security" | "identity" | "git" | "deep" | "fun";
   /** Context window size in tokens */
   window?: number;
   /** Force enable/disable git metrics */
