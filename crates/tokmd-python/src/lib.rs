@@ -506,8 +506,8 @@ fn analyze(
     if let Some(ebr) = effort_base_ref {
         args.set_item("effort_base_ref", ebr)?;
     }
-    if let Some(ehr) = effort_head_ref {
-        args.set_item("effort_head_ref", ehr)?;
+    if let Some(head_ref) = effort_head_ref {
+        args.set_item("effort_head_ref", head_ref)?;
     }
     if let Some(emc) = effort_monte_carlo {
         args.set_item("effort_monte_carlo", emc)?;
