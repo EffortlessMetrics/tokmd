@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-format --test test_cyclonedx_redaction", "output": "test test_write_export_cyclonedx_honors_redact_mode ... FAILED"}
+{"command": "sed -i 's/export\\.rows\\.iter()/redact_rows(\\&export.rows, redact)/g' crates/tokmd-format/src/lib.rs", "output": ""}
+{"command": "cargo test -p tokmd-format --test test_cyclonedx_redaction", "output": "test test_write_export_cyclonedx_honors_redact_mode ... ok"}
