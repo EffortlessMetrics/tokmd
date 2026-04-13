@@ -134,7 +134,7 @@ Embed them in your own README:
 `tokmd-wasm` and `web/runner` expose a narrower browser-safe slice of the product.
 
 - Supported today: `lang`, `module`, `export`, and browser-safe `analyze` presets on ordered in-memory inputs.
-- Public repo ingestion uses GitHub tree and contents APIs, not zipball-first fetches.
+- Public repo ingestion uses GitHub tree and contents APIs with built-in caching, progress tracking, and auth handling.
 - Git-history enrichers and full native filesystem flows remain native-first.
 
 ## What `tokmd` Is Not
