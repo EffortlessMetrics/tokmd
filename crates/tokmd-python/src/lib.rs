@@ -437,6 +437,13 @@ fn export(
 ///     max_commits: Maximum commits to scan for git metrics
 ///     excluded: List of glob patterns to exclude (default: [])
 ///     hidden: Include hidden files (default: False)
+///     effort_model: Effort model for estimate calculations
+///     effort_layer: Effort report layer
+///     effort_base_ref: Base reference for effort delta computation
+///     effort_head_ref: Head reference for effort delta computation
+///     effort_monte_carlo: Enable Monte Carlo uncertainty for effort estimation
+///     effort_mc_iterations: Monte Carlo iterations for effort estimation
+///     effort_mc_seed: Monte Carlo seed for effort estimation
 ///
 /// Returns:
 ///     dict: Analysis receipt with derived metrics
@@ -449,7 +456,7 @@ fn export(
 #[cfg_attr(not(test), pyfunction)]
 #[cfg_attr(
     not(test),
-    pyo3(signature = (paths=None, preset=None, window=None, git=None, max_files=None, max_bytes=None, max_commits=None, excluded=None, hidden=false))
+    pyo3(signature = (paths=None, preset=None, window=None, git=None, max_files=None, max_bytes=None, max_commits=None, excluded=None, hidden=false, effort_model=None, effort_layer=None, effort_base_ref=None, effort_head_ref=None, effort_monte_carlo=None, effort_mc_iterations=None, effort_mc_seed=None))
 )]
 #[allow(clippy::too_many_arguments)]
 fn analyze(
@@ -463,6 +470,13 @@ fn analyze(
     max_commits: Option<usize>,
     excluded: Option<Vec<String>>,
     hidden: bool,
+    effort_model: Option<&str>,
+    effort_layer: Option<&str>,
+    effort_base_ref: Option<&str>,
+    effort_head_ref: Option<&str>,
+    effort_monte_carlo: Option<bool>,
+    effort_mc_iterations: Option<usize>,
+    effort_mc_seed: Option<u64>,
 ) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, 0, excluded, hidden)?;
     if let Some(p) = preset {
@@ -482,6 +496,27 @@ fn analyze(
     }
     if let Some(mc) = max_commits {
         args.set_item("max_commits", mc)?;
+    }
+    if let Some(em) = effort_model {
+        args.set_item("effort_model", em)?;
+    }
+    if let Some(el) = effort_layer {
+        args.set_item("effort_layer", el)?;
+    }
+    if let Some(ebr) = effort_base_ref {
+        args.set_item("effort_base_ref", ebr)?;
+    }
+    if let Some(ehr) = effort_head_ref {
+        args.set_item("effort_head_ref", ehr)?;
+    }
+    if let Some(emc) = effort_monte_carlo {
+        args.set_item("effort_monte_carlo", emc)?;
+    }
+    if let Some(emci) = effort_mc_iterations {
+        args.set_item("effort_mc_iterations", emci)?;
+    }
+    if let Some(emcs) = effort_mc_seed {
+        args.set_item("effort_mc_seed", emcs)?;
     }
     run(py, "analyze", &args)
 }
