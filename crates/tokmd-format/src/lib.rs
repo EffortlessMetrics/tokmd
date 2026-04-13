@@ -710,7 +710,19 @@ pub fn write_module_json_to_file(
     report: &ModuleReport,
     scan: &ScanArgs,
     args_meta: &ModuleArgsMeta,
+    redact: RedactMode,
 ) -> Result<()> {
+    let mut final_args = args_meta.clone();
+    let mut final_report = report.clone();
+
+    if redact == RedactMode::All {
+        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
+        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
+        for row in &mut final_report.rows {
+            row.module = short_hash(&row.module);
+        }
+    }
+
     let receipt = ModuleReceipt {
         schema_version: tokmd_types::SCHEMA_VERSION,
         generated_at_ms: now_ms(),
@@ -719,8 +731,8 @@ pub fn write_module_json_to_file(
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
-        args: args_meta.clone(),
-        report: report.clone(),
+        args: final_args,
+        report: final_report,
     };
     let file = File::create(path)?;
     serde_json::to_writer(file, &receipt)?;
@@ -741,6 +753,9 @@ pub fn write_export_jsonl_to_file(
     let file = File::create(path)?;
     let mut out = BufWriter::new(file);
 
+    let mut final_args = args_meta.clone();
+    final_args.module_roots = redact_module_roots(&final_args.module_roots, args_meta.redact);
+
     let meta = ExportMeta {
         ty: "meta",
         schema_version: tokmd_types::SCHEMA_VERSION,
@@ -750,7 +765,7 @@ pub fn write_export_jsonl_to_file(
         status: ScanStatus::Complete,
         warnings: vec![],
         scan: scan.clone(),
-        args: args_meta.clone(),
+        args: final_args,
     };
     writeln!(out, "{}", serde_json::to_string(&meta)?)?;
 

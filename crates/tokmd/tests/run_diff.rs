@@ -685,6 +685,53 @@ fn test_run_redact_all_hashes_modules_too() {
 }
 
 #[test]
+fn test_run_redact_all_hides_module_roots_in_artifacts() {
+    let dir = tempdir().unwrap();
+    let output_dir = dir.path().join("run-redact-module-roots");
+
+    let proprietary_module = dir.path().join("proprietary_module");
+    fs::create_dir_all(&proprietary_module).unwrap();
+    fs::write(
+        proprietary_module.join("secret.rs"),
+        "fn secret() {}\n",
+    )
+    .unwrap();
+
+    let mut cmd: Command = cargo_bin_cmd!("tokmd");
+    cmd.current_dir(dir.path())
+        .arg("run")
+        .arg("--output-dir")
+        .arg(output_dir.to_str().unwrap())
+        .arg("--redact")
+        .arg("all")
+        .arg("proprietary_module")
+        .assert()
+        .success();
+
+    let module_content = fs::read_to_string(output_dir.join("module.json")).unwrap();
+    let export_content = fs::read_to_string(output_dir.join("export.jsonl")).unwrap();
+
+    assert!(
+        module_content.contains(r#""module_roots""#),
+        "module.json should include module_roots metadata"
+    );
+    assert!(
+        export_content.contains(r#""module_roots""#),
+        "export.jsonl should include module_roots metadata"
+    );
+    assert!(
+        !module_content.contains("proprietary_module"),
+        "module.json should not leak raw module roots when --redact all is used.\nContent: {}",
+        module_content
+    );
+    assert!(
+        !export_content.contains("proprietary_module"),
+        "export.jsonl should not leak raw module roots when --redact all is used.\nContent: {}",
+        export_content
+    );
+}
+
+#[test]
 fn test_run_redact_consistency_across_artifacts() {
     // Given: Same scan with redaction
     // When: We check lang.json, module.json, and export.jsonl
