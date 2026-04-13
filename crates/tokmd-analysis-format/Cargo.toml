@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["formatting", "markdown", "json", "visualization", "code-analysis"]
 categories = ["development-tools", "encoding"]
 documentation = "https://docs.rs/tokmd-analysis-format"
-include = ["src/", "README.md", "Cargo.toml"]
+include = ["src/", "README.md", "Cargo.toml", "test-fixtures/sample-receipt.json"]
 
 [features]
 default = []
@@ -31,4 +31,3 @@ tokmd-fun = { workspace = true, optional = true }
 insta = { workspace = true }
 midly = "0.5.3"
 proptest.workspace = true
-tokmd-analysis.workspace = true
