@@ -1073,7 +1073,8 @@ Cockpit receipts provide PR-focused metrics for code review automation, includin
   "risk": { ... },
   "contracts": { ... },
   "evidence": { ... },
-  "review_plan": [ ... ]
+  "review_plan": [ ... ],
+  "trend": { ... }
 }
 ```
 
@@ -1092,6 +1093,7 @@ Cockpit receipts provide PR-focused metrics for code review automation, includin
 | `contracts` | `object` | Contract change indicators (API, CLI, schema). |
 | `evidence` | `object` | Evidence gates with pass/fail status. |
 | `review_plan` | `array` | Prioritized list of files to review. |
+| `trend` | `object\|null` | Trend comparison with baseline. |
 
 ### Change Surface (`change_surface`)
 
@@ -1478,6 +1480,73 @@ Prioritized list of files requiring review.
 | `complexity` | `integer\|null` | Estimated review complexity (1-5). |
 | `lines_changed` | `integer\|null` | Lines changed in this file. |
 
+### Trend Comparison (`trend`)
+
+Trend comparison between current state and baseline.
+
+```json
+{
+  "trend": {
+    "baseline_available": true,
+    "baseline_path": ".jules/baseline.json",
+    "baseline_generated_at_ms": 1706000000000,
+    "health": {
+      "current": 90.0,
+      "previous": 85.0,
+      "delta": 5.0,
+      "delta_pct": 5.88,
+      "direction": "improving"
+    },
+    "risk": {
+      "current": 20.0,
+      "previous": 30.0,
+      "delta": -10.0,
+      "delta_pct": -33.33,
+      "direction": "improving"
+    },
+    "complexity": {
+      "direction": "degrading",
+      "summary": "Complexity increased in 3 files",
+      "files_increased": 3,
+      "files_decreased": 1,
+      "avg_cyclomatic_delta": 2.5,
+      "avg_cognitive_delta": 1.8
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `baseline_available` | `boolean` | Whether a baseline was successfully loaded. |
+| `baseline_path` | `string\|null` | Path to the baseline file used. |
+| `baseline_generated_at_ms` | `integer\|null` | Timestamp of baseline generation. |
+| `health` | `object\|null` | Health score trend. |
+| `risk` | `object\|null` | Risk score trend. |
+| `complexity` | `object\|null` | Complexity trend indicator. |
+
+#### Trend Metric
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `current` | `float` | Current value. |
+| `previous` | `float` | Previous (baseline) value. |
+| `delta` | `float` | Absolute delta (current - previous). |
+| `delta_pct` | `float` | Percentage change. |
+| `direction` | `string` | Direction of change (`"improving"`, `"stable"`, `"degrading"`). |
+
+#### Trend Indicator
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `direction` | `string` | Overall trend direction (`"improving"`, `"stable"`, `"degrading"`). |
+| `summary` | `string` | Human-readable summary. |
+| `files_increased` | `integer` | Number of files that got more complex. |
+| `files_decreased` | `integer` | Number of files that got less complex. |
+| `avg_cyclomatic_delta` | `float\|null` | Average cyclomatic delta. |
+| `avg_cognitive_delta` | `float\|null` | Average cognitive delta. |
+
+
 ### Complete Cockpit Receipt Example
 
 ```json
@@ -1592,6 +1661,7 @@ Prioritized list of files requiring review.
       "complexity": 2,
       "lines_changed": 200
     }
-  ]
+  ],
+  "trend": null
 }
 ```
