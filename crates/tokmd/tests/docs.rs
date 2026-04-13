@@ -67,6 +67,20 @@ fn recipe_analyze_presets() {
         .assert()
         .success();
 
+    // "tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("estimate")
+        .arg("--effort-base-ref")
+        .arg("HEAD")
+        .arg("--effort-head-ref")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("md")
+        .assert()
+        .success();
+
     // "tokmd analyze --preset estimate --effort-layer headline --format md"
     tokmd()
         .arg("analyze")
@@ -76,6 +90,19 @@ fn recipe_analyze_presets() {
         .arg("headline")
         .arg("--format")
         .arg("md")
+        .assert()
+        .success();
+
+    // "tokmd analyze --preset estimate --monte-carlo --mc-seed 42 --format json"
+    tokmd()
+        .arg("analyze")
+        .arg("--preset")
+        .arg("estimate")
+        .arg("--monte-carlo")
+        .arg("--mc-seed")
+        .arg("42")
+        .arg("--format")
+        .arg("json")
         .assert()
         .success();
 }
