@@ -4,11 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliTableFormat {
-    /// Markdown table (great for pasting into ChatGPT).
     Md,
-    /// Tab-separated values (good for piping to other tools).
     Tsv,
-    /// JSON (compact).
     Json,
 }
 
@@ -25,13 +22,9 @@ impl From<CliTableFormat> for tokmd_types::TableFormat {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliExportFormat {
-    /// CSV with a header row.
     Csv,
-    /// One JSON object per line.
     Jsonl,
-    /// A single JSON array.
     Json,
-    /// CycloneDX 1.6 JSON SBOM format.
     Cyclonedx,
 }
 
@@ -49,10 +42,8 @@ impl From<CliExportFormat> for tokmd_types::ExportFormat {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliConfigMode {
-    /// Read scan config files (`tokei.toml` / `.tokeirc`) if present.
     #[default]
     Auto,
-    /// Ignore config files.
     None,
 }
 
@@ -68,9 +59,7 @@ impl From<CliConfigMode> for tokmd_types::ConfigMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliChildrenMode {
-    /// Merge embedded content into the parent language totals.
     Collapse,
-    /// Show embedded languages as separate "(embedded)" rows.
     Separate,
 }
 
@@ -86,9 +75,7 @@ impl From<CliChildrenMode> for tokmd_types::ChildrenMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliChildIncludeMode {
-    /// Include embedded languages as separate contributions.
     Separate,
-    /// Ignore embedded languages.
     ParentsOnly,
 }
 
@@ -104,11 +91,8 @@ impl From<CliChildIncludeMode> for tokmd_types::ChildIncludeMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliRedactMode {
-    /// Do not redact.
     None,
-    /// Redact file paths.
     Paths,
-    /// Redact file paths and module names.
     All,
 }
 
@@ -125,25 +109,15 @@ impl From<CliRedactMode> for tokmd_types::RedactMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum CliAnalysisFormat {
-    /// Markdown report.
     Md,
-    /// JSON receipt.
     Json,
-    /// JSON-LD document.
     Jsonld,
-    /// XML document.
     Xml,
-    /// SVG graphic.
     Svg,
-    /// Mermaid diagram.
     Mermaid,
-    /// Wavefront OBJ export.
     Obj,
-    /// MIDI export.
     Midi,
-    /// Text tree output.
     Tree,
-    /// HTML report.
     Html,
 }
 

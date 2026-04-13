@@ -11,9 +11,9 @@
 //! - Property tests for config determinism
 
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CockpitFormat, ColorMode, CliConfigMode, ContextOutput,
-    ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
-    ImportGranularity, NearDupScope, Profile, CliRedactMode, SensorFormat, TomlConfig, UserConfig,
+    AnalysisPreset, BadgeMetric, CliConfigMode, CliRedactMode, CockpitFormat, ColorMode,
+    ContextOutput, ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs,
+    HandoffPreset, ImportGranularity, NearDupScope, Profile, SensorFormat, TomlConfig, UserConfig,
     ValueMetric, ViewProfile,
 };
 
