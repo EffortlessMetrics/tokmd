@@ -38,7 +38,6 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
                 }
             }
         }
-        }
 
         terms.dedup();
         for term in terms {
