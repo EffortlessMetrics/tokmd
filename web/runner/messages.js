@@ -84,13 +84,18 @@ export function createErrorMessage(requestId, code, message) {
 }
 
 export function isInMemoryInput(value) {
-    return Boolean(
-        value &&
-            typeof value === "object" &&
-            typeof value.path === "string" &&
-            value.path.trim().length > 0 &&
-            typeof value.text === "string"
-    );
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    if (typeof value.path !== "string" || value.path.trim().length === 0) {
+        return false;
+    }
+
+    const hasText = typeof value.text === "string";
+    const hasBase64 = typeof value.base64 === "string";
+
+    return (hasText && !hasBase64) || (!hasText && hasBase64);
 }
 
 export function isRunMessage(value) {

@@ -56,6 +56,32 @@ test("run messages require ordered in-memory inputs", () => {
         isInMemoryInput({ path: "src/lib.rs", text: "pub fn alpha() {}\n" }),
         true
     );
+    assert.equal(
+        isInMemoryInput({
+            path: "src/lib.rs",
+            base64: "cHViIGZuIGFscGhhKCkge30K",
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "b64",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", base64: "cHViIGZuIGFscGhhKCkge30K" }],
+            },
+        }),
+        true
+    );
+    assert.equal(
+        isInMemoryInput({
+            path: "src/lib.rs",
+            text: "pub fn alpha() {}\n",
+            base64: "cHViIGZuIGFscGhhKCkge30K",
+        }),
+        false
+    );
     assert.equal(isRunMessage({ type: "run", requestId: "x", mode: "lang", args: {} }), false);
     assert.equal(
         isRunMessage({
