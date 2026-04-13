@@ -118,7 +118,7 @@ fn load_export_from_receipt(
     // Recurse to load the data file referenced by the receipt
     let mut bundle = load_export_from_file(&export_path, Some(base), global)?;
 
-    // Update the entry point to point to the receipt we loaded
+    // Fix the entry point to point to the receipt we loaded
     bundle.entry_point = Some(path.clone());
     Ok(bundle)
 }
