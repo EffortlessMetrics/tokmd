@@ -510,6 +510,22 @@ fn build_analysis_request(
 /// # Returns
 ///
 /// A `CockpitReceipt` containing PR metrics, evidence gates, and review plan.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use tokmd_core::{cockpit_workflow, settings::CockpitSettings};
+///
+/// let settings = CockpitSettings {
+///     base: "HEAD~1".to_string(),
+///     head: "HEAD".to_string(),
+///     range_mode: "2dot".to_string(),
+///     ..Default::default()
+/// };
+///
+/// let receipt = cockpit_workflow(&settings).expect("Cockpit scan failed");
+/// assert!(!receipt.review_plan.is_empty());
+/// ```
 #[cfg(feature = "cockpit")]
 pub fn cockpit_workflow(
     settings: &settings::CockpitSettings,
@@ -628,6 +644,27 @@ pub mod analysis_facade {
 /// * `None` or `Some(RedactMode::None)` - No redaction, paths shown as-is
 /// * `Some(RedactMode::Paths)` - Redact file paths (replaced with hashed values preserving extension)
 /// * `Some(RedactMode::All)` - Redact paths and excluded patterns
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::scan_workflow;
+/// use tokmd_config::GlobalArgs;
+/// use tokmd_types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
+/// use std::path::PathBuf;
+///
+/// let global = GlobalArgs::default();
+/// let lang = LangArgs {
+///     paths: vec![PathBuf::from(".")],
+///     format: TableFormat::Md,
+///     top: 10,
+///     files: false,
+///     children: ChildrenMode::Separate,
+/// };
+///
+/// let receipt = scan_workflow(&global, &lang, Some(RedactMode::None)).expect("Scan failed");
+/// assert!(receipt.report.rows.len() > 0);
+/// ```
 pub fn scan_workflow(
     global: &GlobalArgs,
     lang: &LangArgs,
