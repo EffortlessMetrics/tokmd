@@ -124,6 +124,21 @@ pub fn resolve_profile<'a>(
 }
 
 /// Resolved configuration combining TOML and JSON sources.
+///
+/// This struct aggregates configurations from both `tokmd.toml` and the legacy
+/// `config.json`, preferring TOML settings over JSON ones.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::{ConfigContext, ResolvedConfig};
+///
+/// let ctx = ConfigContext::default();
+/// let resolved = tokmd::resolve_config(&ctx, None);
+///
+/// assert_eq!(resolved.format(), None);
+/// assert_eq!(resolved.top(), None);
+/// ```
 #[derive(Debug, Default)]
 pub struct ResolvedConfig<'a> {
     /// TOML view profile (takes precedence).
@@ -212,6 +227,18 @@ impl ResolvedConfig<'_> {
 }
 
 /// Resolve configuration from context and profile name.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::{resolve_config, ConfigContext};
+///
+/// let ctx = ConfigContext::default();
+/// let resolved = resolve_config(&ctx, Some("default"));
+///
+/// assert!(resolved.toml_view.is_none());
+/// assert!(resolved.json_profile.is_none());
+/// ```
 pub fn resolve_config<'a>(
     ctx: &'a ConfigContext,
     profile_name: Option<&str>,
@@ -226,6 +253,30 @@ pub fn resolve_config<'a>(
     }
 }
 
+/// Resolve CLI `lang` arguments combined with a legacy JSON profile.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::resolve_lang;
+/// use tokmd_config::{CliLangArgs, Profile};
+///
+/// let cli_args = CliLangArgs {
+///     paths: None,
+///     format: None,
+///     top: None,
+///     files: false,
+///     children: None,
+/// };
+/// let profile = Profile::default();
+///
+/// let resolved_lang = resolve_lang(&cli_args, Some(&profile));
+///
+/// assert_eq!(resolved_lang.paths, vec![PathBuf::from(".")]);
+/// assert_eq!(resolved_lang.top, 0);
+/// assert_eq!(resolved_lang.files, false);
+/// ```
 pub fn resolve_lang(
     cli_args: &cli::CliLangArgs,
     profile: Option<&cli::Profile>,
@@ -262,6 +313,29 @@ pub fn resolve_lang(
 }
 
 /// Resolve lang args using ConfigContext.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::{resolve_lang_with_config, ResolvedConfig};
+/// use tokmd_config::CliLangArgs;
+///
+/// let cli_args = CliLangArgs {
+///     paths: None,
+///     format: None,
+///     top: None,
+///     files: false,
+///     children: None,
+/// };
+/// let resolved = ResolvedConfig::default();
+///
+/// let lang_args = resolve_lang_with_config(&cli_args, &resolved);
+///
+/// assert_eq!(lang_args.paths, vec![PathBuf::from(".")]);
+/// assert_eq!(lang_args.top, 0);
+/// assert_eq!(lang_args.files, false);
+/// ```
 pub fn resolve_lang_with_config(
     cli_args: &cli::CliLangArgs,
     resolved: &ResolvedConfig,
@@ -294,6 +368,33 @@ pub fn resolve_lang_with_config(
     }
 }
 
+/// Resolve CLI `module` arguments combined with a legacy JSON profile.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::resolve_module;
+/// use tokmd_config::{CliModuleArgs, Profile};
+///
+/// let cli_args = CliModuleArgs {
+///     paths: None,
+///     format: None,
+///     top: None,
+///     module_roots: None,
+///     module_depth: None,
+///     children: None,
+/// };
+/// let profile = Profile::default();
+///
+/// let module_args = resolve_module(&cli_args, Some(&profile));
+///
+/// assert_eq!(module_args.paths, vec![PathBuf::from(".")]);
+/// assert_eq!(
+///     module_args.module_roots,
+///     vec!["crates".to_string(), "packages".to_string()]
+/// );
+/// ```
 pub fn resolve_module(
     cli_args: &cli::CliModuleArgs,
     profile: Option<&cli::Profile>,
@@ -338,6 +439,33 @@ pub fn resolve_module(
 }
 
 /// Resolve module args using ConfigContext.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::{resolve_module_with_config, ResolvedConfig};
+/// use tokmd_config::CliModuleArgs;
+///
+/// let cli_args = CliModuleArgs {
+///     paths: None,
+///     format: None,
+///     top: None,
+///     module_roots: None,
+///     module_depth: None,
+///     children: None,
+/// };
+/// let resolved = ResolvedConfig::default();
+///
+/// let module_args = resolve_module_with_config(&cli_args, &resolved);
+///
+/// assert_eq!(module_args.paths, vec![PathBuf::from(".")]);
+/// assert_eq!(module_args.top, 0);
+/// assert_eq!(
+///     module_args.module_roots,
+///     vec!["crates".to_string(), "packages".to_string()]
+/// );
+/// ```
 pub fn resolve_module_with_config(
     cli_args: &cli::CliModuleArgs,
     resolved: &ResolvedConfig,
@@ -378,6 +506,34 @@ pub fn resolve_module_with_config(
     }
 }
 
+/// Resolve CLI `export` arguments combined with a legacy JSON profile.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::resolve_export;
+/// use tokmd_config::{CliExportArgs, Profile};
+///
+/// let cli_args = CliExportArgs {
+///     paths: None,
+///     format: None,
+///     output: None,
+///     module_roots: None,
+///     module_depth: None,
+///     children: None,
+///     min_code: None,
+///     max_rows: None,
+///     redact: None,
+///     meta: None,
+///     strip_prefix: None,
+/// };
+/// let profile = Profile::default();
+///
+/// let export_args = resolve_export(&cli_args, Some(&profile));
+///
+/// assert_eq!(export_args.paths, vec![PathBuf::from(".")]);
+/// ```
 pub fn resolve_export(
     cli_args: &cli::CliExportArgs,
     profile: Option<&cli::Profile>,
@@ -437,6 +593,33 @@ pub fn resolve_export(
 }
 
 /// Resolve export args using ConfigContext.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::PathBuf;
+/// use tokmd::{resolve_export_with_config, ResolvedConfig};
+/// use tokmd_config::CliExportArgs;
+///
+/// let cli_args = CliExportArgs {
+///     paths: None,
+///     format: None,
+///     output: None,
+///     module_roots: None,
+///     module_depth: None,
+///     children: None,
+///     min_code: None,
+///     max_rows: None,
+///     redact: None,
+///     meta: None,
+///     strip_prefix: None,
+/// };
+/// let resolved = ResolvedConfig::default();
+///
+/// let export_args = resolve_export_with_config(&cli_args, &resolved);
+///
+/// assert_eq!(export_args.paths, vec![PathBuf::from(".")]);
+/// ```
 pub fn resolve_export_with_config(
     cli_args: &cli::CliExportArgs,
     resolved: &ResolvedConfig,
