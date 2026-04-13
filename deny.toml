@@ -14,7 +14,6 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 ignore = [
     # term_size is transitive via tokei; no patched version available upstream
     { id = "RUSTSEC-2020-0163", reason = "transitive via tokei; revisit when upstream removes it" },
-    { id = "RUSTSEC-2023-0071", reason = "dev-only via uselesskey RSA fixture generation in tests; not runtime crypto" },
 ]
 unmaintained = "all"
 yanked = "warn"
