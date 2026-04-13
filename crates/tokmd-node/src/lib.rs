@@ -201,6 +201,13 @@ pub async fn export_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 /// @param options.preset - Analysis preset ("receipt", "health", "risk", etc.)
 /// @param options.window - Context window size in tokens
 /// @param options.git - Force enable/disable git metrics
+/// @param options.effort_model - Effort model for estimate calculations
+/// @param options.effort_layer - Effort report layer
+/// @param options.effort_base_ref - Base reference for effort delta computation
+/// @param options.effort_head_ref - Head reference for effort delta computation
+/// @param options.effort_monte_carlo - Enable Monte Carlo uncertainty for effort estimation
+/// @param options.effort_mc_iterations - Monte Carlo iterations for effort estimation
+/// @param options.effort_mc_seed - Monte Carlo seed for effort estimation
 /// @returns Promise resolving to analysis receipt
 ///
 /// @example
