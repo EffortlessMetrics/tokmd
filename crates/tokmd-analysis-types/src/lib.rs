@@ -1585,6 +1585,8 @@ pub use tokmd_envelope::ToolMeta;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::{SecondsFormat, TimeZone, Utc};
+    use proptest::prelude::*;
 
     // ── Schema version constant ───────────────────────────────────────
     #[test]
@@ -1853,5 +1855,23 @@ mod tests {
         assert!(result.ends_with(".500Z"));
         assert!(result.starts_with("2025-01-01"));
         Ok(())
+    }
+
+    proptest! {
+        #[test]
+        fn chrono_timestamp_matches_chrono(ms in 0u128..253_402_300_799_000u128) {
+            let chrono_dt = Utc
+                .timestamp_millis_opt(ms as i64)
+                .single()
+                .expect("timestamp within supported range");
+            let expected = chrono_dt.to_rfc3339_opts(SecondsFormat::Millis, true);
+            prop_assert_eq!(chrono_timestamp_iso8601(ms), expected);
+        }
+
+        #[test]
+        fn chrono_timestamp_is_rfc3339(ms in 0u128..253_402_300_799_000u128) {
+            let rendered = chrono_timestamp_iso8601(ms);
+            prop_assert!(chrono::DateTime::parse_from_rfc3339(&rendered).is_ok());
+        }
     }
 }
