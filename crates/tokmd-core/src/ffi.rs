@@ -688,7 +688,7 @@ mod tests {
         assert_eq!(parsed["error"]["code"], "invalid_json");
         assert_eq!(
             parsed["error"]["message"].as_str(),
-            Some("Top-level JSON value must be an object")
+            Some("Invalid JSON: Top-level JSON value must be an object")
         );
         Ok(())
     }
