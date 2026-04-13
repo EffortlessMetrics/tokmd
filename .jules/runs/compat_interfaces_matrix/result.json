@@ -1,0 +1,5 @@
+{
+  "outcome": "pr_ready_patch",
+  "patch_target": "tokmd_test_feature_gates",
+  "friction_items_created": 0
+}

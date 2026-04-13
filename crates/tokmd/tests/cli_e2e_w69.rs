@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Wave 69 — deep end-to-end CLI integration tests.
 //!
 //! ~40 tests covering all major subcommands, output formats, flag combinations,

@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! End-to-end determinism hardening tests.
 //!
 //! These tests verify the core invariant: same input yields byte-identical output

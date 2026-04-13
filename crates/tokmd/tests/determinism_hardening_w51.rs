@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Comprehensive determinism verification tests (wave 51).
 //!
 //! These tests ensure byte-stable output across runs, correct path

@@ -1,0 +1,10 @@
+{"cmd": "mkdir -p .jules/runs/compat_interfaces_matrix"}
+{"cmd": "write envelope.json"}
+{"cmd": "cargo test -p tokmd --no-default-features"}
+{"cmd": "check failure in analyze_integration.rs"}
+{"cmd": "write decision.md"}
+{"cmd": "python3 fix.py to add #![cfg(feature = \"analysis\")]"}
+{"cmd": "head -n 5 crates/tokmd/tests/analyze_integration.rs"}
+{"cmd": "added `#![cfg(feature = \"analysis\")]` to integration tests that strictly invoke the analysis-gated subcommands"}
+{"cmd": "verified that `cargo test -p tokmd --no-default-features` now passes and correctly ignores those integration tests"}
+{"cmd": "verified that `cargo test -p tokmd` passes when running all tests"}
