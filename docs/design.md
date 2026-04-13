@@ -69,7 +69,7 @@ Every JSON receipt includes:
 {
   "schema_version": 2,
   "tool": "tokmd",
-  "tool_version": "1.9.0",
+  "tool_version": "1.8.0",
   "generated_at_ms": 1706886000000,
   "mode": "lang",
   "scan": { ... },

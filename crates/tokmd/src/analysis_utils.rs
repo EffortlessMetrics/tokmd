@@ -1,31 +1,17 @@
-//! Analysis formatting utilities for the tokmd CLI.
-//!
-//! This module provides the bridge between analysis receipts (from `tokmd-analysis-types`)
-//! and formatted output. It uses the `tokmd_core::analysis_facade` to maintain tier
-//! boundary compliance — the CLI (Tier 5) does not directly depend on Tier 3 crates.
-//!
-//! ## Architecture Note
-//!
-//! Per ADR-001, all analysis formatting goes through the tokmd-core facade rather
-//! than directly importing tokmd-analysis-format. This ensures the product layer
-//! depends only on the facade (Tier 4) and contracts (Tier 0).
-
 use std::io::IsTerminal;
 use std::path::Path;
 
 use anyhow::Result;
 use tokmd_analysis as analysis;
+use tokmd_analysis_format as analysis_format;
 use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
 use tokmd_config as cli;
-/// Re-exported from tokmd-core facade to maintain tier boundary compliance.
-/// See ADR-001 for the architectural rationale.
-use tokmd_core::analysis_facade::{RenderedOutput, render};
 
-pub(crate) fn child_include_to_string(mode: tokmd_types::ChildIncludeMode) -> String {
+pub(crate) fn child_include_to_string(mode: cli::ChildIncludeMode) -> String {
     match mode {
-        tokmd_types::ChildIncludeMode::Separate => "separate".to_string(),
-        tokmd_types::ChildIncludeMode::ParentsOnly => "parents-only".to_string(),
+        cli::ChildIncludeMode::Separate => "separate".to_string(),
+        cli::ChildIncludeMode::ParentsOnly => "parents-only".to_string(),
     }
 }
 
@@ -36,18 +22,18 @@ pub(crate) fn preset_to_string(preset: cli::AnalysisPreset) -> String {
         .unwrap_or(key)
 }
 
-pub(crate) fn format_to_string(format: tokmd_types::AnalysisFormat) -> String {
+pub(crate) fn format_to_string(format: cli::AnalysisFormat) -> String {
     match format {
-        tokmd_types::AnalysisFormat::Md => "md".to_string(),
-        tokmd_types::AnalysisFormat::Json => "json".to_string(),
-        tokmd_types::AnalysisFormat::Jsonld => "jsonld".to_string(),
-        tokmd_types::AnalysisFormat::Xml => "xml".to_string(),
-        tokmd_types::AnalysisFormat::Svg => "svg".to_string(),
-        tokmd_types::AnalysisFormat::Mermaid => "mermaid".to_string(),
-        tokmd_types::AnalysisFormat::Obj => "obj".to_string(),
-        tokmd_types::AnalysisFormat::Midi => "midi".to_string(),
-        tokmd_types::AnalysisFormat::Tree => "tree".to_string(),
-        tokmd_types::AnalysisFormat::Html => "html".to_string(),
+        cli::AnalysisFormat::Md => "md".to_string(),
+        cli::AnalysisFormat::Json => "json".to_string(),
+        cli::AnalysisFormat::Jsonld => "jsonld".to_string(),
+        cli::AnalysisFormat::Xml => "xml".to_string(),
+        cli::AnalysisFormat::Svg => "svg".to_string(),
+        cli::AnalysisFormat::Mermaid => "mermaid".to_string(),
+        cli::AnalysisFormat::Obj => "obj".to_string(),
+        cli::AnalysisFormat::Midi => "midi".to_string(),
+        cli::AnalysisFormat::Tree => "tree".to_string(),
+        cli::AnalysisFormat::Html => "html".to_string(),
     }
 }
 
@@ -82,33 +68,33 @@ pub(crate) fn map_granularity(granularity: cli::ImportGranularity) -> analysis::
     }
 }
 
-fn analysis_output_filename(format: tokmd_types::AnalysisFormat) -> &'static str {
+fn analysis_output_filename(format: cli::AnalysisFormat) -> &'static str {
     match format {
-        tokmd_types::AnalysisFormat::Md => "analysis.md",
-        tokmd_types::AnalysisFormat::Json => "analysis.json",
-        tokmd_types::AnalysisFormat::Jsonld => "analysis.jsonld",
-        tokmd_types::AnalysisFormat::Xml => "analysis.xml",
-        tokmd_types::AnalysisFormat::Svg => "analysis.svg",
-        tokmd_types::AnalysisFormat::Mermaid => "analysis.mmd",
-        tokmd_types::AnalysisFormat::Obj => "analysis.obj",
-        tokmd_types::AnalysisFormat::Midi => "analysis.mid",
-        tokmd_types::AnalysisFormat::Tree => "analysis.tree.txt",
-        tokmd_types::AnalysisFormat::Html => "analysis.html",
+        cli::AnalysisFormat::Md => "analysis.md",
+        cli::AnalysisFormat::Json => "analysis.json",
+        cli::AnalysisFormat::Jsonld => "analysis.jsonld",
+        cli::AnalysisFormat::Xml => "analysis.xml",
+        cli::AnalysisFormat::Svg => "analysis.svg",
+        cli::AnalysisFormat::Mermaid => "analysis.mmd",
+        cli::AnalysisFormat::Obj => "analysis.obj",
+        cli::AnalysisFormat::Midi => "analysis.mid",
+        cli::AnalysisFormat::Tree => "analysis.tree.txt",
+        cli::AnalysisFormat::Html => "analysis.html",
     }
 }
 
 pub(crate) fn write_analysis_output(
     receipt: &analysis_types::AnalysisReceipt,
     output_dir: &Path,
-    format: tokmd_types::AnalysisFormat,
+    format: cli::AnalysisFormat,
 ) -> Result<()> {
-    let rendered = render(receipt, format)?;
+    let rendered = analysis_format::render(receipt, format)?;
     let out_path = output_dir.join(analysis_output_filename(format));
     match rendered {
-        RenderedOutput::Text(text) => {
+        analysis_format::RenderedOutput::Text(text) => {
             std::fs::write(&out_path, text)?;
         }
-        RenderedOutput::Binary(bytes) => {
+        analysis_format::RenderedOutput::Binary(bytes) => {
             std::fs::write(&out_path, bytes)?;
         }
     }
@@ -117,14 +103,14 @@ pub(crate) fn write_analysis_output(
 
 pub(crate) fn write_analysis_stdout(
     receipt: &analysis_types::AnalysisReceipt,
-    format: tokmd_types::AnalysisFormat,
+    format: cli::AnalysisFormat,
 ) -> Result<()> {
-    let rendered = render(receipt, format)?;
+    let rendered = analysis_format::render(receipt, format)?;
     match rendered {
-        RenderedOutput::Text(text) => {
+        analysis_format::RenderedOutput::Text(text) => {
             print!("{}", text);
         }
-        RenderedOutput::Binary(bytes) => {
+        analysis_format::RenderedOutput::Binary(bytes) => {
             if std::io::stdout().is_terminal() {
                 anyhow::bail!(
                     "Refusing to write binary output (format: {:?}) to a terminal to prevent rendering garbage characters. Please redirect stdout to a file (e.g., `> output.bin`) or specify an output directory.",
@@ -146,7 +132,7 @@ mod tests {
     #[test]
     fn test_child_include_to_string_separate() {
         assert_eq!(
-            child_include_to_string(tokmd_types::ChildIncludeMode::Separate),
+            child_include_to_string(cli::ChildIncludeMode::Separate),
             "separate"
         );
     }
@@ -154,7 +140,7 @@ mod tests {
     #[test]
     fn test_child_include_to_string_parents_only() {
         assert_eq!(
-            child_include_to_string(tokmd_types::ChildIncludeMode::ParentsOnly),
+            child_include_to_string(cli::ChildIncludeMode::ParentsOnly),
             "parents-only"
         );
     }
@@ -180,22 +166,16 @@ mod tests {
 
     #[test]
     fn test_format_to_string_all_variants() {
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Md), "md");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Json), "json");
-        assert_eq!(
-            format_to_string(tokmd_types::AnalysisFormat::Jsonld),
-            "jsonld"
-        );
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Xml), "xml");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Svg), "svg");
-        assert_eq!(
-            format_to_string(tokmd_types::AnalysisFormat::Mermaid),
-            "mermaid"
-        );
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Obj), "obj");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Midi), "midi");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Tree), "tree");
-        assert_eq!(format_to_string(tokmd_types::AnalysisFormat::Html), "html");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Md), "md");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Json), "json");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Jsonld), "jsonld");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Xml), "xml");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Svg), "svg");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Mermaid), "mermaid");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Obj), "obj");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Midi), "midi");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Tree), "tree");
+        assert_eq!(format_to_string(cli::AnalysisFormat::Html), "html");
     }
 
     #[test]
@@ -274,43 +254,43 @@ mod tests {
     #[test]
     fn test_analysis_output_filename() {
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Md),
+            analysis_output_filename(cli::AnalysisFormat::Md),
             "analysis.md"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Json),
+            analysis_output_filename(cli::AnalysisFormat::Json),
             "analysis.json"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Jsonld),
+            analysis_output_filename(cli::AnalysisFormat::Jsonld),
             "analysis.jsonld"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Xml),
+            analysis_output_filename(cli::AnalysisFormat::Xml),
             "analysis.xml"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Svg),
+            analysis_output_filename(cli::AnalysisFormat::Svg),
             "analysis.svg"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Mermaid),
+            analysis_output_filename(cli::AnalysisFormat::Mermaid),
             "analysis.mmd"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Obj),
+            analysis_output_filename(cli::AnalysisFormat::Obj),
             "analysis.obj"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Midi),
+            analysis_output_filename(cli::AnalysisFormat::Midi),
             "analysis.mid"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Tree),
+            analysis_output_filename(cli::AnalysisFormat::Tree),
             "analysis.tree.txt"
         );
         assert_eq!(
-            analysis_output_filename(tokmd_types::AnalysisFormat::Html),
+            analysis_output_filename(cli::AnalysisFormat::Html),
             "analysis.html"
         );
     }

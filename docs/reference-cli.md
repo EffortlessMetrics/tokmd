@@ -105,14 +105,11 @@ Generates a summary grouped by **Module** (directory structure).
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
-| `--top <TOP>` | Only show the top N modules. | `0` (all) |
+| `-f, --format <FMT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
+| `-t, --top <N>` | Only show the top N modules. | `0` (all) |
+| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
 | `--module-roots <DIRS>` | Comma-separated roots to treat as module roots. | `crates,packages` |
 | `--module-depth <N>` | How many path segments to keep under module roots. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
 
 **Example**:
 ```bash
@@ -128,22 +125,19 @@ Generates a row-level inventory of files. Best for machine processing.
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `jsonl`, `json`, `csv`, `cyclonedx`. | `jsonl` |
+| `-f, --format <FMT>` | Output format: `jsonl`, `json`, `csv`, `cyclonedx`. | `jsonl` |
 | `--output <PATH>` | Write output to a file instead of stdout. | stdout |
 | `--module-roots <DIRS>` | Module roots used for module key generation. | `crates,packages` |
 | `--module-depth <N>` | Depth used for module key generation. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
 | `--min-code <N>` | Exclude files with fewer than N lines of code. | `0` |
 | `--max-rows <N>` | Limit output to the top N largest files. | `0` (unlimited) |
+| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
 | `--meta <BOOL>` | Include a meta record in JSON / JSONL output. | `true` |
 | `--redact <MODE>` | Redaction strategy for paths/names. | `none` |
 | | `none`: Show full paths. | |
 | | `paths`: Hash file paths (preserve extension). | |
 | | `all`: Hash paths and module names. | |
 | `--strip-prefix <PATH>` | Remove a prefix from file paths in the output. | `None` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
 
 **Sorting**: Output is automatically sorted by lines of code (descending), then by path. This ensures deterministic, reproducible output across all runs. There is no `--sort` flag.
 
@@ -321,14 +315,11 @@ Compares two runs, receipts, or directories and shows the delta.
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
 | `--from <FROM>` | Base receipt/run or git ref to compare from. | `(none)` |
 | `--to <TO>` | Target receipt/run or git ref to compare to. | `(none)` |
-| `--format <FORMAT>` | Output format: `md`, `json`. | `md` |
+| `--format <FMT>` | Output format: `md`, `json`. | `md` |
 | `--compact` | Summary-only markdown table for narrow terminals. | `false` |
-| `--color <COLOR>` | Color policy: `auto`, `always`, `never`. | `auto` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+| `--color <MODE>` | Color policy: `auto`, `always`, `never`. | `auto` |
 
 **Examples**:
 ```bash
@@ -616,16 +607,14 @@ Options:
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--base <REF>` | Base reference to compare from (e.g., `main`, commit SHA). | `main` |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
 | `--head <REF>` | Head reference to compare to (e.g., `HEAD`, branch name). | `HEAD` |
-| `--format <FORMAT>` | Output format: `json`, `md`, `sections`. | `json` |
+| `--format <FMT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--artifacts-dir <DIR>` | In standard cockpit mode, write `cockpit.json`, `report.json`, and `comment.md` to a directory. | `(none)` |
+| `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
 | `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
-| `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
 
 **Output Formats**:
 

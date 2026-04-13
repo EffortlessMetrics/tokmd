@@ -18,35 +18,23 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         .collect();
 
     let stopwords = build_stopwords(export);
-    let mut terms_by_module: BTreeMap<&str, BTreeMap<String, u32>> = BTreeMap::new();
+    let mut terms_by_module: BTreeMap<String, BTreeMap<String, u32>> = BTreeMap::new();
     let mut df_map: BTreeMap<String, u32> = BTreeMap::new();
 
     for row in parents {
-        let mut terms = tokenize_path(&row.path, &stopwords);
+        let terms = tokenize_path(&row.path, &stopwords);
         if terms.is_empty() {
             continue;
         }
         let weight = weight_for_row(row);
-        let module_terms = terms_by_module.entry(row.module.as_str()).or_default();
-        terms.sort_unstable();
-
-        for term in &terms {
-            match module_terms.get_mut(term) {
-                Some(count) => *count += weight,
-                None => {
-                    module_terms.insert(term.clone(), weight);
-                }
-            }
-        }
-
-        terms.dedup();
+        let module_terms = terms_by_module.entry(row.module.clone()).or_default();
+        let mut seen: BTreeSet<String> = BTreeSet::new();
         for term in terms {
-            match df_map.get_mut(&term) {
-                Some(count) => *count += 1,
-                None => {
-                    df_map.insert(term, 1);
-                }
-            }
+            *module_terms.entry(term.clone()).or_insert(0) += weight;
+            seen.insert(term);
+        }
+        for term in seen {
+            *df_map.entry(term).or_insert(0) += 1;
         }
     }
 
@@ -75,7 +63,7 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
                 .then_with(|| a.term.cmp(&b.term))
         });
         rows.truncate(TOP_K);
-        per_module.insert(module.to_string(), rows);
+        per_module.insert(module.clone(), rows);
 
         for (term, tf) in tf_map {
             *overall_tf.entry(term.clone()).or_insert(0) += *tf;

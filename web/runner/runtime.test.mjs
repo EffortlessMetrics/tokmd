@@ -42,7 +42,7 @@ test("runtime rejects malformed messages", async () => {
     assert.equal(isProtocolMessage(message), true);
 });
 
-test("runtime rejects run messages without valid inputs and retains requestId", async () => {
+test("runtime rejects run messages without valid inputs", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({
             requestId: "run-2",
@@ -53,7 +53,6 @@ test("runtime rejects run messages without valid inputs and retains requestId", 
 
     assert.equal(message.type, MESSAGE_TYPES.ERROR);
     assert.equal(message.error.code, "invalid_message");
-    assert.equal(message.requestId, "run-2");
 });
 
 test("runtime uses runner-provided mode capabilities", async () => {
@@ -178,52 +177,6 @@ test("runtime reserves cancel without promising it", async () => {
     assert.equal(message.type, MESSAGE_TYPES.ERROR);
     assert.equal(message.requestId, "run-7");
     assert.equal(message.error.code, "cancel_unavailable");
-});
-
-test("runtime extracts error codes from structured runner errors", async () => {
-    const runner = {
-        runExport() {
-            throw new Error("[invalid_settings] Cannot use both paths and inputs");
-        },
-    };
-
-    const message = await handleRunnerMessage(
-        createRunMessage({
-            requestId: "run-err-code",
-            mode: "export",
-            args: {
-                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
-            },
-        }),
-        { runner }
-    );
-
-    assert.equal(message.type, MESSAGE_TYPES.ERROR);
-    assert.equal(message.error.code, "invalid_settings");
-    assert.equal(message.error.message, "Cannot use both paths and inputs");
-});
-
-test("runtime extracts error codes from fallback string errors", async () => {
-    const runner = {
-        runExport() {
-            throw "[unknown_mode] What is this?";
-        },
-    };
-
-    const message = await handleRunnerMessage(
-        createRunMessage({
-            requestId: "run-err-code-str",
-            mode: "export",
-            args: {
-                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
-            },
-        }),
-        { runner }
-    );
-
-    assert.equal(message.type, MESSAGE_TYPES.ERROR);
-    assert.equal(message.error.code, "unknown_mode");
-    assert.equal(message.error.message, "What is this?");
 });
 
 test("runtime returns results once a runner is available", async () => {

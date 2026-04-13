@@ -94,7 +94,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
         &languages,
         &module_roots,
         module_depth,
-        tokmd_types::ChildIncludeMode::ParentsOnly,
+        cli::ChildIncludeMode::ParentsOnly,
         None,
         0, // no min_code filter
         0, // no max_rows limit

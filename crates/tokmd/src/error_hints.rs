@@ -46,10 +46,6 @@ fn suggestions(err: &Error) -> Vec<String> {
             &mut out,
             "Use an absolute path to avoid working-directory confusion.",
         );
-        push_hint(
-            &mut out,
-            "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
-        );
     }
 
     if haystack.contains("base ref") && haystack.contains("not found") {
@@ -116,11 +112,6 @@ mod tests {
         let err = anyhow!("Path not found: does-not-exist");
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("input path exists")));
-        assert!(
-            hints
-                .iter()
-                .any(|h| h.contains("subcommand, it is not recognized"))
-        );
     }
 
     #[test]

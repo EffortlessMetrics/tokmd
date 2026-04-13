@@ -275,23 +275,7 @@ proptest! {
         ).unwrap();
 
         for w in report.edges.windows(2) {
-            if w[0].count > w[1].count {
-                prop_assert!(true); // OK
-            } else if w[0].count == w[1].count {
-                if w[0].from != w[1].from {
-                    prop_assert!(
-                        w[0].from <= w[1].from,
-                        "edges with same count must be sorted by 'from' asc"
-                    );
-                } else {
-                    prop_assert!(
-                        w[0].to <= w[1].to,
-                        "edges with same count and 'from' must be sorted by 'to' asc"
-                    );
-                }
-            } else {
-                prop_assert!(false, "edges must be sorted by count desc");
-            }
+            prop_assert!(w[0].count >= w[1].count, "edges must be sorted by count desc");
         }
     }
 

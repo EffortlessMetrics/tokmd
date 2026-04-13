@@ -1,10 +1,8 @@
 use std::path::Path;
-use std::process::Stdio;
+use std::process::{Command, Stdio};
 
 use anyhow::Result;
 use tokmd_config as cli;
-
-use crate::git_support::git_cmd;
 
 /// Exit codes for check-ignore:
 /// - 0: Path is ignored
@@ -122,7 +120,7 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
 
 fn check_git_ignore(path: &Path, verbose: bool) -> Option<IgnoreReason> {
     // Try to use git check-ignore -v
-    let output = git_cmd()
+    let output = Command::new("git")
         .args(["check-ignore", "-v", "--"])
         .arg(path)
         .stdout(Stdio::piped())
@@ -178,7 +176,7 @@ fn check_git_ignore(path: &Path, verbose: bool) -> Option<IgnoreReason> {
 }
 
 fn is_git_tracked(path: &Path) -> bool {
-    git_cmd()
+    Command::new("git")
         .args(["ls-files", "--error-unmatch", "--"])
         .arg(path)
         .stdout(Stdio::null())
