@@ -681,6 +681,19 @@ mod tests {
     }
 
     #[test]
+    fn run_json_rejects_top_level_scalar_payload() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json("lang", "0");
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_json");
+        assert_eq!(
+            parsed["error"]["message"].as_str(),
+            Some("Top-level JSON value must be an object")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn parse_scan_settings_defaults() -> Result<(), Box<dyn std::error::Error>> {
         let args: Value = serde_json::json!({});
         let settings = parse_scan_settings(&args)?;
