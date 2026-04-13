@@ -265,6 +265,54 @@ value = 5000000
 }
 
 #[test]
+fn recipe_run_and_diff() {
+    let tmp = tempfile::tempdir().unwrap();
+    let baseline_dir = tmp.path().join(".runs").join("baseline");
+    let current_dir = tmp.path().join(".runs").join("current");
+
+    // "tokmd run --analysis receipt --output-dir .runs/baseline"
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(&baseline_dir)
+        .assert()
+        .success();
+    assert!(baseline_dir.join("receipt.json").exists());
+
+    // "tokmd run --analysis receipt --output-dir .runs/current"
+    tokmd()
+        .arg("run")
+        .arg("--analysis")
+        .arg("receipt")
+        .arg("--output-dir")
+        .arg(&current_dir)
+        .assert()
+        .success();
+    assert!(current_dir.join("receipt.json").exists());
+
+    // "tokmd diff .runs/baseline .runs/current"
+    tokmd()
+        .arg("diff")
+        .arg(&baseline_dir)
+        .arg(&current_dir)
+        .assert()
+        .success();
+}
+
+#[test]
+fn recipe_context_budget() {
+    // "tokmd context --budget 128k"
+    tokmd()
+        .arg("context")
+        .arg("--budget")
+        .arg("128k")
+        .assert()
+        .success();
+}
+
+#[test]
 fn recipe_tools_export_schemas() {
     // "tokmd tools --format openai --pretty"
     tokmd()
