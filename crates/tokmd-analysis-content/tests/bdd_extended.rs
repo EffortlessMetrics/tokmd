@@ -131,25 +131,26 @@ fn given_10_todos_and_10000_code_lines_when_building_todo_report_then_density_is
 // ── TODO report: mixed tags ──────────────────────────────────────────
 
 #[test]
-fn given_file_with_all_tag_types_when_building_todo_report_then_tags_sorted_by_name() {
+fn given_file_with_all_tag_types_when_building_todo_report_then_tags_sorted_by_count_then_name() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();
 
     std::fs::write(
         root.join("mixed.rs"),
-        "// XXX: review\n// HACK: workaround\n// FIXME: broken\n// TODO: implement\n",
+        "// XXX: review\n// HACK: workaround\n// FIXME: broken\n// TODO: implement\n// TODO: again\n",
     )
     .unwrap();
 
     let files = vec![PathBuf::from("mixed.rs")];
     let report = build_todo_report(root, &files, &ContentLimits::default(), 1000).unwrap();
 
-    assert_eq!(report.total, 4);
-    // Tags should be from BTreeMap iteration (alphabetical)
+    assert_eq!(report.total, 5);
     let tag_names: Vec<&str> = report.tags.iter().map(|t| t.tag.as_str()).collect();
-    let mut sorted = tag_names.clone();
-    sorted.sort();
-    assert_eq!(tag_names, sorted, "tags should be in alphabetical order");
+    assert_eq!(
+        tag_names,
+        vec!["TODO", "FIXME", "HACK", "XXX"],
+        "tags should be sorted by count then name"
+    );
 }
 
 // ── Duplicate report: single file no duplicates ──────────────────────

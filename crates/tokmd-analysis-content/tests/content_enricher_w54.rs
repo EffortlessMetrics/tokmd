@@ -120,15 +120,15 @@ fn todo_max_bytes_limit() {
     assert!(report.total >= 1);
 }
 
-// 7. Tags sorted alphabetically (BTreeMap)
+// 7. Tags sorted by count, then alphabetically
 #[test]
-fn todo_tags_sorted() {
+fn todo_tags_sorted_by_count_then_alphabetically() {
     let tmp = TempDir::new().unwrap();
-    let content = b"// XXX: a\n// FIXME: b\n// HACK: c\n// TODO: d\n";
+    let content = b"// XXX: a\n// FIXME: b\n// HACK: c\n// TODO: d\n// TODO: d2\n";
     let rel = write_file(tmp.path(), "sorted.rs", content);
     let report = build_todo_report(tmp.path(), &[rel], &ContentLimits::default(), 100).unwrap();
     let names: Vec<&str> = report.tags.iter().map(|t| t.tag.as_str()).collect();
-    assert_eq!(names, vec!["FIXME", "HACK", "TODO", "XXX"]);
+    assert_eq!(names, vec!["TODO", "FIXME", "HACK", "XXX"]);
 }
 
 // ===========================================================================
