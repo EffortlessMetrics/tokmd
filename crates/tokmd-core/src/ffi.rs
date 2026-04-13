@@ -73,7 +73,13 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
 
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Parse common scan settings from the JSON
-    let args: Value = serde_json::from_str(args_json)?;
+    let args: Value =
+        serde_json::from_str(args_json).map_err(|err| TokmdError::invalid_json(err.to_string()))?;
+    if !args.is_object() {
+        return Err(TokmdError::invalid_json(
+            "Top-level JSON value must be an object",
+        ));
+    }
     let inputs = parse_in_memory_inputs(&args)?;
 
     // Extract scan settings (shared by all modes)
@@ -671,6 +677,19 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_json");
+        Ok(())
+    }
+
+    #[test]
+    fn run_json_rejects_top_level_scalar_payload() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json("lang", "0");
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_json");
+        assert_eq!(
+            parsed["error"]["message"].as_str(),
+            Some("Top-level JSON value must be an object")
+        );
         Ok(())
     }
 
