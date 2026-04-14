@@ -1,5 +1,5 @@
-name: 'tokmd-receipt'
-description: 'Generate a repository receipt (markdown summary + JSON inventory) using tokmd'
+name: 'tokmd'
+description: 'Generate repository receipts and PR summaries with tokmd'
 
 branding:
   icon: 'file-text'
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   version:
-    description: 'Version of tokmd to use'
+    description: 'Version of tokmd to install. Defaults to the latest release.'
     default: 'latest'
   paths:
     description: 'Paths to scan'
@@ -22,10 +22,10 @@ inputs:
     description: 'Export format (json, jsonl, csv)'
     default: 'json'
   artifact:
-    description: 'Whether to upload receipts as artifacts'
+    description: 'Whether to upload tokmd-summary.md and the receipt as workflow artifacts'
     default: 'true'
   comment:
-    description: 'Whether to post a comment on the PR'
+    description: 'Whether to post tokmd-summary.md as a pull request comment'
     default: 'true'
 
 outputs:
@@ -47,11 +47,27 @@ runs:
 
         version="${{ inputs.version }}"
         os="${RUNNER_OS}"
+        arch="${RUNNER_ARCH:-X64}"
+
+        case "$arch" in
+          X64|AMD64) arch_suffix="amd64" ;;
+          ARM64) arch_suffix="arm64" ;;
+          *)
+            echo "Unsupported runner architecture: $arch" >&2
+            exit 1
+            ;;
+        esac
 
         case "$os" in
-          Linux) asset="tokmd-linux-amd64" ;;
-          macOS) asset="tokmd-macos-amd64" ;;
-          Windows) asset="tokmd-windows-amd64.exe" ;;
+          Linux) asset="tokmd-linux-$arch_suffix" ;;
+          macOS) asset="tokmd-macos-$arch_suffix" ;;
+          Windows)
+            if [ "${arch_suffix:-}" != "amd64" ]; then
+              echo "Unsupported runner architecture for Windows releases: $arch" >&2
+              exit 1
+            fi
+            asset="tokmd-windows-amd64.exe"
+            ;;
           *) echo "Unsupported runner OS: $os" >&2; exit 1 ;;
         esac
 
@@ -141,7 +157,7 @@ runs:
 
     - name: Upload Artifact
       if: inputs.artifact == 'true'
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: tokmd-receipts
         path: |
@@ -150,7 +166,7 @@ runs:
 
     - name: Comment on PR
       if: inputs.comment == 'true' && github.event_name == 'pull_request'
-      uses: thollander/actions-comment-pull-request@v3
+      uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
       with:
-        filePath: tokmd-summary.md
+        file-path: tokmd-summary.md
         comment_tag: tokmd-summary
