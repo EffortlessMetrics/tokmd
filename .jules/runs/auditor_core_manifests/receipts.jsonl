@@ -1,0 +1,12 @@
+{
+  "command": "cargo machete crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format",
+  "result": "cargo-machete didn't find any unused dependencies... Done!"
+}
+{
+  "command": "cargo deny --all-features check",
+  "result": "advisories ok, bans ok, licenses ok, sources ok"
+}
+{
+  "command": "cargo xtask version-consistency",
+  "result": "Version consistency checks passed."
+}
