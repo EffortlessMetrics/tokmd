@@ -9,7 +9,7 @@
 //! 6. Emit pairs exceeding the similarity threshold
 
 use std::collections::BTreeMap;
-use std::io::Read;
+use std::io::{BufReader, Read};
 use std::path::Path;
 
 use anyhow::Result;
@@ -407,10 +407,10 @@ fn partition_files(files: &[&tokmd_types::FileRow], scope: NearDupScope) -> Vec<
 
 /// Read a file and compute its Winnowing fingerprints.
 fn read_and_fingerprint(path: &Path) -> Result<Vec<u64>> {
+    let file = std::fs::File::open(path)?;
+    let mut reader = BufReader::new(file);
     let mut content = String::new();
-    let mut file = std::fs::File::open(path)?;
-    file.read_to_string(&mut content)?;
-
+    reader.read_to_string(&mut content)?;
     Ok(winnow(&content))
 }
 
