@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "outcome_type": "patch",
+  "reviewer_facing_title": "archivist: aggregate historical ledgers in generated run index 🗃️",
+  "summary": "Updated `.jules/bin/build_index.py` to pull metadata from historical ledgers in `.jules/docs/` and `.jules/quality/`, consolidating all run knowledge into a single `RUNS_ROLLUP.md` file without rewriting historical truth.",
+  "target_paths": [
+    ".jules/bin/build_index.py",
+    ".jules/index/generated/RUNS_ROLLUP.md"
+  ],
+  "gates_run": [
+    "python3 .jules/bin/build_index.py"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git restore .jules/bin/build_index.py && rm .jules/index/generated/RUNS_ROLLUP.md",
+  "follow_ups": []
+}
