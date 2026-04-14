@@ -717,6 +717,23 @@ fn given_project_when_analyze_receipt_then_has_derived_metrics() {
     assert!(json["derived"].is_object(), "should have derived metrics");
 }
 
+#[test]
+fn given_project_when_analyze_estimate_then_has_effort_metrics() {
+    let output = tokmd_fixture()
+        .args(["analyze", "--preset", "estimate", "--format", "json"])
+        .output()
+        .expect("run");
+
+    assert!(output.status.success());
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("failed to parse JSON from stdout");
+    assert!(json["effort"].is_object(), "should have effort metrics");
+    assert!(
+        json["effort"]["drivers"].is_array(),
+        "should have effort drivers"
+    );
+}
+
 // ===========================================================================
 // 25. Exclude with wildcard removes all matching files
 // ===========================================================================
