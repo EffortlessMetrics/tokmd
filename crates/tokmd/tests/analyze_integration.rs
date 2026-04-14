@@ -155,6 +155,39 @@ fn analyze_fun_preset_returns_eco_label() {
 }
 
 #[test]
+fn analyze_estimate_preset_returns_effort_model() {
+    // Given: the same fixture repository used by other analysis tests
+    // When: analyze is run with --preset estimate and json output
+    // Then: effort model and drivers are present in the output
+    let output = tokmd_cmd()
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("estimate")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}",
+        output.status
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("analysis JSON output is invalid");
+
+    let effort = json["effort"].as_object().expect("effort should be object");
+    assert!(effort.get("model").is_some(), "model missing");
+    let drivers = effort
+        .get("drivers")
+        .and_then(Value::as_array)
+        .expect("drivers should be array");
+    assert!(!drivers.is_empty(), "drivers array empty");
+}
+
+#[test]
 fn analyze_topics_preset_returns_topic_cloud() {
     // Given: the same fixture repository used by other analysis tests
     // When: analyze is run with --preset topics and json output
