@@ -1,9 +1,0 @@
-{"cmd": "ls -la .jules/", "status": "success", "phase": "investigation"}
-{"cmd": "cat .jules/README.md", "status": "success", "phase": "investigation"}
-{"cmd": "cat .jules/bin/build_index.py", "status": "success", "phase": "investigation"}
-{"cmd": "cat .jules/docs/ledger.json", "status": "success", "phase": "investigation"}
-{"cmd": "cat .jules/quality/ledger.json", "status": "success", "phase": "investigation"}
-{"cmd": "python3 .jules/bin/build_index.py", "status": "success", "phase": "execution"}
-{"cmd": "cargo xtask docs --check", "status": "success", "phase": "verification"}
-{"cmd": "cargo xtask version-consistency", "status": "success", "phase": "verification"}
-{"cmd": "cargo fmt -- --check && cargo clippy -- -D warnings", "status": "success", "phase": "verification"}
