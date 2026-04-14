@@ -17,7 +17,7 @@ fn tokmd_cmd() -> Command {
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re_ts = regex::Regex::new(r#"\"generated_at_ms\":\s*\d+"#).unwrap();
     let s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
@@ -34,6 +34,12 @@ fn normalize(output: &str) -> String {
     // Normalize absolute paths that may leak into scan.paths
     let re_abs = regex::Regex::new(r#""paths":\["[^"]*"\]"#).unwrap();
     let s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
+
+    // Normalize analyze specific paths (like `target_path`)
+    let re_target = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
+    let s = re_target
+        .replace_all(&s, r#""target_path":"<ROOT>""#)
+        .to_string();
 
     // Normalize binary name across platforms (tokmd.exe on Windows -> tokmd)
     s.replace("tokmd.exe", "tokmd")
@@ -187,7 +193,35 @@ fn snapshot_export_csv() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Version output snapshot
+// 6. Analyze output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_analyze_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "receipt", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_json", normalize(&stdout));
+}
+
+#[test]
+fn snapshot_analyze_markdown() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "receipt", "--format", "md"])
+        .output()
+        .expect("failed to run tokmd analyze --format md");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_markdown", normalize(&stdout));
+}
+
+// ---------------------------------------------------------------------------
+// 7. Version output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -203,7 +237,7 @@ fn snapshot_version() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Help output snapshot
+// 8. Help output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
