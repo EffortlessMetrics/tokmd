@@ -2,7 +2,7 @@
 # See: https://mutants.rs/configuration.html
 
 # Enable all features including optional 'fun' feature
-all_features = true
+additional_cargo_args = ["--all-features"]
 
 # Enable gitignore filtering to prevent copying large artifacts (context.txt, etc.)
 gitignore = true
