@@ -15,6 +15,8 @@ def main() -> None:
     output_file = repo_root / ".jules" / "index" / "generated" / "RUNS_ROLLUP.md"
 
     runs = []
+
+    # Standard format under .jules/runs/
     if runs_dir.exists():
         for run_path in sorted(runs_dir.iterdir(), key=lambda path: path.name):
             if not run_path.is_dir():
@@ -31,6 +33,45 @@ def main() -> None:
                 "status": result.get("status") or "in-progress",
                 "gates_run": len(result.get("gates_run", [])),
             })
+
+    # Legacy docs format
+    docs_ledger = repo_root / ".jules" / "docs" / "ledger.json"
+    if docs_ledger.exists():
+        docs_data = json.loads(docs_ledger.read_text(encoding="utf-8"))
+        if isinstance(docs_data, list):
+            for entry in docs_data:
+                # "lane" historically matched roughly to "style" or "shard"
+                runs.append({
+                    "id": entry.get("run_id", "Unknown"),
+                    "persona": "Librarian", # assumed from context
+                    "style": entry.get("lane", "Unknown").capitalize(),
+                    "shard": "docs",
+                    "status": "success", # implied by ledger inclusion
+                    "gates_run": len(entry.get("receipts", [])),
+                })
+
+    # Legacy quality format
+    quality_ledger = repo_root / ".jules" / "quality" / "ledger.json"
+    if quality_ledger.exists():
+        quality_data = json.loads(quality_ledger.read_text(encoding="utf-8"))
+        if isinstance(quality_data, dict) and "runs" in quality_data:
+            for entry in quality_data["runs"]:
+                desc = entry.get("description", "")
+                persona = "Unknown"
+                if "Gatekeeper" in desc:
+                    persona = "Gatekeeper"
+
+                runs.append({
+                    "id": entry.get("run_id", "Unknown"),
+                    "persona": persona,
+                    "style": "Unknown",
+                    "shard": "quality",
+                    "status": "success",
+                    "gates_run": 0, # usually zero listed in this ledger directly
+                })
+
+    # Sort runs so the markdown is deterministic
+    runs.sort(key=lambda r: r["id"])
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     with output_file.open("w", encoding="utf-8", newline="\n") as f:
