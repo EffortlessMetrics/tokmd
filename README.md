@@ -39,7 +39,7 @@ jobs:
 
       - uses: EffortlessMetrics/tokmd@v1
         with:
-          version: '1.9.0'
+          version: 'x.y.z'
           paths: .
           module-roots: crates,packages
           top: '20'
@@ -53,7 +53,7 @@ Inputs:
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
 | `version` | no | `latest` | `tokmd` release to install. Pass an explicit version if you want the action ref and binary version to stay aligned. |
-| `paths` | no | `.` | Paths to scan. |
+| `paths` | no | `.` | Paths to scan. Space/newline-delimited list; each entry is passed as a separate argument. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
 | `top` | no | `20` | Number of rows shown in `tokmd-summary.md`. |
 | `format` | no | `json` | Receipt export format: `json`, `jsonl`, or `csv`. |
@@ -71,6 +71,13 @@ Notes:
 - PR commenting needs `pull-requests: write` and only runs for `pull_request` events.
 - The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
+- To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
+
+  ```yaml
+  paths: |
+    src
+    packages
+  ```
 
 ## The Problem
 

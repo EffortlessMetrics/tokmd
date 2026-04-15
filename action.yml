@@ -139,17 +139,28 @@ runs:
         set -euo pipefail
         echo "Generating receipts..."
 
+        # Split paths input into argv-style arguments so callers can provide
+        # multiple paths (space/newline separated) instead of a single quoted blob.
+        IFS=$' \t\n'
+        read -r -a scan_paths <<< "${{ inputs.paths }}"
+
+        if [ ${#scan_paths[@]} -eq 0 ]; then
+          scan_paths=(
+            .
+          )
+        fi
+
         format="${{ inputs.format }}"
         receipt_file="tokmd-receipt.${format}"
 
         tokmd module \
-          "${{ inputs.paths }}" \
+          "${scan_paths[@]}" \
           --module-roots "${{ inputs.module-roots }}" \
           --top ${{ inputs.top }} \
           --format md > tokmd-summary.md
 
         tokmd export \
-          "${{ inputs.paths }}" \
+          "${scan_paths[@]}" \
           --module-roots "${{ inputs.module-roots }}" \
           --format "$format" > "$receipt_file"
 
