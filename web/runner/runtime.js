@@ -29,11 +29,19 @@ function formatSupportedList(values) {
 
 function extractRunnerError(error) {
     let message = "unknown runner error";
+    let code = "run_failed";
 
-    if (error instanceof Error && typeof error.message === "string") {
+    if (error && typeof error === "object" && typeof error.message === "string") {
         message = error.message;
+        if (typeof error.code === "string") {
+            code = error.code;
+        }
     } else if (typeof error === "string") {
         message = error;
+    }
+
+    if (code !== "run_failed") {
+        return { code, message };
     }
 
     const match = message.match(/^\[([^\]]+)\]\s*(.*)$/);

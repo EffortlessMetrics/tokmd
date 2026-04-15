@@ -247,7 +247,7 @@ function createNotice(tone, title, lines) {
 }
 
 function sanitizeErrorForLog(error) {
-    if (!(error instanceof Error)) {
+    if (!error || typeof error !== "object") {
         return {
             code: "unknown",
             message: String(error),
@@ -255,9 +255,9 @@ function sanitizeErrorForLog(error) {
     }
 
     return {
-        name: error.name,
+        name: error.name ?? "Error",
         code: error.code ?? "unknown",
-        message: error.message,
+        message: typeof error.message === "string" ? error.message : String(error),
         status: error.status ?? null,
         resetAt: error.resetAt ?? null,
         retryAfterSeconds: error.retryAfterSeconds ?? null,
@@ -267,7 +267,7 @@ function sanitizeErrorForLog(error) {
 }
 
 function describeLoadError(error) {
-    if (!(error instanceof Error)) {
+    if (!error || typeof error !== "object") {
         return String(error);
     }
 
@@ -506,7 +506,7 @@ loadRepoButton.addEventListener("click", async () => {
             result.ingest.partial ? "warning" : "success"
         );
     } catch (error) {
-        const repoError = error instanceof Error ? error : new Error(String(error));
+        const repoError = error && typeof error === "object" ? error : new Error(String(error));
         if (repoError.ingest) {
             state.latestSource = {
                 repo,
