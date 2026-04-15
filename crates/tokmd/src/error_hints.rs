@@ -14,6 +14,45 @@ pub(crate) fn format(err: &Error) -> String {
     out
 }
 
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let mut d = vec![vec![0; b.len() + 1]; a.len() + 1];
+
+    for (i, row) in d.iter_mut().enumerate() {
+        row[0] = i;
+    }
+    for (j, cell) in d[0].iter_mut().enumerate() {
+        *cell = j;
+    }
+
+    for i in 1..=a.len() {
+        for j in 1..=b.len() {
+            let cost = if a[i - 1] == b[j - 1] { 0 } else { 1 };
+            d[i][j] = std::cmp::min(
+                std::cmp::min(d[i - 1][j] + 1, d[i][j - 1] + 1),
+                d[i - 1][j - 1] + cost,
+            );
+        }
+    }
+    d[a.len()][b.len()]
+}
+
+fn did_you_mean(unknown: &str, candidates: &[&str]) -> Option<String> {
+    let mut best_match = None;
+    let mut best_dist = usize::MAX;
+
+    for &candidate in candidates {
+        let dist = levenshtein(unknown, candidate);
+        if dist <= 3 && dist < unknown.len() && dist < best_dist {
+            best_dist = dist;
+            best_match = Some(candidate);
+        }
+    }
+
+    best_match.map(|s| s.to_string())
+}
+
 fn suggestions(err: &Error) -> Vec<String> {
     let chain: Vec<String> = err.chain().map(|e| e.to_string()).collect();
     let haystack = chain.join(" | ").to_ascii_lowercase();
@@ -41,6 +80,35 @@ fn suggestions(err: &Error) -> Vec<String> {
         || haystack.contains("input path does not exist")
         || haystack.contains("no such file or directory")
     {
+        let err_msg = err.to_string();
+        if err_msg.starts_with("Path not found: ") {
+            let path = err_msg.trim_start_matches("Path not found: ").trim();
+            // Check if it looks like a misspelled subcommand
+            if !path.contains('/') && !path.contains('\\') && !path.contains('.') {
+                let subcommands = [
+                    "lang",
+                    "module",
+                    "export",
+                    "analyze",
+                    "badge",
+                    "baseline",
+                    "check-ignore",
+                    "cockpit",
+                    "completions",
+                    "context",
+                    "diff",
+                    "gate",
+                    "handoff",
+                    "init",
+                    "sensor",
+                    "tools",
+                ];
+                if let Some(suggestion) = did_you_mean(path, &subcommands) {
+                    push_hint(&mut out, &format!("Did you mean `{}`?", suggestion));
+                }
+            }
+        }
+
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
             &mut out,
@@ -121,6 +189,17 @@ mod tests {
                 .iter()
                 .any(|h| h.contains("subcommand, it is not recognized"))
         );
+    }
+
+    #[test]
+    fn suggests_did_you_mean_for_misspelled_subcommand() {
+        let err = anyhow!("Path not found: analze");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("Did you mean `analyze`?")));
+
+        let err2 = anyhow!("Path not found: mdoule");
+        let hints2 = suggestions(&err2);
+        assert!(hints2.iter().any(|h| h.contains("Did you mean `module`?")));
     }
 
     #[test]
