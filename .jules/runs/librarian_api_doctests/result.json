@@ -1,0 +1,14 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_modified": [
+    "crates/tokmd/src/config.rs"
+  ],
+  "gates_run": [
+    "cargo test --doc -p tokmd",
+    "cargo test -p tokmd",
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "reason": "Added missing executable doctests to public config resolution APIs to prevent silent drift and improve coverage."
+}
