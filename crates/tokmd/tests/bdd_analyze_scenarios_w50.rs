@@ -204,3 +204,33 @@ fn given_project_when_analyze_fun_then_eco_label_present() {
         "eco_label should have score"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 8: Estimate preset returns effort model
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_estimate_then_effort_model_present() {
+    // Given: a project with source files
+    // When: I analyze with `estimate` preset and JSON format
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "estimate", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset estimate");
+
+    // Then: effort model and drivers are present
+    assert!(
+        output.status.success(),
+        "analyze should succeed: {:?}",
+        output.status
+    );
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+
+    let effort = json["effort"].as_object().expect("effort should be object");
+    assert!(effort.get("model").is_some(), "effort should have model");
+    assert!(
+        effort.get("drivers").is_some(),
+        "effort should have drivers"
+    );
+}
