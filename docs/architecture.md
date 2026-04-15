@@ -105,6 +105,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
 | `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
+| `tokmd-analysis-format-md` | Markdown rendering for tokmd analysis receipts |
 | `tokmd-analysis-fun` | Analysis-side novelty enrichment wiring |
 | `tokmd-analysis-git` | Git history analysis adapters |
 | `tokmd-analysis-grid` | Preset/feature matrix metadata |

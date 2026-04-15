@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "patch_type": "docs",
+  "files_changed": [
+    "docs/architecture.md"
+  ]
+}
