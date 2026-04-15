@@ -17,13 +17,20 @@ fn tokmd_cmd() -> Command {
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).unwrap();
     let s = re_ts
-        .replace_all(output, r#""generated_at_ms":0"#)
+        .replace_all(output, r#""generated_at_ms": 0"#)
         .to_string();
 
-    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
+    let re_ver =
+        regex::Regex::new(r#"("tool":\s*\{\s*"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).unwrap();
     let s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
+
+    // Normalize target_path in analyze output
+    let re_target = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
+    let s = re_target
+        .replace_all(&s, r#""target_path": "<ROOT>""#)
+        .to_string();
 
     // Normalize --version output line (e.g. "tokmd 0.42.1" -> "tokmd <VERSION>")
     let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?").unwrap();
@@ -147,7 +154,23 @@ fn snapshot_module_tsv() {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Export output snapshots
+// 5. Analyze output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_analyze_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "receipt", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --preset receipt --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_json", normalize(&stdout));
+}
+
+// ---------------------------------------------------------------------------
+// 6. Export output snapshots
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -187,7 +210,7 @@ fn snapshot_export_csv() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Version output snapshot
+// 7. Version output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -203,7 +226,7 @@ fn snapshot_version() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Help output snapshot
+// 8. Help output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
