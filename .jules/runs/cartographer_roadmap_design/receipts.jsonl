@@ -1,4 +1,0 @@
-{"cmd": "grep -rin 'Tier 3:' docs/architecture.md", "outcome": "Found tokmd-analysis-format but missing tokmd-analysis-format-md"}
-{"cmd": "ls crates/tokmd-analysis-format-md", "outcome": "Crate exists and is used for Markdown rendering"}
-{"cmd": "python3 fix_architecture.py", "outcome": "Updated docs/architecture.md to include tokmd-analysis-format-md and tokmd-sensor"}
-{"cmd": "cargo xtask docs --check", "outcome": "Documentation is up to date."}
