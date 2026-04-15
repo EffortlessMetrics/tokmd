@@ -1095,9 +1095,6 @@ mod tests {
     }
 
     #[test]
-
-
-    #[test]
     fn test_is_default_policy() {
         assert!(is_default_policy(&InclusionPolicy::Full));
         assert!(!is_default_policy(&InclusionPolicy::HeadTail));
