@@ -203,6 +203,29 @@ test("runtime extracts error codes from structured runner errors", async () => {
     assert.equal(message.error.message, "Cannot use both paths and inputs");
 });
 
+test("runtime extracts error codes from un-stringified error objects", async () => {
+    const runner = {
+        runExport() {
+            throw { code: "custom_obj_err", message: "Inner object message" };
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-code-obj",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "custom_obj_err");
+    assert.equal(message.error.message, "Inner object message");
+});
+
 test("runtime extracts error codes from fallback string errors", async () => {
     const runner = {
         runExport() {

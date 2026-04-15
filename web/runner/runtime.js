@@ -34,6 +34,11 @@ function extractRunnerError(error) {
         message = error.message;
     } else if (typeof error === "string") {
         message = error;
+    } else if (error && typeof error === "object" && typeof error.message === "string") {
+        message = error.message;
+        if (typeof error.code === "string") {
+            return { code: error.code, message };
+        }
     }
 
     const match = message.match(/^\[([^\]]+)\]\s*(.*)$/);
