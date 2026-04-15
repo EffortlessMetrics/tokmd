@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-analysis"
 version.workspace = true
 edition.workspace = true
@@ -81,3 +82,4 @@ tempfile.workspace = true
 proptest.workspace = true
 serde.workspace = true
 tokmd-test-support.workspace = true
+

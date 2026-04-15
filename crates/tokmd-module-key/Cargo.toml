@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-module-key"
 version.workspace = true
 edition.workspace = true
@@ -13,3 +14,4 @@ documentation = "https://docs.rs/tokmd-module-key"
 
 [dev-dependencies]
 proptest.workspace = true
+

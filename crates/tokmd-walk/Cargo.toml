@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-walk"
 version.workspace = true
 edition.workspace = true
@@ -19,3 +20,4 @@ tokmd-io-port.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 tempfile.workspace = true
+

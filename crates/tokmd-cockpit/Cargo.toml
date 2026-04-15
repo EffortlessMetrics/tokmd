@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-cockpit"
 version.workspace = true
 edition.workspace = true
@@ -33,3 +34,4 @@ tokmd-git = { workspace = true, optional = true }
 insta = { workspace = true }
 proptest.workspace = true
 tempfile.workspace = true
+

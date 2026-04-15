@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-redact"
 version.workspace = true
 edition.workspace = true
@@ -16,4 +17,5 @@ blake3.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+
 

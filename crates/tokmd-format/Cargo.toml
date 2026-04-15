@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-format"
 version.workspace = true
 edition.workspace = true
@@ -30,3 +31,4 @@ uuid = { version = "1.23", features = ["v4", "js"] }
 proptest.workspace = true
 insta = { workspace = true }
 tempfile.workspace = true
+

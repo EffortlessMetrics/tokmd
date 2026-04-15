@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-progress"
 version.workspace = true
 edition.workspace = true
@@ -20,3 +21,4 @@ indicatif = { version = "0.18.4", optional = true }
 
 [dev-dependencies]
 proptest.workspace = true
+

@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-scan-args"
 version.workspace = true
 edition.workspace = true
@@ -20,3 +21,4 @@ tokmd-types.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 serde_json.workspace = true
+

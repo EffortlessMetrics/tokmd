@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-analysis-content"
 version.workspace = true
 edition.workspace = true
@@ -25,3 +26,4 @@ blake3.workspace = true
 proptest.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+

@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-content"
 version.workspace = true
 edition.workspace = true
@@ -19,4 +20,5 @@ regex = "1.12.3"
 [dev-dependencies]
 proptest.workspace = true
 tempfile.workspace = true
+
 

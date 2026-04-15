@@ -1,11 +1,11 @@
 [package]
+publish = false
 name = "xtask"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
-publish = false
 
 [dependencies]
 anyhow = "1.0.101"

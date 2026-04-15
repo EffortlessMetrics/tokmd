@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-test-support"
 version.workspace = true
 edition.workspace = true
@@ -13,3 +14,4 @@ uselesskey.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+

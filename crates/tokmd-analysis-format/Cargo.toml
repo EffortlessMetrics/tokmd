@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-analysis-format"
 version.workspace = true
 edition.workspace = true

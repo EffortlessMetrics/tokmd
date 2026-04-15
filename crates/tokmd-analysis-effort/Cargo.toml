@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-analysis-effort"
 version.workspace = true
 edition.workspace = true

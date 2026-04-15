@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-tokeignore"
 version.workspace = true
 edition.workspace = true
@@ -19,4 +20,5 @@ tokmd-config.workspace = true
 insta = { workspace = true }
 proptest.workspace = true
 tempfile.workspace = true
+
 

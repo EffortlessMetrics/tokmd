@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-gate"
 version.workspace = true
 edition.workspace = true
@@ -19,4 +20,5 @@ toml = "1.1.2"
 [dev-dependencies]
 proptest.workspace = true
 tempfile.workspace = true
+
 

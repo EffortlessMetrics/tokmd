@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-math"
 version.workspace = true
 edition.workspace = true
@@ -15,3 +16,4 @@ documentation = "https://docs.rs/tokmd-math"
 
 [dev-dependencies]
 proptest.workspace = true
+

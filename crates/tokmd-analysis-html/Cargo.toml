@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-analysis-html"
 version.workspace = true
 edition.workspace = true
@@ -21,3 +22,4 @@ tokmd-analysis-types.workspace = true
 insta = "1"
 proptest.workspace = true
 tokmd-types.workspace = true
+
