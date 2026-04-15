@@ -1,0 +1,18 @@
+{
+  "outcome": "patch",
+  "title": "steward: fix cargo deny license warning for unused Unicode-DFS-2016 🚢",
+  "summary": "Removed `Unicode-DFS-2016` from the allowed licenses list in `deny.toml`. This resolves a `license-not-encountered` warning during `cargo deny check` because no dependency currently uses it, preventing CI noise.",
+  "target_paths": [
+    "deny.toml"
+  ],
+  "proof_summary": "Running `cargo deny --all-features check licenses` now succeeds without the unmatched license warning.",
+  "gates_run": [
+    "cargo deny --all-features check",
+    "cargo xtask version-consistency",
+    "cargo check"
+  ],
+  "friction_items_created": 0,
+  "persona_notes_created": 0,
+  "rollback": "git checkout deny.toml",
+  "follow_ups": []
+}

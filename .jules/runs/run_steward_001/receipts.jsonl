@@ -1,0 +1,3 @@
+{"ts_utc": "2023-10-27T00:00:00Z", "phase": "investigate", "cwd": "/app", "cmd": "cargo deny --all-features check licenses", "status": "failed", "summary": "Detected unmatched license allowance for Unicode-DFS-2016", "key_lines": ["warning[license-not-encountered]: license was not encountered", "\"Unicode-DFS-2016\""]}
+{"ts_utc": "2023-10-27T00:00:01Z", "phase": "fix", "cwd": "/app", "cmd": "sed -i '/\"Unicode-DFS-2016\",/d' deny.toml", "status": "success", "summary": "Removed unused license from deny.toml"}
+{"ts_utc": "2023-10-27T00:00:02Z", "phase": "verify", "cwd": "/app", "cmd": "cargo deny --all-features check licenses", "status": "success", "summary": "License check passes cleanly", "key_lines": ["licenses ok"]}
