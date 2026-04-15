@@ -1095,6 +1095,14 @@ mod tests {
     }
 
     #[test]
+    fn test_is_default_policy() {
+        assert!(is_default_policy(&InclusionPolicy::Full));
+        assert!(!is_default_policy(&InclusionPolicy::HeadTail));
+        assert!(!is_default_policy(&InclusionPolicy::Summary));
+        assert!(!is_default_policy(&InclusionPolicy::Skip));
+    }
+
+    #[test]
     fn inclusion_policy_default_is_full() {
         assert_eq!(InclusionPolicy::default(), InclusionPolicy::Full);
     }
