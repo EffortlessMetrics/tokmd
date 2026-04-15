@@ -1098,4 +1098,92 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_looks_like_env_assignment() {
+        assert!(looks_like_env_assignment("FOO=bar"));
+        assert!(looks_like_env_assignment("_FOO=bar"));
+        assert!(looks_like_env_assignment("A_B_C=123"));
+
+        assert!(!looks_like_env_assignment("="));
+        assert!(!looks_like_env_assignment("=bar"));
+        assert!(!looks_like_env_assignment("1FOO=bar"));
+        assert!(!looks_like_env_assignment("FOO-BAR=baz"));
+    }
+
+    #[test]
+    fn test_env_interpreter_token() {
+        // Simple case
+        assert_eq!(
+            env_interpreter_token(vec!["python"].into_iter()),
+            Some("python")
+        );
+
+        // Skip env assignments
+        assert_eq!(
+            env_interpreter_token(vec!["FOO=bar", "python"].into_iter()),
+            Some("python")
+        );
+
+        // Skip common env flags without args
+        assert_eq!(
+            env_interpreter_token(vec!["-S", "-i", "python"].into_iter()),
+            Some("python")
+        );
+
+        // Skip flags with next argument
+        assert_eq!(
+            env_interpreter_token(vec!["-u", "FOO", "-C", "/tmp", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--unset", "FOO", "python"].into_iter()),
+            Some("python")
+        );
+
+        // Skip long flags with = assignment
+        assert_eq!(
+            env_interpreter_token(vec!["--unset=FOO", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--chdir=/tmp", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--default-path=/bin", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--argv0=sh", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--default-signal=SIGINT", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--ignore-signal=SIGINT", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--block-signal=SIGINT", "python"].into_iter()),
+            Some("python")
+        );
+
+        // Unknown flags starting with - are skipped (mimicking coreutils env behavior)
+        assert_eq!(
+            env_interpreter_token(vec!["--unknown-flag", "python"].into_iter()),
+            Some("python")
+        );
+
+        // Empty words
+        assert_eq!(
+            env_interpreter_token(vec!["", "python"].into_iter()),
+            Some("python")
+        );
+
+        // No interpreter found
+        assert_eq!(env_interpreter_token(vec!["FOO=bar"].into_iter()), None);
+    }
 }
