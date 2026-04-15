@@ -825,7 +825,9 @@ fn invalid_subcommand_fails() {
         .arg("this-subcommand-does-not-exist")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]

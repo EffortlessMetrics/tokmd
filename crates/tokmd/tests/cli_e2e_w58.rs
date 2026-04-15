@@ -43,7 +43,9 @@ fn err_completely_unknown_subcommand() {
         .arg("frobnicate")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 // ===========================================================================

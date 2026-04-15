@@ -616,7 +616,9 @@ fn w69_error_unknown_subcommand() {
         .arg("nonexistent_subcommand_xyz")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::is_empty().not())
+        .stderr(predicate::str::contains("not recognized"))
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 // ===========================================================================
