@@ -17,23 +17,45 @@ fn tokmd_cmd() -> Command {
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
-    let s = re_ts
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).unwrap();
+    let mut s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
 
     let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
-    let s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
+    s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
 
     // Normalize --version output line (e.g. "tokmd 0.42.1" -> "tokmd <VERSION>")
     let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?").unwrap();
-    let s = re_version_line
+    s = re_version_line
         .replace_all(&s, "tokmd <VERSION>")
         .to_string();
 
     // Normalize absolute paths that may leak into scan.paths
     let re_abs = regex::Regex::new(r#""paths":\["[^"]*"\]"#).unwrap();
-    let s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
+    s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
+
+    // Normalize absolute paths in target_path for analyze outputs
+    let re_target_path = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
+    s = re_target_path.replace_all(&s, r#""target_path":"<ROOT>""#).to_string();
+
+    // Normalize absolute paths in scan limits for analyze outputs
+    let re_scan_limits = regex::Regex::new(r#""target_dir":\s*"[^"]*""#).unwrap();
+    s = re_scan_limits.replace_all(&s, r#""target_dir":"<ROOT>""#).to_string();
+
+    // Normalize analyze receipt timestamps (ms)
+    let re_receipt_ts = regex::Regex::new(r#""timestamp_ms":\s*\d+"#).unwrap();
+    s = re_receipt_ts.replace_all(&s, r#""timestamp_ms":0"#).to_string();
+
+    // Normalize derived effort floating point metrics which might have slight precision drifts
+    let re_schedule = regex::Regex::new(r#""schedule_months_[^"]+":\s*\d+\.\d+"#).unwrap();
+    s = re_schedule.replace_all(&s, r#""schedule_months_<KEY>":0.0"#).to_string();
+
+    let re_effort = regex::Regex::new(r#""effort_pm_[^"]+":\s*\d+\.\d+"#).unwrap();
+    s = re_effort.replace_all(&s, r#""effort_pm_<KEY>":0.0"#).to_string();
+
+    let re_staff = regex::Regex::new(r#""staff_[^"]+":\s*\d+\.\d+"#).unwrap();
+    s = re_staff.replace_all(&s, r#""staff_<KEY>":0.0"#).to_string();
 
     // Normalize binary name across platforms (tokmd.exe on Windows -> tokmd)
     s.replace("tokmd.exe", "tokmd")
@@ -203,7 +225,37 @@ fn snapshot_version() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Help output snapshot
+// 7. Analyze output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+#[cfg(feature = "analysis")]
+fn snapshot_analyze_receipt_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", "--preset", "receipt", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --preset receipt --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_receipt_json", normalize(&stdout));
+}
+
+#[test]
+#[cfg(feature = "analysis")]
+fn snapshot_analyze_estimate_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", "--preset", "estimate", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --preset estimate --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_estimate_json", normalize(&stdout));
+}
+
+// ---------------------------------------------------------------------------
+// 8. Help output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]

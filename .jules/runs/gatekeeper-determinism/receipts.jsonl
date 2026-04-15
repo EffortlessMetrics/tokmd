@@ -1,0 +1,7 @@
+{"cmd": "mkdir -p .jules/runs/gatekeeper-determinism", "status": "ok"}
+{"cmd": "write envelope.json", "status": "ok"}
+{"cmd": "write decision.md", "status": "ok"}
+{"cmd": "cargo test -p tokmd --test cli_snapshot_golden", "status": "ok"}
+{"cmd": "cargo insta accept", "status": "ok"}
+{"cmd": "write result.json", "status": "ok"}
+{"cmd": "write pr_body.md", "status": "ok"}

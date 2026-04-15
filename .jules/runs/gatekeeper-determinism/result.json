@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement-patch",
+  "summary": "Added missing golden snapshot coverage for CLI `analyze` subcommands.",
+  "files_touched": [
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__analyze_estimate_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__analyze_receipt_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__export_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__export_jsonl.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__lang_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__module_json.snap"
+  ]
+}
