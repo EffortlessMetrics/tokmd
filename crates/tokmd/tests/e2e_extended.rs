@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Extended end-to-end CLI tests covering every subcommand, format
 //! variation, determinism, and error handling.
 

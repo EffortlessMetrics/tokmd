@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Integration tests for the `tokmd sensor` command.
 
 #![cfg(feature = "git")]

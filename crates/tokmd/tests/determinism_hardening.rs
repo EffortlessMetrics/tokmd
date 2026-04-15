@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Determinism hardening integration tests (wave 45).
 //!
 //! Complements `determinism.rs` and `determinism_regression.rs` with focused
