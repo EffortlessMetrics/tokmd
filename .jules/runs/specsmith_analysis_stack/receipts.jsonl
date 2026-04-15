@@ -1,0 +1,3 @@
+{"cmd": "cargo test -p tokmd --test bdd_analyze_scenarios_w50 --features=analysis", "status": "passed"}
+{"cmd": "cargo fmt --manifest-path=crates/tokmd/Cargo.toml", "status": "passed"}
+{"cmd": "cargo clippy -p tokmd --tests --features=analysis -- -D warnings", "status": "passed"}
