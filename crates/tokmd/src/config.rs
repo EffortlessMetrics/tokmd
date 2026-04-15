@@ -25,17 +25,47 @@ pub struct ConfigContext {
 
 impl ConfigContext {
     /// Get view profile from TOML config by name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ConfigContext;
+    ///
+    /// let ctx = ConfigContext::default();
+    /// assert!(ctx.get_toml_view("default").is_none());
+    /// ```
     pub fn get_toml_view(&self, name: &str) -> Option<&cli::ViewProfile> {
         self.toml.as_ref().and_then(|t| t.view.get(name))
     }
 
     /// Get profile from JSON config by name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ConfigContext;
+    ///
+    /// let ctx = ConfigContext::default();
+    /// assert!(ctx.get_json_profile("default").is_none());
+    /// ```
     pub fn get_json_profile(&self, name: &str) -> Option<&cli::Profile> {
         self.json.as_ref().and_then(|c| c.profiles.get(name))
     }
 }
 
 /// Load all configuration sources.
+///
+/// This loads both the TOML configuration (e.g. `tokmd.toml`) and the legacy JSON
+/// configuration (e.g. `config.json`), resolving standard paths.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::config::load_config;
+///
+/// let ctx = load_config();
+/// // Configuration files may or may not exist in the test environment
+/// ```
 pub fn load_config() -> ConfigContext {
     let toml_result = discover_toml_config();
     let json = load_json_config();
@@ -109,6 +139,15 @@ fn load_json_config() -> Option<cli::UserConfig> {
 }
 
 /// Get the profile name from CLI arg, env var, or default.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::config::get_profile_name;
+///
+/// let cli_name = String::from("custom");
+/// assert_eq!(get_profile_name(Some(&cli_name)), Some("custom".to_string()));
+/// ```
 pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
     // CLI argument takes precedence
     if let Some(name) = cli_profile {
@@ -122,6 +161,17 @@ pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
 }
 
 /// Resolve a JSON profile by name (legacy).
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::config::resolve_profile;
+/// use tokmd_config::UserConfig;
+///
+/// let config: Option<UserConfig> = None;
+/// let profile_name = String::from("default");
+/// assert!(resolve_profile(&config, Some(&profile_name)).is_none());
+/// ```
 pub fn resolve_profile<'a>(
     config: &'a Option<cli::UserConfig>,
     name: Option<&String>,

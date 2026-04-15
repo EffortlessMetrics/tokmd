@@ -1,0 +1,5 @@
+{"command": "cargo test --doc -p tokmd", "output": "test result: ok. 14 passed; 0 failed"}
+{"command": "cargo test -p tokmd", "output": "test result: ok. 14 passed; 0 failed"}
+{"command": "cargo xtask docs --check", "output": "Finished `dev` profile"}
+{"command": "cargo fmt -- --check", "output": "Success"}
+{"command": "cargo clippy -- -D warnings", "output": "Success"}
