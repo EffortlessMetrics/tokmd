@@ -37,22 +37,32 @@ fn normalize(output: &str) -> String {
 
     // Normalize absolute paths in target_path for analyze outputs
     let re_target_path = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
-    s = re_target_path.replace_all(&s, r#""target_path":"<ROOT>""#).to_string();
+    s = re_target_path
+        .replace_all(&s, r#""target_path":"<ROOT>""#)
+        .to_string();
 
     // Normalize absolute paths in scan limits for analyze outputs
     let re_scan_limits = regex::Regex::new(r#""target_dir":\s*"[^"]*""#).unwrap();
-    s = re_scan_limits.replace_all(&s, r#""target_dir":"<ROOT>""#).to_string();
+    s = re_scan_limits
+        .replace_all(&s, r#""target_dir":"<ROOT>""#)
+        .to_string();
 
     // Normalize analyze receipt timestamps (ms)
     let re_receipt_ts = regex::Regex::new(r#""timestamp_ms":\s*\d+"#).unwrap();
-    s = re_receipt_ts.replace_all(&s, r#""timestamp_ms":0"#).to_string();
+    s = re_receipt_ts
+        .replace_all(&s, r#""timestamp_ms":0"#)
+        .to_string();
 
     // Normalize derived effort floating point metrics which might have slight precision drifts
     let re_schedule = regex::Regex::new(r#""schedule_months_[^"]+":\s*\d+\.\d+"#).unwrap();
-    s = re_schedule.replace_all(&s, r#""schedule_months_<KEY>":0.0"#).to_string();
+    s = re_schedule
+        .replace_all(&s, r#""schedule_months_<KEY>":0.0"#)
+        .to_string();
 
     let re_effort = regex::Regex::new(r#""effort_pm_[^"]+":\s*\d+\.\d+"#).unwrap();
-    s = re_effort.replace_all(&s, r#""effort_pm_<KEY>":0.0"#).to_string();
+    s = re_effort
+        .replace_all(&s, r#""effort_pm_<KEY>":0.0"#)
+        .to_string();
 
     let re_staff = regex::Regex::new(r#""staff_[^"]+":\s*\d+\.\d+"#).unwrap();
     s = re_staff.replace_all(&s, r#""staff_<KEY>":0.0"#).to_string();
