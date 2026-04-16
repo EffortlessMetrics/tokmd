@@ -1,0 +1,19 @@
+{
+  "outcome_type": "patch",
+  "title": "archivist: aggregate historical ledgers natively in index generator 🗃️",
+  "summary": "Updated `build_index.py` to aggregate run history natively from existing ledgers (`.jules/docs/ledger.json` and `.jules/quality/ledger.json`) in addition to `.jules/runs/`. This consolidates metrics without altering or erasing source-of-truth ledgers.",
+  "target_paths": [
+    ".jules/bin/build_index.py",
+    ".jules/index/generated/RUNS_ROLLUP.md"
+  ],
+  "proof_summary": "Generated `RUNS_ROLLUP.md` correctly shows standard packets alongside docs and quality runs.",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo test",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git restore .jules/bin/build_index.py",
+  "follow_ups": []
+}

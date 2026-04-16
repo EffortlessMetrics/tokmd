@@ -1,0 +1,5 @@
+{"cmd": "python3 .jules/bin/build_index.py", "status": "success", "summary": "Aggregates standard packets, docs ledgers, and quality ledgers into RUNS_ROLLUP.md"}
+{"cmd": "cargo xtask docs --check", "status": "success", "summary": "Documentation is up to date"}
+{"cmd": "cargo test", "status": "success", "summary": "Tests passed successfully"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success", "summary": "No clippy warnings"}
+{"cmd": "git restore Cargo.lock", "status": "success", "summary": "Restored lockfile drift caused by cargo tasks"}
