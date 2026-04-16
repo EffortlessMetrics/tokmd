@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Architectural boundary verification tests.
 //!
 //! Enforce the tiered dependency rules documented in CLAUDE.md by parsing

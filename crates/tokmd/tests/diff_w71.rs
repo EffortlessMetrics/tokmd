@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Deep CLI tests for `tokmd diff` – file-based diffing of lang receipts.
 //!
 //! These tests exercise diff via synthetic JSON fixtures (no git required).

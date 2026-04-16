@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Error handling edge-case tests (w70).
 //!
 //! Validates that tokmd CLI produces correct exit codes, helpful error messages

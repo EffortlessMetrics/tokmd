@@ -1,0 +1,2 @@
+{"cmd": "mkdir -p .jules/runs/$RUN_ID"}
+{"cmd": "write envelope.json"}
