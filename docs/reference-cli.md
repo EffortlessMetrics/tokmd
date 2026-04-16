@@ -101,18 +101,64 @@ tokmd --format json --top 5 --hidden
 
 Generates a summary grouped by **Module** (directory structure).
 
-**Usage**: `tokmd module [FLAGS] [OPTIONS]`
+<!-- HELP: module -->
+```text
+Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
-| `--top <TOP>` | Only show the top N modules. | `0` (all) |
-| `--module-roots <DIRS>` | Comma-separated roots to treat as module roots. | `crates,packages` |
-| `--module-depth <N>` | How many path segments to keep under module roots. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+Usage: tokmd module [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format [default: md]
+
+          Possible values:
+          - md:   Markdown table (great for pasting into ChatGPT)
+          - tsv:  Tab-separated values (good for piping to other tools)
+          - json: JSON (compact)
+
+      --top <TOP>
+          Show only the top N modules (by code lines), plus an "Other" row if needed. Use 0 to show all rows
+
+      --module-roots <MODULE_ROOTS>
+          Treat these top-level directories as "module roots" [default: crates,packages].
+
+          If a file path starts with one of these roots, the module key will include `module_depth` segments. Otherwise, the module key is the top-level directory.
+
+      --module-depth <MODULE_DEPTH>
+          How many path segments to include for module roots [default: 2].
+
+          Example: crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
+
+      --children <CHILDREN>
+          Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
+
+          Possible values:
+          - separate:     Include embedded languages as separate contributions
+          - parents-only: Ignore embedded languages
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: module -->
 
 **Example**:
 ```bash
@@ -124,26 +170,85 @@ tokmd module --module-roots crates,packages --module-depth 2
 
 Generates a row-level inventory of files. Best for machine processing.
 
-**Usage**: `tokmd export [FLAGS] [OPTIONS]`
+<!-- HELP: export -->
+```text
+Export a file-level dataset (CSV / JSONL / JSON)
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `jsonl`, `json`, `csv`, `cyclonedx`. | `jsonl` |
-| `--output <PATH>` | Write output to a file instead of stdout. | stdout |
-| `--module-roots <DIRS>` | Module roots used for module key generation. | `crates,packages` |
-| `--module-depth <N>` | Depth used for module key generation. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
-| `--min-code <N>` | Exclude files with fewer than N lines of code. | `0` |
-| `--max-rows <N>` | Limit output to the top N largest files. | `0` (unlimited) |
-| `--meta <BOOL>` | Include a meta record in JSON / JSONL output. | `true` |
-| `--redact <MODE>` | Redaction strategy for paths/names. | `none` |
-| | `none`: Show full paths. | |
-| | `paths`: Hash file paths (preserve extension). | |
-| | `all`: Hash paths and module names. | |
-| `--strip-prefix <PATH>` | Remove a prefix from file paths in the output. | `None` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+Usage: tokmd export [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format [default: jsonl]
+
+          Possible values:
+          - csv:       CSV with a header row
+          - jsonl:     One JSON object per line
+          - json:      A single JSON array
+          - cyclonedx: CycloneDX 1.6 JSON SBOM format
+
+      --output <PATH>
+          Write output to this file instead of stdout
+
+          [aliases: --out]
+
+      --module-roots <MODULE_ROOTS>
+          Module roots (see `tokmd module`) [default: crates,packages]
+
+      --module-depth <MODULE_DEPTH>
+          Module depth (see `tokmd module`) [default: 2]
+
+      --children <CHILDREN>
+          Whether to include embedded languages (tokei "children" / blobs) [default: separate]
+
+          Possible values:
+          - separate:     Include embedded languages as separate contributions
+          - parents-only: Ignore embedded languages
+
+      --min-code <MIN_CODE>
+          Drop rows with fewer than N code lines [default: 0]
+
+      --max-rows <MAX_ROWS>
+          Stop after emitting N rows (0 = unlimited) [default: 0]
+
+      --meta <META>
+          Include a meta record (JSON / JSONL only). Enabled by default
+
+          [possible values: true, false]
+
+      --redact <REDACT>
+          Redact paths (and optionally module names) for safer copy/paste into LLMs [default: none]
+
+          Possible values:
+          - none:  Do not redact
+          - paths: Redact file paths
+          - all:   Redact file paths and module names
+
+      --no-progress
+          Disable progress spinners
+
+      --strip-prefix <PATH>
+          Strip this prefix from paths before output (helps when paths are absolute)
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: export -->
 
 **Sorting**: Output is automatically sorted by lines of code (descending), then by path. This ensures deterministic, reproducible output across all runs. There is no `--sort` flag.
 
@@ -157,14 +262,57 @@ tokmd export --min-code 10 --max-rows 100 --redact paths
 
 Executes a full scan and saves all artifacts to a run directory.
 
-**Usage**: `tokmd run [FLAGS] [OPTIONS]`
+<!-- HELP: run -->
+```text
+Run a full scan and save receipts to a state directory
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--output-dir <DIR>` | Directory to write artifacts into. | `.runs/tokmd` in-repo, else temp dir |
-| `--name <NAME>` | Optional name/tag for the run. | auto |
-| `--analysis <PRESET>` | Also emit analysis artifacts using the given preset. | none |
-| `--redact <MODE>` | Redact paths or paths+module names in emitted receipts. | `none` |
+Usage: tokmd run [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --output-dir <OUTPUT_DIR>
+          Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible)
+
+      --name <NAME>
+          Tag or name for this run
+
+      --analysis <ANALYSIS>
+          Also emit analysis receipts using this preset
+
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --redact <REDACT>
+          Redact paths (and optionally module names) for safer copy/paste into LLMs
+
+          Possible values:
+          - none:  Do not redact
+          - paths: Redact file paths
+          - all:   Redact file paths and module names
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: run -->
 
 **Output files**:
 - `lang.json` — Language summary receipt
@@ -286,16 +434,65 @@ tokmd baseline ./src --output baselines/src-baseline.json
 
 Renders a simple SVG badge for a metric.
 
-**Usage**: `tokmd badge [INPUTS...] --metric <METRIC> [OPTIONS]`
+<!-- HELP: badge -->
+```text
+Render a simple SVG badge for a metric
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--metric <METRIC>` | Badge metric: `lines`, `tokens`, `bytes`, `doc`, `blank`, `hotspot`. | required |
-| `--preset <PRESET>` | Optional analysis preset to use when computing the badge. | none |
-| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
-| `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
-| `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
-| `--output <PATH>` | Write badge to a file. | stdout |
+Usage: tokmd badge [OPTIONS] --metric <METRIC> [INPUT]...
+
+Arguments:
+  [INPUT]...
+          Inputs to analyze (run dir, receipt.json, export.jsonl, or paths)
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --metric <METRIC>
+          Metric to render
+
+          [possible values: lines, tokens, bytes, doc, blank, hotspot]
+
+      --preset <PRESET>
+          Optional analysis preset to use for the badge
+
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --git
+          Force-enable git-based metrics
+
+      --no-git
+          Disable git-based metrics
+
+      --max-commits <MAX_COMMITS>
+          Limit how many commits are scanned for git metrics
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Limit files per commit when scanning git history
+
+      --output <OUTPUT>
+          Output file for the badge (defaults to stdout)
+
+          [aliases: --out]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: badge -->
 
 **Example**:
 ```bash
@@ -349,34 +546,52 @@ tokmd diff .runs/baseline .
 
 Creates a default `.tokeignore` file in the current directory.
 
-**Usage**: `tokmd init [OPTIONS]`
+<!-- HELP: init -->
+```text
+Write a `.tokeignore` template to the target directory
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--dir <DIR>` | Target directory for the `.tokeignore` file. | `.` |
-| `--force` | Overwrite an existing `.tokeignore` file. | `false` |
-| `--print` | Print the template to stdout instead of writing a file. | `false` |
-| `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
+Usage: tokmd init [OPTIONS]
 
-**Example**:
-```bash
-# Generate a .tokeignore template
-tokmd init
+Options:
+      --dir <DIR>
+          Target directory (defaults to ".")
 
-# Generate a Rust-specific template
-tokmd init --template rust
+          [default: .]
 
-# Preview the template without writing
-tokmd init --print
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
 
-# Overwrite existing file
-tokmd init --force
+          Examples: --exclude target --exclude "**/*.min.js"
 
-# Skip interactive wizard
-tokmd init --non-interactive
+          [aliases: --ignore]
+
+      --force
+          Overwrite an existing `.tokeignore`
+
+      --print
+          Print the template to stdout instead of writing a file
+
+      --template <TEMPLATE>
+          Which template profile to use
+
+          [default: default]
+          [possible values: default, rust, node, mono, python, go, cpp]
+
+      --non-interactive
+          Skip interactive wizard and use defaults
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
 ```
-
-**Interactive Mode**:
+<!-- /HELP: init -->
 
 When run in a TTY without `--print` or `--non-interactive`, `tokmd init` launches an interactive wizard that:
 1. Detects your project type (Rust, Node, Python, Go, C++, Monorepo)
@@ -987,11 +1202,38 @@ level = "warn"
 
 Generates shell completions for various shells.
 
-**Usage**: `tokmd completions <SHELL>`
+<!-- HELP: completions -->
+```text
+Generate shell completions
 
-| Argument | Description |
-| :--- | :--- |
-| `<SHELL>` | Shell to generate completions for: `bash`, `zsh`, `fish`, `powershell`, `elvish`. |
+Usage: tokmd completions [OPTIONS] <SHELL>
+
+Arguments:
+  <SHELL>
+          Shell to generate completions for
+
+          [possible values: bash, elvish, fish, powershell, zsh]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: completions -->
 
 **Examples**:
 ```bash
