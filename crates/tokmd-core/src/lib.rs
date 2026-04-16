@@ -1142,7 +1142,7 @@ pub const CORE_SCHEMA_VERSION: u32 = SCHEMA_VERSION;
 
 #[cfg(feature = "analysis")]
 /// Re-export analysis schema version for bindings.
-pub const ANALYSIS_SCHEMA_VERSION: u32 = tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
+pub const CORE_ANALYSIS_SCHEMA_VERSION: u32 = tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
 
 /// Get the current tokmd version.
 pub fn version() -> &'static str {
