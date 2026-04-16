@@ -30,7 +30,7 @@ function formatSupportedList(values) {
 function extractRunnerError(error) {
     let message = "unknown runner error";
 
-    if (error instanceof Error && typeof error.message === "string") {
+    if (error && typeof error === "object" && typeof error.message === "string") {
         message = error.message;
     } else if (typeof error === "string") {
         message = error;
