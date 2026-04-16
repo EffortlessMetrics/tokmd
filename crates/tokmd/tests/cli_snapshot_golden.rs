@@ -17,13 +17,23 @@ fn tokmd_cmd() -> Command {
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).unwrap();
     let s = re_ts
-        .replace_all(output, r#""generated_at_ms":0"#)
+        .replace_all(output, r#""generated_at_ms": 0"#)
         .to_string();
 
-    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
+    let re_ver =
+        regex::Regex::new(r#"("tool":\s*\{\s*"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).unwrap();
     let s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
+
+    // Normalize base_signature which changes per run
+    let re_sig = regex::Regex::new(r#"("base_signature":\s*")[^"]+"#).unwrap();
+    let s = re_sig
+        .replace_all(
+            &s,
+            r#"${1}0000000000000000000000000000000000000000000000000000000000000000"#,
+        )
+        .to_string();
 
     // Normalize --version output line (e.g. "tokmd 0.42.1" -> "tokmd <VERSION>")
     let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?").unwrap();
@@ -217,4 +227,21 @@ fn snapshot_help() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     // Normalize the version in the help header
     insta::assert_snapshot!("help", normalize(&stdout));
+}
+
+// ---------------------------------------------------------------------------
+// 8. Analyze output snapshot
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "analysis")]
+#[test]
+fn snapshot_analyze_estimate_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", "--preset", "estimate", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --preset estimate --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_estimate_json", normalize(&stdout));
 }
