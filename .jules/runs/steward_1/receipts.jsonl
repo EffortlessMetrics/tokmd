@@ -1,0 +1,4 @@
+{"command": "cargo deny check licenses", "output": "licenses ok"}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"command": "cargo xtask version-consistency", "output": "Version consistency checks passed."}
+{"command": "cargo xtask publish --plan --verbose", "output": "To execute this plan:\n  cargo xtask publish --yes --verbose"}
