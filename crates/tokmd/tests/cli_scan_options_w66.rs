@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! CLI scan-option tests (w66).
 //!
 //! Validates that scan-related flags (--exclude, --module-depth, --children,

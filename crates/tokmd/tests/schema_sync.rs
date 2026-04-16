@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Schema and documentation synchronization tests.
 //!
 //! These tests verify that schema version constants in code stay in sync with

@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Schema validation tests for tokmd JSON outputs.
 //!
 //! These tests verify that the actual CLI output conforms to the JSON schema
