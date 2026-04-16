@@ -295,3 +295,26 @@ test("runtime reports boot failures against run requests", async () => {
     assert.equal(message.error.code, "wasm_boot_failed");
     assert.match(message.error.message, /missing tokmd_wasm\.js/);
 });
+
+test("runtime extracts error codes from duck-typed error objects", async () => {
+    const runner = {
+        runExport() {
+            throw { message: "[duck_typed] this is a duck typed error" };
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-duck",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "duck_typed");
+    assert.equal(message.error.message, "this is a duck typed error");
+});
