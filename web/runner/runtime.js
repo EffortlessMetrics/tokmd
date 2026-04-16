@@ -29,9 +29,15 @@ function formatSupportedList(values) {
 
 function extractRunnerError(error) {
     let message = "unknown runner error";
+    let code = "run_failed";
 
     if (error instanceof Error && typeof error.message === "string") {
         message = error.message;
+    } else if (error && typeof error.message === "string") {
+        message = error.message;
+        if (typeof error.code === "string") {
+            code = error.code;
+        }
     } else if (typeof error === "string") {
         message = error;
     }
@@ -41,7 +47,7 @@ function extractRunnerError(error) {
         return { code: match[1], message: match[2] || message };
     }
 
-    return { code: "run_failed", message };
+    return { code, message };
 }
 
 async function invokeRunner(runner, mode, args) {
