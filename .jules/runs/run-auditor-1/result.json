@@ -1,0 +1,13 @@
+{
+  "diff": {
+    "crates/tokmd-wasm/Cargo.toml": "Removed direct dependency on tokmd-analysis-types",
+    "crates/tokmd-core/src/lib.rs": "Re-exported ANALYSIS_SCHEMA_VERSION",
+    "crates/tokmd-wasm/src/lib.rs": "Updated imports to use tokmd-core"
+  },
+  "receipts": [
+    "cargo tree -e features -p tokmd-wasm shows the removed dependency",
+    "cargo check -p tokmd-wasm --all-features succeeds",
+    "cargo xtask version-consistency succeeds",
+    "npm test in web/runner succeeds with 40 passing tests"
+  ]
+}

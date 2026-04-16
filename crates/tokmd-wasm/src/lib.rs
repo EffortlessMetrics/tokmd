@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(test)]
 use serde_json::Value;
 #[cfg(feature = "analysis")]
-use tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
+use tokmd_core::ANALYSIS_SCHEMA_VERSION;
 use tokmd_core::error::{ResponseEnvelope, TokmdError};
 
 fn to_js_error(message: impl Into<String>) -> JsValue {

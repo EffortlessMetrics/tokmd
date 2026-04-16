@@ -1,0 +1,6 @@
+{"command": "cargo tree -e features -p tokmd-wasm", "status": "success", "note": "Checked dependency tree for tokmd-wasm."}
+{"command": "cargo deny --all-features check", "status": "success", "note": "Ran cargo deny to check licenses and dependency hygiene."}
+{"command": "cargo check -p tokmd-core --all-features", "status": "success", "note": "Checked tokmd-core compilation."}
+{"command": "cargo check -p tokmd-wasm --all-features", "status": "success", "note": "Checked tokmd-wasm compilation."}
+{"command": "cd web/runner && npm test", "status": "success", "note": "Ran frontend verification tests."}
+{"command": "cargo xtask version-consistency", "status": "success", "note": "Checked workspace versions."}

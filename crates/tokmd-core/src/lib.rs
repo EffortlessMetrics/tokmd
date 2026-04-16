@@ -1140,6 +1140,10 @@ fn redact_export_data(data: ExportData, mode: RedactMode) -> ExportData {
 /// Re-export schema version for bindings.
 pub const CORE_SCHEMA_VERSION: u32 = SCHEMA_VERSION;
 
+#[cfg(feature = "analysis")]
+/// Re-export analysis schema version for bindings.
+pub const ANALYSIS_SCHEMA_VERSION: u32 = tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
+
 /// Get the current tokmd version.
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
