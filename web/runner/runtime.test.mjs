@@ -226,6 +226,78 @@ test("runtime extracts error codes from fallback string errors", async () => {
     assert.equal(message.error.message, "What is this?");
 });
 
+test("runtime extracts error codes from duck-typed error objects", async () => {
+    const runner = {
+        runExport() {
+            // eslint-disable-next-line no-throw-literal
+            throw { message: "duck typed object error", code: "duck_code" };
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-duck-code",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "duck_code");
+    assert.equal(message.error.message, "duck typed object error");
+});
+
+test("runtime extracts messages from duck-typed error objects without codes", async () => {
+    const runner = {
+        runExport() {
+            // eslint-disable-next-line no-throw-literal
+            throw { message: "duck typed message only" };
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-duck-no-code",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "run_failed");
+    assert.equal(message.error.message, "duck typed message only");
+});
+
+test("runtime applies bracket format codes over duck-typed codes", async () => {
+    const runner = {
+        runExport() {
+            // eslint-disable-next-line no-throw-literal
+            throw { message: "[bracket_code] bracket message", code: "duck_code" };
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-duck-bracket",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "bracket_code");
+    assert.equal(message.error.message, "bracket message");
+});
+
 test("runtime returns results once a runner is available", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({

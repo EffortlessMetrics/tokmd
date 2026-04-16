@@ -1,0 +1,17 @@
+{
+  "outcome": "patch",
+  "title": "bridge: extract error messages from duck-typed error objects 🌉",
+  "summary": "Fixes an issue where duck-typed error objects produced in web workers fail error extraction.",
+  "target_paths": [
+    "web/runner/runtime.js",
+    "web/runner/runtime.test.mjs"
+  ],
+  "proof_summary": "npm test in web/runner passes with added test coverage for duck-typed error objects.",
+  "gates_run": [
+    "npm test"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout origin/main -- web/runner/runtime.js web/runner/runtime.test.mjs",
+  "follow_ups": []
+}
