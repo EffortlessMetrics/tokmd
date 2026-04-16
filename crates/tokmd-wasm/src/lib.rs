@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(test)]
 use serde_json::Value;
 #[cfg(feature = "analysis")]
-use tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION;
+use tokmd_core::CORE_ANALYSIS_SCHEMA_VERSION;
 use tokmd_core::error::{ResponseEnvelope, TokmdError};
 
 fn to_js_error(message: impl Into<String>) -> JsValue {
@@ -103,7 +103,7 @@ pub fn schema_version() -> u32 {
 #[cfg(feature = "analysis")]
 #[wasm_bindgen(js_name = analysisSchemaVersion)]
 pub fn analysis_schema_version() -> u32 {
-    ANALYSIS_SCHEMA_VERSION
+    CORE_ANALYSIS_SCHEMA_VERSION
 }
 
 /// Run a tokmd mode and return the raw JSON response envelope.
@@ -409,7 +409,7 @@ mod tests {
     #[cfg(feature = "analysis")]
     #[test]
     fn analysis_schema_version_matches_analysis_receipts() {
-        assert_eq!(analysis_schema_version(), ANALYSIS_SCHEMA_VERSION);
+        assert_eq!(analysis_schema_version(), CORE_ANALYSIS_SCHEMA_VERSION);
     }
 }
 
@@ -597,7 +597,7 @@ mod wasm_tests {
         let parsed = js_value_to_json(&data);
         let expected = core_mode_value("analyze", args_json);
 
-        assert_eq!(analysis_schema_version(), ANALYSIS_SCHEMA_VERSION);
+        assert_eq!(analysis_schema_version(), CORE_ANALYSIS_SCHEMA_VERSION);
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["source"]["inputs"][0], "crates/app/src/lib.rs");
         assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
