@@ -1,4 +1,0 @@
-{"command": "cargo test -p tokmd --test cli_snapshot_golden", "status": "success", "output": "test result: ok. 12 passed"}
-{"command": "cargo run -p tokmd -- analyze --preset estimate --format json", "status": "success", "output": "outputs valid json with dynamic base_signature"}
-{"command": "cargo insta accept", "status": "success", "output": "accepted: crates/tokmd/tests/cli_snapshot_golden.rs (analyze_estimate_json.snap)"}
-{"command": "cargo test -p tokmd --test cli_snapshot_golden --features analysis", "status": "success", "output": "test result: ok. 13 passed"}
