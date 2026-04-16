@@ -103,7 +103,7 @@ pub fn schema_version() -> u32 {
 #[cfg(feature = "analysis")]
 #[wasm_bindgen(js_name = analysisSchemaVersion)]
 pub fn analysis_schema_version() -> u32 {
-        CORE_ANALYSIS_SCHEMA_VERSION
+    CORE_ANALYSIS_SCHEMA_VERSION
 }
 
 /// Run a tokmd mode and return the raw JSON response envelope.
