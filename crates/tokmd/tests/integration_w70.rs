@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Cross-crate integration pipeline tests (w70).
 //!
 //! Exercises interactions between multiple crates across tier boundaries:

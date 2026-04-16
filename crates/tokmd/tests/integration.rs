@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 mod common;
 
 use anyhow::Result;
