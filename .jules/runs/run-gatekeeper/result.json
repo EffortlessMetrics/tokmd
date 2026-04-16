@@ -1,0 +1,8 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__analyze_estimate_json.snap"
+  ],
+  "reasoning": "Added missing golden snapshot test coverage for the 'tokmd analyze' command to lock in deterministic behavior of the core analysis pipeline outputs."
+}
