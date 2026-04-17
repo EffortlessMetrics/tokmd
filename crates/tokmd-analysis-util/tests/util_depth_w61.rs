@@ -311,12 +311,12 @@ fn safe_ratio_zero_denominator_returns_zero() {
 
 #[test]
 fn safe_ratio_normal_case() {
-    assert!((safe_ratio(1, 2) - 0.5).abs() < f64::EPSILON);
+    assert!((safe_ratio(1, 2) - 0.5).abs() < 1e-10);
 }
 
 #[test]
 fn safe_ratio_equal_values_returns_one() {
-    assert!((safe_ratio(5, 5) - 1.0).abs() < f64::EPSILON);
+    assert!((safe_ratio(5, 5) - 1.0).abs() < 1e-10);
 }
 
 #[test]

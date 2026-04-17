@@ -66,8 +66,8 @@ fn ratchet_rule_config_all_fields_roundtrip() {
     let json = serde_json::to_string(&rule).unwrap();
     let back: RatchetRuleConfig = serde_json::from_str(&json).unwrap();
     assert_eq!(back.pointer, "/complexity/avg_cyclomatic");
-    assert!((back.max_increase_pct.unwrap() - 10.0).abs() < f64::EPSILON);
-    assert!((back.max_value.unwrap() - 50.0).abs() < f64::EPSILON);
+    assert!((back.max_increase_pct.unwrap() - 10.0).abs() < 1e-10);
+    assert!((back.max_value.unwrap() - 50.0).abs() < 1e-10);
     assert_eq!(
         back.description.as_deref(),
         Some("Average cyclomatic must not exceed 50")

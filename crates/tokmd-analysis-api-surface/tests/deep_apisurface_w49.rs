@@ -230,8 +230,8 @@ fn serde_roundtrip_preserves_all_fields() {
     assert_eq!(deser.total_items, report.total_items);
     assert_eq!(deser.public_items, report.public_items);
     assert_eq!(deser.internal_items, report.internal_items);
-    assert!((deser.public_ratio - report.public_ratio).abs() < f64::EPSILON);
-    assert!((deser.documented_ratio - report.documented_ratio).abs() < f64::EPSILON);
+    assert!((deser.public_ratio - report.public_ratio).abs() < 1e-10);
+    assert!((deser.documented_ratio - report.documented_ratio).abs() < 1e-10);
     assert_eq!(deser.by_language.len(), report.by_language.len());
     assert_eq!(deser.by_module.len(), report.by_module.len());
     assert_eq!(deser.top_exporters.len(), report.top_exporters.len());

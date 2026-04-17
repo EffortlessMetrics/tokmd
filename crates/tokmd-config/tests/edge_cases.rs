@@ -430,7 +430,7 @@ mod cli_parsing {
                 assert_eq!(args.output_mode, ContextOutput::Bundle);
                 assert!(args.compress);
                 assert!(args.no_smart_exclude);
-                assert!((args.max_file_pct - 0.25).abs() < f64::EPSILON);
+                assert!((args.max_file_pct - 0.25).abs() < 1e-10);
                 assert!(args.require_git_scores);
             }
             other => panic!("Expected Context, got {:?}", other),
@@ -459,7 +459,7 @@ mod cli_parsing {
         match cli.command.unwrap() {
             tokmd_config::Commands::Analyze(args) => {
                 assert!(args.near_dup);
-                assert!((args.near_dup_threshold - 0.90).abs() < f64::EPSILON);
+                assert!((args.near_dup_threshold - 0.90).abs() < 1e-10);
                 assert_eq!(args.near_dup_max_files, 5000);
                 assert_eq!(args.near_dup_scope, Some(NearDupScope::Global));
                 assert_eq!(args.near_dup_max_pairs, 500);

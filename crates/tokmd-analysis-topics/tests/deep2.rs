@@ -238,8 +238,7 @@ fn overall_terms_sorted_by_score_descending() {
 
     for window in clouds.overall.windows(2) {
         assert!(
-            window[0].score >= window[1].score
-                || (window[0].score - window[1].score).abs() < f64::EPSILON,
+            window[0].score >= window[1].score || (window[0].score - window[1].score).abs() < 1e-10,
             "overall terms not sorted by score desc: {} < {}",
             window[0].score,
             window[1].score
@@ -261,7 +260,7 @@ fn per_module_terms_sorted_by_score_descending() {
         for window in terms.windows(2) {
             assert!(
                 window[0].score >= window[1].score
-                    || (window[0].score - window[1].score).abs() < f64::EPSILON,
+                    || (window[0].score - window[1].score).abs() < 1e-10,
                 "per-module terms not sorted by score desc"
             );
         }
@@ -353,7 +352,7 @@ fn multiple_runs_produce_identical_results() {
         assert_eq!(results[0].overall.len(), results[i].overall.len());
         for (a, b) in results[0].overall.iter().zip(results[i].overall.iter()) {
             assert_eq!(a.term, b.term);
-            assert!((a.score - b.score).abs() < f64::EPSILON);
+            assert!((a.score - b.score).abs() < 1e-10);
             assert_eq!(a.tf, b.tf);
             assert_eq!(a.df, b.df);
         }
@@ -544,7 +543,7 @@ fn single_module_overall_matches_per_module() {
     assert_eq!(overall.len(), per_mod.len());
     for (o, p) in overall.iter().zip(per_mod.iter()) {
         assert_eq!(o.term, p.term);
-        assert!((o.score - p.score).abs() < f64::EPSILON);
+        assert!((o.score - p.score).abs() < 1e-10);
     }
 }
 

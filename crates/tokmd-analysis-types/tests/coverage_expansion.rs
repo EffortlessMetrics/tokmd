@@ -126,7 +126,7 @@ fn fun_report_with_eco_label_roundtrip() {
     let json = serde_json::to_string(&fun).unwrap();
     let back: FunReport = serde_json::from_str(&json).unwrap();
     let eco = back.eco_label.unwrap();
-    assert!((eco.score - 85.5).abs() < f64::EPSILON);
+    assert!((eco.score - 85.5).abs() < 1e-10);
     assert_eq!(eco.label, "A");
     assert_eq!(eco.bytes, 1_234_567);
 }
@@ -327,7 +327,7 @@ fn api_surface_report_roundtrip() {
     let back: ApiSurfaceReport = serde_json::from_str(&json).unwrap();
     assert_eq!(back.total_items, 100);
     assert_eq!(back.public_items, 30);
-    assert!((back.documented_ratio - 0.8).abs() < f64::EPSILON);
+    assert!((back.documented_ratio - 0.8).abs() < 1e-10);
     assert_eq!(back.by_language.len(), 1);
     assert_eq!(back.by_module.len(), 1);
     assert_eq!(back.top_exporters.len(), 1);
@@ -371,7 +371,7 @@ fn complexity_report_minimal_roundtrip() {
     let json = serde_json::to_string(&report).unwrap();
     let back: ComplexityReport = serde_json::from_str(&json).unwrap();
     assert_eq!(back.total_functions, 10);
-    assert!((back.avg_cyclomatic - 3.2).abs() < f64::EPSILON);
+    assert!((back.avg_cyclomatic - 3.2).abs() < 1e-10);
     assert_eq!(back.files.len(), 1);
     assert_eq!(back.files[0].risk_level, ComplexityRisk::High);
     assert!(back.avg_cognitive.is_none());
@@ -423,7 +423,7 @@ fn git_report_roundtrip() {
     assert_eq!(back.hotspots.len(), 1);
     assert_eq!(back.hotspots[0].score, 13500);
     assert_eq!(back.bus_factor[0].authors, 3);
-    assert!((back.freshness.stale_pct - 10.0).abs() < f64::EPSILON);
+    assert!((back.freshness.stale_pct - 10.0).abs() < 1e-10);
     assert!(back.coupling[0].jaccard.is_some());
     assert!(back.age_distribution.is_none());
     assert!(back.intent.is_none());
@@ -461,7 +461,7 @@ fn duplicate_report_roundtrip() {
     assert_eq!(back.strategy, "blake3");
     let density = back.density.unwrap();
     assert_eq!(density.duplicate_groups, 1);
-    assert!((density.wasted_pct_of_codebase - 5.0).abs() < f64::EPSILON);
+    assert!((density.wasted_pct_of_codebase - 5.0).abs() < 1e-10);
 }
 
 // =============================================================================

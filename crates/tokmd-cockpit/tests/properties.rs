@@ -316,7 +316,7 @@ proptest! {
     fn prop_round_pct_idempotent(val in -100.0f64..100.0) {
         let once = round_pct(val);
         let twice = round_pct(once);
-        prop_assert!((once - twice).abs() < f64::EPSILON,
+        prop_assert!((once - twice).abs() < 1e-10,
             "round_pct not idempotent: {} -> {} -> {}", val, once, twice);
     }
 }

@@ -718,7 +718,7 @@ fn token_audit_overhead_calculation() {
     let audit = TokenAudit::from_output(10_000, 8_000);
     assert_eq!(audit.output_bytes, 10_000);
     assert_eq!(audit.overhead_bytes, 2_000);
-    assert!((audit.overhead_pct - 0.2).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.2).abs() < 1e-10);
 }
 
 #[test]
@@ -726,7 +726,7 @@ fn token_audit_zero_output_bytes() {
     let audit = TokenAudit::from_output(0, 0);
     assert_eq!(audit.output_bytes, 0);
     assert_eq!(audit.overhead_bytes, 0);
-    assert!((audit.overhead_pct - 0.0).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]

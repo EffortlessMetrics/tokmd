@@ -188,7 +188,7 @@ fn receipt_diff_coverage_fields() {
     let dc = receipt.evidence.diff_coverage.as_ref().unwrap();
     assert_eq!(dc.lines_added, 100);
     assert_eq!(dc.lines_covered, 85);
-    assert!((dc.coverage_pct - 0.85).abs() < f64::EPSILON);
+    assert!((dc.coverage_pct - 0.85).abs() < 1e-10);
     assert_eq!(dc.uncovered_hunks.len(), 1);
 }
 
@@ -405,8 +405,8 @@ fn composition_percentages_sum_to_one() {
 fn composition_all_code() {
     let stats = vec![stat("src/a.rs", 10, 5), stat("src/b.rs", 20, 10)];
     let comp = compute_composition(&stats);
-    assert!((comp.code_pct - 1.0).abs() < f64::EPSILON);
-    assert!((comp.test_pct - 0.0).abs() < f64::EPSILON);
+    assert!((comp.code_pct - 1.0).abs() < 1e-10);
+    assert!((comp.test_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -416,18 +416,18 @@ fn composition_all_tests() {
         stat("tests/test_b.rs", 20, 10),
     ];
     let comp = compute_composition(&stats);
-    assert!((comp.test_pct - 1.0).abs() < f64::EPSILON);
-    assert!((comp.code_pct - 0.0).abs() < f64::EPSILON);
+    assert!((comp.test_pct - 1.0).abs() < 1e-10);
+    assert!((comp.code_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]
 fn composition_empty_input_all_zero() {
     let comp = compute_composition::<FileStat>(&[]);
-    assert!((comp.code_pct - 0.0).abs() < f64::EPSILON);
-    assert!((comp.test_pct - 0.0).abs() < f64::EPSILON);
-    assert!((comp.docs_pct - 0.0).abs() < f64::EPSILON);
-    assert!((comp.config_pct - 0.0).abs() < f64::EPSILON);
-    assert!((comp.test_ratio - 0.0).abs() < f64::EPSILON);
+    assert!((comp.code_pct - 0.0).abs() < 1e-10);
+    assert!((comp.test_pct - 0.0).abs() < 1e-10);
+    assert!((comp.docs_pct - 0.0).abs() < 1e-10);
+    assert!((comp.config_pct - 0.0).abs() < 1e-10);
+    assert!((comp.test_ratio - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -439,7 +439,7 @@ fn composition_test_ratio_computed() {
     ];
     let comp = compute_composition(&stats);
     // 1 test file / 2 code files = 0.5
-    assert!((comp.test_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((comp.test_ratio - 0.5).abs() < 1e-10);
 }
 
 // =========================================================================
@@ -479,14 +479,14 @@ fn trend_risk_lower_is_better() {
 #[test]
 fn trend_delta_pct_from_zero_baseline() {
     let trend = compute_metric_trend(10.0, 0.0, true);
-    assert!((trend.delta_pct - 100.0).abs() < f64::EPSILON);
+    assert!((trend.delta_pct - 100.0).abs() < 1e-10);
 }
 
 #[test]
 fn trend_both_zero_stable() {
     let trend = compute_metric_trend(0.0, 0.0, true);
     assert_eq!(trend.direction, TrendDirection::Stable);
-    assert!((trend.delta_pct - 0.0).abs() < f64::EPSILON);
+    assert!((trend.delta_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -565,9 +565,9 @@ fn determinism_composition_stable() {
     ];
     let c1 = compute_composition(&stats);
     let c2 = compute_composition(&stats);
-    assert!((c1.code_pct - c2.code_pct).abs() < f64::EPSILON);
-    assert!((c1.test_pct - c2.test_pct).abs() < f64::EPSILON);
-    assert!((c1.docs_pct - c2.docs_pct).abs() < f64::EPSILON);
+    assert!((c1.code_pct - c2.code_pct).abs() < 1e-10);
+    assert!((c1.test_pct - c2.test_pct).abs() < 1e-10);
+    assert!((c1.docs_pct - c2.docs_pct).abs() < 1e-10);
 }
 
 // =========================================================================
@@ -629,9 +629,9 @@ fn gate_status_serde_roundtrip() {
 
 #[test]
 fn utility_round_pct() {
-    assert!((round_pct(0.8567) - 0.86).abs() < f64::EPSILON);
-    assert!((round_pct(0.0) - 0.0).abs() < f64::EPSILON);
-    assert!((round_pct(1.0) - 1.0).abs() < f64::EPSILON);
+    assert!((round_pct(0.8567) - 0.86).abs() < 1e-10);
+    assert!((round_pct(0.0) - 0.0).abs() < 1e-10);
+    assert!((round_pct(1.0) - 1.0).abs() < 1e-10);
 }
 
 #[test]

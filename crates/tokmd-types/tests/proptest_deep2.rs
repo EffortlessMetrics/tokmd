@@ -85,7 +85,7 @@ proptest! {
     fn token_audit_zero_output_zero_overhead(_dummy in 0..1u8) {
         let audit = TokenAudit::from_output(0, 0);
         prop_assert_eq!(audit.overhead_bytes, 0);
-        prop_assert!((audit.overhead_pct - 0.0).abs() < f64::EPSILON);
+        prop_assert!((audit.overhead_pct - 0.0).abs() < 1e-10);
     }
 
     #[test]

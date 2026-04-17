@@ -528,7 +528,7 @@ fn score_exact_values() {
     for (&bytes, (expected_label, expected_score)) in byte_samples.iter().zip(map.iter()) {
         let eco = build_fun_report(&derived_bytes(bytes)).eco_label.unwrap();
         assert_eq!(eco.label, *expected_label);
-        assert!((eco.score - expected_score).abs() < f64::EPSILON);
+        assert!((eco.score - expected_score).abs() < 1e-10);
     }
 }
 

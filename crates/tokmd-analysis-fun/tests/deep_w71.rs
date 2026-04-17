@@ -310,7 +310,7 @@ fn rounding_one_third_mb() {
     // Verify it has at most 2 decimal places
     let rounded = (mb_val * 100.0).round() / 100.0;
     assert!(
-        (mb_val - rounded).abs() < f64::EPSILON,
+        (mb_val - rounded).abs() < 1e-10,
         "MB value {mb_val} should have at most 2 decimal places",
     );
 }

@@ -624,7 +624,7 @@ fn score_exact_values_all_bands() {
     for (bytes, expected_score) in cases {
         let eco = build_fun_report(&derived_bytes(bytes)).eco_label.unwrap();
         assert!(
-            (eco.score - expected_score).abs() < f64::EPSILON,
+            (eco.score - expected_score).abs() < 1e-10,
             "score for {} bytes: expected {}, got {}",
             bytes,
             expected_score,

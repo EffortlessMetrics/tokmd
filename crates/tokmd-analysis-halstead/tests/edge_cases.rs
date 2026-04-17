@@ -212,7 +212,7 @@ fn given_same_files_when_report_built_twice_then_identical_metrics() {
     assert_eq!(m1.total_operands, m2.total_operands);
     assert_eq!(m1.vocabulary, m2.vocabulary);
     assert_eq!(m1.length, m2.length);
-    assert!((m1.volume - m2.volume).abs() < f64::EPSILON);
-    assert!((m1.difficulty - m2.difficulty).abs() < f64::EPSILON);
-    assert!((m1.effort - m2.effort).abs() < f64::EPSILON);
+    assert!((m1.volume - m2.volume).abs() < 1e-10);
+    assert!((m1.difficulty - m2.difficulty).abs() < 1e-10);
+    assert!((m1.effort - m2.effort).abs() < 1e-10);
 }

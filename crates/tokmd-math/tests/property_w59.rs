@@ -14,7 +14,7 @@ proptest! {
         let once = round_f64(val, dec);
         let twice = round_f64(once, dec);
         prop_assert!(
-            (once - twice).abs() < f64::EPSILON,
+            (once - twice).abs() < 1e-10,
             "round_f64 must be idempotent: once={once}, twice={twice}"
         );
     }

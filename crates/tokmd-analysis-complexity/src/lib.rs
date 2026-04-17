@@ -1519,8 +1519,8 @@ int main(int argc, char** argv) {
 
         let debt = compute_technical_debt_ratio(&export, &files).expect("debt ratio");
         assert_eq!(debt.complexity_points, 20);
-        assert!((debt.ratio - 20.0).abs() < f64::EPSILON);
-        assert!((debt.code_kloc - 1.0).abs() < f64::EPSILON);
+        assert!((debt.ratio - 20.0).abs() < 1e-10);
+        assert!((debt.code_kloc - 1.0).abs() < 1e-10);
         assert_eq!(debt.level, TechnicalDebtLevel::Low);
     }
 

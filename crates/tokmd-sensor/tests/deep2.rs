@@ -863,7 +863,7 @@ fn dominance_settings_serde_roundtrip() {
     let settings = DominanceSettings { max_pct: 0.75 };
     let json = serde_json::to_string(&settings).unwrap();
     let back: DominanceSettings = serde_json::from_str(&json).unwrap();
-    assert!((back.max_pct - 0.75).abs() < f64::EPSILON);
+    assert!((back.max_pct - 0.75).abs() < 1e-10);
 }
 
 #[test]

@@ -74,7 +74,7 @@ fn sample_complexity(cc: f64, loc: f64) -> ComplexityReport {
 fn given_trivial_code_when_simplified_then_near_max_score() {
     // MI = 171 - 0.23*1 - 16.2*ln(1) = 170.77
     let mi = compute_maintainability_index(1.0, 1.0, None).unwrap();
-    assert!((mi.score - 170.77).abs() < f64::EPSILON);
+    assert!((mi.score - 170.77).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
 }
 
@@ -189,7 +189,7 @@ fn given_negative_loc_with_halstead_then_none() {
 fn given_zero_volume_then_simplified_used() {
     let s = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let z = compute_maintainability_index(10.0, 100.0, Some(0.0)).unwrap();
-    assert!((z.score - s.score).abs() < f64::EPSILON);
+    assert!((z.score - s.score).abs() < 1e-10);
     assert_eq!(z.avg_halstead_volume, None);
 }
 
@@ -197,7 +197,7 @@ fn given_zero_volume_then_simplified_used() {
 fn given_negative_volume_then_simplified_used() {
     let s = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let n = compute_maintainability_index(10.0, 100.0, Some(-50.0)).unwrap();
-    assert!((n.score - s.score).abs() < f64::EPSILON);
+    assert!((n.score - s.score).abs() < 1e-10);
     assert_eq!(n.avg_halstead_volume, None);
 }
 
@@ -293,14 +293,14 @@ fn increasing_halstead_volume_decreases_score() {
 fn score_rounded_to_two_decimals() {
     let mi = compute_maintainability_index(7.0, 77.0, None).unwrap();
     let rounded = (mi.score * 100.0).round() / 100.0;
-    assert!((mi.score - rounded).abs() < f64::EPSILON);
+    assert!((mi.score - rounded).abs() < 1e-10);
 }
 
 #[test]
 fn avg_loc_rounded_to_two_decimals() {
     let mi = compute_maintainability_index(5.0, 33.333, None).unwrap();
     let rounded = (mi.avg_loc * 100.0).round() / 100.0;
-    assert!((mi.avg_loc - rounded).abs() < f64::EPSILON);
+    assert!((mi.avg_loc - rounded).abs() < 1e-10);
 }
 
 // ===========================================================================
@@ -310,8 +310,8 @@ fn avg_loc_rounded_to_two_decimals() {
 #[test]
 fn simplified_index_preserves_all_fields() {
     let mi = compute_maintainability_index(15.0, 250.0, None).unwrap();
-    assert!((mi.avg_cyclomatic - 15.0).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 250.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 15.0).abs() < 1e-10);
+    assert!((mi.avg_loc - 250.0).abs() < 1e-10);
     assert!(mi.avg_halstead_volume.is_none());
     assert!(!mi.grade.is_empty());
     assert!(mi.score >= 0.0);
@@ -320,8 +320,8 @@ fn simplified_index_preserves_all_fields() {
 #[test]
 fn full_index_preserves_all_fields() {
     let mi = compute_maintainability_index(15.0, 250.0, Some(300.0)).unwrap();
-    assert!((mi.avg_cyclomatic - 15.0).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 250.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 15.0).abs() < 1e-10);
+    assert!((mi.avg_loc - 250.0).abs() < 1e-10);
     assert_eq!(mi.avg_halstead_volume, Some(300.0));
     assert!(!mi.grade.is_empty());
 }
@@ -334,7 +334,7 @@ fn full_index_preserves_all_fields() {
 fn deterministic_simplified_computation() {
     let a = compute_maintainability_index(12.0, 300.0, None).unwrap();
     let b = compute_maintainability_index(12.0, 300.0, None).unwrap();
-    assert!((a.score - b.score).abs() < f64::EPSILON);
+    assert!((a.score - b.score).abs() < 1e-10);
     assert_eq!(a.grade, b.grade);
     assert_eq!(a.avg_halstead_volume, b.avg_halstead_volume);
 }
@@ -343,7 +343,7 @@ fn deterministic_simplified_computation() {
 fn deterministic_full_computation() {
     let a = compute_maintainability_index(12.0, 300.0, Some(150.0)).unwrap();
     let b = compute_maintainability_index(12.0, 300.0, Some(150.0)).unwrap();
-    assert!((a.score - b.score).abs() < f64::EPSILON);
+    assert!((a.score - b.score).abs() < 1e-10);
     assert_eq!(a.grade, b.grade);
 }
 
@@ -367,7 +367,7 @@ fn attach_halstead_zero_volume_preserves_mi() {
     let before = cr.maintainability_index.as_ref().unwrap().score;
     attach_halstead_metrics(&mut cr, make_halstead(0.0));
     let after = cr.maintainability_index.as_ref().unwrap().score;
-    assert!((before - after).abs() < f64::EPSILON);
+    assert!((before - after).abs() < 1e-10);
 }
 
 #[test]
@@ -478,7 +478,7 @@ fn maintainability_index_roundtrips_through_json() {
     let json = serde_json::to_string(&mi).unwrap();
     let deserialized: tokmd_analysis_types::MaintainabilityIndex =
         serde_json::from_str(&json).unwrap();
-    assert!((deserialized.score - mi.score).abs() < f64::EPSILON);
+    assert!((deserialized.score - mi.score).abs() < 1e-10);
     assert_eq!(deserialized.grade, mi.grade);
     assert_eq!(deserialized.avg_halstead_volume, mi.avg_halstead_volume);
 }

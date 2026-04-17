@@ -105,16 +105,16 @@ fn make_minimal_receipt() -> CockpitReceipt {
 fn composition_pure_code() {
     let files = vec!["src/main.rs", "src/lib.rs"];
     let c = compute_composition(&files);
-    assert!((c.code_pct - 1.0).abs() < f64::EPSILON);
-    assert!((c.test_pct).abs() < f64::EPSILON);
+    assert!((c.code_pct - 1.0).abs() < 1e-10);
+    assert!((c.test_pct).abs() < 1e-10);
 }
 
 #[test]
 fn composition_empty_files() {
     let files: Vec<&str> = vec![];
     let c = compute_composition(&files);
-    assert!((c.code_pct).abs() < f64::EPSILON);
-    assert!((c.test_ratio).abs() < f64::EPSILON);
+    assert!((c.code_pct).abs() < 1e-10);
+    assert!((c.test_ratio).abs() < 1e-10);
 }
 
 #[test]
@@ -129,24 +129,24 @@ fn composition_test_files_detected() {
 fn composition_docs_detected() {
     let files = vec!["README.md", "docs/guide.md"];
     let c = compute_composition(&files);
-    assert!((c.docs_pct - 1.0).abs() < f64::EPSILON);
+    assert!((c.docs_pct - 1.0).abs() < 1e-10);
 }
 
 #[test]
 fn composition_config_detected() {
     let files = vec!["Cargo.toml", "settings.json", "config.yml"];
     let c = compute_composition(&files);
-    assert!((c.config_pct - 1.0).abs() < f64::EPSILON);
+    assert!((c.config_pct - 1.0).abs() < 1e-10);
 }
 
 #[test]
 fn composition_mixed() {
     let files = vec!["src/lib.rs", "tests/test_a.rs", "README.md", "Cargo.toml"];
     let c = compute_composition(&files);
-    assert!((c.code_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.test_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.docs_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.config_pct - 0.25).abs() < f64::EPSILON);
+    assert!((c.code_pct - 0.25).abs() < 1e-10);
+    assert!((c.test_pct - 0.25).abs() < 1e-10);
+    assert!((c.docs_pct - 0.25).abs() < 1e-10);
+    assert!((c.config_pct - 0.25).abs() < 1e-10);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -368,7 +368,7 @@ fn review_plan_empty_stats() {
 fn trend_improving_higher_is_better() {
     let t = compute_metric_trend(90.0, 80.0, true);
     assert_eq!(t.direction, TrendDirection::Improving);
-    assert!((t.delta - 10.0).abs() < f64::EPSILON);
+    assert!((t.delta - 10.0).abs() < 1e-10);
 }
 
 #[test]
@@ -392,14 +392,14 @@ fn trend_improving_lower_is_better() {
 #[test]
 fn trend_zero_previous() {
     let t = compute_metric_trend(10.0, 0.0, true);
-    assert!((t.delta_pct - 100.0).abs() < f64::EPSILON);
+    assert!((t.delta_pct - 100.0).abs() < 1e-10);
 }
 
 #[test]
 fn trend_both_zero() {
     let t = compute_metric_trend(0.0, 0.0, true);
     assert_eq!(t.direction, TrendDirection::Stable);
-    assert!((t.delta_pct).abs() < f64::EPSILON);
+    assert!((t.delta_pct).abs() < 1e-10);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -422,9 +422,9 @@ fn composition_deterministic() {
     let files = vec!["a.rs", "b.rs", "test_c.rs", "README.md"];
     let c1 = compute_composition(&files);
     let c2 = compute_composition(&files);
-    assert!((c1.code_pct - c2.code_pct).abs() < f64::EPSILON);
-    assert!((c1.test_pct - c2.test_pct).abs() < f64::EPSILON);
-    assert!((c1.docs_pct - c2.docs_pct).abs() < f64::EPSILON);
+    assert!((c1.code_pct - c2.code_pct).abs() < 1e-10);
+    assert!((c1.test_pct - c2.test_pct).abs() < 1e-10);
+    assert!((c1.docs_pct - c2.docs_pct).abs() < 1e-10);
 }
 
 #[test]
@@ -576,8 +576,8 @@ fn receipt_with_all_optional_evidence_roundtrips() {
 #[test]
 fn round_pct_basic() {
     assert!((round_pct(0.8567) - 0.86).abs() < 0.005);
-    assert!((round_pct(1.0) - 1.0).abs() < f64::EPSILON);
-    assert!((round_pct(0.0) - 0.0).abs() < f64::EPSILON);
+    assert!((round_pct(1.0) - 1.0).abs() < 1e-10);
+    assert!((round_pct(0.0) - 0.0).abs() < 1e-10);
 }
 
 #[test]

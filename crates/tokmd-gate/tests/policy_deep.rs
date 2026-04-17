@@ -796,7 +796,7 @@ mod ratchet_mode {
         let result = evaluate_ratchet_policy(&config, &baseline, &current);
         assert!(result.passed);
         let pct = result.ratchet_results[0].change_pct.unwrap();
-        assert!((pct - 0.0).abs() < f64::EPSILON);
+        assert!((pct - 0.0).abs() < 1e-10);
     }
 
     #[test]

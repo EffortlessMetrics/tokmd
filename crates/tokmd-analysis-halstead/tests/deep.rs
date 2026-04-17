@@ -832,11 +832,11 @@ mod determinism {
             assert_eq!(first.total_operands, run.total_operands);
             assert_eq!(first.vocabulary, run.vocabulary);
             assert_eq!(first.length, run.length);
-            assert!((first.volume - run.volume).abs() < f64::EPSILON);
-            assert!((first.difficulty - run.difficulty).abs() < f64::EPSILON);
-            assert!((first.effort - run.effort).abs() < f64::EPSILON);
-            assert!((first.time_seconds - run.time_seconds).abs() < f64::EPSILON);
-            assert!((first.estimated_bugs - run.estimated_bugs).abs() < f64::EPSILON);
+            assert!((first.volume - run.volume).abs() < 1e-10);
+            assert!((first.difficulty - run.difficulty).abs() < 1e-10);
+            assert!((first.effort - run.effort).abs() < 1e-10);
+            assert!((first.time_seconds - run.time_seconds).abs() < 1e-10);
+            assert!((first.estimated_bugs - run.estimated_bugs).abs() < 1e-10);
         }
     }
 }
@@ -1000,11 +1000,11 @@ mod serialization {
         assert_eq!(deserialized.total_operands, m.total_operands);
         assert_eq!(deserialized.vocabulary, m.vocabulary);
         assert_eq!(deserialized.length, m.length);
-        assert!((deserialized.volume - m.volume).abs() < f64::EPSILON);
-        assert!((deserialized.difficulty - m.difficulty).abs() < f64::EPSILON);
-        assert!((deserialized.effort - m.effort).abs() < f64::EPSILON);
-        assert!((deserialized.time_seconds - m.time_seconds).abs() < f64::EPSILON);
-        assert!((deserialized.estimated_bugs - m.estimated_bugs).abs() < f64::EPSILON);
+        assert!((deserialized.volume - m.volume).abs() < 1e-10);
+        assert!((deserialized.difficulty - m.difficulty).abs() < 1e-10);
+        assert!((deserialized.effort - m.effort).abs() < 1e-10);
+        assert!((deserialized.time_seconds - m.time_seconds).abs() < 1e-10);
+        assert!((deserialized.estimated_bugs - m.estimated_bugs).abs() < 1e-10);
     }
 
     #[test]

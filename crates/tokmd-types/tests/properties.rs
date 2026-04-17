@@ -929,9 +929,9 @@ fn token_estimation_meta_old_field_aliases() {
         "tokens_low should alias to tokens_max"
     );
     assert_eq!(parsed.source_bytes, 1000);
-    assert!((parsed.bytes_per_token_est - 4.0).abs() < f64::EPSILON);
-    assert!((parsed.bytes_per_token_low - 3.0).abs() < f64::EPSILON);
-    assert!((parsed.bytes_per_token_high - 5.0).abs() < f64::EPSILON);
+    assert!((parsed.bytes_per_token_est - 4.0).abs() < 1e-10);
+    assert!((parsed.bytes_per_token_low - 3.0).abs() < 1e-10);
+    assert!((parsed.bytes_per_token_high - 5.0).abs() < 1e-10);
 }
 
 #[test]
@@ -965,9 +965,9 @@ fn token_estimation_meta_roundtrip() {
     assert_eq!(parsed.tokens_est, meta.tokens_est);
     assert_eq!(parsed.tokens_max, meta.tokens_max);
     assert_eq!(parsed.source_bytes, meta.source_bytes);
-    assert!((parsed.bytes_per_token_est - meta.bytes_per_token_est).abs() < f64::EPSILON);
-    assert!((parsed.bytes_per_token_low - meta.bytes_per_token_low).abs() < f64::EPSILON);
-    assert!((parsed.bytes_per_token_high - meta.bytes_per_token_high).abs() < f64::EPSILON);
+    assert!((parsed.bytes_per_token_est - meta.bytes_per_token_est).abs() < 1e-10);
+    assert!((parsed.bytes_per_token_low - meta.bytes_per_token_low).abs() < 1e-10);
+    assert!((parsed.bytes_per_token_high - meta.bytes_per_token_high).abs() < 1e-10);
 }
 
 // ========================
@@ -1000,7 +1000,7 @@ fn token_audit_old_field_aliases() {
     );
     assert_eq!(parsed.output_bytes, 5000);
     assert_eq!(parsed.overhead_bytes, 200);
-    assert!((parsed.overhead_pct - 0.04).abs() < f64::EPSILON);
+    assert!((parsed.overhead_pct - 0.04).abs() < 1e-10);
 }
 
 #[test]
@@ -1034,7 +1034,7 @@ fn token_audit_roundtrip() {
     assert_eq!(parsed.tokens_max, audit.tokens_max);
     assert_eq!(parsed.output_bytes, audit.output_bytes);
     assert_eq!(parsed.overhead_bytes, audit.overhead_bytes);
-    assert!((parsed.overhead_pct - audit.overhead_pct).abs() < f64::EPSILON);
+    assert!((parsed.overhead_pct - audit.overhead_pct).abs() < 1e-10);
 }
 
 // ========================

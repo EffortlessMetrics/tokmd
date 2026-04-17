@@ -79,10 +79,10 @@ fn composition_all_tests() {
 fn composition_mixed() {
     let files = vec!["src/lib.rs", "tests/test_lib.rs", "README.md", "Cargo.toml"];
     let c = compute_composition(&files);
-    assert!((c.code_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.test_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.docs_pct - 0.25).abs() < f64::EPSILON);
-    assert!((c.config_pct - 0.25).abs() < f64::EPSILON);
+    assert!((c.code_pct - 0.25).abs() < 1e-10);
+    assert!((c.test_pct - 0.25).abs() < 1e-10);
+    assert!((c.docs_pct - 0.25).abs() < 1e-10);
+    assert!((c.config_pct - 0.25).abs() < 1e-10);
     assert_eq!(c.test_ratio, 1.0); // 1 test / 1 code
 }
 

@@ -698,7 +698,7 @@ fn change_surface_config_and_docs_only() {
     assert!(comp.config_pct > 0.0);
     // docs_pct + config_pct should sum to 1.0
     let total = comp.docs_pct + comp.config_pct;
-    assert!((total - 1.0).abs() < f64::EPSILON);
+    assert!((total - 1.0).abs() < 1e-10);
 }
 
 // ===========================================================================

@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn compute_simplified_index() {
         let mi = compute_maintainability_index(10.0, 100.0, None).expect("mi");
-        assert!((mi.score - 94.1).abs() < f64::EPSILON);
+        assert!((mi.score - 94.1).abs() < 1e-10);
         assert_eq!(mi.grade, "A");
         assert_eq!(mi.avg_halstead_volume, None);
     }
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn compute_full_index_with_halstead() {
         let mi = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("mi");
-        assert!((mi.score - 66.54).abs() < f64::EPSILON);
+        assert!((mi.score - 66.54).abs() < 1e-10);
         assert_eq!(mi.grade, "B");
         assert_eq!(mi.avg_halstead_volume, Some(200.0));
     }

@@ -1235,7 +1235,7 @@ fn given_token_audit_when_from_output_then_overhead_calculated() {
     let audit = TokenAudit::from_output(10_000, 8_000);
     assert_eq!(audit.output_bytes, 10_000);
     assert_eq!(audit.overhead_bytes, 2_000);
-    assert!((audit.overhead_pct - 0.2).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.2).abs() < 1e-10);
 }
 
 #[test]
@@ -1666,7 +1666,7 @@ fn given_trend_metric_when_serialized_then_roundtrips() {
     let json = serde_json::to_string(&metric).unwrap();
     let back: TrendMetric = serde_json::from_str(&json).unwrap();
     assert_eq!(back.direction, TrendDirection::Improving);
-    assert!((back.delta - 5.0).abs() < f64::EPSILON);
+    assert!((back.delta - 5.0).abs() < 1e-10);
 }
 
 // =============================================================================

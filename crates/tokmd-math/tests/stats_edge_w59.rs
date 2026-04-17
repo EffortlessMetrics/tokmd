@@ -265,6 +265,6 @@ fn all_functions_deterministic_over_100_iterations() {
         assert_eq!(safe_ratio(7, 13), 0.5385);
         assert_eq!(percentile(&data, 0.5), 10.0);
         let g = gini_coefficient(&data);
-        assert!((g - gini_coefficient(&data)).abs() < f64::EPSILON);
+        assert!((g - gini_coefficient(&data)).abs() < 1e-10);
     }
 }

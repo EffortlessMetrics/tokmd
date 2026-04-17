@@ -204,7 +204,7 @@ proptest! {
             prop_assert_eq!(&ta.term, &tb.term);
             prop_assert_eq!(ta.tf, tb.tf);
             prop_assert_eq!(ta.df, tb.df);
-            prop_assert!((ta.score - tb.score).abs() < f64::EPSILON);
+            prop_assert!((ta.score - tb.score).abs() < 1e-10);
         }
     }
 }

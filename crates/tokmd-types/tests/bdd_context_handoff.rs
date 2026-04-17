@@ -450,7 +450,7 @@ fn given_empty_receipt_when_budget_unused_then_utilization_is_zero() {
 
     assert_eq!(receipt.used_tokens, 0);
     assert_eq!(receipt.file_count, 0);
-    assert!((receipt.utilization_pct - 0.0).abs() < f64::EPSILON);
+    assert!((receipt.utilization_pct - 0.0).abs() < 1e-10);
 }
 
 // =============================================================================

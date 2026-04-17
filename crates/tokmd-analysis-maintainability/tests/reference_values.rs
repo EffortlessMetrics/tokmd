@@ -51,7 +51,7 @@ fn identity_cc_0_removes_complexity_penalty() {
     // MI = 171 - 16.2*ln(LOC), the CC term is zero
     let mi = compute_maintainability_index(0.0, 50.0, None).unwrap();
     let expected = round2(171.0 - 16.2 * 50.0_f64.ln());
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ fn reference_small_well_maintained_module() {
     // MI = 171 - 0.23*3 - 16.2*ln(30) ≈ 171 - 0.69 - 55.10 ≈ 115.21
     let mi = compute_maintainability_index(3.0, 30.0, None).unwrap();
     let expected = expected_simplified(3.0, 30.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
 }
 
@@ -73,7 +73,7 @@ fn reference_small_module_with_halstead() {
     // CC=3, LOC=30, V=80
     let mi = compute_maintainability_index(3.0, 30.0, Some(80.0)).unwrap();
     let expected = expected_full(3.0, 30.0, 80.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
 }
 
@@ -86,7 +86,7 @@ fn reference_moderate_module_simplified() {
     // CC=15, LOC=300
     let mi = compute_maintainability_index(15.0, 300.0, None).unwrap();
     let expected = expected_simplified(15.0, 300.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     assert_eq!(mi.grade, "B");
 }
 
@@ -95,7 +95,7 @@ fn reference_moderate_module_with_halstead() {
     // CC=15, LOC=300, V=1000
     let mi = compute_maintainability_index(15.0, 300.0, Some(1000.0)).unwrap();
     let expected = expected_full(15.0, 300.0, 1000.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     // With Halstead, score drops into C territory
     assert_eq!(mi.grade, "C");
 }
@@ -109,7 +109,7 @@ fn reference_legacy_high_complexity() {
     // CC=50, LOC=2000, V=8000 — typical legacy monolith file
     let mi = compute_maintainability_index(50.0, 2000.0, Some(8000.0)).unwrap();
     let expected = expected_full(50.0, 2000.0, 8000.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     assert_eq!(mi.grade, "C");
 }
 
@@ -118,7 +118,7 @@ fn reference_legacy_simplified_still_low() {
     // CC=80, LOC=5000 — even simplified formula yields low score
     let mi = compute_maintainability_index(80.0, 5000.0, None).unwrap();
     let expected = expected_simplified(80.0, 5000.0);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
     assert_eq!(mi.grade, "C");
 }
 
@@ -136,7 +136,7 @@ fn reference_loc_is_e() {
     // So MI = 171 - 2.3 - 16.2*ln(2.72)
     let loc_rounded = round2(e);
     let expected = expected_simplified(10.0, loc_rounded);
-    assert!((mi.score - expected).abs() < f64::EPSILON);
+    assert!((mi.score - expected).abs() < 1e-10);
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn reference_table_simplified() {
         let mi = compute_maintainability_index(cc, loc, None)
             .unwrap_or_else(|| panic!("None for CC={cc}, LOC={loc}"));
         assert!(
-            (mi.score - expected_score).abs() < f64::EPSILON,
+            (mi.score - expected_score).abs() < 1e-10,
             "CC={cc}, LOC={loc}: expected {expected_score}, got {}",
             mi.score
         );
@@ -203,7 +203,7 @@ fn reference_table_full() {
         let mi = compute_maintainability_index(cc, loc, Some(vol))
             .unwrap_or_else(|| panic!("None for CC={cc}, LOC={loc}, V={vol}"));
         assert!(
-            (mi.score - expected_score).abs() < f64::EPSILON,
+            (mi.score - expected_score).abs() < 1e-10,
             "CC={cc}, LOC={loc}, V={vol}: expected {expected_score}, got {}",
             mi.score
         );

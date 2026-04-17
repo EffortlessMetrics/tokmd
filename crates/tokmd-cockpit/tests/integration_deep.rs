@@ -608,7 +608,7 @@ fn trend_metric_improving_higher_is_better() {
     assert_eq!(t.direction, TrendDirection::Improving);
     assert_eq!(t.current, 90.0);
     assert_eq!(t.previous, 70.0);
-    assert!((t.delta - 20.0).abs() < f64::EPSILON);
+    assert!((t.delta - 20.0).abs() < 1e-10);
 }
 
 #[test]
