@@ -1389,6 +1389,16 @@ mod tests {
 
     // ── TokenAudit ────────────────────────────────────────────────────
     #[test]
+    fn token_audit_from_output_with_divisors() {
+        let audit = TokenAudit::from_output_with_divisors(1000, 800, 4.0, 2.0, 8.0);
+        assert_eq!(audit.output_bytes, 1000);
+        assert_eq!(audit.overhead_bytes, 200);
+        assert_eq!(audit.tokens_est, 250); // 1000 / 4.0
+        assert_eq!(audit.tokens_min, 125); // 1000 / 8.0
+        assert_eq!(audit.tokens_max, 500); // 1000 / 2.0
+    }
+
+    #[test]
     fn token_audit_from_output_basic() {
         let audit = TokenAudit::from_output(1000, 800);
         assert_eq!(audit.output_bytes, 1000);

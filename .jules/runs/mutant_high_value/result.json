@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "tests_added": ["token_audit_from_output_with_divisors"],
+  "mutants_killed": 9
+}
