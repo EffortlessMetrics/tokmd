@@ -1,8 +1,0 @@
-{
-  "outcome": "PR-ready patch",
-  "reason": "Added missing BDD scenario test in bdd_module_scenarios_w50.rs for the valid '--children parents-only' argument behavior.",
-  "gates_run": [
-    "cargo test --test bdd_module_scenarios_w50",
-    "cargo fmt -- --check"
-  ]
-}
