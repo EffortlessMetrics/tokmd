@@ -1,0 +1,2 @@
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"command": "cargo fmt -- --check", "output": ""}
