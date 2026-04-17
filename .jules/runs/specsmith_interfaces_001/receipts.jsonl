@@ -1,0 +1,3 @@
+{"cmd": "cargo run --bin tokmd -- module --format json --children parents-only", "exit_code": 0}
+{"cmd": "cargo run --bin tokmd -- lang --format json --children parents-only", "exit_code": 2, "error": "invalid value 'parents-only'"}
+{"cmd": "cargo test --test bdd_module_scenarios_w50", "exit_code": 0}
