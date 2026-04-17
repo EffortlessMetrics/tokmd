@@ -1,0 +1,7 @@
+{"cmd": "mkdir -p .jules/runs/mutant_high_value", "status": 0}
+{"cmd": "cargo mutants -d crates/tokmd-types --list", "status": 0}
+{"cmd": "sed -n '800,850p' crates/tokmd-types/src/lib.rs", "status": 0}
+{"cmd": "sed -n '1380,1430p' crates/tokmd-types/src/lib.rs", "status": 0}
+{"cmd": "cargo mutants -d crates/tokmd-types", "status": 0}
+{"cmd": "cat << 'EOF' > .jules/runs/mutant_high_value/result.json", "status": 0}
+{"cmd": "cat << 'EOF' > .jules/runs/mutant_high_value/pr_body.md", "status": 0}
