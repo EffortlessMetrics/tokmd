@@ -1,4 +1,0 @@
-{"command": "mkdir -p .jules/runs/run-fuzzer-1 && write envelope.json", "timestamp": "Fri Apr 17 11:55:18 UTC 2026", "status": "success"}
-{"command": "wrote decision.md", "timestamp": "Fri Apr 17 12:16:31 UTC 2026", "status": "success"}
-{"command": "wrote result.json", "timestamp": "Fri Apr 17 12:16:31 UTC 2026", "status": "success"}
-{"command": "wrote pr_body.md", "timestamp": "Fri Apr 17 12:16:31 UTC 2026", "status": "success"}
