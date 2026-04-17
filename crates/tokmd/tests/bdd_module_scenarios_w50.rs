@@ -198,3 +198,26 @@ fn given_project_when_module_tsv_then_tab_separated() {
     let header = lines[0];
     assert!(header.contains('\t'), "TSV header should contain tabs");
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 8: Module with --children parents-only records the mode
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_module_children_parents_only_then_mode_recorded() {
+    // Given: a project with source files
+    // When: I run `tokmd module --format json --children parents-only`
+    let output = tokmd_cmd()
+        .args(["module", "--format", "json", "--children", "parents-only"])
+        .output()
+        .expect("failed to execute tokmd module --children parents-only");
+
+    // Then: the children mode is recorded in args
+    assert!(output.status.success());
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        json["args"]["children"].as_str().unwrap(),
+        "parents-only",
+        "args should record children=parents-only"
+    );
+}
