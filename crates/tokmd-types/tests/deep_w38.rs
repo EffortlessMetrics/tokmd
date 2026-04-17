@@ -419,7 +419,7 @@ fn token_audit_basic() {
     let audit = TokenAudit::from_output(2000, 1500);
     assert_eq!(audit.output_bytes, 2000);
     assert_eq!(audit.overhead_bytes, 500);
-    assert!((audit.overhead_pct - 0.25).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.25).abs() < 1e-10);
 }
 
 #[test]

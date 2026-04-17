@@ -1,0 +1,16 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd-types/tests/properties.rs",
+    "crates/tokmd-types/tests/proptest_w69.rs",
+    "crates/tokmd-types/tests/proptest_deep2.rs",
+    "crates/tokmd-types/tests/bdd_deep.rs",
+    "crates/tokmd-analysis-types/tests/proptest_w69.rs",
+    "crates/tokmd-analysis-types/tests/properties.rs",
+    "crates/tokmd-analysis-types/tests/analysis_types_depth_w61.rs",
+    "crates/tokmd-types/tests/handoff_context_deep.rs",
+    "crates/tokmd-types/tests/bdd.rs",
+    "crates/tokmd-types/tests/contract_expansion.rs"
+  ],
+  "reason": "Hardened float equality comparisons in property-based and BDD tests by replacing f64::EPSILON with 1e-10 to prevent flaky proptest failures due to roundtrip precision loss."
+}

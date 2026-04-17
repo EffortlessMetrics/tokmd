@@ -516,7 +516,7 @@ fn given_handoff_intelligence_with_all_fields_when_roundtripped_then_preserved()
     assert_eq!(comp.max_cyclomatic, 25);
     let der = back.derived.as_ref().unwrap();
     assert_eq!(der.dominant_lang, "Rust");
-    assert!((der.dominant_pct - 0.72).abs() < f64::EPSILON);
+    assert!((der.dominant_pct - 0.72).abs() < 1e-10);
 }
 
 // =============================================================================

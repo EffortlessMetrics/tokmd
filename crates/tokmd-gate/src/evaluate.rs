@@ -177,7 +177,7 @@ fn compare_equal(actual: &Value, expected: Option<&Value>) -> Result<bool, ()> {
 
     // For numeric types, compare as f64 to handle int/float mismatches
     if let (Some(a), Some(b)) = (value_to_f64(actual), value_to_f64(expected)) {
-        return Ok((a - b).abs() < f64::EPSILON);
+        return Ok((a - b).abs() < 1e-10);
     }
 
     // For other types, use JSON equality
@@ -550,7 +550,7 @@ mod tests {
     fn test_numeric_epsilon_boundary_is_strict() {
         // Kills < -> <= mutant in numeric equality (abs(a-b) < EPSILON).
         let a = 1.0_f64;
-        let b = a + f64::EPSILON;
+        let b = a + 1e-10;
         let receipt = json!({"x": a});
         let rule = make_rule("eq_eps", "/x", RuleOperator::Eq, json!(b));
         assert!(

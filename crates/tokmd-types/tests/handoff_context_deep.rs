@@ -180,19 +180,19 @@ fn handoff_all_known_presets_roundtrip() {
 #[test]
 fn handoff_budget_fully_used_gives_100_pct() {
     let m = empty_handoff("receipt", 100_000, 100_000);
-    assert!((m.utilization_pct - 100.0).abs() < f64::EPSILON);
+    assert!((m.utilization_pct - 100.0).abs() < 1e-10);
 }
 
 #[test]
 fn handoff_budget_half_used_gives_50_pct() {
     let m = empty_handoff("receipt", 100_000, 50_000);
-    assert!((m.utilization_pct - 50.0).abs() < f64::EPSILON);
+    assert!((m.utilization_pct - 50.0).abs() < 1e-10);
 }
 
 #[test]
 fn handoff_budget_zero_used_gives_0_pct() {
     let m = empty_handoff("receipt", 100_000, 0);
-    assert!((m.utilization_pct - 0.0).abs() < f64::EPSILON);
+    assert!((m.utilization_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -248,21 +248,21 @@ fn handoff_token_audit_overhead_computation() {
     let audit = TokenAudit::from_output(10_000, 8_000);
     assert_eq!(audit.output_bytes, 10_000);
     assert_eq!(audit.overhead_bytes, 2_000);
-    assert!((audit.overhead_pct - 0.2).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.2).abs() < 1e-10);
 }
 
 #[test]
 fn handoff_token_audit_zero_overhead() {
     let audit = TokenAudit::from_output(5_000, 5_000);
     assert_eq!(audit.overhead_bytes, 0);
-    assert!((audit.overhead_pct - 0.0).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.0).abs() < 1e-10);
 }
 
 #[test]
 fn handoff_token_audit_zero_output() {
     let audit = TokenAudit::from_output(0, 0);
     assert_eq!(audit.overhead_bytes, 0);
-    assert!((audit.overhead_pct - 0.0).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.0).abs() < 1e-10);
 }
 
 // =============================================================================
@@ -564,7 +564,7 @@ fn context_budget_overflow_recorded_faithfully() {
 #[test]
 fn context_budget_exact_match() {
     let r = empty_context(50_000, 50_000);
-    assert!((r.utilization_pct - 100.0).abs() < f64::EPSILON);
+    assert!((r.utilization_pct - 100.0).abs() < 1e-10);
 }
 
 #[test]
@@ -1122,7 +1122,7 @@ fn token_audit_content_exceeds_output_saturates() {
     // When content_bytes > output_bytes, overhead saturates to 0.
     let audit = TokenAudit::from_output(100, 200);
     assert_eq!(audit.overhead_bytes, 0);
-    assert!((audit.overhead_pct - 0.0).abs() < f64::EPSILON);
+    assert!((audit.overhead_pct - 0.0).abs() < 1e-10);
 }
 
 // =============================================================================

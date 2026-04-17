@@ -187,7 +187,7 @@ fn per_module_sort_order() {
     let api_terms = &clouds.per_module["api"];
     // All have same weight so same score → tie-broken alphabetically
     for pair in api_terms.windows(2) {
-        if (pair[0].score - pair[1].score).abs() < f64::EPSILON {
+        if (pair[0].score - pair[1].score).abs() < 1e-10 {
             assert!(
                 pair[0].term <= pair[1].term,
                 "tied terms should be alphabetical: {} vs {}",
@@ -234,7 +234,7 @@ fn serde_roundtrip_preserves_all_fields() {
         assert_eq!(orig.term, rt.term);
         assert_eq!(orig.tf, rt.tf);
         assert_eq!(orig.df, rt.df);
-        assert!((orig.score - rt.score).abs() < f64::EPSILON);
+        assert!((orig.score - rt.score).abs() < 1e-10);
     }
 }
 

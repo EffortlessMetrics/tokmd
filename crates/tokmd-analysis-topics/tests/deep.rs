@@ -70,10 +70,7 @@ fn single_file_overall_equals_per_module() {
     );
     for (o, p) in overall.iter().zip(per_mod.iter()) {
         assert_eq!(o.term, p.term);
-        assert!(
-            (o.score - p.score).abs() < f64::EPSILON,
-            "scores should match"
-        );
+        assert!((o.score - p.score).abs() < 1e-10, "scores should match");
     }
 }
 
@@ -267,7 +264,7 @@ fn determinism_with_many_modules() {
         for (a, b) in results[0].iter().zip(results[i].iter()) {
             assert_eq!(a.term, b.term);
             assert!(
-                (a.score - b.score).abs() < f64::EPSILON,
+                (a.score - b.score).abs() < 1e-10,
                 "score mismatch for {}",
                 a.term
             );

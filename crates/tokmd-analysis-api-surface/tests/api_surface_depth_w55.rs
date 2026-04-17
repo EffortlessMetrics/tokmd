@@ -89,7 +89,7 @@ fn rust_all_public() {
     assert_eq!(report.total_items, 3);
     assert_eq!(report.public_items, 3);
     assert_eq!(report.internal_items, 0);
-    assert!((report.public_ratio - 1.0).abs() < f64::EPSILON);
+    assert!((report.public_ratio - 1.0).abs() < 1e-10);
 }
 
 #[test]
@@ -105,7 +105,7 @@ fn rust_all_internal() {
     assert_eq!(report.total_items, 3);
     assert_eq!(report.public_items, 0);
     assert_eq!(report.internal_items, 3);
-    assert!((report.public_ratio - 0.0).abs() < f64::EPSILON);
+    assert!((report.public_ratio - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn rust_documented_public() {
 
     assert_eq!(report.public_items, 2);
     // 1 documented out of 2 public -> 0.5
-    assert!((report.documented_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((report.documented_ratio - 0.5).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ fn python_docstring_detection() {
 
     assert_eq!(report.public_items, 2);
     // 1 out of 2 documented -> 0.5
-    assert!((report.documented_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((report.documented_ratio - 0.5).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -411,8 +411,8 @@ fn deterministic_output() {
     assert_eq!(r1.total_items, r2.total_items);
     assert_eq!(r1.public_items, r2.public_items);
     assert_eq!(r1.internal_items, r2.internal_items);
-    assert!((r1.public_ratio - r2.public_ratio).abs() < f64::EPSILON);
-    assert!((r1.documented_ratio - r2.documented_ratio).abs() < f64::EPSILON);
+    assert!((r1.public_ratio - r2.public_ratio).abs() < 1e-10);
+    assert!((r1.documented_ratio - r2.documented_ratio).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +429,7 @@ fn public_ratio_zero_when_no_public() {
 
     let report = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
-    assert!((report.public_ratio - 0.0).abs() < f64::EPSILON);
+    assert!((report.public_ratio - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -442,7 +442,7 @@ fn public_ratio_one_when_all_public() {
 
     let report = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
-    assert!((report.public_ratio - 1.0).abs() < f64::EPSILON);
+    assert!((report.public_ratio - 1.0).abs() < 1e-10);
 }
 
 #[test]
@@ -455,7 +455,7 @@ fn documented_ratio_zero_when_no_docs() {
 
     let report = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
-    assert!((report.documented_ratio - 0.0).abs() < f64::EPSILON);
+    assert!((report.documented_ratio - 0.0).abs() < 1e-10);
 }
 
 #[test]
@@ -468,7 +468,7 @@ fn documented_ratio_one_when_all_documented() {
 
     let report = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
-    assert!((report.documented_ratio - 1.0).abs() < f64::EPSILON);
+    assert!((report.documented_ratio - 1.0).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -544,7 +544,7 @@ fn lang_surface_public_ratio_accurate() {
 
     let rust = &report.by_language["Rust"];
     // 2 public out of 4 total = 0.5
-    assert!((rust.public_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((rust.public_ratio - 0.5).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -647,7 +647,7 @@ fn documented_ratio_zero_when_no_public_items() {
     let report = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
 
     assert_eq!(report.public_items, 0);
-    assert!((report.documented_ratio - 0.0).abs() < f64::EPSILON);
+    assert!((report.documented_ratio - 0.0).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------

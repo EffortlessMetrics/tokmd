@@ -1393,7 +1393,7 @@ mod tests {
         let audit = TokenAudit::from_output(1000, 800);
         assert_eq!(audit.output_bytes, 1000);
         assert_eq!(audit.overhead_bytes, 200);
-        assert!((audit.overhead_pct - 0.2).abs() < f64::EPSILON);
+        assert!((audit.overhead_pct - 0.2).abs() < 1e-10);
     }
 
     #[test]

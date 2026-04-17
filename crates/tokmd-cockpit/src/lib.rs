@@ -2179,7 +2179,7 @@ pub fn sparkline(values: &[f64]) -> String {
         return String::new();
     }
 
-    if (max - min).abs() < f64::EPSILON {
+    if (max - min).abs() < 1e-10 {
         return std::iter::repeat_n(BARS[3], values.len()).collect();
     }
 

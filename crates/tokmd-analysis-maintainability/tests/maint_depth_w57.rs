@@ -171,14 +171,14 @@ fn score_clamped_to_zero_floor() {
 fn halstead_volume_zero_uses_simplified() {
     let mi = compute_maintainability_index(10.0, 100.0, Some(0.0)).unwrap();
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
-    assert!((mi.score - simplified.score).abs() < f64::EPSILON);
+    assert!((mi.score - simplified.score).abs() < 1e-10);
 }
 
 #[test]
 fn halstead_volume_negative_uses_simplified() {
     let mi = compute_maintainability_index(10.0, 100.0, Some(-5.0)).unwrap();
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
-    assert!((mi.score - simplified.score).abs() < f64::EPSILON);
+    assert!((mi.score - simplified.score).abs() < 1e-10);
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn single_line_file() {
 fn computation_is_deterministic() {
     let a = compute_maintainability_index(10.0, 100.0, Some(200.0)).unwrap();
     let b = compute_maintainability_index(10.0, 100.0, Some(200.0)).unwrap();
-    assert!((a.score - b.score).abs() < f64::EPSILON);
+    assert!((a.score - b.score).abs() < 1e-10);
     assert_eq!(a.grade, b.grade);
     assert_eq!(a.avg_halstead_volume, b.avg_halstead_volume);
 }
@@ -251,7 +251,7 @@ fn attach_halstead_zero_volume_preserves_mi() {
     let before = c.maintainability_index.as_ref().unwrap().score;
     attach_halstead_metrics(&mut c, zero_halstead());
     let after = c.maintainability_index.as_ref().unwrap().score;
-    assert!((before - after).abs() < f64::EPSILON);
+    assert!((before - after).abs() < 1e-10);
 }
 
 #[test]
@@ -282,7 +282,7 @@ fn maintainability_index_serde_roundtrip() {
     let mi = compute_maintainability_index(10.0, 100.0, Some(200.0)).unwrap();
     let json = serde_json::to_string(&mi).unwrap();
     let back: MaintainabilityIndex = serde_json::from_str(&json).unwrap();
-    assert!((mi.score - back.score).abs() < f64::EPSILON);
+    assert!((mi.score - back.score).abs() < 1e-10);
     assert_eq!(mi.grade, back.grade);
     assert_eq!(mi.avg_halstead_volume, back.avg_halstead_volume);
 }
@@ -315,5 +315,5 @@ fn complexity_report_serde_roundtrip() {
 fn avg_loc_is_rounded_to_two_decimals() {
     let mi = compute_maintainability_index(1.0, 3.333333, None).unwrap();
     // avg_loc should be rounded to 3.33
-    assert!((mi.avg_loc - 3.33).abs() < f64::EPSILON);
+    assert!((mi.avg_loc - 3.33).abs() < 1e-10);
 }

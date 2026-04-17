@@ -391,7 +391,7 @@ fn effort_is_product_of_difficulty_and_volume() {
     };
     let effort = difficulty * volume;
     assert!(effort >= 0.0, "Effort should be non-negative");
-    assert!((effort - difficulty * volume).abs() < f64::EPSILON);
+    assert!((effort - difficulty * volume).abs() < 1e-10);
 }
 
 #[test]

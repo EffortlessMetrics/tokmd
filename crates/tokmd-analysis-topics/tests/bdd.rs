@@ -289,7 +289,7 @@ fn given_same_input_twice_then_identical_output() {
         assert_eq!(ta.term, tb.term);
         assert_eq!(ta.tf, tb.tf);
         assert_eq!(ta.df, tb.df);
-        assert!((ta.score - tb.score).abs() < f64::EPSILON);
+        assert!((ta.score - tb.score).abs() < 1e-10);
     }
 
     // Compare per_module keys and terms

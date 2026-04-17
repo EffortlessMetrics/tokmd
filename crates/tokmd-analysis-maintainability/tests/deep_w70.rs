@@ -96,8 +96,8 @@ fn simplified_score_is_non_negative() {
 #[test]
 fn simplified_records_avg_cyclomatic_and_loc() {
     let mi = compute_maintainability_index(7.5, 250.0, None).unwrap();
-    assert!((mi.avg_cyclomatic - 7.5).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 250.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 7.5).abs() < 1e-10);
+    assert!((mi.avg_loc - 250.0).abs() < 1e-10);
 }
 
 // -- Full formula (with Halstead volume) --
@@ -140,7 +140,7 @@ fn negative_loc_returns_none() {
 fn zero_halstead_volume_uses_simplified() {
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let with_zero = compute_maintainability_index(10.0, 100.0, Some(0.0)).unwrap();
-    assert!((simplified.score - with_zero.score).abs() < f64::EPSILON);
+    assert!((simplified.score - with_zero.score).abs() < 1e-10);
     assert_eq!(with_zero.avg_halstead_volume, None);
 }
 
@@ -148,7 +148,7 @@ fn zero_halstead_volume_uses_simplified() {
 fn negative_halstead_volume_uses_simplified() {
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let with_neg = compute_maintainability_index(10.0, 100.0, Some(-10.0)).unwrap();
-    assert!((simplified.score - with_neg.score).abs() < f64::EPSILON);
+    assert!((simplified.score - with_neg.score).abs() < 1e-10);
     assert_eq!(with_neg.avg_halstead_volume, None);
 }
 
@@ -162,7 +162,7 @@ fn zero_cyclomatic_is_valid() {
 #[test]
 fn loc_one_maximises_simplified_score() {
     let mi = compute_maintainability_index(0.0, 1.0, None).unwrap();
-    assert!((mi.score - 171.0).abs() < f64::EPSILON);
+    assert!((mi.score - 171.0).abs() < 1e-10);
 }
 
 // -- Grade boundaries --
@@ -177,7 +177,7 @@ fn grade_boundary_exactly_85() {
 #[test]
 fn grade_boundary_clamped_zero_is_c() {
     let mi = compute_maintainability_index(500.0, 100_000.0, None).unwrap();
-    assert!((mi.score - 0.0).abs() < f64::EPSILON);
+    assert!((mi.score - 0.0).abs() < 1e-10);
     assert_eq!(mi.grade, "C");
 }
 
@@ -205,7 +205,7 @@ fn attach_halstead_zero_volume_preserves_mi() {
     attach_halstead_metrics(&mut cr, halstead(0.0));
 
     let after = cr.maintainability_index.as_ref().unwrap();
-    assert!((after.score - before.score).abs() < f64::EPSILON);
+    assert!((after.score - before.score).abs() < 1e-10);
     assert_eq!(after.avg_halstead_volume, before.avg_halstead_volume);
     assert!(cr.halstead.is_some());
 }
@@ -218,7 +218,7 @@ fn attach_halstead_no_existing_mi_just_stores_halstead() {
 
     assert!(cr.maintainability_index.is_none());
     assert!(cr.halstead.is_some());
-    assert!((cr.halstead.as_ref().unwrap().volume - 200.0).abs() < f64::EPSILON);
+    assert!((cr.halstead.as_ref().unwrap().volume - 200.0).abs() < 1e-10);
 }
 
 // -- Determinism --

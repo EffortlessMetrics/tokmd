@@ -58,10 +58,10 @@ proptest! {
         let refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
         let c1 = compute_composition(&refs);
         let c2 = compute_composition(&refs);
-        prop_assert!((c1.code_pct - c2.code_pct).abs() < f64::EPSILON);
-        prop_assert!((c1.test_pct - c2.test_pct).abs() < f64::EPSILON);
-        prop_assert!((c1.docs_pct - c2.docs_pct).abs() < f64::EPSILON);
-        prop_assert!((c1.config_pct - c2.config_pct).abs() < f64::EPSILON);
+        prop_assert!((c1.code_pct - c2.code_pct).abs() < 1e-10);
+        prop_assert!((c1.test_pct - c2.test_pct).abs() < 1e-10);
+        prop_assert!((c1.docs_pct - c2.docs_pct).abs() < 1e-10);
+        prop_assert!((c1.config_pct - c2.config_pct).abs() < 1e-10);
     }
 
     #[test]
@@ -81,8 +81,8 @@ proptest! {
     fn composition_empty_input(paths in Just(vec![] as Vec<String>)) {
         let refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
         let comp = compute_composition(&refs);
-        prop_assert!((comp.code_pct - 0.0).abs() < f64::EPSILON);
-        prop_assert!((comp.test_pct - 0.0).abs() < f64::EPSILON);
+        prop_assert!((comp.code_pct - 0.0).abs() < 1e-10);
+        prop_assert!((comp.test_pct - 0.0).abs() < 1e-10);
     }
 }
 

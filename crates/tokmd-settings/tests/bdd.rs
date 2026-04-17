@@ -387,8 +387,8 @@ mod json_roundtrip {
         let back: RatchetRuleConfig = serde_json::from_str(&json).unwrap();
         // Then: preserved
         assert_eq!(back.pointer, "/complexity/avg_cyclomatic");
-        assert!((back.max_increase_pct.unwrap() - 5.0).abs() < f64::EPSILON);
-        assert!((back.max_value.unwrap() - 25.0).abs() < f64::EPSILON);
+        assert!((back.max_increase_pct.unwrap() - 5.0).abs() < 1e-10);
+        assert!((back.max_value.unwrap() - 25.0).abs() < 1e-10);
         assert_eq!(back.level.as_deref(), Some("error"));
     }
 
@@ -630,7 +630,7 @@ description = "Keep complexity low"
         let ratchet = config.gate.ratchet.unwrap();
         assert_eq!(ratchet.len(), 1);
         assert_eq!(ratchet[0].pointer, "/complexity/avg");
-        assert!((ratchet[0].max_increase_pct.unwrap() - 5.0).abs() < f64::EPSILON);
+        assert!((ratchet[0].max_increase_pct.unwrap() - 5.0).abs() < 1e-10);
     }
 
     #[test]

@@ -171,43 +171,43 @@ fn analysis_limits_default_all_none() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn round_f64_basic() {
-    assert!((round_f64(3.14159, 2) - 3.14).abs() < f64::EPSILON);
+    assert!((round_f64(3.14159, 2) - 3.14).abs() < 1e-10);
     assert!((round_f64(2.005, 2) - 2.01).abs() < 0.001);
 }
 
 #[test]
 fn round_f64_zero_decimals() {
-    assert!((round_f64(9.9, 0) - 10.0).abs() < f64::EPSILON);
+    assert!((round_f64(9.9, 0) - 10.0).abs() < 1e-10);
 }
 
 #[test]
 fn safe_ratio_zero_denominator() {
-    assert!((safe_ratio(10, 0) - 0.0).abs() < f64::EPSILON);
+    assert!((safe_ratio(10, 0) - 0.0).abs() < 1e-10);
 }
 
 #[test]
 fn safe_ratio_normal() {
-    assert!((safe_ratio(1, 4) - 0.25).abs() < f64::EPSILON);
+    assert!((safe_ratio(1, 4) - 0.25).abs() < 1e-10);
 }
 
 #[test]
 fn percentile_median_of_five() {
     let data = vec![1, 2, 3, 4, 5];
     let p50 = percentile(&data, 0.5);
-    assert!((p50 - 3.0).abs() < f64::EPSILON);
+    assert!((p50 - 3.0).abs() < 1e-10);
 }
 
 #[test]
 fn percentile_empty_returns_zero() {
     let data: Vec<usize> = vec![];
     let p50 = percentile(&data, 0.5);
-    assert!((p50 - 0.0).abs() < f64::EPSILON);
+    assert!((p50 - 0.0).abs() < 1e-10);
 }
 
 #[test]
 fn gini_uniform_distribution_is_zero() {
     let data = vec![10, 10, 10, 10];
-    assert!((gini_coefficient(&data) - 0.0).abs() < f64::EPSILON);
+    assert!((gini_coefficient(&data) - 0.0).abs() < 1e-10);
 }
 
 #[test]

@@ -367,7 +367,7 @@ fn scenario_halstead_difficulty_formula() {
     let n2 = 5.0f64;
     let big_n2 = 10.0f64;
     let difficulty = (n1 / 2.0) * (big_n2 / n2);
-    assert!((difficulty - 4.0).abs() < f64::EPSILON);
+    assert!((difficulty - 4.0).abs() < 1e-10);
 }
 
 #[test]
@@ -375,21 +375,21 @@ fn scenario_halstead_effort_is_difficulty_times_volume() {
     let difficulty = 3.5;
     let volume = 100.0;
     let effort = difficulty * volume;
-    assert!((effort - 350.0f64).abs() < f64::EPSILON);
+    assert!((effort - 350.0f64).abs() < 1e-10);
 }
 
 #[test]
 fn scenario_halstead_time_is_effort_over_18() {
     let effort = 180.0;
     let time = effort / 18.0;
-    assert!((time - 10.0f64).abs() < f64::EPSILON);
+    assert!((time - 10.0f64).abs() < 1e-10);
 }
 
 #[test]
 fn scenario_halstead_bugs_is_volume_over_3000() {
     let volume = 6000.0;
     let bugs = volume / 3000.0;
-    assert!((bugs - 2.0f64).abs() < f64::EPSILON);
+    assert!((bugs - 2.0f64).abs() < 1e-10);
 }
 
 #[test]

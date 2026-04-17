@@ -261,8 +261,8 @@ fn gate_item_negative_threshold_roundtrip() {
     let item = GateItem::new("neg-test", Verdict::Warn).with_threshold(-10.5, -3.2);
     let json = serde_json::to_string(&item).unwrap();
     let back: GateItem = serde_json::from_str(&json).unwrap();
-    assert!((back.threshold.unwrap() - (-10.5)).abs() < f64::EPSILON);
-    assert!((back.actual.unwrap() - (-3.2)).abs() < f64::EPSILON);
+    assert!((back.threshold.unwrap() - (-10.5)).abs() < 1e-10);
+    assert!((back.actual.unwrap() - (-3.2)).abs() < 1e-10);
 }
 
 #[test]

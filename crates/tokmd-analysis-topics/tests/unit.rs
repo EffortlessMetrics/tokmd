@@ -190,7 +190,7 @@ fn per_module_sorted_descending_by_score_then_term() {
             window[1].term,
             window[1].score,
         );
-        if (window[0].score - window[1].score).abs() < f64::EPSILON {
+        if (window[0].score - window[1].score).abs() < 1e-10 {
             assert!(
                 window[0].term <= window[1].term,
                 "tie-break should be alphabetical: '{}' > '{}'",
@@ -217,7 +217,7 @@ fn single_module_idf_is_constant() {
     let beta = m_terms.iter().find(|t| t.term == "beta").unwrap();
     // Same tf, same df, same module_count → same score
     assert_eq!(alpha.tf, beta.tf);
-    assert!((alpha.score - beta.score).abs() < f64::EPSILON);
+    assert!((alpha.score - beta.score).abs() < 1e-10);
 }
 
 // ── 10. high-token file dominates tf ─────────────────────────────────

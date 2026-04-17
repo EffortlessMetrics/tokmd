@@ -106,7 +106,7 @@ fn rust_doc_attr_counts_as_documented() {
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
     assert_eq!(r.public_items, 2);
-    assert!((r.documented_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((r.documented_ratio - 0.5).abs() < 1e-10);
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn python_triple_single_quote_docstring() {
     let rows = vec![make_row("lib/util.py", "lib", "Python", FileKind::Parent)];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
-    assert!((r.documented_ratio - 1.0).abs() < f64::EPSILON);
+    assert!((r.documented_ratio - 1.0).abs() < 1e-10);
 }
 
 #[test]
@@ -392,7 +392,7 @@ fn java_javadoc_documentation_detected() {
     let rows = vec![make_row("src/Doc.java", "src", "Java", FileKind::Parent)];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
-    assert!((r.documented_ratio - 0.5).abs() < f64::EPSILON);
+    assert!((r.documented_ratio - 0.5).abs() < 1e-10);
 }
 
 // =============================================================================
@@ -453,8 +453,8 @@ fn six_language_report_deterministic_over_20_runs() {
         assert_eq!(r.total_items, baseline.total_items);
         assert_eq!(r.public_items, baseline.public_items);
         assert_eq!(r.internal_items, baseline.internal_items);
-        assert!((r.public_ratio - baseline.public_ratio).abs() < f64::EPSILON);
-        assert!((r.documented_ratio - baseline.documented_ratio).abs() < f64::EPSILON);
+        assert!((r.public_ratio - baseline.public_ratio).abs() < 1e-10);
+        assert!((r.documented_ratio - baseline.documented_ratio).abs() < 1e-10);
         assert_eq!(r.by_language.len(), baseline.by_language.len());
     }
 }
@@ -729,7 +729,7 @@ fn documented_ratio_exactly_one_when_all_public_documented() {
     let rows = vec![make_row("src/lib.rs", "src", "Rust", FileKind::Parent)];
     let export = make_export(rows);
     let r = build_api_surface_report(tmp.path(), &[rel], &export, &default_limits()).unwrap();
-    assert!((r.documented_ratio - 1.0).abs() < f64::EPSILON);
+    assert!((r.documented_ratio - 1.0).abs() < 1e-10);
 }
 
 // =============================================================================

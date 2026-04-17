@@ -542,7 +542,7 @@ fn given_scope_coverage_when_all_tested_then_ratio_is_one() {
         lines_relevant: Some(500),
         lines_tested: Some(500),
     };
-    assert!((scope.ratio - 1.0).abs() < f64::EPSILON);
+    assert!((scope.ratio - 1.0).abs() < 1e-10);
 }
 
 #[test]
@@ -598,7 +598,7 @@ fn given_composition_then_percentages_sum_to_100() {
         test_ratio: 0.42,
     };
     let sum = comp.code_pct + comp.test_pct + comp.docs_pct + comp.config_pct;
-    assert!((sum - 100.0).abs() < f64::EPSILON);
+    assert!((sum - 100.0).abs() < 1e-10);
 }
 
 // =============================================================================

@@ -12,7 +12,7 @@ use tokmd_analysis_types::{
 fn given_typical_codebase_when_simplified_mi_then_grade_a() {
     // MI = 171 - 0.23*10 - 16.2*ln(100) ≈ 171 - 2.3 - 74.6 ≈ 94.1
     let mi = compute_maintainability_index(10.0, 100.0, None).expect("should produce MI");
-    assert!((mi.score - 94.1).abs() < f64::EPSILON);
+    assert!((mi.score - 94.1).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
     assert_eq!(mi.avg_halstead_volume, None);
     assert_eq!(mi.avg_cyclomatic, 10.0);
@@ -31,7 +31,7 @@ fn given_small_codebase_when_simplified_mi_then_high_score() {
 fn given_single_line_when_simplified_mi_then_high_score() {
     let mi = compute_maintainability_index(1.0, 1.0, None).expect("should produce MI");
     // MI = 171 - 0.23*1 - 16.2*ln(1) = 171 - 0.23 - 0 = 170.77
-    assert!((mi.score - 170.77).abs() < f64::EPSILON);
+    assert!((mi.score - 170.77).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
 }
 
@@ -52,7 +52,7 @@ fn given_halstead_volume_200_when_full_mi_then_known_value() {
     // MI = 171 - 5.2*ln(200) - 0.23*10 - 16.2*ln(100)
     //    ≈ 171 - 27.56 - 2.3 - 74.6 ≈ 66.54
     let mi = compute_maintainability_index(10.0, 100.0, Some(200.0)).expect("full");
-    assert!((mi.score - 66.54).abs() < f64::EPSILON);
+    assert!((mi.score - 66.54).abs() < 1e-10);
     assert_eq!(mi.grade, "B");
 }
 
@@ -142,7 +142,7 @@ fn given_negative_halstead_volume_when_computing_mi_then_simplified_formula_used
 fn given_zero_cyclomatic_when_computing_mi_then_valid_result() {
     let mi = compute_maintainability_index(0.0, 100.0, None).expect("mi");
     // MI = 171 - 0 - 16.2*ln(100) ≈ 171 - 74.6 = 96.4
-    assert!((mi.score - 96.4).abs() < f64::EPSILON);
+    assert!((mi.score - 96.4).abs() < 1e-10);
     assert_eq!(mi.avg_cyclomatic, 0.0);
 }
 

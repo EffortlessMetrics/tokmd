@@ -116,7 +116,7 @@ fn subnormal_halstead_volume_used_when_positive() {
 
 #[test]
 fn loc_epsilon_above_zero() {
-    let mi = compute_maintainability_index(0.0, f64::EPSILON, None).unwrap();
+    let mi = compute_maintainability_index(0.0, 1e-10, None).unwrap();
     assert!(mi.score >= 0.0);
 }
 
@@ -129,7 +129,7 @@ fn loc_one_simplified() {
 
 #[test]
 fn loc_just_below_zero_returns_none() {
-    assert!(compute_maintainability_index(0.0, -f64::EPSILON, None).is_none());
+    assert!(compute_maintainability_index(0.0, -1e-10, None).is_none());
 }
 
 // ---------------------------------------------------------------------------

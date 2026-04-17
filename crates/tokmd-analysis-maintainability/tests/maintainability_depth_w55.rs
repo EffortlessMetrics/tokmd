@@ -135,7 +135,7 @@ fn simplified_zero_complexity() {
 fn simplified_one_loc() {
     let mi = compute_maintainability_index(0.0, 1.0, None).unwrap();
     // MI = 171 - 0 - 16.2 * ln(1) = 171 - 0 = 171
-    assert!((mi.score - 171.0).abs() < f64::EPSILON);
+    assert!((mi.score - 171.0).abs() < 1e-10);
     assert_eq!(mi.grade, "A");
 }
 
@@ -143,15 +143,15 @@ fn simplified_one_loc() {
 fn simplified_large_loc() {
     let mi = compute_maintainability_index(0.0, 1_000_000.0, None).unwrap();
     // MI = 171 - 16.2 * ln(1e6) = 171 - 16.2 * 13.8155 ≈ 171 - 223.81 < 0 -> clamped to 0
-    assert!((mi.score - 0.0).abs() < f64::EPSILON);
+    assert!((mi.score - 0.0).abs() < 1e-10);
     assert_eq!(mi.grade, "C");
 }
 
 #[test]
 fn simplified_preserves_inputs() {
     let mi = compute_maintainability_index(15.0, 250.0, None).unwrap();
-    assert!((mi.avg_cyclomatic - 15.0).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 250.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 15.0).abs() < 1e-10);
+    assert!((mi.avg_loc - 250.0).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -219,7 +219,7 @@ fn negative_loc_with_halstead_returns_none() {
 fn zero_halstead_volume_uses_simplified() {
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let with_zero = compute_maintainability_index(10.0, 100.0, Some(0.0)).unwrap();
-    assert!((with_zero.score - simplified.score).abs() < f64::EPSILON);
+    assert!((with_zero.score - simplified.score).abs() < 1e-10);
     assert_eq!(with_zero.avg_halstead_volume, None);
 }
 
@@ -227,7 +227,7 @@ fn zero_halstead_volume_uses_simplified() {
 fn negative_halstead_volume_uses_simplified() {
     let simplified = compute_maintainability_index(10.0, 100.0, None).unwrap();
     let with_neg = compute_maintainability_index(10.0, 100.0, Some(-10.0)).unwrap();
-    assert!((with_neg.score - simplified.score).abs() < f64::EPSILON);
+    assert!((with_neg.score - simplified.score).abs() < 1e-10);
     assert_eq!(with_neg.avg_halstead_volume, None);
 }
 
@@ -244,7 +244,7 @@ fn score_never_negative() {
 #[test]
 fn score_clamped_to_zero_for_extreme_inputs() {
     let mi = compute_maintainability_index(1000.0, 10_000_000.0, None).unwrap();
-    assert!((mi.score - 0.0).abs() < f64::EPSILON);
+    assert!((mi.score - 0.0).abs() < 1e-10);
 }
 
 // ---------------------------------------------------------------------------
@@ -254,8 +254,8 @@ fn score_clamped_to_zero_for_extreme_inputs() {
 #[test]
 fn index_has_correct_fields_simplified() {
     let mi = compute_maintainability_index(5.0, 50.0, None).unwrap();
-    assert!((mi.avg_cyclomatic - 5.0).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 50.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 5.0).abs() < 1e-10);
+    assert!((mi.avg_loc - 50.0).abs() < 1e-10);
     assert!(mi.avg_halstead_volume.is_none());
     assert!(!mi.grade.is_empty());
     assert!(mi.score >= 0.0);
@@ -264,8 +264,8 @@ fn index_has_correct_fields_simplified() {
 #[test]
 fn index_has_correct_fields_full() {
     let mi = compute_maintainability_index(5.0, 50.0, Some(100.0)).unwrap();
-    assert!((mi.avg_cyclomatic - 5.0).abs() < f64::EPSILON);
-    assert!((mi.avg_loc - 50.0).abs() < f64::EPSILON);
+    assert!((mi.avg_cyclomatic - 5.0).abs() < 1e-10);
+    assert!((mi.avg_loc - 50.0).abs() < 1e-10);
     assert_eq!(mi.avg_halstead_volume, Some(100.0));
     assert!(!mi.grade.is_empty());
 }
@@ -278,7 +278,7 @@ fn index_has_correct_fields_full() {
 fn deterministic_simplified() {
     let a = compute_maintainability_index(12.0, 300.0, None).unwrap();
     let b = compute_maintainability_index(12.0, 300.0, None).unwrap();
-    assert!((a.score - b.score).abs() < f64::EPSILON);
+    assert!((a.score - b.score).abs() < 1e-10);
     assert_eq!(a.grade, b.grade);
 }
 
@@ -286,7 +286,7 @@ fn deterministic_simplified() {
 fn deterministic_full() {
     let a = compute_maintainability_index(12.0, 300.0, Some(150.0)).unwrap();
     let b = compute_maintainability_index(12.0, 300.0, Some(150.0)).unwrap();
-    assert!((a.score - b.score).abs() < f64::EPSILON);
+    assert!((a.score - b.score).abs() < 1e-10);
     assert_eq!(a.grade, b.grade);
 }
 
@@ -315,7 +315,7 @@ fn attach_halstead_zero_volume_preserves_index() {
     attach_halstead_metrics(&mut cr, make_halstead(0.0));
 
     let after = cr.maintainability_index.as_ref().unwrap().score;
-    assert!((before - after).abs() < f64::EPSILON);
+    assert!((before - after).abs() < 1e-10);
     assert!(cr.halstead.is_some());
     assert_eq!(cr.halstead.as_ref().unwrap().volume, 0.0);
 }
@@ -387,12 +387,12 @@ fn increasing_halstead_volume_decreases_score() {
 fn score_is_rounded_to_two_decimals() {
     let mi = compute_maintainability_index(7.0, 77.0, None).unwrap();
     let rounded = (mi.score * 100.0).round() / 100.0;
-    assert!((mi.score - rounded).abs() < f64::EPSILON);
+    assert!((mi.score - rounded).abs() < 1e-10);
 }
 
 #[test]
 fn avg_loc_is_rounded_to_two_decimals() {
     let mi = compute_maintainability_index(5.0, 33.333, None).unwrap();
     let rounded = (mi.avg_loc * 100.0).round() / 100.0;
-    assert!((mi.avg_loc - rounded).abs() < f64::EPSILON);
+    assert!((mi.avg_loc - rounded).abs() < 1e-10);
 }

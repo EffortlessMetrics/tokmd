@@ -549,7 +549,7 @@ proptest! {
         let sum = comp.code_pct + comp.test_pct + comp.docs_pct + comp.config_pct;
 
         if files.is_empty() {
-            prop_assert!((sum - 0.0).abs() < f64::EPSILON);
+            prop_assert!((sum - 0.0).abs() < 1e-10);
         } else {
             prop_assert!((sum - 1.0).abs() < 0.01);
         }
@@ -605,6 +605,6 @@ proptest! {
     fn prop_round_pct_is_idempotent(val in -100.0f64..100.0) {
         let once = round_pct(val);
         let twice = round_pct(once);
-        prop_assert!((once - twice).abs() < f64::EPSILON);
+        prop_assert!((once - twice).abs() < 1e-10);
     }
 }

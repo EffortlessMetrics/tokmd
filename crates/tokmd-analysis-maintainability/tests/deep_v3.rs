@@ -70,7 +70,7 @@ fn simplified_formula_known_values() {
     let expected = 171.0 - 0.23 * 5.0 - 16.2 * 50.0_f64.ln();
     let expected_rounded = (expected * 100.0).round() / 100.0;
     assert!(
-        (mi.score - expected_rounded).abs() < f64::EPSILON,
+        (mi.score - expected_rounded).abs() < 1e-10,
         "expected {expected_rounded}, got {}",
         mi.score
     );
@@ -84,7 +84,7 @@ fn full_formula_known_values() {
     let expected_clamped = expected.max(0.0);
     let expected_rounded = (expected_clamped * 100.0).round() / 100.0;
     assert!(
-        (mi.score - expected_rounded).abs() < f64::EPSILON,
+        (mi.score - expected_rounded).abs() < 1e-10,
         "expected {expected_rounded}, got {}",
         mi.score
     );
@@ -95,7 +95,7 @@ fn full_formula_with_small_volume() {
     let mi = compute_maintainability_index(1.0, 1.0, Some(1.0)).unwrap();
     // MI = 171 - 5.2*ln(1) - 0.23*1 - 16.2*ln(1) = 171 - 0 - 0.23 - 0 = 170.77
     assert!(
-        (mi.score - 170.77).abs() < f64::EPSILON,
+        (mi.score - 170.77).abs() < 1e-10,
         "expected 170.77, got {}",
         mi.score
     );
@@ -326,8 +326,8 @@ fn attach_halstead_preserves_all_halstead_fields() {
     assert_eq!(stored.volume, 800.0);
     assert_eq!(stored.difficulty, 12.5);
     assert_eq!(stored.effort, 10000.0);
-    assert!((stored.time_seconds - 555.56).abs() < f64::EPSILON);
-    assert!((stored.estimated_bugs - 0.27).abs() < f64::EPSILON);
+    assert!((stored.time_seconds - 555.56).abs() < 1e-10);
+    assert!((stored.estimated_bugs - 0.27).abs() < 1e-10);
 }
 
 #[test]

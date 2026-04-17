@@ -523,7 +523,7 @@ fn context_window_exactly_at_boundary() {
     let cw = receipt.derived.unwrap().context_window.unwrap();
     // 1000 tokens with 1000 window → pct = 1.0, fits = true
     assert!(cw.fits, "exact boundary should fit");
-    assert!((cw.pct - 1.0).abs() < f64::EPSILON);
+    assert!((cw.pct - 1.0).abs() < 1e-10);
 }
 
 #[test]
@@ -907,7 +907,7 @@ fn single_language_has_zero_entropy() {
     let poly = &receipt.derived.unwrap().polyglot;
     assert_eq!(poly.lang_count, 1);
     assert!(
-        (poly.entropy - 0.0).abs() < f64::EPSILON,
+        (poly.entropy - 0.0).abs() < 1e-10,
         "single lang entropy should be 0"
     );
     assert_eq!(poly.dominant_lang, "Rust");

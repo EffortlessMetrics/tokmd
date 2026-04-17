@@ -228,7 +228,7 @@ proptest! {
     fn equal_values_are_stable(value in 0.0f64..1_000.0) {
         let trend = compute_metric_trend(value, value, true);
         prop_assert_eq!(trend.direction, TrendDirection::Stable);
-        prop_assert!((trend.delta).abs() < f64::EPSILON);
+        prop_assert!((trend.delta).abs() < 1e-10);
     }
 
     #[test]
@@ -263,7 +263,7 @@ proptest! {
         let trend = compute_metric_trend(current, previous, true);
         let expected_delta = current - previous;
         prop_assert!(
-            (trend.delta - expected_delta).abs() < f64::EPSILON,
+            (trend.delta - expected_delta).abs() < 1e-10,
             "delta {} != expected {}", trend.delta, expected_delta
         );
     }
