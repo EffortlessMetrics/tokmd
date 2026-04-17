@@ -1,0 +1,1 @@
+{"command": "cargo test --manifest-path crates/tokmd-analysis-effort/Cargo.toml --test proptest_models", "outcome": "Success (7 tests passed, including classify_blast_invariants)"}

@@ -1,0 +1,8 @@
+{
+  "summary": "Tightened property-based tests around effort delta classification invariants.",
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd-analysis-effort/src/delta.rs",
+    "crates/tokmd-analysis-effort/tests/proptest_models.rs"
+  ]
+}

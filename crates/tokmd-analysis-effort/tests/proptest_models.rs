@@ -1,7 +1,9 @@
 use proptest::prelude::*;
 use tokmd_analysis_effort::cocomo2::{cocomo2_baseline, cocomo2_effort_pm};
 use tokmd_analysis_effort::cocomo81::{cocomo81_baseline, cocomo81_effort_pm};
+use tokmd_analysis_effort::delta::classify_blast;
 use tokmd_analysis_effort::uncertainty::apply_uncertainty;
+use tokmd_analysis_types::EffortDeltaClassification;
 use tokmd_analysis_types::{EffortConfidence, EffortConfidenceLevel, EffortResults};
 
 proptest! {
@@ -110,6 +112,20 @@ proptest! {
             if res.schedule_months_low > 0.0 {
                 prop_assert!((res.staff_p80 - (res.effort_pm_p80 / res.schedule_months_low)).abs() < 1e-6);
             }
+        }
+    }
+
+    #[test]
+    fn classify_blast_invariants(blast_radius in -10.0_f64..150.0) {
+        let classification = classify_blast(blast_radius);
+        if blast_radius < 10.0 {
+            prop_assert_eq!(classification, EffortDeltaClassification::Low);
+        } else if blast_radius < 20.0 {
+            prop_assert_eq!(classification, EffortDeltaClassification::Medium);
+        } else if blast_radius < 35.0 {
+            prop_assert_eq!(classification, EffortDeltaClassification::High);
+        } else {
+            prop_assert_eq!(classification, EffortDeltaClassification::Critical);
         }
     }
 }
