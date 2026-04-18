@@ -1,5 +1,0 @@
-{
-  "target": "web/runner",
-  "issue": "Duck-typed errors from Web Workers lose prototype chain and are not handled correctly by runtime.js and worker.js, causing missing messages.",
-  "fix": "Modified error handlers to explicitly check for duck-typed error objects containing a string `message` (and optionally `code`) when `instanceof Error` fails."
-}
