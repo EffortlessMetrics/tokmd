@@ -241,7 +241,7 @@ const runnerReady = loadTokmdRunner()
             createErrorMessage(
                 null,
                 "wasm_boot_failed",
-                `browser runner failed to initialize tokmd-wasm: ${error instanceof Error ? error.message : String(error)}`
+                `browser runner failed to initialize tokmd-wasm: ${error instanceof Error ? error.message : (error && typeof error === "object" && error.message ? error.message : String(error))}`
             )
         );
         return null;
