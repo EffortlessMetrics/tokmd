@@ -373,6 +373,7 @@ fn export_json_has_rows_array() {
 // analyze --format md
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_md_exits_zero_and_nonempty() {
     let output = tokmd_cmd()
@@ -385,6 +386,7 @@ fn analyze_md_exits_zero_and_nonempty() {
     assert!(!stdout.trim().is_empty(), "analyze md must not be empty");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_md_contains_markdown_headers() {
     let output = tokmd_cmd()
@@ -404,6 +406,7 @@ fn analyze_md_contains_markdown_headers() {
 // analyze --format json
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_exits_zero_and_valid() {
     let output = tokmd_cmd()
@@ -416,6 +419,7 @@ fn analyze_json_exits_zero_and_valid() {
     assert!(json.is_object(), "analyze JSON must be an object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_has_schema_version() {
     let output = tokmd_cmd()
@@ -435,6 +439,7 @@ fn analyze_json_has_schema_version() {
 // analyze --format xml
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_xml_exits_zero_and_nonempty() {
     let output = tokmd_cmd()
@@ -447,6 +452,7 @@ fn analyze_xml_exits_zero_and_nonempty() {
     assert!(!stdout.trim().is_empty(), "analyze xml must not be empty");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_xml_has_xml_structure() {
     let output = tokmd_cmd()
@@ -525,6 +531,7 @@ fn module_top_1_limits_rows_plus_other() {
 // --children collapse vs separate
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_children_collapse_vs_separate_differ() {
     let collapse_output = tokmd_cmd()
@@ -564,6 +571,7 @@ fn lang_children_collapse_vs_separate_differ() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_children_separate_vs_parents_only_differ() {
     let separate_output = tokmd_cmd()
@@ -642,6 +650,7 @@ fn export_redact_paths_jsonl_meta_indicates_redaction() {
 // Cross-command: all JSON outputs have schema_version
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn all_json_outputs_include_schema_version() {
     let commands: Vec<Vec<&str>> = vec![
@@ -760,6 +769,7 @@ fn export_csv_consistent_column_count() {
 // Analyze preset interaction with format
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_json_exits_zero() {
     let output = tokmd_cmd()
@@ -775,6 +785,7 @@ fn analyze_health_json_exits_zero() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_md_exits_zero() {
     let output = tokmd_cmd()

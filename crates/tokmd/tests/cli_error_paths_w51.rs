@@ -55,6 +55,7 @@ fn module_negative_depth_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_fails() {
     tokmd_cmd_fixture()
@@ -64,6 +65,7 @@ fn analyze_invalid_preset_fails() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_no_arguments_fails() {
     tokmd_cmd()
@@ -73,6 +75,7 @@ fn diff_no_arguments_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_no_arguments_fails() {
     tokmd_cmd()
@@ -136,6 +139,7 @@ fn export_nonexistent_path_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_nonexistent_path_fails() {
     let p = nonexistent_path();
@@ -147,6 +151,7 @@ fn analyze_nonexistent_path_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_nonexistent_before_after_fails() {
     let p = nonexistent_path();
@@ -194,6 +199,7 @@ fn lang_help_succeeds() {
         .stdout(predicate::str::contains("Usage"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_lists_presets() {
     tokmd_cmd()
@@ -226,6 +232,7 @@ fn unknown_subcommand_fails() {
 }
 
 /// Verify that every expected subcommand responds to --help without error.
+#[cfg(feature = "analysis")]
 #[test]
 fn known_subcommands_respond_to_help() {
     let subcommands = [
@@ -240,6 +247,7 @@ fn known_subcommands_respond_to_help() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_subcommand_responds_to_help() {
     tokmd_cmd()

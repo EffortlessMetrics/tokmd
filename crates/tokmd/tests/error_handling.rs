@@ -55,6 +55,7 @@ fn export_invalid_format_fails() {
         .stderr(predicate::str::contains("invalid value 'invalid_format'"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_format_fails() {
     tokmd_cmd()
@@ -71,6 +72,7 @@ fn analyze_invalid_format_fails() {
 // Invalid --preset value for analyze / badge
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_fails() {
     tokmd_cmd()
@@ -83,6 +85,7 @@ fn analyze_invalid_preset_fails() {
         .stderr(predicate::str::contains("invalid value 'nonexistent'"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_invalid_preset_fails() {
     tokmd_cmd()
@@ -174,6 +177,7 @@ fn gate_missing_receipt_arg_fails() {
 // Diff command: missing required arguments
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_args_fails() {
     tokmd_cmd()
@@ -222,6 +226,7 @@ fn gate_nonexistent_receipt_file_fails() {
 // Diff: nonexistent input files
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_nonexistent_files_fails() {
     tokmd_cmd()

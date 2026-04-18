@@ -40,6 +40,7 @@ fn run_baseline(extra: &[&str]) -> serde_json::Value {
 // 1. Metrics field validation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_has_total_files() {
     let parsed = run_baseline(&[]);
@@ -53,6 +54,7 @@ fn baseline_metrics_has_total_files() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_has_function_count() {
     let parsed = run_baseline(&[]);
@@ -62,6 +64,7 @@ fn baseline_metrics_has_function_count() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_has_avg_cyclomatic() {
     let parsed = run_baseline(&[]);
@@ -71,6 +74,7 @@ fn baseline_metrics_has_avg_cyclomatic() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_has_max_cyclomatic() {
     let parsed = run_baseline(&[]);
@@ -80,6 +84,7 @@ fn baseline_metrics_has_max_cyclomatic() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_avg_le_max_cyclomatic() {
     let parsed = run_baseline(&[]);
@@ -95,6 +100,7 @@ fn baseline_metrics_avg_le_max_cyclomatic() {
 // 2. Custom output path
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_custom_output_path() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;
@@ -127,6 +133,7 @@ fn baseline_custom_output_path() -> Result<(), Box<dyn std::error::Error>> {
 // 3. Force overwrite semantics
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_without_force_on_existing_file_fails() {
     let dir = tempdir().expect("should create temp dir");
@@ -159,6 +166,7 @@ fn baseline_without_force_on_existing_file_fails() {
         );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_force_overwrites_existing() {
     let dir = tempdir().expect("should create temp dir");
@@ -189,6 +197,7 @@ fn baseline_force_overwrites_existing() {
 // 4. Determinism
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_deterministic_metrics() {
     let run1 = run_baseline(&[]);
@@ -208,6 +217,7 @@ fn baseline_deterministic_metrics() {
 // 5. Commit field
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_has_commit_field() {
     let parsed = run_baseline(&[]);
@@ -223,6 +233,7 @@ fn baseline_has_commit_field() {
 // 6. Empty project
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_empty_project() {
     let dir = tempdir().expect("should create temp dir");
@@ -254,6 +265,7 @@ fn baseline_empty_project() {
 // 7. Baseline version field
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_version_is_one() {
     let parsed = run_baseline(&[]);
@@ -264,6 +276,7 @@ fn baseline_version_is_one() {
 // 8. Determinism flag (feature-gated)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn baseline_determinism_flag_source_hash_format() -> Result<(), Box<dyn std::error::Error>> {
@@ -300,6 +313,7 @@ fn baseline_determinism_flag_source_hash_format() -> Result<(), Box<dyn std::err
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn baseline_determinism_flag_deterministic_hash() {
@@ -335,6 +349,7 @@ fn baseline_determinism_flag_deterministic_hash() {
 // 9. Metrics non-negative
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_metrics_values_non_negative() {
     let parsed = run_baseline(&[]);

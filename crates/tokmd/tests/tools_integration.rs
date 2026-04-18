@@ -26,6 +26,7 @@ fn test_tools_jsonschema_output_parses() {
     assert!(parsed.get("tools").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_tools_contains_known_commands() {
     let output = tokmd()

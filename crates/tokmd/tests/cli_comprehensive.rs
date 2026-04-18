@@ -28,6 +28,7 @@ fn version_flag_prints_semver() {
         .stdout(predicate::str::is_match(r"\d+\.\d+\.\d+").unwrap());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_flag_lists_all_subcommands() {
     tokmd_cmd()
@@ -366,6 +367,7 @@ fn export_max_rows_limits_output() {
 // 6. run subcommand
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_generates_receipt_and_artifacts() {
     let dir = tempdir().unwrap();
@@ -403,6 +405,7 @@ fn run_generates_receipt_and_artifacts() {
 // 7. analyze subcommand
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_derived_metrics() {
     let output = tokmd_cmd()
@@ -416,6 +419,7 @@ fn analyze_receipt_json_has_derived_metrics() {
     assert!(json["derived"].is_object(), "should have derived metrics");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown_contains_heading() {
     tokmd_cmd()
@@ -425,6 +429,7 @@ fn analyze_receipt_markdown_contains_heading() {
         .stdout(predicate::str::contains("#"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_preset_json() {
     let output = tokmd_cmd()
@@ -442,6 +447,7 @@ fn analyze_health_preset_json() {
 // 8. badge subcommand
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_metric_outputs_svg() {
     tokmd_cmd()
@@ -452,6 +458,7 @@ fn badge_lines_metric_outputs_svg() {
         .stdout(predicate::str::contains("</svg>"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_metric_outputs_svg() {
     tokmd_cmd()
@@ -462,6 +469,7 @@ fn badge_tokens_metric_outputs_svg() {
         .stdout(predicate::str::contains("tokens"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_bytes_metric_outputs_svg() {
     tokmd_cmd()
@@ -471,6 +479,7 @@ fn badge_bytes_metric_outputs_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_out_flag_writes_file() {
     let dir = tempdir().unwrap();
@@ -718,6 +727,7 @@ fn completions_elvish_produces_script() {
 // 14. baseline subcommand
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_generates_valid_json_output() {
     let dir = tempdir().unwrap();
@@ -740,6 +750,7 @@ fn baseline_generates_valid_json_output() {
 // 15. diff subcommand (requires two runs)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_between_identical_runs_shows_no_changes() {
     let dir = tempdir().unwrap();
@@ -855,6 +866,7 @@ fn export_invalid_format_fails() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_format_fails() {
     tokmd_cmd()
@@ -864,6 +876,7 @@ fn analyze_invalid_format_fails() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_fails() {
     tokmd_cmd()
@@ -908,6 +921,7 @@ fn gate_missing_args_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_args_fails() {
     tokmd_cmd()
@@ -917,6 +931,7 @@ fn diff_missing_args_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_nonexistent_files_fails() {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
@@ -963,6 +978,7 @@ fn export_help_shows_format() {
         .stdout(predicate::str::contains("--format"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_shows_preset() {
     tokmd_cmd()
@@ -972,6 +988,7 @@ fn analyze_help_shows_preset() {
         .stdout(predicate::str::contains("--preset"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_help_shows_metric() {
     tokmd_cmd()

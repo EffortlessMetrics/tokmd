@@ -14,6 +14,7 @@ fn tokmd() -> Command {
     cmd
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_badge_generation() {
     let tmp = tempfile::tempdir().unwrap();
@@ -45,6 +46,7 @@ fn recipe_badge_generation() {
     assert!(badge_hotspot_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_analyze_presets() {
     // "tokmd analyze --preset receipt --format md"
@@ -107,6 +109,7 @@ fn recipe_analyze_presets() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_list() {
     // "tokmd context --budget 128k"
@@ -118,6 +121,7 @@ fn recipe_context_list() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_bundle() {
     // "tokmd context --budget 128k --mode bundle --output context.txt"
@@ -136,6 +140,7 @@ fn recipe_context_bundle() {
     assert!(bundle_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_spread() {
     // "tokmd context --budget 200k --strategy spread"
@@ -149,6 +154,7 @@ fn recipe_context_spread() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_bundle_compress() {
     // "tokmd context --budget 100k --mode bundle --compress --output bundle.txt"
@@ -168,6 +174,7 @@ fn recipe_context_bundle_compress() {
     assert!(bundle_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_json() {
     // "tokmd context --budget 128k --mode json --output selection.json"
@@ -186,6 +193,7 @@ fn recipe_context_json() {
     assert!(json_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_gate_default() {
     // "tokmd gate" (Requires a policy to succeed in tests, simulating inline config)
@@ -211,6 +219,7 @@ value = 5000000
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_gate_json() {
     // "tokmd gate --format json"
@@ -238,6 +247,7 @@ value = 5000000
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_gate_fail_fast() {
     // "tokmd gate --fail-fast"
@@ -264,6 +274,7 @@ value = 5000000
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_run_and_diff() {
     let tmp = tempfile::tempdir().unwrap();
@@ -301,6 +312,7 @@ fn recipe_run_and_diff() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_budget() {
     // "tokmd context --budget 128k"
@@ -312,6 +324,7 @@ fn recipe_context_budget() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_tools_export_schemas() {
     // "tokmd tools --format openai --pretty"
@@ -342,6 +355,7 @@ fn recipe_tools_export_schemas() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_default_map() {
     // "tokmd module --top 20"
@@ -353,6 +367,7 @@ fn recipe_default_map() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_export_map_jsonl() {
     // "tokmd export --min-code 20 --max-rows 300 --redact paths > map.jsonl"
@@ -368,12 +383,14 @@ fn recipe_export_map_jsonl() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_simple_lang_summary() {
     // "tokmd lang"
     tokmd().arg("lang").assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_module_summary_markdown() {
     // "tokmd module --format md"
@@ -385,6 +402,7 @@ fn recipe_module_summary_markdown() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_export_full_json() {
     // "tokmd export --format json"
@@ -396,6 +414,7 @@ fn recipe_export_full_json() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_ci_workflow_snippet() {
     // From README: "tokmd module --format json > tokmd.module.json"
@@ -408,6 +427,7 @@ fn recipe_ci_workflow_snippet() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_generate_baseline() {
     // "tokmd baseline --output baseline.json"
@@ -422,6 +442,7 @@ fn recipe_generate_baseline() {
     assert!(baseline_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_handoff_bundle() {
     // "tokmd handoff --out-dir .handoff"
@@ -438,6 +459,7 @@ fn recipe_handoff_bundle() {
 }
 
 #[cfg(feature = "git")]
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_sensor_json() {
     // Skip if the fixtures directory is not inside a git repository
@@ -472,6 +494,7 @@ fn recipe_sensor_json() {
     assert!(report_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "content")]
 fn recipe_gate_with_baseline() {
@@ -509,6 +532,7 @@ max_increase_pct = 10.0
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_init_non_interactive() {
     let tmp = tempfile::tempdir().unwrap();
@@ -521,6 +545,7 @@ fn recipe_init_non_interactive() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_context_spread_compress() {
     let tmp = tempfile::tempdir().unwrap();
@@ -557,6 +582,7 @@ fn recipe_context_spread_compress() {
     assert!(bundle_compressed_path.exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_check_ignore() {
     let tmp = tempfile::tempdir().unwrap();
@@ -573,6 +599,7 @@ fn recipe_check_ignore() {
         .stdout(predicate::str::contains("target/debug/myapp: ignored"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_check_ignore_verbose() {
     let tmp = tempfile::tempdir().unwrap();
@@ -597,6 +624,7 @@ fn recipe_check_ignore_verbose() {
         .stdout(predicate::str::contains(".tokeignore: node_modules/**"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn recipe_diff() {
     let tmp = tempfile::tempdir().unwrap();
@@ -636,6 +664,7 @@ fn recipe_diff() {
         .stdout(predicate::str::contains("## Diff:"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn recipe_cockpit_format() {

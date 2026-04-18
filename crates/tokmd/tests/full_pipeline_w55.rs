@@ -454,6 +454,7 @@ fn cli_export_json_full_pipeline() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cli_analyze_receipt_json_pipeline() {
     let json = run_json(&["analyze", "--preset", "receipt", "--format", "json"]);
@@ -465,6 +466,7 @@ fn cli_analyze_receipt_json_pipeline() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cli_analyze_health_json_pipeline() {
     let json = run_json(&["analyze", "--preset", "health", "--format", "json"]);
@@ -555,6 +557,7 @@ fn totals_consistent_model_to_json() {
 // 6. Diff pipeline
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_identical_reports_produces_no_rows() {
     let langs = scan(&[fixture_path()], &default_scan_options()).expect("scan");
@@ -575,6 +578,7 @@ fn diff_totals_zero_for_identical() {
     assert_eq!(totals.delta_files, 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_receipt_has_correct_structure() {
     let rows = vec![DiffRow {
@@ -605,6 +609,7 @@ fn diff_receipt_has_correct_structure() {
     assert_eq!(receipt.totals.delta_code, 50);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_receipt_serializes_to_valid_json() {
     let rows = vec![DiffRow {
@@ -709,6 +714,7 @@ fn badge_from_scan_data_produces_svg() {
     assert!(svg.contains("lines"), "badge must contain label");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cli_badge_produces_svg() {
     tokmd_cmd()
@@ -795,6 +801,7 @@ exclude = ["*.md", "vendor/**"]
 // 11. Feature-gated paths graceful degradation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cli_analyze_without_git_range_succeeds() {
     // analyze with receipt preset doesn't require git range

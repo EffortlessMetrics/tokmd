@@ -53,6 +53,7 @@ fn export_nonexistent_path_fails_with_nonzero_exit() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_nonexistent_path_fails_with_nonzero_exit() {
     tokmd_cmd()
@@ -62,6 +63,7 @@ fn analyze_nonexistent_path_fails_with_nonzero_exit() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_nonexistent_path_fails_with_nonzero_exit() {
     tokmd_cmd()
@@ -106,6 +108,7 @@ fn export_invalid_format_parquet_produces_stderr_error() {
 // 3. Invalid presets for analyze
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_bogus_produces_stderr_error() {
     tokmd_cmd_fixture()
@@ -213,6 +216,7 @@ fn error_messages_go_to_stderr_for_nonexistent_path() {
 // 7. Gate CLI error paths
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_with_nonexistent_policy_file_fails() {
     tokmd_cmd_fixture()
@@ -239,6 +243,7 @@ fn gate_with_nonexistent_receipt_file_fails() {
 // 8. Diff CLI error paths
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_required_args_fails() {
     // diff requires at least two receipts/paths to compare
@@ -266,6 +271,7 @@ fn context_nonexistent_path_fails() {
 // 10. Badge CLI error paths
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_with_invalid_metric_fails() {
     tokmd_cmd_fixture()

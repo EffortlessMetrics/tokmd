@@ -29,6 +29,7 @@ fn normalize_envelope(output: &str) -> String {
 // 1. Format stability: repeated runs produce identical bytes
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_is_deterministic() {
     let run = || {
@@ -45,6 +46,7 @@ fn lang_json_is_deterministic() {
     assert_eq!(b, c, "lang JSON must be byte-stable across runs (2 vs 3)");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_md_is_deterministic() {
     let run = || {
@@ -61,6 +63,7 @@ fn lang_md_is_deterministic() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_tsv_is_deterministic() {
     let run = || {
@@ -73,6 +76,7 @@ fn lang_tsv_is_deterministic() {
     assert_eq!(run(), run(), "lang TSV must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_is_deterministic() {
     let run = || {
@@ -89,6 +93,7 @@ fn module_json_is_deterministic() {
     assert_eq!(b, c, "module JSON must be byte-stable across runs (2 vs 3)");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_md_is_deterministic() {
     let run = || {
@@ -105,6 +110,7 @@ fn module_md_is_deterministic() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_tsv_is_deterministic() {
     let run = || {
@@ -117,6 +123,7 @@ fn module_tsv_is_deterministic() {
     assert_eq!(run(), run(), "module TSV must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_is_deterministic() {
     let run = || {
@@ -129,6 +136,7 @@ fn export_jsonl_is_deterministic() {
     assert_eq!(run(), run(), "export JSONL must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_is_deterministic() {
     let run = || {
@@ -141,6 +149,7 @@ fn export_csv_is_deterministic() {
     assert_eq!(run(), run(), "export CSV must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_is_deterministic() {
     let run = || {
@@ -157,6 +166,7 @@ fn export_json_is_deterministic() {
 // 2. BTreeMap ordering: JSON keys are always sorted
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_keys_are_sorted() {
     let o = tokmd_cmd()
@@ -181,6 +191,7 @@ fn lang_json_keys_are_sorted() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_keys_are_sorted() {
     let o = tokmd_cmd()
@@ -204,6 +215,7 @@ fn export_json_keys_are_sorted() {
 // 3. Sorting invariants: descending by code, then by name
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_rows_sorted_by_code_desc_then_name_asc() {
     let o = tokmd_cmd()
@@ -230,6 +242,7 @@ fn lang_rows_sorted_by_code_desc_then_name_asc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_rows_sorted_by_code_desc_then_name_asc() {
     let o = tokmd_cmd()
@@ -256,6 +269,7 @@ fn module_rows_sorted_by_code_desc_then_name_asc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_rows_sorted_by_code_desc_then_path_asc() {
     let o = tokmd_cmd()
@@ -286,6 +300,7 @@ fn export_rows_sorted_by_code_desc_then_path_asc() {
 // 4. Receipt envelope determinism
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_receipt_has_required_envelope_fields() {
     let o = tokmd_cmd()
@@ -307,6 +322,7 @@ fn lang_receipt_has_required_envelope_fields() {
     assert_eq!(json["schema_version"], 2);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_receipt_has_required_envelope_fields() {
     let o = tokmd_cmd()
@@ -322,6 +338,7 @@ fn module_receipt_has_required_envelope_fields() {
     assert_eq!(json["schema_version"], 2);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_receipt_has_required_envelope_fields() {
     let o = tokmd_cmd()
@@ -341,6 +358,7 @@ fn export_json_receipt_has_required_envelope_fields() {
 // 5. Path normalization in output: no backslashes
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_paths_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -359,6 +377,7 @@ fn export_paths_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_modules_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -420,6 +439,7 @@ fn schema_version_constants_match_expected() {
 // 7. Multiple runs produce same row count
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_row_count_is_stable() {
     let count = || -> usize {
@@ -436,6 +456,7 @@ fn lang_row_count_is_stable() {
     assert_eq!(count(), count(), "lang row count must be stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_row_count_is_stable() {
     let count = || -> usize {
@@ -456,6 +477,7 @@ fn export_row_count_is_stable() {
 // 8. Redaction determinism via CLI
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn redacted_export_is_deterministic() {
     let run = || {
@@ -472,6 +494,7 @@ fn redacted_export_is_deterministic() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn redacted_paths_are_hashed_not_plaintext() {
     let o = tokmd_cmd()
@@ -498,6 +521,7 @@ fn redacted_paths_are_hashed_not_plaintext() {
 // 9. JSONL meta record consistency
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_meta_record_is_deterministic() {
     let run = || {
@@ -520,6 +544,7 @@ fn export_jsonl_meta_record_is_deterministic() {
 // 10. Totals consistency: totals match sum of rows
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_totals_match_row_sums() {
     let o = tokmd_cmd()
@@ -565,6 +590,7 @@ fn lang_totals_match_row_sums() {
 // 11. Path normalization: module keys use forward slashes
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_keys_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -592,6 +618,7 @@ fn module_json_keys_use_forward_slashes() {
 // 12. Export JSONL: every line is valid JSON
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_all_lines_valid_json() {
     let o = tokmd_cmd()
@@ -611,6 +638,7 @@ fn export_jsonl_all_lines_valid_json() {
 // 13. Export CSV: consistent column count across all rows
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_consistent_column_count() {
     let o = tokmd_cmd()

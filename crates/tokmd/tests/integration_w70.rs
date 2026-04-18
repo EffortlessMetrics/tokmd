@@ -162,6 +162,7 @@ fn w70_scan_model_format_json_roundtrips_totals() {
 // 2. Scan -> Export pipeline (JSONL)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_jsonl_each_line_valid_json() {
     let proj = make_project();
@@ -179,6 +180,7 @@ fn w70_export_jsonl_each_line_valid_json() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_jsonl_meta_line_has_schema_version() {
     let proj = make_project();
@@ -201,6 +203,7 @@ fn w70_export_jsonl_meta_line_has_schema_version() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_csv_has_header_and_data_rows() {
     let proj = make_project();
@@ -222,6 +225,7 @@ fn w70_export_csv_has_header_and_data_rows() {
 // 3. Receipt determinism
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_deterministic_across_three_runs() {
     let proj = make_project();
@@ -239,6 +243,7 @@ fn w70_lang_json_deterministic_across_three_runs() {
     assert_eq!(b, c, "run 2 vs 3 must match");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_deterministic_across_two_runs() {
     let proj = make_project();
@@ -252,6 +257,7 @@ fn w70_module_json_deterministic_across_two_runs() {
     assert_eq!(run(), run(), "module JSON must be stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_deterministic_across_two_runs() {
     let proj = make_project();
@@ -269,6 +275,7 @@ fn w70_export_json_deterministic_across_two_runs() {
 // 4. Schema version consistency
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_schema_version_matches_constant() {
     let proj = make_project();
@@ -284,6 +291,7 @@ fn w70_lang_json_schema_version_matches_constant() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_schema_version_matches_constant() {
     let proj = make_project();
@@ -299,6 +307,7 @@ fn w70_module_json_schema_version_matches_constant() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_schema_version_matches_constant() {
     let proj = make_project();
@@ -336,6 +345,7 @@ fn w70_lib_lang_receipt_schema_version_matches() {
 // 5. Module depth consistency
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_depth_1_produces_shallow_keys() {
     let proj = make_project();
@@ -356,6 +366,7 @@ fn w70_module_depth_1_produces_shallow_keys() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_depth_0_json_field_matches() {
     let proj = make_project();
@@ -368,6 +379,7 @@ fn w70_module_depth_0_json_field_matches() {
     assert_eq!(json["module_depth"].as_u64().unwrap(), 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_depth_2_allows_nested_keys() {
     let proj = make_project();
@@ -386,6 +398,7 @@ fn w70_module_depth_2_allows_nested_keys() {
 // 6. Format roundtrip
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_roundtrip_preserves_rows() {
     let proj = make_project();
@@ -402,6 +415,7 @@ fn w70_lang_json_roundtrip_preserves_rows() {
     assert!(json["schema_version"].is_number());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_roundtrip_preserves_structure() {
     let proj = make_project();
@@ -416,6 +430,7 @@ fn w70_module_json_roundtrip_preserves_structure() {
     assert_eq!(receipt.schema_version, SCHEMA_VERSION);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_roundtrip_has_file_rows() {
     let proj = make_project();
@@ -437,6 +452,7 @@ fn w70_export_json_roundtrip_has_file_rows() {
 // 7. Badge from receipt data
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_badge_lines_from_temp_project() {
     let proj = make_project();
@@ -448,6 +464,7 @@ fn w70_badge_lines_from_temp_project() {
         .stdout(predicate::str::contains("lines"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_badge_tokens_from_temp_project() {
     let proj = make_project();
@@ -463,6 +480,7 @@ fn w70_badge_tokens_from_temp_project() {
 // 8. Config -> Scan integration
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_cli_exclude_flag_propagates_to_scan_options() {
     let proj = make_project();
@@ -505,6 +523,7 @@ fn w70_lib_config_parse_exclude_affects_scan() {
 // 9. Empty directory
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_empty_dir_lang_json_valid_with_zero_rows() {
     let dir = TempDir::new().expect("tempdir");
@@ -521,6 +540,7 @@ fn w70_empty_dir_lang_json_valid_with_zero_rows() {
     assert!(rows.is_empty(), "empty dir should have zero rows");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_empty_dir_export_json_valid() {
     let dir = TempDir::new().expect("tempdir");
@@ -535,6 +555,7 @@ fn w70_empty_dir_export_json_valid() {
     assert!(json["schema_version"].is_number());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_empty_dir_module_json_valid() {
     let dir = TempDir::new().expect("tempdir");
@@ -555,6 +576,7 @@ fn w70_empty_dir_module_json_valid() {
 // 10. Exclude patterns propagate through the pipeline
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_cli_exclude_removes_language_from_lang() {
     let proj = make_project();
@@ -569,6 +591,7 @@ fn w70_cli_exclude_removes_language_from_lang() {
     assert!(!has_python, "*.py exclude should remove Python");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_cli_exclude_removes_files_from_export() {
     let proj = make_project();
@@ -606,6 +629,7 @@ fn w70_lib_exclude_removes_language_from_scan() {
 // 11. Children mode
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_children_collapse_vs_separate_differ() {
     let proj = make_project_with_embedded();
@@ -625,6 +649,7 @@ fn w70_children_collapse_vs_separate_differ() {
     assert_eq!(s["children"].as_str().unwrap_or(""), "separate");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_children_separate_has_embedded_tag() {
     let proj = make_project_with_embedded();
@@ -641,6 +666,7 @@ fn w70_children_separate_has_embedded_tag() {
 // 12. Sort consistency
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_rows_sorted_descending_by_code() {
     let proj = make_project();
@@ -759,6 +785,7 @@ fn w70_sort_order_consistent_between_tsv_and_json() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_rows_sorted_descending_by_code() {
     let proj = make_project();

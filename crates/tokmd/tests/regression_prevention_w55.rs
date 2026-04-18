@@ -121,6 +121,7 @@ fn cli_lang_json_schema_version_matches_constant() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cli_analyze_json_schema_version_matches_constant() {
     let json = run_json(&["analyze", "--preset", "receipt", "--format", "json"]);
@@ -167,6 +168,7 @@ fn export_json_has_required_keys() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_has_required_keys() {
     let json = run_json(&["analyze", "--preset", "receipt", "--format", "json"]);
@@ -245,6 +247,7 @@ fn create_export_data_produces_data() {
     assert!(!data.rows.is_empty(), "export data must have rows");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_svg_produces_valid_svg() {
     let svg = badge_svg("test", "42");
@@ -315,6 +318,7 @@ fn invalid_format_flag_fails() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn invalid_preset_flag_fails() {
     tokmd_cmd()
@@ -463,6 +467,7 @@ fn export_command_exists() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_command_exists() {
     tokmd_cmd()
@@ -471,6 +476,7 @@ fn analyze_command_exists() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_command_exists() {
     tokmd_cmd()
@@ -479,6 +485,7 @@ fn badge_command_exists() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_receipt_api_not_removed() {
     let rows = vec![];

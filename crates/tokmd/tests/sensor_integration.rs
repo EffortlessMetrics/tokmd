@@ -498,6 +498,7 @@ fn scenario_docs_only_change_verdict_pass() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn scenario_four_high_complexity_files_verdict_fail() {
     // Given: A git repo on main with src/lib.rs

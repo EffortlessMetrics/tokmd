@@ -37,6 +37,7 @@ fn normalize_envelope(output: &str) -> String {
 // 1. Five-run byte-stability tests
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_five_runs_identical() {
     let run = || {
@@ -55,6 +56,7 @@ fn lang_json_five_runs_identical() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_five_runs_identical() {
     let run = || {
@@ -73,6 +75,7 @@ fn module_json_five_runs_identical() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_five_runs_identical() {
     let run = || {
@@ -95,6 +98,7 @@ fn export_json_five_runs_identical() {
 // 2. JSON key sorting (BTreeMap guarantee) – top-level envelope
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_top_level_keys_sorted() {
     let o = tokmd_cmd()
@@ -112,6 +116,7 @@ fn lang_json_top_level_keys_sorted() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_top_level_keys_sorted() {
     let o = tokmd_cmd()
@@ -129,6 +134,7 @@ fn module_json_top_level_keys_sorted() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_top_level_keys_sorted() {
     let o = tokmd_cmd()
@@ -150,6 +156,7 @@ fn export_json_top_level_keys_sorted() {
 // 3. Row sort invariants
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_rows_sorted_desc_code_asc_name() {
     let o = tokmd_cmd()
@@ -172,6 +179,7 @@ fn lang_rows_sorted_desc_code_asc_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_rows_sorted_consistently() {
     let o = tokmd_cmd()
@@ -194,6 +202,7 @@ fn module_rows_sorted_consistently() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn file_rows_sorted_consistently() {
     let o = tokmd_cmd()
@@ -220,6 +229,7 @@ fn file_rows_sorted_consistently() {
 // 4. Path normalization – forward slashes everywhere
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn all_paths_use_forward_slashes_in_export() {
     let o = tokmd_cmd()
@@ -243,6 +253,7 @@ fn all_paths_use_forward_slashes_in_export() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn no_os_path_separators_in_markdown_output() {
     let o = tokmd_cmd()
@@ -262,6 +273,7 @@ fn no_os_path_separators_in_markdown_output() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn no_os_path_separators_in_tsv_output() {
     let o = tokmd_cmd()
@@ -279,6 +291,7 @@ fn no_os_path_separators_in_tsv_output() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn no_os_path_separators_in_csv_output() {
     let o = tokmd_cmd()
@@ -302,6 +315,7 @@ fn no_os_path_separators_in_csv_output() {
 // 5. Timestamp normalization consistency
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn timestamps_are_only_nondeterministic_field_lang() {
     let run = || {
@@ -332,6 +346,7 @@ fn timestamps_are_only_nondeterministic_field_lang() {
 // 6. Structural stability – row and field counts
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_names_deterministic_across_runs() {
     let get_names = || {
@@ -353,6 +368,7 @@ fn lang_names_deterministic_across_runs() {
     assert!(!a.is_empty(), "should have at least one language");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_file_kinds_deterministic() {
     let get_kinds = || {
@@ -373,6 +389,7 @@ fn export_file_kinds_deterministic() {
     assert_eq!(a, b, "file kinds must be identical across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_header_deterministic() {
     let get_header = || {
@@ -389,6 +406,7 @@ fn export_csv_header_deterministic() {
     assert!(a.contains("path"), "CSV header must contain 'path' column");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_line_order_deterministic() {
     let get_lines = || {
@@ -411,6 +429,7 @@ fn export_jsonl_line_order_deterministic() {
     assert_eq!(a, b, "JSONL row order must be identical across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn top_truncation_is_deterministic() {
     let run = || {

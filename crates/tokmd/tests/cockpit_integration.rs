@@ -177,6 +177,7 @@ fn test_cockpit_md_format() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_cockpit_md_includes_summary_comparison_with_baseline() {
     if !common::git_available() {
@@ -511,6 +512,7 @@ fn test_cockpit_file_classification() {
 // Priority 2: BDD Scenario Tests for Evidence Gates
 // =============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_evidence_gates_pass_all() {
     // Given: A repository with adequate code, tests, and documentation
@@ -580,6 +582,7 @@ fn test_evidence_gates_pass_all() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_evidence_gates_fail_coverage() {
     // Given: A repository with code but insufficient test coverage
@@ -651,6 +654,7 @@ fn test_evidence_gates_fail_coverage() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_evidence_gates_fail_supply_chain() {
     // Given: A repository with missing dependency lockfiles

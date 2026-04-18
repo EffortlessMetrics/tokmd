@@ -54,6 +54,7 @@ fn invalid_format_value_for_export_produces_error() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_value_produces_error() {
     tokmd_cmd_fixture()
@@ -90,6 +91,7 @@ fn module_non_numeric_depth_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_invalid_metric_fails() {
     tokmd_cmd_fixture()
@@ -144,6 +146,7 @@ fn export_with_nonexistent_path_produces_error() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_with_nonexistent_path_produces_error() {
     let p = nonexistent_path();
@@ -155,6 +158,7 @@ fn analyze_with_nonexistent_path_produces_error() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_with_nonexistent_path_produces_error() {
     let p = nonexistent_path();
@@ -166,6 +170,7 @@ fn run_with_nonexistent_path_produces_error() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_with_nonexistent_files_produces_error() {
     let p = nonexistent_path();
@@ -183,6 +188,7 @@ fn diff_with_nonexistent_files_produces_error() {
 // 3. --help works for every subcommand
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_flag_for_all_subcommands() {
     let subcommands = [
@@ -213,6 +219,7 @@ fn help_flag_for_all_subcommands() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn root_help_mentions_subcommands() {
     tokmd_cmd()
@@ -273,6 +280,7 @@ fn empty_string_subcommand_fails_or_defaults() {
 // 6. Commands that require arguments fail without them
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_without_required_args_fails() {
     tokmd_cmd()
@@ -282,6 +290,7 @@ fn diff_without_required_args_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_without_required_args_fails() {
     tokmd_cmd()

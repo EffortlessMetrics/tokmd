@@ -108,6 +108,7 @@ fn tokmd() -> Command {
 // 1. Diff via --from / --to (file paths)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_to_json_produces_valid_receipt() {
     let dir = tempdir().unwrap();
@@ -142,6 +143,7 @@ fn diff_from_to_json_produces_valid_receipt() {
     assert!(json["totals"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_to_md_produces_markdown() {
     let dir = tempdir().unwrap();
@@ -170,6 +172,7 @@ fn diff_from_to_md_produces_markdown() {
 // 2. Diff via positional args
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_positional_args_work() {
     let dir = tempdir().unwrap();
@@ -193,6 +196,7 @@ fn diff_positional_args_work() {
         .stdout(predicate::str::contains("## Diff:"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_positional_json_format() {
     let dir = tempdir().unwrap();
@@ -225,6 +229,7 @@ fn diff_positional_json_format() {
 // 3. Identical inputs -> zero deltas
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_identical_receipts_json_zero_deltas() {
     let dir = tempdir().unwrap();
@@ -251,6 +256,7 @@ fn diff_identical_receipts_json_zero_deltas() {
     assert_eq!(totals["delta_tokens"], 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_identical_receipts_md_has_header() {
     let dir = tempdir().unwrap();
@@ -272,6 +278,7 @@ fn diff_identical_receipts_md_has_header() {
 // 4. Completely different inputs (language added / removed)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_language_added_shows_positive_delta() {
     let dir = tempdir().unwrap();
@@ -311,6 +318,7 @@ fn diff_language_added_shows_positive_delta() {
     assert_eq!(py_row.unwrap()["new_code"], 50);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_language_removed_shows_negative_delta() {
     let dir = tempdir().unwrap();
@@ -349,6 +357,7 @@ fn diff_language_removed_shows_negative_delta() {
     assert_eq!(py_row.unwrap()["delta_code"], -50);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_completely_different_languages() {
     let dir = tempdir().unwrap();
@@ -388,6 +397,7 @@ fn diff_completely_different_languages() {
 // 5. Diff JSON receipt schema fields
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_has_from_source_and_to_source() {
     let dir = tempdir().unwrap();
@@ -418,6 +428,7 @@ fn diff_json_has_from_source_and_to_source() {
     assert!(json["tool"]["version"].is_string());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_diff_rows_have_all_metric_fields() {
     let dir = tempdir().unwrap();
@@ -465,6 +476,7 @@ fn diff_json_diff_rows_have_all_metric_fields() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_totals_have_all_metric_fields() {
     let dir = tempdir().unwrap();
@@ -515,6 +527,7 @@ fn diff_json_totals_have_all_metric_fields() {
 // 6. Multi-language diffs
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_multi_language_growth() {
     let dir = tempdir().unwrap();
@@ -551,6 +564,7 @@ fn diff_multi_language_growth() {
     assert_eq!(totals["delta_files"], 3); // (4-2) + (2-1)
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_multi_language_md_mentions_language_movement() {
     let dir = tempdir().unwrap();
@@ -585,6 +599,7 @@ fn diff_multi_language_md_mentions_language_movement() {
 // 7. Compact mode
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_compact_mode_excludes_language_breakdown() {
     let dir = tempdir().unwrap();
@@ -613,6 +628,7 @@ fn diff_compact_mode_excludes_language_breakdown() {
 // 8. Color modes
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_color_never_no_ansi() {
     let dir = tempdir().unwrap();
@@ -643,6 +659,7 @@ fn diff_color_never_no_ansi() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_color_always_emits_ansi_escapes() {
     let dir = tempdir().unwrap();
@@ -677,6 +694,7 @@ fn diff_color_always_emits_ansi_escapes() {
 // 9. Error cases
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_from_fails() {
     tokmd()
@@ -685,11 +703,13 @@ fn diff_missing_from_fails() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_both_args_fails() {
     tokmd().arg("diff").assert().failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_single_positional_arg_fails() {
     let dir = tempdir().unwrap();
@@ -706,6 +726,7 @@ fn diff_single_positional_arg_fails() {
 // 10. Receipt.json pointing to lang.json sibling
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_via_receipt_json_resolves_to_sibling_lang_json() {
     let dir = tempdir().unwrap();
@@ -746,6 +767,7 @@ fn diff_via_receipt_json_resolves_to_sibling_lang_json() {
     assert_eq!(json["totals"]["delta_code"], 100);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_via_directory_resolves_to_lang_json() {
     let dir = tempdir().unwrap();
@@ -787,6 +809,7 @@ fn diff_via_directory_resolves_to_lang_json() {
 // 11. Empty receipts (no languages)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_empty_receipts_produces_zero_totals() {
     let dir = tempdir().unwrap();
@@ -809,6 +832,7 @@ fn diff_empty_receipts_produces_zero_totals() {
     assert!(rows.is_empty());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_empty_to_populated() {
     let dir = tempdir().unwrap();

@@ -19,6 +19,7 @@ fn tokmd_cmd() -> Command {
 // Scenario 1: Receipt preset includes derived metrics
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_receipt_then_derived_metrics_present() {
     // Given: a project with source files
@@ -47,6 +48,7 @@ fn given_project_when_analyze_receipt_then_derived_metrics_present() {
 // Scenario 2: JSON output has analysis_schema_version (schema_version=9)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_json_then_has_schema_version() {
     // Given: a project with source files
@@ -76,6 +78,7 @@ fn given_project_when_analyze_json_then_has_schema_version() {
 // Scenario 3: XML output is valid XML with angle brackets
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_xml_then_valid_xml_structure() {
     // Given: a project with source files
@@ -99,6 +102,7 @@ fn given_project_when_analyze_xml_then_valid_xml_structure() {
 // Scenario 4: Analyze writes JSON to output directory
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_with_output_dir_then_file_created() {
     // Given: a project and a temporary output directory
@@ -133,6 +137,7 @@ fn given_project_when_analyze_with_output_dir_then_file_created() {
 // Scenario 5: Analyze has args metadata
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_json_then_has_args_metadata() {
     // Given: a project with source files
@@ -155,6 +160,7 @@ fn given_project_when_analyze_json_then_has_args_metadata() {
 // Scenario 6: Analyze markdown produces table output
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_md_then_markdown_table() {
     // Given: a project with source files
@@ -177,6 +183,7 @@ fn given_project_when_analyze_md_then_markdown_table() {
 // Scenario 7: Fun preset returns eco-label
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_fun_then_eco_label_present() {
     // Given: a project with source files

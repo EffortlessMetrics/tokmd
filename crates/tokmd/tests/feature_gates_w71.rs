@@ -20,6 +20,7 @@ fn fixture() -> std::path::PathBuf {
 // -- help text feature visibility --
 
 /// Analyze help must list all known presets so users know what's available.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_lists_preset_values() {
     tokmd()
@@ -31,6 +32,7 @@ fn analyze_help_lists_preset_values() {
 }
 
 /// Analyze help mentions format options.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_mentions_format_option() {
     tokmd()
@@ -41,6 +43,7 @@ fn analyze_help_mentions_format_option() {
 }
 
 /// Analyze help mentions the git override flag.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_mentions_git_flag() {
     tokmd()
@@ -53,6 +56,7 @@ fn analyze_help_mentions_git_flag() {
 // -- JSON output structure tests --
 
 /// Analyze receipt preset JSON output includes warnings array.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_includes_warnings_array() {
     let output = tokmd()
@@ -69,6 +73,7 @@ fn analyze_receipt_json_includes_warnings_array() {
 }
 
 /// Analyze receipt preset JSON output includes status field.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_includes_status_field() {
     let output = tokmd()
@@ -86,6 +91,7 @@ fn analyze_receipt_json_includes_status_field() {
 }
 
 /// Deep preset JSON output has schema_version and derived section.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_deep_json_has_schema_and_derived() {
     let output = tokmd()
@@ -100,6 +106,7 @@ fn analyze_deep_json_has_schema_and_derived() {
 }
 
 /// Deep preset JSON includes tool.name = "tokmd".
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_deep_json_tool_name() {
     let output = tokmd()
@@ -115,6 +122,7 @@ fn analyze_deep_json_tool_name() {
 
 /// Health preset JSON always has warnings array (possibly non-empty
 /// if content/walk features are missing).
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_json_has_warnings() {
     let output = tokmd()
@@ -130,6 +138,7 @@ fn analyze_health_json_has_warnings() {
 // -- graceful degradation --
 
 /// Invalid preset name returns non-zero exit code.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_invalid_preset_fails() {
     tokmd()
@@ -140,6 +149,7 @@ fn analyze_invalid_preset_fails() {
 }
 
 /// Analyze with --no-git flag suppresses git enricher (deep preset).
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_deep_no_git_flag_suppresses_git() {
     let output = tokmd()
@@ -158,6 +168,7 @@ fn analyze_deep_no_git_flag_suppresses_git() {
 }
 
 /// Analyze receipt preset exits successfully -- it requires no optional features.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_always_succeeds() {
     tokmd()
@@ -168,6 +179,7 @@ fn analyze_receipt_always_succeeds() {
 }
 
 /// Analyze with --preset deep includes all available features.
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_deep_includes_available_features() {
     let output = tokmd()
@@ -185,6 +197,7 @@ fn analyze_deep_includes_available_features() {
 // -- all presets produce valid JSON --
 
 /// Every preset produces parseable JSON with required envelope fields.
+#[cfg(feature = "analysis")]
 #[test]
 fn all_presets_produce_valid_json_envelope() {
     let presets = [
@@ -233,6 +246,7 @@ fn all_presets_produce_valid_json_envelope() {
 }
 
 /// Receipt-mode JSON never includes git, entropy, or assets sections.
+#[cfg(feature = "analysis")]
 #[test]
 fn receipt_json_excludes_optional_sections() {
     let output = tokmd()

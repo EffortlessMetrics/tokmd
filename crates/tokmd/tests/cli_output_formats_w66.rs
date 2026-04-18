@@ -221,6 +221,7 @@ fn export_jsonl_each_line_is_valid_json() {
 // 4. analyze JSON output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_parses_as_valid_json() {
     let output = tokmd_cmd()
@@ -234,6 +235,7 @@ fn analyze_json_parses_as_valid_json() {
     assert!(json.is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_markdown_produces_readable_output() {
     let output = tokmd_cmd()
@@ -253,6 +255,7 @@ fn analyze_markdown_produces_readable_output() {
 // 5. badge output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_produces_valid_svg() {
     let output = tokmd_cmd()

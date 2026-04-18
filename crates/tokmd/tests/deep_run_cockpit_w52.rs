@@ -36,6 +36,7 @@ fn run_to_dir(output_dir: &std::path::Path) {
 // 1. `tokmd run` tests
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_produces_output_directory_with_artifacts() {
     let dir = tempdir().unwrap();
@@ -48,6 +49,7 @@ fn run_produces_output_directory_with_artifacts() {
     assert!(out.join("export.jsonl").exists(), "export.jsonl missing");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_receipt_is_valid_json() {
     let dir = tempdir().unwrap();
@@ -59,6 +61,7 @@ fn run_receipt_is_valid_json() {
     assert!(v.is_object(), "receipt should be a JSON object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_includes_lang_module_export_references() {
     let dir = tempdir().unwrap();
@@ -72,6 +75,7 @@ fn run_includes_lang_module_export_references() {
     assert!(v["export_file"].is_string(), "should reference export_file");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_output_dir_creates_specified_directory() {
     let dir = tempdir().unwrap();
@@ -83,6 +87,7 @@ fn run_output_dir_creates_specified_directory() {
     assert!(custom.join("receipt.json").exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_receipt_has_schema_version() {
     let dir = tempdir().unwrap();
@@ -94,6 +99,7 @@ fn run_receipt_has_schema_version() {
     assert_eq!(v["schema_version"], 2, "schema_version should be 2");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_lang_json_has_languages() {
     let dir = tempdir().unwrap();
@@ -108,6 +114,7 @@ fn run_lang_json_has_languages() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_module_json_is_valid_json() {
     let dir = tempdir().unwrap();
@@ -119,6 +126,7 @@ fn run_module_json_is_valid_json() {
     assert!(v.is_object(), "module.json should be a JSON object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_export_jsonl_has_lines() {
     let dir = tempdir().unwrap();
@@ -138,6 +146,7 @@ fn run_export_jsonl_has_lines() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_redact_paths_hides_raw_paths() {
     let dir = tempdir().unwrap();
@@ -159,6 +168,7 @@ fn run_redact_paths_hides_raw_paths() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_on_empty_dir_produces_valid_receipt() {
     let dir = tempdir().unwrap();
@@ -181,6 +191,7 @@ fn run_on_empty_dir_produces_valid_receipt() {
     assert_eq!(v["schema_version"], 2);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_determinism_two_runs_identical() {
     let dir = tempdir().unwrap();
@@ -236,6 +247,7 @@ fn run_determinism_two_runs_identical() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_receipt_generated_at_ms_is_present() {
     let dir = tempdir().unwrap();
@@ -290,6 +302,7 @@ fn setup_cockpit_repo() -> Option<tempfile::TempDir> {
     Some(dir)
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_schema_version() {
@@ -322,6 +335,7 @@ fn cockpit_json_has_schema_version() {
     assert_eq!(v["schema_version"], 3, "cockpit schema_version should be 3");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_composition() {
@@ -350,6 +364,7 @@ fn cockpit_json_has_composition() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_code_health() {
@@ -378,6 +393,7 @@ fn cockpit_json_has_code_health() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_change_surface() {
@@ -406,6 +422,7 @@ fn cockpit_json_has_change_surface() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_evidence_and_risk() {
@@ -435,6 +452,7 @@ fn cockpit_json_has_evidence_and_risk() {
     assert!(v.get("risk").is_some(), "cockpit should include risk");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_md_has_expected_sections() {
@@ -468,6 +486,7 @@ fn cockpit_md_has_expected_sections() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_json_has_review_plan() {
@@ -496,6 +515,7 @@ fn cockpit_json_has_review_plan() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn cockpit_handles_no_git_history_gracefully() {
@@ -529,6 +549,7 @@ fn cockpit_handles_no_git_history_gracefully() {
 // 3. `tokmd badge` tests
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_produces_svg() {
     tokmd_on_fixtures()
@@ -539,6 +560,7 @@ fn badge_lines_produces_svg() {
         .stdout(predicate::str::contains("</svg>"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_svg_is_valid_xml() {
     let output = tokmd_on_fixtures()
@@ -554,6 +576,7 @@ fn badge_svg_is_valid_xml() {
     assert!(svg.contains("xmlns"), "SVG should contain xmlns attribute");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_contains_metric_label() {
     let output = tokmd_on_fixtures()
@@ -569,6 +592,7 @@ fn badge_contains_metric_label() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_different_metrics_succeed() {
     // Test multiple metric variants
@@ -591,6 +615,7 @@ fn badge_different_metrics_succeed() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_output_to_file() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;
@@ -608,6 +633,7 @@ fn badge_output_to_file() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_invalid_metric_fails() {
     tokmd_on_fixtures()

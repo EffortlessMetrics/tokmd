@@ -45,6 +45,7 @@ fn error_export_nonexistent_path() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn error_diff_no_args() {
     tokmd_cmd().arg("diff").assert().failure().stderr(
@@ -54,6 +55,7 @@ fn error_diff_no_args() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn error_gate_nonexistent_policy() {
     tokmd_cmd()
@@ -72,6 +74,7 @@ fn error_module_invalid_format() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn error_analyze_invalid_preset() {
     tokmd_cmd()
@@ -85,6 +88,7 @@ fn error_analyze_invalid_preset() {
 // 2. Help output – root
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_root_contains_subcommands() {
     let assert = tokmd_cmd().arg("--help").assert().success();
@@ -168,6 +172,7 @@ fn help_export_mentions_format_variants() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_analyze_mentions_preset() {
     tokmd_cmd()
@@ -212,6 +217,7 @@ fn help_completions_mentions_shell_types() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_diff_mentions_from_and_to() {
     tokmd_cmd()
@@ -230,6 +236,7 @@ fn help_gate_mentions_policy() {
         .stdout(predicate::str::contains("--policy"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_badge_exists() {
     tokmd_cmd()
@@ -239,6 +246,7 @@ fn help_badge_exists() {
         .stdout(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_run_exists() {
     tokmd_cmd()
@@ -293,6 +301,7 @@ fn help_sensor_exists() {
         .stdout(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_baseline_exists() {
     tokmd_cmd()

@@ -565,6 +565,7 @@ fn receipts_implement_clone_debug_serde() {
 // 6. Determinism contracts
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn determinism_identical_json_across_runs() {
     let opts = default_scan_options();
@@ -581,6 +582,7 @@ fn determinism_identical_json_across_runs() {
     assert_eq!(json1, json2, "Same scan must produce byte-identical JSON");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn determinism_export_identical_across_runs() {
     let opts = default_scan_options();

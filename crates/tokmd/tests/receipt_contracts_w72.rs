@@ -333,12 +333,14 @@ fn w72_export_json_non_null_required_fields() {
 // 5. `tokmd analyze --format json --preset receipt` – analysis envelope
 // ═══════════════════════════════════════════════════════════════════════════
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_has_schema_version() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
     assert_eq!(json["schema_version"], ANALYSIS_SCHEMA_VERSION);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_has_required_envelope() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -351,6 +353,7 @@ fn w72_analyze_receipt_has_required_envelope() {
     assert!(json["args"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_has_derived_section() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -360,6 +363,7 @@ fn w72_analyze_receipt_has_derived_section() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_tool_metadata() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -367,6 +371,7 @@ fn w72_analyze_receipt_tool_metadata() {
     assert!(json["tool"]["version"].is_string());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_args_preset() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -374,6 +379,7 @@ fn w72_analyze_receipt_args_preset() {
     assert_eq!(json["args"]["format"], "json");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_receipt_non_null_required_fields() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -395,6 +401,7 @@ fn w72_analyze_receipt_non_null_required_fields() {
 // 6. Envelope metadata consistency across commands
 // ═══════════════════════════════════════════════════════════════════════════
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_all_json_envelopes_contain_tool_name_tokmd() {
     let commands: &[&[&str]] = &[
@@ -414,6 +421,7 @@ fn w72_all_json_envelopes_contain_tool_name_tokmd() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_all_json_envelopes_have_timestamp() {
     let commands: &[&[&str]] = &[
@@ -442,6 +450,7 @@ fn w72_all_json_envelopes_have_timestamp() {
 // 7. All JSON outputs: valid JSON (parse succeeds)
 // ═══════════════════════════════════════════════════════════════════════════
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_all_json_commands_produce_valid_json() {
     let commands: &[&[&str]] = &[
@@ -483,6 +492,7 @@ fn w72_export_json_keys_sorted() {
     assert_keys_sorted(&json, "export");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analyze_json_keys_sorted() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);
@@ -511,6 +521,7 @@ fn w72_core_receipts_share_schema_version() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w72_analysis_receipt_schema_version_matches() {
     let json = run_json(&["analyze", "--format", "json", "--preset", "receipt"]);

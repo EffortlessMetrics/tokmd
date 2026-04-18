@@ -1,0 +1,5 @@
+{"cmd": "mkdir -p .jules/runs/specsmith_interfaces"}
+{"cmd": "write envelope.json"}
+{"cmd": "cargo test --no-default-features"}
+{"cmd": "cargo fmt --all"}
+{"cmd": "cargo clippy --workspace --all-features -- -D warnings"}

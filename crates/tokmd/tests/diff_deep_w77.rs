@@ -109,6 +109,7 @@ fn tokmd() -> Command {
 // 1. Diff of same receipt → no changes
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_same_receipt_json_all_deltas_zero() {
     let dir = tempdir().unwrap();
@@ -134,6 +135,7 @@ fn diff_same_receipt_json_all_deltas_zero() {
     assert_eq!(totals["delta_tokens"], 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_same_receipt_each_row_delta_is_zero() {
     let dir = tempdir().unwrap();
@@ -173,6 +175,7 @@ fn diff_same_receipt_each_row_delta_is_zero() {
 // 2. Diff with added language → shows addition
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_added_language_appears_with_positive_delta() {
     let dir = tempdir().unwrap();
@@ -208,6 +211,7 @@ fn diff_added_language_appears_with_positive_delta() {
     assert_eq!(go_row["delta_code"], 80);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_added_language_totals_reflect_addition() {
     let dir = tempdir().unwrap();
@@ -242,6 +246,7 @@ fn diff_added_language_totals_reflect_addition() {
 // 3. Diff with removed language → shows removal
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_removed_language_appears_with_negative_delta() {
     let dir = tempdir().unwrap();
@@ -280,6 +285,7 @@ fn diff_removed_language_appears_with_negative_delta() {
     assert_eq!(shell_row["delta_files"], -2);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_removed_language_totals_reflect_removal() {
     let dir = tempdir().unwrap();
@@ -314,6 +320,7 @@ fn diff_removed_language_totals_reflect_removal() {
 // 4. Diff with changed counts → shows delta
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_changed_counts_positive_growth() {
     let dir = tempdir().unwrap();
@@ -347,6 +354,7 @@ fn diff_changed_counts_positive_growth() {
     assert_eq!(row["delta_tokens"], 625);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_changed_counts_negative_shrink() {
     let dir = tempdir().unwrap();
@@ -375,6 +383,7 @@ fn diff_changed_counts_negative_shrink() {
     assert_eq!(row["delta_files"], -3);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_mixed_changes_across_languages() {
     let dir = tempdir().unwrap();
@@ -420,6 +429,7 @@ fn diff_mixed_changes_across_languages() {
 // 5. Diff output format: JSON
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_output_has_required_envelope_fields() {
     let dir = tempdir().unwrap();
@@ -456,6 +466,7 @@ fn diff_json_output_has_required_envelope_fields() {
     assert!(json["totals"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_diff_row_fields_complete() {
     let dir = tempdir().unwrap();
@@ -508,6 +519,7 @@ fn diff_json_diff_row_fields_complete() {
 // 6. Diff output format: Markdown
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_md_output_contains_header_and_table() {
     let dir = tempdir().unwrap();
@@ -533,6 +545,7 @@ fn diff_md_output_contains_header_and_table() {
         .stdout(predicate::str::contains("|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_md_compact_produces_summary_table() {
     let dir = tempdir().unwrap();
@@ -557,6 +570,7 @@ fn diff_md_compact_produces_summary_table() {
         .stdout(predicate::str::contains("|Metric|Value|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_md_color_never_has_no_ansi() {
     let dir = tempdir().unwrap();
@@ -592,6 +606,7 @@ fn diff_md_color_never_has_no_ansi() {
 // 7. Diff from files: load two receipt JSON files and diff
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_files_via_positional_args() {
     let dir = tempdir().unwrap();
@@ -618,6 +633,7 @@ fn diff_from_files_via_positional_args() {
     assert_eq!(json["totals"]["delta_code"], 50);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_directory_loads_lang_json() {
     let dir = tempdir().unwrap();
@@ -659,6 +675,7 @@ fn diff_from_directory_loads_lang_json() {
 // 8. Diff from runs: run tokmd twice on different dirs and diff
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_from_live_runs() {
     let dir = tempdir().unwrap();
@@ -719,6 +736,7 @@ fn diff_from_live_runs() {
 // 9. Error handling: diff with invalid input
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_missing_both_args_fails() {
     tokmd()
@@ -728,6 +746,7 @@ fn diff_missing_both_args_fails() {
         .stderr(predicate::str::contains("--from").or(predicate::str::contains("refs/paths")));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_only_from_no_to_fails() {
     let dir = tempdir().unwrap();
@@ -740,6 +759,7 @@ fn diff_only_from_no_to_fails() {
     tokmd().args(["diff", "--from"]).arg(&a).assert().failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_nonexistent_file_fails() {
     tokmd()
@@ -754,6 +774,7 @@ fn diff_nonexistent_file_fails() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_invalid_json_file_fails() {
     let dir = tempdir().unwrap();
@@ -777,6 +798,7 @@ fn diff_invalid_json_file_fails() {
 // 10. Diff schema version matches expected
 // =========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_schema_version_matches_types_constant() {
     let dir = tempdir().unwrap();

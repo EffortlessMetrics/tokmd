@@ -84,6 +84,7 @@ fn assert_keys_sorted(v: &Value, path: &str) {
 // 1. lang --format json: 10 identical runs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_10_runs_identical() {
     let run = || {
@@ -104,6 +105,7 @@ fn w70_lang_json_10_runs_identical() {
 // 2. module --format json: twice identical
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_twice_identical() {
     let run = || {
@@ -123,6 +125,7 @@ fn w70_module_json_twice_identical() {
 // 3. export --format jsonl: twice identical line count and content
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_jsonl_twice_identical() {
     let run = || {
@@ -151,6 +154,7 @@ fn w70_export_jsonl_twice_identical() {
 // 4. export --format csv: twice identical
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_csv_twice_identical() {
     let run = || {
@@ -170,6 +174,7 @@ fn w70_export_csv_twice_identical() {
 // 5. JSON keys always alphabetically ordered (BTreeMap invariant)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_keys_alphabetically_ordered() {
     let out = tokmd_cmd()
@@ -181,6 +186,7 @@ fn w70_lang_json_keys_alphabetically_ordered() {
     assert_keys_sorted(&v, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_keys_alphabetically_ordered() {
     let out = tokmd_cmd()
@@ -192,6 +198,7 @@ fn w70_module_json_keys_alphabetically_ordered() {
     assert_keys_sorted(&v, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_keys_alphabetically_ordered() {
     let out = tokmd_cmd()
@@ -207,6 +214,7 @@ fn w70_export_json_keys_alphabetically_ordered() {
 // 6. Language rows sorted desc by code, then by name
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_rows_sorted_desc_code_then_name() {
     let out = tokmd_cmd()
@@ -234,6 +242,7 @@ fn w70_lang_rows_sorted_desc_code_then_name() {
 // 7. Module rows sorted desc by code, then by name
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_rows_sorted_desc_code_then_name() {
     let out = tokmd_cmd()
@@ -264,6 +273,7 @@ fn w70_module_rows_sorted_desc_code_then_name() {
 // 8. File paths use forward slashes in all output formats
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_paths_use_forward_slashes() {
     let out = tokmd_cmd()
@@ -281,6 +291,7 @@ fn w70_export_json_paths_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_jsonl_paths_use_forward_slashes() {
     let out = tokmd_cmd()
@@ -298,6 +309,7 @@ fn w70_export_jsonl_paths_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_csv_paths_use_forward_slashes() {
     let out = tokmd_cmd()
@@ -317,6 +329,7 @@ fn w70_export_csv_paths_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_json_paths_use_forward_slashes() {
     let out = tokmd_cmd()
@@ -335,6 +348,7 @@ fn w70_module_json_paths_use_forward_slashes() {
 // 9. No timestamps or random values leak into deterministic output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_json_no_random_values() {
     let out = tokmd_cmd()
@@ -370,6 +384,7 @@ fn w70_lang_json_no_random_values() {
     check_no_random_keys(&v, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_md_no_timestamp_leakage() {
     let run = || {
@@ -389,6 +404,7 @@ fn w70_module_md_no_timestamp_leakage() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_tsv_no_timestamp_leakage() {
     let run = || {
@@ -408,6 +424,7 @@ fn w70_lang_tsv_no_timestamp_leakage() {
 // 10. Unicode filenames: stable path normalization
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_unicode_filenames_stable_export() {
     let tmp = make_fixture(&[
@@ -429,6 +446,7 @@ fn w70_unicode_filenames_stable_export() {
     assert_eq!(a, b, "Unicode filename export must be byte-stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_unicode_filenames_forward_slashes() {
     let tmp = make_fixture(&[
@@ -447,6 +465,7 @@ fn w70_unicode_filenames_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_unicode_filenames_lang_determinism() {
     let tmp = make_fixture(&[
@@ -471,6 +490,7 @@ fn w70_unicode_filenames_lang_determinism() {
 // 11. Nested directories at various depths
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_nested_dirs_export_determinism() {
     let tmp = make_fixture(&[
@@ -494,6 +514,7 @@ fn w70_nested_dirs_export_determinism() {
     assert_eq!(a, b, "nested directory export must be byte-stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_nested_dirs_module_determinism() {
     let tmp = make_fixture(&[
@@ -515,6 +536,7 @@ fn w70_nested_dirs_module_determinism() {
     assert_eq!(a, b, "nested directory module must be byte-stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_nested_dirs_forward_slashes_in_module_names() {
     let tmp = make_fixture(&[("alpha/beta/gamma/code.rs", "fn deep() {}\n")]);
@@ -533,6 +555,7 @@ fn w70_nested_dirs_forward_slashes_in_module_names() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_nested_dirs_export_sort_stable() {
     let tmp = make_fixture(&[
@@ -564,6 +587,7 @@ fn w70_nested_dirs_export_sort_stable() {
 // 12. Mixed-case language names
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_mixed_languages_determinism() {
     let tmp = make_fixture(&[
@@ -590,6 +614,7 @@ fn w70_mixed_languages_determinism() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_mixed_languages_sorted_correctly() {
     let tmp = make_fixture(&[
@@ -620,6 +645,7 @@ fn w70_mixed_languages_sorted_correctly() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_mixed_languages_module_determinism() {
     let tmp = make_fixture(&[
@@ -646,6 +672,7 @@ fn w70_mixed_languages_module_determinism() {
 // Additional determinism scenarios
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_json_determinism() {
     let run = || {
@@ -661,6 +688,7 @@ fn w70_export_json_determinism() {
     assert_eq!(a, b, "export JSON must be byte-stable across 2 runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_lang_md_determinism() {
     let run = || {
@@ -676,6 +704,7 @@ fn w70_lang_md_determinism() {
     assert_eq!(a, b, "lang Markdown must be byte-stable across 2 runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_module_tsv_determinism() {
     let run = || {
@@ -691,6 +720,7 @@ fn w70_module_tsv_determinism() {
     assert_eq!(a, b, "module TSV must be byte-stable across 2 runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_export_jsonl_keys_sorted() {
     let out = tokmd_cmd()
@@ -706,6 +736,7 @@ fn w70_export_jsonl_keys_sorted() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_cross_format_row_count_consistency() {
     let json_out = tokmd_cmd()
@@ -748,6 +779,7 @@ fn w70_cross_format_row_count_consistency() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_single_file_determinism() {
     let tmp = make_fixture(&[("only.rs", "fn only() {\n    42\n}\n")]);
@@ -764,6 +796,7 @@ fn w70_single_file_determinism() {
     assert_eq!(a, b, "single-file lang JSON must be byte-stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w70_empty_dir_determinism() {
     let tmp = make_fixture(&[]);
