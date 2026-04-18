@@ -22,7 +22,8 @@ fn normalize(output: &str) -> String {
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
 
-    let re_ver = regex::Regex::new(r#"("tool":\s*\{"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).unwrap();
+    let re_ver =
+        regex::Regex::new(r#"("tool":\s*\{"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).unwrap();
     let s = re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string();
 
     // Normalize base_signature
@@ -31,11 +32,15 @@ fn normalize(output: &str) -> String {
 
     // Normalize target_path
     let re_target_path = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
-    let s = re_target_path.replace_all(&s, r#""target_path":"<TARGET_PATH>""#).to_string();
+    let s = re_target_path
+        .replace_all(&s, r#""target_path":"<TARGET_PATH>""#)
+        .to_string();
 
     // Normalize export_generated_at_ms if any
     let re_export_ts = regex::Regex::new(r#""export_generated_at_ms":\s*\d+"#).unwrap();
-    let s = re_export_ts.replace_all(&s, r#""export_generated_at_ms":0"#).to_string();
+    let s = re_export_ts
+        .replace_all(&s, r#""export_generated_at_ms":0"#)
+        .to_string();
 
     // Normalize --version output line (e.g. "tokmd 0.42.1" -> "tokmd <VERSION>")
     let re_version_line = regex::Regex::new(r"tokmd \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?").unwrap();
