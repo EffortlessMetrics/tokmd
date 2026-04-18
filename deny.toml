@@ -38,7 +38,7 @@ allow = [
     "MPL-2.0",
     "NCSA",
     "Unicode-3.0",
-    "Unicode-DFS-2016",
+    # "Unicode-DFS-2016",
 ]
 
 [[licenses.clarify]]
