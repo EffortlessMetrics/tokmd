@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "targets": [
+    "crates/tokmd-analysis-types/tests/proptest_w69.rs"
+  ],
+  "reason": "Added proptests to enforce correct serialization and precision-loss invariants for Effort structs."
+}

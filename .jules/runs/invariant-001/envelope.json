@@ -1,0 +1,13 @@
+{
+  "prompt_id": "invariant_model_analysis",
+  "persona": "invariant",
+  "style": "prover",
+  "primary_shard": "analysis-stack",
+  "allowed_paths": [
+    "crates/tokmd-analysis*/**",
+    "crates/tokmd-fun/**",
+    "crates/tokmd-gate/**"
+  ],
+  "gate_profile": "property",
+  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
+}

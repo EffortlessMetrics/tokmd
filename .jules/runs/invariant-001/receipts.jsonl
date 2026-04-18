@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-analysis-types", "outcome": "ok"}
+{"command": "git add -f .jules/runs/invariant-001/", "outcome": "Success"}
