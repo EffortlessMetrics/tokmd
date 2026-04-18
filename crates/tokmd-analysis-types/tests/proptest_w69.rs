@@ -4,13 +4,13 @@
 //! DerivedReport invariants, baseline defaults, and preset validation.
 
 use proptest::prelude::*;
-use tokmd_analysis_types::{EffortDriver, EffortDriverDirection, EffortResults};
 use tokmd_analysis_types::{
     ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, Archetype,
     BASELINE_VERSION, BaselineMetrics, CommitIntentCounts, CommitIntentKind, ComplexityBaseline,
     ComplexityRisk, DomainStat, EcoLabel, EntropyClass, LicenseSourceKind, NearDupScope, RatioRow,
     TechnicalDebtLevel, TopicTerm, TrendClass,
 };
+use tokmd_analysis_types::{EffortDriver, EffortDriverDirection, EffortResults};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 // =========================================================================
