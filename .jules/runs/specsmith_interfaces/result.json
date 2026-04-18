@@ -1,7 +1,0 @@
-{
-  "status": "success",
-  "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd/tests/*.rs"
-  ]
-}
