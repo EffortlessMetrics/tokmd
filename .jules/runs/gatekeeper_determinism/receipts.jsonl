@@ -1,4 +1,0 @@
-{"cmd":"mkdir -p .jules/runs/gatekeeper_determinism && cat << 'EOF' > .jules/runs/gatekeeper_determinism/envelope.json"}
-{"cmd":"cargo test -p tokmd --test cli_snapshot_golden"}
-{"cmd":"cargo insta test -p tokmd --test cli_snapshot_golden"}
-{"cmd":"cargo insta accept"}
