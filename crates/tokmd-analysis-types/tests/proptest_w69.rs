@@ -10,6 +10,7 @@ use tokmd_analysis_types::{
     ComplexityRisk, DomainStat, EcoLabel, EntropyClass, LicenseSourceKind, NearDupScope, RatioRow,
     TechnicalDebtLevel, TopicTerm, TrendClass,
 };
+use tokmd_analysis_types::{EffortDriver, EffortDriverDirection, EffortResults};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 // =========================================================================
@@ -452,5 +453,73 @@ proptest! {
         let preset = presets[idx];
         prop_assert!(!preset.is_empty());
         prop_assert!(preset.chars().all(|c| c.is_ascii_lowercase()));
+    }
+}
+
+// =========================================================================
+// 21. EffortDriver and EffortResults serde roundtrip properties
+// =========================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(50))]
+
+    #[test]
+    fn effort_driver_serde_roundtrip(
+        key in "[a-z_]{3,15}",
+        label in "[A-Za-z ]{5,30}",
+        weight in -100.0f64..100.0,
+        evidence in "[A-Za-z0-9 ]{5,50}",
+    ) {
+        let driver = EffortDriver {
+            key,
+            label,
+            weight,
+            direction: EffortDriverDirection::Raises,
+            evidence,
+        };
+        let json = serde_json::to_string(&driver).unwrap();
+        let parsed: EffortDriver = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(driver.key, parsed.key);
+        prop_assert_eq!(driver.label, parsed.label);
+        prop_assert!((driver.weight - parsed.weight).abs() < 1e-10);
+        prop_assert_eq!(driver.direction, parsed.direction);
+        prop_assert_eq!(driver.evidence, parsed.evidence);
+    }
+
+    #[test]
+    fn effort_results_serde_roundtrip(
+        effort_pm_p50 in 0.0f64..1000.0,
+        schedule_months_p50 in 0.0f64..1000.0,
+        staff_p50 in 0.0f64..1000.0,
+        effort_pm_low in 0.0f64..1000.0,
+        effort_pm_p80 in 0.0f64..1000.0,
+        schedule_months_low in 0.0f64..1000.0,
+        schedule_months_p80 in 0.0f64..1000.0,
+        staff_low in 0.0f64..1000.0,
+        staff_p80 in 0.0f64..1000.0,
+    ) {
+        let results = EffortResults {
+            effort_pm_p50,
+            schedule_months_p50,
+            staff_p50,
+            effort_pm_low,
+            effort_pm_p80,
+            schedule_months_low,
+            schedule_months_p80,
+            staff_low,
+            staff_p80,
+        };
+        let json = serde_json::to_string(&results).unwrap();
+        let parsed: EffortResults = serde_json::from_str(&json).unwrap();
+
+        prop_assert!((results.effort_pm_p50 - parsed.effort_pm_p50).abs() < 1e-10);
+        prop_assert!((results.schedule_months_p50 - parsed.schedule_months_p50).abs() < 1e-10);
+        prop_assert!((results.staff_p50 - parsed.staff_p50).abs() < 1e-10);
+        prop_assert!((results.effort_pm_low - parsed.effort_pm_low).abs() < 1e-10);
+        prop_assert!((results.effort_pm_p80 - parsed.effort_pm_p80).abs() < 1e-10);
+        prop_assert!((results.schedule_months_low - parsed.schedule_months_low).abs() < 1e-10);
+        prop_assert!((results.schedule_months_p80 - parsed.schedule_months_p80).abs() < 1e-10);
+        prop_assert!((results.staff_low - parsed.staff_low).abs() < 1e-10);
+        prop_assert!((results.staff_p80 - parsed.staff_p80).abs() < 1e-10);
     }
 }
