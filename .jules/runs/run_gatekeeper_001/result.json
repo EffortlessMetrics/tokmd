@@ -1,7 +1,0 @@
-{
-  "summary": "Fixed schema drift in cargo-mutants configuration",
-  "friction_encountered": "No other schema or snapshot drift was identified in the main shard. The workspace xtask boundaries-check and docs --check passed cleanly. The `cargo test -p tokmd --test cli_snapshot_golden` tests are passing.",
-  "outcome_type": "pr-ready-patch",
-  "files_changed": [".cargo/mutants.toml"],
-  "gates_run": ["cargo test -p tokmd --test cli_snapshot_golden", "cargo xtask boundaries-check", "cargo xtask version-consistency", "cargo xtask docs --check"]
-}
