@@ -1,2 +1,0 @@
-{"cmd": "cat .jules/runs/run-archivist/decision.md", "status": "success"}
-{"cmd": "python3 .jules/bin/build_index.py && cat .jules/index/generated/RUNS_ROLLUP.md", "status": "success"}
