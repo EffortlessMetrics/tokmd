@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 fn main() {
     if let Err(err) = tokmd::run() {
         eprintln!("{}", tokmd::format_error(&err));
