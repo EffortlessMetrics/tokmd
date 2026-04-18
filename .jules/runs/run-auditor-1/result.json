@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "change_type": "patch",
+  "outcome": "Removed unused serde_json dependency from tokmd-types main dependencies, keeping it only in dev-dependencies."
+}
