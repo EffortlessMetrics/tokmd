@@ -1,0 +1,9 @@
+{"command": "cargo test --no-default-features -p tokmd-python -p tokmd-node -p tokmd-wasm", "exit_code": 0}
+{"command": "cd web/runner && npm install && npm run build:wasm", "exit_code": 127, "output": "sh: 1: wasm-pack: not found"}
+{"command": "cd web/runner && grep -rn \"instanceof Error\" .", "exit_code": 0, "output": "./worker.js:244... ./runtime.js:33... ./main.js:250... ./main.js:270... ./main.js:509..."}
+{"command": "cd web/runner && npm test", "exit_code": 0, "output": "40 tests passed, 1 skipped"}
+{"command": "cargo install wasm-pack", "exit_code": 0}
+{"command": "cd web/runner && npm run build:wasm", "exit_code": 0}
+{"command": "cd web/runner && npm test", "exit_code": 0, "output": "40 tests passed (real wasm bundle boot test now passes)"}
+{"command": "python3 fix.py", "exit_code": 0, "output": "Replaced instanceof Error with duck typing"}
+{"command": "cd web/runner && npm test", "exit_code": 0, "output": "40 tests passed"}

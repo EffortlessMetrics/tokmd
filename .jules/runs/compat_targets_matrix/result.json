@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "affected_files": [
+    "web/runner/worker.js",
+    "web/runner/runtime.js",
+    "web/runner/main.js"
+  ],
+  "reason": "Replaced strict instanceof Error checks with duck typing to handle Error objects losing their prototype chain across WASM and Web Worker boundaries, ensuring error messages are correctly extracted and logged."
+}
