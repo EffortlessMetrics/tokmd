@@ -1,0 +1,6 @@
+{"cmd": "mkdir -p .jules/runs/palette_binding_dx", "status": 0}
+{"cmd": "write envelope.json", "status": 0}
+{"cmd": "npm --prefix web/runner test", "status": 0}
+{"cmd": "write decision.md", "status": 0}
+{"cmd": "write result.json", "status": 0}
+{"cmd": "write pr_body.md", "status": 0}

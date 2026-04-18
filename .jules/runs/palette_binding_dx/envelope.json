@@ -1,0 +1,14 @@
+{
+  "prompt_id": "palette_binding_dx",
+  "persona": "Palette",
+  "style": "Prover",
+  "primary_shard": "bindings-targets",
+  "allowed_paths": [
+    "crates/tokmd-python/**",
+    "crates/tokmd-node/**",
+    "crates/tokmd-wasm/**",
+    "web/runner/**"
+  ],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["proof-improvement patch", "PR-ready patch", "learning PR"]
+}
