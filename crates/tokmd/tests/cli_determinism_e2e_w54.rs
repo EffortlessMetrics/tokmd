@@ -99,6 +99,7 @@ fn export_json_deterministic() {
     assert_deterministic_triple(&["export", "--format", "json"], "export JSON");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_deterministic() {
     let run = || {
@@ -114,6 +115,7 @@ fn analyze_receipt_json_deterministic() {
     assert_eq!(a, b, "analyze receipt JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_default_deterministic() {
     // `run` writes artifacts to a directory; verify it always succeeds
@@ -129,6 +131,7 @@ fn run_default_deterministic() {
 // 2. JSON key ordering: BTreeMap guarantees sorted keys
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_all_keys_recursively_sorted() {
     let o = tokmd_cmd()
@@ -155,6 +158,7 @@ fn assert_json_keys_sorted(json: &Value, context: &str) {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_keys_are_sorted() {
     let o = tokmd_cmd()
@@ -174,6 +178,7 @@ fn lang_json_keys_are_sorted() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_keys_are_sorted() {
     let o = tokmd_cmd()
@@ -193,6 +198,7 @@ fn module_json_keys_are_sorted() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_keys_are_sorted() {
     let o = tokmd_cmd()
@@ -212,6 +218,7 @@ fn export_json_keys_are_sorted() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_top_level_keys_sorted() {
     let o = tokmd_cmd()
@@ -231,6 +238,7 @@ fn analyze_json_top_level_keys_sorted() {
 // 3. Ordering invariants: descending by code, then by name
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_rows_sorted_desc_code_asc_name() {
     let o = tokmd_cmd()
@@ -251,6 +259,7 @@ fn lang_rows_sorted_desc_code_asc_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_rows_sorted_desc_code_asc_name() {
     let o = tokmd_cmd()
@@ -271,6 +280,7 @@ fn module_rows_sorted_desc_code_asc_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_rows_sorted_desc_code_asc_path() {
     let o = tokmd_cmd()
@@ -295,6 +305,7 @@ fn export_rows_sorted_desc_code_asc_path() {
 // 4. Row count stability
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_row_count_stable() {
     let count = || -> usize {
@@ -308,6 +319,7 @@ fn lang_row_count_stable() {
     assert_eq!(count(), count(), "lang row count must be stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_row_count_stable() {
     let count = || -> usize {
@@ -321,6 +333,7 @@ fn module_row_count_stable() {
     assert_eq!(count(), count(), "module row count must be stable");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_row_count_stable() {
     let count = || -> usize {
@@ -338,6 +351,7 @@ fn export_row_count_stable() {
 // 5. Totals consistency
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_totals_equal_sum_of_rows() {
     let o = tokmd_cmd()
@@ -361,6 +375,7 @@ fn lang_totals_equal_sum_of_rows() {
 // 6. Timestamp is the only varying field
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_only_timestamps_vary() {
     let run = || {
@@ -382,6 +397,7 @@ fn lang_json_only_timestamps_vary() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_only_timestamps_vary() {
     let run = || {
@@ -401,6 +417,7 @@ fn export_json_only_timestamps_vary() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_only_timestamps_vary() {
     let run = || {

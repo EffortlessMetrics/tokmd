@@ -10,6 +10,7 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_svg_stdout() {
     let mut cmd = tokmd_cmd();
@@ -22,6 +23,7 @@ fn badge_lines_svg_stdout() {
         .stdout(predicate::str::contains("lines"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_writes_to_file() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;

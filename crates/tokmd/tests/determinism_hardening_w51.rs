@@ -48,6 +48,7 @@ fn normalize_text(output: &str) -> String {
 // 1. Output stability tests — repeated runs produce identical bytes
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_json_output_stable() {
     let run = || {
@@ -64,6 +65,7 @@ fn w51_lang_json_output_stable() {
     assert_eq!(a, b, "lang JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_module_json_output_stable() {
     let run = || {
@@ -80,6 +82,7 @@ fn w51_module_json_output_stable() {
     assert_eq!(a, b, "module JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_json_output_stable() {
     let run = || {
@@ -96,6 +99,7 @@ fn w51_export_json_output_stable() {
     assert_eq!(a, b, "export JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_analyze_receipt_json_output_stable() {
     let run = || {
@@ -112,6 +116,7 @@ fn w51_analyze_receipt_json_output_stable() {
     assert_eq!(a, b, "analyze receipt JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_md_output_stable() {
     let run = || {
@@ -128,6 +133,7 @@ fn w51_lang_md_output_stable() {
     assert_eq!(a, b, "lang Markdown must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_tsv_output_stable() {
     let run = || {
@@ -144,6 +150,7 @@ fn w51_lang_tsv_output_stable() {
     assert_eq!(a, b, "lang TSV must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_csv_output_stable() {
     let run = || {
@@ -160,6 +167,7 @@ fn w51_export_csv_output_stable() {
     assert_eq!(a, b, "export CSV must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_jsonl_output_stable() {
     let run = || {
@@ -180,6 +188,7 @@ fn w51_export_jsonl_output_stable() {
 // 2. Path normalization tests — no backslashes anywhere in output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_json_output_contains_no_backslashes_in_paths() {
     let o = tokmd_cmd()
@@ -204,6 +213,7 @@ fn w51_json_output_contains_no_backslashes_in_paths() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_module_keys_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -223,6 +233,7 @@ fn w51_module_keys_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_file_paths_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -242,6 +253,7 @@ fn w51_export_file_paths_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_analyze_paths_use_forward_slashes() {
     let o = tokmd_cmd()
@@ -293,6 +305,7 @@ fn w51_analyze_paths_use_forward_slashes() {
     check_no_backslash_paths(&json, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_paths_sorted_lexicographically_on_forward_slash() {
     let o = tokmd_cmd()
@@ -326,6 +339,7 @@ fn w51_export_paths_sorted_lexicographically_on_forward_slash() {
 // 3. Sort order verification
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_rows_sorted_by_code_desc() {
     let o = tokmd_cmd()
@@ -349,6 +363,7 @@ fn w51_lang_rows_sorted_by_code_desc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_rows_tiebreak_by_name_asc() {
     let o = tokmd_cmd()
@@ -373,6 +388,7 @@ fn w51_lang_rows_tiebreak_by_name_asc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_module_rows_sorted_by_code_desc() {
     let o = tokmd_cmd()
@@ -396,6 +412,7 @@ fn w51_module_rows_sorted_by_code_desc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_rows_deterministic_order() {
     let o = tokmd_cmd()
@@ -422,6 +439,7 @@ fn w51_export_rows_deterministic_order() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_lang_totals_equal_row_sums() {
     let o = tokmd_cmd()
@@ -459,6 +477,7 @@ fn w51_lang_totals_equal_row_sums() {
 // 4. Schema version stability
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_core_receipts_schema_version_is_2() {
     for (cmd, mode_label) in [
@@ -476,6 +495,7 @@ fn w51_core_receipts_schema_version_is_2() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_analyze_schema_version_is_9() {
     let o = tokmd_cmd()
@@ -490,6 +510,7 @@ fn w51_analyze_schema_version_is_9() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_schema_version_is_number_not_string() {
     for (cmd, label) in [
@@ -520,6 +541,7 @@ fn w51_schema_version_is_number_not_string() {
 // 5. Metadata stability
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_json_output_has_args_metadata() {
     for (cmd, label) in [
@@ -538,6 +560,7 @@ fn w51_json_output_has_args_metadata() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_timestamp_is_consistent_format() {
     for (cmd, label) in [
@@ -565,6 +588,7 @@ fn w51_timestamp_is_consistent_format() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_tool_version_present_and_nonempty() {
     for (cmd, label) in [
@@ -607,6 +631,7 @@ fn w51_tool_version_present_and_nonempty() {
 // 6. Additional determinism hardening
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_csv_column_count_stable() {
     let o = tokmd_cmd()
@@ -628,6 +653,7 @@ fn w51_export_csv_column_count_stable() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_jsonl_every_line_is_valid_json() {
     let o = tokmd_cmd()
@@ -647,6 +673,7 @@ fn w51_export_jsonl_every_line_is_valid_json() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_module_tiebreak_by_name_asc() {
     let o = tokmd_cmd()
@@ -671,6 +698,7 @@ fn w51_module_tiebreak_by_name_asc() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_json_keys_are_sorted_in_all_commands() {
     fn assert_keys_sorted(v: &Value, path: &str) {
@@ -710,6 +738,7 @@ fn w51_json_keys_are_sorted_in_all_commands() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_analyze_mode_field_is_analysis() {
     let o = tokmd_cmd()
@@ -724,6 +753,7 @@ fn w51_analyze_mode_field_is_analysis() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w51_export_row_count_matches_across_formats() {
     // JSON

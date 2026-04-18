@@ -498,6 +498,7 @@ mod sensor_tests {
 // Baseline command
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_generates_valid_json_file() {
     let dir = tempdir().unwrap();
@@ -520,6 +521,7 @@ fn baseline_generates_valid_json_file() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_output_has_expected_metrics() {
     let dir = tempdir().unwrap();
@@ -539,6 +541,7 @@ fn baseline_output_has_expected_metrics() {
     assert!(metrics.is_object(), "metrics should be an object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_help_exits_zero() {
     tokmd_cmd()
@@ -548,6 +551,7 @@ fn baseline_help_exits_zero() {
         .stdout(predicate::str::contains("baseline"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_force_overwrites_existing() {
     let dir = tempdir().unwrap();
@@ -573,6 +577,7 @@ fn baseline_force_overwrites_existing() {
     let _: serde_json::Value = serde_json::from_str(&content).expect("valid JSON after overwrite");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_without_determinism_has_no_determinism_field() {
     let dir = tempdir().unwrap();
@@ -598,6 +603,7 @@ fn baseline_without_determinism_has_no_determinism_field() {
 // Diff command
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_no_args_shows_error() {
     tokmd_cmd().arg("diff").assert().failure().stderr(
@@ -607,6 +613,7 @@ fn diff_no_args_shows_error() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_same_receipt_twice_shows_zero_diff() {
     let dir = tempdir().unwrap();
@@ -635,6 +642,7 @@ fn diff_same_receipt_twice_shows_zero_diff() {
         .stdout(predicate::str::contains("## Diff:"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_json_format_produces_valid_json() {
     let dir = tempdir().unwrap();
@@ -663,6 +671,7 @@ fn diff_json_format_produces_valid_json() {
         .expect("diff JSON output should be valid");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_help_exits_zero() {
     tokmd_cmd()
@@ -672,6 +681,7 @@ fn diff_help_exits_zero() {
         .stdout(predicate::str::contains("diff"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_compact_mode_works() {
     let dir = tempdir().unwrap();
@@ -702,6 +712,7 @@ fn diff_compact_mode_works() {
 // General: all subcommands accept --help
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn all_complex_commands_accept_help() {
     for subcmd in ["context", "handoff", "baseline", "diff"] {
@@ -738,6 +749,7 @@ fn handoff_invalid_preset_produces_error() {
         );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_invalid_format_produces_error() {
     tokmd_cmd()
@@ -764,6 +776,7 @@ fn context_json_output_is_parseable() {
         serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("valid JSON");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn baseline_json_output_is_parseable() {
     let dir = tempdir().unwrap();

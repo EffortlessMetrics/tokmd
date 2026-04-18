@@ -24,6 +24,7 @@ fn help_text_exits_successfully() {
     tokmd().arg("--help").assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_text_mentions_analyze() {
     tokmd()
@@ -33,6 +34,7 @@ fn help_text_mentions_analyze() {
         .stdout(predicate::str::contains("analyze"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_help_text_mentions_preset() {
     tokmd()
@@ -86,6 +88,7 @@ fn module_json_output_has_schema_version() {
     assert!(json.get("schema_version").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_schema_version() {
     let output = tokmd()
@@ -98,6 +101,7 @@ fn analyze_receipt_json_has_schema_version() {
     assert!(json.get("schema_version").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_warnings_field() {
     let output = tokmd()
@@ -113,6 +117,7 @@ fn analyze_receipt_json_has_warnings_field() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_status_field() {
     let output = tokmd()
@@ -128,6 +133,7 @@ fn analyze_receipt_json_has_status_field() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_tool_field() {
     let output = tokmd()
@@ -143,6 +149,7 @@ fn analyze_receipt_json_has_tool_field() {
 
 // ── graceful degradation tests ───────────────────────────────────────
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_with_unknown_preset_shows_error() {
     tokmd()

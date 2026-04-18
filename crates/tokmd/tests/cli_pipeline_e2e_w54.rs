@@ -28,6 +28,7 @@ fn lang_default_outputs_markdown_table() {
         .stdout(predicate::str::contains("|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_outputs_valid_json_with_rows() {
     let output = tokmd_cmd()
@@ -44,6 +45,7 @@ fn lang_json_outputs_valid_json_with_rows() {
     assert_eq!(json["mode"], "lang");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_tsv_has_tabs_and_header() {
     let output = tokmd_cmd()
@@ -60,6 +62,7 @@ fn lang_tsv_has_tabs_and_header() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_rows_have_required_fields() {
     let output = tokmd_cmd()
@@ -81,6 +84,7 @@ fn lang_json_rows_have_required_fields() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_has_total_section() {
     let output = tokmd_cmd()
@@ -107,6 +111,7 @@ fn module_default_outputs_markdown() {
         .stdout(predicate::str::contains("Code"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_has_rows_and_total() {
     let output = tokmd_cmd()
@@ -120,6 +125,7 @@ fn module_json_has_rows_and_total() {
     assert!(json["total"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_tsv_has_tabs() {
     let output = tokmd_cmd()
@@ -131,6 +137,7 @@ fn module_tsv_has_tabs() {
     assert!(stdout.contains('\t'), "TSV must contain tabs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_depth_1_reduces_nesting() {
     // With depth 1, module keys should be shorter (fewer segments)
@@ -144,6 +151,7 @@ fn module_depth_1_reduces_nesting() {
     assert!(!rows.is_empty(), "should have at least one module row");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_rows_have_module_field() {
     let output = tokmd_cmd()
@@ -162,6 +170,7 @@ fn module_json_rows_have_module_field() {
 // export: JSONL, CSV, JSON
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_each_line_is_valid_json() {
     let output = tokmd_cmd()
@@ -178,6 +187,7 @@ fn export_jsonl_each_line_is_valid_json() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_has_header_and_data_rows() {
     let output = tokmd_cmd()
@@ -194,6 +204,7 @@ fn export_csv_has_header_and_data_rows() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_has_envelope_and_rows() {
     let output = tokmd_cmd()
@@ -213,6 +224,7 @@ fn export_json_has_envelope_and_rows() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_columns_consistent() {
     let output = tokmd_cmd()
@@ -232,6 +244,7 @@ fn export_csv_columns_consistent() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_first_line_is_meta_record() {
     let output = tokmd_cmd()
@@ -252,11 +265,13 @@ fn export_jsonl_first_line_is_meta_record() {
 // run: full scan (writes to output dir, no --format flag)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_default_succeeds() {
     tokmd_cmd().arg("run").assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_with_output_dir_creates_artifacts() {
     let tmp = std::env::temp_dir().join(format!("tokmd-run-{}", std::process::id()));
@@ -274,6 +289,7 @@ fn run_with_output_dir_creates_artifacts() {
 // analyze: presets
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_preset_json_has_derived() {
     let output = tokmd_cmd()
@@ -289,6 +305,7 @@ fn analyze_receipt_preset_json_has_derived() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_preset_json_has_derived() {
     let output = tokmd_cmd()
@@ -303,6 +320,7 @@ fn analyze_health_preset_json_has_derived() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_default_format_outputs_markdown() {
     tokmd_cmd()
@@ -316,6 +334,7 @@ fn analyze_default_format_outputs_markdown() {
 // badge: SVG generation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_metric_produces_svg() {
     tokmd_cmd()
@@ -325,6 +344,7 @@ fn badge_lines_metric_produces_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_metric_produces_svg() {
     tokmd_cmd()
@@ -335,6 +355,7 @@ fn badge_tokens_metric_produces_svg() {
         .stdout(predicate::str::contains("tokens"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_bytes_metric_produces_svg() {
     tokmd_cmd()
@@ -349,6 +370,7 @@ fn badge_bytes_metric_produces_svg() {
 // diff: JSON receipt comparison
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_between_two_lang_receipts() {
     let make_receipt = || {
@@ -406,6 +428,7 @@ fn init_print_generates_tokeignore_content() {
 // check-ignore
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn check_ignore_with_path_runs() {
     // check-ignore requires a path argument
@@ -500,6 +523,7 @@ fn help_export_shows_usage() {
         .stdout(predicate::str::contains("Usage"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_analyze_shows_usage() {
     tokmd_cmd()
@@ -509,6 +533,7 @@ fn help_analyze_shows_usage() {
         .stdout(predicate::str::contains("Usage"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_badge_shows_usage() {
     tokmd_cmd()
@@ -518,6 +543,7 @@ fn help_badge_shows_usage() {
         .stdout(predicate::str::contains("Usage"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_diff_shows_usage() {
     tokmd_cmd()
@@ -527,6 +553,7 @@ fn help_diff_shows_usage() {
         .stdout(predicate::str::contains("Usage"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_run_shows_usage() {
     tokmd_cmd()
@@ -593,6 +620,7 @@ fn export_invalid_format_fails() {
 // --children collapse vs separate
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_children_collapse_succeeds() {
     let output = tokmd_cmd()
@@ -604,6 +632,7 @@ fn lang_children_collapse_succeeds() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_children_separate_succeeds() {
     let output = tokmd_cmd()
@@ -615,6 +644,7 @@ fn lang_children_separate_succeeds() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_children_separate_may_have_embedded_rows() {
     let output = tokmd_cmd()
@@ -632,6 +662,7 @@ fn lang_children_separate_may_have_embedded_rows() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_children_parents_only_succeeds() {
     let output = tokmd_cmd()
@@ -647,6 +678,7 @@ fn module_children_parents_only_succeeds() {
 // --exclude patterns
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_exclude_rust_reduces_rows() {
     let without_exclude = {
@@ -675,6 +707,7 @@ fn lang_exclude_rust_reduces_rows() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_exclude_js_filters_files() {
     let output = tokmd_cmd()
@@ -697,6 +730,7 @@ fn export_exclude_js_filters_files() {
 // pipeline: lang → export → analyze chain validation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn pipeline_lang_then_export_file_count_consistent() {
     // Export may have more rows than lang files due to embedded languages;
@@ -725,6 +759,7 @@ fn pipeline_lang_then_export_file_count_consistent() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn pipeline_lang_and_module_same_total_files() {
     let lang_files = {
@@ -755,6 +790,7 @@ fn pipeline_lang_and_module_same_total_files() {
 // export: path normalization
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_paths_always_use_forward_slashes() {
     let output = tokmd_cmd()
@@ -769,6 +805,7 @@ fn export_paths_always_use_forward_slashes() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_keys_always_use_forward_slashes() {
     let output = tokmd_cmd()

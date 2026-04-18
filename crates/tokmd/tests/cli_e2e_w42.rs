@@ -110,6 +110,7 @@ fn export_jsonl_produces_valid_lines() {
 // 6. tokmd badge — produces SVG
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_produces_svg() {
     tokmd_cmd()
@@ -178,6 +179,7 @@ fn completions_bash_produces_output() {
 // 10. tokmd --help — shows help text
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_shows_subcommands() {
     tokmd_cmd()
@@ -229,6 +231,7 @@ fn lang_tsv_produces_tab_separated_output() {
 // 13. tokmd run --output-dir — produces run receipt
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_produces_receipt_json() {
     let dir = tempdir().unwrap();
@@ -353,6 +356,7 @@ fn export_jsonl_first_line_is_meta() {
     assert_eq!(parsed["type"].as_str().unwrap(), "meta");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_metric_contains_tokens() {
     tokmd_cmd()
@@ -363,6 +367,7 @@ fn badge_tokens_metric_contains_tokens() {
         .stdout(predicate::str::contains("tokens"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_bytes_metric_contains_bytes() {
     tokmd_cmd()
@@ -505,6 +510,7 @@ fn module_depth_zero_produces_top_level_only() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_derived_metrics() {
     let output = tokmd_cmd()
@@ -518,6 +524,7 @@ fn analyze_receipt_json_has_derived_metrics() {
     assert!(json["derived"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown_contains_header() {
     tokmd_cmd()
@@ -581,6 +588,7 @@ fn global_exclude_removes_rust_from_lang() {
     assert!(!has_rust, "excluding *.rs should remove Rust from results");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_generates_all_artifacts() {
     let dir = tempdir().unwrap();
@@ -599,6 +607,7 @@ fn run_generates_all_artifacts() {
     assert!(output_dir.join("export.jsonl").exists());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_out_file_creates_svg_file() {
     let dir = tempdir().unwrap();

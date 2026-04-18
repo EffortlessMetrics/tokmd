@@ -75,6 +75,7 @@ fn export_json_receipt_has_required_keys() {
     assert!(json["args"].is_object(), "missing args");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analysis_json_receipt_has_required_keys() {
     let json = run_json(&["analyze", "--preset", "receipt", "--format", "json"]);
@@ -93,6 +94,7 @@ fn analysis_json_receipt_has_required_keys() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn all_schema_versions_are_numeric() {
     let lang = run_json(&["lang", "--format", "json"]);
@@ -113,6 +115,7 @@ fn all_schema_versions_are_numeric() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn all_receipts_include_tool_version() {
     let lang = run_json(&["lang", "--format", "json"]);
@@ -223,6 +226,7 @@ fn json_top_level_has_expected_keys() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn xml_output_has_valid_root_element() {
     let stdout = run_stdout(&["analyze", "--preset", "receipt", "--format", "xml"]);
@@ -399,6 +403,7 @@ fn lang_receipt_roundtrips_through_json() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn receipt_enums_serialize_to_expected_strings() {
     let lang = run_json(&["lang", "--format", "json"]);

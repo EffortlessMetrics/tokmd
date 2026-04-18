@@ -431,6 +431,7 @@ fn w69_export_csv_rows_are_comma_separated() {
 // 8. tokmd --help — expected subcommands
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w69_help_lists_all_subcommands() {
     tokmd_bare()
@@ -709,6 +710,7 @@ fn w69_module_default_format_is_markdown_table() {
         .stdout(predicate::str::contains("|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w69_lang_json_deterministic_across_runs() {
     let dir = create_mixed_lang_tempdir();
@@ -729,6 +731,7 @@ fn w69_lang_json_deterministic_across_runs() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn w69_export_jsonl_deterministic_across_runs() {
     let dir = create_mixed_lang_tempdir();

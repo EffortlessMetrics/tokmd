@@ -126,6 +126,7 @@ fn module_markdown_has_src_row() {
 // tokmd analyze --preset receipt (default Markdown output)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown_has_sections() {
     tokmd_cmd()
@@ -139,6 +140,7 @@ fn analyze_receipt_markdown_has_sections() {
         .stdout(predicate::str::contains("##"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown_has_derived_metrics() {
     let output = tokmd_cmd()
@@ -166,6 +168,7 @@ fn analyze_receipt_markdown_has_derived_metrics() {
 // tokmd badge --metric code (SVG output)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_code_metric_produces_svg() {
     tokmd_cmd()
@@ -178,6 +181,7 @@ fn badge_code_metric_produces_svg() {
         .stdout(predicate::str::contains("</svg>"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_code_metric_svg_has_content() {
     tokmd_cmd()

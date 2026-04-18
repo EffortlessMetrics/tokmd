@@ -80,6 +80,7 @@ fn err_export_nonexistent_path() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_analyze_nonexistent_path() {
     tokmd_cmd()
@@ -90,6 +91,7 @@ fn err_analyze_nonexistent_path() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_run_nonexistent_path() {
     tokmd_cmd()
@@ -141,6 +143,7 @@ fn err_export_invalid_format() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_analyze_invalid_format() {
     tokmd_fixture()
@@ -154,6 +157,7 @@ fn err_analyze_invalid_format() {
 // 4. Error handling – invalid preset for analyze
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_analyze_invalid_preset() {
     tokmd_fixture()
@@ -167,6 +171,7 @@ fn err_analyze_invalid_preset() {
 // 5. Error handling – missing required args
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_diff_no_refs() {
     tokmd_cmd()
@@ -176,6 +181,7 @@ fn err_diff_no_refs() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_badge_missing_metric() {
     tokmd_fixture()
@@ -185,6 +191,7 @@ fn err_badge_missing_metric() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_badge_invalid_metric() {
     tokmd_fixture()
@@ -229,6 +236,7 @@ fn err_module_invalid_children_mode() {
 // 7. Output format matrix – lang
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_lang_json_valid_with_schema_version() {
     let output = tokmd_fixture()
@@ -243,6 +251,7 @@ fn fmt_lang_json_valid_with_schema_version() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_lang_json_rows_non_empty() {
     let output = tokmd_fixture()
@@ -256,6 +265,7 @@ fn fmt_lang_json_rows_non_empty() {
     assert!(!rows.is_empty(), "fixture should produce at least one lang");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_lang_json_has_total() {
     let output = tokmd_fixture()
@@ -280,6 +290,7 @@ fn fmt_lang_markdown_contains_headers() {
         .stdout(predicate::str::contains("|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_lang_tsv_tab_separated_with_header() {
     let output = tokmd_fixture()
@@ -298,6 +309,7 @@ fn fmt_lang_tsv_tab_separated_with_header() {
 // 8. Output format matrix – module
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_module_json_valid_with_mode() {
     let output = tokmd_fixture()
@@ -312,6 +324,7 @@ fn fmt_module_json_valid_with_mode() {
     assert!(json["total"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_module_json_rows_have_module_field() {
     let output = tokmd_fixture()
@@ -337,6 +350,7 @@ fn fmt_module_markdown_contains_table() {
         .stdout(predicate::str::contains("|"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_module_tsv_has_tab_columns() {
     let output = tokmd_fixture()
@@ -354,6 +368,7 @@ fn fmt_module_tsv_has_tab_columns() {
 // 9. Output format matrix – export
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_jsonl_each_line_valid_json() {
     let output = tokmd_fixture()
@@ -371,6 +386,7 @@ fn fmt_export_jsonl_each_line_valid_json() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_jsonl_meta_has_schema() {
     let output = tokmd_fixture()
@@ -385,6 +401,7 @@ fn fmt_export_jsonl_meta_has_schema() {
     assert!(meta["schema_version"].is_number());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_csv_has_header_row() {
     let output = tokmd_fixture()
@@ -401,6 +418,7 @@ fn fmt_export_csv_has_header_row() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_csv_consistent_columns() {
     let output = tokmd_fixture()
@@ -426,6 +444,7 @@ fn fmt_export_csv_consistent_columns() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_json_envelope() {
     let output = tokmd_fixture()
@@ -440,6 +459,7 @@ fn fmt_export_json_envelope() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_export_json_rows_have_path() {
     let output = tokmd_fixture()
@@ -463,6 +483,7 @@ fn fmt_export_json_rows_have_path() {
 // 10. Output format matrix – analyze
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_analyze_json_has_derived() {
     let output = tokmd_fixture()
@@ -476,6 +497,7 @@ fn fmt_analyze_json_has_derived() {
     assert!(json["derived"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_analyze_markdown_contains_headers() {
     tokmd_fixture()
@@ -489,6 +511,7 @@ fn fmt_analyze_markdown_contains_headers() {
 // 11. Output format matrix – tools
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_tools_openai_valid_json() {
     let output = tokmd_fixture()
@@ -501,6 +524,7 @@ fn fmt_tools_openai_valid_json() {
     assert!(json["functions"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn fmt_tools_anthropic_valid_json() {
     let output = tokmd_fixture()
@@ -517,6 +541,7 @@ fn fmt_tools_anthropic_valid_json() {
 // 12. Flag combinations – children modes
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_lang_children_collapse() {
     let output = tokmd_fixture()
@@ -529,6 +554,7 @@ fn flag_lang_children_collapse() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_lang_children_separate() {
     let output = tokmd_fixture()
@@ -541,6 +567,7 @@ fn flag_lang_children_separate() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_module_children_separate() {
     let output = tokmd_fixture()
@@ -553,6 +580,7 @@ fn flag_module_children_separate() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_module_children_parents_only() {
     let output = tokmd_fixture()
@@ -565,6 +593,7 @@ fn flag_module_children_parents_only() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_export_children_separate() {
     let output = tokmd_fixture()
@@ -577,6 +606,7 @@ fn flag_export_children_separate() {
     assert!(json["rows"].is_array());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_export_children_parents_only() {
     let output = tokmd_fixture()
@@ -593,6 +623,7 @@ fn flag_export_children_parents_only() {
 // 13. Flag combinations – top N limiting
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_lang_top_limits_rows() {
     let output = tokmd_fixture()
@@ -607,6 +638,7 @@ fn flag_lang_top_limits_rows() {
     assert!(rows.len() <= 2, "top=1 should yield at most 2 rows");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_lang_top_zero_shows_all() {
     let output = tokmd_fixture()
@@ -620,6 +652,7 @@ fn flag_lang_top_zero_shows_all() {
     assert!(!rows.is_empty());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_module_top_limits_rows() {
     let output = tokmd_fixture()
@@ -637,6 +670,7 @@ fn flag_module_top_limits_rows() {
 // 14. Flag combinations – module depth
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn flag_module_depth_1() {
     let output = tokmd_fixture()
@@ -776,6 +810,7 @@ fn help_mentions_subcommands() {
 // 18. Analyze preset variants
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_preset_health_succeeds() {
     tokmd_fixture()
@@ -784,6 +819,7 @@ fn analyze_preset_health_succeeds() {
         .success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_preset_supply_succeeds() {
     tokmd_fixture()
@@ -796,6 +832,7 @@ fn analyze_preset_supply_succeeds() {
 // 19. Badge metric variants
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_metric_tokens_produces_svg() {
     tokmd_fixture()
@@ -805,6 +842,7 @@ fn badge_metric_tokens_produces_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_metric_bytes_produces_svg() {
     tokmd_fixture()
@@ -818,6 +856,7 @@ fn badge_metric_bytes_produces_svg() {
 // 20. JSON structural invariants across commands
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_envelope_has_args_metadata_lang() {
     let output = tokmd_fixture()
@@ -830,6 +869,7 @@ fn json_envelope_has_args_metadata_lang() {
     assert!(json["args"].is_object(), "lang JSON should contain args");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_envelope_has_args_metadata_module() {
     let output = tokmd_fixture()
@@ -842,6 +882,7 @@ fn json_envelope_has_args_metadata_module() {
     assert!(json["args"].is_object(), "module JSON should contain args");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_envelope_has_args_metadata_export() {
     let output = tokmd_fixture()

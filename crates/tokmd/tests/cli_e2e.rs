@@ -18,6 +18,7 @@ fn tokmd_cmd() -> Command {
 // badge
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_repo_when_badge_then_outputs_svg() {
     tokmd_cmd()
@@ -27,6 +28,7 @@ fn given_repo_when_badge_then_outputs_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_repo_when_badge_tokens_metric_then_svg_contains_tokens() {
     tokmd_cmd()
@@ -37,6 +39,7 @@ fn given_repo_when_badge_tokens_metric_then_svg_contains_tokens() {
         .stdout(predicate::str::contains("tokens"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_repo_when_badge_bytes_metric_then_svg_contains_bytes() {
     tokmd_cmd()
@@ -254,6 +257,7 @@ fn given_version_flag_then_shows_semver() {
 // analyze
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_repo_when_analyze_receipt_json_then_has_derived() {
     let output = tokmd_cmd()

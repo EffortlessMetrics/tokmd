@@ -241,6 +241,7 @@ fn cockpit_evidence_has_overall_status() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cockpit_evidence_mutation_gate_present() {
     if !common::git_available() {

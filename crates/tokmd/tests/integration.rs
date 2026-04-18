@@ -1296,6 +1296,7 @@ fn test_export_cyclonedx_format() {
     assert!(ts.contains('T'), "timestamp should be RFC3339 format");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_analyze_html_format() {
     // Given: Standard files

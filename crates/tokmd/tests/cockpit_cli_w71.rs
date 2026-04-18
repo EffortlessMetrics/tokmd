@@ -157,6 +157,7 @@ fn cockpit_json_has_composition() {
     assert!(json["composition"]["code_pct"].is_number());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn cockpit_json_has_evidence_gates() {
     if !common::git_available() {

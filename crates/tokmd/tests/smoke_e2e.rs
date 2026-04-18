@@ -26,6 +26,7 @@ fn version_flag_prints_version() {
         .stdout(predicate::str::contains("tokmd"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_flag_lists_subcommands() {
     tokmd_cmd()
@@ -130,6 +131,7 @@ fn completions_fish_mentions_tokmd() {
 // badge – additional metrics
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_metric_svg() {
     tokmd_cmd()
@@ -140,6 +142,7 @@ fn badge_tokens_metric_svg() {
         .stdout(predicate::str::contains("tokens"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_doc_metric_svg() {
     tokmd_cmd()
@@ -150,6 +153,7 @@ fn badge_doc_metric_svg() {
         .stdout(predicate::str::contains("doc"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_blank_metric_svg() {
     tokmd_cmd()
@@ -159,6 +163,7 @@ fn badge_blank_metric_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_svg_is_well_formed() {
     let output = tokmd_cmd()
@@ -172,6 +177,7 @@ fn badge_svg_is_well_formed() {
     assert!(svg.contains("</svg>"), "SVG must have closing tag");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_out_file_creates_svg() {
     let dir = tempdir().unwrap();
@@ -516,6 +522,7 @@ fn tools_jsonschema_has_tool_descriptions() {
 // analyze – markdown and JSON smoke
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_schema_version() {
     let output = tokmd_cmd()
@@ -530,6 +537,7 @@ fn analyze_receipt_json_has_schema_version() {
     assert!(parsed.get("derived").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_markdown_contains_header() {
     tokmd_cmd()

@@ -30,6 +30,7 @@ fn run_receipt(output_dir: &std::path::Path) {
 // Scenario 1: Diff two receipts produces diff output
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_two_receipts_when_diff_then_diff_output_produced() {
     // Given: two JSON receipt files from separate runs
@@ -56,6 +57,7 @@ fn given_two_receipts_when_diff_then_diff_output_produced() {
 // Scenario 2: Identical receipts show no meaningful changes
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_identical_receipts_when_diff_then_no_changes() {
     // Given: two identical receipt files (same run)
@@ -96,6 +98,7 @@ fn given_identical_receipts_when_diff_then_no_changes() {
 // Scenario 3: Diff JSON format produces valid JSON
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_receipts_when_diff_json_then_valid_json() {
     // Given: receipt files
@@ -125,6 +128,7 @@ fn given_receipts_when_diff_json_then_valid_json() {
 // Scenario 4: Diff compact mode produces summary table
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_receipts_when_diff_compact_then_summary_table() {
     // Given: receipt files
@@ -152,6 +156,7 @@ fn given_receipts_when_diff_compact_then_summary_table() {
 // Scenario 5: Diff full mode shows summary comparison rows
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_receipts_when_diff_full_then_shows_loc_lines_files() {
     // Given: receipt files

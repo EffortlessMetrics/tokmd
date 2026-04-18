@@ -66,6 +66,7 @@ fn assert_keys_sorted(v: &Value, path: &str) {
 // 1. Five-run byte stability — every JSON-producing command must be identical
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_five_run_lang_json_byte_stable() {
     let run = || {
@@ -81,6 +82,7 @@ fn hardening_five_run_lang_json_byte_stable() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_five_run_module_json_byte_stable() {
     let run = || {
@@ -96,6 +98,7 @@ fn hardening_five_run_module_json_byte_stable() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_five_run_export_json_byte_stable() {
     let run = || {
@@ -115,6 +118,7 @@ fn hardening_five_run_export_json_byte_stable() {
 // 2. Cross-format row-count consistency (JSON vs JSONL vs CSV)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_row_counts_agree_across_formats() {
     // JSON
@@ -164,6 +168,7 @@ fn hardening_export_row_counts_agree_across_formats() {
 // 3. Recursive JSON key ordering (BTreeMap invariant)
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_lang_json_keys_recursively_sorted() {
     let out = tokmd_cmd()
@@ -174,6 +179,7 @@ fn hardening_lang_json_keys_recursively_sorted() {
     assert_keys_sorted(&v, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_module_json_keys_recursively_sorted() {
     let out = tokmd_cmd()
@@ -184,6 +190,7 @@ fn hardening_module_json_keys_recursively_sorted() {
     assert_keys_sorted(&v, "$");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_json_keys_recursively_sorted() {
     let out = tokmd_cmd()
@@ -198,6 +205,7 @@ fn hardening_export_json_keys_recursively_sorted() {
 // 4. No silent truncation — row count stable across runs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_no_silent_truncation() {
     let run = || {
@@ -224,6 +232,7 @@ fn hardening_export_no_silent_truncation() {
 // 5. Sort ordering validation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_lang_rows_sorted_desc_code_then_asc_name() {
     let out = tokmd_cmd()
@@ -246,6 +255,7 @@ fn hardening_lang_rows_sorted_desc_code_then_asc_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_module_rows_sorted_desc_code_then_asc_name() {
     let out = tokmd_cmd()
@@ -268,6 +278,7 @@ fn hardening_module_rows_sorted_desc_code_then_asc_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_rows_sorted_desc_code_then_asc_path() {
     let out = tokmd_cmd()
@@ -294,6 +305,7 @@ fn hardening_export_rows_sorted_desc_code_then_asc_path() {
 // 6. Path normalization — no backslashes in any output format
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_json_no_backslash_in_paths() {
     let out = tokmd_cmd()
@@ -315,6 +327,7 @@ fn hardening_export_json_no_backslash_in_paths() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_module_json_no_backslash_in_modules() {
     let out = tokmd_cmd()
@@ -330,6 +343,7 @@ fn hardening_module_json_no_backslash_in_modules() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_tsv_no_backslash_in_paths() {
     let out = tokmd_cmd()
@@ -349,6 +363,7 @@ fn hardening_export_tsv_no_backslash_in_paths() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_export_csv_no_backslash_in_paths() {
     let out = tokmd_cmd()
@@ -373,6 +388,7 @@ fn hardening_export_csv_no_backslash_in_paths() {
 // 7. Redaction determinism via CLI
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn hardening_redact_produces_deterministic_output() {
     let run = || {

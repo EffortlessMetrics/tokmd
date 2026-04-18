@@ -325,6 +325,7 @@ fn sensor_md_produces_markdown_report() {
 // 4. Data section contains gates
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn sensor_data_section_has_gates() {
     if !common::git_available() {
@@ -352,6 +353,7 @@ fn sensor_data_section_has_gates() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn sensor_gates_contain_mutation_gate() {
     if !common::git_available() {

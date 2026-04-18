@@ -88,6 +88,7 @@ fn tools_anthropic_each_tool_has_name_and_input_schema() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn tools_anthropic_contains_module_and_analyze() -> anyhow::Result<()> {
     let output = tokmd_cmd()
@@ -140,6 +141,7 @@ fn tools_jsonschema_has_name_and_tools_array() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn tools_jsonschema_contains_context_and_gate() -> anyhow::Result<()> {
     let output = tokmd_cmd()

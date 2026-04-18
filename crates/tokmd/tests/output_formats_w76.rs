@@ -349,6 +349,7 @@ fn export_format_json_rows_have_file_fields() {
 // 4. tokmd analyze
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_format_markdown_is_non_empty_with_structure() {
     let dir = make_fixture();
@@ -365,6 +366,7 @@ fn analyze_format_markdown_is_non_empty_with_structure() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_format_markdown_mentions_metrics() {
     let dir = make_fixture();
@@ -384,6 +386,7 @@ fn analyze_format_markdown_mentions_metrics() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_format_json_is_parseable() {
     let dir = make_fixture();
@@ -395,6 +398,7 @@ fn analyze_format_json_is_parseable() {
     assert!(json.is_object(), "analyze JSON must be an object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_format_json_has_schema_version() {
     let dir = make_fixture();
@@ -409,6 +413,7 @@ fn analyze_format_json_has_schema_version() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_format_json_has_mode_field() {
     let dir = make_fixture();
@@ -427,6 +432,7 @@ fn analyze_format_json_has_mode_field() {
 // 5. tokmd badge
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_default_output_is_svg() {
     let dir = make_fixture();
@@ -439,6 +445,7 @@ fn badge_default_output_is_svg() {
     assert!(out.contains("</svg>"), "badge SVG must be complete");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_svg_is_non_empty_and_has_namespace() {
     let dir = make_fixture();
@@ -448,6 +455,7 @@ fn badge_svg_is_non_empty_and_has_namespace() {
     assert!(out.contains("xmlns"), "SVG should declare xmlns namespace");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_svg_contains_metric_value() {
     let dir = make_fixture();

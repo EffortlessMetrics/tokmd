@@ -242,6 +242,7 @@ fn given_large_repo_when_export_csv_then_all_files_listed() {
 // 7. Diff between two receipts shows changes
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_json_receipt_when_diff_then_changes_shown() {
     // Given: two receipt files from separate runs
@@ -402,6 +403,7 @@ fn given_gitignore_when_scan_then_gitignored_files_excluded() {
 // 12. JSON format always produces valid JSON
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_lang_then_valid_json() {
     let output = tokmd_fixture()
@@ -412,6 +414,7 @@ fn given_format_json_when_lang_then_valid_json() {
     let _: Value = serde_json::from_slice(&output.stdout).expect("valid JSON from lang");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_module_then_valid_json() {
     let output = tokmd_fixture()
@@ -422,6 +425,7 @@ fn given_format_json_when_module_then_valid_json() {
     let _: Value = serde_json::from_slice(&output.stdout).expect("valid JSON from module");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_export_then_valid_json() {
     let output = tokmd_fixture()
@@ -432,6 +436,7 @@ fn given_format_json_when_export_then_valid_json() {
     let _: Value = serde_json::from_slice(&output.stdout).expect("valid JSON from export");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_analyze_then_valid_json() {
     let output = tokmd_fixture()
@@ -446,6 +451,7 @@ fn given_format_json_when_analyze_then_valid_json() {
 // 13. JSON outputs have schema_version
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_lang_then_has_schema_version() {
     let output = tokmd_fixture()
@@ -460,6 +466,7 @@ fn given_format_json_when_lang_then_has_schema_version() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_module_then_has_schema_version() {
     let output = tokmd_fixture()
@@ -473,6 +480,7 @@ fn given_format_json_when_module_then_has_schema_version() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_export_then_has_schema_version() {
     let output = tokmd_fixture()
@@ -486,6 +494,7 @@ fn given_format_json_when_export_then_has_schema_version() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_format_json_when_analyze_then_has_schema_version() {
     let output = tokmd_fixture()
@@ -503,6 +512,7 @@ fn given_format_json_when_analyze_then_has_schema_version() {
 // 14. Determinism – same input → identical output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_same_input_when_run_twice_then_identical_output() {
     // Given: a fixed project
@@ -586,6 +596,7 @@ fn given_project_when_export_jsonl_then_every_line_valid_json() {
 // 17. Badge command produces SVG
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_badge_then_outputs_svg() {
     tokmd_fixture()
@@ -641,6 +652,7 @@ fn given_init_print_when_run_then_prints_template_without_file() {
 // 20. Tools command generates AI schemas
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_tools_openai_when_run_then_valid_function_schema() {
     let output = tokmd_fixture()
@@ -671,6 +683,7 @@ fn given_bash_shell_when_completions_then_outputs_script() {
 // 22. Version flag shows semver
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_version_flag_when_run_then_shows_semver() {
     tokmd_fixture()
@@ -704,6 +717,7 @@ fn given_project_when_module_default_then_markdown_table() {
 // 24. Analyze receipt preset produces derived metrics
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_receipt_then_has_derived_metrics() {
     let output = tokmd_fixture()
@@ -721,6 +735,7 @@ fn given_project_when_analyze_receipt_then_has_derived_metrics() {
 // 25. Exclude with wildcard removes all matching files
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_exclude_wildcard_when_lang_json_then_language_absent() {
     // Given: fixture root with Rust and JavaScript files
@@ -753,6 +768,7 @@ fn given_exclude_wildcard_when_lang_json_then_language_absent() {
 // 26. Export JSON has rows array
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_export_json_then_has_rows_array() {
     let dir = hermetic_dir();
@@ -779,6 +795,7 @@ fn given_project_when_export_json_then_has_rows_array() {
 // 27. Lang JSON has mode field set correctly
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_lang_json_when_run_then_mode_is_lang() {
     let output = tokmd_fixture()
@@ -795,6 +812,7 @@ fn given_lang_json_when_run_then_mode_is_lang() {
 // 28. Module JSON has total object
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_module_json_when_run_then_has_total() {
     let output = tokmd_fixture()
@@ -815,6 +833,7 @@ fn given_module_json_when_run_then_has_total() {
 // 29. TSV format uses tabs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_lang_tsv_when_run_then_tab_separated() {
     let output = tokmd_fixture()
@@ -850,6 +869,7 @@ fn given_gitignored_file_when_no_ignore_vcs_then_file_visible() {
 // 31. Multiple exclude patterns compose correctly
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_multiple_excludes_when_lang_then_all_patterns_applied() {
     // Given: fixture root with mixed languages

@@ -8,6 +8,7 @@ use std::fs;
 use std::process::Command as ProcessCommand;
 use tempfile::tempdir;
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_generates_artifacts() {
     let dir = tempdir().unwrap();
@@ -42,6 +43,7 @@ fn test_run_generates_artifacts() {
     assert!(receipt_content.contains("schema_version"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_diff_identical_runs() {
     let dir = tempdir().unwrap();
@@ -83,6 +85,7 @@ fn test_diff_identical_runs() {
     // But headers are always printed.
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_diff_compact_mode() {
     let dir = tempdir().unwrap();
@@ -122,6 +125,7 @@ fn test_diff_compact_mode() {
         .stdout(predicate::str::contains("Language Breakdown").not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_diff_full_mode_shows_summary_comparison_rows() {
     let dir = tempdir().unwrap();
@@ -163,6 +167,7 @@ fn test_diff_full_mode_shows_summary_comparison_rows() {
         .stdout(predicate::str::contains("### Language Movement"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_diff_color_always_emits_ansi() {
     let dir = tempdir().unwrap();
@@ -201,6 +206,7 @@ fn test_diff_color_always_emits_ansi() {
         .stdout(predicate::str::contains("\u{1b}["));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_default_output_creates_local_runs_dir() {
     let dir = tempdir().unwrap();
@@ -243,6 +249,7 @@ fn test_run_default_output_creates_local_runs_dir() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_with_redact_flag() {
     let dir = tempdir().unwrap();
@@ -310,6 +317,7 @@ fn git_cmd(dir: &std::path::Path, args: &[&str]) {
 // These tests verify that when --redact is used, sensitive paths and patterns
 // don't leak into any of the run artifacts (lang.json, module.json, export.jsonl)
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_lang_json_paths_redacted() {
     // Given: A directory with known path names
@@ -350,6 +358,7 @@ fn test_run_redact_lang_json_paths_redacted() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_module_json_scan_paths_redacted() {
     // Given: A directory with known path names
@@ -408,6 +417,7 @@ fn test_run_redact_module_json_scan_paths_redacted() {
     // This is expected behavior - use --redact all to also hash module names
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_excluded_patterns_in_lang_json() {
     // Given: Sensitive exclude patterns
@@ -458,6 +468,7 @@ fn test_run_redact_excluded_patterns_in_lang_json() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_excluded_patterns_in_module_json() {
     // Given: Sensitive exclude patterns
@@ -504,6 +515,7 @@ fn test_run_redact_excluded_patterns_in_module_json() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_all_no_raw_paths_anywhere() {
     // Given: A directory structure with sensitive names
@@ -585,6 +597,7 @@ fn test_run_redact_all_no_raw_paths_anywhere() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_paths_vs_all_difference() {
     // Given: A directory structure with identifiable names
@@ -642,6 +655,7 @@ fn test_run_redact_paths_vs_all_difference() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_all_hashes_modules_too() {
     // Given: A module structure
@@ -684,6 +698,7 @@ fn test_run_redact_all_hashes_modules_too() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_all_hides_module_roots_in_artifacts() {
     let dir = tempdir().unwrap();
@@ -727,6 +742,7 @@ fn test_run_redact_all_hides_module_roots_in_artifacts() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_consistency_across_artifacts() {
     // Given: Same scan with redaction
@@ -811,6 +827,7 @@ fn test_run_redact_consistency_across_artifacts() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_without_redact_shows_raw_paths() {
     // Given: A directory with identifiable paths
@@ -859,6 +876,7 @@ fn test_run_without_redact_shows_raw_paths() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_run_redact_with_absolute_paths() {
     // Given: Absolute paths as input (which might reveal filesystem structure)
@@ -898,6 +916,7 @@ fn test_run_redact_with_absolute_paths() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 #[cfg(feature = "git")]
 fn test_diff_git_refs() {

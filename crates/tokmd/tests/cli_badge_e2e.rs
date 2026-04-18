@@ -17,6 +17,7 @@ fn tokmd_cmd() -> Command {
 // Metric variants
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_doc_metric_produces_svg_with_label() {
     tokmd_cmd()
@@ -28,6 +29,7 @@ fn badge_doc_metric_produces_svg_with_label() {
         .stdout(predicate::str::contains("doc"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_blank_metric_produces_svg_with_label() {
     tokmd_cmd()
@@ -39,6 +41,7 @@ fn badge_blank_metric_produces_svg_with_label() {
         .stdout(predicate::str::contains("blank"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_svg_contains_xmlns_attribute() {
     tokmd_cmd()
@@ -48,6 +51,7 @@ fn badge_lines_svg_contains_xmlns_attribute() {
         .stdout(predicate::str::contains("xmlns"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_svg_is_well_formed() {
     let output = tokmd_cmd()
@@ -66,6 +70,7 @@ fn badge_tokens_svg_is_well_formed() {
 // File output
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_out_flag_writes_valid_svg_file() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;
@@ -84,6 +89,7 @@ fn badge_out_flag_writes_valid_svg_file() -> Result<(), Box<dyn std::error::Erro
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_out_to_nested_dir_creates_file() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;
@@ -107,6 +113,7 @@ fn badge_out_to_nested_dir_creates_file() -> Result<(), Box<dyn std::error::Erro
 // Error cases
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_missing_metric_flag_fails() {
     tokmd_cmd()
@@ -116,6 +123,7 @@ fn badge_missing_metric_flag_fails() {
         .stderr(predicate::str::contains("--metric"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_invalid_metric_fails() {
     tokmd_cmd()

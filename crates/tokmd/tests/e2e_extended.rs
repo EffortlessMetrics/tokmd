@@ -17,6 +17,7 @@ fn tokmd_cmd() -> Command {
 // 1. Default invocation (no subcommand → lang)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn default_invocation_runs_successfully_with_output() {
     tokmd_cmd()
@@ -225,6 +226,7 @@ fn completions_powershell_generates_output() {
 // 15. tokmd badge — SVG output
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_outputs_svg() {
     tokmd_cmd()
@@ -367,6 +369,7 @@ fn lang_json_has_schema_version() {
 // 24. tokmd run — run receipt output
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn run_produces_artifacts() {
     let tmp = tempfile::tempdir().expect("create temp dir");
@@ -454,6 +457,7 @@ fn module_json_has_schema_version() {
 // Extra: analyze --preset receipt --format json
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_derived() {
     let output = tokmd_cmd()

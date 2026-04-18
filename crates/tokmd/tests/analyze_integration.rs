@@ -11,6 +11,7 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_preset_json_smoke() {
     let output = tokmd_cmd()
@@ -41,6 +42,7 @@ fn analyze_receipt_preset_json_smoke() {
     assert!(json.get("args").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_writes_json_to_output_dir() {
     let dir = tempdir().expect("should create temp dir");
@@ -72,6 +74,7 @@ fn analyze_writes_json_to_output_dir() {
     assert_eq!(json["mode"], "analysis");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_explain_known_metric() {
     let output = tokmd_cmd()
@@ -92,6 +95,7 @@ fn analyze_explain_known_metric() {
     assert!(stdout.contains("complexity"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_explain_list() {
     let output = tokmd_cmd()
@@ -107,6 +111,7 @@ fn analyze_explain_list() {
     assert!(stdout.contains("maintainability_index"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_explain_unknown_metric_fails() {
     let output = tokmd_cmd()
@@ -122,6 +127,7 @@ fn analyze_explain_unknown_metric_fails() {
     assert!(stderr.contains("--explain list"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_fun_preset_returns_eco_label() {
     // Given: a fixture repository with a small baseline code footprint
@@ -154,6 +160,7 @@ fn analyze_fun_preset_returns_eco_label() {
     assert!(eco_label.get("notes").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_topics_preset_returns_topic_cloud() {
     // Given: the same fixture repository used by other analysis tests

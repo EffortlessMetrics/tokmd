@@ -303,6 +303,7 @@ fn json_output_export_jsonl_data_rows_have_path() {
 // analyze --format json --preset receipt
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_output_analyze_receipt_is_valid() {
     let output = tokmd_cmd()
@@ -332,6 +333,7 @@ fn json_output_analyze_receipt_is_valid() {
     assert!(json["args"].is_object(), "args should be present");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_output_analyze_receipt_has_derived() {
     let output = tokmd_cmd()
@@ -356,6 +358,7 @@ fn json_output_analyze_receipt_has_derived() {
 // badge (SVG output — no --format json, verify it still succeeds)
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_output_badge_produces_svg() {
     tokmd_cmd()

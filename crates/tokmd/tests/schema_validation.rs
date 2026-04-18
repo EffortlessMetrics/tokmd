@@ -219,6 +219,7 @@ fn test_export_row_validates_against_schema() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_analysis_receipt_validates_against_schema() -> Result<()> {
     let schema = load_schema()?;
@@ -252,6 +253,7 @@ fn test_analysis_receipt_validates_against_schema() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_analysis_receipt_health_preset_validates() -> Result<()> {
     let schema = load_schema()?;
@@ -285,6 +287,7 @@ fn test_analysis_receipt_health_preset_validates() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_analysis_receipt_supply_preset_validates() -> Result<()> {
     let schema = load_schema()?;
@@ -318,6 +321,7 @@ fn test_analysis_receipt_supply_preset_validates() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_analysis_receipt_with_context_window_validates() -> Result<()> {
     let schema = load_schema()?;

@@ -235,6 +235,7 @@ fn given_small_project_when_context_json_budget_then_tokens_within_budget() {
 // Scenario 6: Badge generation
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_source_code_when_badge_then_valid_svg_output() {
     // Given: a directory with source code
@@ -251,6 +252,7 @@ fn given_source_code_when_badge_then_valid_svg_output() {
 // Scenario 7: Analysis presets
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_source_when_analyze_receipt_then_derived_metrics_present() {
     // Given: a directory with source code
@@ -440,6 +442,7 @@ fn given_same_input_when_lang_json_twice_then_rows_identical() {
 // Scenario 16: Exclude pattern filters files
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_exclude_flag_when_export_then_excluded_files_absent() {
     // Given: Rust and Python files
@@ -468,6 +471,7 @@ fn given_exclude_flag_when_export_then_excluded_files_absent() {
 // Scenario 17: Hidden files excluded by default
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_hidden_file_when_default_scan_then_hidden_excluded() {
     // Given: a visible file and a hidden file
@@ -496,6 +500,7 @@ fn given_hidden_file_when_default_scan_then_hidden_excluded() {
 // Scenario 18: Badge with metric=tokens outputs SVG
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_source_when_badge_tokens_then_svg() {
     let dir = hermetic_dir();
@@ -555,6 +560,7 @@ fn given_empty_dir_when_init_then_tokeignore_created() {
 // Scenario 21: TSV format uses tab separators
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_lang_tsv_then_tab_separated_header() {
     // Given: fixture root
@@ -591,6 +597,7 @@ fn given_version_flag_when_run_then_semver_shown() {
 // Scenario 23: Tools command generates OpenAI function schema
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_tools_openai_when_run_then_valid_schema_json() {
     // When: `tokmd tools --format openai`
@@ -713,6 +720,7 @@ fn given_project_when_context_tight_budget_then_used_le_budget() {
 // Scenario 28: Unicode filenames in export
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_unicode_filename_when_export_then_path_normalized() {
     // Given: a file with a Unicode name
@@ -737,6 +745,7 @@ fn given_unicode_filename_when_export_then_path_normalized() {
 // Scenario 29: Analyze receipt has schema_version
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_project_when_analyze_json_then_schema_version_is_number() {
     let json = run_json(

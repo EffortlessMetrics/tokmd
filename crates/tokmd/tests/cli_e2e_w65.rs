@@ -76,6 +76,7 @@ fn version_flag_matches_semver() {
         .stdout(predicate::str::is_match(r"tokmd \d+\.\d+\.\d+").unwrap());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_flag_shows_subcommands() {
     tokmd_bare()
@@ -427,6 +428,7 @@ fn lang_children_separate_succeeds() {
         .stdout(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_children_collapse_vs_separate_differ_in_json() {
     let collapse =
@@ -610,6 +612,7 @@ fn err_nonexistent_path_export() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_nonexistent_path_analyze() {
     tokmd_bare()
@@ -620,6 +623,7 @@ fn err_nonexistent_path_analyze() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_diff_no_refs_fails() {
     tokmd_bare()
@@ -629,6 +633,7 @@ fn err_diff_no_refs_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_badge_missing_metric_fails() {
     tokmd_cmd()
@@ -638,6 +643,7 @@ fn err_badge_missing_metric_fails() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_badge_invalid_metric_fails() {
     tokmd_cmd()
@@ -656,6 +662,7 @@ fn err_completions_missing_shell() {
         .stderr(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_analyze_invalid_preset() {
     tokmd_cmd()
@@ -665,6 +672,7 @@ fn err_analyze_invalid_preset() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn err_analyze_invalid_format() {
     tokmd_cmd()
@@ -678,12 +686,14 @@ fn err_analyze_invalid_format() {
 // 10. Exit codes
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn success_exit_code_is_zero() {
     let output = tokmd_cmd().arg("lang").output().expect("run");
     assert_eq!(output.status.code(), Some(0));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn frobnicate_unknown_subcommand_has_stable_error_output() {
     let output = tokmd_bare().arg("frobnicate").output().expect("run");
@@ -737,6 +747,7 @@ fn export_with_explicit_path_arg() {
 // 12. Determinism — same command twice produces same output
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_deterministic_across_runs() {
     let run = || {
@@ -752,6 +763,7 @@ fn lang_json_deterministic_across_runs() {
     assert_eq!(a, b, "lang JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_deterministic_across_runs() {
     let run = || {
@@ -767,6 +779,7 @@ fn module_json_deterministic_across_runs() {
     assert_eq!(a, b, "module JSON must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_deterministic_across_runs() {
     let run = || {
@@ -782,6 +795,7 @@ fn export_jsonl_deterministic_across_runs() {
     assert_eq!(a, b, "export JSONL must be byte-stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_tsv_deterministic_across_runs() {
     let run = || stdout_of(tokmd_cmd().args(["lang", "--format", "tsv"]));
@@ -790,6 +804,7 @@ fn lang_tsv_deterministic_across_runs() {
     assert_eq!(a, b, "lang TSV must be stable across runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_md_deterministic_across_runs() {
     let run = || stdout_of(tokmd_cmd().args(["lang", "--format", "md"]));
@@ -927,6 +942,7 @@ fn module_md_has_separator_line() {
 // 16. Analyze command
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_default_preset_succeeds() {
     tokmd_cmd()
@@ -936,12 +952,14 @@ fn analyze_default_preset_succeeds() {
         .stdout(predicate::str::is_empty().not());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_preset_json_valid() {
     let json = json_of(tokmd_cmd().args(["analyze", "--preset", "receipt", "--format", "json"]));
     assert!(json.is_object(), "analyze JSON should be an object");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_health_preset_succeeds() {
     tokmd_cmd()
@@ -955,6 +973,7 @@ fn analyze_health_preset_succeeds() {
 // 17. Badge command
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_metric_produces_svg() {
     tokmd_cmd()
@@ -965,6 +984,7 @@ fn badge_lines_metric_produces_svg() {
         .stdout(predicate::str::contains("</svg>"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_metric_produces_svg() {
     tokmd_cmd()

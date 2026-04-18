@@ -43,6 +43,7 @@ fn lang_explicit_produces_markdown_table() {
 // 2. tokmd --json produces valid JSON (via lang --format json)
 // ============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_is_valid() {
     let output = tokmd_cmd()
@@ -56,6 +57,7 @@ fn lang_json_is_valid() {
     assert!(json["schema_version"].is_number());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_rows_have_required_fields() {
     let output = tokmd_cmd()
@@ -75,6 +77,7 @@ fn lang_json_rows_have_required_fields() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_total_present() {
     let output = tokmd_cmd()
@@ -93,6 +96,7 @@ fn lang_json_total_present() {
 // 3. tokmd module --depth 2 produces correct depth
 // ============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_has_correct_depth() {
     let output = tokmd_cmd()
@@ -106,6 +110,7 @@ fn module_json_has_correct_depth() {
     assert_eq!(json["module_depth"], 2);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_depth_1_json() {
     let output = tokmd_cmd()
@@ -132,6 +137,7 @@ fn module_default_markdown() {
 // 4. tokmd export --format jsonl produces valid JSONL
 // ============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_each_line_valid_json() {
     let output = tokmd_cmd()
@@ -149,6 +155,7 @@ fn export_jsonl_each_line_valid_json() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_has_header_and_data() {
     let output = tokmd_cmd()
@@ -168,6 +175,7 @@ fn export_csv_has_header_and_data() {
 // 5. tokmd analyze --preset receipt produces analysis receipt
 // ============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_has_derived() {
     let output = tokmd_cmd()
@@ -181,6 +189,7 @@ fn analyze_receipt_json_has_derived() {
     assert!(json["derived"].is_object());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown() {
     tokmd_cmd()
@@ -194,6 +203,7 @@ fn analyze_receipt_markdown() {
 // 6. tokmd badge produces valid SVG
 // ============================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_lines_outputs_svg() {
     tokmd_cmd()
@@ -203,6 +213,7 @@ fn badge_lines_outputs_svg() {
         .stdout(predicate::str::contains("<svg"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_tokens_outputs_svg() {
     tokmd_cmd()
@@ -354,6 +365,7 @@ fn version_flag_shows_semver() {
         .stdout(predicate::str::is_match(r"\d+\.\d+\.\d+").unwrap());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_tsv_contains_tabs() {
     let output = tokmd_cmd()
@@ -366,6 +378,7 @@ fn lang_tsv_contains_tabs() {
     assert!(stdout.contains('\t'));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_format_valid() {
     let output = tokmd_cmd()

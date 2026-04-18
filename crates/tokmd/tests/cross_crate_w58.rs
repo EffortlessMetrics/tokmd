@@ -496,6 +496,7 @@ fn exclude_pattern_preserves_other_langs() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn top_n_truncates_lang_rows() {
     let proj = make_sample_project();
@@ -561,6 +562,7 @@ fn lang_json_flattened_no_report_key() {
 // 9. Determinism: same input → identical output across 3 runs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn determinism_lang_report_three_runs() {
     let proj = make_sample_project();
@@ -578,6 +580,7 @@ fn determinism_lang_report_three_runs() {
     assert_eq!(results[1], results[2], "Run 2 vs 3 must be identical");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn determinism_module_report_three_runs() {
     let proj = make_sample_project();
@@ -595,6 +598,7 @@ fn determinism_module_report_three_runs() {
     assert_eq!(results[1], results[2]);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn determinism_export_data_three_runs() {
     let proj = make_sample_project();

@@ -60,6 +60,7 @@ fn zero_timestamps(v: &mut Value) {
 // 1. Ordering determinism: byte-identical output across runs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_byte_identical_across_runs() {
     let run = || {
@@ -77,6 +78,7 @@ fn lang_json_byte_identical_across_runs() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_byte_identical_across_runs() {
     let run = || {
@@ -94,6 +96,7 @@ fn module_json_byte_identical_across_runs() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_byte_identical_across_runs() {
     let run = || {
@@ -111,6 +114,7 @@ fn export_jsonl_byte_identical_across_runs() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_json_byte_identical_across_runs() {
     let run = || {
@@ -137,6 +141,7 @@ fn analyze_receipt_json_byte_identical_across_runs() {
 // 2. Path normalization: no backslashes in any path field
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_json_no_backslash_in_path_or_module() {
     let o = tokmd_cmd()
@@ -157,6 +162,7 @@ fn export_json_no_backslash_in_path_or_module() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_json_no_backslash_in_module_keys() {
     let o = tokmd_cmd()
@@ -193,6 +199,7 @@ fn collect_path_like_strings(v: &Value, out: &mut Vec<(String, String)>, prefix:
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_json_no_backslash_in_path_fields() {
     let o = tokmd_cmd()
@@ -214,6 +221,7 @@ fn analyze_json_no_backslash_in_path_fields() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_json_no_backslash_in_path_fields() {
     let o = tokmd_cmd()
@@ -238,6 +246,7 @@ fn lang_json_no_backslash_in_path_fields() {
 // 3. Timestamp stability: generated_at_ms is the ONLY varying field
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_timestamp_is_only_nondeterministic_field() {
     let run = || {
@@ -264,6 +273,7 @@ fn lang_timestamp_is_only_nondeterministic_field() {
     assert_eq!(a, b, "only generated_at_ms should differ between lang runs");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_timestamp_is_only_nondeterministic_field() {
     let run = || {
@@ -287,6 +297,7 @@ fn module_timestamp_is_only_nondeterministic_field() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_timestamp_is_only_nondeterministic_field() {
     let run = || {
@@ -310,6 +321,7 @@ fn export_timestamp_is_only_nondeterministic_field() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_timestamp_is_only_nondeterministic_field() {
     let run = || {
@@ -338,6 +350,7 @@ fn analyze_timestamp_is_only_nondeterministic_field() {
 // 4. Sorting order invariants
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_rows_descending_code_ascending_name() {
     let o = tokmd_cmd()
@@ -360,6 +373,7 @@ fn lang_rows_descending_code_ascending_name() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_rows_descending_code_ascending_module() {
     let o = tokmd_cmd()
@@ -382,6 +396,7 @@ fn module_rows_descending_code_ascending_module() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_rows_descending_code_ascending_path() {
     let o = tokmd_cmd()
@@ -404,6 +419,7 @@ fn export_rows_descending_code_ascending_path() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_derived_keys_stable_and_sorted() {
     let get_keys = || {
@@ -437,6 +453,7 @@ fn analyze_derived_keys_stable_and_sorted() {
 // 5. Multi-format byte stability
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_markdown_deterministic() {
     let run = || {
@@ -450,6 +467,7 @@ fn analyze_receipt_markdown_deterministic() {
     assert_eq!(run(), run(), "analyze markdown must be deterministic");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn lang_csv_byte_identical() {
     let run = || {
@@ -462,6 +480,7 @@ fn lang_csv_byte_identical() {
     assert_eq!(run(), run(), "lang CSV must be byte-identical");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_tsv_byte_identical() {
     let run = || {
@@ -474,6 +493,7 @@ fn module_tsv_byte_identical() {
     assert_eq!(run(), run(), "module TSV must be byte-identical");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_csv_byte_identical() {
     let run = || {
@@ -490,6 +510,7 @@ fn export_csv_byte_identical() {
 // 6. Structural stability across runs
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn row_counts_stable_across_all_commands() {
     let count = |args: &[&str]| -> usize {
@@ -514,6 +535,7 @@ fn row_counts_stable_across_all_commands() {
     assert!(exp1 > 0, "export should have at least one row");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_jsonl_line_count_stable() {
     let count = || {
@@ -529,6 +551,7 @@ fn export_jsonl_line_count_stable() {
     assert!(a > 1, "JSONL should have meta + data lines");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn json_keys_alphabetically_sorted_in_receipt_rows() {
     let commands: &[&[&str]] = &[
@@ -557,6 +580,7 @@ fn json_keys_alphabetically_sorted_in_receipt_rows() {
     }
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_receipt_has_stable_top_level_keys() {
     let get_top_keys = || {
@@ -587,6 +611,7 @@ fn analyze_receipt_has_stable_top_level_keys() {
 // 7. Module key determinism
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn module_keys_deterministic_across_runs() {
     let get_modules = || {
@@ -609,6 +634,7 @@ fn module_keys_deterministic_across_runs() {
     assert!(!mods1.is_empty(), "should have at least one module");
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn export_module_keys_match_module_command() {
     let module_mods = {

@@ -223,11 +223,13 @@ fn export_subcommand_help_works() {
     tokmd_cmd().args(["export", "--help"]).assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn analyze_subcommand_help_works() {
     tokmd_cmd().args(["analyze", "--help"]).assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_subcommand_help_works() {
     tokmd_cmd().args(["badge", "--help"]).assert().success();
@@ -243,6 +245,7 @@ fn tools_subcommand_help_works() {
     tokmd_cmd().args(["tools", "--help"]).assert().success();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_subcommand_help_works() {
     tokmd_cmd().args(["gate", "--help"]).assert().success();

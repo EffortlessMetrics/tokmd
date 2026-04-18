@@ -81,6 +81,7 @@ message = "Token budget exceeded"
     path
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_requires_policy() {
     // Given: No policy or ratchet rules specified
@@ -95,6 +96,7 @@ fn test_gate_requires_policy() {
         ));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_passing_policy() {
     // Given: A receipt with 100000 tokens and a policy allowing up to 500000 tokens
@@ -116,6 +118,7 @@ fn test_gate_passing_policy() {
         .stdout(predicate::str::contains("PASSED"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_failing_policy() {
     // Given: A receipt with 100000 tokens and a policy allowing only 1000 tokens
@@ -137,6 +140,7 @@ fn test_gate_failing_policy() {
         .stdout(predicate::str::contains("FAILED"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_json_output() {
     // Given: A receipt and a passing policy
@@ -171,6 +175,7 @@ fn test_gate_json_output() {
     assert!(parsed.get("total_warnings").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_invalid_policy_file() {
     // Given: A receipt and a non-existent policy file path
@@ -191,6 +196,7 @@ fn test_gate_invalid_policy_file() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_operators() {
     // Given: A receipt and a policy testing various operators (gt, lt, eq, exists, in)
@@ -253,6 +259,7 @@ level = "error"
         .stdout(predicate::str::contains("PASSED"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_warn_level() {
     // Given: A receipt and a policy with only warn-level rules that fail
@@ -299,6 +306,7 @@ message = "Token count high"
     assert_eq!(parsed["total_errors"], 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_negate() {
     // Given: A receipt without a "/secrets" field and a policy checking it should not exist
@@ -457,6 +465,7 @@ level = "error"
     path
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_passing() {
     // Given: A baseline and current receipt with slight complexity increase (under 10% threshold)
@@ -482,6 +491,7 @@ fn test_gate_ratchet_passing() {
         .stdout(predicate::str::contains("Ratchet Rules"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_failing_percentage() {
     // Given: A baseline and current receipt with large complexity increase (over 10% threshold)
@@ -507,6 +517,7 @@ fn test_gate_ratchet_failing_percentage() {
         .stdout(predicate::str::contains("exceeds"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_failing_max_value() {
     // Given: A baseline and current receipt where max_cyclomatic exceeds the max_value ceiling
@@ -532,6 +543,7 @@ fn test_gate_ratchet_failing_max_value() {
         .stdout(predicate::str::contains("exceeds maximum"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_json_output() {
     // Given: A baseline and current receipt with slight complexity increase
@@ -568,6 +580,7 @@ fn test_gate_ratchet_json_output() {
     assert!(parsed.get("total_warnings").is_some());
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_warn_level() {
     // Given: A baseline and current receipt with large complexity increase and a warn-level ratchet rule
@@ -614,6 +627,7 @@ level = "warn"
     assert_eq!(parsed["total_errors"], 0);
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_combined_policy_and_ratchet() {
     // Given: A baseline, current receipt, passing policy, and passing ratchet config
@@ -644,6 +658,7 @@ fn test_gate_combined_policy_and_ratchet() {
         .stdout(predicate::str::contains("Ratchet Rules"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn test_gate_ratchet_no_baseline() {
     // Given: A current receipt and a ratchet config but no baseline
