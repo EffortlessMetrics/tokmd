@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! # tokmd
 //!
 //! **Tier 5 (CLI Binary)**

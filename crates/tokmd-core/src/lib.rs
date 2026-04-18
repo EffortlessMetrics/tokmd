@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! # tokmd-core
 //!
 //! **Tier 4 (Library Facade)**

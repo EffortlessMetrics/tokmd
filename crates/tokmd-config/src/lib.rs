@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! # tokmd-config
 //!
 //! **Tier 4 (Configuration)**
