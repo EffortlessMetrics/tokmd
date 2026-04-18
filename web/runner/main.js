@@ -247,7 +247,7 @@ function createNotice(tone, title, lines) {
 }
 
 function sanitizeErrorForLog(error) {
-    if (!(error instanceof Error)) {
+    if (!error || typeof error !== "object" || typeof error.message !== "string") {
         return {
             code: "unknown",
             message: String(error),
@@ -267,7 +267,7 @@ function sanitizeErrorForLog(error) {
 }
 
 function describeLoadError(error) {
-    if (!(error instanceof Error)) {
+    if (!error || typeof error !== "object" || typeof error.message !== "string") {
         return String(error);
     }
 
@@ -506,7 +506,7 @@ loadRepoButton.addEventListener("click", async () => {
             result.ingest.partial ? "warning" : "success"
         );
     } catch (error) {
-        const repoError = error instanceof Error ? error : new Error(String(error));
+        const repoError = (error && typeof error === "object" && typeof error.message === "string") ? error : new Error(String(error));
         if (repoError.ingest) {
             state.latestSource = {
                 repo,
