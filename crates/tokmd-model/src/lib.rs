@@ -1,17 +1,17 @@
-//! #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]tokmd-model
+//! # tokmd-model
 //!
 //! **Tier 1 (Logic)**
 //!
 //! This crate contains the core business logic for aggregating and transforming code statistics.
 //! It handles the conversion from raw Tokei scan results into `tokmd` receipts.
 //!
-//! ##[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]What belongs here
+//! ## What belongs here
 //! * Aggregation logic (rolling up stats to modules/languages)
 //! * Deterministic sorting and filtering
 //! * Path normalization rules
 //! * Receipt generation logic
 //!
-//! ##[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]What does NOT belong here
+//! ## What does NOT belong here
 //! * CLI argument parsing
 //! * Output formatting (printing to stdout/file)
 //! * Tokei interaction (use tokmd-scan)
@@ -733,7 +733,7 @@ pub fn unique_parent_file_count_from_rows(file_rows: &[FileRow]) -> usize {
 ///
 /// Returns 0 if `files` is zero.
 ///
-/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
+/// # Examples
 ///
 /// ```
 /// use tokmd_model::avg;
@@ -758,7 +758,7 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
 ///
-/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
+/// # Examples
 ///
 /// ```
 /// use std::path::Path;
@@ -843,7 +843,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// - If the first directory segment is in `module_roots`, join `module_depth` *directory* segments.
 /// - Otherwise, module key is the top-level directory.
 ///
-/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
+/// # Examples
 ///
 /// ```
 /// use tokmd_model::module_key;
