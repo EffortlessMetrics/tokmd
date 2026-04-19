@@ -1,0 +1,3 @@
+{"command": "cargo deny --all-features check", "result": "error[deprecated]: this key has been removed"}
+{"command": "sed -i '/unmaintained = \"all\"/d' deny.toml", "result": ""}
+{"command": "cargo deny --all-features check", "result": "advisories ok, bans ok, licenses ok, sources ok"}

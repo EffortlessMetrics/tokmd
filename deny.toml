@@ -15,7 +15,6 @@ ignore = [
     # term_size is transitive via tokei; no patched version available upstream
     { id = "RUSTSEC-2020-0163", reason = "transitive via tokei; revisit when upstream removes it" },
 ]
-unmaintained = "all"
 yanked = "warn"
 
 # ------------------------------------------------------------------------------
