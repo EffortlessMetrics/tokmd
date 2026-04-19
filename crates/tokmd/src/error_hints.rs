@@ -122,13 +122,11 @@ fn suggestions(err: &Error) -> Vec<String> {
         );
     }
 
-    if haystack.contains("unknown metric/finding key") {
-        if !haystack.contains("use --explain list") {
-            push_hint(
-                &mut out,
-                "Run `tokmd analyze --explain list` to see supported keys.",
-            );
-        }
+    if haystack.contains("unknown metric/finding key") && !haystack.contains("use --explain list") {
+        push_hint(
+            &mut out,
+            "Run `tokmd analyze --explain list` to see supported keys.",
+        );
     }
 
     if haystack.contains("toml") && (haystack.contains("parse") || haystack.contains("invalid")) {
