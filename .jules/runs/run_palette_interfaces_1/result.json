@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "change_summary": "Improved error messages for unrecognized CLI subcommands and 'analyze --explain' missing keys.",
+  "files_modified": [
+    "crates/tokmd/Cargo.toml",
+    "crates/tokmd/src/error_hints.rs"
+  ],
+  "validation_commands": [
+    "cargo test -p tokmd --lib",
+    "cargo test --test cli_errors_w66",
+    "cargo test --test cli_error_help_w73",
+    "cargo run -p tokmd -- anlyze",
+    "cargo run -p tokmd -- analyze --explain missing-key"
+  ]
+}

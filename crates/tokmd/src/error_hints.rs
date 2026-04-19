@@ -41,15 +41,63 @@ fn suggestions(err: &Error) -> Vec<String> {
         || haystack.contains("input path does not exist")
         || haystack.contains("no such file or directory")
     {
-        push_hint(&mut out, "Verify the input path exists and is readable.");
-        push_hint(
-            &mut out,
-            "Use an absolute path to avoid working-directory confusion.",
-        );
-        push_hint(
-            &mut out,
-            "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
-        );
+        // Check if the missing path looks like a typo of a subcommand
+        let mut did_you_mean = None;
+
+        // Extract the path name from the error string if possible
+        if let Some(path_start) = err.to_string().rfind("Path not found: ") {
+            let path = err.to_string()[path_start + 16..].trim().to_string();
+            // Subcommands usually do not contain slashes
+            if !path.contains('/') && !path.contains('\\') {
+                let subcommands = [
+                    "lang",
+                    "module",
+                    "export",
+                    "analyze",
+                    "badge",
+                    "diff",
+                    "context",
+                    "gate",
+                    "handoff",
+                    "completions",
+                    "run",
+                    "init",
+                    "check-ignore",
+                    "cockpit",
+                    "sensor",
+                    "baseline",
+                    "tools",
+                ];
+                let mut best_match = None;
+                let mut best_score = 0.0;
+
+                for cmd in subcommands {
+                    let score = strsim::jaro_winkler(&path, cmd);
+                    if score > best_score {
+                        best_score = score;
+                        best_match = Some(cmd);
+                    }
+                }
+
+                if best_score > 0.8 {
+                    did_you_mean = Some(format!("Did you mean `{}`?", best_match.unwrap()));
+                }
+            }
+        }
+
+        if let Some(suggestion) = did_you_mean {
+            push_hint(&mut out, &suggestion);
+        } else {
+            push_hint(&mut out, "Verify the input path exists and is readable.");
+            push_hint(
+                &mut out,
+                "Use an absolute path to avoid working-directory confusion.",
+            );
+            push_hint(
+                &mut out,
+                "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
+            );
+        }
     }
 
     if haystack.contains("base ref") && haystack.contains("not found") {
@@ -75,10 +123,12 @@ fn suggestions(err: &Error) -> Vec<String> {
     }
 
     if haystack.contains("unknown metric/finding key") {
-        push_hint(
-            &mut out,
-            "Run `tokmd analyze --explain list` to see supported keys.",
-        );
+        if !haystack.contains("use --explain list") {
+            push_hint(
+                &mut out,
+                "Run `tokmd analyze --explain list` to see supported keys.",
+            );
+        }
     }
 
     if haystack.contains("toml") && (haystack.contains("parse") || haystack.contains("invalid")) {

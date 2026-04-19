@@ -2518,6 +2518,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "strsim",
  "tempfile",
  "time",
  "tokmd-analysis",
@@ -2849,6 +2850,7 @@ dependencies = [
 name = "tokmd-analysis-types"
 version = "1.9.0"
 dependencies = [
+ "chrono",
  "proptest",
  "serde",
  "serde_json",
