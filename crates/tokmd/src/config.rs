@@ -109,6 +109,20 @@ fn load_json_config() -> Option<cli::UserConfig> {
 }
 
 /// Get the profile name from CLI arg, env var, or default.
+///
+/// # Example
+///
+/// ```
+/// use tokmd::config::get_profile_name;
+///
+/// // CLI argument takes precedence
+/// let cli_profile = Some(String::from("custom"));
+/// assert_eq!(get_profile_name(cli_profile.as_ref()), Some("custom".to_string()));
+///
+/// // If CLI arg is missing, it falls back to the TOKMD_PROFILE environment variable.
+/// let fallback = get_profile_name(None);
+/// // The fallback depends on the environment, so we just check it executes successfully.
+/// ```
 pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
     // CLI argument takes precedence
     if let Some(name) = cli_profile {
@@ -122,6 +136,26 @@ pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
 }
 
 /// Resolve a JSON profile by name (legacy).
+///
+/// # Example
+///
+/// ```
+/// use tokmd::config::resolve_profile;
+/// use tokmd_config::{UserConfig, Profile};
+/// use std::collections::BTreeMap;
+///
+/// let mut profiles = BTreeMap::new();
+/// profiles.insert("custom".to_string(), Profile::default());
+/// let config = Some(UserConfig { profiles, repos: BTreeMap::new() });
+///
+/// let name = String::from("custom");
+/// let resolved = resolve_profile(&config, Some(&name));
+/// assert!(resolved.is_some());
+///
+/// let missing = String::from("missing");
+/// let not_resolved = resolve_profile(&config, Some(&missing));
+/// assert!(not_resolved.is_none());
+/// ```
 pub fn resolve_profile<'a>(
     config: &'a Option<cli::UserConfig>,
     name: Option<&String>,
