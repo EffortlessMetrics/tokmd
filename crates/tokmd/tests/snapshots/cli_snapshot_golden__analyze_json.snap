@@ -1,6 +1,6 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
-assertion_line: 248
+assertion_line: 255
 expression: normalize(&stdout)
 ---
 {
@@ -23,7 +23,7 @@ expression: normalize(&stdout)
     "base_receipt_path": null,
     "export_schema_version": null,
     "export_generated_at_ms": null,
-    "base_signature": "160e7bd41d30f8f3ba3db95226a330e1e31fe859d1209261c2060c9bd6fe1ed1",
+    "base_signature":"<SIGNATURE>",
     "module_roots": [
       "crates",
       "packages",

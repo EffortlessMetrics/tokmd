@@ -35,6 +35,16 @@ fn normalize(output: &str) -> String {
     let re_abs = regex::Regex::new(r#""paths":\["[^"]*"\]"#).unwrap();
     let s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
 
+    // Normalize analyze specific fields
+    let re_target_path = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
+    let s = re_target_path
+        .replace_all(&s, r#""target_path":"<TARGET>""#)
+        .into_owned();
+    let re_base_sig = regex::Regex::new(r#""base_signature":\s*"[^"]*""#).unwrap();
+    let s = re_base_sig
+        .replace_all(&s, r#""base_signature":"<SIGNATURE>""#)
+        .into_owned();
+
     // Normalize binary name across platforms (tokmd.exe on Windows -> tokmd)
     s.replace("tokmd.exe", "tokmd")
 }
@@ -218,6 +228,7 @@ fn snapshot_help() {
     // Normalize the version in the help header
     insta::assert_snapshot!("help", normalize(&stdout));
 }
+
 // ---------------------------------------------------------------------------
 // 8. Analyze output snapshots
 // ---------------------------------------------------------------------------
@@ -232,7 +243,7 @@ fn snapshot_analyze_markdown() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("analyze_markdown", stdout);
+    insta::assert_snapshot!("analyze_markdown", normalize(&stdout));
 }
 
 #[test]
