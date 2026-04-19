@@ -1,11 +1,11 @@
 use proptest::prelude::*;
 use tokmd_analysis_effort::confidence::build_confidence;
 use tokmd_analysis_types::{
-    ApiSurfaceReport, ComplexityReport, DerivedReport, DuplicateReport, EffortConfidenceLevel,
-    EffortSizeBasis, GitReport, PolyglotReport, TestDensityReport, FreshnessReport,
-    DerivedTotals, RatioReport, RatioRow, RateReport, MaxFileReport, LangPurityReport, NestingReport,
-    BoilerplateReport, DistributionReport, TopOffenders, ReadingTimeReport, IntegrityReport,
-    FileStatRow, RateRow
+    ApiSurfaceReport, BoilerplateReport, ComplexityReport, DerivedReport, DerivedTotals,
+    DistributionReport, DuplicateReport, EffortConfidenceLevel, EffortSizeBasis, FileStatRow,
+    FreshnessReport, GitReport, IntegrityReport, LangPurityReport, MaxFileReport, NestingReport,
+    PolyglotReport, RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport,
+    TestDensityReport, TopOffenders,
 };
 
 fn gen_size_basis() -> impl Strategy<Value = EffortSizeBasis> {
@@ -41,12 +41,8 @@ fn gen_size_basis() -> impl Strategy<Value = EffortSizeBasis> {
 }
 
 fn gen_derived_report() -> impl Strategy<Value = DerivedReport> {
-    (
-        0..=10usize,
-        0..=1000usize,
-        0..=100usize,
-    )
-        .prop_map(|(lang_count, prod_lines, test_lines)| DerivedReport {
+    (0..=10usize, 0..=1000usize, 0..=100usize).prop_map(|(lang_count, prod_lines, test_lines)| {
+        DerivedReport {
             test_density: TestDensityReport {
                 test_lines,
                 prod_lines,
@@ -65,24 +61,109 @@ fn gen_derived_report() -> impl Strategy<Value = DerivedReport> {
                 dominant_lines: 100,
                 dominant_pct: 1.0,
             },
-            totals: DerivedTotals { code: 0, tokens: 0, files: 0,  lines: 0, bytes: 0, comments: 0, blanks: 0 },
-            doc_density: RatioReport { total: RatioRow { ratio: 0.0, key: "".into(), numerator: 0, denominator: 0 }, by_lang: vec![], by_module: vec![] },
-            whitespace: RatioReport { total: RatioRow { ratio: 0.0, key: "".into(), numerator: 0, denominator: 0 }, by_lang: vec![], by_module: vec![] },
-            verbosity: RateReport { total: RateRow { rate: 0.0, key: "".into(), numerator: 0, denominator: 0 }, by_lang: vec![], by_module: vec![] },
-            max_file: MaxFileReport { overall: FileStatRow { lines: 0, path: "".into(), module: "".into(), lang: "".into(), code: 0, comments: 0, blanks: 0, bytes: 0, tokens: 0, doc_pct: None, bytes_per_line: None, depth: 0 }, by_lang: vec![], by_module: vec![] },
+            totals: DerivedTotals {
+                code: 0,
+                tokens: 0,
+                files: 0,
+                lines: 0,
+                bytes: 0,
+                comments: 0,
+                blanks: 0,
+            },
+            doc_density: RatioReport {
+                total: RatioRow {
+                    ratio: 0.0,
+                    key: "".into(),
+                    numerator: 0,
+                    denominator: 0,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            whitespace: RatioReport {
+                total: RatioRow {
+                    ratio: 0.0,
+                    key: "".into(),
+                    numerator: 0,
+                    denominator: 0,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            verbosity: RateReport {
+                total: RateRow {
+                    rate: 0.0,
+                    key: "".into(),
+                    numerator: 0,
+                    denominator: 0,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
+            max_file: MaxFileReport {
+                overall: FileStatRow {
+                    lines: 0,
+                    path: "".into(),
+                    module: "".into(),
+                    lang: "".into(),
+                    code: 0,
+                    comments: 0,
+                    blanks: 0,
+                    bytes: 0,
+                    tokens: 0,
+                    doc_pct: None,
+                    bytes_per_line: None,
+                    depth: 0,
+                },
+                by_lang: vec![],
+                by_module: vec![],
+            },
             lang_purity: LangPurityReport { rows: vec![] },
-            nesting: NestingReport { max: 0, avg: 0.0, by_module: vec![] },
-            boilerplate: BoilerplateReport { infra_lines: 0, logic_lines: 0, ratio: 0.0, infra_langs: vec![] },
-            distribution: DistributionReport { min: 0, max: 0, mean: 0.0, median: 0.0, p90: 0.0, p99: 0.0, count: 0, gini: 0.0 },
+            nesting: NestingReport {
+                max: 0,
+                avg: 0.0,
+                by_module: vec![],
+            },
+            boilerplate: BoilerplateReport {
+                infra_lines: 0,
+                logic_lines: 0,
+                ratio: 0.0,
+                infra_langs: vec![],
+            },
+            distribution: DistributionReport {
+                min: 0,
+                max: 0,
+                mean: 0.0,
+                median: 0.0,
+                p90: 0.0,
+                p99: 0.0,
+                count: 0,
+                gini: 0.0,
+            },
             histogram: vec![],
-            top: TopOffenders { largest_lines: vec![], largest_tokens: vec![], largest_bytes: vec![], least_documented: vec![], most_dense: vec![] },
+            top: TopOffenders {
+                largest_lines: vec![],
+                largest_tokens: vec![],
+                largest_bytes: vec![],
+                least_documented: vec![],
+                most_dense: vec![],
+            },
             tree: None,
-            reading_time: ReadingTimeReport { minutes: 0.0, basis_lines: 0, lines_per_minute: 0 },
+            reading_time: ReadingTimeReport {
+                minutes: 0.0,
+                basis_lines: 0,
+                lines_per_minute: 0,
+            },
             context_window: None,
             cocomo: None,
             todo: None,
-            integrity: IntegrityReport { algo: "".to_string(), hash: "".to_string(), entries: 0 },
-        })
+            integrity: IntegrityReport {
+                algo: "".to_string(),
+                hash: "".to_string(),
+                entries: 0,
+            },
+        }
+    })
 }
 
 fn gen_git_report() -> impl Strategy<Value = GitReport> {
