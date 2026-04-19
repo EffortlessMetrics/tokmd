@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-analysis-effort", "outcome": "ok", "notes": "6 tests passed for new property tests"}
+{"command": "cargo clippy -- -D warnings", "outcome": "ok", "notes": "clippy pass"}
+{"command": "cargo fmt -- --check", "outcome": "ok", "notes": "fmt pass"}
