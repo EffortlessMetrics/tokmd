@@ -1,5 +1,0 @@
-2026-04-19 15:34:14 [ERROR] failed to load advisory database: parse error: error parsing /home/jules/.cargo/advisory-db/github.com-2f857891b7f43c59/crates/libcrux-ecdh/RUSTSEC-2026-0023.md: parse error: TOML parse error at line 7, column 8
-  |
-7 | cvss = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
-  |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-unsupported CVSS version: 4.0
