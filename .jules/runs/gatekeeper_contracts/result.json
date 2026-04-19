@@ -1,0 +1,20 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "summary": "Added missing regression tests for analyze CLI command snapshots and fixed clippy 1.95.0 failures.",
+  "files_modified": [
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__analyze_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__analyze_markdown.snap",
+    "crates/tokmd/tests/determinism_hardening_w51.rs",
+    "crates/tokmd/tests/diff_deep_w77.rs",
+    "crates/tokmd/tests/diff_w71.rs",
+    "crates/tokmd-context-git/tests/deep_w67.rs",
+    "crates/tokmd-format/tests/edge_w76.rs",
+    "crates/tokmd-format/tests/format_snapshot_w58.rs",
+    "crates/tokmd-model/tests/determinism_w66.rs",
+    "crates/tokmd-types/tests/determinism_w66.rs",
+    "crates/tokmd-types/tests/proptest_w69.rs",
+    "xtask/src/tasks/gate.rs"
+  ]
+}

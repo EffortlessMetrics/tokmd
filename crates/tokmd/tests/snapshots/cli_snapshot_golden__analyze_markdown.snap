@@ -1,0 +1,234 @@
+---
+source: crates/tokmd/tests/cli_snapshot_golden.rs
+assertion_line: 235
+expression: stdout
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|7|26|8|3|37|583|143|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|23.5%|
+|Whitespace ratio|8.8%|
+|Bytes per line|15.76|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Markdown|150.0%|6|0|
+|Rust|15.4%|2|11|
+|JavaScript|0.0%|0|1|
+|TOML|0.0%|0|8|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+|Markdown|20.0%|2|10|
+|TOML|12.5%|1|8|
+|JavaScript|0.0%|0|1|
+|Rust|0.0%|0|15|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+|JavaScript|30.00|30|1|
+|TOML|18.33|165|9|
+|Rust|16.00|240|15|
+|Markdown|12.33|148|12|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|7|1|11|5.29|3.00|11.00|11.00|0.4479|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|Tiny|0|50|7|100.0%|
+|Small|51|200|0|0.0%|
+|Medium|201|500|0|0.0%|
+|Large|501|1000|0|0.0%|
+|Huge|1001|∞|0|0.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|large.rs|Rust|11|9|182|45|18.2%|16.55|
+|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
+|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
+|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
+|README.md|Markdown|1|0|30|7|100.0%|30.00|
+|script.js|JavaScript|1|1|30|7|0.0%|30.00|
+|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|large.rs|Rust|11|9|182|45|18.2%|16.55|
+|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
+|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
+|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
+|README.md|Markdown|1|0|30|7|100.0%|30.00|
+|script.js|JavaScript|1|1|30|7|0.0%|30.00|
+|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|large.rs|Rust|11|9|182|45|18.2%|16.55|
+|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
+|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
+|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
+|README.md|Markdown|1|0|30|7|100.0%|30.00|
+|script.js|JavaScript|1|1|30|7|0.0%|30.00|
+|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|large.rs|Rust|11|9|182|45|18.2%|16.55|
+|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
+
+## Structure
+
+- Max depth: `2`
+- Avg depth: `1.14`
+
+## Test density
+
+- Test lines: `0`
+- Prod lines: `26`
+- Test ratio: `0.0%`
+
+## Boilerplate ratio
+
+- Infra lines: `21`
+- Logic lines: `16`
+- Infra ratio: `56.8%`
+
+## Polyglot
+
+- Languages: `4`
+- Dominant: `Rust` (50.0%)
+- Entropy: `1.6195`
+
+## Reading time
+
+- Minutes: `1.30` (20 lines/min)
+
+## Effort estimate
+
+### Size basis
+
+- Source lines: `26`
+- Total lines: `37`
+- KLOC: `0.0260`
+
+### Headline
+
+- Effort: `0.05` person-months
+- Duration: `0.81` months
+- Staff: `0.06`
+
+### Why
+
+- Model: `COCOMO` (`organic` mode)
+- Formula: `E = a * KLOC^b`
+- Coefficients: `a=2.40`, `b=1.05`, `c=2.50`, `d=0.38`
+
+### Delta
+
+- Baseline comparison is not available for this receipt.
+
+## Integrity
+
+- Hash: `160e7bd41d30f8f3ba3db95226a330e1e31fe859d1209261c2060c9bd6fe1ed1` (`blake3`)
+- Entries: `7`
+
+## Duplicates
+
+- Wasted bytes: `0`
+- Strategy: `exact-blake3`
+
+### Duplication density
+
+- Duplicate groups: `0`
+- Duplicate files: `0`
+- Duplicated bytes: `0`
+- Waste vs codebase: `0.0%`
+
+## Complexity
+
+|Metric|Value|
+|---|---:|
+|Total functions|3|
+|Avg function length|3.8|
+|Max function length|11|
+|Avg cyclomatic|1.00|
+|Max cyclomatic|1|
+|Avg cognitive|0.00|
+|Max cognitive|0|
+|Avg nesting depth|1.33|
+|Max nesting depth|2|
+|High risk files|0|
+
+### Top complex files
+
+|Path|CC|Functions|Max fn length|
+|---|---:|---:|---:|
+|large.rs|1|1|11|
+|script.js|1|0|0|
+|space file.rs|1|1|1|
+|src/main.rs|1|1|3|
+
+## API surface
+
+|Metric|Value|
+|---|---:|
+|Total items|3|
+|Public items|0|
+|Internal items|3|
+|Public ratio|0.0%|
+|Documented ratio|0.0%|
+
+### By language
+
+|Language|Total|Public|Internal|Public%|
+|---|---:|---:|---:|---:|
+|Rust|3|0|3|0.0%|
+
+### By module
+
+|Module|Total|Public|Public%|
+|---|---:|---:|---:|
+|(root)|2|0|0.0%|
+|src|1|0|0.0%|

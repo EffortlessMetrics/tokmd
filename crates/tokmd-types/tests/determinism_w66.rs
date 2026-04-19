@@ -357,7 +357,7 @@ proptest! {
             files,
             bytes: code * 4,
             tokens: code,
-            avg_lines: if files > 0 { lines / files } else { 0 },
+            avg_lines: lines.checked_div(files).unwrap_or(0),
         };
         let json1 = serde_json::to_string(&row).unwrap();
         let rt: LangRow = serde_json::from_str(&json1).unwrap();
