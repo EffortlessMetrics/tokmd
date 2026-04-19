@@ -1,4 +1,0 @@
-{
-  "outcome": "learning_pr",
-  "reason": "No unused dependencies or redundant feature declarations found in bindings-targets manifests."
-}
