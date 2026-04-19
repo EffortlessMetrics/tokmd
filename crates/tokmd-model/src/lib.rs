@@ -1,23 +1,23 @@
-//! # tokmd-model
+//! #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]tokmd-model
 //!
 //! **Tier 1 (Logic)**
 //!
 //! This crate contains the core business logic for aggregating and transforming code statistics.
 //! It handles the conversion from raw Tokei scan results into `tokmd` receipts.
 //!
-//! ## What belongs here
+//! ##[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]What belongs here
 //! * Aggregation logic (rolling up stats to modules/languages)
 //! * Deterministic sorting and filtering
 //! * Path normalization rules
 //! * Receipt generation logic
 //!
-//! ## What does NOT belong here
+//! ##[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]What does NOT belong here
 //! * CLI argument parsing
 //! * Output formatting (printing to stdout/file)
 //! * Tokei interaction (use tokmd-scan)
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -40,7 +40,7 @@ struct Agg {
     tokens: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Key<'a> {
     path: String,
     lang: &'a str,
@@ -209,7 +209,7 @@ fn detect_in_memory_language(
 }
 
 fn insert_row<'a>(
-    map: &mut BTreeMap<Key<'a>, (String, Agg)>,
+    map: &mut HashMap<Key<'a>, (String, Agg)>,
     key: Key<'a>,
     module: String,
     stats: &CodeStats,
@@ -224,8 +224,9 @@ fn insert_row<'a>(
     entry.1.tokens += tokens;
 }
 
-fn rows_from_map<'a>(map: BTreeMap<Key<'a>, (String, Agg)>) -> Vec<FileRow> {
-    map.into_iter()
+fn rows_from_map<'a>(map: HashMap<Key<'a>, (String, Agg)>) -> Vec<FileRow> {
+    let mut rows: Vec<FileRow> = map
+        .into_iter()
         .map(|(key, (module, agg))| {
             let lines = agg.code + agg.comments + agg.blanks;
             FileRow {
@@ -241,7 +242,17 @@ fn rows_from_map<'a>(map: BTreeMap<Key<'a>, (String, Agg)>) -> Vec<FileRow> {
                 tokens: agg.tokens,
             }
         })
-        .collect()
+        .collect();
+
+    // Sort to guarantee deterministic output from HashMap
+    rows.sort_by(|a, b| {
+        a.path
+            .cmp(&b.path)
+            .then_with(|| a.lang.cmp(&b.lang))
+            .then_with(|| a.kind.cmp(&b.kind))
+    });
+
+    rows
 }
 
 /// Collect `FileRow`s directly from ordered in-memory inputs.
@@ -255,7 +266,7 @@ pub fn collect_in_memory_file_rows(
     children: ChildIncludeMode,
     config: &Config,
 ) -> Vec<FileRow> {
-    let mut map = BTreeMap::new();
+    let mut map = HashMap::new();
 
     for input in inputs {
         let Some(lang_type) = detect_in_memory_language(input.logical_path, input.bytes, config)
@@ -328,26 +339,26 @@ pub fn create_lang_report_from_rows(
         tokens: usize,
     }
 
-    let parent_lang_by_path: BTreeMap<&str, &str> = file_rows
+    let parent_lang_by_path: HashMap<&str, &str> = file_rows
         .iter()
         .filter(|row| row.kind == FileKind::Parent)
         .map(|row| (row.path.as_str(), row.lang.as_str()))
         .collect();
-    let mut child_totals_by_path: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
+    let mut child_totals_by_path: HashMap<&str, (usize, usize)> = HashMap::new();
     for row in file_rows.iter().filter(|row| row.kind == FileKind::Child) {
         let entry = child_totals_by_path.entry(row.path.as_str()).or_default();
         entry.0 += row.code;
         entry.1 += row.lines;
     }
 
-    let mut by_lang: BTreeMap<(&str, bool), (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
+    let mut by_lang: HashMap<(&str, bool), (LangAgg, HashSet<&str>)> = HashMap::new();
 
     for row in file_rows {
         match (children, row.kind) {
             (ChildrenMode::Collapse, FileKind::Parent) => {
                 let entry = by_lang
                     .entry((row.lang.as_str(), false))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                    .or_insert_with(|| (LangAgg::default(), HashSet::new()));
                 entry.0.code += row.code;
                 entry.0.lines += row.lines;
                 entry.0.bytes += row.bytes;
@@ -358,7 +369,7 @@ pub fn create_lang_report_from_rows(
                 if !parent_lang_by_path.contains_key(row.path.as_str()) {
                     let entry = by_lang
                         .entry((row.lang.as_str(), false))
-                        .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                        .or_insert_with(|| (LangAgg::default(), HashSet::new()));
                     entry.0.code += row.code;
                     entry.0.lines += row.lines;
                     entry.1.insert(row.path.as_str());
@@ -372,7 +383,7 @@ pub fn create_lang_report_from_rows(
 
                 let entry = by_lang
                     .entry((row.lang.as_str(), false))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                    .or_insert_with(|| (LangAgg::default(), HashSet::new()));
                 entry.0.code += row.code.saturating_sub(child_code);
                 entry.0.lines += row.lines.saturating_sub(child_lines);
                 entry.0.bytes += row.bytes;
@@ -382,7 +393,7 @@ pub fn create_lang_report_from_rows(
             (ChildrenMode::Separate, FileKind::Child) => {
                 let entry = by_lang
                     .entry((row.lang.as_str(), true))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
+                    .or_insert_with(|| (LangAgg::default(), HashSet::new()));
                 entry.0.code += row.code;
                 entry.0.lines += row.lines;
                 entry.1.insert(row.path.as_str());
@@ -495,7 +506,7 @@ pub fn create_module_report_from_rows(
         tokens: usize,
     }
 
-    let mut by_module: BTreeMap<&str, (Agg, BTreeSet<&str>)> = BTreeMap::new();
+    let mut by_module: HashMap<&str, (Agg, HashSet<&str>)> = HashMap::new();
     let mut total_code = 0;
     let mut total_lines = 0;
     let mut total_bytes = 0;
@@ -509,7 +520,7 @@ pub fn create_module_report_from_rows(
 
         let entry = by_module
             .entry(r.module.as_str())
-            .or_insert_with(|| (Agg::default(), BTreeSet::new()));
+            .or_insert_with(|| (Agg::default(), HashSet::new()));
         entry.0.code += r.code;
         entry.0.lines += r.lines;
         entry.0.bytes += r.bytes;
@@ -653,7 +664,7 @@ pub fn collect_file_rows(
     children: ChildIncludeMode,
     strip_prefix: Option<&Path>,
 ) -> Vec<FileRow> {
-    let mut map = BTreeMap::new();
+    let mut map = HashMap::new();
 
     // Parent reports
     for (lang_type, lang) in languages.iter() {
@@ -722,7 +733,7 @@ pub fn unique_parent_file_count_from_rows(file_rows: &[FileRow]) -> usize {
 ///
 /// Returns 0 if `files` is zero.
 ///
-/// # Examples
+/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
 ///
 /// ```
 /// use tokmd_model::avg;
@@ -747,7 +758,7 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// - Strips leading `./`
 /// - Optionally strips a user-provided prefix (after normalization)
 ///
-/// # Examples
+/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
 ///
 /// ```
 /// use std::path::Path;
@@ -832,7 +843,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// - If the first directory segment is in `module_roots`, join `module_depth` *directory* segments.
 /// - Otherwise, module key is the top-level directory.
 ///
-/// # Examples
+/// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]Examples
 ///
 /// ```
 /// use tokmd_model::module_key;
