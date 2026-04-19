@@ -17,7 +17,7 @@ fn tokmd_cmd() -> Command {
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).unwrap();
     let s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
@@ -217,4 +217,33 @@ fn snapshot_help() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     // Normalize the version in the help header
     insta::assert_snapshot!("help", normalize(&stdout));
+}
+// ---------------------------------------------------------------------------
+// 8. Analyze output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+#[cfg(feature = "analysis")]
+fn snapshot_analyze_markdown() {
+    let output = tokmd_cmd()
+        .args(["analyze"])
+        .output()
+        .expect("failed to run tokmd analyze");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_markdown", stdout);
+}
+
+#[test]
+#[cfg(feature = "analysis")]
+fn snapshot_analyze_json() {
+    let output = tokmd_cmd()
+        .args(["analyze", "--format", "json"])
+        .output()
+        .expect("failed to run tokmd analyze --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_json", normalize(&stdout));
 }

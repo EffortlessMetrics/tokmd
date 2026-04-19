@@ -1,0 +1,925 @@
+---
+source: crates/tokmd/tests/cli_snapshot_golden.rs
+assertion_line: 248
+expression: normalize(&stdout)
+---
+{
+  "schema_version": 9,
+  "generated_at_ms":0,
+  "tool": {
+    "name": "tokmd",
+    "version": "1.9.0"
+  },
+  "mode": "analysis",
+  "status": "partial",
+  "warnings": [
+    "git scan failed: not a git repo"
+  ],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": "160e7bd41d30f8f3ba3db95226a330e1e31fe859d1209261c2060c9bd6fe1ed1",
+    "module_roots": [
+      "crates",
+      "packages",
+      "src"
+    ],
+    "module_depth": 2,
+    "children": "separate"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "json",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": {
+    "totals": {
+      "files": 7,
+      "code": 26,
+      "comments": 8,
+      "blanks": 3,
+      "lines": 37,
+      "bytes": 583,
+      "tokens": 143
+    },
+    "doc_density": {
+      "total": {
+        "key": "total",
+        "numerator": 8,
+        "denominator": 34,
+        "ratio": 0.2353
+      },
+      "by_lang": [
+        {
+          "key": "Markdown",
+          "numerator": 6,
+          "denominator": 4,
+          "ratio": 1.5
+        },
+        {
+          "key": "Rust",
+          "numerator": 2,
+          "denominator": 13,
+          "ratio": 0.1538
+        },
+        {
+          "key": "JavaScript",
+          "numerator": 0,
+          "denominator": 1,
+          "ratio": 0.0
+        },
+        {
+          "key": "TOML",
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0
+        }
+      ],
+      "by_module": [
+        {
+          "key": "(root)",
+          "numerator": 8,
+          "denominator": 23,
+          "ratio": 0.3478
+        },
+        {
+          "key": "src",
+          "numerator": 0,
+          "denominator": 3,
+          "ratio": 0.0
+        }
+      ]
+    },
+    "whitespace": {
+      "total": {
+        "key": "total",
+        "numerator": 3,
+        "denominator": 34,
+        "ratio": 0.0882
+      },
+      "by_lang": [
+        {
+          "key": "Markdown",
+          "numerator": 2,
+          "denominator": 10,
+          "ratio": 0.2
+        },
+        {
+          "key": "TOML",
+          "numerator": 1,
+          "denominator": 8,
+          "ratio": 0.125
+        },
+        {
+          "key": "JavaScript",
+          "numerator": 0,
+          "denominator": 1,
+          "ratio": 0.0
+        },
+        {
+          "key": "Rust",
+          "numerator": 0,
+          "denominator": 15,
+          "ratio": 0.0
+        }
+      ],
+      "by_module": [
+        {
+          "key": "(root)",
+          "numerator": 3,
+          "denominator": 31,
+          "ratio": 0.0968
+        },
+        {
+          "key": "src",
+          "numerator": 0,
+          "denominator": 3,
+          "ratio": 0.0
+        }
+      ]
+    },
+    "verbosity": {
+      "total": {
+        "key": "total",
+        "numerator": 583,
+        "denominator": 37,
+        "rate": 15.7568
+      },
+      "by_lang": [
+        {
+          "key": "JavaScript",
+          "numerator": 30,
+          "denominator": 1,
+          "rate": 30.0
+        },
+        {
+          "key": "TOML",
+          "numerator": 165,
+          "denominator": 9,
+          "rate": 18.3333
+        },
+        {
+          "key": "Rust",
+          "numerator": 240,
+          "denominator": 15,
+          "rate": 16.0
+        },
+        {
+          "key": "Markdown",
+          "numerator": 148,
+          "denominator": 12,
+          "rate": 12.3333
+        }
+      ],
+      "by_module": [
+        {
+          "key": "(root)",
+          "numerator": 538,
+          "denominator": 34,
+          "rate": 15.8235
+        },
+        {
+          "key": "src",
+          "numerator": 45,
+          "denominator": 3,
+          "rate": 15.0
+        }
+      ]
+    },
+    "max_file": {
+      "overall": {
+        "path": "mixed.md",
+        "module": "(root)",
+        "lang": "Markdown",
+        "code": 4,
+        "comments": 5,
+        "blanks": 2,
+        "lines": 11,
+        "bytes": 118,
+        "tokens": 29,
+        "doc_pct": 0.5556,
+        "bytes_per_line": 10.7273,
+        "depth": 1
+      },
+      "by_lang": [
+        {
+          "key": "JavaScript",
+          "file": {
+            "path": "script.js",
+            "module": "(root)",
+            "lang": "JavaScript",
+            "code": 1,
+            "comments": 0,
+            "blanks": 0,
+            "lines": 1,
+            "bytes": 30,
+            "tokens": 7,
+            "doc_pct": 0.0,
+            "bytes_per_line": 30.0,
+            "depth": 1
+          }
+        },
+        {
+          "key": "Markdown",
+          "file": {
+            "path": "mixed.md",
+            "module": "(root)",
+            "lang": "Markdown",
+            "code": 4,
+            "comments": 5,
+            "blanks": 2,
+            "lines": 11,
+            "bytes": 118,
+            "tokens": 29,
+            "doc_pct": 0.5556,
+            "bytes_per_line": 10.7273,
+            "depth": 1
+          }
+        },
+        {
+          "key": "Rust",
+          "file": {
+            "path": "large.rs",
+            "module": "(root)",
+            "lang": "Rust",
+            "code": 9,
+            "comments": 2,
+            "blanks": 0,
+            "lines": 11,
+            "bytes": 182,
+            "tokens": 45,
+            "doc_pct": 0.1818,
+            "bytes_per_line": 16.5455,
+            "depth": 1
+          }
+        },
+        {
+          "key": "TOML",
+          "file": {
+            "path": "Cargo.toml",
+            "module": "(root)",
+            "lang": "TOML",
+            "code": 8,
+            "comments": 0,
+            "blanks": 1,
+            "lines": 9,
+            "bytes": 165,
+            "tokens": 41,
+            "doc_pct": 0.0,
+            "bytes_per_line": 18.3333,
+            "depth": 1
+          }
+        }
+      ],
+      "by_module": [
+        {
+          "key": "(root)",
+          "file": {
+            "path": "large.rs",
+            "module": "(root)",
+            "lang": "Rust",
+            "code": 9,
+            "comments": 2,
+            "blanks": 0,
+            "lines": 11,
+            "bytes": 182,
+            "tokens": 45,
+            "doc_pct": 0.1818,
+            "bytes_per_line": 16.5455,
+            "depth": 1
+          }
+        },
+        {
+          "key": "src",
+          "file": {
+            "path": "src/main.rs",
+            "module": "src",
+            "lang": "Rust",
+            "code": 3,
+            "comments": 0,
+            "blanks": 0,
+            "lines": 3,
+            "bytes": 45,
+            "tokens": 11,
+            "doc_pct": 0.0,
+            "bytes_per_line": 15.0,
+            "depth": 2
+          }
+        }
+      ]
+    },
+    "lang_purity": {
+      "rows": [
+        {
+          "module": "(root)",
+          "lang_count": 4,
+          "dominant_lang": "Markdown",
+          "dominant_lines": 12,
+          "dominant_pct": 0.3529
+        },
+        {
+          "module": "src",
+          "lang_count": 1,
+          "dominant_lang": "Rust",
+          "dominant_lines": 3,
+          "dominant_pct": 1.0
+        }
+      ]
+    },
+    "nesting": {
+      "max": 2,
+      "avg": 1.14,
+      "by_module": [
+        {
+          "key": "(root)",
+          "max": 1,
+          "avg": 1.0
+        },
+        {
+          "key": "src",
+          "max": 2,
+          "avg": 2.0
+        }
+      ]
+    },
+    "test_density": {
+      "test_lines": 0,
+      "prod_lines": 26,
+      "test_files": 0,
+      "prod_files": 7,
+      "ratio": 0.0
+    },
+    "boilerplate": {
+      "infra_lines": 21,
+      "logic_lines": 16,
+      "ratio": 0.5676,
+      "infra_langs": [
+        "Markdown",
+        "TOML"
+      ]
+    },
+    "polyglot": {
+      "lang_count": 4,
+      "entropy": 1.6195,
+      "dominant_lang": "Rust",
+      "dominant_lines": 13,
+      "dominant_pct": 0.5
+    },
+    "distribution": {
+      "count": 7,
+      "min": 1,
+      "max": 11,
+      "mean": 5.29,
+      "median": 3.0,
+      "p90": 11.0,
+      "p99": 11.0,
+      "gini": 0.4479
+    },
+    "histogram": [
+      {
+        "label": "Tiny",
+        "min": 0,
+        "max": 50,
+        "files": 7,
+        "pct": 1.0
+      },
+      {
+        "label": "Small",
+        "min": 51,
+        "max": 200,
+        "files": 0,
+        "pct": 0.0
+      },
+      {
+        "label": "Medium",
+        "min": 201,
+        "max": 500,
+        "files": 0,
+        "pct": 0.0
+      },
+      {
+        "label": "Large",
+        "min": 501,
+        "max": 1000,
+        "files": 0,
+        "pct": 0.0
+      },
+      {
+        "label": "Huge",
+        "min": 1001,
+        "max": null,
+        "files": 0,
+        "pct": 0.0
+      }
+    ],
+    "top": {
+      "largest_lines": [
+        {
+          "path": "large.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 9,
+          "comments": 2,
+          "blanks": 0,
+          "lines": 11,
+          "bytes": 182,
+          "tokens": 45,
+          "doc_pct": 0.1818,
+          "bytes_per_line": 16.5455,
+          "depth": 1
+        },
+        {
+          "path": "mixed.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 4,
+          "comments": 5,
+          "blanks": 2,
+          "lines": 11,
+          "bytes": 118,
+          "tokens": 29,
+          "doc_pct": 0.5556,
+          "bytes_per_line": 10.7273,
+          "depth": 1
+        },
+        {
+          "path": "Cargo.toml",
+          "module": "(root)",
+          "lang": "TOML",
+          "code": 8,
+          "comments": 0,
+          "blanks": 1,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
+          "depth": 1
+        },
+        {
+          "path": "src/main.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 3,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 3,
+          "bytes": 45,
+          "tokens": 11,
+          "doc_pct": 0.0,
+          "bytes_per_line": 15.0,
+          "depth": 2
+        },
+        {
+          "path": "README.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 0,
+          "comments": 1,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 1.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "script.js",
+          "module": "(root)",
+          "lang": "JavaScript",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 0.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "space file.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 13,
+          "tokens": 3,
+          "doc_pct": 0.0,
+          "bytes_per_line": 13.0,
+          "depth": 1
+        }
+      ],
+      "largest_tokens": [
+        {
+          "path": "large.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 9,
+          "comments": 2,
+          "blanks": 0,
+          "lines": 11,
+          "bytes": 182,
+          "tokens": 45,
+          "doc_pct": 0.1818,
+          "bytes_per_line": 16.5455,
+          "depth": 1
+        },
+        {
+          "path": "Cargo.toml",
+          "module": "(root)",
+          "lang": "TOML",
+          "code": 8,
+          "comments": 0,
+          "blanks": 1,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
+          "depth": 1
+        },
+        {
+          "path": "mixed.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 4,
+          "comments": 5,
+          "blanks": 2,
+          "lines": 11,
+          "bytes": 118,
+          "tokens": 29,
+          "doc_pct": 0.5556,
+          "bytes_per_line": 10.7273,
+          "depth": 1
+        },
+        {
+          "path": "src/main.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 3,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 3,
+          "bytes": 45,
+          "tokens": 11,
+          "doc_pct": 0.0,
+          "bytes_per_line": 15.0,
+          "depth": 2
+        },
+        {
+          "path": "README.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 0,
+          "comments": 1,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 1.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "script.js",
+          "module": "(root)",
+          "lang": "JavaScript",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 0.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "space file.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 13,
+          "tokens": 3,
+          "doc_pct": 0.0,
+          "bytes_per_line": 13.0,
+          "depth": 1
+        }
+      ],
+      "largest_bytes": [
+        {
+          "path": "large.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 9,
+          "comments": 2,
+          "blanks": 0,
+          "lines": 11,
+          "bytes": 182,
+          "tokens": 45,
+          "doc_pct": 0.1818,
+          "bytes_per_line": 16.5455,
+          "depth": 1
+        },
+        {
+          "path": "Cargo.toml",
+          "module": "(root)",
+          "lang": "TOML",
+          "code": 8,
+          "comments": 0,
+          "blanks": 1,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
+          "depth": 1
+        },
+        {
+          "path": "mixed.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 4,
+          "comments": 5,
+          "blanks": 2,
+          "lines": 11,
+          "bytes": 118,
+          "tokens": 29,
+          "doc_pct": 0.5556,
+          "bytes_per_line": 10.7273,
+          "depth": 1
+        },
+        {
+          "path": "src/main.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 3,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 3,
+          "bytes": 45,
+          "tokens": 11,
+          "doc_pct": 0.0,
+          "bytes_per_line": 15.0,
+          "depth": 2
+        },
+        {
+          "path": "README.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 0,
+          "comments": 1,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 1.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "script.js",
+          "module": "(root)",
+          "lang": "JavaScript",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 30,
+          "tokens": 7,
+          "doc_pct": 0.0,
+          "bytes_per_line": 30.0,
+          "depth": 1
+        },
+        {
+          "path": "space file.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 1,
+          "comments": 0,
+          "blanks": 0,
+          "lines": 1,
+          "bytes": 13,
+          "tokens": 3,
+          "doc_pct": 0.0,
+          "bytes_per_line": 13.0,
+          "depth": 1
+        }
+      ],
+      "least_documented": [],
+      "most_dense": [
+        {
+          "path": "large.rs",
+          "module": "(root)",
+          "lang": "Rust",
+          "code": 9,
+          "comments": 2,
+          "blanks": 0,
+          "lines": 11,
+          "bytes": 182,
+          "tokens": 45,
+          "doc_pct": 0.1818,
+          "bytes_per_line": 16.5455,
+          "depth": 1
+        },
+        {
+          "path": "mixed.md",
+          "module": "(root)",
+          "lang": "Markdown",
+          "code": 4,
+          "comments": 5,
+          "blanks": 2,
+          "lines": 11,
+          "bytes": 118,
+          "tokens": 29,
+          "doc_pct": 0.5556,
+          "bytes_per_line": 10.7273,
+          "depth": 1
+        }
+      ]
+    },
+    "tree": null,
+    "reading_time": {
+      "minutes": 1.3,
+      "lines_per_minute": 20,
+      "basis_lines": 26
+    },
+    "context_window": null,
+    "cocomo": {
+      "mode": "organic",
+      "kloc": 0.026,
+      "effort_pm": 0.05,
+      "duration_months": 0.81,
+      "staff": 0.06,
+      "a": 2.4,
+      "b": 1.05,
+      "c": 2.5,
+      "d": 0.38
+    },
+    "todo": null,
+    "integrity": {
+      "algo": "blake3",
+      "hash": "160e7bd41d30f8f3ba3db95226a330e1e31fe859d1209261c2060c9bd6fe1ed1",
+      "entries": 7
+    }
+  },
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": {
+    "groups": [],
+    "wasted_bytes": 0,
+    "strategy": "exact-blake3",
+    "density": {
+      "duplicate_groups": 0,
+      "duplicate_files": 0,
+      "duplicated_bytes": 0,
+      "wasted_bytes": 0,
+      "wasted_pct_of_codebase": 0.0,
+      "by_module": []
+    }
+  },
+  "complexity": {
+    "total_functions": 3,
+    "avg_function_length": 3.75,
+    "max_function_length": 11,
+    "avg_cyclomatic": 1.0,
+    "max_cyclomatic": 1,
+    "avg_cognitive": 0.0,
+    "max_cognitive": 0,
+    "avg_nesting_depth": 1.33,
+    "max_nesting_depth": 2,
+    "high_risk_files": 0,
+    "histogram": {
+      "buckets": [
+        0,
+        5,
+        10,
+        15,
+        20,
+        25,
+        30
+      ],
+      "counts": [
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "total": 4
+    },
+    "maintainability_index": {
+      "score": 149.53,
+      "avg_cyclomatic": 1.0,
+      "avg_loc": 3.71,
+      "grade": "A"
+    },
+    "technical_debt": {
+      "ratio": 153.85,
+      "complexity_points": 4,
+      "code_kloc": 0.026,
+      "level": "critical"
+    },
+    "files": [
+      {
+        "path": "large.rs",
+        "module": "(root)",
+        "function_count": 1,
+        "max_function_length": 11,
+        "cyclomatic_complexity": 1,
+        "cognitive_complexity": 0,
+        "max_nesting": 2,
+        "risk_level": "low"
+      },
+      {
+        "path": "script.js",
+        "module": "(root)",
+        "function_count": 0,
+        "max_function_length": 0,
+        "cyclomatic_complexity": 1,
+        "risk_level": "low"
+      },
+      {
+        "path": "space file.rs",
+        "module": "(root)",
+        "function_count": 1,
+        "max_function_length": 1,
+        "cyclomatic_complexity": 1,
+        "cognitive_complexity": 0,
+        "max_nesting": 1,
+        "risk_level": "low"
+      },
+      {
+        "path": "src/main.rs",
+        "module": "src",
+        "function_count": 1,
+        "max_function_length": 3,
+        "cyclomatic_complexity": 1,
+        "cognitive_complexity": 0,
+        "max_nesting": 1,
+        "risk_level": "low"
+      }
+    ]
+  },
+  "api_surface": {
+    "total_items": 3,
+    "public_items": 0,
+    "internal_items": 3,
+    "public_ratio": 0.0,
+    "documented_ratio": 0.0,
+    "by_language": {
+      "Rust": {
+        "total_items": 3,
+        "public_items": 0,
+        "internal_items": 3,
+        "public_ratio": 0.0
+      }
+    },
+    "by_module": [
+      {
+        "module": "(root)",
+        "total_items": 2,
+        "public_items": 0,
+        "public_ratio": 0.0
+      },
+      {
+        "module": "src",
+        "total_items": 1,
+        "public_items": 0,
+        "public_ratio": 0.0
+      }
+    ],
+    "top_exporters": []
+  },
+  "effort": null,
+  "fun": null
+}

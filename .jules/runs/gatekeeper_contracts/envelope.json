@@ -1,0 +1,9 @@
+{
+  "prompt_id": "gatekeeper_contracts",
+  "persona": "Gatekeeper",
+  "style": "Builder",
+  "primary_shard": "tooling-governance",
+  "allowed_paths": ["xtask/**", ".github/workflows/**", "docs/**", "ROADMAP.md", "CHANGELOG.md", "Cargo.toml", "Cargo.lock"],
+  "gate_profile": "contracts-determinism",
+  "allowed_outcomes": ["pr_ready_patch", "learning_pr"]
+}
