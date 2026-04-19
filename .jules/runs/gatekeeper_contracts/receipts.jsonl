@@ -1,4 +1,0 @@
-{"command": "cargo test -p tokmd --test cli_snapshot_golden", "outcome": "Failed on missing analyze snapshots and malformed whitespace timestamp regex"}
-{"command": "patch crates/tokmd/tests/cli_snapshot_golden.rs < fix_regex.patch", "outcome": "Successfully updated regex to handle whitespace before generated_at_ms digits"}
-{"command": "patch crates/tokmd/tests/cli_snapshot_golden.rs < test_analyze_snapshots.patch", "outcome": "Added feature-gated `analyze` json and markdown tests with proper regex normalizations for `target_path` and `base_signature`"}
-{"command": "cargo test -p tokmd --test cli_snapshot_golden --all-features", "outcome": "All 14 tests pass and snapshots successfully accepted"}
