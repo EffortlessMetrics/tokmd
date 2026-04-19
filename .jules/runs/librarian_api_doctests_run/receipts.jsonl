@@ -1,0 +1,7 @@
+{"timestamp": "2026-04-19T10:59:26Z", "command": "cat << EOF > .jules/runs/librarian_api_doctests_run/envelope.json", "exit_code": 0}
+{"timestamp": "2026-04-19T11:12:19Z", "command": "cargo test --doc -p tokmd -- config", "exit_code": 0}
+{"timestamp": "2026-04-19T11:12:19Z", "command": "cargo clippy -- -D warnings", "exit_code": 0}
+{"timestamp": "2026-04-19T11:12:19Z", "command": "cargo test -p tokmd", "exit_code": 0}
+{"timestamp": "2026-04-19T11:13:59Z", "command": "cargo xtask docs --check", "exit_code": 0}
+{"timestamp": "2026-04-19T11:15:09Z", "command": "cargo test -p tokmd -- config", "exit_code": 0}
+{"timestamp": "2026-04-19T11:15:35Z", "command": "cargo xtask docs --update", "exit_code": 0}
