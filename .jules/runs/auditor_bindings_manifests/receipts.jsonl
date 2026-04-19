@@ -1,0 +1,8 @@
+{"command": "cargo install cargo-machete"}
+{"command": "cargo machete crates/tokmd-wasm crates/tokmd-python crates/tokmd-node crates/tokmd-ffi-envelope"}
+{"command": "cargo tree -e features -p tokmd-wasm"}
+{"command": "cargo tree -e features -p tokmd-python"}
+{"command": "cargo tree -e features -p tokmd-node"}
+{"command": "cargo deny --all-features check"}
+{"command": "cargo clippy -- -D warnings"}
+{"command": "cargo test -p tokmd-wasm -p tokmd-python -p tokmd-node -p tokmd-ffi-envelope"}
