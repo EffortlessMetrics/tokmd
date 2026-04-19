@@ -1,6 +1,0 @@
-{
-  "prompt_id": "invariant_model_analysis",
-  "outcome": "proof-improvement patch",
-  "patch_files": ["crates/tokmd-analysis-effort/tests/proptest_confidence.rs"],
-  "summary": "Added property tests for `build_confidence` enforcing bounding and monotonicity invariants."
-}

@@ -1,4 +1,5 @@
 use proptest::prelude::*;
+use std::collections::BTreeMap;
 use tokmd_analysis_effort::confidence::build_confidence;
 use tokmd_analysis_types::{
     ApiSurfaceReport, BoilerplateReport, ComplexityReport, DerivedReport, DerivedTotals,
@@ -227,7 +228,7 @@ proptest! {
         let (conf, score) = build_confidence(&basis, &derived, None, None, None, None, delta_present);
 
         // Invariant 1: Score is bounded
-        prop_assert!(score >= 0.0 && score <= 1.0, "Score {} is out of bounds", score);
+        prop_assert!((0.0..=1.0).contains(&score), "Score {} is out of bounds", score);
 
         // Invariant 2: Level matches score
         let expected_level = if score >= 0.72 {
@@ -260,7 +261,7 @@ proptest! {
             public_items: 10,
             internal_items: 0,
             total_items: 10,
-            by_language: std::collections::BTreeMap::new(),
+            by_language: BTreeMap::new(),
             by_module: vec![],
             top_exporters: vec![],
         };
