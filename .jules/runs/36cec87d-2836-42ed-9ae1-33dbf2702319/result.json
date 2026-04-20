@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "outcome_type": "proof_patch",
+  "title": "docs: add missing doctests for tokmd run and diff \ud83d\udcda",
+  "gates_run": [
+    "cargo test -p tokmd --test docs",
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd -- -D warnings"
+  ]
+}

@@ -1,0 +1,7 @@
+{"cmd": "git rm -r .jules/docs/ .jules/quality/", "status": "success", "phase": "migrate"}
+{"cmd": "python3 .jules/bin/build_index.py", "status": "success", "phase": "index"}
+{"cmd": "cargo xtask docs --check", "status": "success", "phase": "verify"}
+{"cmd": "cargo fmt -- --check", "status": "success", "phase": "verify"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success", "phase": "verify"}
+{"cmd": "cargo xtask publish --plan --verbose", "status": "success", "phase": "verify"}
+{"cmd": "cargo xtask version-consistency", "status": "success", "phase": "verify"}

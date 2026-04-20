@@ -1,0 +1,10 @@
+{
+  "prompt_id": "legacy_quality_2",
+  "persona": "Gatekeeper",
+  "style": "Gatekeeper",
+  "primary_shard": "core-pipeline",
+  "gate_profile": "governance-release",
+  "allowed_outcomes": [
+    "PR-ready patch"
+  ]
+}
