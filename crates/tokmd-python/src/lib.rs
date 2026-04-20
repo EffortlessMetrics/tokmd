@@ -1099,6 +1099,13 @@ mod tests {
                 None,
                 None,
                 false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
@@ -1132,6 +1139,13 @@ mod tests {
                 Some(1),
                 None,
                 false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
@@ -1504,6 +1518,13 @@ mod tests {
                 None,
                 None,
                 false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             ) {
                 Ok(_) => (),
                 Err(_) => (),
