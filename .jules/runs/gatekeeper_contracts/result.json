@@ -1,0 +1,13 @@
+{
+  "summary": "Fixed documentation drift by replacing manual parameter tables with `<!-- HELP: <command> -->` markers in docs/reference-cli.md",
+  "files_changed": [
+    "docs/reference-cli.md"
+  ],
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo test -p tokmd --test integration",
+    "cargo test -p tokmd --test docs",
+    "cargo test -p tokmd --test cli_comprehensive",
+    "cargo test -p tokmd --test determinism"
+  ]
+}
