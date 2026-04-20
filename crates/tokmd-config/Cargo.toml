@@ -12,7 +12,7 @@ categories = ["development-tools", "config"]
 documentation = "https://docs.rs/tokmd-config"
 
 [dependencies]
-clap = { version = "4.6.0", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 tokmd-settings.workspace = true

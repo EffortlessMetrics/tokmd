@@ -13,7 +13,7 @@ documentation = "https://docs.rs/tokmd-tool-schema"
 
 [dependencies]
 anyhow.workspace = true
-clap = { version = "4.6.0", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 
