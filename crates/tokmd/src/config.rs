@@ -140,10 +140,10 @@ pub fn resolve_profile<'a>(
 /// # Examples
 ///
 /// ```
-/// use tokmd::{ConfigContext, ResolvedConfig};
+/// use tokmd::config::{ConfigContext, ResolvedConfig};
 ///
 /// let ctx = ConfigContext::default();
-/// let resolved = tokmd::resolve_config(&ctx, None);
+/// let resolved = tokmd::config::resolve_config(&ctx, None);
 ///
 /// assert_eq!(resolved.format(), None);
 /// assert_eq!(resolved.top(), None);
@@ -240,7 +240,7 @@ impl ResolvedConfig<'_> {
 /// # Examples
 ///
 /// ```
-/// use tokmd::{resolve_config, ConfigContext};
+/// use tokmd::config::{resolve_config, ConfigContext};
 ///
 /// let ctx = ConfigContext::default();
 /// let resolved = resolve_config(&ctx, Some("default"));
@@ -268,7 +268,7 @@ pub fn resolve_config<'a>(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::resolve_lang;
+/// use tokmd::config::resolve_lang;
 /// use tokmd_config::{CliLangArgs, Profile};
 ///
 /// let cli_args = CliLangArgs {
@@ -327,7 +327,7 @@ pub fn resolve_lang(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::{resolve_lang_with_config, ResolvedConfig};
+/// use tokmd::config::{resolve_lang_with_config, ResolvedConfig};
 /// use tokmd_config::CliLangArgs;
 ///
 /// let cli_args = CliLangArgs {
@@ -383,7 +383,7 @@ pub fn resolve_lang_with_config(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::resolve_module;
+/// use tokmd::config::resolve_module;
 /// use tokmd_config::{CliModuleArgs, Profile};
 ///
 /// let cli_args = CliModuleArgs {
@@ -453,7 +453,7 @@ pub fn resolve_module(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::{resolve_module_with_config, ResolvedConfig};
+/// use tokmd::config::{resolve_module_with_config, ResolvedConfig};
 /// use tokmd_config::CliModuleArgs;
 ///
 /// let cli_args = CliModuleArgs {
@@ -521,7 +521,7 @@ pub fn resolve_module_with_config(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::resolve_export;
+/// use tokmd::config::resolve_export;
 /// use tokmd_config::{CliExportArgs, Profile};
 ///
 /// let cli_args = CliExportArgs {
@@ -607,7 +607,7 @@ pub fn resolve_export(
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::{resolve_export_with_config, ResolvedConfig};
+/// use tokmd::config::{resolve_export_with_config, ResolvedConfig};
 /// use tokmd_config::CliExportArgs;
 ///
 /// let cli_args = CliExportArgs {
