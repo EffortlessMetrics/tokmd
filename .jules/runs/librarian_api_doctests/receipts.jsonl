@@ -1,0 +1,1 @@
+{"command": "cargo test -p tokmd --doc", "status": "success", "output": "9 tests passed, 0 failed."}
