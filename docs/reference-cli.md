@@ -101,18 +101,64 @@ tokmd --format json --top 5 --hidden
 
 Generates a summary grouped by **Module** (directory structure).
 
-**Usage**: `tokmd module [FLAGS] [OPTIONS]`
+<!-- HELP: module -->
+```text
+Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
-| `--top <TOP>` | Only show the top N modules. | `0` (all) |
-| `--module-roots <DIRS>` | Comma-separated roots to treat as module roots. | `crates,packages` |
-| `--module-depth <N>` | How many path segments to keep under module roots. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+Usage: tokmd module [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format [default: md]
+
+          Possible values:
+          - md:   Markdown table (great for pasting into ChatGPT)
+          - tsv:  Tab-separated values (good for piping to other tools)
+          - json: JSON (compact)
+
+      --top <TOP>
+          Show only the top N modules (by code lines), plus an "Other" row if needed. Use 0 to show all rows
+
+      --module-roots <MODULE_ROOTS>
+          Treat these top-level directories as "module roots" [default: crates,packages].
+
+          If a file path starts with one of these roots, the module key will include `module_depth` segments. Otherwise, the module key is the top-level directory.
+
+      --module-depth <MODULE_DEPTH>
+          How many path segments to include for module roots [default: 2].
+
+          Example: crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
+
+      --children <CHILDREN>
+          Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
+
+          Possible values:
+          - separate:     Include embedded languages as separate contributions
+          - parents-only: Ignore embedded languages
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: module -->
 
 **Example**:
 ```bash
@@ -124,26 +170,85 @@ tokmd module --module-roots crates,packages --module-depth 2
 
 Generates a row-level inventory of files. Best for machine processing.
 
-**Usage**: `tokmd export [FLAGS] [OPTIONS]`
+<!-- HELP: export -->
+```text
+Export a file-level dataset (CSV / JSONL / JSON)
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--format <FORMAT>` | Output format: `jsonl`, `json`, `csv`, `cyclonedx`. | `jsonl` |
-| `--output <PATH>` | Write output to a file instead of stdout. | stdout |
-| `--module-roots <DIRS>` | Module roots used for module key generation. | `crates,packages` |
-| `--module-depth <N>` | Depth used for module key generation. | `2` |
-| `--children <MODE>` | Handling of embedded languages: `separate` or `parents-only`. | `separate` |
-| `--min-code <N>` | Exclude files with fewer than N lines of code. | `0` |
-| `--max-rows <N>` | Limit output to the top N largest files. | `0` (unlimited) |
-| `--meta <BOOL>` | Include a meta record in JSON / JSONL output. | `true` |
-| `--redact <MODE>` | Redaction strategy for paths/names. | `none` |
-| | `none`: Show full paths. | |
-| | `paths`: Hash file paths (preserve extension). | |
-| | `all`: Hash paths and module names. | |
-| `--strip-prefix <PATH>` | Remove a prefix from file paths in the output. | `None` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+Usage: tokmd export [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format [default: jsonl]
+
+          Possible values:
+          - csv:       CSV with a header row
+          - jsonl:     One JSON object per line
+          - json:      A single JSON array
+          - cyclonedx: CycloneDX 1.6 JSON SBOM format
+
+      --output <PATH>
+          Write output to this file instead of stdout
+
+          [aliases: --out]
+
+      --module-roots <MODULE_ROOTS>
+          Module roots (see `tokmd module`) [default: crates,packages]
+
+      --module-depth <MODULE_DEPTH>
+          Module depth (see `tokmd module`) [default: 2]
+
+      --children <CHILDREN>
+          Whether to include embedded languages (tokei "children" / blobs) [default: separate]
+
+          Possible values:
+          - separate:     Include embedded languages as separate contributions
+          - parents-only: Ignore embedded languages
+
+      --min-code <MIN_CODE>
+          Drop rows with fewer than N code lines [default: 0]
+
+      --max-rows <MAX_ROWS>
+          Stop after emitting N rows (0 = unlimited) [default: 0]
+
+      --meta <META>
+          Include a meta record (JSON / JSONL only). Enabled by default
+
+          [possible values: true, false]
+
+      --redact <REDACT>
+          Redact paths (and optionally module names) for safer copy/paste into LLMs [default: none]
+
+          Possible values:
+          - none:  Do not redact
+          - paths: Redact file paths
+          - all:   Redact file paths and module names
+
+      --no-progress
+          Disable progress spinners
+
+      --strip-prefix <PATH>
+          Strip this prefix from paths before output (helps when paths are absolute)
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: export -->
 
 **Sorting**: Output is automatically sorted by lines of code (descending), then by path. This ensures deterministic, reproducible output across all runs. There is no `--sort` flag.
 
@@ -157,14 +262,57 @@ tokmd export --min-code 10 --max-rows 100 --redact paths
 
 Executes a full scan and saves all artifacts to a run directory.
 
-**Usage**: `tokmd run [FLAGS] [OPTIONS]`
+<!-- HELP: run -->
+```text
+Run a full scan and save receipts to a state directory
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--output-dir <DIR>` | Directory to write artifacts into. | `.runs/tokmd` in-repo, else temp dir |
-| `--name <NAME>` | Optional name/tag for the run. | auto |
-| `--analysis <PRESET>` | Also emit analysis artifacts using the given preset. | none |
-| `--redact <MODE>` | Redact paths or paths+module names in emitted receipts. | `none` |
+Usage: tokmd run [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --output-dir <OUTPUT_DIR>
+          Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible)
+
+      --name <NAME>
+          Tag or name for this run
+
+      --analysis <ANALYSIS>
+          Also emit analysis receipts using this preset
+
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --redact <REDACT>
+          Redact paths (and optionally module names) for safer copy/paste into LLMs
+
+          Possible values:
+          - none:  Do not redact
+          - paths: Redact file paths
+          - all:   Redact file paths and module names
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: run -->
 
 **Output files**:
 - `lang.json` — Language summary receipt
@@ -186,38 +334,152 @@ tokmd run --analysis deep --output-dir .runs/full
 
 Derives additional metrics and optional enrichments from a run directory, receipt, export file, or paths.
 
-**Usage**: `tokmd analyze [INPUTS...] [FLAGS] [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--preset <PRESET>` | Preset bundle (see table below). | `receipt` |
-| `--format <FMT>` | Output format: `md`, `json`, `jsonld`, `xml`, `svg`, `mermaid`, `obj`, `midi`, `tree`, `html`. | `md` |
-| `--window <TOKENS>` | Context window size for utilization analysis. | `None` |
-| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
-| `--output-dir <DIR>` | Write `analysis.*` into a directory. | stdout |
-| `--max-files <N>` | Cap file walking for assets/deps/content scans. | `None` |
-| `--max-bytes <N>` | Cap total bytes read during content scans. | `None` |
-| `--max-file-bytes <N>` | Cap bytes per file during content scans. | `None` |
-| `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
-| `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
-| `--granularity <MODE>` | Import graph granularity: `module` or `file`. | `module` |
-| `--effort-model <MODEL>` | Effort model for estimate calculations. | `cocomo81-basic` |
-| `--effort-layer <LAYER>` | How much estimate detail to emit. | `full` |
-| `--effort-base-ref <REF>` | Base ref for estimate delta computation. | `None` |
-| `--effort-head-ref <REF>` | Head ref for estimate delta computation. | `None` |
-| `--monte-carlo` | Enable Monte Carlo simulation for effort estimation. | `false` |
-| `--mc-iterations <N>` | Monte Carlo iterations for effort estimation. | `10000` |
-| `--mc-seed <N>` | Deterministic Monte Carlo seed. | `None` |
-| `--detail-functions` | Include per-function complexity details in output. | `false` |
-| `--near-dup` | Enable near-duplicate file detection. | `false` |
-| `--near-dup-threshold <N>` | Similarity threshold 0.0–1.0. | `0.80` |
-| `--near-dup-max-files <N>` | Max files to analyze for near-duplicates. | `2000` |
-| `--near-dup-scope <SCOPE>` | Comparison scope: `module`, `lang`, or `global`. | `module` |
-| `--near-dup-max-pairs <N>` | Truncation guardrail for emitted near-duplicate pairs. | `10000` |
-| `--near-dup-exclude <GLOB>` | Exclude glob from near-duplicate analysis. Repeatable. | `None` |
-| `--explain <KEY>` | Explain a metric/finding key and exit (`list` to show keys). | `None` |
-
 > **Effort model note**: the CLI currently executes `cocomo81-basic` end-to-end. Other enum values shown in help are reserved surface area and currently return an error if selected explicitly.
+
+<!-- HELP: analyze -->
+```text
+Analyze receipts or paths to produce derived metrics
+
+Usage: tokmd analyze [OPTIONS] [INPUT]...
+
+Arguments:
+  [INPUT]...
+          Inputs to analyze (run dir, receipt.json, export.jsonl, or paths)
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --preset <PRESET>
+          Analysis preset to run [default: receipt]
+
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --format <FORMAT>
+          Output format [default: md]
+
+          Possible values:
+          - md:      Markdown report
+          - json:    JSON receipt
+          - jsonld:  JSON-LD document
+          - xml:     XML document
+          - svg:     SVG graphic
+          - mermaid: Mermaid diagram
+          - obj:     Wavefront OBJ export
+          - midi:    MIDI export
+          - tree:    Text tree output
+          - html:    HTML report
+
+      --window <WINDOW>
+          Context window size (tokens) for utilization bars
+
+      --git
+          Force-enable git-based metrics
+
+      --no-git
+          Disable git-based metrics
+
+      --output-dir <OUTPUT_DIR>
+          Output directory for analysis artifacts
+
+      --max-files <MAX_FILES>
+          Limit how many files are walked for asset/deps/content scans
+
+      --max-bytes <MAX_BYTES>
+          Limit total bytes read during content scans
+
+      --max-file-bytes <MAX_FILE_BYTES>
+          Limit bytes per file during content scans
+
+      --max-commits <MAX_COMMITS>
+          Limit how many commits are scanned for git metrics
+
+      --no-progress
+          Disable progress spinners
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Limit files per commit when scanning git history
+
+      --granularity <GRANULARITY>
+          Import graph granularity [default: module]
+
+          [possible values: module, file]
+
+      --effort-model <EFFORT_MODEL>
+          Effort model for estimate calculations [default: cocomo81-basic]
+
+          [possible values: cocomo81-basic, cocomo2-early, ensemble]
+
+      --effort-layer <EFFORT_LAYER>
+          Effort layer for report detail [default: full]
+
+          [possible values: headline, why, full]
+
+      --effort-base-ref <EFFORT_BASE_REF>
+          Base reference for effort delta computation
+
+      --effort-head-ref <EFFORT_HEAD_REF>
+          Head reference for effort delta computation
+
+      --monte-carlo
+          Enable Monte Carlo simulation for effort estimation
+
+      --mc-iterations <MC_ITERATIONS>
+          Monte Carlo iterations when effort estimation is enabled [default: 10000]
+
+      --mc-seed <MC_SEED>
+          Monte Carlo seed for deterministic effort estimation
+
+      --detail-functions
+          Include function-level complexity details in output
+
+      --near-dup
+          Enable near-duplicate file detection (opt-in)
+
+      --near-dup-threshold <NEAR_DUP_THRESHOLD>
+          Near-duplicate similarity threshold (0.0–1.0) [default: 0.80]
+
+          [default: 0.80]
+
+      --near-dup-max-files <NEAR_DUP_MAX_FILES>
+          Maximum files to analyze for near-duplicates [default: 2000]
+
+          [default: 2000]
+
+      --near-dup-scope <NEAR_DUP_SCOPE>
+          Near-duplicate comparison scope [default: module]
+
+          Possible values:
+          - module: Compare files within the same module
+          - lang:   Compare files within the same language
+          - global: Compare all files globally
+
+      --near-dup-max-pairs <NEAR_DUP_MAX_PAIRS>
+          Maximum near-duplicate pairs to emit (truncation guardrail) [default: 10000]
+
+          [default: 10000]
+
+      --near-dup-exclude <GLOB>
+          Exclude files matching this glob pattern from near-duplicate analysis. Repeatable
+
+      --explain <KEY>
+          Explain a metric or finding key and exit
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: analyze -->
 
 **Presets**:
 
@@ -255,17 +517,49 @@ tokmd analyze .runs/baseline --preset health
 
 Generates a complexity baseline for tracking trends over time. The baseline captures current project metrics that can be compared against future runs.
 
-**Usage**: `tokmd baseline [OPTIONS] [PATH]`
+<!-- HELP: baseline -->
+```text
+Generate a complexity baseline for trend tracking
 
-| Argument | Description |
-| :--- | :--- |
-| `PATH` | Target path to analyze. | `.` |
+Usage: tokmd baseline [OPTIONS] [PATH]
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--output <PATH>` | Output path for baseline file. | `.tokmd/baseline.json` |
-| `--determinism` | Include determinism baseline with build hash. | `false` |
-| `-f, --force` | Force overwrite existing baseline. | `false` |
+Arguments:
+  [PATH]
+          Target path to analyze
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --output <OUTPUT>
+          Output path for baseline file
+
+          [default: .tokmd/baseline.json]
+
+      --determinism
+          Include determinism baseline (hash build artifacts)
+
+  -f, --force
+          Force overwrite existing baseline
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: baseline -->
 
 **Examples**:
 ```bash
@@ -286,16 +580,65 @@ tokmd baseline ./src --output baselines/src-baseline.json
 
 Renders a simple SVG badge for a metric.
 
-**Usage**: `tokmd badge [INPUTS...] --metric <METRIC> [OPTIONS]`
+<!-- HELP: badge -->
+```text
+Render a simple SVG badge for a metric
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--metric <METRIC>` | Badge metric: `lines`, `tokens`, `bytes`, `doc`, `blank`, `hotspot`. | required |
-| `--preset <PRESET>` | Optional analysis preset to use when computing the badge. | none |
-| `--git` / `--no-git` | Force-enable or disable git metrics. | auto |
-| `--max-commits <N>` | Cap commits scanned for git metrics. | `None` |
-| `--max-commit-files <N>` | Cap files per commit for git metrics. | `None` |
-| `--output <PATH>` | Write badge to a file. | stdout |
+Usage: tokmd badge [OPTIONS] --metric <METRIC> [INPUT]...
+
+Arguments:
+  [INPUT]...
+          Inputs to analyze (run dir, receipt.json, export.jsonl, or paths)
+
+          [default: .]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --metric <METRIC>
+          Metric to render
+
+          [possible values: lines, tokens, bytes, doc, blank, hotspot]
+
+      --preset <PRESET>
+          Optional analysis preset to use for the badge
+
+          [possible values: receipt, estimate, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --git
+          Force-enable git-based metrics
+
+      --no-git
+          Disable git-based metrics
+
+      --max-commits <MAX_COMMITS>
+          Limit how many commits are scanned for git metrics
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Limit files per commit when scanning git history
+
+      --output <OUTPUT>
+          Output file for the badge (defaults to stdout)
+
+          [aliases: --out]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: badge -->
 
 **Example**:
 ```bash
@@ -313,22 +656,64 @@ tokmd badge --metric doc --output docs-badge.svg
 
 Compares two runs, receipts, or directories and shows the delta.
 
-**Usage**: `tokmd diff [REF] [REF]... [OPTIONS]`
+<!-- HELP: diff -->
+```text
+Compare two receipts or runs
 
-| Argument | Description |
-| :--- | :--- |
-| `[REF] [REF]...` | Two positional refs or paths to compare: run directories, receipt files, git refs, or paths to scan. |
+Usage: tokmd diff [OPTIONS] [REF] [REF]...
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--exclude <PATTERN>` | Exclude pattern(s) using gitignore syntax. | `(none)` |
-| `--from <FROM>` | Base receipt/run or git ref to compare from. | `(none)` |
-| `--to <TO>` | Target receipt/run or git ref to compare to. | `(none)` |
-| `--format <FORMAT>` | Output format: `md`, `json`. | `md` |
-| `--compact` | Summary-only markdown table for narrow terminals. | `false` |
-| `--color <COLOR>` | Color policy: `auto`, `always`, `never`. | `auto` |
-| `--no-progress` | Disable progress spinners. | `false` |
-| `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+Arguments:
+  [REF] [REF]...
+          Two refs/paths to compare (positional)
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --from <FROM>
+          Base receipt/run or git ref to compare from
+
+      --to <TO>
+          Target receipt/run or git ref to compare to
+
+      --format <FORMAT>
+          Output format
+
+          Possible values:
+          - md:   Markdown table output
+          - json: JSON receipt with envelope metadata
+
+          [default: md]
+
+      --compact
+          Compact output for narrow terminals (summary table only)
+
+      --color <COLOR>
+          Color policy for terminal output
+
+          Possible values:
+          - auto:   Enable color when stdout is a TTY and color env vars allow it
+          - always: Always emit ANSI color
+          - never:  Never emit ANSI color
+
+          [default: auto]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: diff -->
 
 **Examples**:
 ```bash
@@ -349,14 +734,52 @@ tokmd diff .runs/baseline .
 
 Creates a default `.tokeignore` file in the current directory.
 
-**Usage**: `tokmd init [OPTIONS]`
+<!-- HELP: init -->
+```text
+Write a `.tokeignore` template to the target directory
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--dir <DIR>` | Target directory for the `.tokeignore` file. | `.` |
-| `--force` | Overwrite an existing `.tokeignore` file. | `false` |
-| `--print` | Print the template to stdout instead of writing a file. | `false` |
-| `--template <PROFILE>` | Template profile: `default`, `rust`, `node`, `mono`, `python`, `go`, `cpp`. | `default` |
+Usage: tokmd init [OPTIONS]
+
+Options:
+      --dir <DIR>
+          Target directory (defaults to ".")
+
+          [default: .]
+
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --force
+          Overwrite an existing `.tokeignore`
+
+      --print
+          Print the template to stdout instead of writing a file
+
+      --template <TEMPLATE>
+          Which template profile to use
+
+          [default: default]
+          [possible values: default, rust, node, mono, python, go, cpp]
+
+      --non-interactive
+          Skip interactive wizard and use defaults
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: init -->
 
 **Example**:
 ```bash
@@ -388,31 +811,131 @@ When run in a TTY without `--print` or `--non-interactive`, `tokmd init` launche
 
 Packs files into an LLM context window within a token budget. Intelligently selects files to maximize value while staying under the budget.
 
-**Usage**: `tokmd context [PATHS...] [OPTIONS]`
-
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--budget <SIZE>` | Token budget with optional k/m suffix (e.g., `128k`, `1m`, `50000`). | `128k` |
-| `--strategy <STRATEGY>` | Packing strategy: `greedy` (largest first), `spread` (coverage across modules). | `greedy` |
-| `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `code` |
-| `--mode <MODE>` | Output mode: `list` (file stats), `bundle` (concatenated content), `json` (receipt). | `list` |
-| `--compress` | Strip blank lines from bundle output. | `false` |
-| `--no-smart-exclude` | Disable smart exclusion of generated or low-signal artifacts. | `false` |
-| `--module-roots <DIRS>` | Comma-separated list of root directories for module grouping. | `(none)` |
-| `--module-depth <N>` | How deep to group modules. | `2` |
-| `--git` / `--no-git` | Force-enable or disable git-based ranking. | auto |
-| `--max-commits <N>` | Max commits to scan for git ranking. | `1000` |
-| `--max-commit-files <N>` | Max files per commit for git ranking. | `100` |
-| `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
-| `--force` | Overwrite existing output file. | `false` |
-| `--bundle-dir <DIR>` | Write bundle to directory with manifest (receipt.json, bundle.txt, manifest.json). | `(none)` |
-| `--log <PATH>` | Append JSONL record to log file (metadata only). | `(none)` |
-| `--max-output-bytes <N>` | Warn if output exceeds N bytes (0=disable). | `10485760` |
-| `--max-file-pct <RATIO>` | Maximum fraction of budget any single file may consume. | `0.15` |
-| `--max-file-tokens <N>` | Hard cap on tokens per file. | `None` |
-| `--require-git-scores` | Error if churn/hotspot ranking is requested without git scores. | `false` |
-
 > **Note**: `--rank-by churn` and `--rank-by hotspot` require git history. If no git data is available, they fall back to ranking by `code` lines with a warning.
+
+<!-- HELP: context -->
+```text
+Pack files into an LLM context window within a token budget
+
+Usage: tokmd context [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --budget <BUDGET>
+          Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited")
+
+          [default: 128k]
+
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --strategy <STRATEGY>
+          Packing strategy
+
+          Possible values:
+          - greedy: Select files by value until budget is exhausted
+          - spread: Round-robin across modules/languages for coverage, then greedy fill
+
+          [default: greedy]
+
+      --rank-by <RANK_BY>
+          Metric to rank files by
+
+          Possible values:
+          - code:    Rank by lines of code
+          - tokens:  Rank by token count
+          - churn:   Rank by git churn (requires git feature)
+          - hotspot: Rank by hotspot score (requires git feature)
+
+          [default: code]
+
+      --mode <OUTPUT_MODE>
+          Output mode
+
+          Possible values:
+          - list:   Print list of selected files with stats
+          - bundle: Concatenate file contents into a single bundle
+          - json:   Output JSON receipt with selection details
+
+          [default: list]
+
+      --compress
+          Strip blank lines from bundle output
+
+      --no-smart-exclude
+          Disable smart exclusion of lockfiles, minified files, and generated artifacts
+
+      --module-roots <MODULE_ROOTS>
+          Module roots (see `tokmd module`)
+
+      --module-depth <MODULE_DEPTH>
+          Module depth (see `tokmd module`)
+
+      --git
+          Enable git-based ranking (required for churn/hotspot)
+
+      --no-git
+          Disable git-based ranking
+
+      --no-progress
+          Disable progress spinners
+
+      --max-commits <MAX_COMMITS>
+          Maximum commits to scan for git metrics
+
+          [default: 1000]
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Maximum files per commit to process
+
+          [default: 100]
+
+      --output <PATH>
+          Write output to file instead of stdout
+
+          [aliases: --out]
+
+      --force
+          Overwrite existing output file
+
+      --bundle-dir <DIR>
+          Write bundle to directory with manifest (for large outputs)
+
+      --max-output-bytes <MAX_OUTPUT_BYTES>
+          Warn if output exceeds N bytes (default: 10MB, 0=disable)
+
+          [default: 10485760]
+
+      --log <PATH>
+          Append JSONL record to log file (metadata only, not content)
+
+      --max-file-pct <MAX_FILE_PCT>
+          Maximum fraction of budget a single file may consume (0.0–1.0)
+
+          [default: 0.15]
+
+      --max-file-tokens <MAX_FILE_TOKENS>
+          Hard cap on tokens per file (overrides percentage-based cap)
+
+      --require-git-scores
+          Error if git scores are unavailable when using churn/hotspot ranking
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: context -->
 
 **Examples**:
 ```bash
@@ -442,22 +965,113 @@ tokmd context --budget 128k --log runs.jsonl
 
 Creates a handoff bundle for LLM review and automation. The output directory contains `manifest.json`, `map.jsonl`, `intelligence.json`, and `code.txt`.
 
-**Usage**: `tokmd handoff [PATHS...] [OPTIONS]`
+<!-- HELP: handoff -->
+```text
+Bundle codebase for LLM handoff
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--out-dir <DIR>` | Output directory for handoff artifacts. | `.handoff` |
-| `--budget <SIZE>` | Token budget with optional k/m suffix. | `128k` |
-| `--strategy <STRATEGY>` | Packing strategy: `greedy`, `spread`. | `greedy` |
-| `--rank-by <METRIC>` | Metric to rank files: `code`, `tokens`, `churn`, `hotspot`. | `hotspot` |
-| `--preset <LEVEL>` | Intelligence preset: `minimal`, `standard`, `risk`, `deep`. | `risk` |
-| `--module-roots <DIRS>` | Comma-separated module roots for grouping. | `(none)` |
-| `--module-depth <N>` | Module depth for grouping. | `2` |
-| `--force` | Overwrite existing output directory. | `false` |
-| `--compress` | Strip blank lines in `code.txt`. | `false` |
-| `--no-git` | Disable git-based enrichment. | `false` |
-| `--max-commits <N>` | Max commits to scan for git metrics. | `1000` |
-| `--max-commit-files <N>` | Max files per commit to process. | `100` |
+Usage: tokmd handoff [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --out-dir <OUT_DIR>
+          Output directory for handoff artifacts
+
+          [default: .handoff]
+
+      --budget <BUDGET>
+          Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited")
+
+          [default: 128k]
+
+      --strategy <STRATEGY>
+          Packing strategy for code bundle
+
+          Possible values:
+          - greedy: Select files by value until budget is exhausted
+          - spread: Round-robin across modules/languages for coverage, then greedy fill
+
+          [default: greedy]
+
+      --rank-by <RANK_BY>
+          Metric to rank files by for packing
+
+          Possible values:
+          - code:    Rank by lines of code
+          - tokens:  Rank by token count
+          - churn:   Rank by git churn (requires git feature)
+          - hotspot: Rank by hotspot score (requires git feature)
+
+          [default: hotspot]
+
+      --preset <PRESET>
+          Intelligence preset level
+
+          Possible values:
+          - minimal:  Minimal: tree + map only
+          - standard: Standard: + complexity, derived
+          - risk:     Risk: + hotspots, coupling (default)
+          - deep:     Deep: everything
+
+          [default: risk]
+
+      --module-roots <MODULE_ROOTS>
+          Module roots (see `tokmd module`)
+
+      --module-depth <MODULE_DEPTH>
+          Module depth (see `tokmd module`)
+
+      --force
+          Overwrite existing output directory
+
+      --compress
+          Strip blank lines from code bundle
+
+      --no-progress
+          Disable progress spinners
+
+      --no-smart-exclude
+          Disable smart exclusion of lockfiles, minified files, and generated artifacts
+
+      --no-git
+          Disable git-based features
+
+      --max-commits <MAX_COMMITS>
+          Maximum commits to scan for git metrics
+
+          [default: 1000]
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Maximum files per commit to process
+
+          [default: 100]
+
+      --max-file-pct <MAX_FILE_PCT>
+          Maximum fraction of budget a single file may consume (0.0–1.0)
+
+          [default: 0.15]
+
+      --max-file-tokens <MAX_FILE_TOKENS>
+          Hard cap on tokens per file (overrides percentage-based cap)
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: handoff -->
 
 **Examples**:
 ```bash
@@ -478,11 +1092,39 @@ tokmd handoff --no-git
 
 Explains why files are being ignored. Useful for troubleshooting when files unexpectedly appear or disappear from scans.
 
-**Usage**: `tokmd check-ignore <PATHS...> [OPTIONS]`
+<!-- HELP: check-ignore -->
+```text
+Check why a file is being ignored (for troubleshooting)
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `-v, --verbose` | Show verbose output with rule sources. | `false` |
+Usage: tokmd check-ignore [OPTIONS] <PATH>...
+
+Arguments:
+  <PATH>...
+          File path(s) to check
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+  -v, --verbose
+          Show verbose output with rule sources
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: check-ignore -->
 
 **Exit codes**:
 - `0`: File is ignored (shows which rule matched)
@@ -507,12 +1149,46 @@ tokmd check-ignore -v node_modules/lodash/index.js
 
 Outputs the CLI schema as JSON for AI agent tool use. This enables LLMs and AI agents to understand and invoke tokmd commands programmatically.
 
-**Usage**: `tokmd tools [OPTIONS]`
+<!-- HELP: tools -->
+```text
+Output CLI schema as JSON for AI agents
 
-| Option | Description | Default |
-| :--- | :--- | :--- |
-| `--format <FMT>` | Output format: `jsonschema`, `openai`, `anthropic`, `clap`. | `jsonschema` |
-| `--pretty` | Pretty-print JSON output. | `false` |
+Usage: tokmd tools [OPTIONS]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --format <FORMAT>
+          Output format for the tool schema
+
+          Possible values:
+          - openai:     OpenAI function calling format
+          - anthropic:  Anthropic tool use format
+          - jsonschema: JSON Schema Draft 7 format
+          - clap:       Raw clap structure dump
+
+          [default: jsonschema]
+
+      --pretty
+          Pretty-print JSON output
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: tools -->
 
 **Formats**:
 
@@ -987,11 +1663,38 @@ level = "warn"
 
 Generates shell completions for various shells.
 
-**Usage**: `tokmd completions <SHELL>`
+<!-- HELP: completions -->
+```text
+Generate shell completions
 
-| Argument | Description |
-| :--- | :--- |
-| `<SHELL>` | Shell to generate completions for: `bash`, `zsh`, `fish`, `powershell`, `elvish`. |
+Usage: tokmd completions [OPTIONS] <SHELL>
+
+Arguments:
+  <SHELL>
+          Shell to generate completions for
+
+          [possible values: bash, elvish, fish, powershell, zsh]
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: completions -->
 
 **Examples**:
 ```bash
