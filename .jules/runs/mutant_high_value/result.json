@@ -1,0 +1,16 @@
+{
+  "summary": "Closed missing mutants in `normalize_path`.",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd-model/tests/bdd_normalize_path.rs"
+  ],
+  "gates_run": [
+    "cargo mutants -d crates/tokmd-model -F normalize_path",
+    "cargo build --verbose",
+    "cargo test -p tokmd-model --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "risk_class": "low",
+  "rollback": "revert the PR"
+}
