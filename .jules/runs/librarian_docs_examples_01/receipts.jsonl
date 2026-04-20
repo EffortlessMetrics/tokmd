@@ -1,0 +1,4 @@
+{"cmd": "grep -rn \"sensor cockpit\" docs/", "output": "docs/testing.md:82:- Integration tests for `tokmd sensor cockpit` command"}
+{"cmd": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"cmd": "sed -i 's/`tokmd sensor cockpit` command/`tokmd sensor` and `tokmd cockpit` commands/g' docs/testing.md", "output": ""}
+{"cmd": "cargo xtask docs --check", "output": "Documentation is up to date."}
