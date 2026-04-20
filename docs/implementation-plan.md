@@ -312,7 +312,9 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ---
 
-## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0) ✅ Complete
+## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)
+
+**Status:** ✅ Complete
 
 **Goal**: Turn the new host-abstraction seam into a real in-memory/WASM execution path and ship a browser-first runner.
 

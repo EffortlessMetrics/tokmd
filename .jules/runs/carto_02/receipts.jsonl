@@ -1,4 +1,3 @@
-{"command": "mkdir and write envelope.json", "status": "success"}
 {"command": "update implementation-plan.md and write decision.md", "status": "success"}
 {"command": "write result.json", "status": "success"}
 {"command": "write pr_body.md", "status": "success"}

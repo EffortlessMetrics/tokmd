@@ -2,7 +2,7 @@
 Updated `docs/implementation-plan.md` to mark Phase 5 (WASM-Ready Core + Browser Runner, v1.9.0) as complete.
 
 ## 🎯 Why
-`ROADMAP.md` and `CHANGELOG.md` indicate that Phase 5 (v1.9.0) has already shipped, but `docs/implementation-plan.md` had drifted and still listed the phase and its checkboxes as incomplete.
+`ROADMAP.md` and `CHANGELOG.md` indicate that Phase 5 (v1.9.0) has already shipped, but `docs/implementation-plan.md` had drifted and still listed the phase and its checkboxes as incomplete. Adding the completion status indicator on a new line instead of appending it to the header text prevents markdown anchor link breakages that were failing CI.
 
 ## 🔎 Evidence
 - `docs/implementation-plan.md`
@@ -11,9 +11,9 @@ Updated `docs/implementation-plan.md` to mark Phase 5 (WASM-Ready Core + Browser
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `docs/implementation-plan.md` to check the boxes and mark Phase 5 as complete.
+- what it is: Update `docs/implementation-plan.md` to check the boxes and mark Phase 5 as complete safely.
 - why it fits this repo and shard: Fixes drift between planning docs to match shipped reality in the `tooling-governance` shard.
-- trade-offs: Structure / Velocity / Governance: Minor documentation update, aligns system.
+- trade-offs: Structure / Velocity / Governance: Minor documentation update, aligns system without breaking anchors.
 
 ### Option B
 - what it is: Update `ROADMAP.md` to revert the shipping status.
@@ -24,7 +24,7 @@ Updated `docs/implementation-plan.md` to mark Phase 5 (WASM-Ready Core + Browser
 Chosen Option A. The code actually shipped v1.9.0 as documented in `ROADMAP.md` and `CHANGELOG.md`, but `docs/implementation-plan.md` was out of date.
 
 ## 🧱 Changes made (SRP)
-- `docs/implementation-plan.md`: Updated Phase 5 to complete and checked off work items and tests.
+- `docs/implementation-plan.md`: Updated Phase 5 to complete and checked off work items and tests. Added `**Status:** ✅ Complete` below the header.
 
 ## 🧪 Verification receipts
 ```text
@@ -40,11 +40,11 @@ Documentation is up to date.
 - Gates run: `cargo xtask docs --check`
 
 ## 🗂️ .jules artifacts
-- `.jules/runs/carto_01/envelope.json`
-- `.jules/runs/carto_01/decision.md`
-- `.jules/runs/carto_01/receipts.jsonl`
-- `.jules/runs/carto_01/result.json`
-- `.jules/runs/carto_01/pr_body.md`
+- `.jules/runs/carto_02/envelope.json`
+- `.jules/runs/carto_02/decision.md`
+- `.jules/runs/carto_02/receipts.jsonl`
+- `.jules/runs/carto_02/result.json`
+- `.jules/runs/carto_02/pr_body.md`
 
 ## 🔜 Follow-ups
 None.
