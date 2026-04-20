@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "outcome_type": "patch",
+  "title": "test: lock deterministic ordering for import edges \ud83e\uddea Gatekeeper",
+  "gates_run": [
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "cargo build",
+    "CI=true cargo test -p tokmd-analysis-content"
+  ]
+}

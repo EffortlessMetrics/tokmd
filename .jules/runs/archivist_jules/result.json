@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "outcome_type": "patch",
+  "title": "archivist: consolidate legacy ledgers into unified run packets 🗃️",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "cargo xtask publish --plan --verbose",
+    "cargo xtask version-consistency"
+  ]
+}

@@ -5,5 +5,7 @@ It rolls up metadata from all run packets in `.jules/runs/`.
 
 | Run ID | Persona | Style | Shard | Status | Gates Run |
 |---|---|---|---|---|---|
+| `09c9d819-02cd-4f63-b662-921c812f93dd` | Gatekeeper | Gatekeeper | core-pipeline | success | 4 |
+| `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Scout | interfaces | success | 3 |
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 0 |
-| `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 |
+| `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Gatekeeper | core-pipeline | success | 0 |

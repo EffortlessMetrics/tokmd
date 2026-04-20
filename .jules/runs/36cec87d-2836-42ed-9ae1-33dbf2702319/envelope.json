@@ -1,0 +1,11 @@
+{
+  "prompt_id": "legacy_docs",
+  "persona": "Librarian",
+  "style": "Scout",
+  "primary_shard": "interfaces",
+  "gate_profile": "governance-release",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "proof-improvement patch"
+  ]
+}
