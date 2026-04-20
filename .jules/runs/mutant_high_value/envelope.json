@@ -1,0 +1,20 @@
+{
+  "prompt_id": "mutant_high_value",
+  "persona": "mutant",
+  "style": "prover",
+  "primary_shard": "core-pipeline",
+  "allowed_paths": [
+    "crates/tokmd-types/**",
+    "crates/tokmd-scan/**",
+    "crates/tokmd-model/**",
+    "crates/tokmd-format/**",
+    "docs/schema.json",
+    "docs/SCHEMA.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "mutation",
+  "allowed_outcomes": [
+    "proof-improvement patch",
+    "learning PR"
+  ]
+}
