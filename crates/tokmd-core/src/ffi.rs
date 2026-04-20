@@ -151,9 +151,17 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
             Ok(serde_json::to_value(receipt)?)
         }
         "version" => {
+            #[cfg(feature = "analysis")]
             let version_info = serde_json::json!({
                 "version": env!("CARGO_PKG_VERSION"),
                 "schema_version": tokmd_types::SCHEMA_VERSION,
+                "analysis_schema_version": tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
+            });
+            #[cfg(not(feature = "analysis"))]
+            let version_info = serde_json::json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "schema_version": tokmd_types::SCHEMA_VERSION,
+                "analysis_schema_version": serde_json::Value::Null,
             });
             Ok(version_info)
         }
@@ -653,6 +661,10 @@ mod tests {
                 .contains(env!("CARGO_PKG_VERSION"))
         );
         assert!(parsed["data"]["schema_version"].is_number());
+        #[cfg(feature = "analysis")]
+        assert!(parsed["data"]["analysis_schema_version"].is_number());
+        #[cfg(not(feature = "analysis"))]
+        assert!(parsed["data"]["analysis_schema_version"].is_null());
         Ok(())
     }
 

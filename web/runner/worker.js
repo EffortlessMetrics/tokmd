@@ -160,12 +160,33 @@ function createRunnerFromWasmModule(wasmModule) {
         runAnalyze: createModeHandler(wasmModule, "runAnalyze", "analyze mode"),
         capabilities,
         engine: {
-            version: wasmModule.version(),
-            schemaVersion: wasmModule.schemaVersion(),
-            analysisSchemaVersion:
-                typeof wasmModule.analysisSchemaVersion === "function"
+            version: (() => {
+                try {
+                    const env = JSON.parse(wasmModule.runJson("version", "{}"));
+                    return env.data.version || wasmModule.version();
+                } catch {
+                    return wasmModule.version();
+                }
+            })(),
+            schemaVersion: (() => {
+                try {
+                    const env = JSON.parse(wasmModule.runJson("version", "{}"));
+                    return env.data.schema_version ?? wasmModule.schemaVersion();
+                } catch {
+                    return wasmModule.schemaVersion();
+                }
+            })(),
+            analysisSchemaVersion: (() => {
+                try {
+                    const env = JSON.parse(wasmModule.runJson("version", "{}"));
+                    if (env.data.analysis_schema_version !== undefined && env.data.analysis_schema_version !== null) {
+                        return env.data.analysis_schema_version;
+                    }
+                } catch {}
+                return typeof wasmModule.analysisSchemaVersion === "function"
                     ? wasmModule.analysisSchemaVersion()
-                    : null,
+                    : null;
+            })(),
         },
     };
 }
