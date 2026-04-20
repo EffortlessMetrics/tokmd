@@ -1,0 +1,4 @@
+{"cmd": "git checkout -b bridge-bindings-wasm", "outcome": "Success"}
+{"cmd": "cargo test -p tokmd-core", "outcome": "Success"}
+{"cmd": "npm --prefix web/runner run build:wasm", "outcome": "Success"}
+{"cmd": "npm --prefix web/runner test", "outcome": "Success"}
