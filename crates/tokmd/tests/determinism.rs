@@ -16,12 +16,12 @@ fn tokmd_cmd() -> Command {
 /// Normalize non-deterministic fields (timestamps, tool version) so we can
 /// compare outputs byte-for-byte.
 fn normalize_envelope(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).expect("valid regex");
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).expect("valid regex");
     let s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
     let re_ver =
-        regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).expect("valid regex");
+        regex::Regex::new(r#"("tool":\s*\{\s*"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).expect("valid regex");
     re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 

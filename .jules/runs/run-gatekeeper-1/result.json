@@ -1,0 +1,20 @@
+{
+  "outcome_type": "proof_patch",
+  "reviewer_title": "gatekeeper: fix fragile determinism test normalizations ✅",
+  "summary": "Updated determinism test regex normalizations to properly handle optional whitespace after colons in JSON outputs. This prevents brittle snapshot and determinism failures when serializers change spacing.",
+  "target_paths": [
+    "crates/tokmd/tests/determinism.rs",
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd/tests/integration_w70.rs"
+  ],
+  "proof_summary": "Replaced brittle regexes like `r#\"\"generated_at_ms\":\\d+\"#` with `r#\"\"generated_at_ms\":\\s*\\d+\"#` and verified against determinism suites.",
+  "gates_run": [
+    "cargo test --test cli_snapshot_golden",
+    "cargo test --test determinism",
+    "cargo test --test determinism_regression"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git restore crates/tokmd/tests/",
+  "follow_ups": []
+}
