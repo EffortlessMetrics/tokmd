@@ -150,6 +150,10 @@ roundtrip_test!(
 roundtrip_test!(badge_metric_roundtrip, BadgeMetric, BADGE_METRICS.to_vec());
 roundtrip_test!(init_profile_roundtrip, InitProfile, INIT_PROFILES.to_vec());
 roundtrip_test!(shell_roundtrip, Shell, SHELLS.to_vec());
+roundtrip_test!(sensor_format_roundtrip, tokmd_config::SensorFormat, vec![tokmd_config::SensorFormat::Json, tokmd_config::SensorFormat::Md]);
+roundtrip_test!(near_dup_scope_roundtrip, tokmd_config::NearDupScope, vec![tokmd_config::NearDupScope::Module, tokmd_config::NearDupScope::Lang, tokmd_config::NearDupScope::Global]);
+roundtrip_test!(diff_range_mode_roundtrip, tokmd_config::DiffRangeMode, vec![tokmd_config::DiffRangeMode::TwoDot, tokmd_config::DiffRangeMode::ThreeDot]);
+
 
 // Additional property tests for serialization format consistency
 
@@ -221,6 +225,58 @@ proptest! {
     }
 
     // NEW property tests
+
+    #[test]
+    fn unknown_sensor_format_fails(unknown in "[a-z]{5,15}") {
+        let known = ["json", "md"];
+        if !known.contains(&unknown.as_str()) {
+            let json = format!("\"{}\"", unknown);
+            let result: Result<tokmd_config::SensorFormat, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "Unknown sensor format '{}' should fail to parse", unknown);
+        }
+    }
+
+    #[test]
+    fn unknown_near_dup_scope_fails(unknown in "[a-z]{5,15}") {
+        let known = ["module", "lang", "global"];
+        if !known.contains(&unknown.as_str()) {
+            let json = format!("\"{}\"", unknown);
+            let result: Result<tokmd_config::NearDupScope, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "Unknown near dup scope '{}' should fail to parse", unknown);
+        }
+    }
+
+    #[test]
+    fn unknown_diff_range_mode_fails(unknown in "[a-z]{5,15}") {
+        let known = ["two-dot", "three-dot"];
+        if !known.contains(&unknown.as_str()) {
+            let json = format!("\"{}\"", unknown);
+            let result: Result<tokmd_config::DiffRangeMode, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "Unknown diff range mode '{}' should fail to parse", unknown);
+        }
+    }
+
+
+    #[test]
+    fn unknown_cockpit_format_fails(unknown in "[a-z]{5,15}") {
+        let known = ["json", "md", "sections"];
+        if !known.contains(&unknown.as_str()) {
+            let json = format!("\"{}\"", unknown);
+            let result: Result<CockpitFormat, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "Unknown cockpit format '{}' should fail to parse", unknown);
+        }
+    }
+
+    #[test]
+    fn unknown_handoff_preset_fails(unknown in "[a-z]{5,15}") {
+        let known = ["minimal", "standard", "risk", "deep"];
+        if !known.contains(&unknown.as_str()) {
+            let json = format!("\"{}\"", unknown);
+            let result: Result<HandoffPreset, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "Unknown handoff preset '{}' should fail to parse", unknown);
+        }
+    }
+
 
     #[test]
     fn cockpit_format_serde_rt(
