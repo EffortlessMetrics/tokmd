@@ -1406,7 +1406,6 @@ mod tests {
         // - Must NOT panic
         // - Must return Err(PyErr)
         // - Python exception should contain "permission" or "access" in message
-
     }
 
     // CONTRACT 2: All public functions return PyResult (type safety)
@@ -1594,7 +1593,6 @@ mod tests {
             dict.set_item("test", 42).unwrap();
 
             // If we reach here, GIL is still valid
-
 
             // Original result should be available
             let _ = result;
