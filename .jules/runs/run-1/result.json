@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "learning_pr": false,
+  "summary": "Added round-trip and unknown rejection property tests for new config enums SensorFormat, NearDupScope, and DiffRangeMode."
+}
