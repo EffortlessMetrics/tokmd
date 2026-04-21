@@ -1,0 +1,3 @@
+{"command": "cargo run --bin tokmd -- missing-file.json", "output": "Error: Path not found: missing-file.json\n\nHints:\n- Verify the input path exists and is readable.\n- Use an absolute path to avoid working-directory confusion.\n- If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`."}
+{"command": "cargo add colored --manifest-path crates/tokmd/Cargo.toml", "output": "Added colored v3.1.1 to dependencies"}
+{"command": "cargo test -p tokmd", "output": "test result: ok. 43 passed; 0 failed; ... test result: ok. 14 passed; 0 failed; ... all doctests ran"}

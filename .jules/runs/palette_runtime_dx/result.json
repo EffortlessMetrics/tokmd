@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "patch_ready": true,
+  "summary": "Improved runtime DX by applying standard ANSI coloring (red/yellow) to CLI errors and hints, making failure states stand out in terminal output."
+}
