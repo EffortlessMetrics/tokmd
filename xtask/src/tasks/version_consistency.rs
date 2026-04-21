@@ -15,6 +15,7 @@ use crate::cli::VersionConsistencyArgs;
 const NODE_PACKAGE_MANIFESTS: &[&str] = &[
     "crates/tokmd-node/package.json",
     "crates/tokmd-node/npm/package.json",
+    "web/runner/package.json",
 ];
 
 pub fn run(_args: VersionConsistencyArgs) -> Result<()> {
