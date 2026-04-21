@@ -88,11 +88,11 @@ fn tokmd_at(dir: &std::path::Path) -> Command {
 }
 
 fn normalize_envelope(output: &str) -> String {
-    let re_ts = regex::Regex::new(r#""generated_at_ms":\d+"#).unwrap();
+    let re_ts = regex::Regex::new(r#""generated_at_ms":\s*\d+"#).unwrap();
     let s = re_ts
         .replace_all(output, r#""generated_at_ms":0"#)
         .to_string();
-    let re_ver = regex::Regex::new(r#"("tool":\{"name":"tokmd","version":")[^"]+"#).unwrap();
+    let re_ver = regex::Regex::new(r#"("tool":\s*\{\s*"name":\s*"tokmd",\s*"version":\s*")[^"]+"#).unwrap();
     re_ver.replace_all(&s, r#"${1}0.0.0"#).to_string()
 }
 
