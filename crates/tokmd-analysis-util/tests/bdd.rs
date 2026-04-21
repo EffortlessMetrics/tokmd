@@ -212,6 +212,14 @@ fn is_test_path_rejects_partial_match_in_filename() {
 }
 
 #[test]
+fn is_test_path_detects_standalone_test_files() {
+    assert!(is_test_path("src/test.rs"));
+    assert!(is_test_path("tests.py"));
+    assert!(is_test_path("app/spec.js"));
+    assert!(is_test_path("lib/specs.ts"));
+}
+
+#[test]
 fn is_test_path_empty_string() {
     assert!(!is_test_path(""));
 }

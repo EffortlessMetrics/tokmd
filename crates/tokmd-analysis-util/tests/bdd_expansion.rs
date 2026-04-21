@@ -114,14 +114,10 @@ mod is_test_path_edge_cases {
     }
 
     #[test]
-    fn given_file_named_test_without_underscore_then_not_detected_as_file_pattern() {
-        // "test.rs" doesn't match _test or test_ patterns, but may match via
-        // dir patterns if "test" is in path. As a standalone basename, check behavior.
-        // "test.rs" → name = "test.rs", doesn't start with "test_" or contain "_test"
-        // or ".test." or ".spec."
+    fn given_file_named_test_without_underscore_then_detected_as_file_pattern() {
+        // "test.rs" used to not match, but now matches due to "test." check.
         let result = is_test_path("test.rs");
-        // The function checks name.starts_with("test_") — "test.rs" does not start with "test_"
-        assert!(!result);
+        assert!(result);
     }
 
     #[test]

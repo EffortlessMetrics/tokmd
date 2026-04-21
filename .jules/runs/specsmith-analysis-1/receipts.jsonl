@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-analysis-util", "exit_code": 0, "output": "test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s\n..."}
+{"command": "cargo test -p tokmd-analysis-derived", "exit_code": 0, "output": "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n..."}
+{"command": "cargo test -p tokmd-analysis", "exit_code": 0, "output": "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n..."}
