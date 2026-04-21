@@ -90,6 +90,7 @@ tokmd-gate.workspace = true
 serde.workspace = true
 blake3.workspace = true
 time = { version = "0.3.47", features = ["formatting"] }
+colored = "2.2.0"
 
 [dev-dependencies]
 assert_cmd = "2.2.0"

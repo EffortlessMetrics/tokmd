@@ -1,10 +1,13 @@
 use anyhow::Error;
+use colored::Colorize;
 
 pub(crate) fn format(err: &Error) -> String {
-    let mut out = format!("Error: {err:#}");
+    let err_prefix = "Error:".red().bold();
+    let mut out = format!("{} {err:#}", err_prefix);
     let hints = suggestions(err);
     if !hints.is_empty() {
-        out.push_str("\n\nHints:\n");
+        let hints_prefix = "Hints:".yellow().bold();
+        out.push_str(&format!("\n\n{}\n", hints_prefix));
         for hint in hints {
             out.push_str("- ");
             out.push_str(&hint);
@@ -150,9 +153,12 @@ mod tests {
 
     #[test]
     fn format_includes_hints_section() {
+        // Explicitly format a test string to test rendering behavior without colors locally
         let err = anyhow!("Path not found: no-file");
+        colored::control::set_override(false);
         let rendered = format(&err);
         assert!(rendered.contains("Error:"));
         assert!(rendered.contains("Hints:"));
+        colored::control::unset_override();
     }
 }
