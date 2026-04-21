@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "summary": "Updated `is_test_path` heuristic to properly identify standalone test files like `test.rs` and `spec.js`",
+  "files_changed": [
+    "crates/tokmd-analysis-util/src/lib.rs",
+    "crates/tokmd-analysis-util/tests/bdd.rs",
+    "crates/tokmd-analysis-util/tests/bdd_expansion.rs"
+  ],
+  "learning_pr": false
+}

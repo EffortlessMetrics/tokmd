@@ -59,6 +59,10 @@ pub fn is_test_path(path: &str) -> bool {
         || name.contains(".spec.")
         || name.starts_with("test_")
         || name.ends_with("_test.rs")
+        || name.starts_with("test.")
+        || name.starts_with("tests.")
+        || name.starts_with("spec.")
+        || name.starts_with("specs.")
 }
 
 pub fn is_infra_lang(lang: &str) -> bool {
