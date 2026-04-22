@@ -83,9 +83,14 @@ pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec
 
     for line in reader.lines() {
         let line = line?;
-        bytes += line.len();
+        let next_bytes = bytes.saturating_add(line.len());
+        if next_bytes > max_bytes {
+            break;
+        }
+
         lines.push(line);
-        if lines.len() >= max_lines || bytes >= max_bytes {
+        bytes = next_bytes;
+        if lines.len() >= max_lines {
             break;
         }
     }
@@ -320,11 +325,10 @@ mod tests {
         writeln!(f, "bbbbb").unwrap(); // 5 bytes (total 10)
         writeln!(f, "ccccc").unwrap(); // should not be read if limit is 9
 
-        // With limit of 9 bytes, we should get exactly 2 lines
-        // because after first line (5 bytes), bytes=5 < 9, continue
-        // after second line (5 bytes), bytes=10 >= 9, break
+        // With limit of 9 bytes, only the first 5-byte line fits.
         let lines = read_lines(&path, 100, 9).unwrap();
-        assert_eq!(lines.len(), 2);
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "aaaaa");
     }
 
     // ========================

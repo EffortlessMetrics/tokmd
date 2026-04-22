@@ -513,12 +513,11 @@ fn edge_read_lines_bytes_limit_on_long_line() {
     let mut f = File::create(&path).unwrap();
     writeln!(f, "{line}").unwrap();
     writeln!(f, "second line").unwrap();
-    // Byte limit 500 is less than the first line, but read_lines counts
-    // accumulated bytes and breaks after reaching the threshold
+    // Byte limit 500 is less than the first line, so no lines fit.
     let lines = read_lines(&path, 100, 500).unwrap();
     assert_eq!(
         lines.len(),
-        1,
-        "Should stop after first long line exceeds byte limit"
+        0,
+        "Should stop before adding a line that exceeds the byte limit"
     );
 }
