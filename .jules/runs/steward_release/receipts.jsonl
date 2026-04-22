@@ -1,0 +1,3 @@
+{"command": "cargo xtask version-consistency", "output": "Checking version consistency against workspace version 1.9.0\n\n  ✓ Cargo crate versions match 1.9.0.\n  ✓ Cargo workspace dependency versions match 1.9.0.\n  ✓ Node package manifest versions match 1.9.0.\n  ✓ No case-insensitive tracked-path collisions detected.\nVersion consistency checks passed."}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"command": "cargo xtask publish --plan", "output": "=== Publish Plan ===\n\nWorkspace version: 1.9.0\n\nPublish order (58 crates): ...\nTo execute this plan:\n  cargo xtask publish --yes"}
