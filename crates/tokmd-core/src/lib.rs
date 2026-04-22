@@ -563,10 +563,7 @@ pub fn cockpit_workflow(
     let repo_root =
         tokmd_git::repo_root(&cwd).ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
 
-    let range_mode = match settings.range_mode.as_str() {
-        "three-dot" | "3dot" => tokmd_git::GitRangeMode::ThreeDot,
-        _ => tokmd_git::GitRangeMode::TwoDot,
-    };
+    let range_mode = parse_cockpit_range_mode(&settings.range_mode)?;
 
     let resolved_base =
         tokmd_git::resolve_base_ref(&repo_root, &settings.base).ok_or_else(|| {
@@ -595,6 +592,20 @@ pub fn cockpit_workflow(
     }
 
     Ok(receipt)
+}
+
+#[cfg(feature = "cockpit")]
+fn parse_cockpit_range_mode(value: &str) -> Result<tokmd_git::GitRangeMode> {
+    let normalized = value.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "two-dot" | "2dot" => Ok(tokmd_git::GitRangeMode::TwoDot),
+        "three-dot" | "3dot" => Ok(tokmd_git::GitRangeMode::ThreeDot),
+        _ => Err(error::TokmdError::invalid_field(
+            "range_mode",
+            "'two-dot', '2dot', 'three-dot', or '3dot'",
+        )
+        .into()),
+    }
 }
 
 #[cfg(feature = "cockpit")]
@@ -1607,34 +1618,37 @@ mod mutation_tests {
     #[cfg(feature = "cockpit")]
     #[test]
     fn cockpit_workflow_range_mode_parsing() {
-        use tokmd_settings::CockpitSettings;
+        assert!(matches!(
+            parse_cockpit_range_mode("three-dot").expect("three-dot should parse"),
+            tokmd_git::GitRangeMode::ThreeDot
+        ));
+        assert!(matches!(
+            parse_cockpit_range_mode("3dot").expect("3dot should parse"),
+            tokmd_git::GitRangeMode::ThreeDot
+        ));
+        assert!(matches!(
+            parse_cockpit_range_mode("two-dot").expect("two-dot should parse"),
+            tokmd_git::GitRangeMode::TwoDot
+        ));
+        assert!(matches!(
+            parse_cockpit_range_mode("2dot").expect("2dot should parse"),
+            tokmd_git::GitRangeMode::TwoDot
+        ));
+        assert!(matches!(
+            parse_cockpit_range_mode("  THREE-DOT  ").expect("trimmed/case-insensitive parse"),
+            tokmd_git::GitRangeMode::ThreeDot
+        ));
+    }
 
-        // This tests the range_mode match logic that was flagged as untested
-        // We can't fully test cockpit_workflow without a git repo, but we can
-        // at least verify the range_mode parsing logic directly
-
-        let test_cases = [
-            ("three-dot", "three-dot matches GitRangeMode::ThreeDot"),
-            ("3dot", "3dot matches GitRangeMode::ThreeDot"),
-            ("two-dot", "two-dot falls through to GitRangeMode::TwoDot"),
-            ("", "empty string falls through to GitRangeMode::TwoDot"),
-            (
-                "invalid",
-                "invalid string falls through to GitRangeMode::TwoDot",
-            ),
-        ];
-
-        for (mode, _description) in &test_cases {
-            let settings = CockpitSettings {
-                base: "HEAD~1".to_string(),
-                head: "HEAD".to_string(),
-                range_mode: mode.to_string(),
-                baseline: None,
-            };
-
-            // Verify the match arms don't panic
-            let _ = settings.range_mode.as_str();
-        }
+    #[cfg(feature = "cockpit")]
+    #[test]
+    fn cockpit_workflow_range_mode_invalid_rejected() {
+        let err = parse_cockpit_range_mode("invalid").expect_err("invalid mode should fail");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("range_mode"),
+            "Error should reference range_mode field; got: {msg}"
+        );
     }
 }
 
