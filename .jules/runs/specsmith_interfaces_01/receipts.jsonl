@@ -1,0 +1,1 @@
+{"command": "cargo test -p tokmd --test config_resolution", "outcome": "Passed successfully. New test coverage handles defaults and CLI overrides correctly for resolve_module, resolve_export, and resolve_analyze."}
