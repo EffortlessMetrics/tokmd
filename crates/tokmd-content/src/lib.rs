@@ -77,14 +77,25 @@ pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec
         return Ok(Vec::new());
     }
     let file = File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
-    let reader = BufReader::new(file);
+    let mut reader = BufReader::new(file);
     let mut lines = Vec::new();
     let mut bytes = 0usize;
+    let mut buf = String::new();
 
-    for line in reader.lines() {
-        let line = line?;
-        bytes += line.len();
-        lines.push(line);
+    loop {
+        buf.clear();
+        let read = reader.read_line(&mut buf)?;
+        if read == 0 {
+            break;
+        }
+
+        bytes += read;
+
+        while matches!(buf.as_bytes().last(), Some(b'\n' | b'\r')) {
+            buf.pop();
+        }
+        lines.push(buf.clone());
+
         if lines.len() >= max_lines || bytes >= max_bytes {
             break;
         }
@@ -325,6 +336,30 @@ mod tests {
         // after second line (5 bytes), bytes=10 >= 9, break
         let lines = read_lines(&path, 100, 9).unwrap();
         assert_eq!(lines.len(), 2);
+    }
+
+    #[test]
+    fn test_read_lines_counts_newline_bytes_toward_cap() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("newline_cap.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "abc").unwrap();
+        writeln!(f, "def").unwrap();
+
+        // First line consumes 4 bytes including '\n', so cap should stop at one line.
+        let lines = read_lines(&path, 100, 4).unwrap();
+        assert_eq!(lines, vec!["abc"]);
+    }
+
+    #[test]
+    fn test_read_lines_trims_windows_line_endings() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("crlf.txt");
+        let mut f = File::create(&path).unwrap();
+        f.write_all(b"first\r\nsecond\r\n").unwrap();
+
+        let lines = read_lines(&path, 10, 1000).unwrap();
+        assert_eq!(lines, vec!["first", "second"]);
     }
 
     // ========================
