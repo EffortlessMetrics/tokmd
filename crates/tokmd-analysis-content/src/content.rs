@@ -111,10 +111,10 @@ pub fn build_duplicate_report(
     let mut duplicate_files = 0usize;
     let mut duplicated_bytes = 0u64;
 
-    let mut module_duplicate_files: BTreeMap<String, usize> = BTreeMap::new();
-    let mut module_wasted_files: BTreeMap<String, usize> = BTreeMap::new();
-    let mut module_duplicated_bytes: BTreeMap<String, u64> = BTreeMap::new();
-    let mut module_wasted_bytes: BTreeMap<String, u64> = BTreeMap::new();
+    let mut module_duplicate_files: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut module_wasted_files: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut module_duplicated_bytes: BTreeMap<&str, u64> = BTreeMap::new();
+    let mut module_wasted_bytes: BTreeMap<&str, u64> = BTreeMap::new();
 
     for (size, paths) in by_size {
         if paths.len() < 2 || size == 0 {
@@ -139,30 +139,14 @@ pub fn build_duplicate_report(
 
             for (idx, file) in files.iter().enumerate() {
                 let module = path_to_module.get(file).copied().unwrap_or("(unknown)");
-                if let Some(val) = module_duplicate_files.get_mut(module) {
-                    *val += 1;
-                } else {
-                    module_duplicate_files.insert(module.to_string(), 1);
-                }
-                if let Some(val) = module_duplicated_bytes.get_mut(module) {
-                    *val += size;
-                } else {
-                    module_duplicated_bytes.insert(module.to_string(), size);
-                }
+                *module_duplicate_files.entry(module).or_insert(0) += 1;
+                *module_duplicated_bytes.entry(module).or_insert(0) += size;
                 duplicate_files += 1;
                 duplicated_bytes += size;
 
                 if idx > 0 {
-                    if let Some(val) = module_wasted_files.get_mut(module) {
-                        *val += 1;
-                    } else {
-                        module_wasted_files.insert(module.to_string(), 1);
-                    }
-                    if let Some(val) = module_wasted_bytes.get_mut(module) {
-                        *val += size;
-                    } else {
-                        module_wasted_bytes.insert(module.to_string(), size);
-                    }
+                    *module_wasted_files.entry(module).or_insert(0) += 1;
+                    *module_wasted_bytes.entry(module).or_insert(0) += size;
                 }
             }
 
@@ -176,9 +160,9 @@ pub fn build_duplicate_report(
 
     groups.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.hash.cmp(&b.hash)));
 
-    let mut modules: BTreeSet<String> = BTreeSet::new();
-    modules.extend(module_duplicate_files.keys().cloned());
-    modules.extend(module_wasted_files.keys().cloned());
+    let mut modules: BTreeSet<&str> = BTreeSet::new();
+    modules.extend(module_duplicate_files.keys().copied());
+    modules.extend(module_wasted_files.keys().copied());
 
     let mut by_module: Vec<ModuleDuplicationDensityRow> = modules
         .into_iter()
@@ -187,14 +171,14 @@ pub fn build_duplicate_report(
             let wasted_files = module_wasted_files.get(&module).copied().unwrap_or(0);
             let duplicated_bytes = module_duplicated_bytes.get(&module).copied().unwrap_or(0);
             let wasted_bytes = module_wasted_bytes.get(&module).copied().unwrap_or(0);
-            let module_total = module_bytes.get(module.as_str()).copied().unwrap_or(0);
+            let module_total = module_bytes.get(module).copied().unwrap_or(0);
             let density = if module_total == 0 {
                 0.0
             } else {
                 round_f64(wasted_bytes as f64 / module_total as f64, 4)
             };
             ModuleDuplicationDensityRow {
-                module,
+                module: module.to_string(),
                 duplicate_files,
                 wasted_files,
                 duplicated_bytes,
