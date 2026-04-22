@@ -126,11 +126,7 @@ fn build_freshness_report(
         if days > threshold_days {
             stale_files += 1;
         }
-        if let Some(list) = by_module.get_mut(module) {
-            list.push(days);
-        } else {
-            by_module.insert(module.clone(), vec![days]);
-        }
+        by_module.entry(module.clone()).or_default().push(days);
     }
 
     let stale_pct = if total_files == 0 {
