@@ -36,23 +36,15 @@ pub fn build_git_report(
         max_ts = max_ts.max(commit.timestamp);
         for file in &commit.files {
             let key = normalize_git_path(file);
-            if let Some((row, module)) = row_map.get(&key) {
-                if let Some(val) = commit_counts.get_mut(&key) {
-                    *val += 1;
-                } else {
-                    commit_counts.insert(key.clone(), 1);
-                }
-                if let Some(val) = authors_by_module.get_mut(module) {
-                    val.insert(commit.author.clone());
-                } else {
-                    let mut set = BTreeSet::new();
-                    set.insert(commit.author.clone());
-                    authors_by_module.insert(module.clone(), set);
-                }
-                if !last_change.contains_key(&key) {
-                    last_change.insert(key.clone(), commit.timestamp);
-                }
-                let _ = row;
+            if let Some((row_key, (_row, module))) = row_map.get_key_value(&key) {
+                *commit_counts.entry(row_key.clone()).or_insert(0) += 1;
+                authors_by_module
+                    .entry(module.clone())
+                    .or_default()
+                    .insert(commit.author.clone());
+                last_change
+                    .entry(row_key.clone())
+                    .or_insert(commit.timestamp);
             }
         }
     }
