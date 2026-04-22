@@ -144,19 +144,18 @@ fn given_max_bytes_limit_when_building_todo_report_then_stops_early() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();
 
-    // First file is small, second file should be skipped
-    std::fs::write(root.join("first.rs"), "// TODO: counted\n").unwrap();
-    std::fs::write(root.join("second.rs"), "// TODO: skipped\n").unwrap();
+    // First file fits exactly in the byte budget; second file should be skipped.
+    std::fs::write(root.join("first.rs"), "// TODO:A\n").unwrap();
+    std::fs::write(root.join("second.rs"), "// TODO:B\n").unwrap();
 
     let files = vec![PathBuf::from("first.rs"), PathBuf::from("second.rs")];
     let limits = ContentLimits {
-        max_bytes: Some(10), // very small budget
+        max_bytes: Some(10),
         max_file_bytes: None,
     };
     let report = build_todo_report(root, &files, &limits, 1000).unwrap();
 
-    // Only the first file should be processed
-    assert!(report.total <= 1);
+    assert_eq!(report.total, 1);
 }
 
 #[test]
@@ -483,14 +482,14 @@ fn given_max_bytes_limit_when_building_import_report_then_budget_respected() {
     };
 
     let limits = ContentLimits {
-        max_bytes: Some(5), // very small budget
+        max_bytes: Some(1),
         max_file_bytes: None,
     };
     let report =
         build_import_report(root, &files, &export, ImportGranularity::Module, &limits).unwrap();
 
-    // With a 5-byte budget, at most one file can be processed
-    assert!(report.edges.len() <= 1);
+    assert_eq!(report.edges.len(), 1);
+    assert_eq!(report.edges[0].to, "os");
 }
 
 #[test]
