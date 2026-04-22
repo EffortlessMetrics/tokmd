@@ -118,6 +118,9 @@ pub fn count_tags(text: &str, tags: &[&str]) -> Vec<(String, usize)> {
     let upper = text.to_uppercase();
     tags.iter()
         .map(|tag| {
+            if tag.is_empty() {
+                return (tag.to_string(), 0);
+            }
             let needle = tag.to_uppercase();
             let count = upper.matches(&needle).count();
             (tag.to_string(), count)
@@ -421,5 +424,11 @@ mod tests {
         // Full hash should be different
         let hash_full = hash_file(&path, 1000).unwrap();
         assert_ne!(hash_limited, hash_full);
+    }
+
+    #[test]
+    fn test_count_tags_empty_tag_has_zero_matches() {
+        let result = count_tags("TODO", &[""]);
+        assert_eq!(result, vec![("".to_string(), 0)]);
     }
 }
