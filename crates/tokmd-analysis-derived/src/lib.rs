@@ -520,15 +520,11 @@ fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
 }
 
 fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
-    let mut by_lang: BTreeMap<String, usize> = BTreeMap::new();
+    let mut by_lang: BTreeMap<&str, usize> = BTreeMap::new();
     let mut total = 0usize;
 
     for row in rows {
-        if let Some(val) = by_lang.get_mut(&row.lang) {
-            *val += row.code;
-        } else {
-            by_lang.insert(row.lang.clone(), row.code);
-        }
+        *by_lang.entry(row.lang.as_str()).or_insert(0) += row.code;
         total += row.code;
     }
 
@@ -538,10 +534,10 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
 
     for (lang, lines) in &by_lang {
         if *lines > dominant_lines
-            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
+            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| *lang < d))
         {
             dominant_lines = *lines;
-            dominant_lang = Some(lang.as_str());
+            dominant_lang = Some(*lang);
         }
         if total > 0 && *lines > 0 {
             let p = *lines as f64 / total as f64;
