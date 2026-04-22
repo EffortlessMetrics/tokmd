@@ -327,6 +327,22 @@ fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, Tok
             .and_then(Value::as_str)
             .ok_or_else(|| TokmdError::invalid_field(&format!("inputs[{idx}].path"), "a string"))?
             .to_string();
+
+        let path_obj = std::path::Path::new(&path);
+        if path_obj.is_absolute() || path.starts_with('/') || path.starts_with('\\') {
+            return Err(TokmdError::invalid_field(
+                &format!("inputs[{idx}].path"),
+                "a relative path, not an absolute path",
+            ));
+        }
+        for component in path_obj.components() {
+            if matches!(component, std::path::Component::ParentDir) {
+                return Err(TokmdError::invalid_field(
+                    &format!("inputs[{idx}].path"),
+                    "a path without parent traversal (..)",
+                ));
+            }
+        }
         let text = input.get("text");
         let base64 = input.get("base64");
 
@@ -1376,6 +1392,42 @@ mod tests {
         let result = run_json("lang", r#"{"paths": ["."]}"#);
         let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], true);
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_absolute_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "/absolute/path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("absolute path")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_parent_traversal() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "../out/path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("parent traversal")
+        );
         Ok(())
     }
 }

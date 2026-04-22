@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-core --lib", "result": "ok. 68 passed"}
+{"command": "cargo test -p tokmd-core --test ffi_in_memory_path_validation", "result": "ok. 2 passed"}
+{"command": "cargo fmt && cargo clippy", "result": "Finished `dev` profile in 24.32s"}
