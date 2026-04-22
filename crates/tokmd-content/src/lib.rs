@@ -118,8 +118,12 @@ pub fn count_tags(text: &str, tags: &[&str]) -> Vec<(String, usize)> {
     let upper = text.to_uppercase();
     tags.iter()
         .map(|tag| {
-            let needle = tag.to_uppercase();
-            let count = upper.matches(&needle).count();
+            let needle = tag.trim();
+            let count = if needle.is_empty() {
+                0
+            } else {
+                upper.matches(&needle.to_uppercase()).count()
+            };
             (tag.to_string(), count)
         })
         .collect()
@@ -255,6 +259,21 @@ mod tests {
         assert_eq!(lines[0], "line 0");
         assert_eq!(lines[1], "line 1");
         assert_eq!(lines[2], "line 2");
+    }
+
+    #[test]
+    fn test_count_tags_ignores_empty_needles() {
+        let tags = count_tags("TODO TODO", &["", "   ", "TODO"]);
+        assert_eq!(tags[0], ("".to_string(), 0));
+        assert_eq!(tags[1], ("   ".to_string(), 0));
+        assert_eq!(tags[2], ("TODO".to_string(), 2));
+    }
+
+    #[test]
+    fn test_count_tags_trims_tag_input() {
+        let tags = count_tags("TODO FIXME TODO", &[" TODO ", "\tfixme\t"]);
+        assert_eq!(tags[0], (" TODO ".to_string(), 2));
+        assert_eq!(tags[1], ("\tfixme\t".to_string(), 1));
     }
 
     #[test]
