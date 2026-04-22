@@ -14,6 +14,24 @@ use tokmd_math::round_f64;
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const IMPORT_MAX_LINES: usize = 200;
 
+fn effective_file_limit(
+    max_total: Option<u64>,
+    total_bytes: u64,
+    default_per_file_limit: usize,
+) -> Option<usize> {
+    match max_total {
+        Some(cap) => {
+            let remaining = cap.saturating_sub(total_bytes) as usize;
+            if remaining == 0 {
+                None
+            } else {
+                Some(default_per_file_limit.min(remaining))
+            }
+        }
+        None => Some(default_per_file_limit),
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum ImportGranularity {
     Module,
@@ -43,7 +61,11 @@ pub fn build_todo_report(
             break;
         }
         let path = root.join(rel);
-        let bytes = tokmd_content::read_head(&path, per_file_limit)?;
+        let this_file_limit = match effective_file_limit(max_total, total_bytes, per_file_limit) {
+            Some(limit) => limit,
+            None => break,
+        };
+        let bytes = tokmd_content::read_head(&path, this_file_limit)?;
         total_bytes += bytes.len() as u64;
         if !tokmd_content::is_text_like(&bytes) {
             continue;
@@ -256,6 +278,10 @@ pub fn build_import_report(
         if max_total.is_some_and(|limit| total_bytes >= limit) {
             break;
         }
+        let this_file_limit = match effective_file_limit(max_total, total_bytes, per_file_limit) {
+            Some(limit) => limit,
+            None => break,
+        };
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let row = match map.get(&rel_str) {
             Some(r) => *r,
@@ -265,7 +291,7 @@ pub fn build_import_report(
             continue;
         }
         let path = root.join(rel);
-        let lines = match tokmd_content::read_lines(&path, IMPORT_MAX_LINES, per_file_limit) {
+        let lines = match tokmd_content::read_lines(&path, IMPORT_MAX_LINES, this_file_limit) {
             Ok(lines) => lines,
             Err(_) => continue,
         };
