@@ -369,11 +369,7 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
             by_module.get_mut(&row.module).unwrap()
         };
 
-        if let Some(val) = entry.get_mut(&row.lang) {
-            *val += row.lines;
-        } else {
-            entry.insert(row.lang.clone(), row.lines);
-        }
+        *entry.entry(row.lang.clone()).or_insert(0) += row.lines;
     }
 
     let mut out = Vec::new();
