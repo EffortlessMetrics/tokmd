@@ -849,7 +849,8 @@ fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDet
                 None
             };
 
-            let param_count = count_params(lines.get(start).unwrap_or(&""));
+            let signature = collect_fn_signature(&lines, start);
+            let param_count = count_params(&signature);
 
             FunctionComplexityDetail {
                 name,
@@ -1161,16 +1162,103 @@ fn extract_c_fn_name(line: &str) -> String {
 
 /// Count function parameters from a line.
 fn count_params(line: &str) -> usize {
-    if let Some(open) = line.find('(')
-        && let Some(close) = line.find(')')
-    {
+    if let Some((open, close)) = find_matching_paren_range(line) {
         let params = line[open + 1..close].trim();
         if params.is_empty() {
             return 0;
         }
-        return params.split(',').count();
+
+        let mut count = 0usize;
+        let mut token_has_content = false;
+        let mut paren_depth = 0usize;
+        let mut bracket_depth = 0usize;
+        let mut brace_depth = 0usize;
+        let mut angle_depth = 0usize;
+        let mut in_single_quote = false;
+        let mut in_double_quote = false;
+        let mut escaped = false;
+
+        for ch in params.chars() {
+            if escaped {
+                escaped = false;
+                continue;
+            }
+
+            match ch {
+                '\\' if in_single_quote || in_double_quote => {
+                    escaped = true;
+                }
+                '\'' if !in_double_quote => {
+                    in_single_quote = !in_single_quote;
+                }
+                '"' if !in_single_quote => {
+                    in_double_quote = !in_double_quote;
+                }
+                _ if in_single_quote || in_double_quote => {}
+                '(' => paren_depth += 1,
+                ')' => paren_depth = paren_depth.saturating_sub(1),
+                '[' => bracket_depth += 1,
+                ']' => bracket_depth = bracket_depth.saturating_sub(1),
+                '{' => brace_depth += 1,
+                '}' => brace_depth = brace_depth.saturating_sub(1),
+                '<' => angle_depth += 1,
+                '>' => angle_depth = angle_depth.saturating_sub(1),
+                ',' if paren_depth == 0
+                    && bracket_depth == 0
+                    && brace_depth == 0
+                    && angle_depth == 0 =>
+                {
+                    if token_has_content {
+                        count += 1;
+                        token_has_content = false;
+                    }
+                }
+                ch if !ch.is_whitespace() => {
+                    token_has_content = true;
+                }
+                _ => {}
+            }
+        }
+
+        if token_has_content {
+            count += 1;
+        }
+
+        return count;
     }
     0
+}
+
+fn collect_fn_signature(lines: &[&str], start: usize) -> String {
+    let mut signature = String::new();
+    for line in lines.iter().skip(start) {
+        signature.push_str(line);
+        signature.push('\n');
+
+        let trimmed = line.trim();
+        if trimmed.ends_with('{') || trimmed.ends_with(';') || trimmed.contains('{') {
+            break;
+        }
+    }
+    signature
+}
+
+fn find_matching_paren_range(text: &str) -> Option<(usize, usize)> {
+    let open = text.find('(')?;
+    let mut depth = 0usize;
+    for (idx, ch) in text.char_indices().skip(open) {
+        match ch {
+            '(' => depth += 1,
+            ')' => {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    return Some((open, idx));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
 }
 
 /// Estimate cyclomatic complexity for a function body.
@@ -1242,6 +1330,17 @@ def baz():
         let lines: Vec<&str> = code.lines().collect();
         let (count, _max_len) = count_python_functions(&lines);
         assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn test_count_params_handles_multiline_signature_and_nested_commas() {
+        let signature = r#"
+fn complex(
+    f: impl Fn(i32, i32) -> i32,
+    items: Vec<(String, usize)>,
+) -> usize {
+"#;
+        assert_eq!(count_params(signature), 2);
     }
 
     #[test]
