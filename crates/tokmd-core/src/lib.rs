@@ -51,7 +51,7 @@ use std::path::{Path, PathBuf};
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 #[cfg(feature = "analysis")]
 use tokmd_analysis as analysis;
 #[cfg(feature = "analysis")]
@@ -110,7 +110,7 @@ fn now_ms() -> u128 {
 /// A `LangReceipt` containing the language summary.
 pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan)?;
 
     // Scan
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
@@ -163,7 +163,7 @@ pub fn lang_workflow_from_inputs(
 /// ```
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan)?;
 
     // Scan
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
@@ -229,7 +229,7 @@ pub fn module_workflow_from_inputs(
 /// ```
 pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan)?;
     let strip_prefix = export.strip_prefix.as_deref();
 
     // Scan
@@ -1083,6 +1083,15 @@ fn derive_analysis_root(scan: &ScanSettings) -> Option<PathBuf> {
     } else {
         absolute.parent().map(|p| p.to_path_buf())
     }
+}
+
+fn scan_paths_or_current_dir(scan: &ScanSettings) -> Result<Vec<PathBuf>> {
+    if scan.paths.is_empty() {
+        let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
+        return Ok(vec![cwd]);
+    }
+
+    Ok(scan.paths.iter().map(PathBuf::from).collect())
 }
 
 /// Load a LangReport from a file path or scan a directory.
