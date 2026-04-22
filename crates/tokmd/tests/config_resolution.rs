@@ -73,9 +73,8 @@ fn test_resolve_lang_partial_overrides() {
     assert!(resolved.files); // From CLI
 }
 
-
-use tokmd::config::{resolve_module, resolve_export};
-use tokmd_config::{CliModuleArgs, CliExportArgs};
+use tokmd::config::{resolve_export, resolve_module};
+use tokmd_config::{CliExportArgs, CliModuleArgs};
 
 fn empty_module_args() -> CliModuleArgs {
     CliModuleArgs {
