@@ -1,0 +1,124 @@
+Envelope written
+added determinism_run_receipt.rs
+added run_receipt determinism test to crates/tokmd/tests/determinism.rs
+
+running 30 tests
+test export_csv_consistent_column_count ... ok
+test export_json_keys_are_sorted ... ok
+test export_json_receipt_has_required_envelope_fields ... ok
+test export_csv_is_deterministic ... ok
+test export_json_is_deterministic ... ok
+test export_jsonl_all_lines_valid_json ... ok
+test export_modules_use_forward_slashes ... ok
+test export_paths_use_forward_slashes ... ok
+test export_jsonl_meta_record_is_deterministic ... ok
+test export_jsonl_is_deterministic ... ok
+test export_rows_sorted_by_code_desc_then_path_asc ... ok
+test export_row_count_is_stable ... ok
+test lang_json_keys_are_sorted ... ok
+test lang_receipt_has_required_envelope_fields ... ok
+test lang_md_is_deterministic ... ok
+test lang_rows_sorted_by_code_desc_then_name_asc ... ok
+test lang_row_count_is_stable ... ok
+test lang_totals_match_row_sums ... ok
+test lang_json_is_deterministic ... ok
+test module_json_keys_use_forward_slashes ... ok
+test lang_tsv_is_deterministic ... ok
+test module_receipt_has_required_envelope_fields ... ok
+test module_md_is_deterministic ... ok
+test module_rows_sorted_by_code_desc_then_name_asc ... ok
+test redacted_paths_are_hashed_not_plaintext ... ok
+test module_json_is_deterministic ... ok
+test schema_version_constants_match_expected ... ok
+test module_tsv_is_deterministic ... ok
+test redacted_export_is_deterministic ... ok
+test run_receipt_is_deterministic_across_runs ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+
+running 31 tests
+test diff_receipt_is_deterministic_across_runs ... FAILED
+test export_csv_consistent_column_count ... ok
+test export_json_keys_are_sorted ... ok
+test export_json_receipt_has_required_envelope_fields ... ok
+test export_csv_is_deterministic ... ok
+test export_jsonl_all_lines_valid_json ... ok
+test export_json_is_deterministic ... ok
+test export_modules_use_forward_slashes ... ok
+test export_paths_use_forward_slashes ... ok
+test export_jsonl_meta_record_is_deterministic ... ok
+test export_rows_sorted_by_code_desc_then_path_asc ... ok
+test export_jsonl_is_deterministic ... ok
+test lang_json_keys_are_sorted ... ok
+test export_row_count_is_stable ... ok
+test lang_receipt_has_required_envelope_fields ... ok
+test lang_md_is_deterministic ... ok
+test lang_rows_sorted_by_code_desc_then_name_asc ... ok
+test lang_totals_match_row_sums ... ok
+test lang_json_is_deterministic ... ok
+test lang_row_count_is_stable ... ok
+test module_json_keys_use_forward_slashes ... ok
+test lang_tsv_is_deterministic ... ok
+test module_md_is_deterministic ... ok
+test module_receipt_has_required_envelope_fields ... ok
+test module_rows_sorted_by_code_desc_then_name_asc ... ok
+test redacted_paths_are_hashed_not_plaintext ... ok
+test module_json_is_deterministic ... ok
+test schema_version_constants_match_expected ... ok
+test module_tsv_is_deterministic ... ok
+test redacted_export_is_deterministic ... ok
+test run_receipt_is_deterministic_across_runs ... ok
+
+failures:
+
+---- diff_receipt_is_deterministic_across_runs stdout ----
+
+thread 'diff_receipt_is_deterministic_across_runs' (49819) panicked at crates/tokmd/tests/determinism.rs:679:9:
+diff command failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    diff_receipt_is_deterministic_across_runs
+
+test result: FAILED. 30 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+
+running 31 tests
+test export_csv_consistent_column_count ... ok
+test diff_receipt_is_deterministic_across_runs ... ok
+test export_csv_is_deterministic ... ok
+test export_json_keys_are_sorted ... ok
+test export_json_receipt_has_required_envelope_fields ... ok
+test export_json_is_deterministic ... ok
+test export_jsonl_all_lines_valid_json ... ok
+test export_modules_use_forward_slashes ... ok
+test export_paths_use_forward_slashes ... ok
+test export_jsonl_is_deterministic ... ok
+test export_rows_sorted_by_code_desc_then_path_asc ... ok
+test export_jsonl_meta_record_is_deterministic ... ok
+test export_row_count_is_stable ... ok
+test lang_json_keys_are_sorted ... ok
+test lang_receipt_has_required_envelope_fields ... ok
+test lang_md_is_deterministic ... ok
+test lang_rows_sorted_by_code_desc_then_name_asc ... ok
+test lang_row_count_is_stable ... ok
+test lang_totals_match_row_sums ... ok
+test lang_json_is_deterministic ... ok
+test module_json_keys_use_forward_slashes ... ok
+test lang_tsv_is_deterministic ... ok
+test module_md_is_deterministic ... ok
+test module_receipt_has_required_envelope_fields ... ok
+test module_rows_sorted_by_code_desc_then_name_asc ... ok
+test module_json_is_deterministic ... ok
+test redacted_paths_are_hashed_not_plaintext ... ok
+test schema_version_constants_match_expected ... ok
+test module_tsv_is_deterministic ... ok
+test redacted_export_is_deterministic ... ok
+test run_receipt_is_deterministic_across_runs ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+Generated result.json
+Generated pr_body.md

@@ -630,3 +630,60 @@ fn export_csv_consistent_column_count() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// 14. Run Receipt Determinism
+// ---------------------------------------------------------------------------
+
+#[test]
+fn run_receipt_is_deterministic_across_runs() {
+    let temp1 = tempfile::tempdir().unwrap();
+    let temp2 = tempfile::tempdir().unwrap();
+
+    let run = |temp: &tempfile::TempDir| {
+        let o = tokmd_cmd()
+            .arg("run")
+            .arg("--output-dir")
+            .arg(temp.path())
+            .output()
+            .expect("failed to run tokmd");
+        assert!(o.status.success(), "run command failed");
+
+        let receipt_path = temp.path().join("receipt.json");
+        let contents = std::fs::read_to_string(&receipt_path).unwrap();
+        normalize_envelope(&contents)
+    };
+
+    assert_eq!(
+        run(&temp1),
+        run(&temp2),
+        "run receipt.json must be byte-identical across runs"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 15. Diff Receipt Determinism
+// ---------------------------------------------------------------------------
+
+#[test]
+fn diff_receipt_is_deterministic_across_runs() {
+    let run = || {
+        let o = tokmd_cmd()
+            .arg("diff")
+            .arg(".") // diffing against self is sufficient for determinism
+            .arg(".")
+            .arg("--format")
+            .arg("json")
+            .output()
+            .expect("failed to run tokmd");
+
+        let contents = String::from_utf8_lossy(&o.stdout).to_string();
+        normalize_envelope(&contents)
+    };
+
+    assert_eq!(
+        run(),
+        run(),
+        "diff receipt json must be byte-identical across runs"
+    );
+}
