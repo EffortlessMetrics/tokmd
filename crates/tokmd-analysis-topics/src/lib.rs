@@ -31,22 +31,12 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         terms.sort_unstable();
 
         for term in &terms {
-            match module_terms.get_mut(term) {
-                Some(count) => *count += weight,
-                None => {
-                    module_terms.insert(term.clone(), weight);
-                }
-            }
+            *module_terms.entry(term.clone()).or_insert(0) += weight;
         }
 
         terms.dedup();
         for term in terms {
-            match df_map.get_mut(&term) {
-                Some(count) => *count += 1,
-                None => {
-                    df_map.insert(term, 1);
-                }
-            }
+            *df_map.entry(term).or_insert(0) += 1;
         }
     }
 
