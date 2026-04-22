@@ -42,13 +42,10 @@ pub fn build_git_report(
                 } else {
                     commit_counts.insert(key.clone(), 1);
                 }
-                if let Some(val) = authors_by_module.get_mut(module) {
-                    val.insert(commit.author.clone());
-                } else {
-                    let mut set = BTreeSet::new();
-                    set.insert(commit.author.clone());
-                    authors_by_module.insert(module.clone(), set);
-                }
+                authors_by_module
+                    .entry(module.clone())
+                    .or_default()
+                    .insert(commit.author.clone());
                 if !last_change.contains_key(&key) {
                     last_change.insert(key.clone(), commit.timestamp);
                 }
