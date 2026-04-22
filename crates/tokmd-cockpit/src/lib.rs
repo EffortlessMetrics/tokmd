@@ -456,20 +456,26 @@ fn compute_diff_coverage_gate(
             && let Some(file) = current_file.take()
         {
             let lines = std::mem::take(&mut current_lines);
-            if let Some(entry) = lcov_data.get_mut(&file) {
-                entry.extend(lines);
-            } else {
-                lcov_data.insert(file, lines);
+            match lcov_data.entry(file) {
+                std::collections::btree_map::Entry::Occupied(mut entry) => {
+                    entry.get_mut().extend(lines);
+                }
+                std::collections::btree_map::Entry::Vacant(entry) => {
+                    entry.insert(lines);
+                }
             }
         }
     }
 
     if let Some(file) = current_file.take() {
         let lines = std::mem::take(&mut current_lines);
-        if let Some(entry) = lcov_data.get_mut(&file) {
-            entry.extend(lines);
-        } else {
-            lcov_data.insert(file, lines);
+        match lcov_data.entry(file) {
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                entry.get_mut().extend(lines);
+            }
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(lines);
+            }
         }
     }
 
