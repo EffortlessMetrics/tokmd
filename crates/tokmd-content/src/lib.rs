@@ -77,14 +77,21 @@ pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec
         return Ok(Vec::new());
     }
     let file = File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
-    let reader = BufReader::new(file);
+    let mut reader = BufReader::new(file);
     let mut lines = Vec::new();
     let mut bytes = 0usize;
 
-    for line in reader.lines() {
-        let line = line?;
-        bytes += line.len();
-        lines.push(line);
+    loop {
+        let mut raw = String::new();
+        let read = reader.read_line(&mut raw)?;
+        if read == 0 {
+            break;
+        }
+        bytes += read;
+        while raw.ends_with('\n') || raw.ends_with('\r') {
+            raw.pop();
+        }
+        lines.push(raw);
         if lines.len() >= max_lines || bytes >= max_bytes {
             break;
         }
@@ -325,6 +332,18 @@ mod tests {
         // after second line (5 bytes), bytes=10 >= 9, break
         let lines = read_lines(&path, 100, 9).unwrap();
         assert_eq!(lines.len(), 2);
+    }
+
+    #[test]
+    fn test_read_lines_counts_newline_bytes_toward_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("newline_limit.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "abc").unwrap(); // 4 bytes including '\n'
+        writeln!(f, "def").unwrap();
+
+        let lines = read_lines(&path, 100, 4).unwrap();
+        assert_eq!(lines, vec!["abc"]);
     }
 
     // ========================
