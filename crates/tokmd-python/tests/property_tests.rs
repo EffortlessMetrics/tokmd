@@ -1,3 +1,4 @@
+#![allow(unused_doc_comments)]
 //! Property-based tests for tokmd-python error invariants.
 //!
 //! This module verifies three critical invariants using proptest:
