@@ -365,15 +365,15 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
         let entry = if let Some(existing) = by_module.get_mut(&row.module) {
             existing
         } else {
-            by_module.insert(row.module.clone(), BTreeMap::new());
-            by_module.get_mut(&row.module).unwrap()
+            by_module.entry(row.module.clone()).or_default()
         };
 
-        if let Some(val) = entry.get_mut(&row.lang) {
-            *val += row.lines;
+        let val = if let Some(existing) = entry.get_mut(&row.lang) {
+            existing
         } else {
-            entry.insert(row.lang.clone(), row.lines);
-        }
+            entry.entry(row.lang.clone()).or_default()
+        };
+        *val += row.lines;
     }
 
     let mut out = Vec::new();
