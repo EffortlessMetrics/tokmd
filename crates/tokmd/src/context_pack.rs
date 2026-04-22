@@ -107,6 +107,12 @@ pub fn parse_budget(budget: &str) -> anyhow::Result<usize> {
     })?;
 
     let result = n * multiplier;
+    if !result.is_finite() || result < 0.0 {
+        anyhow::bail!(
+            "Invalid budget '{}': value must be a finite non-negative number",
+            budget.trim()
+        );
+    }
     if result > usize::MAX as f64 {
         anyhow::bail!(
             "Invalid budget '{}': value overflows (max is {})",
@@ -787,6 +793,19 @@ mod tests {
             parse_budget("0.5m").expect("failed to parse valid budget string '0.5m'"),
             500_000
         );
+    }
+
+    #[test]
+    fn test_parse_budget_rejects_negative_values() {
+        assert!(parse_budget("-1").is_err());
+        assert!(parse_budget("-1k").is_err());
+    }
+
+    #[test]
+    fn test_parse_budget_rejects_non_finite_values() {
+        assert!(parse_budget("NaN").is_err());
+        assert!(parse_budget("inf").is_err());
+        assert!(parse_budget("-inf").is_err());
     }
 
     #[test]
