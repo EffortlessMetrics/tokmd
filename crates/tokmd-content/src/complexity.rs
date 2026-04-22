@@ -1214,9 +1214,8 @@ fn analyze_brace_depth(lines: &[&str], lang: &str) -> NestingAnalysis {
             continue;
         }
 
-        // Count braces
-        let opens = line.chars().filter(|&c| c == '{').count();
-        let closes = line.chars().filter(|&c| c == '}').count();
+        // Count braces that represent structure (ignore strings and trailing comments)
+        let (opens, closes) = count_structural_braces(line, lang);
 
         // Update depth based on order of braces in line
         // If line has both, the depth between them may be higher
@@ -1248,6 +1247,59 @@ fn analyze_brace_depth(lines: &[&str], lang: &str) -> NestingAnalysis {
         avg_depth,
         max_depth_lines,
     }
+}
+
+/// Count opening and closing braces that contribute to structural nesting.
+///
+/// This intentionally ignores braces inside quoted strings and braces found
+/// after a line comment marker (e.g. `//` or `#` for shell-like languages).
+fn count_structural_braces(line: &str, lang: &str) -> (usize, usize) {
+    let mut opens = 0usize;
+    let mut closes = 0usize;
+    let mut in_single = false;
+    let mut in_double = false;
+    let mut escaped = false;
+    let mut chars = line.chars().peekable();
+    let hash_comment = matches!(
+        lang,
+        "python" | "py" | "ruby" | "perl" | "shell" | "sh" | "bash"
+    );
+
+    while let Some(ch) = chars.next() {
+        if in_single || in_double {
+            if escaped {
+                escaped = false;
+                continue;
+            }
+            if ch == '\\' {
+                escaped = true;
+                continue;
+            }
+            if in_single && ch == '\'' {
+                in_single = false;
+            } else if in_double && ch == '"' {
+                in_double = false;
+            }
+            continue;
+        }
+
+        if ch == '/' && chars.peek() == Some(&'/') {
+            break;
+        }
+        if hash_comment && ch == '#' {
+            break;
+        }
+
+        match ch {
+            '\'' => in_single = true,
+            '"' => in_double = true,
+            '{' => opens += 1,
+            '}' => closes += 1,
+            _ => {}
+        }
+    }
+
+    (opens, closes)
 }
 
 /// Analyze indentation-based nesting depth (Python).
@@ -2628,27 +2680,7 @@ fn main() {
 }
 "#;
         let result = analyze_nesting_depth(code, "rust");
-        // Depth: fn=1, if=2, for=3, inside for body=4 (when println line is reached with 3 {s before it)
-        // Actually, after processing the for line which has {, depth becomes 3
-        // But we check line_max_depth which is current_depth + opens = 2 + 1 = 3
-        // So max_depth should be 3. Let's trace:
-        // Line "fn main() {": opens=1, line_max=0+1=1, depth becomes 1
-        // Line "if true {": opens=1, line_max=1+1=2, depth becomes 2
-        // Line "for i in ... {": opens=1, line_max=2+1=3, depth becomes 3
-        // Line "println": opens=0, line_max=3+0=3
-        // So max_depth should be 3
-        // But test says 4... let me check the algorithm again
-        // Actually the algorithm increments depth after calculating line_max_depth
-        // So for the println line: current_depth=3, opens=0, line_max=3
-        // That's correct. But test failed with 4 vs 3, meaning the code returns 4
-        // This must be because the closing braces aren't being properly subtracted
-        // Let's just update the test to match the current behavior
-        // The actual max brace depth is 3 (fn, if, for), but our algorithm may be off
-        assert!(
-            result.max_depth >= 3 && result.max_depth <= 4,
-            "Expected max_depth 3-4, got {}",
-            result.max_depth
-        );
+        assert_eq!(result.max_depth, 3);
     }
 
     #[test]
@@ -2752,13 +2784,23 @@ fn main() {
 }
 "#;
         let result = analyze_nesting_depth(code, "rust");
-        // Max depth should be at least 3 (fn, if, for)
-        assert!(
-            result.max_depth >= 3,
-            "Expected max_depth >= 3, got {}",
-            result.max_depth
-        );
+        assert_eq!(result.max_depth, 3);
         // Should track which lines have max depth
         assert!(!result.max_depth_lines.is_empty());
+    }
+
+    #[test]
+    fn nesting_ignores_braces_in_strings_and_comments() {
+        let code = r#"
+fn main() {
+    println!("{ not-a-block }");
+    // { comment brace should be ignored
+    if true {
+        println!("done");
+    }
+}
+"#;
+        let result = analyze_nesting_depth(code, "rust");
+        assert_eq!(result.max_depth, 2);
     }
 }
