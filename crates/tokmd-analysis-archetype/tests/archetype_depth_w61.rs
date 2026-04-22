@@ -137,14 +137,10 @@ fn rust_workspace_only_packages_no_crates() {
 
 #[test]
 fn nextjs_with_starts_with_next_config_dot() {
-    // next.config.json should NOT trigger (only .js/.mjs/.ts)
+    // next.config.json should NOT trigger Next.js detection
     let export = export_with_paths(&["package.json", "next.config.json"]);
-    // next.config.json starts with "next.config." so the first check passes
-    let a = detect_archetype(&export);
-    // If detected, must be Next.js due to starts_with("next.config.") check
-    if let Some(arch) = &a {
-        assert_eq!(arch.kind, "Next.js app");
-    }
+    let a = detect_archetype(&export).unwrap();
+    assert_eq!(a.kind, "Node package");
 }
 
 #[test]

@@ -79,19 +79,10 @@ fn rust_workspace(files: &BTreeSet<String>) -> Option<Archetype> {
 
 fn nextjs_app(files: &BTreeSet<String>) -> Option<Archetype> {
     let has_package = files.contains("package.json");
-    let has_next_config = files.iter().any(|p| {
-        p.starts_with("next.config.")
-            || p.ends_with("/next.config.js")
-            || p.ends_with("/next.config.mjs")
-            || p.ends_with("/next.config.ts")
-    });
+    let has_next_config = files.iter().any(|p| is_next_config_path(p));
     if has_package && has_next_config {
         let mut evidence = vec!["package.json".to_string()];
-        if let Some(cfg) = files.iter().find(|p| {
-            p.ends_with("next.config.js")
-                || p.ends_with("next.config.mjs")
-                || p.ends_with("next.config.ts")
-        }) {
+        if let Some(cfg) = files.iter().find(|p| is_next_config_path(p)) {
             evidence.push(cfg.clone());
         }
         return Some(Archetype {
@@ -100,6 +91,14 @@ fn nextjs_app(files: &BTreeSet<String>) -> Option<Archetype> {
         });
     }
     None
+}
+
+fn is_next_config_path(path: &str) -> bool {
+    let basename = path.rsplit('/').next().unwrap_or(path);
+    let Some(ext) = basename.strip_prefix("next.config.") else {
+        return false;
+    };
+    matches!(ext, "js" | "mjs" | "ts" | "cjs" | "cts" | "mts")
 }
 
 fn containerized_service(files: &BTreeSet<String>) -> Option<Archetype> {
@@ -366,6 +365,27 @@ mod tests {
             "evidence must contain apps/web/next.config.ts: {:?}",
             archetype.evidence
         );
+    }
+
+    #[test]
+    fn nextjs_with_subdir_next_config_cjs() {
+        let files = files_set(&["package.json", "apps/web/next.config.cjs"]);
+        let archetype = nextjs_app(&files).unwrap();
+        assert_eq!(archetype.kind, "Next.js app");
+        assert!(
+            archetype
+                .evidence
+                .iter()
+                .any(|e| e == "apps/web/next.config.cjs"),
+            "evidence must contain apps/web/next.config.cjs: {:?}",
+            archetype.evidence
+        );
+    }
+
+    #[test]
+    fn nextjs_ignores_non_next_config_extensions() {
+        let files = files_set(&["package.json", "next.config.json"]);
+        assert!(nextjs_app(&files).is_none());
     }
 
     // =============================================================================
