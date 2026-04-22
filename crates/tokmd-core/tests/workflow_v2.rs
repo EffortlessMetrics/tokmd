@@ -499,13 +499,28 @@ fn child_include_mode_recorded_in_module_args() {
 #[test]
 fn workflow_empty_paths_vec_handled() {
     let scan = ScanSettings::for_paths(vec![]);
-    // tokei panics on empty paths, so catching the panic is acceptable
-    let result = std::panic::catch_unwind(|| lang_workflow(&scan, &LangSettings::default()));
-    match result {
-        Ok(Ok(receipt)) => assert!(receipt.report.rows.is_empty()),
-        Ok(Err(_)) => {} // error is acceptable
-        Err(_) => {}     // panic is acceptable (tokei limitation)
-    }
+    let result = lang_workflow(&scan, &LangSettings::default());
+
+    assert!(
+        result.is_ok(),
+        "empty path vectors should fall back to current dir"
+    );
+}
+
+#[test]
+fn workflow_empty_paths_vec_handled_for_module_and_export() {
+    let scan = ScanSettings::for_paths(vec![]);
+    let module_result = module_workflow(&scan, &ModuleSettings::default());
+    assert!(
+        module_result.is_ok(),
+        "module workflow should fall back to current dir for empty paths"
+    );
+
+    let export_result = export_workflow(&scan, &ExportSettings::default());
+    assert!(
+        export_result.is_ok(),
+        "export workflow should fall back to current dir for empty paths"
+    );
 }
 
 #[test]
