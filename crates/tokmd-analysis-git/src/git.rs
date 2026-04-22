@@ -198,11 +198,7 @@ fn build_coupling(
         }
         commits_considered += 1;
         for m in &modules {
-            if let Some(val) = touches.get_mut(m) {
-                *val += 1;
-            } else {
-                touches.insert(*m, 1);
-            }
+            *touches.entry(*m).or_insert(0) += 1;
         }
         let modules: Vec<&str> = modules.into_iter().collect();
         for i in 0..modules.len() {
