@@ -485,6 +485,21 @@ fn two_params(a: i32, b: i32) {
     }
 
     #[test]
+    fn detail_param_count_extracted_from_multiline_signature() {
+        let code = "\
+fn multiline(
+    map: std::collections::HashMap<String, Vec<u8>>,
+    flag: bool,
+) {
+}
+";
+        let report = analyze(&[("lib.rs", "Rust", code)], true);
+        let fns = report.files[0].functions.as_ref().unwrap();
+        let multiline = fns.iter().find(|f| f.name == "multiline").unwrap();
+        assert_eq!(multiline.param_count, Some(2));
+    }
+
+    #[test]
     fn detail_cognitive_present_for_branchy_function() {
         let code = "\
 fn branchy(x: i32) -> i32 {

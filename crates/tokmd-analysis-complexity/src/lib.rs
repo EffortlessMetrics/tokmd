@@ -849,7 +849,7 @@ fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDet
                 None
             };
 
-            let param_count = count_params(lines.get(start).unwrap_or(&""));
+            let param_count = count_params_from_signature(&lines, start);
 
             FunctionComplexityDetail {
                 name,
@@ -1159,18 +1159,106 @@ fn extract_c_fn_name(line: &str) -> String {
     "<unknown>".to_string()
 }
 
-/// Count function parameters from a line.
-fn count_params(line: &str) -> usize {
-    if let Some(open) = line.find('(')
-        && let Some(close) = line.find(')')
-    {
-        let params = line[open + 1..close].trim();
-        if params.is_empty() {
-            return 0;
+/// Count function parameters from a (possibly multi-line) signature.
+fn count_params_from_signature(lines: &[&str], start_line: usize) -> usize {
+    let mut signature = String::new();
+    let mut seen_open = false;
+    let mut paren_depth = 0usize;
+    for line in lines.iter().skip(start_line) {
+        let trimmed = line.trim();
+        if trimmed.starts_with("#") || trimmed.starts_with("//") {
+            continue;
         }
-        return params.split(',').count();
+        signature.push_str(line);
+        signature.push('\n');
+        for ch in line.chars() {
+            match ch {
+                '(' => {
+                    seen_open = true;
+                    paren_depth += 1;
+                }
+                ')' => {
+                    paren_depth = paren_depth.saturating_sub(1);
+                    if seen_open && paren_depth == 0 {
+                        return count_params(&signature);
+                    }
+                }
+                _ => {}
+            }
+        }
+        if seen_open && line.contains('{') {
+            break;
+        }
     }
-    0
+    count_params(&signature)
+}
+
+/// Count parameters from a signature string.
+fn count_params(signature: &str) -> usize {
+    let Some(open) = signature.find('(') else {
+        return 0;
+    };
+
+    // Find the matching close paren for the parameter list.
+    let mut paren_depth = 0usize;
+    let mut close_idx = None;
+    for (i, ch) in signature[open..].char_indices() {
+        match ch {
+            '(' => paren_depth += 1,
+            ')' => {
+                paren_depth = paren_depth.saturating_sub(1);
+                if paren_depth == 0 {
+                    close_idx = Some(open + i);
+                    break;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let Some(close) = close_idx else {
+        return 0;
+    };
+
+    let params = signature[open + 1..close].trim();
+    if params.is_empty() {
+        return 0;
+    }
+
+    // Split on top-level commas only, ignoring trailing commas.
+    let mut count = 0usize;
+    let mut current = String::new();
+    let mut paren = 0usize;
+    let mut bracket = 0usize;
+    let mut brace = 0usize;
+    let mut angle = 0usize;
+
+    for ch in params.chars() {
+        match ch {
+            '(' => paren += 1,
+            ')' => paren = paren.saturating_sub(1),
+            '[' => bracket += 1,
+            ']' => bracket = bracket.saturating_sub(1),
+            '{' => brace += 1,
+            '}' => brace = brace.saturating_sub(1),
+            '<' => angle += 1,
+            '>' => angle = angle.saturating_sub(1),
+            ',' if paren == 0 && bracket == 0 && brace == 0 && angle == 0 => {
+                if !current.trim().is_empty() {
+                    count += 1;
+                }
+                current.clear();
+            }
+            _ => {
+                current.push(ch);
+            }
+        }
+    }
+    if !current.trim().is_empty() {
+        count += 1;
+    }
+
+    count
 }
 
 /// Estimate cyclomatic complexity for a function body.
@@ -1267,6 +1355,24 @@ fn complex(x: i32) -> i32 {
         assert_eq!(cyclo, 4);
     }
 
+    #[test]
+    fn test_count_params_multiline_signature() {
+        let sig = "fn build(\n  map: std::collections::HashMap<String, Vec<u8>>,\n  flag: bool,\n) -> usize {";
+        assert_eq!(count_params(sig), 2);
+    }
+
+    #[test]
+    fn test_count_params_from_multiline_rust_header() {
+        let code = r#"
+fn complex(
+    left: Option<Result<i32, String>>,
+    right: (usize, usize),
+) {
+}
+"#;
+        let lines: Vec<&str> = code.lines().collect();
+        assert_eq!(count_params_from_signature(&lines, 1), 2);
+    }
     #[test]
     fn test_estimate_cyclomatic_rust_no_else_if_double_count() {
         // "else if" should only count once (as "if"), not as both "if" and "else if"
