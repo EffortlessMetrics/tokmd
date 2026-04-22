@@ -849,7 +849,8 @@ fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDet
                 None
             };
 
-            let param_count = count_params(lines.get(start).unwrap_or(&""));
+            let signature = collect_signature(&lines, start);
+            let param_count = count_params(&signature);
 
             FunctionComplexityDetail {
                 name,
@@ -1161,16 +1162,120 @@ fn extract_c_fn_name(line: &str) -> String {
 
 /// Count function parameters from a line.
 fn count_params(line: &str) -> usize {
-    if let Some(open) = line.find('(')
-        && let Some(close) = line.find(')')
-    {
-        let params = line[open + 1..close].trim();
-        if params.is_empty() {
-            return 0;
-        }
-        return params.split(',').count();
+    if let Some((start, end)) = find_param_span(line) {
+        let params = &line[start + 1..end];
+        return count_top_level_params(params);
     }
     0
+}
+
+/// Collect a function signature from the function start line, supporting multi-line signatures.
+fn collect_signature(lines: &[&str], start: usize) -> String {
+    const MAX_SIGNATURE_LINES: usize = 32;
+    let mut signature = String::new();
+    for line in lines.iter().skip(start).take(MAX_SIGNATURE_LINES) {
+        if !signature.is_empty() {
+            signature.push('\n');
+        }
+        signature.push_str(line);
+
+        let trimmed = line.trim_end();
+        if line.contains('{') || line.contains("=>") || trimmed.ends_with(':') {
+            break;
+        }
+        if find_param_span(&signature).is_some() {
+            break;
+        }
+    }
+    signature
+}
+
+fn find_param_span(signature: &str) -> Option<(usize, usize)> {
+    let mut open_idx = None;
+    let mut depth = 0usize;
+    for (idx, ch) in signature.char_indices() {
+        if ch == '(' {
+            if open_idx.is_none() {
+                open_idx = Some(idx);
+            }
+            depth += 1;
+        } else if ch == ')' && depth > 0 {
+            depth -= 1;
+            if depth == 0 {
+                return open_idx.map(|open| (open, idx));
+            }
+        }
+    }
+    None
+}
+
+fn count_top_level_params(params: &str) -> usize {
+    if params.trim().is_empty() {
+        return 0;
+    }
+
+    let mut count = 0usize;
+    let mut segment_non_ws = false;
+    let mut depth_paren = 0usize;
+    let mut depth_bracket = 0usize;
+    let mut depth_brace = 0usize;
+    let mut depth_angle = 0usize;
+    let mut in_string = false;
+    let mut string_delim = '\0';
+    let mut escaped = false;
+
+    for ch in params.chars() {
+        if in_string {
+            if escaped {
+                escaped = false;
+                continue;
+            }
+            if ch == '\\' {
+                escaped = true;
+                continue;
+            }
+            if ch == string_delim {
+                in_string = false;
+            }
+            continue;
+        }
+
+        match ch {
+            '"' | '\'' => {
+                in_string = true;
+                string_delim = ch;
+            }
+            '(' => depth_paren += 1,
+            ')' => depth_paren = depth_paren.saturating_sub(1),
+            '[' => depth_bracket += 1,
+            ']' => depth_bracket = depth_bracket.saturating_sub(1),
+            '{' => depth_brace += 1,
+            '}' => depth_brace = depth_brace.saturating_sub(1),
+            '<' => depth_angle += 1,
+            '>' => depth_angle = depth_angle.saturating_sub(1),
+            ',' if depth_paren == 0
+                && depth_bracket == 0
+                && depth_brace == 0
+                && depth_angle == 0 =>
+            {
+                if segment_non_ws {
+                    count += 1;
+                    segment_non_ws = false;
+                }
+            }
+            _ => {
+                if !ch.is_whitespace() {
+                    segment_non_ws = true;
+                }
+            }
+        }
+    }
+
+    if segment_non_ws {
+        count += 1;
+    }
+
+    count
 }
 
 /// Estimate cyclomatic complexity for a function body.
@@ -1430,6 +1535,26 @@ pub const fn public_const() -> u32 {
         // Also verify count_rust_functions picks them all up
         let (count, _) = count_rust_functions(&lines);
         assert_eq!(count, 6);
+    }
+
+    #[test]
+    fn test_count_params_ignores_nested_generic_commas() {
+        let line = "fn complex(a: HashMap<String, Vec<u8>>, b: Result<Option<(u8, u16)>, E>) {}";
+        assert_eq!(count_params(line), 2);
+    }
+
+    #[test]
+    fn test_collect_signature_multiline_rust() {
+        let lines = vec![
+            "pub fn build(",
+            "    first: Vec<(String, String)>,",
+            "    second: Option<Result<u8, E>>,",
+            ") -> usize {",
+            "    0",
+            "}",
+        ];
+        let signature = collect_signature(&lines, 0);
+        assert_eq!(count_params(&signature), 2);
     }
 
     #[test]
