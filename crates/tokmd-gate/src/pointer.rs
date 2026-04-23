@@ -39,13 +39,14 @@ pub fn resolve_pointer<'a>(value: &'a Value, pointer: &str) -> Option<&'a Value>
 
     for token in pointer[1..].split('/') {
         // Unescape tokens per RFC 6901
-        let unescaped = unescape_token(token);
+        let unescaped = unescape_token(token)?;
 
         current = match current {
             Value::Object(map) => map.get(&unescaped)?,
             Value::Array(arr) => {
-                // Try to parse as array index
-                let idx: usize = unescaped.parse().ok()?;
+                // Parse array index with RFC 6901 semantics:
+                // only unsigned base-10, no leading zeros except "0".
+                let idx = parse_array_index(&unescaped)?;
                 arr.get(idx)?
             }
             _ => return None,
@@ -58,8 +59,36 @@ pub fn resolve_pointer<'a>(value: &'a Value, pointer: &str) -> Option<&'a Value>
 /// Unescape a JSON Pointer token per RFC 6901.
 /// ~1 -> /
 /// ~0 -> ~
-fn unescape_token(token: &str) -> String {
-    token.replace("~1", "/").replace("~0", "~")
+fn unescape_token(token: &str) -> Option<String> {
+    let mut output = String::with_capacity(token.len());
+    let mut chars = token.chars();
+
+    while let Some(ch) = chars.next() {
+        if ch != '~' {
+            output.push(ch);
+            continue;
+        }
+
+        match chars.next() {
+            Some('0') => output.push('~'),
+            Some('1') => output.push('/'),
+            _ => return None,
+        }
+    }
+
+    Some(output)
+}
+
+fn parse_array_index(token: &str) -> Option<usize> {
+    if token == "0" {
+        return Some(0);
+    }
+
+    if token.is_empty() || token.starts_with('0') || !token.chars().all(|ch| ch.is_ascii_digit()) {
+        return None;
+    }
+
+    token.parse().ok()
 }
 
 /// Escape a string for use in a JSON Pointer.
@@ -103,6 +132,13 @@ mod tests {
     }
 
     #[test]
+    fn test_invalid_escape_sequence() {
+        let doc = json!({"a~2b": 1, "a~b": 2});
+        assert_eq!(resolve_pointer(&doc, "/a~2b"), None);
+        assert_eq!(resolve_pointer(&doc, "/a~"), None);
+    }
+
+    #[test]
     fn test_invalid_pointer() {
         let doc = json!({"foo": 1});
         // Missing leading slash
@@ -116,6 +152,13 @@ mod tests {
         let doc = json!({"matrix": [[1, 2], [3, 4]]});
         assert_eq!(resolve_pointer(&doc, "/matrix/0/1"), Some(&json!(2)));
         assert_eq!(resolve_pointer(&doc, "/matrix/1/0"), Some(&json!(3)));
+    }
+
+    #[test]
+    fn test_invalid_array_indexes() {
+        let doc = json!({"items": ["zero", "one", "two"]});
+        assert_eq!(resolve_pointer(&doc, "/items/01"), None);
+        assert_eq!(resolve_pointer(&doc, "/items/+1"), None);
     }
 
     #[test]
