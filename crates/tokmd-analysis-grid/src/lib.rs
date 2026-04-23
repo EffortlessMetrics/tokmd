@@ -454,10 +454,10 @@ impl DisabledFeature {
     pub const fn warning(self) -> &'static str {
         match self {
             Self::FileInventory => "walk feature disabled; skipping file inventory",
-            Self::TodoScan => "content feature disabled; skipping TODO scan",
-            Self::DuplicationScan => "content feature disabled; skipping duplication scan",
+            Self::TodoScan => "content/walk feature disabled; skipping TODO scan",
+            Self::DuplicationScan => "content/walk feature disabled; skipping duplication scan",
             Self::NearDuplicateScan => "content feature disabled; skipping near-dup scan",
-            Self::ImportScan => "content feature disabled; skipping import scan",
+            Self::ImportScan => "content/walk feature disabled; skipping import scan",
             Self::GitMetrics => "git feature disabled; skipping git metrics",
             Self::EntropyProfiling => "content/walk feature disabled; skipping entropy profiling",
             Self::LicenseRadar => "content/walk feature disabled; skipping license radar",

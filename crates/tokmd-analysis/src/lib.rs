@@ -19,7 +19,7 @@
 mod analysis;
 #[cfg(feature = "git")]
 mod churn;
-#[cfg(feature = "content")]
+#[cfg(all(feature = "content", feature = "walk"))]
 mod content;
 mod derived;
 #[cfg(feature = "git")]
