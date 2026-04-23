@@ -42,8 +42,15 @@ pub fn build_todo_report(
         if max_total.is_some_and(|limit| total_bytes >= limit) {
             break;
         }
+        let remaining_budget = max_total.map(|limit| limit.saturating_sub(total_bytes));
+        let file_limit = remaining_budget
+            .map(|remaining| remaining.min(per_file_limit as u64) as usize)
+            .unwrap_or(per_file_limit);
+        if file_limit == 0 {
+            break;
+        }
         let path = root.join(rel);
-        let bytes = tokmd_content::read_head(&path, per_file_limit)?;
+        let bytes = tokmd_content::read_head(&path, file_limit)?;
         total_bytes += bytes.len() as u64;
         if !tokmd_content::is_text_like(&bytes) {
             continue;
@@ -256,6 +263,13 @@ pub fn build_import_report(
         if max_total.is_some_and(|limit| total_bytes >= limit) {
             break;
         }
+        let remaining_budget = max_total.map(|limit| limit.saturating_sub(total_bytes));
+        let file_limit = remaining_budget
+            .map(|remaining| remaining.min(per_file_limit as u64) as usize)
+            .unwrap_or(per_file_limit);
+        if file_limit == 0 {
+            break;
+        }
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let row = match map.get(&rel_str) {
             Some(r) => *r,
@@ -265,7 +279,7 @@ pub fn build_import_report(
             continue;
         }
         let path = root.join(rel);
-        let lines = match tokmd_content::read_lines(&path, IMPORT_MAX_LINES, per_file_limit) {
+        let lines = match tokmd_content::read_lines(&path, IMPORT_MAX_LINES, file_limit) {
             Ok(lines) => lines,
             Err(_) => continue,
         };
