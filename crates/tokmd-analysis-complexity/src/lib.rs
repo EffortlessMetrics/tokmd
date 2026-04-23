@@ -849,7 +849,7 @@ fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDet
                 None
             };
 
-            let param_count = count_params(lines.get(start).unwrap_or(&""));
+            let param_count = count_params_for_fn_span(&lines, start, end);
 
             FunctionComplexityDetail {
                 name,
@@ -1161,16 +1161,74 @@ fn extract_c_fn_name(line: &str) -> String {
 
 /// Count function parameters from a line.
 fn count_params(line: &str) -> usize {
-    if let Some(open) = line.find('(')
-        && let Some(close) = line.find(')')
-    {
-        let params = line[open + 1..close].trim();
-        if params.is_empty() {
-            return 0;
-        }
-        return params.split(',').count();
+    count_params_in_signature(line)
+}
+
+/// Count function parameters for a function span, supporting multiline signatures.
+fn count_params_for_fn_span(lines: &[&str], start: usize, end: usize) -> usize {
+    let Some(first_line) = lines.get(start) else {
+        return 0;
+    };
+
+    if first_line.contains('(') && first_line.contains(')') {
+        return count_params_in_signature(first_line);
     }
-    0
+
+    let mut signature = String::new();
+    for line in lines.iter().take(end.saturating_add(1)).skip(start) {
+        let trimmed = line.trim();
+        signature.push_str(trimmed);
+        signature.push(' ');
+        if trimmed.contains(')') || trimmed.contains('{') {
+            break;
+        }
+    }
+
+    count_params_in_signature(&signature)
+}
+
+/// Count top-level parameters in the first (...) parameter list of a signature.
+fn count_params_in_signature(signature: &str) -> usize {
+    let Some(open_idx) = signature.find('(') else {
+        return 0;
+    };
+
+    let chars: Vec<char> = signature[open_idx + 1..].chars().collect();
+    let mut depth_paren = 0usize;
+    let mut depth_angle = 0usize;
+    let mut depth_bracket = 0usize;
+    let mut depth_brace = 0usize;
+    let mut saw_non_ws = false;
+    let mut commas = 0usize;
+
+    for c in chars {
+        match c {
+            '(' => depth_paren += 1,
+            ')' => {
+                if depth_paren == 0 && depth_angle == 0 && depth_bracket == 0 && depth_brace == 0 {
+                    return if saw_non_ws { commas + 1 } else { 0 };
+                }
+                depth_paren = depth_paren.saturating_sub(1);
+            }
+            '<' => depth_angle += 1,
+            '>' => depth_angle = depth_angle.saturating_sub(1),
+            '[' => depth_bracket += 1,
+            ']' => depth_bracket = depth_bracket.saturating_sub(1),
+            '{' => depth_brace += 1,
+            '}' => depth_brace = depth_brace.saturating_sub(1),
+            ',' => {
+                if depth_paren == 0 && depth_angle == 0 && depth_bracket == 0 && depth_brace == 0 {
+                    commas += 1;
+                }
+            }
+            _ => {}
+        }
+        if !c.is_whitespace() {
+            saw_non_ws = true;
+        }
+    }
+
+    if saw_non_ws { commas + 1 } else { 0 }
 }
 
 /// Estimate cyclomatic complexity for a function body.
@@ -1590,5 +1648,29 @@ def nested():
         assert_eq!(name2, "nested");
         // Should start at @nested_decorator
         assert!(lines[start2].trim().starts_with("@nested_decorator"));
+    }
+
+    #[test]
+    fn test_count_params_in_signature_ignores_nested_commas() {
+        let line = "fn tricky(map: HashMap<String, Vec<(u8, u8)>>, cb: fn(i32, i32) -> i32) {}";
+        assert_eq!(count_params(line), 2);
+    }
+
+    #[test]
+    fn test_extract_function_details_counts_multiline_params() {
+        let code = r#"
+fn multiline(
+    first: i32,
+    second: Vec<(u8, u8)>,
+    third: Option<Result<(), String>>,
+) {
+    let _ = first;
+}
+"#;
+
+        let details = extract_function_details("Rust", code);
+        assert_eq!(details.len(), 1);
+        assert_eq!(details[0].name, "multiline");
+        assert_eq!(details[0].param_count, Some(3));
     }
 }
