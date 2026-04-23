@@ -1277,6 +1277,8 @@ mod tests {
     fn is_default_policy_works() {
         assert!(is_default_policy(&InclusionPolicy::Full));
         assert!(!is_default_policy(&InclusionPolicy::Skip));
+        assert!(!is_default_policy(&InclusionPolicy::Summary));
+        assert!(!is_default_policy(&InclusionPolicy::HeadTail));
     }
 
     // ── Struct serde roundtrips ───────────────────────────────────────

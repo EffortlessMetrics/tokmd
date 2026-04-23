@@ -1,0 +1,3 @@
+{"command": "cargo mutants -p tokmd-types", "outcome": "Found 25 mutants to test, 21 caught, 4 unviable"}
+{"command": "cargo test -p tokmd-types", "outcome": "ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s (doctests)"}
+{"command": "cargo mutants -p tokmd-types", "outcome": "25 mutants tested in 4m: 25 caught, 0 unviable (all fixed!)"}
