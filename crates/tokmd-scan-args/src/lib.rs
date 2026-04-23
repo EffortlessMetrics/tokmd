@@ -10,9 +10,15 @@ use tokmd_types::{RedactMode, ScanArgs};
 #[must_use]
 pub fn normalize_scan_input(p: &Path) -> String {
     let mut normalized = tokmd_path::normalize_slashes(&p.display().to_string());
+    let mut stripped_relative_prefix = false;
 
     while let Some(stripped) = normalized.strip_prefix("./") {
         normalized = stripped.to_string();
+        stripped_relative_prefix = true;
+    }
+
+    if stripped_relative_prefix {
+        normalized = normalized.trim_start_matches('/').to_string();
     }
 
     if normalized.is_empty() {
@@ -66,6 +72,12 @@ mod tests {
     fn normalize_scan_input_keeps_dot_for_empty_relative() {
         let normalized = normalize_scan_input(Path::new("./"));
         assert_eq!(normalized, ".");
+    }
+
+    #[test]
+    fn normalize_scan_input_handles_redundant_separators_after_dot_slash() {
+        let normalized = normalize_scan_input(Path::new(".//src//lib.rs"));
+        assert_eq!(normalized, "src//lib.rs");
     }
 
     #[test]

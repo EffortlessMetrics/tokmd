@@ -203,6 +203,19 @@ fn given_empty_paths_when_building_scan_args_then_result_has_empty_paths() {
     assert!(args.paths.is_empty());
 }
 
+#[test]
+fn given_dot_prefix_with_extra_slashes_when_normalizing_then_path_stays_relative() {
+    // Given: an explicitly relative path with duplicated separators after `./`
+    let input = PathBuf::from(".//src//main.rs");
+
+    // When: normalization runs
+    let normalized = normalize_scan_input(&input);
+
+    // Then: duplicated separators do not accidentally turn the path absolute
+    assert_eq!(normalized, "src//main.rs");
+    assert!(!normalized.starts_with('/'));
+}
+
 // ── Multiple exclusion patterns ──────────────────────────────────────
 
 #[test]
