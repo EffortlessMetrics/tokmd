@@ -103,6 +103,21 @@ fn given_non_numeric_index_for_array_when_pointer_resolves_then_returns_none() {
     assert_eq!(resolve_pointer(&receipt, "/items/abc"), None);
 }
 
+#[test]
+fn given_array_index_with_leading_zero_when_pointer_resolves_then_returns_none() {
+    // RFC 6901 index tokens are base-10 without leading zeroes (except "0").
+    let receipt = json!({"items": ["zero", "one", "two"]});
+    assert_eq!(resolve_pointer(&receipt, "/items/01"), None);
+}
+
+#[test]
+fn given_invalid_tilde_escape_when_pointer_resolves_then_returns_none() {
+    // RFC 6901 only allows ~0 and ~1 escape forms.
+    let receipt = json!({"a~2b": 1, "a~b": 2});
+    assert_eq!(resolve_pointer(&receipt, "/a~2b"), None);
+    assert_eq!(resolve_pointer(&receipt, "/a~"), None);
+}
+
 // ============================================================================
 // Scenario: Threshold evaluation — numeric operators
 // ============================================================================
