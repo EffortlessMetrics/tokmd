@@ -115,11 +115,43 @@ pub fn hash_file(path: &Path, max_bytes: usize) -> Result<String> {
 }
 
 pub fn count_tags(text: &str, tags: &[&str]) -> Vec<(String, usize)> {
-    let upper = text.to_uppercase();
+    fn is_token_char(byte: u8) -> bool {
+        byte.is_ascii_alphanumeric() || byte == b'_' || !byte.is_ascii()
+    }
+
+    fn count_tag_matches(text: &str, tag: &str) -> usize {
+        if tag.is_empty() {
+            return 0;
+        }
+
+        let haystack = text.as_bytes();
+        let needle = tag.as_bytes();
+
+        if needle.len() > haystack.len() {
+            return 0;
+        }
+
+        let mut count = 0usize;
+        for start in 0..=(haystack.len() - needle.len()) {
+            let end = start + needle.len();
+            if !haystack[start..end].eq_ignore_ascii_case(needle) {
+                continue;
+            }
+
+            let leading_boundary = start == 0 || !is_token_char(haystack[start - 1]);
+            let trailing_boundary = end == haystack.len() || !is_token_char(haystack[end]);
+
+            if leading_boundary && trailing_boundary {
+                count += 1;
+            }
+        }
+
+        count
+    }
+
     tags.iter()
         .map(|tag| {
-            let needle = tag.to_uppercase();
-            let count = upper.matches(&needle).count();
+            let count = count_tag_matches(text, tag);
             (tag.to_string(), count)
         })
         .collect()

@@ -190,7 +190,10 @@ fn count_tags_empty_text() {
 fn count_tags_adjacent_occurrences() {
     let text = "TODOTODOTODO";
     let tags = count_tags(text, &["TODO"]);
-    assert_eq!(tags[0].1, 3, "Adjacent TODOs should be counted separately");
+    assert_eq!(
+        tags[0].1, 0,
+        "Adjacent TODOs without separators are not standalone tokens"
+    );
 }
 
 // ============================================================================

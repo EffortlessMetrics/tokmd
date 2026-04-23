@@ -210,18 +210,26 @@ mod tag_detection {
     }
 
     #[test]
-    fn adjacent_tags_all_counted() {
-        // "TODOTODO" contains "TODO" starting at 0 and at 4
+    fn adjacent_tags_without_separator_are_not_counted() {
+        // "TODOTODO" has no token boundary between tags.
         let result = count_tags("TODOTODO", &["TODO"]);
-        assert_eq!(result[0].1, 2);
+        assert_eq!(result[0].1, 0);
     }
 
     #[test]
-    fn overlapping_tags_counted_by_matches() {
-        // str::matches is non-overlapping
+    fn repeated_tags_without_separator_are_not_counted() {
+        // Tokens must be separated by non-word boundaries.
         let text = "TODOTODOTODO";
         let result = count_tags(text, &["TODO"]);
-        assert_eq!(result[0].1, 3);
+        assert_eq!(result[0].1, 0);
+    }
+
+    #[test]
+    fn tags_inside_identifiers_are_not_counted() {
+        let text = "important TODO import_data imported";
+        let result = count_tags(text, &["import", "TODO"]);
+        assert_eq!(result[0].1, 0);
+        assert_eq!(result[1].1, 1);
     }
 
     #[test]

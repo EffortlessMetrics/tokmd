@@ -343,6 +343,17 @@ mod tag_counting {
     }
 
     #[test]
+    fn scenario_does_not_count_tags_inside_words() {
+        // Given text where tags appear inside larger words
+        let text = "important import_data TODO";
+        // When we count import and TODO tags
+        let result = count_tags(text, &["import", "TODO"]);
+        // Then only standalone TODO is counted
+        assert_eq!(result[0], ("import".to_string(), 0));
+        assert_eq!(result[1], ("TODO".to_string(), 1));
+    }
+
+    #[test]
     fn scenario_empty_text_yields_zero_counts() {
         // Given empty text
         let result = count_tags("", &["TODO", "FIXME", "HACK"]);
@@ -801,13 +812,13 @@ mod tag_counting_edge_cases {
     }
 
     #[test]
-    fn scenario_count_tags_adjacent_occurrences() {
-        // Given text with adjacent tag occurrences
+    fn scenario_count_tags_adjacent_occurrences_require_boundaries() {
+        // Given text with adjacent tag occurrences but no separators
         let text = "TODOTODOTODO";
         // When we count TODO
         let result = count_tags(text, &["TODO"]);
-        // Then all occurrences found
-        assert_eq!(result[0].1, 3);
+        // Then no standalone token is counted
+        assert_eq!(result[0].1, 0);
     }
 }
 
