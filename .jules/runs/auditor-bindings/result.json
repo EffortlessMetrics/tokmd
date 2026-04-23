@@ -1,0 +1,15 @@
+{
+  "summary": "Removed unused `pyo3-build-config` build dependency from `tokmd-python`.",
+  "outcome": "patch",
+  "reasoning": "The crate does not have a `build.rs` script, meaning the `pyo3-build-config` dependency in the `[build-dependencies]` block is entirely unused.",
+  "files_changed": [
+    "crates/tokmd-python/Cargo.toml"
+  ],
+  "gates_run": [
+    "cargo build -p tokmd-python",
+    "cargo test -p tokmd-python",
+    "cargo clippy -p tokmd-python -- -D warnings",
+    "cargo fmt -- --check",
+    "cargo deny --all-features check"
+  ]
+}

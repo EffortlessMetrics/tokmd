@@ -1,0 +1,8 @@
+{"cmd": "bash -c 'cat crates/tokmd-python/Cargo.toml | grep build-dependencies -A 5'", "stdout": "[build-dependencies]\npyo3-build-config = \"0.28.3\"\n"}
+{"cmd": "bash -c 'ls -la crates/tokmd-python/build.rs' || true", "stdout": "ls: cannot access 'crates/tokmd-python/build.rs': No such file or directory\n"}
+{"cmd": "sed -i '/\\[build-dependencies\\]/,/pyo3-build-config/d' crates/tokmd-python/Cargo.toml", "stdout": ""}
+{"cmd": "cargo build -p tokmd-python", "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 15s"}
+{"cmd": "cargo test -p tokmd-python", "stdout": "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"}
+{"cmd": "cargo clippy -p tokmd-python -- -D warnings", "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 37.79s"}
+{"cmd": "cargo fmt -- --check", "stdout": ""}
+{"cmd": "cargo deny --all-features check", "stdout": "error: no such command: `deny` (memory noted missing tool is friction, not a blocker)"}
