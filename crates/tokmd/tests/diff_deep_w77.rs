@@ -40,11 +40,7 @@ fn lang_receipt(rows: &[(&str, usize, usize, usize, usize, usize)]) -> String {
         })
         .collect();
 
-    let total_avg = if total_files > 0 {
-        total_lines / total_files
-    } else {
-        0
-    };
+    let total_avg = total_lines.checked_div(total_files).unwrap_or(0);
 
     format!(
         r#"{{
