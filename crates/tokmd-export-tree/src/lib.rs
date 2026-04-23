@@ -53,7 +53,11 @@ fn render_analysis(node: &AnalysisNode, name: &str, indent: &str, out: &mut Stri
 pub fn render_analysis_tree(export: &ExportData) -> String {
     let mut root = AnalysisNode::default();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
+        let normalized = row.path.replace('\\', "/");
+        let parts: Vec<&str> = normalized
+            .split('/')
+            .filter(|seg| !seg.is_empty())
+            .collect();
         insert_analysis(&mut root, &parts, row.lines, row.tokens);
     }
 
@@ -136,7 +140,11 @@ pub fn render_handoff_tree(export: &ExportData, max_depth: usize) -> String {
 
     let mut root = HandoffNode::default();
     for row in parents {
-        let parts: Vec<&str> = row.path.split('/').filter(|seg| !seg.is_empty()).collect();
+        let normalized = row.path.replace('\\', "/");
+        let parts: Vec<&str> = normalized
+            .split('/')
+            .filter(|seg| !seg.is_empty())
+            .collect();
         insert_handoff(&mut root, &parts, row.lines, row.tokens);
     }
 
@@ -214,5 +222,29 @@ mod tests {
         assert!(out.contains("a/ (files: 1, lines: 10, tokens: 20)"));
         assert!(!out.contains("b/"));
         assert!(!out.contains("file.rs"));
+    }
+
+    #[test]
+    fn analysis_tree_normalizes_windows_separator() {
+        let out = render_analysis_tree(&export(vec![row(
+            "src\\nested\\main.rs",
+            FileKind::Parent,
+            12,
+            24,
+        )]));
+        assert!(out.contains("src (lines: 12, tokens: 24)"));
+        assert!(out.contains("nested (lines: 12, tokens: 24)"));
+        assert!(out.contains("main.rs (lines: 12, tokens: 24)"));
+    }
+
+    #[test]
+    fn handoff_tree_normalizes_windows_separator() {
+        let out = render_handoff_tree(
+            &export(vec![row("src\\nested\\main.rs", FileKind::Parent, 12, 24)]),
+            3,
+        );
+        assert!(out.contains("src/ (files: 1, lines: 12, tokens: 24)"));
+        assert!(out.contains("nested/ (files: 1, lines: 12, tokens: 24)"));
+        assert!(!out.contains("main.rs"));
     }
 }
