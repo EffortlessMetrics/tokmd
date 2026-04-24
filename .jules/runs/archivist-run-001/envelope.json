@@ -1,0 +1,14 @@
+{
+  "prompt_id": "archivist_jules",
+  "persona": "Archivist",
+  "style": "Builder",
+  "primary_shard": "workspace-wide",
+  "allowed_paths": [
+    "**"
+  ],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": [
+    "patch",
+    "learning_pr"
+  ]
+}

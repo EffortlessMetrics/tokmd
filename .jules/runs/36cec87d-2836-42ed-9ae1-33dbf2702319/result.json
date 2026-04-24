@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "outcome": "patch",
+  "title": "docs-doctest",
+  "gates_run": [
+    "docs",
+    "fmt",
+    "clippy"
+  ]
+}

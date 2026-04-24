@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "outcome": "patch",
+  "title": "test: lock deterministic ordering for import edges \ud83e\uddea Gatekeeper",
+  "gates_run": [
+    "test",
+    "fmt",
+    "clippy"
+  ]
+}
