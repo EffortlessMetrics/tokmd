@@ -39,7 +39,7 @@ fn lang_receipt_json(rows: &[(&str, usize, usize, usize, usize, usize)]) -> Stri
         .collect();
 
     let total_avg = if total_files > 0 {
-        total_lines / total_files
+        total_lines.checked_div(total_files).unwrap_or(0)
     } else {
         0
     };
