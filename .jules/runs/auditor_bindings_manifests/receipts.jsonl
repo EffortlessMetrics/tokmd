@@ -1,0 +1,8 @@
+{"command": "cargo machete crates/tokmd-python crates/tokmd-node crates/tokmd-wasm", "result": "No unused dependencies found directly by machete."}
+{"command": "cat crates/tokmd-python/Cargo.toml", "result": "Found pyo3-build-config = \"0.28.3\" under [build-dependencies]."}
+{"command": "ls -la crates/tokmd-python/build.rs", "result": "No such file or directory. This proves pyo3-build-config is completely unused."}
+{"command": "sed -i '/pyo3-build-config/d' crates/tokmd-python/Cargo.toml && sed -i '/\\[build-dependencies\\]/d' crates/tokmd-python/Cargo.toml", "result": "Removed unused build dependency and empty [build-dependencies] section."}
+{"command": "cargo build -p tokmd-python", "result": "Build passed successfully."}
+{"command": "cargo test -p tokmd-python", "result": "Tests passed successfully (12 passed)."}
+{"command": "cargo deny --all-features check manifests", "result": "cargo deny not installed (expected friction)."}
+{"command": "cargo xtask version-consistency && cargo xtask publish --plan --verbose", "result": "Version consistency passed. Publish plan generated successfully."}
