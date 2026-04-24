@@ -1,6 +1,0 @@
-{"command": "mkdir -p .jules/runs/librarian_api_doctests && write envelope.json", "outcome": "success"}
-{"command": "write decision.md", "outcome": "success"}
-{"command": "python3 fix_core.py && cargo test -p tokmd-core --doc", "outcome": "success"}
-{"command": "python3 fix_config.py && cargo test -p tokmd --doc", "outcome": "success"}
-{"command": "cargo xtask docs --check", "outcome": "success"}
-{"command": "cargo test -p tokmd-core --doc && cargo test -p tokmd --doc && cargo xtask docs --check", "outcome": "success"}
