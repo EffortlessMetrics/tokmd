@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_type": "docs",
+  "affected_paths": ["docs/implementation-plan.md"],
+  "summary": "Synchronized implementation-plan.md with ROADMAP.md to reflect that v1.9.0 (Browser/WASM Productization) has shipped."
+}
