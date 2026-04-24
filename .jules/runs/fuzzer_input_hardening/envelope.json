@@ -1,0 +1,20 @@
+{
+  "prompt_id": "fuzzer_input_hardening",
+  "persona": "Fuzzer \ud83c\udf2a\ufe0f",
+  "style": "Prover",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "fuzz",
+  "allowed_outcomes": [
+    "patch",
+    "proof_patch",
+    "learning_pr"
+  ]
+}

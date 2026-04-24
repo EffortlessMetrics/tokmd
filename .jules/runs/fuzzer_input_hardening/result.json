@@ -1,0 +1,20 @@
+{
+  "outcome_type": "proof_patch",
+  "title": "fuzzer: extract deterministic invariant tests from fuzz targets \ud83c\udf2a\ufe0f",
+  "summary": "Extracted invariant tests from cargo-fuzz targets (`fuzz_toml_config.rs`, `fuzz_run_json.rs`, `fuzz_scan_args.rs`) into deterministic proptest suites in their respective crates (`tokmd-config`, `tokmd-core`, `tokmd-scan-args`) to bypass local ASAN linker failures and provide consistent test coverage for parser and input surfaces.",
+  "target_paths": [
+    "crates/tokmd-config/tests/proptest_toml_config_fuzz_fallback.rs",
+    "crates/tokmd-core/tests/proptest_run_json_fallback.rs",
+    "crates/tokmd-scan-args/tests/proptest_fuzz_fallback.rs"
+  ],
+  "proof_summary": "Created deterministic proptest fallback tests for 3 fuzz targets and ran them successfully.",
+  "gates_run": [
+    "cargo test -p tokmd-config",
+    "cargo test -p tokmd-core",
+    "cargo test -p tokmd-scan-args"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout HEAD -- crates/tokmd-config/tests/proptest_toml_config_fuzz_fallback.rs crates/tokmd-core/tests/proptest_run_json_fallback.rs crates/tokmd-scan-args/tests/proptest_fuzz_fallback.rs",
+  "follow_ups": []
+}

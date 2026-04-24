@@ -1,0 +1,5 @@
+{"cmd": "cargo fuzz run fuzz_toml_config --features config -- -max_total_time=10", "status": "failed", "summary": "ASAN linker errors", "artifacts": []}
+{"cmd": "cargo test -p tokmd-config --test proptest_run_json_fuzz_fallback", "status": "success", "summary": "Deterministic fallback test passed", "artifacts": []}
+{"cmd": "cargo test -p tokmd-core --test proptest_run_json_fallback", "status": "success", "summary": "Deterministic fallback test passed", "artifacts": []}
+{"cmd": "cargo test -p tokmd-scan-args --test proptest_fuzz_fallback", "status": "success", "summary": "Deterministic fallback test passed", "artifacts": []}
+{"cmd": "cargo test -p tokmd-config --test proptest_toml_config_fuzz_fallback", "status": "success", "summary": "Deterministic fallback test passed", "artifacts": []}
