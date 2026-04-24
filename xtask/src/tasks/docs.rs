@@ -60,6 +60,23 @@ pub fn run(args: DocsArgs) -> Result<()> {
                     new_content.replace_range(range_start..end_idx, &replacement);
                 }
             }
+        } else {
+            drift = true;
+            if args.check {
+                bail!(
+                    "Documentation drift detected: Missing marker pair for `{}` in {}. Run `cargo xtask docs --update` to fix.",
+                    marker_id,
+                    ref_md_path.display()
+                );
+            } else if args.update {
+                println!(
+                    "Warning: Missing marker pair for `{}` in {}. You must manually add `<!-- HELP: {} -->` and `<!-- /HELP: {} -->` to the file.",
+                    marker_id,
+                    ref_md_path.display(),
+                    marker_id,
+                    marker_id
+                );
+            }
         }
     }
 
