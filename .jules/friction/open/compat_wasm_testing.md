@@ -1,0 +1,1 @@
+Make sure to explicitly mention that local development requires 'rustup target add wasm32-unknown-unknown' and manually invoking 'wasm-pack build' into 'web/runner/vendor/tokmd-wasm' for all JS runner tests to pass instead of skip.
