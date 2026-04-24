@@ -1,2 +1,0 @@
-{"command": "cargo xtask docs --check", "status": "success"}
-{"command": "cargo xtask docs --update", "status": "success"}

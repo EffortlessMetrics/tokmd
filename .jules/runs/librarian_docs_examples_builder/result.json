@@ -1,9 +1,0 @@
-{
-  "outcome": "success",
-  "artifact_paths": [
-    ".jules/runs/librarian_docs_examples_builder/envelope.json",
-    ".jules/runs/librarian_docs_examples_builder/decision.md",
-    ".jules/runs/librarian_docs_examples_builder/receipts.jsonl",
-    ".jules/runs/librarian_docs_examples_builder/pr_body.md"
-  ]
-}
