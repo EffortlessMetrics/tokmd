@@ -1,9 +1,0 @@
-{
-  "outcome": "PR-ready patch",
-  "changed_files": [
-    "web/runner/messages.js"
-  ],
-  "verification": [
-    "npm --prefix web/runner test"
-  ]
-}
