@@ -14,9 +14,46 @@ pub(crate) fn format(err: &Error) -> String {
     out
 }
 
+fn extract_path_from_error(haystack: &str) -> Option<String> {
+    if let Some(idx) = haystack.find("path not found: ") {
+        let path = &haystack[idx + "path not found: ".len()..];
+        // Take up to the first newline or end of string
+        let path = path.split('\n').next().unwrap_or(path).trim();
+        return Some(path.to_string());
+    }
+    None
+}
+
+// Simple Levenshtein distance since strsim isn't a direct dependency
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a_chars: Vec<char> = a.chars().collect();
+    let b_chars: Vec<char> = b.chars().collect();
+    let mut dists = vec![vec![0; b_chars.len() + 1]; a_chars.len() + 1];
+
+    for i in 0..=a_chars.len() {
+        dists[i][0] = i;
+    }
+    for j in 0..=b_chars.len() {
+        dists[0][j] = j;
+    }
+
+    for i in 1..=a_chars.len() {
+        for j in 1..=b_chars.len() {
+            let cost = if a_chars[i - 1] == b_chars[j - 1] { 0 } else { 1 };
+            dists[i][j] = (dists[i - 1][j] + 1)
+                .min(dists[i][j - 1] + 1)
+                .min(dists[i - 1][j - 1] + cost);
+        }
+    }
+
+    dists[a_chars.len()][b_chars.len()]
+}
+
 fn suggestions(err: &Error) -> Vec<String> {
     let chain: Vec<String> = err.chain().map(|e| e.to_string()).collect();
-    let haystack = chain.join(" | ").to_ascii_lowercase();
+    // Keep original case for path extraction, lowercased for general matching
+    let full_error_text = chain.join(" | ");
+    let haystack = full_error_text.to_ascii_lowercase();
     let mut out: Vec<String> = Vec::new();
 
     if haystack.contains("git is not available on path")
@@ -41,15 +78,40 @@ fn suggestions(err: &Error) -> Vec<String> {
         || haystack.contains("input path does not exist")
         || haystack.contains("no such file or directory")
     {
+        let mut subcommand_hint = "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.".to_string();
+
+        // Try to identify if the missing path looks like a misspelled subcommand
+        if let Some(missing_path) = extract_path_from_error(&full_error_text.to_ascii_lowercase()) {
+            if !missing_path.contains('/') && !missing_path.contains('\\') && !missing_path.contains('.') {
+                let known_commands = [
+                    "lang", "module", "export", "analyze", "badge", "init",
+                    "completions", "run", "diff", "context", "check-ignore",
+                    "tools", "gate", "cockpit", "baseline", "handoff", "sensor", "help"
+                ];
+
+                let mut closest = None;
+                let mut best_dist = usize::MAX;
+
+                for cmd in &known_commands {
+                    let dist = levenshtein(cmd, &missing_path);
+                    if dist < 3 && dist < best_dist {
+                        closest = Some(*cmd);
+                        best_dist = dist;
+                    }
+                }
+
+                if let Some(cmd) = closest {
+                    subcommand_hint = format!("If this was meant to be a subcommand, did you mean `{}`?", cmd);
+                }
+            }
+        }
+
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
             &mut out,
             "Use an absolute path to avoid working-directory confusion.",
         );
-        push_hint(
-            &mut out,
-            "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
-        );
+        push_hint(&mut out, &subcommand_hint);
     }
 
     if haystack.contains("base ref") && haystack.contains("not found") {
@@ -121,6 +183,13 @@ mod tests {
                 .iter()
                 .any(|h| h.contains("subcommand, it is not recognized"))
         );
+    }
+
+    #[test]
+    fn suggests_typo_for_missing_path() {
+        let err = anyhow!("Path not found: expor");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("did you mean `export`?")));
     }
 
     #[test]
