@@ -1,3 +1,0 @@
-{"command": "cargo test -p tokmd --test docs"}
-{"command": "cargo fmt -- --check"}
-{"command": "cargo clippy -p tokmd -- -D warnings"}

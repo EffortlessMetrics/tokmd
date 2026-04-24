@@ -1,6 +1,0 @@
-{"command": "mkdir -p .jules/runs/archivist-run-001"}
-{"command": "python3 migrate_ledgers.py"}
-{"command": "rm -rf .jules/docs/ .jules/quality/"}
-{"command": "python3 .jules/bin/build_index.py"}
-{"command": "cargo fmt -- --check"}
-{"command": "cargo clippy -- -D warnings"}

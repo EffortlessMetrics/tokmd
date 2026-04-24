@@ -1,9 +1,0 @@
-{
-  "status": "completed",
-  "outcome": "patch",
-  "title": "archivist: consolidate legacy ledgers into central .jules/runs/ directory \ud83d\uddc3\ufe0f",
-  "gates_run": [
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings"
-  ]
-}
