@@ -1,0 +1,6 @@
+{
+  "outcome": "success",
+  "type": "proof-improvement patch",
+  "description": "Added missing executable doctests to core/config public APIs",
+  "evidence": "cargo test -p tokmd-core --doc and cargo test -p tokmd --doc passed successfully, running newly added doctests."
+}
