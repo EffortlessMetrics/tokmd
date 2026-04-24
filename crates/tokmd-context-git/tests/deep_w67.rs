@@ -109,7 +109,7 @@ fn hotspot_ordering_highest_first() {
         ("util.rs", simulate_hotspot(50, 2)),   // 100
     ];
     let mut sorted = scores.clone();
-    sorted.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted.sort_by_key(|b| std::cmp::Reverse(b.1));
     assert_eq!(sorted[0].0, "main.rs");
     assert_eq!(sorted[1].0, "lib.rs");
     assert_eq!(sorted[2].0, "util.rs");

@@ -178,7 +178,7 @@ proptest! {
             files: total_files,
             bytes: total_bytes,
             tokens: total_tokens,
-            avg_lines: if total_files > 0 { total_lines / total_files } else { 0 },
+            avg_lines: total_lines.checked_div(total_files).unwrap_or(0),
         };
         let report = LangReport {
             rows: rows.clone(),
@@ -219,7 +219,7 @@ proptest! {
             files: total_files,
             bytes: total_bytes,
             tokens: total_tokens,
-            avg_lines: if total_files > 0 { total_lines / total_files } else { 0 },
+            avg_lines: total_lines.checked_div(total_files).unwrap_or(0),
         };
         let report = ModuleReport {
             rows: rows.clone(),

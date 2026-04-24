@@ -262,21 +262,18 @@ fn w51_analyze_paths_use_forward_slashes() {
     // Recursively check all string values for backslash path separators
     fn check_no_backslash_paths(v: &Value, path: &str) {
         match v {
-            Value::String(s) => {
-                // Skip version strings and hash values
+            Value::String(s)
                 if !path.contains("version")
                     && !path.contains("hash")
                     && !path.contains("blake3")
                     && !path.contains("integrity")
                     && s.contains('\\')
                     && s.contains(std::path::MAIN_SEPARATOR)
-                {
-                    // Only flag if it looks like a file path
-                    if s.contains(".rs") || s.contains(".js") || s.contains(".md") {
-                        panic!("backslash in path-like string at {path}: {s}");
-                    }
-                }
+                    && (s.contains(".rs") || s.contains(".js") || s.contains(".md")) =>
+            {
+                panic!("backslash in path-like string at {path}: {s}");
             }
+            Value::String(_) => {}
             Value::Object(map) => {
                 for (k, val) in map {
                     check_no_backslash_paths(val, &format!("{path}.{k}"));

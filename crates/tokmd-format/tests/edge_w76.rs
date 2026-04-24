@@ -91,7 +91,7 @@ fn make_lang_row(lang: &str, code: usize, lines: usize, files: usize) -> LangRow
         files,
         bytes: code * 30,
         tokens: code * 4,
-        avg_lines: if files > 0 { lines / files } else { 0 },
+        avg_lines: lines.checked_div(files).unwrap_or(0),
     }
 }
 
@@ -103,7 +103,7 @@ fn make_module_row(module: &str, code: usize, lines: usize, files: usize) -> Mod
         files,
         bytes: code * 30,
         tokens: code * 4,
-        avg_lines: if files > 0 { lines / files } else { 0 },
+        avg_lines: lines.checked_div(files).unwrap_or(0),
     }
 }
 
