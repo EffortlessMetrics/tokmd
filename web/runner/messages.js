@@ -107,8 +107,8 @@ export function isRunMessage(value) {
             value.args &&
             typeof value.args === "object" &&
             !Array.isArray(value.args) &&
-            Array.isArray(value.args.inputs) &&
-            value.args.inputs.every(isInMemoryInput)
+            (!value.args.inputs || (Array.isArray(value.args.inputs) && value.args.inputs.every(isInMemoryInput))) &&
+            (value.args.inputs || value.args.paths || value.args.scan)
     );
 }
 

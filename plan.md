@@ -1,15 +1,9 @@
-1. **Remove unwraps from `xtask/src/tasks/publish.rs`**:
-   - In `xtask/src/tasks/publish.rs`, there's a `.unwrap()` around line 254: `let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();`. I will change it to return an error properly using `context` or `ok_or_else`.
-   - In `xtask/src/tasks/publish.rs` tests (around line 1180), change `.unwrap()` to `expect("...")`.
-
-2. **Remove unwraps from `xtask/src/tasks/bump.rs`**:
-   - Change `.unwrap()` in tests in `xtask/src/tasks/bump.rs` to `.expect("...")`.
-
-3. **Verify tests and format**:
-   - Run `cargo test -p xtask`
-   - Run `cargo fmt`
-   - Run `cargo clippy -p xtask`
-
-4. **Complete Pre-commit Steps**: Ensure proper testing, verification, review, and reflection are done using `pre_commit_instructions`.
-
-5. **Commit and Submit**: Update envelope and ledger, then submit PR.
+1. **Explore `web/runner/messages.js` runtime message validation**
+   - Check `isRunMessage` behavior causing path-based payloads to fail.
+   - Test locally with `npm --prefix web/runner test`.
+   - Implement the fix to not strictly require `inputs`.
+2. **Commit PR artifacts**
+   - Save decision, PR body, receipts, and result in `.jules/runs/palette_binding_dx/`.
+3. **Verify**
+   - Stage everything and submit.
+   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
