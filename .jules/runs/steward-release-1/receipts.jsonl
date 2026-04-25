@@ -1,4 +1,0 @@
-{"command": "cargo xtask publish --plan", "status": "passed"}
-{"command": "cargo xtask version-consistency", "status": "passed"}
-{"command": "cargo test -p xtask", "status": "passed"}
-{"command": "python3 fix_toml.py", "status": "passed", "note": "removed unused pyo3-build-config"}

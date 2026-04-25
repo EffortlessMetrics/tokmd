@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use std::{
     collections::{BTreeMap, HashSet},
     fs,
@@ -222,12 +224,8 @@ fn read_tracked_paths(workspace_root: &Path) -> Result<Vec<String>> {
         .context("`git ls-files -z` produced non-UTF-8 output")
 }
 
-use std::borrow::Cow;
-
 fn to_lowercase_cow(s: &str) -> Cow<'_, str> {
-    if s.chars()
-        .any(|c| c.is_ascii_uppercase() || c.is_uppercase())
-    {
+    if s.chars().any(|c| c.is_uppercase()) {
         Cow::Owned(s.to_lowercase())
     } else {
         Cow::Borrowed(s)
