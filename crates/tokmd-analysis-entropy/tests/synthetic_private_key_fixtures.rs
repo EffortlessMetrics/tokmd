@@ -37,21 +37,21 @@ fn export_for_paths(paths: &[&str]) -> ExportData {
 }
 
 #[test]
-fn uselesskey_generates_reproducible_rsa_der_fixtures() {
-    let first = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_PRIMARY);
-    let second = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_PRIMARY);
-    let different = crypto::rsa_private_key_pkcs8_der(crypto::label::ENTROPY_ALTERNATE);
+fn synthetic_private_key_bytes_are_reproducible() {
+    let first = crypto::synthetic_private_key_bytes(crypto::label::ENTROPY_PRIMARY);
+    let second = crypto::synthetic_private_key_bytes(crypto::label::ENTROPY_PRIMARY);
+    let different = crypto::synthetic_private_key_bytes(crypto::label::ENTROPY_ALTERNATE);
 
     assert_eq!(first, second);
     assert_ne!(first, different);
 }
 
 #[test]
-fn entropy_report_detects_uselesskey_generated_private_key_der() {
+fn entropy_report_detects_synthetic_private_key_fixture() {
     let dir = tempdir().expect("tempdir should be created");
     let relative_path = crypto::GENERATED_PRIVATE_KEY_RELATIVE_PATH;
     crypto::write_generated_private_key(dir.path(), crypto::label::ENTROPY_REPORT)
-        .expect("rsa fixture bytes should be written");
+        .expect("synthetic fixture bytes should be written");
 
     let export = export_for_paths(&[relative_path]);
     let files = vec![PathBuf::from(relative_path)];
@@ -65,7 +65,7 @@ fn entropy_report_detects_uselesskey_generated_private_key_der() {
     assert_eq!(suspect.module, "fixtures/generated");
     assert!(
         suspect.entropy_bits_per_byte > 7.0,
-        "generated DER fixture should be strongly entropic, got {}",
+        "generated fixture should be strongly entropic, got {}",
         suspect.entropy_bits_per_byte
     );
     assert_eq!(suspect.class, EntropyClass::High);

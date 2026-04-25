@@ -1,11 +1,9 @@
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
 
-use uselesskey::{Factory, RsaFactoryExt, RsaSpec, Seed};
-
-const SEED_NAMESPACE: &str = "tokmd/uselesskey/v1";
+const FIXTURE_NAMESPACE: &[u8] = b"tokmd/high-entropy-test-fixture/v1";
+const SYNTHETIC_PRIVATE_KEY_LEN: usize = 2048;
 
 pub const GENERATED_PRIVATE_KEY_RELATIVE_PATH: &str = "fixtures/generated/private-key.pk8";
 
@@ -16,21 +14,14 @@ pub mod label {
     pub const SECURITY_SUSPECT: &str = "security-private-key-suspect";
 }
 
-pub fn factory() -> &'static Factory {
-    static FACTORY: OnceLock<Factory> = OnceLock::new();
+pub fn synthetic_private_key_bytes(label: &str) -> Vec<u8> {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(FIXTURE_NAMESPACE);
+    hasher.update(label.as_bytes());
 
-    FACTORY.get_or_init(|| {
-        let seed =
-            Seed::from_env_value(SEED_NAMESPACE).expect("seed namespace should remain valid");
-        Factory::deterministic(seed)
-    })
-}
-
-pub fn rsa_private_key_pkcs8_der(label: &str) -> Vec<u8> {
-    factory()
-        .rsa(label, RsaSpec::rs256())
-        .private_key_pkcs8_der()
-        .to_vec()
+    let mut bytes = vec![0; SYNTHETIC_PRIVATE_KEY_LEN];
+    hasher.finalize_xof().fill(&mut bytes);
+    bytes
 }
 
 pub fn generated_private_key_output_path(root: &Path) -> PathBuf {
@@ -44,29 +35,25 @@ pub fn write_generated_private_key(root: &Path, label: &str) -> io::Result<PathB
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(&output_path, rsa_private_key_pkcs8_der(label))?;
+    fs::write(&output_path, synthetic_private_key_bytes(label))?;
     Ok(output_path)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{factory, generated_private_key_output_path, label, write_generated_private_key};
-    use uselesskey::RsaFactoryExt;
+    use super::{
+        generated_private_key_output_path, label, synthetic_private_key_bytes,
+        write_generated_private_key,
+    };
 
     #[test]
-    fn factory_is_deterministic_for_stable_labels() {
-        let first = factory().rsa(label::ENTROPY_PRIMARY, uselesskey::RsaSpec::rs256());
-        let second = factory().rsa(label::ENTROPY_PRIMARY, uselesskey::RsaSpec::rs256());
-        let different = factory().rsa(label::ENTROPY_ALTERNATE, uselesskey::RsaSpec::rs256());
+    fn synthetic_private_key_bytes_are_deterministic_for_stable_labels() {
+        let first = synthetic_private_key_bytes(label::ENTROPY_PRIMARY);
+        let second = synthetic_private_key_bytes(label::ENTROPY_PRIMARY);
+        let different = synthetic_private_key_bytes(label::ENTROPY_ALTERNATE);
 
-        assert_eq!(
-            first.private_key_pkcs8_der(),
-            second.private_key_pkcs8_der()
-        );
-        assert_ne!(
-            first.private_key_pkcs8_der(),
-            different.private_key_pkcs8_der()
-        );
+        assert_eq!(first, second);
+        assert_ne!(first, different);
     }
 
     #[test]

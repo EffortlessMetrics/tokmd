@@ -8,8 +8,7 @@ repository.workspace = true
 description = "Shared deterministic test support for tokmd workspace tests."
 
 [dependencies]
-uselesskey.workspace = true
+blake3.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-
