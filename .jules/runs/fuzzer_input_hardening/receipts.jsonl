@@ -1,1 +1,0 @@
-{"timestamp": "2026-04-25T11:59:03Z", "command": "cargo fuzz run fuzz_scan_args --features scan_args -- -runs=10", "status": "failed (ASAN linker error)"}
