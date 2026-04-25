@@ -1,0 +1,19 @@
+{
+  "prompt_id": "steward_release",
+  "persona": "Steward",
+  "style": "Stabilizer",
+  "primary_shard": "tooling-governance",
+  "allowed_paths": [
+    "xtask/**",
+    ".github/workflows/**",
+    "docs/**",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/**/Cargo.toml",
+    ".cargo/**"
+  ],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": ["pr-ready-patch", "learning-pr"]
+}
