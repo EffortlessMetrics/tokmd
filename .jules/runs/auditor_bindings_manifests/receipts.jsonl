@@ -1,4 +1,0 @@
-{"command": "cargo check -p tokmd-python", "result": "Finished `dev` profile"}
-{"command": "cargo test -p tokmd-python", "result": "test result: ok. 12 passed; 0 failed"}
-{"command": "cargo check --workspace", "result": "Finished `dev` profile"}
-{"command": "cargo xtask version-consistency", "result": "Version consistency checks passed"}
