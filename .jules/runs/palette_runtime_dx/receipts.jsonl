@@ -1,4 +1,0 @@
-{"cmd": "mkdir -p .jules/runs/palette_runtime_dx", "exit_code": 0}
-{"cmd": "cargo run -- anolyze", "exit_code": 1}
-{"cmd": "cargo run -- xpor", "exit_code": 1}
-{"cmd": "cargo test -p tokmd -- test_error_hints", "exit_code": 0}
