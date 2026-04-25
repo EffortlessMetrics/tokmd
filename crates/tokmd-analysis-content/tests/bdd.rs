@@ -160,6 +160,25 @@ fn given_max_bytes_limit_when_building_todo_report_then_stops_early() {
 }
 
 #[test]
+fn given_todo_past_remaining_budget_when_building_todo_report_then_not_counted() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    let mut content = "1234".repeat(6);
+    content.push_str("TODO: hidden");
+    std::fs::write(root.join("budget.rs"), content).unwrap();
+
+    let files = vec![PathBuf::from("budget.rs")];
+    let limits = ContentLimits {
+        max_bytes: Some(24),
+        max_file_bytes: None,
+    };
+    let report = build_todo_report(root, &files, &limits, 1000).unwrap();
+
+    assert_eq!(report.total, 0);
+}
+
+#[test]
 fn given_empty_file_list_when_building_todo_report_then_zero_total() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();
@@ -491,6 +510,34 @@ fn given_max_bytes_limit_when_building_import_report_then_budget_respected() {
 
     // With a 5-byte budget, at most one file can be processed
     assert!(report.edges.len() <= 1);
+}
+
+#[test]
+fn given_import_past_remaining_budget_when_building_import_report_then_not_detected() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path();
+
+    std::fs::write(
+        root.join("late.py"),
+        format!("{}\nimport os\n", "12345".repeat(6)),
+    )
+    .unwrap();
+
+    let files = vec![PathBuf::from("late.py")];
+    let export = ExportData {
+        rows: vec![file_row("late.py", "root", "Python", 40)],
+        module_roots: vec!["root".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+    let limits = ContentLimits {
+        max_bytes: Some(10),
+        max_file_bytes: None,
+    };
+    let report =
+        build_import_report(root, &files, &export, ImportGranularity::Module, &limits).unwrap();
+
+    assert!(report.edges.is_empty());
 }
 
 #[test]
