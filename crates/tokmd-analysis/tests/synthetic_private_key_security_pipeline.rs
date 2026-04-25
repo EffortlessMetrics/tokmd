@@ -80,11 +80,11 @@ fn export_for_private_key_fixture(path: &str) -> ExportData {
 }
 
 #[test]
-fn security_preset_detects_uselesskey_generated_private_key() {
+fn security_preset_detects_synthetic_private_key_fixture() {
     let dir = tempfile::tempdir().expect("tempdir should be created");
     let relative_path = crypto::GENERATED_PRIVATE_KEY_RELATIVE_PATH;
     crypto::write_generated_private_key(dir.path(), crypto::label::SECURITY_SUSPECT)
-        .expect("rsa fixture bytes should be written");
+        .expect("synthetic fixture bytes should be written");
 
     let receipt = analyze(
         make_context(dir.path(), export_for_private_key_fixture(relative_path)),
