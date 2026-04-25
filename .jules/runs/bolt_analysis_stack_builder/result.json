@@ -1,0 +1,8 @@
+{
+  "outcome": "patch",
+  "friction_items": [],
+  "primary_target": "tokmd-analysis-topics",
+  "files_modified": [
+    "crates/tokmd-analysis-topics/src/lib.rs"
+  ]
+}
