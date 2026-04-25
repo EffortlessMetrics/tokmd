@@ -1,5 +1,8 @@
 #![doc = "Feature matrix and warning catalog for tokmd-analysis preset execution."]
 
+use std::fmt;
+use std::str::FromStr;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PresetKind {
     Receipt,
@@ -34,23 +37,45 @@ impl PresetKind {
         }
     }
 
-    #[allow(clippy::should_implement_trait)]
     pub fn from_str(value: &str) -> Option<Self> {
+        value.parse().ok()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ParsePresetKindError;
+
+impl fmt::Display for ParsePresetKindError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("unknown analysis preset")
+    }
+}
+
+impl FromStr for PresetKind {
+    type Err = ParsePresetKindError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
-            "receipt" => Some(Self::Receipt),
-            "estimate" => Some(Self::Estimate),
-            "health" => Some(Self::Health),
-            "risk" => Some(Self::Risk),
-            "supply" => Some(Self::Supply),
-            "architecture" => Some(Self::Architecture),
-            "topics" => Some(Self::Topics),
-            "security" => Some(Self::Security),
-            "identity" => Some(Self::Identity),
-            "git" => Some(Self::Git),
-            "deep" => Some(Self::Deep),
-            "fun" => Some(Self::Fun),
-            _ => None,
+            "receipt" => Ok(Self::Receipt),
+            "estimate" => Ok(Self::Estimate),
+            "health" => Ok(Self::Health),
+            "risk" => Ok(Self::Risk),
+            "supply" => Ok(Self::Supply),
+            "architecture" => Ok(Self::Architecture),
+            "topics" => Ok(Self::Topics),
+            "security" => Ok(Self::Security),
+            "identity" => Ok(Self::Identity),
+            "git" => Ok(Self::Git),
+            "deep" => Ok(Self::Deep),
+            "fun" => Ok(Self::Fun),
+            _ => Err(ParsePresetKindError),
         }
+    }
+}
+
+impl fmt::Display for PresetKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 
@@ -519,5 +544,25 @@ mod tests {
         assert!(!DisabledFeature::Archetype.warning().is_empty());
         assert!(!DisabledFeature::Topics.warning().is_empty());
         assert!(!DisabledFeature::Fun.warning().is_empty());
+    }
+
+    #[test]
+    fn preset_kind_implements_std_from_str() {
+        for preset in PresetKind::all() {
+            let parsed =
+                <PresetKind as FromStr>::from_str(preset.as_str()).expect("preset should parse");
+            assert_eq!(parsed, *preset);
+        }
+        assert_eq!(
+            <PresetKind as FromStr>::from_str("bogus"),
+            Err(ParsePresetKindError)
+        );
+    }
+
+    #[test]
+    fn preset_kind_display_matches_as_str() {
+        for preset in PresetKind::all() {
+            assert_eq!(preset.to_string(), preset.as_str());
+        }
     }
 }
