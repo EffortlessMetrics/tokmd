@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Determinism regression tests (wave 70).
 //!
 //! These tests verify the critical invariant: same input → identical output

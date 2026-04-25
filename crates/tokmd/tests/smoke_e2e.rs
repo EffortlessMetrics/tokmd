@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! End-to-end smoke tests for CLI commands and flags that lack dedicated
 //! coverage elsewhere.  Each test exercises a real `tokmd` invocation.
 

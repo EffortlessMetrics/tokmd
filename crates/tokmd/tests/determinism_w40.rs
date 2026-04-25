@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Determinism regression suite – wave 40.
 //!
 //! Verifies byte-stable output across repeated runs, sort invariants,
