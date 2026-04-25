@@ -270,11 +270,9 @@ fn w51_analyze_paths_use_forward_slashes() {
                     && !path.contains("integrity")
                     && s.contains('\\')
                     && s.contains(std::path::MAIN_SEPARATOR)
+                    && (s.contains(".rs") || s.contains(".js") || s.contains(".md"))
                 {
-                    // Only flag if it looks like a file path
-                    if s.contains(".rs") || s.contains(".js") || s.contains(".md") {
-                        panic!("backslash in path-like string at {path}: {s}");
-                    }
+                    panic!("backslash in path-like string at {path}: {s}");
                 }
             }
             Value::Object(map) => {
