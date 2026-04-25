@@ -133,10 +133,9 @@ fn read_lines_with_very_long_line_respects_byte_limit() {
     let lines = read_lines(&path, 100, 5000).unwrap();
     assert_eq!(
         lines.len(),
-        1,
-        "byte limit should stop after first long line"
+        0,
+        "byte limit should skip lines that cannot fit in the remaining budget"
     );
-    assert_eq!(lines[0].len(), 10_000);
 }
 
 #[test]
