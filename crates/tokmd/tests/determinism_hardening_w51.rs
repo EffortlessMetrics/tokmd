@@ -260,6 +260,7 @@ fn w51_analyze_paths_use_forward_slashes() {
     }
 
     // Recursively check all string values for backslash path separators
+    #[allow(clippy::collapsible_match)]
     fn check_no_backslash_paths(v: &Value, path: &str) {
         match v {
             Value::String(s) => {
